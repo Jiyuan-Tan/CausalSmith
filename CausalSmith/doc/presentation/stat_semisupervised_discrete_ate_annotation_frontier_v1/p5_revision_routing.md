@@ -1,0 +1,18 @@
+# Revision routing plan (major_revision)
+
+## fix by hand in the authored sources (prose/structure rewrite)
+- [major·structure·rewrite] (Common-marginal lower bounds) The paragraph titled “One-coordinate marked-Poisson input” identifies a “load-bearing analytic estimate,” but the manuscript supplies only an informal likelihood-expansion intuition rather than a named statement with exact hypotheses and a proof. The proof of the uniform-intensity construction invokes this estimate to obtain the geometric total-variation decay, so the reader-facing lower-bound argument is not self-contained even though the final theorem is verified.
+- [major·structure·rewrite] (global) The manuscript is organized too closely to a generated proof ledger for a journal article. Examples include the full dependency inventory inside the “Binary length” definition, repeated calibration bookkeeping, and many long proofs whose main statistical ideas are obscured by measure-theoretic and constant-tracking details. This makes the contribution difficult to evaluate despite the strong main theorem.
+- [minor·prose·rewrite] (abstract) The sentence “The upper bound is attained by a fully specified hybrid estimator” is formally defensible, but it invites an operational reading that sits uneasily with the later disclosure that the displayed calibration can require n on the order of 1.6×10^17 even at degree two and otherwise returns zero. The estimator is best understood as an explicit proof-calibrated minimax witness.
+- [minor·prose·rewrite] (Main minimax results) The sentence “its conservative calibrated witness is not an operational allocation rule” appears outside the explicitly titled limitations paragraph and violates the affirmative contribution-framing contract.
+
+## escalate — out of causalsmith scope (bank/causalsmith)
+- [minor·statement·rewrite] (Main minimax results) The theorem calls the estimator “total computable,” followed by the explanation “total computable means that the displayed finite sums define an everywhere-defined statistic.” Everywhere-defined and computable are different properties, and the formal artifact presented here establishes an explicit measurable statistic rather than an executable computability theorem.
+- [minor·statement·rewrite] (Main minimax results) The label “Unannotated endpoint” for m=0 is liable to reverse the experiment's meaning: this endpoint still contains n outcome-annotated records and has no auxiliary outcome-unlabeled records. The manuscript later has to explain the generated phrase.
+- [minor·other·source_change] (Known-marginal experiment and verification note) The verification note gives filenames, a commit hash, and tool versions but no stable repository or archival location and no concise reproduction command. The formal verification is central to the submission's rigor claim, so readers need an independently retrievable artifact.
+- [nit·statement·rewrite] (Upper-bound ingredients) The displayed “Inverse-count arm mean” formula begins with q_ax/(u/u), which is algebraically just q_ax under u>0 and obscures the statistical quantity being averaged.
+
+## your call — orchestrator decides
+- [minor·citation·rewrite] (Related work) The dedicated comparison does not engage sufficiently with Cheng, Ananthakrishnan, and Cai, although their chart-review design is the closest empirical motivation identified in the surrounding literature. Their surrogate-rich, doubly robust, locally efficient setting and this paper's baseline-only unrestricted finite-cell minimax benchmark answer related but distinct questions.
+
+→ revise by hand at the level that owns each finding; formal statements remain frozen; then rescore once

@@ -1,0 +1,618 @@
+\begin{proof}[Proof of \cref{obj:lem:private-moment-and-dependence}]
+Write
+\[
+[m]=\{1,\ldots,m\},
+\qquad
+S=(2A-1)(2Y-1).
+\]
+We use the indicator convention
+\[
+\mathbf1_{\{\text{condition}\}}
+=
+\begin{cases}
+1,&\text{if the condition holds},\\
+0,&\text{otherwise},
+\end{cases}
+\]
+and take empty products and zeroth powers to equal one, including \(0^0=1\).
+By \cref{obj:ass:iid-people}, the singleton seed and independent local draws give independent, identically distributed message rows in the block. All the statistics considered below have finite moments because the block message alphabet is finite.
+
+\begin{enumerate}
+\item \textit{Single-coordinate means.}
+By \cref{obj:ass:consistency},
+\[
+\mathbf1_{\{X=j\}}S
+=
+2\mathbf1_{\{X=j,A=1,Y^1=1\}}
+-\mathbf1_{\{X=j,A=1\}}
+-2\mathbf1_{\{X=j,A=0,Y^0=1\}}
++\mathbf1_{\{X=j,A=0\}}
+\quad P\text{-almost surely}.
+\]
+Fair assignment in \cref{obj:ass:fair-randomization} supplies, for \(a\in\{0,1\}\),
+\[
+P(X=j,A=a,Y^a=1)=\frac12P(X=j,Y^a=1),
+\qquad
+P(X=j,A=a)=\frac12P(X=j).
+\]
+Taking expectations in the preceding identity and using
+\cref{obj:ass:uniform-covariates} therefore gives
+\[
+\mathbb E_P[\mathbf1_{\{X=j\}}S]
+=
+P(X=j,Y^1=1)-P(X=j,Y^0=1)
+=
+\frac{\mu_{1j}(P)-\mu_{0j}(P)}d
+=
+\frac{\tau_j(P)}d.
+\]
+The sampler in \cref{obj:def:vector-kernel} gives
+\[
+\mathbb E[Z_{ij}\mid O]
+=
+\begin{cases}
+\delta S,&X=j,\\
+0,&X\ne j.
+\end{cases}
+\]
+Consequently, for every \(i\in[m]\) and \(j\in[d]\),
+\[
+\mathbb E[W_{ij}]
+=
+b\delta\,\mathbb E_P[\mathbf1_{\{X=j\}}S]
+=
+\frac d\delta\,\delta\,\frac{\tau_j(P)}d
+=
+\tau_j(P).
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.vectorMessageLaw_scaled_sign_integral
+
+\item \textit{Protocol membership.}
+The exponential formula for the hyperbolic tangent yields
+\[
+\delta=\frac{e^\varepsilon-1}{e^\varepsilon+1},
+\qquad
+0<\delta<1,
+\qquad
+1+\delta=e^\varepsilon(1-\delta).
+\]
+For any observed records \(o,o'\) and any
+\(z\in\{-1,1\}^d\), the masses in
+\cref{obj:def:vector-kernel} satisfy
+\[
+2^{-d}(1-\delta)
+\le Q^{\mathrm{vec}}(z\mid o)
+\le 2^{-d}(1+\delta).
+\]
+It follows that
+\[
+Q^{\mathrm{vec}}(z\mid o)
+\le
+2^{-d}(1+\delta)
+=
+e^\varepsilon2^{-d}(1-\delta)
+\le
+e^\varepsilon Q^{\mathrm{vec}}(z\mid o').
+\]
+Summing over any message event \(E\subseteq\{-1,1\}^d\) proves
+\[
+Q^{\mathrm{vec}}(E\mid o)
+\le e^\varepsilon Q^{\mathrm{vec}}(E\mid o').
+\]
+The participant kernels are constant in message history. Thus they satisfy
+\cref{obj:ass:full-record-privacy,obj:ass:noninteraction}, and
+\cref{obj:def:noninteractive-class} gives
+\[
+Q^{\mathrm{vec}}\in\mathfrak Q_{\mathrm{NI}}(n,d,\varepsilon).
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.vectorProtocol_noninteractive
+
+\item \textit{Second and cross-coordinate row moments.}
+Since \(Z_{ij}\in\{-1,1\}\),
+\[
+W_{ij}^2=b^2,
+\qquad
+\mathbb E[W_{ij}^2]=b^2.
+\]
+For distinct \(j,j'\in[d]\), flipping coordinate \(j\) pairs opposite terms in the first sum below. Flipping every coordinate pairs opposite terms in the second sum, for every \(\ell\in[d]\):
+\[
+\sum_{z\in\{-1,1\}^d}z_jz_{j'}=0,
+\qquad
+\sum_{z\in\{-1,1\}^d}z_jz_{j'}z_\ell=0.
+\]
+Expanding the kernel mass from \cref{obj:def:vector-kernel} hence gives
+\[
+\begin{aligned}
+\mathbb E[Z_{ij}Z_{ij'}\mid O]
+&=
+2^{-d}\sum_{z\in\{-1,1\}^d}z_jz_{j'}
++
+2^{-d}\delta S
+\sum_{z\in\{-1,1\}^d}z_jz_{j'}z_X\\
+&=0.
+\end{aligned}
+\]
+Averaging over the record and scaling proves
+\[
+\mathbb E[W_{ij}W_{ij'}]=0
+\qquad(j\ne j').
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.blockMean_scaledMessages_cross
+
+\item \textit{Unbiased private moments.}
+For each integer \(0\le k\le m\), define the family of participant subsets
+\[
+\mathcal J_k=\{J\subseteq[m]:|J|=k\}.
+\]
+Independent rows imply, for every \(J\subseteq[m]\),
+\[
+\mathbb E\left[\prod_{i\in J}W_{ij}\right]
+=
+\prod_{i\in J}\mathbb E[W_{ij}]
+=
+\tau_j(P)^{|J|}.
+\]
+There are \(\binom mk>0\) members of \(\mathcal J_k\). Applying
+\cref{obj:def:private-moments} therefore gives
+\[
+\mathbb E[\mathsf U_{kj}]
+=
+\binom mk^{-1}\sum_{J\in\mathcal J_k}\tau_j(P)^k
+=
+\tau_j(P)^k.
+\]
+For \(k=0\), the family consists of the empty subset and this is the identity
+\(\mathbb E[\mathsf U_{0j}]=1\).
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.blockMean_privateMoment_eq_rowMean_pow
+
+\item \textit{The second-moment bound at degrees zero and one.}
+At \(k=0\), both sides of the claimed second-moment bound equal one.
+At \(k=1\), \cref{obj:def:private-moments} gives
+\[
+\mathsf U_{1j}=\frac1m\sum_{i=1}^mW_{ij}.
+\]
+The diagonal row terms have expectation \(b^2\), while independence gives
+\(\mathbb E[W_{ij}W_{i'j}]=\tau_j(P)^2\) for \(i\ne i'\).
+Thus
+\[
+\begin{aligned}
+\mathbb E[\mathsf U_{1j}^2]
+&=
+\frac{mb^2+m(m-1)\tau_j(P)^2}{m^2}\\
+&=
+\tau_j(P)^2+\frac{b^2-\tau_j(P)^2}{m}\\
+&\le
+\tau_j(P)^2+\frac{2b^2}{m},
+\end{aligned}
+\]
+where the last inequality follows from nonnegativity of the squares.
+This establishes the required bound in the degree-one case.
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.blockMean_privateMoment_sq_le
+
+\item \textit{The second-moment bound at higher degrees.}
+Suppose now that \(k\ge2\) and \(2k\le m\). For
+\(J,J'\in\mathcal J_k\), each row in \(J\cap J'\) contributes a second moment,
+each row in either set difference contributes a first moment, and every
+remaining row contributes one. Independence therefore gives
+\[
+\begin{aligned}
+\mathbb E\left[
+\left(\prod_{i\in J}W_{ij}\right)
+\left(\prod_{i\in J'}W_{ij}\right)\right]
+&=
+b^{2|J\cap J'|}
+\tau_j(P)^{|J\setminus J'|+|J'\setminus J|}\\
+&=
+b^{2|J\cap J'|}
+\bigl(\tau_j(P)^2\bigr)^{k-|J\cap J'|}.
+\end{aligned}
+\]
+Expanding the square of the subset average gives the exact identity
+\[
+\mathbb E[\mathsf U_{kj}^2]
+=
+\binom mk^{-2}
+\sum_{J\in\mathcal J_k}\sum_{J'\in\mathcal J_k}
+b^{2|J\cap J'|}
+\bigl(\tau_j(P)^2\bigr)^{k-|J\cap J'|}.
+\]
+
+We first establish the inclusion count bound
+\[
+\binom{m-v}{k-v}
+\le
+\binom mk\left(\frac{2k}{m}\right)^v
+\qquad(0\le v\le k).
+\]
+At \(v=0\) this is equality. For \(0\le v<k\), the assumptions give
+\(m-v\ge m/2>0\), and hence
+\[
+\frac{k-v}{m-v}\le\frac{2k}{m}.
+\]
+The binomial recurrence and induction then yield
+\[
+\begin{aligned}
+\binom{m-(v+1)}{k-(v+1)}
+&=
+\binom{m-v}{k-v}\frac{k-v}{m-v}\\
+&\le
+\binom mk\left(\frac{2k}{m}\right)^{v+1}.
+\end{aligned}
+\]
+In particular, for any \(J_{\mathrm{sub}}\subseteq[m]\) with
+\(|J_{\mathrm{sub}}|\le k\),
+\[
+\#\{J'\in\mathcal J_k:J_{\mathrm{sub}}\subseteq J'\}
+=
+\binom{m-|J_{\mathrm{sub}}|}{k-|J_{\mathrm{sub}}|}
+\le
+\binom mk
+\left(\frac{2k}{m}\right)^{|J_{\mathrm{sub}}|}.
+\]
+
+Fix \(J\in\mathcal J_k\). All moment weights are nonnegative, and the
+subset \(J_{\mathrm{sub}}=J\cap J'\) is one of the terms in
+\[
+b^{2|J\cap J'|}
+\bigl(\tau_j(P)^2\bigr)^{k-|J\cap J'|}
+\le
+\sum_{J_{\mathrm{sub}}\subseteq J\cap J'}
+b^{2|J_{\mathrm{sub}}|}
+\bigl(\tau_j(P)^2\bigr)^{k-|J_{\mathrm{sub}}|}.
+\]
+Summing over \(J'\), interchanging the finite sums, and applying the
+inclusion count bound gives
+\[
+\begin{aligned}
+&\sum_{J'\in\mathcal J_k}
+b^{2|J\cap J'|}
+\bigl(\tau_j(P)^2\bigr)^{k-|J\cap J'|}\\
+&\quad\le
+\sum_{J_{\mathrm{sub}}\subseteq J}
+b^{2|J_{\mathrm{sub}}|}
+\bigl(\tau_j(P)^2\bigr)^{k-|J_{\mathrm{sub}}|}
+\#\{J'\in\mathcal J_k:J_{\mathrm{sub}}\subseteq J'\}\\
+&\quad\le
+\binom mk
+\sum_{J_{\mathrm{sub}}\subseteq J}
+\left(\frac{2kb^2}{m}\right)^{|J_{\mathrm{sub}}|}
+\bigl(\tau_j(P)^2\bigr)^{k-|J_{\mathrm{sub}}|}\\
+&\quad=
+\binom mk
+\sum_{v=0}^k\binom kv
+\left(\frac{2kb^2}{m}\right)^v
+\bigl(\tau_j(P)^2\bigr)^{k-v}\\
+&\quad=
+\binom mk
+\left(\tau_j(P)^2+\frac{2kb^2}{m}\right)^k.
+\end{aligned}
+\]
+The penultimate equality counts the \(v\)-subsets of \(J\), and the final
+equality is the binomial expansion. Averaging this row bound over
+\(J\in\mathcal J_k\) proves
+\[
+\begin{aligned}
+\mathbb E[\mathsf U_{kj}^2]
+&\le
+\binom mk^{-2}\binom mk\binom mk
+\left(\tau_j(P)^2+\frac{2kb^2}{m}\right)^k\\
+&=
+\left(\tau_j(P)^2+\frac{2kb^2}{m}\right)^k.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.blockMean_privateMoment_sq_le
+
+\item \textit{Finite orthonormal column bases.}
+By \cref{obj:ass:interior-means},
+\[
+-\frac12\le\tau_j(P)\le\frac12,
+\qquad
+\tau_j(P)^2\le\frac14.
+\]
+Since \(0<\delta<1\) and \(d\ge2\),
+\[
+b=\frac d\delta>d\ge2,
+\qquad
+b^2-\tau_j(P)^2>0.
+\]
+For \(i\in[m]\), \(j\in[d]\), and \(J\subseteq[m]\), define
+\[
+\psi^{\mathrm{row}}_{ij}
+=
+\frac{W_{ij}-\tau_j(P)}
+{\sqrt{b^2-\tau_j(P)^2}},
+\qquad
+\psi^{\mathrm{col}}_{Jj}
+=
+\prod_{i\in J}\psi^{\mathrm{row}}_{ij}.
+\]
+In particular, \(\psi^{\mathrm{col}}_{\varnothing j}=1\).
+The row moments already established give
+\[
+\mathbb E[W_{ij}-\tau_j(P)]=0,
+\]
+\[
+\mathbb E[(W_{ij}-\tau_j(P))^2]
+=
+b^2-2\tau_j(P)\mathbb E[W_{ij}]+\tau_j(P)^2
+=
+b^2-\tau_j(P)^2,
+\]
+and, for \(j\ne j'\),
+\[
+\begin{aligned}
+&\mathbb E[(W_{ij}-\tau_j(P))(W_{ij'}-\tau_{j'}(P))]\\
+&\quad=
+\mathbb E[W_{ij}W_{ij'}]
+-\tau_{j'}(P)\mathbb E[W_{ij}]
+-\tau_j(P)\mathbb E[W_{ij'}]
++\tau_j(P)\tau_{j'}(P)\\
+&\quad=-\tau_j(P)\tau_{j'}(P).
+\end{aligned}
+\]
+Thus
+\[
+\mathbb E[\psi^{\mathrm{row}}_{ij}]=0,
+\qquad
+\mathbb E[(\psi^{\mathrm{row}}_{ij})^2]=1.
+\]
+
+If \(J\ne J'\), a row in \(J\setminus J'\) or \(J'\setminus J\)
+contributes a single centered factor. Factoring over independent rows
+therefore gives, for any \(j,j'\in[d]\),
+\[
+\mathbb E[
+\psi^{\mathrm{col}}_{Jj}\psi^{\mathrm{col}}_{J'j'}]=0.
+\]
+For equal subsets in the same column, row independence instead gives
+\[
+\mathbb E[(\psi^{\mathrm{col}}_{Jj})^2]
+=
+\prod_{i\in J}\mathbb E[(\psi^{\mathrm{row}}_{ij})^2]
+=
+1.
+\]
+Consequently,
+\[
+\mathbb E[
+\psi^{\mathrm{col}}_{Jj}\psi^{\mathrm{col}}_{J'j}]
+=
+\begin{cases}
+1,&J=J',\\
+0,&J\ne J',
+\end{cases}
+\qquad
+\mathbb E[\psi^{\mathrm{col}}_{Jj}]
+=
+\begin{cases}
+1,&J=\varnothing,\\
+0,&J\ne\varnothing.
+\end{cases}
+\]
+For each \(j\), these functions of the column are linearly independent by
+orthonormality. Their number equals the dimension of the real function
+space on the column patterns:
+\[
+\#\{J:J\subseteq[m]\}
+=
+2^m
+=
+\dim_{\mathbb R}\mathbb R^{\{-b,b\}^m}.
+\]
+They therefore form a basis of that function space.
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.booleanColumnWalshBasis
+
+\item \textit{Centered column expansions.}
+Fix the given collection of deterministic measurable statistics.
+For every \(j\in[d]\) and \(J\subseteq[m]\), define
+\[
+\kappa^{\mathrm{raw}}_{Jj}
+=
+\mathbb E[T_j^{\mathrm{col}}\psi^{\mathrm{col}}_{Jj}],
+\qquad
+\kappa_{Jj}
+=
+\begin{cases}
+0,&J=\varnothing,\\
+\kappa^{\mathrm{raw}}_{Jj},&J\ne\varnothing.
+\end{cases}
+\]
+The finite basis and its orthonormality give the pointwise expansion
+\[
+T_j^{\mathrm{col}}
+=
+\sum_{J\subseteq[m]}
+\kappa^{\mathrm{raw}}_{Jj}\psi^{\mathrm{col}}_{Jj}.
+\]
+Indeed, multiplying a basis expansion by
+\(\psi^{\mathrm{col}}_{Jj}\) and taking expectations identifies its
+coefficient with the displayed definition.
+Taking expectations of the expansion shows that
+\[
+\mathbb E[T_j^{\mathrm{col}}]
+=
+\kappa^{\mathrm{raw}}_{\varnothing j}.
+\]
+Subtracting this constant deletes precisely the empty-subset coefficient:
+\[
+T_j^{\mathrm{col}}-\mathbb E[T_j^{\mathrm{col}}]
+=
+\sum_{J\subseteq[m]}
+\kappa_{Jj}\psi^{\mathrm{col}}_{Jj},
+\qquad
+\kappa_{\varnothing j}=0.
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.columnStatistic_centered_walsh_expansion
+
+\item \textit{The dimension bound for row correlation.}
+For each distinct pair \(j,j'\in[d]\), define
+\[
+\gamma_{jj'}
+=
+-\frac{\tau_j(P)\tau_{j'}(P)}
+{\sqrt{(b^2-\tau_j(P)^2)(b^2-\tau_{j'}(P)^2)}}.
+\]
+Its denominator is positive, and
+\[
+|\gamma_{jj'}|
+=
+\frac{|\tau_j(P)\tau_{j'}(P)|}
+{\sqrt{(b^2-\tau_j(P)^2)(b^2-\tau_{j'}(P)^2)}}.
+\]
+For every \(\ell\in[d]\), the bounds above and \(d\ge2\) imply
+\[
+b^2-\tau_\ell(P)^2
+\ge d^2-\frac14
+\ge d.
+\]
+Multiplying the two nonnegative lower bounds and taking square roots gives
+\[
+(b^2-\tau_j(P)^2)(b^2-\tau_{j'}(P)^2)\ge d^2,
+\qquad
+\sqrt{(b^2-\tau_j(P)^2)(b^2-\tau_{j'}(P)^2)}\ge d.
+\]
+Also, \(|\tau_j(P)\tau_{j'}(P)|\le1\), since both contrasts have
+absolute value at most \(1/2\). Hence
+\[
+|\gamma_{jj'}|
+\le\frac1d
+\le1.
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.column_correlation_le_inv_dimension
+
+\item \textit{Covariance of arbitrary column statistics.}
+For \(j\ne j'\), the centered row cross moment and positivity of the
+variances give
+\[
+\mathbb E[
+\psi^{\mathrm{row}}_{ij}\psi^{\mathrm{row}}_{ij'}]
+=
+\frac{-\tau_j(P)\tau_{j'}(P)}
+{\sqrt{b^2-\tau_j(P)^2}\sqrt{b^2-\tau_{j'}(P)^2}}
+=
+\gamma_{jj'}.
+\]
+Factoring over independent rows therefore yields
+\[
+\mathbb E[
+\psi^{\mathrm{col}}_{Jj}\psi^{\mathrm{col}}_{Jj'}]
+=
+\gamma_{jj'}^{|J|}
+\qquad(J\subseteq[m]).
+\]
+Expanding the centered statistics, discarding unequal-subset terms by
+their zero mixed moments, and using the within-column unit moments gives
+\[
+\operatorname{Cov}(T_j^{\mathrm{col}},T_{j'}^{\mathrm{col}})
+=
+\sum_{J\subseteq[m]}
+\kappa_{Jj}\kappa_{Jj'}\gamma_{jj'}^{|J|},
+\qquad
+\operatorname{Var}(T_j^{\mathrm{col}})
+=
+\sum_{J\subseteq[m]}\kappa_{Jj}^2.
+\]
+
+Because \(|\gamma_{jj'}|\le1\), induction gives
+\[
+|\gamma_{jj'}|^{v+1}\le|\gamma_{jj'}|
+\qquad(v\ge0):
+\]
+the degree-one case is equality, and the induction step uses
+\[
+|\gamma_{jj'}|^{v+2}
+\le|\gamma_{jj'}|^2
+\le|\gamma_{jj'}|.
+\]
+For the empty subset the covariance summand vanishes because
+\(\kappa_{\varnothing j}=0\). For every nonempty subset the preceding
+power bound applies. The triangle inequality and Cauchy--Schwarz thus give
+\[
+\begin{aligned}
+\left|
+\operatorname{Cov}(T_j^{\mathrm{col}},T_{j'}^{\mathrm{col}})
+\right|
+&\le
+\sum_{J\subseteq[m]}
+\left|\kappa_{Jj}\kappa_{Jj'}\gamma_{jj'}^{|J|}\right|\\
+&\le
+|\gamma_{jj'}|
+\sum_{J\subseteq[m]}|\kappa_{Jj}|\,|\kappa_{Jj'}|\\
+&\le
+|\gamma_{jj'}|
+\sqrt{\left(\sum_{J\subseteq[m]}\kappa_{Jj}^2\right)
+      \left(\sum_{J\subseteq[m]}\kappa_{Jj'}^2\right)}\\
+&=
+\frac{|\tau_j(P)\tau_{j'}(P)|}
+{\sqrt{(b^2-\tau_j(P)^2)(b^2-\tau_{j'}(P)^2)}}
+\sqrt{\operatorname{Var}(T_j^{\mathrm{col}})
+      \operatorname{Var}(T_{j'}^{\mathrm{col}})}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.column_covariance_bound
+
+\item \textit{Variance of the column average.}
+Define the finite maximum
+\[
+v_{\max}
+=
+\max_{j\in[d]}\operatorname{Var}(T_j^{\mathrm{col}}).
+\]
+Since \(d\ge2\), the index set is nonempty, and
+\[
+0\le\operatorname{Var}(T_j^{\mathrm{col}})\le v_{\max},
+\qquad
+0\le v_{\max}.
+\]
+It follows that
+\[
+\sqrt{\operatorname{Var}(T_j^{\mathrm{col}})
+      \operatorname{Var}(T_{j'}^{\mathrm{col}})}
+\le\sqrt{v_{\max}^2}=v_{\max}.
+\]
+Combining the covariance bound with
+\(|\gamma_{jj'}|\le1/d\) gives, for distinct coordinates,
+\[
+\operatorname{Cov}(T_j^{\mathrm{col}},T_{j'}^{\mathrm{col}})
+\le
+\left|\operatorname{Cov}(T_j^{\mathrm{col}},T_{j'}^{\mathrm{col}})\right|
+\le
+\frac1d
+\sqrt{\operatorname{Var}(T_j^{\mathrm{col}})
+      \operatorname{Var}(T_{j'}^{\mathrm{col}})}
+\le
+\frac{v_{\max}}d.
+\]
+On the diagonal,
+\[
+\operatorname{Cov}(T_j^{\mathrm{col}},T_j^{\mathrm{col}})
+=
+\operatorname{Var}(T_j^{\mathrm{col}})
+\le v_{\max}+\frac{v_{\max}}d.
+\]
+Thus each covariance row satisfies
+\[
+\sum_{j'=1}^d
+\operatorname{Cov}(T_j^{\mathrm{col}},T_{j'}^{\mathrm{col}})
+\le
+v_{\max}+\frac{v_{\max}}d
++(d-1)\frac{v_{\max}}d
+=
+2v_{\max}.
+\]
+Finally, the finite covariance expansion of the average gives
+\[
+\begin{aligned}
+\operatorname{Var}\left(\frac1d\sum_{j=1}^dT_j^{\mathrm{col}}\right)
+&=
+\frac1{d^2}\sum_{j=1}^d\sum_{j'=1}^d
+\operatorname{Cov}(T_j^{\mathrm{col}},T_{j'}^{\mathrm{col}})\\
+&\le
+\frac1{d^2}\sum_{j=1}^d2v_{\max}\\
+&=
+\frac2d\,v_{\max}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.blockVar_average_le_of_covariance
+\end{enumerate}
+\end{proof}

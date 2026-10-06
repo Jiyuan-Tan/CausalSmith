@@ -1,0 +1,535 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# SWIG Graph: Node Type, Graph Construction, and Split Operation
+
+This file defines the SWIG (Single World Intervention Graph) graph structure
+following Richardson and Robins.
+
+## Main definitions
+
+* `SWIGNode` — node type: each original node has a `random` and `fixed` version
+* `swigΩ` — value-space family: both versions share the same value space
+* `swigEdge` — the edge relation in a SWIG DAG
+* `swigDAG` — the SWIG as a `DAG (SWIGNode N)` given an original `DAG N` and targets
+* `iotaMap` — the injection mapping fixed → random counterpart
+* `SWIGGraph` — graph-level causal packaging:
+  `(S, V, U, E, ι)` with root constraints
+
+The library's multi-target split operation (`SWIGGraph.splitMono`) is in the
+sibling file `Graph/SWIGSplitMono.lean`.
+
+## Design note
+
+This file provides the pure graph-level SWIG construction. The probabilistic
+side lives in `SCM` (see `Causalean/SCM/Model/SCM.lean`).
+
+The `SCM` structure extends `SWIGGraph N`, so every structural causal model
+already lives in the SWIG node space. A standard model (no interventions) has
+`fixed = ∅`; non-listed fixed-form nodes are isolated dummies outside
+`unobserved`, whose members are random-form latent nodes.
+
+## References
+
+* Basic Concepts.tex, “SWIG Graph” (`def:swig-graph`)
+-/
+
+module
+public import Causalean.Graph.DAG
+public import Mathlib.Algebra.Ring.Nat
+public import Mathlib.Data.Fintype.Sum
+public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
+
+/-! # Single World Intervention Graphs
+
+This file defines the graph-theoretic structure of a Single World Intervention
+Graph (SWIG). A base variable `n : N` has two SWIG nodes: `.random n`, used for
+the natural random variable, and `.fixed n`, used for intervention values. The
+shared value-space family `swigΩ` gives both copies the same measurable value
+space as the base variable.
+
+The core construction is `swigDAG G targets`. It keeps incoming edges into
+targeted random nodes, reroutes outgoing edges from each targeted random node to
+the corresponding fixed node, and leaves fixed nodes for non-targets isolated.
+The interleaved order `swigTopo` proves that this edge relation is acyclic, and
+the basic lemmas describe roots, target parents, and the initial no-intervention
+SWIG.
+
+The structure `SWIGGraph` packages a DAG on SWIG nodes together with the fixed,
+observed, and unobserved node sets, the link map `ι` from fixed nodes to their
+random counterparts, and root/classification invariants used by structural
+causal models. The namespace also provides graph equivalence up to edge and
+partition equality, plus parent/child classification lemmas. The monolithic
+multi-target split operation is defined in `Causalean.Graph.SWIGSplitMono`. -/
+
+@[expose] public section
+
+namespace Causalean.Graph
+
+-- ============================================================
+-- SWIG Node Type
+-- ============================================================
+
+/-- For [a collection of base variables](hyp:N), the [population of nodes in a single-world intervention graph](goal) consists of [a random-node constructor that assigns each base variable its natural random copy](hyp:random) and [a fixed-node constructor that assigns each base variable its intervention copy](hyp:fixed). Thus it is the disjoint union of two copies of the base-variable population.
+
+    Each original node n has a random version `random n` and a fixed version
+    `fixed n`. In a SWIG with intervention targets T:
+    - `random n` exists for all n (the natural/random version)
+    - `fixed d` is meaningful only for d ∈ T (the intervention value)
+    - For d ∉ T, `fixed d` is an isolated dummy node
+
+    In the SWIG split, a targeted variable keeps its random copy for incoming edges while
+    its fixed copy carries the outgoing edges. -/
+inductive SWIGNode (N : Type*)
+  | random : N → SWIGNode N
+  | fixed : N → SWIGNode N
+  deriving DecidableEq
+
+namespace SWIGNode
+
+variable {N : Type*}
+
+/-- The random-node constructor is injective: equal random SWIG nodes come from the same
+base variable. -/
+theorem random_injective : Function.Injective (@SWIGNode.random N) := by
+  intro a b h; cases h; rfl
+
+/-- The fixed-node constructor is injective: equal fixed SWIG nodes come from the same base
+variable. -/
+theorem fixed_injective : Function.Injective (@SWIGNode.fixed N) := by
+  intro a b h; cases h; rfl
+
+/-- The [split-node equivalence](goal) bijects each random copy of a base variable with the first copy of that variable and each fixed copy with the second copy. -/
+def equiv : SWIGNode N ≃ N ⊕ N where
+  toFun
+    | .random n => Sum.inl n
+    | .fixed n => Sum.inr n
+  invFun
+    | .inl n => .random n
+    | .inr n => .fixed n
+  left_inv := by intro x; cases x <;> rfl
+  right_inv := by intro x; cases x <;> rfl
+
+/-- For [a finite collection of base variables](hyp:N), the [finite enumeration of its split SWIG nodes](goal) contains exactly the random and fixed copy of every base variable. -/
+instance [Fintype N] : Fintype (SWIGNode N) :=
+  Fintype.ofEquiv (N ⊕ N) equiv.symm
+
+end SWIGNode
+
+-- ============================================================
+-- SWIG Value-Space Family
+-- ============================================================
+
+/-- For [a family of value spaces indexed by base variables](hyp:Ω), the [single-world-intervention value-space family](goal) assigns [to each random copy its base variable's value space](step:1) and [to each fixed copy that same base variable's value space](step:2).
+
+    Value-space family for the SWIG model.
+    Both random and fixed versions of a node share the same value space
+    as the original node: swigΩ(.random n) = Ω n and swigΩ(.fixed n) = Ω n.
+    This matches the tex requirement X_d = X_{ι(d)}.
+    Declared as `abbrev` so that `swigΩ Ω (.random n)` reduces to `Ω n`
+    during type class synthesis. -/
+abbrev swigΩ {N : Type*} (Ω : N → Type*) : SWIGNode N → Type _
+  | .random n => Ω n
+  | .fixed n => Ω n
+
+/-- For [a collection of base variables](hyp:N), [a family of base-variable value spaces, each equipped with a σ-algebra](hyp:Ω), and [any split node](hyp:sn), the [σ-algebra on that node's SWIG value space](goal) is the σ-algebra of the corresponding base-variable value space. -/
+instance instMeasurableSpaceSwigΩ {N : Type*} (Ω : N → Type*)
+    [∀ n, MeasurableSpace (Ω n)] : ∀ sn, MeasurableSpace (swigΩ Ω sn)
+  | .random _ => inferInstance
+  | .fixed _ => inferInstance
+
+
+/-- For [a collection of base variables](hyp:N), [a family of value spaces each equipped with a σ-algebra and forming a standard Borel space](hyp:Ω), and [any split node](hyp:sn), the [standard Borel-space structure on that node's SWIG value space](goal) is inherited from the corresponding base-variable value space. -/
+instance instStandardBorelSpaceSwigΩ {N : Type*} (Ω : N → Type*)
+    [∀ n, MeasurableSpace (Ω n)] [∀ n, StandardBorelSpace (Ω n)] :
+    ∀ sn, StandardBorelSpace (swigΩ Ω sn)
+  | .random _ => inferInstance
+  | .fixed _ => inferInstance
+
+/-- For [a collection of base variables](hyp:N), [a family of nonempty base-variable value spaces](hyp:Ω), and [any split node](hyp:sn), the [nonemptiness guarantee for that node's SWIG value space](goal) is inherited from the corresponding base-variable value space. -/
+instance instNonemptySwigΩ {N : Type*} (Ω : N → Type*) [∀ n, Nonempty (Ω n)] :
+    ∀ sn, Nonempty (swigΩ Ω sn)
+  | .random _ => inferInstance
+  | .fixed _ => inferInstance
+
+-- ============================================================
+-- SWIG Edge Relation
+-- ============================================================
+
+variable {N : Type*} [DecidableEq N] [Fintype N]
+
+/-- For [a finite directed acyclic graph](hyp:G) and [a set of intervention targets](hyp:targets), the [single-world-intervention edge relation](goal) declares [that a random copy points to a random copy precisely when the corresponding original edge starts outside the targets](step:1), [that a fixed copy points to a random copy precisely when its base variable is targeted and has the corresponding original outgoing edge](step:2), and [that every other ordered pair has no edge](step:3).
+
+    The edge relation in a SWIG.
+
+    Given an original DAG G and intervention targets T:
+    - (random u → random v): edge iff G.edge u v AND u ∉ T
+      (if u is a target, its outgoing edges go from fixed u instead)
+    - (fixed d → random v): edge iff d ∈ T AND G.edge d v
+      (fixed d inherits the outgoing edges of d)
+    - All other pairs: no edge (fixed nodes have no parents in the SWIG)
+
+    Equivalently, the SWIG edge set is obtained by replacing each outgoing edge from a
+    target `d` with an edge from `.fixed d`, while retaining incoming edges to `.random d`. -/
+def swigEdge (G : DAG N) (targets : Finset N) : SWIGNode N → SWIGNode N → Prop
+  | .random u, .random v => G.edge u v ∧ u ∉ targets
+  | .fixed d, .random v => d ∈ targets ∧ G.edge d v
+  | _, _ => False
+
+/-- For [a finite collection of base variables with decidable equality](hyp:N), [a directed acyclic graph on those variables](hyp:G), and [a finite set of intervention targets](hyp:targets), the [decision procedure for the single-world-intervention edge relation](goal) determines, for every ordered pair of split nodes, whether the pair is joined by a SWIG edge. -/
+instance swigEdge_decidable (G : DAG N) (targets : Finset N) :
+    DecidableRel (swigEdge G targets) := by
+  intro a b
+  cases a <;> cases b <;> simp only [swigEdge] <;> infer_instance
+
+-- ============================================================
+-- SWIG Topological Order
+-- ============================================================
+
+/-- For [a finite directed acyclic graph](hyp:G), the [interleaved topological order of its split nodes](goal) assigns [each random copy one plus twice its base variable's topological position](step:1) and [each fixed copy twice that position](step:2).
+
+    Topological order for the SWIG.
+
+    We double the original topological order and interleave:
+    - fixed n  ↦ 2 * topoOrder n
+    - random n ↦ 2 * topoOrder n + 1
+
+    This ensures fixed d has smaller order than random v whenever G.edge d v
+    (since topoOrder d < topoOrder v in the original DAG). -/
+noncomputable def swigTopo (G : DAG N) : SWIGNode N → ℕ
+  | .random n => 2 * G.topoOrder n + 1
+  | .fixed n => 2 * G.topoOrder n
+
+/-- Every SWIG edge points from a lower to a higher position in the interleaved topological
+order. -/
+theorem swigTopo_lt (G : DAG N) (targets : Finset N) :
+    ∀ u v, swigEdge G targets u v → swigTopo G u < swigTopo G v := by
+  intro u v h
+  cases u with
+  | random u =>
+    cases v with
+    | random v =>
+      simp only [swigEdge] at h
+      simp only [swigTopo]
+      have := G.topoOrder_lt u v h.1
+      omega
+    | fixed _ => exact absurd h (by simp [swigEdge])
+  | fixed d =>
+    cases v with
+    | random v =>
+      simp only [swigEdge] at h
+      simp only [swigTopo]
+      have := G.topoOrder_lt d v h.2
+      omega
+    | fixed _ => exact absurd h (by simp [swigEdge])
+
+-- ============================================================
+-- SWIG DAG
+-- ============================================================
+
+/-- For [a finite directed acyclic graph](hyp:G) and [a set of intervention targets](hyp:targets), the [single-world intervention graph as a directed acyclic graph](goal) is obtained by replacing every outgoing edge of a targeted variable by an edge from its fixed copy while retaining all incoming edges to its random copy.
+
+    The SWIG DAG: the DAG on SWIGNode N constructed by node-splitting.
+
+    Given an original DAG G and intervention targets T ⊆ V, the SWIG G(T) has:
+    - For each target D ∈ T: random D keeps incoming edges, fixed D gets outgoing edges
+    - For non-targets: random n keeps all original edges
+    - Fixed nodes for non-targets are isolated (no edges) -/
+def swigDAG (G : DAG N) (targets : Finset N) : DAG (SWIGNode N) where
+  edge := swigEdge G targets
+  decEdge := swigEdge_decidable G targets
+  acyclic := DAG.acyclic_of_topoOrder (swigTopo_lt G targets)
+
+-- ============================================================
+-- The ι map (linking fixed to random counterparts)
+-- ============================================================
+
+/-- The [link map on split nodes](goal) [sends every fixed copy of a base variable to its random copy](step:1) and [leaves every random copy at that random copy](step:2).
+
+    The injection ι mapping each fixed intervention parameter to its
+    random counterpart. In the SWIG, ι(fixed d) = random d.
+
+    At the graph level this realizes the link `ι : S → V` from intervention parameters
+    to their random counterparts. -/
+def iotaMap : SWIGNode N → SWIGNode N
+  | .fixed n => .random n
+  | .random n => .random n
+
+omit [DecidableEq N] [Fintype N] in
+/-- The link map sends the fixed copy of a base variable to its random copy. -/
+theorem iotaMap_fixed (n : N) : iotaMap (.fixed n : SWIGNode N) = .random n := rfl
+
+-- ============================================================
+-- Properties of the SWIG construction
+-- ============================================================
+
+/-- For [any base DAG `G`](hyp:G), [any set of intervention targets](hyp:targets), and [any
+node `n`](hyp:n), [the fixed copy of `n` has no parents in the single-world intervention
+graph built from `G` and `targets`](goal). -/
+theorem swig_fixed_are_roots (G : DAG N) (targets : Finset N) (n : N) :
+    (swigDAG G targets).parents (.fixed n) = ∅ := by
+  rw [Finset.eq_empty_iff_forall_notMem]
+  intro x hx
+  simp only [DAG.parents, swigDAG] at hx
+  cases x <;> simp [swigEdge] at hx
+
+/-- For [any base DAG `G`](hyp:G), [any set of intervention targets](hyp:targets), and [any
+node `d`](hyp:d), [the parents of the random copy of `d` in the single-world intervention
+graph are exactly the copies of `d`'s original parents in `G`, each represented by its random
+version if it is not a target and by its fixed version if it is](goal). -/
+theorem swig_target_parents (G : DAG N) (targets : Finset N) (d : N) :
+    ∀ x : SWIGNode N, x ∈ (swigDAG G targets).parents (.random d) ↔
+      ∃ p, G.edge p d ∧ x = .random p ∧ p ∉ targets ∨
+           G.edge p d ∧ x = .fixed p ∧ p ∈ targets := by
+  intro x
+  rw [DAG.mem_parents]
+  show swigEdge G targets x (.random d) ↔ _
+  constructor
+  · intro hedge
+    cases x with
+    | random u =>
+      simp only [swigEdge] at hedge
+      exact ⟨u, Or.inl ⟨hedge.1, rfl, hedge.2⟩⟩
+    | fixed f =>
+      simp only [swigEdge] at hedge
+      exact ⟨f, Or.inr ⟨hedge.2, rfl, hedge.1⟩⟩
+  · intro ⟨p, hp⟩
+    rcases hp with ⟨hedge, rfl, hnt⟩ | ⟨hedge, rfl, ht⟩
+    · simp only [swigEdge]; exact ⟨hedge, hnt⟩
+    · simp only [swigEdge]; exact ⟨ht, hedge⟩
+
+/-- If n is a root in G, then random n is a root in the SWIG. -/
+theorem swig_random_root_of_root (G : DAG N) (targets : Finset N) (n : N)
+    (hroot : G.parents n = ∅) :
+    (swigDAG G targets).parents (.random n) = ∅ := by
+  rw [Finset.eq_empty_iff_forall_notMem]
+  intro x hx
+  rw [DAG.mem_parents] at hx
+  replace hx : swigEdge G targets x (.random n) := hx
+  cases x with
+  | random u =>
+    obtain ⟨hedge, _⟩ := hx
+    have : u ∈ G.parents n := G.mem_parents.mpr hedge
+    simp [hroot] at this
+  | fixed d =>
+    obtain ⟨_, hedge⟩ := hx
+    have : d ∈ G.parents n := G.mem_parents.mpr hedge
+    simp [hroot] at this
+
+-- ============================================================
+-- Lifting a DAG to its initial SWIG (no interventions)
+-- ============================================================
+
+/-- [The initial single-world intervention graph](goal) of [a finite directed acyclic
+    graph](hyp:G) represents the no-intervention regime: every original edge joins random copies,
+    while every fixed copy has no incident edge.
+
+    The initial SWIG DAG with no intervention targets.
+    All edges stay between random nodes; all fixed nodes are isolated.
+    This is the DAG used by a standard causal model. -/
+def initialSWIG (G : DAG N) : DAG (SWIGNode N) := swigDAG G ∅
+
+/-- For [any base DAG `G`](hyp:G) and [any nodes `u`, `v`](hyp:u,v), [in the initial SWIG of
+`G` (the SWIG with no intervention targets), the random copies of `u` and `v` are joined by
+an edge exactly when `u` and `v` are joined by an edge in `G`](goal). -/
+theorem initialSWIG_random_edge (G : DAG N) (u v : N) :
+    (initialSWIG G).edge (.random u) (.random v) ↔ G.edge u v := by
+  simp [initialSWIG, swigDAG, swigEdge]
+
+/-- For [any base DAG `G`](hyp:G) and [any node `n`](hyp:n), [the fixed copy of `n` has no
+parents in the initial SWIG of `G` (the SWIG with no intervention targets)](goal). -/
+theorem initialSWIG_fixed_are_roots (G : DAG N) (n : N) :
+    (initialSWIG G).parents (.fixed n) = ∅ :=
+  swig_fixed_are_roots G ∅ n
+
+-- ============================================================
+-- SWIGGraph structure
+-- ============================================================
+
+/-- A Single-World Intervention Graph (SWIG), `G = (S, V, U, E, ι)` (the definition labelled
+    `def:swig-graph` in Basic Concepts.tex): [a directed acyclic graph on the SWIG nodes](hyp:dag)
+    equipped with [fixed intervention nodes](hyp:fixed), [observed random nodes](hyp:observed),
+    and [unobserved random nodes](hyp:unobserved), where [every fixed node is genuinely of fixed
+    form](hyp:fixed_is_fixed), [every observed node is of random form](hyp:observed_is_random),
+    [every unobserved node is of random form](hyp:unobserved_is_random), and [the observed and
+    unobserved sets are disjoint](hyp:obs_unobs_disjoint). [Every edge of the graph has both
+    endpoints classified as fixed, observed, or unobserved](hyp:dag_edges_classified); [the map
+    sending each fixed intervention node to its random counterpart lands inside the observed
+    nodes](hyp:fixed_image_in_observed); [fixed nodes](hyp:fixed_are_roots) and [unobserved
+    nodes](hyp:unobs_are_roots) have no parents; [a fixed-form node absent from the fixed set is
+    isolated, with neither parents nor children](hyp:fixed_outside_fixed_isolated); and [every
+    child of a classified node is observed](hyp:all_children_in_observed).
+
+    The three pairwise-disjoint classification sets cover every endpoint of an
+    edge, but need not cover all carrier points: isolated random-form points may
+    remain unclassified. The structure also carries the canonical injective
+    mapping `ι : S → V` and root constraints on S and U.
+
+    When `S = ∅`, every edge endpoint lies in `V ∪ U`, as in the standard DAG
+    presentation. -/
+structure SWIGGraph (N : Type*) [DecidableEq N] [Fintype N] where
+  /-- The underlying DAG on SWIG nodes. -/
+  dag : DAG (SWIGNode N)
+  /-- Fixed (intervention) nodes `S` as fixed SWIG nodes. -/
+  fixed : Finset (SWIGNode N)
+  /-- Observed/endogenous random nodes `V` as random SWIG nodes. -/
+  observed : Finset (SWIGNode N)
+  /-- Unobserved/exogenous random nodes `U` as random SWIG nodes. -/
+  unobserved : Finset (SWIGNode N)
+  /-- All elements of `fixed` are of the form `.fixed n`. -/
+  fixed_is_fixed :
+    ∀ s ∈ fixed, ∃ n : N, s = SWIGNode.fixed n
+  /-- All elements of `observed` are of the form `.random n`. -/
+  observed_is_random :
+    ∀ v ∈ observed, ∃ n : N, v = SWIGNode.random n
+  /-- All elements of `unobserved` are of the form `.random n`. -/
+  unobserved_is_random :
+    ∀ u ∈ unobserved, ∃ n : N, u = SWIGNode.random n
+  /-- `observed` and `unobserved` are disjoint. -/
+  obs_unobs_disjoint : Disjoint observed unobserved
+  /-- Every vertex participating in any edge of `dag` is classified as
+      fixed, observed, or unobserved. Trivially preserved under edge
+      removal, which is why it replaces the older `obs_unobs_cover_random`
+      that did not survive the `induce` operation. -/
+  dag_edges_classified :
+    ∀ u v, dag.edge u v →
+      u ∈ fixed ∪ observed ∪ unobserved ∧
+      v ∈ fixed ∪ observed ∪ unobserved
+  /-- The image of `fixed` under `iotaMap` lies in `observed`. -/
+  fixed_image_in_observed :
+    ∀ s ∈ fixed, iotaMap s ∈ observed
+  /-- Fixed nodes are roots in `dag`. -/
+  fixed_are_roots : ∀ s ∈ fixed, dag.parents s = ∅
+  /-- Unobserved nodes are roots in `dag`. -/
+  unobs_are_roots : ∀ u ∈ unobserved, dag.parents u = ∅
+  /-- Any fixed-form node not listed in `fixed` is isolated in `dag`. -/
+  fixed_outside_fixed_isolated :
+    ∀ n : N, SWIGNode.fixed n ∉ fixed →
+      dag.parents (SWIGNode.fixed n) = ∅ ∧ dag.children (SWIGNode.fixed n) = ∅
+  /-- Every child of any classified node is observed. This global
+      child-classification invariant is used to rule out outgoing edges into
+      fixed or latent-root nodes. -/
+  all_children_in_observed :
+    ∀ u ∈ unobserved ∪ fixed ∪ observed, dag.children u ⊆ observed
+
+namespace SWIGGraph
+
+variable {N : Type*} [DecidableEq N] [Fintype N]
+
+/-- For [a single-world intervention graph](hyp:G) and [a fixed intervention node in that graph](hyp:s), the [canonical link map](goal) returns its random counterpart, together with the fact that this counterpart is observed. -/
+def iota (G : SWIGGraph N) (s : {s // s ∈ G.fixed}) :
+    {v // v ∈ G.observed} :=
+⟨iotaMap s, G.fixed_image_in_observed s s.property⟩
+
+/-- For [a single-world intervention graph](hyp:G) and [a fixed intervention node in that graph](hyp:s), the [node-level canonical link](goal) is that node's random counterpart, with the membership certification omitted. -/
+def iotaNode (G : SWIGGraph N) (s : {s // s ∈ G.fixed}) : SWIGNode N :=
+  (G.iota s).1
+
+/-- Forgetting the membership proof in the graph-level link map gives the node-level link map. -/
+@[simp] theorem iotaNode_eq_iotaMap (G : SWIGGraph N) (s : {s // s ∈ G.fixed}) :
+    G.iotaNode s = iotaMap s := rfl
+
+/-- For [a single-world intervention graph](hyp:G) and [a base variable whose fixed copy belongs to its fixed nodes](hyp:d), the [base-variable link map](goal) returns the same base variable together with the fact that its random copy is observed. -/
+def iotaN (G : SWIGGraph N) (d : {n : N // SWIGNode.fixed n ∈ G.fixed}) :
+    {n : N // SWIGNode.random n ∈ G.observed} :=
+by
+  refine ⟨d, ?_⟩
+  have := G.fixed_image_in_observed (SWIGNode.fixed d) d.property
+  -- `iotaMap (.fixed d)` is `.random d`
+  simpa [iotaMap] using this
+
+/-- For [a single-world intervention graph](hyp:G), the [standard-graph property](goal) holds exactly when it contains no fixed intervention nodes. -/
+def isStandard (G : SWIGGraph N) : Prop := G.fixed = ∅
+
+-- ============================================================
+-- Equivalence of SWIG graphs (up to topological order)
+-- ============================================================
+
+/-- For [two single-world intervention graphs](hyp:G,H), [graph equivalence ignoring topological order](goal) holds exactly when [they have the same directed edges](step:1), [the same fixed nodes](step:2), [the same observed nodes](step:3), and [the same unobserved nodes](step:4).
+
+Equivalence of SWIG graphs, ignoring the particular topological order.
+
+Two `SWIGGraph`s are considered equivalent if:
+- They have the same edge relation on `SWIGNode N`
+- Their `fixed`, `observed`, and `unobserved` node sets coincide.
+
+Everything else (edge decidability, the acyclicity proof, and the derived
+topological order `dag.topoOrder`) is determined by the edge relation, so we treat
+it as irrelevant for equivalence. -/
+def Equivalent (G H : SWIGGraph N) : Prop :=
+  (∀ u v, G.dag.edge u v ↔ H.dag.edge u v) ∧
+  G.fixed = H.fixed ∧
+  G.observed = H.observed ∧
+  G.unobserved = H.unobserved
+
+/-- SWIG graph equivalence is reflexive. -/
+@[refl] theorem Equivalent.refl (G : SWIGGraph N) : Equivalent G G := by
+  unfold Equivalent
+  refine And.intro ?hedge ?hfix
+  · intro u v; exact Iff.rfl
+  · exact And.intro rfl (And.intro rfl rfl)
+
+/-- SWIG graph equivalence is symmetric. -/
+@[symm] theorem Equivalent.symm {G H : SWIGGraph N} :
+    Equivalent G H → Equivalent H G := by
+  intro h
+  rcases h with ⟨hedge, hfix, hobs, hunobs⟩
+  refine And.intro ?hedge' ?rest
+  · intro u v
+    have := hedge u v
+    exact this.symm
+  · refine And.intro ?hfix' ?hobs_unobs'
+    · simp [hfix]
+    · refine And.intro ?hobs' ?hunobs'
+      · simp [hobs]
+      · simp [hunobs]
+
+/-- SWIG graph equivalence is transitive. -/
+@[trans] theorem Equivalent.trans {G H K : SWIGGraph N} :
+    Equivalent G H → Equivalent H K → Equivalent G K := by
+  intro hGH hHK
+  rcases hGH with ⟨hedgeGH, hfixGH, hobsGH, hunobsGH⟩
+  rcases hHK with ⟨hedgeHK, hfixHK, hobsHK, hunobsHK⟩
+  refine And.intro ?hedge ?rest
+  · intro u v
+    exact Iff.trans (hedgeGH u v) (hedgeHK u v)
+  · refine And.intro ?hfix ?hobs_unobs
+    · -- fixed sets
+      simp [hfixGH, hfixHK]
+    · refine And.intro ?hobs ?hunobs
+      · -- observed sets
+        simp [hobsGH, hobsHK]
+      · -- unobserved sets
+        simp [hunobsGH, hunobsHK]
+
+/-- Equivalent SWIGGraphs have the same `parents` Finset at every node.
+
+    Consequence of `Equivalent`'s edge-iff clause and the fact that
+    `DAG.parents` is `Finset.univ.filter (edge · v)`. -/
+theorem Equivalent.parents_eq {G H : SWIGGraph N}
+    (hEdge : ∀ u v, G.dag.edge u v ↔ H.dag.edge u v) (v : SWIGNode N) :
+    G.dag.parents v = H.dag.parents v := by
+  ext u
+  rw [G.dag.mem_parents, H.dag.mem_parents]
+  exact hEdge u v
+
+/-- If `u` is a parent of `v` in `G`, then `u` is classified
+    (fixed, observed, or unobserved). -/
+theorem parent_classified (G : SWIGGraph N) {u v : SWIGNode N}
+    (h : u ∈ G.dag.parents v) :
+    u ∈ G.fixed ∪ G.observed ∪ G.unobserved :=
+  (G.dag_edges_classified u v (G.dag.mem_parents.mp h)).1
+
+/-- If `w` is a child of `u` in `G`, then `w` is classified
+    (fixed, observed, or unobserved). -/
+theorem child_classified (G : SWIGGraph N) {u w : SWIGNode N}
+    (h : w ∈ G.dag.children u) :
+    w ∈ G.fixed ∪ G.observed ∪ G.unobserved :=
+  (G.dag_edges_classified u w (G.dag.mem_children.mp h)).2
+
+end SWIGGraph
+
+end Causalean.Graph

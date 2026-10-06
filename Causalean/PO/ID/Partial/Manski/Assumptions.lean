@@ -1,0 +1,153 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Conditioning.CondExpTooling
+public import Causalean.PO.ID.Partial.Manski.Setup
+
+/-! # Manski Assumptions
+
+This file states the assumption bundles for Manski bounds on measurable
+singleton instrument strata. The baseline assumptions impose consistency,
+bounded potential outcomes, and integrability, while separate shape
+restrictions encode mean independence, monotone treatment response, monotone
+treatment selection, and monotone instrumental variables.
+
+The assumptions are separated from the data layer so later bound theorems can
+combine them independently. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
+
+namespace Causalean
+namespace PO
+
+open MeasureTheory
+
+namespace POManskiIVSystem
+
+variable {P : POSystem} {α : Type*}
+  [MeasurableSpace α] [MeasurableSingletonClass α]
+
+/-- For [a Manski singleton-stratum system](hyp:S), the baseline assumptions bundle records
+[consistency](hyp:consistency), [lower and upper outcome bounds](hyp:lo,hi), [their
+ordering](hyp:hle), [almost-sure boundedness of each arm](hyp:bounded_one,bounded_zero), and
+[integrability of each arm](hyp:integrable_Y1,integrable_Y0).
+
+`lo, hi` are the almost-sure outcome bounds (`a, b` in the tex).  Shape
+restrictions live in the `MeanIndep`, `MTR`, `MTS`, `MIV` structures. -/
+structure BaseAssumptions (S : POManskiIVSystem P α) where
+  consistency : P.Consistency
+  lo : ℝ
+  hi : ℝ
+  hle : lo ≤ hi
+  bounded_one : ∀ᵐ ω ∂P.μ, lo ≤ S.YofD true ω ∧ S.YofD true ω ≤ hi
+  bounded_zero : ∀ᵐ ω ∂P.μ, lo ≤ S.YofD false ω ∧ S.YofD false ω ≤ hi
+  integrable_Y1 : Integrable (S.YofD true) P.μ
+  integrable_Y0 : Integrable (S.YofD false) P.μ
+
+namespace BaseAssumptions
+
+variable {S : POManskiIVSystem P α}
+
+/-- Given [the baseline Manski assumptions bundle, which fixes bounds `lo ≤ hi` and asserts
+that both potential outcomes `Y(1)` and `Y(0)` lie a.s. in `[lo, hi]`](hyp:hA),
+[the potential outcome `Y(d)` lies almost surely between `lo` and `hi`, uniformly for either
+treatment arm `d`](goal) — the binary-folded form of the two separate range assumptions. -/
+lemma bounded (hA : S.BaseAssumptions) (d : Bool) :
+    ∀ᵐ ω ∂P.μ, hA.lo ≤ S.YofD d ω ∧ S.YofD d ω ≤ hA.hi := by
+  cases d
+  · exact hA.bounded_zero
+  · exact hA.bounded_one
+
+/-- Binary-folded form of `integrable_Y1` / `integrable_Y0`. -/
+lemma integrable_YofD (hA : S.BaseAssumptions) (d : Bool) :
+    Integrable (S.YofD d) P.μ := by
+  cases d
+  · exact hA.integrable_Y0
+  · exact hA.integrable_Y1
+
+/-- The factual outcome `Y` is integrable.  Derived from arm integrability via
+consistency (`factualY = Σ_d Y(d)·1{D=d}` a.e.), so it need not be assumed
+separately. -/
+lemma integrable_factualY (hA : S.BaseAssumptions) :
+    Integrable S.factualY P.μ := by
+  have hY1_ind :
+      Integrable (fun ω => S.YofD true ω * S.dVar.indicator true ω) P.μ :=
+    S.dVar.integrable_mul_indicator true (measurableSet_singleton true) hA.integrable_Y1
+  have hY0_ind :
+      Integrable (fun ω => S.YofD false ω * S.dVar.indicator false ω) P.μ :=
+    S.dVar.integrable_mul_indicator false (measurableSet_singleton false) hA.integrable_Y0
+  refine (hY1_ind.add hY0_ind).congr ?_
+  filter_upwards with ω
+  have htrue := congr_fun
+    (POVar.factual_mul_indicator_eq_cfUnder_mul_indicator_fn
+      hA.consistency S.yVar S.dVar true (Ne.symm S.hDY)) ω
+  have hfalse := congr_fun
+    (POVar.factual_mul_indicator_eq_cfUnder_mul_indicator_fn
+      hA.consistency S.yVar S.dVar false (Ne.symm S.hDY)) ω
+  have htrue' : S.YofD true ω * S.dVar.indicator true ω =
+      S.factualY ω * S.dVar.indicator true ω := by
+    simpa [POManskiIVSystem.YofD, POManskiIVSystem.factualY] using htrue.symm
+  have hfalse' : S.YofD false ω * S.dVar.indicator false ω =
+      S.factualY ω * S.dVar.indicator false ω := by
+    simpa [POManskiIVSystem.YofD, POManskiIVSystem.factualY] using hfalse.symm
+  have hsum := S.dVar.indicator_add_indicator_not ω
+  calc
+    S.YofD true ω * S.dVar.indicator true ω
+        + S.YofD false ω * S.dVar.indicator false ω
+        = S.factualY ω * S.dVar.indicator true ω
+          + S.factualY ω * S.dVar.indicator false ω := by rw [htrue', hfalse']
+    _ = S.factualY ω * (S.dVar.indicator true ω + S.dVar.indicator false ω) := by ring
+    _ = S.factualY ω := by rw [hsum, mul_one]
+
+end BaseAssumptions
+
+/-- Mean independence requires [the treated potential-outcome mean on every
+positive-mass singleton stratum to equal its population mean](hyp:meanIndep_one)
+and [the analogous equality for the control potential outcome](hyp:meanIndep_zero).
+
+For a finite or countable instrument space this is the positive-cell form of
+`def:po-iv-manski-assumptions`. On a general measurable-singleton space it only
+constrains atomic singleton strata. -/
+structure MeanIndep (S : POManskiIVSystem P α) : Prop where
+  meanIndep_one : ∀ z ∈ S.support,
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) = ∫ ω, S.YofD true ω ∂P.μ
+  meanIndep_zero : ∀ z ∈ S.support,
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) = ∫ ω, S.YofD false ω ∂P.μ
+
+/-- Monotone treatment response -- prop:po-iv-mtr, item 1.
+`Y(0) ≤ Y(1)` almost surely. -/
+structure MTR (S : POManskiIVSystem P α) : Prop where
+  monotone : ∀ᵐ ω ∂P.μ, S.YofD false ω ≤ S.YofD true ω
+
+/-- Monotone treatment selection requires [the mean of each potential outcome
+given control to be no larger than its mean given
+treatment](hyp:mts_one), as in `prop:po-iv-mts`. -/
+structure MTS (S : POManskiIVSystem P α) : Prop where
+  mts_one : ∀ (d : Bool),
+    normalizedRestrictedIntegral P.μ (S.dEvent false) (S.YofD d)
+      ≤ normalizedRestrictedIntegral P.μ (S.dEvent true) (S.YofD d)
+
+/-- Monotone instrumental variable -- prop:po-iv-miv.
+
+Bundles the linear order on the instrument value space `α` so that
+`Setup.lean` stays generic.  Downstream files recover the order via
+`letI := hMIV.inst`. -/
+structure MIV (S : POManskiIVSystem P α) where
+  inst : LinearOrder α
+  monotone : ∀ (d : Bool) (z z' : α),
+    z ∈ S.support → z' ∈ S.support → @LE.le α inst.toLE z z' →
+      normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD d)
+        ≤ normalizedRestrictedIntegral P.μ (S.zEvent z') (S.YofD d)
+
+end POManskiIVSystem
+
+end PO
+end Causalean

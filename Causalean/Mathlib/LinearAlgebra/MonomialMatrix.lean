@@ -1,0 +1,170 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.Matrix.Block
+public import Mathlib.Data.Matrix.Mul
+public import Mathlib.Algebra.BigOperators.Fin
+public import Mathlib.Data.Real.Basic
+
+/-! # Generalized-permutation (monomial) matrices
+
+A generalized-permutation (monomial) matrix has exactly one non-zero entry in each row and
+column — equivalently, it is a permutation matrix composed with an invertible diagonal rescaling.
+These matrices form a group, and this file collects three facts about it.
+
+1. An invertible matrix with at most one non-zero entry per column is automatically of
+   generalized-permutation form.
+2. A simultaneous row/column permutation of a lower-triangular matrix with non-zero diagonal
+   keeps a non-zero diagonal exactly when the two permutations agree.
+3. Two unit-diagonal matrices related by a generalized permutation, one of them lower-triangular
+   with respect to some ordering of the indices, are equal — triangularity plus a unit diagonal
+   forces the permutation to be the identity and every scaling to be one.
+
+The third fact is a rigidity statement: within the generalized-permutation orbit of a matrix,
+triangularity with respect to an ordering pins down a unique representative.
+-/
+
+public section
+
+namespace Causalean.Mathlib.LinearAlgebra
+
+open scoped Matrix BigOperators
+
+/-- For a finite index type `ι` and a commutative ring `K`, and [a square matrix `W` over
+`ι × ι` valued in `K` with nonzero determinant](hyp:hW), if [every column of `W` has at most one
+non-zero entry](hyp:hcol) (for any two distinct rows `i ≠ k`, at least one of `W i j`, `W k j`
+vanishes at column `j`), then [`W` is a generalized permutation matrix: there are a permutation
+`τ` of `ι` and non-zero scalings `d` with `W i j = if j = τ i then d i else 0`](goal). -/
+theorem genPerm_of_det_ne_zero_of_colSupport {ι K : Type*} [Fintype ι] [DecidableEq ι]
+    [CommRing K] {W : Matrix ι ι K} (hW : W.det ≠ 0)
+    (hcol : ∀ j i k, i ≠ k → W i j = 0 ∨ W k j = 0) :
+    ∃ (τ : Equiv.Perm ι) (d : ι → K), (∀ i, d i ≠ 0) ∧
+      ∀ i j, W i j = if j = τ i then d i else 0 := by
+  classical
+  have hcol_nonzero : ∀ j, ∃ i, W i j ≠ 0 := by
+    intro j
+    by_contra hzero
+    have hcol_zero : ∀ i, W i j = 0 := by
+      intro i
+      by_contra hi
+      exact hzero ⟨i, hi⟩
+    exact hW (Matrix.det_eq_zero_of_column_eq_zero j hcol_zero)
+  let ρ : ι → ι := fun j => Classical.choose (hcol_nonzero j)
+  have hρ_ne : ∀ j, W (ρ j) j ≠ 0 := by
+    intro j
+    exact Classical.choose_spec (hcol_nonzero j)
+  have hρ_unique : ∀ j i, W i j ≠ 0 → i = ρ j := by
+    intro j i hi
+    by_contra hne
+    cases hcol j i (ρ j) hne with
+    | inl h => exact hi h
+    | inr h => exact hρ_ne j h
+  have hρ_zero : ∀ j i, i ≠ ρ j → W i j = 0 := by
+    intro j i hi
+    by_contra hne
+    exact hi (hρ_unique j i hne)
+  have hρ_surj : Function.Surjective ρ := by
+    by_contra hsurj
+    have hmissing : ∃ i, ∀ j, ρ j ≠ i := by
+      simpa [Function.Surjective] using hsurj
+    obtain ⟨i, hi⟩ := hmissing
+    have hrow_zero : ∀ j, W i j = 0 := by
+      intro j
+      exact hρ_zero j i (fun h => hi j h.symm)
+    exact hW (Matrix.det_eq_zero_of_row_eq_zero i hrow_zero)
+  have hρ_inj : Function.Injective ρ := (Finite.injective_iff_surjective).2 hρ_surj
+  let ρE : Equiv.Perm ι := Equiv.ofBijective ρ ⟨hρ_inj, hρ_surj⟩
+  let τ : Equiv.Perm ι := ρE.symm
+  let d : ι → K := fun i => W i (τ i)
+  refine ⟨τ, d, ?_, ?_⟩
+  · intro i
+    have hρτ : ρ (τ i) = i := by
+      change ρE (ρE.symm i) = i
+      simp
+    have hne := hρ_ne (τ i)
+    simpa [d, hρτ] using hne
+  · intro i j
+    by_cases hj : j = τ i
+    · simp [d, hj]
+    · have hiρ : i ≠ ρ j := by
+        intro hi
+        apply hj
+        calc
+          j = ρE.symm (ρE j) := by simp
+          _ = ρE.symm (ρ j) := rfl
+          _ = ρE.symm i := by rw [← hi]
+          _ = τ i := rfl
+      have hzero : W i j = 0 := hρ_zero j i hiρ
+      simp [hj, hzero]
+
+/-- **Permutation uniqueness for lower-triangular matrices** (LiNGAM Appendix A, Lemma 1). For
+a matrix `M` over `Fin n × Fin n` that is [lower-triangular](hyp:hLT) (`M i j = 0` whenever
+`i < j`) with [non-zero diagonal entries](hyp:hdiag), and permutations `σ, τ` of `Fin n`,
+[the row/column-permuted matrix `(i ↦ M (σ i) (τ i))` has a non-zero diagonal at every `i` if
+and only if `σ = τ`](goal). -/
+theorem perm_uniqueness {n : ℕ} {K : Type*} [Zero K] {M : Matrix (Fin n) (Fin n) K}
+    (hLT : ∀ i j, i < j → M i j = 0) (hdiag : ∀ i, M i i ≠ 0)
+    {σ τ : Equiv.Perm (Fin n)} :
+    (∀ i, M (σ i) (τ i) ≠ 0) ↔ σ = τ := by
+  constructor
+  · intro h
+    have hge : ∀ i, (τ i : ℕ) ≤ (σ i : ℕ) := by
+      intro i
+      by_contra hlt
+      push_neg at hlt
+      exact h i (hLT (σ i) (τ i) (by exact_mod_cast hlt))
+    have hsum : ∑ i, (σ i : ℕ) = ∑ i, (τ i : ℕ) := by
+      rw [Equiv.sum_comp σ (fun i => (i : ℕ)), Equiv.sum_comp τ (fun i => (i : ℕ))]
+    have heq : ∀ i, (σ i : ℕ) = (τ i : ℕ) := by
+      have hle : ∀ i ∈ Finset.univ, (τ i : ℕ) ≤ (σ i : ℕ) := fun i _ => hge i
+      have := (Finset.sum_eq_sum_iff_of_le hle).1 hsum.symm
+      intro i; exact ((this i (Finset.mem_univ i)).symm)
+    exact Equiv.ext fun i => Fin.val_injective (heq i)
+  · rintro rfl i
+    exact hdiag (σ i)
+
+/-- **Triangular representative of a generalized-permutation orbit.** For matrices `C, C'` over
+`Fin n × Fin n` valued in `K`, if [`C` has unit diagonal](hyp:hCdiag) and
+[`C'` has unit diagonal](hyp:hC'diag),
+[`C` is lower triangular for some ordering `σ` of the indices](hyp:hCtri) (`C i j = 0` when
+`σ i < σ j`), and [`C'` is obtained from `C` by a generalized permutation with permutation `τ`
+and scalings `d`, i.e. `C' i j = d i · C (τ i) j` for all `i`, `j`](hyp:hW), then
+[`C = C'`](goal): the unit diagonal plus triangularity force the underlying permutation to be the
+identity and every scaling to be one. -/
+theorem eq_of_genPerm_triangular_unitDiag {n : ℕ} {K : Type*}
+    [MulZeroOneClass K] [Nontrivial K] {C C' : Matrix (Fin n) (Fin n) K}
+    (hCdiag : ∀ i, C i i = 1) (hC'diag : ∀ i, C' i i = 1)
+    {σ : Equiv.Perm (Fin n)} (hCtri : ∀ i j, σ i < σ j → C i j = 0)
+    {τ : Equiv.Perm (Fin n)} {d : Fin n → K}
+    (hW : ∀ i j, C' i j = d i * C (τ i) j) :
+    C = C' := by
+  have hne : ∀ i, C (τ i) i ≠ 0 := by
+    intro i hzero
+    have h := hW i i
+    rw [hzero, mul_zero, hC'diag i] at h
+    exact one_ne_zero h
+  have hle : ∀ i, (σ i : ℕ) ≤ (σ (τ i) : ℕ) := by
+    intro i
+    by_contra h
+    push_neg at h
+    exact hne i (hCtri (τ i) i (by exact_mod_cast h))
+  have hsum : ∑ i, (σ (τ i) : ℕ) = ∑ i, (σ i : ℕ) :=
+    Equiv.sum_comp τ (fun i => (σ i : ℕ))
+  have heqσ : ∀ i, (σ (τ i) : ℕ) = (σ i : ℕ) := by
+    have hle' : ∀ i ∈ Finset.univ, (σ i : ℕ) ≤ (σ (τ i) : ℕ) := fun i _ => hle i
+    exact fun i => ((Finset.sum_eq_sum_iff_of_le hle').1 hsum.symm i (Finset.mem_univ i)).symm
+  have hτ : ∀ i, τ i = i := fun i => σ.injective (Fin.val_injective (heqσ i))
+  have hd1 : ∀ i, d i = 1 := by
+    intro i
+    have h := hW i i
+    rw [hτ i, hCdiag i, mul_one, hC'diag i] at h
+    exact h.symm
+  ext i j
+  rw [hW i j, hτ i, hd1 i, one_mul]
+
+end Causalean.Mathlib.LinearAlgebra

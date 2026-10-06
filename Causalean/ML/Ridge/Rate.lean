@@ -1,0 +1,827 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.ML.Core.Rate
+public import Causalean.ML.Ridge.Population
+public import Causalean.Stat.Sample
+public import Causalean.Stat.Limit.WLLN
+public import Causalean.Stat.EmpiricalProcess.CrossFitRate
+public import Causalean.Stat.Limit.ContinuousMapping
+public import Mathlib.Analysis.Matrix.PosDef
+public import Mathlib.Data.Real.StarOrdered
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Mathlib.Topology.MetricSpace.Pseudo.Pi
+public import Mathlib.Topology.Instances.Matrix
+
+/-! # Ridge regression — estimation rate (root-n)
+
+This file builds the sample ridge estimator from the first `n` points of an
+i.i.d. sample and proves a root-n L²-estimation rate toward the fixed-penalty population
+ridge minimizer. This is a penalized pseudo-true linear predictor, not in general the
+conditional mean `E[Y|X]`; identifying the two requires additional assumptions or a
+vanishing-penalty argument. It defines the empirical Gram `empiricalGram`, empirical cross
+moment `empiricalCross`, sample coefficient `sampleRidgeCoef`, sample predictor
+`sampleRidgePredictor`, and population feature Gram `populationGram`.
+
+The main algebraic step is `sampleRidgeCoef_sub_eq`: the coefficient error
+factors through `(Ĝₙ + λI)⁻¹` times the centered empirical score
+`(Ĉₙ - Ĝₙ β⋆) - λ β⋆`.  The population ridge normal equation centers that score;
+`centered_score_mean_isBigOp` gives its `O_p(n^{-1/2})` rate, while
+`sampleRidgeCoef_isBigOp` combines this with entrywise convergence of the
+regularized Gram inverse.  The final theorem `ridge_achievesL2Rate` transfers the
+coefficient rate to an L²-rate for the sample ridge predictor.
+-/
+
+@[expose] public section
+
+namespace Causalean.ML
+
+open MeasureTheory Matrix BigOperators Causalean.Stat
+
+variable {Ω γ K : Type*} [MeasurableSpace Ω] [MeasurableSpace γ]
+  [Fintype K] [DecidableEq K] {μ : Measure Ω}
+
+/-- [The empirical feature Gram matrix](goal) is [average feature outer product](step:1), the
+design second moment used by ridge regression. It is computed from
+[sample-indexed observations](hyp:Z) at [sample size and realized sample state](hyp:n,ω), using
+[a finite feature map](hyp:K,φ) on [the sample and covariate spaces](hyp:Ω,γ). -/
+noncomputable def empiricalGram (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
+    (n : ℕ) (ω : Ω) : Matrix K K ℝ :=
+  (n : ℝ)⁻¹ • ∑ i ∈ Finset.range n,
+    Matrix.vecMulVec (φ.φ (Z i ω).1) (φ.φ (Z i ω).1)
+
+/-- [The empirical feature--response cross moment](goal) is
+[average response times feature](step:1), the right side of the ridge normal equations. It uses
+from [sample-indexed observations](hyp:Z) at [sample size and realized sample state](hyp:n,ω),
+using [a finite feature map](hyp:K,φ) on [the sample and covariate spaces](hyp:Ω,γ). -/
+noncomputable def empiricalCross (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
+    (n : ℕ) (ω : Ω) : K → ℝ :=
+  (n : ℝ)⁻¹ • ∑ i ∈ Finset.range n, (Z i ω).2 • φ.φ (Z i ω).1
+
+/-- [The sample ridge coefficient vector](goal) is
+[inverse regularized Gram times the feature--response moment](step:1). It uses
+[sample-indexed observations](hyp:Z), [a finite decidable feature map](hyp:K,φ),
+[penalty level](hyp:lam), and [sample size and realized state](hyp:n,ω) on
+[the sample and covariate spaces](hyp:Ω,γ). No nonsingularity condition is imposed. -/
+noncomputable def sampleRidgeCoef (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
+    (lam : ℝ) (n : ℕ) (ω : Ω) : K → ℝ :=
+  (empiricalGram φ Z n ω + lam • (1 : Matrix K K ℝ))⁻¹ *ᵥ empiricalCross φ Z n ω
+
+/-- [The sample ridge predictor](goal) maps each covariate to
+[the sample-coefficient linear feature score](step:1). Those coefficients come from
+[sample-indexed observations](hyp:Z), [a finite decidable feature map](hyp:K,φ),
+[penalty level](hyp:lam), and
+[sample size and realized state](hyp:n,ω) on [the sample and covariate spaces](hyp:Ω,γ). -/
+noncomputable def sampleRidgePredictor (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
+    (lam : ℝ) (n : ℕ) (ω : Ω) : γ → ℝ :=
+  fun x => ∑ k, sampleRidgeCoef φ Z lam n ω k * φ.φ x k
+
+/-- [The population feature Gram matrix](goal) records
+[every expected feature-coordinate product](step:1), the population design second moment. It
+uses [a finite feature map](hyp:K,φ) on [a measurable covariate space](hyp:γ) under
+[a joint covariate--response law](hyp:P), defined entrywise to avoid a matrix-valued integral.
+
+The population feature Gram is defined entrywise to avoid matrix-valued Bochner integration. -/
+noncomputable def populationGram (φ : FeatureMap γ K) (P : Measure (γ × ℝ)) :
+    Matrix K K ℝ :=
+  Matrix.of fun k l => ∫ z, φ.φ z.1 k * φ.φ z.1 l ∂P
+
+omit [DecidableEq K] in
+/-- The population feature Gram is positive semidefinite whenever the feature
+ coordinates are measurable and the fourth moment of the feature norm is finite. -/
+theorem populationGram_posSemidef (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
+    [IsFiniteMeasure P]
+    (hφ : ∀ k, Measurable (fun x => φ.φ x k))
+    (h4 : Integrable (fun z => (∑ k, (φ.φ z.1 k) ^ 2) ^ 2) P) :
+    (populationGram φ P).PosSemidef := by
+  classical
+  have hφ_prod : ∀ k, Measurable (fun z : γ × ℝ => φ.φ z.1 k) := fun k =>
+    (hφ k).comp measurable_fst
+  have hsum_meas : Measurable (fun z : γ × ℝ => ∑ k, (φ.φ z.1 k) ^ 2) :=
+    Finset.measurable_sum _ (fun k _ => (hφ_prod k).pow_const 2)
+  have hsumsq_int : Integrable (fun z : γ × ℝ => ∑ k, (φ.φ z.1 k) ^ 2) P := by
+    refine Integrable.mono' (g := fun z => 1 + (∑ k, (φ.φ z.1 k) ^ 2) ^ 2)
+      ((integrable_const (1 : ℝ)).add h4) hsum_meas.aestronglyMeasurable ?_
+    refine Filter.Eventually.of_forall (fun z => ?_)
+    have hnn : (0 : ℝ) ≤ ∑ k, (φ.φ z.1 k) ^ 2 :=
+      Finset.sum_nonneg (fun k _ => sq_nonneg _)
+    rw [Real.norm_of_nonneg hnn]
+    nlinarith [sq_nonneg ((∑ k, (φ.φ z.1 k) ^ 2) - 1)]
+  have hprod_int : ∀ i j,
+      Integrable (fun z : γ × ℝ => φ.φ z.1 i * φ.φ z.1 j) P := by
+    intro i j
+    refine Integrable.mono hsumsq_int
+      ((hφ_prod i).mul (hφ_prod j)).aestronglyMeasurable ?_
+    refine Filter.Eventually.of_forall (fun z => ?_)
+    let a : ℝ := φ.φ z.1 i
+    let b : ℝ := φ.φ z.1 j
+    let s : ℝ := ∑ k, (φ.φ z.1 k) ^ 2
+    have hs_nonneg : 0 ≤ s := by
+      dsimp [s]
+      exact Finset.sum_nonneg (fun k _ => sq_nonneg _)
+    rw [Real.norm_eq_abs, Real.norm_of_nonneg hs_nonneg]
+    have hi_le : a ^ 2 ≤ s := by
+      dsimp [a, s]
+      exact Finset.single_le_sum (f := fun k => (φ.φ z.1 k) ^ 2)
+        (fun k _ => sq_nonneg _) (Finset.mem_univ i)
+    have hj_le : b ^ 2 ≤ s := by
+      dsimp [b, s]
+      exact Finset.single_le_sum (f := fun k => (φ.φ z.1 k) ^ 2)
+        (fun k _ => sq_nonneg _) (Finset.mem_univ j)
+    have hab_half : |a| * |b| ≤ (a ^ 2 + b ^ 2) / 2 := by
+      have h := two_mul_le_add_sq |a| |b|
+      have hsqa : |a| ^ 2 = a ^ 2 := by rw [sq_abs]
+      have hsqb : |b| ^ 2 = b ^ 2 := by rw [sq_abs]
+      nlinarith
+    have hab_sum : (a ^ 2 + b ^ 2) / 2 ≤ s := by
+      nlinarith
+    calc
+      |φ.φ z.1 i * φ.φ z.1 j| = |a| * |b| := by
+        dsimp [a, b]
+        rw [abs_mul]
+      _ ≤ (a ^ 2 + b ^ 2) / 2 := hab_half
+      _ ≤ s := hab_sum
+  refine Matrix.PosSemidef.of_dotProduct_mulVec_nonneg ?_ ?_
+  · apply Matrix.IsHermitian.ext
+    intro i j
+    simp [populationGram, mul_comm]
+  · intro x
+    have hterm_int : ∀ i j,
+        Integrable
+          (fun z : γ × ℝ => (x i * x j) * (φ.φ z.1 i * φ.φ z.1 j)) P := by
+      intro i j
+      simpa [mul_assoc] using (hprod_int i j).const_mul (x i * x j)
+    have hquad :
+        star x ⬝ᵥ (populationGram φ P *ᵥ x)
+          = ∫ z, (∑ i, x i * φ.φ z.1 i) ^ 2 ∂P := by
+      calc
+        star x ⬝ᵥ (populationGram φ P *ᵥ x)
+            = ∑ i, ∑ j,
+                x i * ((∫ z, φ.φ z.1 i * φ.φ z.1 j ∂P) * x j) := by
+              simp [dotProduct, Matrix.mulVec, populationGram, Finset.mul_sum]
+        _ = ∑ i, ∑ j,
+                ∫ z, (x i * x j) * (φ.φ z.1 i * φ.φ z.1 j) ∂P := by
+              refine Finset.sum_congr rfl ?_
+              intro i _
+              refine Finset.sum_congr rfl ?_
+              intro j _
+              calc
+                x i * ((∫ z, φ.φ z.1 i * φ.φ z.1 j ∂P) * x j)
+                    = (x i * x j) * ∫ z, φ.φ z.1 i * φ.φ z.1 j ∂P := by
+                      ring
+                _ = ∫ z, (x i * x j) * (φ.φ z.1 i * φ.φ z.1 j) ∂P := by
+                      rw [integral_const_mul]
+        _ = ∫ z, ∑ i, ∑ j,
+                (x i * x j) * (φ.φ z.1 i * φ.φ z.1 j) ∂P := by
+              rw [integral_finset_sum Finset.univ]
+              · refine Finset.sum_congr rfl ?_
+                intro i _
+                rw [integral_finset_sum Finset.univ]
+                intro j _
+                exact hterm_int i j
+              · intro i _
+                exact integrable_finset_sum Finset.univ (fun j _ => hterm_int i j)
+        _ = ∫ z, (∑ i, x i * φ.φ z.1 i) ^ 2 ∂P := by
+              congr 1
+              funext z
+              rw [sq, Finset.sum_mul_sum]
+              refine Finset.sum_congr rfl ?_
+              intro i _
+              refine Finset.sum_congr rfl ?_
+              intro j _
+              ring
+    rw [hquad]
+    exact integral_nonneg fun z => sq_nonneg _
+
+omit [MeasurableSpace Ω] [MeasurableSpace γ] [DecidableEq K] in
+/-- The empirical Gram is positive semidefinite (average of rank-one `φφᵀ`). -/
+theorem empiricalGram_posSemidef (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
+    (n : ℕ) (ω : Ω) : (empiricalGram φ Z n ω).PosSemidef := by
+  unfold empiricalGram
+  apply Matrix.PosSemidef.smul
+  · refine Finset.sum_induction
+      (fun i => Matrix.vecMulVec (φ.φ (Z i ω).1) (φ.φ (Z i ω).1))
+      (fun A : Matrix K K ℝ => A.PosSemidef)
+      (fun _ _ hA hB => hA.add hB) Matrix.PosSemidef.zero ?_
+    intro i _
+    simpa using
+      (Matrix.posSemidef_vecMulVec_self_star (φ.φ (Z i ω).1) :
+        (Matrix.vecMulVec (φ.φ (Z i ω).1) (star (φ.φ (Z i ω).1))).PosSemidef)
+  · exact inv_nonneg.mpr (Nat.cast_nonneg n)
+
+omit [MeasurableSpace Ω] [MeasurableSpace γ] in
+/-- The ridge coefficient error factors through the regularized empirical Gram
+inverse and the centered empirical score
+`Ŝₙ − λ β⋆ = (Ĉₙ − Ĝₙ β⋆) − λ β⋆`. -/
+theorem sampleRidgeCoef_sub_eq (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
+    {lam : ℝ} (hlam : 0 < lam) (βstar : K → ℝ) (n : ℕ) (ω : Ω) :
+    sampleRidgeCoef φ Z lam n ω - βstar
+      = (empiricalGram φ Z n ω + lam • (1 : Matrix K K ℝ))⁻¹ *ᵥ
+          (empiricalCross φ Z n ω - empiricalGram φ Z n ω *ᵥ βstar - lam • βstar) := by
+  let G : Matrix K K ℝ := empiricalGram φ Z n ω + lam • (1 : Matrix K K ℝ)
+  have hGpos : G.PosDef := by
+    dsimp [G]
+    exact Matrix.PosDef.posSemidef_add (empiricalGram_posSemidef φ Z n ω)
+      (Matrix.PosDef.smul Matrix.PosDef.one hlam)
+  have hGdet : IsUnit G.det := (Matrix.isUnit_iff_isUnit_det G).mp hGpos.isUnit
+  have hG_mul :
+      empiricalGram φ Z n ω *ᵥ βstar + lam • βstar = G *ᵥ βstar := by
+    dsimp [G]
+    rw [Matrix.add_mulVec, Matrix.smul_mulVec, Matrix.one_mulVec]
+  calc
+    sampleRidgeCoef φ Z lam n ω - βstar
+        = G⁻¹ *ᵥ empiricalCross φ Z n ω - βstar := by
+          rfl
+    _ = G⁻¹ *ᵥ empiricalCross φ Z n ω - G⁻¹ *ᵥ (G *ᵥ βstar) := by
+          rw [Matrix.mulVec_mulVec, Matrix.nonsing_inv_mul _ hGdet, Matrix.one_mulVec]
+    _ = G⁻¹ *ᵥ (empiricalCross φ Z n ω - G *ᵥ βstar) := by
+          rw [Matrix.mulVec_sub]
+    _ = G⁻¹ *ᵥ
+          (empiricalCross φ Z n ω - empiricalGram φ Z n ω *ᵥ βstar - lam • βstar) := by
+          rw [← hG_mul]
+          abel_nf
+
+omit [DecidableEq K] in
+/-- The centered empirical score mean
+`Ŝₙ − λβ⋆ = (Ĉₙ − Ĝₙβ⋆) − λβ⋆ = n⁻¹ Σ (φᵢ(yᵢ−⟨β⋆,φᵢ⟩) − λβ⋆)`
+is `O_p(n^{-1/2})`.  The population normal equations make the summands centered. -/
+theorem centered_score_mean_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
+    [IsProbabilityMeasure P] (S : IIDSample Ω (γ × ℝ) μ P) [IsProbabilityMeasure μ]
+    {lam : ℝ} (βstar : K → ℝ) (hpop : IsPopulationRidge P φ lam βstar)
+    (hφ : ∀ k, Measurable (fun x => φ.φ x k))
+    (hscore : ∀ k, MemLp
+      (fun z => (z.2 - ∑ j, βstar j * φ.φ z.1 j) * φ.φ z.1 k) 2 P) :
+    Causalean.Stat.IsBigOp
+      (fun n ω => ‖empiricalCross φ S.Z n ω - empiricalGram φ S.Z n ω *ᵥ βstar
+        - lam • βstar‖) (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
+  classical
+  let g : K → γ × ℝ → ℝ :=
+    fun k z => (z.2 - ∑ j, βstar j * φ.φ z.1 j) * φ.φ z.1 k
+  let D : ℕ → Ω → K → ℝ :=
+    fun n ω => empiricalCross φ S.Z n ω - empiricalGram φ S.Z n ω *ᵥ βstar
+      - lam • βstar
+  have hφ_prod : ∀ k, Measurable (fun z : γ × ℝ => φ.φ z.1 k) := fun k =>
+    (hφ k).comp measurable_fst
+  have hg_meas : ∀ k, Measurable (g k) := by
+    intro k
+    dsimp [g]
+    exact (measurable_snd.sub
+      (Finset.measurable_sum _ fun j _ => measurable_const.mul (hφ_prod j))).mul
+      (hφ_prod k)
+  have hcoord : ∀ n ω k,
+      D n ω k = S.sampleMean (g k) n ω - ∫ z, g k z ∂P := by
+    intro n ω k
+    dsimp [D, g, IIDSample.sampleMean, empiricalCross, empiricalGram]
+    rw [hpop k]
+    simp only [smul_eq_mul, Matrix.mulVec, dotProduct, Matrix.smul_apply,
+      Matrix.sum_apply, Matrix.vecMulVec_apply]
+    simp [Finset.sum_apply]
+    have hgram_sum :
+        (∑ x, (((n : ℝ)⁻¹ * ∑ i ∈ Finset.range n,
+            φ.φ (S.Z i ω).1 k * φ.φ (S.Z i ω).1 x) * βstar x))
+          = (n : ℝ)⁻¹ * ∑ i ∈ Finset.range n,
+              (∑ x, βstar x * φ.φ (S.Z i ω).1 x) * φ.φ (S.Z i ω).1 k := by
+      calc
+        (∑ x, (((n : ℝ)⁻¹ * ∑ i ∈ Finset.range n,
+            φ.φ (S.Z i ω).1 k * φ.φ (S.Z i ω).1 x) * βstar x))
+            = ∑ x, (n : ℝ)⁻¹ * ((∑ i ∈ Finset.range n,
+                φ.φ (S.Z i ω).1 k * φ.φ (S.Z i ω).1 x) * βstar x) := by
+              refine Finset.sum_congr rfl ?_
+              intro x _
+              ring
+        _ = (n : ℝ)⁻¹ * ∑ x, (∑ i ∈ Finset.range n,
+                φ.φ (S.Z i ω).1 k * φ.φ (S.Z i ω).1 x) * βstar x := by
+              rw [Finset.mul_sum]
+        _ = (n : ℝ)⁻¹ * ∑ x, ∑ i ∈ Finset.range n,
+                (φ.φ (S.Z i ω).1 k * φ.φ (S.Z i ω).1 x) * βstar x := by
+              congr 1
+              refine Finset.sum_congr rfl ?_
+              intro x _
+              rw [Finset.sum_mul]
+        _ = (n : ℝ)⁻¹ * ∑ i ∈ Finset.range n, ∑ x,
+                (φ.φ (S.Z i ω).1 k * φ.φ (S.Z i ω).1 x) * βstar x := by
+              congr 1
+              rw [Finset.sum_comm]
+        _ = (n : ℝ)⁻¹ * ∑ i ∈ Finset.range n,
+              (∑ x, βstar x * φ.φ (S.Z i ω).1 x) * φ.φ (S.Z i ω).1 k := by
+              congr 1
+              refine Finset.sum_congr rfl ?_
+              intro i _
+              rw [Finset.sum_mul]
+              refine Finset.sum_congr rfl ?_
+              intro x _
+              ring
+    rw [hgram_sum]
+    rw [← mul_sub, ← Finset.sum_sub_distrib]
+    refine congrArg (fun t : ℝ => (n : ℝ)⁻¹ * t) ?_
+    refine Finset.sum_congr rfl ?_
+    intro i _
+    ring
+  have hcoord_big :
+      ∀ k, Causalean.Stat.IsBigOp (fun n ω => D n ω k)
+        (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
+    intro k
+    let A : ℝ := ∫ z, (g k z) ^ 2 ∂P
+    have hA_nonneg : 0 ≤ A := by
+      dsimp [A]
+      exact integral_nonneg fun z => sq_nonneg _
+    have hfun :
+        (fun n ω => D n ω k) =
+          (fun n ω => S.sampleMean (g k) n ω - ∫ z, g k z ∂P) := by
+      funext n ω
+      exact hcoord n ω k
+    rw [hfun]
+    by_cases hA_pos : 0 < A
+    · have hk0 := S.sampleMean_sub_isBigOp (hg_meas k)
+          (by simpa [g] using hscore k) (by simpa [A] using hA_pos)
+      have hrate_le : ∀ n : ℕ,
+          Real.sqrt (A / (n : ℝ)) ≤
+            (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
+        intro n
+        calc
+          Real.sqrt (A / (n : ℝ))
+              = Real.sqrt A * (Real.sqrt (n : ℝ))⁻¹ := by
+                rw [Real.sqrt_div hA_nonneg, div_eq_mul_inv]
+          _ ≤ (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
+                exact mul_le_mul_of_nonneg_right
+                  (by linarith [Real.sqrt_nonneg A])
+                  (inv_nonneg.mpr (Real.sqrt_nonneg (n : ℝ)))
+      have hk1 : Causalean.Stat.IsBigOp
+          (fun n ω => S.sampleMean (g k) n ω - ∫ z, g k z ∂P)
+          (fun n => (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹) μ := by
+        exact Causalean.Stat.IsBigOp.mono_rate
+          (fun n => Real.sqrt_nonneg (A / (n : ℝ))) hrate_le hk0
+      exact Causalean.Stat.IsBigOp.scale_rate
+        (rn := fun n => (Real.sqrt (n : ℝ))⁻¹)
+        (by linarith [Real.sqrt_nonneg A]) hk1
+    · have hA_zero : A = 0 := le_antisymm (le_of_not_gt hA_pos) hA_nonneg
+      intro δ hδ
+      refine ⟨1, one_pos, ?_⟩
+      filter_upwards [Filter.eventually_gt_atTop (0 : ℕ)] with n hn
+      have hsq := S.sampleMean_sub_sq_lintegral_le (hg_meas k)
+        (by simpa [g] using hscore k) hn
+      have hlintegral_zero :
+          ∫⁻ ω, ENNReal.ofReal
+            ((S.sampleMean (g k) n ω - ∫ z, g k z ∂P) ^ 2) ∂μ = 0 := by
+        apply le_antisymm
+        · simpa [A, hA_zero] using hsq
+        · exact bot_le
+      have hae_sq :
+          (fun ω => ENNReal.ofReal
+            ((S.sampleMean (g k) n ω - ∫ z, g k z ∂P) ^ 2)) =ᵐ[μ] 0 :=
+        (lintegral_eq_zero_iff' (by fun_prop)).mp hlintegral_zero
+      have hae_zero :
+          (fun ω => S.sampleMean (g k) n ω - ∫ z, g k z ∂P) =ᵐ[μ] 0 := by
+        filter_upwards [hae_sq] with ω hω
+        simp only [Pi.zero_apply] at hω
+        have hsquare_zero :
+            (S.sampleMean (g k) n ω - ∫ z, g k z ∂P) ^ 2 = 0 :=
+          le_antisymm (ENNReal.ofReal_eq_zero.mp hω) (sq_nonneg _)
+        exact sq_eq_zero_iff.mp hsquare_zero
+      have hrate_pos : 0 < (Real.sqrt (n : ℝ))⁻¹ :=
+        inv_pos.mpr (Real.sqrt_pos.mpr (by exact_mod_cast hn))
+      have hevent_zero :
+          μ {ω | (1 : ℝ) * (Real.sqrt (n : ℝ))⁻¹ ≤
+            ‖S.sampleMean (g k) n ω - ∫ z, g k z ∂P‖} = 0 := by
+        rw [measure_eq_zero_iff_ae_notMem]
+        filter_upwards [hae_zero] with ω hω
+        simp [hω, not_le.mpr hrate_pos]
+      calc
+        μ {ω | (1 : ℝ) * (Real.sqrt (n : ℝ))⁻¹ ≤
+            ‖S.sampleMean (g k) n ω - ∫ z, g k z ∂P‖} = 0 := hevent_zero
+        _ ≤ δ := bot_le
+  have hcoord_abs :
+      ∀ k, Causalean.Stat.IsBigOp (fun n ω => |D n ω k|)
+        (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
+    intro k
+    simpa only [Causalean.Stat.IsBigOp, Causalean.Stat.Modes.BoundedInProbability,
+      Real.norm_eq_abs, abs_abs] using hcoord_big k
+  have hroot_pos : ∀ᶠ n : ℕ in Filter.atTop, 0 < (Real.sqrt (n : ℝ))⁻¹ :=
+    (Filter.eventually_gt_atTop (0 : ℕ)).mono fun n hn =>
+      inv_pos.mpr (Real.sqrt_pos.mpr (by exact_mod_cast hn))
+  have hsum_abs : Causalean.Stat.IsBigOp
+      (fun n ω => ∑ k, |D n ω k|) (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
+    simpa using
+      (IsBigOp.finset_sum (μ := μ) (s := (Finset.univ : Finset K))
+        (X := fun k n ω => |D n ω k|)
+        hroot_pos (fun k _ => hcoord_abs k))
+  refine IsBigOp.of_abs_le
+    (Xn := fun n ω => ‖empiricalCross φ S.Z n ω -
+      empiricalGram φ S.Z n ω *ᵥ βstar - lam • βstar‖)
+    (Yn := fun n ω => ∑ k, |D n ω k|) ?_ hsum_abs
+  intro n ω
+  have hD_eq :
+      D n ω = empiricalCross φ S.Z n ω - empiricalGram φ S.Z n ω *ᵥ βstar
+        - lam • βstar := rfl
+  have hsum_nonneg : 0 ≤ ∑ k, |D n ω k| :=
+    Finset.sum_nonneg fun k _ => abs_nonneg _
+  rw [abs_of_nonneg (norm_nonneg _), abs_of_nonneg hsum_nonneg, ← hD_eq]
+  refine (pi_norm_le_iff_of_nonneg hsum_nonneg).2 (fun k => ?_)
+  rw [Real.norm_eq_abs]
+  exact Finset.single_le_sum (f := fun j => |D n ω j|)
+    (fun j _ => abs_nonneg _) (Finset.mem_univ k)
+
+/-- **Continuity of an inverse-matrix entry.**  At any matrix with nonzero
+determinant, the map `M ↦ (M⁻¹)ₖₗ` is continuous. -/
+theorem continuousAt_matrixInv_entry {G₀ : Matrix K K ℝ} (hdet : G₀.det ≠ 0) (k l : K) :
+    ContinuousAt (fun M : Matrix K K ℝ => (M⁻¹) k l) G₀ := by
+  have hdet_cont : ContinuousAt (fun M : Matrix K K ℝ => M.det) G₀ :=
+    (Continuous.matrix_det continuous_id).continuousAt
+  have hadj : ContinuousAt (fun M : Matrix K K ℝ => M.adjugate k l) G₀ :=
+    (Continuous.matrix_elem (Continuous.matrix_adjugate continuous_id) k l).continuousAt
+  have hfun : ContinuousAt
+      (fun M : Matrix K K ℝ => (M.det)⁻¹ * M.adjugate k l) G₀ :=
+    (hdet_cont.inv₀ hdet).mul hadj
+  convert hfun using 1
+  funext M
+  rw [Matrix.inv_def]
+  simp [smul_eq_mul]
+
+/-- The ridge coefficient error is `O_p(n^{-1/2})`:
+the regularized empirical-Gram inverse is `O_p(1)` (entrywise matrix LLN + inverse
+continuity at the PosDef limit) times the centered score mean `O_p(n^{-1/2})`. -/
+theorem sampleRidgeCoef_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
+    [IsProbabilityMeasure P] (S : IIDSample Ω (γ × ℝ) μ P) [IsProbabilityMeasure μ]
+    {lam : ℝ} (hlam : 0 < lam) (βstar : K → ℝ)
+    (hpop : IsPopulationRidge P φ lam βstar)
+    (hφ : ∀ k, Measurable (fun x => φ.φ x k))
+    (h4 : Integrable (fun z => (∑ k, (φ.φ z.1 k) ^ 2) ^ 2) P)
+    (hscore : ∀ k, MemLp
+      (fun z => (z.2 - ∑ j, βstar j * φ.φ z.1 j) * φ.φ z.1 k) 2 P)
+    (hGramPosDef : (populationGram φ P + lam • (1 : Matrix K K ℝ)).PosDef) :
+    Causalean.Stat.IsBigOp
+      (fun n ω => ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖)
+      (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
+  classical
+  let rn : ℕ → ℝ := fun n => (Real.sqrt (n : ℝ))⁻¹
+  let D : ℕ → Ω → K → ℝ :=
+    fun n ω => empiricalCross φ S.Z n ω - empiricalGram φ S.Z n ω *ᵥ βstar
+      - lam • βstar
+  let Inv : ℕ → Ω → Matrix K K ℝ :=
+    fun n ω => (empiricalGram φ S.Z n ω + lam • (1 : Matrix K K ℝ))⁻¹
+  have hrn_nonneg : ∀ n, 0 ≤ rn n := fun n =>
+    inv_nonneg.mpr (Real.sqrt_nonneg (n : ℝ))
+  have hrn_pos : ∀ᶠ n : ℕ in Filter.atTop, 0 < rn n :=
+    (Filter.eventually_gt_atTop (0 : ℕ)).mono fun n hn =>
+      inv_pos.mpr (Real.sqrt_pos.mpr (by exact_mod_cast hn))
+  have hDnorm : Causalean.Stat.IsBigOp (fun n ω => ‖D n ω‖) rn μ := by
+    simpa [D, rn] using
+      (centered_score_mean_isBigOp φ P S βstar hpop hφ hscore)
+  have hDcoord : ∀ l, Causalean.Stat.IsBigOp (fun n ω => D n ω l) rn μ := by
+    intro l
+    refine IsBigOp.of_abs_le (Yn := fun n ω => ‖D n ω‖) ?_ hDnorm
+    intro n ω
+    have hcoord := norm_le_pi_norm (D n ω) l
+    simpa [Real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)] using hcoord
+  have hφ_prod : ∀ k, Measurable (fun z : γ × ℝ => φ.φ z.1 k) := fun k =>
+    (hφ k).comp measurable_fst
+  have hsum_meas : Measurable (fun z : γ × ℝ => ∑ k, (φ.φ z.1 k) ^ 2) :=
+    Finset.measurable_sum _ (fun k _ => (hφ_prod k).pow_const 2)
+  have hsumsq_int : Integrable (fun z : γ × ℝ => ∑ k, (φ.φ z.1 k) ^ 2) P := by
+    refine Integrable.mono' (g := fun z => 1 + (∑ k, (φ.φ z.1 k) ^ 2) ^ 2)
+      ((integrable_const (1 : ℝ)).add h4) hsum_meas.aestronglyMeasurable ?_
+    refine Filter.Eventually.of_forall (fun z => ?_)
+    have hnn : (0 : ℝ) ≤ ∑ k, (φ.φ z.1 k) ^ 2 :=
+      Finset.sum_nonneg (fun k _ => sq_nonneg _)
+    rw [Real.norm_of_nonneg hnn]
+    nlinarith [sq_nonneg ((∑ k, (φ.φ z.1 k) ^ 2) - 1)]
+  have hprod_int : ∀ i j,
+      Integrable (fun z : γ × ℝ => φ.φ z.1 i * φ.φ z.1 j) P := by
+    intro i j
+    refine Integrable.mono hsumsq_int
+      ((hφ_prod i).mul (hφ_prod j)).aestronglyMeasurable ?_
+    refine Filter.Eventually.of_forall (fun z => ?_)
+    let a : ℝ := φ.φ z.1 i
+    let b : ℝ := φ.φ z.1 j
+    let s : ℝ := ∑ k, (φ.φ z.1 k) ^ 2
+    have hs_nonneg : 0 ≤ s := by
+      dsimp [s]
+      exact Finset.sum_nonneg (fun k _ => sq_nonneg _)
+    rw [Real.norm_eq_abs, Real.norm_of_nonneg hs_nonneg]
+    have hi_le : a ^ 2 ≤ s := by
+      dsimp [a, s]
+      exact Finset.single_le_sum (f := fun k => (φ.φ z.1 k) ^ 2)
+        (fun k _ => sq_nonneg _) (Finset.mem_univ i)
+    have hj_le : b ^ 2 ≤ s := by
+      dsimp [b, s]
+      exact Finset.single_le_sum (f := fun k => (φ.φ z.1 k) ^ 2)
+        (fun k _ => sq_nonneg _) (Finset.mem_univ j)
+    have hab_half : |a| * |b| ≤ (a ^ 2 + b ^ 2) / 2 := by
+      have h := two_mul_le_add_sq |a| |b|
+      have hsqa : |a| ^ 2 = a ^ 2 := by rw [sq_abs]
+      have hsqb : |b| ^ 2 = b ^ 2 := by rw [sq_abs]
+      nlinarith
+    have hab_sum : (a ^ 2 + b ^ 2) / 2 ≤ s := by
+      nlinarith
+    calc
+      |φ.φ z.1 i * φ.φ z.1 j| = |a| * |b| := by
+        dsimp [a, b]
+        rw [abs_mul]
+      _ ≤ (a ^ 2 + b ^ 2) / 2 := hab_half
+      _ ≤ s := hab_sum
+  have hGram_entry : ∀ i j,
+      Tendsto_inProb (fun n ω => empiricalGram φ S.Z n ω i j)
+        (fun _ => populationGram φ P i j) μ := by
+    intro i j
+    have hmean := S.sampleMean_tendsto_inProb
+      ((hφ_prod i).mul (hφ_prod j)) (hprod_int i j)
+    have hfun :
+        (fun n ω => empiricalGram φ S.Z n ω i j) =
+          S.sampleMean (fun z : γ × ℝ => φ.φ z.1 i * φ.φ z.1 j) := by
+      funext n ω
+      simp [empiricalGram, IIDSample.sampleMean, smul_eq_mul, Matrix.smul_apply,
+        Matrix.sum_apply, Matrix.vecMulVec_apply, Finset.mul_sum]
+    rw [hfun]
+    -- `MemLp.mul` now concludes about the point-free product `f * g`; restate it
+    -- in the (definitionally equal) lambda form the goal is phrased with.
+    have hmean' : Tendsto_inProb (S.sampleMean fun z : γ × ℝ => φ.φ z.1 i * φ.φ z.1 j)
+        (fun _ => ∫ z : γ × ℝ, φ.φ z.1 i * φ.φ z.1 j ∂P) μ := hmean
+    simpa [populationGram] using hmean'
+  have hInv_entry : ∀ k l,
+      Causalean.Stat.IsBigOp (fun n ω => Inv n ω k l) (fun _ => (1 : ℝ)) μ := by
+    intro k l
+    have hconv : Tendsto_inProb (fun n ω => Inv n ω k l)
+        (fun _ => ((populationGram φ P + lam • (1 : Matrix K K ℝ))⁻¹) k l) μ := by
+      simpa [Inv] using
+        (Tendsto_inProb.matrix_comp_continuousAt
+          (Mn := fun n ω => empiricalGram φ S.Z n ω)
+          (M₀ := populationGram φ P)
+          (g := fun M : Matrix K K ℝ =>
+            ((M + lam • (1 : Matrix K K ℝ))⁻¹) k l)
+          (by
+            have hshift : ContinuousAt
+                (fun M : Matrix K K ℝ => M + lam • (1 : Matrix K K ℝ))
+                (populationGram φ P) :=
+              (continuous_id.add continuous_const).continuousAt
+            have hbase : ContinuousAt (fun A : Matrix K K ℝ => (A⁻¹) k l)
+                (populationGram φ P + lam • (1 : Matrix K K ℝ)) :=
+              continuousAt_matrixInv_entry
+                (hdet := (Matrix.PosDef.det_pos hGramPosDef).ne') k l
+            simpa [Function.comp_def] using
+              (ContinuousAt.comp
+                (f := fun M : Matrix K K ℝ => M + lam • (1 : Matrix K K ℝ))
+                (g := fun A : Matrix K K ℝ => (A⁻¹) k l)
+                hbase hshift))
+          hGram_entry)
+    exact Tendsto_inProb.isBigOp_one hconv
+  have hcoef_coord : ∀ k,
+      Causalean.Stat.IsBigOp
+        (fun n ω => (sampleRidgeCoef φ S.Z lam n ω - βstar) k) rn μ := by
+    intro k
+    have hsummand : ∀ l ∈ (Finset.univ : Finset K),
+        Causalean.Stat.IsBigOp (fun n ω => Inv n ω k l * D n ω l) rn μ := by
+      intro l _
+      simpa [rn] using
+        (IsBigOp.mul (μ := μ) (rn := fun _ => (1 : ℝ)) (sn := rn)
+          (Xn := fun n ω => Inv n ω k l) (Yn := fun n ω => D n ω l)
+          (fun _ => zero_le_one) hrn_nonneg (hInv_entry k l) (hDcoord l))
+    have hsum : Causalean.Stat.IsBigOp
+        (fun n ω => ∑ l ∈ (Finset.univ : Finset K), Inv n ω k l * D n ω l) rn μ :=
+      IsBigOp.finset_sum (μ := μ) (s := (Finset.univ : Finset K))
+        (X := fun l n ω => Inv n ω k l * D n ω l) hrn_pos hsummand
+    refine IsBigOp.of_abs_le
+      (Yn := fun n ω => ∑ l ∈ (Finset.univ : Finset K), Inv n ω k l * D n ω l) ?_
+      hsum
+    intro n ω
+    have hsub := sampleRidgeCoef_sub_eq φ S.Z hlam βstar n ω
+    have hcoord :
+        (sampleRidgeCoef φ S.Z lam n ω - βstar) k =
+          ∑ l ∈ (Finset.univ : Finset K), Inv n ω k l * D n ω l := by
+      rw [hsub]
+      dsimp [Inv, D]
+      simp [Matrix.mulVec, dotProduct]
+    rw [hcoord]
+  have hcoord_abs : ∀ k,
+      Causalean.Stat.IsBigOp
+        (fun n ω => |(sampleRidgeCoef φ S.Z lam n ω - βstar) k|) rn μ := by
+    intro k
+    simpa only [Causalean.Stat.IsBigOp, Causalean.Stat.Modes.BoundedInProbability,
+      Real.norm_eq_abs, abs_abs] using hcoef_coord k
+  have hsum_abs : Causalean.Stat.IsBigOp
+      (fun n ω => ∑ k, |(sampleRidgeCoef φ S.Z lam n ω - βstar) k|) rn μ := by
+    simpa using
+      (IsBigOp.finset_sum (μ := μ) (s := (Finset.univ : Finset K))
+        (X := fun k n ω => |(sampleRidgeCoef φ S.Z lam n ω - βstar) k|)
+        hrn_pos (fun k _ => hcoord_abs k))
+  refine IsBigOp.of_abs_le
+    (Xn := fun n ω => ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖)
+    (Yn := fun n ω => ∑ k, |(sampleRidgeCoef φ S.Z lam n ω - βstar) k|)
+    ?_ hsum_abs
+  intro n ω
+  let v : K → ℝ := sampleRidgeCoef φ S.Z lam n ω - βstar
+  have hsum_nonneg : 0 ≤ ∑ k, |v k| :=
+    Finset.sum_nonneg fun k _ => abs_nonneg _
+  rw [abs_of_nonneg (norm_nonneg _), abs_of_nonneg hsum_nonneg]
+  change ‖v‖ ≤ ∑ k, |v k|
+  refine (pi_norm_le_iff_of_nonneg hsum_nonneg).2 (fun k => ?_)
+  rw [Real.norm_eq_abs]
+  exact Finset.single_le_sum (f := fun j => |v j|)
+    (fun j _ => abs_nonneg _) (Finset.mem_univ k)
+
+omit [DecidableEq K] in
+/-- A finite linear combination of features has finite L² norm under the
+covariate marginal whenever the feature vector has a finite fourth moment under
+the joint law. -/
+lemma linear_predictor_sub_memLp_of_l4 (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
+    [IsProbabilityMeasure P]
+    (hφ : ∀ k, Measurable (fun x => φ.φ x k))
+    (h4 : Integrable (fun z => (∑ k, (φ.φ z.1 k) ^ 2) ^ 2) P)
+    (β βstar : K → ℝ) :
+    MemLp (fun x : γ => (∑ k, β k * φ.φ x k) - ∑ k, βstar k * φ.φ x k) 2
+      (P.map Prod.fst) := by
+  classical
+  have hmeasP : ∀ k, Measurable (fun z : γ × ℝ => φ.φ z.1 k) := fun k =>
+    (hφ k).comp measurable_fst
+  have hsum_meas : Measurable (fun z : γ × ℝ => ∑ k, (φ.φ z.1 k) ^ 2) :=
+    Finset.measurable_sum _ (fun k _ => (hmeasP k).pow_const 2)
+  have hsumsq_int : Integrable (fun z : γ × ℝ => ∑ k, (φ.φ z.1 k) ^ 2) P := by
+    refine Integrable.mono' (g := fun z => 1 + (∑ k, (φ.φ z.1 k) ^ 2) ^ 2)
+      ((integrable_const (1 : ℝ)).add h4) hsum_meas.aestronglyMeasurable ?_
+    refine Filter.Eventually.of_forall (fun z => ?_)
+    have hnn : (0 : ℝ) ≤ ∑ k, (φ.φ z.1 k) ^ 2 :=
+      Finset.sum_nonneg (fun k _ => sq_nonneg _)
+    rw [Real.norm_of_nonneg hnn]
+    nlinarith [sq_nonneg ((∑ k, (φ.φ z.1 k) ^ 2) - 1)]
+  have hphisq_int : ∀ k, Integrable (fun z : γ × ℝ => (φ.φ z.1 k) ^ 2) P := by
+    intro k
+    refine Integrable.mono hsumsq_int ((hmeasP k).pow_const 2).aestronglyMeasurable ?_
+    refine Filter.Eventually.of_forall (fun z => ?_)
+    rw [Real.norm_of_nonneg (sq_nonneg _), Real.norm_of_nonneg
+      (Finset.sum_nonneg (fun k _ => sq_nonneg _))]
+    exact Finset.single_le_sum (f := fun k => (φ.φ z.1 k) ^ 2)
+      (fun i _ => sq_nonneg _) (Finset.mem_univ k)
+  have hmemLp : ∀ k, MemLp (fun z : γ × ℝ => φ.φ z.1 k) 2 P := fun k =>
+    (memLp_two_iff_integrable_sq (hmeasP k).aestronglyMeasurable).mpr (hphisq_int k)
+  set δ : K → ℝ := β - βstar with hδ
+  have hlin_mem : MemLp (fun z : γ × ℝ => ∑ k, δ k * φ.φ z.1 k) 2 P := by
+    exact memLp_finset_sum (s := (Finset.univ : Finset K))
+      (fun k _ => (hmemLp k).const_mul (δ k))
+  have hF_meas : Measurable
+      (fun x : γ => (∑ k, β k * φ.φ x k) - ∑ k, βstar k * φ.φ x k) :=
+    (Finset.measurable_sum _ (fun k _ => measurable_const.mul (hφ k))).sub
+      (Finset.measurable_sum _ (fun k _ => measurable_const.mul (hφ k)))
+  have hmap :
+      (fun z : γ × ℝ =>
+          (∑ k, β k * φ.φ z.1 k) - ∑ k, βstar k * φ.φ z.1 k)
+        = fun z : γ × ℝ => ∑ k, δ k * φ.φ z.1 k := by
+    funext z
+    rw [← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl (fun k _ => by rw [hδ]; simp [sub_mul])
+  rw [memLp_map_measure_iff hF_meas.aestronglyMeasurable measurable_fst.aemeasurable]
+  simpa [Function.comp_def, hmap] using hlin_mem
+
+omit [DecidableEq K] in
+/-- **Deterministic predictor Lipschitz bound.** The prediction L²(P_X) error is
+bounded by a finite constant times the coefficient error:
+`‖∑ₖ δₖ φ·ₖ‖_{L²} ≤ C ‖δ‖`. -/
+theorem eLpNorm_predictor_sub_le (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
+    [IsProbabilityMeasure P]
+    (hφ : ∀ k, Measurable (fun x => φ.φ x k))
+    (h4 : Integrable (fun z => (∑ k, (φ.φ z.1 k) ^ 2) ^ 2) P) (βstar : K → ℝ) :
+    ∃ C : ℝ, 0 ≤ C ∧ ∀ (β : K → ℝ),
+      (eLpNorm (fun x => (∑ k, β k * φ.φ x k) - ∑ k, βstar k * φ.φ x k) 2
+        (P.map Prod.fst)).toReal ≤ C * ‖β - βstar‖ := by
+  classical
+  -- Coordinate measurability on the product space.
+  have hmeasP : ∀ k, Measurable (fun z : γ × ℝ => φ.φ z.1 k) := fun k =>
+    (hφ k).comp measurable_fst
+  -- Features are square-integrable under `P` (from the L⁴ feature moment `h4`).
+  have hsum_meas : Measurable (fun z : γ × ℝ => ∑ k, (φ.φ z.1 k) ^ 2) :=
+    Finset.measurable_sum _ (fun k _ => (hmeasP k).pow_const 2)
+  have hsumsq_int : Integrable (fun z : γ × ℝ => ∑ k, (φ.φ z.1 k) ^ 2) P := by
+    refine Integrable.mono' (g := fun z => 1 + (∑ k, (φ.φ z.1 k) ^ 2) ^ 2)
+      ((integrable_const (1 : ℝ)).add h4) hsum_meas.aestronglyMeasurable ?_
+    refine Filter.Eventually.of_forall (fun z => ?_)
+    have hnn : (0 : ℝ) ≤ ∑ k, (φ.φ z.1 k) ^ 2 :=
+      Finset.sum_nonneg (fun k _ => sq_nonneg _)
+    rw [Real.norm_of_nonneg hnn]
+    nlinarith [sq_nonneg ((∑ k, (φ.φ z.1 k) ^ 2) - 1)]
+  have hphisq_int : ∀ k, Integrable (fun z : γ × ℝ => (φ.φ z.1 k) ^ 2) P := by
+    intro k
+    refine Integrable.mono hsumsq_int ((hmeasP k).pow_const 2).aestronglyMeasurable ?_
+    refine Filter.Eventually.of_forall (fun z => ?_)
+    rw [Real.norm_of_nonneg (sq_nonneg _), Real.norm_of_nonneg
+      (Finset.sum_nonneg (fun k _ => sq_nonneg _))]
+    exact Finset.single_le_sum (f := fun k => (φ.φ z.1 k) ^ 2)
+      (fun i _ => sq_nonneg _) (Finset.mem_univ k)
+  have hmemLp : ∀ k, MemLp (fun z : γ × ℝ => φ.φ z.1 k) 2 P := fun k =>
+    (memLp_two_iff_integrable_sq (hmeasP k).aestronglyMeasurable).mpr (hphisq_int k)
+  have hCk_ne_top : ∀ k, eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P ≠ ⊤ :=
+    fun k => (hmemLp k).2.ne
+  refine ⟨∑ k, (eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P).toReal, ?_, ?_⟩
+  · exact Finset.sum_nonneg (fun k _ => ENNReal.toReal_nonneg)
+  intro β
+  set δ : K → ℝ := β - βstar with hδ
+  -- Push the L²(P_X) norm back to `P` via the coordinate projection.
+  have hF_meas : Measurable
+      (fun x : γ => (∑ k, β k * φ.φ x k) - ∑ k, βstar k * φ.φ x k) :=
+    (Finset.measurable_sum _ (fun k _ => measurable_const.mul (hφ k))).sub
+      (Finset.measurable_sum _ (fun k _ => measurable_const.mul (hφ k)))
+  have hmap :
+      eLpNorm (fun x => (∑ k, β k * φ.φ x k) - ∑ k, βstar k * φ.φ x k) 2
+          (P.map Prod.fst)
+        = eLpNorm (fun z : γ × ℝ => ∑ k, δ k * φ.φ z.1 k) 2 P := by
+    rw [eLpNorm_map_measure hF_meas.aestronglyMeasurable measurable_fst.aemeasurable]
+    congr 1
+    funext z
+    simp only [Function.comp_apply]
+    rw [← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl (fun k _ => by rw [hδ]; simp [sub_mul])
+  -- Triangle inequality + scalar pull-out, coordinatewise.
+  have hsum_le :
+      eLpNorm (fun z : γ × ℝ => ∑ k, δ k * φ.φ z.1 k) 2 P
+        ≤ ∑ k, ‖δ k‖ₑ * eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P := by
+    have hbound :
+        eLpNorm (fun z : γ × ℝ => ∑ k, δ k * φ.φ z.1 k) 2 P
+          ≤ ∑ k, eLpNorm (fun z : γ × ℝ => δ k * φ.φ z.1 k) 2 P := by
+      have hfun : (fun z : γ × ℝ => ∑ k, δ k * φ.φ z.1 k)
+          = ∑ k, (fun z : γ × ℝ => δ k * φ.φ z.1 k) := by
+        funext z; rw [Finset.sum_apply]
+      rw [hfun]
+      exact eLpNorm_sum_le (μ := P) (p := 2)
+        (f := fun k => fun z : γ × ℝ => δ k * φ.φ z.1 k)
+        (s := (Finset.univ : Finset K))
+        (fun k _ => ((hmeasP k).const_mul (δ k)).aestronglyMeasurable) (by norm_num)
+    refine hbound.trans (le_of_eq ?_)
+    refine Finset.sum_congr rfl (fun k _ => ?_)
+    rw [show (fun z : γ × ℝ => δ k * φ.φ z.1 k)
+        = δ k • (fun z : γ × ℝ => φ.φ z.1 k) from rfl,
+      eLpNorm_const_smul]
+  -- Replace each coordinate factor by the sup norm `‖δ‖`.
+  have hcoord_le : ∀ k,
+      ‖δ k‖ₑ * eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P
+        ≤ ‖δ‖ₑ * eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P := by
+    intro k
+    have hk : ‖δ k‖ₑ ≤ ‖δ‖ₑ := by
+      have : ‖δ k‖ ≤ ‖δ‖ := norm_le_pi_norm δ k
+      simpa [enorm_eq_nnnorm] using ENNReal.coe_le_coe.mpr (by exact_mod_cast this)
+    gcongr
+  have hfinal_le :
+      eLpNorm (fun x => (∑ k, β k * φ.φ x k) - ∑ k, βstar k * φ.φ x k) 2
+          (P.map Prod.fst)
+        ≤ ‖δ‖ₑ * ∑ k, eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P := by
+    rw [hmap, Finset.mul_sum]
+    exact hsum_le.trans (Finset.sum_le_sum (fun k _ => hcoord_le k))
+  have hrhs_ne_top : ‖δ‖ₑ * ∑ k, eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P ≠ ⊤ := by
+    apply ENNReal.mul_ne_top
+    · exact enorm_ne_top
+    · exact (ENNReal.sum_ne_top).mpr (fun k _ => hCk_ne_top k)
+  calc
+    (eLpNorm (fun x => (∑ k, β k * φ.φ x k) - ∑ k, βstar k * φ.φ x k) 2
+        (P.map Prod.fst)).toReal
+        ≤ (‖δ‖ₑ * ∑ k, eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P).toReal :=
+          ENNReal.toReal_mono hrhs_ne_top hfinal_le
+    _ = ‖δ‖ * ∑ k, (eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P).toReal := by
+          rw [ENNReal.toReal_mul, ENNReal.toReal_sum (fun k _ => hCk_ne_top k)]
+          congr 1
+    _ = (∑ k, (eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P).toReal) * ‖β - βstar‖ := by
+          rw [hδ]; ring
+
+/-- **Ridge root-n rate toward the penalized pseudo-true predictor.** For [a strictly positive
+ridge penalty `λ`](hyp:hlam), a finite feature map `φ`, and an i.i.d. sample `S` from a
+distribution `P` on features and outcome, if [the pseudo-true coefficient vector `βstar`
+satisfies the regularized population ridge
+normal equations](hyp:hpop), [each feature coordinate is measurable](hyp:hφ), [the fourth
+moment of the feature norm is finite](hyp:h4), and [each per-coordinate score function
+is square-integrable](hyp:hscore), then [the sample ridge predictor converges to the population
+ridge predictor at the root-n rate in the `L²(P)` sense](goal); this fixed-`λ` target is not
+asserted to equal the conditional mean.
+
+The regularized population Gram is positive definite because the population feature Gram is
+positive semidefinite and `λI` is positive definite when `λ > 0`. -/
+theorem ridge_achievesL2Rate (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
+    [IsProbabilityMeasure P] (S : IIDSample Ω (γ × ℝ) μ P) [IsProbabilityMeasure μ]
+    {lam : ℝ} (hlam : 0 < lam) (βstar : K → ℝ)
+    (hpop : IsPopulationRidge P φ lam βstar)
+    (hφ : ∀ k, Measurable (fun x => φ.φ x k))
+    (h4 : Integrable (fun z => (∑ k, (φ.φ z.1 k) ^ 2) ^ 2) P)
+    (hscore : ∀ k, MemLp
+      (fun z => (z.2 - ∑ j, βstar j * φ.φ z.1 j) * φ.φ z.1 k) 2 P) :
+    AchievesL2Rate (sampleRidgePredictor φ S.Z lam)
+      (fun x => ∑ k, βstar k * φ.φ x k) P (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
+  classical
+  rcases eLpNorm_predictor_sub_le φ P hφ h4 βstar with ⟨C, hC_nonneg, hC_bound⟩
+  have hGramPosDef : (populationGram φ P + lam • (1 : Matrix K K ℝ)).PosDef :=
+    Matrix.PosDef.posSemidef_add (populationGram_posSemidef φ P hφ h4)
+      (Matrix.PosDef.smul Matrix.PosDef.one hlam)
+  have hcoef := sampleRidgeCoef_isBigOp φ P S hlam βstar hpop hφ h4 hscore hGramPosDef
+  unfold AchievesL2Rate
+  constructor
+  · intro n ω
+    simpa [sampleRidgePredictor] using
+      (linear_predictor_sub_memLp_of_l4 φ P hφ h4
+        (sampleRidgeCoef φ S.Z lam n ω) βstar).eLpNorm_ne_top
+  refine IsBigOp.of_abs_le
+    (Yn := fun n ω => C * ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖) ?_
+    (IsBigOp.const_mul C hcoef)
+  intro n ω
+  rw [abs_of_nonneg ENNReal.toReal_nonneg,
+    abs_of_nonneg (mul_nonneg hC_nonneg (norm_nonneg _))]
+  simpa [sampleRidgePredictor] using
+    hC_bound (sampleRidgeCoef φ S.Z lam n ω)
+
+end Causalean.ML

@@ -1,0 +1,702 @@
+\begin{proof}[Proof of \cref{obj:prop:benchmark-recovery}]
+We first establish the quantitative experiment comparison, then prove the remaining assertions in their stated order. Throughout, the public indices satisfy the ranges in the statement. We use the cell quantities
+\begingroup\scriptsize
+\[
+\begin{aligned}
+P(j,a,y)&=P(X=j,A=a,Y=y),\\
+s_{aj}(P)&=\sum_{y=0}^1P(j,a,y),
+&
+q_{aj}(P)&=P(j,a,1),\\
+p_j(P)&=s_{0j}(P)+s_{1j}(P),
+&
+\mu_{aj}(P)&=
+\begin{cases}
+q_{aj}(P)/s_{aj}(P),&s_{aj}(P)>0,\\
+0,&s_{aj}(P)=0,
+\end{cases}
+\end{aligned}
+\qquad
+j\in\{1,\ldots,d\},\quad a,y\in\{0,1\}.
+\]
+\endgroup
+Since the conditional means belong to \([0,1]\), \cref{obj:def:target} gives
+\[
+-1=\sum_jp_j(P)(-1)
+\le \tau(P)
+\le \sum_jp_j(P)=1.
+\]
+The laws supplied by \cref{obj:thm:rare-label-floor} make the model class nonempty. Both rule classes contain the zero rule, and every clipped rule has squared loss between zero and four. Thus the suprema and infima used below are finite.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.ateFunctional_mem_Icc
+
+\begin{enumerate}
+\item \emph{Comparison of experiments.}
+Fix an original-record rule \(T\). For every real table
+\(s'=(s'_{aj})_{j,a}\in\mathbb R^{2d}\) and auxiliary array
+\(\mathcal V=((X_i^{\mathrm{aux}},A_i^{\mathrm{aux}}))_{i=1}^m
+\in(\{1,\ldots,d\}\times\{0,1\})^m\), define
+\[
+\omega_{s'}(\mathcal V)
+=\prod_{i=1}^m s'_{A_i^{\mathrm{aux}},X_i^{\mathrm{aux}}},
+\]
+and, for every complete-record array \(\mathcal L\) and every
+\(u_{\mathrm{seed}}\in\mathbb R\), define
+\[
+T^{\mathrm{av}}(\mathcal L,s',u_{\mathrm{seed}})
+=
+\operatorname{clip}_{[-1,1]}
+\left(
+\sum_{\mathcal V}
+\omega_{s'}(\mathcal V)
+T((\mathcal L,\mathcal V),u_{\mathrm{seed}})
+\right).
+\]
+Here clipping is as in \cref{obj:synth_4}. The sum is finite, its weights are polynomials in the supplied entries, and clipping makes this a Borel rule with values in \([-1,1]\) on the entire real table space.
+
+At the true table \(s(P)=(s_{aj}(P))_{j,a}\), product sampling gives
+\[
+\omega_{s(P)}(\mathcal V)
+=P_{XA}^{\otimes m}(\{\mathcal V\}),
+\qquad
+\omega_{s(P)}(\mathcal V)\ge0,
+\qquad
+\sum_{\mathcal V}\omega_{s(P)}(\mathcal V)=1.
+\]
+Consequently the average already lies in \([-1,1]\), and convexity of squared loss yields
+\[
+\bigl(T^{\mathrm{av}}(\mathcal L,s(P),u_{\mathrm{seed}})
+-\tau(P)\bigr)^2
+\le
+\sum_{\mathcal V}\omega_{s(P)}(\mathcal V)
+\bigl(T((\mathcal L,\mathcal V),u_{\mathrm{seed}})
+-\tau(P)\bigr)^2.
+\]
+Integrating over \(\mathcal L\) and the independent seed gives
+\[
+\begin{aligned}
+&\mathbb E_{P^{\otimes n}\otimes\mathrm{Uniform}[0,1]}
+\bigl[(T^{\mathrm{av}}(\mathcal L,s(P),U)-\tau(P))^2\bigr]\\
+&\qquad\le
+\mathbb E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}
+\otimes\mathrm{Uniform}[0,1]}
+\bigl[(T((\mathcal L,\mathcal V),U)-\tau(P))^2\bigr].
+\end{aligned}
+\]
+For \(m=0\), the auxiliary-array space contains the single empty array, whose weight is the empty product \(1\); the same argument applies. Taking suprema over \(P\) and infima over \(T\) proves
+\[
+R^{\mathrm K}(n,d,\epsilon)\le R(n,m,d,\epsilon).
+\]
+The zero rule and nonnegativity of squared loss also give
+\[
+0\le R^{\mathrm K}(n,d,\epsilon)
+\le R(n,m,d,\epsilon)\le1,
+\]
+and hence
+\[
+0\le R(n,m,d,\epsilon)-R^{\mathrm K}(n,d,\epsilon)\le1.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparison_difference_bounds
+
+For the reverse quantitative bound, assume \(m\ge1\). Define the empirical and adjusted auxiliary tables by
+\[
+\begin{aligned}
+\widetilde s_{aj}
+&=\frac1m\sum_{i=1}^m
+\mathbf1\{X_i^{\mathrm{aux}}=j,\ A_i^{\mathrm{aux}}=a\},\\
+\widetilde p_j&=\widetilde s_{0j}+\widetilde s_{1j},\\
+\widehat s_{1j}
+&=\min\{(1-\epsilon)\widetilde p_j,
+          \max\{\epsilon\widetilde p_j,\widetilde s_{1j}\}\},\\
+\widehat s_{0j}&=\widetilde p_j-\widehat s_{1j}.
+\end{aligned}
+\]
+Because \(0<\epsilon\le1/4\), the two clipping endpoints are ordered. Thus
+\[
+\widehat s_{aj}\ge0,\qquad
+\sum_{j,a}\widehat s_{aj}=1,\qquad
+\epsilon(\widehat s_{0j}+\widehat s_{1j})
+\le\widehat s_{1j}
+\le(1-\epsilon)(\widehat s_{0j}+\widehat s_{1j}).
+\]
+In an empty empirical cell, all four empirical and adjusted arm entries are zero. The adjustment is a Borel function of the auxiliary array.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonEmpiricalTable_probability
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonEmpiricalTable_overlap
+
+Fix any clipped Borel supplied-table rule \(T^{\mathrm K}\), and define
+\[
+T^{\mathrm{plug}}((\mathcal L,\mathcal V),u_{\mathrm{seed}})
+=
+T^{\mathrm K}(\mathcal L,\widehat s(\mathcal V),u_{\mathrm{seed}}).
+\]
+This is an admissible original-record rule, so
+\[
+R(n,m,d,\epsilon)
+\le
+\sup_{P\in\mathcal M_{d,\epsilon}}
+\mathbb E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}
+\otimes\mathrm{Uniform}[0,1]}
+\bigl[(T^{\mathrm{plug}}-\tau(P))^2\bigr].
+\]
+For later use, define its supplied-table counterpart's maximal risk by
+\[
+\mathscr R^{\mathrm K}(T^{\mathrm K})
+=
+\sup_{P'\in\mathcal M_{d,\epsilon}}
+\mathbb E_{(P')^{\otimes n}\otimes\mathrm{Uniform}[0,1]}
+\bigl[
+(T^{\mathrm K}(\mathcal L,s(P'),U)-\tau(P'))^2
+\bigr],
+\qquad
+0\le\mathscr R^{\mathrm K}(T^{\mathrm K})\le4.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparison_minimax_le_known_add
+
+We next bound the risk at a fixed supplied table. For real tables define
+\[
+\|s'-s''\|_1=\sum_{j=1}^d\sum_{a=0}^1|s'_{aj}-s''_{aj}|,
+\qquad s',s''\in\mathbb R^{2d}.
+\]
+Fix \(P\in\mathcal M_{d,\epsilon}\) and any table \(s'\) satisfying
+\[
+s'_{aj}\ge0,\qquad \sum_{j,a}s'_{aj}=1,\qquad
+\epsilon(s'_{0j}+s'_{1j})\le s'_{1j}
+\le(1-\epsilon)(s'_{0j}+s'_{1j}).
+\]
+Define a replacement law by the atoms
+\[
+P^{s'}(j,a,1)=s'_{aj}\mu_{aj}(P),
+\qquad
+P^{s'}(j,a,0)=s'_{aj}(1-\mu_{aj}(P)).
+\]
+These atoms are nonnegative and sum to one. Its marginal and cell masses are
+\[
+s_{aj}(P^{s'})=s'_{aj},
+\qquad
+p_j(P^{s'})=s'_{0j}+s'_{1j}.
+\]
+On every occupied replacement cell, division of the displayed legality inequalities by its cell mass proves the overlap restriction. Thus
+\[
+P^{s'}\in\mathcal M_{d,\epsilon}.
+\]
+Moreover, both replacement arm masses are positive in an occupied cell, so
+\[
+\mu_{aj}(P^{s'})=\mu_{aj}(P)
+\qquad\text{whenever }p_j(P^{s'})>0.
+\]
+In a null replacement cell the cell-weighted means vanish. Originally null arms have inherited mean zero by the stated convention.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonReplacementLaw_model
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonReplacementLaw_weighted_mean
+
+The original atoms factor in the same way:
+\[
+P(j,a,1)=s_{aj}(P)\mu_{aj}(P),
+\qquad
+P(j,a,0)=s_{aj}(P)(1-\mu_{aj}(P)).
+\]
+For a null original arm, both atoms are zero, which verifies these identities there as well. It follows that
+\[
+\begin{aligned}
+\sum_{j,a,y}|P(j,a,y)-P^{s'}(j,a,y)|
+&=\sum_{j,a}|s_{aj}(P)-s'_{aj}|
+   \{\mu_{aj}(P)+1-\mu_{aj}(P)\}\\
+&=\|s(P)-s'\|_1.
+\end{aligned}
+\]
+For finite probability laws, use
+\[
+\operatorname{TV}(\nu_1,\nu_2)
+=\frac12\sum_z|\nu_1(z)-\nu_2(z)|,
+\]
+where the sum ranges over their common finite atom space. Therefore
+\[
+\operatorname{TV}(P,P^{s'})
+\le\frac12\|s(P)-s'\|_1.
+\]
+The replacement target is
+\[
+\tau(P^{s'})
+=\sum_j(s'_{0j}+s'_{1j})
+       \{\mu_{1j}(P)-\mu_{0j}(P)\},
+\]
+and the contrast bound \(|\mu_{1j}(P)-\mu_{0j}(P)|\le1\) gives
+\[
+\begin{aligned}
+|\tau(P)-\tau(P^{s'})|
+&\le
+\sum_j|p_j(P)-(s'_{0j}+s'_{1j})|\\
+&\le\sum_{j,a}|s_{aj}(P)-s'_{aj}|
+=\|s(P)-s'\|_1.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonReplacementLaw_tv
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonReplacementLaw_target_error
+
+The product-distance bound is
+\[
+\operatorname{TV}(\nu_1^{\otimes n},\nu_2^{\otimes n})
+\le n\operatorname{TV}(\nu_1,\nu_2).
+\]
+Indeed, the empty products have distance zero, and the triangle inequality, inserting
+\(\nu_2\otimes\nu_1^{\otimes k}\), gives
+\[
+\operatorname{TV}(\nu_1^{\otimes(k+1)},\nu_2^{\otimes(k+1)})
+\le
+\operatorname{TV}(\nu_1,\nu_2)
++\operatorname{TV}(\nu_1^{\otimes k},\nu_2^{\otimes k}),
+\qquad k\ge0.
+\]
+Here a common independent probability factor preserves total variation: integration over its sections proves the upper inequality, and cylinder events prove the reverse inequality. In particular,
+\[
+\begin{aligned}
+&\operatorname{TV}\!\left(
+P^{\otimes n}\otimes\mathrm{Uniform}[0,1],
+(P^{s'})^{\otimes n}\otimes\mathrm{Uniform}[0,1]\right)\\
+&\qquad=
+\operatorname{TV}(P^{\otimes n},(P^{s'})^{\otimes n})
+\le \frac n2\|s(P)-s'\|_1.
+\end{aligned}
+\]
+% lean: Causalean.Stat.Minimax.MomentMatchedMixture.tvDist_pi_iid_le
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.labelFloor_tv_common_product
+
+Squared loss is in \([0,4]\). After integrating over the common seed, summing the loss against the positive and negative atom-mass differences bounds its change in expectation by four times total variation. Hence
+\[
+\begin{aligned}
+&\mathbb E_{P^{\otimes n}\otimes\mathrm{Uniform}[0,1]}
+\bigl[(T^{\mathrm K}(\mathcal L,s',U)-\tau(P))^2\bigr]\\
+&\quad\le
+\mathbb E_{(P^{s'})^{\otimes n}\otimes\mathrm{Uniform}[0,1]}
+\bigl[(T^{\mathrm K}(\mathcal L,s',U)-\tau(P))^2\bigr]
++2n\|s(P)-s'\|_1.
+\end{aligned}
+\]
+For every realization, the rule and both targets lie in \([-1,1]\), so
+\[
+\begin{aligned}
+&\left|
+(T^{\mathrm K}(\mathcal L,s',U)-\tau(P))^2
+-(T^{\mathrm K}(\mathcal L,s',U)-\tau(P^{s'}))^2
+\right|\\
+&\quad=
+|\tau(P)-\tau(P^{s'})|
+\left|2T^{\mathrm K}(\mathcal L,s',U)-\tau(P)-\tau(P^{s'})\right|\\
+&\quad\le4|\tau(P)-\tau(P^{s'})|
+\le4\|s(P)-s'\|_1.
+\end{aligned}
+\]
+Integrating this inequality under the replacement law, whose true marginal is \(s'\), and combining the two bounds proves
+\[
+\begin{aligned}
+&\mathbb E_{P^{\otimes n}\otimes\mathrm{Uniform}[0,1]}
+\bigl[(T^{\mathrm K}(\mathcal L,s',U)-\tau(P))^2\bigr]\\
+&\qquad\le
+\mathscr R^{\mathrm K}(T^{\mathrm K})
++(2n+4)\|s(P)-s'\|_1.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonFixedTableRisk_transport
+
+It remains to control the expected adjusted-table error. Define
+\[
+\Delta_j^{\mathrm{aux}}
+=
+|\widetilde s_{0j}-s_{0j}(P)|
++|\widetilde s_{1j}-s_{1j}(P)|.
+\]
+The population overlap restriction gives
+\[
+\epsilon s_{0j}(P)-(1-\epsilon)s_{1j}(P)\le0,
+\qquad
+\epsilon s_{1j}(P)-(1-\epsilon)s_{0j}(P)\le0.
+\]
+If \(\widetilde s_{1j}\le\epsilon\widetilde p_j\), the treated entry moves to the lower endpoint and
+\[
+\begin{aligned}
+|\widehat s_{1j}-\widetilde s_{1j}|
+&=\epsilon\widetilde s_{0j}-(1-\epsilon)\widetilde s_{1j}\\
+&\le
+\epsilon|\widetilde s_{0j}-s_{0j}(P)|
++(1-\epsilon)|\widetilde s_{1j}-s_{1j}(P)|\\
+&\le\Delta_j^{\mathrm{aux}}.
+\end{aligned}
+\]
+Otherwise, if \((1-\epsilon)\widetilde p_j\le\widetilde s_{1j}\), it moves to the upper endpoint and
+\[
+\begin{aligned}
+|\widehat s_{1j}-\widetilde s_{1j}|
+&=\epsilon\widetilde s_{1j}-(1-\epsilon)\widetilde s_{0j}\\
+&\le
+\epsilon|\widetilde s_{1j}-s_{1j}(P)|
++(1-\epsilon)|\widetilde s_{0j}-s_{0j}(P)|\\
+&\le\Delta_j^{\mathrm{aux}}.
+\end{aligned}
+\]
+In the remaining case the entry is unchanged. The control entry moves by the opposite amount, and the triangle inequality consequently gives
+\[
+\begin{aligned}
+&|\widehat s_{0j}-s_{0j}(P)|
++|\widehat s_{1j}-s_{1j}(P)|\\
+&\qquad\le
+\Delta_j^{\mathrm{aux}}
++2|\widehat s_{1j}-\widetilde s_{1j}|
+\le3\Delta_j^{\mathrm{aux}}.
+\end{aligned}
+\]
+Summing over cells proves
+\[
+\|\widehat s-s(P)\|_1
+\le3\|\widetilde s-s(P)\|_1.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonEmpiricalTable_l1_error
+
+Under \(P_{XA}^{\otimes m}\), expanding the empirical-coordinate square into its diagonal and off-diagonal terms gives
+\[
+\begin{aligned}
+\mathbb E\widetilde s_{aj}&=s_{aj}(P),\\
+\mathbb E\widetilde s_{aj}^{\,2}
+&=\frac{s_{aj}(P)}m+\frac{m-1}{m}s_{aj}(P)^2,\\
+\mathbb E(\widetilde s_{aj}-s_{aj}(P))^2
+&=\frac{s_{aj}(P)-s_{aj}(P)^2}{m}.
+\end{aligned}
+\]
+Cauchy--Schwarz for the \(2d\) coordinates yields
+\[
+\|\widetilde s-s(P)\|_1^2
+\le2d\sum_{j,a}(\widetilde s_{aj}-s_{aj}(P))^2.
+\]
+Using the coordinate identity and \(\sum_{j,a}s_{aj}(P)=1\), we obtain
+\[
+\begin{aligned}
+\mathbb E\|\widetilde s-s(P)\|_1^2
+&\le\frac{2d}{m}
+\sum_{j,a}\{s_{aj}(P)-s_{aj}(P)^2\}\\
+&\le\frac{2d}{m}.
+\end{aligned}
+\]
+Nonnegative variance then gives
+\[
+\bigl(\mathbb E\|\widetilde s-s(P)\|_1\bigr)^2
+\le\mathbb E\|\widetilde s-s(P)\|_1^2
+\le\frac{2d}{m},
+\]
+and therefore
+\[
+\mathbb E\|\widehat s-s(P)\|_1
+\le3\mathbb E\|\widetilde s-s(P)\|_1
+\le3\sqrt{\frac{2d}{m}}.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonEmpiricalTable_expected_l1
+
+Product sampling expresses the plug-in risk as the auxiliary average of its fixed-table risk. Applying the fixed-table bound at \(s'=\widehat s(\mathcal V)\) gives
+\[
+\begin{aligned}
+&\mathbb E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}
+\otimes\mathrm{Uniform}[0,1]}
+\bigl[(T^{\mathrm{plug}}-\tau(P))^2\bigr]\\
+&\qquad\le
+\mathscr R^{\mathrm K}(T^{\mathrm K})
++(2n+4)\mathbb E_{P_{XA}^{\otimes m}}\|\widehat s-s(P)\|_1\\
+&\qquad\le
+\mathscr R^{\mathrm K}(T^{\mathrm K})
++6(n+2)\sqrt{\frac{2d}{m}}.
+\end{aligned}
+\]
+This holds uniformly in \(P\). Consequently, for every admissible \(T^{\mathrm K}\),
+\[
+R(n,m,d,\epsilon)-6(n+2)\sqrt{\frac{2d}{m}}
+\le\mathscr R^{\mathrm K}(T^{\mathrm K}).
+\]
+Taking the infimum over all supplied-table rules, as in \cref{obj:def:known-risk}, proves
+\[
+R(n,m,d,\epsilon)
+\le R^{\mathrm K}(n,d,\epsilon)
++6(n+2)\sqrt{\frac{2d}{m}}.
+\]
+Combining this with the earlier difference bounds establishes
+\[
+0\le R(n,m,d,\epsilon)-R^{\mathrm K}(n,d,\epsilon)
+\le\min\left\{1,6(n+2)\sqrt{\frac{2d}{m}}\right\}.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparisonPluginRule_risk_le
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.comparison_minimax_le_known_add
+
+\item \emph{Fixed-overlap benchmark.}
+Fix \(0<\epsilon\le1/4\), and define
+\[
+N=n+m,\qquad
+\ell=\log(\exp(1)+n\epsilon),\qquad
+\Lambda_n=\log(\exp(1)n)=1+\log n,
+\]
+\[
+K_{\log}=2+\log(1/\epsilon),
+\qquad
+B_c=\max\left\{1,
+\left(\max\{\epsilon^{-1},K_{\log}/\epsilon\}\right)^2\right\}.
+\]
+These are positive, with \(B_c\ge1\). We first compare the logarithms. Since \(n\ge1\) and \(n\epsilon>0\),
+\[
+1\le\ell.
+\]
+The elementary inequality \(\exp(1)>2\) implies
+\(\exp(1)+1\le\exp(2)\). Hence
+\[
+\exp(1)+n\epsilon
+\le(\exp(1)+1)n
+\le\exp(2)n,
+\]
+so
+\[
+\ell\le2+\log n\le2\Lambda_n.
+\]
+Also,
+\[
+n\le\frac{\exp(1)+n\epsilon}{\epsilon}
+\quad\Longrightarrow\quad
+\log n\le\ell+\log(1/\epsilon).
+\]
+Since \(\ell\ge1\) and \(\log(1/\epsilon)\ge0\), this gives
+\[
+\Lambda_n
+\le1+\ell+\log(1/\epsilon)
+\le K_{\log}\ell.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.benchmark_log_comparison
+
+The upper logarithmic bound and \(\epsilon\le1/4\) imply
+\[
+\epsilon\ell\le2\epsilon\Lambda_n\le\Lambda_n.
+\]
+Together with \(\Lambda_n\le K_{\log}\ell\), positivity of the denominators yields
+\[
+\frac d{N\Lambda_n}
+\le\frac d{N\epsilon\ell}
+\le\frac{K_{\log}}{\epsilon}\frac d{N\Lambda_n}.
+\]
+The chosen constant satisfies
+\[
+\epsilon^{-1}
+\le\max\{\epsilon^{-1},K_{\log}/\epsilon\}
+\le\left(\max\{\epsilon^{-1},K_{\log}/\epsilon\}\right)^2
+\le B_c,
+\qquad
+(K_{\log}/\epsilon)^2\le B_c,
+\]
+where the middle inequality uses \(\epsilon^{-1}\ge1\). Define the uncapped quantities
+\[
+z_{\mathrm{fix}}
+=\frac1n+\left(\frac d{N\Lambda_n}\right)^2,
+\qquad
+z_{\mathrm{rate}}
+=\frac1{n\epsilon}+\left(\frac d{N\epsilon\ell}\right)^2.
+\]
+The preceding bounds give
+\[
+z_{\mathrm{fix}}\le z_{\mathrm{rate}}
+\le
+B_c\left\{\frac1n+\left(\frac d{N\Lambda_n}\right)^2\right\}
+=B_cz_{\mathrm{fix}}.
+\]
+Finally, because \(B_c\ge1\),
+\[
+\begin{aligned}
+f(n,m,d)
+&=\min\{1,z_{\mathrm{fix}}\}
+\le\min\{1,z_{\mathrm{rate}}\}
+=r(n,m,d,\epsilon),\\
+r(n,m,d,\epsilon)
+&\le\min\{1,B_cz_{\mathrm{fix}}\}
+\le B_c\min\{1,z_{\mathrm{fix}}\}
+=B_cf(n,m,d).
+\end{aligned}
+\]
+Thus the first assertion holds with \(a=1\) and the displayed \(B_c\), which depends only on \(\epsilon\).
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.benchmark_fixed_overlap_comparison
+
+\item \emph{Rare-label benchmarks.}
+Let \(c_{\mathrm{lab}}>0\) be the numerical constant supplied by
+\cref{obj:thm:rare-label-floor}, and let \(C_{\mathrm B}>0\) be the numerical constant supplied by \cref{obj:thm:uniform-baseline}. Choose
+\[
+c=c_{\mathrm{lab}},
+\qquad
+C=\max\{5C_{\mathrm B},2\}.
+\]
+The rare-label bounds give
+\[
+c\,b(n,\epsilon)\le R(n,m,2,\epsilon),
+\qquad
+c\,b(n,\epsilon)\le R^{\mathrm K}(n,d,\epsilon).
+\]
+The baseline is an admissible clipped Borel rule by
+\cref{obj:thm:uniform-baseline}. Taking its worst-case risk and then the minimax infimum gives
+\[
+R(n,m,2,\epsilon)
+\le
+C_{\mathrm B}\min\left\{
+1,\frac1{n\epsilon}
++\left(\frac2{(n+m)\epsilon}\right)^2
+\right\}.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.benchmark_minimax_le_baseline
+
+Set
+\[
+S=n\epsilon.
+\]
+Since \((n+m)\epsilon\ge S>0\), if \(S\ge1\), then
+\[
+\frac1S+\left(\frac2{(n+m)\epsilon}\right)^2
+\le\frac1S+\frac4{S^2}
+\le\frac5S,
+\qquad
+b(n,\epsilon)=S^{-1}.
+\]
+If \(S<1\), then \(b(n,\epsilon)=1\), and the capped baseline quantity is at most \(1\le5b(n,\epsilon)\). Thus in both cases
+\[
+R(n,m,2,\epsilon)
+\le5C_{\mathrm B}b(n,\epsilon)
+\le Cb(n,\epsilon).
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.benchmark_binary_baseline_rate
+
+For the supplied-table upper bound, define, for every real table \(s'\) and every observation \((j,a,y)\),
+\[
+G^{\mathrm K}_{s'}(j,a,y)
+=(2a-1)y\,\frac{s'_{0j}+s'_{1j}}{s'_{aj}},
+\qquad
+s'\in\mathbb R^{2d},\quad
+j\in\{1,\ldots,d\},\quad a,y\in\{0,1\}.
+\]
+Every quotient with zero denominator in this construction is assigned zero. Define the total rule
+\[
+T^{\mathrm{IP}}(\mathcal L,s',u_{\mathrm{seed}})
+=
+\begin{cases}
+0,&S<1,\\[2pt]
+\displaystyle
+\operatorname{clip}_{[-1,1]}
+\left(\frac1n\sum_{i=1}^n
+G^{\mathrm K}_{s'}(X_i,A_i,Y_i)\right),&S\ge1,
+\end{cases}
+\qquad u_{\mathrm{seed}}\in\mathbb R.
+\]
+The totalized quotients are Borel functions, and clipping makes the rule admissible on every ambient table.
+
+At the true table, finite summation gives
+\[
+\mathbb E_PG^{\mathrm K}_{s(P)}(X,A,Y)
+=\sum_jp_j(P)\{\mu_{1j}(P)-\mu_{0j}(P)\}
+=\tau(P).
+\]
+For each arm, the second-moment contribution obeys
+\[
+q_{aj}(P)\left(\frac{p_j(P)}{s_{aj}(P)}\right)^2
+\le\frac{p_j(P)}{\epsilon}.
+\]
+Indeed, when \(s_{aj}(P)=0\), the left side is zero. Otherwise,
+\(q_{aj}(P)\le s_{aj}(P)\) and overlap gives
+\(s_{aj}(P)\ge\epsilon p_j(P)\), so
+\[
+\begin{aligned}
+q_{aj}(P)\left(\frac{p_j(P)}{s_{aj}(P)}\right)^2
+&\le s_{aj}(P)\left(\frac{p_j(P)}{s_{aj}(P)}\right)^2\\
+&=p_j(P)\frac{p_j(P)}{s_{aj}(P)}
+\le\frac{p_j(P)}{\epsilon}.
+\end{aligned}
+\]
+Summing both arms and all cells therefore yields
+\[
+\mathbb E_P\bigl[G^{\mathrm K}_{s(P)}(X,A,Y)^2\bigr]
+=
+\sum_{j,a}q_{aj}(P)
+\left(\frac{p_j(P)}{s_{aj}(P)}\right)^2
+\le\frac2\epsilon.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.knownMarginalScore_mean
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.knownMarginalScore_second_moment
+
+Define the un-clipped sample mean by
+\[
+\overline G^{\mathrm K}_P(\mathcal L)
+=\frac1n\sum_{i=1}^nG^{\mathrm K}_{s(P)}(X_i,A_i,Y_i).
+\]
+Independence of the complete records gives
+\[
+\begin{aligned}
+\mathbb E_{P^{\otimes n}}
+\bigl[(\overline G^{\mathrm K}_P-\tau(P))^2\bigr]
+&=\operatorname{Var}_{P^{\otimes n}}(\overline G^{\mathrm K}_P)\\
+&=\frac1n\operatorname{Var}_P(G^{\mathrm K}_{s(P)})\\
+&\le\frac1n\mathbb E_P[(G^{\mathrm K}_{s(P)})^2]
+\le\frac2{n\epsilon}.
+\end{aligned}
+\]
+Clipping satisfies
+\[
+\bigl(\operatorname{clip}_{[-1,1]}(x_{\mathrm{mean}})
+-x_{\mathrm{target}}\bigr)^2
+\le(x_{\mathrm{mean}}-x_{\mathrm{target}})^2,
+\qquad
+x_{\mathrm{mean}}\in\mathbb R,\quad x_{\mathrm{target}}\in[-1,1].
+\]
+For \(x_{\mathrm{mean}}<-1\), moving it to \(-1\) decreases its distance to the target; for \(x_{\mathrm{mean}}>1\), moving it to \(1\) does the same; and on \([-1,1]\) clipping is the identity. Consequently, when \(S\ge1\), the supplied-table rule has risk at most \(2/S=2b(n,\epsilon)\). When \(S<1\), its zero branch has risk
+\[
+\tau(P)^2\le1\le2b(n,\epsilon).
+\]
+Taking suprema and the supplied-table rule infimum proves
+\[
+R^{\mathrm K}(n,d,\epsilon)
+\le2b(n,\epsilon)\le Cb(n,\epsilon).
+\]
+The chosen \(c,C\) are positive numerical constants common to both benchmark comparisons.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.knownMarginalMean_risk
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.knownMarginal_clip_loss
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.knownMarginalRisk_le_labelBenchmark
+
+\item \emph{Limit along auxiliary sample sizes.}
+Fix \(n,d,\epsilon\) in the stated range. Along integer \(m\to\infty\),
+\[
+m^{-1}\longrightarrow0,
+\qquad
+\frac{2d}{m}\longrightarrow0,
+\qquad
+6(n+2)\sqrt{\frac{2d}{m}}\longrightarrow0,
+\]
+where the last implication uses continuity of the square root at zero. For every \(m\ge1\), the comparison already established gives
+\[
+0\le R(n,m,d,\epsilon)-R^{\mathrm K}(n,d,\epsilon)
+\le6(n+2)\sqrt{\frac{2d}{m}}.
+\]
+The squeeze theorem therefore yields
+\[
+R(n,m,d,\epsilon)-R^{\mathrm K}(n,d,\epsilon)\longrightarrow0.
+\]
+Adding the fixed value \(R^{\mathrm K}(n,d,\epsilon)\) proves the asserted limit.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.benchmark_comparison_error_tendsto
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.benchmark_limit_of_comparison
+
+\item \emph{Bounded rare-label scale.}
+Fix \(M_0>0\), and use the numerical constant \(c_{\mathrm{lab}}>0\) from
+\cref{obj:thm:rare-label-floor}. Define
+\[
+\kappa=\frac{c_{\mathrm{lab}}}{\max\{1,M_0\}}>0.
+\]
+If \(S=n\epsilon\le M_0\), then \(S>0\) and
+\[
+\frac1{\max\{1,M_0\}}\le1,
+\qquad
+\frac1{\max\{1,M_0\}}\le\frac1S.
+\]
+Taking the minimum of the two right sides gives
+\[
+\frac1{\max\{1,M_0\}}
+\le\min\{1,S^{-1}\}=b(n,\epsilon).
+\]
+The rare-label risk floor now implies
+\[
+\kappa
+\le c_{\mathrm{lab}}b(n,\epsilon)
+\le R(n,m,d,\epsilon).
+\]
+This constant depends only on \(M_0\), as required.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.benchmark_label_floor_on_bounded_scale
+\end{enumerate}
+\end{proof}

@@ -1,0 +1,232 @@
+\begin{proof}[Proof of \cref{obj:lem:phiw-separated-window-peeling}]
+Set
+\[
+\iota_0=t+1,\qquad \iota_1=t+1+\gamma,\qquad \iota_2=\iota_1+k=u .
+\]
+The horizon condition gives \(\iota_2<T\), and \(k\le t\) makes the earlier score mature.  For a full trajectory \(\tau\), write the joint state at epoch \(m\) as
+\[
+S_m(\tau):=(X_m(\tau),H_m(\tau))
+\]
+and write
+\[
+\operatorname{hist}_m(\tau)
+=
+\bigl((S_j(\tau))_{j<m},(A_j(\tau),Y_j(\tau))_{j<m},S_m(\tau)\bigr)
+\]
+for the state-and-epoch history through epoch \(m\).  For an observed trajectory \(w\), write its epoch-\(j\) coordinates as
+\[
+w_j=(x_j(w),a_j(w),y_j(w)).
+\]
+Define the totalized one-step ratio, for an observed state \(x\) and action \(a\), by
+\[
+\rho(a\mid x)
+:=
+\begin{cases}
+0, & b(a\mid x)=0,\\
+e(a\mid x)/b(a\mid x), & b(a\mid x)>0,
+\end{cases}
+\qquad
+\rho_j(w):=\rho(a_j(w)\mid x_j(w)).
+\] For
+\(0\le j_{\mathrm{lo}}\le j_{\mathrm{hi}}\le T-1\), put
+\[
+\operatorname{rat}^{<}_{j_{\mathrm{lo}}:j_{\mathrm{hi}}}(\tau)
+:=
+\prod_{j=j_{\mathrm{lo}}}^{j_{\mathrm{hi}}-1}\rho_j(O(\tau)),
+\qquad
+\operatorname{rat}^{<}_{j_{\mathrm{hi}}:j_{\mathrm{hi}}}(\tau):=1 .
+\]
+Thus the superscript \({<}\) means that the upper endpoint is excluded: the largest ratio in a
+nonempty block is \(\rho_{j_{\mathrm{hi}}-1}\). In particular,
+\(\operatorname{rat}^{<}_{\iota_1:\iota_2}\) stops at \(\rho_{u-1}\), while the terminal factor
+\(\rho_u\) is written separately below. The target-policy one-step reward regression is
+\[
+g_e(s)=
+\sum_{a\in\mathcal A}e(a\mid x(s))
+\int y\,K(dy\times\mathcal S\mid s,a),
+\]
+and the separated future function is \(\Phi_{\gamma,k}=P_b^\gamma P_e^k g_e\).  In this proof the policy-induced transition operator is the reward-marginalized kernel
+\[
+(P_pF)(s)
+=
+\sum_{a\in\mathcal A}p(a\mid x(s))
+\int F(s')\,K(dy\times ds'\mid s,a),
+\qquad p\in\{b,e\},
+\]
+for every bounded \(F:\mathcal S\to\mathbb R\).
+
+\begin{enumerate}
+\item Since \(\mathbb P_M^{\mathrm{obs}}\) is the pushforward of \(\mathbb P_M\) under \(O\),
+\[
+\int Z_t(k)(w)Z_u(k)(w)\,d\mathbb P_M^{\mathrm{obs}}(w)
+=
+\int Z_t(k)(O(\tau))Z_u(k)(O(\tau))\,d\mathbb P_M(\tau).
+\]
+The measurability needed for this change of variables follows from the observable definition of \(Z_t(k)\) in \cref{obj:def:phiw-estimator}.
+
+\item Define lifted carriers on state histories by
+\[
+\Lambda_0(\operatorname{hist}_{\iota_0}(\tau))
+:=Z_t(k)(O(\tau)),
+\]
+and, for \(0\le \nu<\gamma+k\), let \(\Lambda_{\nu+1}\) be the lift of \(\Lambda_\nu\) that forgets the last appended action, reward, and next state:
+\[
+\Lambda_{\nu+1}(\operatorname{hist}_{\iota_0+\nu+1}(\tau))
+:=
+\Lambda_\nu(\operatorname{hist}_{\iota_0+\nu}(\tau)).
+\]
+The base carrier is well defined because \(Z_t(k)\) uses only rewards, actions, and observed states through epoch \(t\), while \(t<\iota_0\); hence every lifted carrier satisfies
+\[
+\Lambda_\nu(\operatorname{hist}_{\iota_0+\nu}(\tau))
+=
+Z_t(k)(O(\tau))
+\qquad(0\le \nu\le \gamma+k).
+\]
+The depth-\(k\) window in \(Z_u(k)\) is inclusive.  Since \(u=\iota_2\) and \(u-k=\iota_1\), the half-open block contains the factors with \(\iota_1\le j<\iota_2\), and the endpoint contributes the separate terminal factor:
+\[
+Z_u(k)(O(\tau))
+=
+Y_{\iota_2}(\tau)\,
+\operatorname{rat}^{<}_{\iota_1:\iota_2}(\tau)\,
+\rho_{\iota_2}(O(\tau)).
+\]
+Therefore
+\[
+\int Z_t(k)(O(\tau))Z_u(k)(O(\tau))\,d\mathbb P_M(\tau)
+=
+\int
+\Lambda_{\gamma+k}(\operatorname{hist}_{\iota_2}(\tau))\,
+\operatorname{rat}^{<}_{\iota_1:\iota_2}(\tau)\,
+\rho_{\iota_2}(O(\tau))Y_{\iota_2}(\tau)\,
+d\mathbb P_M(\tau).
+\]
+The totalized ratios obey \(0\le\rho(a\mid x)\le L\): on a positive behavior cell this is the
+domination inequality divided by \(b(a\mid x)>0\), and on a zero cell it follows from the definition
+of \(\rho\). Hence finite state spaces, \cref{obj:ass:bounded-reward}, and the finite product bound
+\(\prod_j\rho_j\le L^{\#\{j\}}\) make all displayed integrands integrable. Empty behavior or target
+blocks are interpreted as products equal to one; in particular, when \(k=0\) the block
+\(\operatorname{rat}^{<}_{\iota_1:\iota_2}\) is empty and the endpoint factor
+\(\rho_{\iota_2}(O(\tau))\) is still present.
+
+\item The terminal reward peel is
+\[
+\begin{aligned}
+&\int
+\Lambda_{\gamma+k}(\operatorname{hist}_{\iota_2})\,
+\operatorname{rat}^{<}_{\iota_1:\iota_2}\,
+\rho_{\iota_2}Y_{\iota_2}\,d\mathbb P_M  \\
+&\qquad =
+\int
+\Lambda_{\gamma+k}(\operatorname{hist}_{\iota_2})\,
+\operatorname{rat}^{<}_{\iota_1:\iota_2}\,
+g_e(S_{\iota_2})\,d\mathbb P_M .
+\end{aligned}
+\]
+Indeed, condition first on the history and action at \(\iota_2\).  \Cref{obj:ass:pomdp-kernel}
+supplies the conditional law of \((Y_{\iota_2},S_{\iota_2+1})\) as
+\(K(\cdot\mid S_{\iota_2},a)\). Applying this conditional-law identity to the measurable test
+function \((y,s')\mapsto y\), with integrability supplied by \cref{obj:ass:bounded-reward}, and then
+marginalizing over the successor state gives
+\[
+E[Y_{\iota_2}\mid \operatorname{hist}_{\iota_2},A_{\iota_2}=a]
+=
+\int y\,K(dy\times\mathcal S\mid S_{\iota_2},a).
+\]
+By \cref{obj:ass:sequential-ignorability}, the action is drawn from \(b(\cdot\mid X_{\iota_2})\).  For every observed state \(x\) and action \(a\), the totalized ratio satisfies
+\[
+b(a\mid x)\rho(a\mid x)=e(a\mid x).
+\]
+Indeed, if \(b(a\mid x)>0\), this is the definition of \(\rho\). If \(b(a\mid x)=0\), then the
+domination inequality in \cref{obj:ass:policy-overlap} gives \(e(a\mid x)\le0\), while the target policy has nonnegative coordinates, so
+\(e(a\mid x)=0\), matching the zero-cell value. Applying this identity at \(x=X_{\iota_2}\) and
+summing over \(a\) gives
+\[
+\sum_{a\in\mathcal A}e(a\mid X_{\iota_2})
+\int y\,K(dy\times\mathcal S\mid S_{\iota_2},a)
+=g_e(S_{\iota_2}),
+\]
+by the displayed definition of \(g_e\).
+
+\item For every \(\iota_1\le m<\iota_2\), put \(\nu=m-\iota_0\), so
+\(\gamma\le\nu<\gamma+k\).  For every bounded \(F:\mathcal S\to\mathbb R\), the target-ratio
+peeling step is
+\[
+\begin{aligned}
+&\int
+\Lambda_{\nu+1}(\operatorname{hist}_{m+1})\,
+\operatorname{rat}^{<}_{\iota_1:m+1}\,
+F(S_{m+1})\,d\mathbb P_M \\
+&\qquad =
+\int
+\Lambda_{\nu}(\operatorname{hist}_{m})\,
+\operatorname{rat}^{<}_{\iota_1:m}\,
+(P_eF)(S_m)\,d\mathbb P_M .
+\end{aligned}
+\]
+The first target peel has \(m=\iota_1\) and lowers the carrier from \(\Lambda_{\gamma+1}\) to
+\(\Lambda_\gamma\); the last has \(m=\iota_2-1\) and lowers \(\Lambda_{\gamma+k}\) to
+\(\Lambda_{\gamma+k-1}\). Iterating the displayed identity backward over these values of \(m\)
+therefore removes exactly the \(k\) target-window ratios. Indeed, \(\Lambda_{\nu+1}\) is the lift of
+\(\Lambda_\nu\), and
+\[
+\operatorname{rat}^{<}_{\iota_1:m+1}
+=
+\operatorname{rat}^{<}_{\iota_1:m}\rho_m.
+\]
+Conditioning on the history and action at \(m\), \cref{obj:ass:pomdp-kernel} gives the transition integral over \((Y_m,S_{m+1})\), and the reward coordinate is integrated out:
+\[
+\sum_{a\in\mathcal A}
+ b(a\mid X_m)\rho(a\mid X_m)
+ \int F(s')\,K(dy\times ds'\mid S_m,a)
+=
+\sum_{a\in\mathcal A}
+ e(a\mid X_m)
+ \int F(s')\,K(dy\times ds'\mid S_m,a).
+\]
+The ratio identity displayed in the terminal peel justifies the replacement of \(b\rho\) by \(e\), including zero behavior cells, and the last display is exactly \((P_eF)(S_m)\).  Iterating for \(m=\iota_2-1,\ldots,\iota_1\), starting from \(F=g_e\), yields
+\[
+\int
+\Lambda_{\gamma+k}(\operatorname{hist}_{\iota_2})\,
+\operatorname{rat}^{<}_{\iota_1:\iota_2}\,
+g_e(S_{\iota_2})\,d\mathbb P_M
+=
+\int
+\Lambda_{\gamma}(\operatorname{hist}_{\iota_1})\,
+(P_e^kg_e)(S_{\iota_1})\,d\mathbb P_M .
+\]
+When \(k=0\), this iteration is empty and the displayed identity reduces to the same integrand at \(\iota_1=\iota_2\).
+
+\item For every \(\iota_0\le m<\iota_1\), put \(\nu=m-\iota_0\).  For every bounded \(F:\mathcal S\to\mathbb R\), the behavior-gap peeling step is
+\[
+\int
+\Lambda_{\nu+1}(\operatorname{hist}_{m+1})F(S_{m+1})\,d\mathbb P_M
+=
+\int
+\Lambda_{\nu}(\operatorname{hist}_{m})(P_bF)(S_m)\,d\mathbb P_M .
+\]
+Here \(\operatorname{hist}_{m+1}\) is the history obtained from \(\operatorname{hist}_m\) by appending
+\((A_m,Y_m,S_{m+1})\), and \(\Lambda_{\nu+1}\) is the lift of \(\Lambda_\nu\), so
+\(\Lambda_{\nu+1}(\operatorname{hist}_{m+1})=\Lambda_\nu(\operatorname{hist}_m)\). Conditioning on the history and action at \(m\), \cref{obj:ass:sequential-ignorability} supplies the behavior action law, while \cref{obj:ass:pomdp-kernel} supplies the joint law of \((Y_m,S_{m+1})\) given \((S_m,A_m)\).  Integrating out the reward coordinate gives, for each history through \(m\),
+\[
+\sum_{a\in\mathcal A} b(a\mid X_m)
+\int F(s')\,K(dy\times ds'\mid S_m,a)
+=
+(P_bF)(S_m),
+\]
+which is the reward-marginalized behavior transition appearing in the displayed identity.  Iterating over \(m=\iota_1-1,\ldots,\iota_0\) with \(F=P_e^kg_e\) gives
+\[
+\int
+\Lambda_{\gamma}(\operatorname{hist}_{\iota_1})(P_e^kg_e)(S_{\iota_1})\,d\mathbb P_M
+=
+\int
+\Lambda_{0}(\operatorname{hist}_{\iota_0})
+(P_b^\gamma P_e^kg_e)(S_{\iota_0})\,d\mathbb P_M .
+\]
+When \(\gamma=0\), this iteration is empty.  Since \(\Lambda_0(\operatorname{hist}_{\iota_0}(\tau))=Z_t(k)(O(\tau))\), \(S_{\iota_0}=S_{t+1}\), and \(\Phi_{\gamma,k}=P_b^\gamma P_e^kg_e\), combining the preceding displays proves
+\[
+\int Z_t(k)(w)Z_u(k)(w)\,d\mathbb P_M^{\mathrm{obs}}(w)
+=
+\int Z_t(k)(O(\tau))\,\Phi_{\gamma,k}(S_{t+1}(\tau))\,d\mathbb P_M(\tau).
+\]
+\end{enumerate}
+\end{proof}

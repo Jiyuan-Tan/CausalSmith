@@ -1,0 +1,269 @@
+\begin{proof}[Proof of \cref{obj:thm:observable-upper}]
+\begin{enumerate}
+\item
+The assignment--audit product design is a probability measure because its factors are products of Bernoulli probability laws with parameters \(1/2\) and \(q\in[0,1]\). For fixed \(n,d,q\), the branch condition in \cref{obj:def:upper-rule} is constant on the record space. On its positive-retention branch, the score is a finite sum of outcome coordinates multiplied by functions of the finite graph and assignment coordinates; clipping is continuous. The other branch is constant. Thus \(T^{\mathrm{up}}\) is real-valued and measurable on the complete record space.
+
+Its deterministic extension to the randomized-estimator domain is
+\[
+(O,\xi)\longmapsto T^{\mathrm{up}}(O).
+\]
+This is an admissible estimator in \cref{obj:def:risk}, so
+\[
+R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^{\mathrm{up}};\theta,q).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.thinnedDesign_probabilityDesign
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.upperRule_measurable
+% lean: Causalean.Stat.minimaxValueENNReal_le_worstCaseRisk
+
+\item
+Fix a schedule
+\[
+\theta=(G,a,t,b)\in\mathcal M_{n,d}.
+\]
+Because the estimator ignores the independent uniform seed, integration over that seed gives
+\[
+\begin{aligned}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+&=
+\mathbb E_{P_{\theta,q}}
+\left[
+\int_0^1
+\bigl(T^{\mathrm{up}}(O)-\tau(\theta)\bigr)^2\,d\xi
+\right]\\
+&=
+\mathbb E_{P_{\theta,q}}
+\left[
+\bigl(T^{\mathrm{up}}(O)-\tau(\theta)\bigr)^2
+\right].
+\end{aligned}
+\]
+We bound this loss separately on the two branches of \cref{obj:def:upper-rule}.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.sqLoss_seedless
+
+\item
+First suppose
+\[
+q>0
+\qquad\text{and}\qquad
+u(n,d,q)<1.
+\]
+The product design satisfies \cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence}. Together with the population, degree, and schedule hypotheses, these conditions permit application of \cref{obj:lem:score-audit}. It supplies
+\[
+\mathbb E_{P_{\theta,q}}[T_q]=\tau(\theta)
+\]
+and hence
+\[
+\begin{aligned}
+\mathbb E_{P_{\theta,q}}
+\left[(T_q-\tau(\theta))^2\right]
+&=\operatorname{Var}_{P_{\theta,q}}(T_q)\\
+&=\operatorname{Var}_{Z}(T_G)
++\frac{4(1-q)}{n^2q}
+\sum_{i\in V}
+\bigl|\{j:(j,i)\in G\}\bigr|
+\,\mathbb E_Z[Y_i(Z)^2],
+\end{aligned}
+\]
+as well as
+\[
+\operatorname{Var}_{Z}(T_G)\le\frac{5(d+1)^2}{n}.
+\]
+
+For each \(i\in V\) and binary assignment \(z\in\{0,1\}^V\), the additive outcome formula and coefficient-mass bound give
+\[
+\begin{aligned}
+|Y_i(z)|
+&=
+\left|a_i+t_i z_i+\sum_{j:(j,i)\in G}b_{ij}z_j\right|\\
+&\le
+|a_i|+|t_i z_i|
++\sum_{j:(j,i)\in G}|b_{ij}z_j|\\
+&\le
+|a_i|+|t_i|
++\sum_{j:(j,i)\in G}|b_{ij}|\\
+&\le1,
+\end{aligned}
+\]
+where the penultimate inequality uses \(z_j\in\{0,1\}\), and the last uses \cref{obj:ass:coefficient-mass}. Consequently,
+\[
+\mathbb E_Z[Y_i(Z)^2]\le\mathbb E_Z[1]=1.
+\]
+The in-degree bound therefore yields
+\[
+\begin{aligned}
+\sum_{i\in V}
+\bigl|\{j:(j,i)\in G\}\bigr|
+\,\mathbb E_Z[Y_i(Z)^2]
+&\le
+\sum_{i\in V}\bigl|\{j:(j,i)\in G\}\bigr|\\
+&\le\sum_{i\in V}d
+=nd.
+\end{aligned}
+\]
+Since \(n>0\), \(q>0\), and \(q\le1\),
+\[
+\frac{4(1-q)}{n^2q}\ge0.
+\]
+Combining the preceding bounds gives
+\[
+\begin{aligned}
+\mathbb E_{P_{\theta,q}}
+\left[(T_q-\tau(\theta))^2\right]
+&\le
+\frac{5(d+1)^2}{n}
++\frac{4(1-q)}{n^2q}\,nd\\
+&=
+\frac{5(d+1)^2}{n}
++\frac{4d(1-q)}{nq}
+=u(n,d,q).
+\end{aligned}
+\]
+All expectations here are integrable because the assignment--audit space is finite.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.abs_potentialOutcome_le_one
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.auditScore_squared_error_le
+
+\item
+To control clipping, first bound the target. Define the constant assignments by
+\[
+\mathbf1=(1)_{i\in V},
+\qquad
+\mathbf0=(0)_{i\in V}.
+\]
+For every \(i\in V\),
+\[
+Y_i(\mathbf1)-Y_i(\mathbf0)
+=t_i+\sum_{j:(j,i)\in G}b_{ij},
+\]
+so
+\[
+\begin{aligned}
+|Y_i(\mathbf1)-Y_i(\mathbf0)|
+&\le |t_i|+
+\left|\sum_{j:(j,i)\in G}b_{ij}\right|\\
+&\le |t_i|+\sum_{j:(j,i)\in G}|b_{ij}|\\
+&\le1.
+\end{aligned}
+\]
+The last inequality follows from \cref{obj:ass:coefficient-mass} and \(|a_i|\ge0\). Averaging these contrasts gives
+\[
+\begin{aligned}
+|\tau(\theta)|
+&=
+\frac1n
+\left|\sum_{i\in V}
+\bigl(Y_i(\mathbf1)-Y_i(\mathbf0)\bigr)\right|\\
+&\le
+\frac1n\sum_{i\in V}
+|Y_i(\mathbf1)-Y_i(\mathbf0)|\\
+&\le\frac1n\sum_{i\in V}1
+=1.
+\end{aligned}
+\]
+Here \(n\ge4\) ensures \(n>0\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.abs_tte_le_one
+
+\item
+For arbitrary real values with domains
+\[
+v_{\mathrm{clip}}\in\mathbb R,
+\qquad
+s_{\mathrm{target}}\in[-1,1],
+\]
+clipping satisfies
+\[
+\left|\max\{-1,\min\{1,v_{\mathrm{clip}}\}\}
+-s_{\mathrm{target}}\right|
+=
+\begin{cases}
+s_{\mathrm{target}}+1,
+&v_{\mathrm{clip}}<-1,\\
+1-s_{\mathrm{target}},
+&v_{\mathrm{clip}}>1,\\
+|v_{\mathrm{clip}}-s_{\mathrm{target}}|,
+&-1\le v_{\mathrm{clip}}\le1.
+\end{cases}
+\]
+In the first case,
+\[
+s_{\mathrm{target}}+1
+\le s_{\mathrm{target}}-v_{\mathrm{clip}}
+=|v_{\mathrm{clip}}-s_{\mathrm{target}}|,
+\]
+and in the second,
+\[
+1-s_{\mathrm{target}}
+\le v_{\mathrm{clip}}-s_{\mathrm{target}}
+=|v_{\mathrm{clip}}-s_{\mathrm{target}}|.
+\]
+The third case gives equality. Squaring therefore proves
+\[
+\bigl(\max\{-1,\min\{1,v_{\mathrm{clip}}\}\}
+-s_{\mathrm{target}}\bigr)^2
+\le
+(v_{\mathrm{clip}}-s_{\mathrm{target}})^2.
+\]
+Apply this inequality pointwise with \(v_{\mathrm{clip}}=T_q(O)\) and \(s_{\mathrm{target}}=\tau(\theta)\). By the selected branch of \cref{obj:def:upper-rule},
+\[
+\begin{aligned}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+&\le
+\mathbb E_{P_{\theta,q}}
+\left[(T_q-\tau(\theta))^2\right]\\
+&\le u(n,d,q)
+=\min\{1,u(n,d,q)\}.
+\end{aligned}
+\]
+The nonnegative real expectation agrees with the extended nonnegative loss used in the risk definition.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.clipped_sq_error_le
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.observable_upper
+
+\item
+Now suppose the branch condition fails:
+\[
+\neg\bigl(q>0\ \text{and}\ u(n,d,q)<1\bigr).
+\]
+If \(q>0\), this implies \(u(n,d,q)\ge1\). If \(q\) is not positive, the hypothesis \(q\in[0,1]\) gives \(q=0\), and \cref{obj:def:upper-envelope} gives
+\[
+u(n,d,0)=+\infty\ge1.
+\]
+Thus in either case
+\[
+\min\{1,u(n,d,q)\}=1,
+\qquad
+T^{\mathrm{up}}(O)=0.
+\]
+The target bound derived above then yields
+\[
+\begin{aligned}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+&=\mathbb E_{P_{\theta,q}}[\tau(\theta)^2]\\
+&\le\mathbb E_{P_{\theta,q}}[1]
+=1
+=\min\{1,u(n,d,q)\}.
+\end{aligned}
+\]
+The equality \(\mathbb E_{P_{\theta,q}}[1]=1\) uses the probability normalization of the product design.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.observable_upper
+
+\item
+Both branches establish the same bound for every \(\theta\in\mathcal M_{n,d}\). Taking the supremum gives
+\[
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+\le\min\{1,u(n,d,q)\}.
+\]
+Together with the admissibility inequality established at the outset, this proves
+\[
+R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+\le
+\min\{1,u(n,d,q)\}.
+\]
+% lean: Causalean.Stat.worstCaseRiskENNReal_le
+\end{enumerate}
+\end{proof}

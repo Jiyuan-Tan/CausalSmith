@@ -1,0 +1,267 @@
+\begin{proof}[Proof of \cref{obj:lem:signed-depth-conditional-reward-mean}]
+\begin{enumerate}
+\item
+Write the epoch as a finite ordinal \(n_{\mathrm{pre}}<T\), and set
+\[
+n_{\mathrm{tail}}:=T-(n_{\mathrm{pre}}+1).
+\]
+Then \(T=n_{\mathrm{tail}}+(n_{\mathrm{pre}}+1)\). Thus it is enough to prove the identity at the canonical cut after an observed prefix of length \(n_{\mathrm{pre}}\), with at least the next epoch present. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.conditionalRewardMean_signedDepth_all
+
+\item
+Fix such a canonical horizon and write the observed prefix as
+\(o=((a_i,r_i))_{i=1}^k\), where \(a_i\in\{0,1\}\), \(r_i\in\{0,1\}\), and the real reward map is
+\[
+\phi(0)=-1,
+\qquad
+\phi(1)=1.
+\]
+Let \(\mathcal T^+_{n_{\mathrm{tail}},k}\) be the finite trajectory space with horizon \(n_{\mathrm{tail}}+(k+1)\). Its elements record the initial hidden state, the behavior actions, reward symbols, and subsequent hidden states through the remaining epochs of the finite signed-depth weights displayed below. For every \(Q\in\mathbb N\), the hidden coordinates are \((J,U)\in\{0,\ldots,Q\}\times\{-1,+1\}\). When \(Q\ge 1\), these weights are the signed-depth construction of \cref{obj:def:signed-depth-family}; when \(Q=0\), the same formulas are read on the one-point depth set \(\{0\}\), so only the terminal-depth reset line can occur. For \(\tau\in\mathcal T^+_{n_{\mathrm{tail}},k}\), define
+\[
+\operatorname{Obs}_{\mathrm{pre}}(\tau)
+:=((a_1(\tau),r_1(\tau)),\ldots,(a_k(\tau),r_k(\tau))),
+\qquad
+r_{\mathrm{next}}(\tau):=r_{k+1}(\tau),
+\]
+and let \(\omega_v(\tau)\) be the product of the signed-depth initial hidden-state weight, the behavior action probabilities, and the reward-symbol/hidden-transition weights along \(\tau\). Thus, if \(h_0,\ldots,h_{n_{\mathrm{tail}}+k+1}\) are the hidden states in \(\tau\),
+\[
+\omega_v(\tau)
+=
+\mu_v(h_0)
+\prod_{i=1}^{n_{\mathrm{tail}}+k+1}
+\pi_\zeta(a_i(\tau))\,
+\mathfrak m_v(r_i(\tau),h_i\mid h_{i-1},a_i(\tau)),
+\]
+where \(\mu_v\) is the initial hidden-state law with weights
+\[
+\mu_v(j,u)
+=
+\frac{(1-\alpha)\alpha^j}{1-\alpha^{Q+1}}\,
+\frac{1+u\varepsilon_C(C)L^{-j}}{2},
+\qquad 0\le j\le Q,
+\quad u\in\{-1,+1\},
+\]
+\(\pi_\zeta(1)=L^{-1}\), \(\pi_\zeta(0)=1-L^{-1}\), and \(\mathfrak m_v(r,h'\mid h,a)\) is the following one-step reward-symbol and next-hidden-state weight. If \(h=(j,u)\), \(h'=(j',u')\), and \(\phi(0)=-1\), \(\phi(1)=1\), then
+\[
+\mathfrak m_v(r,h'\mid h,a)
+=
+\frac{1+\phi(r)\sigma(v)c_0(t_0)u\mathbf 1\{j=Q\}}{2}
+\,\kappa(h'\mid h,a),
+\]
+where \(\kappa(0,u'\mid Q,u,a)=(1+u'\varepsilon_C(C))/2\); for \(j<Q\),
+\[
+\kappa(0,u'\mid j,u,a)=(1-\alpha)\frac{1+u'\varepsilon_C(C)}{2},
+\]
+and
+\[
+\kappa(j+1,u'\mid j,u,1)=\alpha\mathbf 1\{u'=u\},
+\qquad
+\kappa(j+1,u'\mid j,u,0)=\frac{\alpha}{2},
+\]
+with all other hidden transitions assigned weight zero. These formulas are valid for all \(Q\in\mathbb N\); if \(Q=0\), only the reset line \(j=Q\) occurs. Summing the two reward weights gives one, and the displayed hidden-transition weights sum to one for each hidden state and action. Hence
+\[
+\sum_{r\in\{0,1\}}\sum_{h'}
+\mathfrak m_v(r,h'\mid h,a)=1
+\qquad
+\text{for every hidden state }h\text{ and action }a.
+\]
+The numerator of the totalized finite-prefix conditional reward mean is
+\[
+N_v(o):=
+\sum_{\tau\in\mathcal T^+_{n_{\mathrm{tail}},k}}
+\mathbf 1\{\operatorname{Obs}_{\mathrm{pre}}(\tau)=o\}\,
+\phi(r_{\mathrm{next}}(\tau))\,\omega_v(\tau).
+\]
+For a hidden prefix \(\eta=(h_0,\ldots,h_k)\), define its observed-prefix weight by
+\[
+\Omega_v(\eta;o)
+:=
+\mu_v(h_0)
+\prod_{i=1}^{k}
+\pi_\zeta(a_i)\,
+\mathfrak m_v(r_i,h_i\mid h_{i-1},a_i),
+\]
+with value \(\mu_v(h_0)\) when \(k=0\). The unnormalized filter mass at the cut is
+\[
+\lambda_v(h;o)
+:=
+\sum_{\eta:\,h_k=h}\Omega_v(\eta;o),
+\qquad
+\Lambda_v(o):=\sum_h \lambda_v(h;o),
+\qquad
+\Lambda_{v,Q}(o):=\sum_{h:\,J(h)=Q}\lambda_v(h;o),
+\]
+where \(J(h)\in\{0,\ldots,Q\}\) and \(U(h)\in\{-1,+1\}\) are the depth and sign coordinates of the hidden state \(h\).
+
+We next decompose the finite trajectories at the cut. For a hidden state \(h\) and integer \(m\ge0\), set
+\[
+\Xi_m(h)
+:=
+\sum_{(a_1,r_1,h_1),\ldots,(a_m,r_m,h_m)}
+\prod_{j=1}^{m}
+\pi_\zeta(a_j)\,
+\mathfrak m_v(r_j,h_j\mid h_{j-1},a_j),
+\qquad h_0=h,
+\]
+with \(\Xi_0(h)=1\). Since \(\sum_a\pi_\zeta(a)=1\) and the displayed normalization of \(\mathfrak m_v\) holds at each state-action pair, induction gives
+\[
+\Xi_m(h)=1
+\qquad
+\text{for every }m\ge0\text{ and every }h.
+\]
+Splitting \(N_v(o)\) according to the hidden prefix \(\eta\), the next action \(a\), the next reward symbol \(r\), and the next hidden state \(h'\), then summing the remaining suffix by \(\Xi_{n_{\mathrm{tail}}}(h')=1\), yields
+\[
+N_v(o)
+=
+\sum_{\eta}\Omega_v(\eta;o)
+\sum_{a\in\{0,1\}}\pi_\zeta(a)
+\sum_{r\in\{0,1\}}\phi(r)
+\sum_{h'}\mathfrak m_v(r,h'\mid h_k,a).
+\]
+This is a partition of the same finite set of trajectories: the data \((\eta,a,r,h')\) give the first \(k+1\) epochs, and the suffix sum runs over all chronological continuations from \(h'\).
+
+For fixed \(h\) and \(a\), the displayed one-step formula factors \(\mathfrak m_v(r,h'\mid h,a)\) into the reward weight and a hidden-transition probability. Hence
+\[
+\sum_{h'}\mathfrak m_v(r,h'\mid h,a)
+=
+\frac{1+\phi(r)\sigma(v)c_0(t_0)U(h)\mathbf 1\{J(h)=Q\}}{2}.
+\]
+Using \(\sum_a\pi_\zeta(a)=1\), \(\sum_r\phi(r)/2=0\), and \(\sum_r\phi(r)^2/2=1\), the inner one-step payoff is
+\[
+\begin{aligned}
+\sum_{a}\pi_\zeta(a)
+\sum_{r}\phi(r)
+\sum_{h'}\mathfrak m_v(r,h'\mid h,a)
+&=
+\sum_a\pi_\zeta(a)
+\sum_r \phi(r)
+\frac{1+\phi(r)\sigma(v)c_0(t_0)U(h)\mathbf 1\{J(h)=Q\}}{2} \\
+&=
+\sigma(v)c_0(t_0)U(h)\mathbf 1\{J(h)=Q\}.
+\end{aligned}
+\]
+Therefore
+\[
+\begin{aligned}
+N_v(o)
+&=
+\sigma(v)c_0(t_0)
+\sum_{\eta}\Omega_v(\eta;o)U(h_k)\mathbf 1\{J(h_k)=Q\} \\
+&=
+\sigma(v)c_0(t_0)
+\sum_{h:\,J(h)=Q}U(h)\lambda_v(h;o).
+\end{aligned}
+\]
+This is the numerator identity supplied by \cref{obj:lem:signed-depth-next-reward-numerator}; the displayed derivation records the finite-trajectory regrouping used at the canonical cut. The denominator and the terminal-depth quotient are identified below.
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_prefix_nextRewardNumerator
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.conditionalRewardMean_signedDepth
+
+\item
+\Cref{obj:lem:signed-depth-terminal-sign-invariant} applies under \(t_0>0\), \(\zeta>0\), and \(C>1\), and gives the prefix-level identity
+\[
+\sum_{h:\,J(h)=Q}U(h)\lambda_v(h;o)
+=
+\varepsilon_C(C)\,a_{\mathrm{pre}}^{(Q)}(o)
+\sum_{h:\,J(h)=Q}\lambda_v(h;o),
+\]
+where, for the length-\(k\) prefix \(o=((a_i,r_i))_{i=1}^k\),
+\[
+a_{\mathrm{pre}}^{(Q)}(o)
+=
+L^{-\max\{Q-k,0\}}
+\prod_{\substack{1\le i\le k\\ i>k-\min\{Q,k\}}}
+\mathbf 1\{a_i=1\}.
+\]
+At the canonical cut, the time-indexed factor of \cref{obj:def:filter-quantities} is the same quantity:
+\[
+a_t^{(Q)}(o)
+=
+L^{-(Q-\min\{Q,k\})}
+\prod_{\substack{1\le i\le k\\ i>k-\min\{Q,k\}}}
+\mathbf 1\{a_i=1\}
+=
+a_{\mathrm{pre}}^{(Q)}(o),
+\]
+since \(Q-\min\{Q,k\}=\max\{Q-k,0\}\). Thus
+\[
+\sum_{h:\,J(h)=Q}U(h)\lambda_v(h;o)
+=
+\varepsilon_C(C)\,a_t^{(Q)}(o)\,\Lambda_{v,Q}(o).
+\]
+The empty-prefix case is included by the empty-product convention in \cref{obj:def:filter-quantities}. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_terminalMass_invariant
+
+\item
+It remains to identify the denominator and terminal-depth numerator. For a trajectory \(\tau\in\mathcal T^+_{n_{\mathrm{tail}},k}\), let \(h_{\mathrm{cut}}(\tau):=h_k(\tau)\) be the hidden state after the first \(k\) observed epochs. In the one-based indexing used for the signed-depth path statement, this same cut state is \(H_{k+1}\); hence the event \(J(h_{\mathrm{cut}}(\tau))=Q\) is exactly the event written there as \(J_{k+1}=Q\). Define the finite prefix mass and the terminal-depth prefix mass by
+\[
+\Pi_v(o)
+:=
+\sum_{\tau\in\mathcal T^+_{n_{\mathrm{tail}},k}}
+\mathbf 1\{\operatorname{Obs}_{\mathrm{pre}}(\tau)=o\}\,\omega_v(\tau),
+\]
+and
+\[
+\Pi_{v,Q}(o)
+:=
+\sum_{\tau\in\mathcal T^+_{n_{\mathrm{tail}},k}}
+\mathbf 1\{\operatorname{Obs}_{\mathrm{pre}}(\tau)=o\}\,
+\mathbf 1\{J(h_{\mathrm{cut}}(\tau))=Q\}\,\omega_v(\tau).
+\]
+The same cut decomposition as above, now without weighting by the next reward, gives
+\[
+\begin{aligned}
+\Pi_v(o)
+&=
+\sum_{\eta}\Omega_v(\eta;o)
+\sum_{(a,r,h')}\pi_\zeta(a)\,
+\mathfrak m_v(r,h'\mid h_k,a)\,\Xi_{n_{\mathrm{tail}}}(h') \\
+&=
+\sum_{\eta}\Omega_v(\eta;o)
+=
+\sum_h\lambda_v(h;o)
+=
+\Lambda_v(o).
+\end{aligned}
+\]
+Indeed, the first sum partitions trajectories by their length-\(k\) hidden prefix, next action, next reward symbol, and next hidden state; the continuation has total mass \(\Xi_{n_{\mathrm{tail}}}(h')=1\), and the next one-step mass sums to one. Carrying the terminal-depth indicator at the cut through the same partition gives
+\[
+\begin{aligned}
+\Pi_{v,Q}(o)
+&=
+\sum_{\eta}\Omega_v(\eta;o)\mathbf 1\{J(h_k)=Q\}
+\sum_{(a,r,h')}\pi_\zeta(a)\,
+\mathfrak m_v(r,h'\mid h_k,a)\,\Xi_{n_{\mathrm{tail}}}(h') \\
+&=
+\sum_{\eta}\Omega_v(\eta;o)\mathbf 1\{J(h_k)=Q\} \\
+&=
+\sum_{h:\,J(h)=Q}\lambda_v(h;o)
+=
+\Lambda_{v,Q}(o).
+\end{aligned}
+\]
+Thus \(\Pi_v(o)\) is the mass of the observed-prefix event and \(\Pi_{v,Q}(o)\) is the mass of the same event together with terminal depth at the cut. The latter identity is exactly the terminal-prefix mass identification in \cref{obj:lem:signed-depth-terminal-prefix-mass} for the canonical horizon.
+
+The finite-prefix conditional reward mean is the totalized quotient
+\[
+\mathbb E_v[Y_t\mid \mathcal F_{t-1}^{\mathrm{obs}}=o]
+=
+\frac{N_v(o)}{\Pi_v(o)},
+\]
+where real division is totalized by \(x/0=0\). The terminal posterior in \cref{obj:def:filter-quantities} is read at this finite prefix through the same totalized convention:
+\[
+q_t^v(o)=\frac{\Pi_{v,Q}(o)}{\Pi_v(o)}.
+\]
+If \(\Pi_v(o)=0\), then \(\Pi_{v,Q}(o)=0\) because the terminal-depth prefix event is contained in the prefix event; for \(\Pi_v(o)>0\), these quotients are the usual conditional averages. Combining the numerator identity, \cref{obj:lem:signed-depth-terminal-sign-invariant}, and \(\Pi_{v,Q}(o)=\Lambda_{v,Q}(o)\), we obtain
+\[
+\begin{aligned}
+\mathbb E_v[Y_t\mid \mathcal F_{t-1}^{\mathrm{obs}}=o]
+&=
+\frac{\sigma(v)c_0(t_0)\varepsilon_C(C)\,
+a_t^{(Q)}(o)\,\Pi_{v,Q}(o)}{\Pi_v(o)} \\
+&=
+\sigma(v)c_0(t_0)\varepsilon_C(C)\,
+a_t^{(Q)}(o)\,q_t^v(o).
+\end{aligned}
+\]
+This is the claimed identity for the original \(T\) and \(t<T\). % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.terminalPrefixMass_eq_sum_signedDepthFilterMass
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.conditionalRewardMean_signedDepth_all
+\end{enumerate}
+\end{proof}

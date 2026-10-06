@@ -1,0 +1,992 @@
+import { readFile, writeFile, mkdir, rename, rm } from "node:fs/promises";
+import { basename, join } from "node:path";
+import type { StageIO } from "../pipeline.js";
+import { presentationPrompt } from "../prompt_io.js";
+import { parseOutline, reconcileXrefAdvisories } from "../stage_util.js";
+import { canonicalizeObjRefs, parseAnchoredEnvs, lintAnchors, lintClarity, lintEnvOrder, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, repairObjRefs } from "../tex_anchors.js";
+import { FormalLayerSource, normalizeCitedScopeFootnotes, paperEnvMismatches } from "../formal_layer.js";
+import { parseNoteBlocks } from "../note_parser.js";
+import { SYNTHETIC_COMPANION_RE, externallyConsumedModules, findOrphanPaperModules } from "../paper_index_orphans.js";
+import { parseBib, verifyEntry, defaultLookup, citedKeys, UNREACHABLE, type BibEntry, type Lookup, type Verification } from "../citations.js";
+import { createHash } from "node:crypto";
+import { buildBundle, buildProseEntries, buildFormalLayer, buildSymbolRealizations, assumptionTable } from "../emit.js";
+import { discoverRealizedSymbols, buildSymbolClusters } from "../../formalization/crosswalk.js";
+import { auxiliaryNodes, isCitedNode } from "../graph_view.js";
+import { ensureComponentsForEnvs } from "../components.js";
+import { ensureNlLinks } from "../nl_links.js";
+import { extractLeanrefIds } from "../tex2html.js";
+import { paperReferenceLabels, resolveObjCrefsPlain, tex2html } from "../tex2html.js";
+import { PresentationCrosswalk, LeanSnippets, FormalLayer, PaperMeta } from "../types.js";
+import { assertP2AssemblyFresh, recordP2Assembly, texFilesUnder } from "../assembly_freshness.js";
+import {
+  REVIEW_FILE, adoptReviewManuscriptSha, areaForBundleId, ensurePaperIdentity, isProductionDoi,
+} from "../paper_stamp.js";
+import { LatexCompileError, compilePaper, refreshPaperMacros } from "../paper_compile.js";
+import { isCalendarIsoDate, utcToday } from "../iso_date.js";
+import { paperSeriesPrefix } from "../../local_config.js";
+import { readBundleMeta, updateBundleMeta } from "../meta_store.js";
+import { assertBundleEmitLockHeld, withBundleEmitLock } from "../emit_lock.js";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { loadJsonCache } from "../cache.js";
+import { buildPaperGraph, lintIsolatedLemmas, type PaperGraphNode } from "../paper_graph.js";
+import { writeJsonAtomic } from "../json_io.js";
+
+/** Standard token of the cached bibliography verdicts (`citation_verify_cache.json`). Bump it whenever
+ *  `verifyEntry` or `defaultLookup` TIGHTENS, so a verdict cached under the old standard would now be wrong. */
+export const CITATION_VERIFY_STANDARD = "1";
+
+/** Cache key of one bibliography entry's verdict: the standard token plus the entry's full content. */
+export function citationVerifyCacheKey(entry: BibEntry): string {
+  return createHash("sha256").update(JSON.stringify([
+    CITATION_VERIFY_STANDARD, entry.key, entry.type,
+    Object.entries(entry.fields).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+  ])).digest("hex");
+}
+
+const execFileP = promisify(execFile);
+
+type IndexedDecl = {
+  name?: unknown;
+  source?: unknown;
+  doc?: unknown;
+  module?: unknown;
+  file?: unknown;
+  statement?: unknown;
+  kind?: unknown;
+  line?: unknown;
+};
+
+type PaperLibraryIndex = {
+  modules?: Record<string, unknown>;
+  entries?: IndexedDecl[];
+};
+
+const INDEXED_FIELDS = ["source", "doc", "module", "file", "statement", "kind", "line"] as const;
+
+function parsePaperLibraryIndex(raw: string, path: string): PaperLibraryIndex {
+  const index = JSON.parse(raw) as PaperLibraryIndex;
+  if (!Array.isArray(index.entries)) throw new Error(`P4: ${path} has no entries array`);
+  return index;
+}
+
+async function readPaperLibraryIndex(path: string): Promise<PaperLibraryIndex | null> {
+  try {
+    return parsePaperLibraryIndex(await readFile(path, "utf8"), path);
+  } catch (err: unknown) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw err;
+  }
+}
+
+function hasSourceLocation(entry: IndexedDecl): entry is IndexedDecl & { name: string; source: string; line: number } {
+  return typeof entry.name === "string" && typeof entry.source === "string" && entry.source.length > 0 &&
+    typeof entry.line === "number" && entry.line > 0;
+}
+
+/** Reject a candidate cache that would silently erase an existing published declaration or field.
+`congr_simp`-style synthetic constants have no authored source/range and are intentionally excluded
+from this comparison: the extractor omits them rather than publishing an unusable drawer entry. */
+function validatePaperIndexReplacement(
+  previous: PaperLibraryIndex | null,
+  next: PaperLibraryIndex,
+  moduleTargets: string[],
+): void {
+  const nextEntries = next.entries!;
+  if (moduleTargets.length > 0 && nextEntries.length === 0)
+    throw new Error("P4: paper_index emitted an empty index for non-empty module targets");
+  if (!previous) return;
+  const byName = new Map(nextEntries.flatMap((entry) =>
+    typeof entry.name === "string" ? [[entry.name, entry] as const] : [],
+  ));
+  const lost = previous.entries!.filter(hasSourceLocation).flatMap((entry) =>
+    // Synthetic companions in an older cache may carry a borrowed source slice
+    // or an `add_decl_doc` range; the extractor now omits them by design.
+    byName.has(entry.name) || SYNTHETIC_COMPANION_RE.test(entry.name) ? [] : [entry.name],
+  );
+  if (lost.length > 0)
+    throw new Error(`P4: paper_index would drop ${lost.length} published declaration(s): ${lost.slice(0, 12).join(", ")}`);
+  const nulled: string[] = [];
+  for (const oldEntry of previous.entries!.filter(hasSourceLocation)) {
+    const current = byName.get(oldEntry.name);
+    if (!current) continue;
+    for (const field of INDEXED_FIELDS) {
+      const before = oldEntry[field];
+      const after = current[field];
+      if (before !== null && before !== undefined && (after === null || after === undefined))
+        nulled.push(`${oldEntry.name}.${field}`);
+      if (field === "line" && before !== 0 && after === 0) nulled.push(`${oldEntry.name}.line`);
+    }
+  }
+  if (nulled.length > 0)
+    throw new Error(`P4: paper_index would null ${nulled.length} published field(s): ${nulled.slice(0, 12).join(", ")}`);
+}
+
+/** Only Lean-backed blocks have a Lean equivalence claim to audit. Presentation-
+ * synthesized definitions are frozen and linted, but intentionally have no Lean
+ * declaration and therefore no P1 equivalence verdict. EXCEPTION: a lean-null
+ * block whose cache entry still records `drift` blocks anyway — otherwise
+ * removing a block's Lean mapping would launder a recorded frozen-layer↔Lean
+ * disagreement past emission. */
+export function blocksMissingEquivalence(
+  blocks: Array<{ obj_id: string; lean: unknown | null }>,
+  cache: Record<string, { verdict?: string }>,
+): Array<{ obj_id: string; lean: unknown | null }> {
+  return blocks.filter((b) =>
+    b.lean !== null
+      ? cache[b.obj_id]?.verdict !== "faithful"
+      : cache[b.obj_id]?.verdict === "drift",
+  );
+}
+
+/**
+ * P4 — emit the bundle: final lint, citation re-verification, PDF compilation
+ * (mechanical failures return to the orchestrator), mechanical crosswalk
+ * join + Lean snippet extraction, assumption-faithfulness table with totality
+ * check, tex→HTML fragment, meta.json. Site consumes only these artifacts.
+ */
+/** HEAD of the repository at `repoRoot`, or null outside a git checkout (tests emit into a temp
+ *  dir); pinned once at entry and reused by the emit. */
+async function pinnedCommitOf(repoRoot: string): Promise<string | null> {
+  try {
+    const { stdout } = await execFileP("git", ["rev-parse", "HEAD"], { cwd: repoRoot });
+    return stdout.trim(); // "" outside a checkout (tests): nothing to stamp, and nothing to re-ask
+  } catch {
+    return null;
+  }
+}
+
+/** Whether `sha` names a commit object of the repository at `repoRoot`. */
+async function isRepoCommit(repoRoot: string, sha: string): Promise<boolean> {
+  try {
+    const { stdout } = await execFileP("git", ["cat-file", "-t", sha], { cwd: repoRoot });
+    return stdout.trim() === "commit";
+  } catch {
+    return false;
+  }
+}
+
+/** Rewrite the commit ids in `prior` — this bundle's own pinned commits from earlier emits — to
+ *  `commit`. Only those: a verification note also names the Lean toolchain and Mathlib revisions,
+ *  which a blanket rewrite of 40-hex tokens would falsify. */
+export function stampCommitIds(tex: string, prior: ReadonlySet<string>, commit: string): string {
+  if (prior.size === 0) return tex;
+  return tex.replace(/\b[0-9a-f]{40}\b/g, (token) => (prior.has(token) && token !== commit ? commit : token));
+}
+
+export async function stageP4(io: StageIO): Promise<void> {
+  await mkdir(io.outDir, { recursive: true });
+  if (io.ctx.deps.dryRun) {
+    await writeFile(join(io.outDir, "p4.stub"), "dry-run\n");
+    return;
+  }
+  // The working-paper series, resolved and validated ONCE — after the dry run, which mints no
+  // number and must not be blocked by series configuration, and before this stage's first real
+  // write. Two reasons for that placement: a misconfigured prefix must fail before P4 refreshes
+  // the macros or rewrites paper.tex, so a bad setting cannot leave a half-mutated bundle behind;
+  // and one operation must carry one series, so no later environment change can make the number
+  // minted and the registry it is written into disagree.
+  const seriesPrefix = paperSeriesPrefix();
+  // This stage rewrites paper.tex — the date pin, cleveref repair, commit stamping — and then
+  // records that manuscript's hash as a published version. Both halves must be the only ones
+  // touching the bundle's paper files, or another writer's hash describes a file this one has
+  // since changed. The lock is held for the WHOLE emit (compile, Lean build, model calls) and is
+  // the coarsest of the three; the registry and metadata locks are taken inside it, in that order.
+  // `wait` because a second emit of the same paper is a queue, not an error.
+  return withBundleEmitLock(io.outDir, () => emitBundle(io, seriesPrefix), { wait: true });
+}
+
+/** The emit itself, always under the bundle's emit lock. */
+async function emitBundle(io: StageIO, seriesPrefix: string): Promise<void> {
+  // P4 is the supported deterministic re-emit entrypoint, so it must refresh template-owned
+  // macros instead of inheriting the copy last written by P2. Otherwise a template change can
+  // leave a compile failure that only a stale template copy caused. Shared with the restamp tool
+  // (see paper_compile.ts) so the two entrypoints cannot drift apart.
+  await refreshPaperMacros(io.outDir);
+  // Equivalence is the trust anchor, and the standard re-emit path `--from P4`
+  // skips the earlier stages — so emission must re-consult the persistent cache
+  // (live incident: P-8 shipped with verdict="drift" while hard_gate_failures
+  // was 0). `blocksMissingEquivalence` below blocks every Lean-backed block
+  // whose current verdict is not `faithful` (drift, missing, or unparseable),
+  // plus any retained lean-null block still carrying a `drift` verdict.
+  const equivalenceCache = await loadJsonCache<Record<string, { verdict?: string; detail?: string }>>(
+    join(io.outDir, "equivalence_cache.json"),
+  );
+  const paperPath = join(io.outDir, "paper.tex");
+  let paperTex = await readFile(paperPath, "utf8");
+  await assertP2AssemblyFresh(io.outDir);
+  // Formal layer (source of truth); the freeze IS each block's `body` — env bodies are compared against it.
+  const formalLayer = FormalLayerSource.parse(
+    JSON.parse(await readFile(join(io.outDir, "formal_layer.json"), "utf8")),
+  );
+  // The disclosure is generated from the formal graph, so repair it deterministically at the
+  // final emission boundary as well. This makes `--from P4` sufficient after a template change and
+  // prevents a prose revision from dropping either the heading marker or the exact scope text.
+  const normalizedScopeTex = normalizeCitedScopeFootnotes(paperTex, formalLayer.blocks);
+  if (normalizedScopeTex !== paperTex) {
+    paperTex = normalizedScopeTex;
+    await writeFile(paperPath, paperTex, "utf8");
+  }
+  const unaudited = blocksMissingEquivalence(formalLayer.blocks, equivalenceCache);
+  if (unaudited.length > 0) {
+    const details = unaudited
+      .map((b) => `[${b.obj_id}] ${equivalenceCache[b.obj_id]?.verdict ?? "missing"}: ${equivalenceCache[b.obj_id]?.detail ?? ""}`)
+      .join("; ");
+    throw new Error(
+      `P4 blocked: ${unaudited.length} formal-layer object(s) lack a current faithful P1 equivalence verdict ` +
+        `(${unaudited.map((b) => b.obj_id).join(", ")}). Amend the frozen body so a fresh P1 audit passes ` +
+        `(the content-keyed cache invalidates on the body change), or — for an auditor false positive, or a ` +
+        `lean-null block with a lingering drift verdict — reseed that entry to faithful; P4 will not emit an ` +
+        `unaudited correspondence panel. ${details}`,
+    );
+  }
+  const frozen = new Map<string, string>(formalLayer.blocks.map((b) => [b.obj_id, b.body]));
+  // The emitted namespace is the frozen formal layer, which also contains
+  // presentation-synthesized definitions absent from the accepted-bank graph.
+  const known = new Set(formalLayer.blocks.map((b) => b.obj_id));
+  // Guard cleveref object ids: an orchestrator hand-edit of paper.tex in a revision pass can
+  // reintroduce a prefix-dropped or dangling ref (silent "??"). Repair the unique-prefix case and
+  // persist; a residual dangling ref fails the stage.
+  const definedIds = new Set(parseAnchoredEnvs(paperTex).map((e) => e.obj_id));
+  const layerOrder = formalLayer.blocks.filter((b) => b.env !== null).map((b) => b.obj_id);
+  const refRepair = repairObjRefs(paperTex, definedIds);
+  const canonical = canonicalizeObjRefs(refRepair.tex, known);
+  if (canonical !== paperTex) {
+    paperTex = canonical;
+    await writeFile(paperPath, paperTex, "utf8");
+  }
+  // Reader-facing style (identifier leaks, framing, assumption numbering) is the referee's to
+  // judge and the orchestrator's to fix; it is surfaced here, never a halt on the emit.
+  for (const p of [...lintClarity(paperTex), ...lintReferences(paperTex), ...lintNegativeContributionFraming(paperTex)]) {
+    io.state.notes.push(`P4 advisory (${p.gate}): ${p.detail}`);
+  }
+  const finalLint = [
+    ...lintAnchors(paperTex, known, frozen),
+    ...lintEnvOrder(paperTex, layerOrder),
+    ...lintNestedMathDelimiters(paperTex),
+    ...lintIsolatedLemmas(paperTex),
+    ...refRepair.problems,
+  ];
+  if (finalLint.length > 0) {
+    throw new Error(`P4 entry lint failed: ${finalLint.map((p) => p.detail).join("; ")}`);
+  }
+  // citation re-verification on the final pool — only entries ACTUALLY cited in
+  // the paper. Uncited bib entries never reach the compiled bibliography, so a
+  // dead entry (e.g. a pre-DOI classic that an external registry cannot match on
+  // title) must not block the emit.
+  const bibPath = join(io.outDir, "references.bib");
+  const bib = parseBib(await readFile(bibPath, "utf8"));
+  const cited = citedKeys(paperTex);
+  const lookup = io.ctx.deps.lookup ?? defaultLookup;
+  // Registry lookups are slow (a polite 1 s spacing, retries with backoff, up to three
+  // registries per entry), so a verdict that a reachable registry settled is kept per entry
+  // content and replayed on every later emit. Not cached: a lookup during which any registry failed
+  // (UNREACHABLE, or a record found only after another registry failed — the next run must
+  // re-verify) and a failure (the halt must re-check the fixed entry, whose key changes anyway).
+  // A cached value that is not a well-formed settled verdict for this entry is looked up again.
+  const verifyCachePath = join(io.outDir, "citation_verify_cache.json");
+  const verifyCache = await loadJsonCache<Record<string, unknown>>(verifyCachePath, { repair: false });
+  let verifyCacheChanged = false;
+  const saveVerifyCache = async () => {
+    if (verifyCacheChanged) await writeJsonAtomic(verifyCachePath, verifyCache);
+  };
+  const settledHit = (value: unknown, key: string): Verification | undefined => {
+    const v = value as Partial<Verification> | null | undefined;
+    return v && (v.verdict === "exact" || v.verdict === "minor") && typeof v.detail === "string" && v.key === key
+      ? { key: v.key, verdict: v.verdict, detail: v.detail }
+      : undefined;
+  };
+  for (const entry of bib) {
+    if (!cited.has(entry.key)) continue;
+    // An identifier can name a preprint of the cited journal article. It confirms the
+    // work, not interchangeable publication metadata: preserve the authored entry and
+    // leave discrepancies for source-grounded orchestrator review.
+    const cacheKey = citationVerifyCacheKey(entry);
+    let unsettled = false;
+    const trackedLookup: Lookup = async (e) => {
+      const rec = await lookup(e);
+      if (rec === UNREACHABLE || rec?.degraded) unsettled = true;
+      return rec;
+    };
+    const hit = settledHit(verifyCache[cacheKey], entry.key);
+    const v = hit ?? await verifyEntry(entry, trackedLookup);
+    if (!hit && v.verdict !== "major" && !unsettled) {
+      verifyCache[cacheKey] = v;
+      verifyCacheChanged = true;
+    }
+    if (v.verdict === "major") {
+      await saveVerifyCache();
+      throw new Error(
+        `P4: bib entry ${entry.key} failed re-verification: ${v.detail}. Correct the entry from the ` +
+        "right record, or — only when a primary source confirms it as written — add " +
+        "verifiedby = {<what confirmed it>} to the entry; otherwise remove the citation.",
+      );
+    }
+    if (v.verdict === "minor") {
+      // A transient-unreachable or field-caveat entry is kept (not a hard fail), but surfaced so a
+      // network blip / registry gap during the emit is visible rather than silently passed.
+      io.state.notes.push(`P4: bib entry ${entry.key} kept with caveat: ${v.detail}`);
+    }
+  }
+  await saveVerifyCache();
+
+  // NOTE ON VERSIONS. This rewrite changes paper.tex's bytes, so a `--from P4` re-emit after HEAD
+  // has moved bumps the version — BY DESIGN. The verification note is part of the paper, and a
+  // reader who fetched v2 is entitled to know the reproducibility record now names a different
+  // commit. The latex-only restamp path deliberately does not rewrite commit ids and therefore
+  // never bumps; use it when only the stamp needs refreshing.
+  //
+  // The verification note names the commit the checks ran at, and the emit runs them at HEAD: a
+  // literal commit id in the prose is stamped to the pinned commit, in the paper and in the
+  // authored sources, so a hand-written id cannot go stale when the tree moves (it did, twice,
+  // and the referee read it as a broken reproducibility record each time).
+  const pinnedAtEntry = await pinnedCommitOf(io.ctx.repoRoot);
+  if (pinnedAtEntry !== null && pinnedAtEntry !== "") {
+    // The ids that were THIS bundle's pinned commit before: the prior emit's state, its
+    // verification contract, and the formal layer's own stamp.
+    const priorContract = await readFile(join(io.outDir, "verification_contract.json"), "utf8")
+      .then((raw) => (JSON.parse(raw) as { commit?: unknown }).commit).catch(() => undefined);
+    const recorded = new Set(
+      [io.state.pinned_commit, priorContract, formalLayer.commit]
+        .filter((c): c is string => typeof c === "string" && /^[0-9a-f]{40}$/.test(c)),
+    );
+    // A literal id typed from an earlier contract may predate every recorded one, so the test
+    // is the decidable one: the token names a commit of THIS repository (toolchain and Mathlib
+    // revisions do not resolve here). Every 40-hex token in the paper is checked once.
+    const priorCommits = new Set<string>();
+    for (const token of new Set([...paperTex.matchAll(/\b[0-9a-f]{40}\b/g)].map((m) => m[0]))) {
+      if (token === pinnedAtEntry) continue;
+      if (recorded.has(token) || (await isRepoCommit(io.ctx.repoRoot, token))) priorCommits.add(token);
+    }
+    const stamped = stampCommitIds(paperTex, priorCommits, pinnedAtEntry);
+    if (stamped !== paperTex) {
+      paperTex = stamped;
+      await writeFile(paperPath, paperTex, "utf8");
+      let sourcesChanged = false;
+      const sourceFiles = [join(io.outDir, "front_matter.tex"), join(io.outDir, "appendix_proofs.tex"), ...(await texFilesUnder(io.outDir, ["sections", "proofs"]))];
+      for (const rel of sourceFiles) {
+        const src = await readFile(rel, "utf8").catch(() => null);
+        if (src === null) continue;
+        const out = stampCommitIds(src, priorCommits, pinnedAtEntry);
+        if (out !== src) { await writeFile(rel, out, "utf8"); sourcesChanged = true; }
+      }
+      if (sourcesChanged) await recordP2Assembly(io.outDir);
+      io.state.notes.push(`P4: stamped the verification note's commit id to ${pinnedAtEntry.slice(0, 10)}`);
+    }
+  }
+  // ---------------------------------------------------------------------------
+  // Citation identity: working-paper number, version, revised date, DOI pass-through.
+  //
+  // This runs BEFORE the compile because both of its outputs are compile inputs: the pinned
+  // `\date` lives in paper.tex's preamble, and the page-1 stamp reads `paper_stamp.tex`.
+  // The bundle id IS the directory name (`<qid>_<spec>`) — that is what the tracked registry
+  // and the backfill are keyed by, so there is exactly one notion of "which paper is this".
+  const bundleId = basename(io.outDir);
+  // Read the previous meta once, here: every field P4 must CARRY FORWARD rather than recompute
+  // (created, tldr, the P5 score, the WP-C DOIs) comes out of it, and the emit below reuses it.
+  const priorMeta = await readBundleMeta(io.outDir);
+  // `created` is the paper's FIRST publication date: it drives the site's timeline sort, the
+  // flagship tiebreak, and — through the registry — the YEAR in the working-paper number. A
+  // re-emit must carry it forward, never re-stamp it.
+  //
+  // ABSENT and INVALID are different situations and must not share an outcome. Absent means a
+  // first emit, so today is right. Present-but-invalid means somebody's edit is wrong, and
+  // silently substituting today there moves the paper into the wrong year and numbers it
+  // accordingly — permanently, since numbers are never reissued. So that fails loudly.
+  const created = priorMeta.created === undefined || priorMeta.created === null
+    ? utcToday()
+    : isCalendarIsoDate(priorMeta.created)
+      ? priorMeta.created
+      : (() => {
+          throw new Error(
+            `P4 blocked: ${bundleId}/meta.json records created=${JSON.stringify(priorMeta.created)}, which is not ` +
+              "a real calendar date in YYYY-MM-DD form. This date fixes the paper's working-paper year, so it is " +
+              "corrected by hand, never guessed.",
+          );
+        })();
+  // Short cluster label (shown in the byline, in the page-1 stamp, and used to group the landing
+  // list). Derived, never read back from meta.json, and shared with the restamp tool so a
+  // recompile cannot relabel a paper.
+  const area = areaForBundleId(bundleId);
+  const identity = await ensurePaperIdentity({
+    outDir: io.outDir,
+    repoRoot: io.ctx.repoRoot,
+    bundleId,
+    area,
+    created,
+    prevMeta: priorMeta,
+    seriesPrefix,
+  });
+  // The date pin may have rewritten paper.tex; keep the in-memory copy in step with the file.
+  paperTex = await readFile(paperPath, "utf8");
+  // The identity just adopted a hash for a manuscript whose bytes did not change — only its date
+  // pin did. A p5_review.json still naming one of the EQUIVALENT spellings describes exactly this
+  // draft, but the site compares hashes by raw equality and would tell the reader the referee read
+  // an earlier one. Re-point that one field (a report about a genuinely different manuscript is
+  // left alone; `p5_review_history/` is never touched). Inside the emit lock, like every other
+  // write here.
+  if (await adoptReviewManuscriptSha(io.outDir, identity.manuscriptShas)) {
+    io.state.notes.push(
+      `P4: ${REVIEW_FILE} named the same manuscript under its pre-pin hash; its manuscript_sha256 ` +
+        `now matches versions[-1].paper_sha256, so the site reads the report as current.`,
+    );
+  }
+  // The note reports what page 1 actually carries, not merely what meta.json holds: a sandbox
+  // (or otherwise malformed) DOI is preserved in meta.json but deliberately not printed, and
+  // saying so here is how that value gets surfaced rather than hidden behind a tidy-looking page.
+  io.state.notes.push(
+    `P4: stamped ${identity.wp_number}v${identity.version} [${area}] revised ${identity.revised}` +
+      (isProductionDoi(identity.stampedDoi)
+        ? ` · doi:${identity.stampedDoi}`
+        : ` (no published DOI on page 1 — stamp links to the paper's page${
+            identity.stampedDoi === null ? "" : `; meta.json holds ${JSON.stringify(identity.stampedDoi)}, which is not a published Zenodo DOI`
+          })`),
+  );
+
+  // Mechanical compile failures belong to the orchestrator, not a paid writer retry.
+  try {
+    await compilePaper(io.outDir);
+  } catch (e: unknown) {
+    if (!(e instanceof LatexCompileError)) throw e;
+    throw new Error(
+      "P4: paper.tex failed to compile; mechanical recovery required (no model retry). " +
+      "Inspect paper.log and repair the authored TeX source or shared template. " +
+      "After authored-source edits, use --from P2; otherwise re-enter P4.\n" +
+      e.log.slice(-2000),
+    );
+  }
+  // #5 — surface content that runs off the page. Overfull \hbox warnings are not
+  // compile errors; read paper.log and report
+  // the badly-overfull ones (> 15pt) so the orchestrator can shorten the notation
+  // or wrap the wide display/table.
+  try {
+    const texLog = await readFile(join(io.outDir, "paper.log"), "utf8");
+    const bad = [...texLog.matchAll(/Overfull \\hbox \((\d+(?:\.\d+)?)pt too wide\)[^\n]*\n([^\n]*)/g)]
+      .map((m) => ({ pt: Number(m[1]), at: m[2].trim().slice(0, 70) }))
+      .filter((o) => o.pt > 15)
+      .sort((a, b) => b.pt - a.pt);
+    if (bad.length > 0) {
+      io.state.notes.push(
+        `P4 overflow warning (${bad.length} display(s)/line(s) run off the page; shorten the notation or wrap the widest): ${bad
+          .slice(0, 5)
+          .map((o) => `${o.pt}pt @ "${o.at}"`)
+          .join("; ")}`,
+      );
+    }
+  } catch {
+    /* no paper.log (dry run) — skip */
+  }
+
+  // pin the commit, then index + docstring pass — the extraction below must read the post-docstring tree
+  const commit = pinnedAtEntry ?? (await execFileP("git", ["rev-parse", "HEAD"], { cwd: io.ctx.repoRoot })).stdout.trim();
+  io.state.pinned_commit = commit;
+
+  // paper-module index: full decl-level view of the run's Lean code for the
+  // site's Formalization tab (same extractor core as the Causalean /library
+  // explorer). It is a required published artifact: a transient Lake failure
+  // must stop P4 rather than leave a stale or blank Formalization tab behind.
+  const indexPath = join(io.outDir, "paper_library_index.json");
+  // leanSubdir is the module path below the package lib root
+  // ("CausalSmith/Stat/X_Research" → module CausalSmith.Stat.X_Research)
+  const modPrefix = io.bank.leanSubdir.replace(/\//g, ".");
+  const priorIndex = await readPaperLibraryIndex(indexPath);
+  // paper_index reads OLEANS, so the paper's modules must be built first or it
+  // silently emits an empty index (→ blank Formalization page). Preserve all
+  // prior indexed modules as well as crosswalk modules: a useful run helper
+  // need not be imported by any crosswalk declaration, while importing every
+  // sibling source file changes Lean's source-module ownership.
+  const modTargets = [
+    ...new Set(
+      [
+        ...io.bank.crosswalk
+          .filter((e) => e.lean)
+          .map((e) => `${modPrefix}.${e.lean!.file.replace(/\.lean$/, "").replace(/\//g, ".")}`),
+        ...Object.keys(priorIndex?.modules ?? {}).filter((moduleName) =>
+          moduleName === modPrefix || moduleName.startsWith(`${modPrefix}.`),
+        ),
+        ...(priorIndex?.entries ?? []).flatMap((entry) =>
+          typeof entry.module === "string" &&
+          (entry.module === modPrefix || entry.module.startsWith(`${modPrefix}.`))
+            ? [entry.module]
+            : [],
+        ),
+        // Physical-tree modules neither the crosswalk nor a prior index reaches
+        // would otherwise never be indexed — the blind spot check_paper_indexes'
+        // orphan-module gate fails on. Include them EXCEPT modules a SIBLING
+        // development imports: those are the sibling's proof machinery banked
+        // into this namespace (e.g. a follow-up paper extending this substrate),
+        // and this paper neither uses nor should display them.
+        ...(await (async () => {
+          const orphans = (
+            await findOrphanPaperModules(
+              join(io.ctx.repoRoot, io.bank.leanSubdir),
+              modPrefix,
+              new Set(
+                (priorIndex?.entries ?? []).flatMap((e) =>
+                  typeof e.module === "string" ? [e.module] : [],
+                ),
+              ),
+            )
+          ).map((o) => o.module);
+          const foreign = await externallyConsumedModules(
+            io.ctx.repoRoot,
+            io.bank.leanSubdir,
+            new Set(orphans),
+          );
+          return orphans.filter((m) => !foreign.has(m));
+        })()),
+      ],
+    ),
+  ].sort();
+  const emitIndex = async (previous: PaperLibraryIndex | null): Promise<PaperLibraryIndex> => {
+    const candidatePath = `${indexPath}.next-${process.pid}`;
+    try {
+      await execFileP(
+        "lake",
+      // repoRoot IS the CausalSmith package root (findRepoRoot anchors on its
+      // lakefile), so it is both the lake dir and the src root.
+        ["-d", io.ctx.repoRoot, "exe", "paper_index", "--",
+          "--prefix", modPrefix,
+          "--src-root", io.ctx.repoRoot,
+          // Import the paper modules directly so indexing does not depend on a
+          // run being wired into the CausalSmith root import graph.
+          "--modules", modTargets.join(","),
+          "--out", candidatePath],
+        { cwd: io.ctx.repoRoot, maxBuffer: 16 * 1024 * 1024, timeout: 1800_000 },
+      );
+      const candidate = await readPaperLibraryIndex(candidatePath);
+      if (!candidate) throw new Error("P4: paper_index produced no output");
+      validatePaperIndexReplacement(previous, candidate, modTargets);
+      await rename(candidatePath, indexPath);
+      return candidate;
+    } catch (err) {
+      await rm(candidatePath, { force: true });
+      throw err;
+    }
+  };
+  if (modTargets.length === 0)
+    throw new Error("P4: no paper modules available for paper_library_index emission");
+  await execFileP("lake", ["-d", io.ctx.repoRoot, "build", ...modTargets], {
+    cwd: io.ctx.repoRoot,
+    maxBuffer: 16 * 1024 * 1024,
+    timeout: 1800_000,
+  });
+  const emittedIndex = await emitIndex(priorIndex);
+
+  // Docstring coverage is authored UPSTREAM (the F5 docstring pass; docstring-canonical
+  // workflow) — P4 only verifies it. An undocumented decl would ship as "no translation yet"
+  // in the site drawer, so the emit fails with the exact list instead of editing Lean here.
+  const undocumented = (emittedIndex.entries ?? []).filter(
+    (e) => !e.doc && typeof e.name === "string",
+  );
+  if (undocumented.length > 0) {
+    throw new Error(
+      `P4: ${undocumented.length} declaration(s) in the paper's modules lack docstrings — ` +
+      undocumented.slice(0, 12).map((e) => `${e.file}:${e.line} ${e.name}`).join(", ") +
+      (undocumented.length > 12 ? ` (+${undocumented.length - 12} more)` : "") +
+      `. Docstrings are authored at F5 (first paragraph = the NL translation), not at emit; ` +
+      `add them to the Lean sources and re-run --from P4.`,
+    );
+  }
+
+  // Join off the JSON source of truth (explicit obj_id = node id, loaded above), not a re-parse of
+  // paper.tex. The paper's assembled envs must still match the source exactly — that is now an
+  // equality lint (also catches MISSING envs, which the per-env body compare cannot).
+  const layerMismatches = paperEnvMismatches(paperTex, formalLayer.blocks);
+  if (layerMismatches.length > 0) {
+    throw new Error(`P4: paper.tex disagrees with formal_layer.json: ${layerMismatches.join("; ")}`);
+  }
+  if (normalizeCitedScopeFootnotes(paperTex, formalLayer.blocks) !== paperTex) {
+    throw new Error("P4: generated cited-dependency scope footnote changed during LaTeX repair; rerun from P2");
+  }
+  // Content (obj_id → lean/title/body) comes from the JSON blocks; the ORDER comes from the paper
+  // (env numbering "Theorem 1"/"Assumption 2" follows appearance). parseAnchoredEnvs supplies only
+  // the appearance order here — the join key is the explicit block obj_id, never a parsed label.
+  const blockByObj = new Map(formalLayer.blocks.filter((b) => b.env).map((b) => [b.obj_id, b] as const));
+  const envs = parseAnchoredEnvs(paperTex).flatMap((e, i) => {
+    const b = blockByObj.get(e.obj_id);
+    return b && b.env ? [{ env: b.env, obj_id: b.obj_id, title: b.title, body: b.body, order: i }] : [];
+  });
+  // The note's PLT anchors are obj_id aliases (`A-1`/`P-1`/`T-1`); the frozen-layer env labels and
+  // the graph-derived crosswalk are keyed by NODE id. Remap each block's alias → node id via the
+  // graph so the note-block joins below (fallback text, load-bearing hypotheses, the assumption-
+  // table totality gate) line up with the env labels. Blocks with no graph node keep their key.
+  const aliasToNodeId = new Map<string, string>();
+  for (const n of io.bank.graph.nodes) if (n.obj_id) aliasToNodeId.set(n.obj_id, n.id);
+  const blocks = parseNoteBlocks(io.bank.noteMd).map((b) => ({
+    ...b,
+    obj_id: aliasToNodeId.get(b.obj_id) ?? b.obj_id,
+  }));
+
+  // Composite-object mapping (shared with the P1 statement equivalence audit): every
+  // definition/assumption env, and any env without a single standalone decl, gets
+  // its actual Lean pieces (component decls / theorem hypothesis binders) via
+  // codex discovery, content-keyed cached in components_cache.json. By P4 the P1
+  // audit has usually already populated the cache, so this is mostly cache hits.
+  const { components: componentsMap, moduleDecls, resolvedDeclarations } = await ensureComponentsForEnvs({
+    envs,
+    crosswalk: io.bank.crosswalk,
+    repoRoot: io.ctx.repoRoot,
+    leanSubdir: io.bank.leanSubdir,
+    cachePath: join(io.outDir, "components_cache.json"),
+    deps: io.ctx.deps,
+    noteBlocks: new Map(blocks.map((b) => [b.obj_id, b.body])),
+    // Graph-first: component sets come from the verified graph (own decl + statement-uses
+    // neighbours), so multi-decl objects render all pieces without codex discovery.
+    graph: io.bank.graph,
+  });
+
+  // causalsmith review verdict per object (obj_id alias preferred, node id fallback) so the
+  // bundle records the verified status honestly on every entry.
+  const verdictByObj = new Map<string, { status: string; lean?: { decl: string; file: string } | null }>(
+    io.bank.graph.nodes.map((n) => [n.id, { status: n.review.status }]),
+  );
+  for (const block of formalLayer.blocks) {
+    if (!verdictByObj.has(block.obj_id)) verdictByObj.set(block.obj_id, { status: block.status, lean: block.lean });
+  }
+
+  const bundle = await buildBundle({
+    envs,
+    crosswalk: io.bank.crosswalk,
+    blocks,
+    repoRoot: io.ctx.repoRoot,
+    leanSubdir: io.bank.leanSubdir,
+    commit,
+    components: componentsMap,
+    resolvedDeclarations,
+    moduleDecls: new Map([...moduleDecls].map(([k, v]) => [k, { file: v.file, line: v.line, kind: v.kind }])),
+    verdictByObj,
+  });
+
+  // Symbol realizations: surface EVERY `@realizes <sym>` tag as a drawer object whose components are
+  // the declarations that jointly realize the symbol (`μ_a`, `e_P`, `τ_P`, …). The DRAFT (P2) links
+  // each one inline in the prose via `\leanref{sym:<name>}{<notation>}` — so they are pushed HERE,
+  // before the `\leanref` resolution below, so those `sym:` targets resolve. env "symbol" is exempt
+  // from the data-objid integrity check (like "auxiliary"); no body block is required.
+  const leanDir = join(io.ctx.repoRoot, io.bank.leanSubdir);
+  const symbolNames = await discoverRealizedSymbols(leanDir);
+  const symbolItems = [] as Awaited<ReturnType<typeof buildSymbolRealizations>>["items"];
+  if (symbolNames.length > 0) {
+    const clusters = await buildSymbolClusters(leanDir, symbolNames.map((name) => ({ name })));
+    const sym = await buildSymbolRealizations({
+      clusters,
+      repoRoot: io.ctx.repoRoot,
+      leanSubdir: io.bank.leanSubdir,
+    });
+    bundle.crosswalk.entries.push(...sym.entries);
+    Object.assign(bundle.snippets.snippets, sym.snippets);
+    symbolItems.push(...sym.items);
+  }
+
+  // Inline \leanref links: every referenced obj-id MUST resolve to a formal block, a symbol
+  // realization, OR a from-note graph node — a dead link is a hard error (no silent broken drawer).
+  // From-note objects that are \leanref'd but are NOT formal blocks (prose-only
+  // setup/definition/assumption) get their own drawer entry so the inline link opens the verified Lean.
+  const leanrefIds = extractLeanrefIds(paperTex);
+  const formalBlockIds = new Set(bundle.crosswalk.entries.map((e) => e.obj_id));
+  const graphIds = new Set<string>();
+  for (const n of io.bank.graph.nodes) {
+    graphIds.add(n.id);
+    if (n.obj_id) graphIds.add(n.obj_id);
+  }
+  const unresolved = [...new Set(leanrefIds)].filter(
+    (id) => !formalBlockIds.has(id) && !graphIds.has(id),
+  );
+  if (unresolved.length > 0) {
+    throw new Error(
+      `P4: ${unresolved.length} \\leanref target(s) resolve to no formal block or graph node: ` +
+        `${unresolved.join(", ")}. Fix the obj-id(s) in paper.tex (must match a crosswalk/graph object).`,
+    );
+  }
+  const proseIds = [...new Set(leanrefIds)].filter((id) => !formalBlockIds.has(id));
+  if (proseIds.length > 0) {
+    const prose = await buildProseEntries({
+      objIds: proseIds,
+      graph: io.bank.graph,
+      crosswalk: io.bank.crosswalk,
+      repoRoot: io.ctx.repoRoot,
+      leanSubdir: io.bank.leanSubdir,
+      moduleDecls: new Map([...moduleDecls].map(([k, v]) => [k, { file: v.file, line: v.line }])),
+    });
+    bundle.crosswalk.entries.push(...prose.entries);
+    Object.assign(bundle.snippets.snippets, prose.snippets);
+  }
+
+  // Cited gates are absent from the numbered paper environment layer, but the web formal panel
+  // exposes their exact logical claim or metadata payload. Give each one a cited-result drawer
+  // entry so that the panel row still opens the source-matched Lean declaration. Cited
+  // results are web-only dependency metadata: unlike narrative `prose` entries, they have no
+  // paper-body block and must stay distinguishable from ordinary prose in the bundle contract.
+  const citedIds = io.bank.graph.nodes
+    .filter(isCitedNode)
+    .map((n) => n.id)
+    .filter((id) => !bundle.crosswalk.entries.some((e) => e.obj_id === id));
+  if (citedIds.length > 0) {
+    const cited = await buildProseEntries({
+      objIds: citedIds,
+      graph: io.bank.graph,
+      crosswalk: io.bank.crosswalk,
+      repoRoot: io.ctx.repoRoot,
+      leanSubdir: io.bank.leanSubdir,
+      moduleDecls: new Map([...moduleDecls].map(([k, v]) => [k, { file: v.file, line: v.line }])),
+      env: "citedv",
+    });
+    bundle.crosswalk.entries.push(...cited.entries);
+    Object.assign(bundle.snippets.snippets, cited.snippets);
+  }
+
+  // Auxiliary Lean lemmas (agent-introduced proof helpers): web-only drawer entries so the
+  // Formal-layer panel's auxiliary group opens each helper's verified Lean statement. They carry
+  // no body block — env "auxiliary" is exempt from the site's data-objid integrity check.
+  const auxIds = auxiliaryNodes(io.bank.graph)
+    .filter((n) => !(n.lean.decl_name && bundle.matchedSynthDecls.has(n.lean.decl_name)))
+    .map((n) => n.id)
+    .filter((id) => !bundle.crosswalk.entries.some((e) => e.obj_id === id));
+  if (auxIds.length > 0) {
+    const aux = await buildProseEntries({
+      objIds: auxIds,
+      graph: io.bank.graph,
+      crosswalk: io.bank.crosswalk,
+      repoRoot: io.ctx.repoRoot,
+      leanSubdir: io.bank.leanSubdir,
+      moduleDecls: new Map([...moduleDecls].map(([k, v]) => [k, { file: v.file, line: v.line }])),
+      env: "auxiliary",
+    });
+    bundle.crosswalk.entries.push(...aux.entries);
+    Object.assign(bundle.snippets.snippets, aux.snippets);
+  }
+
+  await writeFile(
+    join(io.outDir, "presentation_crosswalk.json"),
+    JSON.stringify(PresentationCrosswalk.parse(bundle.crosswalk), null, 2) + "\n",
+    "utf8",
+  );
+  await writeFile(
+    join(io.outDir, "lean_snippets.json"),
+    JSON.stringify(LeanSnippets.parse(bundle.snippets), null, 2) + "\n",
+    "utf8",
+  );
+  // Proof-citation graph over the paper's results (the site's dependency view). Nodes come from the
+  // crosswalk just written, so the two files agree on env/label/title by construction; edges come
+  // from the assembled paper's proof bodies. Re-run the isolated-lemma gate against the SAME node
+  // set the graph is emitted over — the P2 assembly gate ran on the paper alone, and this is the
+  // last boundary before the bundle is published.
+  const graphNodes: PaperGraphNode[] = bundle.crosswalk.entries.map((e) => ({
+    obj_id: e.obj_id,
+    env: e.env,
+    paper_label: e.paper_label,
+    title: e.title,
+  }));
+  const isolated = lintIsolatedLemmas(paperTex, graphNodes);
+  if (isolated.length > 0) {
+    throw new Error(`P4 proof-citation graph: ${isolated.map((p) => p.detail).join("; ")}`);
+  }
+  await writeFile(
+    join(io.outDir, "paper_graph.json"),
+    JSON.stringify(buildPaperGraph({ tex: paperTex, nodes: graphNodes, commit }), null, 2) + "\n",
+    "utf8",
+  );
+  // The extractor itself can exit successfully with structurally valid but wrong JSON. Run the
+  // independent SNAPSHOT lint (index vs the live Lean tree) once all three cache inputs exist.
+  // The git-ref regression (`--vs HEAD`) is deliberately NOT run here: this stage already refuses
+  // an index that drops or nulls what the previous on-disk index published
+  // (`validatePaperIndexReplacement`), and a comparison against git HEAD fails on any working
+  // tree whose Lean differs from HEAD — another window's uncommitted edits, a legitimately
+  // removed helper — with no bundle defect at all. CI keeps the `--vs` check.
+  // Launched as `node <tsx cli>`, never `npx`: on Windows `npx` is `npx.cmd`, which
+  // Node refuses to spawn without a shell, so every P4 would die here — reported by
+  // the catch below as a paper-index lint failure, which it is not.
+  const toolsDir = join(io.ctx.repoRoot, "tools");
+  const idxLint = await execFileP(
+    process.execPath,
+    [
+      join(toolsDir, "node_modules", "tsx", "dist", "cli.mjs"),
+      "bin/check_paper_indexes.ts", "--strict", "--no-vs", "--bundle", basename(io.outDir),
+    ],
+    { cwd: toolsDir, maxBuffer: 16 * 1024 * 1024 },
+  ).catch((err: { stdout?: string; stderr?: string; message?: string }) => {
+    // Surface the lint's own report: `execFile`'s message is only "Command failed: …".
+    throw new Error(`P4 paper-index lint failed:\n${[err.stdout, err.stderr].filter(Boolean).join("\n").slice(-4000) || err.message}`);
+  });
+  // The check warns (stderr) for every git-untracked module it exempts from the orphan gate; on a
+  // SUCCESSFUL run those lines would otherwise vanish with the captured buffer. Persist them so
+  // the exemption is visible in the run record, not only on a hand-run of the lint.
+  const skipped = (idxLint.stderr ?? "").split("\n").filter((l) => l.includes("[paper-index] skipping"));
+  if (skipped.length > 0) {
+    io.state.notes.push(`P4 paper-index lint: ${skipped.length} git-untracked module(s) exempted from the orphan gate (in-progress work): ${skipped.map((l) => l.slice(l.lastIndexOf(": ") + 2)).join(", ")}`);
+  }
+  // Web-only "Formal layer" panel: deterministic, complete list of every from-note object
+  // (NL + Lean + verified status) straight from the graph — the backstop for inline \leanref.
+  // IMPORTANT: this EMITTED shape is `{commit, groups}` (FormalLayer), which is DIFFERENT from the
+  // SOURCE `{commit, blocks}` (FormalLayerSource) that P1 writes and P2/P3/P4 read at `formal_layer.json`.
+  // It MUST go to a distinct file — writing it back to `formal_layer.json` clobbers the source, so a
+  // P4 resume then fails parsing the emitted shape as the source. The web bundle reads this panel from
+  // `formal_layer_web.json`.
+  const equivalenceStatus = new Map(
+    Object.entries(equivalenceCache).flatMap(([id, v]) => v.verdict === "faithful" ? [[id, "matched"] as const] : []),
+  );
+  const formalLayerWeb = buildFormalLayer(io.bank.graph, io.bank.crosswalk, commit, equivalenceStatus, bundle.matchedSynthDecls);
+  if (symbolItems.length > 0) formalLayerWeb.groups.push({ kind: "symbol", items: symbolItems });
+  await writeFile(
+    join(io.outDir, "formal_layer_web.json"),
+    JSON.stringify(FormalLayer.parse(formalLayerWeb), null, 2) + "\n",
+    "utf8",
+  );
+  io.state.notes.push("P4: verification badge basis = source sorry scan; axiom audit deferred (axioms: null)");
+
+  // P1's notation advisories go stale as P3/P5 revisions land: re-check each one
+  // against the shipped paper and disclose survivors instead of dropping them.
+  try {
+    const nrPath = join(io.outDir, "notation_review.json");
+    const nr = JSON.parse(await readFile(nrPath, "utf8")) as {
+      ok?: boolean; iterations?: number; advisories?: { gate: string; detail: string }[];
+    };
+    if (nr.advisories && nr.advisories.length > 0) {
+      const reconciled = reconcileXrefAdvisories(nr.advisories, paperTex);
+      await writeFile(
+        nrPath,
+        JSON.stringify({ ...nr, advisories: reconciled.map((r) => ({ ...r.advisory, resolved: r.resolved })) }, null, 2) + "\n",
+        "utf8",
+      );
+      const open = reconciled.filter((r) => r.resolved === false);
+      if (open.length > 0) {
+        io.state.notes.push(
+          `P4: ${open.length} P1 notation/xref advisor${open.length === 1 ? "y" : "ies"} still unresolved in the final paper (see notation_review.json)`,
+        );
+      }
+    }
+  } catch {
+    /* no notation_review.json (dry run / legacy dir) — skip */
+  }
+
+  // assumption-faithfulness table (totality is a hard gate)
+  const table = assumptionTable(blocks, envs, bundle.snippets.snippets);
+  await writeFile(join(io.outDir, "assumption_table.md"), table.md, "utf8");
+  if (table.problems.length > 0) {
+    throw new Error(`P4 assumption-table totality failed: ${table.problems.join("; ")}`);
+  }
+
+  // web fragment
+  // The body's symbol→Lean links are authored by P2 as inline `\leanref{sym:…}{…}` (rendered to a
+  // clickable span by tex2html); nothing to post-process here.
+  const drawerObjIds = new Set(
+    bundle.crosswalk.entries
+      .filter((e) => e.lean !== null || bundle.snippets.snippets[e.obj_id] !== undefined)
+      .map((e) => e.obj_id),
+  );
+  const paperBodyHtml = await tex2html(paperTex, bib, drawerObjIds) + "\n";
+  await writeFile(join(io.outDir, "paper_body.html"), paperBodyHtml, "utf8");
+
+  // NL↔Lean crosslinks: per formal block, one cached codex call pairs each Lean
+  // hypothesis/conclusion with the phrase of the (now frozen) published prose that
+  // translates it, so the site can highlight both sides on hover. Both sides of a
+  // kept pair are verbatim substrings — a deterministic gate drops the rest, and a
+  // transport/codex failure fails the stage rather than shipping a silent no-op.
+  const nlLinks = await ensureNlLinks({
+    outDir: io.outDir,
+    repoRoot: io.ctx.repoRoot,
+    commit,
+    qid: io.ctx.qid,
+    spec: io.ctx.spec,
+    entries: bundle.crosswalk.entries,
+    snippets: bundle.snippets.snippets,
+    paperBodyHtml,
+    deps: io.ctx.deps,
+    log: (message) => io.state.notes.push(message),
+  });
+  io.state.notes.push(nlLinks.summary);
+
+  // meta
+  const outline = parseOutline(await readFile(join(io.outDir, "outline.md"), "utf8"));
+  // Resolve cleveref object references to their target-derived kind and number, mirroring tex2html.
+  // The abstract is shown as-is on the site (no Pandoc pass), so unresolved commands render raw.
+  const refLabels = paperReferenceLabels(paperTex);
+  const abstract = resolveObjCrefsPlain(
+    (paperTex.match(/\\begin\{abstract\}([\s\S]*?)\\end\{abstract\}/)?.[1]?.trim() ?? "").replace(/~\\/g, " \\"),
+    refLabels,
+  );
+  // TL;DR: a 1-2 sentence skim summary shown above the (folded) abstract on the site.
+  // Reuse a non-empty prior one (re-runs / hand-edits) rather than regenerate.
+  let tldr = typeof priorMeta.tldr === "string" && priorMeta.tldr.trim() ? priorMeta.tldr.trim() : "";
+  // P5 injects the overall score into meta.json AFTER P4 emits it. Carry a prior
+  // score/rationale forward so a `--from P4` re-emit that has not yet re-run P5
+  // does not blank the badge. P4 no longer WRITES them (see the merge below) — they are only
+  // read here so the schema validation has the whole object to check.
+  // A stale TL;DR written before the prose contract should be regenerated rather than carried into
+  // a fresh P4 bundle. The regenerated text is checked again below.
+  if (tldr && lintNegativeContributionFraming(tldr).length > 0) tldr = "";
+  if (!tldr && !io.ctx.deps.dryRun) {
+    // One-line TL;DR generation — trivial, low effort.
+    const { stdout: out } = await io.ctx.deps.runCodex({
+      prompt: await presentationPrompt("p4_tldr", { title: outline.title, abstract }),
+      cwd: io.ctx.repoRoot,
+      reasoningEffort: "low",
+      leanLsp: false,
+    });
+    tldr = (out ?? "").trim().replace(/^["']+|["']+$/g, "").trim();
+  }
+  // A one-line skim summary never fails the emit: on a contract violation the site folds to the
+  // abstract (PaperMeta defaults `tldr` to "") and the checkpoint reader sees the note.
+  const tldrStyle = lintNegativeContributionFraming(tldr);
+  if (tldrStyle.length > 0) {
+    io.state.notes.push(`P4: TL;DR dropped (affirmative prose contract): ${tldrStyle.map((p) => p.detail).join("; ")}`);
+    tldr = "";
+  }
+
+  // The keys THIS stage owns and is entitled to write. Everything else in meta.json — the DOIs,
+  // the referee score, the user's authorship, and any key added by a future package this code has
+  // never heard of — is someone else's, and is preserved by simply not being named here.
+  const generated: Record<string, unknown> = {
+    qid: io.ctx.qid,
+    spec: io.ctx.spec,
+    title: outline.title,
+    tldr,
+    abstract,
+    area,
+    created,
+    // Citation identity settled before the compile, and already printed on page 1.
+    wp_number: identity.wp_number,
+    version: identity.version,
+    revised: identity.revised,
+    versions: identity.versions,
+  };
+  // The write RE-READS meta.json under the bundle lock and merges into whatever is there NOW,
+  // rather than into the snapshot taken back before the compile. Between those two points lie a
+  // LaTeX run, a Lean build, a paper-index extraction and a model call — minutes in which the
+  // Zenodo tool can publish a DOI or P5 can inject a score. Writing the pre-compile snapshot back
+  // would silently revert either one.
+  // Checkpoint before the durable write: if this emit lost its lock mid-run, another process may
+  // already own the bundle's files and this result must not be recorded.
+  assertBundleEmitLockHeld(io.outDir);
+  const written = await updateBundleMeta(io.outDir, (current) => {
+    const merged = { ...emptyMetaSkeleton(), ...current, ...generated };
+    // Validate the whole record. zod ignores unknown keys rather than rejecting them, and the
+    // object WRITTEN is `merged`, not the parse result — parsing would strip exactly the
+    // third-party keys this merge exists to protect.
+    PaperMeta.parse(merged);
+    return merged;
+  });
+  // A DOI that landed during the emit is in meta.json now but was NOT on the stamp, because the
+  // stamp had to be written before the compile. Say so: the fix is a restamp, not a re-emit.
+  if (isProductionDoi(written.doi) && written.doi !== identity.stampedDoi) {
+    io.state.notes.push(
+      `P4: doi ${String(written.doi)} appeared in meta.json during this emit, so page 1 of the PDF just ` +
+        "compiled does not carry it. Rewrite paper_stamp.tex and recompile (no re-emit needed).",
+    );
+  }
+}
+
+/**
+ * Every key of the bundle contract at its documented default, in the documented order.
+ *
+ * Only used to seed a bundle that has no meta.json yet: merging over this gives a first emit the
+ * canonical key order, while an existing file keeps whatever order it already has (the writer
+ * preserves position, so a review diff stays readable).
+ */
+function emptyMetaSkeleton(): Record<string, unknown> {
+  return {
+    qid: "", spec: "", title: "", tldr: "", abstract: "", area: "", authorship: null, created: "",
+    wp_number: null, version: 1, revised: null, versions: [], doi: null, version_doi: null,
+    score: null, score_rationale: null,
+  };
+}

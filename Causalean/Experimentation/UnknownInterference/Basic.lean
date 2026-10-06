@@ -1,0 +1,249 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Mathlib.Data.Fintype.BigOperators
+
+/-!
+# Sävje–Aronow–Hudgens (2021): EATE estimand and the Horvitz–Thompson estimator
+
+The setup for "Average treatment effects in the presence of unknown interference"
+(Sävje, Aronow & Hudgens, *Annals of Statistics* 49(2), 2021).  A finite sample of units `U`
+is assigned a binary treatment vector `z : U → Bool` by a randomization design.  Each unit's
+outcome `y i z` may depend on the *entire* assignment `z` — units interfere — but the form of
+the interference is unknown.
+
+This file fixes the primitives:
+
+* the **interference indicator** `Interferes y ℓ i` (changing `ℓ`'s treatment changes `i`'s
+  outcome under some assignment, plus the reflexive case `ℓ = i`), its symmetric closure
+  `InterfDep y i j` (some `ℓ` interferes with both `i` and `j`), and the average interference
+  dependence `dbar` (the paper's `d̄`, the basis for the "restricted interference" assumption);
+* the **assignment-conditional unit-level effect** `tau y i z = y i (z with iᵗʰ coord 1) −
+  y i (z with iᵗʰ coord 0)`, its average `ACATE` (assignment-conditional ATE), and the
+  **expected average treatment effect** `EATE = E[ACATE(Z)]` (Definition: the design average of
+  the assignment-conditional ATE);
+* the **Horvitz–Thompson estimator** `htEst`.
+
+The key structural fact proven here is `y_eq_of_agree_on_interferers`: a unit's outcome depends
+only on the treatments of the units that interfere with it — the bridge that turns
+"`InterfDep` fails" into "the two HT summands depend on disjoint coordinate blocks", which the
+disjoint-block independence lemma then turns into a vanishing covariance.
+-/
+
+@[expose] public section
+
+open scoped BigOperators
+open Finset
+
+namespace Causalean
+namespace Experimentation
+namespace UnknownInterference
+
+open DesignBased
+
+variable {U : Type*} [Fintype U] [DecidableEq U]
+
+/-! ### Interference structure -/
+
+/-- For [a population of units](hyp:U), [a potential-outcome schedule](hyp:y), and [two units,
+the potential source unit and the affected unit](hyp:ℓ,i), the [interference indicator](goal)
+holds exactly when the units are identical or there is an assignment under which reversing the
+source unit's treatment changes the affected unit's outcome. -/
+def Interferes (y : U → (U → Bool) → ℝ) (ℓ i : U) : Prop :=
+  ℓ = i ∨ ∃ z : U → Bool, y i z ≠ y i (Function.update z ℓ (! z ℓ))
+
+/-- For [a population of units](hyp:U), [a potential-outcome schedule](hyp:y), and [two
+units](hyp:i,j), the [interference-dependence relation](goal) holds exactly when some unit's
+treatment interferes with both units' outcomes; equivalently, the two outcomes may be affected by
+a common treatment. -/
+def InterfDep (y : U → (U → Bool) → ℝ) (i j : U) : Prop :=
+  ∃ ℓ : U, Interferes y ℓ i ∧ Interferes y ℓ j
+
+open Classical in
+/-- For [a finite population of units](hyp:U) and [a potential-outcome schedule](hyp:y), the
+[unnormalized interference-dependence count](goal) is the number of ordered pairs of units that
+are interference dependent. -/
+noncomputable def dbarCount (y : U → (U → Bool) → ℝ) : ℝ :=
+  ∑ i : U, ∑ j : U, if InterfDep y i j then (1 : ℝ) else 0
+
+/-- For [a finite population of units](hyp:U) and [a potential-outcome schedule](hyp:y), the
+[average interference dependence](goal) is the unnormalized count of interference-dependent
+ordered pairs divided by the population size.  For a nonempty population it equals one under no
+interference and the population size when every ordered pair is interference dependent; restricted
+interference is the condition that it is of smaller order than the population size. -/
+noncomputable def dbar (y : U → (U → Bool) → ℝ) : ℝ :=
+  dbarCount y / (Fintype.card U : ℝ)
+
+/-- For [a nonempty finite population](hyp:hcard), [average interference dependence is at least
+one](goal), because every unit is interference-dependent with itself. -/
+theorem one_le_dbar (y : U → (U → Bool) → ℝ) (hcard : 1 ≤ Fintype.card U) :
+    (1 : ℝ) ≤ dbar y := by
+  classical
+  have hn0 : (0 : ℝ) < (Fintype.card U : ℝ) := by
+    exact_mod_cast lt_of_lt_of_le zero_lt_one hcard
+  have hdiag : ∀ i : U, InterfDep y i i := fun i => ⟨i, Or.inl rfl, Or.inl rfl⟩
+  have hcount : (Fintype.card U : ℝ) ≤ dbarCount y := by
+    rw [dbarCount]
+    calc
+      (Fintype.card U : ℝ) = ∑ _i : U, (1 : ℝ) := by
+        rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, mul_one]
+      _ = ∑ i : U, (if InterfDep y i i then (1 : ℝ) else 0) := by
+        refine Finset.sum_congr rfl (fun i _ => ?_)
+        rw [if_pos (hdiag i)]
+      _ ≤ ∑ i : U, ∑ j : U, (if InterfDep y i j then (1 : ℝ) else 0) := by
+        refine Finset.sum_le_sum (fun i _ => ?_)
+        refine Finset.single_le_sum (f := fun j => if InterfDep y i j then (1 : ℝ) else 0)
+          (fun j _ => ?_) (Finset.mem_univ i)
+        by_cases h : InterfDep y i j <;> simp [h]
+  rw [dbar, le_div_iff₀ hn0, one_mul]
+  exact hcount
+
+/-! ### Estimand: EATE -/
+
+/-- For [a population of units](hyp:U), [a potential-outcome schedule](hyp:y), [a unit](hyp:i),
+and [an assignment of treatments to all units](hyp:z), the [assignment-conditional unit-level
+treatment effect](goal) is that unit's outcome when its own treatment is set to treated minus its
+outcome when its own treatment is set to control, with every other unit's assignment held fixed. -/
+def tau (y : U → (U → Bool) → ℝ) (i : U) (z : U → Bool) : ℝ :=
+  y i (Function.update z i true) - y i (Function.update z i false)
+
+/-- For [a finite population of units](hyp:U), [a potential-outcome schedule](hyp:y), and [an
+assignment of treatments to all units](hyp:z), the [assignment-conditional average treatment
+effect](goal) is the average, over all units, of their own-treatment effects with the remaining
+assignments held fixed. -/
+noncomputable def ACATE (y : U → (U → Bool) → ℝ) (z : U → Bool) : ℝ :=
+  (∑ i : U, tau y i z) / (Fintype.card U : ℝ)
+
+/-- For [a finite population of units](hyp:U), [a randomization design over treatment
+assignments](hyp:D), and [a potential-outcome schedule](hyp:y), the [expected average treatment
+effect](goal) is the design expectation of the assignment-conditional average treatment effect.
+Under no interference this quantity equals the conventional average treatment effect because the
+assignment-conditional effect is then constant across assignments. -/
+noncomputable def EATE (D : FiniteDesign (U → Bool)) (y : U → (U → Bool) → ℝ) : ℝ :=
+  D.E (ACATE y)
+
+/-! ### The Horvitz–Thompson estimator -/
+
+/-- For [a population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), [a unit](hyp:i), and [a realized treatment assignment](hyp:z),
+the [unit-level Horvitz--Thompson summand](goal) is its observed outcome weighted by the reciprocal
+of its treatment probability if treated, minus the same outcome weighted by the reciprocal of its
+control probability if untreated. -/
+noncomputable def htSummand (p : U → ℝ) (y : U → (U → Bool) → ℝ) (i : U) (z : U → Bool) : ℝ :=
+  (if z i then (1 : ℝ) else 0) * y i z / p i
+    - (if z i then (0 : ℝ) else 1) * y i z / (1 - p i)
+
+/-- For [a finite population of units](hyp:U), [marginal treatment probabilities](hyp:p), [a
+potential-outcome schedule](hyp:y), and [a realized treatment assignment](hyp:z), the
+[Horvitz--Thompson estimator](goal) is the average of the units' treated-minus-control
+inverse-probability-weighted outcome summands. -/
+noncomputable def htEst (p : U → ℝ) (y : U → (U → Bool) → ℝ) (z : U → Bool) : ℝ :=
+  (∑ i : U, htSummand p y i z) / (Fintype.card U : ℝ)
+
+/-! ### Outcome depends only on interferers -/
+
+section
+
+omit [Fintype U]
+
+/-- When [unit `ℓ` does not interfere with unit `i`](hyp:h), [flipping `ℓ`'s treatment while
+holding every other unit's assignment fixed never changes `i`'s realized outcome](goal).
+
+The negation of `Interferes` unfolds to this pointwise invariance. -/
+lemma y_update_eq_of_not_interferes {y : U → (U → Bool) → ℝ} {ℓ i : U}
+    (h : ¬ Interferes y ℓ i) (z : U → Bool) :
+    y i z = y i (Function.update z ℓ (! z ℓ)) := by
+  by_contra hne
+  exact h (Or.inr ⟨z, hne⟩)
+
+end
+
+section
+
+omit [Fintype U]
+
+variable [Finite U]
+
+/-- **A unit's outcome depends only on the units that interfere with it.** If [two treatment
+assignments `z` and `z'` agree on every unit that interferes with unit `i`](hyp:h), then
+[unit `i`'s outcome is the same under both assignments: `y i z = y i z'`](goal).
+
+This is the bridge from the interference structure to disjoint-block independence: when `i` and
+`j` are not interference dependent, their interferer sets are disjoint, so the two HT summands
+depend on disjoint coordinate blocks. -/
+theorem y_eq_of_agree_on_interferers (y : U → (U → Bool) → ℝ) (i : U) (z z' : U → Bool)
+    (h : ∀ ℓ : U, Interferes y ℓ i → z ℓ = z' ℓ) :
+    y i z = y i z' := by
+  classical
+  letI := Fintype.ofFinite U
+  -- Auxiliary: changing `z` to `z'` over a finset `S` of differing, non-interfering coordinates.
+  -- We induct on the finset of coordinates where `z` and `z'` differ; `z` is generalized so the
+  -- induction hypothesis applies to the updated assignment `w`.
+  suffices H : ∀ S : Finset U, ∀ z : U → Bool,
+      (∀ ℓ : U, z ℓ ≠ z' ℓ → ℓ ∈ S) →
+      (∀ ℓ ∈ S, z ℓ ≠ z' ℓ → ¬ Interferes y ℓ i) →
+      y i z = y i z' by
+    refine H Finset.univ z (fun ℓ _ => Finset.mem_univ ℓ) (fun ℓ _ hne => ?_)
+    intro hint
+    exact hne (h ℓ hint)
+  intro S
+  induction S using Finset.induction with
+  | empty =>
+    intro z hsub _
+    have hzz' : z = z' := by
+      funext ℓ
+      by_contra hne
+      exact (Finset.notMem_empty ℓ) (hsub ℓ hne)
+    rw [hzz']
+  | @insert a S ha ih =>
+    intro z hsub hnint
+    -- Define `w`: equal to `z'` at `a`, equal to `z` elsewhere.
+    set w : U → Bool := Function.update z a (z' a) with hw
+    -- Step 1: `y i z = y i w` (flipping the non-interferer coordinate `a`, if `z a ≠ z' a`).
+    have step1 : y i z = y i w := by
+      by_cases hza : z a = z' a
+      · -- `a` not a differing coordinate; `w = z`.
+        have : w = z := by
+          rw [hw]; funext x
+          by_cases hx : x = a
+          · subst hx; rw [Function.update_self, hza]
+          · rw [Function.update_of_ne hx]
+        rw [this]
+      · -- `a` differs, hence `¬ Interferes y a i`; `w = update z a (! z a)`.
+        have haint : ¬ Interferes y a i := hnint a (Finset.mem_insert_self a S) hza
+        have hflip : w = Function.update z a (! z a) := by
+          rw [hw]; congr 1
+          -- `z' a = ! z a` since they are distinct Bools.
+          cases hzv : z a <;> cases hz'v : z' a <;>
+            simp_all
+        rw [hflip]
+        exact y_update_eq_of_not_interferes haint z
+    -- Step 2: `y i w = y i z'` by induction; `w` and `z'` differ only on `S`.
+    have hsub' : ∀ ℓ : U, w ℓ ≠ z' ℓ → ℓ ∈ S := by
+      intro ℓ hℓ
+      have hℓa : ℓ ≠ a := by
+        rintro rfl; rw [hw, Function.update_self] at hℓ; exact hℓ rfl
+      have : w ℓ = z ℓ := by rw [hw, Function.update_of_ne hℓa]
+      rw [this] at hℓ
+      rcases Finset.mem_insert.mp (hsub ℓ hℓ) with h' | h'
+      · exact absurd h' hℓa
+      · exact h'
+    have hnint' : ∀ ℓ ∈ S, w ℓ ≠ z' ℓ → ¬ Interferes y ℓ i := by
+      intro ℓ hℓS hℓ
+      have hℓa : ℓ ≠ a := fun hh => ha (hh ▸ hℓS)
+      have hwz : w ℓ = z ℓ := by rw [hw, Function.update_of_ne hℓa]
+      rw [hwz] at hℓ
+      exact hnint ℓ (Finset.mem_insert_of_mem hℓS) hℓ
+    rw [step1]
+    exact ih w hsub' hnint'
+
+end
+
+end UnknownInterference
+end Experimentation
+end Causalean

@@ -1,0 +1,1547 @@
+<div class="abstract"><h2>Abstract</h2><p>We characterize the minimax mean-squared error for stationary policy evaluation from one stationary behavior trajectory in a partially observed Markov decision process with binary observed states, binary hidden states, and binary actions. The behavior and target policies are known, actions are randomized conditional on the observed state, rewards lie in <span class="math inline">\([0,1]\)</span>, action likelihood ratios are bounded, and both policy-induced joint-state kernels satisfy a common strict total-variation contraction bound. At fixed mixing and action-overlap parameters, the minimax risk has order <span class="math inline">\(T^{-1}\)</span>, where <span class="math inline">\(T\)</span> is the observed trajectory length. Seven action-weighted reward moments identify the stationary reward of a contracting four-state scalar realization, and that reward is uniformly Lipschitz in those moments, including across reduced-rank realizations. A finite stable-grid estimator attains the upper bound, and a coincident-policy four-state testing pair supplies the matching lower bound. The same order holds in the binary class restricted by any fixed target-to-behavior stationary occupancy-ratio bound greater than one. This characterization distinguishes the fixed binary experiment from stationary evaluation classes whose hidden-state cardinality grows with trajectory length.</p></div>
+<h1 id="introduction">Introduction</h1>
+<p>This paper establishes a matched parametric minimax rate for stationary policy evaluation in a fixed binary partially observed experiment. The data consist of one stationary behavior trajectory recording a binary observed state, a binary action, and a reward in <span class="math inline">\([0,1]\)</span> at each of <span class="math inline">\(T\)</span> periods, where <span class="math inline">\(T\)</span> is the observed trajectory length. A binary hidden state completes the four-point joint-state space. The behavior and target policies are supplied, and behavior actions are randomized through the observed state conditional on the full pre-action history. Under bounded action likelihood ratios and a common strict total-variation contraction bound for the behavior and target joint-state kernels, the minimax mean-squared error for the stationary target mean reward has order <span class="math inline">\(T^{-1}\)</span>.</p>
+<p>Stationary policy evaluation connects sequential causal interventions to long-run outcomes in controlled stochastic systems (Robins, 1986; Murphy, 2003; Puterman, 1994). Hidden states allow rewards and transitions to depend on information beyond the recorded state. In the experiment studied here, observed-state randomization makes short action-weighted reward histories informative about target-policy interventions. Fixed joint-state dimension then supplies a finite recurrence that connects those intervention moments to the stationary reward. The resulting statistical guarantee concerns the scalar policy value uniformly over the binary class in Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a>.</p>
+<p>The rate characterization holds at each fixed positive mixing scale <span class="math inline">\(t_0\)</span>, the parameter specifying the contraction bound, and fixed nonnegative logarithmic action likelihood-ratio bound <span class="math inline">\(\zeta\)</span>. The corresponding bounds are <span class="math inline">\(\alpha=\exp(-1/t_0)\)</span>, the contraction factor, and <span class="math inline">\(L=\exp(\zeta)\)</span>, the action likelihood-ratio bound. For every <span class="math inline">\(T\geq12\)</span>, Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> bounds the observed-data minimax risk below by <span class="math inline">\(1/(1024T)\)</span> and above by a constant depending on <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(L\)</span>, divided by <span class="math inline">\(T\)</span>. The joint reward and successor-state law may couple the current reward with the next state. The guarantee also covers reduced-rank realizations under the stated contraction conditions.</p>
+<p>The construction uses seven action-weighted reward moments. Their expectations follow successive target-policy transitions, while contraction turns the resulting four-state recurrence into a uniform stationary-value modulus, including at reduced-rank realizations. The stable-grid estimator in Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a> fits these moments and attains the risk bound in Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a>; a four-state local testing pair supplies the matching converse. The displayed estimator has a finite candidate list of size <span class="math inline">\(O(T^{19})\)</span> at fixed mixing scale, as quantified by Proposition <a class="objref" href="#obj-prop:exhaustive-grid-arithmetic-complexity">2</a>; this is a candidate-count statement, not a runtime bound.</p>
+<p>The closest stationary-trajectory comparison is Hu et al. (2023). Their partial-history importance-weighting analysis balances geometric forgetting against the variance cost of longer weighting windows. At fixed mixing and action-overlap parameters, their single-trajectory minimax rate has exponent <span class="math inline">\(2/(2+t_0\zeta)\)</span>, over an experiment permitting hidden-state cardinality to increase with trajectory length. The public manuscript <span>CausalSmith</span> (2026) supplies a cited cardinality-uniform comparison with bounded stationary occupancy ratios; its hard family likewise uses increasing hidden depth. For positive action-overlap exponent, the fixed binary characterization identifies the distinct rate obtained when the hidden alphabet contains two states throughout.</p>
+<p>The information conditions also distinguish this experiment from proxy-based evaluation. Nair et al. (2021) use observable matrices with rank equal to hidden-state cardinality for finite-horizon identification. Shi et al. (2022) develop discounted-value bridge estimation using independent observable transition and proxy tuples. Here, observed-state randomization identifies intervention moments from one dependent trajectory, and contraction stabilizes their stationary scalar limit. The finite-moment mechanism connects to classical realization theory (Ho et al., 1966)(Carlyle et al., 1971).</p>
+<p>The fixed-binary risk bounds and moment identities are proved under the stated law conditions; the cardinality-uniform comparison uses a cited public-manuscript conclusion.</p>
+<p>The paper proceeds through related work, setup and assumptions, and the main results. The discussion develops the statistical and candidate-count implications, followed by limitations and future work. The appendices present the supporting mathematical statements and proofs of the main results.</p>
+<h1 id="related-work">Related work</h1>
+<p>The closest stationary-trajectory comparisons are Hu et al. (2023) and <span>CausalSmith</span> (2026). Hu and Wager study stationary target-policy rewards under sequential ignorability, policy overlap, and mixing of the behavior and target dynamics. Their upper bounds accommodate multiple trajectories and heterogeneous units; their minimax lower bound concerns the stationary value of one unit observed through a single trajectory of length <span class="leanref" data-objid="sym:T"><span class="math inline">\(T\)</span></span>, the number of observed periods. At fixed mixing scale <span class="leanref" data-objid="sym:t_0"><span class="math inline">\(t_0\)</span></span> and logarithmic action likelihood-ratio bound <span class="leanref" data-objid="sym:\zeta"><span class="math inline">\(\zeta\)</span></span>, their single-trajectory mean-squared-error rate is <span class="math inline">\(T^{-2/(2+t_0\zeta)}\)</span>. Partial-history importance weighting balances geometric forgetting against the variance cost of multiplying policy ratios. The CausalSmith source is a nonarchival public manuscript, version CSWP-2026-021 at the stable URL in the bibliography. Its cited conclusion enters the comparison as an external manuscript premise, with a trust status distinct from peer-reviewed evidence or an independently formalized dependency of this paper.</p>
+<p>Hidden-state cardinality makes the comparison precise. Both cited minimax experiments permit hidden alphabets whose size increases with trajectory length. The CausalSmith manuscript studies a <span class="leanref" data-objid="S-4">cardinality-uniform bounded-stationary-overlap comparator</span>, with <span class="leanref" data-objid="sym:C"><span class="math inline">\(C\)</span></span> bounding the ratio of target to behavior stationary probabilities on the joint state space. For fixed <span class="math inline">\(C&gt;1\)</span>, <span class="math inline">\(t_0&gt;0\)</span>, and <span class="math inline">\(\zeta&gt;0\)</span>, its cited characterization has the same power rate. Its signed-depth construction uses <span class="math inline">\(2(Q+1)\)</span> hidden states, where <span class="leanref" data-objid="sym:Q"><span class="math inline">\(Q\)</span></span> is the terminal depth and increases logarithmically with trajectory length. Hu and Wager’s lower construction likewise increases the hidden depth. Here, the <span class="leanref" data-objid="S-1">single stationary behavior trajectory</span> comes from an experiment with binary observed states, binary hidden states, and binary actions. Under the law conditions in Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a>, Theorems <a class="objref" href="#obj-thm:stable-grid-upper">1</a> and <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> establish the matched <span class="math inline">\(T^{-1}\)</span> mean-squared-error order for this fixed binary experiment. The different rates therefore concern different cardinality restrictions on the statistical experiment.</p>
+<p>A second comparison concerns the information used to identify policy values. Nair et al. (2021) derive evaluation formulas from finite-horizon behavior-policy trajectories in a setting where action assignment may depend on the hidden state. Their spectral approach uses observable probability matrices whose rank equals the hidden-state cardinality. Extending the past enlarges the available proxy information; the future-based formula additionally uses distinct hidden-state reward probabilities (Nair et al., 2021). These conditions support recovery of the intervention distributions entering finite-horizon evaluation. In the present experiment, known action randomization conditional on the observed state, as specified in Assumption <a class="objref" href="#obj-ass:sequential-ignorability">2</a>, identifies the weighted intervention moments in Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a>. Uniform stability of the stationary scalar value then follows from Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a> over contracting four-state realizations, including realizations with reduced moment rank.</p>
+<p>The sampling and estimand distinctions also matter for Shi et al. (2022). Their time-homogeneous analysis targets an infinite-horizon discounted value from a specified initial distribution and develops value and weight bridge functions for hidden-state-dependent behavior policies. The statistical analysis in Section 4 uses independent copies of observable transition tuples containing past and future observations. Theorem 7 establishes asymptotic normality under existence and uniqueness of the relevant bridge functions, boundedness, consistency, and a product condition involving weight-bridge error and the value-bridge conditional-moment residual. Theorem 8 gives a tabular identification formula for the single-decision specialization using a generalized inverse of an observable proxy matrix. These results connect informative proxies and bridge estimation to policy evaluation. The present analysis connects observed-state randomization and a fixed realization dimension to a uniform mean-squared-error bound for stationary mean reward from one dependent trajectory.</p>
+<p>The finite-moment mechanism has a classical realization-theoretic interpretation. Finite-dimensional input-output representations and finite-rank sequence representations underlie the constructions of Ho et al. (1966) and Carlyle et al. (1971). Here, the intervention moments admit <span class="leanref" data-objid="S-2">four-state scalar linear realizations</span>, and Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a> controls the difference between stationary rewards by the first seven scalar moments. Contraction supplies uniform control of the stationary functional. This places the estimation target alongside, and distinguishes it from, richer learning objectives. Hsu et al. (2012) estimate observable sequence distributions through a spectral representation, with sample requirements depending on singular values of emission and observable moment matrices. For latent-parameter estimation, Abraham et al. (2023) quantify how learning two-state hidden Markov models depends on transition nondegeneracy and emission separation. The stability established here concerns the stationary reward functional across the contracting realization class; its uniform modulus is the property used by the estimator in Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a>.</p>
+<p>Observable-value methods provide a closer functional comparison. Uehara et al. (2023) obtain a discounted-value error of order <span class="math inline">\(n^{-1/2}\)</span>, with instrument-strength and distribution-shift factors, under realization, Bellman completeness, latent-error identifiability, and coverage conditions. Zhang et al. (2024) give a finite-horizon bound of order <span class="math inline">\(H^2/\sqrt n\)</span>, up to class-complexity and outcome- and belief-coverage factors. Those results use independent finite-horizon samples and target discounted or finite-horizon values. Here the estimand is a stationary mean from one dependent trajectory, and contraction supplies uniform value stability across reduced-rank four-state realizations without a singular-value lower bound.</p>
+<p>Fully observed stationary models provide useful parametric benchmarks with different estimands and nuisance requirements. Kallus et al. (2022) establish efficient evaluation of a normalized discounted policy value from stationary trajectory data. Their single-trajectory result uses sufficiently fast mixing, bounded action ratios, and a bounded ratio of target discounted state occupancy to the behavior stationary distribution. Cross-time fitting combines consistent estimates of the discounted action-value function and occupancy ratio, with the product of their <span class="math inline">\(L^2\)</span> errors of order <span class="math inline">\(o(T^{-1/2})\)</span>. These conditions yield a parametric asymptotic scale for the discounted functional.</p>
+<p>For stationary mean reward, Mehrabi et al. (2024) analyze truncated doubly robust evaluation under weak distributional overlap. With bounded action ratios and their sampling, mixing, and boundedness conditions, a stationary occupancy ratio having a power-tail bound of order <span class="math inline">\(1+\eta\)</span>, where <span class="math inline">\(\eta&gt;0\)</span> is the tail parameter, gives stochastic mean-squared-error scales <span class="math inline">\(T^{-2\eta/(1+\eta)}\)</span> for <span class="math inline">\(0&lt;\eta&lt;1\)</span>, <span class="math inline">\((\log T)/T\)</span> for <span class="math inline">\(\eta=1\)</span>, and <span class="math inline">\(T^{-1}\)</span> for <span class="math inline">\(\eta&gt;1\)</span>. Their bound also includes the squared product of the <span class="math inline">\(L^2\)</span> estimation errors for the differential action-value function and stationary occupancy ratio. This benchmark separates action overlap from stationary occupancy overlap and makes the nuisance contribution explicit. Against these comparisons, the contribution of Theorems <a class="objref" href="#obj-thm:stable-grid-upper">1</a> and <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> is the particular matched characterization obtained by combining observable intervention moments, uniform scalar-value stability, and a lower bound within the same fixed binary class.</p>
+<h1 id="setup-and-assumptions">Setup and assumptions</h1>
+<p>Probability laws are represented by row vectors and reward functions by column vectors. Unspecified positive constants may depend on the fixed mixing and overlap parameters. Asymptotic comparisons refer to increasing observed trajectory length <span class="math inline">\(T\)</span>, with these parameters fixed; time indices range from <span class="math inline">\(1\)</span> to <span class="math inline">\(T\)</span> unless stated otherwise. For probability laws on a finite set, total variation is half the sum of absolute coordinate differences.</p>
+<p>The data comprise the observed trajectory <span class="leanref" data-objid="sym:\mathsf O_T"><span class="math inline">\(\mathsf O_T=(X_1,A_1,Y_1,\ldots,X_T,A_T,Y_T)\)</span></span>, recording the observed state <span class="leanref" data-objid="sym:X_t"><span class="math inline">\(X_t\)</span></span>, action <span class="leanref" data-objid="sym:A_t"><span class="math inline">\(A_t\)</span></span>, and reward <span class="leanref" data-objid="sym:Y_t"><span class="math inline">\(Y_t\)</span></span> at each time. The hidden state <span class="leanref" data-objid="sym:H_t"><span class="math inline">\(H_t\)</span></span> combines with the observed state to form the joint state <span class="leanref" data-objid="sym:S_t"><span class="math inline">\(S_t=(X_t,H_t)\)</span></span>. Before action <span class="math inline">\(A_t\)</span> is drawn, the full experiment has information <span class="math display">\[\mathcal F_t^-=\sigma(S_1,A_1,Y_1,\ldots,S_{t-1},A_{t-1},Y_{t-1},S_t).\]</span> Thus <span class="math inline">\(\mathcal F_t^-\)</span> contains the current joint state and the preceding joint states, actions, and rewards, while the statistician observes only <span class="math inline">\(\mathsf O_T\)</span>.</p>
+<p>The binary alphabets <span class="leanref" data-objid="sym:\mathcal X"><span class="math inline">\(\mathcal X\)</span></span>, <span class="leanref" data-objid="sym:\mathcal H"><span class="math inline">\(\mathcal H\)</span></span>, and <span class="leanref" data-objid="sym:\mathcal A"><span class="math inline">\(\mathcal A\)</span></span> give the four-point joint-state space <span class="leanref" data-objid="sym:\mathcal S"><span class="math inline">\(\mathcal S\)</span></span>; the reward space <span class="leanref" data-objid="sym:\mathcal Y"><span class="math inline">\(\mathcal Y\)</span></span> bounds rewards between zero and one. The information <span class="leanref" data-objid="sym:\mathcal F_t^-"><span class="math inline">\(\mathcal F_t^-\)</span></span> includes the hidden-state history and therefore describes the full experiment underlying the observed data.</p>
+<p>The behavior policy <span class="leanref" data-objid="sym:b"><span class="math inline">\(b\)</span></span> and target policy <span class="leanref" data-objid="sym:e"><span class="math inline">\(e\)</span></span> are known action probabilities indexed by the observed state. A joint reward and next-state law <span class="leanref" data-objid="sym:K"><span class="math inline">\(K\)</span></span> specifies the dynamics conditional on the current joint state and action. For either policy <span class="math inline">\(p\in\{b,e\}\)</span>, its induced joint-state transition matrix is obtained by averaging the successor-state marginal of <span class="math inline">\(K\)</span> over <span class="math inline">\(p(a\mid x)\)</span>; write this matrix as <span class="leanref" data-objid="sym:P_p"><span class="math inline">\(P_p\)</span></span> and its stationary joint-state law as <span class="leanref" data-objid="sym:d_p"><span class="math inline">\(d_p\)</span></span>. Averaging the conditional reward under the target policy gives the reward function <span class="leanref" data-objid="sym:r_e"><span class="math inline">\(r_e\)</span></span>, represented as a column in matrix products. These objects determine the stationary reward target.</p>
+<p>The joint law accommodates dependence between the current reward and the next state conditional on the current state and action. Marginalizing rewards gives the transition matrices, whereas integrating rewards gives <span class="math inline">\(r_e\)</span>. The evaluation target averages this reward vector under the target stationary law <span class="math inline">\(d_e\)</span>. The contraction restrictions below ensure uniqueness of both <span class="math inline">\(d_b\)</span> and <span class="math inline">\(d_e\)</span>.</p>
+<p>We first specify how the joint law governs the full trajectory and how actions are assigned within it.</p>
+<div class="formal-block kind-assumption" id="obj-ass:pomdp-kernel" data-objid="ass:pomdp-kernel" tabindex="0"><span class="env-label">Assumption 1 <span class="obj-tag">[ass:pomdp-kernel]</span> (Joint reward and transition law).</span><p>The reward <span class="math inline">\(Y_t\)</span> and next joint state <span class="math inline">\(S_{t+1}\)</span> have conditional distribution <span class="math display">\[\mathcal L(Y_t,S_{t+1}\mid\mathcal F_t^-,A_t)
+=
+K(\cdot\mid S_t,A_t),
+\qquad t=1,\ldots,T,\]</span> where <span class="math inline">\(\mathcal F_t^-\)</span> is the full pre-action history information, <span class="math inline">\(A_t\)</span> is the action, <span class="math inline">\(S_t\)</span> is the current joint state, <span class="math inline">\(K\)</span> is the joint reward and next-state law, and <span class="math inline">\(T\)</span> is the observed trajectory length.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The standard time-homogeneous POMDP kernel condition makes the current joint state and action sufficient for the conditional reward and successor law (Hu et al., 2023). It permits the hidden component to carry information about both outcomes and transitions. Action assignment is specified separately through the observed component.</p>
+<div class="formal-block kind-assumption" id="obj-ass:sequential-ignorability" data-objid="ass:sequential-ignorability" tabindex="0"><span class="env-label">Assumption 2 <span class="obj-tag">[ass:sequential-ignorability]</span> (Observed-state sequential assignment).</span><p>Given the full pre-action history information <span class="math inline">\(\mathcal F_t^-\)</span>, the action <span class="math inline">\(A_t\)</span> follows the behavior policy <span class="math inline">\(b\)</span> at the observed state <span class="math inline">\(X_t\)</span>: <span class="math display">\[\Pr(A_t=a\mid\mathcal F_t^-)=b(a\mid X_t),
+\qquad a\in\mathcal A,\quad t=1,\ldots,T,\]</span> where <span class="math inline">\(\mathcal A\)</span> is the action space and <span class="math inline">\(T\)</span> is the observed trajectory length.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>Observed-state sequential ignorability is the standard randomization condition under which the behavior action probabilities depend on the recorded state, even conditional on the full history (Hu et al., 2023). It describes a design that assigns actions using observed information while allowing rewards and transitions to depend on the hidden state. We initialize this behavior experiment in stationarity.</p>
+<div class="formal-block kind-assumption" id="obj-ass:stationary-start" data-objid="ass:stationary-start" tabindex="0"><span class="env-label">Assumption 3 <span class="obj-tag">[ass:stationary-start]</span> (Stationary behavior-policy initial law).</span><p>The initial joint state <span class="math inline">\(S_1\)</span> has the stationary joint-state law <span class="math inline">\(d_b\)</span> under the behavior policy: <span class="math display">\[S_1\sim d_b.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Behavior-stationary initialization is a standard sampling condition (Hu et al., 2023). Together with Assumptions <a class="objref" href="#obj-ass:pomdp-kernel">1</a> and <a class="objref" href="#obj-ass:sequential-ignorability">2</a>, it gives a common stationary joint-state distribution at every observed time. This initialization fixes the sampling law; overlap and contraction govern distinct features of the policy comparison.</p>
+<p>We parameterize those restrictions by a fixed mixing-scale parameter <span class="math inline">\(t_0\)</span> and a fixed logarithmic action likelihood-ratio bound <span class="math inline">\(\zeta\)</span>. The contraction bound <span class="leanref" data-objid="sym:\alpha"><span class="math inline">\(\alpha\)</span></span> and action likelihood-ratio bound <span class="leanref" data-objid="sym:L"><span class="math inline">\(L\)</span></span> use the following convention.</p>
+<p>The class in Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a> keeps the mixing scale and action overlap fixed as the trajectory length increases. We impose overlap directly on the known action probabilities.</p>
+<div class="formal-block kind-assumption" id="obj-ass:policy-overlap" data-objid="ass:policy-overlap" tabindex="0"><span class="env-label">Assumption 4 <span class="obj-tag">[ass:policy-overlap]</span> (Bounded action likelihood ratios).</span><p>The target action probabilities <span class="math inline">\(e(a\mid x)\)</span> and behavior action probabilities <span class="math inline">\(b(a\mid x)\)</span> satisfy <span class="math display">\[e(a\mid x)\le Lb(a\mid x),
+\qquad (a,x)\in\mathcal A\times\mathcal X,\]</span> where <span class="math inline">\(L\)</span> is the action likelihood-ratio bound, <span class="math inline">\(\mathcal A\)</span> is the action space, and <span class="math inline">\(\mathcal X\)</span> is the observed-state space.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>Uniform one-step policy overlap is the standard condition controlling the change in action probabilities from behavior to target (Hu et al., 2023). Every action with positive target probability has positive behavior probability at the same observed state, and its likelihood ratio is bounded by <span class="math inline">\(L\)</span>. This restriction supports weighting observed actions; temporal dependence is controlled through the induced joint-state transitions.</p>
+<div class="formal-block kind-assumption" id="obj-ass:behavior-contraction" data-objid="ass:behavior-contraction" tabindex="0"><span class="env-label">Assumption 5 <span class="obj-tag">[ass:behavior-contraction]</span> (Behavior-policy transition contraction).</span><p>The behavior-policy joint-state transition matrix <span class="math inline">\(P_b\)</span> satisfies <span class="math display">\[\|\mu P_b-\mu&#39;P_b\|_{\mathrm{TV}}
+\le
+\alpha\|\mu-\mu&#39;\|_{\mathrm{TV}},
+\qquad \mu,\mu&#39;\in\Delta(\mathcal S),\]</span> where <span class="math inline">\(\alpha\)</span> is the contraction bound, <span class="math inline">\(\Delta(\mathcal S)\)</span> is the probability simplex on the joint-state space <span class="math inline">\(\mathcal S\)</span>, and <span class="math inline">\(\|\cdot\|_{\mathrm{TV}}\)</span> denotes total variation.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The standard one-step geometric total-variation contraction condition under the behavior policy bounds the persistence of differences between joint-state distributions (Hu et al., 2023). Iteration gives geometric convergence toward the unique behavior stationary law and controls dependence in the sampled trajectory. Evaluation also requires contraction under the target policy.</p>
+<div class="formal-block kind-assumption" id="obj-ass:target-contraction" data-objid="ass:target-contraction" tabindex="0"><span class="env-label">Assumption 6 <span class="obj-tag">[ass:target-contraction]</span> (Target-policy transition contraction).</span><p>The target-policy joint-state transition matrix <span class="math inline">\(P_e\)</span> satisfies <span class="math display">\[\|\mu P_e-\mu&#39;P_e\|_{\mathrm{TV}}
+\le
+\alpha\|\mu-\mu&#39;\|_{\mathrm{TV}},
+\qquad \mu,\mu&#39;\in\Delta(\mathcal S),\]</span> where <span class="math inline">\(\alpha\)</span> is the contraction bound, <span class="math inline">\(\Delta(\mathcal S)\)</span> is the probability simplex on the joint-state space <span class="math inline">\(\mathcal S\)</span>, and <span class="math inline">\(\|\cdot\|_{\mathrm{TV}}\)</span> denotes total variation.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>Target-policy one-step geometric total-variation contraction is likewise a standard condition (Hu et al., 2023). It gives a unique target stationary law and geometric convergence toward that law. The two contraction requirements use a common bound but constrain different transition matrices, since each policy averages the action-specific dynamics with its own probabilities.</p>
+<p>These six conditions define the binary experiment class <span class="leanref" data-objid="sym:\mathcal M_T^{(2)}(t_0,\zeta)"><span class="math inline">\(\mathcal M_T^{(2)}(t_0,\zeta)\)</span></span> used throughout the analysis.</p>
+<div class="formal-block kind-definition" id="obj-def:binary-pomdp-class" data-objid="def:binary-pomdp-class" tabindex="0"><span class="env-label">Definition 1 <span class="obj-tag">[def:binary-pomdp-class]</span> (Binary POMDP experiment class).</span><p>The class <span class="math inline">\(\mathcal M_T^{(2)}(t_0,\zeta)\)</span> consists of binary trajectory experiments of observed length <span class="math inline">\(T\in\mathbb N\)</span>, with observed-state, hidden-state, and action alphabets <span class="math display">\[\mathcal X=\mathcal H=\mathcal A=\{0,1\},
+\qquad \mathcal Y=[0,1].\]</span> Each experiment comprises a joint reward and next-state law <span class="math inline">\(K\)</span>, behavior and target action probabilities <span class="math inline">\(b\)</span> and <span class="math inline">\(e\)</span>, and a full trajectory probability law inducing the law of <span class="math inline">\(\mathsf O_T\)</span>, the observed state, action, and reward trajectory. Membership is defined by the following conditions:</p>
+<ul>
+<li><p><strong>(Parameter range.)</strong> The mixing-scale parameter <span class="math inline">\(t_0\)</span> and logarithmic action likelihood-ratio bound <span class="math inline">\(\zeta\)</span> satisfy <span class="math display">\[t_0&gt;0,\qquad \zeta\ge 0.\]</span> The associated contraction and overlap bounds are <span class="math display">\[\alpha=\exp(-1/t_0),\qquad L=\exp(\zeta).\]</span></p></li>
+<li><p><strong>(Joint law.)</strong> The experiment satisfies Assumption <a class="objref" href="#obj-ass:pomdp-kernel">1</a>.</p></li>
+<li><p><strong>(Sequential assignment.)</strong> The experiment satisfies Assumption <a class="objref" href="#obj-ass:sequential-ignorability">2</a>.</p></li>
+<li><p><strong>(Stationary start.)</strong> The experiment satisfies Assumption <a class="objref" href="#obj-ass:stationary-start">3</a>.</p></li>
+<li><p><strong>(Policy overlap.)</strong> The policies satisfy Assumption <a class="objref" href="#obj-ass:policy-overlap">4</a> with overlap bound <span class="math inline">\(L\)</span>.</p></li>
+<li><p><strong>(Behavior contraction.)</strong> The behavior-induced joint-state transition matrix satisfies Assumption <a class="objref" href="#obj-ass:behavior-contraction">5</a> with contraction bound <span class="math inline">\(\alpha\)</span>.</p></li>
+<li><p><strong>(Target contraction.)</strong> The target-induced joint-state transition matrix satisfies Assumption <a class="objref" href="#obj-ass:target-contraction">6</a> with contraction bound <span class="math inline">\(\alpha\)</span>.</p></li>
+</ul><span class="lean-hint">⊢ Lean</span></div>
+<p>The class fixes the binary alphabets and the regime parameters while allowing the joint law and policies to vary subject to the six restrictions. Within each experiment, the supplied policies determine the behavior sampling law and the target stationary law. The stationary target mean reward <span class="leanref" data-objid="sym:\theta"><span class="math inline">\(\theta(K,e)\)</span></span> is the corresponding evaluation functional.</p>
+<div class="formal-block kind-definition" id="obj-def:target-value" data-objid="def:target-value" tabindex="0"><span class="env-label">Definition 2 <span class="obj-tag">[def:target-value]</span> (Stationary target value <span class="math inline">\(\theta(K,e)\)</span>).</span><p>The stationary target mean reward is <span class="math display">\[\theta(K,e)
+:=
+d_e r_e
+=
+\sum_{s=(x,h)\in\mathcal S}
+d_e(s)
+\sum_{a\in\mathcal A}
+e(a\mid x)
+\sum_{s&#39;\in\mathcal S}
+\int_{\mathcal Y}
+y\,K(dy,s&#39;\mid s,a),\]</span> where <span class="math inline">\(d_e\)</span> is the stationary joint-state law under the target policy, <span class="math inline">\(r_e\)</span> is the vector of target-policy conditional mean rewards, <span class="math inline">\(\mathcal S\)</span> is the four-point joint-state space, <span class="math inline">\(e(a\mid x)\)</span> is the target action probability at observed state <span class="math inline">\(x\)</span>, and <span class="math inline">\(K(dy,s&#39;\mid s,a)\)</span> is the joint reward and next-state law.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The functional in Definition <a class="objref" href="#obj-def:target-value">2</a> is the expected reward per period when the target policy operates in its stationary joint-state distribution. It combines the target policy’s action probabilities with its induced stationary state frequencies. Bounded rewards place this value in <span class="math inline">\([0,1]\)</span>, and target contraction makes the stationary averaging law unique.</p>
+<h1 id="main-results">Main results</h1>
+<p>The stationary target value in Definition <a class="objref" href="#obj-def:target-value">2</a> can be recovered from a fixed collection of short weighted reward histories. Write the observed action likelihood ratio <span class="leanref" data-objid="sym:\rho_t"><span class="math inline">\(\rho_j\)</span></span> as <span class="math display">\[\rho_j=
+\begin{cases}
+e(A_j\mid X_j)/b(A_j\mid X_j),&amp;b(A_j\mid X_j)&gt;0,\\
+0,&amp;b(A_j\mid X_j)=0.
+\end{cases}\]</span> At depth <span class="math inline">\(k\)</span>, the weighting window includes the current action and the preceding <span class="math inline">\(k\)</span> actions, giving <span class="math inline">\(k+1\)</span> likelihood ratios. The score <span class="leanref" data-objid="sym:Z_t(k)"><span class="math inline">\(Z_t(k)\)</span></span> is used only at eligible epochs <span class="math inline">\(t\geq k+1\)</span>. We use its population moment <span class="leanref" data-objid="sym:m_k"><span class="math inline">\(m_k\)</span></span> and empirical counterpart <span class="leanref" data-objid="sym:\widehat m_k"><span class="math inline">\(\widehat m_k\)</span></span> at depths zero through six. The common-window empirical moments are defined for <span class="math inline">\(T\geq7\)</span> and use terminal epochs <span class="math inline">\(t=7,\ldots,T\)</span>, so every action window lies within the observed trajectory. Stationarity makes <span class="math inline">\(\mathbb E_b[Z_t(k)]\)</span> independent of the eligible terminal epoch. The risk theorems below retain the stronger horizon condition <span class="math inline">\(T\geq12\)</span>.</p>
+<div class="formal-block kind-definition" id="obj-def:observable-moments" data-objid="def:observable-moments" tabindex="0"><span class="env-label">Definition 3 <span class="obj-tag">[def:observable-moments]</span> (Observable moments <span class="math inline">\(m_k\)</span> and <span class="math inline">\(\widehat m_k\)</span>).</span><p>The weighted reward scores, their population moments, and their common-window empirical moments are, for <span class="math inline">\(k=0,\ldots,6\)</span>, <span class="math display">\[Z_t(k)
+:=
+Y_t\prod_{j=t-k}^{t}\rho_j,
+\qquad
+m_k
+:=
+\mathbb E_b[Z_t(k)],
+\qquad
+\widehat m_k
+:=
+\frac{1}{T-6}
+\sum_{t=7}^{T}Z_t(k).\]</span> Here <span class="math inline">\(Y_t\)</span> is the bounded reward at time <span class="math inline">\(t\)</span>, <span class="math inline">\(\rho_j\)</span> is the observed action likelihood ratio at time <span class="math inline">\(j\)</span>, <span class="math inline">\(\mathbb E_b\)</span> denotes expectation under the stationary behavior experiment, and <span class="math inline">\(T\)</span> is the observed trajectory length.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The convention in Definition <a class="objref" href="#obj-def:observable-moments">3</a> distinguishes action-window length from transition depth. Sequential assignment and action overlap give the intervention identity <span class="math display">\[m_k=d_bP_e^k r_e,\qquad k=0,\ldots,6,\]</span> as established in Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a>. The current action ratio supplies the target-policy reward vector, while the preceding <span class="math inline">\(k\)</span> ratios supply <span class="math inline">\(k\)</span> target-policy transitions from the behavior stationary law. Target contraction then connects this scalar moment sequence to the stationary target value.</p>
+<p>The estimator fits these seven moments with a contracting four-state realization. Such a realization consists of an initial probability vector <span class="leanref" data-objid="sym:\nu"><span class="math inline">\(\nu\)</span></span>, a transition matrix <span class="leanref" data-objid="sym:P"><span class="math inline">\(P\)</span></span>, and a reward vector <span class="leanref" data-objid="sym:r"><span class="math inline">\(r\)</span></span> with entries in <span class="math inline">\([0,1]\)</span>; its scalar moments are <span class="math inline">\(\nu P^k r\)</span>. For a row-stochastic candidate matrix <span class="math inline">\(R\)</span>, define its Dobrushin contraction coefficient by <span class="math display">\[\delta(R):=\frac12\max_{i,i&#39;}\sum_{j=1}^{4}|R_{ij}-R_{i&#39;j}|.\]</span> The procedure uses the contraction bound <span class="math inline">\(\alpha=\exp(-1/t_0)\)</span>, where <span class="math inline">\(t_0&gt;0\)</span> is the supplied mixing scale. Its grid resolution <span class="leanref" data-objid="sym:M"><span class="math inline">\(M\)</span></span> increases with the trajectory length, and its output <span class="leanref" data-objid="sym:\widehat\theta_T"><span class="math inline">\(\widehat\theta_T\)</span></span> is the stationary reward of the selected fit.</p>
+<div class="formal-block kind-algorithm" id="obj-def:stable-grid-estimator" data-objid="def:stable-grid-estimator" tabindex="0"><span class="env-label">Algorithm 1 <span class="obj-tag">[def:stable-grid-estimator]</span> (Stable grid estimator <span class="math inline">\(\widehat\theta_T\)</span>).</span><p>The inputs are the empirical moments <span class="math inline">\(\widehat m_0,\ldots,\widehat m_6\)</span>, the trajectory length <span class="math inline">\(T\)</span>, and the contraction bound <span class="math inline">\(\alpha\)</span>.</p>
+<ol>
+<li><p>Set the grid resolution, probability grid, uniform transition matrix, and stabilization weight to <span class="math display">\[M:=\left\lceil(22+36/\alpha)T\right\rceil,
+\qquad
+\mathcal G_M
+:=
+\left\{
+u\in[0,1]^4:
+\sum_{i=1}^{4}u_i=1,\ 
+u_i\in M^{-1}\mathbb Z\ \text{for all }i
+\right\},\]</span> <span class="math display">\[U:=\frac{\mathbf1\mathbf1^{\mathsf T}}{4},
+\qquad
+\lambda:=\frac{\alpha}{\alpha+6/M},\]</span> where <span class="math inline">\(\mathbf1\)</span> is the four-dimensional vector of ones.</p></li>
+<li><p>Enumerate the candidate triples in <span class="math display">\[\mathcal C_M
+:=
+\left\{
+(\nu,R,r):
+\begin{gathered}
+\nu\in\mathcal G_M,\quad
+R_{i,\cdot}\in\mathcal G_M\ \text{for }i=1,\ldots,4,\\
+\delta(R)\le\alpha+6/M,\quad
+r\in\{0,1/M,\ldots,1\}^{4}
+\end{gathered}
+\right\},\]</span> where <span class="math inline">\(\delta(R)\)</span> is the Dobrushin contraction coefficient. For each candidate, form <span class="math display">\[P(R):=\lambda R+(1-\lambda)U.\]</span></p></li>
+<li><p>Select the lexicographically first triple <span class="math inline">\((\nu_*,R_*,r_*)\)</span> among the minimizers <span class="math display">\[(\nu_*,R_*,r_*)
+\in
+\operatorname*{arg\,min}_{(\nu,R,r)\in\mathcal C_M}
+\max_{0\le k\le6}
+\left|\widehat m_k-\nu P(R)^k r\right|.\]</span></p></li>
+<li><p>Form the selected transition matrix and output its stationary reward: <span class="math display">\[P_*:=P(R_*),
+\qquad
+\widehat\theta_T:=\pi(P_*)r_*,\]</span> where <span class="math inline">\(\pi(P_*)\)</span> is the stationary probability vector satisfying <span class="math display">\[\pi(P_*)P_*=\pi(P_*).\]</span></p></li>
+</ol><span class="lean-hint">⊢ Lean</span></div>
+<p>Stabilization gives <span class="math inline">\(\delta(P(R))\leq\alpha\)</span> for every candidate, placing both the fitted realization and the target realization under a common contraction bound. The finite grid and lexicographic selection specify a measurable procedure, and the stationary probability vector <span class="leanref" data-objid="sym:\pi"><span class="math inline">\(\pi(P_*)\)</span></span> gives an output in <span class="math inline">\([0,1]\)</span>. The fitting criterion concerns the scalar reward moments directly; the risk guarantee concerns their stationary limit.</p>
+<p>To assess the estimator against all procedures using the same information, let <span class="math inline">\(\mathfrak O_T=(\mathcal X\times\mathcal A\times[0,1])^T\)</span> be the observed trajectory sample space. For each supplied policy pair <span class="math inline">\((b,e)\)</span> and fixed regime pair <span class="math inline">\((t_0,\zeta)\)</span>, an estimator is a measurable map <span class="math inline">\(\widetilde\theta_{b,e,t_0,\zeta}\colon\mathfrak O_T\to[0,1]\)</span>. The notation <span class="math inline">\(\widetilde\theta\colon\mathsf O_T\to[0,1]\)</span> below is shorthand for evaluating this indexed map at the random observed trajectory. The supremum ranges over the binary experiment class in Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a> with those supplied inputs.</p>
+<div class="formal-block kind-definition" id="obj-def:minimax-risk" data-objid="def:minimax-risk" tabindex="0"><span class="env-label">Definition 4 <span class="obj-tag">[def:minimax-risk]</span> (Minimax risk <span class="math inline">\(R_T^{(2)}(t_0,\zeta)\)</span>).</span><p>The minimax mean-squared error is <span class="math display">\[R_T^{(2)}(t_0,\zeta)
+:=
+\inf_{\substack{\widetilde\theta\colon \mathsf O_T\to[0,1]\ \mathrm{measurable}\\
+\mathrm{with\ respect\ to}\ \sigma(\mathsf O_T,b,e,t_0,\zeta)}}
+\sup_{M\in\mathcal M_T^{(2)}(t_0,\zeta)}
+\mathbb E_M\!\left[(\widetilde\theta-\theta)^2\right].\]</span> The infimum ranges over measurable observed-data procedures taking values in <span class="math inline">\([0,1]\)</span>. Here <span class="math inline">\(\mathsf O_T\)</span> is the observed trajectory of length <span class="math inline">\(T\)</span>; <span class="math inline">\(b\)</span> and <span class="math inline">\(e\)</span> are the supplied behavior and target policies; <span class="math inline">\(t_0\)</span> and <span class="math inline">\(\zeta\)</span> are the supplied mixing scale and logarithmic action likelihood-ratio bound; <span class="math inline">\(\mathcal M_T^{(2)}(t_0,\zeta)\)</span> is the binary experiment class; <span class="math inline">\(\mathbb E_M\)</span> denotes expectation under experiment <span class="math inline">\(M\)</span>; and <span class="math inline">\(\theta\)</span> is that experiment’s stationary target value.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>For the estimator guarantee, write <span class="math inline">\(L=\exp(\zeta)\)</span> for the action likelihood-ratio bound. The stationary-value modulus constant <span class="leanref" data-objid="sym:B_\alpha"><span class="math inline">\(B_\alpha\)</span></span> and moment variance constant <span class="leanref" data-objid="sym:V_{\alpha,L}"><span class="math inline">\(V_{\alpha,L}\)</span></span> are <span class="math display">\[B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6,
+\qquad
+V_{\alpha,L}=13L^7+\frac{2}{1-\alpha}.\]</span> These constants quantify stable extrapolation and empirical moment error, respectively. The following bound is uniform over the binary class at each supplied pair of regime parameters.</p>
+<div class="formal-block kind-theorem" id="obj-thm:stable-grid-upper" data-objid="thm:stable-grid-upper" tabindex="0"><span class="env-label">Theorem 1 <span class="obj-tag">[thm:stable-grid-upper]</span> (Uniform stable-grid risk bound).</span><p>Let the mixing-scale parameter <span class="math inline">\(t_0\)</span>, logarithmic action likelihood-ratio bound <span class="math inline">\(\zeta\)</span>, and trajectory length <span class="math inline">\(T\)</span> satisfy:</p>
+<ul>
+<li><p><strong>(Mixing scale.)</strong> <span class="math inline">\(t_0\in\mathbb R\)</span> and <span class="math inline">\(t_0&gt;0\)</span>.</p></li>
+<li><p><strong>(Overlap bound.)</strong> <span class="math inline">\(\zeta\in\mathbb R\)</span> and <span class="math inline">\(\zeta\geq0\)</span>.</p></li>
+<li><p><strong>(Horizon.)</strong> <span class="math inline">\(T\in\mathbb N\)</span> and <span class="math inline">\(T\geq12\)</span>.</p></li>
+</ul>
+<p>Define the contraction bound <span class="math inline">\(\alpha\)</span>, action likelihood-ratio bound <span class="math inline">\(L\)</span>, stationary-value modulus constant <span class="math inline">\(B_\alpha\)</span>, and moment variance constant <span class="math inline">\(V_{\alpha,L}\)</span> by <span class="math display">\[\alpha=\exp(-1/t_0),\qquad
+L=\exp(\zeta),\qquad
+B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6,\qquad
+V_{\alpha,L}=13L^7+\frac{2}{1-\alpha}.\]</span> For every binary-state, binary-action experiment <span class="math inline">\(M\in\mathcal M_T^{(2)}(t_0,\zeta)\)</span>, the stable-grid estimator <span class="math inline">\(\widehat\theta_T\)</span> of Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a>, using that experiment’s behavior and target policies, and the stationary target value <span class="math inline">\(\theta\)</span> of Definition <a class="objref" href="#obj-def:target-value">2</a> satisfy <span class="math display">\[\mathbb E_M\!\left[(\widehat\theta_T-\theta)^2\right]
+\leq
+\frac{B_\alpha^2\bigl(112V_{\alpha,L}+2\bigr)}{T},\]</span> where <span class="math inline">\(\mathbb E_M\)</span> denotes expectation under the experiment’s observed trajectory law.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The finite-state recurrence explains why seven short histories suffice. A four-state transition matrix has a stationary eigenvalue and three remaining eigenvalues, counted with algebraic multiplicity. Comparing two such realizations yields a transient polynomial of degree six. Contraction bounds its transient roots away from one, and Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a> converts agreement of the seven initial moments into control of the stationary reward. This stability bound applies uniformly across the contracted four-state realizations used by the estimator. On the sampling side, the empirical moments involve overlapping windows: action overlap controls their weighting, and behavior contraction controls dependence once the windows separate. Together with the intervention identity in Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a>, these controls give the parametric mean-squared-error order in Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a>.</p>
+<p>A matching lower bound follows from a pair of experiments within the same binary class. Their transition and observation laws are common, while a signed local perturbation shifts the reward probabilities. Let <span class="leanref" data-objid="sym:v_T"><span class="math inline">\(v_T\)</span></span> denote the testing perturbation amplitude and <span class="leanref" data-objid="sym:K_v^{(T)}"><span class="math inline">\(K_v^{(T)}\)</span></span> the corresponding joint reward and next-state law.</p>
+<div class="formal-block kind-definition" id="obj-def:four-state-testing-family" data-objid="def:four-state-testing-family" tabindex="0"><span class="env-label">Definition 5 <span class="obj-tag">[def:four-state-testing-family]</span> (Four-state testing family).</span><p>The four-state testing family is indexed by the trajectory length <span class="math inline">\(T\in\{0,1,\ldots\}\)</span> and a signed perturbation <span class="math inline">\(v\in\{-v_T,+v_T\}\)</span> satisfying <span class="math inline">\(|v|\le 1/16\)</span>, where the testing perturbation amplitude is <span class="math display">\[v_T=
+\begin{cases}
+0,&amp;T=0,\\
+\dfrac{1}{16\sqrt T},&amp;T\ge 1.
+\end{cases}\]</span> The observed state, hidden state, and action take values in <span class="math inline">\(\{0,1\}\)</span>, so the joint-state space is <span class="math inline">\(\mathcal S=\{0,1\}^2\)</span>. The behavior and target policies are <span class="math display">\[b(a\mid x)=e(a\mid x)=\frac12,
+\qquad x,a\in\{0,1\}.\]</span> The observation probabilities, reward probabilities, and successor hidden-state probabilities are defined by <span class="math display">\[E(x\mid h)=
+\begin{cases}
+3/5,&amp;x=h,\\
+2/5,&amp;x\ne h,
+\end{cases}
+\qquad
+q_v(h)=\frac12+\frac{2h-1}{8}+v,
+\qquad
+p(a)=\frac14+\frac a2.\]</span> The joint reward and next-state kernel has mass <span class="math display">\[K_v^{(T)}(y,x&#39;,h&#39;\mid x,h,a)
+=
+\operatorname{Ber}_{q_v(h)}(y)
+\operatorname{Ber}_{p(a)}(h&#39;)
+E(x&#39;\mid h&#39;),
+\qquad y,x&#39;,h&#39;\in\{0,1\},\]</span> where the Bernoulli masses are <span class="math display">\[\operatorname{Ber}_{q_v(h)}(y)=
+\begin{cases}
+q_v(h),&amp;y=1,\\
+1-q_v(h),&amp;y=0,
+\end{cases}
+\qquad
+\operatorname{Ber}_{p(a)}(h&#39;)=
+\begin{cases}
+p(a),&amp;h&#39;=1,\\
+1-p(a),&amp;h&#39;=0.
+\end{cases}\]</span> The initial joint state <span class="math inline">\(S_1\)</span> has distribution <span class="math display">\[\Pr\{S_1=(x,h)\}=\frac12 E(x\mid h).\]</span> The full trajectory law is the finite mixture of Dirac masses over binary state, action, and reward paths, with each path weighted by its initial joint-state mass multiplied by its behavior-policy action probabilities and joint reward and next-state kernel masses.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The family in Definition <a class="objref" href="#obj-def:four-state-testing-family">5</a> retains hidden-state dependence in rewards, action dependence in successor hidden states, and noisy observations. Equal fair policies give a stationary hidden-state probability of one half, so the stationary value is <span class="math inline">\(1/2+v\)</span>. The two signs therefore separate the target values by <span class="math inline">\(2v_T\)</span>, a quantity of order <span class="math inline">\(T^{-1/2}\)</span>. Their membership in the binary class is established in Lemma <a class="objref" href="#obj-lem:testing-family-membership">3</a>.</p>
+<p>For comparison with a class allowing arbitrary finite hidden-state cardinality, let <span class="math inline">\(C&gt;1\)</span> be a stationary occupancy-ratio bound, meaning <span class="math inline">\(d_e(s)\leq C d_b(s)\)</span>. When <span class="math inline">\(\zeta&gt;0\)</span>, define the cardinality-uniform rate exponent <span class="leanref" data-objid="sym:\beta"><span class="math inline">\(\beta\)</span></span> and stationary-overlap radius <span class="leanref" data-objid="sym:q_C"><span class="math inline">\(q_C\)</span></span> by <span class="math display">\[\beta=\frac{2}{2+t_0\zeta},
+\qquad
+q_C=\frac{C-1}{C}.\]</span> The cardinality-uniform comparator conclusion is an external premise supplied by <span>CausalSmith</span> (2026). For fixed <span class="math inline">\(t_0&gt;0\)</span>, <span class="math inline">\(\zeta&gt;0\)</span>, and <span class="math inline">\(C&gt;1\)</span>, that decision problem has minimax mean-squared-error order <span class="math display">\[T^{-1}+T^{-\beta}q_C^{\,2(1-\beta)}.\]</span> Its signed-depth lower-bound construction uses a depth schedule <span class="math inline">\(Q(n)\)</span> of order <span class="math inline">\(\log n\)</span>, with <span class="math inline">\(2(Q(n)+1)\)</span> hidden states, and a positive lower-bound constant <span class="math inline">\(c_{\mathrm{Reset}}\)</span>.</p>
+<h4 id="binary-risk-characterization.">Binary risk characterization.</h4>
+<p>The first display in the following theorem is the central fixed-binary result. The next block records the internal four-state testing witnesses. The final block is a comparison with the cited cardinality-uniform decision problem and depends on the external manuscript identified above.</p>
+<div class="formal-block kind-theorem" id="obj-thm:fixed-binary-minimax" data-objid="thm:fixed-binary-minimax" tabindex="0"><span class="env-label">Theorem 2 <span class="obj-tag">[thm:fixed-binary-minimax]</span> (Fixed binary minimax rate).</span><p>Let <span class="math inline">\(t_0\)</span> be the mixing-scale parameter, <span class="math inline">\(\zeta\)</span> the logarithmic action likelihood-ratio bound, and <span class="math inline">\(T\)</span> the observed trajectory length, with</p>
+<ul>
+<li><p><strong>(Positive mixing scale.)</strong> <span class="math inline">\(t_0&gt;0\)</span>.</p></li>
+<li><p><strong>(Nonnegative overlap exponent.)</strong> <span class="math inline">\(\zeta\geq0\)</span>.</p></li>
+<li><p><strong>(Horizon range.)</strong> <span class="math inline">\(T\in\mathbb N\)</span> and <span class="math inline">\(T\geq12\)</span>.</p></li>
+</ul>
+<p>Define the contraction and action-overlap bounds, and the associated modulus and variance constants, by <span class="math display">\[\alpha=\exp(-1/t_0),\qquad L=\exp(\zeta),\qquad
+B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6,\qquad
+V_{\alpha,L}=13L^7+\frac{2}{1-\alpha}.\]</span> The observable-data minimax mean-squared risk in Definition <a class="objref" href="#obj-def:minimax-risk">4</a> satisfies <span class="math display">\[\frac{1}{1024T}
+\leq R_T^{(2)}(t_0,\zeta)
+\leq \frac{B_\alpha^2(112V_{\alpha,L}+2)}{T}.\]</span></p>
+<p>Define the testing perturbation amplitude by <span class="math display">\[v_T=\frac{1}{16\sqrt T}.\]</span> Both experiments in Definition <a class="objref" href="#obj-def:four-state-testing-family">5</a> with perturbations <span class="math inline">\(v=+v_T\)</span> and <span class="math inline">\(v=-v_T\)</span> belong to the binary class <span class="math inline">\(\mathcal M_T^{(2)}(t_0,\zeta)\)</span> of Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a>. In each experiment the behavior and target policies are equal fair policies, and their stationary joint-state laws coincide: <span class="math display">\[e(a\mid x)=b(a\mid x)=\frac12,\qquad d_e=d_b.\]</span> For every stationary occupancy-ratio bound <span class="math inline">\(C&gt;1\)</span>, both experiments satisfy <span class="math display">\[d_e(s)\leq C\,d_b(s)
+\qquad\text{for every joint state }s.\]</span> For every observable-data estimator <span class="math inline">\(\widetilde\theta\)</span> taking values in <span class="math inline">\([0,1]\)</span>, the maximum of its mean-squared risks over these two experiments is at least <span class="math inline">\(1/(1024T)\)</span>.</p>
+<p>If additionally <span class="math inline">\(\zeta&gt;0\)</span>, then for every <span class="math inline">\(C&gt;1\)</span>, define the cardinality-uniform rate exponent and stationary-overlap radius by <span class="math display">\[\beta=\frac{2}{2+t_0\zeta},\qquad q_C=\frac{C-1}{C}.\]</span> Then <span class="math display">\[0&lt;\beta&lt;1,\qquad
+\lim_{\substack{n\to\infty\\ n\in\mathbb N}}
+\frac{n^{-1}}{n^{-\beta}q_C^{\,2(1-\beta)}}=0.\]</span> There exist a positive reset lower-bound constant <span class="math inline">\(c_{\mathrm{Reset}}&gt;0\)</span> and a depth schedule <span class="math inline">\(Q:\mathbb N\to\mathbb N\)</span>, together with constants <span class="math inline">\(a_1,a_2&gt;0\)</span>, such that, for every sufficiently large <span class="math inline">\(n\)</span>, <span class="math display">\[a_1\log n\leq Q(n)\leq a_2\log n.\]</span> For every sufficiently large <span class="math inline">\(n\)</span>, one has <span class="math inline">\(n\geq1\)</span> and <span class="math inline">\(Q(n)\geq1\)</span>, and the two signed depth-<span class="math inline">\(Q(n)\)</span> reset experiments of <span>CausalSmith</span> (2026) each have exactly <span class="math inline">\(2(Q(n)+1)\)</span> hidden states. For every observable-data estimator taking values in <span class="math inline">\([-1,1]\)</span> in that cardinality-uniform decision problem, the maximum of its mean-squared risks over these two reset experiments is at least <span class="math display">\[c_{\mathrm{Reset}}\,n^{-\beta}.\]</span> For every sufficiently large <span class="math inline">\(n\)</span>, the negative-sign reset experiment has hidden-state cardinality <span class="math display">\[2\bigl(Q(n)+1\bigr)&gt;2.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<aside class="verification-footnote"><p><strong>Formalization scope.</strong> This result uses the published conclusion (<span>CausalSmith</span>, 2026) (Main minimax theorem and reset-chain lower-bound construction, as supplied in the frozen target and Topic record.). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.</p></aside>
+<p>The two-point experiment explains the matching order in Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a>. Perturbing the reward probabilities at scale <span class="math inline">\(T^{-1/2}\)</span> produces target-value separation at that scale while keeping the observed trajectory laws sufficiently close for the stated testing bound. The bounded observed-data procedures in Definition <a class="objref" href="#obj-def:minimax-risk">4</a> are exactly the estimator class to which this testing argument applies. Together with Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a>, this establishes <span class="math inline">\(T^{-1}\)</span> minimax mean-squared-error order for fixed positive mixing scale and fixed nonnegative overlap exponent.</p>
+<p>The cardinality comparison concerns distinct decision problems. The binary class fixes two hidden states, whereas the signed-depth construction of the public manuscript <span>CausalSmith</span> (2026) uses a hidden alphabet whose size increases logarithmically with the horizon. For <span class="math inline">\(\zeta&gt;0\)</span> and fixed <span class="math inline">\(C&gt;1\)</span>, the ratio limit in Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> makes the comparison precise: the parametric order for the binary class is asymptotically smaller than the cardinality-uniform overlap term. The fixed binary rate therefore characterizes the effect of a specified latent alphabet under the stated contraction and action-overlap conditions.</p>
+<p>Coincident policies provide a familiar special case of the same stationary estimand. When the target policy equals the behavior policy, their induced transition matrices and stationary laws agree, and the depth-zero weighted moment becomes the ordinary stationary reward mean. The following reduction gives the corresponding sample-mean benchmark.</p>
+<div class="formal-block kind-proposition" id="obj-prop:coincident-policy-reduction" data-objid="prop:coincident-policy-reduction" tabindex="0"><span class="env-label">Proposition 1 <span class="obj-tag">[prop:coincident-policy-reduction]</span> (Coincident policy reduction).</span><p>Consider a trajectory experiment with binary observed state, binary hidden state, and binary action. Suppose:</p>
+<ul>
+<li><p><strong>(Positive mixing scale.)</strong> The mixing-scale parameter <span class="math inline">\(t_0\)</span> satisfies <span class="math inline">\(t_0&gt;0\)</span>, and the associated contraction factor is <span class="math display">\[\alpha=\exp(-1/t_0).\]</span></p></li>
+<li><p><strong>(Nonempty horizon.)</strong> The trajectory length <span class="math inline">\(T\)</span> is an integer with <span class="math inline">\(T\geq 1\)</span>.</p></li>
+<li><p><strong>(Kernel law.)</strong> Assumption <a class="objref" href="#obj-ass:pomdp-kernel">1</a> holds.</p></li>
+<li><p><strong>(Sequential assignment.)</strong> Assumption <a class="objref" href="#obj-ass:sequential-ignorability">2</a> holds.</p></li>
+<li><p><strong>(Stationary start.)</strong> Assumption <a class="objref" href="#obj-ass:stationary-start">3</a> holds.</p></li>
+<li><p><strong>(Behavior contraction.)</strong> Assumption <a class="objref" href="#obj-ass:behavior-contraction">5</a> holds with contraction factor <span class="math inline">\(\alpha\)</span>.</p></li>
+<li><p><strong>(Coincident policies.)</strong> The target and behavior policies satisfy <span class="math inline">\(e=b\)</span>.</p></li>
+</ul>
+<p>The induced joint-state transition matrices coincide. Explicitly, for all joint states <span class="math inline">\(s,s&#39;\in\mathcal S\)</span>, the four-point joint-state space, <span class="math display">\[P_e(s,s&#39;)
+=
+\sum_{a\in\{0,1\}}e(a\mid x)
+   \int_{[0,1]}K(dy,s&#39;\mid s,a)
+=
+\sum_{a\in\{0,1\}}b(a\mid x)
+   \int_{[0,1]}K(dy,s&#39;\mid s,a)
+=
+P_b(s,s&#39;),\]</span> where <span class="math inline">\(x\)</span> is the observed coordinate of <span class="math inline">\(s\)</span>. Their stationary joint-state laws, <span class="math inline">\(d_e\)</span> and <span class="math inline">\(d_b\)</span>, also coincide: <span class="math display">\[d_e=d_b.\]</span> Writing <span class="math inline">\(\theta\)</span> for the stationary target value in Definition <a class="objref" href="#obj-def:target-value">2</a>, the depth-zero population weighted-reward moment <span class="math inline">\(m_0\)</span> satisfies, at every observed epoch, <span class="math display">\[m_0=\mathbb E_b[Y_t]=\theta,
+\qquad t=1,\ldots,T,\]</span> where <span class="math inline">\(Y_t\)</span> is the observed reward and <span class="math inline">\(\mathbb E_b\)</span> denotes expectation under the behavior experiment. The sample mean is unbiased and obeys <span class="math display">\[\mathbb E_b\!\left[T^{-1}\sum_{t=1}^{T}Y_t\right]=\theta,
+\qquad
+\mathbb E_b\!\left[
+\left\{T^{-1}\sum_{t=1}^{T}Y_t-\theta\right\}^{2}
+\right]
+\leq
+\frac{1+2/(1-\alpha)}{T}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Stationary initialization makes the expected reward at every sampled epoch equal to the target value in Proposition <a class="objref" href="#obj-prop:coincident-policy-reduction">1</a>; behavior contraction controls the variance of its sample average. The lower-bound family in Definition <a class="objref" href="#obj-def:four-state-testing-family">5</a> belongs to this coincident-policy setting. Its reward perturbations establish the parametric lower bound even when behavior and target stationary occupancies agree exactly, clarifying how ordinary sampling uncertainty supplies the matching order within the binary class.</p>
+<h1 id="discussion">Discussion</h1>
+<p>The statistical characterization in Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> concerns the stability of a stationary reward functional across contracting four-state realizations. For fixed positive mixing scale and fixed nonnegative action-overlap exponent, the minimax mean-squared error has order <span class="math inline">\(T^{-1}\)</span>, where <span class="math inline">\(T\)</span> is the trajectory length. The uniform modulus in Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a> explains how this rate accommodates latent-model degeneracies: agreement of seven scalar moments controls agreement of the stationary rewards, including at realizations with repeated transient eigenvalues or reduced effective dimension. The relevant stability is therefore a property of the stationary functional over the contracted class.</p>
+<p>The explicit upper bound is <span class="math inline">\(C_{\alpha,L}/T\)</span>, where <span class="math inline">\(C_{\alpha,L}=B_\alpha^2(112V_{\alpha,L}+2)\)</span>. Since squared loss is at most one for the bounded procedures and targets used here, this displayed guarantee improves on the unit bound once <span class="math inline">\(T&gt;C_{\alpha,L}\)</span>. The threshold can be large: <span class="math inline">\(B_\alpha\)</span> grows as contraction slows and <span class="math inline">\(V_{\alpha,L}\)</span> grows with the seventh power of the action likelihood-ratio bound. Thus the parametric exponent is a fixed-parameter statement; finite-sample usefulness also depends materially on mixing and action overlap.</p>
+<p>Fixed joint-state dimension supplies the bounded recurrence underlying this conclusion. With four joint states, the transient characteristic polynomial has degree three, and comparing two realizations gives a transient polynomial of degree six. Contraction bounds these transient roots away from the stationary root at one. As expressed by Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a>, the resulting stationary-value modulus depends on the common contraction bound and remains uniform across the realizations. This connects the dimension of the joint-state space to the fixed number of moments used in Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a>.</p>
+<p>Action weighting gives this finite-dimensional structure an observed-data interpretation. The intervention identity in Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a> identifies the weighted reward moments with successive target-policy transitions starting from the behavior stationary law. Within each weighting window, the current action ratio supplies the target-policy reward vector, while the preceding ratios supply the target-policy transitions. Sequential assignment and action overlap justify this connection. For the empirical moments in Definition <a class="objref" href="#obj-def:observable-moments">3</a>, the likelihood-ratio bound controls the weights and behavior contraction controls dependence across separated windows. The risk bound in Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a> combines these sampling controls with stable extrapolation of the stationary functional.</p>
+<p>The displayed estimator implements this characterization through a finite list of contracting moment fits. Its grid resolution <span class="math inline">\(M\)</span> grows linearly with the trajectory length at a fixed mixing scale. The bounds in Proposition <a class="objref" href="#obj-prop:exhaustive-grid-arithmetic-complexity">2</a> quantify the size of the list before and after the contraction filter.</p>
+<div class="formal-block kind-proposition" id="obj-prop:exhaustive-grid-arithmetic-complexity" data-objid="prop:exhaustive-grid-arithmetic-complexity" tabindex="0"><span class="env-label">Proposition 2 <span class="obj-tag">[prop:exhaustive-grid-arithmetic-complexity]</span> (Exact grid candidate counts).</span><p>Fix <span class="math inline">\(t_0&gt;0\)</span>, the mixing-scale parameter, and define the associated contraction bound by <span class="math display">\[\alpha=\exp(-1/t_0).\]</span> For every integer <span class="math inline">\(M\ge0\)</span>, the four-coordinate simplex grid, represented by integer coordinates in <span class="math inline">\(\{0,\ldots,M\}\)</span> summing to <span class="math inline">\(M\)</span>, has cardinality <span class="math display">\[\binom{M+3}{3}.\]</span> The unfiltered candidate list consists of an initial simplex vector <span class="math inline">\(\nu\)</span>, four simplex rows forming the transition candidate <span class="math inline">\(R\)</span>, and a reward vector <span class="math inline">\(r\)</span> with four independently chosen grid coordinates. Its cardinality is exactly <span class="math display">\[\binom{M+3}{3}^{5}(M+1)^4.\]</span> For every integer <span class="math inline">\(M\ge0\)</span> and every real contraction threshold <span class="math inline">\(\alpha\)</span>, retaining the candidates satisfying <span class="math display">\[\delta(R)\le \alpha+\frac{6}{M},\]</span> where <span class="math inline">\(\delta(R)\)</span> is the Dobrushin contraction coefficient and division by zero is interpreted as zero, yields a cardinality at most <span class="math display">\[\binom{M+3}{3}^{5}(M+1)^4.\]</span></p>
+<p>There exists a constant <span class="math inline">\(c&gt;0\)</span> such that, for every integer trajectory length <span class="math inline">\(T\ge1\)</span>, at the resolution <span class="math display">\[M=\left\lceil(22+36/\alpha)T\right\rceil,
+\qquad \alpha=\exp(-1/t_0),\]</span> the unfiltered candidate-list cardinality and the filtered candidate-list cardinality are each at most <span class="math inline">\(cT^{19}\)</span>.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The five simplex factors in Proposition <a class="objref" href="#obj-prop:exhaustive-grid-arithmetic-complexity">2</a> correspond to the initial probability vector and the four transition rows; the remaining factor counts the four reward coordinates. Each simplex contributes a cubic factor in the resolution, giving total degree nineteen. Thus candidate-list cardinality is the established computational descriptor of the displayed estimator. The exact product records the scale of exhaustive enumeration, and the <span class="math inline">\(cT^{19}\)</span> bound expresses its growth with the horizon for a fixed mixing scale.</p>
+<p>The statistical guarantee also applies within stationary-overlap subclasses of the binary experiment class. For any fixed stationary occupancy-ratio bound <span class="math inline">\(C&gt;1\)</span>, impose the additional restriction <span class="math inline">\(d_e(s)\leq C d_b(s)\)</span> at every joint state. The upper bound in Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a> continues to apply uniformly on this restricted class. The two testing experiments in Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> satisfy the restriction because their stationary laws coincide, so they retain the matching lower bound. Consequently, for fixed positive mixing scale, fixed nonnegative action-overlap exponent, and <span class="math inline">\(T\geq12\)</span>, these subclasses also have minimax mean-squared-error order <span class="math inline">\(T^{-1}\)</span>.</p>
+<p>Coincident policies give a direct sampling interpretation of the same order. Under the conditions of Proposition <a class="objref" href="#obj-prop:coincident-policy-reduction">1</a>, stationary initialization and behavior contraction make the ordinary reward sample mean unbiased and give a mean-squared-error bound proportional to <span class="math inline">\(T^{-1}\)</span> for every <span class="math inline">\(T\geq1\)</span>. Together with the coincident-policy testing family in Definition <a class="objref" href="#obj-def:four-state-testing-family">5</a>, this reduction connects the general stationary evaluation result to the familiar uncertainty of estimating a stationary reward mean.</p>
+<h1 id="limitations-and-future-work">Limitations and future work</h1>
+<p>For fixed positive mixing scale and fixed nonnegative logarithmic action likelihood-ratio bound, Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> establishes minimax mean-squared-error order <span class="math inline">\(T^{-1}\)</span>, where <span class="math inline">\(T\)</span> is the observed trajectory length, for the binary experiment class in Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a>. The stable-grid estimator supplies a constructive statistical upper bound, while Proposition <a class="objref" href="#obj-prop:exhaustive-grid-arithmetic-complexity">2</a> characterizes its candidate-list cardinality. These conclusions address distinct questions. A candidate count specifies the size of the search space; runtime additionally depends on the cost of constructing, evaluating, and selecting candidates. Arithmetic-operation counts, bit complexity, and the precision needed to certify objective comparisons therefore require separate analysis. We formulate these requirements as a stable fitting problem.</p>
+<div class="formal-block kind-definition" id="obj-def:polynomial-time-handle" data-objid="def:polynomial-time-handle" tabindex="0"><span class="env-label">Definition 6 <span class="obj-tag">[def:polynomial-time-handle]</span> (Stable fitting problem <span class="math inline">\(\mathfrak H_{\mathrm{poly}}\)</span>).</span><p>The problem <span class="math inline">\(\mathfrak H_{\mathrm{poly}}\)</span> is to construct an algorithm with an explicit cost bound in a specified arithmetic or bit-complexity model, including precision requirements, satisfying the following conditions:</p>
+<ul>
+<li><p><strong>(Input.)</strong> The algorithm starts from the <span class="math inline">\(3\times3\)</span> Hankel matrix <span class="math display">\[\bigl(\widehat m_{i+j+1}-\widehat m_{i+j}\bigr)_{i,j=0}^{2},\]</span> where <span class="math inline">\(\widehat m_k\)</span> denotes the common-window empirical weighted reward moment.</p></li>
+<li><p><strong>(Rank adaptation.)</strong> It adapts over recurrence ranks zero through three.</p></li>
+<li><p><strong>(Stability.)</strong> It enforces transient roots in <span class="math display">\[\{z:|z|\leq\alpha\},\]</span> where <span class="math inline">\(\alpha\)</span> is the contraction bound.</p></li>
+<li><p><strong>(Objective accuracy.)</strong> It returns a stable four-state scalar realization whose seven-moment objective is within <span class="math inline">\(T^{-1}\)</span> of the global optimum, with a guarantee of this gap, where <span class="math inline">\(T\)</span> is the observed trajectory length.</p></li>
+<li><p><strong>(Uniformity.)</strong> The guarantee is uniform over rank-deficient strata, with positive singular-value margins allowed to vanish.</p></li>
+</ul>
+<p>For fixed <span class="math inline">\(t_0\)</span>, the mixing-scale parameter, the exhaustive estimator is specified by a finite candidate list of size <span class="math inline">\(O(T^{19})\)</span>. Its stated computational bound concerns this candidate count; runtime and arithmetic-operation bounds for fitting and selection form part of the computational target.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>Here “starts from” includes access to the complete input vector <span class="math inline">\((\widehat m_0,\ldots,\widehat m_6)\)</span>, the horizon <span class="math inline">\(T\)</span>, and the contraction bound <span class="math inline">\(\alpha\)</span>; the displayed Hankel matrix is the device used to adapt to the recurrence rank. In the stated finite-grid version, the global optimum is the minimum over the stabilized candidate class <span class="math inline">\(\mathcal C_M\)</span> of Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a>. A valid output consists of a probability initial vector, a row-stochastic transition matrix with Dobrushin coefficient at most <span class="math inline">\(\alpha\)</span>, and a reward function taking values in <span class="math inline">\([0,1]\)</span>, together with a certificate for the claimed objective gap. Replacing this finite-grid optimum by an optimum over a continuous realization class would be a stronger, separate computational target.</p>
+<p>The cost-certified fitting problem <span class="leanref" data-objid="sym:\mathfrak H_{\mathrm{poly}}"><span class="math inline">\(\mathfrak H_{\mathrm{poly}}\)</span></span> in Definition <a class="objref" href="#obj-def:polynomial-time-handle">6</a> couples stability with a global objective certificate. Rank adaptation must cover recurrence ranks zero through three, including configurations where positive singular values approach zero. Consequently, a guarantee conditioned on a fixed positive singular-value margin would address a narrower problem. Likewise, a small local optimization residual would require an additional argument connecting it to the stipulated global objective gap. The computational question is whether these certification requirements can be met with explicit cost and precision bounds.</p>
+<div class="formal-block kind-remark" id="obj-oeq:polynomial-time-attainment" data-objid="oeq:polynomial-time-attainment" tabindex="0"><span class="env-label">Remark 1 <span class="obj-tag">[oeq:polynomial-time-attainment]</span> (Rank-adaptive computational attainment).</span><p>A natural computational question is whether <span class="math inline">\(\mathfrak H_{\mathrm{poly}}\)</span>, the cost-bounded stable fitting problem, can implement fitting and lexicographic selection over, or replace, the <span class="math inline">\(O(T^{19})\)</span>-sized stable-grid candidate list by a rank-adaptive algorithm with explicit runtime, bit-complexity, and precision semantics. The required output is a stable four-state scalar realization whose seven-moment objective is guaranteed to be within <span class="math inline">\(T^{-1}\)</span> of the global optimum, uniformly over <span class="math inline">\(\mathcal M_T^{(2)}(t_0,\zeta)\)</span>, the class of binary-state and binary-action experiments satisfying the six law conditions. Here <span class="math inline">\(T\)</span> is the observed trajectory length, <span class="math inline">\(t_0\)</span> is the mixing-scale parameter, and <span class="math inline">\(\zeta\)</span> is the logarithmic action likelihood-ratio bound. The question requires uniformity over every rank-deficient Hankel stratum, with positive singular-value margins allowed to vanish.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>Remark <a class="objref" href="#obj-oeq:polynomial-time-attainment">1</a> identifies an algorithmic research target rather than an attained complexity guarantee. Its central requirement is global certification across rank-deficient strata: computational savings must preserve the objective guarantee as the effective recurrence rank changes. Resolving this question would supply a cost-controlled implementation of the specified fitting task and clarify the computational requirements for applying stable moment fitting to long trajectories.</p>
+<p>Several statistical questions remain within the fixed-binary setting. The seven common-window moments in Definition <a class="objref" href="#obj-def:observable-moments">3</a> support the estimator and upper bound in Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a>; determining the minimal sufficient observable window would clarify how much trajectory-local information stationary evaluation requires under the same law conditions. Limit distributions and confidence intervals are further targets. The mean-squared-error guarantees characterize estimation accuracy, while distributional approximations and interval coverage require additional results, particularly for experiments on or near rank-deficient strata.</p>
+<p>Application-specific calibration is another direction. The mixing-scale and action-overlap bounds specify the regime of the statistical guarantees. Methods for selecting and substantiating these bounds in a given application, together with sensitivity analyses for their choice, would connect the stated conditions to empirical practice.</p>
+<p>Finally, larger or increasing hidden-state cardinalities define a broader statistical extension. Such an analysis would need to characterize how the required observable window and risk bounds depend on cardinality while specifying the corresponding stationarity, overlap, and contraction conditions. The fixed-binary results in Theorems <a class="objref" href="#obj-thm:stable-grid-upper">1</a> and <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> provide the benchmark under the six law conditions of Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a>; rates for broader hidden-state classes remain a separate question.</p>
+<h1 class="unnumbered" id="appendices">Appendices</h1>
+<h1 id="proofs-and-verification-scope">Proofs and verification scope</h1>
+<p>The mathematical dependencies follow the distinction between observable sampling error and stationary-value stability. We first introduce the four-state realization apparatus underlying Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a>, then present the intervention and dependence bounds used by Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a>. The testing family supplies the complementary lower-bound input. The final parts connect these ingredients to the minimax statement, the coincident-policy reduction, and the candidate count.</p>
+<h2 id="four-state-realizations-and-the-value-modulus">Four-state realizations and the value modulus</h2>
+<p>A four-state scalar realization consists of an initial probability row vector <span class="math inline">\(\nu\)</span>, a row-stochastic transition matrix <span class="math inline">\(P\)</span>, and a reward function <span class="math inline">\(r\colon\mathcal S\to[0,1]\)</span>, represented as a column in matrix products. Its depth-<span class="math inline">\(k\)</span> moment is <span class="math inline">\(\nu P^k r\)</span>, and its stationary reward is <span class="math inline">\(\pi r\)</span>, where <span class="math inline">\(\pi\)</span> is a stationary probability row vector. For the comparison realization, write <span class="leanref" data-objid="sym:\nu'"><span class="math inline">\(\nu'\)</span></span> for the initial law, <span class="leanref" data-objid="sym:P'"><span class="math inline">\(P'\)</span></span> for the transition matrix, <span class="leanref" data-objid="sym:r'"><span class="math inline">\(r'\)</span></span> for the reward function, and <span class="leanref" data-objid="sym:\pi'"><span class="math inline">\(\pi'\)</span></span> for the stationary law. Both realizations are subject to the same contraction bound <span class="math inline">\(\alpha\)</span>. In the formal statement below, all vectors indexed by <span class="math inline">\(\mathcal S\)</span> are coordinate families; the displayed scalar products use <span class="math inline">\(\nu,\nu&#39;,\pi,\pi&#39;\)</span> as rows and <span class="math inline">\(r,r&#39;\)</span> as reward-function columns.</p>
+<p>The transient characteristic factors <span class="leanref" data-objid="sym:q_P"><span class="math inline">\(q_P\)</span></span> and <span class="leanref" data-objid="sym:q_{P'}"><span class="math inline">\(q_{P'}\)</span></span> remove the stationary root from the respective characteristic polynomials: <span class="math display">\[q_P(z)=\frac{\det(z\,\mathrm{Id}-P)}{z-1},
+\qquad
+q_{P&#39;}(z)=\frac{\det(z\,\mathrm{Id}-P&#39;)}{z-1},\]</span> where <span class="math inline">\(\mathrm{Id}\)</span> is the identity matrix on the four-point joint-state space. Their product is the pair transient characteristic polynomial <span class="leanref" data-objid="sym:Q_{P,P'}"><span class="math inline">\(Q_{P,P'}\)</span></span>. The following statement establishes the simple stationary roots and gives the exact identity connecting the first seven scalar moments to the difference in stationary rewards.</p>
+<div class="formal-block kind-lemma" id="obj-lem:pair-polynomial-modulus" data-objid="lem:pair-polynomial-modulus" tabindex="0"><span class="env-label">Lemma 1 <span class="obj-tag">[lem:pair-polynomial-modulus]</span> (Pair-polynomial identity and value modulus).</span><p>Let <span class="math inline">\(\mathcal S=\{0,1\}\times\{0,1\}\)</span> be the four-state joint-state space. Let <span class="math inline">\(P,P&#39;\)</span> be real matrices indexed by <span class="math inline">\(\mathcal S\)</span>, and let <span class="math inline">\(\nu,\nu&#39;,\pi,\pi&#39;,r,r&#39;\)</span> be real row vectors indexed by <span class="math inline">\(\mathcal S\)</span>. Suppose:</p>
+<ul>
+<li><p><strong>(Contraction parameter.)</strong> The contraction bound <span class="math inline">\(\alpha\)</span> satisfies <span class="math inline">\(0&lt;\alpha&lt;1\)</span>.</p></li>
+<li><p><strong>(Transition matrices.)</strong> Both <span class="math inline">\(P\)</span> and <span class="math inline">\(P&#39;\)</span> are row-stochastic: their entries are nonnegative and each row sums to one.</p></li>
+<li><p><strong>(Initial distributions.)</strong> Both <span class="math inline">\(\nu\)</span> and <span class="math inline">\(\nu&#39;\)</span> are probability vectors.</p></li>
+<li><p><strong>(Stationary distributions.)</strong> Both <span class="math inline">\(\pi\)</span> and <span class="math inline">\(\pi&#39;\)</span> are probability vectors, with <span class="math display">\[\pi P=\pi,\qquad \pi&#39;P&#39;=\pi&#39;.\]</span></p></li>
+<li><p><strong>(Rewards.)</strong> For every <span class="math inline">\(s\in\mathcal S\)</span>, <span class="math display">\[0\le r(s)\le1,\qquad 0\le r&#39;(s)\le1.\]</span></p></li>
+<li><p><strong>(Contraction bounds.)</strong> The Dobrushin coefficients satisfy <span class="math display">\[\begin{aligned}
+\delta(P)&amp;=\max_{i,j\in\mathcal S}\frac12
+ \sum_{s\in\mathcal S}|P_{is}-P_{js}|\le\alpha,\\
+\delta(P&#39;)&amp;=\max_{i,j\in\mathcal S}\frac12
+ \sum_{s\in\mathcal S}|P&#39;_{is}-P&#39;_{js}|\le\alpha.
+\end{aligned}\]</span></p></li>
+</ul>
+<p>Then eigenvalue <span class="math inline">\(1\)</span> has algebraic multiplicity one for each of <span class="math inline">\(P\)</span> and <span class="math inline">\(P&#39;\)</span>. Define the pair transient characteristic polynomial and its coefficients by <span class="math display">\[Q_{P,P&#39;}(z)
+=\frac{\det(z\,\mathrm{Id}-P)}{z-1}
+ \frac{\det(z\,\mathrm{Id}-P&#39;)}{z-1}
+=\sum_{k=0}^{6}Q_k z^k,\]</span> where <span class="math inline">\(\mathrm{Id}\)</span> is the identity matrix on <span class="math inline">\(\mathcal S\)</span>, and define the modulus constant by <span class="math display">\[B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6.\]</span> With products interpreted as <span class="math display">\[\pi r=\sum_{s\in\mathcal S}\pi(s)r(s),
+\qquad
+\nu P^k r=\sum_{s\in\mathcal S}(\nu P^k)(s)r(s),\]</span> and analogously for the primed vectors, the exact identity and bound are <span class="math display">\[Q_{P,P&#39;}(1)(\pi r-\pi&#39;r&#39;)
+=\sum_{k=0}^{6}Q_k\bigl(\nu P^k r-\nu&#39;P&#39;^k r&#39;\bigr)\]</span> and <span class="math display">\[|\pi r-\pi&#39;r&#39;|
+\le B_\alpha
+ \max_{0\le k\le6}\bigl|\nu P^k r-\nu&#39;P&#39;^k r&#39;\bigr|.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<div class="proof"><span class="env-label">Proof of Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a>.</span><ol>
+<li><p><em>Real fixed vectors.</em><span id="proof:pair-polynomial-modulus:fixed-vectors" label="proof:pair-polynomial-modulus:fixed-vectors"></span> Define the constant column vector and, for an arbitrary real function, its extrema and midpoint by <span class="math display">\[\mathbf1(s):=1\quad(s\in\mathcal S),\qquad
+f:\mathcal S\to\mathbb R,\qquad
+f_{\min}:=\min_{s\in\mathcal S}f(s),\qquad
+f_{\max}:=\max_{s\in\mathcal S}f(s),\qquad
+c_f:=\frac{f_{\min}+f_{\max}}2.\]</span> For probability vectors <span class="math inline">\(\omega_1,\omega_2:\mathcal S\to\mathbb R\)</span>, put <span class="math display">\[\tau(\omega_1,\omega_2)
+:=\frac12\sum_{s\in\mathcal S}|\omega_1(s)-\omega_2(s)|.\]</span> Their equal total masses give <span class="math display">\[\sum_s(\omega_1(s)-\omega_2(s))=0,
+\qquad
+|f(s)-c_f|\le\frac{f_{\max}-f_{\min}}2.\]</span> Consequently, centering at <span class="math inline">\(c_f\)</span> and applying the triangle inequality yields <span class="math display">\[\begin{aligned}
+\left|\sum_s\omega_1(s)f(s)-\sum_s\omega_2(s)f(s)\right|
+&amp;=\left|\sum_s(\omega_1(s)-\omega_2(s))(f(s)-c_f)\right|\\
+&amp;\le\sum_s|\omega_1(s)-\omega_2(s)|
+                 \frac{f_{\max}-f_{\min}}2\\
+&amp;=\tau(\omega_1,\omega_2)(f_{\max}-f_{\min}).
+\end{aligned}\]</span> Now suppose <span class="math inline">\(Pf=f\)</span>, and choose <span class="math display">\[i_{\min},i_{\max}\in\mathcal S,\qquad
+f(i_{\min})=f_{\min},\qquad f(i_{\max})=f_{\max}.\]</span> The rows of <span class="math inline">\(P\)</span> are probability vectors, and <span class="math display">\[\tau\bigl(P(i_{\max},\cdot),P(i_{\min},\cdot)\bigr)
+\le\delta(P)\le\alpha.\]</span> Applying the preceding estimate to these rows gives <span class="math display">\[\begin{aligned}
+0\le f_{\max}-f_{\min}
+&amp;=\left|(Pf)(i_{\max})-(Pf)(i_{\min})\right|\\
+&amp;\le
+\tau\bigl(P(i_{\max},\cdot),P(i_{\min},\cdot)\bigr)
+       (f_{\max}-f_{\min})\\
+&amp;\le\alpha(f_{\max}-f_{\min}).
+\end{aligned}\]</span> Since <span class="math inline">\(1-\alpha&gt;0\)</span>, the extrema coincide, so <span class="math inline">\(f=f_{\min}\mathbf1\)</span>. Conversely, row-stochasticity gives <span class="math inline">\(P\mathbf1=\mathbf1\)</span>. Thus <span class="math display">\[\ker(P-\mathrm{Id})=\operatorname{span}_{\mathbb R}\{\mathbf1\}.\]</span> The same argument applies to <span class="math inline">\(P&#39;\)</span>.</p></li>
+<li><p><em>The exact polynomial identity.</em><span id="proof:pair-polynomial-modulus:identity" label="proof:pair-polynomial-modulus:identity"></span> Write <span class="math display">\[\chi_P(z):=\det(z\,\mathrm{Id}-P),\qquad
+\chi_{P&#39;}(z):=\det(z\,\mathrm{Id}-P&#39;).\]</span> Because <span class="math inline">\(\mathbf1\ne0\)</span> and <span class="math inline">\(P\mathbf1=\mathbf1\)</span>, we have <span class="math inline">\(\chi_P(1)=0\)</span>, and similarly <span class="math inline">\(\chi_{P&#39;}(1)=0\)</span>. Define the polynomial quotients <span class="math display">\[q_P(z):=\frac{\chi_P(z)}{z-1}\in\mathbb R[z],
+\qquad
+q_{P&#39;}(z):=\frac{\chi_{P&#39;}(z)}{z-1}\in\mathbb R[z].\]</span> Thus <span class="math display">\[\chi_P(z)=(z-1)q_P(z),\qquad
+\chi_{P&#39;}(z)=(z-1)q_{P&#39;}(z),\qquad
+Q_{P,P&#39;}(z)=q_P(z)q_{P&#39;}(z).\]</span> The characteristic polynomials have degree four, so <span class="math display">\[\deg q_P=\deg q_{P&#39;}=3,\qquad \deg Q_{P,P&#39;}\le6.\]</span></p>
+<p>For polynomial matrix evaluation, use the convention <span class="math display">\[F(z)=\sum_{k=0}^{n_F}F_kz^k\in\mathbb R[z],
+\qquad n_F\in\mathbb N,\qquad
+F(P):=\sum_{k=0}^{n_F}F_kP^k.\]</span> Stationarity and induction give <span class="math display">\[\pi P^k=\pi\quad(k\in\mathbb N),
+\qquad
+\pi F(P)=\sum_{k=0}^{n_F}F_k\pi P^k=F(1)\pi.\]</span> Cayley–Hamilton, together with the characteristic factorization, yields <span class="math display">\[(P-\mathrm{Id})q_P(P)=\chi_P(P)=0.\]</span> Each column of <span class="math inline">\(q_P(P)\)</span> therefore belongs to the fixed space established above. Since each column is constant and <span class="math inline">\(\sum_s\pi(s)=1\)</span>, for every <span class="math inline">\(i,j\in\mathcal S\)</span>, <span class="math display">\[[q_P(P)]_{ij}
+=\sum_s\pi(s)[q_P(P)]_{sj}
+=[\pi q_P(P)]_j
+=q_P(1)\pi(j).\]</span> With the rank-one matrix defined by <span class="math display">\[(\mathbf1\pi)_{ij}:=\pi(j)\quad(i,j\in\mathcal S),\]</span> this says <span class="math display">\[q_P(P)=q_P(1)\mathbf1\pi.\]</span> Multiplying by <span class="math inline">\(q_{P&#39;}(P)\)</span> and using polynomial stationarity gives <span class="math display">\[\begin{aligned}
+Q_{P,P&#39;}(P)
+&amp;=q_P(P)q_{P&#39;}(P)\\
+&amp;=q_P(1)\mathbf1\bigl(\pi q_{P&#39;}(P)\bigr)\\
+&amp;=q_P(1)q_{P&#39;}(1)\mathbf1\pi
+=Q_{P,P&#39;}(1)\mathbf1\pi.
+\end{aligned}\]</span> Applying the same calculation to <span class="math inline">\(P&#39;\)</span>, with the polynomial factors in the opposite order, gives <span class="math display">\[Q_{P,P&#39;}(P&#39;)=Q_{P,P&#39;}(1)\mathbf1\pi&#39;.\]</span></p>
+<p>Since the initial vectors have total mass one, these projection identities imply <span class="math display">\[\nu Q_{P,P&#39;}(P)r=Q_{P,P&#39;}(1)\pi r,
+\qquad
+\nu&#39;Q_{P,P&#39;}(P&#39;)r&#39;=Q_{P,P&#39;}(1)\pi&#39;r&#39;.\]</span> On the other hand, expanding the polynomial of degree at most six gives <span class="math display">\[\nu Q_{P,P&#39;}(P)r=\sum_{k=0}^6Q_k\nu P^kr,
+\qquad
+\nu&#39;Q_{P,P&#39;}(P&#39;)r&#39;=\sum_{k=0}^6Q_k\nu&#39;P&#39;^kr&#39;.\]</span> Subtracting proves <span class="math display">\[Q_{P,P&#39;}(1)(\pi r-\pi&#39;r&#39;)
+=\sum_{k=0}^6Q_k\bigl(\nu P^kr-\nu&#39;P&#39;^kr&#39;\bigr).\]</span></p></li>
+<li><p><em>Algebraic simplicity at one.</em> Define the shifted operators <span class="math display">\[D_P:=P-\mathrm{Id},\qquad D_{P&#39;}:=P&#39;-\mathrm{Id}.\]</span> For a column vector <span class="math inline">\(w\in\mathbb R^{\mathcal S}\)</span> satisfying <span class="math inline">\(D_P^2w=0\)</span>, put <span class="math display">\[w_{\mathrm{shift}}:=D_Pw.\]</span> Then <span class="math display">\[D_Pw_{\mathrm{shift}}=0,\qquad
+Pw_{\mathrm{shift}}=w_{\mathrm{shift}},\]</span> so <span class="math inline">\(w_{\mathrm{shift}}\)</span> is constant by <a href="#proof:pair-polynomial-modulus:fixed-vectors" data-reference-type="ref" data-reference="proof:pair-polynomial-modulus:fixed-vectors">[proof:pair-polynomial-modulus:fixed-vectors]</a>. Stationarity and normalization now give, for every <span class="math inline">\(s\in\mathcal S\)</span>, <span class="math display">\[\begin{aligned}
+w_{\mathrm{shift}}(s)
+&amp;=\sum_i\pi(i)w_{\mathrm{shift}}(i)\\
+&amp;=\pi D_Pw
+=(\pi P-\pi)w=0.
+\end{aligned}\]</span> Hence <span class="math display">\[D_P^2w=0\quad\Longrightarrow\quad D_Pw=0.\]</span></p>
+<p>Induction extends this implication to <span class="math display">\[D_P^nw=0\quad\Longrightarrow\quad D_Pw=0
+\qquad(n\in\mathbb N,\ w\in\mathbb R^{\mathcal S}).\]</span> For <span class="math inline">\(n=0\)</span>, the premise gives <span class="math inline">\(w=0\)</span>. For the induction step, <span class="math display">\[D_P^{n+1}w=0
+\quad\Longrightarrow\quad
+D_P^n(D_Pw)=0
+\quad\Longrightarrow\quad
+D_P^2w=0
+\quad\Longrightarrow\quad
+D_Pw=0,\]</span> where the middle implication uses the induction hypothesis.</p>
+<p>Thus the generalized eigenspace at one is <span class="math display">\[\mathcal E_{P,1}
+:=\bigcup_{n\in\mathbb N}\ker(D_P^n)
+=\ker D_P
+=\operatorname{span}_{\mathbb R}\{\mathbf1\}.\]</span> Algebraic multiplicity equals the dimension of this generalized eigenspace. Since <span class="math inline">\(\mathbf1\ne0\)</span>, it follows that <span class="math display">\[m_P
+:=\max\{n\in\mathbb N:(z-1)^n\text{ divides }\chi_P(z)\}
+=\dim_{\mathbb R}\mathcal E_{P,1}=1.\]</span> The identical argument for <span class="math inline">\(P&#39;\)</span> gives <span class="math display">\[m_{P&#39;}
+:=\max\{n\in\mathbb N:(z-1)^n\text{ divides }\chi_{P&#39;}(z)\}
+=1.\]</span></p></li>
+<li><p><em>The coefficient modulus.</em><span id="proof:pair-polynomial-modulus:coefficient-modulus" label="proof:pair-polynomial-modulus:coefficient-modulus"></span> If <span class="math inline">\(q_P(1)=0\)</span>, the factorization of <span class="math inline">\(\chi_P\)</span> would make it divisible by <span class="math inline">\((z-1)^2\)</span>, contradicting <span class="math inline">\(m_P=1\)</span>. The primed factor satisfies the same property. Consequently, <span class="math display">\[q_P(1)\ne0,\qquad q_{P&#39;}(1)\ne0,\qquad
+|Q_{P,P&#39;}(1)|=|q_P(1)|\,|q_{P&#39;}(1)|&gt;0.\]</span> Define the seven moment differences and their maximum by <span class="math display">\[\varepsilon_k:=\nu P^kr-\nu&#39;P&#39;^kr&#39;
+\quad(k\in\{0,\ldots,6\}),\qquad
+\varepsilon_{\max}:=\max_{0\le k\le6}|\varepsilon_k|.\]</span> Taking absolute values in the identity from <a href="#proof:pair-polynomial-modulus:identity" data-reference-type="ref" data-reference="proof:pair-polynomial-modulus:identity">[proof:pair-polynomial-modulus:identity]</a> gives <span class="math display">\[\begin{aligned}
+|Q_{P,P&#39;}(1)|\,|\pi r-\pi&#39;r&#39;|
+&amp;=\left|\sum_{k=0}^6Q_k\varepsilon_k\right|\\
+&amp;\le\sum_{k=0}^6|Q_k|\,|\varepsilon_k|\\
+&amp;\le\left(\sum_{k=0}^6|Q_k|\right)\varepsilon_{\max}.
+\end{aligned}\]</span> Division by the positive denominator therefore yields <span class="math display">\[|\pi r-\pi&#39;r&#39;|
+\le
+\frac{\sum_{k=0}^6|Q_k|}{|Q_{P,P&#39;}(1)|}\,
+\varepsilon_{\max}.\]</span></p></li>
+<li><p><em>The complex root bound.</em> Let <span class="math inline">\(z\in\mathbb C\)</span> be a root of <span class="math inline">\(Q_{P,P&#39;}\)</span>. The product factorization gives the two cases <span class="math display">\[q_P(z)=0\qquad\text{or}\qquad q_{P&#39;}(z)=0.\]</span> Consider the first case. Since <span class="math inline">\(q_P(1)\ne0\)</span>, we have <span class="math inline">\(z\ne1\)</span>, while <span class="math display">\[\chi_P(z)=(z-1)q_P(z)=0.\]</span> Regard <span class="math inline">\(P\)</span> as acting on complex column vectors. Singularity of <span class="math inline">\(z\,\mathrm{Id}-P\)</span> supplies <span class="math display">\[f_{\mathbb C}\in\mathbb C^{\mathcal S}\setminus\{0\},
+\qquad Pf_{\mathbb C}=zf_{\mathbb C}.\]</span> A constant vector is fixed by <span class="math inline">\(P\)</span>, so a constant <span class="math inline">\(f_{\mathbb C}\)</span> would satisfy <span class="math display">\[(z-1)f_{\mathbb C}=0,\]</span> forcing <span class="math inline">\(z=1\)</span>. Thus its diameter is positive: <span class="math display">\[d_f:=\max_{i,j\in\mathcal S}
+|f_{\mathbb C}(i)-f_{\mathbb C}(j)|&gt;0.\]</span></p>
+<p>To bound this diameter after applying <span class="math inline">\(P\)</span>, take an arbitrary complex function and define <span class="math display">\[\varphi:\mathcal S\to\mathbb C,\qquad
+d_\varphi:=\max_{i,j\in\mathcal S}|\varphi(i)-\varphi(j)|,
+\qquad
+W_\varphi:=\sum_s(\omega_1(s)-\omega_2(s))\varphi(s),\]</span> where <span class="math inline">\(\omega_1,\omega_2\)</span> are probability vectors. If <span class="math inline">\(W_\varphi=0\)</span>, then <span class="math display">\[|W_\varphi|=0\le d_\varphi\tau(\omega_1,\omega_2),\]</span> because both factors on the right are nonnegative. If <span class="math inline">\(W_\varphi\ne0\)</span>, define the real function <span class="math display">\[\gamma_\varphi:\mathcal S\to\mathbb R,\qquad
+\gamma_\varphi(s):=
+\operatorname{Re}\bigl(\overline{W_\varphi}\,\varphi(s)\bigr).\]</span> For every <span class="math inline">\(i,j\in\mathcal S\)</span>, <span class="math display">\[\begin{aligned}
+|\gamma_\varphi(i)-\gamma_\varphi(j)|
+&amp;=\left|\operatorname{Re}
+  \bigl(\overline{W_\varphi}(\varphi(i)-\varphi(j))\bigr)\right|\\
+&amp;\le |W_\varphi|\,|\varphi(i)-\varphi(j)|
+\le |W_\varphi|\,d_\varphi.
+\end{aligned}\]</span> In particular, <span class="math display">\[\max_s\gamma_\varphi(s)-\min_s\gamma_\varphi(s)
+\le |W_\varphi|\,d_\varphi.\]</span> The defining sum for <span class="math inline">\(W_\varphi\)</span> also gives <span class="math display">\[\sum_s(\omega_1(s)-\omega_2(s))\gamma_\varphi(s)
+=\operatorname{Re}\bigl(\overline{W_\varphi}W_\varphi\bigr)
+=|W_\varphi|^2.\]</span> Applying the real expectation bound from <a href="#proof:pair-polynomial-modulus:fixed-vectors" data-reference-type="ref" data-reference="proof:pair-polynomial-modulus:fixed-vectors">[proof:pair-polynomial-modulus:fixed-vectors]</a> to <span class="math inline">\(\gamma_\varphi\)</span>, therefore, <span class="math display">\[\begin{aligned}
+|W_\varphi|^2
+&amp;=\left|\sum_s(\omega_1(s)-\omega_2(s))\gamma_\varphi(s)\right|\\
+&amp;\le
+\bigl(\max_s\gamma_\varphi(s)-\min_s\gamma_\varphi(s)\bigr)
+\tau(\omega_1,\omega_2)\\
+&amp;\le |W_\varphi|\,d_\varphi\tau(\omega_1,\omega_2).
+\end{aligned}\]</span> Dividing by <span class="math inline">\(|W_\varphi|&gt;0\)</span>, and including the zero case already treated, proves <span class="math display">\[\left|\sum_s(\omega_1(s)-\omega_2(s))\varphi(s)\right|
+\le d_\varphi\tau(\omega_1,\omega_2).\]</span></p>
+<p>Apply this estimate to two rows of <span class="math inline">\(P\)</span>. For every <span class="math inline">\(i,j\in\mathcal S\)</span>, <span class="math display">\[\begin{aligned}
+|(P\varphi)(i)-(P\varphi)(j)|
+&amp;=\left|\sum_s(P_{is}-P_{js})\varphi(s)\right|\\
+&amp;\le d_\varphi\tau\bigl(P(i,\cdot),P(j,\cdot)\bigr)\\
+&amp;\le d_\varphi\delta(P)
+\le\alpha d_\varphi.
+\end{aligned}\]</span> Choose a pair attaining the diameter of <span class="math inline">\(f_{\mathbb C}\)</span>: <span class="math display">\[i_{\mathrm{diam}},j_{\mathrm{diam}}\in\mathcal S,\qquad
+|f_{\mathbb C}(i_{\mathrm{diam}})
+ -f_{\mathbb C}(j_{\mathrm{diam}})|=d_f.\]</span> Using the eigenvector equation in the preceding contraction estimate gives <span class="math display">\[\begin{aligned}
+|z|\,d_f
+&amp;=|zf_{\mathbb C}(i_{\mathrm{diam}})
+     -zf_{\mathbb C}(j_{\mathrm{diam}})|\\
+&amp;=|(Pf_{\mathbb C})(i_{\mathrm{diam}})
+     -(Pf_{\mathbb C})(j_{\mathrm{diam}})|\\
+&amp;\le\alpha d_f.
+\end{aligned}\]</span> Since <span class="math inline">\(d_f&gt;0\)</span>, division gives <span class="math inline">\(|z|\le\alpha\)</span>. In the second case, <span class="math inline">\(q_{P&#39;}(z)=0\)</span>, the same argument uses <span class="math inline">\(P&#39;\)</span> and <span class="math inline">\(\delta(P&#39;)\le\alpha\)</span>. We have therefore proved <span class="math display">\[Q_{P,P&#39;}(z)=0\quad\Longrightarrow\quad |z|\le\alpha
+\qquad(z\in\mathbb C).\]</span></p></li>
+<li><p><em>The coefficient ratio.</em> Each characteristic polynomial is monic of degree four. Its factorization by the monic linear polynomial <span class="math inline">\(z-1\)</span> shows that <span class="math display">\[q_P,\ q_{P&#39;}\text{ are monic of degree }3,
+\qquad
+Q_{P,P&#39;}\text{ is monic},\qquad
+\deg Q_{P,P&#39;}=3+3=6.\]</span> Factoring over <span class="math inline">\(\mathbb C\)</span>, enumerate the roots with algebraic multiplicity: <span class="math display">\[\xi_1,\ldots,\xi_6\in\mathbb C,\qquad
+Q_{P,P&#39;}(z)=\prod_{\ell=1}^6(z-\xi_\ell),
+\qquad |\xi_\ell|\le\alpha\quad(1\le\ell\le6).\]</span> For each <span class="math inline">\(k\in\{0,\ldots,6\}\)</span>, define <span class="math display">\[\mathcal J_k
+:=\{J\subseteq\{1,\ldots,6\}:\#J=6-k\}.\]</span> Expanding the product, with empty products interpreted as one, gives <span class="math display">\[Q_k=(-1)^{6-k}
+      \sum_{J\in\mathcal J_k}\prod_{\ell\in J}\xi_\ell,
+\qquad
+\#\mathcal J_k=\binom6{6-k}=\binom6k.\]</span> Thus every coefficient satisfies <span class="math display">\[|Q_k|
+\le\sum_{J\in\mathcal J_k}\prod_{\ell\in J}|\xi_\ell|
+\le\binom6k\alpha^{6-k}.\]</span> Summing these seven bounds and using the binomial formula yields <span class="math display">\[\sum_{k=0}^6|Q_k|
+\le\sum_{k=0}^6\binom6k\alpha^{6-k}
+=(1+\alpha)^6.\]</span></p>
+<p>For the denominator, the reverse triangle inequality gives <span class="math display">\[|1-\xi_\ell|
+\ge1-|\xi_\ell|
+\ge1-\alpha&gt;0
+\qquad(1\le\ell\le6).\]</span> The empty product equals one. Successively multiplying the nonnegative distance bounds gives, by induction, <span class="math display">\[\prod_{\ell=1}^{n_{\mathrm{root}}}|1-\xi_\ell|
+\ge(1-\alpha)^{n_{\mathrm{root}}}
+\qquad
+(n_{\mathrm{root}}\in\{0,\ldots,6\}).\]</span> Indeed, for <span class="math inline">\(n_{\mathrm{root}}&lt;6\)</span>, the induction step is <span class="math display">\[\begin{aligned}
+\prod_{\ell=1}^{n_{\mathrm{root}}+1}|1-\xi_\ell|
+&amp;=|1-\xi_{n_{\mathrm{root}}+1}|
+       \prod_{\ell=1}^{n_{\mathrm{root}}}|1-\xi_\ell|\\
+&amp;\ge(1-\alpha)
+       \prod_{\ell=1}^{n_{\mathrm{root}}}|1-\xi_\ell|\\
+&amp;\ge(1-\alpha)^{n_{\mathrm{root}}+1}.
+\end{aligned}\]</span> Evaluating the root factorization at one consequently gives <span class="math display">\[|Q_{P,P&#39;}(1)|
+=\prod_{\ell=1}^6|1-\xi_\ell|
+\ge(1-\alpha)^6&gt;0.\]</span></p>
+<p>Combining the numerator and denominator bounds, with positive denominators, proves <span class="math display">\[\frac{\sum_{k=0}^6|Q_k|}{|Q_{P,P&#39;}(1)|}
+\le\frac{(1+\alpha)^6}{(1-\alpha)^6}
+=\left(\frac{1+\alpha}{1-\alpha}\right)^6
+=B_\alpha.\]</span></p></li>
+<li><p><em>The value modulus.</em> The maximum is nonnegative because its index set contains zero: <span class="math display">\[0\le|\varepsilon_0|\le\varepsilon_{\max}.\]</span> We may therefore multiply the coefficient-ratio bound by <span class="math inline">\(\varepsilon_{\max}\)</span>. Together with <a href="#proof:pair-polynomial-modulus:coefficient-modulus" data-reference-type="ref" data-reference="proof:pair-polynomial-modulus:coefficient-modulus">[proof:pair-polynomial-modulus:coefficient-modulus]</a>, this gives <span class="math display">\[\begin{aligned}
+|\pi r-\pi&#39;r&#39;|
+&amp;\le
+\frac{\sum_{k=0}^6|Q_k|}{|Q_{P,P&#39;}(1)|}\,
+\varepsilon_{\max}\\
+&amp;\le B_\alpha\varepsilon_{\max}\\
+&amp;=B_\alpha
+  \max_{0\le k\le6}|\nu P^kr-\nu&#39;P&#39;^kr&#39;|.
+\end{aligned}\]</span></p></li>
+</ol><span class="qed">∎</span></div>
+<p>The modulus in Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a> concerns the stationary reward functional across all realizations satisfying its conditions. Its constant depends on the common contraction bound, so the same comparison applies to the target realization and every stabilized candidate in Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a>. Repeated transient roots and reduced effective dimension are covered by this uniform statement. The degree-six pair polynomial explains the use of depths zero through six.</p>
+<h2 id="intervention-moments-and-trajectory-dependence">Intervention moments and trajectory dependence</h2>
+<p>The observable counterpart of the realization apparatus is supplied by the weighted rewards in Definition <a class="objref" href="#obj-def:observable-moments">3</a>. The current action ratio changes the conditional reward mean to its target-policy counterpart, while the preceding ratios correspond to target-policy transitions. The next statement records this identity together with the second-moment and covariance controls required for a stationary behavior trajectory.</p>
+<div class="formal-block kind-lemma" id="obj-lem:observable-intervention-moments" data-objid="lem:observable-intervention-moments" tabindex="0"><span class="env-label">Lemma 2 <span class="obj-tag">[lem:observable-intervention-moments]</span> (Observable intervention moment bounds).</span><p>Consider an experiment in <span class="math inline">\(\mathcal M_T^{(2)}(t_0,\zeta)\)</span>, the binary experiment class of Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a>, with trajectory length <span class="math inline">\(T\)</span>. Set <span class="math display">\[L=\exp(\zeta),\qquad \alpha=\exp(-1/t_0).\]</span> On the four-point joint-state space <span class="math inline">\(\mathcal S\)</span>, let <span class="math inline">\(P_b\)</span> and <span class="math inline">\(P_e\)</span> be the behavior- and target-policy transition matrices, respectively, and let <span class="math inline">\(r_e\)</span> be the target-policy conditional mean reward vector: <span class="math display">\[\begin{aligned}
+P_b(s,s&#39;)&amp;=\sum_{a\in\{0,1\}}b(a\mid x)
+                  \int_{\mathcal Y}K(dy,s&#39;\mid s,a),\\
+P_e(s,s&#39;)&amp;=\sum_{a\in\{0,1\}}e(a\mid x)
+                  \int_{\mathcal Y}K(dy,s&#39;\mid s,a),\\
+r_e(s)&amp;=\sum_{a\in\{0,1\}}e(a\mid x)
+                  \sum_{s&#39;\in\mathcal S}\int_{\mathcal Y}y\,K(dy,s&#39;\mid s,a),
+\qquad s=(x,h).
+\end{aligned}\]</span> Here <span class="math inline">\(K\)</span> is the joint reward and successor-state law, <span class="math inline">\(\mathcal Y=[0,1]\)</span> is the reward space, and <span class="math inline">\(d_b\)</span> is the stationary probability row vector of <span class="math inline">\(P_b\)</span>.</p>
+<p>Use zero-based epochs <span class="math inline">\(0,\ldots,T-1\)</span>. For observed state <span class="math inline">\(X_j\)</span>, action <span class="math inline">\(A_j\)</span>, and reward <span class="math inline">\(Y_j\)</span>, define the observed likelihood ratio and weighted reward score by <span class="math display">\[\rho_j=
+\begin{cases}
+e(A_j\mid X_j)/b(A_j\mid X_j),&amp; b(A_j\mid X_j)&gt;0,\\
+0,&amp; b(A_j\mid X_j)=0,
+\end{cases}
+\qquad
+Z_t(k)=Y_t\prod_{j=t-k}^{t}\rho_j
+\quad (k\le t).\]</span> Write <span class="math inline">\(\mathbb E_b\)</span> for expectation under the experiment’s stationary behavior law. For every <span class="math inline">\(k\in\{0,\ldots,6\}\)</span> and every epoch <span class="math inline">\(t\)</span> with <span class="math inline">\(k\le t&lt;T\)</span>, <span class="math display">\[m_k=\mathbb E_b[Z_t(k)]
+    =d_bP_e^kr_e
+    =\sum_{s\in\mathcal S}(d_bP_e^k)(s)\,r_e(s),
+\qquad
+\mathbb E_b[Z_t(k)^2]\le L^{k+1}.\]</span> Moreover, for every integer <span class="math inline">\(h\ge k+1\)</span> such that <span class="math inline">\(t+h&lt;T\)</span>, <span class="math display">\[\left|
+\mathbb E_b\!\left[
+\bigl(Z_t(k)-\mathbb E_b[Z_t(k)]\bigr)
+\bigl(Z_{t+h}(k)-\mathbb E_b[Z_{t+h}(k)]\bigr)
+\right]
+\right|
+\le \alpha^{h-k-1}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<div class="proof"><span class="env-label">Proof of Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a>.</span><p>Fix an experiment in the stated class and integers <span class="math display">\[k\in\{0,\ldots,6\},\qquad k\le t&lt;T.\]</span> The parameter conditions in Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a> give <span class="math display">\[L=\exp(\zeta)\ge1.\]</span></p>
+<ol>
+<li><p><em>The population moment.</em> By Assumption <a class="objref" href="#obj-ass:policy-overlap">4</a>, the likelihood ratios satisfy <span class="math display">\[b(a\mid x)=0\ \Longrightarrow\ e(a\mid x)=0,
+\qquad
+0\le\rho_j\le L.\]</span> For each epoch <span class="math inline">\(j\)</span>, define the class of bounded history variables by <span class="math display">\[\mathcal D_j
+:=
+\left\{
+D:\ D\text{ is a bounded real }
+\mathcal F_j^-\text{-measurable random variable}
+\right\}.\]</span> Regard any function <span class="math display">\[f:\mathcal S\longrightarrow\mathbb R\]</span> as a column vector. For <span class="math inline">\(D\in\mathcal D_j\)</span>, Assumptions <a class="objref" href="#obj-ass:pomdp-kernel">1</a>, <a class="objref" href="#obj-ass:sequential-ignorability">2</a>, and <a class="objref" href="#obj-ass:policy-overlap">4</a> give the weighted one-step identity <span class="math display">\[\begin{aligned}
+\mathbb E_b[D\rho_j f(S_{j+1})]
+&amp;=
+\mathbb E_b\!\left[
+D\sum_{a:b(a\mid X_j)&gt;0}
+b(a\mid X_j)\frac{e(a\mid X_j)}{b(a\mid X_j)}
+\sum_{s&#39;\in\mathcal S}\int_{\mathcal Y}
+f(s&#39;)\,K(dy,s&#39;\mid S_j,a)
+\right]\\
+&amp;=
+\mathbb E_b[D(P_ef)(S_j)].
+\end{aligned}\]</span> The zero-behavior cells contribute zero target probability, which justifies completing the action sum. Integrating the terminal reward instead, and integrating an unweighted successor state, respectively, gives <span class="math display">\[\begin{aligned}
+\mathbb E_b[D\rho_jY_j]
+&amp;=
+\mathbb E_b\!\left[
+D\sum_a e(a\mid X_j)
+\sum_{s&#39;}\int_{\mathcal Y}y\,K(dy,s&#39;\mid S_j,a)
+\right]
+=\mathbb E_b[Dr_e(S_j)],\\
+\mathbb E_b[Df(S_{j+1})]
+&amp;=
+\mathbb E_b\!\left[
+D\sum_a b(a\mid X_j)
+\sum_{s&#39;}\int_{\mathcal Y}f(s&#39;)\,K(dy,s&#39;\mid S_j,a)
+\right]
+=\mathbb E_b[D(P_bf)(S_j)].
+\end{aligned}\]</span> All these integrations use the joint reward and successor-state law.</p>
+<p>Define the successive backward reward functions by <span class="math display">\[f_{e,0}:=r_e,\qquad
+f_{e,\ell+1}(s):=\sum_{s&#39;\in\mathcal S}P_e(s,s&#39;)f_{e,\ell}(s&#39;),
+\qquad \ell\in\mathbb N_0.\]</span> Starting with the terminal reward identity and removing the preceding <span class="math inline">\(k\)</span> ratios backward yields <span class="math display">\[\mathbb E_b[Z_t(k)]
+=
+\mathbb E_b\!\left[
+\left(\prod_{j=t-k}^{t-1}\rho_j\right)r_e(S_t)
+\right]
+=
+\mathbb E_b[f_{e,k}(S_{t-k})].\]</span> At each removal, the remaining earlier ratios form a bounded pre-action-history variable. When <span class="math inline">\(k=0\)</span>, the displayed product is empty and equals one.</p>
+<p>In the zero-based convention, Assumption <a class="objref" href="#obj-ass:stationary-start">3</a> gives <span class="math display">\[\mathbb E_b[f(S_0)]
+=
+\sum_{s\in\mathcal S}d_b(s)f(s),
+\qquad d_bP_b=d_b.\]</span> The unweighted one-step identity propagates this equality. Indeed, if it holds at epoch <span class="math inline">\(j\)</span>, then <span class="math display">\[\begin{aligned}
+\mathbb E_b[f(S_{j+1})]
+&amp;=\mathbb E_b[(P_bf)(S_j)]\\
+&amp;=\sum_s d_b(s)\sum_{s&#39;}P_b(s,s&#39;)f(s&#39;)\\
+&amp;=\sum_{s&#39;}(d_bP_b)(s&#39;)f(s&#39;)
+=\sum_{s&#39;}d_b(s&#39;)f(s&#39;).
+\end{aligned}\]</span> Thus, by induction, <span class="math display">\[\mathbb E_b[f(S_j)]=\sum_s d_b(s)f(s),
+\qquad 0\le j&lt;T.\]</span></p>
+<p>Finally, the backward recursion agrees with matrix powers: <span class="math display">\[f_{e,0}=P_e^0r_e,\qquad
+f_{e,\ell+1}
+=P_ef_{e,\ell}
+=P_e(P_e^\ell r_e)
+=P_e^{\ell+1}r_e.\]</span> Consequently, <span class="math display">\[\begin{aligned}
+\mathbb E_b[Z_t(k)]
+&amp;=\sum_s d_b(s)(P_e^kr_e)(s)\\
+&amp;=\sum_{s&#39;}\left(\sum_s d_b(s)P_e^k(s,s&#39;)\right)r_e(s&#39;)\\
+&amp;=\sum_{s&#39;}(d_bP_e^k)(s&#39;)r_e(s&#39;)
+=d_bP_e^kr_e.
+\end{aligned}\]</span> This expression is independent of <span class="math inline">\(t\)</span>, so it gives the stated common moment <span class="math inline">\(m_k\)</span>.</p></li>
+<li><p><em>The second moment.</em> Define the window likelihood-ratio product by <span class="math display">\[W_{t,k}:=\prod_{j=t-k}^{t}\rho_j.\]</span> Sequential assignment and overlap imply <span class="math display">\[\mathbb E_b[\rho_j\mid\mathcal F_j^-]
+=
+\sum_{a:b(a\mid X_j)&gt;0}
+b(a\mid X_j)\frac{e(a\mid X_j)}{b(a\mid X_j)}
+=
+\sum_a e(a\mid X_j)
+=1.\]</span> The ratios at earlier epochs are pre-action-history measurable. Removing the last ratio repeatedly therefore gives <span class="math display">\[\mathbb E_b[W_{t,k}]
+=
+\mathbb E_b\!\left[\prod_{j=t-k}^{t-1}\rho_j\right]
+=\cdots=
+\mathbb E_b[1]
+=1.\]</span> The last expression is the expectation of the empty product; this also covers <span class="math inline">\(k=0\)</span>.</p>
+<p>There are <span class="math inline">\(k+1\)</span> factors, so <span class="math display">\[0\le W_{t,k}\le L^{k+1}.\]</span> The reward support supplied by Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a> gives, almost surely, <span class="math display">\[Z_t(k)^2
+=Y_t^2W_{t,k}^2
+\le W_{t,k}^2
+\le L^{k+1}W_{t,k}.\]</span> Taking expectations and using the normalization above proves <span class="math display">\[\mathbb E_b[Z_t(k)^2]
+\le L^{k+1}\mathbb E_b[W_{t,k}]
+=L^{k+1}.\]</span></p></li>
+<li><p><em>Reduction of the separated future score.</em> Fix an integer <span class="math inline">\(h\ge k+1\)</span> with <span class="math inline">\(t+h&lt;T\)</span>, and define <span class="math display">\[u:=t+h,\qquad
+g_{\mathrm{gap}}:=h-k-1\in\mathbb N_0,
+\qquad
+u-k=t+1+g_{\mathrm{gap}}.\]</span> Define the future state function on all of <span class="math inline">\(\mathcal S\)</span> by <span class="math display">\[f_{\mathrm{future}}:\mathcal S\longrightarrow\mathbb R,
+\qquad
+f_{\mathrm{future}}(s)
+:=
+(P_b^{g_{\mathrm{gap}}}P_e^kr_e)(s).\]</span> Both <span class="math inline">\(1\)</span> and <span class="math inline">\(Z_t(k)\)</span> belong to <span class="math inline">\(\mathcal D_{t+1}\)</span>. For either choice <span class="math inline">\(D\in\{1,Z_t(k)\}\)</span>, integrate the terminal weighted reward at <span class="math inline">\(u\)</span>, then the <span class="math inline">\(k\)</span> weighted transitions, and finally the <span class="math inline">\(g_{\mathrm{gap}}\)</span> unweighted transitions. The one-step identities from the first part give <span class="math display">\[\begin{aligned}
+\mathbb E_b[DZ_u(k)]
+&amp;=
+\mathbb E_b\!\left[
+D\left(\prod_{j=u-k}^{u-1}\rho_j\right)r_e(S_u)
+\right]\\
+&amp;=
+\mathbb E_b[D(P_e^kr_e)(S_{u-k})]\\
+&amp;=
+\mathbb E_b[D f_{\mathrm{future}}(S_{t+1})].
+\end{aligned}\]</span> The variable <span class="math inline">\(D\)</span> remains measurable with respect to every intervening pre-action history. For <span class="math inline">\(k=0\)</span>, the ratio product is empty; for <span class="math inline">\(g_{\mathrm{gap}}=0\)</span>, the unweighted iteration is the identity. In particular, <span class="math display">\[\begin{aligned}
+\mathbb E_b[Z_t(k)Z_u(k)]
+&amp;=\mathbb E_b[Z_t(k)f_{\mathrm{future}}(S_{t+1})],\\
+\mathbb E_b[Z_u(k)]
+&amp;=\mathbb E_b[f_{\mathrm{future}}(S_{t+1})].
+\end{aligned}\]</span></p></li>
+<li><p><em>Oscillation of the future function.</em> The kernel is a probability law supported on rewards in <span class="math inline">\([0,1]\)</span>, and the target action probabilities sum to one. Hence, for every <span class="math inline">\(s\in\mathcal S\)</span>, <span class="math display">\[0
+\le r_e(s)
+=\sum_a e(a\mid x)\sum_{s&#39;}\int_{\mathcal Y}y\,K(dy,s&#39;\mid s,a)
+\le\sum_a e(a\mid x)
+=1,
+\qquad s=(x,h_{\mathrm{hid}})\in\mathcal X\times\mathcal H.\]</span></p>
+<p>For a real function on <span class="math inline">\(\mathcal S\)</span>, define its oscillation by <span class="math display">\[\operatorname{osc}(f):=\max_{s\in\mathcal S}f(s)-\min_{s\in\mathcal S}f(s).\]</span> Thus <span class="math display">\[\operatorname{osc}(r_e)\le1,
+\qquad
+0&lt;\alpha=\exp(-1/t_0)\le1.\]</span> Both transition matrices are stochastic: <span class="math display">\[P_b(s,s&#39;),P_e(s,s&#39;)\ge0,\qquad
+\sum_{s&#39;}P_b(s,s&#39;)=\sum_{s&#39;}P_e(s,s&#39;)=1.\]</span> These identities follow by summing the probability kernel over successor states and then averaging over the corresponding action probabilities.</p>
+<p>For <span class="math inline">\(\mu,\mu&#39;\in\Delta(\mathcal S)\)</span>, subtracting the midpoint of the range of <span class="math inline">\(f\)</span> gives <span class="math display">\[\begin{aligned}
+\left|\sum_s(\mu(s)-\mu&#39;(s))f(s)\right|
+&amp;=
+\left|\sum_s(\mu(s)-\mu&#39;(s))
+\left(f(s)-\frac{\max f+\min f}{2}\right)\right|\\
+&amp;\le
+\frac{\operatorname{osc}(f)}2
+\sum_s|\mu(s)-\mu&#39;(s)|\\
+&amp;=
+\operatorname{osc}(f)\|\mu-\mu&#39;\|_{\mathrm{TV}}.
+\end{aligned}\]</span> Applying Assumptions <a class="objref" href="#obj-ass:target-contraction">6</a> and <a class="objref" href="#obj-ass:behavior-contraction">5</a> to point masses shows that the total variation distance between any two rows of either matrix is at most <span class="math inline">\(\alpha\)</span>. Therefore, <span class="math display">\[\begin{aligned}
+|(P_ef)(s)-(P_ef)(s&#39;)|
+&amp;\le
+\operatorname{osc}(f)
+\|P_e(s,\cdot)-P_e(s&#39;,\cdot)\|_{\mathrm{TV}}
+\le\alpha\operatorname{osc}(f),\\
+|(P_bf)(s)-(P_bf)(s&#39;)|
+&amp;\le
+\operatorname{osc}(f)
+\|P_b(s,\cdot)-P_b(s&#39;,\cdot)\|_{\mathrm{TV}}
+\le\alpha\operatorname{osc}(f).
+\end{aligned}\]</span> Taking the maximum over the two states and iterating, with the identity operator as the zero-step case, gives <span class="math display">\[\operatorname{osc}(P_e^kr_e)
+\le\alpha^k\operatorname{osc}(r_e)
+\le\alpha^k
+\le1.\]</span> Applying the behavior iteration to this bound yields <span class="math display">\[\operatorname{osc}(f_{\mathrm{future}})
+=
+\operatorname{osc}(P_b^{g_{\mathrm{gap}}}P_e^kr_e)
+\le
+\alpha^{g_{\mathrm{gap}}}\operatorname{osc}(P_e^kr_e)
+\le\alpha^{g_{\mathrm{gap}}}.\]</span></p></li>
+<li><p><em>Centering and the covariance bound.</em> The scores are bounded, hence square integrable, and the future function is bounded on the finite state space. The preceding product normalization also gives the absolute first-moment bound <span class="math display">\[|Z_t(k)|=|Y_t|W_{t,k}\le W_{t,k},
+\qquad
+\mathbb E_b[|Z_t(k)|]\le\mathbb E_b[W_{t,k}]=1.\]</span></p>
+<p>Define the centering constant by <span class="math display">\[c_{\mathrm{future}}
+:=
+\mathbb E_b[f_{\mathrm{future}}(S_{t+1})].\]</span> For every <span class="math inline">\(s\in\mathcal S\)</span>, the oscillation bound implies <span class="math display">\[\begin{aligned}
+|f_{\mathrm{future}}(s)-c_{\mathrm{future}}|
+&amp;=
+\left|\mathbb E_b[
+f_{\mathrm{future}}(s)-f_{\mathrm{future}}(S_{t+1})]\right|\\
+&amp;\le
+\mathbb E_b\!\left[
+|f_{\mathrm{future}}(s)-f_{\mathrm{future}}(S_{t+1})|
+\right]
+\le\alpha^{g_{\mathrm{gap}}}.
+\end{aligned}\]</span> Consequently, <span class="math display">\[\begin{aligned}
+&amp;\left|
+\mathbb E_b[Z_t(k)f_{\mathrm{future}}(S_{t+1})]
+-\mathbb E_b[Z_t(k)]c_{\mathrm{future}}
+\right|\\
+&amp;\qquad=
+\left|\mathbb E_b\!\left[
+Z_t(k)\{f_{\mathrm{future}}(S_{t+1})-c_{\mathrm{future}}\}
+\right]\right|\\
+&amp;\qquad\le
+\alpha^{g_{\mathrm{gap}}}\mathbb E_b[|Z_t(k)|]
+\le\alpha^{g_{\mathrm{gap}}}.
+\end{aligned}\]</span></p>
+<p>Expanding the centered product and substituting the two future-score identities gives <span class="math display">\[\begin{aligned}
+&amp;\mathbb E_b\!\left[
+\{Z_t(k)-\mathbb E_b[Z_t(k)]\}
+\{Z_u(k)-\mathbb E_b[Z_u(k)]\}
+\right]\\
+&amp;\qquad=
+\mathbb E_b[Z_t(k)Z_u(k)]
+-\mathbb E_b[Z_t(k)]\mathbb E_b[Z_u(k)]\\
+&amp;\qquad=
+\mathbb E_b[Z_t(k)f_{\mathrm{future}}(S_{t+1})]
+-\mathbb E_b[Z_t(k)]c_{\mathrm{future}}.
+\end{aligned}\]</span> Its absolute value is therefore bounded by <span class="math display">\[\alpha^{g_{\mathrm{gap}}}=\alpha^{h-k-1},\]</span> as required.</p></li>
+</ol><span class="qed">∎</span></div>
+<p>The identity in Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a> places the population moments in the four-state realization with initial law <span class="math inline">\(d_b\)</span>, transition matrix <span class="math inline">\(P_e\)</span>, and reward vector <span class="math inline">\(r_e\)</span>. Stationarity makes these expectations independent of the terminal epoch. The zero-based indexing used here corresponds to shifting the one-based epochs in Definition <a class="objref" href="#obj-def:observable-moments">3</a> by one; the common empirical window contains <span class="math inline">\(T-6\)</span> terminal epochs.</p>
+<p>The second-moment bound controls weighting within a window, including the overlapping-window contribution to sampling error. Once the windows separate, the covariance bound supplies a geometrically summable dependence control. The moment variance constant <span class="leanref" data-objid="sym:V_{\alpha,L}"><span class="math inline">\(V_{\alpha,L}\)</span></span>, defined in Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a> as <span class="math inline">\(13L^7+2/(1-\alpha)\)</span>, summarizes these contributions for the seven common-window moments. Action overlap and behavior contraction thus have distinct roles in the sampling component of the estimator guarantee.</p>
+<h2 id="grid-approximation-and-stable-fitting">Grid approximation and stable fitting</h2>
+<p>The deterministic components of Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a> are the grid approximation and the stationary-value modulus. In Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a>, simplex rounding applies to the initial probability vector and each transition row, while coordinate rounding applies to the bounded reward vector. The allowance <span class="math inline">\(6/M\)</span> in the transition filter accommodates the rounded matrix. Mixing that matrix with the uniform transition matrix places each candidate under the contraction bound required by Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a>.</p>
+<p>The fitting criterion compares all seven candidate moments with their empirical counterparts. Its finite candidate set and lexicographic selection specify the estimator completely. Sampling error enters through Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a>; stationary-value stability enters through Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a>. The resolution <span class="math inline">\(M=\lceil(22+36/\alpha)T\rceil\)</span> is the discretization choice used in Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a>, whose bound accounts for both sampling and approximation error.</p>
+<p>This division of roles explains the statistical guarantee. The fit concerns a finite vector of observable moments, and the modulus controls the stationary reward associated with that fit. At fixed positive mixing scale and fixed nonnegative logarithmic action-overlap bound, Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a> gives a uniform mean-squared error proportional to <span class="math inline">\(T^{-1}\)</span> for <span class="math inline">\(T\geq12\)</span>.</p>
+<h2 id="the-positive-testing-family">The positive testing family</h2>
+<p>The lower-bound input is the positive four-state family in Definition <a class="objref" href="#obj-def:four-state-testing-family">5</a>. Its joint reward and successor-state law <span class="leanref" data-objid="sym:K_v^{(T)}"><span class="math inline">\(K_v^{(T)}\)</span></span> combines the hidden-state-dependent Bernoulli reward probability <span class="math inline">\(q_v(h)\)</span>, the action-dependent successor hidden-state probability <span class="math inline">\(p(a)\)</span>, and the noisy observation probability <span class="math inline">\(E(x&#39;\mid h&#39;)\)</span>. The Bernoulli mass conventions and the stationary initial and trajectory laws are specified in that definition. Across the two signs, the reward perturbation varies while the transition and observation components remain common.</p>
+<p>At the testing amplitude <span class="math inline">\(v_T=1/(16\sqrt T)\)</span>, the fair coincident policies provide a common stationary occupancy. The following statement supplies class membership, target-value separation, and the relative-entropy control for the observed trajectory laws.</p>
+<div class="formal-block kind-lemma" id="obj-lem:testing-family-membership" data-objid="lem:testing-family-membership" tabindex="0"><span class="env-label">Lemma 3 <span class="obj-tag">[lem:testing-family-membership]</span> (Testing family membership and separation).</span><p>Let <span class="math inline">\(T\)</span> be the observed trajectory length, <span class="math inline">\(t_0\)</span> the mixing-scale parameter, and <span class="math inline">\(\zeta\)</span> the logarithmic action likelihood-ratio bound, with</p>
+<ul>
+<li><p><strong>(Length.)</strong> <span class="math inline">\(T\in\mathbb N\)</span> and <span class="math inline">\(T\geq12\)</span>.</p></li>
+<li><p><strong>(Mixing scale.)</strong> <span class="math inline">\(t_0&gt;0\)</span>.</p></li>
+<li><p><strong>(Overlap.)</strong> <span class="math inline">\(\zeta\geq0\)</span>.</p></li>
+</ul>
+<p>Define the testing perturbation amplitude by <span class="math display">\[v_T=\frac{1}{16\sqrt T}.\]</span> For each <span class="math inline">\(v\in\{-v_T,+v_T\}\)</span>, the experiment of Definition <a class="objref" href="#obj-def:four-state-testing-family">5</a>, with kernel <span class="math inline">\(K_v^{(T)}\)</span>, the specified initial and trajectory laws, and fair coincident policies <span class="math display">\[e(a\mid x)=b(a\mid x)=\frac12,\]</span> belongs to <span class="math inline">\(\mathcal M_T^{(2)}(t_0,\zeta)\)</span>, the class satisfying the six law conditions in Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a>. Its stationary target values, defined in Definition <a class="objref" href="#obj-def:target-value">2</a>, satisfy <span class="math display">\[\left|\theta(K_{+v_T}^{(T)},e)-\theta(K_{-v_T}^{(T)},e)\right|
+=\frac{1}{8\sqrt T}.\]</span> Writing <span class="math inline">\(\mathbb P_{+}^{\mathsf O_T}\)</span> and <span class="math inline">\(\mathbb P_{-}^{\mathsf O_T}\)</span> for the respective laws projected onto the observed state, action, and reward trajectory, their relative entropy is finite and satisfies <span class="math display">\[\operatorname{KL}\!\left(
+\mathbb P_{+}^{\mathsf O_T}\Vert\mathbb P_{-}^{\mathsf O_T}
+\right)\leq\frac1{12}.\]</span> For each of the two experiments, the stationary joint-state laws <span class="math inline">\(d_e\)</span> and <span class="math inline">\(d_b\)</span> under the target and behavior policies coincide: <span class="math display">\[d_e=d_b.\]</span> Moreover, for every stationary occupancy-ratio constant <span class="math inline">\(C&gt;1\)</span>, both experiments satisfy <span class="math display">\[d_e(s)\leq C\,d_b(s)
+\qquad\text{for every }s\in\mathcal S,\]</span> where <span class="math inline">\(\mathcal S\)</span> is the four-point joint-state space.</p><span class="lean-hint">⊢ Lean</span></div>
+<div class="proof"><span class="env-label">Proof of Lemma <a class="objref" href="#obj-lem:testing-family-membership">3</a>.</span><p><em>1. Class membership.</em> Since <span class="math inline">\(T\geq12\)</span>, we have <span class="math display">\[\sqrt T\geq1,\qquad
+0&lt;v_T=\frac{1}{16\sqrt T}\leq\frac1{16},
+\qquad
+|-v_T|=v_T\leq\frac1{16}.\]</span> Fix <span class="math inline">\(v\in\{-v_T,+v_T\}\)</span> and consider the experiment in Definition <a class="objref" href="#obj-def:four-state-testing-family">5</a>. Until the comparison of the two alternatives, stationary laws and transition matrices refer to this fixed experiment. Its reward probabilities satisfy <span class="math display">\[q_v(0)=\frac38+v,\qquad q_v(1)=\frac58+v,
+\qquad
+\frac14\leq q_v(h)\leq\frac34
+\quad(h\in\{0,1\}).\]</span> All Bernoulli masses and emission probabilities in the kernel are therefore positive. Summing its factors gives <span class="math display">\[\sum_{y=0}^1\sum_{h&#39;=0}^1\sum_{x&#39;=0}^1
+K_v^{(T)}(y,x&#39;,h&#39;\mid x,h,a)
+=
+\left(\sum_{y=0}^1\operatorname{Ber}_{q_v(h)}(y)\right)
+\left(\sum_{h&#39;=0}^1\operatorname{Ber}_{p(a)}(h&#39;)
+      \sum_{x&#39;=0}^1E(x&#39;\mid h&#39;)\right)
+=1.\]</span> The reward support is <span class="math inline">\(\{0,1\}\subset[0,1]\)</span>.</p>
+<p>For use with the trajectory law, define the finite path space and its masses by <span class="math display">\[\begin{aligned}
+\Omega_{\mathrm{path},T}
+&amp;=\mathcal S^{T+1}\times(\mathcal A\times\{0,1\})^T,\\
+c&amp;=(s_1,\ldots,s_{T+1};(a_t,y_t)_{t=1}^T)
+   \in\Omega_{\mathrm{path},T},\\
+\iota(x,h)&amp;=\frac12E(x\mid h),\\
+\ell_v(s,s&#39;;a,y)&amp;=\frac12K_v^{(T)}(y,s&#39;\mid s,a),\\
+\omega_v(c)&amp;=\iota(s_1)\prod_{t=1}^T
+                     \ell_v(s_t,s_{t+1};a_t,y_t).
+\end{aligned}\]</span> Thus <span class="math inline">\(\omega_v(c)&gt;0\)</span>. The displayed masses are exactly the finite trajectory weights specified in Definition <a class="objref" href="#obj-def:four-state-testing-family">5</a>. Each chronological factor is normalized: <span class="math display">\[\sum_{a,y,s&#39;}\ell_v(s,s&#39;;a,y)=1.\]</span> Successively summing the future factors consequently gives, for every <span class="math inline">\(t=1,\ldots,T\)</span> and fixed <span class="math inline">\(s_t\)</span>, <span class="math display">\[\sum_{\substack{a_j,y_j,s_{j+1}\\j=t,\ldots,T}}
+\prod_{j=t}^T\ell_v(s_j,s_{j+1};a_j,y_j)=1.\]</span> The remaining prefix factors cancel in conditional probabilities. Hence <span class="math display">\[\Pr_v(A_t=a\mid\mathcal F_t^-)=\frac12,
+\qquad
+\mathcal L_v(Y_t,S_{t+1}\mid\mathcal F_t^-,A_t)
+=K_v^{(T)}(\cdot\mid S_t,A_t).\]</span> These identities establish Assumptions <a class="objref" href="#obj-ass:pomdp-kernel">1</a> and <a class="objref" href="#obj-ass:sequential-ignorability">2</a>.</p>
+<p>Define the common successor-state mass by <span class="math display">\[d_{\mathrm{test}}(x&#39;,h&#39;)
+=
+\sum_{a=0}^1\frac12
+\operatorname{Ber}_{p(a)}(h&#39;)E(x&#39;\mid h&#39;)
+=\frac12E(x&#39;\mid h&#39;).\]</span> Indeed, <span class="math inline">\(p(0)=1/4\)</span> and <span class="math inline">\(p(1)=3/4\)</span>, so their fair average is <span class="math inline">\(1/2\)</span>. In the order <span class="math inline">\((0,0),(0,1),(1,0),(1,1)\)</span>, this mass is <span class="math display">\[d_{\mathrm{test}}
+=\left(\frac3{10},\frac15,\frac15,\frac3{10}\right),
+\qquad
+\sum_{s\in\mathcal S}d_{\mathrm{test}}(s)=1.\]</span> Summing out the reward and averaging over the fair action yields <span class="math display">\[P_e(s,s&#39;)=P_b(s,s&#39;)=d_{\mathrm{test}}(s&#39;)
+\qquad(s,s&#39;\in\mathcal S).\]</span> In particular, <span class="math display">\[\sum_s d_{\mathrm{test}}(s)P_e(s,s&#39;)
+=d_{\mathrm{test}}(s&#39;).\]</span> This supplies a stationary probability law. The stationary laws used by the experiment are therefore stationary, and their stationarity equations and normalization give <span class="math display">\[d_e(s&#39;)
+=\sum_s d_e(s)d_{\mathrm{test}}(s&#39;)
+=d_{\mathrm{test}}(s&#39;),
+\qquad
+d_b(s&#39;)
+=\sum_s d_b(s)d_{\mathrm{test}}(s&#39;)
+=d_{\mathrm{test}}(s&#39;).\]</span> Moreover, summing first over actions and rewards and then over successor states gives <span class="math display">\[\begin{aligned}
+\Pr_v(S_1=s)
+&amp;=\sum_{\substack{c\in\Omega_{\mathrm{path},T}\\s_1=s}}\omega_v(c)\\
+&amp;=\iota(s)
+  \sum_{s_2,\ldots,s_{T+1}}
+       \prod_{t=1}^T d_{\mathrm{test}}(s_{t+1})
+=\iota(s)=d_b(s).
+\end{aligned}\]</span> Thus Assumption <a class="objref" href="#obj-ass:stationary-start">3</a> holds.</p>
+<p>Set the contraction and overlap bounds to <span class="math display">\[\alpha=\exp(-1/t_0)&gt;0,\qquad L=\exp(\zeta)\geq1.\]</span> For any probability vectors <span class="math inline">\(\mu,\mu&#39;\)</span> on <span class="math inline">\(\mathcal S\)</span>, the common-row identity gives <span class="math display">\[\mu P_b=\mu&#39;P_b=\mu P_e=\mu&#39;P_e=d_{\mathrm{test}}.\]</span> Consequently, <span class="math display">\[\|\mu P_b-\mu&#39;P_b\|_{\mathrm{TV}}
+=
+\|\mu P_e-\mu&#39;P_e\|_{\mathrm{TV}}
+=0
+\leq\alpha\|\mu-\mu&#39;\|_{\mathrm{TV}},\]</span> which verifies Assumptions <a class="objref" href="#obj-ass:behavior-contraction">5</a> and <a class="objref" href="#obj-ass:target-contraction">6</a>. Finally, <span class="math display">\[e(a\mid x)=\frac12
+\leq L\frac12=Lb(a\mid x),\]</span> so Assumption <a class="objref" href="#obj-ass:policy-overlap">4</a> holds. Together with <span class="math inline">\(t_0&gt;0\)</span> and <span class="math inline">\(\zeta\geq0\)</span>, these are precisely the conditions in Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a>. Applying the argument at both signs proves the two membership assertions.</p>
+<p><em>2. Target separation.</em> The stationary probability law constructed above also supplies stationarity of the target-policy stationary law. Its common-row stationarity equation gives <span class="math inline">\(d_e=d_{\mathrm{test}}\)</span>. Integrating the reward coordinate of the kernel gives <span class="math display">\[\sum_{s&#39;}\int_{[0,1]}y\,K_v^{(T)}(dy,s&#39;\mid s,a)
+=q_v(h),
+\qquad
+r_e(x,h)=\sum_{a=0}^1\frac12q_v(h)=q_v(h).\]</span> Define <span class="math display">\[\theta_v:=\theta(K_v^{(T)},e).\]</span> Using Definition <a class="objref" href="#obj-def:target-value">2</a> and summing the emission probabilities over <span class="math inline">\(x\)</span>, we obtain <span class="math display">\[\begin{aligned}
+\theta_v
+&amp;=\sum_{x,h}\frac12E(x\mid h)q_v(h)\\
+&amp;=\frac12\left(\frac38+v\right)
+ +\frac12\left(\frac58+v\right)
+=\frac12+v.
+\end{aligned}\]</span> Since <span class="math inline">\(v_T\geq0\)</span> and <span class="math inline">\(\sqrt T&gt;0\)</span>, <span class="math display">\[|\theta_{+v_T}-\theta_{-v_T}|
+=|2v_T|
+=2v_T
+=\frac1{8\sqrt T}.\]</span></p>
+<p><em>3. Finiteness of observed relative entropy.</em> For either signed perturbation, define the finite path law, its decoded full trajectory law, and its observed law by <span class="math display">\[\begin{aligned}
+\mathbb Q_v(\{c\})&amp;=\omega_v(c),
+&amp;&amp;c\in\Omega_{\mathrm{path},T},\\
+\operatorname{dec}(c)
+&amp;=(s_1,\ldots,s_{T+1};(a_t,y_t)_{t=1}^T),
+&amp;&amp;y_t\text{ regarded as a real reward},\\
+\operatorname{obs}
+  (s_1,\ldots,s_{T+1};(a_t,y_t)_{t=1}^T)
+&amp;=((x_t,a_t,y_t))_{t=1}^T,
+&amp;&amp;s_t=(x_t,h_t),\\
+\mathbb P_v^{\mathrm{full}}
+&amp;=\operatorname{dec}_{\#}\mathbb Q_v,
+\qquad
+\mathbb P_v^{\mathsf O_T}
+=\operatorname{obs}_{\#}\mathbb P_v^{\mathrm{full}}.
+\end{aligned}\]</span> The normalization calculation above gives <span class="math inline">\(\sum_c\omega_v(c)=1\)</span>. Both alternatives have positive masses on every finite path, so their full trajectory laws have common finite support. Thus <span class="math display">\[\mathbb P_{+v_T}^{\mathrm{full}}
+\ll\mathbb P_{-v_T}^{\mathrm{full}},
+\qquad
+\operatorname{KL}
+ \bigl(\mathbb P_{+v_T}^{\mathrm{full}}
+       \Vert\mathbb P_{-v_T}^{\mathrm{full}}\bigr)&lt;\infty.\]</span> The log likelihood ratio is integrable because the common support is finite. Data processing under the observed projection now gives <span class="math display">\[\operatorname{KL}
+ \bigl(\mathbb P_{+}^{\mathsf O_T}
+       \Vert\mathbb P_{-}^{\mathsf O_T}\bigr)
+\leq
+\operatorname{KL}
+ \bigl(\mathbb P_{+v_T}^{\mathrm{full}}
+       \Vert\mathbb P_{-v_T}^{\mathrm{full}}\bigr)
+&lt;\infty,
+\qquad
+\mathbb P_\pm^{\mathsf O_T}
+:=\mathbb P_{\pm v_T}^{\mathsf O_T}.\]</span></p>
+<p><em>4. The finite-path entropy bound.</em> We first derive the one-epoch bound used in the product calculation. For <span class="math inline">\(u,u&#39;\in[1/4,3/4]\)</span>, define <span class="math display">\[\begin{aligned}
+\operatorname{kl}_{\mathrm{Ber}}(u,u&#39;)
+&amp;=u\log\frac{u}{u&#39;}
+ +(1-u)\log\frac{1-u}{1-u&#39;},\\
+\varphi(u)&amp;=u\log u+(1-u)\log(1-u),\\
+\Psi_{u&#39;}(u)
+&amp;=4(u-u&#39;)^2+\varphi&#39;(u&#39;)(u-u&#39;)
+  +\varphi(u&#39;)-\varphi(u).
+\end{aligned}\]</span> Expanding the logarithms gives <span class="math display">\[\operatorname{kl}_{\mathrm{Ber}}(u,u&#39;)
+=\varphi(u)-\varphi(u&#39;)-\varphi&#39;(u&#39;)(u-u&#39;).\]</span> On the quarter band, <span class="math display">\[\varphi&#39;(u)=\log u-\log(1-u),
+\qquad
+\Psi_{u&#39;}&#39;&#39;(u)=8-\frac1u-\frac1{1-u}\geq0,\]</span> because <span class="math inline">\(1/u\leq4\)</span> and <span class="math inline">\(1/(1-u)\leq4\)</span>. Hence <span class="math inline">\(\Psi_{u&#39;}\)</span> is convex on this interval, with <span class="math display">\[\Psi_{u&#39;}(u&#39;)=0,\qquad \Psi_{u&#39;}&#39;(u&#39;)=0.\]</span> If <span class="math inline">\(u=u&#39;\)</span>, its value is zero. If <span class="math inline">\(u&lt;u&#39;\)</span>, convexity gives <span class="math display">\[\frac{\Psi_{u&#39;}(u&#39;)-\Psi_{u&#39;}(u)}{u&#39;-u}
+\leq\Psi_{u&#39;}&#39;(u&#39;)=0.\]</span> If <span class="math inline">\(u&gt;u&#39;\)</span>, it gives <span class="math display">\[0=\Psi_{u&#39;}&#39;(u&#39;)
+\leq\frac{\Psi_{u&#39;}(u)-\Psi_{u&#39;}(u&#39;)}{u-u&#39;}.\]</span> Thus <span class="math inline">\(\Psi_{u&#39;}(u)\geq0\)</span> in all three cases, and therefore <span class="math display">\[\operatorname{kl}_{\mathrm{Ber}}(u,u&#39;)
+\leq4(u-u&#39;)^2.\]</span></p>
+<p>Now take <span class="math inline">\(v,v&#39;\in\{-v_T,+v_T\}\)</span>. In the ratio of the two epoch masses, the common action, successor-hidden-state, and emission factors cancel. Summing over the binary action and reward gives <span class="math display">\[\begin{aligned}
+\sum_{a,y}\ell_v(s,s&#39;;a,y)
+ \log\frac{\ell_v(s,s&#39;;a,y)}{\ell_{v&#39;}(s,s&#39;;a,y)}
+&amp;=d_{\mathrm{test}}(s&#39;)
+  \operatorname{kl}_{\mathrm{Ber}}\bigl(q_v(h),q_{v&#39;}(h)\bigr)\\
+&amp;\leq4(v-v&#39;)^2d_{\mathrm{test}}(s&#39;),
+\qquad s=(x,h),
+\end{aligned}\]</span> where we used <span class="math inline">\(q_v(h)-q_{v&#39;}(h)=v-v&#39;\)</span>. Also, <span class="math display">\[\sum_{a,y}\ell_v(s,s&#39;;a,y)=d_{\mathrm{test}}(s&#39;).\]</span></p>
+<p>To add these bounds along a fixed state path, for <span class="math inline">\(0\leq n\leq T\)</span> and <span class="math inline">\((s_1,\ldots,s_{n+1})\in\mathcal S^{n+1}\)</span>, define <span class="math display">\[\begin{aligned}
+\mathcal W_n(s_1,\ldots,s_{n+1})
+&amp;=\prod_{t=1}^n d_{\mathrm{test}}(s_{t+1}),\\
+\mathcal D_{v,v&#39;}^{(n)}(s_1,\ldots,s_{n+1})
+&amp;=\sum_{(a_t,y_t)_{t=1}^n}
+ \left(\prod_{t=1}^n\ell_v(s_t,s_{t+1};a_t,y_t)\right)
+ \log
+ \frac{\prod_{t=1}^n\ell_v(s_t,s_{t+1};a_t,y_t)}
+      {\prod_{t=1}^n\ell_{v&#39;}(s_t,s_{t+1};a_t,y_t)}.
+\end{aligned}\]</span> Empty products are <span class="math inline">\(1\)</span>, so <span class="math inline">\(\mathcal W_0=1\)</span> and <span class="math inline">\(\mathcal D_{v,v&#39;}^{(0)}=0\)</span>. We claim <span class="math display">\[\mathcal D_{v,v&#39;}^{(n)}(s_1,\ldots,s_{n+1})
+\leq4n(v-v&#39;)^2\mathcal W_n(s_1,\ldots,s_{n+1}).\]</span> The claim holds at <span class="math inline">\(n=0\)</span>. For the induction step, splitting off the first epoch and expanding the logarithm of the product yields <span class="math display">\[\begin{aligned}
+&amp;\mathcal D_{v,v&#39;}^{(n+1)}(s_1,\ldots,s_{n+2})\\
+&amp;\quad=
+\left(
+ \sum_{a,y}\ell_v(s_1,s_2;a,y)
+ \log\frac{\ell_v(s_1,s_2;a,y)}{\ell_{v&#39;}(s_1,s_2;a,y)}
+\right)\mathcal W_n(s_2,\ldots,s_{n+2})\\
+&amp;\qquad\quad+
+d_{\mathrm{test}}(s_2)
+\mathcal D_{v,v&#39;}^{(n)}(s_2,\ldots,s_{n+2})\\
+&amp;\quad\leq
+4(v-v&#39;)^2d_{\mathrm{test}}(s_2)
+ \mathcal W_n(s_2,\ldots,s_{n+2})\\
+&amp;\qquad\quad+
+4n(v-v&#39;)^2d_{\mathrm{test}}(s_2)
+ \mathcal W_n(s_2,\ldots,s_{n+2})\\
+&amp;\quad=
+4(n+1)(v-v&#39;)^2\mathcal W_{n+1}(s_1,\ldots,s_{n+2}).
+\end{aligned}\]</span> Here summing the tail product over its action and reward coordinates gives <span class="math inline">\(\mathcal W_n\)</span>; all multiplying masses are nonnegative. This proves the claim.</p>
+<p>The common positive initial factor cancels from the path likelihood ratio. Consequently, <span class="math display">\[\begin{aligned}
+\sum_c\omega_v(c)\log\frac{\omega_v(c)}{\omega_{v&#39;}(c)}
+&amp;=
+\sum_{s_1,\ldots,s_{T+1}}
+\iota(s_1)\mathcal D_{v,v&#39;}^{(T)}(s_1,\ldots,s_{T+1})\\
+&amp;\leq
+4T(v-v&#39;)^2
+\sum_{s_1,\ldots,s_{T+1}}
+\iota(s_1)\prod_{t=1}^T d_{\mathrm{test}}(s_{t+1})\\
+&amp;=4T(v-v&#39;)^2,
+\end{aligned}\]</span> since the last sum is <span class="math display">\[\left(\sum_{s_1}\iota(s_1)\right)
+\prod_{t=1}^T\left(\sum_{s_{t+1}}d_{\mathrm{test}}(s_{t+1})\right)=1.\]</span></p>
+<p><em>5. Projection and calibration.</em> The finite laws have common positive support, so their relative entropy is the finite sum just bounded: <span class="math display">\[\operatorname{KL}(\mathbb Q_v\Vert\mathbb Q_{v&#39;})
+=\sum_c\omega_v(c)\log\frac{\omega_v(c)}{\omega_{v&#39;}(c)}
+\leq4T(v-v&#39;)^2.\]</span> Applying data processing first to decoding and then to the observed projection gives <span class="math display">\[\begin{aligned}
+\operatorname{KL}
+ \bigl(\mathbb P_v^{\mathsf O_T}\Vert
+       \mathbb P_{v&#39;}^{\mathsf O_T}\bigr)
+&amp;\leq
+\operatorname{KL}
+ \bigl(\mathbb P_v^{\mathrm{full}}\Vert
+       \mathbb P_{v&#39;}^{\mathrm{full}}\bigr)\\
+&amp;\leq\operatorname{KL}(\mathbb Q_v\Vert\mathbb Q_{v&#39;})
+\leq4T(v-v&#39;)^2.
+\end{aligned}\]</span> For the ordered pair <span class="math inline">\(v=v_T\)</span>, <span class="math inline">\(v&#39;=-v_T\)</span>, positivity of <span class="math inline">\(\sqrt T\)</span> and <span class="math inline">\((\sqrt T)^2=T\)</span> give <span class="math display">\[4T\bigl(v_T-(-v_T)\bigr)^2
+=16T\left(\frac1{16\sqrt T}\right)^2
+=\frac1{16}.\]</span> Therefore the finite observed relative entropy satisfies <span class="math display">\[\operatorname{KL}
+ \bigl(\mathbb P_+^{\mathsf O_T}\Vert
+       \mathbb P_-^{\mathsf O_T}\bigr)
+\leq\frac1{16}\leq\frac1{12}.\]</span></p>
+<p><em>6. Coincident stationary laws and occupancy bounds.</em> In each experiment the policies coincide pointwise: <span class="math display">\[e(a\mid x)=b(a\mid x)=\frac12.\]</span> They therefore induce the same transition matrix, and applying the same stationary-law selection to that matrix gives <span class="math display">\[P_e=P_b,\qquad d_e=d_b.\]</span> By stationary start, <span class="math inline">\(d_b(s)\geq0\)</span> for every <span class="math inline">\(s\in\mathcal S\)</span>. For every <span class="math inline">\(C&gt;1\)</span>, <span class="math display">\[Cd_b(s)-d_e(s)=(C-1)d_b(s)\geq0.\]</span> Hence <span class="math inline">\(d_e(s)\leq Cd_b(s)\)</span> for every state in each experiment, with the same calculation covering zero stationary mass.</p><span class="qed">∎</span></div>
+<p>The separation and divergence clauses in Lemma <a class="objref" href="#obj-lem:testing-family-membership">3</a> are the two statistical inputs to the lower bound in Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a>. They have the standard two-point interpretation: nearby observed laws carry stationary values separated at the <span class="math inline">\(T^{-1/2}\)</span> scale (Tsybakov, 2009). Because the divergence concerns the projected observed laws, the resulting risk statement addresses the observed-data decision problem in Definition <a class="objref" href="#obj-def:minimax-risk">4</a>. Equality of the stationary occupancies also places both experiments in every stated stationary-overlap subclass with bound <span class="math inline">\(C&gt;1\)</span>.</p>
+<h2 id="minimax-assembly-and-the-remaining-results">Minimax assembly and the remaining results</h2>
+<p>The upper and lower inputs meet in Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a>. The stable-grid guarantee supplies an admissible observed-data estimator, while the testing-family membership and separation supply the pair used for the lower bound. The minimax definition in Definition <a class="objref" href="#obj-def:minimax-risk">4</a> ranges over measurable observed-data procedures taking values in <span class="math inline">\([0,1]\)</span>, matching the estimator class in the testing argument. Together, these components yield the bounds <span class="math inline">\(1/(1024T)\)</span> and <span class="math inline">\(B_\alpha^2(112V_{\alpha,L}+2)/T\)</span> under the theorem’s stated regime conditions.</p>
+<p>The cardinality comparison in Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> uses the cardinality-uniform conclusion of the public working manuscript <span>CausalSmith</span> (2026). Its logarithmic-depth schedule and associated risk bound are the cited comparison inputs; the additional conditions are <span class="math inline">\(\zeta&gt;0\)</span> and <span class="math inline">\(C&gt;1\)</span>.</p>
+<p>For Proposition <a class="objref" href="#obj-prop:coincident-policy-reduction">1</a>, the relevant ingredients are equality of the induced policy transitions, stationary initialization, and behavior contraction. They support the common stationary law and the ordinary reward-mean interpretation of the target value. Under that proposition’s conditions, the reward sample mean is unbiased and satisfies the displayed variance bound for every <span class="math inline">\(T\geq1\)</span>. This gives the sampling benchmark corresponding to coincident behavior and target policies.</p>
+<p>The remaining deterministic result, Proposition <a class="objref" href="#obj-prop:exhaustive-grid-arithmetic-complexity">2</a>, concerns the size of the candidate list. Its five simplex factors correspond to the initial law and the four transition rows; its four scalar-grid factors correspond to the reward coordinates. The exact unfiltered count is <span class="math inline">\(\binom{M+3}{3}^{5}(M+1)^4\)</span>, and the contraction filter retains a subset of that list. At the stated resolution and fixed mixing scale, the proposition bounds both list cardinalities by <span class="math inline">\(cT^{19}\)</span>.</p>
+<h4 id="verification-scope.">Verification scope.</h4>
+<p>The internal mathematical statements and their proofs are machine-checked in Lean 4, including the auxiliary lemmas above, the stable-grid risk bound, the binary testing and minimax arguments, the coincident-policy reduction, and the candidate counts. The checked artifact uses Lean 4.33.0 and mathlib revision <code>db584cd6d46c92f2</code><code>09a44c0f1c829460d327499d</code>; the verification commit is <code>96e526d2af264e63a1</code><code>ace1820aac7f8843203708</code>. The generated interactive supplement includes <code>presentation_crosswalk.json</code>, which maps each paper object to its certifying declarations, and <code>lean_snippets.json</code>, which records the corresponding source snippets. The six data-generating restrictions in Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a> are assumptions of the statistical guarantees. The cardinality-uniform comparison inputs from the public working manuscript used in Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a> remain cited dependencies; the theorem-local verification disclosures specify their trust boundary.</p>
+<h1 id="sec:deferred-proofs">Proofs of the main results</h1>
+<div class="proof"><span class="env-label">Proof of Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a>.</span><p>Fix an experiment in <span class="math inline">\(\mathcal M_T^{(2)}(t_0,\zeta)\)</span>. All expectations below are under its observed trajectory law, denoted by <span class="math inline">\(\mathbb E_M\)</span>. Use the moments of Definition <a class="objref" href="#obj-def:observable-moments">3</a> and the joint-state quantities of Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a>.</p>
+<ol>
+<li><p>Use zero-based epochs throughout this proof: epoch <span class="math inline">\(t\)</span> here corresponds to epoch <span class="math inline">\(t+1\)</span> in Definition <a class="objref" href="#obj-def:observable-moments">3</a>. Accordingly, define the shifted scores by <span class="math display">\[Z_t(k):=Y_{t+1}\prod_{j=t-k+1}^{t+1}\rho_j,
+\qquad 0\le k\le6,\quad k\le t&lt;T,\]</span> where the reward and likelihood ratios on the right retain their one-based indexing. Thus <span class="math inline">\(Z_t(k)\)</span> is the score at one-based epoch <span class="math inline">\(t+1\)</span>, agreeing with the zero-based convention of Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a>.</p>
+<p>Define the retained epoch set, its cardinality, and the maximum empirical moment error by <span class="math display">\[\mathcal I_T:=\{6,\ldots,T-1\},
+\qquad
+n_T:=|\mathcal I_T|=T-6,
+\qquad
+\epsilon_T(w):=
+\max_{0\le k\le6}|\widehat m_k(w)-m_k|,\]</span> where <span class="math inline">\(w\in(\mathcal X\times\mathcal A\times\mathbb R)^T\)</span> is an observed trajectory. Changing variables in the one-based retained-window sum gives <span class="math display">\[\widehat m_k
+=
+\frac1{T-6}\sum_{t=6}^{T-1}Z_t(k)
+=
+\frac1{n_T}\sum_{t\in\mathcal I_T}Z_t(k),
+\qquad 0\le k\le6.\]</span> The parameter conditions give <span class="math display">\[0&lt;\alpha=\exp(-1/t_0)&lt;1,
+\qquad
+L=\exp(\zeta)\ge1,
+\qquad
+B_\alpha\ge0,
+\qquad
+V_{\alpha,L}\ge0,\]</span> and the horizon condition gives <span class="math display">\[T&gt;0,\qquad n_T&gt;0,\qquad T\le2n_T,\qquad T\ge1.\]</span> The maximum defining <span class="math inline">\(\epsilon_T(w)\)</span> is attained among seven indices. Its square is therefore one of the nonnegative summands on the right-hand side of <span class="math display">\[\epsilon_T(w)^2
+\le
+\sum_{k=0}^{6}(\widehat m_k(w)-m_k)^2.\]</span> The observed law is a probability law, and the empirical moments are square-integrable. Thus the sum on the right is integrable; measurability of the finite maximum and the displayed domination also give integrability of <span class="math inline">\(\epsilon_T^2\)</span>.</p></li>
+<li><p>For <span class="math inline">\(0\le k\le6\)</span> and <span class="math inline">\(t,t&#39;\in\mathcal I_T\)</span>, define <span class="math display">\[c_{k;t,t&#39;}
+:=
+\mathbb E_M\!\left[
+  (Z_t(k)-m_k)(Z_{t&#39;}(k)-m_k)
+\right].\]</span> Every retained epoch satisfies <span class="math inline">\(k\le t\)</span>. Consequently, Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a> supplies <span class="math display">\[\mathbb E_M[Z_t(k)]=m_k=d_bP_e^kr_e,
+\qquad
+\mathbb E_M[Z_t(k)^2]\le L^{k+1}.\]</span> In particular, <span class="math display">\[0\le c_{k;t,t}
+=
+\mathbb E_M[(Z_t(k)-m_k)^2]
+=
+\mathbb E_M[Z_t(k)^2]-m_k^2
+\le L^{k+1}.\]</span> For either choice of sign, nonnegativity of the centered square gives <span class="math display">\[\begin{aligned}
+0
+&amp;\le
+\mathbb E_M\!\left[
+ \bigl((Z_t(k)-m_k)\pm(Z_{t&#39;}(k)-m_k)\bigr)^2
+\right]\\
+&amp;=
+c_{k;t,t}+c_{k;t&#39;,t&#39;}\pm2c_{k;t,t&#39;}.
+\end{aligned}\]</span> Using both signs yields <span class="math display">\[|c_{k;t,t&#39;}|
+\le
+\frac{c_{k;t,t}+c_{k;t&#39;,t&#39;}}2
+\le L^{k+1}.\]</span> For separated epochs, the covariance conclusion of Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a> additionally gives <span class="math display">\[|c_{k;t,t&#39;}|
+\le\alpha^{\,t&#39;-t-k-1}
+\qquad\text{when }t&#39;-t\ge k+1.\]</span> These identities and bounds apply under the observed law because the scores are functions of the observed trajectory.</p></li>
+<li><p>Fix <span class="math inline">\(0\le k\le6\)</span> and <span class="math inline">\(t\in\mathcal I_T\)</span>. Partition its future retained epochs according to whether <span class="math inline">\(1\le t&#39;-t\le k\)</span> or <span class="math inline">\(t&#39;-t\ge k+1\)</span>. There are at most <span class="math inline">\(k\)</span> epochs in the first part. In the second part, the exponents <span class="math inline">\(t&#39;-t-k-1\)</span> are distinct integers in <span class="math inline">\(\{0,\ldots,T-1\}\)</span>. Hence <span class="math display">\[\begin{aligned}
+\sum_{\substack{t&#39;\in\mathcal I_T\\t&lt;t&#39;}}
+ |c_{k;t,t&#39;}|
+&amp;=
+\sum_{\substack{t&#39;\in\mathcal I_T\\1\le t&#39;-t\le k}}
+ |c_{k;t,t&#39;}|
++
+\sum_{\substack{t&#39;\in\mathcal I_T\\t&#39;-t\ge k+1}}
+ |c_{k;t,t&#39;}|\\
+&amp;\le
+kL^{k+1}+\sum_{j=0}^{T-1}\alpha^j\\
+&amp;=
+kL^{k+1}+\frac{1-\alpha^T}{1-\alpha}\\
+&amp;\le
+kL^{k+1}+\frac1{1-\alpha}.
+\end{aligned}\]</span> For <span class="math inline">\(k=0\)</span>, the first sum is empty and equals zero. Symmetry of covariance allows the full absolute covariance sum to be split into its diagonal and twice its upper triangle: <span class="math display">\[\begin{aligned}
+\sum_{t\in\mathcal I_T}\sum_{t&#39;\in\mathcal I_T}c_{k;t,t&#39;}
+&amp;\le
+\sum_{t\in\mathcal I_T}\sum_{t&#39;\in\mathcal I_T}|c_{k;t,t&#39;}|\\
+&amp;=
+\sum_{t\in\mathcal I_T}|c_{k;t,t}|
++
+2\sum_{t\in\mathcal I_T}
+ \sum_{\substack{t&#39;\in\mathcal I_T\\t&lt;t&#39;}}
+ |c_{k;t,t&#39;}|\\
+&amp;\le
+n_TL^{k+1}
++
+2n_T\left(kL^{k+1}+\frac1{1-\alpha}\right)\\
+&amp;=
+n_T\left((1+2k)L^{k+1}+\frac2{1-\alpha}\right)\\
+&amp;\le
+n_T\left(13L^7+\frac2{1-\alpha}\right)
+=
+n_TV_{\alpha,L}.
+\end{aligned}\]</span> The last inequality uses <span class="math inline">\(k\le6\)</span> and <span class="math inline">\(L\ge1\)</span>.</p>
+<p>Averaging the score means over the common window gives <span class="math display">\[\mathbb E_M[\widehat m_k]
+=
+\frac1{n_T}\sum_{t\in\mathcal I_T}\mathbb E_M[Z_t(k)]
+=
+m_k.\]</span> Expanding the centered square of this finite average therefore yields <span class="math display">\[\begin{aligned}
+\mathbb E_M[(\widehat m_k-m_k)^2]
+&amp;=
+\frac1{n_T^2}
+\sum_{t\in\mathcal I_T}\sum_{t&#39;\in\mathcal I_T}c_{k;t,t&#39;}\\
+&amp;\le
+\frac{V_{\alpha,L}}{n_T}.
+\end{aligned}\]</span></p></li>
+<li><p>Integrating <span class="math inline">\(\epsilon_T(w)^2\le\sum_{k=0}^{6}(\widehat m_k(w)-m_k)^2\)</span> and applying the seven moment bounds gives <span class="math display">\[\mathbb E_M[\epsilon_T^2]
+\le
+\sum_{k=0}^{6}\mathbb E_M[(\widehat m_k-m_k)^2]
+\le
+\frac{7V_{\alpha,L}}{n_T}.\]</span></p></li>
+<li><p>We next obtain a value bound for the selected grid realization. To distinguish the grid resolution from the fixed experiment, write <span class="math display">\[M_{\mathrm{grid}}
+:=
+\left\lceil(22+36/\alpha)T\right\rceil,
+\qquad
+U:=\frac{\mathbf1\mathbf1^{\mathsf T}}4,
+\qquad
+\lambda:=\frac{\alpha}{\alpha+6/M_{\mathrm{grid}}}.\]</span> Here <span class="math inline">\(\mathbf1\)</span> is the four-dimensional vector of ones. Thus <span class="math display">\[M_{\mathrm{grid}}&gt;0,
+\qquad
+0&lt;\lambda&lt;1,
+\qquad
+P(R)=\lambda R+(1-\lambda)U.\]</span> Use a fixed ordering of the four joint states as the four grid coordinates; this relabeling preserves scalar matrix moments and total variation.</p>
+<p>The candidate set of Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a> is finite and nonempty. Indeed, <span class="math display">\[\bigl((1,0,0,0),\ \mathbf1(1,0,0,0),\ (0,0,0,0)\bigr)
+\in\mathcal C_{M_{\mathrm{grid}}},\]</span> because all its coordinates lie on the required grids and <span class="math display">\[\delta\bigl(\mathbf1(1,0,0,0)\bigr)=0
+\le\alpha+\frac6{M_{\mathrm{grid}}}.\]</span> The lexicographic minimizer therefore belongs to this candidate set.</p>
+<p>For every candidate <span class="math inline">\((\nu,R,r)\)</span>, its stabilized matrix is row-stochastic and satisfies <span class="math display">\[P(R)_{ij}\ge\frac{1-\lambda}{4}.\]</span> The common uniform component cancels between rows, so <span class="math display">\[\begin{aligned}
+\delta(P(R))
+&amp;=
+\lambda\delta(R)\\
+&amp;\le
+\lambda\left(\alpha+\frac6{M_{\mathrm{grid}}}\right)
+=
+\alpha.
+\end{aligned}\]</span> The same uniform minorization gives, for probability rows <span class="math inline">\(\mu,\mu&#39;\)</span>, <span class="math display">\[\|\mu P(R)-\mu&#39;P(R)\|_{\mathrm{TV}}
+\le
+\lambda\|\mu-\mu&#39;\|_{\mathrm{TV}}.\]</span> Since <span class="math inline">\(\lambda&lt;1\)</span>, contraction on the finite probability simplex supplies a stationary probability row: <span class="math display">\[\pi(P(R))P(R)=\pi(P(R)),
+\qquad
+\pi(P(R))_i\ge0,
+\qquad
+\sum_{i=1}^{4}\pi(P(R))_i=1.\]</span></p>
+<p>Write the selected quantities as in Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a>: <span class="math display">\[(\nu_*,R_*,r_*)\in\mathcal C_{M_{\mathrm{grid}}},
+\qquad
+P_*:=P(R_*),
+\qquad
+\widehat\theta_T=\pi(P_*)r_*.\]</span> The experiment’s class conditions give a row-stochastic <span class="math inline">\(P_e\)</span>, probability rows <span class="math inline">\(d_b,d_e\)</span>, and a unit-range reward vector: <span class="math display">\[P_e(i,j)\ge0,\quad \sum_jP_e(i,j)=1,
+\qquad
+d_b(i),d_e(i)\ge0,\quad \sum_id_b(i)=\sum_id_e(i)=1,\]</span> <span class="math display">\[d_eP_e=d_e,
+\qquad
+0\le r_e(i)\le1.\]</span> Applying Assumption <a class="objref" href="#obj-ass:target-contraction">6</a> to point masses gives <span class="math display">\[\delta(P_e)
+=
+\max_{i,j}\frac12\sum_s|P_e(i,s)-P_e(j,s)|
+\le\alpha.\]</span> Together with <span class="math inline">\(\theta=d_er_e\)</span> from Definition <a class="objref" href="#obj-def:target-value">2</a>, these facts discharge the hypotheses of Lemma <a class="objref" href="#obj-lem:pair-polynomial-modulus">1</a>. Its value bound is <span class="math display">\[\begin{aligned}
+|\widehat\theta_T-\theta|
+&amp;\le
+B_\alpha
+\max_{0\le k\le6}
+|\nu_*P_*^kr_*-d_bP_e^kr_e|\\
+&amp;=
+B_\alpha
+\max_{0\le k\le6}
+|\nu_*P_*^kr_*-m_k|.
+\end{aligned}\]</span></p></li>
+<li><p>Construct an approximating candidate by rounding. For every probability row <span class="math inline">\(\mu\)</span> on the four coordinates, define <span class="math display">\[\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i
+:=
+\begin{cases}
+\lfloor M_{\mathrm{grid}}\mu_i\rfloor/M_{\mathrm{grid}},
+ &amp;i=1,2,3,\\[2mm]
+1-\displaystyle\sum_{j=1}^{3}
+ \lfloor M_{\mathrm{grid}}\mu_j\rfloor/M_{\mathrm{grid}},
+ &amp;i=4.
+\end{cases}\]</span> The first three coordinates are rounded down, and their sum is at most one. The fourth coordinate is therefore nonnegative, is a grid multiple, and makes the total mass one. For <span class="math inline">\(i=1,2,3\)</span>, <span class="math display">\[0\le
+\mu_i-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i
+\le\frac1{M_{\mathrm{grid}}},\]</span> while <span class="math display">\[\mu_4-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_4
+=
+-\sum_{i=1}^{3}
+ \left(\mu_i-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i\right).\]</span> Consequently, <span class="math display">\[\begin{aligned}
+\|\mu-\mathcal R_{\mathrm{grid}}(\mu)\|_{\mathrm{TV}}
+&amp;=
+\frac12\sum_{i=1}^{4}
+ \left|\mu_i-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i\right|\\
+&amp;=
+\sum_{i=1}^{3}
+ \left(\mu_i-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i\right)
+\le\frac3{M_{\mathrm{grid}}}.
+\end{aligned}\]</span></p>
+<p>Define the rounded initial row, transition rows, and rewards by <span class="math display">\[\nu_{\mathrm{grid}}:=\mathcal R_{\mathrm{grid}}(d_b),
+\qquad
+R_{\mathrm{grid}}(i,\cdot)
+:=
+\mathcal R_{\mathrm{grid}}(P_e(i,\cdot)),
+\qquad
+r_{\mathrm{grid}}(i)
+:=
+\frac{\lfloor M_{\mathrm{grid}}r_e(i)\rfloor}{M_{\mathrm{grid}}}.\]</span> They satisfy <span class="math display">\[\|\nu_{\mathrm{grid}}-d_b\|_{\mathrm{TV}}
+\le\frac3{M_{\mathrm{grid}}},
+\qquad
+\max_i\|R_{\mathrm{grid}}(i,\cdot)-P_e(i,\cdot)\|_{\mathrm{TV}}
+\le\frac3{M_{\mathrm{grid}}},\]</span> <span class="math display">\[0\le r_{\mathrm{grid}}(i)\le1,
+\qquad
+0\le r_e(i)-r_{\mathrm{grid}}(i)
+\le\frac1{M_{\mathrm{grid}}}.\]</span> For each pair of rows, the triangle inequality gives <span class="math display">\[\begin{aligned}
+\|R_{\mathrm{grid}}(i,\cdot)-R_{\mathrm{grid}}(j,\cdot)\|_{\mathrm{TV}}
+&amp;\le
+\|R_{\mathrm{grid}}(i,\cdot)-P_e(i,\cdot)\|_{\mathrm{TV}}\\
+&amp;\quad+
+\|P_e(i,\cdot)-P_e(j,\cdot)\|_{\mathrm{TV}}\\
+&amp;\quad+
+\|P_e(j,\cdot)-R_{\mathrm{grid}}(j,\cdot)\|_{\mathrm{TV}}\\
+&amp;\le\alpha+\frac6{M_{\mathrm{grid}}}.
+\end{aligned}\]</span> Taking the maximum over the row pair proves <span class="math display">\[\delta(R_{\mathrm{grid}})
+\le\alpha+\frac6{M_{\mathrm{grid}}},
+\qquad
+(\nu_{\mathrm{grid}},R_{\mathrm{grid}},r_{\mathrm{grid}})
+\in\mathcal C_{M_{\mathrm{grid}}}.\]</span></p></li>
+<li><p>Define the stabilized approximating matrix by <span class="math display">\[P_{\mathrm{grid}}
+:=
+P(R_{\mathrm{grid}})
+=
+\lambda R_{\mathrm{grid}}+(1-\lambda)U.\]</span> For every row, its distance from the uniform probability row is at most one. Also, <span class="math display">\[1-\lambda
+=
+\frac{6/M_{\mathrm{grid}}}{\alpha+6/M_{\mathrm{grid}}}
+\le\frac6{\alpha M_{\mathrm{grid}}}.\]</span> It follows that <span class="math display">\[\begin{aligned}
+\|R_{\mathrm{grid}}(i,\cdot)-P_{\mathrm{grid}}(i,\cdot)\|_{\mathrm{TV}}
+&amp;=
+(1-\lambda)
+\|R_{\mathrm{grid}}(i,\cdot)-U(i,\cdot)\|_{\mathrm{TV}}\\
+&amp;\le\frac6{\alpha M_{\mathrm{grid}}},
+\end{aligned}\]</span> and hence <span class="math display">\[\|P_e(i,\cdot)-P_{\mathrm{grid}}(i,\cdot)\|_{\mathrm{TV}}
+\le
+\frac{3+6/\alpha}{M_{\mathrm{grid}}}.\]</span></p>
+<p>For every integer <span class="math inline">\(k\ge0\)</span>, stochasticity and the reward bounds imply <span class="math display">\[0\le(P_e^kr_e)(i)\le1.\]</span> Integration of a <span class="math inline">\([0,1]\)</span>-valued function against the difference of two probability rows is bounded by their total variation distance: centering that function at <span class="math inline">\(1/2\)</span> gives this bound directly. We claim <span class="math display">\[\|P_e^kr_e-P_{\mathrm{grid}}^kr_{\mathrm{grid}}\|_\infty
+\le
+\frac{k(3+6/\alpha)+1}{M_{\mathrm{grid}}},
+\qquad k\ge0.\]</span> For <span class="math inline">\(k=0\)</span>, this is the reward-rounding bound. At the induction step, insert <span class="math inline">\(P_{\mathrm{grid}}P_e^kr_e\)</span> between the two expressions. The row approximation bound controls the first difference, and averaging the previous error with a stochastic row controls the second: <span class="math display">\[\begin{aligned}
+&amp;\|P_e^{k+1}r_e-P_{\mathrm{grid}}^{k+1}r_{\mathrm{grid}}\|_\infty\\
+&amp;\quad\le
+\|(P_e-P_{\mathrm{grid}})P_e^kr_e\|_\infty
++
+\|P_{\mathrm{grid}}
+ (P_e^kr_e-P_{\mathrm{grid}}^kr_{\mathrm{grid}})\|_\infty\\
+&amp;\quad\le
+\frac{3+6/\alpha}{M_{\mathrm{grid}}}
++
+\|P_e^kr_e-P_{\mathrm{grid}}^kr_{\mathrm{grid}}\|_\infty\\
+&amp;\quad\le
+\frac{(k+1)(3+6/\alpha)+1}{M_{\mathrm{grid}}}.
+\end{aligned}\]</span> The initial-distribution error can now be separated from the power-and-reward error: <span class="math display">\[\begin{aligned}
+|m_k-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|
+&amp;=
+|d_bP_e^kr_e-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|\\
+&amp;\le
+|(d_b-\nu_{\mathrm{grid}})P_e^kr_e|
++
+|\nu_{\mathrm{grid}}
+ (P_e^kr_e-P_{\mathrm{grid}}^kr_{\mathrm{grid}})|\\
+&amp;\le
+\frac3{M_{\mathrm{grid}}}
++
+\frac{k(3+6/\alpha)+1}{M_{\mathrm{grid}}}\\
+&amp;=
+\frac{4+k(3+6/\alpha)}{M_{\mathrm{grid}}}.
+\end{aligned}\]</span> For <span class="math inline">\(0\le k\le6\)</span>, the coefficient and ceiling calibration give <span class="math display">\[4+k(3+6/\alpha)\le22+36/\alpha,
+\qquad
+(22+36/\alpha)T\le M_{\mathrm{grid}},\]</span> so <span class="math display">\[|m_k-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|
+\le
+\frac{22+36/\alpha}{M_{\mathrm{grid}}}
+\le\frac1T.\]</span></p></li>
+<li><p>Fix an observed trajectory <span class="math inline">\(w\)</span>. The approximating candidate has empirical discrepancy bounded by <span class="math display">\[\begin{aligned}
+\max_{0\le k\le6}
+|\widehat m_k(w)-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|
+&amp;\le
+\max_{0\le k\le6}|\widehat m_k(w)-m_k|\\
+&amp;\quad+
+\max_{0\le k\le6}
+|m_k-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|\\
+&amp;\le\epsilon_T(w)+T^{-1}.
+\end{aligned}\]</span> Because the selected candidate minimizes this discrepancy, <span class="math display">\[\max_{0\le k\le6}
+|\widehat m_k(w)-\nu_*P_*^kr_*|
+\le\epsilon_T(w)+T^{-1}.\]</span> Applying the triangle inequality once more gives <span class="math display">\[\begin{aligned}
+\max_{0\le k\le6}|\nu_*P_*^kr_*-m_k|
+&amp;\le
+\max_{0\le k\le6}|\nu_*P_*^kr_*-\widehat m_k(w)|
++\epsilon_T(w)\\
+&amp;\le2\epsilon_T(w)+T^{-1}.
+\end{aligned}\]</span> Combining this with the value modulus obtained above yields <span class="math display">\[|\widehat\theta_T(w)-\theta|
+\le
+B_\alpha(2\epsilon_T(w)+T^{-1}).\]</span> The right-hand side is nonnegative, so squaring preserves the inequality. Moreover, <span class="math inline">\((2\epsilon_T(w)-T^{-1})^2\ge0\)</span> gives <span class="math display">\[\begin{aligned}
+(\widehat\theta_T(w)-\theta)^2
+&amp;\le
+B_\alpha^2(2\epsilon_T(w)+T^{-1})^2\\
+&amp;\le
+B_\alpha^2\left(8\epsilon_T(w)^2+2T^{-2}\right).
+\end{aligned}\]</span></p></li>
+<li><p>The sampling and grid terms admit separate horizon bounds. Since <span class="math inline">\(V_{\alpha,L}\ge0\)</span> and <span class="math inline">\(T\le2n_T\)</span>, <span class="math display">\[56V_{\alpha,L}T
+\le112V_{\alpha,L}n_T.\]</span> Dividing by the positive product <span class="math inline">\(n_TT\)</span> gives <span class="math display">\[8\left(\frac{7V_{\alpha,L}}{n_T}\right)
+=
+\frac{56V_{\alpha,L}}{n_T}
+\le
+\frac{112V_{\alpha,L}}T.\]</span> Also, <span class="math inline">\(T\ge1\)</span> implies <span class="math inline">\(T^2\ge T&gt;0\)</span>, and therefore <span class="math display">\[T^{-2}\le T^{-1}.\]</span></p></li>
+<li><p>The pointwise upper bound is integrable by integrability of <span class="math inline">\(\epsilon_T^2\)</span>. Monotonicity of integration for the nonnegative squared loss, followed by linearity of expectation under a probability law, now gives <span class="math display">\[\begin{aligned}
+\mathbb E_M[(\widehat\theta_T-\theta)^2]
+&amp;\le
+\mathbb E_M\!\left[
+ B_\alpha^2(8\epsilon_T^2+2T^{-2})
+\right]\\
+&amp;=
+B_\alpha^2\left(8\mathbb E_M[\epsilon_T^2]+2T^{-2}\right)\\
+&amp;\le
+B_\alpha^2\left(
+ 8\frac{7V_{\alpha,L}}{n_T}+2T^{-2}
+\right)\\
+&amp;\le
+B_\alpha^2\left(
+ \frac{112V_{\alpha,L}}T+\frac2T
+\right)\\
+&amp;=
+\frac{B_\alpha^2(112V_{\alpha,L}+2)}T.
+\end{aligned}\]</span> The fixed experiment was arbitrary, and every bound uses the same constants throughout the stated class.</p></li>
+</ol><span class="qed">∎</span></div>
+<div class="proof"><span class="env-label">Proof of Theorem <a class="objref" href="#obj-thm:fixed-binary-minimax">2</a>.</span><ol>
+<li><p>Define the two testing experiments, their target values, and their observed laws by <span class="math display">\[\begin{aligned}
+\mathsf M_\pm
+&amp;:=\text{the experiment of Definition <a class="objref" href="#obj-def:four-state-testing-family">5</a>
+with }v=\pm v_T,\\
+\theta_\pm&amp;:=\theta(K_{\pm v_T}^{(T)},e),\\
+\mathbb P_\pm^{\mathsf O_T}
+&amp;:=\mathcal L_{\mathsf M_\pm}(\mathsf O_T).
+\end{aligned}\]</span> By Lemma <a class="objref" href="#obj-lem:testing-family-membership">3</a>, <span class="math display">\[\mathsf M_\pm\in\mathcal M_T^{(2)}(t_0,\zeta),
+\qquad
+|\theta_+-\theta_-|=\frac1{8\sqrt T},
+\qquad
+\operatorname{KL}\!\left(
+\mathbb P_+^{\mathsf O_T}\Vert\mathbb P_-^{\mathsf O_T}
+\right)\leq\frac1{12},\]</span> and the relative entropy is finite. Both experiments supply the same fair behavior and target policies to the estimator.</p></li>
+<li><p>Fix an admissible estimator <span class="math inline">\(\widetilde\theta\)</span> from Definition <a class="objref" href="#obj-def:minimax-risk">4</a>. Because its supplied policies agree across the pair, it is the same measurable function of the observed trajectory in both experiments. Pinsker’s inequality gives <span class="math display">\[\left\|\mathbb P_+^{\mathsf O_T}
+-\mathbb P_-^{\mathsf O_T}\right\|_{\mathrm{TV}}
+\leq
+\sqrt{\frac{
+\operatorname{KL}(\mathbb P_+^{\mathsf O_T}
+\Vert\mathbb P_-^{\mathsf O_T})}{2}}
+\leq\sqrt{\frac1{24}}\leq\frac14.\]</span> Define the error threshold and the two measurable error events by <span class="math display">\[\varepsilon_{\mathrm{test}}:=\frac1{16\sqrt T},
+\qquad
+\mathcal E_\pm:=
+\left\{|\widetilde\theta-\theta_\pm|
+\geq\varepsilon_{\mathrm{test}}\right\}.\]</span> Then <span class="math display">\[|\theta_+-\theta_-|=2\varepsilon_{\mathrm{test}},
+\qquad
+\mathcal E_+^{\mathsf c}\subseteq\mathcal E_-,\]</span> where the inclusion follows from the triangle inequality. Consequently, <span class="math display">\[\begin{aligned}
+\mathbb P_+^{\mathsf O_T}(\mathcal E_+)
++\mathbb P_-^{\mathsf O_T}(\mathcal E_-)
+&amp;\geq
+\mathbb P_+^{\mathsf O_T}(\mathcal E_+)
++\mathbb P_-^{\mathsf O_T}(\mathcal E_+^{\mathsf c})\\
+&amp;\geq
+1-\left\|\mathbb P_+^{\mathsf O_T}
+-\mathbb P_-^{\mathsf O_T}\right\|_{\mathrm{TV}}
+\geq\frac34.
+\end{aligned}\]</span> Thus <span class="math display">\[\max\left\{
+\mathbb P_+^{\mathsf O_T}(\mathcal E_+),
+\mathbb P_-^{\mathsf O_T}(\mathcal E_-)
+\right\}\geq\frac38.\]</span> For each sign, integrating the pointwise inequality <span class="math display">\[(\widetilde\theta-\theta_\pm)^2
+\geq\varepsilon_{\mathrm{test}}^2\mathbf1_{\mathcal E_\pm}\]</span> gives <span class="math display">\[\mathbb E_{\mathsf M_\pm}
+[(\widetilde\theta-\theta_\pm)^2]
+\geq
+\varepsilon_{\mathrm{test}}^2
+\mathbb P_\pm^{\mathsf O_T}(\mathcal E_\pm).\]</span> If the positive-sign error probability is at most the negative-sign error probability, apply this inequality to the negative sign; in the opposite case, apply it to the positive sign. In either case, <span class="math display">\[\begin{aligned}
+\max\left\{
+\mathbb E_{\mathsf M_+}[(\widetilde\theta-\theta_+)^2],
+\mathbb E_{\mathsf M_-}[(\widetilde\theta-\theta_-)^2]
+\right\}
+&amp;\geq\frac38\varepsilon_{\mathrm{test}}^2\\
+&amp;=\frac3{2048T}
+\geq\frac1{1024T},
+\end{aligned}\]</span> using <span class="math inline">\((\sqrt T)^2=T&gt;0\)</span>.</p></li>
+<li><p>For any admissible experiment <span class="math inline">\(\mathsf M\)</span>, define its risk by <span class="math display">\[\mathcal R(\widetilde\theta,\mathsf M)
+:=
+\mathbb E_{\mathsf M}[(\widetilde\theta-\theta)^2],
+\qquad
+\mathsf M\in\mathcal M_T^{(2)}(t_0,\zeta).\]</span> The target value in Definition <a class="objref" href="#obj-def:target-value">2</a> is a stationary average of rewards in <span class="math inline">\([0,1]\)</span>. Since the estimator also takes values in <span class="math inline">\([0,1]\)</span>, <span class="math display">\[0\leq\theta\leq1,
+\qquad
+0\leq(\widetilde\theta-\theta)^2\leq1,
+\qquad
+0\leq\mathcal R(\widetilde\theta,\mathsf M)\leq1.\]</span> Thus every estimator’s risks are bounded above over the class. The estimator family is nonempty, as witnessed by the constant estimator <span class="math display">\[\widetilde\theta_0\equiv0.\]</span> Membership of the testing pair and the preceding two-point bound therefore give <span class="math display">\[\begin{aligned}
+R_T^{(2)}(t_0,\zeta)
+&amp;=\inf_{\widetilde\theta}
+\sup_{\mathsf M\in\mathcal M_T^{(2)}(t_0,\zeta)}
+\mathcal R(\widetilde\theta,\mathsf M)\\
+&amp;\geq
+\inf_{\widetilde\theta}
+\max\left\{
+\mathcal R(\widetilde\theta,\mathsf M_+),
+\mathcal R(\widetilde\theta,\mathsf M_-)
+\right\}
+\geq\frac1{1024T}.
+\end{aligned}\]</span></p></li>
+<li><p>Use the stable-grid estimator of Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a>. Its selected reward vector and stationary probability vector satisfy <span class="math display">\[0\leq r_*\leq\mathbf1,
+\qquad
+\pi(P_*)\geq0,
+\qquad
+\pi(P_*)\mathbf1=1.\]</span> Hence <span class="math display">\[0\leq\widehat\theta_T
+=\pi(P_*)r_*
+\leq\pi(P_*)\mathbf1=1.\]</span> The finite candidate selection uses measurable comparison events, and the selected stationary reward is therefore measurable for each pair of supplied policies. This makes <span class="math inline">\(\widehat\theta_T\)</span> admissible in Definition <a class="objref" href="#obj-def:minimax-risk">4</a>. By Theorem <a class="objref" href="#obj-thm:stable-grid-upper">1</a>, <span class="math display">\[\mathcal R(\widehat\theta_T,\mathsf M)
+\leq\frac{B_\alpha^2(112V_{\alpha,L}+2)}{T}
+\qquad
+\text{for every }\mathsf M\in\mathcal M_T^{(2)}(t_0,\zeta).\]</span> The class is nonempty because it contains <span class="math inline">\(\mathsf M_+\)</span>. Nonnegativity of the risks and the defining infimum and supremum now yield <span class="math display">\[R_T^{(2)}(t_0,\zeta)
+\leq
+\sup_{\mathsf M\in\mathcal M_T^{(2)}(t_0,\zeta)}
+\mathcal R(\widehat\theta_T,\mathsf M)
+\leq\frac{B_\alpha^2(112V_{\alpha,L}+2)}{T}.\]</span></p></li>
+<li><p>The remaining assertions about the binary testing pair follow from Lemma <a class="objref" href="#obj-lem:testing-family-membership">3</a>: <span class="math display">\[e(a\mid x)=b(a\mid x)=\frac12,
+\qquad d_e=d_b,\]</span> and, for every <span class="math inline">\(C&gt;1\)</span>, <span class="math display">\[d_e(s)\leq C\,d_b(s)
+\qquad\text{for every }s\in\mathcal S.\]</span> Together with the estimator-wise two-point risk bound, these establish all the stated properties of the pair.</p></li>
+<li><p>Suppose now that <span class="math inline">\(\zeta&gt;0\)</span>, and fix <span class="math inline">\(C&gt;1\)</span>. Use the theorem’s notation <span class="math display">\[\beta=\frac2{2+t_0\zeta},
+\qquad
+q_C=\frac{C-1}{C}.\]</span> The cited cardinality-uniform result supplies its signed-depth lower construction (<span>CausalSmith</span>, 2026). Specifically, there are <span class="math display">\[c_{\mathrm{Reset}}&gt;0,\qquad
+Q:\mathbb N\to\mathbb N,\qquad a_1,a_2&gt;0\]</span> such that, for every sufficiently large <span class="math inline">\(n\)</span>, <span class="math display">\[a_1\log n\leq Q(n)\leq a_2\log n,
+\qquad n\geq1,\qquad Q(n)\geq1.\]</span> For these <span class="math inline">\(n\)</span>, define <span class="math display">\[\begin{aligned}
+\mathsf M_{n,\pm}^{\mathrm{Reset}}
+&amp;:=\text{the signed depth-}Q(n)\text{ reset experiments},\\
+\theta_{n,\pm}^{\mathrm{Reset}}
+&amp;:=\text{their respective stationary target values}.
+\end{aligned}\]</span> Each experiment has exactly <span class="math inline">\(2(Q(n)+1)\)</span> hidden states. For every admissible observable-data estimator <span class="math inline">\(\widetilde\theta_{\mathrm{Reset}}\)</span> in the reset decision problem, with values in <span class="math inline">\([-1,1]\)</span>, the cited construction gives <span class="math display">\[\max\left\{
+\mathbb E_{\mathsf M_{n,-}^{\mathrm{Reset}}}
+[(\widetilde\theta_{\mathrm{Reset}}
+-\theta_{n,-}^{\mathrm{Reset}})^2],
+\mathbb E_{\mathsf M_{n,+}^{\mathrm{Reset}}}
+[(\widetilde\theta_{\mathrm{Reset}}
+-\theta_{n,+}^{\mathrm{Reset}})^2]
+\right\}
+\geq c_{\mathrm{Reset}}n^{-\beta}.\]</span> Finally, the same eventual condition <span class="math inline">\(Q(n)\geq1\)</span> gives <span class="math display">\[2(Q(n)+1)\geq4&gt;2,\]</span> which proves the asserted cardinality inequality for the negative-sign experiment.</p></li>
+<li><p>Since <span class="math inline">\(t_0\zeta&gt;0\)</span>, <span class="math display">\[2+t_0\zeta&gt;2&gt;0,
+\qquad
+0&lt;\beta=\frac2{2+t_0\zeta}&lt;1,
+\qquad
+1-\beta&gt;0.\]</span> Also, <span class="math inline">\(C&gt;1\)</span> implies <span class="math display">\[q_C&gt;0,
+\qquad q_C^{\,2(1-\beta)}&gt;0.\]</span></p></li>
+<li><p>Along the positive natural numbers, the negative-power limit gives <span class="math display">\[n^{-(1-\beta)}\longrightarrow0.\]</span> Multiplication by the fixed constant <span class="math inline">\(q_C^{-2(1-\beta)}\)</span> preserves this limit. For every <span class="math inline">\(n\geq1\)</span>, the laws of real powers give <span class="math display">\[\frac{n^{-1}}{n^{-\beta}}
+=n^{\beta-1}=n^{-(1-\beta)},\]</span> and hence <span class="math display">\[\frac{n^{-1}}
+{n^{-\beta}q_C^{\,2(1-\beta)}}
+=
+n^{-(1-\beta)}q_C^{-2(1-\beta)}
+\longrightarrow0.\]</span> This proves the claimed limit and completes the proof.</p></li>
+</ol><span class="qed">∎</span></div>
+<div class="proof"><span class="env-label">Proof of Proposition <a class="objref" href="#obj-prop:coincident-policy-reduction">1</a>.</span><p>We use epochs <span class="math inline">\(1,\ldots,T\)</span>, shifting the zero-based epochs of Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a> by one. Every sum over an empty range is understood to be zero.</p>
+<ol>
+<li><p>Since <span class="math inline">\(e=b\)</span>, substitution in the policy-induced transition matrices gives, for every <span class="math inline">\(s=(x,h)\in\mathcal S\)</span> and <span class="math inline">\(s&#39;\in\mathcal S\)</span>, <span class="math display">\[P_e(s,s&#39;)
+=
+\sum_{a\in\{0,1\}}e(a\mid x)
+   \int_{[0,1]}K(dy,s&#39;\mid s,a)
+=
+\sum_{a\in\{0,1\}}b(a\mid x)
+   \int_{[0,1]}K(dy,s&#39;\mid s,a)
+=
+P_b(s,s&#39;).\]</span> The stationary-law assignment evaluated at these identical matrices likewise gives <span class="math display">\[d_e=d_b.\]</span></p></li>
+<li><p>We first verify membership in the class of Definition <a class="objref" href="#obj-def:binary-pomdp-class">1</a> at logarithmic overlap parameter <span class="math inline">\(\zeta=0\)</span>. Sequential assignment and <span class="math inline">\(e=b\)</span> give <span class="math display">\[e(a\mid x)=b(a\mid x)\geq0,
+\qquad
+\sum_{a\in\{0,1\}}e(a\mid x)=1,
+\qquad
+e(a\mid x)\leq \exp(0)b(a\mid x)=b(a\mid x).\]</span> Thus Assumption <a class="objref" href="#obj-ass:policy-overlap">4</a> holds with <span class="math inline">\(L=1\)</span>. Moreover, for every <span class="math inline">\(\mu,\mu&#39;\in\Delta(\mathcal S)\)</span>, <span class="math display">\[\|\mu P_e-\mu&#39;P_e\|_{\mathrm{TV}}
+=
+\|\mu P_b-\mu&#39;P_b\|_{\mathrm{TV}}
+\leq
+\alpha\|\mu-\mu&#39;\|_{\mathrm{TV}},\]</span> so Assumption <a class="objref" href="#obj-ass:target-contraction">6</a> follows from Assumption <a class="objref" href="#obj-ass:behavior-contraction">5</a>. Together with the remaining hypotheses, these facts establish membership in <span class="math inline">\(\mathcal M_T^{(2)}(t_0,0)\)</span>.</p>
+<p>Write the target-policy conditional mean reward vector as <span class="math display">\[r_e(s):=
+\sum_{a\in\{0,1\}}e(a\mid x)
+\sum_{s&#39;\in\mathcal S}\int_{[0,1]}y\,K(dy,s&#39;\mid s,a),
+\qquad s=(x,h)\in\mathcal S.\]</span> Applying Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a> at depth zero gives, at every observed epoch, <span class="math display">\[m_0=d_bP_e^0r_e=d_br_e=d_er_e=\theta,\]</span> where the last equality is Definition <a class="objref" href="#obj-def:target-value">2</a>.</p></li>
+<li><p>To identify this moment with the ordinary reward mean, define the observed action likelihood ratio and depth-zero score by <span class="math display">\[\rho_t:=
+\begin{cases}
+e(A_t\mid X_t)/b(A_t\mid X_t),&amp; b(A_t\mid X_t)&gt;0,\\
+0,&amp; b(A_t\mid X_t)=0,
+\end{cases}
+\qquad
+Z_t(0):=Y_t\rho_t,
+\qquad 1\leq t\leq T.\]</span> Here probability and expectation are taken under the behavior experiment. By Assumption <a class="objref" href="#obj-ass:sequential-ignorability">2</a>, <span class="math display">\[\Pr_b\!\left(b(A_t\mid X_t)=0\right)
+=
+\mathbb E_b\!\left[
+\sum_{\substack{a\in\{0,1\}\\ b(a\mid X_t)=0}}
+b(a\mid X_t)
+\right]
+=0.\]</span> On the complementary event, <span class="math inline">\(e=b\)</span> gives <span class="math inline">\(\rho_t=1\)</span>. Consequently, <span class="math display">\[Z_t(0)=Y_t\quad\text{almost surely},
+\qquad
+\mathbb E_b[Y_t]
+=
+\mathbb E_b[Z_t(0)]
+=
+m_0
+=
+\theta.\]</span></p></li>
+<li><p>Define the sample mean by <span class="math display">\[\overline Y_T:=T^{-1}\sum_{t=1}^{T}Y_t.\]</span> The bounded rewards are integrable, so linearity of expectation and <span class="math inline">\(T\geq1\)</span> yield <span class="math display">\[\mathbb E_b[\overline Y_T]
+=
+T^{-1}\sum_{t=1}^{T}\mathbb E_b[Y_t]
+=
+T^{-1}T\theta
+=
+\theta.\]</span></p></li>
+<li><p>The reward support and Assumption <a class="objref" href="#obj-ass:pomdp-kernel">1</a> give <span class="math display">\[\Pr_b(Y_t\in[0,1])
+=
+\mathbb E_b\!\left[
+K([0,1]\times\mathcal S\mid S_t,A_t)
+\right]
+=1.\]</span> Thus every reward is square integrable. For square-integrable real random variables <span class="math inline">\(W_1,W_2\)</span> under the behavior law, use <span class="math display">\[\operatorname{Cov}_b(W_1,W_2)
+:=
+\mathbb E_b\!\left[
+(W_1-\mathbb E_b[W_1])(W_2-\mathbb E_b[W_2])
+\right],
+\qquad
+\operatorname{Var}_b(W_1)
+:=
+\operatorname{Cov}_b(W_1,W_1).\]</span> Since <span class="math inline">\(t_0&gt;0\)</span>, <span class="math display">\[0\leq\alpha=\exp(-1/t_0)&lt;1.\]</span> Also <span class="math inline">\(Y_t^2\leq1\)</span> almost surely, and hence <span class="math display">\[\mathbb E_b[Y_t^2]\leq\mathbb E_b[1]=1,
+\qquad
+\operatorname{Cov}_b(Y_t,Y_t)
+=
+\mathbb E_b[Y_t^2]-(\mathbb E_b[Y_t])^2
+\leq1.\]</span></p></li>
+<li><p>Expanding the variance of the reward sum gives <span class="math display">\[\operatorname{Var}_b\!\left(\sum_{t=1}^{T}Y_t\right)
+=
+\sum_{t=1}^{T}\sum_{u=1}^{T}
+\operatorname{Cov}_b(Y_t,Y_u).\]</span> For <span class="math inline">\(1\leq t&lt;u\leq T\)</span>, Lemma <a class="objref" href="#obj-lem:observable-intervention-moments">2</a>, applied at depth zero in the class established above, supplies <span class="math display">\[\left|
+\mathbb E_b\!\left[
+(Z_t(0)-m_0)(Z_u(0)-m_0)
+\right]
+\right|
+\leq\alpha^{u-t-1}.\]</span> Using the almost-sure score identities and reward means already established, <span class="math display">\[\operatorname{Cov}_b(Y_t,Y_u)
+=
+\mathbb E_b\!\left[
+(Z_t(0)-m_0)(Z_u(0)-m_0)
+\right],\]</span> and therefore <span class="math display">\[\operatorname{Cov}_b(Y_t,Y_u)
+\leq
+\left|\operatorname{Cov}_b(Y_t,Y_u)\right|
+\leq\alpha^{u-t-1}.\]</span></p>
+<p>To bound each covariance row, first use the finite geometric identity <span class="math display">\[(1-\alpha)\sum_{\ell=0}^{T-1}\alpha^\ell
+=
+1-\alpha^T
+\leq1,
+\qquad
+\sum_{\ell=0}^{T-1}\alpha^\ell
+\leq\frac1{1-\alpha}.\]</span> Here <span class="math inline">\(\ell\)</span> is a nonnegative integer exponent. For fixed <span class="math inline">\(t\)</span>, the exponent maps <span class="math inline">\(u\mapsto t-u-1\)</span> on <span class="math inline">\(1\leq u&lt;t\)</span> and <span class="math inline">\(u\mapsto u-t-1\)</span> on <span class="math inline">\(t&lt;u\leq T\)</span> are injective and take values in <span class="math inline">\(\{0,\ldots,T-1\}\)</span>. Because all powers of <span class="math inline">\(\alpha\)</span> are nonnegative, symmetry of covariance gives <span class="math display">\[\begin{aligned}
+\sum_{u=1}^{t-1}\operatorname{Cov}_b(Y_t,Y_u)
+&amp;=
+\sum_{u=1}^{t-1}\operatorname{Cov}_b(Y_u,Y_t)
+\leq
+\sum_{u=1}^{t-1}\alpha^{t-u-1}
+\leq
+\sum_{\ell=0}^{T-1}\alpha^\ell
+\leq\frac1{1-\alpha},\\
+\sum_{u=t+1}^{T}\operatorname{Cov}_b(Y_t,Y_u)
+&amp;\leq
+\sum_{u=t+1}^{T}\alpha^{u-t-1}
+\leq
+\sum_{\ell=0}^{T-1}\alpha^\ell
+\leq\frac1{1-\alpha}.
+\end{aligned}\]</span> These inequalities include the empty past or future ranges at the endpoints. Splitting the row into its diagonal, past, and future parts now yields <span class="math display">\[\begin{aligned}
+\sum_{u=1}^{T}\operatorname{Cov}_b(Y_t,Y_u)
+&amp;=
+\operatorname{Cov}_b(Y_t,Y_t)
++\sum_{u=1}^{t-1}\operatorname{Cov}_b(Y_t,Y_u)
++\sum_{u=t+1}^{T}\operatorname{Cov}_b(Y_t,Y_u)\\
+&amp;\leq1+\frac2{1-\alpha}.
+\end{aligned}\]</span> Summing over <span class="math inline">\(t\)</span> proves <span class="math display">\[\operatorname{Var}_b\!\left(\sum_{t=1}^{T}Y_t\right)
+\leq
+T\left(1+\frac2{1-\alpha}\right).\]</span></p></li>
+<li><p>Finally, unbiasedness identifies the mean squared error with the variance. Rescaling the preceding bound, using <span class="math inline">\(T&gt;0\)</span>, gives <span class="math display">\[\begin{aligned}
+\mathbb E_b\!\left[(\overline Y_T-\theta)^2\right]
+&amp;=
+\operatorname{Var}_b(\overline Y_T)\\
+&amp;=
+T^{-2}\operatorname{Var}_b\!\left(\sum_{t=1}^{T}Y_t\right)\\
+&amp;\leq
+T^{-2}T\left(1+\frac2{1-\alpha}\right)
+=
+\frac{1+2/(1-\alpha)}{T}.
+\end{aligned}\]</span></p></li>
+</ol><span class="qed">∎</span></div>
+<div class="proof"><span class="env-label">Proof of Proposition <a class="objref" href="#obj-prop:exhaustive-grid-arithmetic-complexity">2</a>.</span><p>We count integer-coordinate codes throughout, including at resolution zero.</p>
+<ol>
+<li><p>For <span class="math inline">\(M\in\mathbb Z_{\ge0}\)</span>, define the integer simplex grid by <span class="math display">\[\mathcal I_M
+:=
+\left\{
+(u_1,u_2,u_3,u_4)\in\{0,\ldots,M\}^{4}:
+\sum_{i=1}^{4}u_i=M
+\right\}.\]</span> Taking coordinate values gives a bijection between <span class="math inline">\(\mathcal I_M\)</span> and the nonnegative integer quadruples summing to <span class="math inline">\(M\)</span>: each coordinate of such a quadruple is at most its sum, hence at most <span class="math inline">\(M\)</span>. These quadruples are in turn in bijection with multisets of size <span class="math inline">\(M\)</span> on the four labels <span class="math inline">\(1,\ldots,4\)</span>, by assigning multiplicity <span class="math inline">\(u_i\)</span> to label <span class="math inline">\(i\)</span>. The multiset counting formula and binomial symmetry therefore give <span class="math display">\[|\mathcal I_M|
+=
+\binom{M+3}{M}
+=
+\binom{M+3}{3}.\]</span> This also covers <span class="math inline">\(M=0\)</span>, where the unique quadruple is <span class="math inline">\((0,0,0,0)\)</span>.</p></li>
+<li><p>Define the transition-row codes, reward codes, and unfiltered candidate codes by <span class="math display">\[\mathcal J_M:=\mathcal I_M^{4},
+\qquad
+\mathcal E_M:=\{0,\ldots,M\}^{4},
+\qquad
+\mathcal U_M:=\mathcal I_M\times
+   (\mathcal J_M\times\mathcal E_M).\]</span> A choice of four rows determines a unique transition array, and its rows recover the choice. Thus this correspondence is injective, and the product counting formula yields <span class="math display">\[|\mathcal J_M|
+=
+\prod_{i=1}^{4}|\mathcal I_M|
+=
+|\mathcal I_M|^{4}.\]</span></p>
+<p>Each reward coordinate has <span class="math inline">\(M+1\)</span> choices, so <span class="math display">\[|\mathcal E_M|=(M+1)^4.\]</span> The candidate enumeration is precisely the displayed Cartesian product: a triple determines, and is determined by, its initial-vector code, transition-row code, and reward code. Consequently, <span class="math display">\[|\mathcal U_M|
+=
+|\mathcal I_M|\,|\mathcal J_M|\,|\mathcal E_M|
+=
+|\mathcal I_M|^{5}(M+1)^4
+=
+\binom{M+3}{3}^{5}(M+1)^4.\]</span> For <span class="math inline">\(M\ge1\)</span>, coordinatewise division by <span class="math inline">\(M\)</span> gives the unfiltered grid triples.</p></li>
+<li><p>For a transition-row code <span class="math inline">\(\mathsf R=(\mathsf R_{ij})\in\mathcal J_M\)</span>, define its decoded transition candidate by <span class="math display">\[R_{ij}:=\frac{\mathsf R_{ij}}{M},
+\qquad 1\le i,j\le4,\]</span> with division by zero interpreted as zero. The contraction coefficient used for filtering is <span class="math display">\[\delta(R)
+:=
+\max_{1\le i,j\le4}
+\frac12\sum_{\ell=1}^{4}|R_{i\ell}-R_{j\ell}|.\]</span> For every <span class="math inline">\(M\in\mathbb Z_{\ge0}\)</span> and every <span class="math inline">\(\alpha\in\mathbb R\)</span>, define the retained codes by <span class="math display">\[\mathcal U_M^\alpha
+:=
+\left\{
+(u,\mathsf R,w)\in\mathcal U_M:
+\delta(R)\le\alpha+\frac6M
+\right\},\]</span> using the same division convention. For <span class="math inline">\(M\ge1\)</span>, coordinatewise division by <span class="math inline">\(M\)</span> identifies the retained codes <span class="math inline">\(\mathcal U_M^\alpha\)</span> with the candidate set in Algorithm <a class="objref" href="#obj-def:stable-grid-estimator">1</a>. This is a subset of <span class="math inline">\(\mathcal U_M\)</span>, so <span class="math display">\[|\mathcal U_M^\alpha|
+\le
+|\mathcal U_M|
+=
+\binom{M+3}{3}^{5}(M+1)^4.\]</span> In particular, at <span class="math inline">\(M=0\)</span> the decoded transition array is zero and the subset argument still applies.</p></li>
+<li><p>The standard binomial bound <span class="math display">\[\binom{M+3}{3}\le(M+3)^3\]</span> together with <span class="math inline">\(M+1\le M+3\)</span> gives <span class="math display">\[\begin{aligned}
+|\mathcal U_M|
+&amp;=\binom{M+3}{3}^{5}(M+1)^4\\
+&amp;\le \bigl((M+3)^3\bigr)^5(M+3)^4\\
+&amp;=(M+3)^{19}.
+\end{aligned}\]</span></p></li>
+<li><p>Now fix the mixing-scale parameter <span class="math inline">\(t_0&gt;0\)</span> and its associated contraction bound. Then <span class="math display">\[\alpha=\exp(-1/t_0)&gt;0.\]</span> Define <span class="math display">\[c:=(26+36/\alpha)^{19}&gt;0.\]</span> For an integer trajectory length <span class="math inline">\(T\ge1\)</span>, take <span class="math display">\[M:=\left\lceil(22+36/\alpha)T\right\rceil.\]</span> Since <span class="math inline">\((22+36/\alpha)T\ge0\)</span>, the ceiling bound gives <span class="math display">\[M&lt;(22+36/\alpha)T+1.\]</span> Adding three and using <span class="math inline">\(T\ge1\)</span>, we obtain <span class="math display">\[M+3
+&lt;
+(22+36/\alpha)T+4
+\le
+(26+36/\alpha)T,\]</span> and hence <span class="math display">\[M+3\le(26+36/\alpha)T.\]</span></p>
+<p>Both sides are nonnegative, so raising this inequality to the nineteenth power and applying the preceding cardinality bound yields <span class="math display">\[|\mathcal U_M|
+\le
+(M+3)^{19}
+\le
+\bigl((26+36/\alpha)T\bigr)^{19}
+=
+cT^{19}.\]</span> Finally, the filtering inequality gives <span class="math display">\[|\mathcal U_M^\alpha|
+\le
+|\mathcal U_M|
+\le
+cT^{19}.\]</span> The chosen constant depends on <span class="math inline">\(t_0\)</span> through <span class="math inline">\(\alpha\)</span> and is valid for every integer <span class="math inline">\(T\ge1\)</span>.</p></li>
+</ol><span class="qed">∎</span></div>
+<section class="references"><h2>References</h2><ul>
+<li id="ref-Robins1986">Robins, James M. (1986). A New Approach to Causal Inference in Mortality Studies with a Sustained Exposure Period---Application to Control of the Healthy Worker Survivor Effect. <em>Mathematical Modelling</em>. <a href="https://doi.org/10.1016/0270-0255(86)90088-6">doi</a></li>
+<li id="ref-Murphy2003">Murphy, Susan A. (2003). Optimal Dynamic Treatment Regimes. <em>Journal of the Royal Statistical Society: Series B</em>. <a href="https://doi.org/10.1111/1467-9868.00389">doi</a></li>
+<li id="ref-Puterman1994">Puterman, Martin L. (1994). Markov Decision Processes: Discrete Stochastic Dynamic Programming. <em>Wiley</em>. <a href="https://doi.org/10.1002/9780470316887">doi</a></li>
+<li id="ref-KallusUehara2022">Kallus, Nathan and Uehara, Masatoshi (2022). Efficiently Breaking the Curse of Horizon in Off-Policy Evaluation with Double Reinforcement Learning. <em>Operations Research</em>. <a href="https://doi.org/10.1287/opre.2021.2249">doi</a></li>
+<li id="ref-Mehrabi2024">Mehrabi, Mohammad and Wager, Stefan (2024). Off-Policy Evaluation in {Markov} Decision Processes under Weak Distributional Overlap. <em></em>. <a href="https://arxiv.org/abs/2402.08201">arXiv</a></li>
+<li id="ref-NairJiang2021">Nair, Yash and Jiang, Nan (2021). A Spectral Approach to Off-Policy Evaluation for {POMDPs}. <em></em>. <a href="https://arxiv.org/abs/2109.10502">arXiv</a></li>
+<li id="ref-ShiUeharaHuangJiang2022">Shi, Chengchun and Uehara, Masatoshi and Huang, Jiawei and Jiang, Nan (2022). A Minimax Learning Approach to Off-Policy Evaluation in Confounded Partially Observable {Markov} Decision Processes. <em>Proceedings of the 39th International Conference on Machine Learning</em>. <a href="https://arxiv.org/abs/2111.06784">arXiv</a></li>
+<li id="ref-Ho1966">Ho, B. L. and Kalman, Rudolf E. (1966). Editorial: Effective Construction of Linear State-Variable Models from Input/Output Functions. <em>Regelungstechnik</em>. <a href="https://doi.org/10.1524/auto.1966.14.112.545">doi</a></li>
+<li id="ref-Carlyle1971">Carlyle, Jack W. and Paz, Azaria (1971). Realizations by Stochastic Finite Automata. <em>Journal of Computer and System Sciences</em>. <a href="https://doi.org/10.1016/S0022-0000(71)80005-3">doi</a></li>
+<li id="ref-HsuKakadeZhang2012">Hsu, Daniel and Kakade, Sham M. and Zhang, Tong (2012). A Spectral Algorithm for Learning Hidden {Markov} Models. <em>Journal of Computer and System Sciences</em>. <a href="https://doi.org/10.1016/j.jcss.2011.12.025">doi</a></li>
+<li id="ref-AbrahamGassiatNaulet2023">Abraham, Kweku and Gassiat, Elisabeth and Naulet, Zacharie (2023). Fundamental Limits for Learning Hidden {Markov} Model Parameters. <em>IEEE Transactions on Information Theory</em>. <a href="https://doi.org/10.1109/TIT.2022.3213429">doi</a></li>
+<li id="ref-Tsybakov2009">Tsybakov, Alexandre B. (2009). Introduction to Nonparametric Estimation. <em>Springer</em>. <a href="https://doi.org/10.1007/b13794">doi</a></li>
+<li id="ref-Uehara2023">Uehara, Masatoshi and Kiyohara, Haruka and Bennett, Andrew and Chernozhukov, Victor and Jiang, Nan and Kallus, Nathan and Shi, Chengchun and Sun, Wen (2023). Future-Dependent Value-Based Off-Policy Evaluation in {POMDPs}. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2207.13081">arXiv</a></li>
+<li id="ref-Zhang2024">Zhang, Yuheng and Jiang, Nan (2024). On the Curses of Future and History in Future-dependent Value Functions for Off-policy Evaluation. <em>Advances in Neural Information Processing Systems</em>. <a href="https://arxiv.org/abs/2402.14703">arXiv</a></li>
+<li id="ref-HuWager2023">Hu, Yuchen and Wager, Stefan (2023). Off-Policy Evaluation in Partially Observed {Markov} Decision Processes under Sequential Ignorability. <em>The Annals of Statistics</em>. <a href="https://doi.org/10.1214/23-AOS2287">doi</a></li>
+<li id="ref-CausalSmithLatentOverlap2026">{CausalSmith} (2026). Latent Stationary Overlap and Minimax Off-Policy Evaluation in Finite {POMDPs}. <em></em>.</li>
+</ul></section>

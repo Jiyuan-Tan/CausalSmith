@@ -1,0 +1,982 @@
+% DERIVED from formal_layer.json — read-only, do not edit.
+\begin{assumptionv}{ass:uniform-draw}[Independent uniform covariate sample]
+The covariate sample \(X=(X_1,\ldots,X_n)\) satisfies
+\[
+\operatorname{Law}(X)=\operatorname{Unif}([0,1]^d)^{\otimes n}.
+\]
+\end{assumptionv}
+
+\begin{definitionv}{synth_1}[Canonical main and pair effects]
+Let \(d\geq2\) and let \(m:[0,1]^d\to\mathbb R\) be a finite-valued Borel function in \(L^2([0,1]^d)\) with Lebesgue integral zero. Its canonical main and pair effects are
+\[
+g_j(m)(x_j)
+=\int_{[0,1]^{d-1}}m(x_j,u_{-j})\,du_{-j},
+\qquad 1\leq j\leq d,
+\]
+and
+\[
+g_{j\ell}(m)(x_j,x_\ell)
+=\int_{[0,1]^{d-2}}
+m(x_j,x_\ell,u_{-\{j,\ell\}})\,du_{-\{j,\ell\}}
+-g_j(m)(x_j)-g_\ell(m)(x_\ell),
+\qquad j<\ell.
+\]
+The integration arguments fill the remaining coordinates in their original order; a zero-dimensional integral is evaluation. These formulas define equivalence classes almost everywhere. Their centering convention is
+\[
+\int_0^1g_j(m)(v)\,dv=0,
+\qquad
+\int_0^1g_{j\ell}(m)(v,x_\ell)\,dv=0,
+\qquad
+\int_0^1g_{j\ell}(m)(x_j,v)\,dv=0,
+\]
+where the last two equalities hold for almost every remaining argument. Whenever \(m\) admits an exact order-two decomposition into square-integrable main and pair effects, these centering conditions determine its components uniquely up to Lebesgue null sets.
+\end{definitionv}
+
+\begin{assumptionv}{ass:order-two}[Exact order-two decomposition]
+The prognostic function \(m\) has the decomposition
+\[
+m(x)=\sum_{j=1}^d g_j(m)(x_j)
++\sum_{j<\ell}g_{j\ell}(m)(x_j,x_\ell)
+\]
+for Lebesgue-almost every \(x\in[0,1]^d\), where \(g_j(m)\) and \(g_{j\ell}(m)\) are its canonical main and pair effects, respectively.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:pooled-budget}[Pooled component Sobolev budget]
+The canonical main effects \(g_j(m)\) and pair effects \(g_{j\ell}(m)\) satisfy
+\[
+\sum_{j=1}^d N_{1,s}(g_j(m))^2
++\sum_{j<\ell}N_{2,s}(g_{j\ell}(m))^2
+\leq 1,
+\]
+where \(N_{1,s}\) and \(N_{2,s}\) are the nonperiodic Sobolev restriction norms for one- and two-dimensional components, respectively.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:fair}[Conditional fairness of assignment]
+Under the assignment law \(\pi\), each assignment sign \(Z_i\) has conditional mean zero given the covariate sample \(X\):
+\[
+\mathbb E_\pi[Z_i\mid X]=0
+\qquad\text{for every }i=1,\ldots,n.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:assignment-independence}[Conditional assignment independence]
+A Borel assignment kernel \(\pi\) is outcome-independent if the following holds uniformly over pre-assignment data-generating laws. For every probability law \(\mu_X\) of the full covariate sample and every Markov kernel \(\kappa\) giving the pre-assignment potential-outcome array \(Y\) conditionally on \(X\), the experiment first draws \((X,Y)\) from \(\mu_X\otimes\kappa\) and then draws the assignment signs \(Z\) from \(\pi(X)\). Under this experiment law, \(Z\) and \(Y\) are conditionally independent given \(X\).
+\end{assumptionv}
+
+\begin{definitionv}{def:sobolev-class}[Pooled Sobolev class \(\mathcal H_{d,s}\)]
+The class \(\mathcal H_{d,s}\) consists of functions \(m:[0,1]^d\to\mathbb R\) with the following properties:
+\begin{itemize}
+\item \textbf{(Measurability.)} \(m\) is finite-valued and Borel measurable.
+\item \textbf{(Centering.)} \(m\) belongs to \(L^2([0,1]^d)\) and has Lebesgue integral zero.
+\item \textbf{(Component conditions.)} \(m\) satisfies \cref{obj:ass:order-two,obj:ass:pooled-budget} at \((d,s)\).
+\end{itemize}
+Canonical component equalities and centering are interpreted almost everywhere; arbitrary representatives on null sets give the same risk.
+\end{definitionv}
+
+\begin{definitionv}{def:design-class}[Admissible design class $\mathcal D_{n,d,s}$]
+The admissible design class is
+\[
+\mathcal D_{n,d,s}
+=
+\left\{
+\pi:[0,1]^{nd}\to\mathcal P(\mathcal Z_n):
+\pi \text{ is a Borel probability kernel satisfying }
+\cref{obj:ass:fair,obj:ass:assignment-independence}
+\text{ at }(n,d,s)
+\right\}.
+\]
+Here \(\mathcal Z_n\) is the space of length-\(n\) assignment sign vectors, and \(\mathcal P(\mathcal Z_n)\) is its space of probability measures. Each kernel uses the covariates of all original units as its input, with assignment independent of function values, pilot outcomes, and the unknown outcome model.
+\end{definitionv}
+
+\begin{definitionv}{def:criterion}[Minimax signing risk $R_s(n,d)$]
+The minimax scaled signing risk is
+\[
+R_s(n,d)
+=
+\inf_{\pi\in\mathcal D_{n,d,s}}
+\sup_{m\in\mathcal H_{d,s}}
+\frac{4}{n}
+\mathbb E_{X,Z}
+\left[
+\left(\sum_{i=1}^{n}Z_i m(X_i)\right)^2
+\right].
+\]
+Here \(\mathcal D_{n,d,s}\) is the admissible design class, \(\mathcal H_{d,s}\) is the centered prognostic class with pooled order-two Sobolev budget, \(X\) is the independent uniform covariate sample, and \(Z\) is the assignment sign vector drawn under \(\pi(X)\).
+\end{definitionv}
+
+\begin{definitionv}{synth_5}[Unit-weight Horvitz--Thompson estimator]
+The unit-weight Horvitz--Thompson estimator \(A\) is defined, for any nonnegative integer \(n\), real potential-outcome schedule \(Y=((Y_i(0),Y_i(1)))_{i=1}^n\), and assignment signs \(Z\in\{-1,1\}^n\), by
+\[
+A\!\left(\frac{Z+1}{2}\right)
+=
+\frac{2}{n}\sum_{i=1}^n Z_i
+Y_i\!\left(\frac{Z_i+1}{2}\right).
+\]
+Here \((Z_i+1)/2\) selects treatment when \(Z_i=1\) and control when \(Z_i=-1\). For \(n=0\), the estimator is defined to be zero.
+\end{definitionv}
+
+\begin{definitionv}{synth_3}[Ordered real spectral features and rounding rows]
+For \(d\geq2\), write \(\mathbb T_2^d=[0,2)^d\) with addition modulo two. For each \(k\in\mathbb Z^d\) with
+\[
+1\leq|\operatorname{supp}(k)|\leq2,
+\qquad
+\operatorname{supp}(k)=\{j:k_j\ne0\},
+\]
+choose the representative of \(\{k,-k\}\) whose first nonzero coordinate is positive. Order these representatives by increasing
+\[
+t(k)=\frac{\|k\|_2^2}{|\operatorname{supp}(k)|},
+\]
+breaking ties lexicographically. For each representative, list the two real features
+\[
+\sqrt2\cos(\pi k^{\mathsf T}y),
+\qquad
+\sqrt2\sin(\pi k^{\mathsf T}y),
+\qquad y\in\mathbb T_2^d,
+\]
+consecutively in that order. This defines the ordered sequence \((\phi_h)_{h\geq1}\).
+
+For a reflected and shifted sample \(W_1,\ldots,W_n\), the prescribed real spectral rows are
+\[
+a_h=\bigl(\phi_h(W_1),\ldots,\phi_h(W_n)\bigr)\in\mathbb R^n,
+\qquad h\geq1.
+\]
+With \(K=\lfloor n/4\rfloor\), the input matrix for ordered boundary rounding is precisely
+\[
+a=\bigl(\phi_h(W_i)\bigr)_{\substack{1\leq h\leq K\\1\leq i\leq n}}
+\in\mathbb R^{K\times n}.
+\]
+The feature ordering and the choice of rows depend on \(d\) and \(n\) and are independent of the smoothness parameter \(s\).
+\end{definitionv}
+
+\begin{propositionv}{prop:published-class-inclusion}[Published class inclusion and guarantees]*
+Let \(0<s\leq1\), and use the prognostic class, design class, and minimax criterion of \cref{obj:def:sobolev-class,obj:def:design-class,obj:def:criterion}. For each integer \(d\geq2\), let \(\mathcal Q_{d,s}\) be the class of single-unit laws \(P\) of \((U,O(0),O(1))\) such that \(U\) is uniform on \([0,1]^d\), both potential outcomes have finite second moments, and, for some \(m\in\mathcal H_{d,s}\),
+\[
+m_P(u):=\mathbb E_P\!\left[\frac{O(1)+O(0)}2\;\middle|\;U=u\right]
+=m(u)
+\quad\text{for almost every }u\in[0,1]^d.
+\]
+Then the following statements hold.
+\begin{itemize}
+\item The laws obtained from \(m\in\mathcal H_{d,s}\) by the stated Gaussian causal completion form a proper subset of \(\mathcal Q_{d,s}\), for every integer \(d\geq2\).
+
+\item For every pair of integers \(n,d\geq2\) and every Borel assignment probability kernel \(\pi\) based on the original covariate array, membership in \(\mathcal D_{n,d,s}\) is equivalent to the following published admissibility conditions: under independent uniform covariates \(X\),
+\[
+\mathbb E_\pi[Z_i\mid X]=0
+\quad\text{almost surely, for every }i=1,\ldots,n,
+\]
+and, for every single-unit law \(P\) whose covariate density is bounded above and below by finite strictly positive constants and whose potential outcomes have finite second moments, the assignment signs are conditionally independent of the full potential-outcome array given the original covariate array in the experiment formed from \(n\) independent copies of \(P\) and the kernel \(\pi\). These are the admissibility conditions of \citet[Assumption 2.1 and Definition 2.2]{Cytrynbaum2026Limits}, specialized to the stated covariate distribution and available information.
+
+\item For every integer \(n\geq2\), the two-dimensional minimax criterion satisfies
+\[
+R_s(n,2)\geq
+\frac{2}{(48+32\pi^2)\,16384^s}\,n^{-s}.
+\]
+
+\item For every pair of integers \(n,d\geq2\) and every \(m\in\mathcal H_{d,s}\), independent fair assignment signs, independent of the original covariate sample, give
+\[
+\frac4n\,\mathbb E\!\left[
+\left(\sum_{i=1}^n Z_i m(X_i)\right)^2
+\right]
+=
+4\int_{[0,1]^d}m(x)^2\,dx
+=
+4\mathbb E[m(X_1)^2]
+\leq4,
+\]
+where \(X_1,\ldots,X_n\) are independent uniform covariate vectors.
+\end{itemize}
+\end{propositionv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN prop:published-class-inclusion
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{Cytrynbaum2026Limits} (Proposition 2.3 (Excess Variance), equation (2.4), with Assumption 2.1 and Definition 2.2) and \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END prop:published-class-inclusion
+
+\begin{definitionv}{synth_4}[Pre-assignment Gaussian completion]
+The Gaussian completion is the conditional law of the pre-assignment potential-outcome array \(Y\) given \(X\), generated independently across units by
+\[
+Y_i(0)=m(X_i)-\frac{0.2+0.1\sqrt2\sin(2\pi X_{i1})}{2}+\varepsilon_{i0},
+\qquad
+Y_i(1)=m(X_i)+\frac{0.2+0.1\sqrt2\sin(2\pi X_{i1})}{2}+\varepsilon_{i1}.
+\]
+The variables \(\varepsilon_{ia}\) are mutually independent standard Gaussians, independent of the covariates, and \(m\) is the centered measurable square-integrable prognostic function supplied to the completion.
+\end{definitionv}
+
+\begin{definitionv}{synth_2}[Randomized reflection lift]
+Let \(\mathbb T_2^d=[0,2)^d\) with coordinatewise addition modulo two. For \(x\in[0,1]^d\) and \(\eta\in\{0,1\}^d\), define the coordinatewise reflection map \(\operatorname{lift}:[0,1]^d\times\{0,1\}^d\to\mathbb T_2^d\) by
+\[
+\operatorname{lift}(x,\eta)_j
+=
+\begin{cases}
+x_j \pmod 2,&\eta_j=0,\\
+2-x_j \pmod 2,&\eta_j=1.
+\end{cases}
+\]
+For the original sample \(X=(X_1,\ldots,X_n)\), take independent fair coins \(\eta_{ij}\), independent of \(X\), the common shift, and all rounding seeds, and put
+\[
+\widetilde X_i=\operatorname{lift}(X_i,\eta_i),
+\qquad
+W_i=\widetilde X_i+T\pmod2,
+\]
+where \(\eta_i=(\eta_{i1},\ldots,\eta_{id})\) and \(T\) is an independent common Haar-uniform shift on \(\mathbb T_2^d\).
+\end{definitionv}
+
+\begin{theoremv}{thm:log-free-bivariate-capacity}[Log-free capacity and dimension frontier]*
+For every pair of integers \(n,d\geq2\), write
+\[
+B=\binom d2.
+\]
+There is a single fair, outcome-independent Borel original-sample assignment kernel \(\pi^\star_{n,d}\), independent of the smoothness parameter, belonging to the design class of \cref{obj:def:design-class}. It assigns independent fair signs when \(n\leq B\). When \(B<n\), it is the law of the signs produced by spectral rounding with independent reflection coins, an independent common Haar shift, and independent uniform rounding seeds.
+
+More precisely, the reflected and shifted sample is
+\[
+W_i=\operatorname{lift}(X_i,\text{reflection coins})+T,
+\]
+where \(T\) is the common Haar shift on the period-two torus. The input rows are the first \(\lfloor n/4\rfloor\) prescribed real features evaluated at \(W_i\). For every choice of reflection coins and common shift, and every rounding-seed array whose entries belong to \([0,1]\), the fractional coordinate after \(n\) rounding iterations equals the corresponding output sign, for every original sample and every unit.
+
+For every real \(s\) with \(0<s\leq1\), let
+\[
+a_s(n,d)=b_s(n,d)=\min\{1,(B/n)^s\},
+\qquad
+c_s=\frac{2}{(48+32\pi^2)16384^s},
+\qquad
+c_1=\frac{2}{(48+32\pi^2)16384}.
+\]
+Thus \(a_s(n,d)=1\) when \(n<B\), and \(a_s(n,d)=(B/n)^s\) when \(B\leq n\). The constants satisfy
+\[
+0<c_1\leq c_s<3072.
+\]
+With \(\mathcal H_{d,s}\) as in \cref{obj:def:sobolev-class}, and \(R_s(n,d)\) the minimax criterion of \cref{obj:def:criterion}, define the scaled signing loss by
+\[
+\mathcal L_{n,d,s}(\pi,m)
+=\frac4n\,\mathbb E_{\pi}
+ \left(\sum_{i=1}^n Z_i m(X_i)\right)^2.
+\]
+The same kernel satisfies, simultaneously for all \(0<s\leq1\),
+\[
+c_1a_s(n,d)
+\leq c_sa_s(n,d)
+\leq R_s(n,d)
+\leq \sup_{m\in\mathcal H_{d,s}}
+       \mathcal L_{n,d,s}(\pi^\star_{n,d},m)
+\leq3072a_s(n,d).
+\]
+
+For each such \(s\), the finite coefficient prior \(\nu^\star_{n,d,s}\), with normalization
+\[
+C_0=\sqrt{48+32\pi^2},
+\]
+has every coefficient-sign realization \(m_\xi\) centered and in \(\mathcal H_{d,s}\):
+\[
+\int_{[0,1]^d}m_\xi(x)\,dx=0,
+\qquad
+m_\xi\in\mathcal H_{d,s}.
+\]
+Drawn independently of the covariate sample, it certifies, for every admissible design \(\pi\),
+\[
+c_sa_s(n,d)
+\leq
+\mathbb E_{m\sim\nu^\star_{n,d,s}}
+       \mathcal L_{n,d,s}(\pi,m).
+\]
+
+Let \(\mathcal Q_{d,s}\) be the frozen uniform-covariate, zero-intercept, correctly specified outcome-law class with finite second moments and centered prognostic function in \(\mathcal H_{d,s}\). For a single-unit law \(P\), its prognostic function, actual HT estimator, law-specific benchmark, and scaled excess are
+\[
+m_P(u)=\mathbb E_P[(O(1)+O(0))/2\mid U=u],
+\qquad
+\widehat T_P=\frac2n\sum_{i=1}^n
+ Z_iO_i((Z_i+1)/2),
+\]
+\[
+\mathsf V(P)
+=\operatorname{Var}_P\!\left(
+ \mathbb E_P[O(1)-O(0)\mid U]\right)
++2\mathbb E_P\operatorname{Var}_P(O(1)\mid U)
++2\mathbb E_P\operatorname{Var}_P(O(0)\mid U),
+\]
+\[
+\mathcal V_n(\pi,P)
+=n\operatorname{Var}_{P,\pi}(\widehat T_P)-\mathsf V(P).
+\]
+Here the experiment uses independent original-unit copies, and conditional means are interpreted modulo covariate null sets. Then
+\[
+\inf_{\pi\in\mathcal D_{n,d,s}}
+ \sup_{P\in\mathcal Q_{d,s}}\mathcal V_n(\pi,P)
+=R_s(n,d),
+\]
+\[
+\sup_{P\in\mathcal Q_{d,s}}
+ \mathcal V_n(\pi^\star_{n,d},P)
+=
+\sup_{m\in\mathcal H_{d,s}}
+ \mathcal L_{n,d,s}(\pi^\star_{n,d},m).
+\]
+The Gaussian completions of functions in \(\mathcal H_{d,s}\) form a proper subclass of \(\mathcal Q_{d,s}\). Restricting the law supremum to these Gaussian completions gives the same minimax capacity \(R_s(n,d)\) and the same worst-case loss for \(\pi^\star_{n,d}\).
+
+For every pair of real density bounds satisfying
+\[
+0<\mathrm{lower}\leq1\leq\mathrm{upper},
+\]
+let \(\mathcal A_{d,s}\) be the bounded-density class defined in \cref{obj:lem:published-prognostic-capacity}: its laws have finite potential-outcome second moments, satisfy
+\[
+\int m_P(u)^2\,dP_U(u)\leq1,
+\]
+and have \(m_P\) equal almost everywhere to a permitted intercept plus a centered function in \(\mathcal H_{d,s}\), with covariate density between the displayed bounds. Its minimax excess satisfies
+\[
+R_s(n,d)
+\leq
+\inf_{\pi\in\mathcal D_{n,d,s}}
+ \sup_{P\in\mathcal A_{d,s}}\mathcal V_n(\pi,P).
+\]
+
+For every admissible \(\pi\) and every \(m\in\mathcal H_{d,s}\), the actual HT estimator \(\widehat\theta\) under the Gaussian completion of \(m\), with benchmark \(V^*=4.01\), satisfies
+\[
+n\operatorname{Var}(\widehat\theta)-4.01
+=\mathcal L_{n,d,s}(\pi,m)<\infty.
+\]
+Consequently, for every \(\varepsilon>0\),
+\[
+n\geq B\max\!\left\{
+1,\left(\frac{3072}{4.01\varepsilon}\right)^{1/s}
+\right\}
+\quad\Longrightarrow\quad
+\sup_{m\in\mathcal H_{d,s}}
+ \mathcal L_{n,d,s}(\pi^\star_{n,d},m)
+\leq4.01\varepsilon.
+\]
+Conversely, for every \(0<\varepsilon<c_s/4.01\),
+\[
+R_s(n,d)\leq4.01\varepsilon
+\quad\Longrightarrow\quad
+n\geq B\left(\frac{c_s}{4.01\varepsilon}\right)^{1/s}.
+\]
+
+Finally, for every fixed \(s\in(0,1]\) and every integer sequence \(d_n\geq2\),
+\[
+R_s(n,d_n)\longrightarrow0
+\quad\Longleftrightarrow\quad
+\frac{\binom{d_n}{2}}n\longrightarrow0
+\quad\Longleftrightarrow\quad
+d_n=o(\sqrt n).
+\]
+For every fixed pair \(0<\mathrm{lower}\leq1\leq\mathrm{upper}\), vanishing minimax excess over the corresponding bounded-density classes implies the same dimension frontier:
+\[
+\inf_{\pi\in\mathcal D_{n,d_n,s}}
+ \sup_{P\in\mathcal A_{d_n,s}}\mathcal V_n(\pi,P)
+\longrightarrow0
+\quad\Longrightarrow\quad
+d_n=o(\sqrt n).
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:log-free-bivariate-capacity
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2) and \citep{Cytrynbaum2026Limits} (Proposition 2.3 (Excess Variance), equation (2.4), with Assumption 2.1 and Definition 2.2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:log-free-bivariate-capacity
+
+\begin{theoremv}{thm:full-design-lower}[Full-design capacity lower bound]*
+For every \(s\in(0,1]\), define the lower constant \(c_s\) and the comparison scale \(b_s(n,d)\) by
+\[
+c_s=\frac{2}{(48+32\pi^2)\,16384^s},
+\qquad
+b_s(n,d)=\min\left\{1,\left(\frac{\binom d2}{n}\right)^s\right\}.
+\]
+Then \(c_s>0\), independently of \(n,d\). For all integers \(n,d\geq2\), every design \(\pi\in\mathcal D_{n,d,s}\) of \cref{obj:def:design-class} satisfies
+\[
+\mathbb E_\xi\,\mathcal L_{n,d,s}(\pi,m_\xi)
+\geq c_s b_s(n,d),
+\]
+where the expectation is over the independent coefficient-sign cosine prior and \(m_\xi\) is its associated prognostic function; the coefficient signs are drawn independently of the covariate sample \(X\). Consequently, the minimax criterion of \cref{obj:def:criterion} satisfies
+\[
+R_s(n,d)\geq c_s b_s(n,d).
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:full-design-lower
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:full-design-lower
+
+\begin{definitionv}{def:cosine-prior}[Pair-cosine prior \(m_\xi\)]
+Let
+\[
+B=\binom d2,\qquad
+L=\max\left\{1,\left\lceil\sqrt{4096n/B}\right\rceil\right\},\qquad
+M=BL^2,\qquad
+C_0=\sqrt{48+32\pi^2}.
+\]
+Before observing \(X\), draw every coefficient \(\xi_\alpha\) independently and uniformly from \(\{-1,+1\}\). For \(\alpha=(j,h,k,\ell)\), where \(j<h\) and \(1\leq k,\ell\leq L\), put
+\[
+V_\alpha(x)=2\cos(\pi kx_j)\cos(\pi\ell x_h),
+\qquad
+m_\xi(x)=\frac{1}{C_0L^s\sqrt M}\sum_\alpha\xi_\alpha V_\alpha(x).
+\]
+The prior \(\nu^\star_{n,d,s}\) is the law of this normalized pair-cosine function.
+\end{definitionv}
+
+\begin{algorithmv}{def:capacity-handle}[Capacity construction \((a_s,\pi^\star,\nu^\star)\)]
+For \(n,d\) and \(s\), construct the capacity handle as follows.
+\begin{enumerate}
+\item Set
+\[
+a_s(n,d)=\min\{1,(\tbinom d2/n)^s\}.
+\]
+\item If \(n\leq\binom d2\), let \(\pi^\star_{n,d}\) assign independent fair signs. If \(\binom d2<n\), let \(\pi^\star_{n,d}\) use the reflected, commonly shifted spectral features and ordered-boundary rounding on the original sample.
+\item Let \(\nu^\star_{n,d,s}\) be the independent uniform coefficient-sign prior defining the pair-cosine functions at the cutoff in \cref{obj:def:cosine-prior}.
+\item Return the triple
+\[
+(a_s(n,d),\pi^\star_{n,d},\nu^\star_{n,d,s}),
+\]
+\end{enumerate}
+\end{algorithmv}
+
+\begin{algorithmv}{def:ordered-boundary-rounding}[Ordered boundary rounding $Z$]
+The input is a real matrix \(a\in\mathbb R^{K\times n}\), with
+\[
+K=\lfloor n/4\rfloor.
+\]
+\begin{enumerate}
+\item Initialize the fractional assignment state by
+\[
+u=0\in[-1,1]^n.
+\]
+A coordinate \(i\) is active exactly when \(|u_i|<1\). Inactive coordinates remain fixed.
+
+\item At the start of each phase, set
+\[
+r=\#\{i:|u_i|<1\}.
+\]
+If \(r\leq3\), round the remaining active coordinates independently, in increasing index order, according to
+\[
+\mathbb P(u_i\leftarrow+1)=\frac{1+u_i}{2},
+\qquad
+\mathbb P(u_i\leftarrow-1)=\frac{1-u_i}{2},
+\]
+and proceed to the output step. If \(r\geq4\), set
+\[
+q_1=\lfloor r/4\rfloor
+\]
+and retain this value throughout the phase, until the active count is at most \(\lfloor r/2\rfloor\).
+
+\item At each move, form the orthogonal projection \(P\) onto the vectors supported on the current active coordinates and orthogonal to the first \(q_1\) input rows:
+\[
+P=
+\operatorname{proj}_{\left\{
+v\in\mathbb R^n:
+v_i=0\ \text{if }|u_i|=1,\ 
+\sum_{i=1}^n a_{\ell i}v_i=0\ (1\leq\ell\leq q_1)
+\right\}}.
+\]
+Compute \(P\) by orthonormalizing the constraint rows restricted to the active coordinates in row order, discarding zero Gram--Schmidt residuals and normalizing residuals with positive norm. Subtract their rank-one projections from the identity on the active coordinate subspace.
+
+\item Process \(Pe_1,\ldots,Pe_n\) in index order, where \(e_1,\ldots,e_n\) are the standard coordinate vectors. Discard zero Gram--Schmidt residuals and normalize residuals with positive norm to obtain the ordered orthonormal basis \(v_1,\ldots,v_h\), characterized by
+\[
+h=\dim(\operatorname{im}P),
+\qquad
+\operatorname{span}\{v_1,\ldots,v_h\}=\operatorname{im}P,
+\qquad
+v_b^{\mathsf T}v_c=
+\begin{cases}
+1,&b=c,\\
+0,&b\ne c.
+\end{cases}
+\]
+
+\item For each basis vector, compute the boundary step lengths and their product:
+\[
+\delta_b^+
+=
+\min\left(
+\left\{\frac{1-u_i}{(v_b)_i}:(v_b)_i>0\right\}
+\cup
+\left\{\frac{1+u_i}{-(v_b)_i}:(v_b)_i<0\right\}
+\right),
+\]
+\[
+\delta_b^-
+=
+\min\left(
+\left\{\frac{1+u_i}{(v_b)_i}:(v_b)_i>0\right\}
+\cup
+\left\{\frac{1-u_i}{-(v_b)_i}:(v_b)_i<0\right\}
+\right),
+\qquad
+t_b=\delta_b^+\delta_b^-.
+\]
+These sets contain active nonzero entries. Set the normalizer to
+\[
+S=\sum_{b=1}^h t_b^{-1}.
+\]
+
+\item Choose a basis index according to
+\[
+\mathbb P(\text{chosen index}=b)=\frac{t_b^{-1}}{S}.
+\]
+Conditional on that choice, update the state according to
+\[
+u\leftarrow
+\begin{cases}
+u+\delta_b^+v_b,
+&\text{with probability }\displaystyle\frac{\delta_b^-}{\delta_b^++\delta_b^-},\\[6pt]
+u-\delta_b^-v_b,
+&\text{with probability }\displaystyle\frac{\delta_b^+}{\delta_b^++\delta_b^-}.
+\end{cases}
+\]
+Repeat the moves until the active count is at most \(\lfloor r/2\rfloor\), then start a new phase. Every random choice uses an independent uniform seed. Inverse distribution functions use half-open intervals, assigning the value one to the last interval. Comparisons with zero and boundary comparisons are exact; ties in finite minima use the least index.
+
+\item Output the terminal assignment sign vector
+\[
+Z=u\in\mathcal Z_n.
+\]
+\end{enumerate}
+\end{algorithmv}
+
+\begin{definitionv}{def:causal-completion}[Causal completion and estimator \(\widehat\theta\)]
+The actual estimator \(\widehat\theta\) uses \(Y\), the pre-assignment potential-outcome array, and the treatment indicator
+\[
+A=(Z+1)/2,
+\]
+where \(Z\) is the vector of assignment signs. Its conditional estimand is \(\theta_n\), the average realized potential-outcome contrast, conditional on the realized full schedule. Its sampling-law estimand is \(\theta\), the sampling-law mean of that contrast. The setting and constructions are specified in \cref{obj:ass:order-two,obj:ass:pooled-budget,obj:ass:uniform-draw,obj:ass:fair,obj:ass:assignment-independence,obj:def:sobolev-class,obj:def:design-class,obj:def:criterion,obj:def:cosine-prior,obj:def:capacity-handle,obj:def:ordered-boundary-rounding,obj:lem:cosine-prior,obj:thm:full-design-lower,obj:lem:reflection-transfer,obj:lem:ht-transfer,obj:prop:published-class-inclusion,obj:thm:log-free-bivariate-capacity,obj:lem:isotropic-row-signing,obj:lem:ordered-prefix-rounding,obj:lem:published-prognostic-capacity,obj:thm:capacity-answer,obj:lem:exact-reflection-budget,obj:synth_1,obj:synth_2,obj:synth_3,obj:synth_4,obj:synth_5}.
+\end{definitionv}
+
+\begin{lemmav}{lem:ht-transfer}[Conditional HT variance transfer]*
+Let the following conditions hold:
+\begin{itemize}
+\item \textbf{(Dimensions and smoothness.)} \(n,d\) are integers with \(n\geq2\), \(d\geq2\), and \(0<s\leq1\).
+\item \textbf{(Prognosis.)} \(m\in\mathcal H_{d,s}\), as defined in \cref{obj:def:sobolev-class}.
+\item \textbf{(Assignment.)} \(\pi\) is a covariate-dependent Borel assignment probability kernel satisfying \cref{obj:ass:fair,obj:ass:assignment-independence}.
+\end{itemize}
+Let \(X\), the full covariate sample, consist of \(n\) independent uniform draws from \([0,1]^d\), and let \(Z\in\{-1,1\}^n\), the assignment sign vector, have conditional law \(\pi(X)\). For a real potential-outcome schedule \(Y=(Y_i(0),Y_i(1))_{i=1}^n\), define the HT estimator, finite-population contrast, midpoint vector, and conditional assignment covariance by
+\[
+\widehat\theta
+ =\frac2n\sum_{i=1}^n Z_iY_i\!\left(\frac{Z_i+1}{2}\right),
+\qquad
+\theta_n=\frac1n\sum_{i=1}^n\bigl(Y_i(1)-Y_i(0)\bigr),
+\qquad
+q_i=\frac{Y_i(1)+Y_i(0)}2,
+\qquad
+[C_\pi(X)]_{ij}=\operatorname{Cov}_\pi(Z_i,Z_j\mid X).
+\]
+For almost every \(X\), simultaneously for every such schedule \(Y\),
+\[
+\mathbb E_\pi[\widehat\theta\mid X,Y]=\theta_n,
+\qquad
+n\operatorname{Var}_\pi(\widehat\theta\mid X,Y)
+ =\frac4n q^{\mathsf T}C_\pi(X)q.
+\]
+Define the scaled expected squared prognostic imbalance by
+\[
+\mathcal L_{n,d,s}(\pi,m)
+ =\frac4n\,\mathbb E_{X,Z}
+   \left[\left(\sum_{i=1}^n Z_i m(X_i)\right)^2\right].
+\]
+Under the frozen Gaussian completion associated with \(m\), with assignment law \(\pi(X)\), the sampling-law causal target and scaled variance benchmark satisfy
+\[
+\theta=\mathbb E_{X,Y}[\theta_n]=0.2,
+\qquad
+V^*=4.01.
+\]
+Moreover,
+\[
+\mathcal L_{n,d,s}(\pi,m)<\infty,
+\qquad
+n\operatorname{Var}_{X,Y,Z}(\widehat\theta)-V^*
+ =\mathcal L_{n,d,s}(\pi,m).
+\]
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:ht-transfer
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:ht-transfer
+
+\begin{lemmav}{lem:published-prognostic-capacity}[Published prognostic image and capacity]*
+For a single-unit law \(P\), let \(U\in[0,1]^d\) be its covariate and \(O(0),O(1)\) its potential outcomes. Write
+\[
+m_P(u)=\mathbb E_P\!\left[\frac{O(1)+O(0)}2\mid U=u\right],
+\qquad
+\vartheta(P)=\mathbb E_P[O(1)-O(0)],
+\]
+using a finite-valued Borel version of the conditional mean. Let \(\mathcal Q_{d,s}\) consist of laws with uniform covariates, finite potential-outcome second moments, and \(m_P\) equal almost everywhere to a member of the centered prognostic class \(\mathcal H_{d,s}\) appearing in \cref{obj:def:criterion}. For independent copies across the original \(n\) units, define
+\[
+\widehat T_P=\frac2n\sum_{i=1}^n Z_iO_i((Z_i+1)/2),
+\]
+\[
+\mathsf V(P)=
+\operatorname{Var}_P\!\left(\mathbb E_P[O(1)-O(0)\mid U]\right)
++2\mathbb E_P\operatorname{Var}_P(O(1)\mid U)
++2\mathbb E_P\operatorname{Var}_P(O(0)\mid U),
+\qquad
+\mathcal V_n(\pi,P)=n\operatorname{Var}_{P,\pi}(\widehat T_P)-\mathsf V(P).
+\]
+The scaled signing loss is
+\[
+\mathcal L_{n,d,s}(\pi,m)
+=\frac4n\mathbb E_{\pi}\left(\sum_{i=1}^n Z_i m(X_i)\right)^2,
+\]
+where \(X_1,\ldots,X_n\) are independent uniform covariate vectors and \(Z\) is drawn from the original-sample assignment kernel \(\pi\).
+
+For every integer \(d\geq2\) and \(0<s\leq1\), the prognostic image is exactly the Sobolev image, with both images saturated under Lebesgue null representatives:
+\[
+\left\{f:\exists P\in\mathcal Q_{d,s},\ f=m_P\ \text{almost everywhere}\right\}
+=
+\left\{f:\exists m\in\mathcal H_{d,s},\ f=m\ \text{almost everywhere}\right\}.
+\]
+The stated Gaussian completions of members of \(\mathcal H_{d,s}\) form a proper subclass of \(\mathcal Q_{d,s}\): the specified two-point outcome law belongs to \(\mathcal Q_{d,s}\) and lies outside that Gaussian subclass.
+
+For every \(n,d\geq2\), a Borel probability assignment kernel satisfies published admissibility precisely when it belongs to the design class in \cref{obj:def:design-class}. Here published admissibility means conditional mean-zero assignment signs almost everywhere under the original uniform covariate law, together with conditional independence of the assignment signs and the potential-outcome array given the observed covariates, for every single-unit law with bounded strictly positive covariate density and finite potential-outcome second moments.
+
+For every \(n,d\geq2\), \(0<s\leq1\), and \(\pi\in\mathcal D_{n,d,s}\),
+\[
+0\leq\mathcal V_n(\pi,P)
+=\mathcal L_{n,d,s}(\pi,m_P),
+\qquad P\in\mathcal Q_{d,s},
+\]
+and
+\[
+\sup_{P\in\mathcal Q_{d,s}}\mathcal V_n(\pi,P)
+=
+\sup_{m\in\mathcal H_{d,s}}\mathcal L_{n,d,s}(\pi,m).
+\]
+Consequently, the full-design capacity agrees with \cref{obj:def:criterion}:
+\[
+\inf_{\pi\in\mathcal D_{n,d,s}}
+\sup_{P\in\mathcal Q_{d,s}}\mathcal V_n(\pi,P)
+=R_s(n,d).
+\]
+
+Fix comparison parameters satisfying
+\begin{itemize}
+\item \textbf{(Smoothness.)} \(0<s\leq1\).
+\item \textbf{(Lower density bound.)} \(0<\lambda\leq1\).
+\item \textbf{(Upper density bound.)} \(1\leq\Lambda<\infty\).
+\end{itemize}
+Let \(\mathcal A_{d,s}\) be the correctly specified, no-priority-block, order-two class of \citet[Theorem B.8(ii)]{Cytrynbaum2026Limits}. Its laws have finite potential-outcome second moments, covariate densities satisfying \(\lambda\leq f(u)\leq\Lambda\), and prognostic functions satisfying
+\[
+\int m_P(u)^2\,dP_U(u)\leq1,
+\qquad
+m_P(u)=\beta+m(u)\quad\text{for almost every }u,
+\]
+for a permitted intercept \(\beta\) and a centered \(m\in\mathcal H_{d,s}\) under the same component norm convention. The lower comparison constants and saturated lower comparison scale satisfy
+\[
+0<c_1\leq c_s,
+\qquad
+b_s(n,d)=\min\{1,(\tbinom d2/n)^s\}.
+\]
+and, for every \(n,d\geq2\),
+\[
+c_s b_s(n,d)
+\leq R_s(n,d)
+\leq
+\inf_{\pi\in\mathcal D_{n,d,s}}
+\sup_{P\in\mathcal A_{d,s}}\mathcal V_n(\pi,P).
+\]
+For every integer sequence \(d_n\geq2\), vanishing capacity on this bounded-density class implies
+\[
+\inf_{\pi\in\mathcal D_{n,d_n,s}}
+\sup_{P\in\mathcal A_{d_n,s}}\mathcal V_n(\pi,P)
+\longrightarrow0
+\quad\Longrightarrow\quad
+d_n=o(\sqrt n).
+\]
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:published-prognostic-capacity
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{Cytrynbaum2026Limits} (Proposition 2.3 (Excess Variance), equation (2.4), with Assumption 2.1 and Definition 2.2) and \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:published-prognostic-capacity
+
+\begin{lemmav}{lem:exact-reflection-budget}[Exact reflection budget]
+Let \(p\), \(s\), and the real-valued cube function \(g\) satisfy:
+\begin{itemize}
+\item \textbf{(Dimension.)} \(p\in\{1,2\}\).
+\item \textbf{(Smoothness.)} \(0<s\leq1\).
+\item \textbf{(Restriction norm.)} \(g\in L^2([0,1]^p)\), with a Borel representative, and \(N_{p,s}(g)^2<\infty\), where
+\[
+N_{p,s}(g)^2
+=
+\inf_{\substack{G\in L^1(\mathbb R^p;\mathbb C)\cap L^2(\mathbb R^p;\mathbb C)\\
+G=g\ \text{a.e. on }[0,1]^p}}
+\int_{\mathbb R^p}
+\left(1+\frac{\|\omega\|_2^2}{p}\right)^s
+\left|
+(2\pi)^{-p/2}
+\int_{\mathbb R^p}G(u)e^{-\mathrm i\omega^{\mathsf T}u}\,du
+\right|^2\,d\omega .
+\]
+\end{itemize}
+On the period-two torus \(\mathbb T_2^p=(\mathbb R/2\mathbb Z)^p\), define the coordinatewise reflection map and reflected function by
+\[
+(b_p(y))_j=\min\{y_j,2-y_j\},
+\qquad y\in[0,2)^p,
+\qquad h(y)=g(b_p(y)).
+\]
+For \(a\in\mathbb Z^p\), define the normalized Fourier coefficient
+\[
+\widehat h(a)
+=
+2^{-p}\int_{[0,2)^p}h(y)e^{-\mathrm i\pi a^{\mathsf T}y}\,dy .
+\]
+Then
+\[
+\sum_{a\in\mathbb Z^p}
+\left(1+\frac{\pi^2\|a\|_2^2}{p}\right)^s
+|\widehat h(a)|^2
+\leq N_{p,s}(g)^2 .
+\]
+
+For every integer \(d\geq2\), every \(0<s\leq1\), and every \(m\in\mathcal H_{d,s}\) as defined in \cref{obj:def:sobolev-class}, let \(F\) be its reflected function on \(\mathbb T_2^d\), with
+\[
+F(y)=m(b_d(y)),
+\qquad
+(b_d(y))_j=\min\{y_j,2-y_j\},
+\qquad y\in[0,2)^d,
+\]
+and define
+\[
+\widehat F(k)
+=
+2^{-d}\int_{[0,2)^d}F(y)e^{-\mathrm i\pi k^{\mathsf T}y}\,dy,
+\qquad
+\operatorname{supp}(k)=\{j:k_j\neq0\},
+\qquad k\in\mathbb Z^d.
+\]
+For nonzero \(k\), put
+\[
+t(k)=\frac{\|k\|_2^2}{|\operatorname{supp}(k)|}.
+\]
+Then
+\[
+\widehat F(0)=0,
+\qquad
+\widehat F(k)=0
+\quad\text{whenever }|\operatorname{supp}(k)|>2,
+\]
+and
+\[
+\sum_{\substack{k\in\mathbb Z^d\\1\leq|\operatorname{supp}(k)|\leq2}}
+(1+\pi^2t(k))^s|\widehat F(k)|^2\leq1,
+\qquad
+\int_{[0,1]^d}|m(x)|^2\,dx\leq1.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:reflection-transfer}[Reflection and spectral transfer]
+Write \(\mathbb T_2^p=(\mathbb R/2\mathbb Z)^p\) for the period-two torus, equipped with normalized Haar measure, and let \(b_p\) fold each coordinate onto \([0,1]\), by taking its absolute value in a representative from \([-1,1]\). For a cube function \(g\), its even reflection \(h\) and normalized Fourier coefficients are
+\[
+h=g\circ b_p,\qquad
+\widehat h(a)=\int_{\mathbb T_2^p}h(w)
+  \exp(-\mathrm i\pi a\cdot w)\,dw,
+\qquad a\in\mathbb Z^p.
+\]
+The squared restriction norm is
+\[
+N_{p,s}(g)^2
+=
+\inf_{\substack{G\in L^1(\mathbb R^p;\mathbb C)\cap L^2(\mathbb R^p;\mathbb C)\\
+G=g\ {\rm a.e.}\ {\rm on}\ [0,1]^p}}
+\int_{\mathbb R^p}
+\left|
+(2\pi)^{-p/2}
+\int_{\mathbb R^p}\exp(-\mathrm i\omega\cdot u)G(u)\,du
+\right|^2
+\left(1+\frac{\|\omega\|^2}{p}\right)^s\,d\omega.
+\]
+For every \(p\in\{1,2\}\) and \(0<s\leq1\), there exists a constant \(c>0\), depending on \(p,s\), such that every real cube function \(g\), under the usual measurability and square-integrability conditions and with \(N_{p,s}(g)^2<\infty\), satisfies
+\[
+\sum_{a\in\mathbb Z^p}
+\left(1+\frac{\pi^2\|a\|^2}{p}\right)^s
+|\widehat h(a)|^2
+\leq c\,N_{p,s}(g)^2.
+\]
+
+For every \(d\geq2\), \(0<s\leq1\), and \(m\in\mathcal H_{d,s}\) as in \cref{obj:def:sobolev-class}, define the reflected function \(F\), its Fourier coefficients, and the frequency complexity by
+\[
+F=m\circ b_d,\qquad
+\widehat F(k)=\int_{\mathbb T_2^d}F(w)
+  \exp(-\mathrm i\pi k\cdot w)\,dw,
+\]
+\[
+\operatorname{supp}(k)=\{j:k_j\neq0\},\qquad
+t(k)=
+\begin{cases}
+\displaystyle\frac{\sum_j k_j^2}{|\operatorname{supp}(k)|},&k\neq0,\\
+0,&k=0.
+\end{cases}
+\]
+Then, with \(C_s=3072\),
+\[
+\sum_{\substack{k\in\mathbb Z^d\\
+1\leq|\operatorname{supp}(k)|\leq2}}
+(1+\pi^2t(k))^s|\widehat F(k)|^2
+\leq C_s.
+\]
+
+For every pair of nonnegative integers \(n,d\), let \(X\) satisfy \cref{obj:ass:uniform-draw} on an arbitrary measurable sampling space. Independently of \(X\), reflect each coordinate of each \(X_i\) by an independent fair sign, and add an independent common Haar shift \(T\in\mathbb T_2^d\), obtaining \(W_i\) modulo \(2\). The joint law of \(W=(W_i)_{i=1}^n\) and \(T\) is the product of \(n+1\) normalized Haar laws. Thus the \(W_i\) are independent Haar draws and \(W\) is independent of \(T\).
+
+The following identity holds under these conditions:
+\begin{itemize}
+\item \textbf{(Parameters.)} \(n\geq2\), \(d\geq2\), and \(0<s\leq1\).
+\item \textbf{(Prognostic function.)} \(m\in\mathcal H_{d,s}\) as in \cref{obj:def:sobolev-class}.
+\item \textbf{(Sampling.)} \(X\) satisfies \cref{obj:ass:uniform-draw} on an arbitrary measurable sampling space, and \(W,T\) are constructed as above.
+\item \textbf{(Assignment.)} \(\pi\) is any Borel probability kernel from \((\mathbb T_2^d)^n\) to \(\mathcal Z_n=\{-1,1\}^n\), and, conditional on the sample, reflection signs, and shift, \(Z\) has law \(\pi(W)\).
+\end{itemize}
+With the torus character \(e_k(w)=\exp(\mathrm i\pi k\cdot w)\), one has
+\[
+\mathbb E\left|\sum_{i=1}^n Z_i m(X_i)\right|^2
+=
+\sum_{k\in\mathbb Z^d}
+|\widehat F(k)|^2\,
+\mathbb E\left|\sum_{i=1}^n Z_i e_k(W_i)\right|^2.
+\]
+On the left, expectation includes the original sample, independent reflection signs, common shift, and conditional assignment law; on the right, it includes the independent Haar sample \(W\) and conditional assignment law \(\pi(W)\). The equality is understood in the extended nonnegative reals.
+\end{lemmav}
+
+\begin{lemmav}{lem:ordered-prefix-rounding}[Ordered prefix rounding guarantees]
+Let \(n\geq0\) be an integer, let \(\Lambda\in\mathbb R\), and let \(a_1,a_2,\ldots\in\mathbb R^n\) be deterministic ordered rows satisfying
+\[
+|(a_h)_i|\leq\Lambda
+\qquad(h\geq1,\ 1\leq i\leq n).
+\]
+Supply the first \(K=\lfloor n/4\rfloor\) rows to the procedure in \cref{obj:def:ordered-boundary-rounding}, and write \(Z\in\{-1,1\}^n\) for its output signs. The output map is jointly Borel measurable in the input matrix \(a\in\mathbb R^{K\times n}\) and the real seed vector of length \(3n\). For every seed vector in \([0,1]^{3n}\), the fractional state after \(n\) moves satisfies
+\[
+u_i=Z_i\qquad(1\leq i\leq n).
+\]
+With the \(3n\) seeds drawn independently and uniformly from \([0,1]\),
+\[
+\mathbb E[Z_i]=0
+\qquad(1\leq i\leq n),
+\qquad
+\mathbb E\!\left[(a_h^{\mathsf T}Z)^2\right]
+\leq32\Lambda^2\min\{h,n\}
+\qquad(h\geq1).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:cosine-prior}[Cosine prior legality and isotropy]
+Let the parameters satisfy:
+\begin{itemize}
+\item \textbf{(Dimension.)} \(d\) is an integer with \(d\geq2\).
+\item \textbf{(Frequency cutoff.)} \(L\) is an integer with \(L\geq1\).
+\item \textbf{(Smoothness.)} \(s\) is real with \(0<s\leq1\).
+\end{itemize}
+Set \(M=\binom{d}{2}L^2\), the number of pair-cosine features, and \(C_0=\sqrt{48+32\pi^2}\), the prior normalization constant. For every coefficient-sign array \(\xi\) with entries in \(\{-1,1\}\), the function
+\[
+m_\xi(x)=
+\frac{1}{C_0L^s\sqrt M}
+\sum_{1\leq j<\ell\leq d}\sum_{a=1}^{L}\sum_{b=1}^{L}
+\xi_{j\ell ab}\,2\cos(\pi a x_j)\cos(\pi b x_\ell),
+\qquad x\in[0,1]^d,
+\]
+is centered under the product uniform measure and belongs to \(\mathcal H_{d,s}\) as defined in \cref{obj:def:sobolev-class}.
+
+For every integer \(n\geq1\) and every covariate array \(X\) on a sampling space satisfying \cref{obj:ass:uniform-draw}, let \(X_1\) denote its first covariate vector and define the pair-cosine feature vector by
+\[
+V(x)=
+\bigl(2\cos(\pi a x_j)\cos(\pi b x_\ell)\bigr)_{
+1\leq j<\ell\leq d,\;1\leq a,b\leq L}.
+\]
+Then
+\[
+\mathbb E\!\left[V(X_1)V(X_1)^{\mathsf T}\right]=I_M,
+\]
+where \(I_M\) is the \(M\)-dimensional identity matrix. This identity includes distinct pair features sharing an original coordinate.
+\end{lemmav}
+
+\begin{lemmav}{lem:isotropic-row-signing}[Isotropic row signing bound]*
+Let \(r_0\) be a positive integer and \(n\) a nonnegative integer. Let \(v_1,\ldots,v_n\) be independent copies of a random vector \(v\in\mathbb R^{r_0}\), under the usual measurability and square-integrability conditions, with
+\[
+\mathbb E[vv^{\mathsf T}]=I_{r_0},
+\]
+where \(I_{r_0}\) is the identity matrix. Then
+\[
+\mathbb E\min_{z\in\{-1,1\}^n}
+\left\|\sum_{i=1}^n z_i v_i\right\|_2^2
+\geq nr_0-n^2-16n\sqrt{nr_0}.
+\]
+In particular, if \(r_0\geq4096n\), then
+\[
+\mathbb E\min_{z\in\{-1,1\}^n}
+\left\|\sum_{i=1}^n z_i v_i\right\|_2^2
+\geq \frac{nr_0}{2}.
+\]
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:isotropic-row-signing
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:isotropic-row-signing
+
+\begin{theoremv}{thm:capacity-answer}[Complete capacity and excess characterization]*
+For every pair of integers \(n,d\geq2\), let \(B\), the coordinate-pair count, and \(a_s(n,d)\), the comparison scale, be
+\[
+B=\binom d2,\qquad
+a_s(n,d)=\min\{1,(B/n)^s\}.
+\]
+There is a single fair, outcome-independent Borel assignment kernel \(\pi^\star_{n,d}\) in the design class of \cref{obj:def:design-class}, using the original \(n\) units and independent of \(s\). For \(n\leq B\), this kernel assigns independent fair signs. For \(B<n\), it is the law of the prescribed spectral signing procedure, using independent reflection coins, an independent common Haar shift, and independent uniform rounding seeds. The rounding procedure starts at the zero fractional assignment and uses the first \(K=\lfloor n/4\rfloor\) prescribed real spectral rows evaluated at the reflected and commonly shifted sample. For every realization of the reflection coins and common shift, and every sequence of rounding seeds in \([0,1]\), its fractional assignment after \(n\) iterations equals the resulting assignment sign vector:
+\[
+u_i=Z_i,\qquad i=1,\ldots,n.
+\]
+
+For every \(0<s\leq1\), the lower comparison scale satisfies \(b_s(n,d)=a_s(n,d)\). With
+\[
+c_s=\frac{2}{(48+32\pi^2)16384^s},
+\qquad
+c_1=\frac{2}{(48+32\pi^2)16384},
+\]
+the capacity and signing loss of \cref{obj:def:criterion}, over the function class of \cref{obj:def:sobolev-class}, satisfy
+\[
+0<c_1\leq c_s,\qquad
+c_sa_s(n,d)
+\leq R_s(n,d)
+\leq
+\sup_{m\in\mathcal H_{d,s}}
+\mathcal L_{n,d,s}(\pi^\star_{n,d},m)
+\leq3072a_s(n,d).
+\]
+These inequalities hold simultaneously for the same kernel \(\pi^\star_{n,d}\).
+
+Every coefficient-sign realization \(m_\xi\) of the finite pair-cosine prior in \cref{obj:def:cosine-prior}, with the cutoff and normalization displayed there, is centered and belongs to \(\mathcal H_{d,s}\). Drawing its coefficient signs independently of the covariate sample gives, for every admissible design \(\pi\),
+\[
+c_sa_s(n,d)
+\leq
+\mathbb E_\xi\!\left[\mathcal L_{n,d,s}(\pi,m_\xi)\right].
+\]
+
+For every admissible \(\pi\) and every \(m\in\mathcal H_{d,s}\), the signing loss is finite, and the actual Horvitz--Thompson estimator under the Gaussian completion satisfies
+\[
+n\operatorname{Var}(\widehat\theta)-4.01
+=
+\mathcal L_{n,d,s}(\pi,m).
+\]
+Consequently, taking the infimum over admissible designs and the supremum over Gaussian completions indexed by \(m\in\mathcal H_{d,s}\) gives exactly \(R_s(n,d)\); taking only the supremum for \(\pi^\star_{n,d}\) gives exactly its worst signing loss.
+
+Let \(\mathcal Q_{d,s}\) be the frozen uniform outcome-law class: the covariate is uniform on \([0,1]^d\), both potential outcomes have finite second moments, and their conditional midpoint mean is a centered member of \(\mathcal H_{d,s}\). For a law \(P\) in this class, write
+\[
+m_P(u)=\mathbb E_P[(O(1)+O(0))/2\mid U=u],
+\qquad
+\widehat T_P=\frac2n\sum_{i=1}^n Z_iO_i((Z_i+1)/2),
+\]
+and
+\[
+\mathsf V(P)
+=
+\operatorname{Var}_P\!\left(
+\mathbb E_P[O(1)-O(0)\mid U]\right)
++
+2\mathbb E_P\operatorname{Var}_P(O(1)\mid U)
++
+2\mathbb E_P\operatorname{Var}_P(O(0)\mid U).
+\]
+Here the estimator uses independent original-unit copies under \(P\), with assignment generated by \(\pi\). The exact published-law minimax excess is
+\[
+\inf_{\pi\in\mathcal D_{n,d,s}}
+\sup_{P\in\mathcal Q_{d,s}}
+\max\!\left\{
+n\operatorname{Var}_{P,\pi}(\widehat T_P)-\mathsf V(P),\,0
+\right\}
+=
+R_s(n,d).
+\]
+
+Finally, for every fixed \(0<s\leq1\) and every integer dimension sequence \((d_n)\) satisfying \(d_n\geq2\) for every \(n\),
+\[
+R_s(n,d_n)\longrightarrow0
+\quad\Longleftrightarrow\quad
+\frac{\binom{d_n}{2}}{n}\longrightarrow0
+\quad\Longleftrightarrow\quad
+d_n=o(\sqrt n),
+\qquad n\longrightarrow\infty.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:capacity-answer
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2) and \citep{Cytrynbaum2026Limits} (Proposition 2.3 (Excess Variance), equation (2.4), with Assumption 2.1 and Definition 2.2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:capacity-answer

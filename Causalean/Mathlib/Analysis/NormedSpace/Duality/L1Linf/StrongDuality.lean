@@ -1,0 +1,45 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Mathlib.Analysis.NormedSpace.Duality.L1Linf.NonemptyDuality
+
+/-!
+# Strong duality from distinct interpolation nodes
+
+This file specializes the feasibility-based finite-dimensional ℓ¹/ℓ∞ duality
+API to distinct nodes with degree bound `β ≤ k`. Vandermonde feasibility is
+provided by `momentSol_nonempty`, while the Hahn–Banach certificate is supplied
+by `exists_moment_le_dual_of_momentSol_nonempty`.
+-/
+
+public section
+
+namespace Causalean.Mathlib.Analysis.FiniteDimL1LinfDuality
+
+variable {k β : ℕ} {p : Fin (k + 1) → ℝ}
+
+/-- **Strong duality (existence of an optimal weight).** For [`k + 1` pairwise distinct real
+nodes](hyp:hp) and [a degree bound `β` at most `k`](hyp:hβ), [there exists a feasible weight
+vector — one solving the moment system — whose ℓ¹ norm does not exceed the dual
+supremum](goal). -/
+theorem exists_moment_le_dual (hp : Function.Injective p) (hβ : β ≤ k) :
+    ∃ w ∈ MomentSol p β, ∑ j, |w j| ≤ sSup (dualValSet p β) :=
+  exists_moment_le_dual_of_momentSol_nonempty (momentSol_nonempty hp hβ)
+
+/-- **Strong duality (inequality form).** For [`k + 1` pairwise distinct real nodes](hyp:hp) and
+[a degree bound `β` at most `k`](hyp:hβ), [the least ℓ¹ norm among feasible weight vectors is at
+most the dual supremum](goal).
+
+Immediate from `exists_moment_le_dual`: the witness `w` gives a primal value
+`∑ j, |w j| ∈ primalNormSet p β` that is `≤` the dual value, and the infimum is a
+lower bound. -/
+theorem sInf_primal_le_sSup_dual (hp : Function.Injective p) (hβ : β ≤ k) :
+    sInf (primalNormSet p β) ≤ sSup (dualValSet p β) := by
+  obtain ⟨w, hw, hw_norm⟩ := exists_moment_le_dual hp hβ
+  exact le_trans (csInf_le primalNormSet_bddBelow ⟨w, hw, rfl⟩) hw_norm
+
+end Causalean.Mathlib.Analysis.FiniteDimL1LinfDuality

@@ -1,0 +1,196 @@
+\section{Appendix: Proofs and verification scope}
+
+The mathematical dependencies follow the distinction between observable sampling error and stationary-value stability. We first introduce the four-state realization apparatus underlying \cref{obj:lem:pair-polynomial-modulus}, then present the intervention and dependence bounds used by \cref{obj:thm:stable-grid-upper}. The testing family supplies the complementary lower-bound input. The final parts connect these ingredients to the minimax statement, the coincident-policy reduction, and the candidate count.
+
+\subsection{Four-state realizations and the value modulus}
+
+A four-state scalar realization consists of an initial probability row vector \(\nu\), a row-stochastic transition matrix \(P\), and a reward function \(r\colon\mathcal S\to[0,1]\), represented as a column in matrix products. Its depth-\(k\) moment is \(\nu P^k r\), and its stationary reward is \(\pi r\), where \(\pi\) is a stationary probability row vector. For the comparison realization, write \leanref{sym:\nu'}{\ensuremath{\nu'}} for the initial law, \leanref{sym:P'}{\ensuremath{P'}} for the transition matrix, \leanref{sym:r'}{\ensuremath{r'}} for the reward function, and \leanref{sym:\pi'}{\ensuremath{\pi'}} for the stationary law. Both realizations are subject to the same contraction bound \(\alpha\). In the formal statement below, all vectors indexed by \(\mathcal S\) are coordinate families; the displayed scalar products use \(\nu,\nu',\pi,\pi'\) as rows and \(r,r'\) as reward-function columns.
+
+The transient characteristic factors \leanref{sym:q_P}{\ensuremath{q_P}} and \leanref{sym:q_{P'}}{\ensuremath{q_{P'}}} remove the stationary root from the respective characteristic polynomials:
+\[
+q_P(z)=\frac{\det(z\,\mathrm{Id}-P)}{z-1},
+\qquad
+q_{P'}(z)=\frac{\det(z\,\mathrm{Id}-P')}{z-1},
+\]
+where \(\mathrm{Id}\) is the identity matrix on the four-point joint-state space. Their product is the pair transient characteristic polynomial \leanref{sym:Q_{P,P'}}{\ensuremath{Q_{P,P'}}}. The following statement establishes the simple stationary roots and gives the exact identity connecting the first seven scalar moments to the difference in stationary rewards.
+
+\begin{lemmav}{lem:pair-polynomial-modulus}[Pair-polynomial identity and value modulus]
+Let \(\mathcal S=\{0,1\}\times\{0,1\}\) be the four-state joint-state space. Let \(P,P'\) be real matrices indexed by \(\mathcal S\), and let \(\nu,\nu',\pi,\pi',r,r'\) be real row vectors indexed by \(\mathcal S\). Suppose:
+\begin{itemize}
+\item \textbf{(Contraction parameter.)} The contraction bound \(\alpha\) satisfies \(0<\alpha<1\).
+\item \textbf{(Transition matrices.)} Both \(P\) and \(P'\) are row-stochastic: their entries are nonnegative and each row sums to one.
+\item \textbf{(Initial distributions.)} Both \(\nu\) and \(\nu'\) are probability vectors.
+\item \textbf{(Stationary distributions.)} Both \(\pi\) and \(\pi'\) are probability vectors, with
+\[
+\pi P=\pi,\qquad \pi'P'=\pi'.
+\]
+\item \textbf{(Rewards.)} For every \(s\in\mathcal S\),
+\[
+0\le r(s)\le1,\qquad 0\le r'(s)\le1.
+\]
+\item \textbf{(Contraction bounds.)} The Dobrushin coefficients satisfy
+\[
+\begin{aligned}
+\delta(P)&=\max_{i,j\in\mathcal S}\frac12
+ \sum_{s\in\mathcal S}|P_{is}-P_{js}|\le\alpha,\\
+\delta(P')&=\max_{i,j\in\mathcal S}\frac12
+ \sum_{s\in\mathcal S}|P'_{is}-P'_{js}|\le\alpha.
+\end{aligned}
+\]
+\end{itemize}
+Then eigenvalue \(1\) has algebraic multiplicity one for each of \(P\) and \(P'\). Define the pair transient characteristic polynomial and its coefficients by
+\[
+Q_{P,P'}(z)
+=\frac{\det(z\,\mathrm{Id}-P)}{z-1}
+ \frac{\det(z\,\mathrm{Id}-P')}{z-1}
+=\sum_{k=0}^{6}Q_k z^k,
+\]
+where \(\mathrm{Id}\) is the identity matrix on \(\mathcal S\), and define the modulus constant by
+\[
+B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6.
+\]
+With products interpreted as
+\[
+\pi r=\sum_{s\in\mathcal S}\pi(s)r(s),
+\qquad
+\nu P^k r=\sum_{s\in\mathcal S}(\nu P^k)(s)r(s),
+\]
+and analogously for the primed vectors, the exact identity and bound are
+\[
+Q_{P,P'}(1)(\pi r-\pi'r')
+=\sum_{k=0}^{6}Q_k\bigl(\nu P^k r-\nu'P'^k r'\bigr)
+\]
+and
+\[
+|\pi r-\pi'r'|
+\le B_\alpha
+ \max_{0\le k\le6}\bigl|\nu P^k r-\nu'P'^k r'\bigr|.
+\]
+\end{lemmav}
+
+The modulus in \cref{obj:lem:pair-polynomial-modulus} concerns the stationary reward functional across all realizations satisfying its conditions. Its constant depends on the common contraction bound, so the same comparison applies to the target realization and every stabilized candidate in \cref{obj:def:stable-grid-estimator}. Repeated transient roots and reduced effective dimension are covered by this uniform statement. The degree-six pair polynomial explains the use of depths zero through six.
+
+\subsection{Intervention moments and trajectory dependence}
+
+The observable counterpart of the realization apparatus is supplied by the weighted rewards in \cref{obj:def:observable-moments}. The current action ratio changes the conditional reward mean to its target-policy counterpart, while the preceding ratios correspond to target-policy transitions. The next statement records this identity together with the second-moment and covariance controls required for a stationary behavior trajectory.
+
+\begin{lemmav}{lem:observable-intervention-moments}[Observable intervention moment bounds]
+Consider an experiment in \(\mathcal M_T^{(2)}(t_0,\zeta)\), the binary experiment class of \cref{obj:def:binary-pomdp-class}, with trajectory length \(T\). Set
+\[
+L=\exp(\zeta),\qquad \alpha=\exp(-1/t_0).
+\]
+On the four-point joint-state space \(\mathcal S\), let \(P_b\) and \(P_e\) be the behavior- and target-policy transition matrices, respectively, and let \(r_e\) be the target-policy conditional mean reward vector:
+\[
+\begin{aligned}
+P_b(s,s')&=\sum_{a\in\{0,1\}}b(a\mid x)
+                  \int_{\mathcal Y}K(dy,s'\mid s,a),\\
+P_e(s,s')&=\sum_{a\in\{0,1\}}e(a\mid x)
+                  \int_{\mathcal Y}K(dy,s'\mid s,a),\\
+r_e(s)&=\sum_{a\in\{0,1\}}e(a\mid x)
+                  \sum_{s'\in\mathcal S}\int_{\mathcal Y}y\,K(dy,s'\mid s,a),
+\qquad s=(x,h).
+\end{aligned}
+\]
+Here \(K\) is the joint reward and successor-state law, \(\mathcal Y=[0,1]\) is the reward space, and \(d_b\) is the stationary probability row vector of \(P_b\).
+
+Use zero-based epochs \(0,\ldots,T-1\). For observed state \(X_j\), action \(A_j\), and reward \(Y_j\), define the observed likelihood ratio and weighted reward score by
+\[
+\rho_j=
+\begin{cases}
+e(A_j\mid X_j)/b(A_j\mid X_j),& b(A_j\mid X_j)>0,\\
+0,& b(A_j\mid X_j)=0,
+\end{cases}
+\qquad
+Z_t(k)=Y_t\prod_{j=t-k}^{t}\rho_j
+\quad (k\le t).
+\]
+Write \(\mathbb E_b\) for expectation under the experiment's stationary behavior law. For every \(k\in\{0,\ldots,6\}\) and every epoch \(t\) with \(k\le t<T\),
+\[
+m_k=\mathbb E_b[Z_t(k)]
+    =d_bP_e^kr_e
+    =\sum_{s\in\mathcal S}(d_bP_e^k)(s)\,r_e(s),
+\qquad
+\mathbb E_b[Z_t(k)^2]\le L^{k+1}.
+\]
+Moreover, for every integer \(h\ge k+1\) such that \(t+h<T\),
+\[
+\left|
+\mathbb E_b\!\left[
+\bigl(Z_t(k)-\mathbb E_b[Z_t(k)]\bigr)
+\bigl(Z_{t+h}(k)-\mathbb E_b[Z_{t+h}(k)]\bigr)
+\right]
+\right|
+\le \alpha^{h-k-1}.
+\]
+\end{lemmav}
+
+The identity in \cref{obj:lem:observable-intervention-moments} places the population moments in the four-state realization with initial law \(d_b\), transition matrix \(P_e\), and reward vector \(r_e\). Stationarity makes these expectations independent of the terminal epoch. The zero-based indexing used here corresponds to shifting the one-based epochs in \cref{obj:def:observable-moments} by one; the common empirical window contains \(T-6\) terminal epochs.
+
+The second-moment bound controls weighting within a window, including the overlapping-window contribution to sampling error. Once the windows separate, the covariance bound supplies a geometrically summable dependence control. The moment variance constant \leanref{sym:V_{\alpha,L}}{\ensuremath{V_{\alpha,L}}}, defined in \cref{obj:thm:stable-grid-upper} as \(13L^7+2/(1-\alpha)\), summarizes these contributions for the seven common-window moments. Action overlap and behavior contraction thus have distinct roles in the sampling component of the estimator guarantee.
+
+\subsection{Grid approximation and stable fitting}
+
+The deterministic components of \cref{obj:thm:stable-grid-upper} are the grid approximation and the stationary-value modulus. In \cref{obj:def:stable-grid-estimator}, simplex rounding applies to the initial probability vector and each transition row, while coordinate rounding applies to the bounded reward vector. The allowance \(6/M\) in the transition filter accommodates the rounded matrix. Mixing that matrix with the uniform transition matrix places each candidate under the contraction bound required by \cref{obj:lem:pair-polynomial-modulus}.
+
+The fitting criterion compares all seven candidate moments with their empirical counterparts. Its finite candidate set and lexicographic selection specify the estimator completely. Sampling error enters through \cref{obj:lem:observable-intervention-moments}; stationary-value stability enters through \cref{obj:lem:pair-polynomial-modulus}. The resolution \(M=\lceil(22+36/\alpha)T\rceil\) is the discretization choice used in \cref{obj:thm:stable-grid-upper}, whose bound accounts for both sampling and approximation error.
+
+This division of roles explains the statistical guarantee. The fit concerns a finite vector of observable moments, and the modulus controls the stationary reward associated with that fit. At fixed positive mixing scale and fixed nonnegative logarithmic action-overlap bound, \cref{obj:thm:stable-grid-upper} gives a uniform mean-squared error proportional to \(T^{-1}\) for \(T\geq12\).
+
+\subsection{The positive testing family}
+
+The lower-bound input is the positive four-state family in \cref{obj:def:four-state-testing-family}. Its joint reward and successor-state law \leanref{sym:K_v^{(T)}}{\ensuremath{K_v^{(T)}}} combines the hidden-state-dependent Bernoulli reward probability \(q_v(h)\), the action-dependent successor hidden-state probability \(p(a)\), and the noisy observation probability \(E(x'\mid h')\). The Bernoulli mass conventions and the stationary initial and trajectory laws are specified in that definition. Across the two signs, the reward perturbation varies while the transition and observation components remain common.
+
+At the testing amplitude \(v_T=1/(16\sqrt T)\), the fair coincident policies provide a common stationary occupancy. The following statement supplies class membership, target-value separation, and the relative-entropy control for the observed trajectory laws.
+
+\begin{lemmav}{lem:testing-family-membership}[Testing family membership and separation]
+Let \(T\) be the observed trajectory length, \(t_0\) the mixing-scale parameter, and \(\zeta\) the logarithmic action likelihood-ratio bound, with
+\begin{itemize}
+\item \textbf{(Length.)} \(T\in\mathbb N\) and \(T\geq12\).
+\item \textbf{(Mixing scale.)} \(t_0>0\).
+\item \textbf{(Overlap.)} \(\zeta\geq0\).
+\end{itemize}
+Define the testing perturbation amplitude by
+\[
+v_T=\frac{1}{16\sqrt T}.
+\]
+For each \(v\in\{-v_T,+v_T\}\), the experiment of \cref{obj:def:four-state-testing-family}, with kernel \(K_v^{(T)}\), the specified initial and trajectory laws, and fair coincident policies
+\[
+e(a\mid x)=b(a\mid x)=\frac12,
+\]
+belongs to \(\mathcal M_T^{(2)}(t_0,\zeta)\), the class satisfying the six law conditions in \cref{obj:def:binary-pomdp-class}. Its stationary target values, defined in \cref{obj:def:target-value}, satisfy
+\[
+\left|\theta(K_{+v_T}^{(T)},e)-\theta(K_{-v_T}^{(T)},e)\right|
+=\frac{1}{8\sqrt T}.
+\]
+Writing \(\mathbb P_{+}^{\mathsf O_T}\) and \(\mathbb P_{-}^{\mathsf O_T}\) for the respective laws projected onto the observed state, action, and reward trajectory, their relative entropy is finite and satisfies
+\[
+\operatorname{KL}\!\left(
+\mathbb P_{+}^{\mathsf O_T}\Vert\mathbb P_{-}^{\mathsf O_T}
+\right)\leq\frac1{12}.
+\]
+For each of the two experiments, the stationary joint-state laws \(d_e\) and \(d_b\) under the target and behavior policies coincide:
+\[
+d_e=d_b.
+\]
+Moreover, for every stationary occupancy-ratio constant \(C>1\), both experiments satisfy
+\[
+d_e(s)\leq C\,d_b(s)
+\qquad\text{for every }s\in\mathcal S,
+\]
+where \(\mathcal S\) is the four-point joint-state space.
+\end{lemmav}
+
+The separation and divergence clauses in \cref{obj:lem:testing-family-membership} are the two statistical inputs to the lower bound in \cref{obj:thm:fixed-binary-minimax}. They have the standard two-point interpretation: nearby observed laws carry stationary values separated at the \(T^{-1/2}\) scale \citep[Section 2.2]{Tsybakov2009}. Because the divergence concerns the projected observed laws, the resulting risk statement addresses the observed-data decision problem in \cref{obj:def:minimax-risk}. Equality of the stationary occupancies also places both experiments in every stated stationary-overlap subclass with bound \(C>1\).
+
+\subsection{Minimax assembly and the remaining results}
+
+The upper and lower inputs meet in \cref{obj:thm:fixed-binary-minimax}. The stable-grid guarantee supplies an admissible observed-data estimator, while the testing-family membership and separation supply the pair used for the lower bound. The minimax definition in \cref{obj:def:minimax-risk} ranges over measurable observed-data procedures taking values in \([0,1]\), matching the estimator class in the testing argument. Together, these components yield the bounds \(1/(1024T)\) and \(B_\alpha^2(112V_{\alpha,L}+2)/T\) under the theorem's stated regime conditions.
+
+The cardinality comparison in \cref{obj:thm:fixed-binary-minimax} uses the cardinality-uniform conclusion of the public working manuscript \citet[Theorem 1 (Uniform overlap frontier) and the Signed-depth family definition]{CausalSmithLatentOverlap2026}. Its logarithmic-depth schedule and associated risk bound are the cited comparison inputs; the additional conditions are \(\zeta>0\) and \(C>1\).
+
+For \cref{obj:prop:coincident-policy-reduction}, the relevant ingredients are equality of the induced policy transitions, stationary initialization, and behavior contraction. They support the common stationary law and the ordinary reward-mean interpretation of the target value. Under that proposition's conditions, the reward sample mean is unbiased and satisfies the displayed variance bound for every \(T\geq1\). This gives the sampling benchmark corresponding to coincident behavior and target policies.
+
+The remaining deterministic result, \cref{obj:prop:exhaustive-grid-arithmetic-complexity}, concerns the size of the candidate list. Its five simplex factors correspond to the initial law and the four transition rows; its four scalar-grid factors correspond to the reward coordinates. The exact unfiltered count is \(\binom{M+3}{3}^{5}(M+1)^4\), and the contraction filter retains a subset of that list. At the stated resolution and fixed mixing scale, the proposition bounds both list cardinalities by \(cT^{19}\).
+
+\paragraph{Verification scope.}
+The internal mathematical statements and their proofs are machine-checked in Lean 4, including the auxiliary lemmas above, the stable-grid risk bound, the binary testing and minimax arguments, the coincident-policy reduction, and the candidate counts. The checked artifact uses Lean 4.33.0 and mathlib revision \texttt{db584cd6d46c92f2}\allowbreak\texttt{09a44c0f1c829460d327499d}; the verification commit is \texttt{96e526d2af264e63a1}\allowbreak\texttt{ace1820aac7f8843203708}. The generated interactive supplement includes \texttt{presentation\_crosswalk.json}, which maps each paper object to its certifying declarations, and \texttt{lean\_snippets.json}, which records the corresponding source snippets. The six data-generating restrictions in \cref{obj:def:binary-pomdp-class} are assumptions of the statistical guarantees. The cardinality-uniform comparison inputs from the public working manuscript used in \cref{obj:thm:fixed-binary-minimax} remain cited dependencies; the theorem-local verification disclosures specify their trust boundary.

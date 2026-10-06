@@ -1,0 +1,326 @@
+\begin{proof}[Proof of \cref{obj:lem:ht-transfer}]
+For the cited expected absolute-supremum contraction conclusion, we invoke \citep[Theorem 12(4), with the convention of Definition 2]{BartlettMendelson2002Complexities}.
+The calculation below uses the measurable, centered, square-integrable prognosis supplied by \cref{obj:def:sobolev-class}. Since \(n,d\geq2\), all divisions by \(n\) and first-coordinate evaluations are well defined.
+
+\begin{enumerate}
+\item
+Choose \(X\) in the probability-one set on which every fairness equality in \cref{obj:ass:fair} holds. This set is chosen independently of the schedule \(Y\). For either value of \(Z_i\),
+\[
+2Z_iY_i\!\left(\frac{Z_i+1}{2}\right)
+=
+Y_i(1)-Y_i(0)+2Z_iq_i.
+\]
+Summing gives the pointwise identity
+\[
+\widehat\theta
+=
+\theta_n+\frac2n\sum_{i=1}^n q_iZ_i.
+\]
+Under \cref{obj:ass:assignment-independence}, assignment conditional on \((X,Y)\) uses the kernel \(\pi(X)\). Consequently,
+\[
+\mathbb E_\pi[\widehat\theta\mid X,Y]
+=
+\theta_n+\frac2n\sum_{i=1}^n
+q_i\mathbb E_\pi[Z_i\mid X]
+=
+\theta_n.
+\]
+Expanding the centered square and using fairness in the definition of the assignment covariance yields
+\[
+\begin{aligned}
+\operatorname{Var}_\pi(\widehat\theta\mid X,Y)
+&=
+\frac4{n^2}
+\mathbb E_\pi\!\left[
+\left(\sum_{i=1}^n q_iZ_i\right)^2
+\,\middle|\,X\right]\\
+&=
+\frac4{n^2}\sum_{i=1}^n\sum_{j=1}^n
+q_i\mathbb E_\pi[Z_iZ_j\mid X]q_j\\
+&=
+\frac4{n^2}q^{\mathsf T}C_\pi(X)q.
+\end{aligned}
+\]
+These calculations apply to every real schedule on the same probability-one set, proving both conditional assertions. % lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.ht_conditional_transfer
+
+\item
+Define the Gaussian completion's treatment-effect function and its sample average by
+\[
+\begin{aligned}
+\tau_{\mathrm G}(x)
+&=
+0.2+0.1\sqrt2\sin(2\pi x_1),
+&&x\in[0,1]^d,\\
+\overline\tau_{\mathrm G}(X)
+&=
+\frac1n\sum_{i=1}^n\tau_{\mathrm G}(X_i),
+&&X\in([0,1]^d)^n.
+\end{aligned}
+\]
+The completion in \cref{obj:synth_4} gives
+\[
+\theta_n
+=
+\frac1n\sum_{i=1}^n
+\bigl(\tau_{\mathrm G}(X_i)+\varepsilon_{i1}-\varepsilon_{i0}\bigr),
+\qquad
+\mathbb E_Y[\theta_n\mid X]
+=
+\overline\tau_{\mathrm G}(X).
+\]
+Each first coordinate is uniform on \([0,1]\), and integration over a full sine period gives
+\[
+\int_0^1\sin(2\pi v_{\mathrm{int}})\,dv_{\mathrm{int}}
+=
+\left[-\frac{\cos(2\pi v_{\mathrm{int}})}{2\pi}\right]_0^1
+=
+0.
+\]
+Thus
+\[
+\mathbb E_X[\tau_{\mathrm G}(X_i)]=0.2,
+\qquad
+\theta
+=
+\mathbb E_{X,Y}[\theta_n]
+=
+\mathbb E_X[\overline\tau_{\mathrm G}(X)]
+=
+0.2.
+\]
+The frozen benchmark evaluates to
+\[
+V^*=(0.1)^2+4=4.01.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.gaussianTheta_eq_tau0
+
+\item
+For every covariate array and sign vector, define
+\[
+S_m(X,Z)=\sum_{i=1}^n Z_i m(X_i),
+\qquad
+(X,Z)\in([0,1]^d)^n\times\{-1,1\}^n.
+\]
+Cauchy--Schwarz and \(Z_i^2=1\) give the pointwise bound
+\[
+S_m(X,Z)^2
+\leq
+n\sum_{i=1}^n m(X_i)^2.
+\]
+Because \(\pi(X)\) is a probability law,
+\[
+0\leq
+\mathbb E_\pi[S_m(X,Z)^2\mid X]
+\leq
+n\sum_{i=1}^n m(X_i)^2.
+\]
+Integrating against the uniform sample law therefore gives
+\[
+\mathbb E_{X,Z}[S_m(X,Z)^2]
+\leq
+n^2\int_{[0,1]^d}m(x)^2\,dx,
+\]
+and hence
+\[
+0\leq\mathcal L_{n,d,s}(\pi,m)
+\leq
+4n\int_{[0,1]^d}m(x)^2\,dx
+<\infty.
+\]
+The same bound ensures integrability of the conditional imbalance second moment. % lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.loss_lt_top_of_memLp
+
+\item
+Write \(\varepsilon=(\varepsilon_{i0},\varepsilon_{i1})_{i=1}^n\) for the Gaussian noise array in \cref{obj:synth_4}, and define the selected-noise contribution on its full domain by
+\[
+N_{\mathrm{sel}}(Z,\varepsilon)
+=
+\frac2n\sum_{i=1}^n
+Z_i\varepsilon_{i,(Z_i+1)/2},
+\qquad
+(Z,\varepsilon)\in\{-1,1\}^n\times\mathbb R^{n\times2}.
+\]
+Substituting the completion, for either assignment sign, gives
+\[
+2Z_iY_i\!\left(\frac{Z_i+1}{2}\right)
+=
+\tau_{\mathrm G}(X_i)
++2Z_i m(X_i)
++2Z_i\varepsilon_{i,(Z_i+1)/2}.
+\]
+Consequently,
+\[
+\widehat\theta
+=
+\overline\tau_{\mathrm G}(X)
++\frac2n S_m(X,Z)
++N_{\mathrm{sel}}(Z,\varepsilon).
+\]
+For fixed \(Z\), the signed selected errors are independent across units, each with mean zero and variance one. With \(\mathbb E_\varepsilon\) denoting expectation over the Gaussian noise at fixed \(X,Z\), it follows that
+\[
+\begin{aligned}
+\mathbb E_\varepsilon[N_{\mathrm{sel}}(Z,\varepsilon)]
+&=
+\frac2n\sum_{i=1}^n
+\mathbb E_\varepsilon[
+Z_i\varepsilon_{i,(Z_i+1)/2}]
+=0,\\
+\operatorname{Var}_\varepsilon(N_{\mathrm{sel}}(Z,\varepsilon))
+&=
+\frac4{n^2}\sum_{i=1}^n1
+=\frac4n,\\
+\mathbb E_\varepsilon[N_{\mathrm{sel}}(Z,\varepsilon)^2]
+&=\frac4n.
+\end{aligned}
+\]
+Thus
+\[
+\mathbb E_\varepsilon[\widehat\theta]
+=
+\overline\tau_{\mathrm G}(X)+\frac2n S_m(X,Z),
+\]
+and expansion of the square gives
+\[
+\begin{aligned}
+\mathbb E_\varepsilon[(\widehat\theta-0.2)^2]
+&=
+\left(
+\overline\tau_{\mathrm G}(X)-0.2+\frac2n S_m(X,Z)
+\right)^2\\
+&\quad+
+2\left(
+\overline\tau_{\mathrm G}(X)-0.2+\frac2n S_m(X,Z)
+\right)
+\mathbb E_\varepsilon[N_{\mathrm{sel}}(Z,\varepsilon)]\\
+&\quad+
+\mathbb E_\varepsilon[N_{\mathrm{sel}}(Z,\varepsilon)^2]\\
+&=
+\left(
+\overline\tau_{\mathrm G}(X)-0.2+\frac2n S_m(X,Z)
+\right)^2+\frac4n.
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.ht_completion_noise_centered_second_moment
+
+\item
+For almost every \(X\), fairness gives
+\[
+\mathbb E_\pi[S_m(X,Z)\mid X]
+=
+\sum_{i=1}^n m(X_i)\mathbb E_\pi[Z_i\mid X]
+=
+0.
+\]
+The finite assignment space permits exchanging the assignment average and the Gaussian-noise integral. Averaging the preceding noise mean therefore yields
+\[
+\mathbb E_{Y,Z}[\widehat\theta\mid X]
+=
+\overline\tau_{\mathrm G}(X).
+\]
+For the centered second moment, expand
+\[
+\begin{aligned}
+\left(
+\overline\tau_{\mathrm G}(X)-0.2+\frac2n S_m(X,Z)
+\right)^2
+&=
+(\overline\tau_{\mathrm G}(X)-0.2)^2\\
+&\quad+
+\frac4n(\overline\tau_{\mathrm G}(X)-0.2)S_m(X,Z)
++\frac4{n^2}S_m(X,Z)^2.
+\end{aligned}
+\]
+The middle term has assignment mean zero, so
+\[
+\mathbb E_{Y,Z}[(\widehat\theta-0.2)^2\mid X]
+=
+(\overline\tau_{\mathrm G}(X)-0.2)^2
++\frac4{n^2}\mathbb E_\pi[S_m(X,Z)^2\mid X]
++\frac4n.
+\]
+The bounded treatment-effect function, the integrable imbalance bound, and Gaussian second moments ensure that this expression is integrable over \(X\), and that the actual estimator has a finite centered second moment. % lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.ht_gaussian_kernel_centered_second_moment
+
+\item
+Integrating the conditional mean over the covariates gives
+\[
+\mathbb E_{X,Y,Z}[\widehat\theta]
+=
+\mathbb E_X[\overline\tau_{\mathrm G}(X)]
+=
+0.2.
+\]
+Square integrability and the iterated construction of the experiment law now imply
+\[
+\operatorname{Var}_{X,Y,Z}(\widehat\theta)
+=
+\mathbb E_{X,Y,Z}[(\widehat\theta-0.2)^2]
+=
+\mathbb E_X\!\left[
+\mathbb E_{Y,Z}[(\widehat\theta-0.2)^2\mid X]
+\right].
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.ht_gaussian_joint_mean
+
+\item
+The squared-sine integral is
+\[
+\begin{aligned}
+\int_0^1\sin^2(2\pi v_{\mathrm{int}})\,dv_{\mathrm{int}}
+&=
+\int_0^1\frac{1-\cos(4\pi v_{\mathrm{int}})}2\,dv_{\mathrm{int}}\\
+&=
+\left[
+\frac{v_{\mathrm{int}}}{2}
+-\frac{\sin(4\pi v_{\mathrm{int}})}{8\pi}
+\right]_0^1
+=\frac12.
+\end{aligned}
+\]
+Together with the treatment-effect mean already computed, this gives
+\[
+\operatorname{Var}_X(\tau_{\mathrm G}(X_i))
+=
+(0.1)^2\,2\int_0^1
+\sin^2(2\pi v_{\mathrm{int}})\,dv_{\mathrm{int}}
+=
+(0.1)^2.
+\]
+Independence of the original covariate vectors consequently yields
+\[
+\begin{aligned}
+\mathbb E_X[
+(\overline\tau_{\mathrm G}(X)-0.2)^2]
+&=
+\operatorname{Var}_X(\overline\tau_{\mathrm G}(X))\\
+&=
+\frac1{n^2}\sum_{i=1}^n
+\operatorname{Var}_X(\tau_{\mathrm G}(X_i))
+=
+\frac{(0.1)^2}{n}.
+\end{aligned}
+\]
+By the definition of the finite signing loss,
+\[
+\frac4{n^2}
+\mathbb E_X\!\left[
+\mathbb E_\pi[S_m(X,Z)^2\mid X]
+\right]
+=
+\frac{\mathcal L_{n,d,s}(\pi,m)}{n}.
+\]
+Integrating the conditional centered second moment thus gives
+\[
+\operatorname{Var}_{X,Y,Z}(\widehat\theta)
+=
+\frac{(0.1)^2}{n}
++\frac{\mathcal L_{n,d,s}(\pi,m)}{n}
++\frac4n.
+\]
+Multiplying by \(n\) and subtracting the evaluated benchmark proves
+\[
+n\operatorname{Var}_{X,Y,Z}(\widehat\theta)-V^*
+=
+\mathcal L_{n,d,s}(\pi,m).
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.ht_gaussian_outer_centered_second_moment
+\end{enumerate}
+\end{proof}

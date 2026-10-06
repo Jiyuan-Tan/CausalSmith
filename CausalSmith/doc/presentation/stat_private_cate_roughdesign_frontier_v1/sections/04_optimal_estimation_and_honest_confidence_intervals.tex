@@ -1,0 +1,209 @@
+\section{Optimal estimation and honest confidence intervals}
+
+The uniform guarantees in \cref{obj:thm:uniform-private-upper} lead to two decision-theoretic conclusions. The first characterizes the smallest maximal expected absolute error among all pure-private scalar procedures. The second characterizes the smallest maximal expected length among pure-private connected intervals with class-wide \(90\%\) coverage. Both criteria are governed by the same numerical benchmark, under the causal-law restrictions in \cref{obj:def:complete-model}.
+
+For scalar estimation, the comparison includes every everywhere-defined private randomized procedure admitted by \cref{obj:def:private-kernels}. The publicly tuned estimator of \cref{obj:def:public-tuning} attains the optimal order uniformly over the complete model class, including its admissible measurable covariate densities.
+
+\begin{theoremv}{thm:matched-risk-frontier}[Matched private risk frontier]*
+For every integer \(n\ge2\) and privacy parameter \(0<\epsilon\le1\), define the numerical benchmark
+\[
+r(n,\epsilon)
+=
+\min\left\{1,\,
+\max\left\{n^{-1/4},\,(n^2\epsilon)^{-1/7},\,(n\epsilon)^{-1/2}\right\}\right\}.
+\]
+The private minimax absolute risk \(R_{n,\epsilon}\) of \cref{obj:def:risk-criterion}, with the infimum taken over all everywhere-defined randomized pure-private scalar Markov kernels as in \cref{obj:def:private-kernels}, satisfies
+\[
+2^{-20}r(n,\epsilon)
+\le R_{n,\epsilon}
+\le 2^{18}r(n,\epsilon).
+\]
+Moreover, the publicly tuned scalar estimator \(\widehat T^*\), which releases zero when \(r(n,\epsilon)\ge1/8\) and otherwise uses the specified publicly tuned dyadic pair-ratio release, is an everywhere-defined Markov kernel satisfying pure replacement \(\epsilon\)-differential privacy. Its maximal expected absolute error satisfies
+\[
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},\widehat T^*}
+\left|\widehat T^*(D)-\theta(P)\right|
+\le 2^{18}r(n,\epsilon),
+\]
+where \(\mathcal P\) is the complete causal-law class and \(\theta(P)\) is its pointwise treatment-effect target, with expectation integrating the observed sample and release randomization as in \cref{obj:def:risk-criterion}. The supremum includes every admissible measurable covariate density \(f_P\) in that class.
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:matched-risk-frontier
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BoucheronLugosiMassart2013} (Theorem 3.1, replacement-copy form, printed page 54), \citep{BoucheronLugosiMassart2013} (Theorem 6.2, displayed log-mgf conclusion in its proof, printed page 167) and \citep{KellerTrotterAppliedCombinatorics} (Section 5.6, Theorem 5.40). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:matched-risk-frontier
+
+The benchmark expresses three competing accuracy scales. The term \(n^{-1/4}\) reflects the statistical balance between localization bias and variation of the within-cell pairs. The two budget-dependent terms reflect the interaction of privacy noise with sparse and dense cell occupancy. Public tuning balances these contributions, and the outer truncation accommodates the bounded target range. The lower bound establishes that their maximum is an unavoidable order of maximal absolute risk over the stated class. The constants are explicit finite-sample bounds; optimality here concerns the common order in sample size and privacy budget.
+
+The lower-bound intuition is observational indistinguishability. Separated treatment-effect targets can be embedded in causal laws whose observed samples are sufficiently difficult to distinguish. Any scalar release that estimates both targets accurately would also distinguish the associated experiments. Privacy strengthens this comparison by controlling how much the distribution of a released statistic can change when records are replaced. The testing priors and the private release comparison are presented in \cref{obj:lem:frontier-testing-priors,obj:lem:private-kernel-comparison}; together they connect target separation to a lower bound that applies to every admissible scalar procedure.
+
+The construction of the sign-indexed alternatives and their component couplings appears in \cref{obj:def:cosine-family,obj:def:common-mass-coupling,obj:lem:measurable-component-contraction}, while \cref{obj:def:direct-family} supplies the direct comparison. These constructions organize the observational and privacy comparisons within the same causal model class. The quantitative arguments use the replacement-copy variance inequality of \citet[Theorem 3.1, p.~54]{BoucheronLugosiMassart2013}, the bounded-differences exponential-moment bound in \citet[Theorem 6.2, displayed log-mgf conclusion in the proof, p.~167]{BoucheronLugosiMassart2013}, and the labelled-tree enumeration formula of \citet[Section 5.6, Theorem 5.40]{KellerTrotterAppliedCombinatorics}. The appendix places these tools alongside the experiments to which they apply.
+
+Honest inference imposes a distinct decision criterion: coverage must hold for every law in the class, while expected length is assessed in the worst case, as specified in \cref{obj:def:interval-criterion}. Define the interval benchmark \leanref{sym:ell}{\ensuremath{\ell(n,\epsilon)}} by
+\[
+\ell(n,\epsilon)=r(n,\epsilon),
+\]
+and set the lower and upper numerical constants \leanref{sym:cI}{\ensuremath{c_I}} and \leanref{sym:CI}{\ensuremath{C_I}} to
+\[
+c_I=2^{-20},
+\qquad
+C_I=2^{22}.
+\]
+With these conventions, the candidate-value inversion of \cref{obj:def:interval-handle} attains the same order for honest expected length.
+
+The theorem below has two branches: the full-range interval applies when \(r(n,\epsilon)\ge1/8\), while every subsequent display involving \(h\), \(k\), \(\delta\), \(\mathcal A\), \(V\), and the centered pair-ratio interval applies only on the local branch \(r(n,\epsilon)<1/8\).
+
+\begin{theoremv}{thm:sharp-interval-frontier}[Sharp honest interval frontier]*
+For every integer \(n\ge2\) and privacy budget \(0<\epsilon\le1\), define the numerical benchmark
+\[
+r(n,\epsilon)
+=
+\min\left\{1,\,
+\max\left\{
+n^{-1/4},
+(n^2\epsilon)^{-1/7},
+(n\epsilon)^{-1/2}
+\right\}\right\}.
+\]
+The honest expected-length benchmark and its constants satisfy
+\[
+\ell(n,\epsilon)=r(n,\epsilon)>0,
+\qquad
+c_I=2^{-20}>0,
+\qquad
+C_I=2^{22}>0.
+\]
+
+The interval kernel \(I^*_{n,\epsilon}\) defined by candidate-value inversion in \cref{obj:def:interval-handle} equals the total publicly tuned connected-interval kernel of \cref{obj:def:public-tuning}:
+\[
+I^*_{n,\epsilon}=\widehat I^*.
+\]
+For \(r(n,\epsilon)\ge1/8\), this kernel returns \([-1,1]\). For \(r(n,\epsilon)<1/8\), its public tuning is
+\[
+h=2^{-\lceil\log_2(1/r(n,\epsilon))\rceil},
+\qquad
+k=2h^{-4},
+\qquad
+\delta=\frac{2h}{k}=h^5,
+\]
+where \(0<h\le1/4\) and \(k\) is an integer with \(k\ge2\). Define the public occupancy scale and mean-squared-error envelope by
+\[
+\mathcal A=nh\min\{1,n\delta\},
+\qquad
+V(h,\delta)
+=
+2^{20}\left[
+h^2+\delta^{2/5}+\mathcal A^{-1}
++(\epsilon\mathcal A)^{-2}
+\right].
+\]
+Using the clipped pair-ratio estimator from the single joint release in \cref{obj:def:private-ratio}, the tuned interval is
+\[
+\widehat I^*(D)
+=
+[-1,1]\cap
+\left[
+\widehat T_{h,k}(D)-\sqrt{10V(h,\delta)},
+\widehat T_{h,k}(D)+\sqrt{10V(h,\delta)}
+\right].
+\]
+
+The kernel \(I^*_{n,\epsilon}\) is a Markov kernel satisfying pure replacement \(\epsilon\)-differential privacy in the sense of \cref{obj:def:private-kernels}. For the causal-law class \(\mathcal P\) in \cref{obj:def:complete-model},
+\[
+\Pr_{(P^{\mathrm{obs}})^{\otimes n},I^*_{n,\epsilon}}
+\left\{\theta(P)\in I^*_{n,\epsilon}(D)\right\}
+\ge\frac9{10}
+\qquad\text{for every }P\in\mathcal P.
+\]
+The honest private expected-length frontier \(H_{n,\epsilon}\) of \cref{obj:def:interval-criterion}, whose infimum ranges over all total private Markov connected-interval kernels with this class-wide coverage, satisfies
+\[
+2^{-20}r(n,\epsilon)
+\le H_{n,\epsilon}
+\le
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},I^*_{n,\epsilon}}
+\operatorname{Leb}\!\left(I^*_{n,\epsilon}(D)\right)
+\le2^{22}r(n,\epsilon).
+\]
+For the private minimax absolute-error risk \(R_{n,\epsilon}\) of \cref{obj:def:risk-criterion}, the extended nonnegative real frontiers also satisfy
+\[
+2^{-38}R_{n,\epsilon}
+\le H_{n,\epsilon}
+\le2^{42}R_{n,\epsilon}.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:sharp-interval-frontier
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BoucheronLugosiMassart2013} (Theorem 3.1, replacement-copy form, printed page 54), \citep{BoucheronLugosiMassart2013} (Theorem 6.2, displayed log-mgf conclusion in its proof, printed page 167) and \citep{KellerTrotterAppliedCombinatorics} (Section 5.6, Theorem 5.40). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:sharp-interval-frontier
+
+The upper bound turns the uniform mean-squared-error envelope into a public interval radius. The factor \(\sqrt{10}\) yields the stated coverage level, and intersection with the target range preserves containment of the true effect. Both endpoints are functions of the single joint private release and public quantities. Thus the estimator and interval share a release, while the interval guarantee controls coverage separately at every member of the causal class. The expected-length bound then places this particular procedure within a fixed numerical factor of the optimal honest length.
+
+The interval converse has its own geometric intuition. Honesty requires containment of each target under its corresponding experiment. Observational indistinguishability and privacy contraction transfer these containment probabilities to a common output distribution. With positive probability, the released interval must consequently contain both separated targets. Connectedness forces its length on that event to be at least their separation. This simultaneous-containment argument links the experiments in \cref{obj:lem:frontier-testing-priors} directly to the expected-length criterion. It explains why honest connected intervals inherit the same numerical order as scalar estimation, with the explicit comparison between the two criteria given in \cref{obj:thm:sharp-interval-frontier}.
+
+The benchmark also provides a direct guide to sample-size and budget choices. Its transition points identify which accuracy scale is largest, and its behavior along budget sequences determines uniform consistency.
+
+\begin{propositionv}{prop:regime-and-sanity}[Benchmark regimes and consistency]*
+For every integer \(n\ge2\) and every privacy budget \(0<\epsilon\le1\), define the numerical benchmark
+\[
+r(n,\epsilon)
+=
+\min\left\{1,\,
+\max\left\{
+n^{-1/4},\,
+(n^2\epsilon)^{-1/7},\,
+(n\epsilon)^{-1/2}
+\right\}\right\}.
+\]
+Its regime identities are
+\[
+\begin{aligned}
+n^{-1/4}\le\epsilon
+&\ \Longrightarrow\ r(n,\epsilon)=n^{-1/4},\\
+n^{-3/5}\le\epsilon\le n^{-1/4}
+&\ \Longrightarrow\ r(n,\epsilon)=(n^2\epsilon)^{-1/7},\\
+n^{-1}\le\epsilon\le n^{-3/5}
+&\ \Longrightarrow\ r(n,\epsilon)=(n\epsilon)^{-1/2},\\
+\epsilon\le n^{-1}
+&\ \Longrightarrow\ r(n,\epsilon)=1.
+\end{aligned}
+\]
+In particular,
+\[
+r(n,1)=n^{-1/4}.
+\]
+
+For every budget sequence \((\epsilon_n)_{n\in\mathbb N}\) satisfying \(0<\epsilon_n\le1\) for every \(n\ge2\), the private minimax absolute risk \(R_{n,\epsilon_n}\) defined in \cref{obj:def:risk-criterion}, with values in \([0,\infty]\), satisfies
+\[
+R_{n,\epsilon_n}\longrightarrow0
+\quad\Longleftrightarrow\quad
+n\epsilon_n\longrightarrow+\infty
+\qquad(n\to\infty).
+\]
+\end{propositionv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN prop:regime-and-sanity
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BoucheronLugosiMassart2013} (Theorem 3.1, replacement-copy form, printed page 54), \citep{BoucheronLugosiMassart2013} (Theorem 6.2, displayed log-mgf conclusion in its proof, printed page 167) and \citep{KellerTrotterAppliedCombinatorics} (Section 5.6, Theorem 5.40). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END prop:regime-and-sanity
+
+For each fixed sample size, \cref{obj:prop:regime-and-sanity} gives the following budget regimes. The expressions agree at every shared endpoint.
+\[
+\begin{array}{lll}
+\hline
+\text{Privacy budget} & \text{Benchmark} & \text{Dominant scale}\\
+\hline
+n^{-1/4}\le\epsilon\le1
+& n^{-1/4}
+& \text{Statistical variation}\\
+n^{-3/5}\le\epsilon\le n^{-1/4}
+& (n^2\epsilon)^{-1/7}
+& \text{Sparse-pair privacy noise}\\
+n^{-1}\le\epsilon\le n^{-3/5}
+& (n\epsilon)^{-1/2}
+& \text{Dense-occupancy privacy noise}\\
+0<\epsilon\le n^{-1}
+& 1
+& \text{Bounded-range saturation}\\
+\hline
+\end{array}
+\]
+
+The first regime includes the budget \(\epsilon=1\), at which the benchmark is \(n^{-1/4}\). As the budget decreases, the two privacy terms successively determine the optimal order. In the saturation regime, the lower bound in \cref{obj:thm:matched-risk-frontier} keeps maximal absolute risk bounded away from zero, and the interval lower bound in \cref{obj:thm:sharp-interval-frontier} gives the corresponding positive expected-length bound.
+
+For a sequence of admissible budgets, the decisive consistency condition is \(n\epsilon_n\to+\infty\). By \cref{obj:prop:regime-and-sanity}, this condition is necessary and sufficient for the private minimax absolute risk to vanish. The comparison in \cref{obj:thm:sharp-interval-frontier} yields the same criterion for vanishing optimal honest expected length. Consequently, the two principal results characterize both uniform estimation accuracy and the attainable length of honest connected intervals through a common sample-size and privacy-budget scale.

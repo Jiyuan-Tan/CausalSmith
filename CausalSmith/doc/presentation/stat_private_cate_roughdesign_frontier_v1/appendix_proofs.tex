@@ -1,0 +1,1307 @@
+\begin{proof}[Proof of \cref{obj:thm:uniform-private-upper}]
+\begin{enumerate}
+\item
+We first establish privacy of the local releases. The public scales satisfy
+\[
+\delta=\frac{2h}{k}>0,
+\qquad
+\mathcal A=nh\min\{1,n\delta\}>0,
+\qquad
+d_0=\frac{3\mathcal A}{64}>0.
+\]
+The finite cell statistics are measurable, and the positive denominator floor makes the ratio and interval maps everywhere defined and measurable. For
+\[
+u=(u_N,u_D)\in\mathbb R^2,
+\]
+the conditional density of the joint release is
+\[
+p_D(u)
+=
+\left(\frac{\epsilon}{24}\right)^2
+\exp\left\{
+-\frac{\epsilon}{12}
+\bigl(|u_N-S_N(D)|+|u_D-S_D(D)|\bigr)
+\right\}.
+\]
+It integrates to one for every dataset. For replacement-adjacent datasets, \cref{obj:lem:all-count-stability} supplies
+\[
+|S_N(D)-S_N(D')|+|S_D(D)-S_D(D')|\le12.
+\]
+The triangle inequality therefore gives
+\[
+p_D(u)\le e^\epsilon p_{D'}(u)
+\qquad\text{for every }u\in\mathbb R^2.
+\]
+Integration proves the required privacy inequality for every Borel output event. Measurable postprocessing preserves both the Markov property and this inequality, proving the assertions for the scalar and interval outputs in \cref{obj:def:private-ratio}.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.privateRatioRelease_private; CausalSmith.Stat.PrivateCateRoughdesign.Thk_private; CausalSmith.Stat.PrivateCateRoughdesign.Ihk_private
+
+\item
+The public tuning also preserves these properties. When \(r(n,\epsilon)\ge1/8\), the outputs in \cref{obj:def:public-tuning} are constant probability kernels and satisfy the privacy inequality.
+
+On the branch \(r(n,\epsilon)<1/8\), define
+\[
+q_{\mathrm{dyad}}
+=
+\left\lceil\log_2\frac1{r(n,\epsilon)}\right\rceil,
+\qquad
+h_* =2^{-q_{\mathrm{dyad}}},
+\qquad
+k_* =2\cdot2^{4q_{\mathrm{dyad}}},
+\qquad
+\delta_*=\frac{2h_*}{k_*}.
+\]
+Here \(r(n,\epsilon)>0\), and \(q_{\mathrm{dyad}}\) is a nonnegative integer. The ceiling inequalities imply
+\[
+\frac1{r(n,\epsilon)}
+\le2^{q_{\mathrm{dyad}}}
+\le\frac2{r(n,\epsilon)},
+\]
+hence
+\[
+0<\frac{r(n,\epsilon)}2
+\le h_*
+\le r(n,\epsilon)<\frac18.
+\]
+Moreover,
+\[
+k_*=2h_*^{-4}\in\mathbb N,
+\qquad
+k_*\ge2,
+\qquad
+\delta_*=h_*^5.
+\]
+Thus the active branch uses admissible local parameters. Applying the local privacy conclusions proves the Markov and privacy assertions for both publicly tuned outputs.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.tunedH_bounds; CausalSmith.Stat.PrivateCateRoughdesign.public_tuning_parameters; CausalSmith.Stat.PrivateCateRoughdesign.publicTunedRelease_private; CausalSmith.Stat.PrivateCateRoughdesign.publicTunedInterval_private
+
+\item
+It remains to establish the statistical guarantees. We reduce them to the following uniform squared-error claim: for every
+\[
+k'\in\mathbb N,\quad k'\ge2,
+\qquad
+h'\in(0,1/4],
+\qquad
+\delta'=\frac{2h'}{k'},
+\qquad
+P\in\mathcal P,
+\]
+one has
+\[
+E_{(P^{\mathrm{obs}})^{\otimes n},\widehat T_{h',k'}}
+\bigl[(\widehat T_{h',k'}-\theta(P))^2\bigr]
+\le V(h',\delta').
+\]
+We first derive the remaining conclusions from this claim, and then prove it.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.uniform_private_upper
+
+\item
+For the original local parameters, define the interval radius
+\[
+\rho=\sqrt{10V(h,\delta)}>0.
+\]
+By \cref{obj:lem:point-version}, the target belongs to \([-1,1]\). Consequently, the endpoint formulas in \cref{obj:def:private-ratio} give
+\[
+\{\theta(P)\notin\widehat I_{h,k}\}
+\subseteq
+\{|\widehat T_{h,k}-\theta(P)|>\rho\}
+\subseteq
+\{(\widehat T_{h,k}-\theta(P))^2\ge10V(h,\delta)\}.
+\]
+Markov's inequality and the squared-error claim yield
+\[
+\Pr\{\theta(P)\notin\widehat I_{h,k}\}
+\le
+\frac{
+E[(\widehat T_{h,k}-\theta(P))^2]
+}{10V(h,\delta)}
+\le\frac1{10}.
+\]
+All probabilities and expectations here integrate both the sample and release randomization. This proves the local coverage assertion, including targets at the endpoints of \([-1,1]\).
+
+The interval contains its clipped center. Its endpoints lie in \([-1,1]\) and within distance \(\rho\) of that center, so, on every release,
+\[
+0\le\operatorname{Leb}(\widehat I_{h,k})
+\le2,
+\qquad
+\operatorname{Leb}(\widehat I_{h,k})\le2\rho.
+\]
+Integrating gives
+\[
+E\operatorname{Leb}(\widehat I_{h,k})
+\le\min\{2,2\sqrt{10V(h,\delta)}\}.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.Ihk_coverage_of_squared_error_le; CausalSmith.Stat.PrivateCateRoughdesign.Ihk_expectedLength_le
+
+\item
+We next prove the uniform absolute-error bound for the public estimator. If \(r(n,\epsilon)\ge1/8\), \cref{obj:lem:point-version} gives
+\[
+E|\widehat T^*-\theta(P)|
+=|\theta(P)|
+\le1
+\le2^{18}r(n,\epsilon).
+\]
+
+For the active branch, the cap in the benchmark definition is inactive. Raising its three constituent lower bounds to their respective positive integer powers gives
+\[
+1\le nr(n,\epsilon)^4,
+\qquad
+1\le n^2\epsilon r(n,\epsilon)^7,
+\qquad
+1\le n\epsilon r(n,\epsilon)^2.
+\]
+In particular, since \(0<r(n,\epsilon)<1\),
+\[
+nr(n,\epsilon)^3\ge nr(n,\epsilon)^4\ge1,
+\qquad
+n^2r(n,\epsilon)^8
+=\bigl(nr(n,\epsilon)^4\bigr)^2\ge1.
+\]
+Define the tuned occupancy scale by
+\[
+\mathcal A_*
+=nh_*\min\{1,n\delta_*\}
+=\min\{nh_*,n^2h_*^6\}.
+\]
+The dyadic bounds imply
+\[
+h_*\ge\frac{r(n,\epsilon)}{64},
+\qquad
+h_*^6\ge\frac{r(n,\epsilon)^6}{64},
+\]
+and therefore
+\[
+\mathcal A_*
+\ge
+\frac1{64}
+\min\{nr(n,\epsilon),n^2r(n,\epsilon)^6\}.
+\]
+Multiplying by the appropriate positive scales yields
+\[
+\begin{aligned}
+r(n,\epsilon)^2\mathcal A_*
+&\ge
+\frac1{64}
+\min\{nr(n,\epsilon)^3,n^2r(n,\epsilon)^8\}
+\ge\frac1{64},\\
+r(n,\epsilon)\epsilon\mathcal A_*
+&\ge
+\frac1{64}
+\min\{n\epsilon r(n,\epsilon)^2,
+      n^2\epsilon r(n,\epsilon)^7\}
+\ge\frac1{64}.
+\end{aligned}
+\]
+Thus
+\[
+\mathcal A_*^{-1}\le64r(n,\epsilon)^2,
+\qquad
+(\epsilon\mathcal A_*)^{-1}\le64r(n,\epsilon),
+\qquad
+(\epsilon\mathcal A_*)^{-2}\le4096r(n,\epsilon)^2.
+\]
+Since \(\delta_*=h_*^5\) and \(h_*>0\),
+\[
+\delta_*^{2/5}=h_*^2\le r(n,\epsilon)^2.
+\]
+Substitution into the public envelope gives
+\[
+V(h_*,\delta_*)
+\le
+2^{20}(2+64+4096)r(n,\epsilon)^2
+\le2^{33}r(n,\epsilon)^2
+\le\bigl(2^{18}r(n,\epsilon)\bigr)^2.
+\]
+
+Define the positive absolute-error scale
+\[
+\beta_{\mathrm{abs}}=2^{18}r(n,\epsilon)>0.
+\]
+For every scalar output \(u_{\mathrm{sc}}\in\mathbb R\), expanding the nonnegative square
+\((|u_{\mathrm{sc}}-\theta(P)|-\beta_{\mathrm{abs}})^2\) gives
+\[
+|u_{\mathrm{sc}}-\theta(P)|
+\le
+\frac{(u_{\mathrm{sc}}-\theta(P))^2}{2\beta_{\mathrm{abs}}}
++\frac{\beta_{\mathrm{abs}}}{2}.
+\]
+The uniform squared-error claim applies at \((h_*,k_*)\). Integrating the last inequality therefore proves
+\[
+E|\widehat T^*-\theta(P)|
+\le
+\frac{V(h_*,\delta_*)}{2\beta_{\mathrm{abs}}}
++\frac{\beta_{\mathrm{abs}}}{2}
+\le\beta_{\mathrm{abs}}.
+\]
+Taking the supremum over \(P\in\mathcal P\) proves the stated risk bound.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.active_rate_constraints; CausalSmith.Stat.PrivateCateRoughdesign.tuned_info_lower; CausalSmith.Stat.PrivateCateRoughdesign.tuned_scaled_info_lower; CausalSmith.Stat.PrivateCateRoughdesign.tuned_inverse_info_upper; CausalSmith.Stat.PrivateCateRoughdesign.tuned_cell_roughness; CausalSmith.Stat.PrivateCateRoughdesign.tuned_Vbound_le; CausalSmith.Stat.PrivateCateRoughdesign.absolute_moment_le_of_squared_moment; CausalSmith.Stat.PrivateCateRoughdesign.publicTunedRelease_worstRisk_of_squared_error_le
+
+\item
+For the public interval, the fallback branch has deterministic length two, and
+\[
+E\operatorname{Leb}(\widehat I^*)=2
+\le2^{22}r(n,\epsilon)
+\qquad\text{when }r(n,\epsilon)\ge1/8.
+\]
+On the active branch, the envelope estimate just proved gives
+\[
+10V(h_*,\delta_*)
+\le10\cdot2^{33}r(n,\epsilon)^2
+\le\bigl(2^{21}r(n,\epsilon)\bigr)^2.
+\]
+The right-hand square root is nonnegative, so
+\[
+\sqrt{10V(h_*,\delta_*)}\le2^{21}r(n,\epsilon).
+\]
+The local expected-length bound consequently yields
+\[
+E\operatorname{Leb}(\widehat I^*)
+\le2\sqrt{10V(h_*,\delta_*)}
+\le2^{22}r(n,\epsilon).
+\]
+Taking the supremum over the model proves the public expected-length assertion.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.tuned_interval_radius_le; CausalSmith.Stat.PrivateCateRoughdesign.publicTunedInterval_expectedLength_le; CausalSmith.Stat.PrivateCateRoughdesign.publicTunedInterval_worstLength_le
+
+\item
+Public coverage follows through the same two tuning branches. On the fallback branch, \cref{obj:lem:point-version} gives
+\[
+\Pr\{\theta(P)\in[-1,1]\}=1.
+\]
+On the active branch, the admissibility of \(h_*,k_*\) allows application of the uniform squared-error claim:
+\[
+E[(\widehat T_{h_*,k_*}-\theta(P))^2]
+\le V(h_*,\delta_*).
+\]
+The local coverage argument then gives
+\[
+\Pr\{\theta(P)\in\widehat I^*\}
+=
+\Pr\{\theta(P)\in\widehat I_{h_*,k_*}\}
+\ge\frac9{10}.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.publicTunedInterval_coverage_of_squared_error_le
+
+\item
+We now prove the uniform squared-error claim. Fix arbitrary admissible local parameters \(h,k\) and \(P\in\mathcal P\). For measurable integrands, write
+\[
+\mathbb E_P[F(D,\widetilde S)]
+:=
+\int_{\mathcal O^n}\int_{\mathbb R^2}
+F(D,u)\,\widetilde S(D,du)\,
+(P^{\mathrm{obs}})^{\otimes n}(dD).
+\]
+Thus this expectation includes the independent Laplace randomization. Define the population means, bias envelope, and comparison ratio by
+\[
+\overline N=\mathbb E_P[S_N(D)],
+\qquad
+\overline D=\mathbb E_P[S_D(D)],
+\qquad
+b=3h+24\delta^{1/5},
+\qquad
+\theta^\circ=\frac{\overline N}{\overline D}.
+\]
+By \cref{obj:lem:occupancy-cancellation},
+\[
+\overline N=\sum_{j=1}^k w_j\nu_j,
+\qquad
+\overline D=\sum_{j=1}^k w_jd_j,
+\qquad
+\overline D\ge d_0>0,
+\qquad
+|\theta^\circ-\theta(P)|\le b.
+\]
+
+For binary values
+\(a_{\mathrm{obs}},a'_{\mathrm{obs}},
+y_{\mathrm{obs}},y'_{\mathrm{obs}}\in\{0,1\}\),
+\[
+\left|
+(a_{\mathrm{obs}}-a'_{\mathrm{obs}})
+(y_{\mathrm{obs}}-y'_{\mathrm{obs}})
+\right|
+\le
+(a_{\mathrm{obs}}-a'_{\mathrm{obs}})^2.
+\]
+Taking expectations under two independent observations conditional on cell \(j\) proves
+\[
+|\nu_j|\le d_j.
+\]
+The cell conditioning is well defined by the positive cell masses under the density bounds. The occupancy weights in \cref{obj:lem:occupancy-cancellation} are nonnegative, hence
+\[
+|\overline N|
+\le\sum_{j=1}^k w_j|\nu_j|
+\le\sum_{j=1}^k w_jd_j
+=\overline D,
+\qquad
+|\theta^\circ|\le1.
+\]
+Also, \cref{obj:lem:point-version} supplies
+\[
+\theta(P)\in[-1,1].
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.conditional_cell_numerator_abs_le_denominator; CausalSmith.Stat.PrivateCateRoughdesign.population_numerator_abs_le_denominator; CausalSmith.Stat.PrivateCateRoughdesign.population_ratio_abs_le_one
+
+\item
+For every possible joint output \(u=(u_N,u_D)\in\mathbb R^2\), define
+\[
+B_D(u)=\max\{d_0,u_D\},
+\qquad
+T_{\mathrm{loc}}(u)
+=
+\operatorname{clip}_{[-1,1]}
+\left(\frac{u_N}{B_D(u)}\right).
+\]
+These maps are defined on all of \(\mathbb R^2\), with \(B_D(u)\ge d_0>0\). Since \(\overline D\ge d_0\), the denominator floor fixes \(\overline D\) and satisfies
+\[
+|B_D(u)-\overline D|\le|u_D-\overline D|.
+\]
+The exact perturbation identity is
+\[
+\frac{u_N}{B_D(u)}-\theta^\circ
+=
+\frac{
+(u_N-\overline N)+
+\theta^\circ(\overline D-B_D(u))
+}{B_D(u)}.
+\]
+Using \(|\theta^\circ|\le1\) gives
+\[
+\left|\frac{u_N}{B_D(u)}-\theta^\circ\right|
+\le
+\frac{|u_N-\overline N|+|u_D-\overline D|}{d_0}.
+\]
+Clipping cannot increase distance to \(\theta(P)\in[-1,1]\). Combining this fact with the population bias bound yields
+\[
+|T_{\mathrm{loc}}(u)-\theta(P)|
+\le
+b+\frac{|u_N-\overline N|+|u_D-\overline D|}{d_0}.
+\]
+Two applications of the quadratic sum inequality now give
+\[
+\begin{aligned}
+(T_{\mathrm{loc}}(u)-\theta(P))^2
+&\le
+2b^2+
+\frac{2}{d_0^2}
+\bigl(|u_N-\overline N|+|u_D-\overline D|\bigr)^2\\
+&\le
+2b^2+\frac4{d_0^2}
+\left\{
+(u_N-\overline N)^2+(u_D-\overline D)^2
+\right\}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.floored_ratio_perturbation; CausalSmith.Stat.PrivateCateRoughdesign.ratioMap_error_le; CausalSmith.Stat.PrivateCateRoughdesign.ratioMap_squared_error_le; CausalSmith.Stat.PrivateCateRoughdesign.ratioMap_model_squared_error_le
+
+\item
+For the variance calculation, invoke the replacement-copy Efron--Stein inequality \citep[Theorem~3.1, replacement-copy form, p.~54]{BoucheronLugosiMassart2013}. Explicitly, for the independent observed records and their independent replacement copies, define
+\[
+D=(O_1,\ldots,O_n),
+\qquad
+D^{(i)}=(O_1,\ldots,O_{i-1},O_i',O_{i+1},\ldots,O_n),
+\]
+where \(O_1,\ldots,O_n,O_i'\) have law \(P^{\mathrm{obs}}\), and \(O_i'\) is independent of \(D\). The published inequality gives
+\[
+\operatorname{Var}(\mathsf S(D))
+\le
+\frac12\sum_{i=1}^n
+E\bigl[(\mathsf S(D)-\mathsf S(D^{(i)}))^2\bigr],
+\qquad
+\mathsf S\in\{S_N,S_D\}.
+\]
+The statistics are measurable and square integrable. With this inequality, \cref{obj:lem:all-count-stability} supplies the bound
+\[
+\max\{\operatorname{Var}(S_N(D)),\operatorname{Var}(S_D(D))\}
+\le18W(P),
+\qquad
+W(P)=\sum_{j=1}^k w_j.
+\]
+
+Each independent Laplace noise has
+\[
+E[\xi_N]=E[\xi_D]=0,
+\qquad
+E[\xi_N^2]=E[\xi_D^2]
+=2\left(\frac{12}{\epsilon}\right)^2
+=\frac{288}{\epsilon^2}.
+\]
+Expanding the centered squares, independence and the zero noise means eliminate the cross terms. Thus the exact released-moment identity is
+\[
+\begin{aligned}
+&\mathbb E_P\left[
+(\widetilde S_N-\overline N)^2+
+(\widetilde S_D-\overline D)^2
+\right]\\
+&\qquad=
+\operatorname{Var}(S_N(D))
++\operatorname{Var}(S_D(D))
++\frac{576}{\epsilon^2}
+\le36W(P)+\frac{576}{\epsilon^2}.
+\end{aligned}
+\]
+Integrating the pointwise ratio bound consequently gives
+\[
+\begin{aligned}
+\mathbb E_P[(\widehat T_{h,k}-\theta(P))^2]
+&\le
+2b^2+\frac4{d_0^2}
+\mathbb E_P\left[
+(\widetilde S_N-\overline N)^2+
+(\widetilde S_D-\overline D)^2
+\right]\\
+&\le
+2b^2+\frac4{d_0^2}
+\left(36W(P)+\frac{576}{\epsilon^2}\right)\\
+&=
+2b^2+\frac{144W(P)}{d_0^2}
++\frac{2304}{\epsilon^2d_0^2}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.privateRatioRelease_centered_moments; CausalSmith.Stat.PrivateCateRoughdesign.Thk_model_squared_error_le
+
+\item
+Finally, the quadratic sum inequality and positivity of \(\delta\) imply
+\[
+(\delta^{1/5})^2=\delta^{2/5},
+\qquad
+2b^2
+=2(3h+24\delta^{1/5})^2
+\le36h^2+2304\delta^{2/5}.
+\]
+By \cref{obj:lem:occupancy-cancellation},
+\[
+W(P)\le\frac92\mathcal A.
+\]
+Substituting \(d_0=3\mathcal A/64\) gives
+\[
+\frac{144W(P)}{d_0^2}
+\le
+\frac{144(9\mathcal A/2)}{(3\mathcal A/64)^2}
+=294912\mathcal A^{-1},
+\]
+and
+\[
+\frac{2304}{\epsilon^2d_0^2}
+=
+\frac{2304}{\epsilon^2(3\mathcal A/64)^2}
+=1048576(\epsilon\mathcal A)^{-2}.
+\]
+All four terms in the public envelope are nonnegative. Since
+\(36,2304,294912\le2^{20}\) and \(1048576=2^{20}\), we obtain
+\[
+\begin{aligned}
+\mathbb E_P[(\widehat T_{h,k}-\theta(P))^2]
+&\le
+36h^2+2304\delta^{2/5}
++294912\mathcal A^{-1}
++1048576(\epsilon\mathcal A)^{-2}\\
+&\le
+2^{20}\left\{
+h^2+\delta^{2/5}+\mathcal A^{-1}
++(\epsilon\mathcal A)^{-2}
+\right\}
+=V(h,\delta).
+\end{aligned}
+\]
+The local parameters and model law were arbitrary, proving the uniform squared-error claim and completing all the preceding deductions.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.bias_squared_le; CausalSmith.Stat.PrivateCateRoughdesign.variance_floor_envelope_le; CausalSmith.Stat.PrivateCateRoughdesign.model_variance_envelope_le; CausalSmith.Stat.PrivateCateRoughdesign.Thk_model_squared_error_le; CausalSmith.Stat.PrivateCateRoughdesign.uniform_private_upper
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:matched-risk-frontier}]
+\begin{enumerate}
+\item Fix \(n\ge2\) and \(0<\epsilon\le1\). The numerical benchmark satisfies
+\[
+0<r(n,\epsilon)\le1,
+\]
+because \(n^{-1/4}>0\) and the defining minimum is taken with \(1\).
+
+Apply \cref{obj:lem:frontier-testing-priors}. Its probabilistic and combinatorial inputs are the bounded-differences exponential-moment bound from \citep[Theorem 6.2, displayed log-mgf conclusion in its proof, p.~167]{BoucheronLugosiMassart2013} and the labeled-tree count from \citep[Section 5.6, Theorem 5.40]{KellerTrotterAppliedCombinatorics}. Denote the resulting nonempty finite families and their uniformly averaged dataset laws by
+\[
+\begin{gathered}
+N_{\mathrm{prior},0},N_{\mathrm{prior},1}\in\mathbb N_{\ge1},
+\qquad
+\mathcal F_\eta
+=
+(P_{\eta,\iota})_{\iota=1}^{N_{\mathrm{prior},\eta}},
+\qquad \eta\in\{0,1\},\\
+Q^{(\eta)}
+=
+\frac{1}{N_{\mathrm{prior},\eta}}
+\sum_{\iota=1}^{N_{\mathrm{prior},\eta}}
+(P_{\eta,\iota}^{\mathrm{obs}})^{\otimes n}.
+\end{gathered}
+\]
+The supplied target separation \(\Delta\) obeys
+\[
+\Delta\ge2^{-14}r(n,\epsilon)>0,
+\qquad
+P_{\eta,\iota}\in\mathcal P,
+\qquad
+\theta(P_{\eta,\iota})=\eta\Delta.
+\]
+Moreover, for every \(M\in\mathfrak M_{n,\epsilon}(\mathbb R)\),
+\[
+d_{\mathrm{TV}}\!\left(MQ^{(0)},MQ^{(1)}\right)\le\frac14.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.frontier_testing_priors
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.rate_pos
+
+\item Fix any \(M\in\mathfrak M_{n,\epsilon}(\mathbb R)\), and define its maximal absolute risk, its two output laws, and their error events by
+\[
+\begin{aligned}
+\mathcal R(M)
+&=
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},M}
+|M(D)-\theta(P)|,\\
+\mathsf L_\eta&=MQ^{(\eta)},\\
+\mathcal E_\eta
+&=
+\{u\in\mathbb R:\Delta/2\le |u-\eta\Delta|\},
+\qquad \eta\in\{0,1\}.
+\end{aligned}
+\]
+Each \(\mathsf L_\eta\) is a probability measure, since its dataset prior is a normalized nonempty finite mixture and \(M\) is a Markov kernel.
+
+The target distance satisfies
+\[
+2(\Delta/2)=|0-\Delta|.
+\]
+Consequently, the triangle inequality gives
+\(\mathcal E_0^c\subseteq\mathcal E_1\). The two-error testing inequality therefore yields
+\[
+\begin{aligned}
+\mathsf L_0(\mathcal E_0)+\mathsf L_1(\mathcal E_1)
+&\ge
+\mathsf L_0(\mathcal E_0)+\mathsf L_1(\mathcal E_0^c)\\
+&=
+1+\mathsf L_0(\mathcal E_0)-\mathsf L_1(\mathcal E_0)\\
+&\ge
+1-d_{\mathrm{TV}}(\mathsf L_0,\mathsf L_1)
+\ge\frac34.
+\end{aligned}
+\]
+Thus
+\[
+\mathsf L_0(\mathcal E_0)\ge\frac38
+\quad\text{or}\quad
+\mathsf L_1(\mathcal E_1)\ge\frac38.
+\]
+
+In the first case take \(\eta=0\), and in the second take \(\eta=1\). The absolute loss is at least \(\Delta/2\) on the corresponding error event, so
+\[
+\int_{\mathbb R}|u-\eta\Delta|\,d\mathsf L_\eta(u)
+\ge
+\frac{\Delta}{2}\mathsf L_\eta(\mathcal E_\eta)
+\ge
+\frac{\Delta}{2}\frac38
+=
+\frac{3\Delta}{16}.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.absolute_loss_of_error_probability
+
+Finite-prior averaging and the common target within each family give
+\[
+\begin{aligned}
+\int_{\mathbb R}|u-\eta\Delta|\,d\mathsf L_\eta(u)
+&=
+\frac{1}{N_{\mathrm{prior},\eta}}
+\sum_{\iota=1}^{N_{\mathrm{prior},\eta}}
+E_{(P_{\eta,\iota}^{\mathrm{obs}})^{\otimes n},M}
+|M(D)-\theta(P_{\eta,\iota})|\\
+&\le
+\frac{1}{N_{\mathrm{prior},\eta}}
+\sum_{\iota=1}^{N_{\mathrm{prior},\eta}}\mathcal R(M)
+=
+\mathcal R(M).
+\end{aligned}
+\]
+These identities and inequalities concern nonnegative extended integrals and remain valid when a risk is infinite. In either case,
+\[
+\frac{3\Delta}{16}\le\mathcal R(M).
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.finite_prior_loss_le_worstRisk
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.finite_priors_scalar_lower
+
+\item The numerical calibration is
+\[
+2^{-20}\le\frac{3}{16}\,2^{-14}.
+\]
+Multiplying by the nonnegative benchmark and then using the separation bound gives
+\[
+2^{-20}r(n,\epsilon)
+\le
+\frac{3}{16}\bigl(2^{-14}r(n,\epsilon)\bigr)
+\le
+\frac{3\Delta}{16}
+\le
+\mathcal R(M).
+\]
+Since this holds for every admissible scalar kernel, \cref{obj:def:risk-criterion} implies
+\[
+2^{-20}r(n,\epsilon)
+\le
+\inf_{M\in\mathfrak M_{n,\epsilon}(\mathbb R)}\mathcal R(M)
+=
+R_{n,\epsilon}.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.matched_risk_frontier
+
+\item For the upper bound, use the replacement-copy Efron--Stein inequality from \citep[Theorem 3.1, p.~54]{BoucheronLugosiMassart2013} as the variance input to \cref{obj:thm:uniform-private-upper}. Apply that result with the admissible auxiliary parameters \(k=2\) and \(h=1/4\). It supplies, for the publicly tuned scalar estimator in \cref{obj:def:public-tuning},
+\[
+\widehat T^*\in\mathfrak M_{n,\epsilon}(\mathbb R),
+\qquad
+\mathcal R(\widehat T^*)\le2^{18}r(n,\epsilon).
+\]
+In particular, this estimator is an everywhere-defined Markov kernel satisfying pure replacement \(\epsilon\)-differential privacy. Its risk bound takes the supremum over the full class in \cref{obj:def:complete-model}, including every admissible measurable covariate density.
+
+Using this kernel as a candidate in the minimax infimum gives
+\[
+R_{n,\epsilon}
+=
+\inf_{M\in\mathfrak M_{n,\epsilon}(\mathbb R)}\mathcal R(M)
+\le
+\mathcal R(\widehat T^*)
+\le
+2^{18}r(n,\epsilon).
+\]
+Together with the lower bound, this proves all the assertions.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.uniform_private_upper
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.matched_risk_frontier
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:sharp-interval-frontier}]
+\begin{enumerate}
+\item Since \(n\ge2\), the sampling term is strictly positive. Hence
+\[
+0<n^{-1/4}
+\le
+\max\left\{
+n^{-1/4},(n^2\epsilon)^{-1/7},(n\epsilon)^{-1/2}
+\right\},
+\qquad
+r(n,\epsilon)>0.
+\]
+The definitions of the benchmark and constants therefore give
+\[
+\ell(n,\epsilon)=r(n,\epsilon)>0,
+\qquad
+c_I=2^{-20}>0,
+\qquad
+C_I=2^{22}>0.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.rate_pos
+
+\item We first identify the inversion kernel with the publicly tuned interval kernel. If \(r(n,\epsilon)\ge1/8\), both constructions in
+\cref{obj:def:interval-handle,obj:def:public-tuning} return \([-1,1]\).
+
+Suppose instead that \(r(n,\epsilon)<1/8\). Define the integer rounding index and public parameters by
+\[
+\jmath_h
+=
+\left\lceil\log_2\!\left(\frac1{r(n,\epsilon)}\right)\right\rceil
+\in\mathbb Z_{\ge0},
+\qquad
+h=2^{-\jmath_h},
+\qquad
+k=2\,2^{4\jmath_h}\in\mathbb N.
+\]
+The ceiling inequalities imply
+\[
+\log_2\!\left(\frac1{r(n,\epsilon)}\right)
+\le\jmath_h
+\le
+\log_2\!\left(\frac1{r(n,\epsilon)}\right)+1,
+\]
+and thus
+\[
+\frac1{r(n,\epsilon)}
+\le2^{\jmath_h}
+\le\frac2{r(n,\epsilon)},
+\qquad
+0<\frac{r(n,\epsilon)}2\le h\le r(n,\epsilon)<\frac18.
+\]
+In particular,
+\[
+0<h\le\frac14,
+\qquad
+k=2h^{-4}\ge2,
+\qquad
+\delta=\frac{2h}{k}=h^5>0.
+\]
+This also proves that the integer conversion in the public cell count is exact.
+
+For every possible value of the joint release in
+\cref{obj:def:private-ratio}, define
+\[
+\mathcal A=nh\min\{1,n\delta\},
+\qquad
+d_0=\frac{3\mathcal A}{64},
+\qquad
+B_D=\max\{d_0,\widetilde S_D\},
+\qquad
+B_N=\operatorname{clip}_{[-B_D,B_D]}(\widetilde S_N),
+\qquad
+\rho=\sqrt{10V(h,\delta)}.
+\]
+Because \(n,h,\delta>0\),
+\[
+\mathcal A>0,
+\qquad
+B_D\ge d_0>0,
+\qquad
+\rho\ge0.
+\]
+Division by the positive \(B_D\) preserves minima and maxima, so
+\[
+\frac{B_N}{B_D}
+=
+\frac{\max\{-B_D,\min\{B_D,\widetilde S_N\}\}}{B_D}
+=
+\max\left\{-1,\min\left\{1,\frac{\widetilde S_N}{B_D}\right\}\right\}
+=
+\widehat T_{h,k}.
+\]
+Consequently, the accepted candidate set is
+\[
+\begin{aligned}
+\mathcal V_{\mathrm{acc}}
+&=
+\left\{\vartheta\in[-1,1]:
+|B_N-\vartheta B_D|\le\rho B_D\right\}\\
+&=
+\left\{\vartheta\in[-1,1]:
+\left|\frac{B_N}{B_D}-\vartheta\right|\le\rho\right\}\\
+&=
+\left[
+\max\{-1,\widehat T_{h,k}-\rho\},
+\min\{1,\widehat T_{h,k}+\rho\}
+\right].
+\end{aligned}
+\]
+Indeed, the absolute-value inequality is equivalent to
+\(\widehat T_{h,k}-\rho\le\vartheta\le\widehat T_{h,k}+\rho\).
+Moreover,
+\[
+-1\le\widehat T_{h,k}\le1,
+\qquad
+\max\{-1,\widehat T_{h,k}-\rho\}
+\le\widehat T_{h,k}
+\le
+\min\{1,\widehat T_{h,k}+\rho\}.
+\]
+Thus the accepted set is a nonempty closed interval, and its hull has exactly these endpoints. The two constructions apply equal measurable interval maps to the same joint release. Together with the constant branch, this proves
+\[
+I^*_{n,\epsilon}=\widehat I^*.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.optimalIntervalHandle_eq_publicTunedInterval
+
+\item By \cref{obj:lem:frontier-testing-priors}, choose positive integers \(s_0,s_1\), families
+\[
+(P^{(0)}_\iota)_{\iota=1}^{s_0}\subset\mathcal P,
+\qquad
+(P^{(1)}_\iota)_{\iota=1}^{s_1}\subset\mathcal P,
+\]
+and a separation satisfying
+\[
+\theta(P^{(0)}_\iota)=0,
+\qquad
+\theta(P^{(1)}_\iota)=\Delta,
+\qquad
+\Delta\ge2^{-14}r(n,\epsilon)>0.
+\]
+Their dataset mixture laws are
+\[
+Q^{(0)}
+=
+\frac1{s_0}\sum_{\iota=1}^{s_0}
+\bigl((P^{(0)}_\iota)^{\mathrm{obs}}\bigr)^{\otimes n},
+\qquad
+Q^{(1)}
+=
+\frac1{s_1}\sum_{\iota=1}^{s_1}
+\bigl((P^{(1)}_\iota)^{\mathrm{obs}}\bigr)^{\otimes n}.
+\]
+The testing-prior construction uses the bounded-differences log-mgf conclusion of
+\citep[Theorem 6.2, proof, printed p.~167]{BoucheronLugosiMassart2013}
+and the labelled-tree count of
+\citep[Section 5.6, Theorem 5.40]{KellerTrotterAppliedCombinatorics}.
+Its conclusion gives, for every private Markov interval kernel \(I\),
+\[
+d_{\mathrm{TV}}(IQ^{(0)},IQ^{(1)})\le\frac14.
+\]
+
+Fix any kernel \(I\) feasible for \cref{obj:def:interval-criterion}. Define its two output probability laws and the measurable containment events by
+\[
+\mathsf J_0=IQ^{(0)},
+\qquad
+\mathsf J_1=IQ^{(1)},
+\qquad
+\mathsf E_0=\{\mathsf i\in\mathcal I:0\in\mathsf i\},
+\qquad
+\mathsf E_1=\{\mathsf i\in\mathcal I:\Delta\in\mathsf i\}.
+\]
+The finite families are nonempty, so honesty at every constituent law yields
+\[
+\begin{aligned}
+\mathsf J_0(\mathsf E_0)
+&=
+\frac1{s_0}\sum_{\iota=1}^{s_0}
+\Pr_{((P^{(0)}_\iota)^{\mathrm{obs}})^{\otimes n},I}
+\{0\in I(D)\}
+\ge\frac9{10},\\
+\mathsf J_1(\mathsf E_1)
+&=
+\frac1{s_1}\sum_{\iota=1}^{s_1}
+\Pr_{((P^{(1)}_\iota)^{\mathrm{obs}})^{\otimes n},I}
+\{\Delta\in I(D)\}
+\ge\frac9{10}.
+\end{aligned}
+\]
+Total variation comparison on \(\mathsf E_1\) gives
+\[
+\mathsf J_1(\mathsf E_1)-\mathsf J_0(\mathsf E_1)
+\le d_{\mathrm{TV}}(\mathsf J_0,\mathsf J_1)
+\le\frac14.
+\]
+Using the union--intersection identity and
+\(\mathsf J_0(\mathsf E_0\cup\mathsf E_1)\le1\), we obtain
+\[
+\begin{aligned}
+\mathsf J_0(\mathsf E_0\cap\mathsf E_1)
+&=
+\mathsf J_0(\mathsf E_0)+\mathsf J_0(\mathsf E_1)
+-\mathsf J_0(\mathsf E_0\cup\mathsf E_1)\\
+&\ge\frac9{10}+\left(\frac9{10}-\frac14\right)-1
+=\frac{11}{20}.
+\end{aligned}
+\]
+
+For every interval \(\mathsf i\in\mathsf E_0\cap\mathsf E_1\), its endpoint inequalities imply
+\[
+(0,\Delta)\subseteq\mathsf i,
+\qquad
+\operatorname{Leb}(\mathsf i)
+\ge\operatorname{Leb}((0,\Delta))=\Delta.
+\]
+This argument applies to open and closed endpoints and to unbounded intervals; an empty interval cannot belong to the intersection. Therefore, with all length integrals understood as nonnegative extended integrals,
+\[
+\begin{aligned}
+\frac{11}{20}\Delta
+&\le\Delta\,\mathsf J_0(\mathsf E_0\cap\mathsf E_1)\\
+&=
+\int_{\mathcal I}
+\Delta\,\mathbf 1_{\mathsf E_0\cap\mathsf E_1}(\mathsf i)
+\,\mathsf J_0(d\mathsf i)\\
+&\le
+\int_{\mathcal I}\operatorname{Leb}(\mathsf i)\,
+\mathsf J_0(d\mathsf i)\\
+&=
+\frac1{s_0}\sum_{\iota=1}^{s_0}
+E_{((P^{(0)}_\iota)^{\mathrm{obs}})^{\otimes n},I}
+\operatorname{Leb}(I(D))\\
+&\le
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},I}
+\operatorname{Leb}(I(D)).
+\end{aligned}
+\]
+The last inequality follows by bounding each constituent expectation by the same supremum.
+
+The numerical calibration is
+\[
+2^{-20}\le\frac{11}{20}\,2^{-14}.
+\]
+Multiplying by the nonnegative benchmark and using the separation bound gives
+\[
+2^{-20}r(n,\epsilon)
+\le
+\frac{11}{20}\,2^{-14}r(n,\epsilon)
+\le
+\frac{11}{20}\Delta
+\le
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},I}
+\operatorname{Leb}(I(D)).
+\]
+Since this holds for every feasible \(I\), taking the defining infimum proves
+\[
+2^{-20}r(n,\epsilon)\le H_{n,\epsilon}.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.finite_priors_interval_lower
+
+\item Apply \cref{obj:thm:uniform-private-upper} with auxiliary cell count two and localization radius \(1/4\), which satisfy its parameter conditions. Its variance argument uses the replacement-copy Efron--Stein inequality from
+\citep[Theorem 3.1, printed p.~54]{BoucheronLugosiMassart2013}.
+The publicly tuned conclusions establish that \(\widehat I^*\) is an everywhere-defined Markov kernel satisfying pure replacement \(\epsilon\)-privacy, and that
+\[
+\Pr_{(P^{\mathrm{obs}})^{\otimes n},\widehat I^*}
+\{\theta(P)\in\widehat I^*(D)\}
+\ge\frac9{10}
+\qquad(P\in\mathcal P),
+\]
+\[
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},\widehat I^*}
+\operatorname{Leb}(\widehat I^*(D))
+\le2^{22}r(n,\epsilon).
+\]
+Thus \(\widehat I^*\) is feasible for the infimum in
+\cref{obj:def:interval-criterion}, and
+\[
+H_{n,\epsilon}
+\le
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},\widehat I^*}
+\operatorname{Leb}(\widehat I^*(D)).
+\]
+The kernel identity proved above transfers privacy, coverage, and length to \(I^*_{n,\epsilon}\), yielding
+\[
+2^{-20}r(n,\epsilon)
+\le H_{n,\epsilon}
+\le
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},I^*_{n,\epsilon}}
+\operatorname{Leb}(I^*_{n,\epsilon}(D))
+\le2^{22}r(n,\epsilon).
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.uniform_private_upper
+
+\item Finally, \cref{obj:thm:matched-risk-frontier} supplies
+\[
+2^{-20}r(n,\epsilon)
+\le R_{n,\epsilon}
+\le2^{18}r(n,\epsilon).
+\]
+Multiplication by nonnegative finite constants preserves order in the extended nonnegative reals. The risk upper bound and interval lower bound give
+\[
+2^{-38}R_{n,\epsilon}
+\le
+2^{-38}\,2^{18}r(n,\epsilon)
+=
+2^{-20}r(n,\epsilon)
+\le H_{n,\epsilon}.
+\]
+The interval upper bound and risk lower bound give
+\[
+H_{n,\epsilon}
+\le2^{22}r(n,\epsilon)
+=
+2^{42}\bigl(2^{-20}r(n,\epsilon)\bigr)
+\le2^{42}R_{n,\epsilon}.
+\]
+These are the asserted comparisons of the two frontiers.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.sharp_interval_frontier
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:prop:regime-and-sanity}]
+\begin{enumerate}
+\item Fix \(n\ge2\) and \(0<\epsilon\le1\), and define the three benchmark terms by
+\[
+r_{\mathrm{samp}}=n^{-1/4},
+\qquad
+r_{\mathrm{sparse}}=(n^2\epsilon)^{-1/7},
+\qquad
+r_{\mathrm{dense}}=(n\epsilon)^{-1/2}.
+\]
+All three terms are positive, and
+\[
+r(n,\epsilon)
+=\min\{1,\max\{r_{\mathrm{samp}},
+                    \max\{r_{\mathrm{sparse}},r_{\mathrm{dense}}\}\}\}.
+\]
+Because logarithms preserve order on positive numbers,
+\[
+\begin{aligned}
+r_{\mathrm{sparse}}\le r_{\mathrm{samp}}
+&\iff
+-\frac17(2\log n+\log\epsilon)\le-\frac14\log n\\
+&\iff \log\epsilon\ge-\frac14\log n
+\iff \epsilon\ge n^{-1/4},
+\\
+r_{\mathrm{dense}}\le r_{\mathrm{samp}}
+&\iff
+-\frac12(\log n+\log\epsilon)\le-\frac14\log n\\
+&\iff \log\epsilon\ge-\frac12\log n
+\iff \epsilon\ge n^{-1/2}.
+\end{aligned}
+\]
+If \(n^{-1/4}\le\epsilon\), then
+\[
+n^{-1/2}\le n^{-1/4}\le\epsilon,
+\qquad
+r_{\mathrm{sparse}}\le r_{\mathrm{samp}},
+\qquad
+r_{\mathrm{dense}}\le r_{\mathrm{samp}}.
+\]
+Here the first comparison follows from \(n\ge1\) and
+\(-1/2\le-1/4\). Also \(r_{\mathrm{samp}}\le1\), since its exponent is nonpositive. Consequently,
+\[
+r(n,\epsilon)
+=\min\{1,r_{\mathrm{samp}}\}
+=r_{\mathrm{samp}}
+=n^{-1/4}.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.rate_sampling_regime
+
+\item Suppose that \(n^{-3/5}\le\epsilon\le n^{-1/4}\).
+The upper budget bound gives
+\[
+\log\epsilon\le-\frac14\log n,
+\qquad
+-\frac14\log n
+\le-\frac17(2\log n+\log\epsilon),
+\]
+and hence
+\[
+r_{\mathrm{samp}}\le r_{\mathrm{sparse}}.
+\]
+For the other comparison, logarithms give
+\[
+\begin{aligned}
+r_{\mathrm{dense}}\le r_{\mathrm{sparse}}
+&\iff
+-\frac12(\log n+\log\epsilon)
+\le-\frac17(2\log n+\log\epsilon)\\
+&\iff \log\epsilon\ge-\frac35\log n
+\iff \epsilon\ge n^{-3/5}.
+\end{aligned}
+\]
+Thus \(r_{\mathrm{dense}}\le r_{\mathrm{sparse}}\).
+Moreover, monotonicity in the exponent for a base at least one yields
+\[
+n^{-1}\le n^{-3/5}\le\epsilon.
+\]
+Multiplying by \(n>0\), and then using \(n\ge1\), gives
+\[
+1\le n\epsilon\le n^2\epsilon.
+\]
+Since the exponent \(-1/7\) is nonpositive,
+\[
+r_{\mathrm{sparse}}=(n^2\epsilon)^{-1/7}\le1.
+\]
+The maximum and the cap therefore simplify to
+\[
+r(n,\epsilon)
+=\min\{1,r_{\mathrm{sparse}}\}
+=r_{\mathrm{sparse}}
+=(n^2\epsilon)^{-1/7}.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.rate_sparse_regime
+
+\item Suppose that \(n^{-1}\le\epsilon\le n^{-3/5}\).
+Reversing the preceding logarithmic comparison gives
+\[
+\begin{aligned}
+r_{\mathrm{sparse}}\le r_{\mathrm{dense}}
+&\iff
+-\frac17(2\log n+\log\epsilon)
+\le-\frac12(\log n+\log\epsilon)\\
+&\iff \log\epsilon\le-\frac35\log n
+\iff \epsilon\le n^{-3/5}.
+\end{aligned}
+\]
+Also,
+\[
+\epsilon\le n^{-3/5}\le n^{-1/2},
+\]
+where the second inequality follows from \(n\ge1\).
+Taking logarithms and rearranging gives
+\[
+\log\epsilon\le-\frac12\log n,
+\qquad
+-\frac14\log n
+\le-\frac12(\log n+\log\epsilon),
+\]
+so that
+\[
+r_{\mathrm{samp}}\le r_{\mathrm{dense}}.
+\]
+The lower budget bound gives
+\[
+n\epsilon\ge1,
+\qquad
+r_{\mathrm{dense}}=(n\epsilon)^{-1/2}\le1.
+\]
+It follows that
+\[
+r(n,\epsilon)
+=\min\{1,r_{\mathrm{dense}}\}
+=r_{\mathrm{dense}}
+=(n\epsilon)^{-1/2}.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.rate_dense_regime
+
+\item If \(\epsilon\le n^{-1}\), then positivity and multiplication by \(n\) give
+\[
+0<n\epsilon\le1.
+\]
+A nonpositive power reverses order on positive bases, so
+\[
+1\le(n\epsilon)^{-1/2}
+=r_{\mathrm{dense}}
+\le\max\{r_{\mathrm{samp}},
+             \max\{r_{\mathrm{sparse}},r_{\mathrm{dense}}\}\}.
+\]
+Therefore the cap is active:
+\[
+r(n,\epsilon)=1.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.rate_capped_regime
+
+\item Since \(n\ge1\),
+\[
+n^{-1/4}\le1.
+\]
+Applying the sampling-regime identity at \(\epsilon=1\) yields
+\[
+r(n,1)=n^{-1/4}.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.rate_unit_budget
+
+\item Fix a budget sequence satisfying \(0<\epsilon_n\le1\) for every \(n\ge2\).
+The replacement-copy variance inequality
+\citep[Theorem 3.1, printed p.~54]{BoucheronLugosiMassart2013},
+the bounded-differences exponential-moment bound
+\citep[Theorem 6.2, displayed log-mgf conclusion in its proof, printed p.~167]{BoucheronLugosiMassart2013},
+and Cayley's labeled-tree formula
+\citep[Section 5.6, Theorem 5.40]{KellerTrotterAppliedCombinatorics}
+supply the variance, concentration, and counting inputs used in
+\cref{obj:thm:matched-risk-frontier}. Applying that result at each \(n\ge2\) gives
+\[
+2^{-20}r(n,\epsilon_n)
+\le R_{n,\epsilon_n}
+\le2^{18}r(n,\epsilon_n).
+\]
+The finite real bounds are regarded here as elements of \([0,\infty]\).
+We first establish the numerical equivalence
+\[
+r(n,\epsilon_n)\longrightarrow0
+\quad\Longleftrightarrow\quad
+n\epsilon_n\longrightarrow+\infty.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.matched_risk_frontier
+
+\item Suppose that \(r(n,\epsilon_n)\to0\).
+For every \(n\ge2\), the dense term is bounded by the uncapped maximum, and monotonicity of the minimum therefore gives
+\[
+\min\{1,(n\epsilon_n)^{-1/2}\}
+\le r(n,\epsilon_n).
+\]
+For an arbitrary real threshold, set
+\[
+K_{\mathrm{test}}\in\mathbb R,
+\qquad
+B_{\mathrm{test}}=\max\{1,K_{\mathrm{test}}\}.
+\]
+Then
+\[
+B_{\mathrm{test}}\ge1,
+\qquad
+\min\{1,B_{\mathrm{test}}^{-1/2}\}>0.
+\]
+Convergence of the benchmark implies that, eventually,
+\[
+\min\{1,(n\epsilon_n)^{-1/2}\}
+\le r(n,\epsilon_n)
+<\min\{1,B_{\mathrm{test}}^{-1/2}\}.
+\]
+This forces
+\[
+(n\epsilon_n)^{-1/2}<B_{\mathrm{test}}^{-1/2}.
+\]
+Indeed, the opposite weak inequality would, by monotonicity of the minimum, imply
+\[
+\min\{1,B_{\mathrm{test}}^{-1/2}\}
+\le\min\{1,(n\epsilon_n)^{-1/2}\},
+\]
+contradicting the strict bound above.
+Both bases are positive, and the power \(-1/2\) is strictly decreasing on positive bases. Hence, eventually,
+\[
+n\epsilon_n>B_{\mathrm{test}}\ge K_{\mathrm{test}}.
+\]
+Since the threshold was arbitrary,
+\[
+n\epsilon_n\longrightarrow+\infty.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.budget_diverges_of_rate_tendsto_zero
+
+\item Conversely, suppose that \(n\epsilon_n\to+\infty\).
+First,
+\[
+n^{-1/4}\longrightarrow0.
+\]
+For \(n\ge2\), positivity of the budget and \(n\le n^2\) give
+\[
+n\epsilon_n\le n^2\epsilon_n.
+\]
+Thus
+\[
+n^2\epsilon_n\longrightarrow+\infty.
+\]
+Negative powers tend to zero as their positive bases tend to infinity, so
+\[
+(n^2\epsilon_n)^{-1/7}\longrightarrow0,
+\qquad
+(n\epsilon_n)^{-1/2}\longrightarrow0.
+\]
+Continuity of the finite maximum and minimum now gives
+\[
+\begin{aligned}
+r(n,\epsilon_n)
+&=\min\left\{1,\max\left\{
+n^{-1/4},
+\max\{(n^2\epsilon_n)^{-1/7},(n\epsilon_n)^{-1/2}\}
+\right\}\right\}\\
+&\longrightarrow
+\min\{1,\max\{0,\max\{0,0\}\}\}=0.
+\end{aligned}
+\]
+This completes the numerical equivalence.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.rate_tendsto_zero_of_budget_diverges
+
+\item It remains to transfer convergence between the benchmark and the risk.
+Suppose first that \(R_{n,\epsilon_n}\to0\) in \([0,\infty]\).
+For \(n\ge2\), positivity of the sampling term and of the cap gives
+\[
+0<r(n,\epsilon_n).
+\]
+Fix a tolerance
+\[
+\eta\in(0,\infty).
+\]
+Since \(2^{-20}\eta>0\), convergence of the risk implies that, eventually,
+\[
+R_{n,\epsilon_n}<2^{-20}\eta.
+\]
+Combining this with the lower frontier bound gives
+\[
+2^{-20}r(n,\epsilon_n)
+\le R_{n,\epsilon_n}
+<2^{-20}\eta.
+\]
+Cancellation of the positive constant yields
+\[
+0<r(n,\epsilon_n)<\eta.
+\]
+Therefore \(r(n,\epsilon_n)\to0\), and the numerical equivalence implies
+\(n\epsilon_n\to+\infty\).
+
+Conversely, if \(n\epsilon_n\to+\infty\), the numerical equivalence gives
+\(r(n,\epsilon_n)\to0\). Consequently,
+\[
+2^{18}r(n,\epsilon_n)\longrightarrow0
+\]
+also when these finite values are viewed in \([0,\infty]\).
+The upper frontier bound and nonnegativity give, for every \(n\ge2\),
+\[
+0\le R_{n,\epsilon_n}\le2^{18}r(n,\epsilon_n).
+\]
+The squeeze principle in \([0,\infty]\) yields
+\[
+R_{n,\epsilon_n}\longrightarrow0.
+\]
+Together these implications prove the asserted consistency equivalence.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.private_risk_consistency_iff
+\end{enumerate}
+\end{proof}

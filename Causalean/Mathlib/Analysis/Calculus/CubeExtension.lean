@@ -1,0 +1,84 @@
+module
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Affine
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Basic
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Clamping
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ClosedPieceGluing
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Completion
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Contraction
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ConvexJetLipschitz
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.CoordinateLimit
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Cutoff
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Extension
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.FixedCubeNeighborhood
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Glue
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Holder
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.JetBounds
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.JetNorm
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Locality
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Plateau
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ProductJetDiagonal
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ProductJetDifference
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ProductJetDifferenceAlgebra
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ProductJetDifferenceFirstOrder
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ProductJetPairingAlgebra
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ProductJetPolarization
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ProductJetSlotPairing
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ProductJetSymmetry
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Profiles
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Radial
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RadialBase
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularAffine
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularAffineGeometry
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularAffineJets
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoff
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffBoundaryPoint
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffBoundaryTransfer
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffExteriorJets
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffFunction
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffInteriorModulus
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffJetBounds
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffLocalJets
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffLocalModulus
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffModulus
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularCutoffZero
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularFaceGeometry
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularFaceReflection
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularNegation
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularTwoFaceReflection
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.RectangularUpperFaceReflection
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionClosedExterior
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionCoefficients
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionCollarControl
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionCollarCrossing
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionCollarCubeEstimates
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionCollarEstimates
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionCollarGeometry
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionCollarModulus
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionCollarRestriction
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionCollarSideEstimates
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionFaceAlgebra
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionFaceFirstDeriv
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionFaceGluing
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionFaceJets
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionFaceLimit
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionGeometry
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionInterior
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionOperator
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionPolynomial
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionQuantitative
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionSampleJets
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ReflectionSampleLimit
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ScaledProductBump
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Scaling
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ScalingCore
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ZeroDimensional
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ZeroOrder
+
+/-!
+# Intrinsic cube Hölder completion and extension
+
+This package supplies extension-independent coordinate jets on closed finite-dimensional
+cubes, quantitative Hölder completion, affine transport, and controlled global extensions.
+-/
+
+public section

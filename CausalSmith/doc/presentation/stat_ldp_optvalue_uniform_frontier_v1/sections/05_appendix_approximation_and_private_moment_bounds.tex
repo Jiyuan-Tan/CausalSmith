@@ -1,0 +1,281 @@
+\section{Appendix: Approximation and private-moment bounds}
+
+The attaining procedure in \cref{obj:def:frontier-handle} combines polynomial estimation near zero with a signed mean estimate for larger treatment contrasts. Its analysis separates three sources of error: approximation of absolute value, variance of the estimated polynomial, and mistakes in selecting a branch from the pilot sample. The results below supply the corresponding bounds, together with the moment-matching construction used in the converse.
+
+\subsection{Concentration and approximation inputs}
+
+Independent bounded observations provide the concentration control needed for pilot selection. The following formulation records both tails and includes the degenerate bound explicitly. For a positive bound on the summands, it is the bounded-variable inequality of \citet[Theorem~2]{Hoeffding1963Bounded}.
+
+\begin{theoremv}{lem:bounded-mean-concentration}[Bounded mean concentration]
+Let \(m\ge1\) be an integer, let \(b\in\mathbb R\), and let \(H_1,\ldots,H_m\) be mutually independent, measurable real random variables on a common probability space. Suppose that
+\[
+-b\le H_i\le b
+\]
+at every sample point, for each \(i=1,\ldots,m\). Then, for every real \(x\ge0\),
+\[
+\begin{aligned}
+\Pr\left\{m^{-1}\sum_{i=1}^m(H_i-\mathbb E H_i)\ge x\right\}
+&\le
+\begin{cases}
+\exp\!\left(-\dfrac{mx^2}{2b^2}\right),& b\ne0,\\
+1,& b=0,
+\end{cases}\\
+\Pr\left\{m^{-1}\sum_{i=1}^m(H_i-\mathbb E H_i)\le -x\right\}
+&\le
+\begin{cases}
+\exp\!\left(-\dfrac{mx^2}{2b^2}\right),& b\ne0,\\
+1,& b=0.
+\end{cases}
+\end{aligned}
+\]
+\end{theoremv}
+
+The exponential bounds quantify the precision of a block mean through its sample size and the magnitude of its summands. In the private construction, those summands are scaled sign messages, so their magnitude incorporates the privacy attenuation. Both tails matter because pilot selection uses the absolute value of a coordinate mean.
+
+Polynomial estimation addresses the nondifferentiability of absolute value at zero. The next result specifies an explicit approximation and controls its monomial coefficients. The approximation error governs bias, while the coefficient bound enters the variance calibration when powers are replaced by estimated moments.
+
+\begin{theoremv}{lem:cai-low-chebyshev-approximation}[Chebyshev approximation of absolute value]
+Let \(D\ge 2\) be an even integer. Define the Chebyshev polynomials by
+\[
+\mathcal T_0(x)=1,\qquad \mathcal T_1(x)=x,\qquad
+\mathcal T_{v+1}(x)=2x\mathcal T_v(x)-\mathcal T_{v-1}(x)
+\quad (v\ge 1),
+\]
+and define the polynomial \(q_D\) and its monomial coefficients \(a_{Dv}\) by
+\[
+q_D(x)=\frac{2}{\pi}
++\frac{4}{\pi}\sum_{v=1}^{D/2}
+\frac{(-1)^{v+1}\mathcal T_{2v}(x)}{4v^2-1}
+=\sum_{v=0}^{D}a_{Dv}x^v.
+\]
+Then, for every \(x\in[-1,1]\),
+\[
+\bigl|q_D(x)-|x|\bigr|\le \frac{2}{\pi(D+1)},
+\]
+and, for every integer \(v\) with \(0\le v\le D\),
+\[
+|a_{Dv}|\le 2^{3D/2}.
+\]
+\end{theoremv}
+
+Increasing the degree reduces the uniform approximation error at an inverse-degree rate. The accompanying coefficient bound makes the statistical cost of that choice explicit: estimating a higher-degree polynomial requires controlling a larger collection of weighted moments. The finite calibration below balances these two effects.
+
+The converse uses the complementary approximation principle. Two symmetric distributions can agree on every moment through a prescribed degree while retaining a separation in their expected absolute values. The following statement expresses that separation in terms of the best uniform approximation error.
+
+\begin{theoremv}{lem:cai-low-moment-duality}[Symmetric moment matching duality]
+For every positive even integer \(K\), define the best uniform polynomial approximation error
+\[
+e_K=\inf_{\deg p\le K}\sup_{|x|\le 1}\bigl|p(x)-|x|\bigr|,
+\]
+where the infimum is over real polynomials \(p\). There exist probability measures \(\xi_0,\xi_1\) on \(\mathbb R\), each supported on \([-1,1]\) and invariant under reflection \(x\mapsto -x\), such that
+\[
+\int x^\ell\,d\xi_1(x)=\int x^\ell\,d\xi_0(x)
+\qquad\text{for every integer }0\le \ell\le K,
+\]
+and
+\[
+\int |x|\,d\xi_1(x)-\int |x|\,d\xi_0(x)=2e_K.
+\]
+\end{theoremv}
+
+Moment agreement makes polynomial expectations through the stated degree identical under the two measures, whereas the absolute-value expectations differ by twice the approximation error. Thus the same approximation problem supplies both an estimation device and a quantitative separation for moment-matched alternatives. Reflection invariance aligns this construction with the symmetric contrast distributions used in the converse.
+
+\subsection{Private moments and dependence across strata}
+
+The signed-vector channel \leanref{sym:Q^{\mathrm{vec}}}{\ensuremath{Q^{\mathrm{vec}}}} in \cref{obj:def:vector-kernel} releases one vector per participant. Independent participant sampling supplies the distinct observations needed for the moment estimates in \cref{obj:def:private-moments}; coordinates within a released vector share the same participant record. The next result establishes privacy, the required moment identities, and a dependence bound for arbitrary measurable column statistics with the displayed variances.
+
+\begin{lemmav}{lem:private-moment-and-dependence}[Private moments and column dependence]
+Let \(n,d,m\) be nonnegative integers and let \(\varepsilon\) be the privacy budget. Suppose that:
+\begin{itemize}
+\item \textbf{(Sampling.)} The sampling scheme satisfies \cref{obj:ass:iid-people}.
+\item \textbf{(Population.)} The full-data law \(P\) belongs to \(\mathcal V_d\), as defined in \cref{obj:def:causal-model}.
+\item \textbf{(Privacy calibration.)} \(0<\varepsilon\le1\).
+\item \textbf{(Dimension and block size.)} \(d\ge2\) and \(0<m\le n\).
+\end{itemize}
+Apply the vector channel \(Q^{\mathrm{vec}}\) once per participant, with a singleton public seed. Define the privacy attenuation and scaled-message magnitude by
+\[
+\delta=\tanh(\varepsilon/2),
+\qquad
+b=\frac d\delta.
+\]
+For an \(m\)-participant message block, write \(Z_{ij}\in\{-1,1\}\) for coordinate \(j\) of participant \(i\)'s sign-vector message and define the scaled messages by
+\[
+W_{ij}=bZ_{ij},
+\qquad 1\le i\le m,\quad j\in[d].
+\]
+Write \(\tau_j(P)\) for the cellwise treatment contrast,
+\[
+\tau_j(P)=\mu_{1j}(P)-\mu_{0j}(P).
+\]
+All expectations, variances, and covariances below are taken under the block message law induced by \(P\) and \(Q^{\mathrm{vec}}\).
+
+The protocol satisfies
+\[
+Q^{\mathrm{vec}}\in\mathfrak Q_{\mathrm{NI}}(n,d,\varepsilon),
+\]
+where membership has the full-record privacy and noninteraction requirements of \cref{obj:def:noninteractive-class}. For every \(1\le i\le m\) and \(j\in[d]\),
+\[
+\mathbb E[W_{ij}]=\tau_j(P),
+\qquad
+\mathbb E[W_{ij}^{2}]=b^{2}.
+\]
+For every \(1\le i\le m\) and distinct \(j,j'\in[d]\),
+\[
+\mathbb E[W_{ij}W_{ij'}]=0.
+\]
+The private moments \(\mathsf U_{kj}\) of \(W\), defined in \cref{obj:def:private-moments}, satisfy, for every integer \(0\le k\le m\) and every \(j\in[d]\),
+\[
+\mathbb E[\mathsf U_{kj}]=\tau_j(P)^k.
+\]
+For every nonnegative integer \(k\) with \(2k\le m\) and every \(j\in[d]\),
+\[
+\mathbb E[\mathsf U_{kj}^{2}]
+\le
+\left(\tau_j(P)^2+\frac{2kb^2}{m}\right)^k.
+\]
+
+For any deterministic measurable column statistics \(T_j^{\mathrm{col}}\), each a function of \((W_{1j},\ldots,W_{mj})\), every pair of distinct coordinates \(j,j'\in[d]\) satisfies
+\[
+\left|\operatorname{Cov}
+\left(T_j^{\mathrm{col}},T_{j'}^{\mathrm{col}}\right)\right|
+\le
+\frac{|\tau_j(P)\tau_{j'}(P)|}
+{\sqrt{(b^2-\tau_j(P)^2)(b^2-\tau_{j'}(P)^2)}}
+\sqrt{\operatorname{Var}(T_j^{\mathrm{col}})
+      \operatorname{Var}(T_{j'}^{\mathrm{col}})}.
+\]
+The same collection satisfies
+\[
+\operatorname{Var}\left(\frac1d\sum_{j=1}^{d}T_j^{\mathrm{col}}\right)
+\le
+\frac2d\max_{j\in[d]}\operatorname{Var}(T_j^{\mathrm{col}}).
+\]
+\end{lemmav}
+
+The sampling and population conditions connect the released coordinate means to the treatment contrasts. Privacy calibration determines the scaled-message magnitude, while the positive block size supplies the observations used by the distinct-person moments. Their unbiasedness permits a polynomial in a contrast to be estimated by replacing each power with its corresponding private moment. The restriction \(2k\le m\) accompanies the second-moment bound needed to control the variance of this substitution.
+
+For the column statistics \leanref{sym:T^{\mathrm{col}}}{\ensuremath{T_j^{\mathrm{col}}}}, the covariance inequality explicitly accounts for dependence across strata. Its aggregate consequence gives a factor of \(1/d\) in the variance of their average, up to the stated factor of two. This control applies to nonlinear column corrections and supplies the averaging bound required by the polynomial procedure.
+
+\subsection{Global and pilot-selected calibration}
+
+The final result combines the preceding inputs into two finite-sample calibrations. A fixed approximation radius covers the entire contrast range supplied by \cref{obj:def:causal-model}. A second calibration uses independent pilot and evaluation blocks: the pilot selects between polynomial estimation near zero and a signed evaluation mean for larger contrasts. The concentration and approximation conditions are stated explicitly so that each calibration's resources and error bounds remain visible.
+
+\begin{lemmav}{lem:finite-private-polynomial-calibration}[Finite private polynomial calibration]
+Let \(n,d\) be sample size and dimension, \(\varepsilon\) the privacy budget, and \(m\) the evaluation-block size. Suppose that:
+\begin{itemize}
+\item \textbf{(Resources.)} \(n\ge2\), \(d\ge2\), \(0<\varepsilon\le1\), and \(0<m\le n\).
+\item \textbf{(Sampling.)} The sampling scheme satisfies \cref{obj:ass:iid-people}.
+\item \textbf{(Causal model.)} The full-data law \(P\) belongs to \(\mathcal V_d\), as defined in \cref{obj:def:causal-model}.
+\item \textbf{(Bounded mean concentration.)} For every positive integer \(m\), every \(b>0\), and every collection of independent measurable real random variables \(H_1,\ldots,H_m\) taking values in \([-b,b]\), the following bounds hold for every \(x\ge0\):
+\[
+ \Pr\!\left\{\frac1m\sum_{i=1}^m(H_i-\mathbb EH_i)\ge x\right\}
+ \le \exp\!\left(-\frac{mx^2}{2b^2}\right),
+ \qquad
+ \Pr\!\left\{\frac1m\sum_{i=1}^m(H_i-\mathbb EH_i)\le -x\right\}
+ \le \exp\!\left(-\frac{mx^2}{2b^2}\right).
+\]
+\item \textbf{(Chebyshev approximation.)} For every even integer \(D\ge2\), the explicit Chebyshev absolute-value approximation, with monomial coefficients \(a_{Dv}\),
+\[
+ q_D(x)=\sum_{v=0}^D a_{Dv}x^v,
+\]
+satisfies
+\[
+ \sup_{x\in[-1,1]}|q_D(x)-|x||\le\frac{2}{\pi(D+1)},
+ \qquad
+ |a_{Dv}|\le 2^{3D/2}\quad(0\le v\le D).
+\]
+\end{itemize}
+
+Set the privacy attenuation, scaled-message magnitude, logarithmic dimension, calibration constant, and block noise scale to
+\[
+ \delta=\tanh(\varepsilon/2),\qquad
+ b=\frac d\delta,\qquad
+ L=\log(ed),\qquad
+ \eta_*=\frac1{1024},\qquad
+ \sigma^2=\frac{b^2}{m},\qquad
+ \sigma=\sqrt{\sigma^2}.
+\]
+Use independent participant releases from the signed-vector kernel
+\[
+ S=(2A-1)(2Y-1),\qquad
+ Q^{\mathrm{vec}}(z\mid O=(j,A,Y))
+ =2^{-d}(1+\delta S z_j),
+ \qquad z\in\{-1,1\}^d,
+\]
+and let \(W_{ij}\) be coordinate \(j\) of release \(i\), multiplied by \(b\). On an evaluation block of size \(m\), define the distinct-person moments and polynomial estimates by
+\[
+ \mathsf U_{0j}=1,\qquad
+ \mathsf U_{vj}
+ =\binom mv^{-1}
+   \sum_{\substack{I\subseteq\{1,\ldots,m\}\\|I|=v}}
+      \prod_{i\in I}W_{ij}
+ \quad(1\le v\le m),
+\]
+\[
+ p_{a,D}(x)=a q_D(x/a),\qquad
+ \widehat p_{a,D,j}
+ =\sum_{v=0}^D a_{Dv}a^{1-v}\mathsf U_{vj}.
+\]
+The target coordinate and its average absolute magnitude are
+\[
+ \tau_j(P)=\mu_{1j}(P)-\mu_{0j}(P),\qquad
+ F(\tau(P))=\frac1d\sum_{j=1}^d|\tau_j(P)|.
+\]
+
+For every even integer \(D\ge2\) satisfying
+\[
+ 2D\le m,\qquad
+ H=\log(e+\sigma^2L),\qquad
+ D\le\frac{\eta_*L}{H},
+\]
+take \(a=1/2\). Then, for every \(j\in[d]\),
+\[
+ \left|\mathbb E\widehat p_{1/2,D,j}-|\tau_j(P)|\right|
+ \le\frac1{D+1},
+ \qquad
+ \operatorname{Var}\!\left(\frac1d\sum_{j=1}^d
+                    \widehat p_{1/2,D,j}\right)
+ \le\frac{\exp(9DH)}{2d}.
+\]
+
+For every integer \(D\ge0\) satisfying
+\[
+ L\ge4096,\qquad
+ D=2\left\lfloor\frac{\eta_*L}{2}\right\rfloor,\qquad
+ 2D\le m,\qquad
+ 2m\le n,
+\]
+use two independent signed-vector release blocks of size \(m\), with scaled messages \(W^{\mathrm{pil}}\) and \(W^{\mathrm{ev}}\). Define
+\[
+ M_j=\frac1m\sum_{i=1}^mW^{\mathrm{pil}}_{ij},\qquad
+ \overline W_j=\frac1m\sum_{i=1}^mW^{\mathrm{ev}}_{ij},\qquad
+ T_*=4\sigma\sqrt L,\qquad a=2T_*,
+\]
+and form \(\widehat p_{a,D,j}\) from the evaluation-block moments. With \(\operatorname{sign}(0)=0\), put
+\[
+ H_j=\widehat p_{a,D,j}\mathbf1_{\{|M_j|\le T_*\}}
+       +\operatorname{sign}(M_j)\overline W_j
+          \mathbf1_{\{|M_j|>T_*\}}.
+\]
+Then, for every \(j\in[d]\),
+\[
+ \left|\mathbb EH_j-|\tau_j(P)|\right|
+ \le\frac{20000\sigma}{\sqrt L},
+ \qquad
+ \operatorname{Var}(H_j)
+ \le400\sigma^2L\exp(L/100),
+\]
+and
+\[
+ \mathbb E\!\left[
+   \left(\frac1d\sum_{j=1}^dH_j-F(\tau(P))\right)^2
+ \right]
+ \le500000000\,\frac{\sigma^2}{L}.
+\]
+\end{lemmav}
+
+The concentration and approximation hypotheses are supplied by \cref{obj:lem:bounded-mean-concentration,obj:lem:cai-low-chebyshev-approximation}. The sampling and causal conditions give the moment identities in \cref{obj:lem:private-moment-and-dependence}. Together, these conditions connect deterministic approximation error to bias and estimated-moment variability to polynomial variance.
+
+In the global calibration, the radius \(1/2\) covers every admissible treatment contrast. The bias bound decreases with the degree, while the variance bound grows exponentially in the degree times the noise-dependent calibration factor. The stated upper bound on the degree balances this growth against averaging across strata, and the block-size condition supplies the second moments required for all polynomial terms.
+
+For the pilot-selected calibration, the threshold \(T_*\) is measured in units of the block noise scale, enlarged by the square root of the logarithmic dimension. The approximation radius is twice that threshold. Independent blocks separate branch selection from evaluation, while concentration controls threshold and sign mistakes. Under the stated logarithmic-dimension and block-size conditions, the coordinate bias and variance bounds account for these selections, and the final bound controls the squared error of the average absolute-contrast estimate. This is the nonlinear component of the welfare procedure in \cref{obj:def:frontier-handle}.

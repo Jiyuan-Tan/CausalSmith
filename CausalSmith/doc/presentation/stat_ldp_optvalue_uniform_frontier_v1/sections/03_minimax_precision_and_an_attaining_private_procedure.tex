@@ -1,0 +1,447 @@
+\section{Minimax precision and an attaining private procedure}
+
+The signed-experiment correspondence in \cref{obj:prop:signed-causal-bridge} separates optimal welfare into the baseline outcome mean and one half of the average absolute treatment contrast:
+\[
+V(P)=B(P)+\frac12F(\tau(P)).
+\]
+This decomposition suggests collecting separate private messages for the two components. Estimating the baseline is a bounded-mean problem; estimating the absolute-contrast component requires accounting for the behavior of absolute value near treatment ties. The procedure below combines private mean estimation with polynomial approximation and selects its statistical decision using the public sample size, dimension, and privacy budget.
+
+\subsection{Private messages and the welfare procedure}
+
+We first specify the sign-vector message law and the distinct-person moments used to estimate polynomials of the treatment contrasts. Under the \leanref{S-4}{scaled-message convention}, the privacy attenuation is \(\delta=\tanh(\varepsilon/2)\), the message magnitude is \(b=d/\delta\), and a sign-vector coordinate is scaled as \(W_{ij}=bZ_{ij}\). The following message law places the record-dependent information in the participant's realized stratum while drawing the remaining coordinates as fair signs.
+
+\begin{definitionv}{def:vector-kernel}[Sign-vector kernel $Q^{\mathrm{vec}}$]
+The sign-vector message kernel is
+\[
+Q^{\mathrm{vec}}(z\mid O=(j,A,Y))
+=
+2^{-d}\bigl(1+\delta(2A-1)(2Y-1)z_j\bigr),
+\qquad z\in\{-1,1\}^d,
+\]
+where \(\delta=\tanh(\varepsilon/2)\) is the privacy attenuation. A sampler draws the coordinates independently: every coordinate other than \(j\) is a fair sign, and coordinate \(j\) has mean \(\delta S\), where
+\[
+S=(2A-1)(2Y-1).
+\]
+\end{definitionv}
+
+The message law \leanref{sym:Q^{\mathrm{vec}}}{\ensuremath{Q^{\mathrm{vec}}}} in \cref{obj:def:vector-kernel} protects the full observed record: its likelihood ratio across any two records is bounded by \((1+\delta)/(1-\delta)=e^\varepsilon\). Uniform strata and fair assignment make the scaled coordinate mean equal to the corresponding treatment contrast. Products formed from distinct participants therefore supply unbiased estimates of powers of that contrast. The next definition collects these products into symmetric averages.
+
+\begin{definitionv}{def:private-moments}[Private moments $\mathsf U_{kj}$]
+For a block of \(m\) participants with scaled coordinate messages \(W_{ij}\), define
+\[
+\mathsf U_{kj}
+=
+\binom{m}{k}^{-1}
+\sum_{\substack{J\subseteq\{1,\ldots,m\}\\ |J|=k}}
+\prod_{i\in J}W_{ij}
+\quad(1\le k\le m),
+\qquad
+\mathsf U_{0j}=1.
+\]
+These quantities are computed by elementary-symmetric recursions.
+\end{definitionv}
+
+At moment degree \leanref{sym:k}{\ensuremath{k}}, the distinct-person construction in \cref{obj:def:private-moments} uses independence across participants to estimate \(\tau_j(P)^k\). To compute all moments through a selected degree \(D\), initialize \(E_0=1\) and \(E_v=0\) for \(1\le v\le D\). For each observation \(W_{ij}\), update in descending order
+\[
+E_v\leftarrow E_v+W_{ij}E_{v-1}
+\qquad(v=\min\{D,i\},\ldots,1),
+\]
+and then set \(\mathsf U_{vj}=E_v/\binom mv\). This costs \(O(mD)\) arithmetic operations per coordinate and avoids enumerating participant subsets. It is the classical symmetric-statistic structure of \citet{Hoeffding1948}, applied here to scaled private messages.
+
+The complete procedure uses disjoint baseline, pilot, and evaluation blocks. Binary messages estimate the baseline; the pilot determines which treatment contrasts are close to zero; and evaluation messages supply both coordinate means and polynomial moments. All message laws are fixed before collection. Items 1--7 and 9 below specify collection and the reported estimate and interval. Item 8 records converse tuning packaged in the same verified declaration; it is an analytical choice and is not an operation performed by participants or the analyst.
+
+\begin{algorithmv}{def:frontier-handle}[Public-resource welfare construction $\mathscr H$]
+The construction \(\mathscr H\) takes the participant records, sample size \(n\ge2\), dimension \(d\), and privacy parameter \(\varepsilon\) as inputs; its tuning parameters are fixed below, and all auxiliary quantities and summation indices are local to the construction.
+\begin{enumerate}
+\item Fix the numerical constants, effective private resource, and logarithmic scales:
+\[
+\eta_*=\frac1{1024},
+\qquad L_0=4096,
+\qquad t=n\varepsilon^2,
+\qquad L=\log(ed),
+\qquad z_*=\frac{d^2L}{t},
+\qquad w=\log(e+z_*).
+\]
+Define the squared-error rate function by
+\[
+\rho(t,d)=
+\begin{cases}
+\displaystyle\frac{d^2}{tL},&t\ge d^2L,\\[3pt]
+\displaystyle\min\left\{1,
+\left[\frac{\log(e+d^2L/t)}{L}\right]^2\right\},
+&0<t<d^2L.
+\end{cases}
+\]
+Use a singleton public seed and ignore analyst randomization.
+
+\item If \(n=2\), each participant sends a constant message, and set
+\[
+\widehat V=\frac12.
+\]
+For this branch, proceed directly to the converse tuning and interval output in the final two steps. For \(n>2\), define the block sizes by
+\[
+m=\lfloor n/3\rfloor,
+\qquad m_0=n-2m.
+\]
+In the fixed participant order, allocate a baseline block of size \(m_0\), a disjoint sign-vector pilot block of size \(m\), and a disjoint sign-vector evaluation block of size \(m\).
+
+\item For \(n>2\), define the privacy attenuation and scaled-message magnitude by
+\[
+\delta=\tanh(\varepsilon/2),
+\qquad b=\frac d\delta.
+\]
+Each baseline participant sends a binary message with law
+\[
+\Pr(\mathsf H_i=h\mid O)
+=\frac{1+h\delta(2Y-1)}2,
+\qquad h\in\{-1,1\},
+\qquad 1\le i\le m_0.
+\]
+Define the baseline mean estimate by
+\[
+\widehat B
+=\frac12+\frac1{2\delta m_0}
+\sum_{i=1}^{m_0}\mathsf H_i.
+\]
+
+\item For \(n>2\), each participant in either vector block sends one message with law
+\[
+Q^{\mathrm{vec}}(z\mid O=(j,A,Y))
+=
+2^{-d}\bigl(1+\delta(2A-1)(2Y-1)z_j\bigr),
+\qquad z\in\{-1,1\}^d,
+\]
+using independent local randomness. Write \(Z^{\mathrm{pil}}_{ij}\) and \(Z^{\mathrm{ev}}_{ij}\) for coordinate \(j\) of participant \(i\)'s message in the two blocks, and define the scaled-message matrices by
+\[
+W^{\mathrm{pil}}_{ij}=bZ^{\mathrm{pil}}_{ij},
+\qquad
+W^{\mathrm{ev}}_{ij}=bZ^{\mathrm{ev}}_{ij},
+\qquad 1\le i\le m,\quad 1\le j\le d.
+\]
+The participant order, binary and sign-vector message alphabets, and kernels are predetermined. This is one fixed noninteractive protocol on the original participant inputs for both protocol classes \(\mathfrak Q_{\mathrm{NI}}\) and \(\mathfrak Q_{\mathrm{SI}}\).
+
+\item For \(n>2\), define the noise scale, polynomial calibration factor, and coordinate means by
+\[
+\sigma^2=\frac{b^2}{m},
+\qquad \sigma=\sqrt{b^2/m},
+\qquad H=\log(e+\sigma^2L),
+\]
+\[
+M_j=\frac1m\sum_{i=1}^m W^{\mathrm{pil}}_{ij},
+\qquad
+\overline W_j=\frac1m\sum_{i=1}^m W^{\mathrm{ev}}_{ij},
+\qquad 1\le j\le d.
+\]
+Define the evaluation-block moments by
+\[
+\mathsf U_{vj}
+=
+\binom{m}{v}^{-1}
+\sum_{\substack{J\subseteq\{1,\ldots,m\}\\ |J|=v}}
+\prod_{i\in J}W^{\mathrm{ev}}_{ij}
+\quad(1\le v\le m),
+\qquad
+\mathsf U_{0j}=1.
+\]
+Compute these moments by elementary-symmetric recursions.
+
+\item For each even degree \(D\ge2\) selected below, define the Chebyshev polynomials and the absolute-value approximation by
+\[
+\mathcal T_0(x)=1,
+\qquad \mathcal T_1(x)=x,
+\qquad
+\mathcal T_{v+1}(x)
+=2x\mathcal T_v(x)-\mathcal T_{v-1}(x)
+\quad(v\ge1),
+\]
+\[
+p_D^{\mathrm{abs}}(x)
+=
+\frac2\pi+\frac4\pi\sum_{v=1}^{D/2}
+\frac{(-1)^{v+1}\mathcal T_{2v}(x)}{4v^2-1}
+=
+\sum_{v=0}^D c_{D,v}x^v.
+\]
+For the positive radius \(a_{\mathrm{rad}}\) selected below, define the coordinate polynomial estimate by
+\[
+\widehat p_{a_{\mathrm{rad}},D,j}
+=
+\sum_{v=0}^D
+c_{D,v}a_{\mathrm{rad}}^{\,1-v}\mathsf U_{vj}.
+\]
+
+\item For \(n>2\), define the estimate \(\widehat F\) of the average absolute treatment contrast \(F(\tau(P))\) by taking the first applicable branch below.
+
+If \(L<L_0\), set
+\[
+\widehat F=\frac1d\sum_{j=1}^d|\overline W_j|.
+\]
+Otherwise, if \(d^2L\le t\), define
+\[
+D=2\left\lfloor\frac{L}{2048}\right\rfloor,
+\qquad T_*=4\sigma\sqrt L,
+\qquad a_{\mathrm{rad}}=8\sigma\sqrt L,
+\]
+and set
+\[
+\widehat F
+=
+\frac1d\sum_{j=1}^d
+\left[
+\widehat p_{a_{\mathrm{rad}},D,j}
+\mathbf1_{\{|M_j|\le T_*\}}
++
+\operatorname{sign}(M_j)\overline W_j
+\mathbf1_{\{|M_j|>T_*\}}
+\right],
+\qquad \operatorname{sign}(0)=0.
+\]
+Otherwise, if \(L/(1024H)<4\), set
+\[
+\widehat F=\frac14.
+\]
+Otherwise, define
+\[
+a_{\mathrm{rad}}=\frac12,
+\qquad
+D=2\left\lfloor\frac{L}{2048H}\right\rfloor,
+\]
+and set
+\[
+\widehat F
+=\frac1d\sum_{j=1}^d
+\widehat p_{a_{\mathrm{rad}},D,j}.
+\]
+
+\item For \(n>2\), combine the baseline and absolute-contrast estimates and clip the resulting welfare estimate:
+\[
+\widetilde V=\widehat B+\frac12\widehat F,
+\qquad
+\widehat V=\max\{1/4,\min\{3/4,\widetilde V\}\}.
+\]
+
+\item For every allowed resource tuple, define the converse amplitude and integer degrees by
+\[
+(\alpha,k)=
+\begin{cases}
+\left(\displaystyle\frac1{100}\sqrt{z_*},
+\,2\lceil16L\rceil+1\right),&z_*\le1,\\[3pt]
+\left(\displaystyle\frac1{100},
+\,2\lceil16L/w\rceil+1\right),&z_*>1,
+\end{cases}
+\qquad K=k-1.
+\]
+Use these values in the scaled symmetric moment-matching measures, their independent coordinate product priors, and the symmetric causal laws \(G_\theta\).
+
+\item For every \(n\ge2\), define the interval radius by
+\[
+q_*=\sqrt{10^{17}\rho(t,d)}.
+\]
+Output the welfare estimate and connected closed interval
+\[
+\widehat V=
+\begin{cases}
+1/2,&n=2,\\
+\max\{1/4,\min\{3/4,\widehat B+\widehat F/2\}\},&n>2,
+\end{cases}
+\qquad
+\left[
+\max\{1/4,\widehat V-q_*\},
+\min\{3/4,\widehat V+q_*\}
+\right].
+\]
+\end{enumerate}
+\end{algorithmv}
+
+The welfare construction \leanref{sym:\mathscr H}{\ensuremath{\mathscr H}} in \cref{obj:def:frontier-handle} uses pilot information solely in the statistical decision, so collection remains noninteractive. Independence between the pilot and evaluation blocks separates coordinate selection from evaluation. Near zero, the polynomial estimates absolute value through distinct-person moments; beyond the pilot threshold, the signed evaluation mean uses the locally linear form of absolute value. The remaining branches calibrate the estimate to bounded dimension or lower effective resource. Clipping places the welfare estimate and interval endpoints in the model's welfare range.
+
+For clarity, the converse tuning recorded in item 8 of \cref{obj:def:frontier-handle} belongs to the lower-bound analysis rather than the reporting algorithm. It specifies the moment-matching priors and resource-dependent symmetric causal laws used later in the converse. The operational construction consists of message collection, moment computation, branch selection, clipping, and the interval output; its interval radius is calibrated to the uniform squared-error bound.
+
+\subsection{Uniform precision across resource regimes}
+
+The next result characterizes minimax squared error and globally honest expected interval length for the causal model in \cref{obj:def:causal-model}. Its approximation input is the Bernstein limit for best polynomial approximation to absolute value, as presented by \citet[Section 3.1, p.~8]{CaiLow2011Nonsmooth}. The comparison is uniform over the stated resources and covers both noninteractive and sequentially interactive collection.
+
+\begin{theoremv}{thm:uniform-private-value-frontiers}[Uniform private welfare frontiers]*
+This result is conditional on the cited, unformalized Bernstein absolute-approximation limit. If \(e_K=\inf_{\deg p\le K}\sup_{|x|\le1}\lvert |x|-p(x)\rvert\) is the best uniform error for approximating \(|x|\) on \([-1,1]\), then \(2k e_{2k}\to\beta_*\) for a constant \(0.278<\beta_*<0.286\). See \citet[Section 3.1]{CaiLow2011Nonsmooth} and \citet{Bernstein1913}.
+
+There are universal constants \(0<c\le C_0<\infty\) with the following properties. For every sample size \(n\), dimension \(d\), privacy budget \(\varepsilon\), and sampling scheme satisfying
+\begin{itemize}
+\item \textbf{(Resources.)} \(n\ge2\), \(d\ge2\), and \(0<\varepsilon\le1\);
+\item \textbf{(Sampling.)} \cref{obj:ass:iid-people};
+\item \textbf{(Randomization.)} \cref{obj:ass:independent-randomness};
+\end{itemize}
+let \(t=n\varepsilon^2\) be the effective private resource and \(L=\log(ed)\) the log-dimension factor. For either protocol class \(\mathcal C\in\{\mathrm{NI},\mathrm{SI}\}\), define
+\[
+r_{\mathcal C}(n,d,\varepsilon)=\rho(t,d)=
+\begin{cases}
+\dfrac{d^2}{tL},&t\ge d^2L,\\[4pt]
+\displaystyle\min\left\{1,
+\left[\frac{\log(e+d^2L/t)}{L}\right]^2\right\},
+&0<t<d^2L,
+\end{cases}
+\qquad
+h_{\mathcal C}(n,d,\varepsilon)=\sqrt{\rho(t,d)}.
+\]
+The minimax squared-error risk \(\mathfrak R_{\mathcal C}\) and globally \(0.90\)-honest connected interval length \(\mathfrak H_{\mathcal C}\), defined in \cref{obj:def:risk,obj:def:honest-length} for this sampling scheme, satisfy
+\[
+c\,r_{\mathcal C}(n,d,\varepsilon)
+\le \mathfrak R_{\mathcal C}(n,d,\varepsilon)
+\le C_0\,r_{\mathcal C}(n,d,\varepsilon),
+\qquad
+c\,h_{\mathcal C}(n,d,\varepsilon)
+\le \mathfrak H_{\mathcal C}(n,d,\varepsilon)
+\le C_0\,h_{\mathcal C}(n,d,\varepsilon).
+\]
+
+For each class, a noninteractive \(\varepsilon\)-private protocol \(Q\), a transcript-only estimator \(T\), and a connected closed interval decision \(I\) with endpoints in \([1/4,3/4]\) attain these upper bounds simultaneously: for every \(P\in\mathcal V_d\), the declared causal model,
+\[
+\mathbb E_P\!\left[(T(\mathbf Z,R,U)-V(P))^2\right]
+\le C_0\,r_{\mathcal C}(n,d,\varepsilon),
+\qquad
+\mathbb P_P\!\left\{V(P)\in I(\mathbf Z,R,U)\right\}\ge0.90,
+\]
+\[
+\mathbb E_P\!\left[\operatorname{length}
+ I(\mathbf Z,R,U)\right]
+\le C_0\,h_{\mathcal C}(n,d,\varepsilon).
+\]
+Here expectations and probabilities use the specified sampling scheme and protocol. The resource-selected explicit noninteractive welfare procedure also satisfies these three guarantees with the same \(C_0\) and the NI rates.
+
+For both classes, risk and squared honest length obey the quantitative comparisons
+\[
+\frac{c^2}{C_0}\,
+\mathfrak R_{\mathcal C}(n,d,\varepsilon)
+\le
+\mathfrak H_{\mathcal C}(n,d,\varepsilon)^2
+\le
+\frac{C_0^2}{c}\,
+\mathfrak R_{\mathcal C}(n,d,\varepsilon).
+\]
+The class comparisons are
+\[
+1\le
+\frac{\mathfrak R_{\mathrm{NI}}(n,d,\varepsilon)}
+     {\mathfrak R_{\mathrm{SI}}(n,d,\varepsilon)}
+\le\frac{C_0}{c},
+\qquad
+1\le
+\frac{\mathfrak H_{\mathrm{NI}}(n,d,\varepsilon)}
+     {\mathfrak H_{\mathrm{SI}}(n,d,\varepsilon)}
+\le\frac{C_0}{c}.
+\]
+
+For every \(d\ge2\) and \(0<t<d^2\log(ed)\), the saturation condition is exactly
+\[
+\rho(t,d)=1
+\quad\Longleftrightarrow\quad
+t\le\frac{d^2\log(ed)}{ed-e}.
+\]
+
+Along every sequence of allowed resource tuples
+\((n_k,d_k,\varepsilon_k)\), write \(t_k=n_k\varepsilon_k^2\). Then
+\[
+\rho(t_k,d_k)\longrightarrow0
+\quad\Longleftrightarrow\quad
+t_k\longrightarrow\infty
+\ \text{and}\
+\frac{\log(1+d_k^2/t_k)}{\log(ed_k)}\longrightarrow0.
+\]
+Moreover,
+\[
+\rho(t_k,d_k)\asymp t_k^{-1}
+\quad\Longleftrightarrow\quad
+\left(\exists a>0:\ t_k\ge a\ \text{eventually}\right)
+\ \text{and}\
+\left(\exists M\in\mathbb R:\ \min\{t_k,d_k\}\le M\
+\text{eventually}\right),
+\]
+where \(\asymp\) denotes eventual comparability by positive finite constants. In particular, when \(t_k\to\infty\),
+\[
+\rho(t_k,d_k)\asymp t_k^{-1}
+\quad\Longleftrightarrow\quad
+\exists M\in\mathbb N:\ d_k\le M\ \text{eventually}.
+\]
+For every family of sampling schemes satisfying
+\cref{obj:ass:iid-people,obj:ass:independent-randomness} at each \(n,d\), and for either fixed class \(\mathcal C\), these consistency and private-parametric characterizations also hold for the corresponding minimax risk. Honest length tends to zero under the same consistency condition, and its private-parametric order is \(t_k^{-1/2}\) under the same comparability conditions.
+
+Finally, for every \(0<a\le b<\infty\), there are constants \(0<c\le C_0<\infty\) and an integer \(D_0\), possibly depending on \(a,b\), such that for every \(d\ge\max\{D_0,2\}\) and every \(t\) with \(a\le t/d^2\le b\),
+\[
+c\left[\frac{\log\log(ed)}{\log(ed)}\right]^2
+\le \rho(t,d)\le
+C_0\left[\frac{\log\log(ed)}{\log(ed)}\right]^2.
+\]
+Consequently, along allowed sequences with \(d_k\to\infty\) and \(t_k/d_k^2\) in a fixed positive finite interval, either class has
+\[
+\mathfrak R_{\mathcal C}(n_k,d_k,\varepsilon_k)
+\asymp
+\left[\frac{\log\log(ed_k)}{\log(ed_k)}\right]^2,
+\qquad
+\mathfrak H_{\mathcal C}(n_k,d_k,\varepsilon_k)
+\asymp
+\frac{\log\log(ed_k)}{\log(ed_k)}.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:uniform-private-value-frontiers
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{CaiLow2011Nonsmooth} (Section 3.1, definition of the Bernstein constant and immediately following paragraph, page 8). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:uniform-private-value-frontiers
+
+The intuition behind \cref{obj:thm:uniform-private-value-frontiers} is a balance between approximating absolute value and estimating its polynomial approximation from noisy messages. Higher degrees reduce approximation bias while increasing the variability of private moments. The resource-dependent choices in \cref{obj:def:frontier-handle} balance these effects, with the pilot localizing the approximation when resources are large. The squared-error rate \leanref{sym:r_{\mathcal C}}{\ensuremath{r_{\mathcal C}(n,d,\varepsilon)}} and honest-length rate \leanref{sym:h_{\mathcal C}}{\ensuremath{h_{\mathcal C}(n,d,\varepsilon)}} express the same precision scale: honest length has the order of the square root of minimax risk.
+
+For \(t\ge d^2L\), squared error has order \(d^2/(tL)\), and honest length has order \(d/\sqrt{tL}\). Below this threshold, precision depends logarithmically on the resource ratio \(d^2L/t\). At and below the stated saturation threshold, risk and honest length both have constant order. These regimes translate participant count and privacy budget into uncertainty for reporting population welfare, uniformly over treatment contrasts that include exact ties.
+
+Consistency requires both diverging effective private resource and a vanishing normalized logarithmic resource deficit:
+\[
+t_k\longrightarrow\infty,
+\qquad
+\frac{\log(1+d_k^2/t_k)}{\log(ed_k)}\longrightarrow0.
+\]
+The first requirement controls the overall information available after privatization; the second describes how dimension may grow relative to that information. Under these conditions, minimax squared error vanishes and globally honest intervals shrink in either protocol class.
+
+The private-parametric boundary is especially sharp along sequences with \(t_k\to\infty\). Eventual boundedness of dimension is equivalent to squared-error order \(t_k^{-1}\) and honest-length order \(t_k^{-1/2}\). The theorem also gives the full comparability criterion for sequences whose effective resource stays bounded away from zero. When dimension diverges and \(t_k/d_k^2\) remains in a fixed positive finite interval, the logarithmic regime yields squared-error order \([\log\log(ed_k)/\log(ed_k)]^2\) and interval-length order \(\log\log(ed_k)/\log(ed_k)\).
+
+The protocol comparisons establish equality of statistical orders between noninteractive and sequentially interactive collection. A fixed noninteractive procedure attains the common orders, while the lower bounds apply throughout the sequential class. The constants in these comparisons quantify uniform comparability; equality of orders leaves room for differences in leading constants. The explicit numerical calibration in \cref{obj:def:frontier-handle} serves simultaneous risk, coverage, and length guarantees.
+
+\subsection{Two-cell calibration}
+
+A two-stratum trial provides a direct calibration of the bounded-dimension characterization. The following result states the saturated and private-parametric orders across the entire two-cell causal model, together with simultaneous attainment by a transcript-only noninteractive decision.
+
+\begin{theoremv}{thm:two-cell-calibration}[Two-cell risk and length calibration]
+There exist universal constants \(0<c\le C_0<\infty\) such that, for every sample size \(n\), privacy budget \(\varepsilon\), and sampling scheme for two-cell observed records satisfying
+\begin{itemize}
+\item \textbf{(Resources.)} \(n\ge2\) and \(0<\varepsilon\le1\).
+\item \textbf{(Sampling.)} \cref{obj:ass:iid-people}.
+\item \textbf{(Randomness.)} \cref{obj:ass:independent-randomness}.
+\end{itemize}
+the minimax squared-error risk and globally \(0.90\)-honest expected interval length defined in \cref{obj:def:risk,obj:def:honest-length}, evaluated under this sampling scheme, satisfy, for every \(\mathcal C\in\{\mathrm{NI},\mathrm{SI}\}\),
+\[
+c\min\{1,(n\varepsilon^2)^{-1}\}
+\le \mathfrak R_{\mathcal C}(n,2,\varepsilon)
+\le C_0\min\{1,(n\varepsilon^2)^{-1}\},
+\]
+\[
+c\min\{1,(\sqrt n\,\varepsilon)^{-1}\}
+\le \mathfrak H_{\mathcal C}(n,2,\varepsilon)
+\le C_0\min\{1,(\sqrt n\,\varepsilon)^{-1}\}.
+\]
+
+Moreover, for each such sampling scheme, \(n\), and \(\varepsilon\), there exist a total noninteractive protocol \(Q\in\mathfrak Q_{\mathrm{NI}}(n,2,\varepsilon)\) on the original observed records, an estimator \(T(\mathbf Z,R,U)\) equal to a Borel function of the message transcript \(\mathbf Z\) alone, and a connected closed interval \(I(\mathbf Z,R,U)\) with ordered Borel endpoints in \([1/4,3/4]\), such that, simultaneously for every \(P\in\mathcal V_2\), the causal model in \cref{obj:def:causal-model},
+\[
+\mathbb E\!\left[(T(\mathbf Z,R,U)-V(P))^2\right]
+\le C_0\min\{1,(n\varepsilon^2)^{-1}\},
+\]
+\[
+\mathbb P\!\left\{V(P)\in I(\mathbf Z,R,U)\right\}\ge0.90,
+\qquad
+\mathbb E\!\left[\operatorname{length}(I(\mathbf Z,R,U))\right]
+\le C_0\min\{1,(\sqrt n\,\varepsilon)^{-1}\}.
+\]
+The expectations and probability are taken under the decision law induced by the sampling scheme, \(Q\), and \(P\).
+\end{theoremv}
+
+With two strata, the dimension factors are fixed, so effective private resource governs the precision orders in \cref{obj:thm:two-cell-calibration}. Diverging \(n\varepsilon^2\) gives inverse-resource squared error and inverse-square-root-resource honest length, while bounded resource retains the saturated scale. The guarantees hold uniformly over the two-cell model, including exact treatment ties. This calibration connects the general characterization to the familiar privacy order for bounded-mean estimation.
+
+\subsection{Analytical ingredients}
+
+The upper-bound analysis separates approximation bias from aggregate private-moment variance. The Chebyshev approximation and exact moment-duality conclusions are established in \cref{obj:lem:cai-low-chebyshev-approximation,obj:lem:cai-low-moment-duality}. The cited Bernstein limit in \citet[Section 3.1, p.~8]{CaiLow2011Nonsmooth} supplies the quantitative inverse-degree approximation scale used in the general minimax converse. Private-moment variability and dependence across coordinates are treated in \cref{obj:lem:private-moment-and-dependence}, and \cref{obj:lem:finite-private-polynomial-calibration} connects those bounds to the resource-selected polynomial estimates. The bounded-mean concentration bound in \cref{obj:lem:bounded-mean-concentration}, associated with \citet{Hoeffding1963Bounded}, controls pilot selection. These ingredients assign separate roles to approximation, evaluation noise, and selection error.
+
+For the lower bounds, the \leanref{S-3}{sequential converse construction} combines moment-matching coordinate priors with separated welfare values under the symmetric causal laws in \cref{obj:def:symmetric-law}. The contraction bound in \cref{obj:lem:adaptive-moment-contraction} controls the distinguishability of the resulting sequential transcript mixtures. Their welfare separation is quantified in \cref{obj:lem:separated-value-mixtures}, while \cref{obj:lem:dimension-free-private-two-point} supplies the complementary private two-point bound. The same indistinguishability argument supports squared-error and honest-length lower bounds: estimating separated welfare values requires distinguishing the mixtures, and global coverage requires intervals long enough to accommodate their separation. Detailed calculations and the proofs of the main results are assigned to the appendices.

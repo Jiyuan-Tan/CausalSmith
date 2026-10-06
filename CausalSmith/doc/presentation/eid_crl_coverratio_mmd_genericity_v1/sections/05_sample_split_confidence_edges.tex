@@ -1,0 +1,209 @@
+\section{Sample-split confidence edges}\label{sec:confidence-edges}
+
+The population decoder in \cref{obj:def:population-decoder,obj:thm:exact-ratio-decoder} turns positive ratio-law discrepancies into ancestral order information. This section adds the finite-sample graph layer. The sampling scheme uses independent training folds to construct the fitted ratios \leanref{sym:\widehat R_i}{\ensuremath{\widehat R_i}} and independent evaluation folds, with environment sample sizes \leanref{sym:N_e}{\ensuremath{N_e}}, to test the resulting one-dimensional ratio laws.
+
+\begin{definitionv}{synth_5}[Sample-split experiment world]
+A sample-split experiment for a fixed observed environment family \(W\), whose observations take values in \(\mathbb R^n\), consists of a measurable sample space \(\Omega\) together with:
+\begin{itemize}
+\item \textbf{(Experiment law.)} A measure on \(\Omega\).
+\item \textbf{(Evaluation fold.)} Environment sample sizes \(N_e\in\mathbb N\), for \(e=0,\ldots,n\), and evaluation observations, each taking values in the observed state space,
+\[
+X^{\mathrm{eval}}_{e,m}:\Omega\to\mathbb R^n,
+\qquad
+m=1,\ldots,N_e .
+\]
+\item \textbf{(Training fold.)} Training sample sizes \(N^{\mathrm{tr}}_e\in\mathbb N\), for \(e=0,\ldots,n\), and training observations, again valued in the observed state space,
+\[
+X^{\mathrm{tr}}_{e,m}:\Omega\to\mathbb R^n,
+\qquad
+m=1,\ldots,N^{\mathrm{tr}}_e .
+\]
+\item \textbf{(Fitted ratios.)} For each full training fold \(T=\{T_{e,m}:e=0,\ldots,n,\ m=1,\ldots,N^{\mathrm{tr}}_e\}\), each \(i\in[n]\), and each \(x\in\mathbb R^n\), a fitted ratio value
+\[
+\widehat R_i(T,x)\in\mathbb R .
+\]
+For every \(i\), the map \((T,x)\mapsto \widehat R_i(T,x)\) is jointly measurable; for every \(T\) and \(i\), the map \(x\mapsto \widehat R_i(T,x)\) is measurable; and
+\[
+\widehat R_i(T,x)>0
+\]
+for every \(T\), \(i\), and \(x\).
+\item \textbf{(First-stage radius.)} A first-stage radius \(a_N(\eta)\in\mathbb R\), indexed by the first-stage failure level \(\eta\), satisfying
+\[
+a_N(\eta)\ge 0
+\]
+for every \(\eta\in\mathbb R\).
+\item \textbf{(Error levels.)} A familywise evaluation error level \(\alpha\in(0,1)\) and a first-stage failure level \(\eta\in(0,1)\).
+\end{itemize}
+\end{definitionv}
+
+\Cref{obj:synth_5} isolates the objects needed for a sample-split analysis: a training sample, an evaluation sample, fitted positive ratios, a first-stage radius \leanref{sym:a_N}{\ensuremath{a_N}}, a familywise level \leanref{sym:\alpha}{\ensuremath{\alpha}}, and a first-stage failure level \leanref{sym:\eta}{\ensuremath{\eta}}. The radius \(a_N(\eta)\) is an input to the analysis: the section takes as given a first-stage estimator delivering uniform \(L^1\) ratio accuracy \(a_N(\eta)\) with probability at least \(1-\eta\), and proves what follows from it. What the section delivers is therefore an inference interface for the ratio graph, valid for any first-stage estimator meeting that contract. The second-stage half of the radius, which comes from evaluation-fold kernel concentration, is explicit in the sample sizes and \(\alpha\) alone. The next condition supplies the probabilistic independence that lets the evaluation fold be analyzed conditionally on the trained ratios.
+
+\begin{assumptionv}{ass:independent-environment-sampling}[Independent environment sampling]
+The sample-split experiment is carried by a probability law, and each environment law \(P^e\) is a probability measure. It satisfies:
+\begin{itemize}
+\item \textbf{(Training fold.)} For each environment \(e\), the training observations are measurable, independent within that environment, and each training observation in environment \(e\) has law \(P^e\).
+\item \textbf{(Evaluation fold.)} For each environment \(e\), the evaluation observations are measurable, independent within that environment, and each evaluation observation in environment \(e\) has law \(P^e\).
+\item \textbf{(Fold independence.)} The complete training fold is independent of the complete array of evaluation observations across all environments.
+\item \textbf{(First-stage measurability.)} For each latent coordinate \(i\in[n]\) and latent state \(x\), the ratio estimate \(\widehat R_i(x)\) is measurable with respect to the training fold, and the same estimate is jointly measurable in the training fold and \(x\). The training-fold event
+\[
+\left\{\omega:\ \forall i\in[n],\ \forall e,\ 
+\int \left|\widehat R_i(x)-R_i(x)\right|\,dP^e(x)\le a_N(\eta)
+\ \text{with finite integral}\right\}
+\]
+is measurable with respect to the training fold.
+\end{itemize}
+\end{assumptionv}
+
+This is the standard independent multi-sample sampling with sample splitting condition used in kernel two-sample analysis \citep{GrettonEtAl2012KernelTwoSample}. The within-environment independence clauses identify each empirical law with its environment distribution, while fold independence makes the evaluation concentration conditional on the realized training output. The measurability clause makes the simultaneous first-stage \(L^1\) ratio-error event a genuine training-fold event.
+
+The evaluation statistic compares the fitted-ratio distributions in an interventional environment and the observational environment through a Gaussian maximum mean discrepancy. The following definitions fix the evaluation notation, the Hilbert-space embedding, the empirical discrepancy \leanref{sym:\widehat D_{ji}}{\ensuremath{\widehat D_{ji}}}, and the simultaneous radius \leanref{sym:\varepsilon_N(\alpha,\eta)}{\ensuremath{\varepsilon_N(\alpha,\eta)}}.
+
+\begin{definitionv}{synth_25}[Evaluation-fold observations]
+In the sample-split experiment, for each environment \(e\in\{0,\ldots,n\}\) let
+\[
+X^{(e)}_1,\ldots,X^{(e)}_{N_e}
+\]
+denote the independent evaluation-fold observations drawn from the observed law \(P^e\), independently of the training folds used to construct the ratio estimators \(\widehat R_i\). Thus \(X^{(j)}_r=X^{\mathrm{eval}}_{j,r}\) is the \(r\)-th evaluation observation from interventional environment \(j\), and \(X^{(0)}_r=X^{\mathrm{eval}}_{0,r}\) is the \(r\)-th evaluation observation from the observational environment.
+\end{definitionv}
+
+\begin{definitionv}{synth_21}[Feature Hilbert space and kernel mean embedding]
+Let \(\mathcal H\) be the complete real Hilbert space in which the feature map \(U=(\Phi,\|\Phi(\cdot)\|,\langle\Phi(\cdot),\Phi(\cdot)\rangle)\) takes its values. The feature map is normalized for the Gaussian kernel when
+\[
+\|\Phi(r)\|_{\mathcal H}=1,\qquad
+\langle \Phi(a),\Phi(b)\rangle_{\mathcal H}=k(a,b),\qquad
+k(a,b)=\exp\{-(a-b)^2\}.
+\]
+For any probability law \(\nu\) on \(\mathbb R\), define the kernel mean embedding
+\[
+\mu_U(\nu)=\int_{\mathbb R}\Phi(r)\,d\nu(r)\in\mathcal H,
+\]
+with the integral understood as the Hilbert-valued Bochner integral.
+\end{definitionv}
+
+\begin{definitionv}{synth_14}[Empirical MMD discrepancy]
+For \(j,i\in[n]\), outcome \(\omega\), and a real Hilbert-space feature map \(U=(\Phi,\ldots)\) of unit norm satisfying \(\langle \Phi(a),\Phi(b)\rangle=k(a,b)=\exp(-(a-b)^2)\), define
+\[
+\widehat D_{ji}(\omega;U)
+=
+\left\|
+\frac{1}{N_j}\sum_{r=1}^{N_j}\Phi\!\left(\widehat R_i(X^{(j)}_r(\omega))\right)
+-
+\frac{1}{N_0}\sum_{r=1}^{N_0}\Phi\!\left(\widehat R_i(X^{(0)}_r(\omega))\right)
+\right\|_{\mathcal H}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_11}[Simultaneous MMD radius]
+In the sample-split experiment of \cref{obj:synth_5}, assume:
+\begin{itemize}
+\item \textbf{(First-stage radius.)} \(a_N(\eta)\in[0,\infty)\) is the deterministic radius in the simultaneous first-stage evaluation-law error event at failure level \(\eta\).
+\item \textbf{(Evaluation sizes.)} \(N_e\) is the evaluation sample size in environment \(e\in\{0,\ldots,n\}\).
+\item \textbf{(Nondegeneracy.)} \(n\ge1\) and \(\min_{0\le e\le n}N_e\ge1\).
+\item \textbf{(Levels.)} \(\alpha\in(0,1)\) and \(\eta\in(0,1)\).
+\end{itemize}
+The simultaneous MMD confidence radius is
+\[
+\varepsilon_N(\alpha,\eta)
+=
+2\sqrt 2\,a_N(\eta)
++
+\frac{2\{1+\sqrt{2\log(n(n+1)/\alpha)}\}}
+{\sqrt{\min_{0\le e\le n}N_e}} .
+\]
+This radius is the threshold used to convert the empirical discrepancies \(\widehat D_{ji}\) into simultaneous lower confidence bounds for the population discrepancies \(D_{ji}\).
+\end{definitionv}
+
+The first term in \cref{obj:synth_11} carries the training-fold ratio error into the MMD scale. The second term is the simultaneous evaluation fluctuation over all ordered pairs, using the unit-norm Gaussian feature representation in \cref{obj:synth_21}; this is the same empirical-process layer underlying kernel two-sample testing and its aggregated variants \citep{GrettonEtAl2012KernelTwoSample,SchrabEtAl2023MMDAgg}.
+
+The graph estimator thresholds empirical lower confidence bounds for the population discrepancies. Its output \leanref{sym:\widehat H}{\ensuremath{\widehat H}} is an edge set on the environment labels.
+
+\begin{algorithmv}{def:sample-split-confidence-graph}[Sample-split confidence graph $\widehat H$]
+Under \cref{obj:ass:independent-environment-sampling}, with training and evaluation folds and tuning levels \(\alpha,\eta\), the sample-split confidence graph \(\widehat H\) is defined by the following steps.
+\begin{enumerate}
+\item On the training folds, fit likelihood-ratio estimators
+\[
+\widehat R_i,
+\qquad i\in[n].
+\]
+
+\item On the independent evaluation folds, compute the empirical Gaussian-MMD discrepancies
+\[
+\widehat D_{ji},
+\qquad j,i\in[n],\ j\ne i,
+\]
+using \(\widehat R_i\).
+
+\item Output the directed graph
+\[
+\widehat H
+=
+\left\{
+j\to i:
+\widehat D_{ji}-\varepsilon_N(\alpha,\eta)>0
+\right\}.
+\]
+\end{enumerate}
+\end{algorithmv}
+
+The rule in \cref{obj:def:sample-split-confidence-graph} selects an arrow exactly when the lower confidence bound for the corresponding population discrepancy is positive. The theorem below states the resulting simultaneous coverage and its implication for ancestral edge discoveries.
+
+\begin{theoremv}{thm:simultaneous-confidence-edges}[Simultaneous confidence edges]
+Fix \(n\ge 1\), a labeled DAG \(G\) on \([n]\), a sign vector \(s\), a mechanism \(\theta\), an observed world with target permutation \(\pi\), and a sample-split experiment \(S\). Suppose:
+\begin{itemize}
+\item \textbf{(Structural model.)} The mechanism, shared mixing representation, and one-intervention-per-node design satisfy \cref{obj:ass:positive-normalized-smooth-mechanisms,obj:ass:shared-diffeomorphic-mixing,obj:ass:one-perfect-intervention-per-node}.
+\item \textbf{(Sample splitting.)} The training and evaluation folds satisfy \cref{obj:ass:independent-environment-sampling}, and each environment has evaluation sample size \(N_e\ge 1\).
+\item \textbf{(Levels.)} The familywise evaluation level and first-stage failure level satisfy \(\alpha,\eta\in(0,1)\).
+\item \textbf{(First-stage event.)} With
+\[
+\mathcal E_{\mathrm{fs}}
+=
+\left\{
+\omega:
+\forall i\in[n],\ \forall e\in\{0,\ldots,n\},\
+\int
+\left|\widehat R_i(x)-R_i(x)\right|
+\,dP^e(x)
+\le a_N(\eta)
+\right\},
+\]
+where the displayed integrals are finite, the training-fold event obeys
+\[
+\Pr(\mathcal E_{\mathrm{fs}})\ge 1-\eta .
+\]
+\end{itemize}
+Let \(\mathcal E_{\mathrm{MMD}}\) be the simultaneous evaluation event
+\[
+\mathcal E_{\mathrm{MMD}}
+=
+\left\{
+\omega:
+\forall j\ne i,\
+\left|\widehat D_{ji}(\omega)-D_{ji}\right|
+\le \varepsilon_N(\alpha,\eta)
+\right\}.
+\]
+Then, conditionally on the training fold and on \(\mathcal E_{\mathrm{fs}}\), this event has probability at least \(1-\alpha\): for every training-fold measurable event \(B\),
+\[
+(1-\alpha)\Pr(\mathcal E_{\mathrm{fs}}\cap B)
+\le
+\Pr(\mathcal E_{\mathrm{MMD}}\cap\mathcal E_{\mathrm{fs}}\cap B).
+\]
+Consequently,
+\[
+\Pr(\mathcal E_{\mathrm{MMD}})\ge 1-\alpha-\eta .
+\]
+Moreover, for every \(\omega\in\mathcal E_{\mathrm{MMD}}\), every selected arrow \(j\to i\) of the sample-split confidence graph \(\widehat H\) from \cref{obj:def:sample-split-confidence-graph} satisfies that \(\pi(j)\) is an ancestor of \(\pi(i)\) in \(G\). If, in addition,
+\[
+2\varepsilon_N(\alpha,\eta)<D_{ji}
+\qquad
+\text{for every }j,i\text{ such that }\pi(j)\lessdot_G \pi(i),
+\]
+then for every \(\omega\in\mathcal E_{\mathrm{MMD}}\),
+\[
+\operatorname{TC}\!\left(\widehat H(\omega)\right)
+=
+\operatorname{TC}\!\left(G^\pi\right).
+\]
+\end{theoremv}
+
+The intuition is a conditioning argument. On the first-stage event, the fitted ratios are close enough to the population ratios in every environment law to perturb the population Gaussian-MMD discrepancies by at most the first part of \(\varepsilon_N(\alpha,\eta)\). Given the training fold, the evaluation observations are independent across the multi-sample experiment, so the empirical embeddings concentrate simultaneously over ordered pairs. The selected arrows therefore have familywise-valid ancestral interpretation, and when every transported ancestral cover has population discrepancy larger than twice the radius, the selected graph has the same transitive closure as \(G^\pi\).

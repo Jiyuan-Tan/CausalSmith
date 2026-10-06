@@ -1,0 +1,159 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Mathlib.Analysis.InnerProductSpace.Basic
+public import Mathlib.Analysis.SpecialFunctions.Complex.Arg
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
+public import Mathlib.Topology.Algebra.Module.ModuleTopology
+
+/-!
+# The Szegő comparison interpolant
+
+For the Szegő differential inequality one compares the trigonometric transform
+`Q(t) = R(cos t)` with the *comparison interpolant* at a base point `t₀`,
+
+`S(t) = Q₀ · cos(β(t − t₀)) + (Q₁/β) · sin(β(t − t₀))`,
+
+where `Q₀ = Q(t₀)` and `Q₁ = Q'(t₀)`.  For `β ≥ 1` this `S` matches value and
+derivative of `Q` at `t₀`, has constant amplitude `A = √(Q₀² + (Q₁/β)²)`, and is
+an "elementary wave" `A · cos(β(t − t₀) − φ)`.  This file collects those purely
+analytic facts (no zero-counting); the trigonometric-polynomial membership of `S`
+and the final comparison live in `Szego`.
+
+* `szegoInterp` — the interpolant.
+* `szegoInterp_self` — `S(t₀) = Q₀`.
+* `szegoInterp_hasDerivAt` — `S'(t₀) = Q₁` (for `β ≥ 1`).
+* `szegoInterp_amplitude` — `S(t) = A · cos(β(t − t₀) − φ)` for a phase `φ`.
+* `szegoInterp_abs_le` — `|S(t)| ≤ A`.
+
+## Standard reference
+Szegő's inequality; Rivlin, *The Chebyshev Polynomials* (1974); DeVore–Lorentz,
+*Constructive Approximation* (1993), Ch. 4 (Bernstein–Szegő).
+-/
+
+@[expose] public section
+
+open Real
+
+namespace Causalean.Mathlib.Analysis.BernsteinSzegoTrig
+
+/-- For [a nonnegative integer frequency](hyp:β), [a prescribed value](hyp:Q₀), [a prescribed
+derivative](hyp:Q₁), [a real base point](hyp:t₀), and [a real argument](hyp:t), [the Szegő
+comparison interpolant](goal) is $Q₀\cos(β(t-t₀))+(Q₁/β)\sin(β(t-t₀))$.
+
+The **Szegő comparison interpolant** at base point `t₀` matching prescribed
+value `Q₀` and derivative `Q₁`:
+`S(t) = Q₀ · cos(β(t − t₀)) + (Q₁/β) · sin(β(t − t₀))`.
+For `β ≥ 1` it satisfies `S(t₀) = Q₀`, `S'(t₀) = Q₁`, and is a trigonometric
+wave with constant amplitude `√(Q₀² + (Q₁/β)²)`.  The degree-`≤ β`
+trigonometric-polynomial statement is proved later as `szegoInterp_isTrigPolyLE`
+in `Szego`. -/
+noncomputable def szegoInterp (β : ℕ) (Q₀ Q₁ t₀ : ℝ) (t : ℝ) : ℝ :=
+  Q₀ * Real.cos ((β : ℝ) * (t - t₀)) + (Q₁ / (β : ℝ)) * Real.sin ((β : ℝ) * (t - t₀))
+
+/-- For [a degree parameter `β`](hyp:β) and [a prescribed value, derivative, and base
+point](hyp:Q₀,Q₁,t₀), [the Szegő interpolant reproduces its prescribed value at the base
+point](goal). -/
+theorem szegoInterp_self (β : ℕ) (Q₀ Q₁ t₀ : ℝ) :
+    szegoInterp β Q₀ Q₁ t₀ t₀ = Q₀ := by
+  simp [szegoInterp]
+
+/-- The Szegő comparison interpolant built from [a frequency](hyp:β), [a prescribed value and
+derivative](hyp:Q₀,Q₁), and [a base point](hyp:t₀) [reproduces the prescribed derivative at that
+base point](goal), provided [the frequency is at least one](hyp:hβ).
+
+The requirement `β ≥ 1` is needed so the factor `β` produced by the chain rule
+cancels the `1/β` in the sine coefficient. Concretely
+`S'(t) = -Q₀·β·sin(β(t−t₀)) + Q₁·cos(β(t−t₀))`, which at `t = t₀` evaluates to
+`Q₁`. -/
+theorem szegoInterp_hasDerivAt (β : ℕ) (hβ : 1 ≤ β) (Q₀ Q₁ t₀ : ℝ) :
+    HasDerivAt (fun t => szegoInterp β Q₀ Q₁ t₀ t) Q₁ t₀ := by
+  let c : ℝ := β
+  have hc : c ≠ 0 := by
+    have hβne : β ≠ 0 := Nat.one_le_iff_ne_zero.mp hβ
+    have hβneR : (β : ℝ) ≠ 0 := by exact_mod_cast hβne
+    simpa [c] using hβneR
+  have hu : HasDerivAt (fun t : ℝ => c * (t - t₀)) c t₀ := by
+    simpa [c] using (((hasDerivAt_id t₀).sub_const t₀).const_mul c)
+  have hcos : HasDerivAt (fun t : ℝ => Real.cos (c * (t - t₀))) 0 t₀ := by
+    have h0 := (Real.hasDerivAt_cos (c * (t₀ - t₀))).comp t₀ hu
+    have h : HasDerivAt (fun t : ℝ => Real.cos (c * (t - t₀)))
+        (-Real.sin (c * (t₀ - t₀)) * c) t₀ := h0
+    simpa using h
+  have hsin : HasDerivAt (fun t : ℝ => Real.sin (c * (t - t₀))) c t₀ := by
+    have h0 := (Real.hasDerivAt_sin (c * (t₀ - t₀))).comp t₀ hu
+    have h : HasDerivAt (fun t : ℝ => Real.sin (c * (t - t₀)))
+        (Real.cos (c * (t₀ - t₀)) * c) t₀ := h0
+    simpa using h
+  have hsum : HasDerivAt
+      (fun t : ℝ =>
+        Q₀ * Real.cos (c * (t - t₀)) + (Q₁ / c) * Real.sin (c * (t - t₀))) Q₁ t₀ := by
+    have h : HasDerivAt
+        (fun t : ℝ =>
+          Q₀ * Real.cos (c * (t - t₀)) + (Q₁ / c) * Real.sin (c * (t - t₀))) _ t₀ :=
+      (hcos.const_mul Q₀).fun_add (hsin.const_mul (Q₁ / c))
+    simpa [hc] using h
+  simpa [szegoInterp, c] using hsum
+
+/-- A cosine-sine wave with [a real frequency](hyp:ω), [cosine and sine
+coefficients](hyp:Q₀,q), and [a base point](hyp:t₀) [can be expressed as a phase-shifted cosine
+wave whose amplitude is the Euclidean norm of the two coefficients](goal).
+
+(Write the point `(Q₀, q)` in polar form `A·(cos φ, sin φ)` and expand
+`cos(ω(t−t₀) − φ)` by the angle-subtraction formula.) -/
+theorem szegoInterp_amplitude_core (ω : ℝ) (Q₀ q t₀ : ℝ) :
+    ∃ φ : ℝ, ∀ t,
+      Q₀ * Real.cos (ω * (t - t₀)) + q * Real.sin (ω * (t - t₀))
+      = Real.sqrt (Q₀ ^ 2 + q ^ 2)
+        * Real.cos (ω * (t - t₀) - φ) := by
+  let z : ℂ := ⟨Q₀, q⟩
+  refine ⟨Complex.arg z, ?_⟩
+  intro t
+  let x : ℝ := ω * (t - t₀)
+  have hnorm : ‖z‖ = Real.sqrt (Q₀ ^ 2 + q ^ 2) := by
+    simp [z, Complex.norm_def, Complex.normSq_mk, pow_two]
+  have hcos : ‖z‖ * Real.cos (Complex.arg z) = Q₀ := by
+    simp [z]
+  have hsin : ‖z‖ * Real.sin (Complex.arg z) = q := by
+    simp [z]
+  calc
+    Q₀ * Real.cos (ω * (t - t₀)) + q * Real.sin (ω * (t - t₀))
+        = Q₀ * Real.cos x + q * Real.sin x := by simp [x]
+    _ = (‖z‖ * Real.cos (Complex.arg z)) * Real.cos x
+        + (‖z‖ * Real.sin (Complex.arg z)) * Real.sin x := by
+      rw [hcos, hsin]
+    _ = ‖z‖ * Real.cos (x - Complex.arg z) := by
+      rw [Real.cos_sub]
+      ring
+    _ = Real.sqrt (Q₀ ^ 2 + q ^ 2)
+        * Real.cos (ω * (t - t₀) - Complex.arg z) := by
+      rw [hnorm]
+
+/-- For [a degree parameter](hyp:β) and [a prescribed value, derivative, and base
+point](hyp:Q₀,Q₁,t₀), [the Szegő interpolant is a phase-shifted cosine wave whose amplitude is
+the Euclidean norm of its cosine and sine coefficients](goal). -/
+theorem szegoInterp_amplitude (β : ℕ) (Q₀ Q₁ t₀ : ℝ) :
+    ∃ φ : ℝ, ∀ t, szegoInterp β Q₀ Q₁ t₀ t
+      = Real.sqrt (Q₀ ^ 2 + (Q₁ / (β : ℝ)) ^ 2)
+        * Real.cos ((β : ℝ) * (t - t₀) - φ) := by
+  simpa [szegoInterp] using
+    szegoInterp_amplitude_core (β : ℝ) Q₀ (Q₁ / (β : ℝ)) t₀
+
+/-- For [a degree parameter `β`](hyp:β) and [values `Q₀`, `Q₁`, base point `t₀`, and
+evaluation point `t`](hyp:Q₀,Q₁,t₀,t), [the Szegő interpolant's value is bounded in absolute
+value by its amplitude `A = √(Q₀² + (Q₁/β)²)`](goal). -/
+theorem szegoInterp_abs_le (β : ℕ) (Q₀ Q₁ t₀ t : ℝ) :
+    |szegoInterp β Q₀ Q₁ t₀ t| ≤ Real.sqrt (Q₀ ^ 2 + (Q₁ / (β : ℝ)) ^ 2) := by
+  obtain ⟨φ, hφ⟩ := szegoInterp_amplitude β Q₀ Q₁ t₀
+  rw [hφ t, abs_mul]
+  have hA : 0 ≤ Real.sqrt (Q₀ ^ 2 + (Q₁ / (β : ℝ)) ^ 2) := Real.sqrt_nonneg _
+  calc |Real.sqrt (Q₀ ^ 2 + (Q₁ / (β : ℝ)) ^ 2)| * |Real.cos ((β : ℝ) * (t - t₀) - φ)|
+      ≤ |Real.sqrt (Q₀ ^ 2 + (Q₁ / (β : ℝ)) ^ 2)| * 1 := by
+        apply mul_le_mul_of_nonneg_left (abs_cos_le_one _) (abs_nonneg _)
+    _ = Real.sqrt (Q₀ ^ 2 + (Q₁ / (β : ℝ)) ^ 2) := by rw [mul_one, abs_of_nonneg hA]
+
+end Causalean.Mathlib.Analysis.BernsteinSzegoTrig

@@ -1,0 +1,739 @@
+% DERIVED from formal_layer.json — read-only, do not edit.
+\begin{assumptionv}{ass:overlap}[Overlap parameter]
+The overlap parameter \(\varepsilon\) satisfies \(0<\varepsilon<1/2\).
+\end{assumptionv}
+
+\begin{assumptionv}{ass:score-marginal}[Score marginal law]
+The score \(E\) has law \(H\) under \(P\):
+\[
+\mathcal L_P(E)=H.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:randomized-assignment}[Score-based treatment assignment]
+\[
+P(A=1\mid E,Y_0,Y_1)=E
+\quad\text{almost surely}.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:consistency}[Observed outcome consistency]
+\[
+Y=AY_1+(1-A)Y_0
+\quad\text{almost surely}.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:deterministic-release}[Deterministic score release]
+\[
+R=g(E)
+\quad\text{almost surely}.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:released-law}[Released data law]
+\[
+\mathcal L_P(R,A,Y)=P_{\mathrm{rel}}.
+\]
+\end{assumptionv}
+
+\begin{definitionv}{def:causal-law-class}[Causal-law class \(\mathfrak P(H,g)\)]
+The causal-law class \(\mathfrak P(H,g)\) consists of all laws \(P\) satisfying \cref{obj:ass:score-marginal,obj:ass:randomized-assignment,obj:ass:consistency,obj:ass:deterministic-release}.
+\end{definitionv}
+
+\begin{definitionv}{def:compatible-law-class}[Compatible-law class \(\mathfrak M(H,g,P_{\mathrm{rel}})\)]
+The compatible-law class is
+\[
+\mathfrak M(H,g,P_{\mathrm{rel}})
+=
+\bigl\{P\in\mathfrak P(H,g):\mathcal L_P(R,A,Y)=P_{\mathrm{rel}}\bigr\}.
+\]
+Here \(\mathfrak P(H,g)\) imposes \cref{obj:ass:score-marginal,obj:ass:randomized-assignment,obj:ass:consistency,obj:ass:deterministic-release}, and the released-law condition is \cref{obj:ass:released-law}.
+\end{definitionv}
+
+\begin{definitionv}{synth_3}[Released-label alphabets]
+For each positive integer \(J\), the released-label alphabet is \(\mathcal R_J=\{1,\ldots,J\}\). In particular, \(\mathcal R_K=\{1,\ldots,K\}\) for a positive label budget \(K\); a release into \(\mathcal R_K\) may use fewer than \(K\) labels.
+\end{definitionv}
+
+\begin{definitionv}{synth_2}[Treatment-arm set]
+The treatment-arm set is \(\mathcal A=\{0,1\}\), where \(0\) denotes control and \(1\) denotes treatment.
+\end{definitionv}
+
+\begin{definitionv}{def:arm-cell-primitives}[Arm-cell quantities $p_a,C_r,q_{ar},F_{ar},G_{ar},E_{ar},W_{ar}$]
+For each arm \(a\in\mathcal A\) and label \(r\in\mathcal R_J\), define
+\[
+p_1(e)=e,\qquad p_0(e)=1-e,\qquad
+C_r=\{e:g(e)=r\},\qquad
+q_{ar}=\int_{C_r}p_a(e)\,H(de).
+\]
+When \(P_{\mathrm{rel}}(A=a,R=r)>0\), define the observed outcome law
+\[
+F_{ar}=\mathcal L_{P_{\mathrm{rel}}}(Y\mid A=a,R=r).
+\]
+For \(q_{ar}>0\), define
+\[
+G_{ar}(de)=\frac{\mathbf 1\{e\in C_r\}p_a(e)\,H(de)}{q_{ar}},
+\qquad E_{ar}\sim G_{ar},
+\qquad W_{ar}=\frac{1}{p_a(E_{ar})}.
+\]
+The endpoint formulas apply to triples \((H,g,P_{\mathrm{rel}})\) satisfying \(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\) for every arm and label. Their sums include cells with \(q_{ar}>0\), for which \(F_{ar}\) is defined.
+\end{definitionv}
+
+\begin{definitionv}{def:mean-endpoints}[Mean endpoints $\underline\mu_a,\overline\mu_a$]
+For a triple \((H,g,P_{\mathrm{rel}})\) satisfying \(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\) for every arm and label, define
+\[
+\underline\mu_a
+=\sum_{r:q_{ar}>0}q_{ar}\int_0^1
+Q_{F_{ar}}(u)Q_{W_{ar}}(1-u)\,du,
+\qquad
+\overline\mu_a
+=\sum_{r:q_{ar}>0}q_{ar}\int_0^1
+Q_{F_{ar}}(u)Q_{W_{ar}}(u)\,du.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:sharp-ate-set}[Sharp ATE interval $I(P_{\mathrm{rel}};H,g)$]
+\[
+I(P_{\mathrm{rel}};H,g)
+=
+[\underline\mu_1-\overline\mu_0,\,
+ \overline\mu_1-\underline\mu_0].
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_4}[Generalized quantile]
+For a probability law \(F\) with compact support in \(\mathbb R\), define
+\[
+Q_F(u)=\inf\{x\in\mathbb R:F((-\infty,x])\ge u\},\qquad 0<u<1.
+\]
+Set \(Q_F(0)=\inf\operatorname{supp}(F)\) and \(Q_F(1)=\sup\operatorname{supp}(F)\). At an atom \(x\), this convention gives \(Q_F(u)=x\) whenever \(F((-\infty,x))<u\le F((-\infty,x])\).
+\end{definitionv}
+
+\begin{theoremv}{prop:compatibility}[Compatibility of released laws]
+Suppose \cref{obj:ass:overlap} holds. Let \(H\) be a probability law on the score interval \(\mathcal E=[\varepsilon,1-\varepsilon]\), let \(g:\mathcal E\to\mathcal R_J\) be a measurable release rule, and let \(P_{\mathrm{rel}}\) be a probability law on \((R,A,Y)\). The compatible causal-law class \(\mathfrak M(H,g,P_{\mathrm{rel}})\) of \cref{obj:def:compatible-law-class} is nonempty if and only if, for every \(r\in\mathcal R_J\),
+\[
+\begin{aligned}
+P_{\mathrm{rel}}(R=r) &= H(C_r),\\
+P_{\mathrm{rel}}(A=1,R=r) &= \int_{C_r} e\,H(de).
+\end{aligned}
+\]
+\end{theoremv}
+
+\begin{definitionv}{def:worst-case-ambiguity}[Worst-case ambiguity $D_H(g)$]
+\[
+D_H(g)
+=
+\sup_{P\in\mathfrak P(H,g)}
+\operatorname{len}\!\left\{
+I\bigl(\mathcal L_P(R,A,Y);H,g\bigr)
+\right\}.
+\]
+\end{definitionv}
+
+\begin{theoremv}{thm:all-label-ambiguity}[Exact all-label ambiguity width]
+Suppose that:
+\begin{itemize}
+\item \textbf{(Overlap.)} The overlap condition in \cref{obj:ass:overlap} holds.
+\item \textbf{(Score law.)} \(H\) is a probability law on \(\mathcal E=[\varepsilon,1-\varepsilon]\).
+\item \textbf{(Release.)} \(g:\mathcal E\to\mathcal R_J\) is measurable.
+\end{itemize}
+Write \(C_r=\{e:g(e)=r\}\), \(p_1(e)=e\), \(p_0(e)=1-e\), and \(q_{ar}=\int_{C_r}p_a(e)\,H(de)\). Let \(P_{\mathrm{rel}}\) be the released law
+\[
+P_{\mathrm{rel}}
+=\sum_{r\in\mathcal R_J}\sum_{a\in\{0,1\}}
+\frac{q_{ar}}{2}\bigl(\delta_{(r,a,0)}+\delta_{(r,a,1)}\bigr).
+\]
+Thus its observed outcome law \(F_{ar}\) is Bernoulli\((1/2)\) in every positive-mass arm-label cell.
+
+The worst-case ambiguity \(D_H(g)\) of \cref{obj:def:worst-case-ambiguity} satisfies
+\[
+D_H(g)=
+\sum_{r\in\mathcal R_J}
+\left[
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-ce|\,H(de)
++
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-c(1-e)|\,H(de)
+\right].
+\]
+
+For each \(a\in\{0,1\}\) and each cell with \(q_{ar}>0\), let \(E_{ar}\) have law \(p_a(e)\mathbf 1_{C_r}(e)H(de)/q_{ar}\), and let \(W_{ar}=1/p_a(E_{ar})\). Define
+\[
+\underline\mu_a
+=\sum_{r:q_{ar}>0}q_{ar}\int_0^1
+Q_{F_{ar}}(u)Q_{W_{ar}}(1-u)\,du,
+\qquad
+\overline\mu_a
+=\sum_{r:q_{ar}>0}q_{ar}\int_0^1
+Q_{F_{ar}}(u)Q_{W_{ar}}(u)\,du.
+\]
+The sharp ATE interval for \(P_{\mathrm{rel}}\) has length \(D_H(g)\). Moreover, there are two probability laws \(P_-,P_+\in\mathfrak M(H,g,P_{\mathrm{rel}})\), as defined in \cref{obj:def:compatible-law-class}, such that
+\[
+\mathbb E_{P_-}[Y_1-Y_0]=\underline\mu_1-\overline\mu_0,
+\qquad
+\mathbb E_{P_+}[Y_1-Y_0]=\overline\mu_1-\underline\mu_0,
+\qquad
+\mathbb E_{P_+}[Y_1-Y_0]-\mathbb E_{P_-}[Y_1-Y_0]=D_H(g).
+\]
+\end{theoremv}
+
+\begin{theoremv}{thm:universal-point-identification}[Universal point identification]
+Let \(J\in\mathbb N\), let \(H\) be a probability law on the score interval \(\mathcal E=[\varepsilon,1-\varepsilon]\), and let \(g:\mathcal E\to\mathcal R_J\) be a measurable deterministic release into \(J\) labels. Under \cref{obj:ass:overlap}, write \(C_r=\{e\in\mathcal E:g(e)=r\}\) for each label \(r\). Each of the following is equivalent to \(D_H(g)=0\), where \(D_H(g)\) is defined in \cref{obj:def:worst-case-ambiguity}:
+\begin{enumerate}
+\item There exists a measurable map \(h:\mathcal R_J\to\mathcal E\) such that \(e=h(g(e))\) for \(H\)-almost every \(e\).
+\item For every \(r\in\mathcal R_J\) with \(H(C_r)>0\), there exists \(x\in\mathcal E\) such that \(e=x\) for \(H\)-almost every \(e\in C_r\).
+\end{enumerate}
+\end{theoremv}
+
+\begin{assumptionv}{ass:density-lower}[Lower bound on score density]
+The score law \(H\) has density \(f\) on the score interval \(\mathcal E\), with
+\[
+H(de)=f(e)\,de,\qquad f(e)\ge m_f
+\]
+for Lebesgue-almost every \(e\in\mathcal E\).
+\end{assumptionv}
+
+\begin{definitionv}{def:k-label-releases}[$K$-label release class $\mathcal G_K$]
+\[
+\mathcal G_K
+=
+\bigl\{g:\mathcal E\to\{1,\ldots,K\}:g\text{ is measurable}\bigr\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:optimal-k-ambiguity}[Optimal $K$-label ambiguity $\Delta_K(H)$]
+\[
+\Delta_K(H)=\inf_{g\in\mathcal G_K}D_H(g).
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:score-lower-density-class}[Lower-density score class $\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}$]
+Under \cref{obj:ass:density-lower}, the class of score laws is
+\[
+\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}
+=
+\left\{
+H\in\mathcal P(\mathcal E):
+H(de)=f(e)\,de,\quad
+f(e)\ge m_f\ \text{for Lebesgue-almost every }e\in\mathcal E
+\right\}.
+\]
+\end{definitionv}
+
+\begin{theoremv}{thm:k-label-rate}[Bounds for optimal label ambiguity]
+Suppose:
+\begin{itemize}
+\item \textbf{(Overlap.)} The condition in \cref{obj:ass:overlap} holds for \(\varepsilon\).
+\item \textbf{(Density floor.)} \(m_f>0\).
+\item \textbf{(Label budget.)} \(K\geq 1\) is an integer.
+\end{itemize}
+Let \(\ell=1-2\varepsilon\) and \(\mathcal E=[\varepsilon,1-\varepsilon]\). For every \(H\in\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\) as defined in \cref{obj:def:score-lower-density-class},
+\[
+\frac{m_f\ell^2}{2(1-\varepsilon)K}\leq\Delta_K(H).
+\]
+For every probability law \(H\) on \(\mathcal E\), the equal-width release \(g:\mathcal E\to\mathcal R_K=\{1,\ldots,K\}\) defined by
+\[
+g(e)=1+\min\left\{\left\lfloor\frac{K(e-\varepsilon)}{\ell}\right\rfloor,K-1\right\}
+\]
+is measurable and satisfies
+\[
+\Delta_K(H)\leq\frac{\ell}{2\varepsilon(1-\varepsilon)K},
+\qquad
+D_H(g)\leq\frac{\ell}{2\varepsilon(1-\varepsilon)K}.
+\]
+\end{theoremv}
+
+\begin{theoremv}{thm:sharp-high-resolution-constant}[Sharp high resolution constant]
+Let \(\mathcal E=[\varepsilon,1-\varepsilon]\) be the score interval, and let \(H\) be a probability law on \(\mathcal E\). Suppose:
+\begin{itemize}
+\item \textbf{(Overlap.)} The overlap condition in \cref{obj:ass:overlap} holds.
+\item \textbf{(Density.)} \(H(de)=f(e)\,de\) on \(\mathcal E\).
+\item \textbf{(Regularity.)} The density \(f\) is continuous and strictly positive on \(\mathcal E\).
+\end{itemize}
+Let \(\Delta_K(H)\) and \(D_H(g)\) be the optimal \(K\)-label ambiguity and the worst-case ambiguity defined in \cref{obj:def:optimal-k-ambiguity,obj:def:worst-case-ambiguity}. For every positive integer \(K\), there is a measurable release \(g_K:\mathcal E\to\{0,\ldots,K-1\}\) whose label cells are intervals, such that
+\[
+\lim_{K\to\infty}K\Delta_K(H)
+=
+\lim_{K\to\infty}K D_H(g_K)
+=
+\frac14\left(
+\int_{\varepsilon}^{1-\varepsilon}
+\sqrt{\frac{f(e)}{e(1-e)}}\,de
+\right)^2.
+\]
+\end{theoremv}
+
+\begin{assumptionv}{ass:iid-trial-sampling}[Independent trial sampling]
+The trial observations are independent and identically distributed under \(P\):
+\[
+(R_i,A_i,Y_i)_{i=1}^n\stackrel{\mathrm{iid}}{\sim}\mathcal L_P(R,A,Y).
+\]
+\end{assumptionv}
+
+\begin{definitionv}{synth_1}[Average treatment effect functional]
+For any measure \(P\) on full rows \((E,Y_0,Y_1,A,Y,R)\) with score parameter \(\varepsilon\) and \(J\) labels, define the average treatment effect functional \(\theta(P)\) by
+\[
+\theta(P)=\int (Y_1-Y_0)\,dP.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:honest-procedures}[Uniformly honest procedures $\mathcal J_{n,K,\alpha}(H)$]
+\[
+\mathcal J_{n,K,\alpha}(H)
+=
+\left\{
+(g,C_n):
+g\in\mathcal G_K,\quad
+\inf_{P\in\mathfrak P(H,g)}
+P^{\otimes n}\!\left[
+\theta(P)\in C_n\bigl((R_i,A_i,Y_i)_{i=1}^n\bigr)
+\right]
+\ge 1-\alpha
+\right\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:minimax-honest-length}[Minimax honest length $\mathcal L^\star_{n,K,\alpha}(H)$]
+\[
+\mathcal L^\star_{n,K,\alpha}(H)
+=
+\inf_{(g,C_n)\in\mathcal J_{n,K,\alpha}(H)}
+\sup_{P\in\mathfrak P(H,g)}
+\mathbb E_{P^{\otimes n}}\!\left[\operatorname{len}(C_n)\right].
+\]
+\end{definitionv}
+
+\begin{theoremv}{thm:minimax-honest-length}[Minimax honest interval length]
+Consider the following conditions:
+\begin{itemize}
+\item \textbf{(Overlap.)} The overlap parameter \(\varepsilon\) satisfies \cref{obj:ass:overlap}.
+\item \textbf{(Miscoverage.)} \(0<\alpha<1/2\).
+\item \textbf{(Trial size.)} \(n\geq1\).
+\item \textbf{(Label budget.)} \(K\geq1\).
+\end{itemize}
+There are constants \(C_{\varepsilon,\alpha}>0\) and \(c_{\varepsilon,\alpha}>0\), independent of \(H,n,K\), such that every score law \(H\) on \(\mathcal E=[\varepsilon,1-\varepsilon]\) satisfies
+\[
+c_{\varepsilon,\alpha}n^{-1/2}
+\leq \mathcal L^\star_{n,K,\alpha}(H),
+\]
+where the minimax expected length is defined in \cref{obj:def:minimax-honest-length}.
+
+For every \(m_f>0\), there is a constant \(c_{\varepsilon,m_f,\alpha}>0\) such that every \(H\in\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\), as defined in \cref{obj:def:score-lower-density-class}, satisfies
+\[
+c_{\varepsilon,m_f,\alpha}\bigl(K^{-1}+n^{-1/2}\bigr)
+\leq \mathcal L^\star_{n,K,\alpha}(H)
+\leq C_{\varepsilon,\alpha}\bigl(K^{-1}+n^{-1/2}\bigr).
+\]
+
+An interval attaining the upper bound uses the equal-width release with labels \(r\in\mathcal R_K=\{1,\ldots,K\}\):
+\[
+g_K(e)=1+\min\left\{\left\lfloor\frac{K(e-\varepsilon)}{1-2\varepsilon}\right\rfloor,K-1\right\},
+\qquad
+z_r=\varepsilon+\frac{(r-\tfrac12)(1-2\varepsilon)}{K}.
+\]
+For released trial rows \((R_i,A_i,Y_i)_{i=1}^n\), define
+\[
+\widehat T_n=\frac1n\sum_{i=1}^n
+\left\{\frac{A_iY_i}{z_{R_i}}-\frac{(1-A_i)Y_i}{1-z_{R_i}}\right\},
+\qquad
+R_{n,K}=\frac4\varepsilon\sqrt{\frac{\log(4/\alpha)}{n}}
++\frac{1-2\varepsilon}{2K\varepsilon(1-\varepsilon)}.
+\]
+With \(\operatorname{clampATE}(t)=\max\{-1,\min\{1,t\}\}\), the interval
+\[
+C_n(x)=
+\left[
+\operatorname{clampATE}\bigl(\widehat T_n(x)-R_{n,K}\bigr),
+\operatorname{clampATE}\bigl(\widehat T_n(x)+R_{n,K}\bigr)
+\right]
+\]
+satisfies \((g_K,C_n)\in\mathcal J_{n,K,\alpha}(H)\), with honesty defined in \cref{obj:def:honest-procedures}. For every \(P\in\mathfrak P(H,g_K)\), as defined in \cref{obj:def:causal-law-class}, its expected length under the \(n\)-fold released-row law satisfies
+\[
+\int |C_n(x)|\,dP_{\mathrm{rel}}^{\otimes n}(x)
+\leq C_{\varepsilon,\alpha}\bigl(K^{-1}+n^{-1/2}\bigr).
+\]
+\end{theoremv}
+
+\begin{assumptionv}{ass:external-log-iid}[Independent score-log sampling]
+The external score-log observations are independent and identically distributed with law \(H\):
+\[
+(E_j^{\mathrm{log}})_{j=1}^m\stackrel{\mathrm{iid}}{\sim}H.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:external-log-independent}[Independent trial and score log]
+The external score log is independent of the trial observations:
+\[
+(E_j^{\mathrm{log}})_{j=1}^m
+\mathrel{\perp\!\!\!\perp}
+(R_i,A_i,Y_i)_{i=1}^n.
+\]
+\end{assumptionv}
+
+\begin{definitionv}{def:external-law-class}[External law class $\mathfrak X(g)$]
+\[
+\mathfrak X(g)
+=
+\left\{
+(P,H):
+H\in\mathcal P(\mathcal E),\quad
+P\in\mathfrak P(H,g)
+\right\}.
+\]
+The class uses the conditions in \cref{obj:ass:overlap,obj:ass:score-marginal,obj:ass:randomized-assignment,obj:ass:consistency,obj:ass:deterministic-release}.
+\end{definitionv}
+
+\begin{definitionv}{def:external-experiment}[External experiment $\mathbb Q_{P,H}^{n,m}$]
+For \((P,H)\in\mathfrak X(g)\), the joint law of \(n\) released trial observations \((R_i,A_i,Y_i)\) and \(m\) independent score-log observations \(E_j^{\mathrm{log}}\) is
+\[
+\mathbb Q_{P,H}^{n,m}
+=
+\mathcal L_P(R,A,Y)^{\otimes n}\otimes H^{\otimes m}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:external-honest-procedures}[External honest procedures $\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)$]
+\[
+\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)
+=
+\left\{
+C_{n,m}:
+\inf_{(P,H)\in\mathfrak X(g)}
+\mathbb Q_{P,H}^{n,m}\!\left[
+\theta(P)\in C_{n,m}
+\right]
+\ge 1-\alpha
+\right\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:external-excess-risk}[Minimax external excess risk $\mathcal R^{\star}_{n,m,\alpha}(g)$]
+\[
+\mathcal R^{\star}_{n,m,\alpha}(g)
+=
+\inf_{C_{n,m}\in\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)}
+\sup_{(P,H)\in\mathfrak X(g)}
+\mathbb E_{\mathbb Q_{P,H}^{n,m}}
+\!\left[
+\left(
+\operatorname{len}(C_{n,m})
+-
+\operatorname{len}I(\mathcal L_P(R,A,Y);H,g)
+\right)_+
+\right].
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:external-normalized-risk}[Normalized external risk $T_{n,m,\alpha}(g)$]
+\[
+b_{n,m}=\left(n^{-1/2}+m^{-1/2}\right)^{-1},
+\qquad
+T_{n,m,\alpha}(g)=b_{n,m}\mathcal R^{\star}_{n,m,\alpha}(g).
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_5}[Finite-measure distances]
+For finite nonnegative measures \(\mu,\nu\) on a compact interval \(S\), define their total-mass-plus-integrated-CDF distance by
+\[
+d_S(\mu,\nu)
+=
+|\mu(S)-\nu(S)|
++
+\int_S
+\bigl|\mu(S\cap(-\infty,t])-\nu(S\cap(-\infty,t])\bigr|\,dt.
+\]
+The outcome-measure distance \(d_{[0,1]}\) uses \(S=[0,1]\), with integration over \([0,1]\); the score-measure distance \(d_{\mathcal E}\) uses \(S=\mathcal E=[\varepsilon,1-\varepsilon]\), with integration over \([\varepsilon,1-\varepsilon]\).
+\end{definitionv}
+
+\begin{definitionv}{def:external-projection-handle}[External projection confidence interval]
+The external projection confidence interval \(C_{n,m}\) is defined for \(\varepsilon,\alpha\in\mathbb R\), \(J,n,m\in\mathbb N\), a release map \(g:[\varepsilon,1-\varepsilon]\to\mathcal R_J\), and a sample of \(n\) trial rows and \(m\) score-log values. Here \(\mathcal R_J\) is the set of \(J\) labels. For each arm \(a\) and label \(r\), form the empirical finite measures
+\[
+\widehat\lambda_{ar}(B)
+=\frac1n\sum_{i=1}^{n}\mathbf 1\{R_i=r,A_i=a,Y_i\in B\},
+\qquad
+\widehat\sigma_{ar}(B)
+=\frac1m\sum_{j=1}^{m}p_a(E_j^{\mathrm{log}})
+\mathbf 1\{g(E_j^{\mathrm{log}})=r,E_j^{\mathrm{log}}\in B\}.
+\]
+Equip finite measures on each compact support with total-mass plus integrated-CDF distance, and set
+\[
+r_n=\frac{4J}{\alpha\sqrt n},
+\qquad
+r_m=\frac{2J(2-2\varepsilon)}{\alpha\sqrt m}.
+\]
+
+For \(q\in\mathbb Q\), define the clamped outcome and score support codes
+\[
+x(q)=\max\{0,\min\{1,q\}\},
+\qquad
+e_\varepsilon(q)=\varepsilon+(1-2\varepsilon)x(q).
+\]
+For a finite sequence \(L=((q_s,w_s))_{s=1}^{N}\) of rational support-weight pairs, define the finitely supported measures
+\[
+\nu_Y(L)=\sum_{s=1}^{N}\max\{w_s,0\}\,\delta_{x(q_s)},
+\qquad
+\nu_E(L)=\sum_{s=1}^{N}\max\{w_s,0\}\,\delta_{e_\varepsilon(q_s)},
+\]
+where the nonnegative weights are viewed as extended-real weights.
+
+When \(0<\varepsilon<1/2\), let \(\mathcal D_{\varepsilon,J}\) consist of all pairs of arrays
+\[
+\left(
+(\nu_Y(L^Y_{ar}))_{a,r},
+(\nu_E(L^E_{ar}))_{a,r}
+\right)
+\]
+formed from separate, arbitrary finite sequences \(L^Y_{ar}\) and \(L^E_{ar}\) for every arm-label cell, subject to equality of the outcome and score measures' total masses in each cell. For all other \(\varepsilon\), set \(\mathcal D_{\varepsilon,J}=\varnothing\). Define the candidate set by the two closed empirical-ball conditions
+\[
+\mathcal B_{n,m}
+=
+\left\{
+(\lambda',\sigma')\in\mathcal D_{\varepsilon,J}:
+\sum_{a,r}d_{[0,1]}(\lambda'_{ar},\widehat\lambda_{ar})\le r_n,\quad
+\sum_{a,r}d_{\mathcal E}(\sigma'_{ar},\widehat\sigma_{ar})\le r_m
+\right\},
+\]
+where \(\mathcal E=[\varepsilon,1-\varepsilon]\) is the score interval.
+
+For any sieve array \(b=(\lambda^b,\sigma^b)\), put \(q^b_{ar}=\lambda^b_{ar}([0,1])=\sigma^b_{ar}(\mathcal E)\). In a cell with \(q^b_{ar}>0\), let \(F^b_{ar}=\lambda^b_{ar}/q^b_{ar}\) be the normalized outcome law and let \(W^b_{ar}\) be the pushforward of \(\sigma^b_{ar}/q^b_{ar}\) under \(e\mapsto 1/p_a(e)\). Define the lower and upper arm endpoints by
+\[
+\underline M_a(b)=\sum_{r:q^b_{ar}>0}q^b_{ar}\int_0^1 Q_{F^b_{ar}}(u)Q_{W^b_{ar}}(1-u)\,du,
+\qquad
+\overline M_a(b)=\sum_{r:q^b_{ar}>0}q^b_{ar}\int_0^1 Q_{F^b_{ar}}(u)Q_{W^b_{ar}}(u)\,du.
+\]
+Each zero-mass cell contributes \(0\) to both sums; no normalized law is needed for that cell. For each \(b\in\mathcal B_{n,m}\), set
+\[
+I(b)=[\underline M_1(b)-\overline M_0(b),\,\overline M_1(b)-\underline M_0(b)].
+\]
+When \(\mathcal B_{n,m}\ne\varnothing\), form
+\[
+J_{n,m}
+=
+[-1,1]\cap
+\operatorname{cl}\operatorname{conv}
+\left(\bigcup_{b\in\mathcal B_{n,m}}I(b)\right).
+\]
+The totalized interval is
+\[
+C_{n,m}
+=
+\begin{cases}
+J_{n,m},&
+\mathcal B_{n,m}\ne\varnothing\ \text{and}\ J_{n,m}\ne\varnothing,\\
+\{0\},&
+\mathcal B_{n,m}=\varnothing\ \text{or}\
+\bigl(\mathcal B_{n,m}\ne\varnothing\ \text{and}\ J_{n,m}=\varnothing\bigr).
+\end{cases}
+\]
+\end{definitionv}
+
+\begin{theoremv}{thm:external-score-root-order}[External-score root order]
+Let \(\mathcal E=[\varepsilon,1-\varepsilon]\), and let \(g:\mathcal E\to\mathcal R_J\) be a measurable finite-label release. Suppose:
+
+\begin{itemize}
+\item \textbf{(Overlap.)} The overlap condition in \cref{obj:ass:overlap} holds.
+\item \textbf{(Miscoverage.)} \(0<\alpha<1/2\).
+\item \textbf{(Joint sampling.)} For every \(n,m\), a joint sampling law \(\mathbb Q_{P,H}^{n,m}\) is specified for each admissible causal law \(P\) and score law \(H\). Its trial marginal consists of \(n\) independent draws from the released law. Its score-log marginal and independence from the trial sample satisfy \cref{obj:ass:external-log-iid,obj:ass:external-log-independent}.
+\end{itemize}
+
+Set
+\[
+L_\alpha=1+(1-2\alpha)^2,\qquad
+S_g=
+\sup_{\substack{r\in\mathcal R_J,\ e_1<e_2<e_3\\
+e_1,e_2,e_3\in C_r}}
+\frac{(e_3-e_2)(1-e_1/e_2)}
+{\sqrt{(e_3-e_2)^2+(e_3-e_1)^2+(e_2-e_1)^2}},
+\]
+and
+\[
+c_{\mathrm{tr}}(\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{4},
+\qquad
+c_{\mathrm{log}}(g,\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{2\sqrt3}\,S_g.
+\]
+Then \(0<S_g\le 1\). There is a constant \(C_{\varepsilon,J,\alpha,g}>0\) such that, for every positive \(n,m\), the minimax excess risk of \cref{obj:def:external-excess-risk} satisfies
+\[
+c_{\mathrm{tr}}(\alpha)n^{-1/2}
+\le \mathcal R^\star_{n,m,\alpha}(g)
+\le C_{\varepsilon,J,\alpha,g}
+\bigl(n^{-1/2}+m^{-1/2}\bigr).
+\]
+For each such \(n,m\), an interval procedure \(C_{n,m}\) belongs to the honest class of \cref{obj:def:external-honest-procedures}, agrees pointwise as a closed interval with the projection interval of \cref{obj:def:external-projection-handle}, and, for every admissible pair \((P,H)\), satisfies
+\[
+\mathbb E_{\mathbb Q_{P,H}^{n,m}}
+\!\left[
+\max\!\left\{0,\,
+\operatorname{length}(C_{n,m})
+-\operatorname{length}\bigl(I(P_{\mathrm{rel}};H,g)\bigr)
+\right\}
+\right]
+\le C_{\varepsilon,J,\alpha,g}
+\bigl(n^{-1/2}+m^{-1/2}\bigr).
+\]
+
+In the external-score direction,
+\[
+\liminf_{m\to\infty}\inf_{n\ge1}
+\sqrt m\,\mathcal R^\star_{n,m,\alpha}(g)
+\ge c_{\mathrm{log}}(g,\alpha)>0.
+\]
+For every \(\rho>0\), the normalized risk \(T_{n,m,\alpha}(g)\) of \cref{obj:def:external-normalized-risk} obeys
+\[
+0<
+\max\left\{
+\frac{c_{\mathrm{tr}}(\alpha)}{1+\sqrt\rho},
+\frac{c_{\mathrm{log}}(g,\alpha)\sqrt\rho}{1+\sqrt\rho}
+\right\}
+\le
+\liminf_{\substack{n,m\to\infty\\ n/m\to\rho}}
+T_{n,m,\alpha}(g)
+\le
+\limsup_{\substack{n,m\to\infty\\ n/m\to\rho}}
+T_{n,m,\alpha}(g)
+\le C_{\varepsilon,J,\alpha,g}.
+\]
+\end{theoremv}
+
+\begin{remarkv}{oeq:external-score-projection}[External-score sharp limits]
+Fix a measurable release \(g\), \(0<\alpha<1/2\), and \(\rho\in(0,\infty)\). The sharp asymptotic analysis over \(\mathfrak X(g)\), with confidence procedures in \(\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)\), concerns
+\[
+\liminf_{\substack{n,m\to\infty\\ n/m\to\rho}}T_{n,m,\alpha}(g)
+\qquad\text{and}\qquad
+\limsup_{\substack{n,m\to\infty\\ n/m\to\rho}}T_{n,m,\alpha}(g).
+\]
+It asks whether these limits coincide and, if so, for their common sharp constant. If a common sharp limit fails over the full class, the corresponding question concerns an explicitly defined regular subclass of \(\mathfrak X(g)\), with both uniform honesty and the supremum in expected excess length restricted to that subclass. The subclass analysis specifies its regularity conditions and sharp limit for each \(\rho\in(0,\infty)\), using the external projection construction to obtain an attaining procedure or a counterexample.
+\end{remarkv}
+
+\begin{lemmav}{lem:released-arm-cell-masses}[Released arm-cell masses]
+Let \(H\) be a measure on the score interval \(\mathcal E\), let \(g:\mathcal E\to\mathcal R_J\) be a release rule, and let \(P\in\mathfrak P(H,g)\) as in \cref{obj:def:causal-law-class}. Write \(P_{\mathrm{rel}}=\mathcal L_P(R,A,Y)\) for the released law. Then \(H\) and \(P_{\mathrm{rel}}\) are probability laws, and, for every \(a\in\mathcal A\) and \(r\in\mathcal R_J\),
+\[
+P_{\mathrm{rel}}(A=a,R=r)=q_{ar},
+\]
+where \(q_{ar}\) is the arm-cell mass defined in \cref{obj:def:arm-cell-primitives}.
+\end{lemmav}
+
+\begin{lemmav}{lem:fixed-released-law-baseline}[Sharp fixed released law bounds]
+Let \(H\) be a measure on the score interval \(\mathcal E=[\varepsilon,1-\varepsilon]\), let \(g:\mathcal E\to\mathcal R_J\) be a release rule, and let \(P_{\mathrm{rel}}\) be a measure on the released label, treatment arm, and outcome. Suppose:
+
+\begin{itemize}
+\item \textbf{(Overlap.)} The score support satisfies \cref{obj:ass:overlap}.
+\item \textbf{(Release.)} The rule \(g\) is measurable.
+\item \textbf{(Compatibility.)} \(\mathfrak M(H,g,P_{\mathrm{rel}})\ne\varnothing\).
+\end{itemize}
+
+For each arm \(a\in\{0,1\}\) and label \(r\), let \(C_r=\{e:g(e)=r\}\), let \(p_a(e)\) be the probability of arm \(a\) at score \(e\), and set \(q_{ar}=\int_{C_r}p_a(e)\,H(de)\). In each cell with \(q_{ar}>0\), let \(F_{ar}\) be the outcome law conditional on arm \(a\) and label \(r\) under \(P_{\mathrm{rel}}\), let \(E_{ar}\) have law \(q_{ar}^{-1}\mathbf 1_{C_r}(e)p_a(e)\,H(de)\), and let \(W_{ar}=1/p_a(E_{ar})\). Writing \(Q\) for a generalized quantile, define
+\[
+\underline\mu_a
+=\sum_{r:q_{ar}>0}q_{ar}\int_0^1 Q_{F_{ar}}(u)Q_{W_{ar}}(1-u)\,du,
+\qquad
+\overline\mu_a
+=\sum_{r:q_{ar}>0}q_{ar}\int_0^1 Q_{F_{ar}}(u)Q_{W_{ar}}(u)\,du.
+\]
+Then, for every \(a\in\{0,1\}\),
+\[
+\left\{\mathbb E_P[Y_a]:P\in\mathfrak M(H,g,P_{\mathrm{rel}})\right\}
+=[\underline\mu_a,\overline\mu_a].
+\]
+The attainable average treatment effects form the interval defined in \cref{obj:def:sharp-ate-set}:
+\[
+\left\{\mathbb E_P[Y_1-Y_0]:P\in\mathfrak M(H,g,P_{\mathrm{rel}})\right\}
+=I(P_{\mathrm{rel}};H,g)
+=[\underline\mu_1-\overline\mu_0,\,
+  \overline\mu_1-\underline\mu_0].
+\]
+Moreover, there exist \(P^-,P^+\in\mathfrak M(H,g,P_{\mathrm{rel}})\) such that
+\[
+\mathbb E_{P^-}[Y_1-Y_0]=\underline\mu_1-\overline\mu_0,
+\qquad
+\mathbb E_{P^+}[Y_1-Y_0]=\overline\mu_1-\underline\mu_0.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:paired-high-resolution-quantization}[Paired high-resolution quantization]
+Let \(\mathcal I=[a,b]\), let \(S\) be an integer, and let \(\beta_s:\mathcal I\times\mathcal I\to\mathbb R\), \(s=1,\ldots,S\), satisfy:
+\begin{itemize}
+\item \textbf{(Interval.)} \(a<b\).
+\item \textbf{(Number of components.)} \(S\geq1\).
+\item \textbf{(Continuity.)} Each \(\beta_s\) is continuous on \(\mathcal I\times\mathcal I\).
+\item \textbf{(Positivity.)} \(\beta_s(x,z)>0\) for every \(s\) and every \(x,z\in\mathcal I\).
+\end{itemize}
+For each positive integer \(k\), define
+\[
+V_k=
+\inf_{\substack{(B_1,\ldots,B_k)\ \mathrm{measurable,\ pairwise\ disjoint}\\
+\bigcup_{j=1}^{k}B_j=\mathcal I,\quad z_{js}\in\mathcal I}}
+\sum_{j=1}^{k}\sum_{s=1}^{S}
+\int_{B_j}\beta_s(x,z_{js})|x-z_{js}|\,dx,
+\qquad
+w(x)=\sum_{s=1}^{S}\beta_s(x,x).
+\]
+Then
+\[
+\lim_{k\to\infty}kV_k
+=\frac14\left(\int_a^b\sqrt{w(x)}\,dx\right)^2.
+\]
+For each positive integer \(k\), let \(a=t_0<\cdots<t_k=b\) be boundaries satisfying
+\[
+\int_a^{t_j}\sqrt{w(x)}\,dx
+=\frac{j}{k}\int_a^b\sqrt{w(x)}\,dx
+\qquad (j=0,\ldots,k).
+\]
+Set \(B_j=[t_{j-1},t_j)\) for \(j<k\), \(B_k=[t_{k-1},t_k]\), and \(z_{js}=(t_{j-1}+t_j)/2\) for every \(s\). These cells form a measurable, pairwise-disjoint partition of \(\mathcal I\), every \(z_{js}\) belongs to \(\mathcal I\), and
+\[
+\lim_{k\to\infty}
+k\sum_{j=1}^{k}\sum_{s=1}^{S}
+\int_{B_j}\beta_s(x,z_{js})|x-z_{js}|\,dx
+=\frac14\left(\int_a^b\sqrt{w(x)}\,dx\right)^2.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:external-two-source-lower-certificate}[Two-source excess-risk lower bounds]
+Let \(\mathcal E=[\varepsilon,1-\varepsilon]\) be the score interval, let \(\mathcal R_J\) be the finite label set, and fix a measurable release \(g:\mathcal E\to\mathcal R_J\). Let \(\mathbb Q_{P,H}^{n,m}\) be a family of joint sampling laws on \(n\) released trial rows and \(m\) score-log draws. Suppose:
+
+\begin{itemize}
+\item \textbf{(Overlap and level.)} \cref{obj:ass:overlap} holds and \(0<\alpha<1/2\).
+\item \textbf{(Trial sampling.)} For every \(n,m\) and every admissible causal-law and score-law pair \((P,H)\) under \(g\), the trial marginal of \(\mathbb Q_{P,H}^{n,m}\) is the \(n\)-fold product of the released-row law under \(P\).
+\item \textbf{(Score-log sampling.)} The joint sampling laws satisfy \cref{obj:ass:external-log-iid,obj:ass:external-log-independent} for every \(n,m\).
+\end{itemize}
+
+Set
+\[
+L_\alpha=1+(1-2\alpha)^2,\qquad
+S_g=\sup_{\substack{r\in\mathcal R_J,\ e_1,e_2,e_3\in\mathcal E\\
+e_1<e_2<e_3,\ g(e_1)=g(e_2)=g(e_3)=r}}
+\frac{(e_3-e_2)(1-e_1/e_2)}
+{\sqrt{(e_3-e_2)^2+(e_3-e_1)^2+(e_2-e_1)^2}},
+\]
+and
+\[
+c_{\mathrm{tr}}(\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{4},
+\qquad
+c_{\mathrm{log}}(g,\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{2\sqrt{3}}S_g.
+\]
+Then \(0<S_g\leq 1\). The external-score minimax excess risk of \cref{obj:def:external-excess-risk} satisfies, for every \(n,m\geq 1\),
+\[
+\mathcal R^\star_{n,m,\alpha}(g)
+\geq \frac{c_{\mathrm{tr}}(\alpha)}{\sqrt n}.
+\]
+It also satisfies
+\[
+\liminf_{m\to\infty}\inf_{n\geq 1}
+\left\{\sqrt m\,\mathcal R^\star_{n,m,\alpha}(g)\right\}
+\geq c_{\mathrm{log}}(g,\alpha)>0.
+\]
+For every \(\rho>0\), the normalized risk of \cref{obj:def:external-normalized-risk} satisfies
+\[
+\liminf_{\substack{n,m\to\infty\\ n/m\to\rho}}
+T_{n,m,\alpha}(g)
+\geq
+\max\left\{
+\frac{c_{\mathrm{tr}}(\alpha)}{1+\sqrt\rho},
+\frac{c_{\mathrm{log}}(g,\alpha)\sqrt\rho}{1+\sqrt\rho}
+\right\}>0.
+\]
+\end{lemmav}

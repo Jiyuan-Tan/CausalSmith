@@ -1,0 +1,190 @@
+\begin{proof}[Proof of \cref{obj:thm:capacity-active-lower}]
+Write
+\[
+\mathcal R_{n,k}
+=\inf_{\widehat H}\sup_{R,S\in\Delta_k}
+E_{R,S}\!\left[(\widehat H-\|R-S\|_1)^2\right].
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.twoSampleL1MinimaxRisk
+Here \(\widehat H\) ranges over measurable estimators based on \(n\) observations from each of \(R\) and \(S\). We first establish the two-sample bound used in the proof:
+\[
+\mathcal R_{n,k}\ge c_{\mathrm L}
+\min\left\{1,\frac{k}{n\log(ek)}\right\}
+\qquad(k\ge2,\ n\ge1)
+\]
+for a universal \(c_{\mathrm L}>0\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.two_sample_l1_lower_all_samples
+
+For \(n\le k^2\), this is \cref{obj:lem:two-sample-l1-lower}. Its dense-range input is the published known-\(S\) bound: when \(n\ge a_0k/\log k\) and \(\log n\le C_0\log k\), the worst-case squared risk is at least a positive constant times \(k/(n\log n)\), with constants depending on \(a_0,C_0\) \citep[Theorem 3 and the unknown-both-distributions reduction following Theorem 6]{JiaoHanWeissman2018}. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.two_sample_l1_lower
+
+For completeness, consider the remaining range \(n>k^2\). At sufficiently large \(k\), set
+\[
+h=\lfloor k/2\rfloor,\qquad
+\ell=16\bigl(\lfloor\log_2 k\rfloor+1\bigr),\qquad
+\xi=\sqrt{\frac{h\ell}{200n}}>0,\qquad
+\omega=\frac{\xi}{50\ell}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.exists_pairedLargeParameters
+To obtain the finite priors used here, let
+\[
+\mathcal E_\ell=\inf_{\deg\varphi\le\ell}\sup_{|x|\le1}\bigl||x|-\varphi(x)\bigr|.
+\]
+Polynomial alternation gives nodes \(x_0<\cdots<x_{\ell+1}\) in \([-1,1]\) and signed weights \(a_i\), normalized so that
+\[
+\sum_i|a_i|=1,\qquad
+\sum_i a_i x_i^{\ell'}=0\quad(0\le\ell'\le\ell),\qquad
+\sum_i a_i|x_i|=\mathcal E_\ell.
+\]
+Indeed, the weights proportional to \(\prod_{i'\ne i}(x_i-x_{i'})^{-1}\) annihilate polynomials of degree at most \(\ell\) by Lagrange interpolation; their alternating signs can be oriented to agree with the alternating approximation errors. The required approximation error has the bound
+\[
+\mathcal E_\ell\ge\frac1{100\ell}.
+\]
+For this bound, let \(\mathscr F_\ell\) denote the normalized Fejér kernel of order \(\ell\) on the circle of period \(\pi\), and define
+\[
+g(\phi)=|\sin(2\phi)|,\qquad
+\mathscr D_\ell f=f(0)-\bigl((2\mathscr F_{2\ell}-\mathscr F_\ell)*f\bigr)(0).
+\]
+The Fejér kernels have integral one, so \(\|\mathscr D_\ell\|\le4\). Their Fourier multipliers give \(\mathscr D_\ell[\varphi(\sin(2\phi))]=0\) when \(\deg\varphi\le\ell\). The Fourier series of \(g\) has nonnegative contributions to the magnitude of this functional; retaining the frequencies indexed from \(\ell\) through \(2\ell-1\) yields
+\[
+|\mathscr D_\ell g|
+\ge\sum_{\ell'=\ell}^{2\ell-1}
+ \frac{4}{\pi(4{\ell'}^2-1)}
+\ge\frac1{16\ell}.
+\]
+Thus \(4\mathcal E_\ell\ge1/(16\ell)\), which gives the displayed bound. Writing \(a_i^+=\max(a_i,0)\) and \(a_i^-=\max(-a_i,0)\), define
+\[
+\nu_0=2\sum_i a_i^-\delta_{x_i},\qquad
+\nu_1=2\sum_i a_i^+\delta_{x_i}.
+\]
+The degree-zero identity makes each measure a probability measure. The remaining identities show that their moments agree through degree \(\ell\) and that
+\[
+\int|x|\,d\nu_1(x)-\int|x|\,d\nu_0(x)
+=2\mathcal E_\ell\ge\frac1{50\ell}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.exists_scalarMomentPriors
+
+Use \(2h\) cells and, for \(z=(z_1,\ldots,z_h)\in[-1,1]^h\), define the two probability vectors by
+\[
+R_{i,\pm}=\frac1{2h},\qquad
+S_{i,\pm}(z)=\frac{1\pm\xi z_i}{2h},
+\qquad
+\|R-S(z)\|_1=\frac{\xi}{h}\sum_{i=1}^h|z_i|.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.pairedProductTarget_mean
+Under prior \(\nu_s^{\otimes h}\), the target has center
+\(\gamma_s=\xi\int|z|\,d\nu_s(z)\). Independence gives
+\[
+|\gamma_1-\gamma_0|\ge\omega,\qquad
+\operatorname{Var}_{\nu_s^{\otimes h}}\!\bigl(\|R-S(z)\|_1\bigr)
+\le\frac{\xi^2}{h}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.pairedProductTarget_variance_le
+For the stated sufficiently large alphabet threshold, \(128\xi^2\le h\omega^2\). Chebyshev’s inequality therefore places at most \(1/8\) of either prior outside the interval of radius \(\omega/4\) around its center. % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.pairedProductTarget_bad_mass_le
+
+To compare the sample laws, Poissonize the \(S\)-sample at mean \(2n\). Conditional on \(z_i\), the two counts in pair \(i\) are independent Poisson variables with means \((n/h)(1+\xi z_i)\) and \((n/h)(1-\xi z_i)\). Relative to \(z_i=0\), their likelihood ratios obey
+\[
+E_0[L_zL_{z'}]
+=\exp\!\left(\frac{2n\xi^2}{h}zz'\right).
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.scalarPoissonPairLikelihood_inner
+For \(s\in\{0,1\}\), define the one-pair mixture, its null reference law, its density, and the exponential scale by
+\[
+\mathbb Q_s=\int\!\left[
+ \operatorname{Pois}\!\left(\frac nh(1+\xi z)\right)
+ \otimes\operatorname{Pois}\!\left(\frac nh(1-\xi z)\right)
+ \right]d\nu_s(z),\quad
+\mathbb Q_\circ=\operatorname{Pois}(n/h)^{\otimes2},\quad
+\rho_s=\frac{d\mathbb Q_s}{d\mathbb Q_\circ},\quad
+\Delta\nu=\nu_1-\nu_0,\quad
+\chi=\frac{2n\xi^2}{h}\le\frac\ell{50}.
+\]
+The likelihood identity above and the matching moments give
+\[
+\int(\rho_1-\rho_0)^2\,d\mathbb Q_\circ
+=\sum_{\ell'>\ell}\frac{\chi^{\ell'}}{\ell'!}
+ \left(\int z^{\ell'}\,d\Delta\nu(z)\right)^2
+\le4\sum_{\ell'>\ell}\frac{\chi^{\ell'}}{\ell'!}.
+\]
+Here \(\bigl|\int z^{\ell'}d\Delta\nu(z)\bigr|\le2\) because both priors are supported on \([-1,1]\). For \(\ell'>\ell\), the factorial bound \(\ell'!\ge(\ell'/e)^{\ell'}\), together with \(e<3\), yields \(\chi^{\ell'}/\ell'!\le(1/4)^{\ell'}\). Cauchy–Schwarz therefore gives
+\[
+\operatorname{TV}(\mathbb Q_0,\mathbb Q_1)
+\le\frac12\left(\int(\rho_1-\rho_0)^2\,d\mathbb Q_\circ\right)^{1/2}
+\le\left(\sum_{\ell'>\ell}4^{-\ell'}\right)^{1/2}
+\le2^{-\ell}\le2^{-\ell/4}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.scalarPoissonPredictive_tv_le
+The pair mixtures are independent under either prior. Telescoping their product densities and using the one-pair bound gives
+\[
+\operatorname{TV}(\mathbb Q_0^{\otimes h},\mathbb Q_1^{\otimes h})
+\le h\operatorname{TV}(\mathbb Q_0,\mathbb Q_1)
+\le h2^{-\ell/4}.
+\]
+When a \(\operatorname{Pois}(2n)\) count reaches \(n\), its first \(n\) marks have the fixed-sample law. For each prior, replacing the sample on the complementary event changes its predictive law in total variation by at most \(\Pr\{\operatorname{Pois}(2n)<n\}\). The triangle inequality therefore adds twice this probability. Exponential Markov inequality at \(\log 2\) gives
+\[
+\Pr\{\operatorname{Pois}(2n)<n\}
+\le \exp\{-(1-\log 2)n\}.
+\]
+Since \(h\le k/2\), \(2^{-\ell/4}\le k^{-4}\), and \(n>k^2\), these bounds give, for the stated sufficiently large alphabet threshold, the fixed-sample predictive bound
+\[
+\operatorname{TV}(\text{prior-0 samples},\text{prior-1 samples})
+\le h\,2^{-\ell/4}
+ +2\Pr\{\operatorname{Pois}(2n)<n\}
+\le\frac1{16}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.pairedFixedPredictive_tv_le
+The first sample has the same law \(R\) under both priors, so it leaves this comparison unchanged.
+
+Choose the nearer of \(\gamma_0,\gamma_1\) from an arbitrary estimator of \(\|R-S\|_1\). The sum of its testing errors is at least \(15/16\) by the predictive bound. The two prior tail probabilities contribute at most \(1/4\); on each remaining error event, squared estimation error is at least \(\omega^2/16\). Consequently
+\[
+\mathcal R_{n,2h}\ge\frac{11}{512}\omega^2,
+\qquad
+\omega^2=\frac{h}{500000\,n\ell}
+\ge c\,\frac{k}{n\log(ek)}
+\]
+for a universal \(c>0\). Padding the unused cell when \(k\) is odd preserves the target and sample law. % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.largeSample_fuzzyCertificate
+
+The finitely many alphabet sizes below that threshold are covered by a binary comparison. Take \(R=(1/2,1/2)\), compare \(S=R\) with
+\(S=((1+\xi)/2,(1-\xi)/2)\), and set \(\xi=1/(64\sqrt n)\). The targets differ by \(\xi\), while independence and the one-record chi-squared identity give
+\[
+\chi^2(S^{\otimes n},R^{\otimes n})
+=(1+\xi^2)^n-1\le\frac1{64}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.binary_fuzzyCertificate
+Thus their total variation is at most \(1/16\), and the same testing argument yields a constant multiple of \(1/n\). Zero-mass padding and the finite bound on \(k/\log(ek)\) give the asserted rate for these alphabet sizes. Combining the ranges, and using \(k/(n\log(ek))<1\) when \(n>k^2\), proves the displayed two-sample bound. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.two_sample_l1_lower_all_samples
+
+Now fix \(T,n,d\) as in the statement. Suppose first that \(d\ge4\), and put \(k=\lfloor d/2\rfloor\). Then \(k\ge2\) and \(2k\le d\). For each \(R,S\in\Delta_k\), choose the paired law of \cref{obj:def:paired-family} with
+\[
+r_i=\frac{R_i+S_i}{2},\qquad
+\theta_i=
+\begin{cases}
+0,&R_i+S_i=0,\\[2pt]
+\dfrac{R_i-S_i}{8(R_i+S_i)},&R_i+S_i>0.
+\end{cases}
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedL1_lower_transport_capacity
+The capacity and sample identities in \cref{obj:prop:paired-capacity-identity} give
+\[
+V_{1/2}(P_{R,S})=\frac38+\frac1{32}\|R-S\|_1,
+\qquad V_1(P_{R,S})=\frac12,
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedL1_lower_transport_capacity
+and an exact Markov kernel taking the two independent \(n\)-samples to \(n\) observed records from \(P_{R,S}\). Apply \(T\) after this kernel and condition on the two input samples. The resulting two-sample estimator of \(\|R-S\|_1\) has squared risk at most \(32^2\) times the squared risk of \(T\), by conditional Jensen’s inequality. Since the two-sample lower bound is positive, a parameter pair attains at least half its lower-bound value. Hence some paired law satisfies
+\[
+E_{P_{R,S}}\!\left[(T-V_{1/2}(P_{R,S}))^2\right]
+\ge \frac{c_{\mathrm L}}{2048}
+ \min\left\{1,\frac{k}{n\log(ek)}\right\}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedL1_lower_transport_capacity
+Pad the law with zero-mass cells to reach \(d\) labels. The observed sample law, both budget values, and the occupied-cell properties are preserved; \cref{obj:ass:iid-sampling} identifies the stipulated sampling law with that product law. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedL1_lower_transport_capacity_padded
+
+Because \(k\le d\le3k\) and \(\log(ek)\le\log(ed)\),
+\[
+\min\left\{1,\frac{d}{n\log(ed)}\right\}
+\le3\min\left\{1,\frac{k}{n\log(ek)}\right\}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.curveRate_half_floor
+Thus the required bound holds in this case with coefficient \(c_{\mathrm L}/6144\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.capacity_active_lower
+
+For \(d=2,3\), use one occupied pair and pad any remaining cell by zero mass. Compare paired contrasts \(0\) and
+\[
+t=\frac1{8\sqrt n}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.small_capacity_lower_padded
+Both laws satisfy the class, value, occupied-effect, and binding-capacity properties by \cref{obj:prop:paired-capacity-identity}. Their half-budget values are \(3/8\) and \(3/8+t/2\). The one-record chi-squared divergence is \(2t^2\); tensorization and \(2nt^2=1/32\le\log2\) give total variation at most \(1/2\) for the \(n\)-record laws. Testing at the midpoint of the two values then puts error probability at least \(1/4\) under one law, on an event where absolute estimation error is at least \(t/4\). Therefore one of the laws satisfies
+\[
+E_P\!\left[(T-V_{1/2}(P))^2\right]
+\ge\frac{(t/4)^2}{4}
+=\frac1{4096n}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.small_capacity_lower_padded
+For \(2\le d\le3\), \(\min\{1,d/[n\log(ed)]\}\le3/n\). Taking
+\[
+c_\epsilon=\min\left\{\frac{c_{\mathrm L}}{6144},
+                         \frac1{12288}\right\}>0
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.capacity_active_lower
+completes both cases. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.capacity_active_lower
+\end{proof}

@@ -1,0 +1,240 @@
+\begin{proof}[Proof of \cref{obj:lem:causal-identification}]
+\begin{enumerate}
+\item Let \(P_c\) be the joint causal law on
+\(\mathbb R^d\times\{0,1\}\times\mathbb R^3\):
+\[
+P_c:=\mathcal L\bigl(X,A,Y(0),Y(1),Y\bigr).
+\]
+Its observed marginal is \(P\), and its covariate marginal is \(P_X\). Define the joint conditioning law and conditional probability kernels by
+\[
+\begin{aligned}
+\pi_{X,A}&:=\mathcal L_{P_c}(X,A),\\
+K^c_{A\mid X}(x)&:=\mathcal L_{P_c}(A\mid X=x),\\
+K_{1\mid X}(x)&:=\mathcal L_{P_c}(Y(1)\mid X=x),\\
+K^c_{Y\mid X,A}(x,a)&:=\mathcal L_{P_c}(Y\mid X=x,A=a),\\
+K^c_{1\mid X,A}(x,a)&:=\mathcal L_{P_c}(Y(1)\mid X=x,A=a),
+\end{aligned}
+\qquad x\in\mathbb R^d,\quad a\in\{0,1\}.
+\]
+Choose measurable versions defined at every conditioning input, with arbitrary probability values on exceptional conditioning sets.
+
+By \cref{obj:ass:consistency},
+\[
+A=1\ \Longrightarrow\ Y=Y(1)
+\qquad P_c\text{-almost surely}.
+\]
+Conditioning this equality on \((X,A)\) gives
+\[
+a=1\ \Longrightarrow\
+K^c_{Y\mid X,A}(x,a)=K^c_{1\mid X,A}(x,a)
+\qquad \pi_{X,A}\text{-almost everywhere}.
+\]
+By \cref{obj:ass:exchangeability}, \(Y(1)\) and \(A\) are conditionally independent given \(X\). Consequently,
+\[
+K^c_{1\mid X,A}(x,a)=K_{1\mid X}(x)
+\qquad \pi_{X,A}\text{-almost everywhere}.
+\]
+% lean: CausalSmith.Stat.WeakOverlap.mu1_eq_treatedRegression (hfiber, hci, hexch)
+
+\item Applying \cref{obj:ass:global-tail} at \(t=0\), and using \(\gamma-1>0\), yields
+\[
+0\le P_X\{e\le0\}\le C\,0^{\gamma-1}=0.
+\]
+Since \(\{e=0\}\subseteq\{e\le0\}\),
+\[
+P_X\{e=0\}=0.
+\]
+To express positivity through the conditioning kernel, define
+\[
+K^o_{A\mid X}(x):=\mathcal L_P(A\mid X=x),
+\qquad x\in\mathbb R^d,
+\]
+again as a measurable probability kernel defined everywhere. The observed marginal relation and the definition of the propensity give
+\[
+K^o_{A\mid X}(x)=K^c_{A\mid X}(x),
+\qquad
+e(x)=K^o_{A\mid X}(x)(\{1\})\ge0
+\qquad P_X\text{-almost everywhere}.
+\]
+Combining these identities with the null-set calculation proves
+\[
+K^c_{A\mid X}(x)(\{1\})=e(x)>0
+\qquad P_X\text{-almost everywhere}.
+\]
+% lean: CausalSmith.Stat.WeakOverlap.positivePropensity_ae
+
+\item Disintegration of the joint conditioning law gives
+\[
+\pi_{X,A}(dx,da)=P_X(dx)\,K^c_{A\mid X}(x,da).
+\]
+We use the following consequence of this identity. For any predicate
+\(p:\mathbb R^d\times\{0,1\}\to\{\text{true},\text{false}\}\) holding
+\(\pi_{X,A}\)-almost everywhere, disintegration implies
+\[
+K^c_{A\mid X}(x)\{a:\neg p(x,a)\}=0
+\qquad P_X\text{-almost everywhere}.
+\]
+At any such \(x\) with \(K^c_{A\mid X}(x)(\{1\})>0\), failure of \(p(x,1)\) would imply
+\[
+0<K^c_{A\mid X}(x)(\{1\})
+\le K^c_{A\mid X}(x)\{a:\neg p(x,a)\}=0.
+\]
+Thus \(p(x,1)\) holds \(P_X\)-almost everywhere. Applying this argument to the conjunction of the two conditional-kernel identities above gives
+\[
+K^c_{Y\mid X,A}(x,1)=K_{1\mid X}(x)
+\qquad P_X\text{-almost everywhere}.
+\]
+
+Now define the observed outcome kernel and its treated slice by
+\[
+\begin{aligned}
+K^o_{Y\mid X,A}(x,a)&:=\mathcal L_P(Y\mid X=x,A=a),\\
+K_{\mathrm{tr}}(x)&:=K^o_{Y\mid X,A}(x,1),
+\end{aligned}
+\qquad x\in\mathbb R^d,\quad a\in\{0,1\}.
+\]
+The observed marginal relation gives
+\[
+K^o_{Y\mid X,A}(x,a)=K^c_{Y\mid X,A}(x,a)
+\qquad \pi_{X,A}\text{-almost everywhere}.
+\]
+Applying the same positive-slice argument once more, we obtain
+\[
+K_{\mathrm{tr}}(x)
+=K^c_{Y\mid X,A}(x,1)
+=K_{1\mid X}(x)
+\qquad P_X\text{-almost everywhere}.
+\]
+% lean: CausalSmith.Stat.WeakOverlap.ae_slice_of_ae_compProd_of_pos
+
+\item Define the treated regression on all of \(\mathbb R^d\) by
+\[
+r_{\mathrm{tr}}(x):=\int_{\mathbb R}y\,K_{\mathrm{tr}}(x,dy),
+\]
+using value zero wherever the integrand is not integrable. By
+\cref{obj:ass:bounded-potential-outcomes} and the kernel equality just proved, for \(P_X\)-almost every \(x\),
+\[
+|r_{\mathrm{tr}}(x)|\le B,
+\qquad
+\int_{\mathbb R}
+e^{\lambda(y-r_{\mathrm{tr}}(x))}\,K_{1\mid X}(x,dy)
+\le e^{B^2\lambda^2/2}
+\quad\text{for every }\lambda\in\mathbb R,
+\]
+and each exponential integrand in this display is integrable.
+
+The choices \(\lambda=1\) and \(\lambda=-1\) control the absolute first moment. Indeed, for every \(y\in\mathbb R\),
+\[
+1+|y-r_{\mathrm{tr}}(x)|
+\le e^{|y-r_{\mathrm{tr}}(x)|}
+\le e^{y-r_{\mathrm{tr}}(x)}
+   +e^{-(y-r_{\mathrm{tr}}(x))},
+\]
+so
+\[
+|y|
+\le |y-r_{\mathrm{tr}}(x)|+|r_{\mathrm{tr}}(x)|
+\le e^{y-r_{\mathrm{tr}}(x)}
+   +e^{-(y-r_{\mathrm{tr}}(x))}
+   +|r_{\mathrm{tr}}(x)|.
+\]
+The right-hand side is integrable under \(K_{1\mid X}(x)\). Integrating the inequality and using the exponential bounds yields
+\[
+\begin{aligned}
+\int_{\mathbb R}|y|\,K_{1\mid X}(x,dy)
+&\le
+\int_{\mathbb R}e^{y-r_{\mathrm{tr}}(x)}\,K_{1\mid X}(x,dy)
++\int_{\mathbb R}e^{-(y-r_{\mathrm{tr}}(x))}\,K_{1\mid X}(x,dy)
++|r_{\mathrm{tr}}(x)|\\
+&\le 2e^{B^2/2}+B.
+\end{aligned}
+\]
+This bound is uniform on a set of full \(P_X\)-measure. Disintegration therefore gives
+\[
+\int |Y(1)|\,dP_c
+=
+\int_{\mathbb R^d}
+\left(\int_{\mathbb R}|y|\,K_{1\mid X}(x,dy)\right)P_X(dx)
+\le 2e^{B^2/2}+B<\infty.
+\]
+In particular, \(Y(1)\) is integrable under \(P_c\).
+% lean: CausalSmith.Stat.WeakOverlap.mu1_eq_treatedRegression (houtcome, hY₁fiber, hY₁norm_bound, hY₁int)
+
+\item Define
+\[
+k_1(x):=\int_{\mathbb R}y\,K_{1\mid X}(x,dy),
+\qquad x\in\mathbb R^d,
+\]
+with value zero wherever the integrand is not integrable. The conditional-distribution formula for conditional expectation, together with the defining conditional-mean relation for the treated causal response, gives
+\[
+\mu_1(X)
+=\mathbb E_{P_c}[Y(1)\mid\sigma(X)]
+=k_1(X)
+\qquad P_c\text{-almost surely}.
+\]
+The kernel integral \(k_1\) is measurable. Continuity of \(\mu_1\) on \(\mathcal X\), supplied by
+\cref{obj:ass:holder-response,obj:def:holder}, and
+\(P_X\ll\operatorname{Leb}|_{\mathcal X}\) supply a measurable representative of \(\mu_1\) under \(P_X\). Using these representatives, the covariate pushforward identity transfers the preceding equality to
+\[
+\mu_1(x)=k_1(x)
+\qquad P_X\text{-almost everywhere}.
+\]
+The equality \(K_{\mathrm{tr}}=K_{1\mid X}\) then gives
+\[
+\mu_1(x)
+=k_1(x)
+=r_{\mathrm{tr}}(x)
+=\mathbb E_P[Y\mid A=1,X=x]
+\qquad P_X\text{-almost everywhere}.
+\]
+% lean: CausalSmith.Stat.WeakOverlap.mu1_eq_treatedRegression (hce, hcomp, hbase, hident)
+
+\item It remains to establish the asserted equality for every point of the cube. Define the restricted Lebesgue measure by
+\[
+\nu:=\operatorname{Leb}|_{\mathcal X}.
+\]
+The parameter restrictions give \(c_f>0\). Absolute continuity of \(P_X\) with respect to \(\nu\) and \cref{obj:ass:density} yield
+\[
+P_X=f\nu,
+\qquad
+f=\frac{dP_X}{d\nu}\ge c_f>0
+\qquad \nu\text{-almost everywhere}.
+\]
+Consequently,
+\[
+\nu\{f=0\}=0,
+\qquad
+\nu\ll f\nu=P_X.
+\]
+For completeness, if a Borel set \(E\subseteq\mathbb R^d\) satisfies \(P_X(E)=0\), then
+\[
+\int_E f\,d\nu=P_X(E)=0.
+\]
+Since \(f\) is nonnegative, this forces \(f=0\) \(\nu\)-almost everywhere on \(E\); its strict positivity \(\nu\)-almost everywhere gives \(\nu(E)=0\).
+
+Let \(g:\mathbb R^d\to\mathbb R\) satisfy the continuity and almost-everywhere agreement required in the statement. The identifying equality already established implies
+\[
+g(x)=\mu_1(x)
+\qquad P_X\text{-almost everywhere},
+\]
+and hence, by \(\nu\ll P_X\),
+\[
+g(x)=\mu_1(x)
+\qquad \nu\text{-almost everywhere}.
+\]
+Both functions are continuous on \(\mathcal X\). Thus
+\[
+g(x)=\mu_1(x)
+\qquad\text{for every }x\in\operatorname{int}(\mathcal X):
+\]
+a nonzero difference at an interior point would, by continuity, persist on an open ball contained in the cube, whose positive Lebesgue measure contradicts the preceding almost-everywhere equality. Finally,
+\[
+\overline{\operatorname{int}(\mathcal X)}
+=\prod_{i=1}^{d}\overline{(0,1)}
+=\prod_{i=1}^{d}[0,1]
+=\mathcal X.
+\]
+Continuity therefore extends the equality to every \(x\in\mathcal X\), as required.
+% lean: CausalSmith.Stat.WeakOverlap.mu1_eq_treatedRegression (hreverse, hAEvol, hcube_reg)
+\end{enumerate}
+\end{proof}

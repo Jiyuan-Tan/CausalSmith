@@ -1,0 +1,121 @@
+\section{Main results and an attaining interval}
+\label{sec:main-results}
+
+The minimax expected length has order
+\[
+L_n(a)\asymp \min\{1,n^{-1/3}/a\},
+\qquad n\ge n_0,quad 0<a\le 1/4.
+\]
+A single observable interval attains the upper bound while maintaining coverage over the full model class, and the lower bound applies to every measurable confidence set, including disconnected ones. This section states the exact interval and frontier. The technical construction and supporting bounds appear in \cref{sec:upper-appendix,sec:lower-appendix}; full proofs are collected in \cref{sec:deferred-proofs}.
+
+\subsection{Observable representation and cubic correction}
+
+The construction collects the observable density components in a seven-coordinate vector. Its source arm densities and response-marked arm densities encode the conditional contrasts without estimating conditional means separately.
+
+\begin{definitionv}{def:marked-density-vector}[Marked-density vector \(F\)]
+The marked-density vector for the model in \cref{obj:def:model-class} is
+\[
+F(x)=\bigl(f_{\mathrm T}(x),q_0(x),q_1(x),
+r_{Y0}(x),r_{Y1}(x),r_{D0}(x),r_{D1}(x)\bigr),
+\]
+where the source arm densities and response-marked arm densities are
+\[
+q_z(x)=f_{\mathrm S}(x)P_{\mathrm S}(Z=z\mid X=x),
+\qquad
+r_{Az}(x)=q_z(x)m_{Az}(x),
+\qquad A\in\{Y,D\},\quad z\in\{0,1\}.
+\]
+Here \(m_{Az}(x)\) is the source conditional mean of response \(A\) in encouragement arm \(z\).
+\end{definitionv}
+
+Weighting the arm contrast by the target density gives the transported functional.
+
+\begin{definitionv}{def:smooth-functional}[Transported contrast functional \(T_A\)]
+The target-averaged source contrast for response \(A\in\{Y,D\}\) is
+\[
+T_A=\int_0^1\Phi_A(F(x))\,dx,
+\qquad
+\Phi_A(F)=f_{\mathrm T}
+\left(\frac{r_{A1}}{q_1}-\frac{r_{A0}}{q_0}\right).
+\]
+\end{definitionv}
+
+Under the causal and transport assumptions, \(T_D=\mu(P)\) is the transported first stage and \(T_Y=\mu(P)\theta(P)\); see \cref{obj:lem:transported-cace-identification}. Thus inference can invert the affine moment \(T_Y-vT_D\) without dividing by an estimated first stage.
+
+For \(n\ge n_0=256\), each source and target sample is split into one pilot block and three evaluation blocks. Blockwise marked histograms estimate all seven coordinates. The pilot resolution satisfies \(K_0\asymp n^{4/5}\), while the quadratic and cubic correction resolutions satisfy \(K_2\asymp n^{4/3}\) and \(K_3\asymp n\), up to dyadic rounding. The transported-contrast estimator \(\widehat T_A\) expands \(\Phi_A\) around the clipped pilot and adds linear, quadratic, and cubic terms formed from separate evaluation blocks.
+
+The three correction orders cancel the corresponding Taylor terms while retaining independence among repeated residual factors. At smoothness \(\beta=1/8\), the fourth-order remainder and correction variances are controlled by the uniform mean-square envelope constant \(C_{\mathrm{mse}}=C_{\mathrm{mse}}(c_f,C_f,L)\). Specifically,
+\[
+\sup_{P\in\mathcal M_n}
+\mathbb E_P\!\left[(\widehat T_A-T_A)^2\right]
+\le C_{\mathrm{mse}}n^{-2/3},
+\qquad A\in\{Y,D\}.
+\]
+The exact histogram conventions, estimator, and computable constant are given in \cref{obj:def:cubic-estimator,obj:lem:marked-cubic-mse}.
+
+\subsection{Score interval and sharp frontier}
+
+The mean-square scale yields the following calibrated affine-score acceptance set and interval.
+
+\begin{definitionv}{synth_10}[Calibrated score acceptance set]
+The calibrated affine-score acceptance set \(\mathcal A_n\) is defined, for real inputs \(\alpha,c_f,C_f,L\), a sample size \(n\in\mathbb N\), and a pair of source and target samples each containing \(n\) records, by
+\[
+\mathcal A_n
+=
+\left\{
+\theta\in[-1,1]:
+\left|\widehat T_Y-\theta\widehat T_D\right|
+\le
+2\sqrt{\frac{2C_{\mathrm{mse}}}{\alpha}}\,
+n^{-1/3}
+\right\}.
+\]
+Here \(\widehat T_Y\) and \(\widehat T_D\) are the cubic estimators computed from the supplied samples with inputs \(c_f,C_f\), and \(C_{\mathrm{mse}}\) is the mean-square envelope evaluated at \(c_f,C_f,L\). Each cubic estimator equals zero when \(n<n_0\), the estimator threshold, and otherwise equals its pilot integral plus its linear, quadratic, and cubic corrections. The square root and negative power use their total real-valued conventions, including at zero.
+\end{definitionv}
+
+\begin{definitionv}{def:score-interval}[Inverted score interval \(I_n\)]
+The inverted score interval is
+\[
+I_n=
+\begin{cases}
+\Theta,& n<n_0,\\
+\mathcal A_n,& n\ge n_0\ \text{and}\ \mathcal A_n\ne\varnothing,\\
+\{0\},& n\ge n_0\ \text{and}\ \mathcal A_n=\varnothing.
+\end{cases}
+\]
+Here \(\mathcal A_n\) is the calibrated affine-score acceptance set, \(\Theta\) is the bounded effect domain, and \(n_0\) is the threshold for using the cubic estimator.
+\end{definitionv}
+
+The full-domain fallback supplies coverage below the estimator threshold. For larger samples, the procedure retains a nonempty affine-score acceptance interval and uses the stated singleton convention when the acceptance set is empty. The exact result combines all-positive-sample-size coverage with the two-sided frontier for \(n\ge256\).
+
+\begin{theoremv}{thm:sharp-length-frontier-full-elbow}[Sharp length frontier with elbow]
+Fix real constants \(\alpha,c_f,C_f,L\) satisfying:
+\begin{itemize}
+\item \textbf{(Noncoverage probability.)} \(0<\alpha<1\).
+\item \textbf{(Lower density envelope.)} \(0<c_f<1\).
+\item \textbf{(Upper density envelope.)} \(1<C_f\).
+\item \textbf{(Hölder radius.)} \(1<L\).
+\end{itemize}
+Let \(I_n\) be the score interval of \cref{obj:def:score-interval}, and let \(L_n(a)\) be the minimax expected restricted length defined in \cref{obj:def:length-frontier}. Set
+\[
+n_0=256.
+\]
+There exist finite constants \(0<c_0<C_0\), depending only on \((\alpha,c_f,C_f,L)\), such that \(I_n\in\mathfrak H_n\), the class of honest intervals in \cref{obj:def:honest-intervals}, for every integer \(n>0\), and, for every integer \(n\ge n_0\) and every real \(a\) with \(0<a\le 1/4\),
+\[
+c_0\min\{1,n^{-1/3}/a\}
+\le L_n(a)
+\le C_0\min\{1,n^{-1/3}/a\}.
+\]
+Moreover, for every integer \(n\ge n_0\) and every law \(P\in\mathcal M_n\) as defined in \cref{obj:def:model-class}, writing
+\[
+\mu(P)=T_D(P)
+\]
+for the transported first stage, the same interval sequence satisfies
+\[
+\mathbb E_P\!\left[\lambda_{\Theta}(I_n)\right]
+\le C_0\min\{1,n^{-1/3}/\mu(P)\},
+\]
+where \(\lambda_{\Theta}\) denotes Lebesgue length restricted to the effect domain \(\Theta\).
+\end{theoremv}
+
+The two regimes follow by comparing the score radius with the transported first stage. Above \(n^{-1/3}\), affine inversion turns contrast error into effect uncertainty of order \(n^{-1/3}/\mu(P)\). At or below that scale, the bounded effect domain caps length at constant order. The legal instrumental-variable mixture in \cref{obj:lem:legal-iv-mixture-full-elbow} produces matching separations in both regimes. The supporting upper and lower statements are \cref{obj:thm:honest-upper-full-elbow,obj:thm:honest-lower-full-elbow}.

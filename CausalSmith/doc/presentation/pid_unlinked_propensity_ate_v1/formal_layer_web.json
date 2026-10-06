@@ -1,0 +1,2764 @@
+{
+  "commit": "9135ac11b7d3e6ebd997f8c56bc48396dde396e4",
+  "groups": [
+    {
+      "kind": "setup",
+      "items": [
+        {
+          "obj_id": "S1",
+          "kind": "setup",
+          "label": "Setup S-1",
+          "nl": "A randomized causal population with overlap margin \\(\\varepsilon\\), score space \\(\\mathcal E=[\\varepsilon,1-\\varepsilon]\\), outcome space \\(\\mathcal Y=[0,1]\\), arms \\(\\mathcal A=\\{0,1\\}\\), and label alphabet \\(\\mathcal R_J=\\{1,\\ldots,J\\}\\). A causal law \\(P\\) is a probability measure on \\(\\mathcal E\\times\\mathcal Y^2\\times\\mathcal A\\times\\mathcal Y\\times\\mathcal R_J\\) describing \\((E,Y_0,Y_1,A,Y,R)\\). The known score law is \\(H\\in\\mathcal P(\\mathcal E)\\) (with density \\(f\\) when absolutely continuous), a deterministic release rule \\(g:\\mathcal E\\to\\mathcal R_J\\) has cells \\(C_r=g^{-1}(r)\\), and the released law is \\(P_{\\mathrm{rel}}=\\mathcal L_P(R,A,Y)\\). Derived objects: \\(p_a,q_{ar},F_{ar},G_{ar},W_{ar}\\), the generalized quantile \\(Q\\), the endpoints \\(\\underline\\mu_a,\\overline\\mu_a\\), the interval \\(I(P_{\\mathrm{rel}};H,g)\\), the classes \\(\\mathfrak P(H,g)\\) and \\(\\mathfrak M(H,g,P_{\\mathrm{rel}})\\), the ambiguity \\(D_H(g)\\), the release families \\(\\mathcal G_K\\), the positive lower-density class \\(\\mathcal H^{\\mathrm{lb}}_{\\varepsilon,m_f}\\), and \\(\\Delta_K(H)\\).",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S2",
+          "kind": "setup",
+          "label": "Setup S-2",
+          "nl": "The trial sampling experiment with a known score law: for a release \\(g\\in\\mathcal G_K\\), the analyst observes \\(n\\) independent draws \\((R_i,A_i,Y_i)\\) of the released law of a causal population \\(P\\in\\mathfrak P(H,g)\\), and reports an interval \\(C_n\\subseteq[-1,1]\\) with miscoverage level \\(\\alpha\\in(0,1/2)\\). \\(\\mathcal J_{n,K,\\alpha}(H)\\) is the class of uniformly honest release–procedure pairs, and \\(\\mathcal L^\\star_{n,K,\\alpha}(H)\\) is their minimax expected length.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S3",
+          "kind": "setup",
+          "label": "Setup S-3",
+          "nl": "The external score-log experiment: for a release \\(g\\), law pairs \\((P,H)\\in\\mathfrak X(g)\\) generate \\(n\\) independent trial rows \\((R_i,A_i,Y_i)\\) and, independently, \\(m\\) i.i.d. score draws \\(E^{\\mathrm{log}}_j\\sim H\\) with empirical law \\(\\widehat H_m\\). The joint law is \\(\\mathbb Q^{n,m}_{P,H}\\), confidence procedures are \\(C_{n,m}\\) valued in closed subintervals of \\([-1,1]\\), \\(\\mathcal J^{\\mathrm{ext}}_{n,m,\\alpha}(g)\\) is the uniformly honest class, \\(\\mathcal R^\\star_{n,m,\\alpha}(g)\\) is the minimax expected excess length, \\(b_{n,m}=(n^{-1/2}+m^{-1/2})^{-1}\\), \\(T_{n,m,\\alpha}(g)=b_{n,m}\\mathcal R^\\star_{n,m,\\alpha}(g)\\), and \\(\\rho\\in(0,\\infty)\\) is the limiting ratio \\(n/m\\).",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "definition",
+      "items": [
+        {
+          "obj_id": "def:causal-law-class",
+          "kind": "definition",
+          "label": "Definition P-1",
+          "nl": "\\(\\mathfrak P(H,g)=\\{P:\\mathcal L_P(E)=H,\\ P(A=1\\mid E,Y_0,Y_1)=E,\\ Y=AY_1+(1-A)Y_0,\\ R=g(E)\\ \\text{almost surely}\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.RandomizedCausalLaw",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:compatible-law-class",
+          "kind": "definition",
+          "label": "Definition P-2",
+          "nl": "\\(\\mathfrak M(H,g,P_{\\mathrm{rel}})=\\{P\\in\\mathfrak P(H,g):\\mathcal L_P(R,A,Y)=P_{\\mathrm{rel}}\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.CompatibleCausalLaw",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:arm-cell-primitives",
+          "kind": "definition",
+          "label": "Definition P-3",
+          "nl": "For \\(a\\in\\mathcal A\\) and \\(r\\in\\mathcal R_J\\), set \\(p_1(e)=e\\), \\(p_0(e)=1-e\\), \\(C_r=\\{e:g(e)=r\\}\\), and \\(q_{ar}=\\int_{C_r}p_a(e)H(de)\\). Define \\(F_{ar}=\\mathcal L_{P_{\\mathrm{rel}}}(Y\\mid A=a,R=r)\\) only when \\(P_{\\mathrm{rel}}(A=a,R=r)>0\\). For \\(q_{ar}>0\\), define \\(G_{ar}(de)=\\mathbf 1\\{e\\in C_r\\}p_a(e)H(de)/q_{ar}\\) and \\(W_{ar}=1/p_a(E_{ar})\\) for \\(E_{ar}\\sim G_{ar}\\). The endpoint formulas below apply to triples satisfying \\(P_{\\mathrm{rel}}(A=a,R=r)=q_{ar}\\) for every arm and label; then every term with \\(q_{ar}>0\\) has a defined conditional law \\(F_{ar}\\), while zero-mass cells are omitted.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.armCell",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:mean-endpoints",
+          "kind": "definition",
+          "label": "Definition P-4",
+          "nl": "For triples \\(H,g,P_{\\mathrm{rel}}\\) satisfying \\(P_{\\mathrm{rel}}(A=a,R=r)=q_{ar}\\) for every arm and label, set \\(\\underline\\mu_a=\\sum_{r:q_{ar}>0}q_{ar}\\int_0^1Q_{F_{ar}}(u)Q_{W_{ar}}(1-u)\\,du\\) and \\(\\overline\\mu_a=\\sum_{r:q_{ar}>0}q_{ar}\\int_0^1Q_{F_{ar}}(u)Q_{W_{ar}}(u)\\,du\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.armMeanEndpoints",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:sharp-ate-set",
+          "kind": "definition",
+          "label": "Definition P-5",
+          "nl": "\\(I(P_{\\mathrm{rel}};H,g)=[\\underline\\mu_1-\\overline\\mu_0,\\overline\\mu_1-\\underline\\mu_0]\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.sharpATESet",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:worst-case-ambiguity",
+          "kind": "definition",
+          "label": "Definition P-6",
+          "nl": "\\(D_H(g)=\\sup_{P\\in\\mathfrak P(H,g)}\\operatorname{len}\\{I(\\mathcal L_P(R,A,Y);H,g)\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.worstCaseAmbiguity",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:k-label-releases",
+          "kind": "definition",
+          "label": "Definition P-7",
+          "nl": "\\(\\mathcal G_K=\\{g:\\mathcal E\\to\\{1,\\ldots,K\\}:g\\text{ is measurable}\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.kLabelReleases",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:optimal-k-ambiguity",
+          "kind": "definition",
+          "label": "Definition P-8",
+          "nl": "\\(\\Delta_K(H)=\\inf_{g\\in\\mathcal G_K}D_H(g)\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.optimalKAmbiguity",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:honest-procedures",
+          "kind": "definition",
+          "label": "Definition P-9",
+          "nl": "\\(\\mathcal J_{n,K,\\alpha}(H)=\\{(g,C_n):g\\in\\mathcal G_K,\\ \\inf_{P\\in\\mathfrak P(H,g)}P^{\\otimes n}[\\theta(P)\\in C_n((R_i,A_i,Y_i)_{i=1}^n)]\\ge1-\\alpha\\}\\).",
+          "lean": {
+            "file": "Helpers/Inference.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.honestProcedures",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:minimax-honest-length",
+          "kind": "definition",
+          "label": "Definition P-10",
+          "nl": "\\(\\mathcal L^\\star_{n,K,\\alpha}(H)=\\inf_{(g,C_n)\\in\\mathcal J_{n,K,\\alpha}(H)}\\sup_{P\\in\\mathfrak P(H,g)}\\mathbb E_{P^{\\otimes n}}[\\operatorname{len}(C_n)]\\).",
+          "lean": {
+            "file": "Helpers/Inference.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:external-law-class",
+          "kind": "definition",
+          "label": "Definition P-12",
+          "nl": "\\(\\mathfrak X(g)=\\{(P,H):H\\in\\mathcal P(\\mathcal E),\\ P\\in\\mathfrak P(H,g)\\}\\).",
+          "lean": {
+            "file": "Helpers/External.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.ExternalScoreLaw",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:external-experiment",
+          "kind": "definition",
+          "label": "Definition P-13",
+          "nl": "For \\((P,H)\\in\\mathfrak X(g)\\), \\(\\mathbb Q_{P,H}^{n,m}=\\mathcal L_P(R,A,Y)^{\\otimes n}\\otimes H^{\\otimes m}\\) is the law of \\(((R_i,A_i,Y_i)_{i=1}^n,(E_j^{\\mathrm{log}})_{j=1}^m)\\).",
+          "lean": {
+            "file": "Helpers/External.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.externalExperiment",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:external-honest-procedures",
+          "kind": "definition",
+          "label": "Definition P-14",
+          "nl": "\\(\\mathcal J^{\\mathrm{ext}}_{n,m,\\alpha}(g)=\\{C_{n,m}:\\inf_{(P,H)\\in\\mathfrak X(g)}\\mathbb Q_{P,H}^{n,m}[\\theta(P)\\in C_{n,m}]\\ge1-\\alpha\\}\\).",
+          "lean": {
+            "file": "Helpers/External.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.externalHonestProcedures",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:external-excess-risk",
+          "kind": "definition",
+          "label": "Definition P-15",
+          "nl": "\\(\\mathcal R^{\\star}_{n,m,\\alpha}(g)=\\inf_{C_{n,m}\\in\\mathcal J^{\\mathrm{ext}}_{n,m,\\alpha}(g)}\\sup_{(P,H)\\in\\mathfrak X(g)}\\mathbb E_{\\mathbb Q_{P,H}^{n,m}}[(\\operatorname{len}(C_{n,m})-\\operatorname{len}I(\\mathcal L_P(R,A,Y);H,g))_+]\\).",
+          "lean": {
+            "file": "Helpers/External.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.externalExcessRisk",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:external-normalized-risk",
+          "kind": "definition",
+          "label": "Definition P-16",
+          "nl": "\\(b_{n,m}=(n^{-1/2}+m^{-1/2})^{-1},\\qquad T_{n,m,\\alpha}(g)=b_{n,m}\\mathcal R^{\\star}_{n,m,\\alpha}(g).\\)",
+          "lean": {
+            "file": "Helpers/External.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.externalNormalizedRisk",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:external-projection-handle",
+          "kind": "definition",
+          "label": "Definition P-17",
+          "nl": "For trial rows, form the empirical finite measures \\(\\widehat\\lambda_{ar}(B)=n^{-1}\\sum_i\\mathbf 1\\{R_i=r,A_i=a,Y_i\\in B\\}\\). For the independent score log, form \\(\\widehat\\sigma_{ar}(B)=m^{-1}\\sum_j p_a(E_j^{\\mathrm{log}})\\mathbf 1\\{g(E_j^{\\mathrm{log}})=r,E_j^{\\mathrm{log}}\\in B\\}\\). Equip finite measures on each compact support with total-mass plus integrated-CDF distance, and use the explicit radii \\(r_n=4J/(\\alpha\\sqrt n)\\) and \\(r_m=2J(2-2\\varepsilon)/(\\alpha\\sqrt m)\\).\n\nFor \\(q\\in\\mathbb Q\\), put \\(x(q)=\\max\\{0,\\min\\{1,q\\}\\}\\in[0,1]\\) and \\(e_\\varepsilon(q)=\\varepsilon+(1-2\\varepsilon)x(q)\\in\\mathcal E\\). For a finite list \\(L=((q_s,w_s))_{s=1}^N\\in\\operatorname{List}(\\mathbb Q\\times\\mathbb Q)\\), define\n\\[\n\\nu_Y(L)=\\sum_{s=1}^N\\operatorname{ofReal}(w_s)\\,\\delta_{x(q_s)},\\qquad\n\\nu_E(L)=\\sum_{s=1}^N\\operatorname{ofReal}(w_s)\\,\\delta_{e_\\varepsilon(q_s)},\n\\]\nwhere \\(\\operatorname{ofReal}(w)=\\max\\{w,0\\}\\), viewed as a nonnegative extended-real weight. Under the standing overlap condition, define the canonical sieve\n\\[\n\\mathcal D_{\\varepsilon,J}=\n\\left\\{\n\\left(\n((\\nu_Y(L^Y_{ar}))_{a,r},\n (\\nu_E(L^E_{ar}))_{a,r})\n\\right):\nL^Y,L^E:\\mathcal A\\to\\mathcal R_J\\to\n\\operatorname{List}(\\mathbb Q\\times\\mathbb Q)\n\\right\\}\n\\cap\\{(\\lambda',\\sigma'):\\operatorname{ProjectionCompatible}(\\lambda',\\sigma')\\}.\n\\]\nIf overlap fails, set \\(\\mathcal D_{\\varepsilon,J}=\\varnothing\\). Thus the outcome and score lists are arbitrary and separate, while the intersection imposes exact equality of their total masses in every arm-label cell. Duplicate support codes, clamped codes outside \\([0,1]\\), and nonpositive weights do not change the represented nonnegative measure and need not be excluded. Let \\(\\mathcal B_{n,m}\\) be the exact intersection of \\(\\mathcal D_{\\varepsilon,J}\\) with the finite compatible arrays satisfying the two closed empirical-ball inequalities\n\\[\n\\sum_{a,r}d_{[0,1]}(\\lambda'_{ar},\\widehat\\lambda_{ar})\\le r_n,\n\\qquad\n\\sum_{a,r}d_{\\mathcal E}(\\sigma'_{ar},\\widehat\\sigma_{ar})\\le r_m.\n\\]\nFor each \\(b\\in\\mathcal B_{n,m}\\), compute its two quantile-transport ATE endpoints and interval \\(I(b)\\). When \\(\\mathcal B_{n,m}\\ne\\varnothing\\), define the clipped hull\n\\[\nJ_{n,m}=[-1,1]\\cap\\operatorname{cl}\\operatorname{conv}\\!\\left(\\bigcup_{b\\in\\mathcal B_{n,m}}I(b)\\right).\n\\]\nReturn \\(C_{n,m}=J_{n,m}\\) when \\(\\mathcal B_{n,m}\\ne\\varnothing\\) and \\(J_{n,m}\\ne\\varnothing\\). Return \\(C_{n,m}=\\{0\\}\\) in each of the two failure branches: when \\(\\mathcal B_{n,m}=\\varnothing\\), or when \\(\\mathcal B_{n,m}\\ne\\varnothing\\) but \\(J_{n,m}=\\varnothing\\). This piecewise totalized canonical rational-sieve rule is measurable and is the atom-valid attaining procedure used by the external-score root-order theorem; directional or resampling refinements are optional rather than required for its stated rate.",
+          "lean": {
+            "file": "Helpers/Projection.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionCI",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:score-lower-density-class",
+          "kind": "definition",
+          "label": "Definition P-18",
+          "nl": "\\(\\mathcal H^{\\mathrm{lb}}_{\\varepsilon,m_f}=\\{H\\in\\mathcal P(\\mathcal E):H(de)=f(e)\\,de,\\ f(e)\\ge m_f\\ \\text{for Lebesgue-almost every }e\\in\\mathcal E\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.LowerScoreDensity",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "oeq:external-score-projection",
+          "kind": "definition",
+          "label": "Definition P-19",
+          "nl": "Fix a measurable release \\(g\\) and \\(0<\\alpha<1/2\\).  Over the external-score law class \\(\\mathfrak X(g)\\), with confidence procedures restricted by \\(\\mathcal J^{\\mathrm{ext}}_{n,m,\\alpha}(g)\\), determine\n\\[\n \\liminf_{\\substack{n,m\\to\\infty\\\\ n/m\\to\\rho}}\n T_{n,m,\\alpha}(g)\n \\quad\\text{and}\\quad\n \\limsup_{\\substack{n,m\\to\\infty\\\\ n/m\\to\\rho}}\n T_{n,m,\\alpha}(g)\n\\]\nfor each \\(\\rho\\in(0,\\infty)\\).  Decide whether these limits coincide, and determine the common sharp constant if they do.  If a common sharp limit does not hold over the full class, identify an explicitly defined regular subclass of \\(\\mathfrak X(g)\\) for which a common sharp limit holds for each \\(\\rho\\in(0,\\infty)\\), state its defining regularity conditions, and determine that limit. For this subclass question, restrict both the uniform honesty requirement and the supremum in expected excess length to that subclass.  Use \\(\\mathsf H_{\\mathrm{ext}}\\) to construct an attaining projection or a counterexample.",
+          "lean": {
+            "file": "OpenQuestions.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.ExternalSharpLimitQuestion",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "assumption",
+      "items": [
+        {
+          "obj_id": "ass:overlap",
+          "kind": "assumption",
+          "label": "Assumption A-1",
+          "nl": "\\(0<\\varepsilon<1/2\\)",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.Overlap",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:score-marginal",
+          "kind": "assumption",
+          "label": "Assumption A-2",
+          "nl": "\\(\\mathcal L_P(E)=H\\)",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.ScoreMarginal",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:randomized-assignment",
+          "kind": "assumption",
+          "label": "Assumption A-3",
+          "nl": "\\(P(A=1\\mid E,Y_0,Y_1)=E\\quad\\text{almost surely}.\\)",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.RandomizedAssignment",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:consistency",
+          "kind": "assumption",
+          "label": "Assumption A-4",
+          "nl": "\\(Y=AY_1+(1-A)Y_0\\quad\\text{almost surely}.\\)",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.Consistency",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:deterministic-release",
+          "kind": "assumption",
+          "label": "Assumption A-5",
+          "nl": "\\(R=g(E)\\quad\\text{almost surely}.\\)",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.DeterministicRelease",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:released-law",
+          "kind": "assumption",
+          "label": "Assumption A-6",
+          "nl": "\\(\\mathcal L_P(R,A,Y)=P_{\\mathrm{rel}}\\)",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.ReleasedLaw",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:density-lower",
+          "kind": "assumption",
+          "label": "Assumption A-7",
+          "nl": "\\(H(de)=f(e)\\,de,\\qquad f(e)\\ge m_f\\quad\\text{for Lebesgue-almost every }e\\in\\mathcal E.\\)",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.DensityLower",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:iid-trial-sampling",
+          "kind": "assumption",
+          "label": "Assumption A-8",
+          "nl": "\\((R_i,A_i,Y_i)_{i=1}^n\\stackrel{\\mathrm{iid}}{\\sim}\\mathcal L_P(R,A,Y).\\)",
+          "lean": {
+            "file": "Helpers/Inference.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.IIDTrialSampling",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:external-log-iid",
+          "kind": "assumption",
+          "label": "Assumption A-9",
+          "nl": "\\((E_j^{\\mathrm{log}})_{j=1}^m\\stackrel{\\mathrm{iid}}{\\sim}H.\\)",
+          "lean": {
+            "file": "Helpers/External.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.ExternalLogIID",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:external-log-independent",
+          "kind": "assumption",
+          "label": "Assumption A-10",
+          "nl": "\\((E_j^{\\mathrm{log}})_{j=1}^m\\mathrel{\\perp\\!\\!\\!\\perp}(R_i,A_i,Y_i)_{i=1}^n.\\)",
+          "lean": {
+            "file": "Helpers/External.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.ExternalLogIndependent",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "lemma",
+      "items": [
+        {
+          "obj_id": "lem:released-arm-cell-masses",
+          "kind": "lemma",
+          "label": "Lemma L-4",
+          "nl": "Let \\(H\\) be a score law on \\(\\mathcal E\\), let \\(g:\\mathcal E\\to\\mathcal R_J\\) be a measurable release, let \\(P\\in\\mathfrak P(H,g)\\), and let \\(P_{\\mathrm{rel}}=\\mathcal L_P(R,A,Y)\\) be its released law. Then \\(H\\) and \\(P_{\\mathrm{rel}}\\) are probability laws, and for every \\(r\\in\\mathcal R_J\\) the treated arm-cell mass is \\(P_{\\mathrm{rel}}(A=1,R=r)=\\int_{C_r}e\\,H(de)=q_{1r}\\), by score-based assignment and the score marginal. The control arm-cell mass is obtained by subtracting this treated mass from the label mass supplied by the score marginal: \\(P_{\\mathrm{rel}}(A=0,R=r)=P(E\\in C_r)-P(E\\in C_r,A=1)=H(C_r)-\\int_{C_r}e\\,H(de)=\\int_{C_r}(1-e)\\,H(de)=q_{0r}\\). Consequently \\(P_{\\mathrm{rel}}(A=a,R=r)=q_{ar}\\) for every \\(a\\in\\mathcal A\\) and \\(r\\in\\mathcal R_J\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.compatibleCellMasses_of_randomizedCausalLaw",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:fixed-released-law-baseline",
+          "kind": "lemma",
+          "label": "Lemma L-1",
+          "nl": "Fix \\(P_{\\mathrm{rel}}\\) with \\(\\mathfrak M(H,g,P_{\\mathrm{rel}})\\ne\\varnothing\\). Applying FanShermanShum2014, Theorem 3.2, to each label-specific fixed observed law gives, for every \\(a\\in\\mathcal A\\), the exact attainable interval \\([\\underline\\mu_a,\\overline\\mu_a]\\) for \\(\\mathbb E_P[Y_a]\\) over \\(P\\in\\mathfrak M(H,g,P_{\\mathrm{rel}})\\). Their equation (3.1) and sharpness construction then give exactly \\(I(P_{\\mathrm{rel}};H,g)=[\\underline\\mu_1-\\overline\\mu_0,\\overline\\mu_1-\\underline\\mu_0]\\), with each endpoint attained by a common causal population and convex mixtures filling the interval.",
+          "lean": {
+            "file": "Helpers/FixedLaw.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.fixedReleasedLaw_sharp",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:paired-high-resolution-quantization",
+          "kind": "lemma",
+          "label": "Lemma L-2",
+          "nl": "Let \\(\\mathcal I=[a,b]\\) be a nondegenerate compact interval, let\n\\(S\\ge1\\), and let\n\\(\\beta_s:\\mathcal I\\times\\mathcal I\\to(0,\\infty)\\),\n\\(s=1,\\ldots,S\\), be continuous.  For \\(k\\ge1\\), define\n\\[\n V_k=\\inf_{\\substack{(B_1,\\ldots,B_k)\\ \\mathrm{measurable\\ partition\\ of}\\ \\mathcal I\\\\\n z_{js}\\in\\mathcal I}}\n \\sum_{j=1}^k\\sum_{s=1}^S\n \\int_{B_j}\\beta_s(x,z_{js})|x-z_{js}|\\,dx\n\\]\nand \\(w(x)=\\sum_{s=1}^S\\beta_s(x,x)\\).  Then\n\\[\n \\lim_{k\\to\\infty}kV_k\n =\\frac14\\left(\\int_a^b\\sqrt{w(x)}\\,dx\\right)^2.\n\\]\nMoreover, the upper limit is attained by ordered interval cells whose\nboundaries equalize the integral of \\(\\sqrt w\\), with all \\(S\\)\nreproduction points in a cell chosen equal to its midpoint.",
+          "lean": {
+            "file": "Helpers/Quantization.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.pairedQuantization_tendsto",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:external-two-source-lower-certificate",
+          "kind": "lemma",
+          "label": "Lemma L-3",
+          "nl": "Fix a measurable finite-label release \\(g:\\mathcal E\\to\\mathcal R_J\\) and let \\(0<\\alpha<1/2\\).  Put\n\\[\n L_\\alpha=1+(1-2\\alpha)^2\n\\]\nand\n\\[\n S_g=\n \\sup_{\\substack{r\\in\\mathcal R_J,\\ e_1<e_2<e_3\\\\\n e_1,e_2,e_3\\in C_r}}\n \\frac{(e_3-e_2)(1-e_1/e_2)}\n {\\sqrt{(e_3-e_2)^2+(e_3-e_1)^2+(e_2-e_1)^2}}.\n\\]\nThen \\(0<S_g\\le 1\\).  With\n\\[\n c_{\\mathrm{tr}}(\\alpha)\n =\\frac{(1-2\\alpha)\\sqrt{\\log L_\\alpha}}4,\n \\qquad\n c_{\\mathrm{log}}(g,\\alpha)\n =\\frac{(1-2\\alpha)\\sqrt{\\log L_\\alpha}}{2\\sqrt3}S_g,\n\\]\nthe external-score minimax excess risk satisfies, for all positive integers \\(n,m\\),\n\\[\n \\mathcal R^\\star_{n,m,\\alpha}(g)\n \\ge c_{\\mathrm{tr}}(\\alpha)n^{-1/2},\n\\]\nand\n\\[\n \\liminf_{m\\to\\infty}\\inf_{n\\ge1}\n \\sqrt m\\,\\mathcal R^\\star_{n,m,\\alpha}(g)\n \\ge c_{\\mathrm{log}}(g,\\alpha)>0.\n\\]\nConsequently, for every \\(\\rho\\in(0,\\infty)\\),\n\\[\n \\liminf_{\\substack{n,m\\to\\infty\\\\ n/m\\to\\rho}}\n T_{n,m,\\alpha}(g)\n \\ge\n \\max\\left\\{\n \\frac{c_{\\mathrm{tr}}(\\alpha)}{1+\\sqrt\\rho},\n \\frac{c_{\\mathrm{log}}(g,\\alpha)\\sqrt\\rho}{1+\\sqrt\\rho}\n \\right\\}>0.\n\\]",
+          "lean": {
+            "file": "Helpers/ExternalLowerCertificateAssembly.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.externalExcessRisk_lower_certificates",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "theorem",
+      "items": [
+        {
+          "obj_id": "prop:compatibility",
+          "kind": "theorem",
+          "label": "Theorem T-1",
+          "nl": "The class \\(\\mathfrak M(H,g,P_{\\mathrm{rel}})\\) is nonempty if and only if, for every \\(r\\in\\mathcal R_J\\), \\(P_{\\mathrm{rel}}(R=r)=H(C_r)\\) and \\(P_{\\mathrm{rel}}(A=1,R=r)=\\int_{C_r}e\\,H(de)\\). No further restriction is imposed on the conditional outcome laws \\(F_{ar}\\) beyond support in \\([0,1]\\).",
+          "lean": {
+            "file": "TCompatibility.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.compatible_nonempty_iff",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:all-label-ambiguity",
+          "kind": "theorem",
+          "label": "Theorem T-2",
+          "nl": "For every \\(H\\in\\mathcal P(\\mathcal E)\\) and measurable \\(g:\\mathcal E\\to\\mathcal R_J\\), including atomic \\(H\\) and disconnected cells \\(C_r\\), the exact worst-case attained ATE width is \\[D_H(g)=\\sum_{r=1}^J\\left\\{\\inf_{c\\in[1/(1-\\varepsilon),1/\\varepsilon]}\\int_{C_r}|1-ce|\\,H(de)+\\inf_{d\\in[1/(1-\\varepsilon),1/\\varepsilon]}\\int_{C_r}|1-d(1-e)|\\,H(de)\\right\\}.\\] The supremum over released laws is attained by \\(F_{ar}=\\operatorname{Bernoulli}(1/2)\\) in every positive-mass arm-cell, and two full causal populations with that same released law attain the opposite ATE endpoints.",
+          "lean": {
+            "file": "TAllLabelAmbiguity.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.worstCaseAmbiguity_eq",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:universal-point-identification",
+          "kind": "theorem",
+          "label": "Theorem T-3",
+          "nl": "For every \\(H\\) and deterministic release \\(R=g(E)\\), \\(D_H(g)=0\\) if and only if there exists a measurable map \\(h\\) such that \\(E=h(R)\\) almost surely under \\(H\\). Equivalently, each positive-\\(H\\)-mass cell \\(C_r\\) contains a single score value up to an \\(H\\)-null set.",
+          "lean": {
+            "file": "TUniversalPointIdentification.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.worstCaseAmbiguity_eq_zero_iff",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:k-label-rate",
+          "kind": "theorem",
+          "label": "Theorem T-4",
+          "nl": "Let \\(\\ell=1-2\\varepsilon\\). For every \\(H\\in\\mathcal H^{\\mathrm{lb}}_{\\varepsilon,m_f}\\) and every integer \\(K\\ge 1\\),\n\\[\n\\frac{m_f\\ell^2}{2(1-\\varepsilon)K}\n\\le \\Delta_K(H)\n\\le \\frac{\\ell}{2\\varepsilon(1-\\varepsilon)K}.\n\\]\nThe lower bound holds over all measurable releases with at most \\(K\\) labels, including releases with disconnected cells. The upper bound is witnessed by equal-width interval labels; that upper inequality, considered by itself, holds for every probability law \\(H\\) on \\(\\mathcal E\\), without absolute continuity or either density bound.",
+          "lean": {
+            "file": "TKLabelRate.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.optimalKAmbiguity_bounds",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:minimax-honest-length",
+          "kind": "theorem",
+          "label": "Theorem T-5",
+          "nl": "Fix \\(0<\\alpha<1/2\\). There exist constants \\(c_{\\varepsilon,m_f,\\alpha}>0\\) and \\(C_{\\varepsilon,\\alpha}<\\infty\\) such that, for every \\(H\\in\\mathcal H^{\\mathrm{lb}}_{\\varepsilon,m_f}\\), \\(n\\ge1\\), and \\(K\\ge1\\),\n\\[\nc_{\\varepsilon,m_f,\\alpha}\\left(K^{-1}+n^{-1/2}\\right)\n\\le \\mathcal L^\\star_{n,K,\\alpha}(H)\n\\le C_{\\varepsilon,\\alpha}\\left(K^{-1}+n^{-1/2}\\right).\n\\]\nFor the equal-width release, let \\(z_r\\) be the midpoint of label cell \\(r\\) and define \\(\\widehat T_n=n^{-1}\\sum_{i=1}^n\\{A_iY_i/z_{R_i}-(1-A_i)Y_i/(1-z_{R_i})\\}\\), \\(B_K=\\frac{1-2\\varepsilon}{2K\\varepsilon(1-\\varepsilon)}\\), and \\(R_{n,K}=(4/\\varepsilon)\\sqrt{\\log(4/\\alpha)/n}+B_K\\). With \\(\\operatorname{clampATE}(x)=\\max\\{-1,\\min\\{1,x\\}\\}\\), the upper bound is achieved by the always-nonempty interval \\(C_n=[\\operatorname{clampATE}(\\widehat T_n-R_{n,K}),\\operatorname{clampATE}(\\widehat T_n+R_{n,K})]\\). The label component of the lower bound holds for arbitrary measurable, including disconnected, release cells and uses only the density lower bound; the sampling component uses neither a density lower nor upper bound.",
+          "lean": {
+            "file": "TMinimaxHonestLength.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_order",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:sharp-high-resolution-constant",
+          "kind": "theorem",
+          "label": "Theorem T-6",
+          "nl": "Let \\(H\\in\\mathcal P(\\mathcal E)\\), where \\(\\mathcal E=[\\varepsilon,1-\\varepsilon]\\), and suppose that \\(H(de)=f(e)\\,de\\) for a continuous strictly positive density \\(f\\) on \\(\\mathcal E\\). Then the question posed through \\(\\mathsf H_{\\mathrm{opt}}\\) has the exact answer\n\\[\n\\lim_{K\\to\\infty}K\\Delta_K(H)\n=\\frac14\\left(\n\\int_\\varepsilon^{1-\\varepsilon}\n\\sqrt{\\frac{f(e)}{e(1-e)}}\\,de\n\\right)^2.\n\\]\nThere is a sequence \\(g_K\\in\\mathcal G_K\\) of ordered interval releases attaining this limit. Hence unrestricted measurable cells cannot improve the leading constant, and an asymptotically optimal unrestricted value can always be replaced, in value up to \\(o(K^{-1})\\), by ordered interval cells. No claim of finite-\\(K\\) intervalization is made.",
+          "lean": {
+            "file": "TSharpHighResolutionConstant.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.tendsto_K_mul_optimalKAmbiguity",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:external-score-root-order",
+          "kind": "theorem",
+          "label": "Theorem T-7",
+          "nl": "Fix a measurable finite-label release \\(g:\\mathcal E\\to\\mathcal R_J\\) and \\(0<\\alpha<1/2\\). Define\n\\[\nL_\\alpha=1+(1-2\\alpha)^2,\n\\]\n\\[\nS_g=\n\\sup_{\\substack{r\\in\\mathcal R_J,\\ e_1<e_2<e_3\\\\\ne_1,e_2,e_3\\in C_r}}\n\\frac{(e_3-e_2)(1-e_1/e_2)}\n{\\sqrt{(e_3-e_2)^2+(e_3-e_1)^2+(e_2-e_1)^2}},\n\\]\nand\n\\[\nc_{\\mathrm{tr}}(\\alpha)\n=\\frac{(1-2\\alpha)\\sqrt{\\log L_\\alpha}}4,\n\\qquad\nc_{\\mathrm{log}}(g,\\alpha)\n=\\frac{(1-2\\alpha)\\sqrt{\\log L_\\alpha}}{2\\sqrt3}S_g.\n\\]\nThen \\(0<S_g\\le1\\), and there is a finite constant \\(C_{\\varepsilon,J,\\alpha,g}\\) such that, for all positive integers \\(n,m\\),\n\\[\nc_{\\mathrm{tr}}(\\alpha)n^{-1/2}\n\\le\\mathcal R^\\star_{n,m,\\alpha}(g)\n\\le C_{\\varepsilon,J,\\alpha,g}(n^{-1/2}+m^{-1/2}).\n\\]\nThe upper bound is attained by the atom-valid totalized rational-sieve interval \\(C_{n,m}\\) prescribed by \\(\\mathsf H_{\\mathrm{ext}}\\), with \\(C_{n,m}=\\{0\\}\\) when either its sieve candidate set is empty or its nonempty candidate set has an empty clipped hull. In the external-score direction,\n\\[\n\\liminf_{m\\to\\infty}\\inf_{n\\ge1}\n\\sqrt m\\,\\mathcal R^\\star_{n,m,\\alpha}(g)\n\\ge c_{\\mathrm{log}}(g,\\alpha)>0.\n\\]\nConsequently, for every \\(\\rho\\in(0,\\infty)\\),\n\\[\n\\max\\left\\{\n\\frac{c_{\\mathrm{tr}}(\\alpha)}{1+\\sqrt\\rho},\n\\frac{c_{\\mathrm{log}}(g,\\alpha)\\sqrt\\rho}{1+\\sqrt\\rho}\n\\right\\}\n\\le\\liminf_{\\substack{n,m\\to\\infty\\\\ n/m\\to\\rho}}\nT_{n,m,\\alpha}(g)\n\\le\\limsup_{\\substack{n,m\\to\\infty\\\\ n/m\\to\\rho}}\nT_{n,m,\\alpha}(g)\n\\le C_{\\varepsilon,J,\\alpha,g}<\\infty,\n\\]\nand the displayed maximum is strictly positive. Thus the root-two-sample normalization is correct uniformly over the stated class, including atomic score and outcome laws and rank contacts. This order theorem does not determine either exact normalized limit, assert that the limits are equal, or give a common sharp efficiency constant.",
+          "lean": {
+            "file": "TExternalScoreRootOrder.lean",
+            "decl": "CausalSmith.PartialID.UnlinkedPropensityAte.externalExcessRisk_root_order",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "auxiliary",
+      "items": [
+        {
+          "obj_id": "aux_CausalLaws",
+          "kind": "definition",
+          "label": "Definition CausalLaws",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_cell",
+          "kind": "definition",
+          "label": "Definition cell",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_cellAbsoluteDeviation",
+          "kind": "definition",
+          "label": "Definition cellAbsoluteDeviation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_clampATE",
+          "kind": "definition",
+          "label": "Definition clampATE",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_compandingAmbiguity",
+          "kind": "definition",
+          "label": "Definition compandingAmbiguity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_densityExtension",
+          "kind": "definition",
+          "label": "Definition densityExtension",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_equalWidthRelease",
+          "kind": "definition",
+          "label": "Definition equalWidthRelease",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ExternalIntervalProcedure",
+          "kind": "definition",
+          "label": "Definition ExternalIntervalProcedure",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ExternalLaws",
+          "kind": "definition",
+          "label": "Definition ExternalLaws",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_fiberTripleSeparation",
+          "kind": "definition",
+          "label": "Definition fiberTripleSeparation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_FullRow",
+          "kind": "definition",
+          "label": "Definition FullRow",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_halfOutcomeReleasedLaw",
+          "kind": "definition",
+          "label": "Definition halfOutcomeReleasedLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_IntervalProcedure",
+          "kind": "definition",
+          "label": "Definition IntervalProcedure",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_label",
+          "kind": "definition",
+          "label": "Definition label",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_LabelSpace",
+          "kind": "definition",
+          "label": "Definition LabelSpace",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_logCertificate",
+          "kind": "definition",
+          "label": "Definition logCertificate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_midpointWeightedCenter",
+          "kind": "definition",
+          "label": "Definition midpointWeightedCenter",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_midpointWeightedRadius",
+          "kind": "definition",
+          "label": "Definition midpointWeightedRadius",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_muUpper",
+          "kind": "definition",
+          "label": "Definition muUpper",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ProjectionCompatible",
+          "kind": "definition",
+          "label": "Definition ProjectionCompatible",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ratioFilter",
+          "kind": "definition",
+          "label": "Definition ratioFilter",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_releasedLaw",
+          "kind": "definition",
+          "label": "Definition releasedLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ScoreSpace",
+          "kind": "definition",
+          "label": "Definition ScoreSpace",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_sharpATELength",
+          "kind": "definition",
+          "label": "Definition sharpATELength",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_trialCertificate",
+          "kind": "definition",
+          "label": "Definition trialCertificate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_TrialSample",
+          "kind": "definition",
+          "label": "Definition TrialSample",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_muLower",
+          "kind": "definition",
+          "label": "Definition muLower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_CompatibleCellMasses",
+          "kind": "definition",
+          "label": "Definition CompatibleCellMasses",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "armCellMass_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.armCellMass_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellMass_sum_arms",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.armCellMass_sum_arms",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellMass_total",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.armCellMass_total",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "compatibility_armCellMass_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.compatibility_armCellMass_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "releasedLabelMass_sum_arms",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.releasedLabelMass_sum_arms",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "compatibleCellMasses_of_label_treated",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.compatibleCellMasses_of_label_treated",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scoreRecovery_iff_cellwiseAE",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.scoreRecovery_iff_cellwiseAE",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellAbsoluteDeviation_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.cellAbsoluteDeviation_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellAbsoluteDeviation_le_integral",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.cellAbsoluteDeviation_le_integral",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellAbsoluteDeviation_zero_of_ae",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.cellAbsoluteDeviation_zero_of_ae",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armProb_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.armProb_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellAbsoluteDeviation_zero_of_cellwiseAE",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.cellAbsoluteDeviation_zero_of_cellwiseAE",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellDeviationIntegral_continuousOn",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.cellDeviationIntegral_continuousOn",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellAbsoluteDeviation_minimizer",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.cellAbsoluteDeviation_minimizer",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellMass_lower_overlap",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.armCellMass_lower_overlap",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellMass_pos_of_cellMass_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.armCellMass_pos_of_cellMass_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellMass_eq_zero_iff_cellMass_eq_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.armCellMass_eq_zero_iff_cellMass_eq_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedWeightedAbsDeviation_lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedWeightedAbsDeviation_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fiberTriple_exists",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.fiberTriple_exists",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fiberTriple_ratio_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.fiberTriple_ratio_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fiberTripleSeparation_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.fiberTripleSeparation_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fiberTriple_perturbation_identities",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.fiberTriple_perturbation_identities",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fiberTriple_upperEndpoint_shift",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.fiberTriple_upperEndpoint_shift",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fiberTriple_chisq_identity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.fiberTriple_chisq_identity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalCertificate_constants_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalCertificate_constants_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedDiagonalWeight_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedDiagonalWeight_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedDiagonalWeight_continuousOn",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedDiagonalWeight_continuousOn",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedDiagonalWeight_uniform_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedDiagonalWeight_uniform_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "abs_deviation_integral_midpoint",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.abs_deviation_integral_midpoint",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedPartitionCost_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedPartitionCost_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "optimalPairedCost_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.optimalPairedCost_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedCoefficient_uniform_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedCoefficient_uniform_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedCoefficients_uniform_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedCoefficients_uniform_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "optimalPairedCost_le_feasible",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.optimalPairedCost_le_feasible",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "equalWidthRelease_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.equalWidthRelease_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedBadPoint_cost_lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedBadPoint_cost_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedGoodCell_diameter",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedGoodCell_diameter",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedBadSet_measure_cost",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedBadSet_measure_cost",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedBadSet_measure_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedBadSet_measure_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedBoundary_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedBoundary_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedBoundary_mem_Icc",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedBoundary_mem_Icc",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedCompandingMidpoint_mem_Icc",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedCompandingMidpoint_mem_Icc",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedHalfOpenIntervals_cover",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.orderedHalfOpenIntervals_cover",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedIntervalCells_partition",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.orderedIntervalCells_partition",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedBoundary_mono",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedBoundary_mono",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedBoundary_last",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.pairedBoundary_last",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellOutcomeLaw_isProbabilityMeasure",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.armCellOutcomeLaw_isProbabilityMeasure",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellOutcomeLaw_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.armCellOutcomeLaw_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionArmProb_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionArmProb_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionArmProb_diff_abs",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionArmProb_diff_abs",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionInverseArmProb_lipschitz",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionInverseArmProb_lipschitz",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionCost_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionCost_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "variance_trialCellIndicator_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.variance_trialCellIndicator_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "variance_trialCellFrequency_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.variance_trialCellFrequency_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalProjectionCI_excessLength_le_of_envelope",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionCI_excessLength_le_of_envelope",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalProjectionCI_subset_envelope_of_candidates",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionCI_subset_envelope_of_candidates",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalScoreCells_real_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.empiricalScoreCells_real_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "variance_scoreCellIndicator",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.variance_scoreCellIndicator",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scoreCellFrequency",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.UnlinkedPropensityAte.scoreCellFrequency",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "variance_scoreCellFrequency_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.variance_scoreCellFrequency_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_scoreCellFrequency",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.measurable_scoreCellFrequency",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_scoreCellFrequency_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.integral_scoreCellFrequency_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalScoreCells_real_eq_scoreCellFrequency",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.empiricalScoreCells_real_eq_scoreCellFrequency",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_empiricalScoreCells_real_apply_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.integral_empiricalScoreCells_real_apply_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "variance_empiricalScoreCells_real_apply_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.variance_empiricalScoreCells_real_apply_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionMeanAbs_le_sqrt_variance",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionMeanAbs_le_sqrt_variance",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionMeanAbs_le_inv_two_sqrt",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionMeanAbs_le_inv_two_sqrt",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "meanAbs_trialCellFrequency_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.meanAbs_trialCellFrequency_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "meanAbs_scoreCellFrequency_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.meanAbs_scoreCellFrequency_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "meanAbs_empiricalScoreCells_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.meanAbs_empiricalScoreCells_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_meanAbs_trialCellFrequency_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.sum_meanAbs_trialCellFrequency_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_meanAbs_empiricalScoreCells_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.sum_meanAbs_empiricalScoreCells_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionExpectedIntegratedError_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionExpectedIntegratedError_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "meanIntegratedAbs_empiricalTrialCellCDF_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.meanIntegratedAbs_empiricalTrialCellCDF_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "meanIntegratedAbs_empiricalScoreCellCDF_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.meanIntegratedAbs_empiricalScoreCellCDF_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_projectionFiniteCDF",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.measurable_projectionFiniteCDF",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_empiricalTrialCellCDF_joint",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.measurable_empiricalTrialCellCDF_joint",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_trialPopulationCellCDF",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.measurable_trialPopulationCellCDF",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalTrialCellCDF_mem_Icc",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.empiricalTrialCellCDF_mem_Icc",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "trialPopulationCellCDF_mem_Icc",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.trialPopulationCellCDF_mem_Icc",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integrable_empiricalTrialCellCDF_joint",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.integrable_empiricalTrialCellCDF_joint",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_empiricalScoreCellCDF_joint",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.measurable_empiricalScoreCellCDF_joint",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_scorePopulationCellCDF",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.measurable_scorePopulationCellCDF",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integrable_empiricalScoreCellCDF_joint",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.integrable_empiricalScoreCellCDF_joint",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_meanTrialCellCDFError_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.sum_meanTrialCellCDFError_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_meanScoreCellCDFError_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.sum_meanScoreCellCDFError_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalProjectionCI_excessLength_le_of_candidate_envelopes",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionCI_excessLength_le_of_candidate_envelopes",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "countable_rationalArraySieve",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.countable_rationalArraySieve",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "countable_sievedProjectionCandidates",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.countable_sievedProjectionCandidates",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projection_strictBalls_closure_of_dense",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projection_strictBalls_closure_of_dense",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "normalizedCertificate_trial",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.normalizedCertificate_trial",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "normalizedCertificate_log",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.normalizedCertificate_log",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projection_twoSource_strictBall_probability",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projection_twoSource_strictBall_probability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectedATEInterval_subset_of_armEndpoint_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectedATEInterval_subset_of_armEndpoint_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "trialPopulationCells",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.UnlinkedPropensityAte.trialPopulationCells",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "trialPopulationCells_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.trialPopulationCells_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "trialPopulationCells_real_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.trialPopulationCells_real_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "outcomeCDFDistance_trialPopulationCells",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.outcomeCDFDistance_trialPopulationCells",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "meanOutcomeCDFDistance_trialPopulationCells_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.meanOutcomeCDFDistance_trialPopulationCells_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_meanOutcomeCDFDistance_trialPopulationCells_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.sum_meanOutcomeCDFDistance_trialPopulationCells_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scorePopulationCells",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.UnlinkedPropensityAte.scorePopulationCells",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scorePopulationCells_real_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.scorePopulationCells_real_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scoreCDFDistance_scorePopulationCells",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.scoreCDFDistance_scorePopulationCells",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "meanScoreCDFDistance_scorePopulationCells_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.meanScoreCDFDistance_scorePopulationCells_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_meanScoreCDFDistance_scorePopulationCells_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.sum_meanScoreCDFDistance_scorePopulationCells_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionCompatible_populationCells",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionCompatible_populationCells",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalProjectionCI_excessLength_le_of_armEndpoint_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionCI_excessLength_le_of_armEndpoint_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projection_strictBall_probability_at_paper_radii",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projection_strictBall_probability_at_paper_radii",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalJointLaw_eq_experiment",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalJointLaw_eq_experiment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalJointTrial_integral_eq_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalJointTrial_integral_eq_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalJointLog_integral_eq_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalJointLog_integral_eq_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalNormalizer_mul_rootSum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalNormalizer_mul_rootSum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalNormalizedRisk_le_of_rootSum_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalNormalizedRisk_le_of_rootSum_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ratioFilter_ratio_tendsto",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.ratioFilter_ratio_tendsto",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "normalizedCertificate_ratio_trial",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.normalizedCertificate_ratio_trial",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "normalizedCertificate_ratio_log",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.normalizedCertificate_ratio_log",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionCandidate_populationDistance_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionCandidate_populationDistance_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionFiniteCDF_intervalIntegrable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionFiniteCDF_intervalIntegrable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionFiniteCDF_absDiff_intervalIntegrable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionFiniteCDF_absDiff_intervalIntegrable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionIntegratedAbs_triangle",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionIntegratedAbs_triangle",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "outcomeCDFDistance_triangle",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.outcomeCDFDistance_triangle",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scoreCDFDistance_triangle",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.scoreCDFDistance_triangle",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionCandidate_populationDistance_le_of_finite",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionCandidate_populationDistance_le_of_finite",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionCandidate_populationDistance_le_of_populationFinite",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionCandidate_populationDistance_le_of_populationFinite",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalTrialCells_finite",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.empiricalTrialCells_finite",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalScoreCells_finite",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.empiricalScoreCells_finite",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalJointTrial_meanDistance_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalJointTrial_meanDistance_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalJointLog_meanDistance_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalJointLog_meanDistance_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectedArmEndpoint_abs_le_of_cellBounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectedArmEndpoint_abs_le_of_cellBounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "outcomeCDFDistance_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.outcomeCDFDistance_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scoreCDFDistance_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.scoreCDFDistance_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectedArmEndpoint_abs_le_of_armBounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectedArmEndpoint_abs_le_of_armBounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ratioFilter_eventually_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.ratioFilter_eventually_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionCandidate_armEndpoint_abs_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionCandidate_armEndpoint_abs_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ratioFilter_neBot",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.ratioFilter_neBot",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionCandidate_populationArmEndpoint_abs_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionCandidate_populationArmEndpoint_abs_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionCandidate_populationATEInterval_subset",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionCandidate_populationATEInterval_subset",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectionPopulationCells_finite",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectionPopulationCells_finite",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalATE_mem_Icc",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalATE_mem_Icc",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalFullInterval",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.UnlinkedPropensityAte.externalFullInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalFullInterval_honest",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalFullInterval_honest",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalExcessIntegral_le_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalExcessIntegral_le_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectedArmEndpoint_lower_le_upper",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectedArmEndpoint_lower_le_upper",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projectedATEInterval_mem_closure_of_sieve_approx",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projectedATEInterval_mem_closure_of_sieve_approx",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projection_strict_population_approximants",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projection_strict_population_approximants",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "projection_strictBall_ate_mem_CI",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.projection_strictBall_ate_mem_CI",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalProjectionIntervalProcedure_honest",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionIntervalProcedure_honest",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalExcessRisk_le_of_honest_uniform_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalExcessRisk_le_of_honest_uniform_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integrable_outcomeCDFDistance_population_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.integrable_outcomeCDFDistance_population_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integrable_scoreCDFDistance_population_pi",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.integrable_scoreCDFDistance_population_pi",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cell_lower_le_upper_of_overlap",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.cell_lower_le_upper_of_overlap",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "exists_sievedProjectionCandidate_close_of_slack",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.exists_sievedProjectionCandidate_close_of_slack",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "externalExcessRisk_normalized_upper",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.externalExcessRisk_normalized_upper",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "logCertificate_ratio_liminf_of_upperBound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.logCertificate_ratio_liminf_of_upperBound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "logCertificate_ratio_liminf_of_infimum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.logCertificate_ratio_liminf_of_infimum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_ExternalScoreLaw",
+          "kind": "definition",
+          "label": "Definition ExternalScoreLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_RationalProjectionSieveScope",
+          "kind": "definition",
+          "label": "Definition RationalProjectionSieveScope",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "equalWidthBinMidpoint_val",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.UnlinkedPropensityAte.equalWidthBinMidpoint_val",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "symbol",
+      "items": [
+        {
+          "obj_id": "sym:Espace",
+          "kind": "symbol",
+          "label": "Espace",
+          "nl": "realized by ScoreSpace",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Yspace",
+          "kind": "symbol",
+          "label": "Yspace",
+          "nl": "realized by OutcomeSpace",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Aspace",
+          "kind": "symbol",
+          "label": "Aspace",
+          "nl": "realized by ArmSpace",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:a",
+          "kind": "symbol",
+          "label": "a",
+          "nl": "realized by ArmSpace",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Rspace",
+          "kind": "symbol",
+          "label": "Rspace",
+          "nl": "realized by LabelSpace",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:J",
+          "kind": "symbol",
+          "label": "J",
+          "nl": "realized by LabelSpace",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P",
+          "kind": "symbol",
+          "label": "P",
+          "nl": "realized by Observation, RandomizedCausalLaw, CompatibleCausalLaw, CompatibleLaws, ExternalScoreLaw, ExternalLaws",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Prel",
+          "kind": "symbol",
+          "label": "Prel",
+          "nl": "realized by score, ate, CompatibleCellMasses, compatible_nonempty_iff",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:E",
+          "kind": "symbol",
+          "label": "E",
+          "nl": "realized by score",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y0",
+          "kind": "symbol",
+          "label": "Y0",
+          "nl": "realized by outcome0",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y1",
+          "kind": "symbol",
+          "label": "Y1",
+          "nl": "realized by outcome1",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:A",
+          "kind": "symbol",
+          "label": "A",
+          "nl": "realized by arm",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y",
+          "kind": "symbol",
+          "label": "Y",
+          "nl": "realized by observed",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:R",
+          "kind": "symbol",
+          "label": "R",
+          "nl": "realized by label",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:theta",
+          "kind": "symbol",
+          "label": "theta",
+          "nl": "realized by ate",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:epsilon",
+          "kind": "symbol",
+          "label": "epsilon",
+          "nl": "realized by Overlap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:H",
+          "kind": "symbol",
+          "label": "H",
+          "nl": "realized by ScoreMarginal, DensityLower, LowerScoreDensity, BoundedScoreDensity, CompatibleCellMasses, ExternalScoreLaw, ExternalLaws, compatible_nonempty_iff",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:p",
+          "kind": "symbol",
+          "label": "p",
+          "nl": "realized by RandomizedAssignment, armProb",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:g",
+          "kind": "symbol",
+          "label": "g",
+          "nl": "realized by DeterministicRelease, RandomizedCausalLaw, CompatibleCausalLaw, CompatibleCellMasses, kLabelReleases, ExternalScoreLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Pclass",
+          "kind": "symbol",
+          "label": "Pclass",
+          "nl": "realized by RandomizedCausalLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Mclass",
+          "kind": "symbol",
+          "label": "Mclass",
+          "nl": "realized by CausalLaws",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:f",
+          "kind": "symbol",
+          "label": "f",
+          "nl": "realized by DensityLower",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:mf",
+          "kind": "symbol",
+          "label": "mf",
+          "nl": "realized by DensityLower, optimalKAmbiguity_bounds, minimaxHonestLength_order",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:C",
+          "kind": "symbol",
+          "label": "C",
+          "nl": "realized by cell",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q",
+          "kind": "symbol",
+          "label": "q",
+          "nl": "realized by armCellMass, CompatibleCellMasses",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:F",
+          "kind": "symbol",
+          "label": "F",
+          "nl": "realized by armCellScoreLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:G",
+          "kind": "symbol",
+          "label": "G",
+          "nl": "realized by armCellWeightLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:W",
+          "kind": "symbol",
+          "label": "W",
+          "nl": "realized by armCellWeightLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Q",
+          "kind": "symbol",
+          "label": "Q",
+          "nl": "realized by generalizedQuantile",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:muL",
+          "kind": "symbol",
+          "label": "muL",
+          "nl": "realized by muUpper",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:muU",
+          "kind": "symbol",
+          "label": "muU",
+          "nl": "realized by muUpper",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Isharp",
+          "kind": "symbol",
+          "label": "Isharp",
+          "nl": "realized by sharpATELength",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:D",
+          "kind": "symbol",
+          "label": "D",
+          "nl": "realized by worstCaseAmbiguity",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:GK",
+          "kind": "symbol",
+          "label": "GK",
+          "nl": "realized by kLabelReleases",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:K",
+          "kind": "symbol",
+          "label": "K",
+          "nl": "realized by kLabelReleases, optimalKAmbiguity_bounds, minimaxHonestLength_order",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:DeltaK",
+          "kind": "symbol",
+          "label": "DeltaK",
+          "nl": "realized by optimalKAmbiguity",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Hopt",
+          "kind": "symbol",
+          "label": "Hopt",
+          "nl": "realized by highResolutionHandle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:m",
+          "kind": "symbol",
+          "label": "m",
+          "nl": "realized by ExternalSample, externalExcessRisk_lower_certificates, externalExcessRisk_root_order",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Elog",
+          "kind": "symbol",
+          "label": "Elog",
+          "nl": "realized by ExternalSample",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Xext",
+          "kind": "symbol",
+          "label": "Xext",
+          "nl": "realized by ExternalLaws",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Qext",
+          "kind": "symbol",
+          "label": "Qext",
+          "nl": "realized by externalExperiment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Cext",
+          "kind": "symbol",
+          "label": "Cext",
+          "nl": "realized by ExternalIntervalProcedure",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Jext",
+          "kind": "symbol",
+          "label": "Jext",
+          "nl": "realized by externalHonestProcedures",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Rext",
+          "kind": "symbol",
+          "label": "Rext",
+          "nl": "realized by externalNormalizer",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:bext",
+          "kind": "symbol",
+          "label": "bext",
+          "nl": "realized by externalNormalizer",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Text",
+          "kind": "symbol",
+          "label": "Text",
+          "nl": "realized by externalNormalizedRisk",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:rho",
+          "kind": "symbol",
+          "label": "rho",
+          "nl": "realized by ratioFilter, externalExcessRisk_lower_certificates, externalExcessRisk_root_order",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:n",
+          "kind": "symbol",
+          "label": "n",
+          "nl": "realized by externalExcessRisk_lower_certificates, TrialSample, externalExcessRisk_root_order, minimaxHonestLength_order",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Cn",
+          "kind": "symbol",
+          "label": "Cn",
+          "nl": "realized by IntervalProcedure",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:alpha",
+          "kind": "symbol",
+          "label": "alpha",
+          "nl": "realized by honestProcedures, externalExcessRisk_root_order, minimaxHonestLength_order",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Jhonest",
+          "kind": "symbol",
+          "label": "Jhonest",
+          "nl": "realized by honestProcedures",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Lminimax",
+          "kind": "symbol",
+          "label": "Lminimax",
+          "nl": "realized by minimaxHonestLength",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Hext",
+          "kind": "symbol",
+          "label": "Hext",
+          "nl": "realized by externalProjectionCI",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    }
+  ]
+}

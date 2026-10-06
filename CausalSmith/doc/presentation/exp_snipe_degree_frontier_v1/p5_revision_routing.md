@@ -1,0 +1,17 @@
+# Revision routing plan (major_revision)
+
+## escalate — out of causalsmith scope (bank/causalsmith)
+- [major·citation·citation_research] (related work) The closest comparison to Cortez-Rodriguez, Eichhorn, and Yu is still too compressed for a leading-journal reader. The sentence "The comparison to the unrestricted class studied in \citet{CortezRodriguezEichhornYu2023} is through that paper's stated theorem, while the present frontier supplies the bounded-class calibration in the notation and model class used here" signals the boundary but does not spell out the competitor's formal rate, class, and assumptions enough to establish novelty.
+
+## holistic revision (reframe)
+- [major·structure·rewrite] (main results) The theorem section is difficult to evaluate because \cref{obj:thm:bounded-outcome-degree-frontier} combines inclusion, two minimax frontiers, unbiasedness, upper bounds, exact complete-block risk, energy comparison, and lower-bound construction in one very long theorem. The prose says it has five parts, but the displayed statement is still too dense for readers to identify which conclusion supports which claim.
+- [major·prose·rewrite] (intro) The paper states "The rate separates two sources of design difficulty" and later treats the factorization into local energy and an out-degree overlap charge as a substantive interpretation. The formal upper bound verifies the overlap count and the complete-block construction verifies sharpness at the combined scale, but the prose can read as a decomposition theorem for every graph rather than a worst-case bounded-degree frontier.
+- [major·prose·rewrite] (discussion) The sentence "For fixed \((\beta,p)\) sequences with eventual positive degree and stable exposed order \(k_\star\), the comparison \(dA_d\asymp_{\beta,p} d\binom d{k_\star}\) identifies a sufficient and rate-equivalent vanishing condition..." is not a formal theorem as stated and introduces asymptotic language beyond the main finite-population theorem.
+- [minor·prose·rewrite] (abstract) The abstract uses \(A_d\), SNIPE, and \(k_\star(d,\beta,p)\) before a nontechnical reader has any context. It eventually apposes \(A_d\) and \(k_\star\), but the first sentence is overloaded and the acronym SNIPE is introduced only after the acronym appears in parentheses.
+- [minor·structure·rewrite] (setup and assumptions) Several definitions are followed by prose that repeats the formal statement rather than explaining its role. This makes the setup long and delays the main result.
+- [minor·structure·rewrite] (main results) The theorem hierarchy table helps, but it repeats the preceding bullet list and still leaves the reader without a minimal takeaway theorem.
+- [minor·prose·rewrite] (appendix) The appendix proofs are written in a very verbose pedagogical style, with many elementary algebra steps that obscure the high-level proof architecture.
+- [minor·prose·rewrite] (verification note) The verification note says "The Lean 4 development verifies the finite-design algebra, displayed formal statements, and displayed proofs used in the paper". This is broadly consistent with the contract, but a reader could take it to include scholarly positioning and literature claims.
+- [nit·prose·rewrite] (global) Some prose uses nearly identical formulations of the same contribution in the abstract, introduction, main-results commentary, and discussion.
+
+→ one holistic reframe pass; formal statements remain frozen

@@ -1,0 +1,238 @@
+// F5 docstring-coverage step. Docstrings are docstring-canonical (the site renders each
+// declaration's docstring as its natural-language statement, and P4 refuses to emit a bundle
+// with undocumented declarations), so coverage is authored HERE — the guaranteed-final
+// Lean-edit point of the research run — not at presentation time.
+
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { MODEL_PLAN } from "../constants.js";
+import type { PipelineContext, StateJson } from "../types.js";
+import { artifactPaths, readPrompt, type StageDeps } from "../pipeline_support.js";
+import { isPaperTmpPath } from "../paths.js";
+import { dispatchAgent } from "../framework/agent_dispatch.js";
+import { crosslinkNames, linksGoal, sourceBinders } from "../shared/nl_crosslinks.js";
+import { spawnWithInactivityTimeout } from "../workers/spawn.js";
+import { withLakeBuildLock } from "../shared/build_mutex.js";
+
+const LAKE_TIMEOUT_MS = 1800_000;
+
+/**
+ * The checkpoint-sized summary of a failed lake invocation: its `error` lines (lake writes
+ * Lean's per-file diagnostics to STDOUT and only `build failed` to stderr, so both streams
+ * are scanned), never the command line — a `lake -d <root> build <4 module names>` prefix
+ * alone exceeds any sane cap and hid every diagnostic behind it (2026-09-11).
+ */
+export function lakeFailureSummary(
+  r: { stdout: string; stderr: string; exitCode: number | null; killedDueToInactivity?: boolean; killedDueToTotalTimeout?: boolean },
+  logPath: string,
+): string {
+  const errs = `${r.stdout}\n${r.stderr}`
+    .split("\n")
+    .filter((l) => /error/i.test(l))
+    .slice(0, 25)
+    .join("\n")
+    .trim();
+  const killed = r.killedDueToInactivity ? " (killed: no output for 30 min)" : r.killedDueToTotalTimeout ? " (killed: 30 min wall-clock)" : "";
+  return `${errs || `lake exited ${r.exitCode}`}${killed}\n(full lake output: ${logPath})`;
+}
+
+export interface UndocumentedDecl {
+  name: string;
+  file: string;
+  line: number;
+  kind: string;
+  /** Set when the decl IS documented but its NL↔Lean crosslink annotations are
+   * missing or defective (see crosslinkDefect) — the docstring pass must fix
+   * the annotation, not write a docstring from scratch. */
+  problem?: string;
+}
+
+/**
+ * NL↔Lean crosslink requirement for a theorem docstring (hard F5 gate): the
+ * first paragraph must link every hypothesis-classified binder via
+ * `[phrase](hyp:name)` and the conclusion via `[phrase](goal)`, and every
+ * referenced name must exist in the signature. Hypothesis-free theorems still
+ * carry the `(goal)` link (wave-2 policy: at minimum the conclusion is
+ * annotated). Returns a short problem description, or null when the docstring
+ * satisfies the requirement.
+ */
+export function crosslinkDefect(e: { kind?: unknown; doc?: unknown; source?: unknown }): string | null {
+  if (e.kind !== "theorem" || typeof e.doc !== "string" || !e.doc.trim()) return null;
+  // Whitespace-collapsed, matching the site's nlOf: a crosslink marker wrapped
+  // across a source line must parse the same here as on the rendered page.
+  const firstPara = e.doc.trim().split(/\n\s*\n/)[0].replace(/\s+/g, " ");
+  const names = crosslinkNames(firstPara);
+  const hasGoal = linksGoal(firstPara);
+  const binders = typeof e.source === "string" ? sourceBinders(e.source) : null;
+  if (!binders) return null; // unstructurable signature: the site renders flat, nothing to link
+  const hyps = binders.filter((b) => b.isHyp);
+  const declared = new Set(binders.flatMap((b) => b.names));
+  const unknown = names.filter((n) => !declared.has(n));
+  if (unknown.length > 0) return `crosslink names not in signature: ${unknown.join(", ")}`;
+  const linked = new Set(names);
+  const uncovered = hyps.filter((b) => !b.names.some((n) => linked.has(n)));
+  if (uncovered.length > 0) {
+    return `hypotheses with no [phrase](hyp:…) crosslink: ${uncovered.map((b) => b.names.join(" ")).join(", ")}`;
+  }
+  if (!hasGoal) return "conclusion has no [phrase](goal) crosslink";
+  return null;
+}
+
+/** Dotted module names for every .lean source in the run dir (find-derived, sorted; the
+ * disposable `tmp/` agent workspace is excluded — it is not part of the published run). */
+export function moduleNamesFor(leanSubdir: string, relFiles: string[]): string[] {
+  const prefix = leanSubdir.replace(/\//g, ".");
+  return relFiles
+    .filter((f) => f.endsWith(".lean") && !isPaperTmpPath(f))
+    .map((f) => `${prefix}.${f.replace(/\.lean$/, "").replace(/[\\/]+/g, ".")}`)
+    .sort();
+}
+
+/** The prompt's per-file declaration list (file heading, then `  L<line> <kind> <name>` rows). */
+export function declListFor(undoc: UndocumentedDecl[]): string {
+  const byFile = new Map<string, UndocumentedDecl[]>();
+  for (const e of undoc) byFile.set(e.file, [...(byFile.get(e.file) ?? []), e]);
+  return [...byFile.entries()]
+    .map(([f, es]) =>
+      [f, ...es.slice().sort((a, b) => a.line - b.line).map((e) =>
+        `  L${e.line} ${e.kind} ${e.name}${e.problem ? ` — FIX CROSSLINKS: ${e.problem}` : ""}`)].join("\n"),
+    )
+    .join("\n\n");
+}
+
+/**
+ * Ensure every declaration in the run's Lean modules carries a docstring. Returns `null` when
+ * coverage holds; otherwise a block reason for the F5 caller (same contract as the crosswalk
+ * emit). One codex pass documents the gaps (docstring insertions only); the rebuild validates
+ * the edits (restored byte-for-byte on a build failure) and a re-extraction confirms coverage.
+ * Runs BEFORE the crosswalk emit: docstring insertion shifts line numbers, and the banked
+ * crosswalk must record the post-docstring lines.
+ */
+export async function ensureDocstringCoverage(args: {
+  ctx: PipelineContext;
+  state: StateJson;
+  deps: StageDeps;
+}): Promise<string | null> {
+  const paths = artifactPaths(args.ctx, args.state);
+  const relFiles = (await readdir(paths.leanDir, { recursive: true }).catch((err: NodeJS.ErrnoException) => {
+    if (err.code === "ENOENT") return [] as string[]; // no Lean dir — nothing to document
+    throw err; // any other readdir failure must not silently pass the gate
+  })).map(String);
+  const prefix = args.state.lean_subdir.replace(/\//g, ".");
+  // Include the root umbrella module (`<leanDir>.lean`, a sibling of the dir): it is
+  // import-only by convention, but a declaration landing there must still be covered —
+  // P4 verifies coverage over every module it indexes.
+  const rootModule = existsSync(`${paths.leanDir}.lean`) ? [prefix] : [];
+  const modules = [...rootModule, ...moduleNamesFor(args.state.lean_subdir, relFiles)];
+  if (modules.length === 0) return null;
+  const indexOut = path.join(paths.formalizationDir, "docstring_coverage.json");
+  const lakeLog = path.join(paths.formalizationDir, "docstring_lake.log");
+  // Full stdout+stderr of every lake call lands in `lakeLog` (overwritten per call); a failure
+  // throws only the diagnostic lines, so the checkpoint message carries the Lean error itself.
+  const lake = (lakeArgs: string[]) =>
+    withLakeBuildLock(args.ctx.repoRoot, async () => {
+      const r = await spawnWithInactivityTimeout("lake", ["-d", args.ctx.repoRoot, ...lakeArgs], {
+        cwd: args.ctx.repoRoot,
+        env: process.env,
+        inactivityTimeoutMs: LAKE_TIMEOUT_MS,
+        maxTotalMs: LAKE_TIMEOUT_MS,
+      });
+      await writeFile(lakeLog, `$ lake ${lakeArgs.join(" ")}\n${r.stdout}\n${r.stderr}`, "utf8");
+      if (r.exitCode !== 0) throw new Error(lakeFailureSummary(r, lakeLog));
+    });
+  // Build first: paper_index reads OLEANS and silently emits an empty index over stale ones.
+  const extractUndocumented = async (): Promise<UndocumentedDecl[]> => {
+    await lake(["build", ...modules]);
+    await lake(["exe", "paper_index", "--",
+      "--prefix", prefix, "--src-root", args.ctx.repoRoot, "--modules", modules.join(","), "--out", indexOut]);
+    const idx = JSON.parse(await readFile(indexOut, "utf8")) as {
+      entries?: { name?: unknown; file?: unknown; line?: unknown; kind?: unknown; doc?: unknown; source?: unknown }[];
+    };
+    if (!Array.isArray(idx.entries)) throw new Error(`docstring extraction produced no entries array (${indexOut})`);
+    return idx.entries.flatMap((e) => {
+      if (typeof e.name !== "string" || typeof e.file !== "string") return [];
+      const base = { name: e.name, file: e.file, line: typeof e.line === "number" ? e.line : 0,
+        kind: typeof e.kind === "string" ? e.kind : "decl" };
+      if (!e.doc) return [base];
+      // Documented, but a theorem's NL↔Lean crosslink annotations are missing
+      // or defective — same hard gate, fixed by the same docstring pass.
+      const problem = crosslinkDefect(e);
+      return problem ? [{ ...base, problem }] : [];
+    });
+  };
+
+  let undoc: UndocumentedDecl[];
+  try {
+    undoc = await extractUndocumented();
+  } catch (err) {
+    return (
+      `F5 docstring coverage could not be computed:\n${err instanceof Error ? err.message : String(err)}\n` +
+      `Resolve the build/extraction error then resume; the docstring gate cannot be skipped ` +
+      `(P4 refuses to emit an undocumented bundle).`
+    );
+  }
+  if (undoc.length === 0) return null;
+
+  // Snapshot the exact bytes of every target file BEFORE the codex pass, so a build-failure
+  // rollback restores only this pass's docstring edits. NEVER `git checkout` here: it reverts
+  // to HEAD and destroys unrelated uncommitted work this pass did not author.
+  const snapshot = new Map<string, string>();
+  for (const f of new Set(undoc.map((e) => e.file))) {
+    snapshot.set(f, await readFile(path.join(args.ctx.repoRoot, f), "utf8"));
+  }
+  const prompt = (await readPrompt(args.ctx, "stage5_docstrings.txt"))
+    .replaceAll(
+      "{{HEADER_CONTRACT}}",
+      [
+        "HEADER CONTRACT — Every generated Lean file begins, in order, with the optional copyright block, then `module`, contiguous imports written as `public import` (only a rare deliberate exception marked by a `-- private import` comment may use a private import), the `/-! ... -/` module docstring, and exactly one blanket section: `@[expose] public section` when the file defines a `def`, `abbrev`, `instance`, `structure`, `class`, or `inductive`, otherwise `public section`. Keep declarations bare: no per-declaration `public`, `private`, or `@[expose]`; helpers stay bare, and nothing is private unless it is truly file-local and never needed by a proof downstream. Run barrels and `Helpers.lean` are imports-only and use `public import` on every line.",
+        "MODULE-SYSTEM CONSEQUENCES — A `module` file cannot import a legacy non-`module` file: every imported file must itself be a module file, and the scaffold must never add `import all`. A `def` whose body a downstream `rfl`, `decide`, or `unfold` needs must live in a file with `@[expose] public section`. A certificate evaluated by the kernel (`decide +kernel`) must not pass through well-founded recursion such as `Array.ofFn` or `termination_by`, because importers cannot see termination proofs; use a structural construction.",
+      ].join("\n"),
+    )
+    .replaceAll("{{package_root}}", args.ctx.repoRoot)
+    .replaceAll("{{decl_list}}", declListFor(undoc));
+  await dispatchAgent({
+    ctx: args.ctx,
+    deps: args.deps,
+    stage: "5",
+    label: "F5 docstring coverage",
+    prompt,
+    promptSources: ["stage5_docstrings.txt"],
+    model: MODEL_PLAN.stage5.model,
+    reasoningEffort: MODEL_PLAN.stage5.effort,
+  });
+  let residual: UndocumentedDecl[];
+  try {
+    residual = await extractUndocumented();
+  } catch (err) {
+    // Keep the rejected edit (the only evidence of what the model wrote) before restoring.
+    const rejectedDir = path.join(paths.formalizationDir, "docstring_rejected");
+    for (const [f, content] of snapshot) {
+      const abs = path.join(args.ctx.repoRoot, f);
+      try {
+        const keep = path.join(rejectedDir, f);
+        await mkdir(path.dirname(keep), { recursive: true });
+        await writeFile(keep, await readFile(abs, "utf8"), "utf8");
+      } catch (keepErr) {
+        // Evidence is best-effort; the restore below must run regardless.
+        console.warn(`[F5] could not keep rejected ${f}: ${keepErr instanceof Error ? keepErr.message : String(keepErr)}`);
+      }
+      await writeFile(abs, content, "utf8");
+    }
+    return (
+      `F5 docstring pass broke the build; its edits were restored byte-for-byte ` +
+      `(rejected versions kept under ${rejectedDir}):\n${err instanceof Error ? err.message : String(err)}\n` +
+      `Document the declarations by hand (first paragraph = NL translation) then resume.`
+    );
+  }
+  if (residual.length > 0) {
+    return (
+      `F5 docstring coverage: ${residual.length} declaration(s) still undocumented or crosslink-defective after the docstring pass — ` +
+      residual.slice(0, 12).map((e) => `${e.file}:${e.line} ${e.name}${e.problem ? ` (${e.problem})` : ""}`).join(", ") +
+      (residual.length > 12 ? ` (+${residual.length - 12} more)` : "") +
+      `. Fix them (docstring-canonical workflow: first paragraph = the NL translation, with ` +
+      `[phrase](hyp:name)/[phrase](goal) crosslinks covering every hypothesis and the conclusion) then resume.`
+    );
+  }
+  return null;
+}

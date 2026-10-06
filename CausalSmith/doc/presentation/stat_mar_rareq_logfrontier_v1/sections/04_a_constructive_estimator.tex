@@ -1,0 +1,94 @@
+\section{A constructive estimator}\label{sec:constructive-estimator}
+
+The risk comparisons admit an explicit statistical construction. The mixed-count estimator in \cref{obj:def:mixed-count-estimator} combines information about cell membership with information about arrived outcomes, assigning these two tasks to separate parts of each cell contribution. Its elementary branch uses empirical cell means; its polynomial branch modifies the contribution of cells with few arrivals. We collect the ingredients by their statistical role before describing the resulting estimate and its risk guarantee.
+
+\subsection{Mechanism of the mixed-count correction}
+
+The canonical formulas are collected once in \cref{obj:def:mixed-count-estimator} and its immediate ingredients \cref{obj:synth_7,obj:synth_8,obj:synth_9,obj:synth_10,obj:synth_11,obj:synth_12,obj:synth_13,obj:synth_14,obj:synth_15,obj:synth_17,obj:synth_18}. Their statistical roles are simple. Membership-labelled records estimate the population cell weights, while pilot and estimation labels separate branch selection from estimation of each arrived-cell mean. An ordinary ratio assigns zero to a cell with no arrived outcome. Across many rare cells, those zero-count events create the category-dependent bias that appears in the elementary certificate.
+
+On the large-alphabet branch, the polynomial extension of \(\{1-Q_k(t)\}/t\) supplies the reciprocal correction implicit in a cell mean. Marked factorial counts estimate its monomials without discarding the association between an outcome and its cell: for cell intensity \(t_j\) and arrived-cell mean \(\mu_j\), the factorial statistic satisfies \(E(H_j)=\mu_j\{1-Q_k(t_j)\}\). Thus \(Q_k\) controls the residual bias, and the bound on \(t_j|Q_k(t_j)|\) controls its membership-weighted aggregate. With degree \(k\) proportional to \(\log(e+N)\), this changes the aggregate bias scale from the elementary scarce-cell scale to \(d/\{N\log(e+N)\}\), while a pilot count sends well-observed cells back to the stable empirical ratio. Independent membership, pilot, and estimation streams justify the comparison calculation; the capped-prefix transfer and conditional averaging turn that comparison into the deterministic fixed-sample estimator.
+
+The construction is explicit on every parameter triple. Its polynomial branch activates at \(\log(e+nq)\ge128\), equivalently \(nq\ge e^{128}-e\). Exact evaluation averages \(3^{k_0}\) assignments at each retained prefix length \(k_0\); the limitations section discusses this computational scale separately from the attainment guarantee.
+
+\subsection{Risk control and the deterministic envelope}
+
+The construction supplies a squared-error guarantee throughout the unrestricted arrival class in \cref{obj:def:unrestricted-arrival-model-class}. Its deterministic envelope \(\mathfrak U_{n,d,q}\) depends on the sample size, alphabet size, and arrival floor. The following result gives the envelope explicitly, compares it with the rate in \cref{obj:def:frontier-rate}, and records the risk improvement from conditional averaging.
+
+\begin{theoremv}{thm:unrestricted-mixed-count-upper}[Unrestricted mixed-count risk bound]
+There exists a universal constant \(0<\overline C<\infty\) such that, for every sample size \(n\), alphabet size \(d\), arrival floor \(q\), and full-data law \(P\) satisfying
+\begin{itemize}
+\item \textbf{(Domain.)} \(n,d\ge1\) and \(0<q\le1\).
+\item \textbf{(Model.)} \(P\in\mathcal M^{+}_{n,d,q}\), the model class defined in \cref{obj:def:unrestricted-arrival-model-class}.
+\item \textbf{(Sampling.)} The observed sample \(\mathbf O_n\) has the canonical product law induced by \(P\), with its coordinate observations satisfying \cref{obj:ass:iid-sampling}.
+\end{itemize}
+the deterministic estimator \(\widehat\tau^{\mathrm{mix}}_{n,d,q}\) of \cref{obj:def:mixed-count-estimator} satisfies
+\[
+E_P\!\left[
+ \bigl(\widehat\tau^{\mathrm{mix}}_{n,d,q}(\mathbf O_n)-\tau(P)\bigr)^2
+\right]
+\le \mathfrak U_{n,d,q}
+\le \overline C\,r_{n,d,q},
+\]
+where \(\tau(P)\) is the average treatment effect defined in \cref{obj:def:ate-functional}, \(r_{n,d,q}\) is the rate defined in \cref{obj:def:frontier-rate}, and \(\mathfrak U_{n,d,q}\) is the deterministic risk envelope specified below.
+
+Set
+\[
+N=nq,\qquad m=\frac n6,\qquad N_0=mq=\frac N6,
+\qquad \gamma_0=\log 2-\frac12.
+\]
+Use the logarithmic scale \(\ell\) defined in \cref{obj:synth_7}, the polynomial degree \(k\) defined in \cref{obj:synth_8}, and the threshold \(B\) defined in \cref{obj:synth_18}. Define the certificate quantities
+\[
+b_{n,d,q}
+=2\left(\frac{4dB}{N_0k^2}+3e^{-16\ell}\right),
+\]
+\[
+v_{n,d,q}
+=8\left(\frac4{N_0}+\frac1m\right)
++64d\left(e^{\ell/8}+1\right)
+ \left(\frac{B^2}{N_0^2}+\frac{B}{mN_0}\right)
++32e^{-32\ell}\left(1+\frac1m\right).
+\]
+For \(N\le1\), set \(\mathfrak U_{n,d,q}=1\). For \(N>1\) on the elementary branch of \cref{obj:def:mixed-count-estimator}, set
+\[
+\mathfrak U_{n,d,q}
+=\min\left\{
+4,\,
+\left(\frac{8d}{eN_0}\right)^2
++4\left(\frac4{N_0}+\frac1m\right)
++4e^{-n\gamma_0}
+\right\}.
+\]
+For \(N>1\) on its polynomial branch, set
+\[
+\mathfrak U_{n,d,q}
+=\min\left\{
+4,\,
+b_{n,d,q}^{\,2}+v_{n,d,q}+4e^{-n\gamma_0}
+\right\}.
+\]
+
+Moreover, the estimator's conditional average over the auxiliary randomization satisfies
+\[
+E_P\!\left[
+ \bigl(\widehat\tau^{\mathrm{mix}}_{n,d,q}(\mathbf O_n)-\tau(P)\bigr)^2
+\right]
+\le
+E_P\!\left[
+ E_{\omega}\!\left[
+  \bigl(\widetilde\tau(\mathbf O_n;\omega)-\tau(P)\bigr)^2
+  \,\middle|\,\mathbf O_n
+ \right]
+\right],
+\]
+where \(\omega\) is the auxiliary prefix and stream-assignment randomization from \cref{obj:def:mixed-count-estimator}, and \(\widetilde\tau(\mathbf O_n;\omega)\) is its output, including the zero output when the Poisson prefix length exceeds \(n\).
+\end{theoremv}
+
+The bound separates effective-sample-size error from category complexity through
+\[
+r_{n,d,q}
+=\min\left\{1,\frac1N+
+\left(\frac{d}{N\ell}\right)^2\right\},
+\]
+as defined in \cref{obj:def:frontier-rate}. The polynomial certificate reflects the mechanism of the construction: its leading squared contribution involves \(dB/(N_0k^2)\), which scales as \(d/(N\ell)\) on the polynomial branch. Membership weights and arrived-outcome statistics thus enter a common aggregate guarantee even when many cells have few arrived observations. The final inequality in \cref{obj:thm:unrestricted-mixed-count-upper} also shows why the conditional average is the reported estimator: averaging the bounded auxiliary outputs preserves their risk guarantee and can reduce squared-error risk.
+
+The detailed cellwise moment bounds and their aggregation are collected in \cref{obj:thm:unrestricted-uniform-mixed-count-certificate}. For the subsequent interval construction, the essential feature is that \(\mathfrak U_{n,d,q}\) is a known, deterministic upper bound on squared-error risk, uniform over the stated model class. It supplies the radius \(\sqrt{\mathfrak U_{n,d,q}/\alpha}\), where \(\alpha\in(0,1)\) is the miscoverage level, used by the clipped interval in \cref{obj:def:risk-envelope-interval}.

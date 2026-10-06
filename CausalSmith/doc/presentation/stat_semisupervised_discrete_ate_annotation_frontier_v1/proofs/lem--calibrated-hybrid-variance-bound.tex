@@ -1,0 +1,183 @@
+\begin{proof}[Proof of \cref{obj:lem:calibrated-hybrid-variance-bound}]
+Choose \(C_{\mathrm{var}}\) to be the positive constant supplied, at the present overlap parameter \(\epsilon\), by \cref{obj:lem:poisson-inverse-count-risk}. Fix \(n,m,d\) and \(P\) satisfying the hypotheses. Write
+\[
+p_x=P(X=x),\qquad
+q_{ax}=P(X=x,A=a,Y=1),\qquad
+s_{ax}=P(X=x,A=a),
+\]
+and let \(J_x=J_{0x}+J_{1x}\). The calibration predicate in \cref{obj:def:mixed-estimator-handle} gives
+\[
+u>0,\qquad t_p>0,\qquad t>0,\qquad B>0,\qquad L\ge2,\qquad L\le tB .
+\]
+For each \(x\in[d]\), let \(\mathbb Q_x\) be the product law of the outcome and factorial counts
+\[
+S_{ax}\sim\operatorname{Poi}(u q_{ax}),\qquad
+K_{ax}\sim\operatorname{Poi}(t s_{ax}),\qquad a\in\{0,1\},
+\]
+with all four variables independent. Define
+\[
+\lambda_x=\mathbb P\{J_x\le k_0\},\qquad
+\theta_x=\mathbb P\{J_x>k_0\}=1-\lambda_x,
+\]
+and, under \(\mathbb Q_x\),
+\[
+\bar P_x=\mathbb E_{\mathbb Q_x}P_x,\qquad
+\bar H_x=\mathbb E_{\mathbb Q_x}H_x,\qquad
+V^P_x=\operatorname{Var}_{\mathbb Q_x}(P_x),\qquad
+V^H_x=\operatorname{Var}_{\mathbb Q_x}(H_x).
+\]
+The probabilities satisfy \(0\le\lambda_x,\theta_x\le1\). % lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.calibrated_hybrid_variance_le
+
+\begin{enumerate}
+\item Since the pilot counts are independent of the outcome and factorial counts, the selected cell is a two-branch mixture. For each cell,
+\[
+\operatorname{Var}\!\left(
+\mathbf 1\{J_x\le k_0\}P_x+\mathbf 1\{J_x>k_0\}H_x
+\right)
+=
+\lambda_x V^P_x+\theta_x V^H_x
++\lambda_x\theta_x(\bar P_x-\bar H_x)^2 .
+\]
+The cells are independent under the product Poisson law, so the variance of the sum is the sum of the cell variances:
+\[
+\operatorname{Var}(\widetilde Z)
+=
+\sum_{x\in[d]}
+\left\{
+\lambda_x V^P_x+\theta_x V^H_x
++\lambda_x\theta_x(\bar P_x-\bar H_x)^2
+\right\}.
+\]
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.variance_sum_hybridSelectedCell
+
+\item Bound the light-branch variance part by splitting the cells at the scale \(B\). Put
+\[
+\mathsf{Light}_B=\{x\in[d]:p_x\le B\},\qquad
+\mathsf{Heavy}_B=\{x\in[d]:p_x>B\}.
+\]
+For \(x\in\mathsf{Light}_B\), \(\lambda_x\le1\) and
+\[
+V^P_x\le \mathbb E_{\mathbb Q_x}P_x^2.
+\]
+The factorial-lift second-moment estimate in \cref{obj:lem:explicit-chebyshev-calibration}, together with
+\((r-s)^2\le2r^2+2s^2\), gives
+\[
+\mathbb E_{\mathbb Q_x}P_x^2
+\le
+4A_\star^L\left(\frac{p_x}{u}+p_x^2\right),
+\qquad x\in\mathsf{Light}_B .
+\]
+Indeed, for each arm \(a\), the light factorial weight has second moment at most \(A_\star^L\), while
+\[
+\mathbb E\left[\left(\frac{S_{ax}}u\right)^2\right]
+=
+\frac{q_{ax}}u+q_{ax}^2
+\le
+\frac{p_x}{u}+p_x^2 .
+\]
+Summing over \(\mathsf{Light}_B\) and using
+\[
+\sum_{x\in\mathsf{Light}_B}p_x\le \min\{1,dB\},
+\qquad
+\sum_{x\in\mathsf{Light}_B}p_x^2\le dB^2,
+\]
+yields
+\[
+\sum_{x\in\mathsf{Light}_B}\lambda_x V^P_x
+\le
+4A_\star^L
+\left\{
+\frac{\min\{1,dB\}}{u}+dB^2
+\right\}.
+\]
+On the complementary cells, \cref{obj:lem:heavy-light-second-moment-sum} gives
+\[
+\sum_{x\in\mathsf{Heavy}_B}\lambda_x\,\mathbb E_{\mathbb Q_x}P_x^2
+\le 132\,n^{-12}.
+\]
+Consequently,
+\[
+\sum_{x\in[d]}\lambda_x V^P_x
+\le
+4A_\star^L
+\left\{
+\frac{\min\{1,dB\}}{u}+dB^2
+\right\}
++132\,n^{-12}.
+\]
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.sum_light_secondMoment_le
+
+\item For the heavy-branch variance part, \cref{obj:lem:poisson-inverse-count-risk} applied to the all-heavy statistic gives
+\[
+\operatorname{Var}\!\left(\sum_{x\in[d]}H_x\right)
+\le
+C_{\mathrm{var}}\left(u^{-1}+t^{-1}\right).
+\]
+Independence across cells gives
+\[
+\operatorname{Var}\!\left(\sum_{x\in[d]}H_x\right)
+=
+\sum_{x\in[d]}V^H_x,
+\]
+and since \(0\le\theta_x\le1\),
+\[
+\sum_{x\in[d]}\theta_x V^H_x
+\le
+C_{\mathrm{var}}\left(u^{-1}+t^{-1}\right).
+\]
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.pilotHeavy_variance_bound_exists
+
+\item It remains to bound the branch-selection mean term. On \(\mathsf{Light}_B\), the inequality \(\lambda_x\theta_x\le1\) and \cref{obj:lem:hybrid-light-branch-mean-bound} give
+\[
+\sum_{x\in\mathsf{Light}_B}
+\lambda_x\theta_x(\bar P_x-\bar H_x)^2
+\le
+\sum_{x\in\mathsf{Light}_B}(\bar P_x-\bar H_x)^2
+\le
+\frac{8dB^2}{\epsilon^2L^4}
++
+\frac{4}{\epsilon t}.
+\]
+On \(\mathsf{Heavy}_B\), \cref{obj:lem:hybrid-heavy-branch-mean-bound} gives
+\[
+\sum_{x\in\mathsf{Heavy}_B}
+\lambda_x\theta_x(\bar P_x-\bar H_x)^2
+\le
+282\,n^{-12}.
+\]
+Thus
+\[
+\sum_{x\in[d]}
+\lambda_x\theta_x(\bar P_x-\bar H_x)^2
+\le
+\frac{8dB^2}{\epsilon^2L^4}
++
+\frac{4}{\epsilon t}
++
+282\,n^{-12}.
+\]
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.sum_light_branchMean_sq_le
+
+\item Combining the three displayed bounds in the variance decomposition gives
+\[
+\begin{aligned}
+\operatorname{Var}(\widetilde Z)
+&\le
+4A_\star^L
+\left\{
+\frac{\min\{1,dB\}}{u}+dB^2
+\right\}
++
+C_{\mathrm{var}}\left(u^{-1}+t^{-1}\right)\\
+&\quad+
+\frac{8dB^2}{\epsilon^2L^4}
++
+\frac{4}{\epsilon t}
++
+(132+282)n^{-12}.
+\end{aligned}
+\]
+Since \(132+282=414\), this is the asserted bound.
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.calibrated_hybrid_variance_le
+\end{enumerate}
+\end{proof}

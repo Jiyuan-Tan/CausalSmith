@@ -1,0 +1,356 @@
+\section{Setup and assumptions}
+
+Generic constants \(c,C>0\) may depend on the fixed public class parameters; dependence on sample size or error scale is displayed explicitly. Absolute value denotes the scalar norm, and \(\|f\|_\infty\) denotes the uniform norm of a function on its stated domain. The notation \(u\asymp v\) means that \(u/v\) is bounded above and below by positive constants uniformly over the stated index range. Stratum indices range over the two strata defined below, sample indices run from \(1\) to the sample size \(n\), and integer indices are nonnegative unless a different range is specified.
+
+The \leanref{S-1}{structural coordinates} distinguish treatment assignment, measurement error, and potential outcomes. The set of observed strata is \leanref{sym:Xset}{\ensuremath{\mathcal X}}, with \(\mathcal X=\{0,1\}\), and \leanref{sym:X}{\ensuremath{X}} is the observed stratum coordinate. We write \leanref{sym:A}{\ensuremath{A}} for the latent dose, \leanref{sym:Z}{\ensuremath{Z}} for the standardized measurement error, \leanref{sym:Y}{\ensuremath{Y}} for the realized outcome, and \leanref{sym:U}{\ensuremath{U}} for an auxiliary rank coordinate used in the lower-bound subclass. Throughout, \leanref{S-2}{the smoothness exponent, design-decay exponent, and public error scale} are fixed at \(\beta\in(0,1]\), \(\kappa\in[0,2]\), and \(\sigma\in[0,1/4]\), respectively.
+
+Potential outcomes are represented by a random schedule on a fixed public measurable space \leanref{sym:Yspace}{\ensuremath{(\mathcal S,\mathcal E)}}. Its evaluation map \leanref{sym:evalpath}{\ensuremath{e}} assigns an outcome to a schedule and a dose. The following definition makes both schedule-level independence and evaluation at a random dose measurable statements.
+
+\begin{definitionv}{def:potential-path-space}[Potential-outcome space \((\mathcal S,\mathcal E)\)]
+The public potential-outcome space \((\mathcal S,\mathcal E)\) is a measurable space of Borel functions from \([0,1]\) to \(\mathbb R\), satisfying the following conditions.
+\begin{itemize}
+\item \textbf{(Evaluation.)} The evaluation map
+\[
+e:\mathcal S\times[0,1]\longrightarrow\mathbb R,
+\qquad e(f,a)=f(a),
+\]
+is jointly measurable for the product sigma algebra \(\mathcal E\otimes\mathcal B([0,1])\).
+\item \textbf{(Extensionality.)} For \(f,g\in\mathcal S\),
+\[
+f=g
+\quad\Longleftrightarrow\quad
+e(f,a)=e(g,a)\ \text{for every }a\in[0,1].
+\]
+\item \textbf{(Threshold schedules.)} The space includes threshold schedules through the measurable map
+\[
+\iota:C([0,1],[0,1])\times[0,1]\longrightarrow\mathcal S,
+\qquad
+\iota(f,u)(a)=\mathbf1\{u\le f(a)\},
+\]
+where \(C([0,1],[0,1])\) carries its uniform-norm Borel sigma algebra.
+\end{itemize}
+The results apply to every fixed public space satisfying these conditions, with general schedules drawn from its Borel member functions. The potential-outcome schedule \(Y(\cdot)\) is a measurable random element of \(\mathcal S\), and its evaluation at dose \(a\) is
+\[
+Y(a)=e(Y(\cdot),a).
+\]
+\end{definitionv}
+
+Write \leanref{sym:Yprocess}{\ensuremath{Y(\cdot)}} for the random potential-outcome schedule and \leanref{sym:P}{\ensuremath{P}} for the structural probability law of \((X,A,Z,Y(\cdot),Y,U)\) on the corresponding coordinate spaces. The stratum probability \leanref{sym:px}{\ensuremath{p_x}} is \(p_x=P(X=x)\). The contaminated dose \leanref{sym:W}{\ensuremath{W}} and the centered coordinates are defined by
+\[
+W=A+\sigma Z,
+\qquad
+a_0=\tfrac12,
+\qquad
+t=A-a_0,
+\qquad
+V=W-a_0=t+\sigma Z.
+\]
+Here \leanref{sym:a0}{\ensuremath{a_0}} is the prespecified evaluation dose, \leanref{sym:T}{\ensuremath{t}} is the centered latent dose, and \leanref{sym:V}{\ensuremath{V}} is the centered observed dose. For each stratum with positive probability, \leanref{sym:gx}{\ensuremath{g_x}} denotes a Lebesgue density of the conditional law of \(t\) given \(X=x\); its existence and bounds are imposed below.
+
+The population causal target \leanref{sym:theta}{\ensuremath{\theta(P)}} is the mean potential outcome at the evaluation dose:
+\[
+\theta(P)=E_P[Y(a_0)].
+\]
+The boundedness condition below ensures that this expectation exists. To describe its stratum-specific components, define the conditional potential mean \leanref{sym:mux}{\ensuremath{\mu_x(a)}} before imposing restrictions on treatment assignment or mean smoothness.
+
+\begin{definitionv}{def:conditional-potential-mean}[Conditional potential mean \(\mu_x(a)\)]
+The conditional potential-outcome mean is
+\[
+\mu_x(a)
+=
+E_P[Y(a)\mid X=x]
+=
+\frac{E_P[\mathbf1\{X=x\}Y(a)]}{p_x},
+\qquad a\in[0,1],\quad x\in\mathcal X,\quad p_x>0.
+\]
+Here \(P\) is the structural probability law, \(X\) is the observed stratum coordinate, \(\mathcal X\) is the set of two observed strata, and
+\[
+p_x=P(X=x).
+\]
+The potential outcome \(Y(a)\) is the schedule evaluation in \cref{obj:def:potential-path-space}. Under the bounded-potential-outcome condition, the expectation exists and belongs to \([0,1]\). The model's stratum-overlap condition supplies \(p_x>0\) for both strata.
+\end{definitionv}
+
+This definition separates the causal mean from the distribution of assigned doses. We first restrict the stratum probabilities and the latent-dose distribution so that both strata contribute and the amount of dose support near the evaluation point is controlled.
+
+\begin{assumptionv}{ass:stratum-overlap}[Uniform stratum overlap]
+For a public constant \(p_{\min}\in(0,1/2]\), the stratum probabilities satisfy
+\[
+p_{\min}\le p_x\le 1-p_{\min}
+\qquad\text{for every }x\in\mathcal X.
+\]
+\end{assumptionv}
+
+The finite-stratum overlap condition gives each observed stratum a probability bounded away from zero, uniformly over the structural laws under consideration \citep{HuangZhang2023}. The public constant \(p_{\min}\) fixes that common lower bound. Treatment assignment is then restricted to a common compact interval.
+
+\begin{assumptionv}{ass:latent-support}[Latent dose support]
+The latent dose \(A\) satisfies
+\[
+A\in[0,1]\qquad\text{almost surely}.
+\]
+\end{assumptionv}
+
+Compact continuous-treatment support fixes the dose domain on which potential outcomes and their means are evaluated \citep{HuangZhang2023}. Centering this interval at \(a_0\) gives latent support \([-1/2,1/2]\). The next condition specifies how the conditional density behaves throughout that centered interval.
+
+\begin{assumptionv}{ass:weak-design}[Local design density bounds]
+For public constants \(0<c_{\mathrm{lo}}\le c_{\mathrm{hi}}\), each \(g_x\), \(x\in\mathcal X\), is a Lebesgue density satisfying
+\[
+c_{\mathrm{lo}}|t|^\kappa
+\le g_x(t)\le
+c_{\mathrm{hi}}|t|^\kappa
+\qquad\text{for almost every }t\in[-1/2,1/2].
+\]
+\end{assumptionv}
+
+Polynomially degenerate random design describes declining dose support near the evaluation point through a fixed density envelope \citep{Gaiffas2005}. For \(\kappa>0\), the upper envelope tends to zero as the latent dose approaches \(a_0\); for \(\kappa=0\), the density is bounded above and below by positive constants almost everywhere. The public constants \(c_{\mathrm{lo}}\) and \(c_{\mathrm{hi}}\) keep this comparison uniform across strata and structural laws.
+
+Mean regularity supplies the corresponding control on changes in the causal response. For a real-valued function \(f\) on \([0,1]\), define the Hölder increment seminorm and its radius-one class by
+\[
+[f]_\beta
+=
+\sup_{\substack{a,a'\in[0,1]\\a\ne a'}}
+\frac{|f(a)-f(a')|}{|a-a'|^\beta},
+\qquad
+\mathcal H^\beta([0,1])
+=
+\{f:[0,1]\to\mathbb R:[f]_\beta\le1\}.
+\]
+In particular, \([\mu_x]_\beta\) measures the regularity of the stratum-specific conditional potential mean.
+
+\begin{assumptionv}{ass:holder-mean}[Hölder conditional mean increments]
+For the potential-outcome schedules of \cref{obj:def:potential-path-space}, every stratum-specific conditional mean satisfies the radius-one Hölder increment condition
+\[
+\mu_x\in\mathcal H^\beta([0,1])
+\quad\Longleftrightarrow\quad
+|\mu_x(a)-\mu_x(a')|\le |a-a'|^\beta
+\quad\text{for all }a,a'\in[0,1],
+\qquad x\in\mathcal X.
+\]
+The class is defined by this increment condition; the unit-interval range is imposed separately.
+\end{assumptionv}
+
+The Hölder smoothness condition controls the approximation of a pointwise mean by means at nearby doses, as in pointwise estimation under a degenerate design \citep{Gaiffas2005}. Here the exponent and increment radius are fixed across the class. A separate restriction records the common range of these means.
+
+\begin{assumptionv}{ass:mean-range}[Bounded conditional potential means]
+For the potential-outcome schedules of \cref{obj:def:potential-path-space}, the conditional potential means satisfy
+\[
+0\le\mu_x(a)\le1
+\qquad\text{for every }x\in\mathcal X
+\text{ and }a\in[0,1].
+\]
+\end{assumptionv}
+
+This explicit mean-range restriction is specific to this analysis and places all conditional causal means on the unit outcome scale. It also fixes the range used by the threshold subclass introduced below. The observation channel is governed by the following two restrictions.
+
+\begin{assumptionv}{ass:gaussian-channel}[Standard Gaussian error law]
+The standardized error coordinate \(Z\) satisfies
+\[
+Z\sim N(0,1).
+\]
+\end{assumptionv}
+
+The Gaussian classical measurement error condition specifies the convolution law associated with the contaminated dose \citep{FanTruong1993}. Together with the known public scale \(\sigma\), it fixes the distribution of the additive error \(\sigma Z\), including the error-free case \(\sigma=0\). Independence specifies its relation to the structural coordinates.
+
+\begin{assumptionv}{ass:error-independence}[Classical error independence]
+The standardized error coordinate \(Z\) is independent of the observed stratum \(X\), latent dose \(A\), and potential-outcome schedule \(Y(\cdot)\):
+\[
+Z\perp(X,A,Y(\cdot)).
+\]
+\end{assumptionv}
+
+Classical independent treatment measurement error makes the same additive noise law applicable across strata, latent doses, and potential-outcome schedules \citep{HuangZhang2023}. The causal interpretation of the latent response is supplied by schedule-level conditional exchangeability, bounded outcomes, and consistency.
+
+\begin{assumptionv}{ass:conditional-unconfoundedness}[Conditional potential-outcome unconfoundedness]
+The measurable random potential-outcome schedule \(Y(\cdot)\) and latent dose \(A\) are conditionally independent given the observed stratum \(X\):
+\[
+Y(\cdot)\perp A\mid X.
+\]
+\end{assumptionv}
+
+Conditional exchangeability for individual potential outcomes is used in average dose-response estimation under measurement error \citep{HuangZhang2023}. In our model, functional conditional exchangeability requires the entire measurable potential-outcome schedule to be independent of dose assignment within each observed stratum. Its schedule-level formulation accommodates evaluation at the realized latent dose through the jointly measurable map in \cref{obj:def:potential-path-space}. Outcome boundedness provides a common scale for these evaluations.
+
+\begin{assumptionv}{ass:bounded-potential-outcomes}[Bounded potential outcomes]
+The potential outcomes in \cref{obj:def:potential-path-space} satisfy
+\[
+P\{Y(a)\in[0,1]\}=1
+\qquad
+\text{for every }a\in[0,1].
+\]
+\end{assumptionv}
+
+The bounded potential outcomes condition ensures integrability at every fixed dose and fixes the unit scale of the causal target \citep{HuangZhang2023}. It also implies the conditional mean range stated in \cref{obj:ass:mean-range}. Consistency connects the potential-outcome schedule to the realized outcome.
+
+\begin{assumptionv}{ass:consistency}[Realized outcome consistency]
+The realized outcome \(Y\) equals the potential outcome from \cref{obj:def:potential-path-space} evaluated at the latent dose \(A\):
+\[
+Y=Y(A)\qquad P\text{-almost surely}.
+\]
+\end{assumptionv}
+
+Continuous-treatment consistency assigns the observed outcome to the potential outcome at the actual latent dose \citep{HuangZhang2023}. Together, \cref{obj:ass:conditional-unconfoundedness,obj:ass:consistency} give the conditional potential mean its causal role in the latent-dose experiment.
+
+For the observed-law lower bounds, we use a subclass with explicit rank-generated schedules. The auxiliary coordinate \(U\) provides a common rank across doses; the next restrictions specify its conditional distribution and relation to treatment assignment.
+
+\begin{assumptionv}{ass:rank-uniform}[Conditional uniform rank law]
+For every \(x\in\mathcal X\), the uniform-rank coordinate \(U\) satisfies
+\[
+U\mid X=x\sim\operatorname{Unif}[0,1].
+\]
+\end{assumptionv}
+
+The conditional uniform rank law is specific to this analysis and supplies a unit-interval rank for constructing binary schedules with prescribed conditional means. Its relation to the latent dose is fixed separately.
+
+\begin{assumptionv}{ass:rank-treatment-independence}[Conditional rank–dose independence]
+The rank coordinate \(U\) and latent dose \(A\) are conditionally independent given the observed stratum \(X\):
+\[
+U\perp A\mid X.
+\]
+\end{assumptionv}
+
+Conditional rank–dose independence is specific to this analysis and permits rank-generated schedules to satisfy the maintained conditional exchangeability restriction. The schedule construction uses the same rank at every dose.
+
+\begin{assumptionv}{ass:structural-threshold}[Structural threshold schedules]
+For the random potential-outcome schedule in \cref{obj:def:potential-path-space}, let \(U\) denote the uniform-rank coordinate and \(\mu_X(a)\) the conditional potential-outcome mean at the realized stratum. With \(P\)-probability one,
+\[
+Y(a)=\mathbf 1\{U\le \mu_X(a)\}
+\qquad
+\text{simultaneously for every }a\in[0,1].
+\]
+\end{assumptionv}
+
+The structural threshold restriction is specific to this analysis and constructs an entire schedule from the conditional mean function and one rank. Its simultaneous statement ties all dose evaluations to a single measurable schedule. Under the conditional uniform rank law, each threshold has the prescribed conditional mean. The resulting subclass also satisfies the following outcome restriction.
+
+\begin{assumptionv}{ass:binary-potential-outcomes}[Binary potential outcomes]
+The potential outcomes in \cref{obj:def:potential-path-space} satisfy
+\[
+P\{Y(a)\in\{0,1\}\}=1
+\qquad
+\text{for every }a\in[0,1].
+\]
+\end{assumptionv}
+
+Average dose-response estimation under measurement error provides a related causal setting \citep{HuangZhang2023}. Binary potential outcomes provide the outcome specification for the lower-bound witnesses within our bounded-outcome causal model. The threshold construction satisfies this restriction directly.
+
+We now collect the defining restrictions into the bounded-outcome structural model class \leanref{sym:Pclass}{\ensuremath{\mathcal P_{K,\beta,\kappa,\sigma}}}. The public vector \(K\) records the common stratum-overlap and density-envelope constants.
+
+\begin{definitionv}{def:model-class}[Bounded-outcome structural model class]
+The class \(\mathcal P_{K,\beta,\kappa,\sigma}\) consists of structural laws \(P\) of \((X,A,Z,Y(\cdot),Y,U)\), where \(X\) takes values in the two observed strata \(\mathcal X\), \(A\) is the latent dose, \(Z\) is the standardized error coordinate, \(Y(\cdot)\) is the random potential-outcome schedule on the public path space of \cref{obj:def:potential-path-space}, \(Y\) is the realized outcome, and \(U\) is an auxiliary rank coordinate. The parameters \(\beta,\kappa,\sigma\in\mathbb R\) are fixed, and the public class constants satisfy
+\[
+K=(p_{\min},c_{\mathrm{lo}},c_{\mathrm{hi}}),
+\qquad
+0<p_{\min}\le \tfrac12,
+\qquad
+0<c_{\mathrm{lo}}\le c_{\mathrm{hi}}.
+\]
+Membership in the class is defined by the following conditions:
+\begin{itemize}
+\item \textbf{(Stratum overlap.)} \cref{obj:ass:stratum-overlap}.
+\item \textbf{(Latent support.)} \cref{obj:ass:latent-support}.
+\item \textbf{(Conditional design.)} \cref{obj:ass:weak-design}, with envelope constants \(c_{\mathrm{lo}},c_{\mathrm{hi}}\) and exponent \(\kappa\).
+\item \textbf{(Mean smoothness.)} \cref{obj:ass:holder-mean}, with exponent \(\beta\).
+\item \textbf{(Mean range.)} \cref{obj:ass:mean-range}.
+\item \textbf{(Gaussian channel.)} \cref{obj:ass:gaussian-channel}.
+\item \textbf{(Error independence.)} \cref{obj:ass:error-independence}.
+\item \textbf{(Conditional unconfoundedness.)} \cref{obj:ass:conditional-unconfoundedness}.
+\item \textbf{(Bounded potential outcomes.)} \cref{obj:ass:bounded-potential-outcomes}.
+\item \textbf{(Consistency.)} \cref{obj:ass:consistency}.
+\end{itemize}
+The contaminated dose \(W\) is defined by
+\[
+W=A+\sigma Z.
+\]
+The conditional potential-outcome mean functions \(\mu_x\) are defined in \cref{obj:def:conditional-potential-mean}. The lower-bound subclass additionally satisfies \cref{obj:ass:binary-potential-outcomes,obj:ass:rank-uniform,obj:ass:rank-treatment-independence,obj:ass:structural-threshold}.
+\end{definitionv}
+
+This class fixes the structural restrictions under which causal estimation is evaluated. Its lower-bound subclass supplies explicit binary threshold laws satisfying those same restrictions.
+
+An observed record \leanref{sym:O}{\ensuremath{O}} consists of \(O=(X,W,Y)\). For a sample of size \(n\), write \(O_i=(X_i,W_i,Y_i)\), \(i=0,\ldots,n-1\), for the corresponding records; this zero-based indexing is the one used by the modulo-three sample blocks of the estimator. Where a statement lists the sample as \(O_1,\ldots,O_n\), it denotes the same \(n\) records. The sampling restriction determines how their common observed law generates the statistical experiment.
+
+\begin{assumptionv}{ass:iid}[Independent and identically distributed observations]
+The observed records \(O_1,\ldots,O_n\), each consisting of the observed stratum, contaminated dose, and realized outcome, are independent and identically distributed under the structural law \(P\).
+\end{assumptionv}
+
+Independent and identically distributed sampling specifies repeated observations from the same contaminated-dose experiment \citep{HuangZhang2023}. The induced sample law \leanref{sym:Qn}{\ensuremath{Q_P^n}} is the experiment available to estimators and confidence intervals.
+
+\begin{definitionv}{def:observed-experiment}[Observed experiment \(Q_P^n\)]
+The sample observed-law experiment is
+\[
+Q_P^n=\mathcal L_P(O_1,\ldots,O_n),
+\]
+where \(O_1,\ldots,O_n\) are independent and identically distributed observed records under the structural law \(P\), each consisting of the observed stratum, contaminated dose, and realized outcome.
+\end{definitionv}
+
+Causal identification must account for both measurement error and the declining density near the target dose. \Cref{obj:prop:identification} establishes that, for common public class parameters and path space, equality of the observed-record laws determines the conditional potential means throughout the dose interval and hence the population causal target.
+
+\begin{propositionv}{prop:identification}[Identification of the causal mean]
+Fix the public potential-path space \((\mathcal S,\mathcal E)\) and evaluation map of \cref{obj:def:potential-path-space}, and public class constants \(K\) as in \cref{obj:def:model-class}. Let \(\mathcal X=\{0,1\}\) denote the two stratum labels, \(X\) the stratum coordinate, \(A\) the latent dose, \(Z\) the standardized error, and \(Y\) the realized outcome. Consider structural probability laws \(P\) and \(P'\) satisfying:
+\begin{itemize}
+\item \textbf{(Parameter ranges.)} \(\beta\in(0,1]\), \(\kappa\in[0,2]\), and \(\sigma\in[0,1/4]\).
+\item \textbf{(Common model class.)} Both laws belong to the model class of \cref{obj:def:model-class} with the same \(K,\beta,\kappa,\sigma\) and public potential-path space.
+\item \textbf{(Observed-law equality.)} Writing \(W=A+\sigma Z\) for the contaminated dose, the laws of the observed record coincide:
+\[
+\mathcal L_P(X,W,Y)=\mathcal L_{P'}(X,W,Y).
+\]
+\end{itemize}
+For either structural law, write \(p_x(P)=P(X=x)\), and let \(\mu_x(a;P)\) denote its conditional potential-outcome mean from \cref{obj:def:conditional-potential-mean}. Set \(a_0=1/2\), the target dose, and \(t=A-a_0\), the centered latent dose. Define the population causal mean by
+\[
+\theta(P)=\int Y(a_0)\,dP,
+\]
+and analogously for \(P'\).
+
+Then, for every \(x\in\mathcal X\), the stratum masses and conditional centered-dose measures agree:
+\[
+p_x(P)=p_x(P'),
+\qquad
+\mathcal L_P(A-a_0\mid X=x)
+=
+\mathcal L_{P'}(A-a_0\mid X=x).
+\]
+Their conditional latent mean measures also agree: for every Borel set \(B\subseteq\mathbb R\),
+\[
+\int_B \mu_x(t+a_0;P)\,
+        \mathcal L_P(A-a_0\mid X=x)(dt)
+=
+\int_B \mu_x(t+a_0;P')\,
+        \mathcal L_{P'}(A-a_0\mid X=x)(dt).
+\]
+Moreover,
+\[
+\mu_x(a;P)=\mu_x(a;P')
+\qquad\text{for every }a\in[0,1].
+\]
+For every integer \(j\ge0\), the shrinking neighborhood has positive conditional latent mass:
+\[
+P\!\left(
+-\frac1{j+3}<A-a_0<\frac1{j+3}
+\,\middle|\,X=x
+\right)>0,
+\]
+and its mean-measure to dose-measure ratio satisfies
+\[
+\lim_{j\to\infty}
+\frac{
+\displaystyle
+\int_{(-1/(j+3),\,1/(j+3))}
+\mu_x(t+a_0;P)\,
+\mathcal L_P(A-a_0\mid X=x)(dt)
+}{
+\displaystyle
+P\!\left(
+-\frac1{j+3}<A-a_0<\frac1{j+3}
+\,\middle|\,X=x
+\right)
+}
+=
+\mu_x(a_0;P).
+\]
+Finally,
+\[
+\theta(P)
+=
+\sum_{x\in\mathcal X}p_x(P)\mu_x(a_0;P),
+\qquad
+\theta(P)=\theta(P').
+\]
+\end{propositionv}
+
+The shrinking-neighborhood conclusion explains how the target remains identified under weak dose support. Every displayed neighborhood has positive conditional latent mass, and its mean-measure to dose-measure ratio converges to the stratum-specific causal mean at \(a_0\). Thus the pointwise target has a population interpretation through local averages even when the density envelope declines to zero near that dose. The proposition also identifies the entire conditional mean function, while its final decomposition combines the two stratum-specific target values using the identified stratum probabilities. The realized-dose identity and Gaussian convolution argument supporting these conclusions are presented in \cref{obj:lem:realized-dose-mean,obj:lem:compact-gaussian-convolution-injective}; the positive neighborhood masses and the convergence of the local ratio are proved directly in steps 3 and 4 of the proof of \cref{obj:prop:identification}.

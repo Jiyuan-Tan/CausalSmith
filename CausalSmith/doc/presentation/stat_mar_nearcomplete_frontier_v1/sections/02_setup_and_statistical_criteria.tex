@@ -1,0 +1,286 @@
+\section{Setup and statistical criteria}
+
+Throughout, \leanref{sym:n}{\ensuremath{n}} denotes the positive integer sample size, \leanref{sym:d}{\ensuremath{d}} the positive integer bound on the baseline alphabet, and \leanref{sym:q}{\ensuremath{q\in[1/2,1]}} the known outcome-arrival floor. Generic constants \(c,C>0\) may change across displays; subscripts indicate permitted dependence on fixed parameters. For nonnegative quantities, \(u\lesssim v\) means \(u\le Cv\) with the stated constant dependence, and \(u\asymp v\) means both \(u\lesssim v\) and \(v\lesssim u\). We use natural logarithms and write \(\|f\|_{p,Q}=(\mathbb E_Q|f|^p)^{1/p}\) for \(1\le p<\infty\). Baseline indices range over \(x=0,\ldots,d-1\), binary indices over \(a,s\in\{0,1\}\), and sample indices over \(i=1,\ldots,n\).
+
+The statistical experiment observes \((X,A,S,R,RY)\): \(X\) is the baseline category, \(A\) treatment, \(S\) the realized surrogate, \(R\) outcome-arrival status, and \(RY\) the observed outcome mark. The argument below uses this observed experiment, the law class, the treatment-effect target, and the two minimax criteria. The next three definitions record the finite coordinate representation and observation map needed to connect those statistical objects to the potential-outcome assumptions.
+
+\begin{definitionv}{synth_3}[Baseline and potential coordinates]
+A potential-data atom consists of a baseline category \(X\), binary potential surrogate measurements \(S(0),S(1)\), and binary potential outcomes \(Y(0),Y(1)\). For a nonnegative integer \(d\), its coordinates range over
+\[
+X\in\{0,\ldots,d-1\},
+\qquad
+(S(0),S(1),Y(0),Y(1))\in\{0,1\}^{4},
+\]
+where the baseline domain is empty when \(d=0\). The collection of all such atoms is finite and has decidable equality.
+\end{definitionv}
+
+\begin{definitionv}{synth_4}[Full-data atom coordinates]
+A full-data atom, parameterized by a nonnegative integer \(d\), consists of the baseline category \(X\), the potential surrogates \(S(0),S(1)\), the potential outcomes \(Y(0),Y(1)\), the treatment indicator \(A\), the realized surrogate \(S\), the realized outcome \(Y\), and the outcome-arrival indicator \(R\). Its coordinates range over
+\[
+\bigl(X,S(0),S(1),Y(0),Y(1),A,S,Y,R\bigr)
+\in \{0,\ldots,d-1\}\times\{0,1\}^{8},
+\]
+where the baseline set is empty when \(d=0\). The realized coordinates \(S,Y\) are separate from the potential coordinates; every tuple in the displayed Cartesian product is a full-data atom.
+\end{definitionv}
+
+\begin{definitionv}{synth_2}[Observed records and space]
+The observed-record space \(O\) consists of tuples
+\[
+O=(X,A,S,R,RY)\in \{0,\ldots,d-1\}\times\{0,1\}^{4},
+\]
+where \(d\) is a nonnegative integer and the baseline-label set is empty when \(d=0\). The coordinates are the baseline category \(X\), treatment indicator \(A\), realized surrogate \(S\), outcome-arrival indicator \(R\), and observed outcome mark \(RY\). Each of the last four coordinates is binary. The record space is finite and is equipped with the discrete \(\sigma\)-algebra, so every subset is measurable.
+\end{definitionv}
+
+The potential coordinates describe measurements under control and treatment \citep{Rubin1974}; consistency restricts realized measurements to the assigned arm. The observed record \leanref{sym:O}{\ensuremath{O}} is obtained from a full-data atom by the observation map
+\[
+\bigl(X,S(0),S(1),Y(0),Y(1),A,S,Y,R\bigr)
+\longmapsto (X,A,S,R,RY).
+\]
+Given the full-data probability law \leanref{sym:P}{\ensuremath{P}}, specified in \cref{obj:synth_1}, let \(P_O\) denote its image under this map. When \(R=0\), the baseline category, treatment assignment, surrogate, and arrival indicator remain observed, while the outcome mark \(RY\) equals zero. Retaining \(R\) distinguishes a missing outcome from an arrived outcome equal to zero. When \(R=1\), the outcome mark equals \(Y\). Thus the induced law is supported on records whose fifth coordinate is zero whenever their fourth coordinate is zero, within the Cartesian record space of \cref{obj:synth_2}. We use \(O^n\) for the Cartesian space of \(n\) records and \(P_O^{\otimes n}\) for their independent product law.
+
+The statistical model combines independent sampling with restrictions on treatment assignment, realized measurements, and outcome arrival. The sampling condition is stated directly for the observed records.
+
+\begin{assumptionv}{ass:iid}[Independent observed sampling]
+The observed records \(O_1,\ldots,O_n\), with sample size \(n\), are independent and identically distributed under the observed-data law \(P_O\):
+\[
+O_1,\ldots,O_n\stackrel{\mathrm{iid}}{\sim}P_O.
+\]
+\end{assumptionv}
+
+Independent superpopulation sampling makes \(P_O^{\otimes n}\) the statistical experiment and supplies the common population law underlying the risk and coverage criteria \citep{vanDerVaart1998}. Treatment assignment obeys two complementary design restrictions: independence from pretreatment and potential measurements, and a known probability of assignment to each arm.
+
+\begin{assumptionv}{ass:randomized-independence}[Randomized treatment independence]
+The treatment indicator \(A\) is independent of the baseline category \(X\), the potential surrogates \(S(0),S(1)\), and the potential outcomes \(Y(0),Y(1)\):
+\[
+A\perp \bigl(X,S(0),S(1),Y(0),Y(1)\bigr).
+\]
+\end{assumptionv}
+
+Randomized treatment assignment gives the treatment and control arms the same population distribution of baseline and potential measurements; assignment by an independent random draw satisfies this condition by design \citep{ImbensRubin2015}. We specialize its assignment probability as follows.
+
+\begin{assumptionv}{ass:balanced-randomization}[Balanced treatment assignment]
+Under the full-data law \(P\), the treatment indicator \(A\) satisfies
+\[
+P(A=1)=\frac12.
+\]
+\end{assumptionv}
+
+Balanced Bernoulli randomization fixes both arm probabilities at one half, while allowing the realized treatment counts to vary across samples \citep{ImbensRubin2015}. To connect the assignment mechanism to the measured surrogate and primary outcome, we impose consistency.
+
+\begin{assumptionv}{ass:consistency}[Consistency of realized measurements]
+The realized surrogate \(S\) and outcome \(Y\) equal the potential measurements selected by the treatment indicator \(A\):
+\[
+(S,Y)=(S(A),Y(A)).
+\]
+\end{assumptionv}
+
+Consistency of observed and potential measurements ensures that each arm reveals the measurements corresponding to its assigned treatment \citep{KallusMao2025}. Outcome arrival may depend on that treatment and on the realized surrogate. Its relationship to the primary outcome is governed by conditional independence.
+
+\begin{assumptionv}{ass:mar}[Conditionally independent outcome arrival]
+The outcome-arrival indicator \(R\) is conditionally independent of the realized outcome \(Y\), given the baseline category \(X\), treatment indicator \(A\), and realized surrogate \(S\):
+\[
+R\perp Y\mid(X,A,S).
+\]
+\end{assumptionv}
+
+Surrogate-assisted missing at random makes arrived outcomes representative of their baseline--treatment--surrogate cell \citep{KallusMao2025}. The condition is appropriate, for example, when primary-outcome collection is randomized using information already recorded in those coordinates. It permits arrival probabilities to differ across cells and uses the surrogate as an observed conditioning variable.
+
+We now specify the full-data law and the cellwise quantities that connect these conditions to the population target.
+
+\begin{definitionv}{synth_1}[Full-data probability law]
+The full-data law \(P\) is a probability mass function on full-data atoms of covariate dimension \(d\), where \(d\) is a nonnegative integer. Each atom consists of a potential-data record and separate binary coordinates \(A,S,Y,R\), representing treatment, the realized surrogate, the realized outcome, and outcome arrival, respectively.
+\end{definitionv}
+
+For this law, the population average treatment effect \leanref{sym:tau}{\ensuremath{\tau(P)}} is
+\[
+\tau(P)=\mathbb E_P\!\left[Y(1)-Y(0)\right].
+\]
+Binary potential outcomes place the target in \([-1,1]\). The observed law \(P_O\) is the image of \(P\) under the observation map above. Expectations of procedures based on the observed sample are consequently taken under \(P_O^{\otimes n}\), even when written as \(\mathbb E_P\).
+
+Identification also requires arrived outcomes in every occupied conditioning cell. The next definition fixes the conditional quantities and their values on null cells before we impose an arrival floor.
+
+\begin{definitionv}{synth_5}[Cellwise arrival probability $\rho_P$ and outcome mean $\mu_P$]
+In the setting of \cref{obj:ass:iid,obj:ass:randomized-independence,obj:ass:balanced-randomization,obj:ass:consistency,obj:ass:mar,obj:ass:arrival-floor,obj:def:law-class,obj:def:identified-functional,obj:def:rate,obj:def:point-risk,obj:def:interval-class,obj:def:length-risk,obj:def:mm-estimator,obj:def:mm-interval,obj:def:paired-prior-handle,obj:lem:identification-infrastructure,obj:lem:upper-risk,obj:lem:parametric-floor-infrastructure,obj:lem:prior-reduction,obj:lem:honest-interval-construction,obj:thm:point-frontier,obj:thm:interval-frontier,obj:prop:complete-arrival-reduction,obj:thm:normalized-converse,obj:synth_1,obj:synth_2,obj:synth_3,obj:synth_4,obj:synth_6}, define the cellwise arrival probability and arrived-outcome conditional mean by
+\[
+\rho_P(x,a,s)=
+\begin{cases}
+P(R=1\mid X=x,A=a,S=s),
+& P(X=x,A=a,S=s)>0,\\
+0,
+& P(X=x,A=a,S=s)=0,
+\end{cases}
+\]
+and
+\[
+\mu_P(x,a,s)=
+\begin{cases}
+\mathbb E_P[Y\mid X=x,A=a,S=s,R=1],
+& P(X=x,A=a,S=s,R=1)>0,\\
+0,
+& P(X=x,A=a,S=s,R=1)=0.
+\end{cases}
+\]
+Here \(P\) is a full-data law, \(X\in\{0,\ldots,d-1\}\) is the baseline cell, \(A\in\{0,1\}\) is the treatment assignment, \(S\in\{0,1\}\) is the observed surrogate, \(R\in\{0,1\}\) is the outcome-arrival indicator, and \(Y\in\{0,1\}\) is the realized primary outcome. The definitions apply to every \((x,a,s)\in\{0,\ldots,d-1\}\times\{0,1\}^2\).
+\end{definitionv}
+
+The cellwise arrival probability \leanref{sym:rho}{\ensuremath{\rho_P(x,a,s)}} and arrived-outcome mean \leanref{sym:mu}{\ensuremath{\mu_P(x,a,s)}} are therefore defined for every cell. Their zero conventions assign values to conditional quantities at null events. The positivity restriction concerns cells with positive probability.
+
+\begin{assumptionv}{ass:arrival-floor}[Cellwise outcome-arrival floor]
+For every cell \((x,a,s)\) with positive probability under the full-data law \(P\), the cellwise arrival probability \(\rho_P(x,a,s)\) is at least the arrival floor \(q\):
+\[
+P(X=x,A=a,S=s)>0
+\quad\Longrightarrow\quad
+\rho_P(x,a,s)\ge q.
+\]
+\end{assumptionv}
+
+The known uniform MAR positivity floor is the finite-cell specialization of the outcome-observation overlap condition \citep{KallusMao2025}. It ensures positive arrived mass in each occupied cell and quantifies how much primary-outcome information is retained there. The floor is a bound on the cellwise probabilities; the probabilities themselves may vary across cells. Combining it with the design and missingness conditions gives the law class over which statistical performance is evaluated.
+
+\begin{definitionv}{def:law-class}[Law class \(\mathcal M(d,q)\)]
+\[
+\mathcal M(d,q)
+=
+\left\{
+P:
+|\operatorname{supp}_P(X)|\le d,\;
+P\text{ satisfies }
+\cref{obj:ass:randomized-independence,obj:ass:balanced-randomization,obj:ass:consistency,obj:ass:mar,obj:ass:arrival-floor}
+\right\}.
+\]
+Here \(d\) is a positive integer, \(q\in[1/2,1]\) is the known cellwise arrival floor, and \(\operatorname{supp}_P(X)\) is the set of baseline labels with positive probability under \(P\).
+\end{definitionv}
+
+The law class \leanref{sym:M_dq}{\ensuremath{\mathcal M(d,q)}} allows arbitrary baseline masses and arbitrary binary potential-measurement distributions subject to the stated restrictions. In particular, occupied baseline labels may have small probability. At \(q=1\), every occupied cell has complete outcome arrival. The coordinate definitions also specify an empty-alphabet convention at \(d=0\); the minimax analysis uses positive \(d\).
+
+Within this class, the population treatment effect can be expressed entirely through the observed law. The identifying functional weights arrived-outcome means by each arm's distribution of baseline and surrogate measurements.
+
+\begin{definitionv}{def:identified-functional}[Observed-data identifying functional]
+The observed-data functional is
+\[
+\Psi(P_O)
+=
+\sum_{x=0}^{d-1}\sum_{s=0}^{1}
+\left\{
+\frac{P_O(X=x,A=1,S=s)}{P_O(A=1)}\mu_P(x,1,s)
+-
+\frac{P_O(X=x,A=0,S=s)}{P_O(A=0)}\mu_P(x,0,s)
+\right\},
+\]
+for any nonnegative integer \(d\) and any observed-record probability law \(P_O\) on
+\[
+O=\{0,\ldots,d-1\}\times\{0,1\}^{4},
+\]
+with coordinates \((X,A,S,R,RY)\). The baseline-label set and the outer sum are empty when \(d=0\). The arrived-outcome mean is defined by
+\[
+\mu_P(x,a,s)
+=
+\frac{P_O(X=x,A=a,S=s,R=1,RY=1)}
+     {P_O(X=x,A=a,S=s,R=1)},
+\qquad a,s\in\{0,1\}.
+\]
+Every ratio with zero denominator is assigned the value zero. Thus each weighted contribution is zero whenever \(P_O(X=x,A=a,S=s)=0\).
+\end{definitionv}
+
+The observed-data functional \leanref{sym:Psi}{\ensuremath{\Psi(P_O)}} identifies \(\tau(P)\) for \(P\in\mathcal M(d,q)\), as established in \cref{obj:lem:identification-infrastructure}. Balanced randomization gives positive arm probabilities, and the arrival floor gives positive arrived mass in every occupied cell. The zero-denominator convention handles the remaining null cells. The resulting finite-cell expression corresponds to the nested-regression identification formula of \href{https://academic.oup.com/jrsssb/article/87/2/480/7829031}{\citet[Lemma~1.1, equation~(10), under Assumptions~1--3]{KallusMao2025}}, specialized here to balanced randomized assignment, binary measurements, and finite baseline support.
+
+Having fixed the target and observed experiment, we evaluate point estimation by worst-law squared error. Procedures are defined on the entire Cartesian sample space and take values in the treatment-effect range.
+
+\begin{definitionv}{synth_6}[Measurable estimator class $\mathcal T_n$]
+For integers \(n,d\ge1\), define the measurable estimator class by
+\[
+\mathcal T_n
+=
+\left\{
+T:\bigl(\{0,\ldots,d-1\}\times\{0,1\}^4\bigr)^n
+\longrightarrow[-1,1]
+:\ T\text{ is measurable}
+\right\}.
+\]
+Here the observed record \(O=(X,A,S,R,RY)\) takes values in the Cartesian observed-record space \(\{0,\ldots,d-1\}\times\{0,1\}^4\), with the baseline-label convention of \cref{obj:synth_2}. Thus each \(T\in\mathcal T_n\) is defined on every sample in this Cartesian space and takes values in the treatment-effect range \([-1,1]\), in the setting of \cref{obj:ass:iid,obj:ass:randomized-independence,obj:ass:balanced-randomization,obj:ass:consistency,obj:ass:mar,obj:ass:arrival-floor,obj:def:law-class,obj:def:identified-functional,obj:def:rate,obj:def:point-risk,obj:def:interval-class,obj:def:length-risk,obj:def:mm-estimator,obj:def:mm-interval,obj:def:paired-prior-handle,obj:lem:identification-infrastructure,obj:lem:upper-risk,obj:lem:parametric-floor-infrastructure,obj:lem:prior-reduction,obj:lem:honest-interval-construction,obj:thm:point-frontier,obj:thm:interval-frontier,obj:prop:complete-arrival-reduction,obj:thm:normalized-converse,obj:synth_1,obj:synth_3,obj:synth_4,obj:synth_5}.
+\end{definitionv}
+
+The estimator class \leanref{sym:T_n}{\ensuremath{\mathcal T_n}} permits any measurable use of the retained information. Since the sample space is finite with its discrete \(\sigma\)-algebra, every map into \([-1,1]\) is measurable. Taking the worst risk over the law class and then optimizing over procedures defines the point-estimation criterion.
+
+\begin{definitionv}{def:point-risk}[Minimax squared-error risk \(\mathfrak R^*_{n,d,q}\)]
+\[
+\mathfrak R^*_{n,d,q}
+=
+\inf_{T\in\mathcal T_n}
+\sup_{P\in\mathcal M(d,q)}
+\mathbb E_P
+\left[
+\left\{
+T(O_1,\ldots,O_n)-\tau(P)
+\right\}^2
+\right].
+\]
+\end{definitionv}
+
+The minimax squared-error risk \leanref{sym:Rstar}{\ensuremath{\mathfrak R^*_{n,d,q}}} measures the smallest worst-law mean squared error attainable from \(n\) observed records. The order of optimization requires one procedure to perform across the entire law class at the specified sample size, support bound, and arrival floor.
+
+For inference, fix a noncoverage level \leanref{sym:alpha}{\ensuremath{\alpha\in(0,1/2)}}. We require connected intervals with coverage at least \(1-\alpha\) uniformly over the same class.
+
+\begin{definitionv}{def:interval-class}[Honest connected confidence intervals]
+The class \(\mathcal C_\alpha(n,d,q)\), for nonnegative integers \(n,d\) and real parameters \(q,\alpha\), is defined using the observed-record space \(O\) with the baseline-label convention of \cref{obj:synth_2}. It consists of procedures \(I(o)=[L(o),U(o)]\) with measurable endpoints satisfying
+\[
+-1\le L(o)\le U(o)\le1
+\qquad\text{for every }o\in O^n,
+\]
+and uniform coverage:
+\[
+\mathcal C_\alpha(n,d,q)
+=
+\left\{
+I:
+P_O^{\otimes n}\!\left\{
+o\in O^n:\tau(P)\in[L(o),U(o)]
+\right\}\ge1-\alpha
+\quad\text{for every }P\in\mathcal M(d,q)
+\right\}.
+\]
+Here \(\mathcal M(d,q)\) is the law class in \cref{obj:def:law-class}, and \(\tau(P)=\mathbb E_P[Y(1)-Y(0)]\) is the superpopulation average treatment effect. For \(q\in[1/2,1]\) and \(P\in\mathcal M(d,q)\), \cref{obj:lem:identification-infrastructure} gives \(\tau(P)=\Psi(P_O)\), with \(\Psi\) defined in \cref{obj:def:identified-functional}.
+\end{definitionv}
+
+The honest interval class \leanref{sym:C_alpha}{\ensuremath{\mathcal C_\alpha(n,d,q)}} imposes a finite-sample coverage requirement for every law in \(\mathcal M(d,q)\). Its endpoints define a closed connected subset of \([-1,1]\) on every possible sample. The fixed interval \([-1,1]\) belongs to the class, so the coverage requirement is feasible. Among honest procedures, expected length measures precision.
+
+\begin{definitionv}{def:length-risk}[Minimax expected length \(\mathfrak L^*_{n,d,q,\alpha}\)]
+\[
+\mathfrak L^*_{n,d,q,\alpha}
+=
+\inf_{I\in\mathcal C_\alpha(n,d,q)}
+\sup_{P\in\mathcal M(d,q)}
+\mathbb E_P
+\left[
+\operatorname{length}\{I(O^n)\}
+\right].
+\]
+For \(I(O^n)=[L,U]\), its length is \(U-L\).
+\end{definitionv}
+
+The minimax expected length \leanref{sym:Lstar}{\ensuremath{\mathfrak L^*_{n,d,q,\alpha}}} is the smallest worst-law expected interval length compatible with uniform coverage. Both criteria use the full observed record: missing-outcome observations contribute their baseline category, treatment, surrogate, and arrival status to any admissible procedure.
+
+A common benchmark will express the dependence of these criteria on sample size, baseline dimension, and outcome arrival. Define the logarithmic sample-size factor \leanref{sym:ell}{\ensuremath{\ell_n}} and the arrival-deficit-weighted dimension scale \leanref{sym:g_ndq}{\ensuremath{g_{n,d,q}}} by
+\[
+\ell_n=\log(e+n),
+\qquad
+g_{n,d,q}=(1-q)\min\left\{1,\frac{d}{n\ell_n}\right\}.
+\]
+These quantities give the following squared-error benchmark.
+
+\begin{definitionv}{def:rate}[Squared-error benchmark \(r_{n,d,q}\)]
+\[
+r_{n,d,q}
+=
+\frac{1}{n}
++
+(1-q)^2
+\min\left\{
+1,
+\left[\frac{d}{n\log(e+n)}\right]^2
+\right\}
+=
+\frac{1}{n}+g_{n,d,q}^2.
+\]
+\end{definitionv}
+
+The benchmark \leanref{sym:r_ndq}{\ensuremath{r_{n,d,q}}} combines a sampling term with a dimension term weighted by the outcome-arrival deficit. Its dimension component is bounded by \((1-q)^2\) and vanishes at complete arrival. The comparisons in \cref{obj:thm:point-frontier,obj:thm:interval-frontier} relate minimax squared error to \(r_{n,d,q}\) and minimax honest expected length to its square root, respectively.

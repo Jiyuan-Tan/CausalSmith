@@ -1,0 +1,462 @@
+\section{Setup and estimands}
+
+We observe a \leanref{S-1}{single trajectory} from a finite partially observed Markov decision process. Throughout, \leanref{sym:T}{\ensuremath{T}} denotes the trajectory horizon, \(\|\cdot\|_{\mathrm{TV}}\) is total variation distance, and all index ranges are the finite ranges displayed in the definitions below. Generic constants may depend on the primitive radius and mixing parameters explicitly named in a result, while the minimax statements are uniform over finite observed and latent cardinalities. Asymptotic notation is used only for the horizon regime governed by the fixed parameters in the displayed model classes.
+
+The finite alphabets are the observed state space \leanref{sym:\mathcal X}{\ensuremath{\mathcal X}}, the latent state space \leanref{sym:\mathcal H}{\ensuremath{\mathcal H}}, and the binary action set \leanref{sym:\mathcal A}{\ensuremath{\mathcal A}}. The joint state \leanref{sym:S_t}{\ensuremath{S_t}} has observed coordinate \leanref{sym:X_t}{\ensuremath{X_t}} and latent coordinate \leanref{sym:H_t}{\ensuremath{H_t}}; the action and reward are \leanref{sym:A_t}{\ensuremath{A_t}} and \leanref{sym:Y_t}{\ensuremath{Y_t}}. The behavior policy \leanref{sym:b}{\ensuremath{b}} generates the data, the target policy \leanref{sym:e}{\ensuremath{e}} defines the counterfactual policy value, and the one-step law \leanref{sym:K}{\ensuremath{K}} governs rewards and successor states.
+
+\begin{definitionv}{synth_8}[Policy-overlap factor]
+For a real parameter \(\zeta\), define the policy-overlap constant \(L\) by
+\[
+L(\zeta)=\exp(\zeta).
+\]
+\end{definitionv}
+
+The positive log-overlap scale \leanref{sym:\zeta}{\ensuremath{\zeta}} parameterizes the policy-overlap constant \leanref{sym:L}{\ensuremath{L}}. Larger values allow the target policy to place relatively more mass on actions that are less common under the behavior policy.
+
+\begin{definitionv}{synth_3}[Full finite trajectory]
+For natural numbers \(T,n_X,n_H\), a full trajectory of length \(T\) is a pair
+\[
+\bigl((S_t)_{t\in\{0,\ldots,T\}},((A_t,Y_t))_{t\in\{0,\ldots,T-1\}}\bigr)
+\in
+\bigl(\{0,\ldots,n_X-1\}\times \{0,\ldots,n_H-1\}\bigr)^{\{0,\ldots,T\}}
+\times
+\bigl(\{\mathrm{false},\mathrm{true}\}\times \mathbb R\bigr)^{\{0,\ldots,T-1\}} .
+\]
+Here \(S_t=(X_t,H_t)\) is the observed--latent joint state at state time \(t\), with observed coordinate \(X_t\in\{0,\ldots,n_X-1\}\) and latent coordinate \(H_t\in\{0,\ldots,n_H-1\}\). At transition time \(t\), \(A_t\in\{\mathrm{false},\mathrm{true}\}\) is the Boolean action and \(Y_t\in\mathbb R\) is the reward; when actions are written numerically, \(\mathrm{false}\) is identified with \(0\) and \(\mathrm{true}\) with \(1\).
+\end{definitionv}
+
+The full trajectory records both the observed and latent coordinates. The econometrician observes only the observed coordinate, action, and reward, but the structural restrictions are most compactly stated on the finite observed--latent state process.
+
+The next group of conditions specifies the controlled Markov experiment and the way actions enter the observed-data law.
+
+\begin{assumptionv}{ass:pomdp-kernel}[Markov kernel]
+For each \(t=0,\ldots,T-1\),
+\[
+\mathcal L(Y_t,X_{t+1},H_{t+1}\mid X_{0:t},H_{0:t},A_{0:t},Y_{0:t-1})
+=
+K(\cdot\mid X_t,H_t,A_t).
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:pomdp-kernel} is the time-homogeneous POMDP condition used in Model 3 of \citet{HuWager2023}. It makes the current joint state and action sufficient for the next reward and state transition, so the latent coordinate carries the unobserved predictive information.
+
+\begin{definitionv}{synth_1}[Memoryless binary policy carrier]
+For \(n_X\in\mathbb N\), a memoryless policy on an observed-state alphabet of size \(n_X\) is a function
+\[
+p:\{0,\ldots,n_X-1\}\times\{\mathrm{false},\mathrm{true}\}\to\mathbb R .
+\]
+When the action alphabet is written as \(\mathcal A=\{0,1\}\), we identify \(\mathrm{false}\) with \(0\) and \(\mathrm{true}\) with \(1\). This is a carrier only: no nonnegativity and no normalization is imposed here. The probability-vector restrictions on the behavior and target carriers are imposed later, on \(b\) in \cref{obj:ass:sequential-ignorability} and on \(e\) in \cref{obj:ass:policy-overlap}.
+\end{definitionv}
+
+Memoryless policies depend on the observed coordinate rather than on the latent state. This matches the information set of the policy comparison: both the behavior and target policies are revealed functions of observed state and action. The object just defined is only the carrier for such a function; that the behavior carrier \(b\) and the target carrier \(e\) are genuine action distributions is a restriction imposed by the assumptions below, on \(b\) in \cref{obj:ass:sequential-ignorability} and on \(e\) in \cref{obj:ass:policy-overlap}.
+
+\begin{assumptionv}{ass:sequential-ignorability}[Observed-state sequential ignorability]
+Identify the numeric action alphabet \(\mathcal A=\{0,1\}\) with the Boolean action set by \(0\leftrightarrow \mathrm{false}\) and \(1\leftrightarrow \mathrm{true}\). The behavior carrier \(b\) is a probability vector at each observed state,
+\[
+b(a\mid x)\ge 0
+\quad\text{for all }x\in\mathcal X,\ a\in\mathcal A,
+\qquad
+\sum_{a\in\mathcal A} b(a\mid x)=1
+\quad\text{for all }x\in\mathcal X.
+\]
+For every \(t\in\{0,\ldots,T-1\}\), the joint law of the state-and-epoch history strictly before \(t\), the current joint state \((X_t,H_t)\), and the current action \(A_t\) factors as the law of that history and current joint state followed by the behavior kernel evaluated at the current observed state:
+\[
+\mathbb P\!\left\{
+\bigl((X_s,H_s)_{s<t},(A_s,Y_s)_{s<t},(X_t,H_t),A_t\bigr)\in dh\,da
+\right\}
+=
+\mathbb P\!\left\{
+\bigl((X_s,H_s)_{s<t},(A_s,Y_s)_{s<t},(X_t,H_t)\bigr)\in dh
+\right\}
+\, b(da\mid X_t(h)).
+\]
+Equivalently, for every \(a\in\mathcal A\) and every \(t\in\{0,\ldots,T-1\}\),
+\[
+\Pr\!\left(A_t=a\mid X_{0:t},H_{0:t},A_{0:t-1},Y_{0:t-1}\right)
+=
+b(a\mid X_t).
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:sequential-ignorability} is the observed-state sequential ignorability and randomization condition in \citet{HuWager2023}. Conditional on the current observed state, action assignment follows the behavior policy even when the latent coordinate affects future rewards and states.
+
+\begin{definitionv}{synth_4}[Policy transition operator]
+For a raw experiment \(M\) with one-step kernel \(K\), a memoryless policy \(p\), and joint states \(s=(x,h)\) and \(s'\), define the policy-induced transition operator \(P_p\) by
+\[
+P_p(s,s')
+:=
+\sum_{a\in\{0,1\}}
+p(a\mid x)\,
+K\bigl(\{(r,\widetilde s): \widetilde s=s'\}\mid s,a\bigr).
+\]
+\end{definitionv}
+
+The policy-induced transition operator \leanref{sym:P_p}{\ensuremath{P_p}} is the reward-marginalized Markov kernel on joint states obtained after averaging actions under policy \(p\). It is the transition law used to define stationarity and mixing under both the behavior and target policies.
+
+\begin{definitionv}{synth_2}[Joint-state alphabet]
+For natural numbers \(n_X\) and \(n_H\), the finite observed--latent joint-state alphabet is
+\[
+\mathcal S(n_X,n_H)
+:=
+\{i\in\mathbb N: 0\le i<n_X\}
+\times
+\{j\in\mathbb N: 0\le j<n_H\}.
+\]
+\end{definitionv}
+
+The joint alphabet \leanref{sym:\mathcal S}{\ensuremath{\mathcal S}} is finite but otherwise unrestricted. This cardinality-uniform formulation lets the risk statements range over both observed and latent state complexities.
+
+\begin{definitionv}{synth_9}[Behavior and target stationary joint-state laws]
+For a memoryless policy \(p\in\{b,e\}\), let \(P_p\) be the policy-induced Markov kernel on the joint state space \(\mathcal S=\mathcal X\times\mathcal H\). Define \(d_p\in\Delta(\mathcal S)\) to be the stationary joint-state law satisfying
+\[
+d_pP_p=d_p .
+\]
+We write \(d_b\) for the behavior-policy stationary joint-state law and \(d_e\) for the target-policy stationary joint-state law.
+\end{definitionv}
+
+The stationary law \leanref{sym:d_p}{\ensuremath{d_p}} provides the population distribution attached to a fixed memoryless policy. In particular, \(d_b\) describes the stationary behavior experiment, while \(d_e\) supplies the stationary target distribution in the value estimand.
+
+We now impose the remaining restrictions that define the population experiment analyzed below.
+
+\begin{assumptionv}{ass:stationary-start}[Stationary start]
+The initial joint state \(S_0\) has the behavior stationary law \(d_b\):
+\[
+S_0\sim d_b.
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:stationary-start} is the behavior-stationary initialization condition in \citet{HuWager2023}. It aligns the observed trajectory with the stationary behavior distribution from the first period.
+
+\begin{assumptionv}{ass:bounded-reward}[Bounded rewards]
+For each \(t=0,\ldots,T-1\),
+\[
+\Pr(|Y_t|\le 1)=1.
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:bounded-reward} is the uniformly bounded rewards condition in \citet{HuWager2023}. The common \([-1,1]\) scale fixes the squared-error normalization used in the minimax risk.
+
+\begin{assumptionv}{ass:policy-overlap}[Policy overlap]
+The target carrier \(e\) is a probability vector at each observed state,
+\[
+e(a\mid x)\ge 0
+\quad\text{for all }x\in\mathcal X,\ a\in\mathcal A,
+\qquad
+\sum_{a\in\mathcal A} e(a\mid x)=1
+\quad\text{for all }x\in\mathcal X,
+\]
+and for every \((a,x)\in\mathcal A\times\mathcal X\) the policy-overlap constant \(L\) satisfies
+\[
+e(a\mid x)\le L b(a\mid x).
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:policy-overlap} is the uniform one-step policy overlap condition in \citet{HuWager2023}. It bounds observable action likelihood ratios state by state, which is the primitive overlap control for partial-history weighting, and it also records that the target policy is a genuine action distribution at every observed state, which is what makes the one-step ratios average to one.
+
+\begin{definitionv}{synth_7}[Derived contraction factor]
+For any real \(t_0\), define the contraction parameter \(\alpha\) by
+\[
+\alpha := \exp\!\left(-\frac{1}{t_0}\right).
+\]
+\end{definitionv}
+
+The positive mixing scale \leanref{sym:t_0}{\ensuremath{t_0}} determines the contraction parameter \leanref{sym:\alpha}{\ensuremath{\alpha}}. Smaller \(\alpha\) corresponds to faster geometric forgetting in total variation distance.
+
+\begin{assumptionv}{ass:uniform-contraction}[Uniform contraction]
+For every \((p,\nu,\nu')\in\{b,e\}\times\Delta(\mathcal S)^2\), the contraction parameter \(\alpha\) and the policy-induced transition operator \(P_p\) satisfy
+\[
+\|\nu P_p-\nu'P_p\|_{\mathrm{TV}}
+\le
+\alpha\|\nu-\nu'\|_{\mathrm{TV}}.
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:uniform-contraction} is the uniform geometric total-variation contraction condition in \citet{HuWager2023}. It supplies a common mixing rate for the behavior and target policy kernels on the joint state space.
+
+\begin{assumptionv}{ass:latent-stationary-overlap}[Latent stationary overlap]
+For the overlap constant \(C\) and experiment \(M\), the latent stationary overlap condition holds when \(C\ge 1\) and, writing \(d_e\) and \(d_b\) for the stationary laws of the target-policy and behavior-policy joint-state transition kernels, respectively,
+\[
+d_e(s)\le C\,d_b(s),
+\qquad s\in\mathcal S .
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:latent-stationary-overlap} is the strong stationary distributional overlap condition imposed on the unobserved joint state. The stationary density-ratio bound \leanref{sym:C}{\ensuremath{C}} relates the target and behavior stationary laws over the full finite state space, including the latent coordinate.
+
+The observed-data object is a trajectory of observed coordinates, actions, and rewards. The next definitions collect the seven restrictions into the model class and define the value and risks used in the main results.
+
+\begin{definitionv}{synth_12}[Observable trajectory space]
+For a horizon \(T\) and observed-state cardinality \(n_X\), define the observable trajectory space \(\mathsf O_T\) by
+\[
+\mathsf O_T
+=
+\{0,\ldots,T-1\}\to
+\bigl(\{0,\ldots,n_X-1\}\times\{0,1\}\times\mathbb R\bigr).
+\]
+Thus an element of \(\mathsf O_T\) records, at each epoch \(t<T\), the observed coordinate \(X_t\), the binary action \(A_t\), and the real reward \(Y_t\). Equivalently, it is the sequence \(((X_t,A_t,Y_t))_{t=0}^{T-1}\).
+\end{definitionv}
+
+The observable trajectory space \leanref{sym:\mathsf O_T}{\ensuremath{\mathsf O_T}} is the statistical sample space for estimators. It keeps the latent path out of the estimator input while retaining the observed policy information \(b\) and \(e\).
+
+\begin{definitionv}{synth_11}[Model-class assumption predicates]
+For an observable-data POMDP experiment \((\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))\) with \(\mathcal S=\mathcal X\times\mathcal H\), \(\mathcal A=\{0,1\}\), policy-induced kernels \(P_p\), stationary laws \(d_p\), \(\alpha=\exp(-1/t_0)\), and \(L=\exp(\zeta)\), write
+\[
+\mathrm A_{\mathrm{pomdp}},\quad
+\mathrm A_{\mathrm{ign}},\quad
+\mathrm A_{\mathrm{start}},\quad
+\mathrm A_{\mathrm{reward}},\quad
+\mathrm A_{\mathrm{act}},\quad
+\mathrm A_{\mathrm{mix}},\quad
+\mathrm A_{\mathrm{stat}}
+\]
+for the following seven restrictions, respectively:
+\[
+\mathcal L(Y_t,X_{t+1},H_{t+1}\mid X_{0:t},H_{0:t},A_{0:t},Y_{0:t-1})
+=
+K(\cdot\mid X_t,H_t,A_t),
+\qquad t=0,\ldots,T-1,
+\]
+as in \cref{obj:ass:pomdp-kernel};
+\[
+\Pr(A_t=a\mid X_{0:t},H_{0:t},A_{0:t-1},Y_{0:t-1})
+=
+b(a\mid X_t),
+\qquad (a,t)\in\mathcal A\times\{0,\ldots,T-1\},
+\]
+as in \cref{obj:ass:sequential-ignorability};
+\[
+S_0\sim d_b,
+\]
+as in \cref{obj:ass:stationary-start};
+\[
+\Pr(|Y_t|\le1)=1,
+\qquad t=0,\ldots,T-1,
+\]
+as in \cref{obj:ass:bounded-reward};
+\[
+e(a\mid x)\le L b(a\mid x),
+\qquad (a,x)\in\mathcal A\times\mathcal X,
+\qquad e\text{ a probability vector at each }x,
+\]
+as in \cref{obj:ass:policy-overlap};
+\[
+\|\nu P_p-\nu'P_p\|_{\mathrm{TV}}
+\le
+\alpha\|\nu-\nu'\|_{\mathrm{TV}},
+\qquad (p,\nu,\nu')\in\{b,e\}\times\Delta(\mathcal S)^2,
+\]
+as in \cref{obj:ass:uniform-contraction}; and
+\[
+d_e(s)\le C d_b(s),
+\qquad s\in\mathcal S,
+\]
+as in \cref{obj:ass:latent-stationary-overlap}.
+\end{definitionv}
+
+\Cref{obj:synth_11} gives short predicate names for the seven restrictions. These names are bookkeeping devices for the class definition and preserve the direct link between the compact model notation and the assumptions just stated.
+
+\begin{definitionv}{def:model-class}[Latent-overlap POMDP class]
+For \(T\in\mathbb N\) and \(t_0,\zeta,C\in\mathbb R\), \(\mathcal M_T(t_0,\zeta,C)\) is the class of all observable-data POMDP experiments
+\[
+(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))
+\]
+with the following defining properties:
+\begin{itemize}
+\item \textbf{(Horizon and alphabets.)} The trajectory horizon satisfies \(1\le T\), the observed and latent alphabets \(\mathcal X\) and \(\mathcal H\) are finite, and \(|\mathcal A|=2\).
+\item \textbf{(Parameter scales.)} The mixing and log-overlap parameters satisfy \(0<t_0\) and \(0<\zeta\).
+\item \textbf{(Raw experiment.)} The tuple has a reward-transition kernel \(K\), behavior policy \(b\), target policy \(e\), and probability law \(\mathcal L(\mathsf O_T)\) for the observed trajectory generated from the joint state coordinates \((X_t,H_t)\).
+\item \textbf{(Seven restrictions.)} The seven restrictions in \cref{obj:ass:pomdp-kernel,obj:ass:sequential-ignorability,obj:ass:stationary-start,obj:ass:bounded-reward,obj:ass:policy-overlap,obj:ass:uniform-contraction,obj:ass:latent-stationary-overlap} hold, with policy-overlap factor \(L=\exp(\zeta)\) and contraction factor \(\alpha=\exp(-1/t_0)\).
+\end{itemize}
+Equivalently,
+\[
+\mathcal M_T(t_0,\zeta,C)
+:=
+\left\{
+(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T)):
+\begin{array}{l}
+1\le T,\quad |\mathcal X|<\infty,\quad |\mathcal H|<\infty,\quad |\mathcal A|=2,\\
+0<t_0,\quad 0<\zeta,\\
+\mathrm A_{\mathrm{pomdp}},\mathrm A_{\mathrm{ign}},\mathrm A_{\mathrm{start}},
+\mathrm A_{\mathrm{reward}},\mathrm A_{\mathrm{act}},
+\mathrm A_{\mathrm{mix}},\mathrm A_{\mathrm{stat}}\text{ hold}
+\end{array}
+\right\}.
+\]
+The class ranges over all finite observed and latent cardinalities and all revealed behavior-target policy pairs satisfying these conditions.
+\end{definitionv}
+
+The model class \leanref{sym:\mathcal M_T(t_0,\zeta,C)}{\ensuremath{\mathcal M_T(t_0,\zeta,C)}} is the population domain for the minimax analysis. Its parameters separately control the time horizon, mixing scale, one-step action overlap, and latent stationary overlap.
+
+\begin{definitionv}{synth_5}[Target reward regression]
+For any raw finite-state experiment \(M\) with target policy \(e\) and one-step law \(K\), and for every joint state \(s=(x,h)\in \{0,\ldots,n_X-1\}\times\{0,\ldots,n_H-1\}\), define the target-policy reward regression \(g_e\) by
+\[
+g_e(s)
+=
+\sum_{a\in\{0,1\}} e(a\mid x)\int r\,K(d r,d s'\mid s,a).
+\]
+\end{definitionv}
+
+The target-policy reward regression \leanref{sym:g_e}{\ensuremath{g_e}} averages the one-period reward under the target action distribution at a fixed joint state. It is the reward component of the stationary target value.
+
+\begin{definitionv}{def:target-value}[Target value \(\theta(K,e)\)]
+For the joint state \(S_t\) and the target-policy reward regression \(g_e\),
+\[
+\theta(K,e)
+:=
+\sum_{s=(x,h)\in\mathcal S} d_e(s)g_e(s)
+=
+\sum_{s=(x,h)\in\mathcal S} d_e(s)
+\sum_{a\in\mathcal A}
+e(a\mid x)\,E_K[Y_t\mid S_t=s,A_t=a].
+\]
+\end{definitionv}
+
+The estimand \leanref{sym:\theta(K,e)}{\ensuremath{\theta(K,e)}} is the stationary mean reward obtained by running the target policy and evaluating rewards under its stationary joint-state law. It is the population target for observable-data off-policy evaluation.
+
+\begin{definitionv}{synth_13}[Estimator-specific risk]
+Let
+\[
+M=(\mathcal X,\mathcal H,K,b,e,\mathcal L(\mathsf O_T))
+\in \mathcal M_T(t_0,\zeta,C)
+\]
+be a model in the latent-overlap class of \cref{obj:def:model-class}, whose observed trajectory is
+\[
+\mathsf O_T=((X_t,A_t,Y_t))_{t=0}^{T-1},
+\]
+and let \(\operatorname{Law}^{\mathrm{obs}}_M\) denote the probability law of \(\mathsf O_T\) induced by \(M\) under the behavior policy \(b\).
+
+For any observable-data estimator \(\widehat\theta\), its estimator-specific worst-case squared risk over \(\mathcal M_T(t_0,\zeta,C)\) is
+\[
+R_T(t_0,\zeta,C;\widehat\theta)
+:=
+\sup_{M\in\mathcal M_T(t_0,\zeta,C)}
+\mathbb E_{\operatorname{Law}^{\mathrm{obs}}_M}
+\!\left[
+\left\{\widehat\theta(n_X,b,e,\mathsf O_T)-\theta(K,e)\right\}^2
+\right],
+\]
+where \(n_X=|\mathcal X|\) is the revealed observed-alphabet size of \(M\). In particular,
+\[
+R_T(t_0,\zeta,C;\widehat\theta_{k_T})
+\]
+is this quantity evaluated at the clipped partial-history importance-weighted estimator \(\widehat\theta_{k_T}\) with balanced history depth \(k_T\).
+\end{definitionv}
+
+The estimator-specific risk in \cref{obj:synth_13} evaluates a fixed observable-data rule uniformly over the model class. This quantity is used for the partial-history estimator bound, while the minimax risk below optimizes over all admissible observable-data estimators.
+
+\begin{definitionv}{def:minimax-risk}[Observable minimax risk]
+For a trajectory horizon \(T\ge 1\) and parameters \(t_0,\zeta,C\), the cardinality-uniform observable-data minimax squared-error risk is
+\[
+R_T(t_0,\zeta,C)
+:=
+\inf_{\widehat\theta}
+\sup_{M\in\mathcal M_T(t_0,\zeta,C)}
+\mathbb E_{\operatorname{Law}^{\mathrm{obs}}_M}
+\!\left[
+\left\{\widehat\theta(n_X,b,e,\mathsf O_T)-\theta(K,e)\right\}^2
+\right].
+\]
+Here \(\mathcal M_T(t_0,\zeta,C)\) is the finite observed- and latent-state model class in \cref{obj:def:model-class}, with unrestricted finite observed alphabet size \(n_X\) and unrestricted finite latent alphabet size, and \(\theta(K,e)\) is the stationary target-policy mean reward in \cref{obj:def:target-value}. The positive-horizon requirement \(1\le T\) is part of membership in \(\mathcal M_T(t_0,\zeta,C)\), not a separate restriction on the supremum; at the degenerate horizon \(T=0\) the class is empty and the display is not used. The infimum ranges over all observable-data estimators \(\widehat\theta\) that take as inputs only \(n_X\), \(b\), \(e\), and the observed trajectory view \(\mathsf O_T\), are measurable in \(\mathsf O_T\) for each \(n_X,b,e\), and are uniformly valued in \([-1,1]\).
+\end{definitionv}
+
+The minimax risk \leanref{sym:R_T(t_0,\zeta,C)}{\ensuremath{R_T(t_0,\zeta,C)}} measures the best achievable squared-error performance from the observed trajectory and the revealed policies. The uniformity over finite cardinalities makes the rate a statement about the structural restrictions rather than a fixed finite state dimension.
+
+The final definitions in this section introduce the concrete estimator and the lower-bound family used in the main results.
+
+\begin{definitionv}{synth_6}[One-step policy ratio]
+For behavior and target policy functions \(b,e : \{0,\ldots,n_X-1\}\times\{0,1\}\to\mathbb R\), the observable one-step policy ratio is
+\[
+\rho_t
+=
+\begin{cases}
+0, & b(X_t,A_t)=0,\\
+e(X_t,A_t)/b(X_t,A_t), & b(X_t,A_t)\ne 0.
+\end{cases}
+\]
+\end{definitionv}
+
+The observable one-step policy ratio \leanref{sym:\rho_t}{\ensuremath{\rho_t}} compares target and behavior action probabilities along the observed path. The zero-cell convention is compatible with the domination condition in \cref{obj:ass:policy-overlap}.
+
+\begin{definitionv}{def:phiw-estimator}[Partial-history estimator \(\widehat\theta_k\)]
+For \(0\le k<T\), define
+\[
+Z_t(k)
+:=
+Y_t\prod_{j=t-k}^{t}\rho_j,
+\]
+where \(\rho_t\) is the observable one-step policy ratio with the zero-cell convention. The clipped partial-history importance-weighted estimator is
+\[
+\widehat\theta_k
+:=
+\operatorname{clip}_{[-1,1]}
+\left\{
+\frac{1}{T-k}\sum_{t=k}^{T-1} Z_t(k)
+\right\}.
+\]
+\end{definitionv}
+
+The score \leanref{sym:Z_t(k)}{\ensuremath{Z_t(k)}} weights the reward by the recent observable policy-ratio history, and the estimator \leanref{sym:\widehat\theta_k}{\ensuremath{\widehat\theta_k}} averages these scores with clipping to the reward scale. The depth \(k\) is the tuning parameter that trades the contraction of latent-history bias against the variance from multiplying policy ratios.
+
+\begin{definitionv}{def:history-depth}[History depth \(k_T\)]
+For the contraction parameter \(\alpha\) and policy-overlap constant \(L\), the balanced fixed-radius history depth is
+\[
+k_T
+:=
+\min\left\{
+\left\lfloor\frac{T}{2}\right\rfloor,
+\max\left\{
+0,
+\left\lfloor
+\frac{\log(T)}{2\log(1/\alpha)+\log L}
+\right\rfloor
+\right\}
+\right\}.
+\]
+\end{definitionv}
+
+The fixed-depth rule \leanref{sym:k_T}{\ensuremath{k_T}} balances the two primitives \(\alpha\) and \(L\) at horizon \(T\). It is the estimator depth used in the fixed-radius upper bound.
+
+\begin{definitionv}{def:signed-depth-family}[Signed-depth family]
+For a trajectory length \(T\), parameters \(t_0,\zeta,C\in\mathbb R\), a terminal depth \(Q\in\mathbb N\), and an alternative index \(v\in\{-1,+1\}\), the signed-depth family is defined under
+\[
+t_0>0,\qquad \zeta>0,\qquad C>1,\qquad Q\ge 1.
+\]
+It is the raw POMDP experiment in \(\mathsf O_T\) with one observed state and \(2(Q+1)\) hidden states obtained by embedding the following finite-reward model.  The observed coordinate \(X_t\) is constant, and the hidden coordinate is written
+\[
+H_t=(J_t,U_t)\in\{0,\ldots,Q\}\times\{-1,+1\}.
+\]
+Writing \(\alpha\) for the mixing value determined by \(t_0\), \(L\) for the policy factor determined by \(\zeta\), \(\varepsilon_C=\min\{(C-1)/2,1/2\}\), and \(c_0=(1-\alpha)/4\), the behavior and target policies are
+\[
+b(A_t=1)=\frac{1}{L},\qquad b(A_t=0)=1-\frac{1}{L},
+\qquad
+e(A_t=1)=1,\qquad e(A_t=0)=0.
+\]
+The initial hidden-state law is the probability measure obtained from the weights
+\[
+w_j\frac{1+u\varepsilon_C L^{-j}}{2},
+\qquad
+w_j=
+\frac{(1-\alpha)\alpha^j}{1-\alpha^{Q+1}},
+\qquad
+j\in\{0,\ldots,Q\},\ u\in\{-1,+1\}.
+\]
+The transition kernel is the probability measure on reward-symbol and next-hidden-state pairs whose real weight at \((y,H_{t+1})\), with \(y\in\{-1,+1\}\), is the product of the reward weight
+\[
+\frac{1+yvc_0U_t\mathbf 1\{J_t=Q\}}{2}
+\]
+and the hidden-transition weight specified as follows.  A reset sign \(u'\) has weight
+\[
+\frac{1+u'\varepsilon_C}{2}.
+\]
+If \(J_t=Q\), then only transitions with \(J_{t+1}=0\) receive this reset-sign weight.  If \(J_t<Q\), transitions with \(J_{t+1}=0\) receive weight \((1-\alpha)(1+U_{t+1}\varepsilon_C)/2\), while transitions with \(J_{t+1}=J_t+1\) receive weight
+\[
+\alpha\,\mathbf 1\{U_{t+1}=U_t\}
+\quad\text{when }A_t=1,
+\qquad
+\frac{\alpha}{2}
+\quad\text{when }A_t=0,
+\]
+and all other hidden transitions receive weight zero.  The finite reward symbols are mapped to real rewards by \(0\mapsto -1\) and \(1\mapsto 1\), and the trajectory law is the finite chronological law generated by this initial distribution, behavior policy, and kernel, then embedded into the unrestricted real-reward raw experiment.
+\end{definitionv}
+
+The \leanref{S-3}{signed-depth two-point sub-experiment} in \cref{obj:def:signed-depth-family} is the finite construction used for the lower bounds. Its terminal depth \leanref{sym:Q}{\ensuremath{Q}}, alternative sign \leanref{sym:v}{\ensuremath{v}}, latent depth coordinate \leanref{sym:J_t}{\ensuremath{J_t}}, latent sign coordinate \leanref{sym:U_t}{\ensuremath{U_t}}, reset-sign perturbation \leanref{sym:\varepsilon_C}{\ensuremath{\varepsilon_C}}, reward-amplitude constant \leanref{sym:c_0}{\ensuremath{c_0}}, and truncated geometric mass \leanref{sym:w_j}{\ensuremath{w_j}} make the overlap and contraction parameters explicit inside a finite POMDP.

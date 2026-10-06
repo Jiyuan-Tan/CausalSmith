@@ -1,0 +1,23 @@
+module
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.AttainmentRigidity
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Channels
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.CenteredR5Certificate
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Laplace
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Pilot
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.PilotRates
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Procedures
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Refinement
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.R3Continuity
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.R5Continuity
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.R5Rigidity
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Regions
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.SequentialDomination
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.SequentialScore
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.SparseSaddle
+
+/-! # Shared helpers for the LDP ATE efficiency surface
+
+This barrel exposes the stationary-channel, certified-region, procedure,
+pilot, and comparator constructions. -/
+
+public section

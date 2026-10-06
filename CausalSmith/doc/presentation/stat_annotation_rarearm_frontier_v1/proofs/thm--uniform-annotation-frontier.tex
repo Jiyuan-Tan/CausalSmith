@@ -1,0 +1,429 @@
+\begin{proof}[Proof of \cref{obj:thm:uniform-annotation-frontier}]
+\begin{enumerate}
+\item Choose numerical constants \(c_{\mathrm{lab}}>0\) and \(c_{\mathrm{aff}}>0\) from \cref{obj:thm:rare-label-floor,obj:lem:normalized-affine-testing}, respectively. For any public indices in the stated range, write
+\[
+N=n+m,\qquad
+S=n\epsilon,\qquad
+\ell=\log(\exp(1)+S),\qquad
+x=\frac{d}{N\epsilon\ell}.
+\]
+Then \(N>0\), \(S>0\), and \(\ell>0\). By \cref{obj:def:rate-handle},
+\[
+r(n,m,d,\epsilon)=\min\{1,S^{-1}+x^2\},
+\qquad
+0<r(n,m,d,\epsilon)\le1.
+\]
+The two cited results supply
+\[
+c_{\mathrm{lab}}\,b(n,\epsilon)
+\le R(n,m,d,\epsilon),
+\qquad
+b(n,\epsilon)=\min\{1,S^{-1}\},
+\]
+throughout the public index range, and
+\[
+c_{\mathrm{aff}}\min\{1,x^2\}
+\le R(n,m,d,\epsilon)
+\quad\text{when}\quad
+S\ge\exp(4096),\qquad x^2>S^{-1}.
+\]
+Both constants are independent of the public indices. We next establish a uniform upper constant for the specified estimator.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.rare_label_floor
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.normalized_affine_testing
+
+\item First suppose \(S\ge\exp(4096)\), and use the pool lengths and tuning parameters from \cref{obj:def:estimator-handle}. Since \(\epsilon\le1/4\),
+\[
+12\le4\exp(4096)\le n.
+\]
+The integer splits satisfy
+\[
+h_0\ge\frac n3-1\ge\frac n4,\qquad
+h_p\ge h_0,\qquad
+h_p\le h_f\le h_p+1.
+\]
+Indeed, \(n-3h_0\in\{0,1,2\}\), and splitting the remaining records into two parts gives the last two inequalities. Consequently,
+\[
+M_p
+=h_p+\lfloor m/2\rfloor
+\ge\frac n4+\frac{m-1}{2}
+\ge\frac N8,
+\]
+where the last inequality uses \(n\ge12\) and \(m\ge0\). Moreover,
+\[
+0\le M_f-M_p
+=(h_f-h_p)+(m-2\lfloor m/2\rfloor)\le2.
+\]
+Thus
+\[
+h_0,M_p,M_f\ge1,\qquad
+\frac n4\le h_0,\qquad
+\frac N8\le M_p,M_f,\qquad
+M_p\le M_f\le3M_p.
+\]
+For the prescribed intensities this yields
+\[
+u=\frac{h_0}{8}\ge\frac n{32},\qquad
+t_p=\frac{M_p}{8}\ge\frac N{64},\qquad
+t=\frac{M_f}{8}\ge\frac N{64},\qquad
+\frac13\le\frac t{t_p}\le3.
+\]
+These bounds include \(m=0\).
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.hybrid_finite_pool_sizes
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.hybrid_finite_pool_intensities
+
+\item Under \cref{obj:ass:data-product}, the three disjoint pools are independent. Their observation laws are \(P\), \(P_{XA}\), and \(P_{XA}\), respectively: projecting a complete record gives the same treatment--covariate law as an auxiliary record. Extend each pool by an independent iid continuation and introduce independent prefix lengths
+\[
+J_{\mathrm o}\sim\operatorname{Poi}(u),\qquad
+J_{\mathrm p}\sim\operatorname{Poi}(t_p),\qquad
+J_{\mathrm f}\sim\operatorname{Poi}(t),
+\qquad
+J_{\mathrm o},J_{\mathrm p},J_{\mathrm f}\in\mathbb N_0,
+\]
+independent of the observations.
+
+Here is the count calculation for each pool. Let its finite alphabet be \(\mathsf Z_{\mathrm{pool}}\), its atom probabilities be \(\nu_{\mathrm{pool}}(z)\), and its prefix intensity be \(\lambda_{\mathrm{pool}}>0\), so that
+\[
+\nu_{\mathrm{pool}}(z)\ge0,\qquad
+\sum_{z\in\mathsf Z_{\mathrm{pool}}}\nu_{\mathrm{pool}}(z)=1.
+\]
+For counts \(\kappa_z\in\mathbb N_0\), define
+\[
+\kappa_{\mathrm{tot}}
+=\sum_{z\in\mathsf Z_{\mathrm{pool}}}\kappa_z.
+\]
+Conditioning on the prefix length and using the multinomial count formula gives
+\[
+\begin{aligned}
+\Pr\{\text{every atom }z\text{ has count }\kappa_z\}
+&=
+e^{-\lambda_{\mathrm{pool}}}
+\frac{\lambda_{\mathrm{pool}}^{\kappa_{\mathrm{tot}}}}
+     {\kappa_{\mathrm{tot}}!}
+\frac{\kappa_{\mathrm{tot}}!}{\prod_z\kappa_z!}
+\prod_z\nu_{\mathrm{pool}}(z)^{\kappa_z}\\
+&=
+\prod_z
+e^{-\lambda_{\mathrm{pool}}\nu_{\mathrm{pool}}(z)}
+\frac{(\lambda_{\mathrm{pool}}\nu_{\mathrm{pool}}(z))^{\kappa_z}}
+     {\kappa_z!}.
+\end{aligned}
+\]
+We use \(0^0=1\); an atom of zero probability has count zero almost surely. This factorization, together with independence of the pools, shows that the prefix counts from \cref{obj:def:estimator-handle} are jointly independent and satisfy
+\[
+Z_{aj}\sim\operatorname{Poi}(uq_{aj}(P)),\qquad
+J_{aj}\sim\operatorname{Poi}(t_ps_{aj}(P)),\qquad
+K_{aj}\sim\operatorname{Poi}(ts_{aj}(P)).
+\]
+Thus \cref{obj:lem:uniform-hybrid-arm-risk} applies with precisely the prescribed \(L,B,k_0\).
+
+Define, for \(a\in\{0,1\}\),
+\[
+\widehat\psi_a=\sum_{j=1}^dV_{aj},
+\qquad
+\psi_a=\sum_{j=1}^dp_j(P)\mu_{aj}(P),
+\]
+on these ideal prefixes. The cited result supplies a numerical constant \(C_{\mathrm{hyb}}>0\) such that
+\[
+\mathbb E[(\widehat\psi_a-\psi_a)^2]
+\le
+C_{\mathrm{hyb}}
+\left\{S^{-1}+\left(\frac d{N\epsilon L}\right)^2\right\}.
+\]
+The binary conditional means and the covariate probabilities satisfy
+\[
+0\le\mu_{aj}(P)\le1,\qquad
+p_j(P)\ge0,\qquad
+\sum_{j=1}^dp_j(P)=1,
+\]
+including the zero convention for null cells. Hence
+\[
+-1
+=\sum_jp_j(P)(-1)
+\le\tau(P)
+=\psi_1-\psi_0
+\le\sum_jp_j(P)=1.
+\]
+Define the clipped ideal-prefix contrast by
+\[
+F_{\mathrm{Poi}}
+=\operatorname{clip}_{[-1,1]}(\widehat\psi_1-\widehat\psi_0).
+\]
+Clipping toward an interval containing the target decreases squared loss, and
+\[
+\begin{aligned}
+\mathbb E[(F_{\mathrm{Poi}}-\tau(P))^2]
+&\le
+\mathbb E[(\widehat\psi_1-\widehat\psi_0-\tau(P))^2]\\
+&\le
+2\mathbb E[(\widehat\psi_1-\psi_1)^2]
++2\mathbb E[(\widehat\psi_0-\psi_0)^2]\\
+&\le
+4C_{\mathrm{hyb}}
+\left\{S^{-1}+\left(\frac d{N\epsilon L}\right)^2\right\}.
+\end{aligned}
+\]
+The second inequality is pointwise, so it applies with the shared counts used by the two arm statistics.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.hybrid_ordered_prefix_arm_risk
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.hybrid_ordered_prefix_contrast_risk
+
+\item We calibrate the last bound to the numerical rate and bound the prefix overflow cost. From \(S\ge\exp(4096)\) and the definition of \(L\),
+\[
+L=\left\lfloor\frac{\log S}{1024}\right\rfloor\ge4,
+\qquad
+\log S<1024(L+1)\le1280L.
+\]
+Also \(S\ge2\) and \(\exp(1)\ge2\), which imply
+\[
+\exp(1)+S\le S\exp(1),
+\qquad
+\ell\le\log S+1\le1281L.
+\]
+All denominators below are positive, so
+\[
+0\le\frac d{N\epsilon L}\le1281x,
+\qquad
+S^{-1}+\left(\frac d{N\epsilon L}\right)^2
+\le1281^2(S^{-1}+x^2).
+\]
+
+For every positive pool length \(h\), the inequality \(e^h\ge1+h\ge h\) gives
+\[
+e^{-h}\le h^{-1}.
+\]
+Applying this to the three pool lengths and using the bounds already established,
+\[
+\begin{aligned}
+e^{-h_0}+e^{-M_p}+e^{-M_f}
+&\le\frac4n+\frac8n+\frac8n\\
+&=\frac{20}{n}
+\le\frac5S,
+\end{aligned}
+\]
+where the last inequality uses \(\epsilon\le1/4\). Define the numerical constant
+\[
+C_{\mathrm{large}}=4C_{\mathrm{hyb}}1281^2+5>0.
+\]
+Combining the ideal-prefix risk, degree comparison, and overflow bound yields
+\[
+\begin{aligned}
+\mathbb E[(F_{\mathrm{Poi}}-\tau(P))^2]
++e^{-h_0}+e^{-M_p}+e^{-M_f}
+&\le
+4C_{\mathrm{hyb}}1281^2(S^{-1}+x^2)+5S^{-1}\\
+&=
+C_{\mathrm{large}}(S^{-1}+x^2)-5x^2\\
+&\le C_{\mathrm{large}}(S^{-1}+x^2).
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.hybrid_finite_degree_rate
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.hybrid_finite_overflow_rate
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.hybrid_tuned_prefix_and_overflow_rate
+
+\item Apply \cref{obj:lem:finite-prefix-transfer} to the three positive pool lengths \(h_0,M_p,M_f\), the clipped prefix statistic, and the target \(\tau(P)\in[-1,1]\). Its finite average is exactly the estimator in \cref{obj:def:estimator-handle}, since
+\[
+\Pr(J_{\mathrm o}=h',J_{\mathrm p}=h'',J_{\mathrm f}=h''')
+=
+e^{-u-t_p-t}
+\frac{u^{h'}}{h'!}
+\frac{t_p^{h''}}{h''!}
+\frac{t^{h'''}}{h'''!}.
+\]
+The zero output on overflow agrees with the construction. Independence and the stated pool laws therefore give
+\[
+\begin{aligned}
+\mathbb E_P[
+(\widehat\tau(\mathcal D,U)-\tau(P))^2]
+&\le
+\mathbb E[(F_{\mathrm{Poi}}-\tau(P))^2]
++e^{-h_0}+e^{-M_p}+e^{-M_f}\\
+&\le C_{\mathrm{large}}(S^{-1}+x^2).
+\end{aligned}
+\]
+This proves the uncapped upper bound for every model law when \(S\ge\exp(4096)\).
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.hybrid_large_information_risk
+
+\item Define
+\[
+C_{\mathrm{up}}
+=\max\{\max\{C_{\mathrm{large}},4\},\exp(4096)\}>0.
+\]
+For fixed public indices, the observed-data space is finite, so the deterministic estimator is Borel measurable. Its definition is independent of \(U\). In the averaging branch, every prefix statistic lies in \([-1,1]\), the displayed prefix probabilities are nonnegative, and
+\[
+\sum_{h'=0}^{h_0}\sum_{h''=0}^{M_p}\sum_{h'''=0}^{M_f}
+\Pr(J_{\mathrm o}=h',J_{\mathrm p}=h'',J_{\mathrm f}=h''')
+\le1.
+\]
+Thus, with the remaining probability assigned output zero,
+\[
+-1\le\widehat\tau(\mathcal D,U)\le1.
+\]
+The zero branch has the same range. Since \(\tau(P)\in[-1,1]\), this also gives the universal bound
+\[
+\mathbb E_P[
+(\widehat\tau(\mathcal D,U)-\tau(P))^2]\le4.
+\]
+
+We now follow the three upper-bound regimes. If \(S<\exp(4096)\), the estimator is zero, and
+\[
+\mathbb E_P[
+(\widehat\tau(\mathcal D,U)-\tau(P))^2]
+=\tau(P)^2\le1.
+\]
+Moreover,
+\[
+e^{-4096}\le1,\qquad e^{-4096}\le S^{-1},
+\qquad
+e^{-4096}\le r(n,m,d,\epsilon),
+\]
+so
+\[
+\mathbb E_P[
+(\widehat\tau(\mathcal D,U)-\tau(P))^2]
+\le1
+\le\exp(4096)r(n,m,d,\epsilon)
+\le C_{\mathrm{up}}r(n,m,d,\epsilon).
+\]
+If \(S\ge\exp(4096)\) and \(1\le S^{-1}+x^2\), then
+\[
+r(n,m,d,\epsilon)=1,
+\qquad
+\mathbb E_P[
+(\widehat\tau(\mathcal D,U)-\tau(P))^2]
+\le4\le C_{\mathrm{up}}r(n,m,d,\epsilon).
+\]
+Finally, if \(S\ge\exp(4096)\) and \(S^{-1}+x^2<1\), the preceding uncapped bound gives
+\[
+\mathbb E_P[
+(\widehat\tau(\mathcal D,U)-\tau(P))^2]
+\le C_{\mathrm{large}}(S^{-1}+x^2)
+\le C_{\mathrm{up}}r(n,m,d,\epsilon).
+\]
+Taking the supremum over the model class proves
+\[
+\sup_{P\in\mathcal M_{d,\epsilon}}
+\mathbb E_P[
+(\widehat\tau(\mathcal D,U)-\tau(P))^2]
+\le C_{\mathrm{up}}r(n,m,d,\epsilon).
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.hybrid_upper
+
+\item Choose the final numerical constants by
+\[
+E_{\mathrm{cut}}=\exp(4096),\qquad
+c=\min\left\{
+\frac{c_{\mathrm{lab}}}{2E_{\mathrm{cut}}},
+\frac{c_{\mathrm{aff}}}{2}
+\right\},
+\qquad
+C=\max\{C_{\mathrm{up}},c\}.
+\]
+They satisfy
+\[
+1\le E_{\mathrm{cut}},\qquad
+0<c\le C<\infty,
+\]
+and the calibrations needed below are
+\[
+c\le\frac{c_{\mathrm{lab}}}{2E_{\mathrm{cut}}}
+\le\frac{c_{\mathrm{lab}}}{E_{\mathrm{cut}}},
+\qquad
+2c\le\frac{c_{\mathrm{lab}}}{E_{\mathrm{cut}}}
+\le c_{\mathrm{lab}},
+\qquad
+2c\le c_{\mathrm{aff}}.
+\]
+All these constants were chosen independently of the public indices.
+
+The lifted rule \((\mathcal D,U)\mapsto\widehat\tau(\mathcal D,U)\) is Borel measurable by composition with the data projection and takes values in \([-1,1]\). It is therefore admissible in \cref{obj:def:risk}. Squared-error risks are nonnegative, and the defining minimax infimum yields
+\[
+R(n,m,d,\epsilon)
+\le
+\sup_{P\in\mathcal M_{d,\epsilon}}
+\mathbb E_P[
+(\widehat\tau(\mathcal D,U)-\tau(P))^2]
+\le C_{\mathrm{up}}r(n,m,d,\epsilon)
+\le Cr(n,m,d,\epsilon),
+\]
+where the last inequality uses \(r(n,m,d,\epsilon)\ge0\).
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.uniform_annotation_frontier
+
+\item For the lower bound, first suppose \(S<E_{\mathrm{cut}}\). Positivity of \(S\) and \(E_{\mathrm{cut}}\ge1\) gives
+\[
+E_{\mathrm{cut}}^{-1}\le S^{-1},
+\qquad
+E_{\mathrm{cut}}^{-1}\le1,
+\qquad
+E_{\mathrm{cut}}^{-1}
+\le b(n,\epsilon).
+\]
+Using \(r(n,m,d,\epsilon)\le1\), the constant calibration, and the rare-label bound,
+\[
+\begin{aligned}
+c\,r(n,m,d,\epsilon)
+&\le c\\
+&\le c_{\mathrm{lab}}E_{\mathrm{cut}}^{-1}\\
+&\le c_{\mathrm{lab}}b(n,\epsilon)\\
+&\le R(n,m,d,\epsilon).
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.uniform_annotation_frontier
+
+\item Now suppose \(S\ge E_{\mathrm{cut}}\). Then \(S\ge1\), and hence
+\[
+b(n,\epsilon)=S^{-1}.
+\]
+If \(x^2\le S^{-1}\), the rate satisfies
+\[
+r(n,m,d,\epsilon)
+\le S^{-1}+x^2\le2S^{-1}.
+\]
+It follows that
+\[
+c\,r(n,m,d,\epsilon)
+\le2cS^{-1}
+\le c_{\mathrm{lab}}S^{-1}
+\le R(n,m,d,\epsilon).
+\]
+
+If \(x^2>S^{-1}\), all hypotheses of \cref{obj:lem:normalized-affine-testing} hold, and it supplies
+\[
+c_{\mathrm{aff}}\min\{1,x^2\}\le R(n,m,d,\epsilon).
+\]
+To compare this quantity with the rate, split according to whether \(x^2\le1\). In that case,
+\[
+r(n,m,d,\epsilon)
+\le S^{-1}+x^2
+<2x^2
+=2\min\{1,x^2\}.
+\]
+When \(x^2>1\),
+\[
+r(n,m,d,\epsilon)\le1\le2=2\min\{1,x^2\}.
+\]
+Thus in both cases,
+\[
+\begin{aligned}
+c\,r(n,m,d,\epsilon)
+&\le2c\min\{1,x^2\}\\
+&\le c_{\mathrm{aff}}\min\{1,x^2\}\\
+&\le R(n,m,d,\epsilon).
+\end{aligned}
+\]
+Together with the preceding branches, this proves the lower bound throughout the public index range.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.uniform_annotation_frontier
+
+\item Finally, fix \(d\ge2\), \(0<\epsilon\le1/4\), and \(P\in\mathcal M_{d,\epsilon}\). Choose the independent conditional extension specified in \cref{obj:lem:causal-realization}: \(H\) is a joint law of \((X,A,Y,Y_0,Y_1)\), with binary potential outcomes, satisfying
+\[
+\mathcal L_H(X,A,Y)=P,\qquad
+Y=AY_1+(1-A)Y_0\quad H\text{-almost surely},
+\qquad
+(Y_0,Y_1)\perp\!\!\!\perp A\mid X.
+\]
+The cited result supplies both this extension and, for every extension with the same observed marginal satisfying \cref{obj:ass:consistency,obj:ass:exchangeability}, the identity
+\[
+\mathbb E_H[Y_1-Y_0]=\tau(P).
+\]
+This establishes the causal realization and identification assertions.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.causal_realization
+\end{enumerate}
+\end{proof}

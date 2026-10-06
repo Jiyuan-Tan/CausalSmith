@@ -1,0 +1,170 @@
+\begin{proof}[Proof of \cref{obj:lem:terminal-posterior-initial-window}]
+Write \(o_i=(a_i,y_i)\) for \(0\le i<k\), and let \(o_{\le 0}\) denote the empty prefix.  For any prefix \(\omega\), set
+\[
+\mathsf{Mass}_v(\omega):=\sum_h \lambda_v(h;\omega),
+\qquad
+\mathsf{Term}_v(\omega):=\sum_{h:\,J(h)=Q}\lambda_v(h;\omega).
+\]
+Let \(b_\zeta(a)\) be the behavior-policy probability of action \(a\) from \cref{obj:def:signed-depth-family}, and define
+\[
+\mathsf{Fair}_k(o)
+:=
+\prod_{i=0}^{k-1} b_\zeta(a_i)\,\frac12 .
+\]
+For a prefix \(\omega\) and a next observation \((a,y)\), define the reward-correction factor
+\[
+\Gamma_v(\omega,(a,y))
+:=
+\frac{
+  2\sum_h \lambda_v(h;\omega)\,
+  \frac{1+(2y-1)v c_0 U(h)\mathbf 1\{J(h)=Q\}}{2}
+}{
+  \mathsf{Mass}_v(\omega)
+},
+\]
+whenever \(\mathsf{Mass}_v(\omega)>0\), with any fixed value when the denominator is zero.  Along the observed prefixes below the denominator is positive.  Finally set
+\[
+\mathsf{Corr}_k(o):=\prod_{i=0}^{k-1}\Gamma_v(o_{\le i},o_i),
+\qquad
+\mathsf{Low}_k(o):=\Lambda_k(o).
+\]
+
+\begin{enumerate}
+\item Since \(k<Q\), a hidden path contributing to \(\mathsf{Term}_v(o)\) starts, after summing over the sign coordinate, from depth \(Q-k\) and then makes \(k\) successive depth-increment moves.  Thus the terminal numerator factors as
+\[
+\mathsf{Term}_v(o)
+=
+\alpha^k w_{Q-k}\,\mathsf{Fair}_k(o),
+\]
+where
+\[
+w_j=\frac{(1-\alpha)\alpha^j}{1-\alpha^{Q+1}},
+\qquad 0\le j\le Q,
+\]
+is the signed-depth initial depth mass from \cref{obj:def:signed-depth-family}.  Since \(k<Q\),
+\[
+\alpha^k w_{Q-k}
+=
+\alpha^k\frac{(1-\alpha)\alpha^{Q-k}}{1-\alpha^{Q+1}}
+=
+\frac{(1-\alpha)\alpha^Q}{1-\alpha^{Q+1}}
+=
+w_Q,
+\]
+and therefore
+\[
+\mathsf{Term}_v(o)=w_Q\,\mathsf{Fair}_k(o).
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.terminalFilterMass_eq_fairWindow_of_lt
+
+\item Summing the one-step kernel over the next hidden state leaves total hidden-transition mass one.  Hence each extension satisfies
+\[
+\mathsf{Mass}_v(o_{\le i+1})
+=
+b_\zeta(a_i)\,\frac12\,
+\Gamma_v(o_{\le i},o_i)\,
+\mathsf{Mass}_v(o_{\le i}).
+\]
+Multiplying this identity for \(i=0,\ldots,k-1\), with the empty-product convention when \(k=0\), gives
+\[
+\mathsf{Mass}_v(o)
+=
+\mathsf{Fair}_k(o)\,
+\mathsf{Mass}_v(o_{\le 0})\,
+\mathsf{Corr}_k(o).
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthTotalMass_eq_windows
+
+\item The empty-prefix mass is one.  Indeed, the initial weights sum to
+\[
+\sum_{j=0}^Q
+w_j
+\sum_{u\in\{-1,+1\}}
+\frac{1+u\varepsilon_C L^{-j}}2
+=
+\sum_{j=0}^Q w_j
+=
+1.
+\]
+Thus
+\[
+\mathsf{Mass}_v(o_{\le0})=1.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthTotalMass_of_length_eq_zero
+
+\item The lower window is positive and is bounded by the correction window:
+\[
+0<\mathsf{Low}_k(o),
+\qquad
+\mathsf{Low}_k(o)\le \mathsf{Corr}_k(o).
+\]
+To see this, \(t_0>0\) gives \(0<\alpha<1\), hence
+\[
+0\le c_0=\frac{1-\alpha}{4}<1.
+\]
+For each observed prefix \(o_{\le i}\), the filter weights are nonnegative and their total mass is positive, so
+\[
+0\le \pi_v(o_{\le i})\le 1.
+\]
+Consequently every factor \(1-c_0\pi_v(o_{\le i})\) is positive.  Moreover, for each \(i\),
+\[
+\Gamma_v(o_{\le i},o_i)
+\ge
+(1-\pi_v(o_{\le i}))\cdot 1
++
+\pi_v(o_{\le i})(1-c_0)
+=
+1-c_0\pi_v(o_{\le i}),
+\]
+because the doubled reward factor equals \(1\) off terminal depth and is at least \(1-c_0\) on terminal depth.  Multiplying these pointwise inequalities gives the displayed product bound.
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthPosteriorLowerWindow_pos_le_correction
+
+\item The fair-window factor is strictly positive:
+\[
+0<\mathsf{Fair}_k(o).
+\]
+Each behavior probability \(b_\zeta(a_i)\) is positive under \(\zeta>0\), and each reward-symbol base factor \(1/2\) is positive; the empty product is \(1\).
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthFairWindowWeight_pos
+
+\item The terminal depth mass is bounded by \(\alpha^Q\):
+\[
+w_Q\le \alpha^Q.
+\]
+Indeed,
+\[
+w_Q=\frac{(1-\alpha)\alpha^Q}{1-\alpha^{Q+1}},
+\]
+and \(0<\alpha<1\) implies \(1-\alpha^{Q+1}>0\) and \(\alpha^{Q+1}\le \alpha\).  After multiplying by the positive denominator, the desired inequality is
+\[
+(1-\alpha)\alpha^Q
+\le
+(1-\alpha^{Q+1})\alpha^Q,
+\]
+which is exactly \(\alpha^{Q+1}\le\alpha\) times the nonnegative factor \(\alpha^Q\).
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.depthMass_terminal_le_pow
+
+\item Combining the previous bounds,
+\[
+w_Q\,\mathsf{Low}_k(o)
+\le
+\alpha^Q\,\mathsf{Corr}_k(o).
+\]
+Multiplying by the nonnegative factor \(\mathsf{Fair}_k(o)\), and using the identities above, yields
+\[
+\mathsf{Term}_v(o)\,\mathsf{Low}_k(o)
+\le
+\alpha^Q\,\mathsf{Mass}_v(o).
+\]
+Since \(\mathsf{Mass}_v(o)>0\) and \(\mathsf{Low}_k(o)>0\), division gives
+\[
+\pi_v(o)
+=
+\frac{\mathsf{Term}_v(o)}{\mathsf{Mass}_v(o)}
+\le
+\frac{\alpha^Q}{\mathsf{Low}_k(o)}
+=
+\frac{\alpha^Q}{\Lambda_k(o)}.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthRawPosterior_le_product_of_lt
+\end{enumerate}
+\end{proof}

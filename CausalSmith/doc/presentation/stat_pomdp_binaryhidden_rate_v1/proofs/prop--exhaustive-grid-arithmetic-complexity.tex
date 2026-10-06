@@ -1,0 +1,157 @@
+\begin{proof}[Proof of \cref{obj:prop:exhaustive-grid-arithmetic-complexity}]
+We count integer-coordinate codes throughout, including at resolution zero.
+\begin{enumerate}
+\item For \(M\in\mathbb Z_{\ge0}\), define the integer simplex grid by
+\[
+\mathcal I_M
+:=
+\left\{
+(u_1,u_2,u_3,u_4)\in\{0,\ldots,M\}^{4}:
+\sum_{i=1}^{4}u_i=M
+\right\}.
+\]
+Taking coordinate values gives a bijection between \(\mathcal I_M\) and the nonnegative integer quadruples summing to \(M\): each coordinate of such a quadruple is at most its sum, hence at most \(M\). These quadruples are in turn in bijection with multisets of size \(M\) on the four labels \(1,\ldots,4\), by assigning multiplicity \(u_i\) to label \(i\). The multiset counting formula and binomial symmetry therefore give
+\[
+|\mathcal I_M|
+=
+\binom{M+3}{M}
+=
+\binom{M+3}{3}.
+\]
+This also covers \(M=0\), where the unique quadruple is \((0,0,0,0)\).
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.simplexGrid_card
+
+\item Define the transition-row codes, reward codes, and unfiltered candidate codes by
+\[
+\mathcal J_M:=\mathcal I_M^{4},
+\qquad
+\mathcal E_M:=\{0,\ldots,M\}^{4},
+\qquad
+\mathcal U_M:=\mathcal I_M\times
+   (\mathcal J_M\times\mathcal E_M).
+\]
+A choice of four rows determines a unique transition array, and its rows recover the choice. Thus this correspondence is injective, and the product counting formula yields
+\[
+|\mathcal J_M|
+=
+\prod_{i=1}^{4}|\mathcal I_M|
+=
+|\mathcal I_M|^{4}.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.gridMatrixRows_card
+Each reward coordinate has \(M+1\) choices, so
+\[
+|\mathcal E_M|=(M+1)^4.
+\]
+The candidate enumeration is precisely the displayed Cartesian product: a triple determines, and is determined by, its initial-vector code, transition-row code, and reward code. Consequently,
+\[
+|\mathcal U_M|
+=
+|\mathcal I_M|\,|\mathcal J_M|\,|\mathcal E_M|
+=
+|\mathcal I_M|^{5}(M+1)^4
+=
+\binom{M+3}{3}^{5}(M+1)^4.
+\]
+For \(M\ge1\), coordinatewise division by \(M\) gives the unfiltered grid triples.
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.gridCandidateUniverse_card
+
+\item For a transition-row code
+\(\mathsf R=(\mathsf R_{ij})\in\mathcal J_M\), define its decoded transition candidate by
+\[
+R_{ij}:=\frac{\mathsf R_{ij}}{M},
+\qquad 1\le i,j\le4,
+\]
+with division by zero interpreted as zero. The contraction coefficient used for filtering is
+\[
+\delta(R)
+:=
+\max_{1\le i,j\le4}
+\frac12\sum_{\ell=1}^{4}|R_{i\ell}-R_{j\ell}|.
+\]
+For every \(M\in\mathbb Z_{\ge0}\) and every \(\alpha\in\mathbb R\), define the retained codes by
+\[
+\mathcal U_M^\alpha
+:=
+\left\{
+(u,\mathsf R,w)\in\mathcal U_M:
+\delta(R)\le\alpha+\frac6M
+\right\},
+\]
+using the same division convention. For \(M\ge1\), coordinatewise division by \(M\) identifies the retained codes \(\mathcal U_M^\alpha\) with the candidate set in \cref{obj:def:stable-grid-estimator}. This is a subset of \(\mathcal U_M\), so
+\[
+|\mathcal U_M^\alpha|
+\le
+|\mathcal U_M|
+=
+\binom{M+3}{3}^{5}(M+1)^4.
+\]
+In particular, at \(M=0\) the decoded transition array is zero and the subset argument still applies.
+% lean: Finset.card_filter_le
+
+\item The standard binomial bound
+\[
+\binom{M+3}{3}\le(M+3)^3
+\]
+together with \(M+1\le M+3\) gives
+\[
+\begin{aligned}
+|\mathcal U_M|
+&=\binom{M+3}{3}^{5}(M+1)^4\\
+&\le \bigl((M+3)^3\bigr)^5(M+3)^4\\
+&=(M+3)^{19}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.gridCandidateUniverse_growth
+
+\item Now fix the mixing-scale parameter \(t_0>0\) and its associated contraction bound. Then
+\[
+\alpha=\exp(-1/t_0)>0.
+\]
+Define
+\[
+c:=(26+36/\alpha)^{19}>0.
+\]
+For an integer trajectory length \(T\ge1\), take
+\[
+M:=\left\lceil(22+36/\alpha)T\right\rceil.
+\]
+Since \((22+36/\alpha)T\ge0\), the ceiling bound gives
+\[
+M<(22+36/\alpha)T+1.
+\]
+Adding three and using \(T\ge1\), we obtain
+\[
+M+3
+<
+(22+36/\alpha)T+4
+\le
+(26+36/\alpha)T,
+\]
+and hence
+\[
+M+3\le(26+36/\alpha)T.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.gridSize_linear_bound
+Both sides are nonnegative, so raising this inequality to the nineteenth power and applying the preceding cardinality bound yields
+\[
+|\mathcal U_M|
+\le
+(M+3)^{19}
+\le
+\bigl((26+36/\alpha)T\bigr)^{19}
+=
+cT^{19}.
+\]
+Finally, the filtering inequality gives
+\[
+|\mathcal U_M^\alpha|
+\le
+|\mathcal U_M|
+\le
+cT^{19}.
+\]
+The chosen constant depends on \(t_0\) through \(\alpha\) and is valid for every integer \(T\ge1\).
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.exhaustiveGrid_candidate_count
+\end{enumerate}
+\end{proof}

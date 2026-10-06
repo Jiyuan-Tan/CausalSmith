@@ -1,0 +1,497 @@
+\section{Setup and assumptions}
+
+Throughout, generic positive constants may depend on the fixed public exponents and numerical envelopes, while remaining independent of the sample size \leanref{sym:n}{\ensuremath{n}}. We write \(\|f\|_\infty=\sup_{x\in[0,1]}|f(x)|\) and \(\|f\|_2=(\int f^2\,d\lambda)^{1/2}\), where \leanref{sym:lambda}{\ensuremath{\lambda}} is Lebesgue probability measure on \([0,1]\). The relations \(\lesssim\) and \(\asymp\) denote inequalities up to such constants and their two-sided counterpart, respectively. Sample indices range over \(i=1,\ldots,n\), treatment-arm indices over \(a\in\{0,1\}\), and all sample sizes satisfy \(n\in\mathbb N\) with \(n\ge2\).
+
+\subsection{Records, public exponents, and conditional means}
+
+An \leanref{S-1}{original record} is \leanref{sym:O}{\ensuremath{O=(X,A,Y)}}, with covariate \leanref{sym:X}{\ensuremath{X\in[0,1]}}, treatment indicator \leanref{sym:A}{\ensuremath{A\in\{0,1\}}}, and observed outcome \leanref{sym:Y}{\ensuremath{Y\in\mathbb R}}. An original-record law \leanref{sym:P}{\ensuremath{P}} is a Borel probability measure on this product space; the restrictions defining the statistical model are collected in \cref{obj:def:model}. Its covariate marginal is denoted by \leanref{sym:PX}{\ensuremath{P_X}}.
+
+The public exponent tuple \leanref{sym:v}{\ensuremath{v=(p,\alpha,\beta,\gamma)}} consists of the conditional moment order \leanref{sym:p}{\ensuremath{p}}, the propensity smoothness exponent \leanref{sym:alpha}{\ensuremath{\alpha}}, the baseline smoothness exponent \leanref{sym:beta}{\ensuremath{\beta}}, and the effect smoothness exponent \leanref{sym:gamma}{\ensuremath{\gamma}}. The admissible public domain \leanref{sym:V}{\ensuremath{\mathcal V}} is
+\[
+\mathcal V
+=
+\left\{
+(p,\alpha,\beta,\gamma)\in\mathbb R^4:
+1<p\le2,\quad
+0<\alpha\le1,\quad
+0<\beta\le1,\quad
+1/4\le\gamma\le1
+\right\}.
+\]
+For benchmark comparisons, the matched smoothness tuple \leanref{sym:w}{\ensuremath{w=(\alpha,\beta,\gamma)}} belongs to the domain \leanref{sym:Wdomain}{\ensuremath{\mathcal W}}, where
+\[
+\mathcal W=(0,1]\times(0,1]\times[1/4,1].
+\]
+These exponents are public parameters indexing the classes over which testing errors are controlled.
+
+For \(s\in(0,1]\), the Hölder ball \leanref{sym:Holder}{\ensuremath{\mathcal H^s(20)}} uses the convention
+\[
+[f]_s
+=
+\sup_{\substack{x,z\in[0,1]\\x\ne z}}
+\frac{|f(x)-f(z)|}{|x-z|^s},
+\qquad
+\mathcal H^s(20)
+=
+\left\{
+f\in C([0,1]):
+\|f\|_\infty\le20,\ [f]_s\le20
+\right\},
+\]
+where \(C([0,1])\) denotes continuous real functions with the uniform topology. Thus the convention at \(s=1\) is Lipschitz continuity. We write \leanref{sym:EqClass}{\ensuremath{[f]_\lambda}} for the equivalence class of a function under Lebesgue almost-everywhere equality; the same convention applies to sums of functions and to each conditional mean.
+
+Let \leanref{sym:Q}{\ensuremath{Q_{a,P}(dy\mid x)}} be a conditional outcome probability kernel given \(X=x\) and \(A=a\). The propensity equivalence class \leanref{sym:eClass}{\ensuremath{\mathcal E_P}} is the class of \(x\mapsto P(A=1\mid X=x)\), and the conditional arm-mean classes \leanref{sym:mzeroClass}{\ensuremath{\mathcal G_{0,P}}} and \leanref{sym:moneClass}{\ensuremath{\mathcal G_{1,P}}} are the classes of
+\[
+x\longmapsto \int y\,Q_{0,P}(dy\mid x)
+\quad\text{and}\quad
+x\longmapsto \int y\,Q_{1,P}(dy\mid x),
+\]
+respectively. Under the restrictions below, these classes have continuous representatives: the propensity \leanref{sym:e}{\ensuremath{e_P}}, the baseline mean \leanref{sym:mzero}{\ensuremath{m_{0,P}}}, and the treated mean \leanref{sym:mone}{\ensuremath{m_{1,P}}}, as specified in \cref{obj:def:model}. Their canonical mean contrast is \leanref{sym:tau}{\ensuremath{\tau_P=m_{1,P}-m_{0,P}}}. Continuity and the full support of Lebesgue measure make each representative unique, so pointwise restrictions on these functions have an unambiguous meaning.
+
+\subsection{Primitive restrictions}
+
+The design conditions fix the distribution over which heterogeneity is measured and ensure that both treatment arms are represented throughout the covariate interval.
+
+\begin{assumptionv}{ass:uniform}[Uniform covariate distribution]
+Let \(\lambda\) denote Lebesgue probability measure on \([0,1]\). The covariate marginal \(P_X\) satisfies
+\[
+P_X=\lambda.
+\]
+\end{assumptionv}
+
+The known uniform random design condition supplies a fixed integration measure for the population target and for approximation errors, following the random-design goodness-of-fit formulation \citep{IngsterSapatinas2009GoodnessOfFit}. Treatment assignment is further restricted by a fixed overlap envelope.
+
+\begin{assumptionv}{ass:overlap}[Fixed propensity overlap]
+The continuous propensity representative \(e_P\) satisfies
+\[
+e_P([0,1])\subseteq[1/4,3/4].
+\]
+\end{assumptionv}
+
+Uniform overlap keeps both conditional arm distributions observable across the entire interval. The overlap form follows the conditional-effect model in \citet[Section 2]{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}; the numerical bounds \(1/4\) and \(3/4\) are fixed normalizations stipulated for the present class.
+
+Smoothness is indexed separately for treatment assignment, the baseline mean, and the mean contrast. We begin with regularity of the propensity.
+
+\begin{assumptionv}{ass:propensity-smoothness}[Propensity Hölder smoothness]
+Let \(\mathcal H^\alpha(20)\) denote the continuous functions on \([0,1]\) with supremum norm and \(\alpha\)-Hölder constant at most \(20\), and let \([f]_\lambda\) denote the equivalence class of \(f\) under almost-everywhere equality for Lebesgue probability measure \(\lambda\). The propensity equivalence class \(\mathcal E_P\) satisfies
+\[
+\mathcal E_P\in\{[f]_\lambda:f\in\mathcal H^\alpha(20)\}.
+\]
+\end{assumptionv}
+
+In our model, independent propensity Hölder smoothness controls variation in assignment probabilities through its own exponent, with radius \(20\) fixing the scale of that variation. Baseline outcome variation receives a separate regularity restriction.
+
+\begin{assumptionv}{ass:baseline-smoothness}[Baseline mean smoothness]
+Let \(\mathcal H^\beta(20)\) denote the continuous functions on \([0,1]\) with supremum norm and \(\beta\)-Hölder constant at most \(20\), and let \([g]_\lambda\) denote the equivalence class of \(g\) under almost-everywhere equality for Lebesgue probability measure \(\lambda\). The baseline conditional arm-mean equivalence class \(\mathcal G_{0,P}\) satisfies
+\[
+\mathcal G_{0,P}\in\{[g]_\lambda:g\in\mathcal H^\beta(20)\}.
+\]
+\end{assumptionv}
+
+In our model, the independent baseline Hölder condition controls the conditional mean in the untreated arm, allowing its regularity to differ from propensity regularity. The third exponent governs the conditional mean contrast directly.
+
+\begin{assumptionv}{ass:effect-smoothness}[Mean effect smoothness]
+Let \(\mathcal H^\gamma(20)\) denote the continuous functions on \([0,1]\) with supremum norm and \(\gamma\)-Hölder constant at most \(20\), and let \([f]_\lambda\) denote the equivalence class of \(f\) under almost-everywhere equality for Lebesgue probability measure \(\lambda\). With \(m_{0,P}\) the continuous baseline arm-mean representative, the treated conditional arm-mean equivalence class \(\mathcal G_{1,P}\) satisfies
+\[
+\mathcal G_{1,P}\in\{[m_{0,P}+t]_\lambda:t\in\mathcal H^\gamma(20)\}.
+\]
+\end{assumptionv}
+
+Independent effect Hölder smoothness describes the treated mean as the baseline mean plus a regular contrast. This separates the target regularity from the two nuisance regularities. By comparison, the pointwise conditional-effect model of \citet[Sections 2--3]{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE} summarizes propensity and baseline smoothness through an average exponent. The Hölder radius \(20\) used here is a fixed normalization of the present model.
+
+We also fix the scales of the baseline mean and the mean effect. The first envelope bounds the baseline level.
+
+\begin{assumptionv}{ass:baseline-cap}[Baseline mean bound]
+The continuous baseline arm-mean representative \(m_{0,P}\) satisfies
+\[
+\|m_{0,P}\|_\infty\le1/2.
+\]
+\end{assumptionv}
+
+The bounded conditional baseline mean condition uses the fixed normalization \(1/2\), placing baseline levels on a common scale across the indexed models. This numerical envelope is stipulated here. A corresponding envelope fixes the scale of the contrast.
+
+\begin{assumptionv}{ass:effect-cap}[Uniform mean effect bound]
+The mean effect \(\tau_P\), the canonical difference between the treated and baseline conditional means, satisfies
+\[
+\|\tau_P\|_\infty\le \frac12.
+\]
+\end{assumptionv}
+
+The bounded conditional effect condition uses a second stipulated normalization \(1/2\), keeping the target on the same scale across smoothness and moment classes. Together, the two mean envelopes imply \(\|m_{1,P}\|_\infty\le1\).
+
+Outcome tails are controlled separately from conditional mean levels. The following restriction bounds a raw conditional moment in each arm.
+
+\begin{assumptionv}{ass:raw-moment}[Uniform conditional moment bound]
+Let \(\lambda\) denote Lebesgue probability measure on \([0,1]\), and let \(Q_{a,P}(dy\mid x)\) denote the conditional outcome probability kernel in treatment arm \(a\). The conditional raw moment of order \(p\) satisfies
+\[
+\max_{a\in\{0,1\}}
+\operatorname*{ess\,sup}_{x\sim\lambda}
+\int |y|^p\,Q_{a,P}(dy\mid x)\le 10.
+\]
+\end{assumptionv}
+
+This conditional raw-moment envelope is specific to the present analysis. It controls outcome magnitudes uniformly across covariate values, up to null sets, and across treatment arms. The range \(1<p\le2\) ensures integrability of the arm means while allowing the moment order to index the strength of tail control.
+
+The original-record model \leanref{sym:M}{\ensuremath{\mathcal M_v}} in \cref{obj:def:model} collects these design, smoothness, mean-envelope, and moment restrictions.
+
+\begin{definitionv}{def:model}[Original-record model \(\mathcal M_v\)]
+The model \(\mathcal M_v\) is the set of original-record probability laws \(P\) satisfying the following restrictions, indexed by \(v=(p,\alpha,\beta,\gamma)\in\mathcal V\), where \(\mathcal V\) denotes the admissible domain of public moment and primitive smoothness tuples:
+\begin{itemize}
+\item \textbf{(Covariate law.)} \cref{obj:ass:uniform}.
+\item \textbf{(Overlap.)} \cref{obj:ass:overlap}.
+\item \textbf{(Propensity smoothness.)} \cref{obj:ass:propensity-smoothness}.
+\item \textbf{(Baseline smoothness.)} \cref{obj:ass:baseline-smoothness}.
+\item \textbf{(Effect smoothness.)} \cref{obj:ass:effect-smoothness}.
+\item \textbf{(Baseline bound.)} \cref{obj:ass:baseline-cap}.
+\item \textbf{(Effect bound.)} \cref{obj:ass:effect-cap}.
+\item \textbf{(Conditional moment bound.)} \cref{obj:ass:raw-moment}.
+\end{itemize}
+Here \(P_X\) denotes the covariate marginal of \(P\). For a function \(f\), write \([f]_\lambda\) for its equivalence class under Lebesgue almost-everywhere equality. Let \(\mathcal E_P\) denote the propensity equivalence class, and let \(\mathcal G_{0,P}\) and \(\mathcal G_{1,P}\) denote the baseline and treated conditional arm-mean equivalence classes. Their continuous representatives are defined by
+\[
+\mathcal E_P=[e_P]_\lambda,\qquad
+\mathcal G_{0,P}=[m_{0,P}]_\lambda,\qquad
+\mathcal G_{1,P}=[m_{1,P}]_\lambda,
+\qquad
+e_P,m_{0,P},m_{1,P}\in C([0,1]),
+\]
+where \(C([0,1])\) is the space of continuous real functions on \([0,1]\) with the uniform topology. The canonical mean effect is
+\[
+\tau_P=m_{1,P}-m_{0,P}.
+\]
+\end{definitionv}
+
+\subsection{Causal interpretation and the homogeneity target}
+
+A potential-outcome representation connects the canonical mean contrast to a conditional average treatment effect. Let \leanref{sym:Yzero}{\ensuremath{Y(0)}} and \leanref{sym:Yone}{\ensuremath{Y(1)}} denote the baseline and treated potential-outcome coordinates. The completion \leanref{sym:Causal}{\ensuremath{\mathbb Q_P}} in \cref{obj:def:causal-completion} combines the observed arm distributions with assignment that is conditionally independent of these coordinates given the covariate.
+
+\begin{assumptionv}{ass:null-constancy}[Constant mean effect restriction]
+There exists \(c\in[-1/2,1/2]\) such that
+\[
+\tau_P(x)=c
+\qquad\text{for every }x\in[0,1].
+\]
+\end{assumptionv}
+
+Under this completion, consistency and conditional independence of assignment give
+\[
+\mathbb E_{\mathbb Q_P}[Y(1)-Y(0)\mid X=x]=\tau_P(x)
+\quad\text{for }\lambda\text{-almost every }x.
+\]
+The observed-record marginal is \(P\), so the same conditional mean contrast admits the potential-outcome interpretation associated with consistency and unconfounded assignment \citep[Section 3]{Rubin1974}; \citep[Section 2]{Rosenbaum1983}. The auxiliary justification for this completion is given in \cref{obj:lem:causal-nonempty}.
+
+To measure heterogeneity, define the average contrast \leanref{sym:meanTau}{\ensuremath{\bar\tau_P}} and its population distance from constancy \leanref{sym:d}{\ensuremath{d(P)}} by
+\[
+\bar\tau_P=\int_{[0,1]}\tau_P(x)\,d\lambda(x),
+\qquad
+d(P)
+=
+\left(
+\int_{[0,1]}\{\tau_P(x)-\bar\tau_P\}^{2}\,d\lambda(x)
+\right)^{1/2}.
+\]
+Equivalently, \(d(P)=\inf_{b\in\mathbb R}\|\tau_P-b\|_2\). The uniform design fixes the population weighting, and continuity makes zero distance equivalent to constancy on the entire interval. Homogeneity therefore permits an unknown common effect \leanref{sym:c}{\ensuremath{c}} in the public mean envelope.
+
+\begin{definitionv}{def:null}[Constant-effect null $H_0(v)$]
+\[
+H_0(v)
+=
+\left\{
+P\in\mathcal M_v:
+\exists c\in[-1/2,1/2]\ 
+\forall x\in[0,1],\ \tau_P(x)=c
+\right\}.
+\]
+The model restrictions and null constancy condition are given in \cref{obj:ass:uniform,obj:ass:overlap,obj:ass:propensity-smoothness,obj:ass:baseline-smoothness,obj:ass:effect-smoothness,obj:ass:baseline-cap,obj:ass:effect-cap,obj:ass:raw-moment,obj:ass:null-constancy}.
+\end{definitionv}
+
+The unknown-constant conditional-average-effect homogeneity condition treats the common effect level as a nuisance parameter, matching the mean-homogeneity target of \citep{CrumpHotzImbensMitnik2008Homogeneity}. The constant-effect null \leanref{sym:Hnull}{\ensuremath{H_0(v)}} in \cref{obj:def:null} imposes this condition within the original-record model.
+
+\begin{definitionv}{def:causal-completion}[Potential-outcome completion $\mathbb Q_P$]
+The potential-outcome completion \(\mathbb Q_P\) is defined using Lebesgue probability measure \(\lambda\) on \([0,1]\) and the conditional outcome probability kernels \(Q_{a,P}(dy\mid x)\) in arms \(a\in\{0,1\}\) by
+\[
+\mathbb Q_P(dx,dy_0,dy_1,da)
+=
+\lambda(dx)\,Q_{0,P}(dy_0\mid x)\,Q_{1,P}(dy_1\mid x)\,
+e_P(x)^a(1-e_P(x))^{1-a}.
+\]
+Writing \(Y(0)\) and \(Y(1)\) for the baseline and treated potential-outcome coordinates, respectively, the observed outcome satisfies
+\[
+Y=(1-A)Y(0)+AY(1).
+\]
+Changes to the conditional outcome kernels on \(\lambda\)-null sets leave \(\mathbb Q_P\) unchanged.
+\end{definitionv}
+
+Thus the null consists precisely of model laws with \(d(P)=0\). Under the causal completion, its target is constancy of the conditional average treatment effect.
+
+\subsection{The original-record testing experiment}
+
+Testing uses an independent sample \leanref{sym:Data}{\ensuremath{\mathcal D_n=((X_i,A_i,Y_i))_{i=1}^n}} from \(P\), together with an independent public uniform variable \leanref{sym:U}{\ensuremath{U}} on \([0,1]\). An \leanref{S-2}{original-record randomized test} is a jointly Borel rejection-probability map \leanref{sym:phi}{\ensuremath{\phi}} with domain and range
+\[
+\phi:
+\bigl([0,1]\times\{0,1\}\times\mathbb R\bigr)^n\times[0,1]
+\longrightarrow[0,1].
+\]
+Its expected rejection probability is denoted by \leanref{sym:Risk}{\ensuremath{\mathsf R_n(P,\phi)}}, the expectation over both the sample and the public randomization. The experiment and this expectation are specified together in \cref{obj:def:original-record-experiment}.
+
+\begin{definitionv}{def:original-record-experiment}[Original-record experiment \(\mathsf S_{n,P}\)]
+The original-record experiment is the probability law
+\[
+\mathsf S_{n,P}=P^{\otimes n}\otimes\lambda
+\]
+on
+\[
+\bigl([0,1]\times\{0,1\}\times\mathbb R\bigr)^n\times[0,1],
+\]
+where \(P\) is the original-record law and \(\lambda\) is Lebesgue probability measure on \([0,1]\). Each original record has coordinates \(X\in[0,1]\), \(A\in\{0,1\}\), and \(Y\in\mathbb R\), representing the covariate, treatment, and observed outcome. Write
+\[
+\mathcal D_n=\bigl((X_i,A_i,Y_i)\bigr)_{i=1}^n
+\]
+for the independent sample and \(U\) for the independent public uniform randomization variable. For a randomized rejection-probability map \(\phi\), its rejection expectation is
+\[
+\mathsf R_n(P,\phi)
+=
+\int\phi(\mathcal D_n,u)\,
+\mathsf S_{n,P}(d\mathcal D_n,du).
+\]
+\end{definitionv}
+
+Tests may depend on the public tuple and sample size. Their size is controlled uniformly over all laws in the constant-effect null, including every admissible common effect level and nuisance function.
+
+Let \leanref{sym:D}{\ensuremath{D_v}} denote the original-model distance supremum,
+\[
+D_v=\sup_{P\in\mathcal M_v}d(P),
+\]
+and let \leanref{sym:r}{\ensuremath{r}} be a separation satisfying \(0<r<D_v\). The minimax type-II error \leanref{sym:B}{\ensuremath{B_n(v,r)}} in \cref{obj:def:testing-risk} compares tests of size at most \(1/10\) against every model law whose population heterogeneity distance is at least \(r\).
+
+\begin{definitionv}{def:testing-risk}[Minimax testing risk $B_n(v,r)$]
+\[
+B_n(v,r)=
+\inf_{\phi:\ \sup_{P\in H_0(v)}\mathsf R_n(P,\phi)\le 1/10}
+\ \sup_{P\in\mathcal M_v:\ d(P)\ge r}
+\bigl\{1-\mathsf R_n(P,\phi)\bigr\}.
+\]
+The parameters satisfy:
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\ge 2\).
+\item \textbf{(Public tuple.)} \(v\in\mathcal V\), the admissible domain of moment and primitive smoothness tuples.
+\item \textbf{(Separation.)} \(0<r<D_v\), where \(D_v\) is the supremum of \(d(P)\) over \(\mathcal M_v\).
+\end{itemize}
+Here \(\mathcal M_v\) is the original-record model, \(H_0(v)\) consists of its laws with an unknown constant mean effect, and \(d(P)\) is the population Lebesgue \(L_2\) distance of the effect from its average. The infimum ranges over randomized rejection-probability maps \(\phi\), and \(\mathsf R_n(P,\phi)\) is their expected rejection probability in the original-record experiment.
+\end{definitionv}
+
+The size constraint and the alternative supremum give the risk a uniform interpretation over the stipulated model. To summarize the separation at which this risk reaches \(1/10\), we use the capped critical radius \leanref{sym:rstar}{\ensuremath{r_n^*(v)}} in \cref{obj:def:critical-radius}.
+
+\begin{definitionv}{def:critical-radius}[Capped critical radius $r_n^*(v)$]
+\[
+r_n^*(v)=
+\inf\Bigl(
+\bigl\{r\in(0,D_v):B_n(v,r)\le 1/10\bigr\}
+\cup\{D_v\}
+\Bigr).
+\]
+Here \(B_n(v,r)\) is the original-model minimax type-II error under the size constraint \(1/10\), and \(D_v\) is the supremum of the population effect distance over the original model.
+\end{definitionv}
+
+Including the model supremum makes the defining set nonempty for every admissible sample size and public tuple. When the risk threshold is achieved at an interior separation, the radius records the infimum of such separations; otherwise, the cap supplies the value \(D_v\).
+
+\subsection{Matched bounded and signed-binary benchmarks}
+
+The benchmark family retains the same design, overlap, smoothness exponents, and mean envelopes while imposing public outcome support restrictions. Its bounded member uses the following unit envelope.
+
+\begin{assumptionv}{ass:bounded-outcome}[Almost sure outcome bound]
+The observed outcome \(Y\) satisfies
+\[
+P(|Y|\le 1)=1.
+\]
+\end{assumptionv}
+
+The bounded-outcome condition places every observed outcome within a public unit envelope, a fixed-envelope version of bounded-outcome regularity used in homogeneity testing \citep{LapentaStrittmatterVergara2026Omnibus}. The bounded model \leanref{sym:Mbound}{\ensuremath{\mathcal M^{\mathrm b}_w}} in \cref{obj:def:bounded-model} combines this support restriction with the primitive restrictions at moment order two.
+
+\begin{definitionv}{def:bounded-model}[Bounded-outcome model $\mathcal M^{\mathrm b}_w$]
+The bounded-outcome model \(\mathcal M^{\mathrm b}_w\) is defined for the matched smoothness tuple \(w=(\alpha,\beta,\gamma)\) in \(\mathcal W\), the admissible domain of matched smoothness tuples, by
+\[
+\mathcal M^{\mathrm b}_w
+=
+\left\{
+P\in\mathcal M_{(2,\alpha,\beta,\gamma)}:
+P(|Y|\le 1)=1
+\right\},
+\qquad
+w=(\alpha,\beta,\gamma)\in\mathcal W.
+\]
+Its restrictions are given in \cref{obj:ass:uniform,obj:ass:overlap,obj:ass:propensity-smoothness,obj:ass:baseline-smoothness,obj:ass:effect-smoothness,obj:ass:baseline-cap,obj:ass:effect-cap,obj:ass:raw-moment,obj:ass:bounded-outcome}.
+\end{definitionv}
+
+The signed-binary member specializes the support further.
+
+\begin{assumptionv}{ass:binary-outcome}[Signed binary outcome support]
+The observed outcome \(Y\) satisfies
+\[
+P\bigl(Y\in\{-1,1\}\bigr)=1.
+\]
+\end{assumptionv}
+
+Signed-binary support is the affine recoding \(Y=2B-1\) of a conventional binary outcome \(B\in\{0,1\}\), the outcome convention used in the binary conditional-effect model of \citet[Section 2]{KennedyBalakrishnanRobinsWasserman2024MinimaxCATE}. Either support restriction implies a conditional second raw moment bounded by one almost everywhere, and hence satisfies the moment envelope at \(p=2\). The signed-binary model \leanref{sym:Mbin}{\ensuremath{\mathcal M^{\mathrm{bin}}_w}} in \cref{obj:def:binary-model} is consequently indexed by the matched smoothness tuple.
+
+\begin{definitionv}{def:binary-model}[Signed-binary model $\mathcal M^{\mathrm{bin}}_w$]
+The signed-binary model \(\mathcal M^{\mathrm{bin}}_w\) is defined for the matched smoothness tuple \(w=(\alpha,\beta,\gamma)\) in \(\mathcal W\), the admissible domain of matched smoothness tuples, by
+\[
+\mathcal M^{\mathrm{bin}}_w
+=
+\left\{
+P\in\mathcal M_{(2,\alpha,\beta,\gamma)}:
+P(Y\in\{-1,1\})=1
+\right\},
+\qquad
+w=(\alpha,\beta,\gamma)\in\mathcal W.
+\]
+Its restrictions are given in \cref{obj:ass:uniform,obj:ass:overlap,obj:ass:propensity-smoothness,obj:ass:baseline-smoothness,obj:ass:effect-smoothness,obj:ass:baseline-cap,obj:ass:effect-cap,obj:ass:raw-moment,obj:ass:binary-outcome}.
+\end{definitionv}
+
+These definitions give
+\[
+\mathcal M^{\mathrm{bin}}_w
+\subseteq
+\mathcal M^{\mathrm b}_w
+\subseteq
+\mathcal M_{(2,\alpha,\beta,\gamma)}.
+\]
+Both benchmarks preserve the unknown common effect as a nuisance parameter. Their nulls, denoted by \leanref{sym:Hnullbound}{\ensuremath{H_0^{\mathrm b}(w)}} and \leanref{sym:Hnullbin}{\ensuremath{H_0^{\mathrm{bin}}(w)}}, are defined in \cref{obj:def:bounded-null,obj:def:binary-null}.
+
+\begin{definitionv}{def:bounded-null}[Bounded constant-effect null $H_0^{\mathrm b}(w)$]
+\[
+H_0^{\mathrm b}(w)
+=
+\left\{
+P\in\mathcal M^{\mathrm b}_w:
+\exists c\in[-1/2,1/2]\ 
+\forall x\in[0,1],\ \tau_P(x)=c
+\right\}.
+\]
+The model restrictions and null constancy condition are given in \cref{obj:ass:uniform,obj:ass:overlap,obj:ass:propensity-smoothness,obj:ass:baseline-smoothness,obj:ass:effect-smoothness,obj:ass:baseline-cap,obj:ass:effect-cap,obj:ass:raw-moment,obj:ass:bounded-outcome,obj:ass:null-constancy}.
+\end{definitionv}
+
+\begin{definitionv}{def:binary-null}[Signed-binary constant-effect null $H_0^{\mathrm{bin}}(w)$]
+\[
+H_0^{\mathrm{bin}}(w)
+=
+\left\{
+P\in\mathcal M^{\mathrm{bin}}_w:
+\exists c\in[-1/2,1/2]\ 
+\forall x\in[0,1],\ \tau_P(x)=c
+\right\}.
+\]
+The model restrictions and null constancy condition are given in \cref{obj:ass:uniform,obj:ass:overlap,obj:ass:propensity-smoothness,obj:ass:baseline-smoothness,obj:ass:effect-smoothness,obj:ass:baseline-cap,obj:ass:effect-cap,obj:ass:raw-moment,obj:ass:binary-outcome,obj:ass:null-constancy}.
+\end{definitionv}
+
+For their separation domains, define the bounded and signed-binary distance suprema \leanref{sym:Dbound}{\ensuremath{D_w^{\mathrm b}}} and \leanref{sym:Dbin}{\ensuremath{D_w^{\mathrm{bin}}}} by
+\[
+D_w^{\mathrm b}
+=
+\sup_{P\in\mathcal M^{\mathrm b}_w}d(P),
+\qquad
+D_w^{\mathrm{bin}}
+=
+\sup_{P\in\mathcal M^{\mathrm{bin}}_w}d(P).
+\]
+The corresponding minimax type-II errors \leanref{sym:Bbound}{\ensuremath{B_n^{\mathrm b}(w,r)}} and \leanref{sym:Bbin}{\ensuremath{B_n^{\mathrm{bin}}(w,r)}}, defined in \cref{obj:def:bounded-risk,obj:def:binary-risk}, use the same original-record experiment, population distance, and size threshold.
+
+\begin{definitionv}{def:bounded-risk}[Bounded-model testing risk]
+The bounded-model minimax type-II error \(B_n^{\mathrm b}(w,r)\) is defined by
+\[
+B_n^{\mathrm b}(w,r)
+=
+\inf_{\phi:\,\sup_{P\in H_0^{\mathrm b}(w)}\mathsf R_n(P,\phi)\le 1/10}
+\sup_{P\in\mathcal M^{\mathrm b}_w:\,d(P)\ge r}
+\{1-\mathsf R_n(P,\phi)\},
+\]
+where the tests \(\phi\), rejection probabilities \(\mathsf R_n(P,\phi)\), and heterogeneity distances \(d(P)\) are as in \cref{obj:def:testing-risk}, and the bounded model and null are those of \cref{obj:def:bounded-model,obj:def:bounded-null}. The parameter domain is:
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\in\mathbb N\) with \(n\ge2\).
+\item \textbf{(Smoothness.)} \(w=(\alpha,\beta,\gamma)\in\mathcal W\), where the admissible smoothness domain is
+\[
+\mathcal W
+=
+\{(\alpha,\beta,\gamma)\in\mathbb R^3:
+0<\alpha\le1,\quad 0<\beta\le1,\quad 1/4\le\gamma\le1\}.
+\]
+\item \textbf{(Separation.)} \(0<r<D_w^{\mathrm b}\), where the bounded-model distance supremum is
+\[
+D_w^{\mathrm b}
+=
+\sup_{P\in\mathcal M^{\mathrm b}_w}d(P).
+\]
+\end{itemize}
+\end{definitionv}
+
+\begin{definitionv}{def:binary-risk}[Signed-binary minimax testing risk]
+The signed-binary minimax type-II error \(B_n^{\mathrm{bin}}(w,r)\) is defined by
+\[
+B_n^{\mathrm{bin}}(w,r)
+=
+\inf_{\phi:\,\sup_{P\in H_0^{\mathrm{bin}}(w)}
+\mathsf R_n(P,\phi)\le 1/10}
+\sup_{P\in\mathcal M^{\mathrm{bin}}_w:\,d(P)\ge r}
+\{1-\mathsf R_n(P,\phi)\},
+\]
+where the tests and their expected rejection probabilities \(\mathsf R_n(P,\phi)\) follow \cref{obj:def:testing-risk}, and the signed-binary model and null are specified in \cref{obj:def:binary-model,obj:def:binary-null}. Here \(\lambda\) denotes Lebesgue probability measure on \([0,1]\), and the population heterogeneity distance is
+\[
+d(P)
+=
+\left(
+\int_{[0,1]}
+\left\{\tau_P(x)-\int_{[0,1]}\tau_P(z)\,d\lambda(z)\right\}^{2}
+\,d\lambda(x)
+\right)^{1/2}.
+\]
+The public parameter domain is:
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\in\mathbb N\) with \(n\ge2\).
+\item \textbf{(Smoothness.)} \(w=(\alpha,\beta,\gamma)\in\mathcal W\), where
+\[
+\mathcal W=(0,1]\times(0,1]\times[1/4,1].
+\]
+\item \textbf{(Separation.)} \(0<r<D_w^{\mathrm{bin}}\), where the supremum of legal signed-binary heterogeneity distances is
+\[
+D_w^{\mathrm{bin}}
+=
+\sup_{P\in\mathcal M^{\mathrm{bin}}_w}d(P).
+\]
+\end{itemize}
+\end{definitionv}
+
+Finally, the benchmark critical radii \leanref{sym:rstarbound}{\ensuremath{r_n^{*,\mathrm b}(w)}} and \leanref{sym:rstarbin}{\ensuremath{r_n^{*,\mathrm{bin}}(w)}} in \cref{obj:def:bounded-radius,obj:def:binary-radius} apply the same capping convention to the respective risks.
+
+\begin{definitionv}{def:bounded-radius}[Bounded-model critical separation radius]
+The capped bounded-model critical separation radius \(r_n^{*,\mathrm b}(w)\) is defined for \(n\in\mathbb N\) and \(w=(\alpha,\beta,\gamma)\in\mathbb R^3\). Write \(d(P)\) for the population Lebesgue \(L_2\) distance of the mean effect under \(P\) from its average, and define the bounded-model cap by
+\[
+D_w^{\mathrm b}
+=
+\sup_{P\in\mathcal M^{\mathrm b}_w} d(P),
+\]
+where \(\mathcal M^{\mathrm b}_w\) is the bounded model in \cref{obj:def:bounded-model}. With \(B_n^{\mathrm b}(w,r)\), the bounded-model testing risk defined in \cref{obj:def:bounded-risk}, set
+\[
+r_n^{*,\mathrm b}(w)
+=
+\inf\left(
+\left\{r\in(0,D_w^{\mathrm b}):B_n^{\mathrm b}(w,r)\le \frac{1}{10}\right\}
+\cup\{D_w^{\mathrm b}\}
+\right).
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:binary-radius}[Capped signed-binary critical radius]
+The capped signed-binary critical separation radius \(r_n^{*,\mathrm{bin}}(w)\), for sample size \(n\in\mathbb N\) and primitive smoothness tuple \(w=(\alpha,\beta,\gamma)\in\mathbb R^3\), is
+\[
+r_n^{*,\mathrm{bin}}(w)
+=
+\inf\left(
+\left\{r\in(0,D_w^{\mathrm{bin}}):
+B_n^{\mathrm{bin}}(w,r)\le \frac{1}{10}\right\}
+\cup\{D_w^{\mathrm{bin}}\}
+\right),
+\]
+where \(D_w^{\mathrm{bin}}\) is the supremum of the population heterogeneity distances over the signed-binary model in \cref{obj:def:binary-model}, and \(B_n^{\mathrm{bin}}(w,r)\) is the signed-binary testing risk in \cref{obj:def:binary-risk}.
+\end{definitionv}
+
+Throughout the benchmark comparisons, these quantities are evaluated at \(n\ge2\) and \(w\in\mathcal W\). Holding the primitive smoothness tuple fixed aligns the population target and error thresholds across the original, bounded, and signed-binary families, providing a common basis for assessing the role of outcome tails.

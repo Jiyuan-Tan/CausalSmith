@@ -1,0 +1,791 @@
+\begin{proof}[Proof of \cref{obj:lem:original-score-covariance-ledger}]
+\begin{enumerate}
+\item Suppose first that \(n<4\). Since \(n\ge2\), the zero-score convention in \cref{obj:def:explicit-score-ledger,obj:def:calibration-handle} gives
+\[
+Z_{b,0}=Z_{b,A}=0,
+\qquad
+\Lambda_{n,v}=0.
+\]
+Both scalar coefficients are square integrable, and their variances and cross-covariance vanish. This proves all the asserted bounds in this case.
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.covarianceLedger_small_sample
+
+\item Henceforth \(n\ge4\). Use the ranks, cutoffs, and ledgers of \cref{obj:def:explicit-score-ledger}, and the blocks of \cref{obj:def:blocks}. In particular,
+\[
+s=s_n=\lfloor n/2\rfloor\ge2,
+\qquad
+M>0,\quad K>0,\quad M\mid K,
+\qquad
+T_0\ge1,
+\]
+and, in the multiresolution branch,
+\[
+R_j=2^jM,\qquad M\mid R_{j-1},\qquad T_j\ge1
+\quad(1\le j\le L).
+\]
+The divisibility follows because the selected ranks are powers of two and \(K\ge M\).
+
+Fix \(u\in\mathbb R^M\). Write
+\[
+\mathcal O=[0,1]\times\{0,1\}\times\mathbb R,
+\qquad
+O_i=(X_i,A_i,Y_i)\in\mathcal O,
+\]
+and let \(O,O'\) be independent records with law \(P\). For \(x\in[0,1]\), define the scalar histogram feature by
+\[
+f_u(x)=u^TF_M(x).
+\]
+The disjoint histogram cells in \cref{obj:def:projection}, together with the uniform covariate law, give
+\[
+\int_0^1 f_u(x)^2\,dx
+=
+\sum_{j=1}^{M}u_j^2
+=
+\|u\|_2^2,
+\qquad
+\mathbb E[f_u(X)^2]=\|u\|_2^2.
+\]
+
+Use a coefficient selector \(r\in\{0,1\}\), with
+\[
+Z_{b,r}^{\mathrm{coef}}
+=
+\begin{cases}
+Z_{b,0},&r=0,\\
+Z_{b,A},&r=1.
+\end{cases}
+\]
+For every real cutoff \(T\ge1\), define
+\[
+\mathfrak m_{r,T}(o)
+=
+\begin{cases}
+\ell_T(Y(o)),&r=0,\\
+A(o),&r=1,
+\end{cases}
+\qquad
+V_T=32T^{2-p},
+\qquad o\in\mathcal O.
+\]
+Thus \(V_{T_0}=V_0\) and \(V_{T_j}=V_j\). For a pair kernel \(G\) from the score construction, define
+\[
+\mathscr E_{r,u}[G,T](o,o')
+=
+f_u(X(o))A(o)G(X(o),X(o'))\mathfrak m_{r,T}(o'),
+\]
+\[
+\mathscr P_{r,u}[G,T](o,o')
+=
+\frac{
+\mathscr E_{r,u}[G,T](o,o')
++
+\mathscr E_{r,u}[G,T](o',o)
+}{2},
+\qquad o,o'\in\mathcal O.
+\]
+The selected scalar single-record and pair summands are
+\[
+h_{r,u}(o)=f_u(X(o))A(o)\mathfrak m_{r,T_0}(o),
+\]
+\[
+g_{r,u}(o,o')
+=
+\begin{cases}
+-\mathscr P_{r,u}[\Pi_K,T_0](o,o'),
+&\text{single-correction branch},\\[1mm]
+-\mathscr P_{r,u}[\Pi_M,T_0](o,o')
+-\displaystyle\sum_{j=1}^{L}\mathscr P_{r,u}[D_j,T_j](o,o'),
+&\text{multiresolution branch}.
+\end{cases}
+\]
+Here \(A(o)^2=A(o)\), so the \(r=1\) single-record summand agrees with the treatment coefficient. Package these summands into
+\[
+k_{r,u}(o,o')
+=
+\frac{h_{r,u}(o)+h_{r,u}(o')}{2}
++
+g_{r,u}(o,o').
+\]
+All these functions are measurable and bounded for the fixed finite tuning, hence square integrable.
+
+For either block, symmetrization preserves the ordered-pair sum, and each index occurs \(s-1\) times in each position. Consequently, the coefficient definitions in \cref{obj:def:calibration-handle} and the score formulas in \cref{obj:def:score-family} give
+\[
+u^TZ_{b,r}^{\mathrm{coef}}
+=
+\frac1s\sum_{i\in\mathcal I_b}h_{r,u}(O_i)
++
+\frac1{s(s-1)}
+\sum_{\substack{i,j\in\mathcal I_b\\i\ne j}}
+g_{r,u}(O_i,O_j)
+=
+\frac1{s(s-1)}
+\sum_{\substack{i,j\in\mathcal I_b\\i\ne j}}
+k_{r,u}(O_i,O_j).
+\]
+Empty increment sums have value zero throughout.
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledgerScalarKernel_average
+
+\item We first establish the variance identity for this pair-average representation. For any measurable symmetric square-integrable kernel
+\(\mathscr H:\mathcal O^2\to\mathbb R\), define
+\[
+\overline{\mathscr H}=\mathbb E[\mathscr H(O,O')],
+\qquad
+\mathscr H^{(1)}(o)
+=
+\mathbb E[\mathscr H(o,O')]-\overline{\mathscr H},
+\]
+\[
+\mathscr H^{(2)}(o,o')
+=
+\mathscr H(o,o')
+-\overline{\mathscr H}
+-\mathscr H^{(1)}(o)
+-\mathscr H^{(1)}(o'),
+\]
+and
+\[
+\mathscr A_b(\mathscr H)
+=
+\frac1{s(s-1)}
+\sum_{\substack{i,j\in\mathcal I_b\\i\ne j}}
+\mathscr H(O_i,O_j).
+\]
+Conditional integration gives
+\[
+\mathbb E[\mathscr H^{(1)}(O)]=0,
+\qquad
+\mathbb E[\mathscr H^{(2)}(O,O')\mid O]
+=
+\mathbb E[\mathscr H^{(2)}(O,O')\mid O']
+=
+0.
+\]
+Expanding the square of
+\(\mathscr H=\overline{\mathscr H}+\mathscr H^{(1)}+\mathscr H^{(1)}+\mathscr H^{(2)}\)
+and integrating therefore yields
+\[
+\mathbb E[\mathscr H(O,O')^2]
+=
+\overline{\mathscr H}^{\,2}
++
+2\mathbb E[\mathscr H^{(1)}(O)^2]
++
+\mathbb E[\mathscr H^{(2)}(O,O')^2].
+\]
+Indeed, the two singleton terms have zero product expectation by independence, and their products with the canonical term have zero expectation by conditional integration.
+
+Counting the occurrences of each singleton term gives
+\[
+\mathscr A_b(\mathscr H)-\overline{\mathscr H}
+=
+\frac2s\sum_{i\in\mathcal I_b}\mathscr H^{(1)}(O_i)
++
+\mathscr A_b(\mathscr H^{(2)}).
+\]
+The singleton sum has variance
+\[
+\operatorname{Var}\!\left(
+\frac2s\sum_{i\in\mathcal I_b}\mathscr H^{(1)}(O_i)
+\right)
+=
+\frac4s\operatorname{Var}(\mathscr H^{(1)}(O)).
+\]
+For distinct indices within each pair, conditional centering and independence imply
+\[
+\operatorname{Cov}\!\left(
+\mathscr H^{(2)}(O_i,O_j),
+\mathscr H^{(2)}(O_{i'},O_{j'})
+\right)
+=
+\begin{cases}
+\mathbb E[\mathscr H^{(2)}(O,O')^2],
+&(i',j')=(i,j)\text{ or }(j,i),\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+The zero case includes pairs sharing exactly one index: integrate first in a coordinate that occurs in only one pair. There are \(s(s-1)\) ordered pairs and two contributing ordered pairs for each of them. Thus
+\[
+\operatorname{Var}(\mathscr A_b(\mathscr H^{(2)}))
+=
+\frac{2}{s(s-1)}
+\mathbb E[\mathscr H^{(2)}(O,O')^2].
+\]
+The same conditional-centering argument gives
+\[
+\operatorname{Cov}\!\left(
+\frac2s\sum_{i\in\mathcal I_b}\mathscr H^{(1)}(O_i),
+\mathscr A_b(\mathscr H^{(2)})
+\right)=0.
+\]
+Each evaluation block has marginal law \(P^{\otimes s}\) under \(P^{\otimes n}\), so
+\[
+\operatorname{Var}_{P^{\otimes n}}(\mathscr A_b(\mathscr H))
+=
+\frac4s\operatorname{Var}_P(\mathscr H^{(1)})
++
+\frac{2}{s(s-1)}
+\mathbb E[\mathscr H^{(2)}(O,O')^2].
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.evalBlockPairAverage_variance
+
+\item We next bound the singleton channel. Admissibility gives \(1<p\le2\). For \(T\ge1\), clipping satisfies the pointwise bounds
+\[
+|y-\ell_T(y)|\le |y|^pT^{1-p},
+\qquad
+\ell_T(y)^2\le |y|^pT^{2-p}.
+\]
+Integrating under the conditional moment restriction in \cref{obj:ass:raw-moment} gives, for each treatment arm and almost every covariate value,
+\[
+\left|
+\int\{y-\ell_T(y)\}\,Q_{a,P}(dy\mid x)
+\right|
+\le10T^{1-p},
+\qquad
+\int\ell_T(y)^2\,Q_{a,P}(dy\mid x)
+\le10T^{2-p}.
+\]
+Define the conditional mark mean, for \(x\in[0,1]\), by
+\[
+\overline{\mathfrak m}_{r,T}(x)
+=
+e_P(x)\int\mathfrak m_{r,T}(x,1,y)\,Q_{1,P}(dy\mid x)
++
+\{1-e_P(x)\}
+\int\mathfrak m_{r,T}(x,0,y)\,Q_{0,P}(dy\mid x).
+\]
+The preceding bounds and \(0\le e_P\le1\) imply
+\[
+\mathbb E[\mathfrak m_{0,T}(O)^2\mid X=x]
+\le10T^{2-p}\le V_T.
+\]
+For the treatment mark,
+\[
+\mathbb E[\mathfrak m_{1,T}(O)^2\mid X=x]
+=e_P(x)\le1\le V_T,
+\qquad
+\overline{\mathfrak m}_{1,T}(x)=e_P(x).
+\]
+In particular, for both selectors,
+\[
+\mathbb E[\mathfrak m_{r,T}(O)^2\mid X=x]\le V_T,
+\qquad
+|\overline{\mathfrak m}_{r,T}(x)|\le\sqrt{V_T}
+\quad\text{almost everywhere},
+\]
+where the second inequality is conditional Cauchy--Schwarz.
+
+Since \(|A|\le1\), the single-record summand obeys
+\[
+h_{r,u}(O)^2
+\le
+2f_u(X)^2\mathfrak m_{r,T_0}(O)^2.
+\]
+Conditioning on \(X\) and using the feature isometry yields
+\[
+\mathbb E[h_{r,u}(O)^2]
+\le2V_0\|u\|_2^2
+\le B_h^2\|u\|_2^2,
+\qquad
+B_h=2\sqrt{V_0}.
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.multiresScalarSingle_energy_le
+
+\item For any selected projection or difference kernel \(G\), and any integrable function \(\varphi:[0,1]\to\mathbb R\), use the operator notation
+\[
+(G\varphi)(x)=\int_0^1G(x,x')\varphi(x')\,dx'.
+\]
+Nested histogram cells imply
+\[
+G(x,x')f_u(x')=G(x,x')f_u(x)
+\]
+for \(G=\Pi_K,\Pi_M\), and for every \(G=D_j\). Integrating the two symmetrized legs separately therefore gives
+\[
+\mathbb E[\mathscr P_{r,u}[G,T](o,O')]
+=
+\frac12f_u(X(o))
+\left[
+A(o)(G\overline{\mathfrak m}_{r,T})(X(o))
++
+\mathfrak m_{r,T}(o)(Ge_P)(X(o))
+\right].
+\]
+For a positive histogram rank \(J_{\mathrm{aux}}\) divisible by \(M\), cell averaging gives
+\[
+|\Pi_{J_{\mathrm{aux}}}\overline{\mathfrak m}_{r,T}|
+\le\sqrt{V_T},
+\qquad
+|\Pi_{J_{\mathrm{aux}}}e_P|\le1.
+\]
+Consequently,
+\[
+\left|
+\mathbb E[\mathscr P_{r,u}[\Pi_{J_{\mathrm{aux}}},T](o,O')]
+\right|
+\le
+\frac12|f_u(X(o))|
+\left(\sqrt{V_T}+|\mathfrak m_{r,T}(o)|\right).
+\]
+Using
+\[
+\frac14\left(\sqrt{V_T}+|\mathfrak m_{r,T}(o)|\right)^2
+\le
+\frac12\left(V_T+\mathfrak m_{r,T}(o)^2\right)
+\]
+and then conditioning on \(X\), we obtain
+\[
+\mathbb E\!\left[
+\left\{
+\mathbb E[\mathscr P_{r,u}[\Pi_{J_{\mathrm{aux}}},T](O,O')\mid O]
+\right\}^{\!2}
+\right]
+\le V_T\|u\|_2^2.
+\]
+
+The augmented kernel has singleton projection
+\[
+k_{r,u}^{(1)}(o)
+=
+\frac{h_{r,u}(o)-\mathbb E[h_{r,u}(O)]}{2}
++
+g_{r,u}^{(1)}(o).
+\]
+Centering decreases second moment, so the triangle inequality in \(L_2(P)\) gives
+\[
+2\|k_{r,u}^{(1)}\|_{L_2(P)}
+\le
+\sqrt{\mathbb E[h_{r,u}(O)^2]}
++
+2\sqrt{
+\mathbb E\!\left[
+\left\{\mathbb E[g_{r,u}(O,O')\mid O]\right\}^{2}
+\right]}.
+\]
+Here
+\[
+\operatorname{Var}_P(k_{r,u}^{(1)})
+=
+\|k_{r,u}^{(1)}\|_{L_2(P)}^2
+\]
+because its mean is zero.
+
+In the single-correction branch, the projection estimate with
+\(J_{\mathrm{aux}}=K\) and \(T=T_0\) gives
+\[
+\mathbb E\!\left[
+\left\{\mathbb E[g_{r,u}(O,O')\mid O]\right\}^{2}
+\right]
+\le B_{g,\mathrm{single}}^2\|u\|_2^2,
+\qquad
+B_{g,\mathrm{single}}=\sqrt{V_0}.
+\]
+It follows that
+\[
+4\operatorname{Var}_P(k_{r,u}^{(1)})
+\le
+(B_h+2B_{g,\mathrm{single}})^2\|u\|_2^2
+=
+(4\sqrt{V_0})^2\|u\|_2^2
+\le
+(16\sqrt{V_0})^2\|u\|_2^2
+=
+L_1^2\|u\|_2^2.
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledgerScalarKernel_singleton_variance_le
+
+\item In the multiresolution branch, define
+\[
+s_0=\min\{\alpha,\beta,\gamma\}\in(0,1],
+\qquad
+f_{\mathrm{mean}}(x)=m_{0,P}(x)+e_P(x)\tau_P(x),
+\qquad x\in[0,1].
+\]
+The smoothness and boundedness restrictions in
+\cref{obj:ass:propensity-smoothness,obj:ass:baseline-smoothness,obj:ass:effect-smoothness,obj:ass:overlap,obj:ass:baseline-cap,obj:ass:effect-cap}
+give
+\[
+|f_{\mathrm{mean}}(x)|\le2
+\]
+and
+\[
+\begin{aligned}
+|f_{\mathrm{mean}}(x)-f_{\mathrm{mean}}(x')|
+&\le
+|m_{0,P}(x)-m_{0,P}(x')|
++
+|e_P(x)|\,|\tau_P(x)-\tau_P(x')|\\
+&\quad+
+|e_P(x)-e_P(x')|\,|\tau_P(x')|\\
+&\le
+20|x-x'|^\beta
++
+15|x-x'|^\gamma
++
+20|x-x'|^\alpha\\
+&\le55|x-x'|^{s_0}.
+\end{aligned}
+\]
+For \(x=x'\) both sides vanish; for \(0<|x-x'|\le1\), the last inequality follows because each exponent is at least \(s_0\).
+
+To apply the histogram approximation bound with constant \(20\), define
+\[
+\widetilde f_{\mathrm{mean}}(x)=\frac{20}{55}f_{\mathrm{mean}}(x).
+\]
+Then
+\[
+\|\widetilde f_{\mathrm{mean}}\|_\infty\le\frac{40}{55}\le20,
+\qquad
+|\widetilde f_{\mathrm{mean}}(x)-\widetilde f_{\mathrm{mean}}(x')|
+\le20|x-x'|^{s_0}.
+\]
+Averaging over the histogram cell containing \(x\), whose diameter is at most \(J_{\mathrm{aux}}^{-1}\), gives, for every positive integer \(J_{\mathrm{aux}}\),
+\[
+|\Pi_{J_{\mathrm{aux}}}\widetilde f_{\mathrm{mean}}(x)
+-\widetilde f_{\mathrm{mean}}(x)|
+\le20J_{\mathrm{aux}}^{-s_0}.
+\]
+Thus, for \(1\le j\le L\),
+\[
+\begin{aligned}
+|D_jf_{\mathrm{mean}}(x)|
+&=
+\frac{55}{20}
+\left|
+\Pi_{R_j}\widetilde f_{\mathrm{mean}}(x)
+-
+\Pi_{R_{j-1}}\widetilde f_{\mathrm{mean}}(x)
+\right|\\
+&\le
+\frac{55}{20}
+\left(20R_j^{-s_0}+20R_{j-1}^{-s_0}\right)
+\le110R_{j-1}^{-s_0}.
+\end{aligned}
+\]
+
+For \(T\ge1\), define on all of \([0,1]\)
+\[
+\mathfrak t_T(x)
+=
+f_{\mathrm{mean}}(x)-\overline{\mathfrak m}_{0,T}(x).
+\]
+The conditional mean versions in \cref{obj:def:model} imply, almost everywhere,
+\[
+\begin{aligned}
+\mathfrak t_T(x)
+&=
+e_P(x)\int\{y-\ell_T(y)\}\,Q_{1,P}(dy\mid x)\\
+&\quad+
+\{1-e_P(x)\}
+\int\{y-\ell_T(y)\}\,Q_{0,P}(dy\mid x).
+\end{aligned}
+\]
+The clipping-tail estimate therefore gives
+\[
+\|\mathfrak t_T\|_{L_\infty(\lambda)}
+\le10T^{1-p},
+\qquad
+|D_j\mathfrak t_{T_j}(x)|
+\le20T_j^{1-p}.
+\]
+For the propensity, the same cell-averaging argument gives
+\[
+|\Pi_{J_{\mathrm{aux}}}e_P(x)-e_P(x)|
+\le20J_{\mathrm{aux}}^{-\alpha},
+\]
+hence
+\[
+|D_je_P(x)|
+\le20R_j^{-\alpha}+20R_{j-1}^{-\alpha}
+\le40R_{j-1}^{-\alpha}=a_j.
+\]
+Combining the smoothness and tail bounds yields
+\[
+|D_j\overline{\mathfrak m}_{0,T_j}(x)|
+\le110R_{j-1}^{-s_0}+20T_j^{1-p}=d_j.
+\]
+
+Substitution into the conditional pair formula gives the outcome-coefficient envelope
+\[
+\left|
+\mathbb E[\mathscr P_{0,u}[D_j,T_j](o,O')]
+\right|
+\le
+\frac12|f_u(X(o))|
+\left(d_j+a_j|\mathfrak m_{0,T_j}(o)|\right).
+\]
+Since
+\[
+\frac14(d_j+a_j|\mathfrak m_{0,T_j}|)^2
+\le
+\frac12(d_j^2+a_j^2\mathfrak m_{0,T_j}^2),
+\]
+conditioning on \(X\) gives
+\[
+\mathbb E\!\left[
+\left\{
+\mathbb E[\mathscr P_{0,u}[D_j,T_j](O,O')\mid O]
+\right\}^{\!2}
+\right]
+\le
+\frac12(d_j^2+a_j^2V_j)\|u\|_2^2.
+\]
+For the treatment coefficient,
+\(\overline{\mathfrak m}_{1,T_j}=e_P\) and
+\(|\mathfrak m_{1,T_j}|\le1\), so
+\[
+\left|
+\mathbb E[\mathscr P_{1,u}[D_j,T_j](o,O')]
+\right|
+\le a_j|f_u(X(o))|.
+\]
+Applying the same square-envelope inequality with constant term \(2a_j\) and zero mark term yields
+\[
+\mathbb E\!\left[
+\left\{
+\mathbb E[\mathscr P_{1,u}[D_j,T_j](O,O')\mid O]
+\right\}^{\!2}
+\right]
+\le2a_j^2\|u\|_2^2.
+\]
+All \(a_j,d_j\) are nonnegative and \(V_j\ge1\). The two coefficient estimates fit the common bound because
+\[
+\frac12(d_j^2+a_j^2V_j)
+\le\{2(d_j+a_j\sqrt{V_j})\}^2,
+\qquad
+2a_j^2
+\le\{2(d_j+a_j\sqrt{V_j})\}^2.
+\]
+Define the nonnegative increment sum and conditional-pair budget by
+\[
+\mathcal S_{\mathrm{inc}}
+=
+\sum_{j=1}^{L}(d_j+a_j\sqrt{V_j}),
+\qquad
+B_{g,\mathrm{multi}}
+=
+\sqrt{V_0}+2\mathcal S_{\mathrm{inc}}.
+\]
+The initial projection estimate at rank \(M\), followed by the triangle inequality for the finite increment sum in \(L_2(P)\), gives
+\[
+\begin{aligned}
+\left\|
+\mathbb E[g_{r,u}(O,O')\mid O]
+\right\|_{L_2(P)}
+&\le
+\sqrt{V_0}\|u\|_2
++
+\sum_{j=1}^{L}2(d_j+a_j\sqrt{V_j})\|u\|_2\\
+&=
+B_{g,\mathrm{multi}}\|u\|_2.
+\end{aligned}
+\]
+This includes \(L=0\), when the sum is zero. The singleton estimate for the augmented kernel now gives
+\[
+\begin{aligned}
+4\operatorname{Var}_P(k_{r,u}^{(1)})
+&\le
+(B_h+2B_{g,\mathrm{multi}})^2\|u\|_2^2\\
+&=
+(4\sqrt{V_0}+4\mathcal S_{\mathrm{inc}})^2\|u\|_2^2\\
+&\le
+(16\sqrt{V_0}+8\mathcal S_{\mathrm{inc}})^2\|u\|_2^2
+=
+L_1^2\|u\|_2^2.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledgerScalarKernel_singleton_variance_le
+
+\item We next bound the canonical channel, again treating the two branches separately. The definitions of the projections give
+\[
+\overline{k_{r,u}}
+=
+\mathbb E[h_{r,u}(O)]+\overline{g_{r,u}},
+\]
+and cancellation of the single-record terms gives
+\[
+k_{r,u}^{(2)}(o,o')=g_{r,u}^{(2)}(o,o')
+\quad\text{almost everywhere}.
+\]
+The pair-energy identity therefore implies
+\[
+\begin{aligned}
+\mathbb E[k_{r,u}^{(2)}(O,O')^2]
+&=
+\mathbb E[g_{r,u}^{(2)}(O,O')^2]\\
+&\le
+\overline{g_{r,u}}^{\,2}
++
+2\mathbb E[g_{r,u}^{(1)}(O)^2]
++
+\mathbb E[g_{r,u}^{(2)}(O,O')^2]\\
+&=
+\mathbb E[g_{r,u}(O,O')^2].
+\end{aligned}
+\]
+
+To bound this raw pair energy, the histogram kernels have exact row identities
+\[
+\int_0^1\Pi_{J_{\mathrm{aux}}}(x,x')^2\,dx'
+=
+J_{\mathrm{aux}}
+\quad(J_{\mathrm{aux}}\in\mathbb N,\ J_{\mathrm{aux}}>0),
+\]
+\[
+\int_0^1
+\Pi_{R_j}(x,x')\Pi_{R_{j-1}}(x,x')\,dx'
+=
+R_{j-1},
+\]
+and hence
+\[
+\int_0^1D_j(x,x')^2\,dx'
+=
+R_j+R_{j-1}-2R_{j-1}
+=
+R_{j-1}
+\quad(1\le j\le L).
+\]
+The first identity follows because a projection row equals its rank on one cell of reciprocal length. For the cross-product identity, the finer cell lies inside the coarser cell, so integrating their product gives the coarser rank.
+
+Conditioning on the covariate of \(O'\), the mark bound gives, for every selected \(G,T\),
+\[
+\mathbb E[G(x,X(O'))^2\mathfrak m_{r,T}(O')^2]
+\le
+V_T\int_0^1G(x,x')^2\,dx'.
+\]
+Thus, integrating first in \(O'\) and using \(A(O)^2\le1\),
+\[
+\mathbb E[\mathscr E_{r,u}[\Pi_{J_{\mathrm{aux}}},T](O,O')^2]
+\le
+J_{\mathrm{aux}}V_T\,\mathbb E[f_u(X)^2]
+=
+J_{\mathrm{aux}}V_T\|u\|_2^2,
+\]
+\[
+\mathbb E[\mathscr E_{r,u}[D_j,T_j](O,O')^2]
+\le
+R_{j-1}V_j\|u\|_2^2.
+\]
+Symmetrization satisfies
+\[
+\mathscr P_{r,u}[G,T](o,o')^2
+\le
+\frac{
+\mathscr E_{r,u}[G,T](o,o')^2
++
+\mathscr E_{r,u}[G,T](o',o)^2
+}{2}.
+\]
+The two legs have equal integrated energy under \(P\otimes P\). Consequently,
+\[
+\mathbb E[\mathscr P_{r,u}[\Pi_{J_{\mathrm{aux}}},T](O,O')^2]
+\le
+J_{\mathrm{aux}}V_T\|u\|_2^2,
+\]
+\[
+\mathbb E[\mathscr P_{r,u}[D_j,T_j](O,O')^2]
+\le
+R_{j-1}V_j\|u\|_2^2
+\le
+R_jV_j\|u\|_2^2.
+\]
+
+In the single-correction branch, this gives
+\[
+\begin{aligned}
+\mathbb E[k_{r,u}^{(2)}(O,O')^2]
+&\le
+\mathbb E[g_{r,u}(O,O')^2]\\
+&\le
+KV_0\|u\|_2^2\\
+&\le
+(4\sqrt{KV_0})^2\|u\|_2^2
+=
+L_2^2\|u\|_2^2.
+\end{aligned}
+\]
+In the multiresolution branch, the triangle inequality in \(L_2(P\otimes P)\) gives
+\[
+\|g_{r,u}\|_{L_2(P\otimes P)}
+\le
+\left(
+\sqrt{MV_0}
++
+\sum_{j=1}^{L}\sqrt{R_jV_j}
+\right)\|u\|_2.
+\]
+Every summand is nonnegative, including the empty-sum case. Therefore
+\[
+\begin{aligned}
+\mathbb E[k_{r,u}^{(2)}(O,O')^2]
+&\le
+\left(
+\sqrt{MV_0}+\sum_{j=1}^{L}\sqrt{R_jV_j}
+\right)^2\|u\|_2^2\\
+&\le
+\left[
+4\left(
+\sqrt{MV_0}+\sum_{j=1}^{L}\sqrt{R_jV_j}
+\right)
+\right]^2\|u\|_2^2\\
+&=
+L_2^2\|u\|_2^2.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledgerScalarKernel_canonical_energy_le
+
+\item Apply the pair-average variance identity to \(k_{r,u}\). Since \(s\ge2\), both sample factors are positive, and the two projection estimates imply
+\[
+\begin{aligned}
+\operatorname{Var}_{P^{\otimes n}}(u^TZ_{b,r}^{\mathrm{coef}})
+&=
+\frac4s\operatorname{Var}_P(k_{r,u}^{(1)})
++
+\frac{2}{s(s-1)}
+\mathbb E[k_{r,u}^{(2)}(O,O')^2]\\
+&\le
+\frac{L_1^2}{s}\|u\|_2^2
++
+\frac{2L_2^2}{s(s-1)}\|u\|_2^2\\
+&=
+\Lambda_{n,v}\|u\|_2^2.
+\end{aligned}
+\]
+The finite-sum representation also gives
+\[
+u^TZ_{b,r}^{\mathrm{coef}}\in L_2(P^{\otimes n}).
+\]
+Taking \(r=0\) and \(r=1\) proves square integrability and the two variance bounds.
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.original_score_covariance_ledger
+
+\item Finally, the covariance ledger is nonnegative:
+\[
+\Lambda_{n,v}
+=
+\frac{L_1^2}{s}
++
+\frac{2L_2^2}{s(s-1)}
+\ge0
+\qquad(n\ge4),
+\]
+and its value is zero for \(n=2,3\). For arbitrary \(u,z\in\mathbb R^M\), Cauchy--Schwarz for the centered square-integrable coefficients gives
+\[
+\begin{aligned}
+\left|
+\operatorname{Cov}_{P^{\otimes n}}
+(u^TZ_{b,0},z^TZ_{b,A})
+\right|
+&\le
+\sqrt{\operatorname{Var}_{P^{\otimes n}}(u^TZ_{b,0})}\,
+\sqrt{\operatorname{Var}_{P^{\otimes n}}(z^TZ_{b,A})}\\
+&\le
+\sqrt{\Lambda_{n,v}\|u\|_2^2}\,
+\sqrt{\Lambda_{n,v}\|z\|_2^2}\\
+&=
+(\sqrt{\Lambda_{n,v}})^2\|u\|_2\|z\|_2\\
+&=
+\Lambda_{n,v}\|u\|_2\|z\|_2.
+\end{aligned}
+\]
+The square-root simplification applies also when either direction or the ledger is zero.
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledger_cross_covariance_of_variance
+\end{enumerate}
+\end{proof}

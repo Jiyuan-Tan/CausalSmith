@@ -1,0 +1,140 @@
+\section{Appendix A. Identification and decision-theory preliminaries}
+
+This appendix collects the decision-theoretic comparisons, cell-identification identities, and synthetic-assignment map used in the risk analysis. The generic experiment and testing notation introduced below is local to this appendix.
+
+\subsection{Finite decision experiments}
+
+For the decision experiment in \cref{obj:lem:randomized-kernel-barycenter}, let \(\Lambda\) denote a parameter set, \(\mathcal Z\) a finite observation space with measurable singletons, \(Q_\lambda\) the observation law at parameter \(\lambda\), and \(\vartheta(\lambda)\in[-1,1]\) the scalar target. A randomized procedure is a parameter-independent Markov kernel \(\kappa\): conditional on observation \(o\), it draws an action from \(\kappa(o,\cdot)\). Its squared risk averages the squared estimation error over both the observation and the action. A deterministic procedure is represented by a kernel concentrated at one action for each observation. For actions in \([-1,1]\), the barycenter is the conditional mean of the action. The following comparison establishes the risk effect of replacing a randomized action by this mean, together with the corresponding clipping and uniform-seed representations.
+
+\begin{lemmav}{lem:randomized-kernel-barycenter}[Barycenters and uniform randomization]
+Let \(\Lambda\) be an arbitrary parameter set, and suppose:
+\begin{itemize}
+\item \textbf{(Sample space.)} \(\mathcal Z\) is a finite measurable space with measurable singletons.
+\item \textbf{(Experiment.)} For each \(\lambda\in\Lambda\), \(Q_\lambda\) is a probability law on \(\mathcal Z\).
+\item \textbf{(Target.)} For each \(\lambda\in\Lambda\), the target satisfies \(\vartheta(\lambda)\in[-1,1]\).
+\end{itemize}
+For a parameter-independent Markov kernel \(\kappa\) from \(\mathcal Z\) to \(\mathbb R\), supported on \([-1,1]\) at every observation, define its barycenter by
+\[
+b_\kappa(o)=\int_{\mathbb R}h\,\kappa(o,dh).
+\]
+Then \(b_\kappa(o)\in[-1,1]\) for every \(o\in\mathcal Z\), and, for every \(\lambda\in\Lambda\),
+\[
+\int_{\mathcal Z}\bigl(b_\kappa(o)-\vartheta(\lambda)\bigr)^2\,Q_\lambda(do)
+\le
+\int_{\mathcal Z}\int_{\mathbb R}
+\bigl(h-\vartheta(\lambda)\bigr)^2\,\kappa(o,dh)\,Q_\lambda(do).
+\]
+The minimax squared risk over these bounded kernels equals that over deterministic maps into \([-1,1]\):
+\[
+\inf_{\kappa}\sup_{\lambda\in\Lambda}
+\int_{\mathcal Z}\int_{\mathbb R}
+\bigl(h-\vartheta(\lambda)\bigr)^2\,\kappa(o,dh)\,Q_\lambda(do)
+=
+\inf_{b:\mathcal Z\to[-1,1]}\sup_{\lambda\in\Lambda}
+\int_{\mathcal Z}\bigl(b(o)-\vartheta(\lambda)\bigr)^2\,Q_\lambda(do),
+\]
+where the first infimum ranges over the bounded kernels just specified.
+
+Define clipping by
+\[
+\operatorname{clip}_{[-1,1]}(h)=\max\{-1,\min\{1,h\}\}.
+\]
+For every parameter-independent Markov kernel \(\kappa\) from \(\mathcal Z\) to \(\mathbb R\), and every \(\lambda\in\Lambda\), its image under clipping satisfies
+\[
+\int_{\mathcal Z}\int_{\mathbb R}
+\bigl(\operatorname{clip}_{[-1,1]}(h)-\vartheta(\lambda)\bigr)^2
+\,\kappa(o,dh)\,Q_\lambda(do)
+\le
+\int_{\mathcal Z}\int_{\mathbb R}
+\bigl(h-\vartheta(\lambda)\bigr)^2\,\kappa(o,dh)\,Q_\lambda(do),
+\]
+with both risks interpreted as nonnegative extended integrals. The extended minimax squared risk over all such real-valued Markov kernels, converted to a real value, equals the bounded-kernel minimax squared risk above.
+
+The uniform law on \([0,1]\), defined by restricting Lebesgue measure to this interval, is a probability law. Every bounded kernel \(\kappa\) admits a measurable map
+\(f:\mathcal Z\times[0,1]\to[-1,1]\) such that, for every \(o\in\mathcal Z\), \(\kappa(o,\cdot)\) is the distribution of \(f(o,U)\), where \(U\) has this uniform law. Conversely, every such measurable map induces a bounded Markov kernel with precisely these conditional distributions. The same uniform seed law serves every parameter.
+\end{lemmav}
+
+The comparison holds at every parameter, so conditional averaging also preserves a uniform squared-risk bound. It supplies the decision-theoretic justification for the auxiliary average in \cref{obj:def:mixed-count-estimator} and the synthetic-assignment average in \cref{obj:thm:zeng-fixed-positivity-polynomial-frontier}. Clipping weakly reduces squared loss for targets in the stated interval; on the real line, this clipping map coincides with Euclidean projection onto that interval. The uniform-seed representation places bounded randomized procedures and procedures implemented with independent auxiliary randomization in the same decision class.
+
+For the testing comparison in \cref{obj:lem:randomized-kernel-tv-comparison}, let \(Q_0,Q_1\) denote two laws on \(\mathcal Z\), and let \(\mathcal H\) be a measurable action space. The notation \(Q_i\ltimes\kappa\) denotes the joint observation--action law, whereas \(Q_i\kappa\) denotes its action marginal. Total variation, written \(\operatorname{TV}\), is the supremum of absolute probability differences over measurable events. For binary actions, a randomized test has conditional probability \(\psi(o)=\kappa(o,\{1\})\) of selecting alternative \(1\). The next comparison applies both to events that retain the observation and to events determined by the action alone.
+
+\begin{lemmav}{lem:randomized-kernel-tv-comparison}[Total variation under randomization]
+Let \(Q_0,Q_1\) be probability laws on a finite measurable space \(\mathcal Z\) with measurable singletons, and let \(\kappa\) be a common Markov kernel from \(\mathcal Z\) to a measurable action space \(\mathcal H\). For \(i\in\{0,1\}\), write \(Q_i\ltimes\kappa\) for the joint law obtained by drawing an input from \(Q_i\) and then an action from \(\kappa\) conditional on that input, and write \(Q_i\kappa\) for its action marginal. For two probability laws on the same measurable space, define their total variation distance as the supremum of their absolute probability differences over measurable events. Then
+\[
+\operatorname{TV}(Q_0\kappa,Q_1\kappa)
+\le
+\operatorname{TV}(Q_0\ltimes\kappa,Q_1\ltimes\kappa)
+=
+\operatorname{TV}(Q_0,Q_1).
+\]
+For every measurable event \(T\subseteq\mathcal Z\times\mathcal H\),
+\[
+(Q_0\ltimes\kappa)(T)+(Q_1\ltimes\kappa)(T^c)
+\ge 1-\operatorname{TV}(Q_0,Q_1),
+\]
+and for every measurable event \(T\subseteq\mathcal H\),
+\[
+(Q_0\kappa)(T)+(Q_1\kappa)(T^c)
+\ge 1-\operatorname{TV}(Q_0,Q_1).
+\]
+\end{lemmav}
+
+Retaining the observation alongside the randomized action preserves total variation, while taking the action marginal weakly reduces it. When the event represents selection of alternative \(1\), the displayed probability sum is the sum of the two testing errors. These comparisons allow the lower-bound analysis in \cref{obj:thm:full-experiment-lower} and the interval analysis in \cref{obj:thm:connected-interval-frontier} to cover parameter-independent randomized procedures using the same observation-law comparison.
+
+\subsection{Identification through observed cells}
+
+The cell functional in \cref{obj:def:cell-functional} expresses the target through membership probabilities and arrived-outcome means, with zero contributions assigned to null cells. Its connection to the average treatment effect uses randomized independence, balanced assignment, consistency, conditional missing at random, and positive arrival in occupied cells, as specified in \cref{obj:ass:randomized-independence,obj:ass:balanced-randomization,obj:ass:surrogate-consistency,obj:ass:outcome-consistency,obj:ass:arrival-mar,obj:ass:occupied-cell-arrival}. The first identity applies to the unrestricted-arrival class.
+
+\begin{lemmav}{lem:unrestricted-cell-identification}[Identification by cell contributions]
+Let \(n,d\in\mathbb N\), \(q\in\mathbb R\), and let \(P\in\mathcal M^{+}_{n,d,q}\) satisfy \cref{obj:def:unrestricted-arrival-model-class}. The average treatment effect \(\tau(P)\) and the total observed-cell functional \(\Phi(P)\), defined in \cref{obj:def:ate-functional,obj:def:cell-functional}, satisfy
+\[
+\tau(P)=\Phi(P)
+=2\sum_{(a,x,s)\in\mathcal J_d}g(a)c_{axs}(P).
+\]
+\end{lemmav}
+
+The identity makes the observed-cell functional an exact population target throughout the unrestricted-arrival class. The surrogate enters through the cells on which arrival is conditioned, and the signed sum aggregates their contributions into the treatment contrast. This is the identification relation used by the unrestricted risk bound in \cref{obj:thm:unrestricted-mixed-count-upper}.
+
+For the rare-arrival class, the same relation is recorded under the model conditions governing its minimax analysis.
+
+\begin{lemmav}{lem:cell-identification-background}[Identification by cell contributions]
+Let \(n,d\in\mathbb N\), \(q\in\mathbb R\), and let \(P\in\mathcal M_{n,d,q}\) satisfy the model conditions in \cref{obj:def:model-class}. The average treatment effect \(\tau(P)\) of \cref{obj:def:ate-functional} equals the total signed observed-cell functional \(\Phi(P)\) of \cref{obj:def:cell-functional}:
+\[
+\tau(P)=\Phi(P)
+=2\sum_{(a,x,s)\in\mathcal J_d}g(a)c_{axs}(P).
+\]
+Here the cell contributions and their null-cell convention are as defined in \cref{obj:def:cell-functional}.
+\end{lemmav}
+
+The rare-arrival restriction in \cref{obj:ass:rare-arrival-slice} specifies the regime for the risk comparison, while this identity fixes its estimand. In particular, the null-cell convention gives a total cell functional across laws with different occupied categories. The mixed-count analysis underlying \cref{obj:thm:matched-minimax-frontier} therefore targets the same average treatment effect throughout the rare-arrival model.
+
+\subsection{Synthetic assignment and experiment comparison}
+
+The observational class in \cref{obj:def:zeng-discrete-ate-class} supplies an experiment that can be mapped into the unrestricted randomized model. The map assigns an independent fair binary arm to each observational record, records outcome arrival when that arm matches the observational treatment, and sets the surrogate to zero. The following statement establishes a parameter-independent observation map together with a full-data completion preserving the target.
+
+\begin{lemmav}{lem:synthetic-randomization-kernel}[Synthetic randomization kernel]
+Let the inputs satisfy:
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n,d\in\mathbb N\) and \(n\ge1\).
+\item \textbf{(Arrival floor.)} \(0<q<1/2\).
+\item \textbf{(Observational law.)} \(P_Z\in\mathcal D_{d,q}\), the discrete positivity class of \cref{obj:def:zeng-discrete-ate-class}.
+\end{itemize}
+Index observational baseline categories by \(x\in\{1,\ldots,d\}\) and full-data baseline categories by their corresponding zero-based indices \(x-1\in\{0,\ldots,d-1\}\). For an observational record \((x,b,y)\), define
+\[
+o(x,b,y;u)
+=
+\left(x-1,u,0,\mathbf 1\{b=u\},\mathbf 1\{b=u\}y\right),
+\qquad u\in\{0,1\}.
+\]
+Applying this map independently to each input record with independent fair binary draws defines a Markov kernel independent of \(P_Z\).
+
+There exists a full-data law \(P_Z^*\in\mathcal M^{+}_{n,d,q}\), as defined in \cref{obj:def:unrestricted-arrival-model-class}, such that applying this kernel to \(\mathbf Z_n\), an i.i.d.\ sample of \(n\) observational records from \(P_Z\), yields exactly the \(n\)-fold product of the observed-record law induced by \(P_Z^*\). The resulting observed sample \(\mathbf O_n\) satisfies \cref{obj:ass:iid-sampling} under \(P_Z^*\), and
+\[
+\tau(P_Z^*)=\theta_Z(P_Z),
+\]
+with the functionals defined in \cref{obj:def:ate-functional,obj:def:zeng-ate-functional}.
+\end{lemmav}
+
+The map preserves both the product observation law and the target at the corresponding full-data completion. Its parameter independence permits composition with any randomized estimator in \cref{obj:def:unrestricted-minimax-risk}. This fixes the direction of the experiment comparison used in \cref{obj:thm:unrestricted-fixed-q-minimax-frontier}: observational minimax lower bounds transfer to the unrestricted randomized model at the same arrival floor.
+
+For construction, the same map supplies the synthetic records used by the observational procedure in \cref{obj:thm:zeng-fixed-positivity-polynomial-frontier}. The target equality connects its squared loss to that of the randomized estimator, and \cref{obj:lem:randomized-kernel-barycenter} supplies the risk comparison for averaging over the synthetic assignments. Thus the observation map supports both the fixed-arrival lower-bound comparison and the constructive observational extension.

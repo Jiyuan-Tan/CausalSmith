@@ -1,0 +1,572 @@
+\begin{proof}[Proof of \cref{obj:lem:cosine-prior}]
+\begin{enumerate}
+\item \emph{Centering and square integrability.}
+Fix the stated parameters and a coefficient-sign array \(\xi\). Write
+\[
+\begin{aligned}
+\mathcal I
+&=\{(j,\ell,a,b):1\leq j<\ell\leq d,\ 1\leq a,b\leq L\},\\
+B&=\binom d2,\qquad M=BL^2,\qquad
+\gamma_{\mathrm{prior}}=\frac{1}{C_0L^s\sqrt M},\\
+V_{j\ell ab}(x)
+&=2\cos(\pi a x_j)\cos(\pi b x_\ell).
+\end{aligned}
+\]
+Choosing an index amounts to choosing a coordinate pair and two frequencies, so
+\[
+|\mathcal I|=\binom d2\,L^2=M.
+\]
+Since \(d\geq2\) and \(L\geq1\), we have \(B\geq1\), \(M>0\), and
+\(\gamma_{\mathrm{prior}}>0\).
+
+For every positive integer frequency \(a\),
+\[
+\int_0^1\cos(\pi a t)\,dt
+=\frac{\sin(\pi a)}{\pi a}=0.
+\]
+Product integration therefore gives, for every \((j,\ell,a,b)\in\mathcal I\),
+\[
+\int_{[0,1]^d}V_{j\ell ab}(x)\,dx
+=2\left(\int_0^1\cos(\pi a t)\,dt\right)
+  \left(\int_0^1\cos(\pi b t)\,dt\right)
+=0.
+\]
+The function \(m_\xi\) is a finite linear combination of continuous bounded
+features, hence is Borel measurable and square integrable. Integrating its
+finite sum yields
+\[
+\int_{[0,1]^d}m_\xi(x)\,dx
+=\gamma_{\mathrm{prior}}
+  \sum_{\alpha\in\mathcal I}\xi_\alpha
+  \int_{[0,1]^d}V_\alpha(x)\,dx
+=0.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.mXi_mean_zero
+
+\item \emph{Canonical components and reconstruction.}
+Use the same finite cosine expression to evaluate \(m_\xi\) on
+\(\mathbb R^d\). For \(\tau_j,\tau_\ell\in\mathbb R\), the canonical marginal
+formulas are
+\[
+\begin{aligned}
+g_j(m_\xi)(\tau_j)
+&=\int_{[0,1]^d}
+  \left.m_\xi(x)\right|_{x_j=\tau_j}\,dx,\\
+g_{j\ell}(m_\xi)(\tau_j,\tau_\ell)
+&=\int_{[0,1]^d}
+  \left.m_\xi(x)\right|_{x_j=\tau_j,\ x_\ell=\tau_\ell}\,dx
+  -g_j(m_\xi)(\tau_j)-g_\ell(m_\xi)(\tau_\ell),
+  \qquad j<\ell.
+\end{aligned}
+\]
+Here substitution fixes the indicated coordinates before integration; the
+corresponding unused integration variables contribute factors of one.
+
+For a feature indexed by
+\(\alpha=(j_\alpha,\ell_\alpha,a_\alpha,b_\alpha)\), fixing coordinate \(j\)
+leaves a centered cosine factor whenever \(j=j_\alpha\) or
+\(j=\ell_\alpha\). If \(j\) equals neither coordinate, the integral is the
+feature's mean. Thus, in all three cases,
+\[
+g_j(V_\alpha)(\tau_j)=0,
+\qquad
+g_j(m_\xi)(\tau_j)=0.
+\]
+After fixing \(j<\ell\), a feature survives integration precisely when its
+coordinate pair is \((j,\ell)\). In every other configuration, at least one
+of its two positive-frequency factors remains integrated and has mean
+zero. The ordering of both pairs excludes a reversed match. Consequently,
+\[
+g_{j\ell}(V_\alpha)(\tau_j,\tau_\ell)
+=
+\begin{cases}
+2\cos(\pi a_\alpha\tau_j)\cos(\pi b_\alpha\tau_\ell),
+  &(j_\alpha,\ell_\alpha)=(j,\ell),\\
+0,&(j_\alpha,\ell_\alpha)\ne(j,\ell),
+\end{cases}
+\]
+and finite-sum linearity gives
+\[
+g_{j\ell}(m_\xi)(\tau_j,\tau_\ell)
+=\gamma_{\mathrm{prior}}
+  \sum_{a,b=1}^L\xi_{j\ell ab}
+  \,2\cos(\pi a\tau_j)\cos(\pi b\tau_\ell).
+\]
+Summing these pair effects counts each feature exactly once:
+\[
+\sum_{j=1}^d g_j(m_\xi)(x_j)
++\sum_{j<\ell}g_{j\ell}(m_\xi)(x_j,x_\ell)
+=\gamma_{\mathrm{prior}}
+  \sum_{\alpha\in\mathcal I}\xi_\alpha V_\alpha(x)
+=m_\xi(x).
+\]
+This proves the decomposition required in \cref{obj:ass:order-two},
+pointwise and hence almost everywhere.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.mXi_orderTwo
+
+\item \emph{A cutoff extension and its weak derivatives.}
+To establish the component restriction bound, take an arbitrary real array
+\[
+c^{\mathrm{loc}}\in\mathbb R^{\{1,\ldots,L\}^2}
+\]
+and define, for
+\(u_{\mathrm{loc}}=(u_1^{\mathrm{loc}},u_2^{\mathrm{loc}})\in\mathbb R^2\),
+\[
+\begin{aligned}
+U_{\mathrm{loc}}(u_{\mathrm{loc}})
+&=\sum_{a,b=1}^L c^{\mathrm{loc}}_{ab}
+  \,2\cos(\pi a u_1^{\mathrm{loc}})
+     \cos(\pi b u_2^{\mathrm{loc}}),\\
+E_{\mathrm{coef}}
+&=\sum_{a,b=1}^L(c^{\mathrm{loc}}_{ab})^2.
+\end{aligned}
+\]
+Define the scalar cutoff and a representative of its almost-everywhere
+derivative on the whole real line by
+\[
+q_{\mathrm{cut}}(t)=
+\begin{cases}
+0,&t<-1,\\
+t+1,&-1\leq t<0,\\
+1,&0\leq t\leq1,\\
+2-t,&1<t\leq2,\\
+0,&t>2,
+\end{cases}
+\qquad
+q'_{\mathrm{cut}}(t)=
+\begin{cases}
+1,&-1<t<0,\\
+-1,&1<t<2,\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+In particular, the chosen derivative representative is zero at all four
+joins. Put
+\[
+\begin{aligned}
+\chi_{\mathrm{cut}}(u_{\mathrm{loc}})
+&=q_{\mathrm{cut}}(u_1^{\mathrm{loc}})
+  q_{\mathrm{cut}}(u_2^{\mathrm{loc}}),\\
+\chi_{\mathrm{cut},1}(u_{\mathrm{loc}})
+&=q'_{\mathrm{cut}}(u_1^{\mathrm{loc}})
+  q_{\mathrm{cut}}(u_2^{\mathrm{loc}}),\\
+\chi_{\mathrm{cut},2}(u_{\mathrm{loc}})
+&=q_{\mathrm{cut}}(u_1^{\mathrm{loc}})
+  q'_{\mathrm{cut}}(u_2^{\mathrm{loc}}),\\
+G_{\mathrm{cut}}&=\chi_{\mathrm{cut}}U_{\mathrm{loc}},\\
+D_\rho
+&=\chi_{\mathrm{cut},\rho}U_{\mathrm{loc}}
+  +\chi_{\mathrm{cut}}\partial_\rho U_{\mathrm{loc}},
+  \qquad \rho\in\{1,2\}.
+\end{aligned}
+\]
+These formulas give
+\[
+0\leq\chi_{\mathrm{cut}}\leq1,
+\qquad
+\chi_{\mathrm{cut},1}^2+\chi_{\mathrm{cut},2}^2\leq2.
+\]
+The extension \(G_{\mathrm{cut}}\) equals \(U_{\mathrm{loc}}\) on
+\([0,1]^2\), is continuous, and is supported in \([-1,2]^2\).
+Both \(G_{\mathrm{cut}}\) and \(D_\rho\) belong to
+\(L^1(\mathbb R^2)\cap L^2(\mathbb R^2)\), since they are bounded and
+compactly supported.
+
+Fix the other coordinate and let \(\varphi\in C^1(\mathbb R;\mathbb R)\).
+On each of the intervals \((-1,0)\), \((0,1)\), and \((1,2)\), ordinary
+integration by parts applies to the corresponding slice of
+\(G_{\mathrm{cut}}\), whose derivative there is the slice of \(D_\rho\).
+Adding the three identities cancels the contributions at \(0\) and \(1\)
+by continuity. The contributions at \(-1\) and \(2\) vanish because the
+cutoff is zero. Extending the integrals to the real line therefore gives
+\[
+\int_{\mathbb R}
+ \left.G_{\mathrm{cut}}(u_{\mathrm{loc}})
+ \right|_{u_\rho^{\mathrm{loc}}=t}
+ \varphi'(t)\,dt
+=
+-\int_{\mathbb R}
+ \left.D_\rho(u_{\mathrm{loc}})
+ \right|_{u_\rho^{\mathrm{loc}}=t}
+ \varphi(t)\,dt.
+\]
+This holds for each \(\rho\in\{1,2\}\); hence \(D_\rho\) is the weak
+coordinate derivative of \(G_{\mathrm{cut}}\).
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.pairCosineExtensionPartial_weak_slice
+
+\item \emph{Spatial energy on the nine support cells.}
+For an integer \(\kappa\), integration of the cosine primitive gives
+\[
+\int_0^1\cos(\pi\kappa t)\,dt
+=\mathbf1_{\{\kappa=0\}},
+\qquad
+\int_{-1}^2\cos(\pi\kappa t)\,dt
+=3\mathbf1_{\{\kappa=0\}}.
+\]
+Indeed, for \(\kappa=0\) these are the interval lengths; for
+\(\kappa\ne0\), all endpoint sine values vanish. For positive integer
+frequencies \(a,b\), the identities
+\[
+\begin{aligned}
+\cos(\pi a t)\cos(\pi b t)
+&=\frac12\bigl(\cos(\pi(a-b)t)+\cos(\pi(a+b)t)\bigr),\\
+\sin(\pi a t)\sin(\pi b t)
+&=\frac12\bigl(\cos(\pi(a-b)t)-\cos(\pi(a+b)t)\bigr)
+\end{aligned}
+\]
+therefore imply
+\[
+\begin{aligned}
+\int_0^1\cos(\pi a t)\cos(\pi b t)\,dt
+&=\int_0^1\sin(\pi a t)\sin(\pi b t)\,dt
+ =\frac12\mathbf1_{\{a=b\}},\\
+\int_{-1}^2\cos(\pi a t)\cos(\pi b t)\,dt
+&=\int_{-1}^2\sin(\pi a t)\sin(\pi b t)\,dt
+ =\frac32\mathbf1_{\{a=b\}}.
+\end{aligned}
+\]
+Expanding the finite squares and using product integration eliminates
+every off-diagonal frequency term. On the support square this yields
+\[
+\int_{[-1,2]^2}|U_{\mathrm{loc}}|^2
+=4\left(\frac32\right)^2 E_{\mathrm{coef}}
+=9E_{\mathrm{coef}}.
+\]
+Differentiating the polynomial gives
+\[
+\begin{aligned}
+\partial_1U_{\mathrm{loc}}(u_{\mathrm{loc}})
+&=-2\pi\sum_{a,b=1}^L
+ a\,c^{\mathrm{loc}}_{ab}
+ \sin(\pi a u_1^{\mathrm{loc}})
+ \cos(\pi b u_2^{\mathrm{loc}}),\\
+\partial_2U_{\mathrm{loc}}(u_{\mathrm{loc}})
+&=-2\pi\sum_{a,b=1}^L
+ b\,c^{\mathrm{loc}}_{ab}
+ \cos(\pi a u_1^{\mathrm{loc}})
+ \sin(\pi b u_2^{\mathrm{loc}}).
+\end{aligned}
+\]
+The unit-square derivative energies satisfy
+\[
+\begin{aligned}
+\int_{[0,1]^2}|\partial_1U_{\mathrm{loc}}|^2
+&=\pi^2\sum_{a,b=1}^L a^2(c^{\mathrm{loc}}_{ab})^2
+ \leq\pi^2L^2E_{\mathrm{coef}},\\
+\int_{[0,1]^2}|\partial_2U_{\mathrm{loc}}|^2
+&=\pi^2\sum_{a,b=1}^L b^2(c^{\mathrm{loc}}_{ab})^2
+ \leq\pi^2L^2E_{\mathrm{coef}}.
+\end{aligned}
+\]
+On \([-1,2]^2\), the corresponding energies are nine times these
+frequency sums. In particular,
+\[
+\begin{aligned}
+\int_{[-1,2]^2}|\partial_1U_{\mathrm{loc}}|^2
+&=9\pi^2\sum_{a,b=1}^L a^2(c^{\mathrm{loc}}_{ab})^2
+ \leq9\pi^2L^2E_{\mathrm{coef}},\\
+\int_{[-1,2]^2}|\partial_2U_{\mathrm{loc}}|^2
+&=9\pi^2\sum_{a,b=1}^L b^2(c^{\mathrm{loc}}_{ab})^2
+ \leq9\pi^2L^2E_{\mathrm{coef}},\\
+\int_{[-1,2]^2}\|\nabla U_{\mathrm{loc}}\|_2^2
+&\leq18\pi^2L^2E_{\mathrm{coef}}.
+\end{aligned}
+\]
+Since \(0\leq\chi_{\mathrm{cut}}\leq1\),
+\[
+\|G_{\mathrm{cut}}\|_{L^2(\mathbb R^2)}^2
+\leq9E_{\mathrm{coef}}.
+\]
+For each coordinate, apply
+\((r_1+r_2)^2\leq2r_1^2+2r_2^2\), valid for real \(r_1,r_2\), to the
+two terms defining \(D_\rho\). Summing the two coordinate inequalities
+and using the cutoff derivative bound gives
+\[
+\frac12(D_1^2+D_2^2)
+\leq
+\chi_{\mathrm{cut}}^2
+ \bigl(|\partial_1U_{\mathrm{loc}}|^2+
+       |\partial_2U_{\mathrm{loc}}|^2\bigr)
++2|U_{\mathrm{loc}}|^2.
+\]
+Thus
+\[
+D_1^2+D_2^2
+\leq2\|\nabla U_{\mathrm{loc}}\|_2^2+4|U_{\mathrm{loc}}|^2
+\]
+on the support square. Integration proves
+\[
+\|D_1\|_{L^2(\mathbb R^2)}^2+
+\|D_2\|_{L^2(\mathbb R^2)}^2
+\leq(36+36\pi^2L^2)E_{\mathrm{coef}}.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.pairCosineExtensionPartial_spatial_energy_le
+
+\item \emph{Fourier endpoint bounds.}
+For an integrable function
+\(\widetilde G:\mathbb R^2\to\mathbb C\), use the unitary angular-frequency
+Fourier transform
+\[
+(\mathcal F_2\widetilde G)(\omega_{\mathrm{loc}})
+=\frac{1}{2\pi}\int_{\mathbb R^2}
+ e^{-\mathrm i\langle\omega_{\mathrm{loc}},u_{\mathrm{loc}}\rangle}
+ \widetilde G(u_{\mathrm{loc}})\,du_{\mathrm{loc}},
+\qquad \omega_{\mathrm{loc}}\in\mathbb R^2.
+\]
+For \(\lambda\in[0,1]\) and
+\(\widetilde G\in L^1(\mathbb R^2)\cap L^2(\mathbb R^2)\), define
+\[
+\mathcal E_\lambda(\widetilde G)
+=\int_{\mathbb R^2}
+ |\mathcal F_2\widetilde G(\omega_{\mathrm{loc}})|^2
+ \left(1+\frac{\|\omega_{\mathrm{loc}}\|_2^2}{2}\right)^\lambda
+ \,d\omega_{\mathrm{loc}}.
+\]
+The slice integration-by-parts identities, applied to the real and
+imaginary parts of the Fourier exponential, give
+\[
+\mathcal F_2D_\rho(\omega_{\mathrm{loc}})
+=\mathrm i\,\omega_\rho^{\mathrm{loc}}\,
+ \mathcal F_2G_{\mathrm{cut}}(\omega_{\mathrm{loc}}),
+\qquad \rho\in\{1,2\}.
+\]
+Plancherel's identity consequently yields
+\[
+\begin{aligned}
+\mathcal E_0(G_{\mathrm{cut}})
+&=\|G_{\mathrm{cut}}\|_2^2
+ \leq9E_{\mathrm{coef}}
+ \leq16E_{\mathrm{coef}},\\
+\mathcal E_1(G_{\mathrm{cut}})
+&=\|G_{\mathrm{cut}}\|_2^2
+ +\frac12\bigl(\|D_1\|_2^2+\|D_2\|_2^2\bigr)\\
+&\leq(27+18\pi^2L^2)E_{\mathrm{coef}}.
+\end{aligned}
+\]
+The calibration uses \(L^2\geq1\):
+\[
+27+18\pi^2L^2
+\leq(48+32\pi^2)L^2=C_0^2L^2.
+\]
+Hence the required endpoint estimates are
+\[
+\mathcal E_0(G_{\mathrm{cut}})\leq16E_{\mathrm{coef}},
+\qquad
+\mathcal E_1(G_{\mathrm{cut}})\leq C_0^2L^2E_{\mathrm{coef}}.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.pairCosineExtension_fourier_endpoints
+
+\item \emph{Fractional energy and the restriction norm.}
+Define the nonnegative energy densities on \(\mathbb R^2\) by
+\[
+\begin{aligned}
+\eta_0(\omega_{\mathrm{loc}})
+&=|\mathcal F_2G_{\mathrm{cut}}(\omega_{\mathrm{loc}})|^2,\\
+\eta_1(\omega_{\mathrm{loc}})
+&=\eta_0(\omega_{\mathrm{loc}})
+ \left(1+\frac{\|\omega_{\mathrm{loc}}\|_2^2}{2}\right).
+\end{aligned}
+\]
+With the convention \(r^0=1\) for \(r\geq0\), their pointwise factorization is
+\[
+\eta_0^{\,1-s}\eta_1^{\,s}
+=\eta_0
+ \left(1+\frac{\|\omega_{\mathrm{loc}}\|_2^2}{2}\right)^s.
+\]
+The integral form of Hölder's inequality with nonnegative weights
+\(1-s\) and \(s\), whose sum is one, therefore gives
+\[
+\mathcal E_s(G_{\mathrm{cut}})
+\leq
+\mathcal E_0(G_{\mathrm{cut}})^{1-s}
+\mathcal E_1(G_{\mathrm{cut}})^s.
+\]
+This form includes endpoint weights and zero energy. Since
+\(16\leq C_0^2\), the endpoint bounds imply
+\[
+\begin{aligned}
+\mathcal E_s(G_{\mathrm{cut}})
+&\leq
+ (C_0^2E_{\mathrm{coef}})^{1-s}
+ (C_0^2E_{\mathrm{coef}}L^2)^s\\
+&=C_0^2L^{2s}E_{\mathrm{coef}}.
+\end{aligned}
+\]
+In particular, when \(E_{\mathrm{coef}}=0\), every coefficient and the
+extension vanish, and this bound is zero.
+
+The squared restriction norm is the extension infimum
+\[
+N_{2,s}(U_{\mathrm{loc}}|_{[0,1]^2})^2
+=
+\inf_{\substack{
+ \widetilde G\in L^1(\mathbb R^2;\mathbb C)\cap L^2(\mathbb R^2;\mathbb C)\\
+ \widetilde G=U_{\mathrm{loc}}\ \text{a.e.\ on }[0,1]^2}}
+ \mathcal E_s(\widetilde G).
+\]
+The continuous compactly supported extension \(G_{\mathrm{cut}}\) is
+admissible in this infimum. We obtain
+\[
+N_{2,s}(U_{\mathrm{loc}}|_{[0,1]^2})^2
+\leq
+\mathcal E_s(G_{\mathrm{cut}})
+\leq C_0^2L^{2s}
+ \sum_{a,b=1}^L(c^{\mathrm{loc}}_{ab})^2.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.pairCosinePolynomial_restriction_bound
+
+\item \emph{Component budget estimates.}
+For each \(j<\ell\), define the normalized pair coefficients and their
+energy by
+\[
+c^{\mathrm{prior}}_{j\ell ab}
+=\gamma_{\mathrm{prior}}\xi_{j\ell ab},
+\qquad
+E^{\mathrm{prior}}_{j\ell}
+=\sum_{a,b=1}^L(c^{\mathrm{prior}}_{j\ell ab})^2,
+\qquad 1\leq a,b\leq L.
+\]
+Every sign has square one, so
+\[
+E^{\mathrm{prior}}_{j\ell}
+=\sum_{a,b=1}^L\gamma_{\mathrm{prior}}^2
+=L^2\gamma_{\mathrm{prior}}^2.
+\]
+The canonical pair formula and the restriction bound now give
+\[
+N_{2,s}(g_{j\ell}(m_\xi))^2
+\leq C_0^2L^{2s}E^{\mathrm{prior}}_{j\ell}
+=C_0^2L^{2s}L^2\gamma_{\mathrm{prior}}^2.
+\]
+The main effects are zero; the zero extension certifies their zero
+restriction norms. Hence
+\[
+\sum_{j=1}^dN_{1,s}(g_j(m_\xi))^2=0.
+\]
+Summing the common pair bound over the \(B\) coordinate pairs yields
+\[
+\sum_{j=1}^dN_{1,s}(g_j(m_\xi))^2
++\sum_{j<\ell}N_{2,s}(g_{j\ell}(m_\xi))^2
+\leq B\,C_0^2L^{2s}L^2\gamma_{\mathrm{prior}}^2.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.mXi_pooledBudget
+
+\item \emph{Cube inner products.}
+Take
+\[
+\alpha=(j,\ell,a,b)\in\mathcal I,
+\qquad
+\beta=(j',\ell',a',b')\in\mathcal I.
+\]
+Product integration factors the feature inner product as
+\[
+\begin{aligned}
+\int_{[0,1]^d}V_\alpha(x)V_\beta(x)\,dx
+=4\prod_{\iota=1}^d\int_0^1
+&\cos(\pi a t)^{\mathbf1_{\{\iota=j\}}}
+ \cos(\pi b t)^{\mathbf1_{\{\iota=\ell\}}}\\
+&{}\cdot
+ \cos(\pi a't)^{\mathbf1_{\{\iota=j'\}}}
+ \cos(\pi b't)^{\mathbf1_{\{\iota=\ell'\}}}\,dt .
+\end{aligned}
+\]
+First suppose \(j=j'\). If also \(\ell=\ell'\), the unit-interval cosine
+integrals give
+\[
+\int_{[0,1]^d}V_\alpha V_\beta
+=4\left(\frac12\mathbf1_{\{a=a'\}}\right)
+  \left(\frac12\mathbf1_{\{b=b'\}}\right)
+=\mathbf1_{\{\alpha=\beta\}}.
+\]
+If instead \(\ell\ne\ell'\), then \(\ell\) is distinct from both
+\(j'=j\) and \(\ell'\). Its factor occurs exactly once and has integral
+zero.
+
+Now suppose \(j\ne j'\). If \(j=\ell'\), the ordering gives
+\[
+j'<\ell'=j<\ell,
+\]
+so \(\ell\) is distinct from both coordinates of \(\beta\) and occurs
+exactly once. If \(j\ne\ell'\), coordinate \(j\) is distinct from both
+coordinates of \(\beta\) and occurs exactly once. In each of these
+unmatched-coordinate cases, the product factorization contains a
+positive-frequency cosine mean and consequently gives
+\[
+\int_{[0,1]^d}V_\alpha(x)V_\beta(x)\,dx=0.
+\]
+Combining the cases proves
+\[
+\int_{[0,1]^d}V_\alpha(x)V_\beta(x)\,dx
+=\mathbf1_{\{\alpha=\beta\}},
+\qquad \alpha,\beta\in\mathcal I.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.pairFeature_cube_inner_product
+
+\item \emph{Normalization and class membership.}
+Expanding the finite square and applying the cube inner-product identity
+gives
+\[
+\begin{aligned}
+\int_{[0,1]^d}m_\xi(x)^2\,dx
+&=\gamma_{\mathrm{prior}}^2
+ \sum_{\alpha,\beta\in\mathcal I}
+ \xi_\alpha\xi_\beta\mathbf1_{\{\alpha=\beta\}}\\
+&=\gamma_{\mathrm{prior}}^2
+ \sum_{\alpha\in\mathcal I}\xi_\alpha^2
+=\gamma_{\mathrm{prior}}^2M
+=\frac{1}{C_0^2L^{2s}}.
+\end{aligned}
+\]
+Thus the normalized coefficient energy satisfies
+\[
+C_0^2L^{2s}
+ \sum_{\alpha\in\mathcal I}
+  (\gamma_{\mathrm{prior}}\xi_\alpha)^2
+=C_0^2L^{2s}\gamma_{\mathrm{prior}}^2M
+=1.
+\]
+Since \(M=BL^2\), this also calibrates the common pair budget:
+\[
+B\,C_0^2L^{2s}L^2\gamma_{\mathrm{prior}}^2
+=C_0^2L^{2s}\gamma_{\mathrm{prior}}^2M
+=1.
+\]
+The component estimates therefore establish
+\[
+\sum_{j=1}^dN_{1,s}(g_j(m_\xi))^2
++\sum_{j<\ell}N_{2,s}(g_{j\ell}(m_\xi))^2
+\leq1,
+\]
+as required in \cref{obj:ass:pooled-budget}. Together with measurability,
+square integrability, centering, and the canonical order-two
+reconstruction, this proves
+\[
+m_\xi\in\mathcal H_{d,s}
+\]
+by \cref{obj:def:sobolev-class}.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.mXi_pooledBudget
+
+\item \emph{Transfer to the first sampled covariate.}
+Let \(n\geq1\) and let \(X\) satisfy \cref{obj:ass:uniform-draw}.
+Taking the first coordinate marginal of its product sampling law gives
+\[
+\operatorname{Law}(X_1)=\operatorname{Unif}([0,1]^d).
+\]
+The feature products are measurable and bounded, so integration against
+this marginal yields
+\[
+\mathbb E[V_\alpha(X_1)V_\beta(X_1)]
+=\int_{[0,1]^d}V_\alpha(x)V_\beta(x)\,dx
+=\mathbf1_{\{\alpha=\beta\}},
+\qquad \alpha,\beta\in\mathcal I.
+\]
+There are \(M\) feature coordinates. Taking these expectations entrywise
+therefore proves
+\[
+\mathbb E[V(X_1)V(X_1)^{\mathsf T}]=I_M.
+\]
+The unmatched-coordinate cases include distinct pairs with one shared
+original coordinate, so the identity covers those pairs as well.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.uniformDraw_pairFeature_inner_product
+\end{enumerate}
+\end{proof}

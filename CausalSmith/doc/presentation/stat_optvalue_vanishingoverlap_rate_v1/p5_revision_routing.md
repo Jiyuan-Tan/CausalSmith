@@ -1,0 +1,9 @@
+# Revision routing plan (minor_revision)
+
+## fix by hand in the authored sources (prose/structure rewrite)
+- [minor·prose·rewrite] (abstract) The opening sentence describes estimation 'from independent observational data.' The verified experiment assumes independent and identically distributed observations; independence alone describes a broader sampling domain.
+- [minor·prose·rewrite] (Identification and upper-bound proofs — Risk analysis by estimator branch) The subsection says the components supply the uniform risk bound 'across all three branches' and discusses the empirical branch's contribution to that guarantee. The displayed calibration takes D_0=2, so the empirical branch has an empty admissible parameter range. Although the main estimator section acknowledges this, the appendix wording suggests a substantive guarantee for a nonempty empirical branch under another cutoff.
+- [minor·structure·rewrite] (global — appendices and Proofs of the main results) The exposition repeatedly restates the matched risk and consistency conclusions, while the omnibus weighted-separation theorem combines approximation, statistical bounds, and asymptotic consequences. The statistical lower-bound appendix gives a descriptive roadmap, but its detailed sparse, dense, and transfer arguments appear inside the weighted-separation proof in the final appendix. This disperses the argument a reader needs to understand the central statistical contribution.
+- [minor·prose·rewrite] (Introduction and An attaining estimator) The construction is explained primarily through its ingredients—localization, Jackson approximation, factorial statistics, and clipping. The economic and statistical reason that optimizing within cells creates the approximation problem receives less explanation than the repeated statements of the resulting rate.
+
+→ revise by hand at the level that owns each finding; formal statements remain frozen; then rescore once

@@ -1,0 +1,1016 @@
+// Formalization Stage 2. Extracted from pipeline_stages.ts in Step 2.3 of the three-submodules refactor.
+
+import path from "node:path";
+import { existsSync } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { MODEL_PLAN } from "../constants.js";
+import type { Intervention, ReviewResult } from "../judgment.js";
+import type { PipelineContext, StageResult, StateJson } from "../types.js";
+import {
+  artifactPaths,
+  baseBrief,
+  bookkeepingPolicyBlock,
+  correctionBlock,
+  findLeanDeclByLocalId,
+  parseStageOutput,
+  readIfExists,
+  readPrompt,
+  listLeanFiles,
+  type StageDeps,
+} from "../pipeline_support.js";
+import { createRetrieval } from "./reuse_retrieval.js";
+import { resolveLibraryDeclaration } from "../presentation/declaration_resolver.js";
+import { coreJsonPath } from "../discovery/stages/d0_core.js";
+import { formalizationKind } from "../paths.js";
+import { readFormalizationCoreContext } from "./core_context.js";
+import { readTypedCore } from "../discovery/core/core_io.js";
+import type { Core } from "../discovery/core/schema.js";
+import { runPlanGate, type PlanGateViolation } from "./plan/plan_gate.js";
+import { PlanSchema, type Plan } from "./plan/schema.js";
+import {
+  buildF2RevisionContext,
+  hasCompleteScaffoldCoverage,
+  revisionTargetsFromRedirect,
+} from "./f2_revision_context.js";
+import { PROOF_SCAFFOLD_MAX, STAGE2_REDIRECT_MAX } from "./loop_limits.js";
+import { interventionBlock } from "../shared/intervention_routing.js";
+import { writeLeanLspMcpConfig } from "../workers/claude.js";
+import { dispatchAgent, dispatchClaudeAgent } from "../framework/agent_dispatch.js";
+import {
+  snapshotPriorProofs,
+  injectCarryoverComments,
+  restoreCarryoverProofs,
+} from "./proof_carryover.js";
+import {
+  recordMissingArchitecture,
+  missingArchitectureLedgerPath,
+} from "../shared/missing_architecture_ledger.js";
+import { seedAnnotations } from "../graph/annotate.js";
+import { extractFromLean, parseAnnotatedDecls } from "../graph/extractor.js";
+import { graphPath, loadGraph, saveGraph } from "../graph/store.js";
+import { buildGraphFromCorePlan } from "../graph/from_core.js";
+import { mergeStage1RevisionGraph } from "../graph/revise_merge.js";
+import { renderBridgeNote } from "../graph/render_note.js";
+import { validate } from "../graph/validator.js";
+import type { FormalizationGraph, Finding } from "../graph/types.js";
+import { markUnreviewed } from "../graph/mutate.js";
+import { objIdToNodeId } from "../graph/from_note.js";
+import {
+  findStatementSemanticDefs,
+  parseLeanDecls,
+  type StatementSemanticDef,
+} from "./crosswalk.js";
+import { laterStageEverRan } from "../shared/resume_mode.js";
+import { parseJsonWithEscapeRepair } from "../shared/codex_json.js";
+import { buildRunModules } from "./proof_review_loop.js";
+import { LEAN_ATTRS_PREFIX_SRC, LEAN_MODIFIERS_PREFIX_SRC } from "../shared/lean_syntax.js";
+import { copyVerifiedCitedSourcesToPlan } from "./stage1.js";
+
+/** Headline nodes whose statement meaning changed through an untagged inline
+ * definition/structure during an F2 revise pass.  The headline's own Lean
+ * signature hash can remain byte-identical while the body of (for example) its
+ * output structure changes, so hash-only graph refresh would otherwise carry a
+ * stale `matched` F2.5 verdict. */
+export function hiddenDefinitionChangeTargets(
+  before: StatementSemanticDef[],
+  after: StatementSemanticDef[],
+): string[] {
+  const oldByName = new Map(before.map((d) => [d.name, d] as const));
+  const newByName = new Map(after.map((d) => [d.name, d] as const));
+  const names = new Set([...oldByName.keys(), ...newByName.keys()]);
+  const targets = new Set<string>();
+  for (const name of names) {
+    const old = oldByName.get(name);
+    const cur = newByName.get(name);
+    if (old?.contentHash === cur?.contentHash) continue;
+    for (const id of [...(old?.reachedFrom ?? []), ...(cur?.reachedFrom ?? [])]) {
+      targets.add(objIdToNodeId(id));
+    }
+  }
+  return [...targets].sort();
+}
+
+/** A source correction can be applied manually before F2 starts, so comparing
+ * only the pre/post-F2 snapshots cannot discover it.  Consume the authoritative
+ * receipt once and force its declared delta back into the graph review frontier. */
+export function pendingSourceRewindDirtyNodeIds(state: StateJson): string[] {
+  const rewind = state.flags.source_rewind;
+  if (rewind?.status !== "applied") return [];
+  return [...new Set(rewind.dirty_nodes)].sort();
+}
+
+/** Reconcile a post-F1 source correction without discarding later Lean/proof work. */
+export function syncStage2Graph(previous: FormalizationGraph | null, core: Core, spec: string, plan: Plan): {
+  graph: FormalizationGraph;
+  note: string;
+} {
+  const rebuilt = buildGraphFromCorePlan(core, spec, plan);
+  return { graph: previous ? mergeStage1RevisionGraph(previous, rebuilt) : rebuilt, note: renderBridgeNote(rebuilt) };
+}
+
+/** Canonicalize citation provenance after an F2 producer syncs implementation
+ * details back into plan.json. A cited statement remains source-reviewed until
+ * gate.ts stamps a lemma/theorem discharge. Its carrier may be either the
+ * traditional Prop assumption or a non-Prop metadata def; F2 may change that
+ * implementation detail, but may not erase/reclassify discovery provenance.
+ *
+ * Agent JSON commonly spells absent optional keys as null. Delete those keys
+ * before schema validation, then restore the authoritative cited classification
+ * on an undischargeable carrier. Proved lemma/theorem shapes are deliberately
+ * untouched so P9 still rejects an unstamped self-discharge. */
+export function canonicalizeCitedPlanAfterF2(
+  planInput: unknown,
+  core: Core,
+  trustedPlan?: unknown,
+): { plan: unknown; changed: boolean } {
+  if (!planInput || typeof planInput !== "object" || Array.isArray(planInput)) {
+    return { plan: planInput, changed: false };
+  }
+  const plan = planInput as Record<string, unknown>;
+  if (!plan.nodes || typeof plan.nodes !== "object" || Array.isArray(plan.nodes)) {
+    return { plan: planInput, changed: false };
+  }
+  const nodes = plan.nodes as Record<string, unknown>;
+  let changed = false;
+  for (const rawNode of Object.values(nodes)) {
+    if (!rawNode || typeof rawNode !== "object" || Array.isArray(rawNode)) continue;
+    const node = rawNode as Record<string, unknown>;
+    if (node.gate === null) {
+      delete node.gate;
+      changed = true;
+    }
+    if (node.gate_class === null) {
+      delete node.gate_class;
+      changed = true;
+    }
+  }
+  for (const statement of core.statements) {
+    if (statement.status !== "cited") continue;
+    const rawNode = nodes[statement.id];
+    if (!rawNode || typeof rawNode !== "object" || Array.isArray(rawNode)) continue;
+    const node = rawNode as Record<string, unknown>;
+    if (node.citation_discharged === true) continue;
+    const expectedKind = (statement.source?.carrier ?? "logical-claim") === "bibliographic-metadata"
+      ? "def"
+      : "assumption";
+    if (node.lean_kind !== expectedKind) continue;
+    if (node.gate !== true) {
+      node.gate = true;
+      changed = true;
+    }
+    if (node.gate_class !== "cited") {
+      node.gate_class = "cited";
+      changed = true;
+    }
+  }
+  if (trustedPlan) {
+    const before = JSON.stringify(plan);
+    copyVerifiedCitedSourcesToPlan(plan, core, { trustedPlan });
+    if (JSON.stringify(plan) !== before) changed = true;
+  }
+  return { plan, changed };
+}
+
+/** Restore pre-existing Lean files that a revise producer deleted. F2 revise is
+ * patch-in-place: removing an entire prior module is never an acceptable implicit
+ * side effect. The caller fails closed after restoration so the deletion cannot
+ * be mistaken for a successful incremental scaffold. */
+export async function restoreDeletedReviseFiles(
+  snapshot: Map<string, string>,
+): Promise<string[]> {
+  const restored: string[] = [];
+  for (const [file, source] of snapshot) {
+    if (existsSync(file)) continue;
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, source, "utf8");
+    restored.push(file);
+  }
+  return restored.sort();
+}
+
+/** Parse `-- @node: <id>` and `-- @env: <id>` tag comments from every .lean file in
+ *  a directory, so the plan gate can verify the emitted Lean covers the plan (P7). */
+export async function parseLeanNodeTags(
+  leanDir: string,
+): Promise<{ nodes: Set<string>; envs: Set<string> }> {
+  const nodes = new Set<string>();
+  const envs = new Set<string>();
+  if (!existsSync(leanDir)) return { nodes, envs };
+  let files: string[];
+  try {
+    files = await listLeanFiles(leanDir);
+  } catch {
+    return { nodes, envs };
+  }
+  for (const f of files) {
+    let text: string;
+    try {
+      text = await readFile(f, "utf8");
+    } catch {
+      continue;
+    }
+    // Ownership/environment anchors are top-level metadata and therefore must
+    // start in column zero. This excludes both prose mentions and an indented
+    // duplicate accidentally emitted inside a declaration body.
+    for (const m of text.matchAll(/^--\s*@node:\s*([A-Za-z0-9:._-]+)\s*$/gm)) nodes.add(m[1]);
+    for (const m of text.matchAll(/^--\s*@env:\s*([A-Za-z0-9:._-]+)\s*$/gm)) envs.add(m[1]);
+  }
+  return { nodes, envs };
+}
+
+export interface DuplicateLeanNodeAnchor {
+  id: string;
+  locations: string[];
+}
+
+/** Return repeated canonical node anchors across the entire run tree.  A Set-based
+ * coverage gate cannot detect these, and the graph extractor intentionally rejects
+ * them only after extraction, so F2 checks multiplicity directly before advancing. */
+export async function findDuplicateLeanNodeAnchors(
+  leanDir: string,
+): Promise<DuplicateLeanNodeAnchor[]> {
+  if (!existsSync(leanDir)) return [];
+  const byId = new Map<string, string[]>();
+  for (const file of await listLeanFiles(leanDir)) {
+    const text = await readFile(file, "utf8").catch(() => "");
+    for (const [index, line] of text.split(/\r?\n/).entries()) {
+      const match = /^--\s*@node:\s*([A-Za-z0-9:._-]+)\s*$/.exec(line);
+      if (!match) continue;
+      const locations = byId.get(match[1]) ?? [];
+      locations.push(`${file}:${index + 1}`);
+      byId.set(match[1], locations);
+    }
+  }
+  return [...byId.entries()]
+    .filter(([, locations]) => locations.length > 1)
+    .map(([id, locations]) => ({ id, locations }))
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
+/**
+ * Parse `plan.json` for a producer-prompt directive builder.
+ *
+ * A plan that EXISTS but will not parse is a FAULT, not an absence. Returning an empty
+ * directive here silently deletes a load-bearing block from the F2 prompt — the
+ * UNDELIVERED list, or the gated-hyps instruction — and the run then fails downstream
+ * looking exactly like a model that ignored its instructions, with nothing in the
+ * transcript saying the instruction was never sent. Escape repair is applied first so an
+ * agent-written plan carrying a raw `\(x\)` parses rather than tripping this.
+ */
+type PlanShape = ReturnType<typeof PlanSchema.parse>;
+
+function parsePlanForDirective(planText: string, directive: string): PlanShape | null {
+  if (!planText.trim()) return null;
+  let raw: unknown;
+  try {
+    raw = parseJsonWithEscapeRepair(planText);
+  } catch (err) {
+    throw new Error(
+      `F2 ${directive}: plan.json is present but unparseable (${err instanceof Error ? err.message : String(err)}). ` +
+        "Refusing to build the producer prompt with this directive silently omitted — re-emit a well-formed plan.",
+    );
+  }
+  const parsed = PlanSchema.safeParse(raw);
+  if (!parsed.success) {
+    console.warn(`[causalsmith] F2 ${directive}: plan.json is not schema-valid; directive omitted from the producer prompt.`);
+    return null;
+  }
+  return parsed.data;
+}
+
+function nonEmittedLocalIdsFromPlan(planText: string): Set<string> {
+  const plan = parsePlanForDirective(planText, "non-emitted local ids");
+  if (!plan) return new Set();
+  return new Set(
+    Object.values(plan.nodes)
+      .filter((n) => (n.gate || n.delivery_status === "undelivered") && n.local_id)
+      .map((n) => n.local_id!),
+  );
+}
+
+/** Durable F2 instruction for disclosed non-delivery. These nodes remain in the
+ * core/plan/graph, but must have no Lean declaration or @node anchor. */
+export function undeliveredBlockFromPlan(planText: string): string {
+  const plan = parsePlanForDirective(planText, "undelivered-objects block");
+  if (!plan) return "";
+  {
+    const rows = Object.entries(plan.nodes)
+      .filter(([, n]) => n.delivery_status === "undelivered")
+      .map(([id, n]) => `  • ${id} (${n.delivery_role ?? "cited"}): ${n.delivery_reason ?? "reason missing"}`);
+    if (rows.length === 0) return "";
+    return [
+      "=== UNDELIVERED OBJECTS — RETAIN IN PLAN, OMIT FROM LEAN ===",
+      "The plan gate has classified the following objects as disclosed undelivered remarks.",
+      "For each one, remove any existing Lean declaration and its `-- @node:` tag. Do not replace",
+      "it with a Prop definition, axiom, gate, weakened theorem, or `sorry`. Preserve every unrelated",
+      "declaration and proof body. The typed statement remains in core/plan/graph for presentation.",
+      ...rows,
+      "=== END UNDELIVERED OBJECTS ===",
+      "",
+    ].join("\n");
+  }
+}
+
+/** Scaffold-side dual of the F2.5/F4 logical-gate review exemption: build a directive telling the producer
+ *  to emit each registered `gate_class:"gated"` node and each cited logical assumption as an EXPLICIT `_of_gate`
+ *  HYPOTHESIS on every consumer that threads it in `hyps` — NOT an in-proof `have … := by sorry`.
+ *  Without this the producer treats a note-DERIVED gate as an in-proof obligation (the general bias),
+ *  re-emits a `sorry`, and the filler escalates `build-substrate` on debt we chose to assume. Reading
+ *  it from the plan (not a hand-set free-text directive) is what lets `bin/gate.ts` register a durable
+ *  gate that survives every re-scaffold with no hand-editing. Empty when there are no gated nodes. */
+function gatedHypsBlockFromPlan(planText: string): string {
+  const parsedPlan = parsePlanForDirective(planText, "gated-hypothesis directive");
+  if (!parsedPlan) return "";
+  const plan = parsedPlan as { nodes?: Record<string, { gate?: boolean; gate_class?: string; lean_kind?: string; lean_name?: string; hyps?: string[] }> };
+  const nodes = plan.nodes ?? {};
+  const gated: { leanName: string; consumers: string[] }[] = [];
+  for (const [id, n] of Object.entries(nodes)) {
+    if (!n.gate || (n.gate_class === "cited" && n.lean_kind !== "assumption")) continue;
+    const consumers = Object.entries(nodes)
+      .filter(([, c]) => Array.isArray(c.hyps) && c.hyps.includes(id))
+      .map(([cid, c]) => c.lean_name || cid);
+    gated.push({ leanName: n.lean_name || id, consumers });
+  }
+  if (!gated.length) return "";
+  return [
+    "=== GATED SUBSTRATE-GATES — EMIT AS HYPOTHESES (registered via bin/gate.ts) ===",
+    "",
+    'The plan registers the DISCLOSED logical gate(s) below (`gate:true`, either build-gated or a cited Prop assumption). Each is',
+    "an ASSUMED input this paper does NOT prove here (build-gated facts are tracked in SUBSTRATE_DEBT.md;",
+    "cited logical claims in CITED_DEPENDENCIES.md). For EACH gate, emit it as an EXPLICIT `_of_gate`-style HYPOTHESIS on the signature",
+    "of every listed consumer, and pass it through. This OVERRIDES the general 'derive a note-fact in-proof'",
+    "guidance for THESE nodes specifically: do NOT inline them as an in-proof `have … := by sorry`, and do",
+    "NOT drop them. A gate held as a signature hypothesis makes the consumer a sorry-free CONDITIONAL (the",
+    "goal); an in-proof `sorry` makes it an un-closable obligation (not the goal). These are the ONLY",
+    "hypotheses you may add that the note does not itself list — every other added premise is still drift.",
+    "",
+    ...gated.map((g) => `  • gate \`${g.leanName}\` → hypothesis on: ${g.consumers.join(", ") || "(no consumers threaded in plan hyps)"}`),
+    "",
+    "=== END GATED SUBSTRATE-GATES ===",
+    "",
+  ].join("\n");
+}
+
+function declNameRegex(name: string): RegExp {
+  return new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:theorem|lemma|def|abbrev|structure|class|instance)\s+${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\b`, "m");
+}
+
+/** Best-effort F2 graph link: seed `-- @node:` annotations from the obj_id
+ *  convention, extract the Lean side into the graph (links, proof state,
+ *  statement-uses edges), persist, and return advisory validation findings.
+ *  Never throws, never blocks the scaffold; no gate depends on the graph yet. */
+export async function linkGraphFromStage2(a: {
+  qid: string;
+  spec: string;
+  formalizationDir: string;
+  leanDir: string;
+  /** From-note rows whose cached review must be invalidated because an inline,
+   * meaning-bearing dependency changed while their own signature stayed fixed. */
+  invalidateReviewNodeIds?: string[];
+}): Promise<{ graph: FormalizationGraph | null; findings: Finding[] }> {
+  try {
+    const p = graphPath(a.formalizationDir, a.qid, a.spec);
+    if (!existsSync(p)) return { graph: null, findings: [] };
+    await seedAnnotations(a.leanDir);
+    const g = await loadGraph(p);
+    const extracted = await extractFromLean(g, a.leanDir);
+    let graph = extracted.graph;
+    for (const id of a.invalidateReviewNodeIds ?? []) {
+      const node = graph.nodes.find((n) => n.id === id);
+      if (node?.provenance === "from-note") graph = markUnreviewed(graph, id);
+    }
+    await saveGraph(p, graph);
+    return { graph, findings: validate(graph).findings };
+  } catch {
+    return { graph: null, findings: [] };
+  }
+}
+
+/**
+ * F2 may leave reuse lookup (P5) and module-resolution (P6) drift to the later typed phases.
+ * Every other plan-gate code is structural/semantic and must refuse the scaffold.
+ */
+export function blockingPostSyncPlanViolations(violations: PlanGateViolation[]): PlanGateViolation[] {
+  return violations.filter((violation) => violation.code !== "P5" && violation.code !== "P6");
+}
+
+export async function runStage2(args: {
+  ctx: PipelineContext;
+  state: StateJson;
+  deps: StageDeps;
+  priorReview?: ReviewResult | null;
+  intervention?: Intervention | null;
+  attempt?: number;
+  /** Exact proof-review targets. Absent/unknown targets deliberately retain full context. */
+  revisionTargets?: string[];
+}): Promise<StageResult> {
+  const paths = artifactPaths(args.ctx, args.state);
+  const sourceRewindDirtyTargets = pendingSourceRewindDirtyNodeIds(args.state);
+  // The core⊕plan structural gate only runs POST-dispatch: an absent plan.json beside a
+  // surviving core.json (rewind/manual surgery) sailed through `readIfExists`'s "" and
+  // burned a full high-effort scaffold call before that gate threw (audit, 2026-08-26).
+  // Refuse the known-broken input before paying.
+  if (existsSync(coreJsonPath(args.ctx)) && !existsSync(paths.plan)) {
+    throw new Error("F2: core.json exists but plan.json is missing — restore the F1 plan (or rewind F1) before scaffolding");
+  }
+  const planText = await readIfExists(paths.plan);
+  const nonEmittedLocalIds = nonEmittedLocalIdsFromPlan(planText);
+  const redirectBlock =
+    args.state.flags.scaffold_redirect
+      ? [
+          "=== SCAFFOLD REDIRECT DIRECTIVE (from prior Stage 3 intervention) ===",
+          "",
+          "Apply this directive verbatim as a top-priority constraint on top of the typed core + plan contract.",
+          "Do NOT interpret it loosely; do NOT negotiate it.",
+          "When the directive says the Lean OMITS / drops / weakens a hypothesis, condition, or clause",
+          "that the note (spec) STATES, the faithful fix is to ADD that condition to the STATEMENT",
+          "signature of the named target(s) — changing the signature here is EXPECTED and REQUIRED, not",
+          "something to avoid. Resolving such a drift by editing only docstrings/comments to 'acknowledge'",
+          "or 'note' the gap is FORBIDDEN: it leaves the statement unfaithful and the drift just re-flags.",
+          "What you must NOT do is INVENT a hypothesis the spec does not state in order to make a target",
+          "vacuously pass (gerrymandering) — only add conditions the note/spec actually states.",
+          "",
+          args.state.flags.scaffold_redirect,
+          "",
+          args.state.flags.proof_loop_counters
+            ? `Proof-loop scaffold attempt: ${args.state.flags.proof_loop_counters.scaffold_rounds} of ${PROOF_SCAFFOLD_MAX} max.`
+            : `Stage-2 redirect attempt: ${args.state.flags.scaffold_redirect_count ?? 1} of ${STAGE2_REDIRECT_MAX} max.`,
+          "",
+          "=== END SCAFFOLD REDIRECT DIRECTIVE ===",
+          "",
+        ].join("\n")
+      : "";
+  // REVISE / PATCH-IN-PLACE MODE (token-saver, drift-guard, proof-preserver). When
+  // a prior scaffold is ALREADY on disk — an in-loop F2.5 revise OR a Stage-3
+  // scaffold_redirect rewind — only the flagged/directed declarations (plus their
+  // consistency ripples) need to change. Regenerating every file from the full contract is
+  // slow, burns tokens, drifts on declarations that already passed, AND DISCARDS any
+  // real proof bodies Stage 3 already filled (and the carry-over comments that
+  // preserve them). So we hand the producer the on-disk files and tell it to Edit in
+  // place. A scaffold_redirect's directive is normally localized (it names specific
+  // decls); editing in place keeps every other decl — and its proof — intact.
+  // A `--from-stage F2` re-entry after any later stage ran is also a revise,
+  // even when it carries only a persistent f2_scaffold_directive: treating it
+  // as attempt 1 would replace every working proof with `sorry`.
+  // (Not used on a true attempt 1, where there is no prior scaffold to patch.)
+  let reviseBlock = "";
+  const hasLaterStageHistory = await laterStageEverRan(args.ctx, args.state, "2");
+  // Post-pivot cold start: a stage_neg1 pivot retired the on-disk `.lean` tree (it
+  // realizes the ABANDONED angle). `hasLaterStageHistory` is monotone (append-only log),
+  // so without this marker F2 would patch the dead angle's files in place — "preserve
+  // existing proof bodies" grafts the new angle's mathematics onto dead work. Cleared on
+  // the first completed post-pivot scaffold below, so later revise/redirect rounds on
+  // the NEW scaffold patch normally.
+  const scaffoldRetired = args.state.flags.f2_scaffold_retired === true;
+  const patchInPlace =
+    !scaffoldRetired &&
+    (args.priorReview?.status === "revise" ||
+      !!args.state.flags.scaffold_redirect ||
+      hasLaterStageHistory);
+  let existingScaffoldFiles: string[] = [];
+  if (patchInPlace && existsSync(paths.leanDir)) {
+    existingScaffoldFiles = (await listLeanFiles(paths.leanDir)).sort();
+    if (existingScaffoldFiles.length > 0) {
+      reviseBlock = [
+        await readPrompt(args.ctx, "stage2_head_revise.txt"),
+        "",
+        args.state.flags.scaffold_redirect
+          ? "Apply the SCAFFOLD REDIRECT DIRECTIVE above. You MAY re-render the named target(s) however is needed for a faithful fix — a faithful equivalent formulation, new auxiliary defs, or restructuring — you are NOT limited to a byte-for-byte in-place edit (F2.5 re-reviews only the dirty/not-cleared frontier). Preserve existing proof bodies and `/-! PRIOR PROOF (carry-over…) -/` comments wherever the statement is unchanged, and leave UNRELATED declarations intact — don't churn them. When editing a named target is a SHARED env/structure declaration (e.g. retyping/constraining a structure field like `Observation.A` to match a core symbol's space) and the change FORCES dependent declarations to change in order to recompile (signatures, call sites), you MUST re-sync exactly those forced dependents — but still leave every UNRELATED declaration byte-for-byte. (Ripple that the edit makes mandatory is allowed; gratuitous edits are not.) A redirect target of the form `sym:<symbol>` denotes a SETUP/ENVIRONMENT symbol whose space (e.g. `propensity ∈ (0,1)`) is realized by a CLUSTER of decls — the carrier-type structure field PLUS the predicate(s) that pin its range. The cluster IS the affected region: grep the files for `@realizes <symbol>` to find every member, then make the symbol's space hold across their CONJUNCTION (constrain the field, add/repair an a.s. invariant or well-formedness clause, or retype only if a finite/discrete space like `{0,1}` warrants it — prefer carrier-type-`ℝ` + a predicate clause when witness measures need `ℝ`). Keep each member's `@realizes <symbol>(<clause hint>)` tag accurate, and add the tag to any decl you newly make load-bearing for that symbol."
+          : "",
+        "On-disk files to patch (Read first, then Edit):",
+        ...existingScaffoldFiles.map((f) => `  - ${f}`),
+        "",
+      ].filter(Boolean).join("\n");
+    }
+  }
+  // PERSISTENT orchestrator scaffold directive (analogue of F3's `f3_filler_directive`):
+  // read on EVERY scaffold/revise pass, uncapped and never self-cleared, until the
+  // orchestrator clears it via `bin/f2_directive.ts`. A faithfulness/statement-shape steer.
+  const persistentDirectiveBlock =
+    args.state.flags.f2_scaffold_directive
+      ? [
+          "=== PERSISTENT ORCHESTRATOR SCAFFOLD DIRECTIVE (applies to EVERY scaffold pass) ===",
+          "",
+          "A top-priority, PERSISTENT faithfulness constraint from the orchestrator. Apply it verbatim,",
+          "on top of the typed core + plan contract, on THIS and every subsequent scaffold/revise pass (it is NOT one-shot",
+          "and NOT capped). It steers statement SHAPE / faithfulness only: NEVER invent a hypothesis the",
+          "spec does not state and NEVER weaken a statement; the F2.5 review + anti-laundering gates still",
+          "apply. When it says the Lean over-assumes a fact the note DERIVES (e.g. a continuity/boundedness",
+          "property, an algebraic identity), the fix is to DROP that premise and derive it in-proof",
+          "(`have h : … := by sorry`), not to keep it as a hypothesis.",
+          "",
+          args.state.flags.f2_scaffold_directive,
+          "",
+          "=== END PERSISTENT ORCHESTRATOR SCAFFOLD DIRECTIVE ===",
+          "",
+        ].join("\n")
+      : "";
+  const scaffoldCorePath = coreJsonPath(args.ctx);
+  const revisionTargets = args.revisionTargets?.length
+    ? args.revisionTargets
+    : revisionTargetsFromRedirect(args.state.flags.scaffold_redirect);
+  let revisionContext = null;
+  if (patchInPlace && revisionTargets.length > 0 && existsSync(scaffoldCorePath)) {
+    try {
+      const parsedPlan = PlanSchema.safeParse(parseJsonWithEscapeRepair(planText));
+      const completePriorScaffold = parsedPlan.success
+        && existingScaffoldFiles.length > 0
+        && hasCompleteScaffoldCoverage(parsedPlan.data as Plan, await parseLeanNodeTags(paths.leanDir));
+      if (parsedPlan.success && completePriorScaffold) {
+        revisionContext = buildF2RevisionContext(
+          await readTypedCore(scaffoldCorePath),
+          parsedPlan.data as Plan,
+          revisionTargets,
+        );
+      }
+    } catch (err) {
+      console.warn(
+        `[causalsmith] F2 local revision context unavailable; retaining full context: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+    if (!revisionContext) {
+      console.warn(
+        `[causalsmith] F2 local context is unsafe or unavailable for revision target(s) (${revisionTargets.join(", ")}) ` +
+          "(prior scaffold missing or without complete delivered @node/@env coverage, or projection failed); retaining full plan/core context.",
+      );
+    }
+  }
+  const promptPlanText = revisionContext ? JSON.stringify(revisionContext.plan) : planText;
+  const gatedHypsBlock = gatedHypsBlockFromPlan(promptPlanText);
+  const undeliveredBlock = undeliveredBlockFromPlan(promptPlanText);
+  // Legacy study-pipeline scaffolds can predate typed discovery cores. Preserve
+  // that supported empty-context path; modern research runs validate/project.
+  const scaffoldCoreContext = revisionContext
+    ? JSON.stringify(revisionContext.core)
+    : existsSync(scaffoldCorePath)
+      ? await readFormalizationCoreContext(scaffoldCorePath, "F2 scaffold")
+    : formalizationKind(args.ctx.qid) === "study"
+      ? ""
+      : await readFormalizationCoreContext(scaffoldCorePath, "F2 scaffold");
+  const revisionScopeBlock = revisionContext
+    ? [
+        "=== LOCAL F2 REVISION CONTEXT ===",
+        "This is a deterministic closure around the requested edit targets: their prerequisites and",
+        "the declarations whose signatures are forced downstream. Unrelated records are omitted on purpose.",
+        `Requested/resolved targets: ${revisionContext.resolved_targets.join(", ")}`,
+        `Omitted record counts: ${JSON.stringify(revisionContext.omitted_counts)}`,
+        `Full authoritative plan (read exact extra records only if a forced ripple leaves this packet): ${paths.plan}`,
+        `Full authoritative typed core (READ-ONLY; same selective escape hatch): ${scaffoldCorePath}`,
+        "Do not scan either full artifact by default. Do not infer that an omitted object is absent from the project.",
+        "If the implementation must deviate, sync back only the affected plan entries under the existing F2 contract.",
+        "=== END LOCAL F2 REVISION CONTEXT ===",
+        "",
+      ].join("\n")
+    : "";
+  const prompt = [
+    persistentDirectiveBlock,
+    undeliveredBlock,
+    gatedHypsBlock,
+    redirectBlock,
+    revisionScopeBlock,
+    correctionBlock(args.priorReview ?? null, args.attempt ?? 1, {
+      manifestContract: (args.state.theorems?.length ?? 0) > 0,
+    }),
+    reviseBlock,
+    interventionBlock(args.intervention),
+    (await readPrompt(args.ctx, "stage2_scaffold.txt")).replaceAll(
+      "{{HEADER_CONTRACT}}",
+      [
+        "HEADER CONTRACT — Every generated Lean file begins, in order, with the optional copyright block, then `module`, contiguous imports written as `public import` (only a rare deliberate exception marked by a `-- private import` comment may use a private import), the `/-! ... -/` module docstring, and exactly one blanket section: `@[expose] public section` when the file defines a `def`, `abbrev`, `instance`, `structure`, `class`, or `inductive`, otherwise `public section`. Keep declarations bare: no per-declaration `public`, `private`, or `@[expose]`; helpers stay bare, and nothing is private unless it is truly file-local and never needed by a proof downstream. Run barrels and `Helpers.lean` are imports-only and use `public import` on every line.",
+        "MODULE-SYSTEM CONSEQUENCES — A `module` file cannot import a legacy non-`module` file: every imported file must itself be a module file, and the scaffold must never add `import all`. A `def` whose body a downstream `rfl`, `decide`, or `unfold` needs must live in a file with `@[expose] public section`. A certificate evaluated by the kernel (`decide +kernel`) must not pass through well-founded recursion such as `Array.ofFn` or `termination_by`, because importers cannot see termination proofs; use a structural construction.",
+      ].join("\n"),
+    ),
+    "",
+    bookkeepingPolicyBlock(),
+    "",
+    baseBrief(args.ctx, args.state),
+    "",
+    // F2 implements the plan F1 already authored: per-node reuse / define-local
+    // decisions, the env world, the node→Lean mapping. The reuse SEARCH happened at
+    // F1; F2 does not re-run retrieval. The typed core is the ground truth for the
+    // node statements/conditions the plan maps.
+    `Formalization plan${revisionContext ? " (localized affected-region projection)" : ""} (plan.json — the contract you implement; for every DELIVERED node, tag EXACTLY ONE canonical primary declaration with "-- @node: <id>"; leave companion/auxiliary declarations untagged; an UNDELIVERED node emits no declaration and no tag; tag the S-block with "-- @env: <id>"). Additionally, for the SETUP/ENVIRONMENT symbols: tag EVERY Lean location that helps realize a core symbol's space with "@realizes <core-symbol-name>(<short clause hint>)" — using the EXACT core symbol name (e.g. mu_0, tau_P, e_P, pi, Pi; case-sensitive, NOT the Lean field name mu0/contrast). Put the tag at the most SPECIFIC location: for a structure FIELD, an INLINE trailing comment on that field line (e.g. 'propensity : 𝒳 → ℝ -- @realizes e_P(carrier 𝒳→ℝ; range via WellFormedLaw)'), NOT lumped on the structure docstring; for a MULTI-clause predicate (a Prop def of the form A and B and …), an INLINE comment on the SPECIFIC conjunct line that pins each symbol (e.g. in WellFormedLaw, the 'contrast x = mu1 x - mu0 x' conjunct line gets '-- @realizes tau_P(contrast = mu1 - mu0)' and the 'propensity x ∈ Icc 0 1' conjunct line gets '-- @realizes e_P(propensity ∈ Icc 0 1)'); a SINGLE-clause predicate may use its docstring (e.g. Positivity gets '@realizes e_P(a.s. 0<e<1)'). A symbol's space is normally carried by the CONJUNCTION of its carrier-type field PLUS the predicate(s) that pin its range, so the SAME symbol gets tagged on several locations (the field line AND each constraining predicate); the reviewer grades that whole cluster together. Tag EVERY core symbol in the JSON — not only setup-world ones — so the symbol→Lean crosswalk is COMPLETE: a primitive on its carrier field + constraining predicate; a quantity the paper DEFINES by a formula on the \`def\` that computes it; a symbol introduced only inside a theorem statement (e.g. an existential multiplier) on the clause that pins its range. Never tag a decl that merely USES a symbol without introducing it:\n${promptPlanText}`,
+    "",
+    `Typed core JSON${revisionContext ? " (localized affected-region projection)" : ""} (structural ground truth for each node's statement / condition; proof/publication prose omitted):\n${scaffoldCoreContext}`,
+    "",
+    "Return JSON. If blocked-missing-architecture, include missing_items exactly.",
+  ].join("\n");
+  // Rewind proof-preservation: snapshot the real proof bodies currently on disk
+  // BEFORE the producer overwrites them, so we can re-attach those that survive a
+  // signature match (see injectCarryoverComments after the producer runs). Empty
+  // on a first scaffold or a sorry-only prior (nothing to preserve).
+  const priorProofs = await snapshotPriorProofs(paths.leanDir);
+  // P7 needs the actual pre-worker declaration image. The graph's passed_hash is a
+  // review receipt, not a durable source snapshot (and can predate extractor fixes),
+  // so it cannot distinguish an exact preserved helper from an F2 rewrite reliably.
+  const preF2AnnotatedDecls = existsSync(paths.leanDir)
+    ? await parseAnnotatedDecls(paths.leanDir)
+    : [];
+  // Snapshot the graph before granting the worker production-write access as well.
+  // Reloading it only after dispatch would let a worker-created node certify its own tag.
+  let preF2Graph: FormalizationGraph | undefined;
+  try {
+    preF2Graph = await loadGraph(graphPath(paths.formalizationDir, args.ctx.qid, args.ctx.specialization));
+  } catch {
+    preF2Graph = undefined;
+  }
+  const priorReviseFiles = new Map<string, string>();
+  if (patchInPlace && existsSync(paths.leanDir)) {
+    for (const file of await listLeanFiles(paths.leanDir)) {
+      priorReviseFiles.set(file, await readFile(file, "utf8"));
+    }
+  }
+  // Snapshot the typed-theorem → meaning-bearing inline-def closure before the
+  // producer edits.  This is deliberately separate from proof carry-over: a
+  // theorem can keep the same signature/proof while an output structure or
+  // predicate it names changes semantics and therefore requires delta review.
+  let priorSemanticDefs: StatementSemanticDef[] = [];
+  if (patchInPlace && existsSync(paths.leanDir)) {
+    try {
+      priorSemanticDefs = await findStatementSemanticDefs(paths.leanDir);
+    } catch (err) {
+      console.warn(
+        `[causalsmith] Stage 2 hidden-definition snapshot failed (continuing): ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+
+  // Producer dispatch: F2 can be claude/opus or codex/gpt-5.5 (see MODEL_PLAN.stage2).
+  // Widened cast so both branches typecheck regardless of which is configured.
+  const plan = MODEL_PLAN.stage2 as { runner: string; model: string; effort?: string };
+  const stage2PromptSources = [
+    "stage2_scaffold.txt",
+    ...(reviseBlock ? ["stage2_head_revise.txt"] : []),
+    paths.plan,
+    ...(args.state.flags.scaffold_redirect ? ["flags.scaffold_redirect"] : []),
+    ...(args.state.flags.f2_scaffold_directive ? ["flags.f2_scaffold_directive"] : []),
+  ];
+  let out: string;
+  if (plan.runner === "codex") {
+    // codex writes the .lean files directly (workspace-write) and gets lean-lsp
+    // for the substrate survey, like F3. NOTE the failure-path cost: parseStageOutput
+    // falls back to `parse_failed` on a non-JSON tail (NOT "completed" — a prior version
+    // of this comment claimed otherwise and cost a debugging cycle), and stage2 grades
+    // parse_failed as blocked — so a truncated/killed stdout envelope over a perfectly
+    // good on-disk scaffold re-scaffolds cold on resume. Known accepted cost; grading
+    // parse_failed by inspecting the on-disk artifacts instead is a deliberate design
+    // decision left open (audit, 2026-08-26).
+    const res = await dispatchAgent({
+      ctx: args.ctx,
+      deps: args.deps,
+      stage: "2",
+      label: "F2 scaffolder (codex)",
+      prompt,
+      promptSources: stage2PromptSources,
+      model: plan.model,
+      reasoningEffort: (plan.effort ?? "high") as "minimal" | "low" | "medium" | "high" | "xhigh",
+      inactivityTimeoutMs: 30 * 60 * 1000,
+      leanLsp: true,
+      // A redirect is invoked from the combined F2.5 loop, whose default cwd is
+      // paper-local tmp/. F2 edits production Lean, so keep Codex rooted at the
+      // explicit package cwd instead of trapping it in the scratch sandbox.
+      productionWrite: true,
+    });
+    out = res.stdout;
+  } else {
+    out = await dispatchClaudeAgent({
+      ctx: args.ctx,
+      deps: args.deps,
+      stage: "2",
+      label: "F2 scaffolder (claude)",
+      promptSources: stage2PromptSources,
+      input: {
+        prompt,
+        model: plan.model,
+        cwd: args.ctx.repoRoot,
+        mcpConfigPath: writeLeanLspMcpConfig(args.ctx.repoRoot),
+        allowedTools: [
+          "Read",
+          "Write",
+          "Edit",
+          "Grep",
+          "Glob",
+          "Bash",
+          "mcp__lean-lsp__lean_diagnostic_messages",
+          "mcp__lean-lsp__lean_goal",
+          "mcp__lean-lsp__lean_local_search",
+          "mcp__lean-lsp__lean_multi_attempt",
+        ],
+      },
+    });
+  }
+  const restoredDeletedFiles = await restoreDeletedReviseFiles(priorReviseFiles);
+  if (restoredDeletedFiles.length > 0) {
+    throw new Error(
+      "F2 revise preservation gate restored file(s) deleted by the producer; refusing the non-incremental scaffold:\n  " +
+        restoredDeletedFiles.join("\n  "),
+    );
+  }
+  const parsed = parseStageOutput(out);
+  if (parsed.status === "blocked-missing-architecture") {
+    args.state.flags.missing_architecture = true;
+    args.state.flags.missing_architecture_items = parsed.missing_items ?? [];
+    // Mirror into the permanent ledger so the gap survives outside this run's state.
+    try {
+      const items = parsed.missing_items ?? [];
+      if (items.length > 0) {
+        recordMissingArchitecture(missingArchitectureLedgerPath(args.ctx.repoRoot), {
+          qid: args.ctx.qid,
+          spec: args.ctx.specialization,
+          source: "F2 missing-architecture",
+          date: new Date().toISOString().slice(0, 10),
+          items: items.map((m) => ({
+            kind: m.kind,
+            description: [
+              `${m.name_suggestion} — ${m.purpose}`,
+              m.suggested_location ? `[loc: ${m.suggested_location}]` : "",
+            ].filter(Boolean).join(" "),
+            effort: undefined,
+          })),
+        });
+      }
+    } catch (err) {
+      console.warn(`[causalsmith] missing-architecture ledger write failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    return {
+      stage: "2",
+      status: "blocked",
+      advance: false,
+      message: parsed.message ?? "MISSING ARCHITECTURE BLOCKED",
+      artifacts: parsed.artifacts,
+    };
+  }
+  if (parsed.status !== "completed") {
+    // why: F2 must not run the completed state mutation path unless the worker completed.
+    return {
+      stage: "2",
+      status: "blocked",
+      advance: false,
+      message: parsed.message ?? "F2 did not complete",
+      artifacts: parsed.artifacts ?? [],
+    };
+  }
+
+  // Rewind proof-preservation: re-attach prior proofs for new `sorry` decls whose
+  // signature is unchanged. In revise mode, reactivate them immediately so F2
+  // cannot return with a working proof downgraded to `sorry`; cold mode retains
+  // the historical inert-comment handoff to F2.5/F3. No-op unless real prior
+  // proofs existed. Best-effort: a preservation failure must not hide the
+  // producer result, but it is surfaced loudly.
+  if (priorProofs.size > 0) {
+    try {
+      const carried = await injectCarryoverComments(paths.leanDir, priorProofs);
+      if (carried.count > 0) {
+        if (patchInPlace) {
+          const restored = await restoreCarryoverProofs(paths.leanDir);
+          console.warn(
+            `[causalsmith] Stage 2 revise proof preservation: restored ${restored.count} active prior proof(s) ` +
+              `for signature-unchanged decl(s) (${restored.names.join(", ")}); only changed/new obligations may remain sorry.`,
+          );
+        } else {
+          console.warn(
+            `[causalsmith] Stage 2 proof carry-over: re-attached ${carried.count} prior proof(s) as Stage-3 anchors ` +
+              `for signature-unchanged decl(s) (${carried.names.join(", ")}) — rewind did not discard them.`,
+          );
+        }
+      }
+    } catch (err) {
+      console.warn(
+        `[causalsmith] Stage 2 proof carry-over failed (continuing): ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+
+  const duplicateNodeAnchors = await findDuplicateLeanNodeAnchors(paths.leanDir);
+  if (duplicateNodeAnchors.length > 0) {
+    throw new Error(
+      "F2 duplicate @node gate failed; every graph node must have exactly one canonical primary declaration:\n" +
+        duplicateNodeAnchors
+          .map((d) => `  ${d.id}: ${d.locations.join(", ")}`)
+          .join("\n"),
+    );
+  }
+
+  // Paper-scoped: if state.theorems is present, walk the manifest and update
+  // each entry. Falls back to legacy single-theorem behavior when absent.
+  if (args.state.theorems && args.state.theorems.length > 0) {
+    const manifest = (parsed.theorems ?? []).filter((m) => !nonEmittedLocalIds.has(m.theorem_local_id));
+    const byLocal = new Map(manifest.map((m) => [m.theorem_local_id, m]));
+    const artifactIndex = new Map<string, { decl: string; relpath: string }>();
+    const leanArtifacts = (parsed.artifacts ?? []).filter((f) => f.endsWith(".lean"));
+    for (const leanFile of leanArtifacts) {
+      const leanSource = await readIfExists(leanFile);
+      const relpath = path.relative(paths.leanDir, leanFile);
+      for (const entry of args.state.theorems) {
+        if (artifactIndex.has(entry.theorem_local_id)) continue;
+        const recovered = findLeanDeclByLocalId(leanSource, entry.theorem_local_id);
+        if (recovered) artifactIndex.set(entry.theorem_local_id, { decl: recovered, relpath });
+      }
+      for (const m of manifest) {
+        if (!m.lean_decl_name || artifactIndex.has(m.theorem_local_id)) continue;
+        if (declNameRegex(m.lean_decl_name).test(leanSource)) artifactIndex.set(m.theorem_local_id, { decl: m.lean_decl_name, relpath });
+      }
+    }
+    for (const entry of args.state.theorems) {
+      if (nonEmittedLocalIds.has(entry.theorem_local_id)) continue;
+      let m = byLocal.get(entry.theorem_local_id);
+      let loc = m?.lean_decl_name ? artifactIndex.get(entry.theorem_local_id) : undefined;
+      if (!m?.lean_decl_name) {
+        const recovered = artifactIndex.get(entry.theorem_local_id);
+        if (recovered) {
+          console.warn(
+            `[causalsmith] Stage 2 manifest dropped ${entry.theorem_local_id} but .lean body has decl ${recovered.decl}; repairing manifest.`,
+          );
+          m = { theorem_local_id: entry.theorem_local_id, lean_decl_name: recovered.decl };
+          loc = recovered;
+        }
+      }
+      if (m?.lean_decl_name && loc) {
+        entry.lean_decl_name = m.lean_decl_name;
+        entry.lean_file_relpath = loc.relpath; // why: multi-artifact paper scaffolds must point each theorem at the file containing its decl.
+        entry.stage_completed = "2";
+        entry.status = "in_progress";
+      } else {
+        entry.status = "stuck";
+        entry.failure_reason = "Stage 2 did not produce a Lean declaration for this theorem";
+      }
+    }
+  }
+  // After Stage 2 produces sorry-only output successfully, the redirect has been
+  // honored. Clear it so Stage 2.5 / Stage 3 see a clean slate for re-review.
+  // Do NOT clear `scaffold_redirect_count` — that's the loop guard counter,
+  // accumulates over the run.
+  if (parsed.status === "completed") {
+    args.state.flags.scaffold_redirect = null;
+    // A fresh scaffold for the CURRENT angle now exists on disk; the post-pivot
+    // retirement marker is consumed (later F2 passes patch THIS scaffold).
+    if (args.state.flags.f2_scaffold_retired) delete args.state.flags.f2_scaffold_retired;
+  }
+  // Sync-back check. The worker may have updated plan.json on
+  // deviation (a planned reuse that did not type-fit; an atom better as a named def);
+  // re-run the plan gate against the typed core, now also checking the emitted Lean's
+  // @node/@env tags cover the plan one-to-one (P7). Every structural violation blocks the
+  // scaffold EXCEPT P5 (reuse existence) and P6 (module resolution) — reuse lookup and
+  // module resolution are settled in the later typed phases, so they stay advisory here.
+  if (parsed.status === "completed") {
+    const corePath = coreJsonPath(args.ctx);
+    const coreExists = existsSync(corePath);
+    const planExists = existsSync(paths.plan);
+    const gateInputsPresent = coreExists && planExists;
+    try {
+      if (coreExists !== planExists) {
+        throw new Error(
+          `F2 structural plan gate inputs incomplete (core=${coreExists}, plan=${planExists})`,
+        );
+      }
+      if (gateInputsPresent) {
+        const core = await readTypedCore(corePath);
+        const rawPlanObj = parseJsonWithEscapeRepair(await readFile(paths.plan, "utf8"));
+        const trustedPlanObj = parseJsonWithEscapeRepair(planText);
+        const canonicalPlan = canonicalizeCitedPlanAfterF2(rawPlanObj, core, trustedPlanObj);
+        const planObj = canonicalPlan.plan;
+        if (canonicalPlan.changed) {
+          await writeFile(paths.plan, JSON.stringify(planObj, null, 2) + "\n", "utf8");
+          console.warn(
+            "[causalsmith] F2 post-sync canonicalized optional gate keys and restored cited provenance from the typed core.",
+          );
+        }
+        const leanTags = await parseLeanNodeTags(paths.leanDir);
+        const leanDeclNames = new Set((await parseLeanDecls(paths.leanDir, { includeLemmas: true })).map((decl) => decl.name));
+        const annotatedDecls = await parseAnnotatedDecls(paths.leanDir);
+        // `preF2Graph` and `preF2AnnotatedDecls` were snapshotted before dispatch.
+        // A run's first F2 pass has neither, so the exemption simply stays off then.
+        let knownDecls: Set<string> | undefined;
+        try {
+          const lib = createRetrieval(args.ctx.repoRoot).library;
+          if (lib) knownDecls = new Set(lib.entries.map((e) => e.name));
+        } catch {
+          knownDecls = undefined;
+        }
+        const parsedReusePlan = PlanSchema.safeParse(planObj);
+        if (parsedReusePlan.success) {
+          knownDecls ??= new Set<string>();
+          for (const node of Object.values(parsedReusePlan.data.nodes)) {
+            if (node.citation_discharged !== true || node.disposition !== "reuse" || !node.reuse) continue;
+            try {
+              if (await resolveLibraryDeclaration(args.ctx.repoRoot, node.reuse)) knownDecls.add(node.reuse);
+            } catch {
+              // Leave unresolved: P9 then blocks this claimed external discharge.
+            }
+          }
+        }
+        if (!knownDecls) {
+          console.warn(
+            "[causalsmith] library index unavailable (doc/library_index.json missing/unreadable) — the P5 reuse-existence check is SKIPPED this pass; hallucinated reuse decls will surface only at compile. Run `lake build && lake exe library_index`.",
+          );
+        }
+        const gate = runPlanGate(planObj, core, {
+          knownDecls,
+          leanTags,
+          leanDeclNames,
+          preF2Graph,
+          annotatedDecls,
+          preF2AnnotatedDecls,
+          allowDischargedCitationSorry: true,
+        });
+        if (!gate.ok) {
+          const blockingViolations = blockingPostSyncPlanViolations(gate.violations);
+          if (blockingViolations.length > 0) {
+            throw new Error(
+              `F2 structural plan gate refused the scaffold:\n  ` +
+                blockingViolations.map((v) => `${v.code} @ ${v.where}: ${v.message}`).join("\n  "),
+            );
+          }
+          console.warn(
+            `[causalsmith] F2 post-sync plan_gate: ${gate.violations.length} violation(s)\n  ` +
+              gate.violations.slice(0, 12).map((v) => `${v.code} @ ${v.where}: ${v.message}`).join("\n  "),
+          );
+        }
+        // F2 may have updated plan.json, and a source correction may have landed
+        // since F1. Rebuild from the final checked core+plan before F2.5 consumes
+        // the graph NL. The merge preserves Lean/proof state and invalidates
+        // changed nodes; render the bridge independently so a stale note cannot
+        // survive a partial prior write.
+        const gp = graphPath(paths.formalizationDir, args.ctx.qid, args.ctx.specialization);
+        const previous = existsSync(gp) ? await loadGraph(gp) : null;
+        const { graph, note } = syncStage2Graph(
+          previous, core, args.ctx.specialization, PlanSchema.parse(planObj),
+        );
+        await mkdir(path.dirname(paths.md), { recursive: true });
+        await writeFile(paths.md, note, "utf8");
+        await saveGraph(gp, graph);
+      } else {
+        console.warn("[causalsmith] F2 post-sync gate skipped: legacy run has neither typed core nor plan");
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message.startsWith("F2 structural plan gate refused")) throw err;
+      // The try only throws once at least one input exists (the XOR check, or the gate body under
+      // `gateInputsPresent`), so reaching here always means a real execution failure — fail closed.
+      throw new Error(
+        `F2 structural plan gate failed to execute: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+  // Graph link (best-effort, advisory): seed `-- @node:` annotations + extract the
+  // Lean side into the formalization graph. No gate depends on it yet.
+  let hiddenChangedTargets: string[] = [];
+  if (patchInPlace) {
+    try {
+      hiddenChangedTargets = hiddenDefinitionChangeTargets(
+        priorSemanticDefs,
+        await findStatementSemanticDefs(paths.leanDir),
+      );
+      if (hiddenChangedTargets.length > 0) {
+        console.warn(
+          `[causalsmith] Stage 2 revise semantic invalidation: reset cached F2.5 review for ` +
+            `${hiddenChangedTargets.join(", ")} (meaning-bearing inline dependency changed).`,
+        );
+      }
+    } catch (err) {
+      console.warn(
+        `[causalsmith] Stage 2 hidden-definition comparison failed (continuing): ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+  const invalidateReviewNodeIds = [...new Set([
+    ...sourceRewindDirtyTargets,
+    ...hiddenChangedTargets,
+  ])].sort();
+  const graphLink = await linkGraphFromStage2({
+    qid: args.ctx.qid,
+    spec: args.ctx.specialization,
+    formalizationDir: paths.formalizationDir,
+    leanDir: paths.leanDir,
+    invalidateReviewNodeIds,
+  });
+  if (graphLink.graph) {
+    if (sourceRewindDirtyTargets.length > 0 && args.state.flags.source_rewind?.status === "applied") {
+      args.state.flags.source_rewind.status = "f2_revised";
+      args.state.flags.source_rewind.f2_revised_at = new Date().toISOString();
+      console.warn(
+        `[causalsmith] Stage 2 source-rewind invalidation: reset cached F2.5 review for ` +
+          `${sourceRewindDirtyTargets.join(", ")}.`,
+      );
+    }
+    const errs = graphLink.findings.filter((f) => f.severity === "error").length;
+    console.warn(`[graph] F2 linked ${graphLink.graph.nodes.length} nodes; ${errs} advisory invariant error(s)`);
+  }
+  // Do not trust the producer's `compiled sorry-only` self-report.  A revised
+  // helper can be outside the producer's narrow target even though it is in the
+  // run import closure; advancing to F2.5 with a red tree then lets a stale
+  // review cache hide the failure.  Production runs have a lakefile at the repo
+  // root; isolated unit-test fixtures do not and deliberately skip this gate.
+  if (existsSync(path.join(args.ctx.repoRoot, "lakefile.toml"))) {
+    const build = await buildRunModules(args.ctx.repoRoot, paths.leanDir);
+    if (!build.ok) {
+      throw new Error(`F2 run compile gate failed; refusing to advance to F2.5:\n${build.errors}`);
+    }
+    console.warn("[causalsmith] F2 run compile gate passed");
+  }
+  return {
+    stage: "2",
+    status: "completed",
+    message: parsed.message ?? "Stage 2 Lean scaffold completed",
+    artifacts: parsed.artifacts ?? [paths.leanDir],
+  };
+}

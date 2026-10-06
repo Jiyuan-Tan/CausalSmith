@@ -1,0 +1,224 @@
+\section{Setup and identification}
+
+Throughout the paper, constants may depend on the fixed overlap parameter \(\epsilon\), while dependence on the sample size \(n\) and alphabet size \(d\) is displayed explicitly. For vectors indexed by treatment--outcome atoms we use the \(\ell_1\) norm, written as the sum of absolute coordinate differences. Cell indices range over \([d]\), treatment and outcome indices over \(\{0,1\}\), and asymptotic notation is used only after the corresponding finite-sample bounds have been stated.
+
+The observed experiment records the triple \leanref{sym:\(O_i\)}{$O_i$} consisting of the covariate \leanref{sym:\(X\)}{$X$}, treatment \leanref{sym:\(A\)}{$A$}, and outcome \leanref{sym:\(Y\)}{$Y$}. The model begins with i.i.d. sampling from an observed law \leanref{sym:\(\mathbb P\)}{$\mathbb P$}.
+
+\begin{assumptionv}{ass:iid-sampling}[I.i.d. observed sampling]
+For each observed law \(\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}\), let \(O_i=(X_i,A_i,Y_i)\) denote the observed triple for unit \(i\). The observations \(O_1,\ldots,O_n\) are independent and identically distributed with common law \(\mathbb P\).
+\end{assumptionv}
+
+\Cref{obj:ass:iid-sampling} is the standard independent and identically distributed sampling condition for the observed triples \citep{ZengBalakrishnanHanKennedy2024Discrete}. It fixes the statistical experiment for the fixed-sample risk calculations below: every estimator observes \(n\) draws from one law in the observed model class.
+
+The causal interpretation uses a finite binary potential-outcome overlay. For a full-data law \leanref{sym:\(P\)}{$P$}, let \leanref{sym:\(Y(a)\)}{$Y(a)$} denote the potential outcome under arm \leanref{sym:\(a\)}{$a$}.
+
+\begin{assumptionv}{ass:consistency}[Consistency of outcomes]
+The observed outcome satisfies
+\[
+Y=Y(A)
+\]
+almost surely.
+\end{assumptionv}
+
+\Cref{obj:ass:consistency} is the standard consistency condition linking the observed outcome to the potential outcome under the realized treatment \citep{ZengBalakrishnanHanKennedy2024Discrete}. It supplies the unit-level bridge from the observed outcome variable to the corresponding potential-outcome coordinate.
+
+\begin{assumptionv}{ass:conditional-exchangeability}[Conditional exchangeability]
+For each \(a\in\{0,1\}\), the potential outcome \(Y(a)\) is conditionally independent of treatment given covariates:
+\[
+Y(a)\perp A\mid X .
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:conditional-exchangeability} is the standard armwise conditional exchangeability condition \citep{ZengBalakrishnanHanKennedy2024Discrete}. Together with consistency, it identifies the arm-specific conditional potential-outcome means from the observed arm-specific outcome regressions in each occupied covariate cell.
+
+\begin{assumptionv}{ass:fixed-overlap}[Fixed overlap]
+Let \([d]=\{1,\ldots,d\}\) be the finite covariate alphabet. For every observed law \(\mathbb P\) under consideration and every \(x\in[d]\) with covariate-cell mass \(p_x=\mathbb P(X=x)>0\), the treatment propensity \(\pi_x=\mathbb P(A=1\mid X=x)\) satisfies
+\[
+\epsilon\leq \pi_x \leq 1-\epsilon ,
+\]
+where \(\epsilon\in(0,1/2)\) is the fixed overlap constant.
+\end{assumptionv}
+
+\Cref{obj:ass:fixed-overlap} is the standard fixed strong overlap condition \citep{ZengBalakrishnanHanKennedy2024Discrete}. It keeps both treatment arms represented within each occupied covariate cell, with a lower bound that remains fixed as the alphabet size grows.
+
+We next define the observed and full-data objects used by the identification statements. The observed margin records the distribution available from sampling, while the observed-law class parameterizes its cell probabilities through the marginal cell mass \leanref{sym:\(p_x\)}{$p_x$}, propensity \leanref{sym:\(\pi_x\)}{$\pi_x$}, and arm-specific outcome mean \leanref{sym:\(\mu_{ax}\)}{$\mu_{ax}$}.
+
+\begin{definitionv}{def:observed-margin}[Observed margin \(\operatorname{Obs}(P)\)]
+For a full-data law \(P\), its observed margin \(\operatorname{Obs}(P)\) is the law on \([d]\times\{0,1\}^2\) defined by
+\[
+\operatorname{Obs}(P)\{(x,a,y)\}
+=
+P(X=x,A=a,Y=y),
+\qquad
+(x,a,y)\in[d]\times\{0,1\}^2.
+\]
+\end{definitionv}
+
+\begin{definitionv}{def:observed-model-class}[Observed-law class \(\mathcal D_{d,\epsilon}^{\mathrm{obs}}\)]
+Under \cref{obj:ass:fixed-overlap}, let
+\[
+\Delta_d=\left\{p\in[0,1]^d:\sum_{x=1}^d p_x=1\right\}.
+\]
+The class \(\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) consists of all laws \(\mathbb P\) on \([d]\times\{0,1\}^2\) for which there exist \(p=(p_1,\ldots,p_d)\in\Delta_d\), propensities \(\pi_x\in[\epsilon,1-\epsilon]\), and means \(\mu_{ax}\in[0,1]\) such that, for every \(x\in[d]\) and \(a\in\{0,1\}\),
+\[
+q_{a1,x}
+=
+p_x\pi_x^a(1-\pi_x)^{1-a}\mu_{ax},
+\qquad
+q_{a0,x}
+=
+p_x\pi_x^a(1-\pi_x)^{1-a}(1-\mu_{ax}),
+\]
+where
+\[
+q_{ay,x}=\mathbb P(X=x,A=a,Y=y).
+\]
+For each cell \(x\), write
+\[
+q_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x}).
+\]
+The support contains at most \(d\) covariate cells, and on any null cell the parameters may be chosen arbitrarily within the displayed ranges.
+\end{definitionv}
+
+In \cref{obj:def:observed-model-class}, the atom mass \leanref{sym:\(q_{ay,x}\)}{$q_{ay,x}$} and four-vector \leanref{sym:\(q_x\)}{$q_x$} provide the table representation used by both the estimator and the lower bound. Null cells carry zero weight in the value, so the displayed convention makes the parameterization total over the finite alphabet.
+
+\begin{definitionv}{def:observed-optimal-value}[Observed-law optimal value \(\Psi(\mathbb P)\)]
+For \(\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) as in \cref{obj:def:observed-model-class}, with table \(\mathbf q=(q_x)_{x=1}^d\), the observed-law optimal-regression functional is
+\[
+\Psi(\mathbb P)=\Psi(\mathbf q)
+:=
+\sum_{x=1}^d p_x\max_{a\in\{0,1\}}\mu_{ax}.
+\]
+This value is independent of the permitted choice of \(\mu_{ax}\) on cells with \(p_x=0\).
+\end{definitionv}
+
+The functional \leanref{sym:\(\Psi(\mathbb P)\)}{$\Psi(\mathbb P)$} is the scalar value attained by choosing the larger observed arm-specific regression in each covariate cell and averaging with respect to the covariate distribution. The table notation \leanref{sym:\(\mathbf q\)}{$\mathbf q$} emphasizes that the target is a functional of finitely many observed treatment--outcome atom masses.
+
+\begin{definitionv}{def:minimax-risk}[Minimax risk \(\mathfrak R_{n,d,\epsilon}\)]
+The fixed-sample minimax squared risk is
+\[
+\mathfrak R_{n,d,\epsilon}
+:=
+\inf_{\widehat V}
+\sup_{\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}}
+E_{\mathbb P}
+\left[
+\left\{
+\widehat V(O_1,\ldots,O_n)-\Psi(\mathbb P)
+\right\}^2
+\right],
+\]
+where the infimum is over all measurable maps
+\[
+\widehat V:\bigl([d]\times\{0,1\}^2\bigr)^n\to\mathbb R.
+\]
+\end{definitionv}
+
+\Cref{obj:def:minimax-risk} measures the squared-error performance of the best measurable estimator of the observed-law value uniformly over the fixed-overlap observed class. The central results below characterize \leanref{sym:\(\mathfrak R_{n,d,\epsilon}\)}{$\mathfrak R_{n,d,\epsilon}$} as \(d\) and \(n\) vary.
+
+\begin{definitionv}{def:model-class}[Full-data causal class \(\mathcal P_{d,\epsilon}\)]
+For every \(d\geq 2\) and \(0<\epsilon<1/2\), \(\mathcal P_{d,\epsilon}\) is the set of probability laws \(P\) for \((X,A,Y,Y(0),Y(1))\) such that:
+\begin{itemize}
+\item \textbf{(Support.)} \(X\in[d]\) and \(A,Y,Y(0),Y(1)\in\{0,1\}\) \(P\)-almost surely.
+\item \textbf{(Potential-outcome structure.)} \(P\) satisfies \cref{obj:ass:consistency,obj:ass:conditional-exchangeability}.
+\item \textbf{(Observed fixed-overlap margin.)} The observed margin \(\operatorname{Obs}(P)\) from \cref{obj:def:observed-margin} belongs to the fixed-overlap observed-law class \(\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) under \cref{obj:ass:fixed-overlap}.
+\end{itemize}
+\end{definitionv}
+
+The class \leanref{sym:\(\mathcal P_{d,\epsilon}\)}{$\mathcal P_{d,\epsilon}$} collects the full-data laws for which the observed margin satisfies the same fixed-overlap restrictions as the observed-law problem. This keeps the causal and statistical formulations on the same finite alphabet.
+
+For the estimator, it is useful to write each cell contribution as a function on the nonnegative orthant. Let \leanref{sym:\(u\)}{$u$} denote a generic four-coordinate nonnegative vector, with arm totals \leanref{sym:\(s_a(u)\)}{$s_a(u)$} and total mass \leanref{sym:\(s(u)\)}{$s(u)$}.
+
+\begin{definitionv}{def:overlap-cone}[Overlap cone \(\mathcal C_\epsilon\)]
+The four-cell overlap cone is
+\[
+\mathcal C_\epsilon
+:=
+\{u\in\mathbb R_+^4:\epsilon s(u)\leq s_1(u)\leq(1-\epsilon)s(u)\},
+\]
+where, for each \(a\in\{0,1\}\),
+\[
+s_a(u)=u_{a0}+u_{a1},
+\qquad
+s(u)=s_0(u)+s_1(u).
+\]
+\end{definitionv}
+
+\Cref{obj:def:overlap-cone} expresses fixed overlap directly in the four observed atom masses of one covariate cell. The cone \leanref{sym:\(\mathcal C_\epsilon\)}{$\mathcal C_\epsilon$} is the analytic domain on which the observed cell value has its natural ratio form.
+
+\begin{definitionv}{def:global-extension}[Global extension \(g_{a,\epsilon}\) and \(\bar f_\epsilon\)]
+For \(u\in\mathbb R_+^4\) with \(s(u)>0\), define the overlap-stabilized arm contribution
+\[
+g_{a,\epsilon}(u)
+:=
+\frac{s(u)u_{a1}}{\max\{s_a(u),\epsilon s(u)\}},
+\qquad a\in\{0,1\},
+\]
+and the globally defined cellwise maximum contribution
+\[
+\bar f_\epsilon(u)
+:=
+\max_{a\in\{0,1\}} g_{a,\epsilon}(u).
+\]
+At the origin,
+\[
+g_{a,\epsilon}(0)=0,
+\qquad
+\bar f_\epsilon(0)=0.
+\]
+\end{definitionv}
+
+The function \leanref{sym:\(\bar f_\epsilon\)}{$\bar f_\epsilon$} extends the cellwise maximum contribution from the overlap cone to the full nonnegative orthant. The stabilizing denominator preserves the value on overlapped cells and gives a single globally controlled object for polynomial approximation.
+
+\begin{definitionv}{def:oracle-value}[Oracle value \(V^\star(P)\)]
+For a full-data law \(P\), the full-data causal optimal-treatment value is
+\[
+V^\star(P)
+=
+E_P\!\left[
+\max_{a\in\{0,1\}}
+E_P\{Y(a)\mid X\}
+\right].
+\]
+\end{definitionv}
+
+The causal target \leanref{sym:\(V^\star(P)\)}{$V^\star(P)$} averages, under the full-data law, the larger of the two conditional potential-outcome means within each covariate cell. The next definition records the corresponding minimax risk when observations are drawn from the observed margin.
+
+\begin{definitionv}{synth_4}[Causal minimax risk]
+For \(n\ge1\), \(d\ge2\), and \(0<\epsilon<1/2\), define the observed-sample causal minimax squared risk by \[ \mathfrak R^{\mathrm{causal}}_{n,d,\epsilon}:=\inf_{\widehat V}\sup_{P\in\mathcal P_{d,\epsilon}} E_{\operatorname{Obs}(P)}\left[\left\{\widehat V(O_1,\ldots,O_n)-V^\star(P)\right\}^2\right], \] where the infimum is over all measurable maps from \(([d]\times\{0,1\}^2)^n\) to \(\mathbb R\).
+\end{definitionv}
+
+The identification step now connects these definitions. It establishes that the observed table lies in the overlap cone cell by cell, that the observed value decomposes through the globally controlled extension, and that the observed model has compatible causal completions.
+
+\begin{propositionv}{prop:identification-and-extension}[Identification and completion]
+Let \(d\ge 2\), let \(\epsilon\in(0,1/2)\), and let \(\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) in the sense of \cref{obj:def:observed-model-class}. Then:
+\begin{itemize}
+\item \textbf{(Cell overlap.)} For every \(x\in[d]\), the four-vector \(q_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x})\) belongs to the overlap cone \(\mathcal C_\epsilon\) of \cref{obj:def:overlap-cone}.
+\item \textbf{(Observed value.)} The observed-law optimal-regression value of \cref{obj:def:observed-optimal-value} satisfies
+\[
+\Psi(\mathbb P)=\sum_{x=1}^d \bar f_\epsilon(q_x).
+\]
+\item \textbf{(Global extension bounds.)} For every \(u\in\mathbb R_+^4\), the global extension of \cref{obj:def:global-extension} satisfies
+\[
+0\le \bar f_\epsilon(u)\le s(u).
+\]
+\item \textbf{(Global Lipschitz property.)} For every \(u,v\in\mathbb R_+^4\),
+\[
+\left|\bar f_\epsilon(u)-\bar f_\epsilon(v)\right|
+\le (1+\epsilon^{-1})\sum_{\jmath}\left|u_{\jmath}-v_{\jmath}\right|.
+\]
+\item \textbf{(Completion.)} There exists a full-data law \(P\in\mathcal P_{d,\epsilon}\) in the sense of \cref{obj:def:model-class} whose observed margin satisfies \(\operatorname{Obs}(P)=\mathbb P\). The completion is consistent and conditionally exchangeable, treatment is independent of the joint potential-outcome vector given \(X\), and the two potential outcomes are conditionally independent Bernoulli variables given \(X\).
+\item \textbf{(Observed margins.)} For every full-data law \(P\in\mathcal P_{d,\epsilon}\), its observed margin \(\operatorname{Obs}(P)\) of \cref{obj:def:observed-margin} belongs to \(\mathcal D_{d,\epsilon}^{\mathrm{obs}}\).
+\end{itemize}
+\end{propositionv}
+
+The first two clauses of \cref{obj:prop:identification-and-extension} turn the statistical target into a sum of cellwise analytic contributions. The boundedness and Lipschitz clauses supply the regularity used by the estimator in \cref{obj:def:global-extension}; the completion clauses show that the observed-law formulation and the full-data formulation have the same margins under the stated causal structure.
+
+\begin{propositionv}{prop:causal-optimal-value-corollary}[Causal value identification]
+Let \(d\ge 2\), let \(\epsilon\in(0,1/2)\), and let \(P\) be a full-data law satisfying \(\mathcal P_{d,\epsilon}\) in the sense of \cref{obj:def:model-class}. Then the full-data oracle value in \cref{obj:def:oracle-value} agrees with the observed-law optimal-regression value in \cref{obj:def:observed-optimal-value} evaluated at the observed margin in \cref{obj:def:observed-margin}:
+\[
+V^\star(P)=\Psi\{\operatorname{Obs}(P)\}.
+\]
+\end{propositionv}
+
+\Cref{obj:prop:causal-optimal-value-corollary} identifies the causal oracle value with the observed-law optimal-regression value for every law in \cref{obj:def:model-class}. Consequently, the minimax analysis can be carried out on the observed law and then read as a statement about the causal optimal-treatment value whenever consistency, conditional exchangeability, and fixed overlap hold.

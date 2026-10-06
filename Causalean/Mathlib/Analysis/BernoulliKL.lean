@@ -1,0 +1,213 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Bernoulli KL divergence is bounded by a multiple of squared difference on a band
+
+For two Bernoulli success probabilities `p, q ∈ [1/4, 3/4]`, the
+Kullback–Leibler divergence
+
+  KL(Bern(p) ‖ Bern(q)) = p · log(p / q) + (1 - p) · log((1 - p) / (1 - q))
+
+is bounded above by `4 · (p - q) ^ 2`.
+
+The constant `4` is a convenient valid constant on this quarter band, not the
+sharp curvature supremum.  The proof uses a convexity/Bregman argument on the
+band where the relevant logarithmic curvature terms are uniformly bounded.
+
+This statement is purely scalar — it depends only on `Real.log` and arithmetic
+— and is a candidate for upstream contribution to Mathlib.
+-/
+
+module
+public import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+
+/-! # Bernoulli KL Band Bound
+
+This file proves a scalar upper bound on the Kullback--Leibler divergence between two
+Bernoulli laws whose success probabilities both lie in the interval $[1/4,3/4]$.
+It supplies a Mathlib-adjacent analytic estimate used by finite-sample information
+arguments elsewhere in the library. -/
+
+@[expose] public section
+
+namespace Causalean.Mathlib.Analysis
+
+open Set
+
+/-- Away from zero and one, the negative Bernoulli entropy has derivative equal to the log odds
+of its argument. -/
+lemma hasDerivAt_bernEntropy (x : ℝ) (hx0 : x ≠ 0) (hx1 : 1 - x ≠ 0) :
+    HasDerivAt (fun t : ℝ => t * Real.log t + (1 - t) * Real.log (1 - t))
+      (Real.log x - Real.log (1 - x)) x := by
+  have h1 : HasDerivAt (fun t : ℝ => t * Real.log t) (Real.log x + 1) x :=
+    Real.hasDerivAt_mul_log hx0
+  have hsub : HasDerivAt (fun t : ℝ => 1 - t) (0 - 1) x :=
+    (hasDerivAt_const x (1 : ℝ)).fun_sub (hasDerivAt_id' (x := x))
+  have h2log : HasDerivAt (fun t : ℝ => Real.log (1 - t)) (-(1 - x)⁻¹) x := by
+    have h : HasDerivAt (fun t : ℝ => Real.log (1 - t)) ((1 - x)⁻¹ * (0 - 1)) x :=
+      (Real.hasDerivAt_log hx1).comp x hsub
+    convert h using 1
+    ring
+  have h2 : HasDerivAt (fun t : ℝ => (1 - t) * Real.log (1 - t))
+      (-(Real.log (1 - x)) - 1) x := by
+    have h : HasDerivAt (fun t : ℝ => (1 - t) * Real.log (1 - t)) _ x := hsub.fun_mul h2log
+    convert h using 1
+    rw [mul_neg, mul_inv_cancel₀ hx1]
+    ring
+  have h : HasDerivAt (fun t : ℝ => t * Real.log t + (1 - t) * Real.log (1 - t)) _ x :=
+    h1.fun_add h2
+  convert h using 1
+  ring
+
+/-- For [a real number](hyp:t), the [negative Bernoulli entropy](goal) is $t\log t + (1-t)\log(1-t)$. -/
+noncomputable def bernD (t : ℝ) : ℝ :=
+  t * Real.log t + (1 - t) * Real.log (1 - t)
+
+private noncomputable def bernH (q : ℝ) (t : ℝ) : ℝ :=
+  4 * (t - q) ^ 2 + (Real.log q - Real.log (1 - q)) * (t - q) + bernD q - bernD t
+
+private noncomputable def bernHDeriv (q : ℝ) (t : ℝ) : ℝ :=
+  8 * (t - q) + (Real.log q - Real.log (1 - q)) -
+    (Real.log t - Real.log (1 - t))
+
+private lemma hasDerivAt_bernH (q x : ℝ) (hx0 : x ≠ 0) (hx1 : 1 - x ≠ 0) :
+    HasDerivAt (bernH q) (bernHDeriv q x) x := by
+  unfold bernH bernHDeriv bernD
+  have hd := hasDerivAt_bernEntropy x hx0 hx1
+  have hbase : HasDerivAt (fun t : ℝ => t - q) 1 x := (hasDerivAt_id' (x := x)).sub_const q
+  have hquad : HasDerivAt (fun t : ℝ => 4 * (t - q) ^ 2) _ x :=
+    HasDerivAt.const_mul (4 : ℝ) (hbase.fun_pow 2)
+  have hlin : HasDerivAt (fun t : ℝ => (Real.log q - Real.log (1 - q)) * (t - q)) _ x :=
+    HasDerivAt.const_mul _ hbase
+  have h : HasDerivAt (fun t : ℝ => 4 * (t - q) ^ 2
+      + (Real.log q - Real.log (1 - q)) * (t - q)
+      + (q * Real.log q + (1 - q) * Real.log (1 - q))
+      - (t * Real.log t + (1 - t) * Real.log (1 - t))) _ x :=
+    ((hquad.fun_add hlin).add_const
+      (q * Real.log q + (1 - q) * Real.log (1 - q))).fun_sub hd
+  convert h using 1
+  push_cast
+  ring
+
+private lemma hasDerivAt_bernHDeriv (q x : ℝ) (hx0 : x ≠ 0) (hx1 : 1 - x ≠ 0) :
+    HasDerivAt (bernHDeriv q) (8 - (x⁻¹ + (1 - x)⁻¹)) x := by
+  unfold bernHDeriv
+  have hlog1 : HasDerivAt (fun t : ℝ => Real.log t) x⁻¹ x := Real.hasDerivAt_log hx0
+  have hsub : HasDerivAt (fun t : ℝ => 1 - t) (0 - 1) x :=
+    (hasDerivAt_const x (1 : ℝ)).fun_sub (hasDerivAt_id' (x := x))
+  have hlog2 : HasDerivAt (fun t : ℝ => Real.log (1 - t)) (-(1 - x)⁻¹) x := by
+    have h : HasDerivAt (fun t : ℝ => Real.log (1 - t)) ((1 - x)⁻¹ * (0 - 1)) x :=
+      (Real.hasDerivAt_log hx1).comp x hsub
+    convert h using 1
+    ring
+  have hlin : HasDerivAt (fun t : ℝ => 8 * (t - q)) _ x :=
+    HasDerivAt.const_mul (8 : ℝ) ((hasDerivAt_id' (x := x)).sub_const q)
+  have h : HasDerivAt (fun t : ℝ => 8 * (t - q) + (Real.log q - Real.log (1 - q))
+      - (Real.log t - Real.log (1 - t))) _ x :=
+    (hlin.add_const (Real.log q - Real.log (1 - q))).fun_sub (hlog1.fun_sub hlog2)
+  convert h using 1
+  ring
+
+private lemma bernH_convexOn (q : ℝ) :
+    ConvexOn ℝ (Icc ((1 : ℝ) / 4) (3 / 4)) (bernH q) := by
+  refine convexOn_of_hasDerivWithinAt2_nonneg (f' := bernHDeriv q)
+    (f'' := fun x : ℝ => 8 - (x⁻¹ + (1 - x)⁻¹)) (convex_Icc _ _) ?_ ?_ ?_ ?_
+  · intro x hx
+    have hxpos : 0 < x := by nlinarith [hx.1]
+    have hx1pos : 0 < 1 - x := by nlinarith [hx.2]
+    exact (hasDerivAt_bernH q x hxpos.ne' hx1pos.ne').continuousAt.continuousWithinAt
+  · intro x hx
+    rw [interior_Icc] at hx
+    have hxpos : 0 < x := by nlinarith [hx.1]
+    have hx1pos : 0 < 1 - x := by nlinarith [hx.2]
+    exact (hasDerivAt_bernH q x hxpos.ne' hx1pos.ne').hasDerivWithinAt
+  · intro x hx
+    rw [interior_Icc] at hx
+    have hxpos : 0 < x := by nlinarith [hx.1]
+    have hx1pos : 0 < 1 - x := by nlinarith [hx.2]
+    exact (hasDerivAt_bernHDeriv q x hxpos.ne' hx1pos.ne').hasDerivWithinAt
+  · intro x hx
+    rw [interior_Icc] at hx
+    have hxpos : 0 < x := by nlinarith [hx.1]
+    have hx1pos : 0 < 1 - x := by nlinarith [hx.2]
+    have hxinv : x⁻¹ ≤ 4 := by
+      rw [inv_le_comm₀ hxpos (by norm_num : (0 : ℝ) < 4)]
+      nlinarith [hx.1]
+    have hx1inv : (1 - x)⁻¹ ≤ 4 := by
+      rw [inv_le_comm₀ hx1pos (by norm_num : (0 : ℝ) < 4)]
+      nlinarith [hx.2]
+    linarith
+
+private lemma bernH_self (q : ℝ) : bernH q q = 0 := by
+  unfold bernH
+  ring
+
+private lemma bernHDeriv_self (q : ℝ) : bernHDeriv q q = 0 := by
+  unfold bernHDeriv
+  ring
+
+private lemma bernH_nonneg_of_mem_quarter_band {p q : ℝ}
+    (hp_lo : (1 : ℝ) / 4 ≤ p) (hp_hi : p ≤ 3 / 4)
+    (hq_lo : (1 : ℝ) / 4 ≤ q) (hq_hi : q ≤ 3 / 4) : 0 ≤ bernH q p := by
+  have hconv := bernH_convexOn q
+  have hp_mem : p ∈ Icc ((1 : ℝ) / 4) (3 / 4) := ⟨hp_lo, hp_hi⟩
+  have hq_mem : q ∈ Icc ((1 : ℝ) / 4) (3 / 4) := ⟨hq_lo, hq_hi⟩
+  have hqpos : 0 < q := by nlinarith
+  have hq1pos : 0 < 1 - q := by nlinarith
+  by_cases hpq : p = q
+  · rw [hpq, bernH_self]
+  · rcases lt_or_gt_of_ne hpq with hp_lt_q | hq_lt_p
+    · have hslope_le := hconv.slope_le_of_hasDerivAt hp_mem hq_mem hp_lt_q
+        (hasDerivAt_bernH q q hqpos.ne' hq1pos.ne')
+      rw [bernHDeriv_self] at hslope_le
+      rw [slope_def_field] at hslope_le
+      have hden : 0 < q - p := sub_pos.mpr hp_lt_q
+      have hnum_nonpos : bernH q q - bernH q p ≤ 0 := by
+        have hmul := mul_le_mul_of_nonneg_right hslope_le (le_of_lt hden)
+        rw [div_mul_cancel₀ _ hden.ne'] at hmul
+        simpa using hmul
+      rw [bernH_self] at hnum_nonpos
+      linarith
+    · have hzero_le_slope := hconv.le_slope_of_hasDerivAt hq_mem hp_mem hq_lt_p
+        (hasDerivAt_bernH q q hqpos.ne' hq1pos.ne')
+      rw [bernHDeriv_self] at hzero_le_slope
+      rw [slope_def_field] at hzero_le_slope
+      have hden : 0 < p - q := sub_pos.mpr hq_lt_p
+      have hnum_nonneg : 0 ≤ bernH q p - bernH q q := by
+        have hmul := mul_nonneg hzero_le_slope (le_of_lt hden)
+        rw [div_mul_cancel₀ _ hden.ne'] at hmul
+        simpa using hmul
+      rw [bernH_self] at hnum_nonneg
+      linarith
+
+/-- Bernoulli Kullback–Leibler divergence equals the Bregman remainder of the negative entropy
+function at the second probability. -/
+lemma bernoulliKL_eq_bregman {p q : ℝ}
+    (hp0 : p ≠ 0) (hp1 : 1 - p ≠ 0) (hq0 : q ≠ 0) (hq1 : 1 - q ≠ 0) :
+    p * Real.log (p / q) + (1 - p) * Real.log ((1 - p) / (1 - q)) =
+      bernD p - bernD q - (Real.log q - Real.log (1 - q)) * (p - q) := by
+  rw [Real.log_div hp0 hq0, Real.log_div hp1 hq1]
+  unfold bernD
+  ring
+
+/-- For probabilities `p` and `q` [both restricted to the band
+`[1/4, 3/4]`](hyp:hp_lo,hp_hi,hq_lo,hq_hi), [the Bernoulli Kullback–Leibler
+divergence `p · log(p / q) + (1 - p) · log((1 - p) / (1 - q))` is bounded above
+by `4 · (p - q) ^ 2`](goal). -/
+theorem bernoulli_kl_le_four_sq_sub_of_mem_quarter_band
+    {p q : ℝ} (hp_lo : (1 : ℝ) / 4 ≤ p) (hp_hi : p ≤ 3 / 4)
+    (hq_lo : (1 : ℝ) / 4 ≤ q) (hq_hi : q ≤ 3 / 4) :
+    p * Real.log (p / q) + (1 - p) * Real.log ((1 - p) / (1 - q))
+      ≤ 4 * (p - q) ^ 2 := by
+  have hp0 : p ≠ 0 := by nlinarith
+  have hp1 : 1 - p ≠ 0 := by nlinarith
+  have hq0 : q ≠ 0 := by nlinarith
+  have hq1 : 1 - q ≠ 0 := by nlinarith
+  rw [bernoulliKL_eq_bregman hp0 hp1 hq0 hq1]
+  have hnonneg := bernH_nonneg_of_mem_quarter_band hp_lo hp_hi hq_lo hq_hi
+  unfold bernH at hnonneg
+  linarith
+
+end Causalean.Mathlib.Analysis

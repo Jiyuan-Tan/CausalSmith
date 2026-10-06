@@ -1,0 +1,663 @@
+\begin{proof}[Proof of \cref{obj:thm:block-testing-scale}]
+Write
+\[
+m:=Bd,\qquad s:=s(B,d,q),\qquad
+\kappa:=\frac1{100\pi},\qquad
+\mathcal D(h):=\operatorname{TV}(P_{+1,h},P_{-1,h}).
+\]
+The design assumptions identify the joint assignment--audit law with the product of its specified marginals.
+
+\begin{enumerate}
+\item \textit{The small-amplitude domain.}
+Since \(m,d>0\), the definition of the scale gives
+\[
+0<s\le1.
+\]
+Indeed, when \(p>0\), both entries in its defining minimum are positive; when \(p=0\), \(s=1\). Also, \(\pi>3\) gives
+\[
+0<\kappa<\frac14.
+\]
+Consequently, every amplitude satisfying \(0\le h\le\kappa s\) satisfies
+\[
+0\le h\le\kappa\le\frac14.
+\]
+Fix such an amplitude while proving the small-amplitude bound.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_small_amplitude_mem
+
+\item \textit{High retention.}
+First suppose \(p\ge1/2\). We obtain a comparison bound by conditioning on the source partition \(S\) from \cref{obj:def:block-prior}. For each source \(j\) and block \(\ell\), define
+\[
+X_j:=2Z_j-1\in\{-1,1\},
+\qquad
+X_{\ell,\mathrm{sum}}:=\sum_{j\in S_\ell}X_j,
+\qquad
+\mathcal J:=\bigcup_{\ell=1}^{B}S_\ell,
+\quad |\mathcal J|=m.
+\]
+Here \(\mathcal J\) is the fixed set of labeled sources. Under prior sign \(\sigma\in\{-1,1\}\), the distinct response of block \(\ell\) is
+\[
+y_\ell=U_\ell+\frac{\sigma h}{2d}X_{\ell,\mathrm{sum}}.
+\]
+Thus, conditional on \(S,Z,W\), its response density is
+\[
+\lambda^S_{\sigma,h}(y\mid Z,W)
+:=
+\prod_{\ell=1}^{B}
+f\!\left(y_\ell-\frac{\sigma h}{2d}X_{\ell,\mathrm{sum}}\right),
+\qquad y\in\mathbb R^B.
+\]
+The law of \((Z,W)\) is common to both signs. The product-translation bound in
+\cref{obj:lem:baseline-translation-affinity} gives
+\[
+\int_{\mathbb R^B}
+\left(
+\sqrt{\lambda^S_{+1,h}(y\mid Z,W)}
+-\sqrt{\lambda^S_{-1,h}(y\mid Z,W)}
+\right)^2\,dy
+\le
+\frac{4\pi^2h^2}{d^2}
+\sum_{\ell=1}^{B}X_{\ell,\mathrm{sum}}^2.
+\]
+For every fixed partition, independent centered treatment signs satisfy
+\[
+\mathbb E_Z X_{\ell,\mathrm{sum}}^2
+=
+\sum_{j\in S_\ell}\mathbb E_Z X_j^2
++
+\sum_{\substack{j,j'\in S_\ell\\j\ne j'}}
+\mathbb E_Z[X_jX_{j'}]
+=d.
+\]
+Averaging the preceding translation bound therefore yields
+\[
+\mathbb E_{Z,W}\!
+\int_{\mathbb R^B}
+\left(
+\sqrt{\lambda^S_{+1,h}}
+-\sqrt{\lambda^S_{-1,h}}
+\right)^2\,dy
+\le 4\pi^2h^2\frac Bd.
+\]
+Define the conditional complete-record laws by
+\[
+P^S_{\sigma,h}:=\operatorname{Law}_{\sigma,h}(H,Z,Y(Z)\mid S).
+\]
+The common-marginal Hellinger bound in
+\cref{obj:lem:baseline-translation-affinity}, followed by the record-copying map supplied by
+\cref{obj:lem:block-law}, gives
+\[
+\operatorname{TV}(P^S_{+1,h},P^S_{-1,h})
+\le 2\pi h\sqrt{B/d}.
+\]
+The copying map preserves the retained graph, the complete assignment, and all response coordinates. For any measurable record event, its probability difference under the two mixtures is bounded by the mean of the conditional total variations. Hence
+\[
+\mathcal D(h)
+\le
+\mathbb E_S\operatorname{TV}(P^S_{+1,h},P^S_{-1,h})
+\le 2\pi h\sqrt{B/d}.
+\]
+
+Since \(p>0\), the definition of \(s\) also gives
+\[
+h\sqrt{mp}\le\kappa d,
+\qquad
+h^2mp\le\kappa^2d^2.
+\]
+Using \(p\ge1/2\) and \(m=Bd\), we obtain
+\[
+h^2\frac Bd
+=\frac{h^2m}{d^2}
+\le2\kappa^2.
+\]
+The required constant calibration is
+\[
+\left(2\pi h\sqrt{B/d}\right)^2
+\le8\pi^2\kappa^2
+=\frac8{10000}
+\le\frac14.
+\]
+The quantity being squared is nonnegative, so \(\mathcal D(h)\le1/2\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_small_high_retention
+
+\item \textit{Few sources.}
+Suppose now \(p<1/2\) and \(m<32\). The conditional-partition comparison just derived applies throughout the small-amplitude domain. Since \(d\ge1\) and \(h\le\kappa\),
+\[
+\frac Bd=\frac{m}{d^2}\le32,
+\qquad
+h^2\frac Bd\le32\kappa^2.
+\]
+Therefore
+\[
+\left(2\pi h\sqrt{B/d}\right)^2
+\le128\pi^2\kappa^2
+=\frac{128}{10000}
+\le\frac14,
+\]
+and again \(\mathcal D(h)\le1/2\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_small_few_sources
+
+\item \textit{Remaining capacity at low retention.}
+It remains to consider \(p<1/2\) and \(m\ge32\). For the retained graph \(H\), define
+\[
+\rho_j(H):=\mathbf1\{\exists i:(j,i)\in H\},
+\qquad j\in\mathcal J,
+\]
+and, on the support of its actual marginal, define
+\[
+\begin{aligned}
+r_\ell(H)&:=
+\bigl|\{j\in\mathcal J:\exists i\in C_\ell,\ (j,i)\in H\}\bigr|,\\
+u_\ell(H)&:=d-r_\ell(H),\\
+M(H)&:=\sum_{\ell=1}^{B}u_\ell(H),\\
+M_{\mathrm{unrev}}(H)&:=\sum_{j\in\mathcal J}(1-\rho_j(H)).
+\end{aligned}
+\]
+Every unrevealed source occupies a remaining source slot in its true block. Thus, for almost every retained graph,
+\[
+M_{\mathrm{unrev}}(H)\le M(H).
+\]
+By \cref{obj:lem:block-law}, the variables \(\rho_j\) are independent Bernoulli variables with success probability \(p\). Define the capacity event
+\[
+\mathcal E_{\mathrm{cap}}:=\{H:M(H)\ge m/4\}.
+\]
+Its complement satisfies
+\[
+\Pr(\mathcal E_{\mathrm{cap}}^c)
+\le\Pr(M_{\mathrm{unrev}}<m/4).
+\]
+Independence gives the inverse-third moment identity
+\[
+\mathbb E_H[3^{-M_{\mathrm{unrev}}}]
+=
+\prod_{j\in\mathcal J}\mathbb E_H[3^{-(1-\rho_j)}]
+=
+\left(p+\frac{1-p}{3}\right)^m
+\le\left(\frac23\right)^m.
+\]
+Since \(M_{\mathrm{unrev}}<m/4\) implies
+\(3^{-M_{\mathrm{unrev}}}\ge3^{-m/4}\), Markov's inequality yields
+\[
+\Pr(\mathcal E_{\mathrm{cap}}^c)
+\le
+3^{m/4}\left(\frac23\right)^m.
+\]
+The fourth power of this nonnegative upper bound satisfies
+\[
+\left(3^{m/4}\left(\frac23\right)^m\right)^4
+=
+\left(\frac{16}{27}\right)^m
+\le
+\left(\frac{16}{27}\right)^{32}
+\le
+\left(\frac1{16}\right)^4.
+\]
+The last comparison is equivalent to
+\(16^{36}\le27^{32}\), which follows from \(8^{48}\le9^{48}\). Taking fourth roots proves
+\[
+\Pr(\mathcal E_{\mathrm{cap}}^c)\le\frac1{16}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.hidden_count_good_event_of_retention_half
+
+\item \textit{The good-event chi-squared bound.}
+Use the Walsh coefficients and energies of
+\cref{obj:lem:walsh-channel-energy}. Explicitly, for \(w\in\mathbb R\) and integers \(1\le k\le d\), these are
+\[
+g_d(w):=
+2^{-d}\sum_{\varepsilon\in\{-1,1\}^d}
+f\!\left(w-\frac h{2d}\sum_{j=1}^{d}\varepsilon_j\right),
+\]
+\[
+a_k(w):=
+\begin{cases}
+\displaystyle
+\frac{2^{-d}}{g_d(w)}
+\sum_{\varepsilon\in\{-1,1\}^d}
+f\!\left(w-\frac h{2d}\sum_{j=1}^{d}\varepsilon_j\right)
+\prod_{j=1}^{k}\varepsilon_j,
+&g_d(w)>0,\\
+0,&g_d(w)=0,
+\end{cases}
+\]
+and
+\[
+\gamma_k:=\int_{\mathbb R}a_k(w)^2g_d(w)\,dw,
+\qquad
+\eta:=\sum_{k=1}^{d}\binom dk\gamma_k,
+\qquad
+\eta_1:=\sum_{k=1}^{d}k\binom dk\gamma_k.
+\]
+The cited energy bound asserts
+\[
+0\le\eta\le\eta_1\le\frac{12\pi^2h^2}{d}.
+\]
+In the present amplitude range,
+\[
+h^2mp\le\kappa^2d^2.
+\]
+For \(p=0\), this follows because its left side is zero. For \(p>0\), it follows by squaring
+\(h\sqrt{mp}\le\kappa d\), as above. Consequently,
+\[
+\eta
+\le\eta_1
+\le\frac{12\pi^2\kappa^2}{d}
+\le\frac3{2500},
+\]
+and
+\[
+0\le Bp\eta_1
+\le
+\frac{12\pi^2h^2Bp}{d}
+=
+\frac{12\pi^2h^2mp}{d^2}
+\le\frac3{2500}.
+\]
+
+All conditional quantities in this step and the next are used on the finite support of the retained-graph marginal, where \(\Pr\{H\}>0\). Define the reference law and conditional likelihood ratios by
+\[
+Q_H(dZ,dy):=
+\operatorname{Law}(Z)(dZ)\prod_{\ell=1}^{B}g_d(y_\ell)\,dy,
+\]
+\[
+L_{\sigma,H}(Z,y):=
+\begin{cases}
+\displaystyle
+\frac{\lambda_{\sigma,h}(y\mid H,Z)}
+{\prod_{\ell=1}^{B}g_d(y_\ell)},
+&\prod_{\ell=1}^{B}g_d(y_\ell)>0,\\
+0,&\prod_{\ell=1}^{B}g_d(y_\ell)=0,
+\end{cases}
+\qquad
+\chi_H^2:=\mathbb E_{Q_H}[(L_{+1,H}-1)^2].
+\]
+Here \(\lambda_{\sigma,h}\) is the conditional density supplied by
+\cref{obj:lem:block-law}. Independence makes the conditional assignment marginal equal to \(\operatorname{Law}(Z)\).
+
+Put \(e:=\exp(1)\). The standard exponential bounds give
+\[
+e<3,\qquad
+4e\eta<\frac1{50},\qquad
+eBp\eta_1\le\frac1{100}.
+\]
+In particular, \(4e\eta<1\), as required by
+\cref{obj:lem:hidden-allocation-contraction}. The exponential series and the geometric series give
+\[
+\exp(eBp\eta_1)
+\le\exp(1/100)
+\le\sum_{k=0}^{\infty}(1/100)^k
+=\frac{100}{99}
+\le\frac{51}{50}.
+\]
+The contraction bound therefore yields
+\[
+\begin{aligned}
+\mathbb E_H[\mathbf1_{\mathcal E_{\mathrm{cap}}}\chi_H^2]
+&\le
+\frac{\exp(eBp\eta_1)}{1-4e\eta}-1\\
+&\le
+\frac{51/50}{49/50}-1
+=\frac2{49}
+\le\frac1{16}.
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_small_good_chiSq_bound
+
+\item \textit{From conditional chi-squared divergence to the complete record.}
+The baseline density is even. The conditional-density formula in
+\cref{obj:lem:block-law} and the definition of \(g_d\) consequently give
+\[
+\lambda_{-1,h}(y\mid H,Z)
+=
+\lambda_{+1,h}(-y\mid H,Z),
+\qquad
+g_d(-w)=g_d(w).
+\]
+Thus response reflection \((Z,y)\mapsto(Z,-y)\) preserves \(Q_H\) and exchanges the two conditional laws. In particular,
+\[
+\mathbb E_{Q_H}[(L_{-1,H}-1)^2]=\chi_H^2.
+\]
+Each component translation in a block satisfies
+\[
+f\!\left(w-\frac h{2d}\sum_{j=1}^{d}\varepsilon_j\right)
+\le2^d g_d(w).
+\]
+Averaging over the finite partition mixture and conditioning on \(H\) therefore gives
+\[
+0\le L_{\sigma,H}\le\frac{2^{Bd}}{\Pr\{H\}}
+\qquad Q_H\text{-almost everywhere}.
+\]
+This also ensures that both squared likelihood deviations are integrable.
+
+For either conditional sign law, the density formula for total variation and Cauchy--Schwarz give
+\[
+\operatorname{TV}\!\left(
+\operatorname{Law}_{\sigma,h}(Z,y\mid H),Q_H
+\right)
+=
+\frac12\mathbb E_{Q_H}|L_{\sigma,H}-1|
+\le\frac12\sqrt{\chi_H^2}.
+\]
+The triangle inequality hence implies
+\[
+\operatorname{TV}\!\left(
+\operatorname{Law}_{+1,h}(Z,y\mid H),
+\operatorname{Law}_{-1,h}(Z,y\mid H)
+\right)
+\le\sqrt{\chi_H^2}.
+\]
+Both signs have the same retained-graph marginal. Averaging conditional event differences, using the reconstruction in
+\cref{obj:lem:block-law}, bounding conditional total variation by one on the complement of the capacity event, and applying Cauchy--Schwarz on that event yield
+\[
+\begin{aligned}
+\mathcal D(h)
+&\le
+\Pr(\mathcal E_{\mathrm{cap}}^c)
++
+\mathbb E_H[
+\mathbf1_{\mathcal E_{\mathrm{cap}}}\sqrt{\chi_H^2}]\\
+&\le
+\Pr(\mathcal E_{\mathrm{cap}}^c)
++
+\sqrt{\mathbb E_H[
+\mathbf1_{\mathcal E_{\mathrm{cap}}}\chi_H^2]}\\
+&\le\frac1{16}+\frac14
+\le\frac12.
+\end{aligned}
+\]
+This completes the small-amplitude bound in all three cases, including \(p=0\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.blockMixture_tvDist_good_event_chiSq_le
+
+\item \textit{An observable reverse statistic.}
+Now fix \(0<h\le1/4\) and \(p>0\). Choose the first labeled recipient in each block,
+\[
+i_\ell:=\min C_\ell\in C_\ell,
+\]
+which exists because \(d\ge1\). Define the revealed source-sign sum and the scalar statistic by
+\[
+A_\ell(H,Z):=
+\sum_{\substack{j\in\mathcal J\\
+\exists i\in C_\ell,\ (j,i)\in H}}X_j,
+\qquad
+V_{\mathrm{test}}(O):=
+\sum_{\ell=1}^{B}A_\ell(H,Z)Y_{i_\ell}(Z).
+\]
+The response-copying property gives \(Y_{i_\ell}(Z)=y_\ell\). Thus this statistic is measurable from the complete record, and projection gives
+\[
+\mathcal D(h)\ge
+\operatorname{TV}\!\left(
+\operatorname{Law}_{P_{+1,h}}(V_{\mathrm{test}}),
+\operatorname{Law}_{P_{-1,h}}(V_{\mathrm{test}})
+\right).
+\]
+
+For a fixed true partition, the reveal indicator of each source depends on its \(d\) outgoing audit marks. These edge sets are disjoint across sources, so the reveal indicators have independent Bernoulli\((p)\) laws. They are independent of treatment signs and baselines. The statistic consequently has the law obtained by drawing the genuine partition, independent treatment signs, independent reveal indicators, and independent baselines, and then forming
+\[
+A_\ell=\sum_{j\in S_\ell}\rho_jX_j,
+\qquad
+V_{\mathrm{test}}
+=
+\sum_{\ell=1}^{B}
+A_\ell\left(
+U_\ell+\frac{\sigma h}{2d}X_{\ell,\mathrm{sum}}
+\right).
+\]
+Mixing this identity over the partition and baselines gives the scalar law in the preceding projection inequality.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverseTestStatistic_mixture_law
+
+\item \textit{Integrating the baselines.}
+Define the positive test center, variance budget, and finite signal sum by
+\[
+a_{\mathrm{test}}:=\frac{hmp}{2d}>0,
+\qquad
+v_{\mathrm{test}}:=\frac{7mp}{64},
+\qquad
+V_{\mathrm{sig}}:=\sum_{\ell=1}^{B}A_\ell X_{\ell,\mathrm{sum}}.
+\]
+The baseline density is even and supported on \([-1/4,1/4]\), so
+\[
+\mathbb E U_\ell=0,
+\qquad
+\mathbb E U_\ell^2\le\frac1{16}.
+\]
+For fixed partition, signs, and reveals, independence of the baselines gives
+\[
+\mathbb E_U\!\left[\left(\sum_{\ell=1}^{B}A_\ell U_\ell\right)^2\right]
+=
+\sum_{\ell=1}^{B}A_\ell^2\mathbb E U_\ell^2
+\le\frac1{16}\sum_{\ell=1}^{B}A_\ell^2.
+\]
+Moreover,
+\[
+V_{\mathrm{test}}-\sigma a_{\mathrm{test}}
+=
+\sum_{\ell=1}^{B}A_\ell U_\ell
++\frac{\sigma h}{2d}(V_{\mathrm{sig}}-mp).
+\]
+The mixed term has zero baseline expectation. Hence
+\[
+\mathbb E_U[
+(V_{\mathrm{test}}-\sigma a_{\mathrm{test}})^2
+\mid S,Z,\rho]
+\le
+\frac1{16}\sum_{\ell=1}^{B}A_\ell^2
++\frac{h^2}{4d^2}(V_{\mathrm{sig}}-mp)^2.
+\]
+All required second moments exist because the sums are finite and the baselines have bounded support.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverseLatentLaw_baseline_energy_le
+
+\item \textit{The finite source-row moments.}
+Fix a partition and a reveal pattern. For each block define
+\[
+\mathcal J_{\ell,\mathrm{rev}}
+:=\{j\in S_\ell:\rho_j=1\},
+\qquad
+r_\ell:=|\mathcal J_{\ell,\mathrm{rev}}|\in\{0,\ldots,d\}.
+\]
+This agrees with the retained-graph count already defined. Independence and centering of the signs give
+\[
+\mathbb E_Z[A_\ell^2\mid\rho,S]=r_\ell,
+\qquad
+\mathbb E_Z[A_\ell X_{\ell,\mathrm{sum}}\mid\rho,S]=r_\ell:
+\]
+in each product expansion, terms with distinct source indices have zero expectation, and each surviving diagonal term equals one.
+
+For deterministic real weights \((\alpha_j)_{j\in S_\ell}\in\mathbb R^d\), expansion of the fourth power leaves precisely the terms in which every sign index occurs an even number of times. Therefore
+\[
+\begin{aligned}
+\mathbb E_Z\left(\sum_{j\in S_\ell}\alpha_jX_j\right)^4
+&=
+\sum_{j\in S_\ell}\alpha_j^4
++
+6\sum_{\substack{j,j'\in S_\ell\\j<j'}}
+\alpha_j^2\alpha_{j'}^2\\
+&=
+3\left(\sum_{j\in S_\ell}\alpha_j^2\right)^2
+-2\sum_{j\in S_\ell}\alpha_j^4.
+\end{aligned}
+\]
+Applying this identity to the revealed sum, the full sum, and their sum and difference gives
+\[
+\begin{aligned}
+\mathbb E_Z[A_\ell^4\mid\rho,S]
+&=3r_\ell^2-2r_\ell,\\
+\mathbb E_Z[X_{\ell,\mathrm{sum}}^4\mid\rho,S]
+&=3d^2-2d,\\
+\mathbb E_Z[(A_\ell+X_{\ell,\mathrm{sum}})^4\mid\rho,S]
+&=3(d+3r_\ell)^2-2(d+15r_\ell),\\
+\mathbb E_Z[(A_\ell-X_{\ell,\mathrm{sum}})^4\mid\rho,S]
+&=3(d-r_\ell)^2-2(d-r_\ell).
+\end{aligned}
+\]
+For the last two formulas, the weights are respectively \(2,1\) and \(0,-1\) on the revealed and unrevealed coordinates. Using the polynomial identity
+\[
+(A_\ell+X_{\ell,\mathrm{sum}})^4
++(A_\ell-X_{\ell,\mathrm{sum}})^4
+=
+2A_\ell^4+12A_\ell^2X_{\ell,\mathrm{sum}}^2
++2X_{\ell,\mathrm{sum}}^4
+\]
+and substituting the four expectations yields
+\[
+\mathbb E_Z[
+A_\ell^2X_{\ell,\mathrm{sum}}^2\mid\rho,S]
+=
+r_\ell d+2r_\ell(r_\ell-1)
+\le3r_\ell d.
+\]
+These formulas include \(r_\ell=0\), with empty sums equal to zero.
+
+Since the reveal indicators have mean \(p\),
+\[
+\mathbb E_\rho[r_\ell\mid S]=dp.
+\]
+Averaging the row identities and inequality over reveals consequently gives
+\[
+\mathbb E[A_\ell^2\mid S]=dp,
+\qquad
+\mathbb E[A_\ell X_{\ell,\mathrm{sum}}\mid S]=dp,
+\qquad
+\mathbb E[A_\ell^2X_{\ell,\mathrm{sum}}^2\mid S]
+\le3d^2p.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverse_revealed_total_mixed_moment
+
+\item \textit{The squared-deviation budget.}
+For a fixed partition, different row signals depend on disjoint collections of independent sign--reveal pairs. Their variances therefore add, and the preceding row moments give
+\[
+\mathbb E[V_{\mathrm{sig}}\mid S]=Bdp=mp,
+\]
+\[
+\begin{aligned}
+\mathbb E[(V_{\mathrm{sig}}-mp)^2\mid S]
+&=
+\sum_{\ell=1}^{B}
+\operatorname{Var}(A_\ell X_{\ell,\mathrm{sum}}\mid S)\\
+&\le
+\sum_{\ell=1}^{B}
+\mathbb E[A_\ell^2X_{\ell,\mathrm{sum}}^2\mid S]
+\le3Bd^2p.
+\end{aligned}
+\]
+The baseline contribution satisfies
+\[
+\mathbb E\!\left[\frac1{16}\sum_{\ell=1}^{B}A_\ell^2
+\ \middle|\ S\right]
+=\frac{Bdp}{16}.
+\]
+Substitution into the baseline-integrated bound gives, for every partition,
+\[
+\begin{aligned}
+\mathbb E_\sigma[
+(V_{\mathrm{test}}-\sigma a_{\mathrm{test}})^2\mid S]
+&\le
+\frac{Bdp}{16}
++\frac{h^2}{4d^2}(3Bd^2p)\\
+&=
+\frac{mp}{16}+\frac{3h^2Bp}{4}\\
+&\le
+\frac{mp}{16}+\frac{3mp}{64}
+=\frac{7mp}{64}.
+\end{aligned}
+\]
+The last inequality uses \(h^2\le1/16\) and \(B\le Bd=m\). Averaging over the genuine partition proves, for both signs,
+\[
+\mathbb E_\sigma[
+(V_{\mathrm{test}}-\sigma a_{\mathrm{test}})^2]
+\le v_{\mathrm{test}}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverseSignalEnergy_average_le
+
+\item \textit{The scalar sign test.}
+Assign nonnegative values of \(V_{\mathrm{test}}\) to the positive sign. Since \(a_{\mathrm{test}}>0\), the pointwise inequalities
+\[
+a_{\mathrm{test}}^2\mathbf1\{V_{\mathrm{test}}<0\}
+\le(V_{\mathrm{test}}-a_{\mathrm{test}})^2,
+\]
+\[
+a_{\mathrm{test}}^2\mathbf1\{V_{\mathrm{test}}\ge0\}
+\le(V_{\mathrm{test}}+a_{\mathrm{test}})^2
+\]
+bound the two error probabilities by
+\[
+P_{+1,h}(V_{\mathrm{test}}<0)
+\le\frac{v_{\mathrm{test}}}{a_{\mathrm{test}}^2},
+\qquad
+P_{-1,h}(V_{\mathrm{test}}\ge0)
+\le\frac{v_{\mathrm{test}}}{a_{\mathrm{test}}^2}.
+\]
+For the event \(\{V_{\mathrm{test}}<0\}\), the definition of total variation gives
+\[
+1-\operatorname{TV}\!\left(
+\operatorname{Law}_{P_{+1,h}}(V_{\mathrm{test}}),
+\operatorname{Law}_{P_{-1,h}}(V_{\mathrm{test}})
+\right)
+\le
+P_{+1,h}(V_{\mathrm{test}}<0)
++
+P_{-1,h}(V_{\mathrm{test}}\ge0).
+\]
+Combining this with the projection inequality and simplifying the positive denominators yields
+\[
+\begin{aligned}
+\mathcal D(h)
+&\ge1-\frac{2v_{\mathrm{test}}}{a_{\mathrm{test}}^2}\\
+&=
+1-\frac{7d^2}{8h^2mp}.
+\end{aligned}
+\]
+This is the asserted reverse bound.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverse_test_tv_bound
+
+\item \textit{The testing radius.}
+Define its admissible set by
+\[
+\mathcal A_{\mathrm{test}}
+:=
+\{h\in[0,1/4]:\mathcal D(h)\le1/2\},
+\qquad
+\bar h:=\sup\mathcal A_{\mathrm{test}}.
+\]
+The inequalities \(0<s\le1\) and \(0<\kappa<1/4\), together with the small-amplitude bound, show
+\[
+0\le\kappa s\le\frac14,
+\qquad
+\mathcal D(\kappa s)\le\frac12.
+\]
+Thus \(\kappa s\in\mathcal A_{\mathrm{test}}\). This set is nonempty and bounded above by \(1/4\), so
+\[
+\kappa s\le\bar h.
+\]
+
+To prove the upper bound, take any \(h\in\mathcal A_{\mathrm{test}}\). If \(s=1\), then
+\[
+h\le\frac14\le2s.
+\]
+If \(s\ne1\), its definition implies
+\[
+p>0,\qquad s=\frac d{\sqrt{mp}}.
+\]
+Suppose, for a contradiction, that \(h>2s\). Positivity permits multiplication and squaring, giving
+\[
+2d<h\sqrt{mp},
+\qquad
+4d^2<h^2mp.
+\]
+In particular \(h>0\), and
+\[
+7d^2<4h^2mp,
+\qquad
+\frac{7d^2}{8h^2mp}<\frac12.
+\]
+The reverse bound then gives
+\[
+\mathcal D(h)
+\ge1-\frac{7d^2}{8h^2mp}
+>\frac12,
+\]
+contradicting membership in \(\mathcal A_{\mathrm{test}}\). Every member of that set is therefore at most \(2s\), and taking its supremum proves
+\[
+\bar h\le2s.
+\]
+Together with the lower bound, this establishes the final assertion.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_radius_of_bounds
+\end{enumerate}
+\end{proof}

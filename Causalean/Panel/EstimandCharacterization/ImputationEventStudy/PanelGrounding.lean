@@ -1,0 +1,146 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Grounding the BJS panel in a staggered-adoption two-way fixed-effect design
+
+The abstract `BJSPanel` of `Imputation.lean` uses free index types for the
+treated and untreated cells.  This file closes that scope gap (audit G5)
+*constructively*: it exhibits `BJSPanel` as an instance built from genuine panel
+primitives — units `I`, periods `Fin T`, and a staggered-adoption path
+`g : I → WithTop (Fin T)` (with `⊤` the never-treated path, via
+`Causalean.Panel.AdoptionPath`).
+
+Treated cells are those whose treatment has switched on (`g i ≤ t`); untreated
+cells are those still untreated (`t < g i`), which — faithfully to BJS — include
+every never-treated cell *and* every pre-adoption cell of a treated unit.  The
+regressor design is the canonical two-way fixed-effect block `I ⊕ Fin T`, so the
+untreated-outcome model `E[Y_{it}(0)] = α_i + λ_t` holds by construction and the
+BJS identification hypotheses discharge down to a concrete staggered panel.
+-/
+
+module
+public import Causalean.Panel.AdoptionPath
+public import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.Imputation
+
+/-! # BJS staggered-adoption grounding
+
+Builds a `BJSPanel` from an adoption path and two-way fixed effects, and proves
+the untreated-outcome model and fixed-effect hypotheses hold for it. Treated
+cells are the cells whose treatment has switched on, untreated cells include
+never-treated cells and pre-adoption cells, and the canonical two-way
+fixed-effect design discharges the BJS hypotheses in a concrete panel.  The main
+definitions are `TreatedCell`, `UntreatedCell`, `feRow`, and
+`ofStaggeredTWFE`; the main theorem bridges are
+`ofStaggeredTWFE_untreatedModel` and `ofStaggeredTWFE_treatmentFixed`. -/
+
+@[expose] public section
+
+namespace Causalean
+namespace Panel.EstimandCharacterization
+namespace ImputationEventStudy
+
+open Causalean.Panel
+
+noncomputable section
+
+variable {I : Type*} [Fintype I] [DecidableEq I] {T : ℕ}
+  (g : I → WithTop (Fin T))
+
+/-- For [an adoption-time path for the units over a finite number of periods](hyp:g), the [treated cells](goal) are precisely the unit-period pairs for which the unit's adoption time is no later than the period. -/
+def TreatedCell : Type _ :=
+  { c : I × Fin T // AdoptionPath.le (g c.1) c.2 }
+
+/-- For [an adoption-time path for the units over a finite number of periods](hyp:g), the [untreated cells](goal) are precisely the unit-period pairs whose period is strictly before the unit's adoption time. They include every period of a never-treated unit and every pre-adoption period of a treated unit. -/
+def UntreatedCell : Type _ :=
+  { c : I × Fin T // AdoptionPath.lt (g c.1) c.2 }
+
+/-- For [an adoption-time path for the units over a finite number of periods](hyp:g), [a decision procedure for the treated-cell condition](goal) determines, for every unit-period cell, whether the unit's adoption time is no later than that period. -/
+instance : DecidablePred (fun c : I × Fin T => AdoptionPath.le (g c.1) c.2) := by
+  intro c
+  unfold AdoptionPath.le
+  infer_instance
+
+/-- For [an adoption-time path for the units over a finite number of periods](hyp:g), [a decision procedure for the untreated-cell condition](goal) determines, for every unit-period cell, whether the period is strictly before the unit's adoption time. -/
+instance : DecidablePred (fun c : I × Fin T => AdoptionPath.lt (g c.1) c.2) := by
+  intro c
+  unfold AdoptionPath.lt
+  infer_instance
+
+/-- For [an adoption-time path for a finite population over a finite number of periods](hyp:g), [a finite enumeration of the treated cells](goal) is available. -/
+instance : Fintype (TreatedCell g) := by unfold TreatedCell; infer_instance
+/-- For [an adoption-time path for a finite population over a finite number of periods](hyp:g), [a finite enumeration of the untreated cells](goal) is available. -/
+instance : Fintype (UntreatedCell g) := by unfold UntreatedCell; infer_instance
+
+omit [Fintype I] [DecidableEq I] in
+/-- The cell partition is exclusive: no cell is both adopted-by-`t` and
+untreated-at-`t`. -/
+theorem treated_not_untreated {c : I × Fin T}
+    (hT : AdoptionPath.le (g c.1) c.2) (hU : AdoptionPath.lt (g c.1) c.2) : False :=
+  AdoptionPath.not_le_of_lt hU hT
+
+omit [Fintype I] [DecidableEq I] in
+/-- The cell partition is exhaustive: every cell is treated or untreated. -/
+theorem treated_or_untreated (c : I × Fin T) :
+    AdoptionPath.le (g c.1) c.2 ∨ AdoptionPath.lt (g c.1) c.2 := by
+  unfold AdoptionPath.le AdoptionPath.lt
+  rcases lt_trichotomy (g c.1) (c.2 : WithTop (Fin T)) with h | h | h
+  · exact Or.inl (le_of_lt h)
+  · exact Or.inl (le_of_eq h)
+  · exact Or.inr h
+
+/-- For [a unit-period cell with a finite number of periods and equality-comparable unit labels](hyp:c), the [two-way fixed-effect design row](goal) assigns one to that cell's unit coordinate and period coordinate, and zero to all other unit and period coordinates. -/
+def feRow (c : I × Fin T) : (I ⊕ Fin T) → ℝ :=
+  Sum.elim (fun i' => if i' = c.1 then (1 : ℝ) else 0)
+    (fun t' => if t' = c.2 then (1 : ℝ) else 0)
+
+/-- The two-way FE row evaluates the additive fixed-effect model:
+`q_{(i,t)} · (α, λ) = α_i + λ_t`. -/
+lemma dot_feRow (c : I × Fin T) (α : I → ℝ) (lam : Fin T → ℝ) :
+    dot (feRow c) (Sum.elim α lam) = α c.1 + lam c.2 := by
+  unfold dot feRow
+  rw [Fintype.sum_sum_type]
+  simp only [Sum.elim_inl, Sum.elim_inr, ite_mul, one_mul, zero_mul,
+    Finset.sum_ite_eq', Finset.mem_univ, if_true]
+
+/-- For [an adoption-time path for finitely many equality-comparable units over a finite number of periods](hyp:g), [unit effects](hyp:α), [period effects](hyp:lam), [target weights](hyp:a), and [treated-cell effects](hyp:tau), the [staggered-adoption two-way-fixed-effects BJS panel](goal) has treated and untreated cells given by that path and regressors given by the unit and period indicators. Its untreated potential-outcome mean is the sum of the relevant unit and period effects, and its treated observed mean adds the treated-cell effect. -/
+def ofStaggeredTWFE (α : I → ℝ) (lam : Fin T → ℝ)
+    (a tau : TreatedCell g → ℝ) :
+    BJSPanel (TreatedCell g) (UntreatedCell g) (I ⊕ Fin T) where
+  qT := fun c => feRow c.val
+  qU := fun u => feRow u.val
+  a := a
+  EY_T := fun c => (α c.val.1 + lam c.val.2) + tau c
+  EY_U := fun u => α u.val.1 + lam u.val.2
+  EY0_T := fun c => α c.val.1 + lam c.val.2
+  EY0_U := fun u => α u.val.1 + lam u.val.2
+  beta0 := Sum.elim α lam
+  tau := tau
+
+/-- **Untreated-outcome model holds by construction.** For [unit fixed effects `α`](hyp:α),
+[period fixed effects `lam`](hyp:lam), and [target weights and treated-cell effects `a`,
+`tau`](hyp:a,tau), [the staggered-adoption grounded panel `ofStaggeredTWFE g α lam a tau`
+satisfies the BJS untreated-outcome model: treated and untreated cell means both equal the
+two-way fixed-effect model `α_i + λ_t`, and untreated cells exhibit no anticipation](goal). -/
+theorem ofStaggeredTWFE_untreatedModel (α : I → ℝ) (lam : Fin T → ℝ)
+    (a tau : TreatedCell g → ℝ) :
+    (ofStaggeredTWFE g α lam a tau).UntreatedOutcomeModel := by
+  refine ⟨fun c => ?_, fun u => ?_, fun _ => rfl⟩
+  · change α c.val.1 + lam c.val.2 = dot (feRow c.val) (Sum.elim α lam)
+    rw [dot_feRow]
+  · change α u.val.1 + lam u.val.2 = dot (feRow u.val) (Sum.elim α lam)
+    rw [dot_feRow]
+
+/-- The grounded panel satisfies the BJS fixed-effect equation
+`E[Y_T] = E[Y_T(0)] + τ`. -/
+theorem ofStaggeredTWFE_treatmentFixed (α : I → ℝ) (lam : Fin T → ℝ)
+    (a tau : TreatedCell g → ℝ) :
+    (ofStaggeredTWFE g α lam a tau).TreatmentEffectFixed :=
+  fun _ => rfl
+
+end
+
+end ImputationEventStudy
+end Panel.EstimandCharacterization
+end Causalean

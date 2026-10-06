@@ -1,0 +1,152 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+
+public import Mathlib.Probability.Kernel.CompProdEqIff
+public import Mathlib.Probability.Kernel.Composition.Lemmas
+public import Mathlib.Probability.Kernel.Disintegration.Basic
+
+/-!
+# Composition-product assembly lemmas
+
+This file packages recurring measure-kernel assembly steps for composition products.
+The main lemmas turn an almost-everywhere equality of inner kernels on a product space
+into equality of the resulting outer composition products:
+
+* `compProd_eq_of_inner_ae`: the inner kernels are mixed against a fixed s-finite measure;
+* `compProd_eq_of_inner_ae_kernel`: the inner kernels are mixed against an indexed s-finite
+  kernel;
+* `compProd_map_snd_apply`: the second-coordinate marginal of a kernel composition product
+  is the bind of the section of the inner kernel against the outer kernel value.
+
+These results isolate the Fubini-style steps that otherwise require repeating
+`Measure.ext_prod`, `compProd_apply_prod`, `ae_ae_of_ae_compProd`, and
+`lintegral_congr_ae`.
+-/
+
+public section
+
+namespace Causalean.Mathlib.CompProdAssembly
+
+open MeasureTheory ProbabilityTheory
+open scoped MeasureTheory ProbabilityTheory
+
+/-- **CompProd assembly from an a.e. inner equality, indexed-integrator form.** Consider two
+    Markov-style kernels `KL`, `KR` from a base space to an outer space, each built by mixing the
+    section at a base point of an inner kernel — `fL`, respectively `fR`, on the product of the
+    base space and an intermediate space — against a fixed intermediate kernel `κ` evaluated at
+    that point: [`KL a` equals the section `fL(a,·)` composed with `κ a`](hyp:hL) and
+    [`KR a` equals the section `fR(a,·)` composed with `κ a`](hyp:hR). If [the inner kernels `fL`
+    and `fR` agree almost everywhere with respect to the composition product of the base measure
+    `ν` and `κ`](hyp:hae), then [the composition products `ν ⊗ₘ KL` and `ν ⊗ₘ KR` are
+    equal](goal).
+
+    This is the indexed analogue of `compProd_eq_of_inner_ae`; it is useful when the inner
+    integration law is a conditional kernel rather than a fixed marginal. -/
+theorem compProd_eq_of_inner_ae_kernel
+    {α γ β : Type*} [MeasurableSpace α] [MeasurableSpace γ] [MeasurableSpace β]
+    (ν : Measure α) [IsFiniteMeasure ν] (κ : Kernel α γ) [IsSFiniteKernel κ]
+    (KL KR : Kernel α β) [IsFiniteKernel KL] [IsSFiniteKernel KR]
+    (fL fR : Kernel (α × γ) β)
+    (hL : ∀ a, KL a = (fL.sectR a) ∘ₘ κ a)
+    (hR : ∀ a, KR a = (fR.sectR a) ∘ₘ κ a)
+    (hae : ∀ᵐ p ∂(ν ⊗ₘ κ), fL p = fR p) :
+    ν ⊗ₘ KL = ν ⊗ₘ KR := by
+  refine MeasureTheory.Measure.ext_prod (fun {A B} hA hB => ?_)
+  rw [MeasureTheory.Measure.compProd_apply_prod hA hB,
+      MeasureTheory.Measure.compProd_apply_prod hA hB]
+  have hInnerL : ∀ a, (KL a) B = ∫⁻ c, (fL (a, c)) B ∂(κ a) := by
+    intro a
+    rw [hL a, MeasureTheory.Measure.bind_apply hB
+        (ProbabilityTheory.Kernel.aemeasurable _)]
+    simp only [ProbabilityTheory.Kernel.sectR_apply]
+  have hInnerR : ∀ a, (KR a) B = ∫⁻ c, (fR (a, c)) B ∂(κ a) := by
+    intro a
+    rw [hR a, MeasureTheory.Measure.bind_apply hB
+        (ProbabilityTheory.Kernel.aemeasurable _)]
+    simp only [ProbabilityTheory.Kernel.sectR_apply]
+  simp only [hInnerL, hInnerR]
+  have hae' := MeasureTheory.Measure.ae_ae_of_ae_compProd hae
+  have hInnerAE :
+      ∀ᵐ a ∂ν, (∫⁻ c, (fL (a, c)) B ∂(κ a)) = ∫⁻ c, (fR (a, c)) B ∂(κ a) := by
+    filter_upwards [hae'] with a ha
+    refine MeasureTheory.lintegral_congr_ae ?_
+    filter_upwards [ha] with c hc
+    rw [hc]
+  exact MeasureTheory.lintegral_congr_ae (MeasureTheory.ae_restrict_of_ae hInnerAE)
+
+/-- **CompProd assembly from an a.e. inner equality.** Consider two Markov-style kernels `KL`,
+    `KR` from a base space to an outer space, each built by mixing the section at a base point of
+    an inner kernel — `fL`, respectively `fR`, on the product of the base space and an
+    intermediate space — against a fixed intermediate measure `μ`: [`KL a` equals the section
+    `fL(a,·)` composed with `μ`](hyp:hL) and [`KR a` equals the section `fR(a,·)` composed with
+    `μ`](hyp:hR). If [the inner kernels `fL` and `fR` agree almost everywhere with respect to the
+    composition product of the base measure `ν` with the constant-`μ` kernel](hyp:hae), then
+    [the composition products `ν ⊗ₘ KL` and `ν ⊗ₘ KR` are equal](goal). -/
+theorem compProd_eq_of_inner_ae
+    {α γ β : Type*} [MeasurableSpace α] [MeasurableSpace γ] [MeasurableSpace β]
+    (ν : Measure α) [IsFiniteMeasure ν] (μ : Measure γ) [SFinite μ]
+    (KL KR : Kernel α β) [IsFiniteKernel KL] [IsSFiniteKernel KR]
+    (fL fR : Kernel (α × γ) β)
+    (hL : ∀ a, KL a = (fL.sectR a) ∘ₘ μ)
+    (hR : ∀ a, KR a = (fR.sectR a) ∘ₘ μ)
+    (hae : ∀ᵐ p ∂(ν ⊗ₘ Kernel.const α μ), fL p = fR p) :
+    ν ⊗ₘ KL = ν ⊗ₘ KR := by
+  refine compProd_eq_of_inner_ae_kernel ν (Kernel.const α μ) KL KR fL fR ?_ ?_ hae
+  · simpa only [Kernel.const_apply] using hL
+  · simpa only [Kernel.const_apply] using hR
+
+/-- **Snd-marginal of a composition product, pointwise (disintegration backbone).**
+
+    The `Prod.snd`-pushforward of a kernel composition product, evaluated at `a`, is the
+    mixture of the `a`-section of the inner kernel against the outer kernel's value:
+    `((κ₁ ⊗ₖ κ₂).map Prod.snd) a = (κ₂.sectR a) ∘ₘ (κ₁ a)`.  This is the "adjustment /
+    bind unfold" that every do-calculus identification factor performs by hand; naming it
+    turns the recurring four-line `map_apply / compProd_apply_eq_compProd_sectR /
+    Measure.snd / snd_compProd` rewrite chain into a single step. -/
+theorem compProd_map_snd_apply
+    {α β γ : Type*} [MeasurableSpace α] [MeasurableSpace β] [MeasurableSpace γ]
+    (κ₁ : Kernel α β) (κ₂ : Kernel (α × β) γ)
+    [IsSFiniteKernel κ₁] [IsSFiniteKernel κ₂] (a : α) :
+    ((κ₁ ⊗ₖ κ₂).map Prod.snd) a = (κ₂.sectR a) ∘ₘ (κ₁ a) := by
+  rw [Kernel.map_apply _ measurable_snd,
+      Kernel.compProd_apply_eq_compProd_sectR,
+      ← Measure.snd, Measure.snd_compProd]
+
+end Causalean.Mathlib.CompProdAssembly
+
+namespace Causalean.Mathlib.Probability.Kernel
+
+open scoped MeasureTheory ProbabilityTheory
+
+/-- For [measurable spaces](hyp:α,β,γ), [an s-finite kernel `κ`](hyp:κ),
+[a function `f`](hyp:f), [its measurability](hyp:hf), and [a base point `a`](hyp:a),
+[composition with the deterministic kernel equals the paired pushforward](goal). -/
+lemma compProd_deterministic_apply
+    {α β γ : Type*} [MeasurableSpace α] [MeasurableSpace β] [MeasurableSpace γ]
+    (κ : ProbabilityTheory.Kernel α β) [ProbabilityTheory.IsSFiniteKernel κ]
+    {f : α × β → γ} (hf : Measurable f) (a : α) :
+    (κ ⊗ₖ ProbabilityTheory.Kernel.deterministic f hf) a =
+      (κ a).map (fun b => (b, f (a, b))) := by
+  have hpair : Measurable (fun b : β => (b, f (a, b))) :=
+    Measurable.prodMk measurable_id
+      (hf.comp (Measurable.prodMk measurable_const measurable_id))
+  refine MeasureTheory.Measure.ext fun A hA => ?_
+  rw [ProbabilityTheory.Kernel.compProd_apply hA,
+      MeasureTheory.Measure.map_apply hpair hA]
+  simp only [ProbabilityTheory.Kernel.deterministic_apply]
+  trans (∫⁻ b, Set.indicator
+            ((fun b => (b, f (a, b))) ⁻¹' A) (fun _ => (1 : ENNReal)) b ∂(κ a))
+  · apply MeasureTheory.lintegral_congr
+    intro b
+    have hSlice : MeasurableSet (Prod.mk b ⁻¹' A) := measurable_prodMk_left hA
+    rw [MeasureTheory.Measure.dirac_apply' _ hSlice]
+    simp only [Set.indicator, Set.mem_preimage, Pi.one_apply]
+    rfl
+  · exact MeasureTheory.lintegral_indicator_one (hpair hA)
+
+end Causalean.Mathlib.Probability.Kernel

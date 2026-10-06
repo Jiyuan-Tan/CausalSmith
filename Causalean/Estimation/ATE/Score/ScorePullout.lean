@@ -1,0 +1,287 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Score pull-out lemmas for AIPW proofs
+
+Shared helper lemmas that rewrite score-weighted residual terms and remove
+indicators inside integrals. These are used by both the mean-zero proof
+(`MeanZero.lean`) and the remainder expansion (`Remainder*.lean`).
+-/
+
+module
+public import Causalean.Estimation.ATE.Score.AIPWMoment
+
+/-! # AIPW Score Pull-Out Lemmas
+
+This file provides conditional-expectation and integral identities that remove
+score factors and treatment indicators from augmented inverse-probability
+weighted residual terms. These lemmas are shared by the mean-zero proof and
+the second-order remainder expansion for the back-door average treatment
+effect.
+
+The main declarations define the label-specific value-space propensity
+`e_val_label`, prove `propScore_eq_e_val_label_ae`, and provide the integral
+helpers `weighted_residual_integral_zero` and
+`indicator_to_propScore_integral`.
+-/
+
+@[expose] public section
+
+namespace Causalean
+namespace Estimation
+namespace ATE
+
+open MeasureTheory ProbabilityTheory Filter Topology Causalean.PO
+
+namespace BackdoorEstimationSystem
+
+variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
+  [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door estimation system](hyp:S), [a treatment label](hyp:d), and [a covariate value](hyp:x), the [label-specific value-space propensity](goal) equals the propensity score for the treated label and one minus that score for the control label. -/
+noncomputable def e_val_label (S : BackdoorEstimationSystem P γ)
+    (d : Bool) (x : γ) : ℝ :=
+  if d then S.e_val x else 1 - S.e_val x
+
+/-- The value-space propensity for any treatment label is measurable. -/
+@[fun_prop]
+lemma measurable_e_val_label (S : BackdoorEstimationSystem P γ) (d : Bool) :
+    Measurable (S.e_val_label d) := by
+  cases d
+  · exact measurable_const.sub S.e_meas
+  · exact S.e_meas
+
+/-- [The control-arm propensity equals one minus the treated-arm propensity almost
+surely](goal), by the pointwise indicator sum and linearity of conditional
+expectation. -/
+lemma propScore_false_ae (S : BackdoorEstimationSystem P γ) :
+    S.toPOBackdoorSystem.propScore false
+      =ᵐ[P.μ]
+        (fun ω => 1 - S.toPOBackdoorSystem.propScore true ω) := by
+  have hindD_integrable :
+      ∀ e : Bool, Integrable (S.toPOBackdoorSystem.dVar.indicator e) P.μ :=
+    fun e => S.toPOBackdoorSystem.dVar.integrable_indicator e (MeasurableSet.singleton e)
+  have hsum_ptwise :
+      (fun ω => S.toPOBackdoorSystem.dVar.indicator true ω +
+        S.toPOBackdoorSystem.dVar.indicator false ω)
+        = (fun _ : P.Ω => (1 : ℝ)) := by
+    funext ω
+    exact S.toPOBackdoorSystem.dVar.indicator_add_indicator_not ω
+  have hsum :
+      P.μ[fun ω => S.toPOBackdoorSystem.dVar.indicator true ω +
+          S.toPOBackdoorSystem.dVar.indicator false ω |
+          S.toPOBackdoorSystem.sigmaX]
+        =ᵐ[P.μ] (fun _ => (1 : ℝ)) := by
+    rw [hsum_ptwise]
+    exact Filter.EventuallyEq.of_eq
+      (MeasureTheory.condExp_const S.toPOBackdoorSystem.sigmaX_le (1 : ℝ))
+  have hadd :
+      P.μ[fun ω => S.toPOBackdoorSystem.dVar.indicator true ω +
+          S.toPOBackdoorSystem.dVar.indicator false ω |
+          S.toPOBackdoorSystem.sigmaX]
+        =ᵐ[P.μ]
+          P.μ[S.toPOBackdoorSystem.dVar.indicator true |
+            S.toPOBackdoorSystem.sigmaX]
+              + P.μ[S.toPOBackdoorSystem.dVar.indicator false |
+                S.toPOBackdoorSystem.sigmaX] :=
+    MeasureTheory.condExp_add (hindD_integrable true) (hindD_integrable false)
+      S.toPOBackdoorSystem.sigmaX
+  filter_upwards [hsum, hadd] with ω h1 h2
+  have hsum_ω :
+      P.μ[S.toPOBackdoorSystem.dVar.indicator true |
+            S.toPOBackdoorSystem.sigmaX] ω
+        + P.μ[S.toPOBackdoorSystem.dVar.indicator false |
+            S.toPOBackdoorSystem.sigmaX] ω = 1 := by
+    rw [← Pi.add_apply, ← h2, h1]
+  unfold POBackdoorSystem.propScore
+  linarith
+
+/-- [The σ(X)-conditional expectation of the treatment-label indicator equals the
+corresponding value-space propensity almost surely](goal). -/
+lemma propScore_eq_e_val_label_ae
+    (S : BackdoorEstimationSystem P γ)
+    (d : Bool) :
+    S.toPOBackdoorSystem.propScore d
+      =ᵐ[P.μ]
+        (fun ω => S.e_val_label d (S.toPOBackdoorSystem.factualX ω)) := by
+  cases d
+  · -- `d = false`
+    filter_upwards [propScore_false_ae S, S.e_compat] with ω hf hc
+    simp [e_val_label, hf, hc]
+  · -- `d = true`
+    filter_upwards [S.e_compat] with ω hc
+    simp [e_val_label, hc]
+
+/-- **Weighted-residual mean-zero identity (pull-out lemma).** Fix a treatment label $d$
+and [a measurable weight function `g : γ → ℝ` on the covariates](hyp:hg_meas), under
+[the back-door identification assumptions](hyp:hA). If [the product `g(X) · 1{D=d} · (Y −
+μ(d,X))` is integrable](hyp:h_int) and [the σ(X)-conditional expectation of the
+treatment-`d` residual `1{D=d} · (Y − μ(d,X))` vanishes almost surely](hyp:h_residual_ce_zero),
+then [the integral of the weighted residual against the observed-data law vanishes:
+`∫ g(X) · 1{D=d} · (Y − μ(d,X)) dμ = 0`](goal).
+
+This is the helper used twice in `aipw_factualZ_integral_zero`, obtained by pulling
+`g(X)` out of the conditional expectation and applying `h_residual_ce_zero`.
+-/
+lemma weighted_residual_integral_zero
+    (S : BackdoorEstimationSystem P γ)
+    (hA : S.toPOBackdoorSystem.Assumptions) (d : Bool)
+    (g : γ → ℝ) (hg_meas : Measurable g)
+    (h_int : Integrable
+      (fun ω => g (S.toPOBackdoorSystem.factualX ω) *
+        (S.toPOBackdoorSystem.dVar.indicator d ω *
+          (S.toPOBackdoorSystem.factualY ω -
+            S.μ_val d (S.toPOBackdoorSystem.factualX ω)))) P.μ)
+    (h_residual_ce_zero :
+      P.μ[fun ω => S.toPOBackdoorSystem.dVar.indicator d ω *
+        (S.toPOBackdoorSystem.factualY ω -
+          S.μ_val d (S.toPOBackdoorSystem.factualX ω)) | S.toPOBackdoorSystem.sigmaX]
+        =ᵐ[P.μ] (fun _ => (0 : ℝ))) :
+    ∫ ω, g (S.toPOBackdoorSystem.factualX ω) *
+        (S.toPOBackdoorSystem.dVar.indicator d ω *
+          (S.toPOBackdoorSystem.factualY ω -
+            S.μ_val d (S.toPOBackdoorSystem.factualX ω))) ∂P.μ = 0 := by
+  have hg_sm : StronglyMeasurable[S.toPOBackdoorSystem.sigmaX]
+      (fun ω => g (S.toPOBackdoorSystem.factualX ω)) := by
+    change StronglyMeasurable[
+      MeasurableSpace.comap S.toPOBackdoorSystem.factualX inferInstance]
+      (fun ω => g (S.toPOBackdoorSystem.factualX ω))
+    exact (hg_meas.comp
+      (comap_measurable S.toPOBackdoorSystem.factualX)).stronglyMeasurable
+  have hYind_int : Integrable
+      (fun ω => S.toPOBackdoorSystem.factualY ω *
+        S.toPOBackdoorSystem.dVar.indicator d ω) P.μ :=
+    S.toPOBackdoorSystem.dVar.integrable_mul_indicator d (measurableSet_singleton d)
+      hA.integrable_factualY
+  have hμx_int :
+      Integrable (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) P.μ := by
+    have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome d) P.μ := by
+      unfold POBackdoorSystem.conditionalMeanOutcome
+      exact MeasureTheory.integrable_condExp
+    exact hcate_int.congr (S.μ_compat hA d)
+  have hμx_meas :
+      Measurable (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) :=
+    (S.μ_meas d).comp S.toPOBackdoorSystem.measurable_factualX
+  have hμind_int : Integrable
+      (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω) *
+        S.toPOBackdoorSystem.dVar.indicator d ω) P.μ :=
+    S.toPOBackdoorSystem.dVar.integrable_mul_indicator d (measurableSet_singleton d) hμx_int
+  have hresid_int : Integrable
+      (fun ω => S.toPOBackdoorSystem.dVar.indicator d ω *
+        (S.toPOBackdoorSystem.factualY ω -
+          S.μ_val d (S.toPOBackdoorSystem.factualX ω))) P.μ := by
+    have hYind_int' : Integrable
+        (fun ω => S.toPOBackdoorSystem.dVar.indicator d ω *
+          S.toPOBackdoorSystem.factualY ω) P.μ := by
+      simpa [mul_comm] using hYind_int
+    have hμind_int' : Integrable
+        (fun ω => S.toPOBackdoorSystem.dVar.indicator d ω *
+          S.μ_val d (S.toPOBackdoorSystem.factualX ω)) P.μ := by
+      simpa [mul_comm] using hμind_int
+    have hsub := hYind_int'.sub hμind_int'
+    refine hsub.congr ?_
+    refine Filter.Eventually.of_forall (fun ω => ?_)
+    change S.toPOBackdoorSystem.dVar.indicator d ω *
+          S.toPOBackdoorSystem.factualY ω -
+        S.toPOBackdoorSystem.dVar.indicator d ω *
+          S.μ_val d (S.toPOBackdoorSystem.factualX ω)
+        = S.toPOBackdoorSystem.dVar.indicator d ω *
+            (S.toPOBackdoorSystem.factualY ω -
+              S.μ_val d (S.toPOBackdoorSystem.factualX ω))
+    ring
+  have hcondexp_pull :=
+    MeasureTheory.condExp_mul_of_stronglyMeasurable_left
+      (μ := P.μ) (m := S.toPOBackdoorSystem.sigmaX) hg_sm h_int hresid_int
+  have hgresid_ce_zero :
+      P.μ[fun ω => g (S.toPOBackdoorSystem.factualX ω) *
+            (S.toPOBackdoorSystem.dVar.indicator d ω *
+              (S.toPOBackdoorSystem.factualY ω -
+                S.μ_val d (S.toPOBackdoorSystem.factualX ω))) |
+            S.toPOBackdoorSystem.sigmaX] =ᵐ[P.μ]
+          (fun _ => (0 : ℝ)) := by
+    refine hcondexp_pull.trans ?_
+    filter_upwards [h_residual_ce_zero] with ω hω
+    have : ((fun ω' => g (S.toPOBackdoorSystem.factualX ω')) *
+        P.μ[fun ω' => S.toPOBackdoorSystem.dVar.indicator d ω' *
+            (S.toPOBackdoorSystem.factualY ω' -
+              S.μ_val d (S.toPOBackdoorSystem.factualX ω')) |
+            S.toPOBackdoorSystem.sigmaX]) ω = 0 := by
+      rw [Pi.mul_apply, hω, mul_zero]
+    exact this
+  calc
+    ∫ ω, g (S.toPOBackdoorSystem.factualX ω) *
+          (S.toPOBackdoorSystem.dVar.indicator d ω *
+            (S.toPOBackdoorSystem.factualY ω -
+              S.μ_val d (S.toPOBackdoorSystem.factualX ω))) ∂P.μ
+      = ∫ ω, P.μ[fun ω => g (S.toPOBackdoorSystem.factualX ω) *
+            (S.toPOBackdoorSystem.dVar.indicator d ω *
+              (S.toPOBackdoorSystem.factualY ω -
+                S.μ_val d (S.toPOBackdoorSystem.factualX ω))) |
+            S.toPOBackdoorSystem.sigmaX] ω ∂P.μ := by
+        rw [MeasureTheory.integral_condExp S.toPOBackdoorSystem.sigmaX_le]
+    _ = ∫ _, (0 : ℝ) ∂P.μ :=
+          MeasureTheory.integral_congr_ae hgresid_ce_zero
+    _ = 0 := MeasureTheory.integral_zero _ _
+
+/-- **Propensity-score pull-out for the treatment indicator.** Fix a treatment label $d$.
+If [`f : γ → ℝ` is measurable](hyp:hf_meas) and [the product `f(X) · 1{D=d}`
+is integrable](hyp:hf_ind_int),
+then [replacing the treatment indicator `1{D=d}` by the value-space propensity
+`e_val_label d` inside the integral leaves the integral unchanged: `∫ f(X) · 1{D=d} dμ =
+∫ f(X) · e_val_label d(X) dμ`](goal).
+
+Companion to `weighted_residual_integral_zero`. -/
+lemma indicator_to_propScore_integral
+    (S : BackdoorEstimationSystem P γ)
+    (d : Bool)
+    (f : γ → ℝ) (hf_meas : Measurable f)
+    (hf_ind_int : Integrable
+      (fun ω => f (S.toPOBackdoorSystem.factualX ω) *
+        S.toPOBackdoorSystem.dVar.indicator d ω) P.μ) :
+    ∫ ω, f (S.toPOBackdoorSystem.factualX ω) *
+        S.toPOBackdoorSystem.dVar.indicator d ω ∂P.μ
+      = ∫ ω, f (S.toPOBackdoorSystem.factualX ω) *
+          S.e_val_label d (S.toPOBackdoorSystem.factualX ω) ∂P.μ := by
+  have hf_sm : StronglyMeasurable[S.toPOBackdoorSystem.sigmaX]
+      (fun ω => f (S.toPOBackdoorSystem.factualX ω)) := by
+    change StronglyMeasurable[
+      MeasurableSpace.comap S.toPOBackdoorSystem.factualX inferInstance]
+      (fun ω => f (S.toPOBackdoorSystem.factualX ω))
+    exact (hf_meas.comp
+      (comap_measurable S.toPOBackdoorSystem.factualX)).stronglyMeasurable
+  have hind_int : Integrable (S.toPOBackdoorSystem.dVar.indicator d) P.μ :=
+    S.toPOBackdoorSystem.dVar.integrable_indicator d (MeasurableSet.singleton d)
+  have hCE_pull :=
+    MeasureTheory.condExp_mul_of_stronglyMeasurable_left
+      (μ := P.μ) (m := S.toPOBackdoorSystem.sigmaX) hf_sm hf_ind_int hind_int
+  have hCE_replace :
+      P.μ[fun ω => f (S.toPOBackdoorSystem.factualX ω) *
+            S.toPOBackdoorSystem.dVar.indicator d ω |
+            S.toPOBackdoorSystem.sigmaX] =ᵐ[P.μ]
+          (fun ω => f (S.toPOBackdoorSystem.factualX ω) *
+            S.e_val_label d (S.toPOBackdoorSystem.factualX ω)) := by
+    refine hCE_pull.trans ?_
+    filter_upwards [propScore_eq_e_val_label_ae S d] with ω hω
+    have hω' :
+        P.μ[S.toPOBackdoorSystem.dVar.indicator d |
+            S.toPOBackdoorSystem.sigmaX] ω
+          = S.e_val_label d (S.toPOBackdoorSystem.factualX ω) := hω
+    rw [Pi.mul_apply, hω']
+  calc
+    ∫ ω, f (S.toPOBackdoorSystem.factualX ω) *
+          S.toPOBackdoorSystem.dVar.indicator d ω ∂P.μ
+      = ∫ ω, P.μ[fun ω => f (S.toPOBackdoorSystem.factualX ω) *
+            S.toPOBackdoorSystem.dVar.indicator d ω |
+            S.toPOBackdoorSystem.sigmaX] ω ∂P.μ :=
+        (MeasureTheory.integral_condExp S.toPOBackdoorSystem.sigmaX_le).symm
+    _ = ∫ ω, f (S.toPOBackdoorSystem.factualX ω) *
+            S.e_val_label d (S.toPOBackdoorSystem.factualX ω) ∂P.μ :=
+        MeasureTheory.integral_congr_ae hCE_replace
+
+end BackdoorEstimationSystem
+
+end ATE
+end Estimation
+end Causalean

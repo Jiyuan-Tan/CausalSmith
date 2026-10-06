@@ -1,0 +1,117 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# The partially linear (Robinson partialling-out) orthogonal score
+
+This file defines the Neyman-orthogonal moment for the partially linear model —
+the Robinson (1988) partialling-out score — over the observed-data triple
+`z = (x, d, y) : γ × ℝ × ℝ`, with nuisance `η = (ℓ, m)` a pair of measurable
+covariate functions (outcome regression `ℓ` and treatment regression `m`):
+
+    ψ(η, z, θ) = (y − ℓ(x) − θ·(d − m(x)))·(d − m(x)).
+
+It is a *linear score* in the target `θ`: with the treatment residual
+`v = d − m(x)`,
+
+    ψ(η, z, θ) = m_a(η, z)·θ + m_b(η, z),   m_a = −v²,  m_b = (y − ℓ(x))·v.
+
+* `plrResidual` — the treatment residual `d − m(x)`.
+* `plrMomentFunctional`, `plrMomentA`, `plrMomentB` — the score and its linear
+  decomposition; `plrMoment_decomp` is `ψ = m_a·θ + m_b`.
+* `measurable_plrMomentFunctional`, `measurable_plrMomentA/B` — measurability in
+  the data (the nuisance carries its own measurability).
+-/
+
+module
+public import Causalean.Estimation.PLR.Nuisance
+
+/-! # Partially linear orthogonal score
+
+This file provides the partialling-out moment functional for the partially
+linear model, its decomposition into the linear-in-parameter form, and the
+measurability of these maps in the data. The score is linear in the structural
+slope, with coefficient minus the squared treatment residual and constant term
+given by the residualized outcome times the treatment residual. -/
+
+@[expose] public section
+
+namespace Causalean
+namespace Estimation
+namespace PLR
+
+open MeasureTheory
+
+variable {γ : Type*} [MeasurableSpace γ]
+
+/-- For [a measurable covariate space](hyp:γ), [a pair of outcome and treatment
+regression functions](hyp:η), and [an observed covariate, treatment, and outcome
+triple](hyp:z), the [partially linear treatment residual](goal) is the observed
+treatment minus its treatment-regression prediction. -/
+def plrResidual (η : PLRNuisance γ) (z : γ × ℝ × ℝ) : ℝ := z.2.1 - η.mFn z.1
+
+/-- For [a measurable covariate space](hyp:γ), [a pair of outcome and treatment
+regression functions](hyp:η), [an observed covariate, treatment, and outcome
+triple](hyp:z), and [a real-valued structural slope](hyp:θ), the [Robinson
+partialling-out score](goal) is the product of the treatment residual and the
+outcome residual after subtracting that slope times the treatment residual. -/
+def plrMomentFunctional (η : PLRNuisance γ) (z : γ × ℝ × ℝ) (θ : ℝ) : ℝ :=
+  (z.2.2 - η.lFn z.1 - θ * plrResidual η z) * plrResidual η z
+
+/-- For [a measurable covariate space](hyp:γ), [a pair of outcome and treatment
+regression functions](hyp:η), and [an observed covariate, treatment, and outcome
+triple](hyp:z), the [coefficient of the partially linear score that is linear in
+the structural slope](goal) is minus the squared treatment residual. -/
+def plrMomentA (η : PLRNuisance γ) (z : γ × ℝ × ℝ) : ℝ :=
+  -(plrResidual η z) ^ 2
+
+/-- For [a measurable covariate space](hyp:γ), [a pair of outcome and treatment
+regression functions](hyp:η), and [an observed covariate, treatment, and outcome
+triple](hyp:z), the [constant term in the partially linear score](goal) is the
+product of the treatment residual and the outcome minus its outcome-regression
+prediction. -/
+def plrMomentB (η : PLRNuisance γ) (z : γ × ℝ × ℝ) : ℝ :=
+  (z.2.2 - η.lFn z.1) * plrResidual η z
+
+/-- **Robinson score decomposition.** [The partialling-out score decomposes into its
+linear coefficient in `θ` times the target parameter `θ` plus a constant term](goal). -/
+lemma plrMoment_decomp (η : PLRNuisance γ) (z : γ × ℝ × ℝ) (θ : ℝ) :
+    plrMomentFunctional η z θ = plrMomentA η z * θ + plrMomentB η z := by
+  simp only [plrMomentFunctional, plrMomentA, plrMomentB]
+  ring
+
+/-- The treatment residual is measurable as a function of the observed data. -/
+@[fun_prop]
+lemma measurable_plrResidual (η : PLRNuisance γ) :
+    Measurable (fun z : γ × ℝ × ℝ => plrResidual η z) :=
+  (measurable_fst.comp measurable_snd).sub (η.mMeas.comp measurable_fst)
+
+/-- The Robinson partialling-out score is measurable in the observed data. -/
+@[fun_prop]
+lemma measurable_plrMomentFunctional (η : PLRNuisance γ) (θ : ℝ) :
+    Measurable (fun z : γ × ℝ × ℝ => plrMomentFunctional η z θ) := by
+  have hv := measurable_plrResidual η
+  have hy : Measurable (fun z : γ × ℝ × ℝ => z.2.2) := by
+    fun_prop
+  exact (((hy.sub (η.lMeas.comp measurable_fst)).sub (hv.const_mul θ)).mul hv)
+
+/-- The linear-score coefficient is measurable in the observed data. -/
+@[fun_prop]
+lemma measurable_plrMomentA (η : PLRNuisance γ) :
+    Measurable (fun z : γ × ℝ × ℝ => plrMomentA η z) := by
+  have hv := measurable_plrResidual η
+  exact (hv.pow_const 2).neg
+
+/-- The linear-score constant term is measurable in the observed data. -/
+@[fun_prop]
+lemma measurable_plrMomentB (η : PLRNuisance γ) :
+    Measurable (fun z : γ × ℝ × ℝ => plrMomentB η z) := by
+  have hv := measurable_plrResidual η
+  have hy : Measurable (fun z : γ × ℝ × ℝ => z.2.2) := by
+    fun_prop
+  exact (hy.sub (η.lMeas.comp measurable_fst)).mul hv
+
+end PLR
+end Estimation
+end Causalean

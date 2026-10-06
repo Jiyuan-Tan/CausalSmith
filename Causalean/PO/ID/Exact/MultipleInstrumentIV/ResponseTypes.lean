@@ -1,0 +1,633 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Finite centered-score IV response-type algebra
+
+Finite binary response-type weights for a centered-score IV ratio.
+This file includes the finite-support bridge from reduced-form and first-stage
+moments to the response-type ratio. The positive-weight results assume an
+abstract sign-alignment condition; they do not derive that condition from the
+partial-monotonicity restrictions of Mogstad, Torgovitsky, and Walters. The
+observed measure-backed `E[h(Z)Y] / E[h(Z)D]` bridge lives in
+`MultipleInstrumentIV/Population.lean`.
+
+Background labels. Their population-2SLS interpretation additionally requires
+the projected or saturated first stage specified in
+`def:po-estimand-mtw-population-2sls`; the generic score results below do not
+establish that condition:
+
+* `def:po-estimand-mtw-system`
+* `def:po-estimand-mtw-population-2sls`
+* `thm:po-estimand-mtw-signed-decomposition`
+* `prop:po-estimand-mtw-response-type-form`
+* `ass:po-estimand-mtw-partial-monotonicity`
+* `prop:po-estimand-mtw-positive-weights`
+-/
+
+module
+public import Causalean.PO.ID.Exact.MultipleInstrumentIV.FiniteIndex
+public import Causalean.Stat.Weighted.NormalizedWeights
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Data.Fintype.Pi
+
+/-! # Multiple-Instrument IV Response Types
+
+This file formalizes finite response-type algebra for a centered-score IV
+decomposition. The basic
+objects are `ResponseType`, `typeStep`, `ResponseTypeStats`, the unnormalized
+and normalized weights `unnormTypeWeight` and `normalizedTypeWeight`, and the
+finite ratio `centeredScoreIVFiniteAlgebra`.
+
+The nested `PopulationBridge` structure gives a finite-support
+bridge from support-point outcome and treatment expansions to the response-type
+ratio. Theorems `firstStageMoment_eq_typeWeightDenom`,
+`reducedFormMoment_eq_typeWeightNumerator`, and
+`centeredScoreIVPopulationBridge_eq_centeredScoreIVFiniteAlgebra` prove the algebraic
+identification step. The sign-alignment results
+`normalizedTypeWeight_nonneg_of_signAligned`,
+`normalizedTypeWeight_sum_eq_one_of_pos`, and
+`centeredScoreIVFiniteAlgebra_eq_positiveResponseTypeAverage_of_signAligned` explain
+when the ratio is a convex response-type average under an assumed abstract sign
+condition, while `exists_negativeNormalizedTypeWeight`
+gives a concrete two-support-point counterexample with a negative normalized
+weight.
+
+The `OpaqueAdjacentStepRestriction` structure is only an opaque interface. It
+is not a formalization of MTW partial monotonicity, and no result in this file
+derives sign alignment from a behavioral monotonicity condition. -/
+
+@[expose] public section
+
+namespace Causalean
+namespace PO.ID.Exact
+namespace MultipleInstrumentIV
+
+open Finset
+
+/-- [A treatment response type](goal) specifies binary uptake at every point of [a finite
+instrument support](hyp:K), capturing all first-stage heterogeneity relevant to the IV design. -/
+abbrev ResponseType (K : ℕ) := Fin K → Bool
+
+/-- [The real-valued treatment indicator](goal) converts [binary uptake](hyp:b) to one for
+treatment and zero for no treatment, so it can enter population moments. -/
+def boolToReal (b : Bool) : ℝ :=
+  if b then 1 else 0
+
+/-- [An adjacent treatment-response increment](goal) measures how [a response type](hyp:g)
+changes across [one support threshold](hyp:j) in [a finite instrument support](hyp:K). -/
+def typeStep {K : ℕ} (g : ResponseType K) (j : Adj K) : ℝ :=
+  boolToReal (g (Adj.upper j)) - boolToReal (g (Adj.lower j))
+
+/-- Finite response-type statistics on [a finite instrument support](hyp:K) record [the
+probability mass of each latent type](hyp:mass) and [its average causal effect](hyp:effect),
+subject to [every mass being nonnegative](hyp:mass_nonneg) and [the masses summing to
+one](hyp:mass_sum_one), so the masses form a probability vector over response types. -/
+structure ResponseTypeStats (K : ℕ) where
+  /-- Response-type mass `π_g = P(G = g)`. -/
+  mass : ResponseType K → ℝ
+  /-- Response-type causal effect `Δ_g`.  Zero-mass conventions are handled at
+  the finite-algebra layer by multiplying by `mass`. -/
+  effect : ResponseType K → ℝ
+  /-- Response-type masses are nonnegative. -/
+  mass_nonneg : ∀ g, 0 ≤ mass g
+  /-- Response-type masses sum to one. -/
+  mass_sum_one : ∑ g, mass g = 1
+
+namespace ResponseTypeStats
+
+variable {K : ℕ} (I : FiniteIndex K) (R : ResponseTypeStats K)
+
+/-- [The unnormalized weight on a response type](goal) is [that type's](hyp:g) population mass
+times its tail-coefficient-weighted treatment increments, using [an ordered score](hyp:I) and
+[finite response-type statistics](hyp:R). -/
+noncomputable def unnormTypeWeight (g : ResponseType K) : ℝ :=
+  R.mass g * ∑ j : Adj K, I.tailCoeff j * typeStep g j
+
+/-- [The response-type weight denominator](goal) aggregates the signed type weights generated by
+[an ordered score](hyp:I) and [finite response-type statistics](hyp:R); it is the finite first-stage
+moment. -/
+noncomputable def typeWeightDenom : ℝ :=
+  ∑ g : ResponseType K, R.unnormTypeWeight I g
+
+/-- [The normalized weight on a response type](goal) divides [that type's](hyp:g) signed weight by
+the total generated from [an ordered score](hyp:I) and [finite response-type statistics](hyp:R). -/
+noncomputable def normalizedTypeWeight (g : ResponseType K) : ℝ :=
+  Causalean.Stat.Weighted.NormalizedWeights.normalizedWeight (R.unnormTypeWeight I) g
+
+/-- [The response-type estimand](goal) averages type-specific causal effects from [finite
+response-type statistics](hyp:R) using the normalized weights induced by [an ordered
+score](hyp:I). -/
+noncomputable def responseTypeEstimand : ℝ :=
+  ∑ g : ResponseType K, R.normalizedTypeWeight I g * R.effect g
+
+/-- [The finite-algebra centered-score IV ratio](goal) divides the signed response-type-weighted
+effect sum from [finite response-type statistics](hyp:R) by the corresponding first-stage weight
+sum induced by [an ordered score](hyp:I).
+
+The finite-support population bridge below proves when the corresponding centered-score moment
+ratio reduces to this finite algebraic ratio. -/
+noncomputable def centeredScoreIVFiniteAlgebra : ℝ :=
+  (∑ g : ResponseType K, R.unnormTypeWeight I g * R.effect g) /
+    R.typeWeightDenom I
+
+/-- A finite-support response-type bridge on [a finite instrument support](hyp:K)
+combines [response-type masses and type-specific effects](hyp:stats) with [a baseline outcome
+mean for each response type](hyp:baseOutcome). The centered score cancels this baseline, leaving
+the adjacent treatment increments used by the finite algebra. -/
+structure PopulationBridge (K : ℕ) where
+  /-- Response-type masses and type-specific treatment effects. -/
+  stats : ResponseTypeStats K
+  /-- Response-type-specific baseline outcome mean, the term subtracted by the
+  centered-index argument in the signed decomposition proof. -/
+  baseOutcome : ResponseType K → ℝ
+
+namespace PopulationBridge
+
+variable {K : ℕ} (I : FiniteIndex K) (P : PopulationBridge K)
+
+/-- [A response type's cumulative treatment change at a support point](goal) sums [that
+type's](hyp:g) adjacent uptake changes through [the selected point](hyp:k) of [the finite
+instrument support](hyp:K). -/
+noncomputable def telescopedTypeStep (g : ResponseType K) (k : Fin K) : ℝ :=
+  ∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0
+
+/-- [The outcome mean at an instrument support point](goal) expands into baseline outcomes plus
+type-mass-weighted causal effects times cumulative treatment changes under [the finite-support
+population bridge](hyp:P), at [that point](hyp:k) of [the support](hyp:K). -/
+noncomputable def outcomeAtSupport (P : PopulationBridge K) (k : Fin K) : ℝ :=
+  ∑ g : ResponseType K,
+    P.stats.mass g *
+      (P.baseOutcome g + telescopedTypeStep g k * P.stats.effect g)
+
+/-- [The treatment-mean change from the reference support point](goal) is the
+type-mass-weighted cumulative uptake change under [the finite-support population
+bridge](hyp:P), at [the selected point](hyp:k) of [the support](hyp:K). -/
+noncomputable def treatmentAtSupport (P : PopulationBridge K) (k : Fin K) : ℝ :=
+  ∑ g : ResponseType K, P.stats.mass g * telescopedTypeStep g k
+
+/-- [The population centered-score outcome moment](goal) weights support-specific outcome
+expansions from [a finite-support bridge](hyp:P) by centered scores from [an ordered
+index](hyp:I) across [the finite support](hyp:K). -/
+noncomputable def reducedFormMoment (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
+  ∑ k : Fin K, I.rho k * I.centeredIndex k * P.outcomeAtSupport k
+
+/-- [The population centered-score treatment moment](goal) weights support-specific treatment
+expansions from [a finite-support bridge](hyp:P) by centered scores from [an ordered
+index](hyp:I) across [the finite support](hyp:K). -/
+noncomputable def firstStageMoment (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
+  ∑ k : Fin K, I.rho k * I.centeredIndex k * P.treatmentAtSupport k
+
+/-- [The population centered-score IV ratio](goal) divides the outcome moment by the treatment
+moment for [a finite-support population bridge](hyp:P) and [ordered score index](hyp:I) on [the
+finite support](hyp:K). -/
+noncomputable def centeredScoreIVPopulationBridge
+    (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
+  P.reducedFormMoment I / P.firstStageMoment I
+
+/-- [The centered-score moment of the response-type baseline outcome is zero](goal) for [an
+ordered score index](hyp:I) and [finite-support population bridge](hyp:P), so only causal-response
+increments remain in the reduced form. -/
+theorem baselineMoment_eq_zero :
+    (∑ k : Fin K,
+        I.rho k * I.centeredIndex k *
+          (∑ g : ResponseType K, P.stats.mass g * P.baseOutcome g)) = 0 := by
+  calc
+    (∑ k : Fin K,
+        I.rho k * I.centeredIndex k *
+          (∑ g : ResponseType K, P.stats.mass g * P.baseOutcome g)) =
+        (∑ k : Fin K, I.rho k * I.centeredIndex k) *
+          (∑ g : ResponseType K, P.stats.mass g * P.baseOutcome g) := by
+      rw [Finset.sum_mul]
+    _ = 0 := by
+      rw [I.centered_weight_sum_zero]
+      simp
+
+/-- [The finite-support first-stage moment equals the aggregate response-type weight](goal) for
+[an ordered score index](hyp:I) and [population bridge](hyp:P). This identifies the denominator of
+the response-type IV ratio. -/
+theorem firstStageMoment_eq_typeWeightDenom :
+    P.firstStageMoment I = P.stats.typeWeightDenom I := by
+  classical
+  unfold firstStageMoment treatmentAtSupport telescopedTypeStep ResponseTypeStats.typeWeightDenom
+    ResponseTypeStats.unnormTypeWeight
+  calc
+    (∑ k : Fin K,
+        I.rho k * I.centeredIndex k *
+          (∑ g : ResponseType K,
+            P.stats.mass g *
+              (∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0))) =
+        ∑ k : Fin K, ∑ g : ResponseType K,
+          I.rho k * I.centeredIndex k *
+            (P.stats.mass g *
+              (∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0)) := by
+      apply Finset.sum_congr rfl
+      intro k _hk
+      rw [Finset.mul_sum]
+    _ = ∑ g : ResponseType K, ∑ k : Fin K,
+          I.rho k * I.centeredIndex k *
+            (P.stats.mass g *
+              (∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0)) := by
+      rw [Finset.sum_comm]
+    _ = ∑ g : ResponseType K,
+          P.stats.mass g *
+            (∑ k : Fin K,
+              I.rho k * I.centeredIndex k *
+                (∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0)) := by
+      apply Finset.sum_congr rfl
+      intro g _hg
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro k _hk
+      ring
+    _ = ∑ g : ResponseType K,
+          P.stats.mass g * (∑ j : Adj K, I.tailCoeff j * typeStep g j) := by
+      apply Finset.sum_congr rfl
+      intro g _hg
+      rw [I.tail_sum_interchange (fun j => typeStep g j)]
+
+/-- [The finite-support reduced-form moment equals the response-type-weighted causal-effect
+sum](goal) for [an ordered score index](hyp:I) and [population bridge](hyp:P). This identifies the
+numerator of the response-type IV ratio. -/
+theorem reducedFormMoment_eq_typeWeightNumerator :
+    P.reducedFormMoment I =
+      ∑ g : ResponseType K, P.stats.unnormTypeWeight I g * P.stats.effect g := by
+  classical
+  unfold reducedFormMoment outcomeAtSupport telescopedTypeStep
+    ResponseTypeStats.unnormTypeWeight
+  calc
+    (∑ k : Fin K,
+        I.rho k * I.centeredIndex k *
+          (∑ g : ResponseType K,
+            P.stats.mass g *
+                (P.baseOutcome g +
+                  (∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0) *
+                    P.stats.effect g))) =
+        (∑ k : Fin K,
+          I.rho k * I.centeredIndex k *
+            (∑ g : ResponseType K, P.stats.mass g * P.baseOutcome g)) +
+          ∑ k : Fin K,
+            I.rho k * I.centeredIndex k *
+              (∑ g : ResponseType K,
+                  P.stats.mass g *
+                    ((∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0) *
+                    P.stats.effect g)) := by
+      simp only [mul_add, Finset.sum_add_distrib]
+    _ = ∑ k : Fin K,
+          I.rho k * I.centeredIndex k *
+            (∑ g : ResponseType K,
+              P.stats.mass g *
+                ((∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0) *
+                  P.stats.effect g)) := by
+      rw [P.baselineMoment_eq_zero I]
+      simp
+    _ = ∑ k : Fin K, ∑ g : ResponseType K,
+          I.rho k * I.centeredIndex k *
+            (P.stats.mass g *
+              ((∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0) *
+                P.stats.effect g)) := by
+      apply Finset.sum_congr rfl
+      intro k _hk
+      rw [Finset.mul_sum]
+    _ = ∑ g : ResponseType K,
+          ∑ k : Fin K,
+            I.rho k * I.centeredIndex k *
+              (P.stats.mass g *
+                ((∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0) *
+                  P.stats.effect g)) := by
+      rw [Finset.sum_comm]
+    _ = ∑ g : ResponseType K,
+          P.stats.mass g *
+            (∑ k : Fin K,
+              I.rho k * I.centeredIndex k *
+                (∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0)) *
+            P.stats.effect g := by
+      apply Finset.sum_congr rfl
+      intro g _hg
+      simp [Finset.mul_sum, mul_assoc, mul_comm, mul_left_comm]
+    _ = ∑ g : ResponseType K,
+          (P.stats.mass g * (∑ j : Adj K, I.tailCoeff j * typeStep g j)) *
+            P.stats.effect g := by
+      apply Finset.sum_congr rfl
+      intro g _hg
+      rw [I.tail_sum_interchange (fun j => typeStep g j)]
+
+/-- [The population centered-score IV ratio equals the finite response-type ratio](goal) for [an
+ordered finite score index](hyp:I) and [a finite-support response-type bridge](hyp:P). This is the
+decomposition algebra; a 2SLS interpretation additionally requires a projected first-stage
+score. -/
+theorem centeredScoreIVPopulationBridge_eq_centeredScoreIVFiniteAlgebra :
+    P.centeredScoreIVPopulationBridge I = P.stats.centeredScoreIVFiniteAlgebra I := by
+  unfold centeredScoreIVPopulationBridge ResponseTypeStats.centeredScoreIVFiniteAlgebra
+  rw [P.reducedFormMoment_eq_typeWeightNumerator I,
+    P.firstStageMoment_eq_typeWeightDenom I]
+
+end PopulationBridge
+
+/-- [Sign alignment](goal) requires every positive-mass response type in [finite response-type
+statistics](hyp:R) to have a nonnegative tail-coefficient-weighted treatment response under [the
+ordered score](hyp:I). It is exactly the condition preventing negative type weights. -/
+def SignAligned : Prop :=
+  ∀ g : ResponseType K, 0 < R.mass g →
+    0 ≤ ∑ j : Adj K, I.tailCoeff j * typeStep g j
+
+/-- The opaque adjacent-step interface on [a finite instrument support](hyp:K) stores [an
+arbitrary response-type selection rule](hyp:allowed) together with [an assumed nonnegative-step
+certificate for selected types](hyp:step_nonneg_of_allowed). It does not itself encode an
+econometric monotonicity restriction.
+
+It does not encode a rectangular instrument support or derive its step condition
+from potential-treatment monotonicity, and it has no theorem connecting it to
+`SignAligned`. It must therefore not be read as the componentwise or partial
+monotonicity condition of Mogstad, Torgovitsky, and Walters. -/
+structure OpaqueAdjacentStepRestriction where
+  /-- Response types admitted by the restriction.  This predicate is
+  unconstrained; nothing in Lean forces it to correspond to any geometric or
+  probabilistic monotonicity condition. -/
+  allowed : ResponseType K → Prop
+  /-- Allowed response types have nonnegative adjacent steps in the displayed
+  support order.  This is an axiom field, not a derived fact. -/
+  step_nonneg_of_allowed :
+    ∀ g : ResponseType K, allowed g → ∀ j : Adj K, 0 ≤ typeStep g j
+
+/-- [Every unnormalized response-type weight is nonnegative](goal) when [an ordered score and
+finite response-type population](hyp:I,R) satisfy [sign alignment](hyp:hAlign), for [the selected
+response type](hyp:g). Nonnegative type masses then preserve the aligned sign. -/
+theorem unnormTypeWeight_nonneg_of_signAligned
+    (hAlign : R.SignAligned I) (g : ResponseType K) :
+    0 ≤ R.unnormTypeWeight I g := by
+  unfold unnormTypeWeight
+  by_cases hpos : 0 < R.mass g
+  · exact mul_nonneg (R.mass_nonneg g) (hAlign g hpos)
+  · have hle : R.mass g ≤ 0 := le_of_not_gt hpos
+    have hmass : R.mass g = 0 := le_antisymm hle (R.mass_nonneg g)
+    simp [hmass]
+
+/-- [Each normalized response-type weight is nonnegative](goal) when [an ordered score and finite
+response-type population](hyp:I,R) satisfy [sign alignment](hyp:hAlign) and have [a positive
+score-weight denominator](hyp:hden), for [the selected response type](hyp:g). The paper-facing
+2SLS claim needs additional first-stage and behavioral conditions. -/
+theorem normalizedTypeWeight_nonneg_of_signAligned
+    (hAlign : R.SignAligned I) (hden : 0 < R.typeWeightDenom I)
+    (g : ResponseType K) :
+    0 ≤ R.normalizedTypeWeight I g := by
+  exact Causalean.Stat.Weighted.NormalizedWeights.normalizedWeight_nonneg
+    (R.unnormTypeWeight I) (R.unnormTypeWeight_nonneg_of_signAligned I hAlign) hden g
+
+/-- [The normalized response-type weights sum to one](goal) for [an ordered score and finite
+response-type population](hyp:I,R) when [the first-stage weight denominator is
+positive](hyp:hden). -/
+theorem normalizedTypeWeight_sum_eq_one_of_pos
+    (hden : 0 < R.typeWeightDenom I) :
+    ∑ g : ResponseType K, R.normalizedTypeWeight I g = 1 := by
+  exact Causalean.Stat.Weighted.NormalizedWeights.sum_normalizedWeight_eq_one
+    (R.unnormTypeWeight I) hden.ne'
+
+/-- [The finite-algebra centered-score IV ratio equals the response-type-weighted sum of
+within-type causal effects](goal) for [an ordered score](hyp:I) and [finite response-type
+statistics](hyp:R) when [the score-weight denominator is nonzero](hyp:hden). This is the
+normalization algebra appearing in
+`prop:po-estimand-mtw-response-type-form`, whose 2SLS interpretation additionally fixes the score
+to the fitted first stage. -/
+theorem centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum
+    (hden : R.typeWeightDenom I ≠ 0) :
+    R.centeredScoreIVFiniteAlgebra I = R.responseTypeEstimand I := by
+  have _ : R.typeWeightDenom I ≠ 0 := hden
+  unfold centeredScoreIVFiniteAlgebra responseTypeEstimand normalizedTypeWeight
+  calc
+    (∑ g : ResponseType K, R.unnormTypeWeight I g * R.effect g) / R.typeWeightDenom I =
+        ∑ g : ResponseType K, (R.unnormTypeWeight I g * R.effect g) / R.typeWeightDenom I := by
+      rw [Finset.sum_div]
+    _ = ∑ g : ResponseType K, R.unnormTypeWeight I g / R.typeWeightDenom I * R.effect g := by
+      apply Finset.sum_congr rfl
+      intro g _hg
+      rw [div_mul_eq_mul_div]
+
+/-- [The centered-score IV ratio is a convex average of response-type causal effects](goal) for
+[an ordered score](hyp:I) and [finite response-type statistics](hyp:R) when [response types are
+sign-aligned](hyp:hAlign) and [the score-weight denominator is positive](hyp:hden): every weight is
+nonnegative and the weights sum to one. -/
+theorem centeredScoreIVFiniteAlgebra_eq_positiveResponseTypeAverage_of_signAligned
+    (hAlign : R.SignAligned I) (hden : 0 < R.typeWeightDenom I) :
+    R.centeredScoreIVFiniteAlgebra I = R.responseTypeEstimand I ∧
+      (∀ g : ResponseType K, 0 ≤ R.normalizedTypeWeight I g) ∧
+      (∑ g : ResponseType K, R.normalizedTypeWeight I g = 1) := by
+  constructor
+  · exact R.centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum I hden.ne'
+  constructor
+  · intro g
+    exact R.normalizedTypeWeight_nonneg_of_signAligned I hAlign hden g
+  · exact R.normalizedTypeWeight_sum_eq_one_of_pos I hden
+
+end ResponseTypeStats
+
+/-! ### Negative-weights counterexample (G4)
+
+The finite algebra permits negative centered-score response-type weights when sign
+alignment fails. The next theorem gives a concrete example: with two instrument support points
+and a population consisting of 1/4 compliers and 3/4 defiers, the normalized
+response-type weight for the complier type is −1/2 < 0.
+
+-/
+
+section NegWeightExample
+
+/-
+Concrete witnesses:
+  K = 2 support points, ρ = [3/4, 1/4], dhat = [0, 1].
+  Response-type population: 1/4 compliers (![false, true]), 3/4 defiers (![true, false]).
+
+Arithmetic:
+  meanIndex = 1/4.  centeredIndex = [-1/4, 3/4].
+  Upper tail for j = ⟨1, _⟩: {k | k.val ≥ 1} = {⟨1,_⟩}.
+  tailCoeff j = ρ₁ * centeredIndex₁ = (1/4)*(3/4) = 3/16.
+  typeStep complier j = boolToReal(true) − boolToReal(false) = 1.
+  typeStep defier  j = boolToReal(false) − boolToReal(true)  = −1.
+  λ_complier = (1/4)*(3/16)*1 = 3/64.
+  λ_defier   = (3/4)*(3/16)*(−1) = −9/64.
+  typeWeightDenom = 3/64 − 9/64 = −6/64 = −3/32.
+  ω_complier = (3/64)/(−3/32) = −1/2 < 0.  QED.
+-/
+
+/-- Explicit K=2 finite index: ρ = [3/4, 1/4], dhat = [0, 1]. -/
+private noncomputable def exIndex : FiniteIndex 2 where
+  rho := ![3/4, 1/4]
+  dhat := ![(0 : ℝ), 1]
+  rho_nonneg := by
+    intro k; fin_cases k <;>
+      norm_num
+  rho_sum_one := by
+    simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
+    norm_num
+  dhat_mono := by
+    intro k l hkl
+    fin_cases k <;> fin_cases l <;>
+      simp_all [Matrix.cons_val_zero, Matrix.cons_val_one]
+
+/-- The unique adjacent threshold for K=2: j.val = 1. -/
+private def exJ : Adj 2 := ⟨1, by decide⟩
+
+/-! The four response types for K=2. -/
+private def gNever : ResponseType 2 := ![false, false]
+private def gComplier : ResponseType 2 := ![false, true]
+private def gDefier : ResponseType 2 := ![true, false]
+private def gAlways : ResponseType 2 := ![true, true]
+
+/-- All four response types for K=2 are pairwise distinct. -/
+private lemma gNever_ne_gComplier : gNever ≠ gComplier := by decide
+private lemma gNever_ne_gDefier : gNever ≠ gDefier := by decide
+private lemma gNever_ne_gAlways : gNever ≠ gAlways := by decide
+private lemma gComplier_ne_gDefier : gComplier ≠ gDefier := by decide
+private lemma gComplier_ne_gAlways : gComplier ≠ gAlways := by decide
+private lemma gDefier_ne_gAlways : gDefier ≠ gAlways := by decide
+
+/-- The univ Finset over `ResponseType 2` equals the explicit 4-element set. -/
+private lemma responseType2_univ :
+    (Finset.univ : Finset (ResponseType 2)) =
+      {gNever, gComplier, gDefier, gAlways} := by
+  decide
+
+/-- The response-type mass function: 1/4 compliers, 3/4 defiers.  Defined as a
+standalone function (not inline in the structure) so it has an equational lemma
+that `simp`/`rw` can use, and so the structure proofs are non-recursive. -/
+private noncomputable def exMass (g : ResponseType 2) : ℝ :=
+  if g = gComplier then 1/4
+  else if g = gDefier then 3/4
+  else 0
+
+private lemma exMass_never : exMass gNever = 0 := by
+  unfold exMass
+  rw [if_neg gNever_ne_gComplier, if_neg gNever_ne_gDefier]
+private lemma exMass_complier : exMass gComplier = 1/4 := by
+  unfold exMass; rw [if_pos rfl]
+private lemma exMass_defier : exMass gDefier = 3/4 := by
+  unfold exMass
+  rw [if_neg gComplier_ne_gDefier.symm, if_pos rfl]
+private lemma exMass_always : exMass gAlways = 0 := by
+  unfold exMass
+  rw [if_neg gComplier_ne_gAlways.symm, if_neg gDefier_ne_gAlways.symm]
+
+/-- The masses sum to one over the four response types. -/
+private lemma exMass_sum_one : ∑ g, exMass g = 1 := by
+  rw [responseType2_univ]
+  rw [Finset.sum_insert (by decide),
+      Finset.sum_insert (by decide),
+      Finset.sum_insert (by decide),
+      Finset.sum_singleton]
+  rw [exMass_never, exMass_complier, exMass_defier, exMass_always]
+  ring
+
+/-- Explicit response-type statistics: 1/4 compliers, 3/4 defiers. -/
+private noncomputable def exStats : ResponseTypeStats 2 where
+  mass := exMass
+  effect _ := 1
+  mass_nonneg := by
+    intro g; unfold exMass; split_ifs <;> norm_num
+  mass_sum_one := exMass_sum_one
+
+private lemma exStats_mass (g : ResponseType 2) : exStats.mass g = exMass g := rfl
+
+/-- The tail coefficient for exJ in exIndex equals 3/16. -/
+private lemma exIndex_tailCoeff : exIndex.tailCoeff exJ = 3/16 := by
+  -- upperTail exJ = {k : Fin 2 | 1 ≤ k.val} = {⟨1,_⟩}
+  have hUT : FiniteIndex.upperTail exJ = ({1} : Finset (Fin 2)) := by decide
+  rw [FiniteIndex.tailCoeff, hUT, Finset.sum_singleton]
+  change exIndex.rho 1 * exIndex.centeredIndex 1 = 3/16
+  rw [FiniteIndex.centeredIndex, FiniteIndex.meanIndex]
+  change (![3/4, 1/4] : Fin 2 → ℝ) 1 *
+      ((![(0:ℝ), 1] : Fin 2 → ℝ) 1 -
+        ∑ k, (![3/4, 1/4] : Fin 2 → ℝ) k * (![(0:ℝ), 1] : Fin 2 → ℝ) k) = 3/16
+  simp only [Fin.sum_univ_two, Matrix.cons_val_zero, Matrix.cons_val_one]
+  norm_num
+
+/-- typeStep for the complier type at exJ equals 1. -/
+private lemma exJ_step_complier : typeStep gComplier exJ = 1 := by
+  change boolToReal (gComplier (Adj.upper exJ)) - boolToReal (gComplier (Adj.lower exJ)) = 1
+  have hu : Adj.upper exJ = (1 : Fin 2) := by decide
+  have hl : Adj.lower exJ = (0 : Fin 2) := by decide
+  rw [hu, hl]
+  change boolToReal ((![false, true] : ResponseType 2) 1) -
+      boolToReal ((![false, true] : ResponseType 2) 0) = 1
+  simp only [Matrix.cons_val_zero, Matrix.cons_val_one, boolToReal]
+  norm_num
+
+/-- typeStep for the defier type at exJ equals -1. -/
+private lemma exJ_step_defier : typeStep gDefier exJ = -1 := by
+  change boolToReal (gDefier (Adj.upper exJ)) - boolToReal (gDefier (Adj.lower exJ)) = -1
+  have hu : Adj.upper exJ = (1 : Fin 2) := by decide
+  have hl : Adj.lower exJ = (0 : Fin 2) := by decide
+  rw [hu, hl]
+  change boolToReal ((![true, false] : ResponseType 2) 1) -
+      boolToReal ((![true, false] : ResponseType 2) 0) = -1
+  simp only [Matrix.cons_val_zero, Matrix.cons_val_one, boolToReal]
+  norm_num
+
+/-- The sum over `Adj 2` has exactly one term. -/
+private lemma adj2_sum (f : Adj 2 → ℝ) :
+    ∑ j : Adj 2, f j = f exJ := by
+  have huniv : (Finset.univ : Finset (Adj 2)) = {exJ} := by decide
+  rw [huniv, Finset.sum_singleton]
+
+/-- unnormTypeWeight for the complier type equals 3/64. -/
+private lemma exStats_unnorm_complier :
+    exStats.unnormTypeWeight exIndex gComplier = 3/64 := by
+  rw [ResponseTypeStats.unnormTypeWeight, adj2_sum, exStats_mass, exMass_complier,
+    exIndex_tailCoeff, exJ_step_complier]
+  norm_num
+
+/-- unnormTypeWeight for the defier type equals -9/64. -/
+private lemma exStats_unnorm_defier :
+    exStats.unnormTypeWeight exIndex gDefier = -9/64 := by
+  rw [ResponseTypeStats.unnormTypeWeight, adj2_sum, exStats_mass, exMass_defier,
+    exIndex_tailCoeff, exJ_step_defier]
+  norm_num
+
+/-- unnormTypeWeight for never-taker and always-taker types equal 0. -/
+private lemma exStats_unnorm_never :
+    exStats.unnormTypeWeight exIndex gNever = 0 := by
+  rw [ResponseTypeStats.unnormTypeWeight, adj2_sum, exStats_mass, exMass_never]
+  ring
+
+private lemma exStats_unnorm_always :
+    exStats.unnormTypeWeight exIndex gAlways = 0 := by
+  rw [ResponseTypeStats.unnormTypeWeight, adj2_sum, exStats_mass, exMass_always]
+  ring
+
+/-- The type-weight denominator equals -3/32. -/
+private lemma exStats_denom : exStats.typeWeightDenom exIndex = -3/32 := by
+  rw [ResponseTypeStats.typeWeightDenom, responseType2_univ]
+  rw [Finset.sum_insert (by decide),
+      Finset.sum_insert (by decide),
+      Finset.sum_insert (by decide),
+      Finset.sum_singleton]
+  rw [exStats_unnorm_never, exStats_unnorm_complier,
+      exStats_unnorm_defier, exStats_unnorm_always]
+  norm_num
+
+/-- **Negative-weights theorem.** [There exists a finite-support instrument
+index, a response-type population, and a response type such that, with two
+support points and a 3/4-defier population, that type has positive mass yet a
+negative normalized response-type weight (equal to −1/2)](goal).
+
+This is a finite-algebra counterexample: without sign alignment, the displayed
+centered-score IV ratio need not be a convex average of causal effects. -/
+theorem exists_negativeNormalizedTypeWeight :
+    ∃ (I : FiniteIndex 2) (R : ResponseTypeStats 2) (g : ResponseType 2),
+      0 < R.mass g ∧ R.normalizedTypeWeight I g < 0 := by
+  refine ⟨exIndex, exStats, gComplier, ?_, ?_⟩
+  · -- mass of complier type = 1/4 > 0
+    rw [exStats_mass, exMass_complier]; norm_num
+  · -- normalized weight = (3/64) / (-3/32) = -1/2 < 0
+    rw [ResponseTypeStats.normalizedTypeWeight,
+      Causalean.Stat.Weighted.NormalizedWeights.normalizedWeight]
+    change exStats.unnormTypeWeight exIndex gComplier /
+        (∑ k, exStats.unnormTypeWeight exIndex k) < 0
+    rw [← ResponseTypeStats.typeWeightDenom, exStats_unnorm_complier, exStats_denom]
+    norm_num
+
+end NegWeightExample
+
+end MultipleInstrumentIV
+end PO.ID.Exact
+end Causalean

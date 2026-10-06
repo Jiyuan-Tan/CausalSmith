@@ -1,0 +1,344 @@
+\section{Main results}
+
+The stationary target value in \cref{obj:def:target-value} can be recovered from a fixed collection of short weighted reward histories. Write the observed action likelihood ratio \leanref{sym:\rho_t}{\ensuremath{\rho_j}} as
+\[
+\rho_j=
+\begin{cases}
+e(A_j\mid X_j)/b(A_j\mid X_j),&b(A_j\mid X_j)>0,\\
+0,&b(A_j\mid X_j)=0.
+\end{cases}
+\]
+At depth \(k\), the weighting window includes the current action and the preceding \(k\) actions, giving \(k+1\) likelihood ratios. The score \leanref{sym:Z_t(k)}{\ensuremath{Z_t(k)}} is used only at eligible epochs \(t\geq k+1\). We use its population moment \leanref{sym:m_k}{\ensuremath{m_k}} and empirical counterpart \leanref{sym:\widehat m_k}{\ensuremath{\widehat m_k}} at depths zero through six. The common-window empirical moments are defined for \(T\geq7\) and use terminal epochs \(t=7,\ldots,T\), so every action window lies within the observed trajectory. Stationarity makes \(\mathbb E_b[Z_t(k)]\) independent of the eligible terminal epoch. The risk theorems below retain the stronger horizon condition \(T\geq12\).
+
+\begin{definitionv}{def:observable-moments}[Observable moments $m_k$ and $\widehat m_k$]
+The weighted reward scores, their population moments, and their common-window empirical moments are, for \(k=0,\ldots,6\),
+\[
+Z_t(k)
+:=
+Y_t\prod_{j=t-k}^{t}\rho_j,
+\qquad
+m_k
+:=
+\mathbb E_b[Z_t(k)],
+\qquad
+\widehat m_k
+:=
+\frac{1}{T-6}
+\sum_{t=7}^{T}Z_t(k).
+\]
+Here \(Y_t\) is the bounded reward at time \(t\), \(\rho_j\) is the observed action likelihood ratio at time \(j\), \(\mathbb E_b\) denotes expectation under the stationary behavior experiment, and \(T\) is the observed trajectory length.
+\end{definitionv}
+
+The convention in \cref{obj:def:observable-moments} distinguishes action-window length from transition depth. Sequential assignment and action overlap give the intervention identity
+\[
+m_k=d_bP_e^k r_e,\qquad k=0,\ldots,6,
+\]
+as established in \cref{obj:lem:observable-intervention-moments}. The current action ratio supplies the target-policy reward vector, while the preceding \(k\) ratios supply \(k\) target-policy transitions from the behavior stationary law. Target contraction then connects this scalar moment sequence to the stationary target value.
+
+The estimator fits these seven moments with a contracting four-state realization. Such a realization consists of an initial probability vector \leanref{sym:\nu}{\ensuremath{\nu}}, a transition matrix \leanref{sym:P}{\ensuremath{P}}, and a reward vector \leanref{sym:r}{\ensuremath{r}} with entries in \([0,1]\); its scalar moments are \(\nu P^k r\). For a row-stochastic candidate matrix \(R\), define its Dobrushin contraction coefficient by
+\[
+\delta(R):=\frac12\max_{i,i'}\sum_{j=1}^{4}|R_{ij}-R_{i'j}|.
+\]
+The procedure uses the contraction bound \(\alpha=\exp(-1/t_0)\), where \(t_0>0\) is the supplied mixing scale. Its grid resolution \leanref{sym:M}{\ensuremath{M}} increases with the trajectory length, and its output \leanref{sym:\widehat\theta_T}{\ensuremath{\widehat\theta_T}} is the stationary reward of the selected fit.
+
+\begin{algorithmv}{def:stable-grid-estimator}[Stable grid estimator $\widehat\theta_T$]
+The inputs are the empirical moments \(\widehat m_0,\ldots,\widehat m_6\), the trajectory length \(T\), and the contraction bound \(\alpha\).
+\begin{enumerate}
+\item Set the grid resolution, probability grid, uniform transition matrix, and stabilization weight to
+\[
+M:=\left\lceil(22+36/\alpha)T\right\rceil,
+\qquad
+\mathcal G_M
+:=
+\left\{
+u\in[0,1]^4:
+\sum_{i=1}^{4}u_i=1,\ 
+u_i\in M^{-1}\mathbb Z\ \text{for all }i
+\right\},
+\]
+\[
+U:=\frac{\mathbf1\mathbf1^{\mathsf T}}{4},
+\qquad
+\lambda:=\frac{\alpha}{\alpha+6/M},
+\]
+where \(\mathbf1\) is the four-dimensional vector of ones.
+\item Enumerate the candidate triples in
+\[
+\mathcal C_M
+:=
+\left\{
+(\nu,R,r):
+\begin{gathered}
+\nu\in\mathcal G_M,\quad
+R_{i,\cdot}\in\mathcal G_M\ \text{for }i=1,\ldots,4,\\
+\delta(R)\le\alpha+6/M,\quad
+r\in\{0,1/M,\ldots,1\}^{4}
+\end{gathered}
+\right\},
+\]
+where \(\delta(R)\) is the Dobrushin contraction coefficient. For each candidate, form
+\[
+P(R):=\lambda R+(1-\lambda)U.
+\]
+\item Select the lexicographically first triple \((\nu_*,R_*,r_*)\) among the minimizers
+\[
+(\nu_*,R_*,r_*)
+\in
+\operatorname*{arg\,min}_{(\nu,R,r)\in\mathcal C_M}
+\max_{0\le k\le6}
+\left|\widehat m_k-\nu P(R)^k r\right|.
+\]
+\item Form the selected transition matrix and output its stationary reward:
+\[
+P_*:=P(R_*),
+\qquad
+\widehat\theta_T:=\pi(P_*)r_*,
+\]
+where \(\pi(P_*)\) is the stationary probability vector satisfying
+\[
+\pi(P_*)P_*=\pi(P_*).
+\]
+\end{enumerate}
+\end{algorithmv}
+
+Stabilization gives \(\delta(P(R))\leq\alpha\) for every candidate, placing both the fitted realization and the target realization under a common contraction bound. The finite grid and lexicographic selection specify a measurable procedure, and the stationary probability vector \leanref{sym:\pi}{\ensuremath{\pi(P_*)}} gives an output in \([0,1]\). The fitting criterion concerns the scalar reward moments directly; the risk guarantee concerns their stationary limit.
+
+To assess the estimator against all procedures using the same information, let \(\mathfrak O_T=(\mathcal X\times\mathcal A\times[0,1])^T\) be the observed trajectory sample space. For each supplied policy pair \((b,e)\) and fixed regime pair \((t_0,\zeta)\), an estimator is a measurable map \(\widetilde\theta_{b,e,t_0,\zeta}\colon\mathfrak O_T\to[0,1]\). The notation \(\widetilde\theta\colon\mathsf O_T\to[0,1]\) below is shorthand for evaluating this indexed map at the random observed trajectory. The supremum ranges over the binary experiment class in \cref{obj:def:binary-pomdp-class} with those supplied inputs.
+
+\begin{definitionv}{def:minimax-risk}[Minimax risk $R_T^{(2)}(t_0,\zeta)$]
+The minimax mean-squared error is
+\[
+R_T^{(2)}(t_0,\zeta)
+:=
+\inf_{\substack{\widetilde\theta\colon \mathsf O_T\to[0,1]\ \mathrm{measurable}\\
+\mathrm{with\ respect\ to}\ \sigma(\mathsf O_T,b,e,t_0,\zeta)}}
+\sup_{M\in\mathcal M_T^{(2)}(t_0,\zeta)}
+\mathbb E_M\!\left[(\widetilde\theta-\theta)^2\right].
+\]
+The infimum ranges over measurable observed-data procedures taking values in \( [0,1] \). Here \(\mathsf O_T\) is the observed trajectory of length \(T\); \(b\) and \(e\) are the supplied behavior and target policies; \(t_0\) and \(\zeta\) are the supplied mixing scale and logarithmic action likelihood-ratio bound; \(\mathcal M_T^{(2)}(t_0,\zeta)\) is the binary experiment class; \(\mathbb E_M\) denotes expectation under experiment \(M\); and \(\theta\) is that experiment's stationary target value.
+\end{definitionv}
+
+For the estimator guarantee, write \(L=\exp(\zeta)\) for the action likelihood-ratio bound. The stationary-value modulus constant \leanref{sym:B_\alpha}{\ensuremath{B_\alpha}} and moment variance constant \leanref{sym:V_{\alpha,L}}{\ensuremath{V_{\alpha,L}}} are
+\[
+B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6,
+\qquad
+V_{\alpha,L}=13L^7+\frac{2}{1-\alpha}.
+\]
+These constants quantify stable extrapolation and empirical moment error, respectively. The following bound is uniform over the binary class at each supplied pair of regime parameters.
+
+\begin{theoremv}{thm:stable-grid-upper}[Uniform stable-grid risk bound]
+Let the mixing-scale parameter \(t_0\), logarithmic action likelihood-ratio bound \(\zeta\), and trajectory length \(T\) satisfy:
+\begin{itemize}
+\item \textbf{(Mixing scale.)} \(t_0\in\mathbb R\) and \(t_0>0\).
+\item \textbf{(Overlap bound.)} \(\zeta\in\mathbb R\) and \(\zeta\geq0\).
+\item \textbf{(Horizon.)} \(T\in\mathbb N\) and \(T\geq12\).
+\end{itemize}
+Define the contraction bound \(\alpha\), action likelihood-ratio bound \(L\), stationary-value modulus constant \(B_\alpha\), and moment variance constant \(V_{\alpha,L}\) by
+\[
+\alpha=\exp(-1/t_0),\qquad
+L=\exp(\zeta),\qquad
+B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6,\qquad
+V_{\alpha,L}=13L^7+\frac{2}{1-\alpha}.
+\]
+For every binary-state, binary-action experiment \(M\in\mathcal M_T^{(2)}(t_0,\zeta)\), the stable-grid estimator \(\widehat\theta_T\) of \cref{obj:def:stable-grid-estimator}, using that experiment's behavior and target policies, and the stationary target value \(\theta\) of \cref{obj:def:target-value} satisfy
+\[
+\mathbb E_M\!\left[(\widehat\theta_T-\theta)^2\right]
+\leq
+\frac{B_\alpha^2\bigl(112V_{\alpha,L}+2\bigr)}{T},
+\]
+where \(\mathbb E_M\) denotes expectation under the experiment's observed trajectory law.
+\end{theoremv}
+
+The finite-state recurrence explains why seven short histories suffice. A four-state transition matrix has a stationary eigenvalue and three remaining eigenvalues, counted with algebraic multiplicity. Comparing two such realizations yields a transient polynomial of degree six. Contraction bounds its transient roots away from one, and \cref{obj:lem:pair-polynomial-modulus} converts agreement of the seven initial moments into control of the stationary reward. This stability bound applies uniformly across the contracted four-state realizations used by the estimator. On the sampling side, the empirical moments involve overlapping windows: action overlap controls their weighting, and behavior contraction controls dependence once the windows separate. Together with the intervention identity in \cref{obj:lem:observable-intervention-moments}, these controls give the parametric mean-squared-error order in \cref{obj:thm:stable-grid-upper}.
+
+A matching lower bound follows from a pair of experiments within the same binary class. Their transition and observation laws are common, while a signed local perturbation shifts the reward probabilities. Let \leanref{sym:v_T}{\ensuremath{v_T}} denote the testing perturbation amplitude and \leanref{sym:K_v^{(T)}}{\ensuremath{K_v^{(T)}}} the corresponding joint reward and next-state law.
+
+\begin{definitionv}{def:four-state-testing-family}[Four-state testing family]
+The four-state testing family is indexed by the trajectory length \(T\in\{0,1,\ldots\}\) and a signed perturbation \(v\in\{-v_T,+v_T\}\) satisfying \(|v|\le 1/16\), where the testing perturbation amplitude is
+\[
+v_T=
+\begin{cases}
+0,&T=0,\\
+\dfrac{1}{16\sqrt T},&T\ge 1.
+\end{cases}
+\]
+The observed state, hidden state, and action take values in \(\{0,1\}\), so the joint-state space is \(\mathcal S=\{0,1\}^2\). The behavior and target policies are
+\[
+b(a\mid x)=e(a\mid x)=\frac12,
+\qquad x,a\in\{0,1\}.
+\]
+The observation probabilities, reward probabilities, and successor hidden-state probabilities are defined by
+\[
+E(x\mid h)=
+\begin{cases}
+3/5,&x=h,\\
+2/5,&x\ne h,
+\end{cases}
+\qquad
+q_v(h)=\frac12+\frac{2h-1}{8}+v,
+\qquad
+p(a)=\frac14+\frac a2.
+\]
+The joint reward and next-state kernel has mass
+\[
+K_v^{(T)}(y,x',h'\mid x,h,a)
+=
+\operatorname{Ber}_{q_v(h)}(y)
+\operatorname{Ber}_{p(a)}(h')
+E(x'\mid h'),
+\qquad y,x',h'\in\{0,1\},
+\]
+where the Bernoulli masses are
+\[
+\operatorname{Ber}_{q_v(h)}(y)=
+\begin{cases}
+q_v(h),&y=1,\\
+1-q_v(h),&y=0,
+\end{cases}
+\qquad
+\operatorname{Ber}_{p(a)}(h')=
+\begin{cases}
+p(a),&h'=1,\\
+1-p(a),&h'=0.
+\end{cases}
+\]
+The initial joint state \(S_1\) has distribution
+\[
+\Pr\{S_1=(x,h)\}=\frac12 E(x\mid h).
+\]
+The full trajectory law is the finite mixture of Dirac masses over binary state, action, and reward paths, with each path weighted by its initial joint-state mass multiplied by its behavior-policy action probabilities and joint reward and next-state kernel masses.
+\end{definitionv}
+
+The family in \cref{obj:def:four-state-testing-family} retains hidden-state dependence in rewards, action dependence in successor hidden states, and noisy observations. Equal fair policies give a stationary hidden-state probability of one half, so the stationary value is \(1/2+v\). The two signs therefore separate the target values by \(2v_T\), a quantity of order \(T^{-1/2}\). Their membership in the binary class is established in \cref{obj:lem:testing-family-membership}.
+
+For comparison with a class allowing arbitrary finite hidden-state cardinality, let \(C>1\) be a stationary occupancy-ratio bound, meaning \(d_e(s)\leq C d_b(s)\). When \(\zeta>0\), define the cardinality-uniform rate exponent \leanref{sym:\beta}{\ensuremath{\beta}} and stationary-overlap radius \leanref{sym:q_C}{\ensuremath{q_C}} by
+\[
+\beta=\frac{2}{2+t_0\zeta},
+\qquad
+q_C=\frac{C-1}{C}.
+\]
+The cardinality-uniform comparator conclusion is an external premise supplied by \citet[Theorem 1 (Uniform overlap frontier) and the Signed-depth family definition]{CausalSmithLatentOverlap2026}. For fixed \(t_0>0\), \(\zeta>0\), and \(C>1\), that decision problem has minimax mean-squared-error order
+\[
+T^{-1}+T^{-\beta}q_C^{\,2(1-\beta)}.
+\]
+Its signed-depth lower-bound construction uses a depth schedule \(Q(n)\) of order \(\log n\), with \(2(Q(n)+1)\) hidden states, and a positive lower-bound constant \(c_{\mathrm{Reset}}\).
+
+\paragraph{Binary risk characterization.}
+The first display in the following theorem is the central fixed-binary result. The next block records the internal four-state testing witnesses. The final block is a comparison with the cited cardinality-uniform decision problem and depends on the external manuscript identified above.
+
+\begin{theoremv}{thm:fixed-binary-minimax}[Fixed binary minimax rate]*
+Let \(t_0\) be the mixing-scale parameter, \(\zeta\) the logarithmic action likelihood-ratio bound, and \(T\) the observed trajectory length, with
+\begin{itemize}
+\item \textbf{(Positive mixing scale.)} \(t_0>0\).
+\item \textbf{(Nonnegative overlap exponent.)} \(\zeta\geq0\).
+\item \textbf{(Horizon range.)} \(T\in\mathbb N\) and \(T\geq12\).
+\end{itemize}
+Define the contraction and action-overlap bounds, and the associated modulus and variance constants, by
+\[
+\alpha=\exp(-1/t_0),\qquad L=\exp(\zeta),\qquad
+B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6,\qquad
+V_{\alpha,L}=13L^7+\frac{2}{1-\alpha}.
+\]
+The observable-data minimax mean-squared risk in \cref{obj:def:minimax-risk} satisfies
+\[
+\frac{1}{1024T}
+\leq R_T^{(2)}(t_0,\zeta)
+\leq \frac{B_\alpha^2(112V_{\alpha,L}+2)}{T}.
+\]
+
+Define the testing perturbation amplitude by
+\[
+v_T=\frac{1}{16\sqrt T}.
+\]
+Both experiments in \cref{obj:def:four-state-testing-family} with perturbations \(v=+v_T\) and \(v=-v_T\) belong to the binary class \(\mathcal M_T^{(2)}(t_0,\zeta)\) of \cref{obj:def:binary-pomdp-class}. In each experiment the behavior and target policies are equal fair policies, and their stationary joint-state laws coincide:
+\[
+e(a\mid x)=b(a\mid x)=\frac12,\qquad d_e=d_b.
+\]
+For every stationary occupancy-ratio bound \(C>1\), both experiments satisfy
+\[
+d_e(s)\leq C\,d_b(s)
+\qquad\text{for every joint state }s.
+\]
+For every observable-data estimator \(\widetilde\theta\) taking values in \([0,1]\), the maximum of its mean-squared risks over these two experiments is at least \(1/(1024T)\).
+
+If additionally \(\zeta>0\), then for every \(C>1\), define the cardinality-uniform rate exponent and stationary-overlap radius by
+\[
+\beta=\frac{2}{2+t_0\zeta},\qquad q_C=\frac{C-1}{C}.
+\]
+Then
+\[
+0<\beta<1,\qquad
+\lim_{\substack{n\to\infty\\ n\in\mathbb N}}
+\frac{n^{-1}}{n^{-\beta}q_C^{\,2(1-\beta)}}=0.
+\]
+There exist a positive reset lower-bound constant \(c_{\mathrm{Reset}}>0\) and a depth schedule \(Q:\mathbb N\to\mathbb N\), together with constants \(a_1,a_2>0\), such that, for every sufficiently large \(n\),
+\[
+a_1\log n\leq Q(n)\leq a_2\log n.
+\]
+For every sufficiently large \(n\), one has \(n\geq1\) and \(Q(n)\geq1\), and the two signed depth-\(Q(n)\) reset experiments of \citet{CausalSmithLatentOverlap2026} each have exactly \(2(Q(n)+1)\) hidden states. For every observable-data estimator taking values in \([-1,1]\) in that cardinality-uniform decision problem, the maximum of its mean-squared risks over these two reset experiments is at least
+\[
+c_{\mathrm{Reset}}\,n^{-\beta}.
+\]
+For every sufficiently large \(n\), the negative-sign reset experiment has hidden-state cardinality
+\[
+2\bigl(Q(n)+1\bigr)>2.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:fixed-binary-minimax
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{CausalSmithLatentOverlap2026} (Main minimax theorem and reset-chain lower-bound construction, as supplied in the frozen target and Topic record.). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:fixed-binary-minimax
+
+The two-point experiment explains the matching order in \cref{obj:thm:fixed-binary-minimax}. Perturbing the reward probabilities at scale \(T^{-1/2}\) produces target-value separation at that scale while keeping the observed trajectory laws sufficiently close for the stated testing bound. The bounded observed-data procedures in \cref{obj:def:minimax-risk} are exactly the estimator class to which this testing argument applies. Together with \cref{obj:thm:stable-grid-upper}, this establishes \(T^{-1}\) minimax mean-squared-error order for fixed positive mixing scale and fixed nonnegative overlap exponent.
+
+The cardinality comparison concerns distinct decision problems. The binary class fixes two hidden states, whereas the signed-depth construction of the public manuscript \citet[Theorem 1 (Uniform overlap frontier) and the Signed-depth family definition]{CausalSmithLatentOverlap2026} uses a hidden alphabet whose size increases logarithmically with the horizon. For \(\zeta>0\) and fixed \(C>1\), the ratio limit in \cref{obj:thm:fixed-binary-minimax} makes the comparison precise: the parametric order for the binary class is asymptotically smaller than the cardinality-uniform overlap term. The fixed binary rate therefore characterizes the effect of a specified latent alphabet under the stated contraction and action-overlap conditions.
+
+Coincident policies provide a familiar special case of the same stationary estimand. When the target policy equals the behavior policy, their induced transition matrices and stationary laws agree, and the depth-zero weighted moment becomes the ordinary stationary reward mean. The following reduction gives the corresponding sample-mean benchmark.
+
+\begin{propositionv}{prop:coincident-policy-reduction}[Coincident policy reduction]
+Consider a trajectory experiment with binary observed state, binary hidden state, and binary action. Suppose:
+\begin{itemize}
+\item \textbf{(Positive mixing scale.)} The mixing-scale parameter \(t_0\) satisfies \(t_0>0\), and the associated contraction factor is
+\[
+\alpha=\exp(-1/t_0).
+\]
+\item \textbf{(Nonempty horizon.)} The trajectory length \(T\) is an integer with \(T\geq 1\).
+\item \textbf{(Kernel law.)} \cref{obj:ass:pomdp-kernel} holds.
+\item \textbf{(Sequential assignment.)} \cref{obj:ass:sequential-ignorability} holds.
+\item \textbf{(Stationary start.)} \cref{obj:ass:stationary-start} holds.
+\item \textbf{(Behavior contraction.)} \cref{obj:ass:behavior-contraction} holds with contraction factor \(\alpha\).
+\item \textbf{(Coincident policies.)} The target and behavior policies satisfy \(e=b\).
+\end{itemize}
+The induced joint-state transition matrices coincide. Explicitly, for all joint states \(s,s'\in\mathcal S\), the four-point joint-state space,
+\[
+P_e(s,s')
+=
+\sum_{a\in\{0,1\}}e(a\mid x)
+   \int_{[0,1]}K(dy,s'\mid s,a)
+=
+\sum_{a\in\{0,1\}}b(a\mid x)
+   \int_{[0,1]}K(dy,s'\mid s,a)
+=
+P_b(s,s'),
+\]
+where \(x\) is the observed coordinate of \(s\). Their stationary joint-state laws, \(d_e\) and \(d_b\), also coincide:
+\[
+d_e=d_b.
+\]
+Writing \(\theta\) for the stationary target value in \cref{obj:def:target-value}, the depth-zero population weighted-reward moment \(m_0\) satisfies, at every observed epoch,
+\[
+m_0=\mathbb E_b[Y_t]=\theta,
+\qquad t=1,\ldots,T,
+\]
+where \(Y_t\) is the observed reward and \(\mathbb E_b\) denotes expectation under the behavior experiment. The sample mean is unbiased and obeys
+\[
+\mathbb E_b\!\left[T^{-1}\sum_{t=1}^{T}Y_t\right]=\theta,
+\qquad
+\mathbb E_b\!\left[
+\left\{T^{-1}\sum_{t=1}^{T}Y_t-\theta\right\}^{2}
+\right]
+\leq
+\frac{1+2/(1-\alpha)}{T}.
+\]
+\end{propositionv}
+
+Stationary initialization makes the expected reward at every sampled epoch equal to the target value in \cref{obj:prop:coincident-policy-reduction}; behavior contraction controls the variance of its sample average. The lower-bound family in \cref{obj:def:four-state-testing-family} belongs to this coincident-policy setting. Its reward perturbations establish the parametric lower bound even when behavior and target stationary occupancies agree exactly, clarifying how ordinary sampling uncertainty supplies the matching order within the binary class.

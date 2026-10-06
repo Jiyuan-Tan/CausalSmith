@@ -1,0 +1,580 @@
+\begin{proof}[Proof of \cref{obj:thm:stable-grid-upper}]
+Fix an experiment in \(\mathcal M_T^{(2)}(t_0,\zeta)\). All expectations below are under its observed trajectory law, denoted by \(\mathbb E_M\). Use the moments of \cref{obj:def:observable-moments} and the joint-state quantities of \cref{obj:lem:observable-intervention-moments}.
+
+\begin{enumerate}
+\item Use zero-based epochs throughout this proof: epoch \(t\) here corresponds to epoch \(t+1\) in \cref{obj:def:observable-moments}. Accordingly, define the shifted scores by
+\[
+Z_t(k):=Y_{t+1}\prod_{j=t-k+1}^{t+1}\rho_j,
+\qquad 0\le k\le6,\quad k\le t<T,
+\]
+where the reward and likelihood ratios on the right retain their one-based indexing. Thus \(Z_t(k)\) is the score at one-based epoch \(t+1\), agreeing with the zero-based convention of \cref{obj:lem:observable-intervention-moments}.
+
+Define the retained epoch set, its cardinality, and the maximum empirical moment error by
+\[
+\mathcal I_T:=\{6,\ldots,T-1\},
+\qquad
+n_T:=|\mathcal I_T|=T-6,
+\qquad
+\epsilon_T(w):=
+\max_{0\le k\le6}|\widehat m_k(w)-m_k|,
+\]
+where \(w\in(\mathcal X\times\mathcal A\times\mathbb R)^T\) is an observed trajectory. Changing variables in the one-based retained-window sum gives
+\[
+\widehat m_k
+=
+\frac1{T-6}\sum_{t=6}^{T-1}Z_t(k)
+=
+\frac1{n_T}\sum_{t\in\mathcal I_T}Z_t(k),
+\qquad 0\le k\le6.
+\]
+The parameter conditions give
+\[
+0<\alpha=\exp(-1/t_0)<1,
+\qquad
+L=\exp(\zeta)\ge1,
+\qquad
+B_\alpha\ge0,
+\qquad
+V_{\alpha,L}\ge0,
+\]
+and the horizon condition gives
+\[
+T>0,\qquad n_T>0,\qquad T\le2n_T,\qquad T\ge1.
+\]
+The maximum defining \(\epsilon_T(w)\) is attained among seven indices. Its square is therefore one of the nonnegative summands on the right-hand side of
+\[
+\epsilon_T(w)^2
+\le
+\sum_{k=0}^{6}(\widehat m_k(w)-m_k)^2.
+\]
+The observed law is a probability law, and the empirical moments are square-integrable. Thus the sum on the right is integrable; measurability of the finite maximum and the displayed domination also give integrability of \(\epsilon_T^2\).
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.seven_error_max_sq_le_sum
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.stableGrid_upper
+
+\item For \(0\le k\le6\) and \(t,t'\in\mathcal I_T\), define
+\[
+c_{k;t,t'}
+:=
+\mathbb E_M\!\left[
+  (Z_t(k)-m_k)(Z_{t'}(k)-m_k)
+\right].
+\]
+Every retained epoch satisfies \(k\le t\). Consequently, \cref{obj:lem:observable-intervention-moments} supplies
+\[
+\mathbb E_M[Z_t(k)]=m_k=d_bP_e^kr_e,
+\qquad
+\mathbb E_M[Z_t(k)^2]\le L^{k+1}.
+\]
+In particular,
+\[
+0\le c_{k;t,t}
+=
+\mathbb E_M[(Z_t(k)-m_k)^2]
+=
+\mathbb E_M[Z_t(k)^2]-m_k^2
+\le L^{k+1}.
+\]
+For either choice of sign, nonnegativity of the centered square gives
+\[
+\begin{aligned}
+0
+&\le
+\mathbb E_M\!\left[
+ \bigl((Z_t(k)-m_k)\pm(Z_{t'}(k)-m_k)\bigr)^2
+\right]\\
+&=
+c_{k;t,t}+c_{k;t',t'}\pm2c_{k;t,t'}.
+\end{aligned}
+\]
+Using both signs yields
+\[
+|c_{k;t,t'}|
+\le
+\frac{c_{k;t,t}+c_{k;t',t'}}2
+\le L^{k+1}.
+\]
+For separated epochs, the covariance conclusion of
+\cref{obj:lem:observable-intervention-moments} additionally gives
+\[
+|c_{k;t,t'}|
+\le\alpha^{\,t'-t-k-1}
+\qquad\text{when }t'-t\ge k+1.
+\]
+These identities and bounds apply under the observed law because the scores are functions of the observed trajectory.
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.observable_score_variance_le
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.observable_score_covariance_le
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.observable_score_covariance_le_separated
+
+\item Fix \(0\le k\le6\) and \(t\in\mathcal I_T\). Partition its future retained epochs according to whether \(1\le t'-t\le k\) or \(t'-t\ge k+1\). There are at most \(k\) epochs in the first part. In the second part, the exponents \(t'-t-k-1\) are distinct integers in \(\{0,\ldots,T-1\}\). Hence
+\[
+\begin{aligned}
+\sum_{\substack{t'\in\mathcal I_T\\t<t'}}
+ |c_{k;t,t'}|
+&=
+\sum_{\substack{t'\in\mathcal I_T\\1\le t'-t\le k}}
+ |c_{k;t,t'}|
++
+\sum_{\substack{t'\in\mathcal I_T\\t'-t\ge k+1}}
+ |c_{k;t,t'}|\\
+&\le
+kL^{k+1}+\sum_{j=0}^{T-1}\alpha^j\\
+&=
+kL^{k+1}+\frac{1-\alpha^T}{1-\alpha}\\
+&\le
+kL^{k+1}+\frac1{1-\alpha}.
+\end{aligned}
+\]
+For \(k=0\), the first sum is empty and equals zero. Symmetry of covariance allows the full absolute covariance sum to be split into its diagonal and twice its upper triangle:
+\[
+\begin{aligned}
+\sum_{t\in\mathcal I_T}\sum_{t'\in\mathcal I_T}c_{k;t,t'}
+&\le
+\sum_{t\in\mathcal I_T}\sum_{t'\in\mathcal I_T}|c_{k;t,t'}|\\
+&=
+\sum_{t\in\mathcal I_T}|c_{k;t,t}|
++
+2\sum_{t\in\mathcal I_T}
+ \sum_{\substack{t'\in\mathcal I_T\\t<t'}}
+ |c_{k;t,t'}|\\
+&\le
+n_TL^{k+1}
++
+2n_T\left(kL^{k+1}+\frac1{1-\alpha}\right)\\
+&=
+n_T\left((1+2k)L^{k+1}+\frac2{1-\alpha}\right)\\
+&\le
+n_T\left(13L^7+\frac2{1-\alpha}\right)
+=
+n_TV_{\alpha,L}.
+\end{aligned}
+\]
+The last inequality uses \(k\le6\) and \(L\ge1\).
+
+Averaging the score means over the common window gives
+\[
+\mathbb E_M[\widehat m_k]
+=
+\frac1{n_T}\sum_{t\in\mathcal I_T}\mathbb E_M[Z_t(k)]
+=
+m_k.
+\]
+Expanding the centered square of this finite average therefore yields
+\[
+\begin{aligned}
+\mathbb E_M[(\widehat m_k-m_k)^2]
+&=
+\frac1{n_T^2}
+\sum_{t\in\mathcal I_T}\sum_{t'\in\mathcal I_T}c_{k;t,t'}\\
+&\le
+\frac{V_{\alpha,L}}{n_T}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.binary_sum_abs_covariance_future_le
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.binary_sum_abs_symmetric_eq_diag_add_two_upper
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_mse_eq_covariance_sum
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_mse_le_varianceFactor
+
+\item Integrating \(\epsilon_T(w)^2\le\sum_{k=0}^{6}(\widehat m_k(w)-m_k)^2\) and applying the seven moment bounds gives
+\[
+\mathbb E_M[\epsilon_T^2]
+\le
+\sum_{k=0}^{6}\mathbb E_M[(\widehat m_k-m_k)^2]
+\le
+\frac{7V_{\alpha,L}}{n_T}.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_max_mse_le_varianceFactor
+
+\item We next obtain a value bound for the selected grid realization. To distinguish the grid resolution from the fixed experiment, write
+\[
+M_{\mathrm{grid}}
+:=
+\left\lceil(22+36/\alpha)T\right\rceil,
+\qquad
+U:=\frac{\mathbf1\mathbf1^{\mathsf T}}4,
+\qquad
+\lambda:=\frac{\alpha}{\alpha+6/M_{\mathrm{grid}}}.
+\]
+Here \(\mathbf1\) is the four-dimensional vector of ones. Thus
+\[
+M_{\mathrm{grid}}>0,
+\qquad
+0<\lambda<1,
+\qquad
+P(R)=\lambda R+(1-\lambda)U.
+\]
+Use a fixed ordering of the four joint states as the four grid coordinates; this relabeling preserves scalar matrix moments and total variation.
+
+The candidate set of \cref{obj:def:stable-grid-estimator} is finite and nonempty. Indeed,
+\[
+\bigl((1,0,0,0),\ \mathbf1(1,0,0,0),\ (0,0,0,0)\bigr)
+\in\mathcal C_{M_{\mathrm{grid}}},
+\]
+because all its coordinates lie on the required grids and
+\[
+\delta\bigl(\mathbf1(1,0,0,0)\bigr)=0
+\le\alpha+\frac6{M_{\mathrm{grid}}}.
+\]
+The lexicographic minimizer therefore belongs to this candidate set.
+
+For every candidate \((\nu,R,r)\), its stabilized matrix is row-stochastic and satisfies
+\[
+P(R)_{ij}\ge\frac{1-\lambda}{4}.
+\]
+The common uniform component cancels between rows, so
+\[
+\begin{aligned}
+\delta(P(R))
+&=
+\lambda\delta(R)\\
+&\le
+\lambda\left(\alpha+\frac6{M_{\mathrm{grid}}}\right)
+=
+\alpha.
+\end{aligned}
+\]
+The same uniform minorization gives, for probability rows \(\mu,\mu'\),
+\[
+\|\mu P(R)-\mu'P(R)\|_{\mathrm{TV}}
+\le
+\lambda\|\mu-\mu'\|_{\mathrm{TV}}.
+\]
+Since \(\lambda<1\), contraction on the finite probability simplex supplies a stationary probability row:
+\[
+\pi(P(R))P(R)=\pi(P(R)),
+\qquad
+\pi(P(R))_i\ge0,
+\qquad
+\sum_{i=1}^{4}\pi(P(R))_i=1.
+\]
+
+Write the selected quantities as in \cref{obj:def:stable-grid-estimator}:
+\[
+(\nu_*,R_*,r_*)\in\mathcal C_{M_{\mathrm{grid}}},
+\qquad
+P_*:=P(R_*),
+\qquad
+\widehat\theta_T=\pi(P_*)r_*.
+\]
+The experiment's class conditions give a row-stochastic \(P_e\), probability rows \(d_b,d_e\), and a unit-range reward vector:
+\[
+P_e(i,j)\ge0,\quad \sum_jP_e(i,j)=1,
+\qquad
+d_b(i),d_e(i)\ge0,\quad \sum_id_b(i)=\sum_id_e(i)=1,
+\]
+\[
+d_eP_e=d_e,
+\qquad
+0\le r_e(i)\le1.
+\]
+Applying \cref{obj:ass:target-contraction} to point masses gives
+\[
+\delta(P_e)
+=
+\max_{i,j}\frac12\sum_s|P_e(i,s)-P_e(j,s)|
+\le\alpha.
+\]
+Together with \(\theta=d_er_e\) from \cref{obj:def:target-value}, these facts discharge the hypotheses of \cref{obj:lem:pair-polynomial-modulus}. Its value bound is
+\[
+\begin{aligned}
+|\widehat\theta_T-\theta|
+&\le
+B_\alpha
+\max_{0\le k\le6}
+|\nu_*P_*^kr_*-d_bP_e^kr_e|\\
+&=
+B_\alpha
+\max_{0\le k\le6}
+|\nu_*P_*^kr_*-m_k|.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.selectGridCode_mem
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.stabilizedGridMatrix_stationary
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.stabilizedGridMatrix_dobrushin_le
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.grid_value_modulus
+
+\item Construct an approximating candidate by rounding. For every probability row \(\mu\) on the four coordinates, define
+\[
+\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i
+:=
+\begin{cases}
+\lfloor M_{\mathrm{grid}}\mu_i\rfloor/M_{\mathrm{grid}},
+ &i=1,2,3,\\[2mm]
+1-\displaystyle\sum_{j=1}^{3}
+ \lfloor M_{\mathrm{grid}}\mu_j\rfloor/M_{\mathrm{grid}},
+ &i=4.
+\end{cases}
+\]
+The first three coordinates are rounded down, and their sum is at most one. The fourth coordinate is therefore nonnegative, is a grid multiple, and makes the total mass one. For \(i=1,2,3\),
+\[
+0\le
+\mu_i-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i
+\le\frac1{M_{\mathrm{grid}}},
+\]
+while
+\[
+\mu_4-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_4
+=
+-\sum_{i=1}^{3}
+ \left(\mu_i-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i\right).
+\]
+Consequently,
+\[
+\begin{aligned}
+\|\mu-\mathcal R_{\mathrm{grid}}(\mu)\|_{\mathrm{TV}}
+&=
+\frac12\sum_{i=1}^{4}
+ \left|\mu_i-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i\right|\\
+&=
+\sum_{i=1}^{3}
+ \left(\mu_i-\bigl(\mathcal R_{\mathrm{grid}}(\mu)\bigr)_i\right)
+\le\frac3{M_{\mathrm{grid}}}.
+\end{aligned}
+\]
+
+Define the rounded initial row, transition rows, and rewards by
+\[
+\nu_{\mathrm{grid}}:=\mathcal R_{\mathrm{grid}}(d_b),
+\qquad
+R_{\mathrm{grid}}(i,\cdot)
+:=
+\mathcal R_{\mathrm{grid}}(P_e(i,\cdot)),
+\qquad
+r_{\mathrm{grid}}(i)
+:=
+\frac{\lfloor M_{\mathrm{grid}}r_e(i)\rfloor}{M_{\mathrm{grid}}}.
+\]
+They satisfy
+\[
+\|\nu_{\mathrm{grid}}-d_b\|_{\mathrm{TV}}
+\le\frac3{M_{\mathrm{grid}}},
+\qquad
+\max_i\|R_{\mathrm{grid}}(i,\cdot)-P_e(i,\cdot)\|_{\mathrm{TV}}
+\le\frac3{M_{\mathrm{grid}}},
+\]
+\[
+0\le r_{\mathrm{grid}}(i)\le1,
+\qquad
+0\le r_e(i)-r_{\mathrm{grid}}(i)
+\le\frac1{M_{\mathrm{grid}}}.
+\]
+For each pair of rows, the triangle inequality gives
+\[
+\begin{aligned}
+\|R_{\mathrm{grid}}(i,\cdot)-R_{\mathrm{grid}}(j,\cdot)\|_{\mathrm{TV}}
+&\le
+\|R_{\mathrm{grid}}(i,\cdot)-P_e(i,\cdot)\|_{\mathrm{TV}}\\
+&\quad+
+\|P_e(i,\cdot)-P_e(j,\cdot)\|_{\mathrm{TV}}\\
+&\quad+
+\|P_e(j,\cdot)-R_{\mathrm{grid}}(j,\cdot)\|_{\mathrm{TV}}\\
+&\le\alpha+\frac6{M_{\mathrm{grid}}}.
+\end{aligned}
+\]
+Taking the maximum over the row pair proves
+\[
+\delta(R_{\mathrm{grid}})
+\le\alpha+\frac6{M_{\mathrm{grid}}},
+\qquad
+(\nu_{\mathrm{grid}},R_{\mathrm{grid}},r_{\mathrm{grid}})
+\in\mathcal C_{M_{\mathrm{grid}}}.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.reward_grid_rounding
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.simplex_grid_rounding
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.gridDobrushin_perturbation
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.grid_candidate_moment_approximation
+
+\item Define the stabilized approximating matrix by
+\[
+P_{\mathrm{grid}}
+:=
+P(R_{\mathrm{grid}})
+=
+\lambda R_{\mathrm{grid}}+(1-\lambda)U.
+\]
+For every row, its distance from the uniform probability row is at most one. Also,
+\[
+1-\lambda
+=
+\frac{6/M_{\mathrm{grid}}}{\alpha+6/M_{\mathrm{grid}}}
+\le\frac6{\alpha M_{\mathrm{grid}}}.
+\]
+It follows that
+\[
+\begin{aligned}
+\|R_{\mathrm{grid}}(i,\cdot)-P_{\mathrm{grid}}(i,\cdot)\|_{\mathrm{TV}}
+&=
+(1-\lambda)
+\|R_{\mathrm{grid}}(i,\cdot)-U(i,\cdot)\|_{\mathrm{TV}}\\
+&\le\frac6{\alpha M_{\mathrm{grid}}},
+\end{aligned}
+\]
+and hence
+\[
+\|P_e(i,\cdot)-P_{\mathrm{grid}}(i,\cdot)\|_{\mathrm{TV}}
+\le
+\frac{3+6/\alpha}{M_{\mathrm{grid}}}.
+\]
+
+For every integer \(k\ge0\), stochasticity and the reward bounds imply
+\[
+0\le(P_e^kr_e)(i)\le1.
+\]
+Integration of a \([0,1]\)-valued function against the difference of two probability rows is bounded by their total variation distance: centering that function at \(1/2\) gives this bound directly. We claim
+\[
+\|P_e^kr_e-P_{\mathrm{grid}}^kr_{\mathrm{grid}}\|_\infty
+\le
+\frac{k(3+6/\alpha)+1}{M_{\mathrm{grid}}},
+\qquad k\ge0.
+\]
+For \(k=0\), this is the reward-rounding bound. At the induction step, insert
+\(P_{\mathrm{grid}}P_e^kr_e\) between the two expressions. The row approximation bound controls the first difference, and averaging the previous error with a stochastic row controls the second:
+\[
+\begin{aligned}
+&\|P_e^{k+1}r_e-P_{\mathrm{grid}}^{k+1}r_{\mathrm{grid}}\|_\infty\\
+&\quad\le
+\|(P_e-P_{\mathrm{grid}})P_e^kr_e\|_\infty
++
+\|P_{\mathrm{grid}}
+ (P_e^kr_e-P_{\mathrm{grid}}^kr_{\mathrm{grid}})\|_\infty\\
+&\quad\le
+\frac{3+6/\alpha}{M_{\mathrm{grid}}}
++
+\|P_e^kr_e-P_{\mathrm{grid}}^kr_{\mathrm{grid}}\|_\infty\\
+&\quad\le
+\frac{(k+1)(3+6/\alpha)+1}{M_{\mathrm{grid}}}.
+\end{aligned}
+\]
+The initial-distribution error can now be separated from the power-and-reward error:
+\[
+\begin{aligned}
+|m_k-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|
+&=
+|d_bP_e^kr_e-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|\\
+&\le
+|(d_b-\nu_{\mathrm{grid}})P_e^kr_e|
++
+|\nu_{\mathrm{grid}}
+ (P_e^kr_e-P_{\mathrm{grid}}^kr_{\mathrm{grid}})|\\
+&\le
+\frac3{M_{\mathrm{grid}}}
++
+\frac{k(3+6/\alpha)+1}{M_{\mathrm{grid}}}\\
+&=
+\frac{4+k(3+6/\alpha)}{M_{\mathrm{grid}}}.
+\end{aligned}
+\]
+For \(0\le k\le6\), the coefficient and ceiling calibration give
+\[
+4+k(3+6/\alpha)\le22+36/\alpha,
+\qquad
+(22+36/\alpha)T\le M_{\mathrm{grid}},
+\]
+so
+\[
+|m_k-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|
+\le
+\frac{22+36/\alpha}{M_{\mathrm{grid}}}
+\le\frac1T.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.stabilizedGridMatrix_row_error
+% lean: Causalean.Mathlib.Probability.FiniteMarkovPerturbation.stochastic_power_reward_error
+% lean: Causalean.Mathlib.Probability.FiniteMarkovPerturbation.stochastic_moment_error
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.grid_approximation
+
+\item Fix an observed trajectory \(w\). The approximating candidate has empirical discrepancy bounded by
+\[
+\begin{aligned}
+\max_{0\le k\le6}
+|\widehat m_k(w)-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|
+&\le
+\max_{0\le k\le6}|\widehat m_k(w)-m_k|\\
+&\quad+
+\max_{0\le k\le6}
+|m_k-\nu_{\mathrm{grid}}P_{\mathrm{grid}}^kr_{\mathrm{grid}}|\\
+&\le\epsilon_T(w)+T^{-1}.
+\end{aligned}
+\]
+Because the selected candidate minimizes this discrepancy,
+\[
+\max_{0\le k\le6}
+|\widehat m_k(w)-\nu_*P_*^kr_*|
+\le\epsilon_T(w)+T^{-1}.
+\]
+Applying the triangle inequality once more gives
+\[
+\begin{aligned}
+\max_{0\le k\le6}|\nu_*P_*^kr_*-m_k|
+&\le
+\max_{0\le k\le6}|\nu_*P_*^kr_*-\widehat m_k(w)|
++\epsilon_T(w)\\
+&\le2\epsilon_T(w)+T^{-1}.
+\end{aligned}
+\]
+Combining this with the value modulus obtained above yields
+\[
+|\widehat\theta_T(w)-\theta|
+\le
+B_\alpha(2\epsilon_T(w)+T^{-1}).
+\]
+The right-hand side is nonnegative, so squaring preserves the inequality. Moreover,
+\((2\epsilon_T(w)-T^{-1})^2\ge0\) gives
+\[
+\begin{aligned}
+(\widehat\theta_T(w)-\theta)^2
+&\le
+B_\alpha^2(2\epsilon_T(w)+T^{-1})^2\\
+&\le
+B_\alpha^2\left(8\epsilon_T(w)^2+2T^{-2}\right).
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.selected_grid_moment_error
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.selected_grid_intervention_moment_error
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.stableGridEstimator_value_error
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.stableGrid_upper
+
+\item The sampling and grid terms admit separate horizon bounds. Since
+\(V_{\alpha,L}\ge0\) and \(T\le2n_T\),
+\[
+56V_{\alpha,L}T
+\le112V_{\alpha,L}n_T.
+\]
+Dividing by the positive product \(n_TT\) gives
+\[
+8\left(\frac{7V_{\alpha,L}}{n_T}\right)
+=
+\frac{56V_{\alpha,L}}{n_T}
+\le
+\frac{112V_{\alpha,L}}T.
+\]
+Also, \(T\ge1\) implies \(T^2\ge T>0\), and therefore
+\[
+T^{-2}\le T^{-1}.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.stableGrid_upper
+
+\item The pointwise upper bound is integrable by integrability of \(\epsilon_T^2\). Monotonicity of integration for the nonnegative squared loss, followed by linearity of expectation under a probability law, now gives
+\[
+\begin{aligned}
+\mathbb E_M[(\widehat\theta_T-\theta)^2]
+&\le
+\mathbb E_M\!\left[
+ B_\alpha^2(8\epsilon_T^2+2T^{-2})
+\right]\\
+&=
+B_\alpha^2\left(8\mathbb E_M[\epsilon_T^2]+2T^{-2}\right)\\
+&\le
+B_\alpha^2\left(
+ 8\frac{7V_{\alpha,L}}{n_T}+2T^{-2}
+\right)\\
+&\le
+B_\alpha^2\left(
+ \frac{112V_{\alpha,L}}T+\frac2T
+\right)\\
+&=
+\frac{B_\alpha^2(112V_{\alpha,L}+2)}T.
+\end{aligned}
+\]
+The fixed experiment was arbitrary, and every bound uses the same constants throughout the stated class.
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.stableGrid_upper
+\end{enumerate}
+\end{proof}

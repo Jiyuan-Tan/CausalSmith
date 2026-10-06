@@ -1,0 +1,365 @@
+\begin{proof}[Proof of \cref{obj:lem:ordered-prefix-rounding}]
+\begin{enumerate}
+\item
+We first establish joint measurability. For an arbitrary input matrix \(a\in\mathbb R^{K\times n}\) and seed vector
+\[
+\boldsymbol\eta=(\eta_1,\ldots,\eta_{3n})\in\mathbb R^{3n},
+\]
+run \cref{obj:def:ordered-boundary-rounding}, using \(\eta_{2\tau+1}\) for direction selection and \(\eta_{2\tau+2}\) for the boundary coin at move \(\tau\), where \(0\leq\tau<n\). A terminal coordinate round uses the second of these seeds. After exhaustion, pad the procedure with identity moves.
+
+Write \(u^{(\tau)}\) for the fractional vector after \(\tau\) moves, and define its active set and count by
+\[
+u^{(0)}=0,\qquad
+\mathcal I_\tau=\{i\in\{1,\ldots,n\}:|u_i^{(\tau)}|<1\},
+\qquad
+r_\tau=|\mathcal I_\tau|.
+\]
+More explicitly, on a nonterminal move the recursion is
+\[
+u^{(\tau+1)}
+=
+\begin{cases}
+u^{(\tau)}+\delta_b^+v_b,
+&\displaystyle \eta_{2\tau+2}<\frac{\delta_b^-}{\delta_b^++\delta_b^-},\\[4pt]
+u^{(\tau)}-\delta_b^-v_b,
+&\displaystyle \eta_{2\tau+2}\geq\frac{\delta_b^-}{\delta_b^++\delta_b^-},
+\end{cases}
+\]
+where \(b\), the basis vectors, and the boundary lengths are computed from the current state as specified in \cref{obj:def:ordered-boundary-rounding}. On a terminal move, put
+\[
+i_{\mathrm{term},\tau}=\min\mathcal I_\tau
+\]
+and replace that coordinate by \(+1\) exactly when
+\(\eta_{2\tau+2}<(1+u_{i_{\mathrm{term},\tau}}^{(\tau)})/2\), and by \(-1\) otherwise. This index is used exclusively when the active set is nonempty. An empty active set gives \(u^{(\tau+1)}=u^{(\tau)}\). The output is
+\[
+Z_i(a,\boldsymbol\eta)
+=
+\begin{cases}
+1,&u_i^{(n)}(a,\boldsymbol\eta)>0,\\
+-1,&u_i^{(n)}(a,\boldsymbol\eta)\leq0.
+\end{cases}
+\]
+
+All active-set and phase tests are Borel. Ordered Gram--Schmidt is a finite recursion: each residual is formed by sums and products, the zero-residual branch is Borel, and normalization on the positive-norm branch is Borel. Consequently the constraint projection and the ordered basis obtained from its projected coordinate vectors are Borel functions of the input and state. Boundary lengths are finite minima of sign-guarded ratios, and the finite inverse-distribution recursion uses Borel threshold tests. For the total formulas, an empty minimum is assigned zero and division by zero is assigned zero. For arbitrary real selection seeds, the same threshold recursion selects the first interval below zero and the last interval at or above one.
+
+Thus induction over the finite move recursion gives joint Borel measurability of \(u^{(n)}\). In particular,
+\[
+\{(a,\boldsymbol\eta):Z_i(a,\boldsymbol\eta)=1\}
+=
+\{(a,\boldsymbol\eta):u_i^{(n)}(a,\boldsymbol\eta)>0\}
+\]
+is Borel for every coordinate. Since the sign space is finite, the output map is jointly Borel. When \(n=0\), it is the constant map into the singleton empty sign space.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.orderedBoundaryRounding_measurable
+
+\item
+We next prove termination. At a nonterminal move, define
+\[
+r_{\mathrm{con},\tau}
+=\operatorname{rank}\bigl((a_{\ell i})_{1\leq\ell\leq q_1,\ i\in\mathcal I_\tau}\bigr),
+\qquad
+r_{\mathrm{null},\tau}=\dim(\operatorname{im}P).
+\]
+The orthonormalized constraint rows and the nullspace basis together span the active coordinate subspace. Hence
+\[
+r_{\mathrm{con},\tau}+r_{\mathrm{null},\tau}=r_\tau,
+\qquad
+r_{\mathrm{con},\tau}\leq q_1,
+\qquad
+r_{\mathrm{null},\tau}\geq r_\tau-q_1.
+\]
+At a new nonterminal phase, \(r_\tau\geq4\) and
+\(q_1=\lfloor r_\tau/4\rfloor<r_\tau\). During a continuing phase with starting count \(r\),
+\[
+q_1=\lfloor r/4\rfloor
+\leq\lfloor r/2\rfloor<r_\tau.
+\]
+Thus \(r_{\mathrm{null},\tau}>0\) on every nonterminal move.
+
+Every basis vector is nonzero and supported on active coordinates. Therefore the sets defining its two boundary lengths are nonempty, and
+\[
+0<\delta_b^+<\infty,\qquad
+0<\delta_b^-<\infty.
+\]
+The boundary minima ensure
+\[
+|u_i^{(\tau)}+\delta_b^+(v_b)_i|\leq1,
+\qquad
+|u_i^{(\tau)}-\delta_b^-(v_b)_i|\leq1
+\]
+for every coordinate, with equality for at least one previously active coordinate on each branch. Already inactive coordinates have zero direction entries. A terminal round likewise fixes one active coordinate at a boundary. Thus, whenever \(r_\tau>0\), a move preserves the cube and strictly decreases the active count; when \(r_\tau=0\), the move is the identity. Induction yields
+\[
+|u_i^{(\tau)}|\leq1,
+\qquad
+r_\tau\leq\max\{n-\tau,0\}
+\qquad(0\leq\tau\leq n).
+\]
+In particular \(r_n=0\), so \(|u_i^{(n)}|=1\). If \(u_i^{(n)}>0\), then \(u_i^{(n)}=1=Z_i\); otherwise \(u_i^{(n)}=-1=Z_i\). This proves
+\[
+u_i^{(n)}=Z_i
+\qquad(1\leq i\leq n).
+\]
+The argument applies to every real seed vector, and hence to every seed vector in the stated cube.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.roundingIteration_terminal_eq_sign
+
+\item
+Now supply \(a_\ell^{\mathsf T}\), \(1\leq\ell\leq K\), as the input rows and draw the seeds independently and uniformly. Define
+\[
+\mathcal F_\tau=\sigma(\eta_1,\ldots,\eta_{2\tau}),
+\qquad
+\Delta^{(\tau)}=u^{(\tau+1)}-u^{(\tau)}
+\qquad(0\leq\tau<n).
+\]
+Conditional on the current state and the selected basis index \(b\), the boundary coin gives
+\[
+\mathbb E[\Delta^{(\tau)}\mid\mathcal F_\tau,b]
+=
+\left(
+\frac{\delta_b^-\delta_b^+}{\delta_b^++\delta_b^-}
+-
+\frac{\delta_b^+\delta_b^-}{\delta_b^++\delta_b^-}
+\right)v_b
+=0.
+\]
+For a terminal coordinate round, its conditional mean is
+\[
+\frac{1+u_i^{(\tau)}}2
+-
+\frac{1-u_i^{(\tau)}}2
+=u_i^{(\tau)}.
+\]
+Identity moves also have zero increment. Integrating the fresh coin and then the remaining seeds therefore gives
+\[
+\mathbb E[u_i^{(\tau+1)}]
+=\mathbb E[u_i^{(\tau)}].
+\]
+Starting from \(u^{(0)}=0\) and using the terminal identity from the preceding step, we obtain
+\[
+\mathbb E[Z_i]=\mathbb E[u_i^{(n)}]=0.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.orderedBoundaryRounding_fair
+
+\item
+Fix an integer \(h\geq1\). Define the predictable unprotected events by
+\[
+\mathcal E_\tau=\{r_\tau<4h\}
+\qquad(0\leq\tau<n).
+\]
+These events are Borel and depend exclusively on seeds read before move \(\tau\).
+
+We establish the row-to-energy comparison on each move. On a nonterminal move, the scalar boundary-coin second moment is
+\[
+\frac{\delta_b^-(\delta_b^+)^2+\delta_b^+(\delta_b^-)^2}
+{\delta_b^++\delta_b^-}
+=\delta_b^+\delta_b^-=t_b.
+\]
+Averaging over the direction probabilities \(t_b^{-1}/S\) consequently gives
+\[
+\mathbb E\!\left[(a_h^{\mathsf T}\Delta^{(\tau)})^2\mid\mathcal F_\tau\right]
+=
+S^{-1}\sum_{b=1}^{r_{\mathrm{null},\tau}}
+(a_h^{\mathsf T}v_b)^2.
+\]
+Here \(S\) and the basis refer to the current move. Orthonormality and active support imply
+\[
+\begin{aligned}
+0
+&\leq
+\left\|
+\bigl((a_h)_i\mathbf1_{\{i\in\mathcal I_\tau\}}\bigr)_{i=1}^n
+-
+\sum_{b=1}^{r_{\mathrm{null},\tau}}
+(a_h^{\mathsf T}v_b)v_b
+\right\|_2^2\\
+&=
+\sum_{i\in\mathcal I_\tau}(a_h)_i^2
+-
+\sum_{b=1}^{r_{\mathrm{null},\tau}}(a_h^{\mathsf T}v_b)^2.
+\end{aligned}
+\]
+Thus the row-entry bound yields
+\[
+\mathbb E\!\left[(a_h^{\mathsf T}\Delta^{(\tau)})^2\mid\mathcal F_\tau\right]
+\leq S^{-1}\Lambda^2r_\tau.
+\]
+The same boundary-coin calculation, together with zero conditional mean and unit basis norms, gives
+\[
+\mathbb E\!\left[
+\|u^{(\tau+1)}\|_2^2-\|u^{(\tau)}\|_2^2
+\mid\mathcal F_\tau\right]
+=S^{-1}r_{\mathrm{null},\tau}\geq0.
+\]
+
+At a phase refresh,
+\(2\lfloor r_\tau/4\rfloor<r_\tau\). On a continuing phase,
+\[
+2q_1=2\lfloor r/4\rfloor
+\leq\lfloor r/2\rfloor<r_\tau.
+\]
+Combining \(2q_1<r_\tau\) with
+\(r_{\mathrm{null},\tau}\geq r_\tau-q_1\) gives
+\[
+r_\tau\leq4r_{\mathrm{null},\tau}.
+\]
+Therefore the conditional row variance is at most \(4\Lambda^2\) times the conditional norm-energy increase.
+
+On a terminal move, the corresponding two quantities are
+\[
+\mathbb E\!\left[(a_h^{\mathsf T}\Delta^{(\tau)})^2\mid\mathcal F_\tau\right]
+=(a_h)_{i_{\mathrm{term},\tau}}^2
+\bigl(1-(u_{i_{\mathrm{term},\tau}}^{(\tau)})^2\bigr),
+\]
+and
+\[
+\mathbb E\!\left[
+\|u^{(\tau+1)}\|_2^2-\|u^{(\tau)}\|_2^2
+\mid\mathcal F_\tau\right]
+=1-(u_{i_{\mathrm{term},\tau}}^{(\tau)})^2\geq0.
+\]
+These satisfy the same comparison. Both quantities vanish on an identity move.
+
+Multiplying by the predictable indicator and integrating therefore gives
+\[
+\mathbb E\!\left[
+\bigl(\mathbf1_{\mathcal E_\tau}a_h^{\mathsf T}\Delta^{(\tau)}\bigr)^2
+\right]
+\leq
+4\Lambda^2
+\mathbb E\!\left[
+\mathbf1_{\mathcal E_\tau}
+\bigl(\|u^{(\tau+1)}\|_2^2-\|u^{(\tau)}\|_2^2\bigr)
+\right].
+\]
+For each coordinate, expanding the square and integrating the fresh zero-mean coin gives
+\[
+\mathbb E\!\left[
+\bigl(\mathbf1_{\mathcal E_\tau}\Delta_i^{(\tau)}\bigr)^2
+\right]
+=
+\mathbb E\!\left[
+\mathbf1_{\mathcal E_\tau}
+\bigl((u_i^{(\tau+1)})^2-(u_i^{(\tau)})^2\bigr)
+\right].
+\]
+Summing first over coordinates and then over moves proves
+\[
+\sum_{\tau=0}^{n-1}
+\mathbb E\!\left[
+\bigl(\mathbf1_{\mathcal E_\tau}a_h^{\mathsf T}\Delta^{(\tau)}\bigr)^2
+\right]
+\leq
+4\Lambda^2
+\sum_{\tau=0}^{n-1}\sum_{i=1}^n
+\mathbb E\!\left[
+\bigl(\mathbf1_{\mathcal E_\tau}\Delta_i^{(\tau)}\bigr)^2
+\right].
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.roundingIteration_masked_row_variance_sum_le
+
+\item
+Define the first unprotected time by
+\[
+\tau_*=\min\{\tau\in\{0,\ldots,n\}:r_\tau<4h\}.
+\]
+This finite minimum exists because \(r_n=0\) and \(h\geq1\). It is measurable. Since active counts decrease,
+\[
+\mathbf1_{\mathcal E_\tau}
+=\mathbf1_{\{\tau_*\leq\tau\}}
+\qquad(0\leq\tau<n),
+\]
+and
+\[
+r_{\tau_*}<4h,\qquad
+r_{\tau_*}\leq n,\qquad
+r_{\tau_*}\leq4\min\{h,n\}.
+\]
+The coordinate-energy identity from the preceding step now telescopes over this predictable terminal interval:
+\[
+\begin{aligned}
+\sum_{\tau=0}^{n-1}\sum_{i=1}^n
+\mathbb E\!\left[
+\bigl(\mathbf1_{\mathcal E_\tau}\Delta_i^{(\tau)}\bigr)^2
+\right]
+&=
+\mathbb E\!\left[
+\sum_{\tau=0}^{n-1}
+\mathbf1_{\{\tau_*\leq\tau\}}
+\bigl(\|u^{(\tau+1)}\|_2^2-\|u^{(\tau)}\|_2^2\bigr)
+\right]\\
+&=
+\mathbb E\!\left[\|u^{(n)}\|_2^2-\|u^{(\tau_*)}\|_2^2\right].
+\end{aligned}
+\]
+Coordinates inactive at \(\tau_*\) remain fixed, while every endpoint coordinate has square at most one. Hence, pointwise,
+\[
+\|u^{(n)}\|_2^2-\|u^{(\tau_*)}\|_2^2
+=
+\sum_{i\in\mathcal I_{\tau_*}}
+\bigl((u_i^{(n)})^2-(u_i^{(\tau_*)})^2\bigr)
+\leq r_{\tau_*}.
+\]
+Consequently,
+\[
+\sum_{\tau=0}^{n-1}\sum_{i=1}^n
+\mathbb E\!\left[
+\bigl(\mathbf1_{\mathcal E_\tau}\Delta_i^{(\tau)}\bigr)^2
+\right]
+\leq\mathbb E[r_{\tau_*}]
+\leq4\min\{h,n\}.
+\]
+The telescope also applies when \(\tau_*=n\), with an empty selected interval.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.roundingIteration_unprotected_coordinate_variance_sum_le
+
+\item
+It remains to identify the final row second moment with the selected move variances. When \(r_\tau\geq4h\), we have \(h\leq K\). At a phase refresh,
+\[
+q_1=\lfloor r_\tau/4\rfloor\geq h.
+\]
+During a continuing phase, its starting count is at least \(r_\tau\), so its retained prefix again contains row \(h\). Every direction is orthogonal to that row. Thus
+\[
+r_\tau\geq4h
+\quad\Longrightarrow\quad
+a_h^{\mathsf T}\Delta^{(\tau)}=0.
+\]
+
+Zero conditional increment means also give
+\[
+\mathbb E\!\left[
+(a_h^{\mathsf T}u^{(\tau)})
+(a_h^{\mathsf T}\Delta^{(\tau)})
+\right]=0.
+\]
+Expanding the row square therefore yields
+\[
+\mathbb E[(a_h^{\mathsf T}u^{(\tau+1)})^2]
+-
+\mathbb E[(a_h^{\mathsf T}u^{(\tau)})^2]
+=
+\mathbb E[(a_h^{\mathsf T}\Delta^{(\tau)})^2].
+\]
+Summing from the zero initial state, using \(u^{(n)}=Z\), and discarding the identically zero protected increments gives
+\[
+\mathbb E[(a_h^{\mathsf T}Z)^2]
+=
+\sum_{\tau=0}^{n-1}
+\mathbb E\!\left[
+\bigl(\mathbf1_{\mathcal E_\tau}a_h^{\mathsf T}\Delta^{(\tau)}\bigr)^2
+\right].
+\]
+Combining the two preceding bounds, with \(4\Lambda^2\geq0\), proves
+\[
+\begin{aligned}
+\mathbb E[(a_h^{\mathsf T}Z)^2]
+&\leq
+4\Lambda^2
+\sum_{\tau=0}^{n-1}\sum_{i=1}^n
+\mathbb E\!\left[
+\bigl(\mathbf1_{\mathcal E_\tau}\Delta_i^{(\tau)}\bigr)^2
+\right]\\
+&\leq16\Lambda^2\min\{h,n\}\\
+&\leq32\Lambda^2\min\{h,n\}.
+\end{aligned}
+\]
+For \(h>K\), every move is unprotected because \(r_\tau\leq n<4h\), so the same argument covers all subsequent rows. When \(n=0\), all row sums and move sums are empty and the bound reads \(0\leq0\).
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.orderedBoundaryRounding_row_bound
+\end{enumerate}
+\end{proof}

@@ -1,0 +1,43 @@
+{
+  "question": "How precisely can we estimate the population average treatment effect in a randomized experiment when primary outcomes are missing, but baseline category, treatment, a binary surrogate, and arrival status remain observed? Cellwise missing at random identifies the effect. However, arbitrarily rare categories can produce sample cells with no arrived outcomes, so identification and existing estimation guarantees conditional on accurate nuisance estimates do not establish uniform precision.",
+  "result": "The target is τ(P)=E_P[Y(1)−Y(0)]. The population class M(d,q) has at most d baseline categories, independent identically distributed records, independent fair-coin treatment, consistency, binary outcomes and surrogates, R independent of Y conditional on (X,A,S), and arrival probability at least a known q∈[1/2,1] in every occupied cell. For every n,d≥1, the minimax mean squared error satisfies c r_{n,d,q}≤inf_estimator sup_{P∈M(d,q)} E_P[(estimator−τ(P))²]≤C r_{n,d,q}, where r_{n,d,q}=1/n+(1−q)² min{1,[d/(n log(e+n))]²}, and c,C are universal positive constants. The displayed missing-mass estimator attains the upper bound. For fixed α∈(0,1/2), the smallest worst-population expected length of an honest connected confidence interval is between c_α√r_{n,d,q} and C_α√r_{n,d,q}. Honesty means coverage at least 1−α for every population in the class at each sample size.",
+  "mechanism": "1. Identification averages arrived outcome means using the full observed distribution of (X,S) within each treatment arm, then subtracts control from treatment. Missing at random transfers those means to missing members; randomization connects arm means to potential outcomes.\n2. Center outcomes at 1/2 and split the effect into arrived and missing contributions. Estimate the arrived contribution directly. Estimate each missing contribution as twice its signed missing-cell mass times its centered outcome mean.\n3. Use an auxiliary Poisson sample and four streams. One estimates arrived contributions; another estimates missing-cell weights V_j; two independent streams select and estimate the centered mean G_j.\n4. A cell ratio set to zero when there are no arrivals has expectation (μ_j−1/2)(1−e^(−z_j)), where z_j is its expected arrival count. Thus empty cells leave systematic residual error.\n5. In sparse cells, replace the ratio with a polynomial estimator built from arrived-success counts and falling factorials of arrival counts. Poisson count identities give expectation (μ_j−1/2)(1−Q_k(z_j)). An independent arrival count selects this correction for sparse cells and the ratio for populated cells.\n6. Project onto [−1,1] and average over the auxiliary randomization. The final procedure uses separate complete-outcome and arrived-only branches where these already meet the stated benchmark.\n7. For optimality, construct paired-label populations whose arrival–outcome association changes the treatment effect. Match the signed mass moments visible to observed record patterns while preserving the first signed moment that changes the effect. This produces hard-to-distinguish populations with effects separated by the additional error scale.",
+  "why_true": "The correction only needs accurate weighted contributions, not accurate means in every rare cell. Missing-cell mass is at most ((1−q)/q)z_j/m. The polynomial satisfies z|Q_k(z)|≤B/k² over its design range, so each cell's weighted residual is controlled even when its mean is poorly recovered. Summing over at most 4d cells gives bias of order (1−q)d/[n log(e+n)]. Logarithmic degree and independent selection control count variability and suppress polynomial use at large expected counts, yielding the uniform squared-error bound. The ordinary ratio instead leaves z e^(−z), with a constant-order maximum. For the lower bound, observed patterns involve signed moments of order two and higher; matching these conceals a nonzero first moment that moves the effect by g_{n,d,q}=(1−q)min{1,d/[n log(e+n)]}. Indistinguishable data cannot reliably distinguish effects at that separation. Ordinary sampling supplies the 1/n term. The risk bound gives interval coverage through Markov's inequality; the hard populations also force interval length.",
+  "example": "A pair of baseline labels each has population mass p_j/J. The surrogate and control outcome are zero. At one label, treated outcomes arrive with probability q and have mean μ; its partner is fully observed. The missing label's centered treated contribution splits into (p_j/J)q(μ−1/2) from arrivals and (p_j/J)(1−q)(μ−1/2) from missing members. The missing-count weight V_j estimates p_j(1−q)/(2J), so 2V_jG_j restores the missing contribution. Its unrecovered part contains e^(−z) under the ratio and Q_k(z) under the polynomial. This shows why weighted recovery can succeed despite poor recovery of an individual rare-cell mean.",
+  "findings": [
+    {
+      "slide": 3,
+      "severity": "rough",
+      "problem": "The first main-result statement lists 'consistency' and 'cellwise missing at random' before explaining them. As an outside-subfield listener, I can read the rate but cannot yet interpret all its conditions.",
+      "fix": "Add brief parenthetical explanations: observed measurements equal those under the assigned treatment, and arrived and missing members have the same outcome mean within (X,A,S). Keep the formal definitions on slide 5."
+    },
+    {
+      "slide": 12,
+      "severity": "rough",
+      "problem": "The condition ℓ_n≥128 looks like a technical branch threshold here. Its substantial implication—that the polynomial branch requires n≥e^128−e and the exhibited interval is otherwise the full outcome-effect range—is only translated on slide 17.",
+      "fix": "Move that plain-language implication beside the branch definition. State that the construction establishes the theoretical rate while the displayed guarantees are uninformative at ordinary sample sizes."
+    },
+    {
+      "slide": 14,
+      "severity": "rough",
+      "problem": "The slide combines observed-atom coefficients, one-record cancellation, multiple-record patterns, a full Chebyshev-node distribution, interpolation, likelihood expansion, attribution, and conversion to normalized samples. The central moment-matching idea is understandable, but this amount of material cannot be absorbed on one slide in a 20-minute talk. K, h, and B_0 also appear before their roles are explained.",
+      "fix": "Keep the one-record versus repeated-record comparison and show the two moment requirements: E[pz] is nonzero, while E[p^t z]=0 for 2≤t≤K. State that the cited moment-matching tools construct such a distribution. Move the node weights and likelihood bookkeeping to backup slides."
+    },
+    {
+      "slide": 15,
+      "severity": "rough",
+      "problem": "The final paragraph adds variance bounds, N_β, a union bound, small-sample priors, and sampling lower bounds after an already detailed scale calculation. These routine proof details obscure the main passage from pairwise signed moments to an effect gap of order g_{n,d,q}.",
+      "fix": "Replace the paragraph with three short statements: the signed sum has the required size with high probability; normalization remains bounded; the two observed sample distributions remain close. Then state the resulting lower bound. Leave the concentration calculations and small-sample handling to backup slides."
+    },
+    {
+      "slide": 15,
+      "severity": "rough",
+      "problem": "'The sample mixtures remain within β' does not specify what distance is being bounded. Consequently, the connection between this quantitative claim and the estimation or interval lower bound remains informal.",
+      "fix": "Name and briefly interpret the distance used for closeness, then add one sentence explaining that such closeness limits any data-based distinction between the two separated effects."
+    }
+  ],
+  "understood": "yes",
+  "passed": true,
+  "reader_passes": 1,
+  "deck_hash": "fddb8c7f215b619d63a99f91bf9b21db67ba02b3e137f29a379b17a2c595471d"
+}

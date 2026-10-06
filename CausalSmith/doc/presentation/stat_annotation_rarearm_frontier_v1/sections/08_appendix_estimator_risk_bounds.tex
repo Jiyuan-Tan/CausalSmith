@@ -1,0 +1,275 @@
+\section{Appendix: Estimator risk bounds}
+
+The upper risk comparisons combine three ingredients: moment bounds for smoothed inverse counts, polynomial estimation within a localized range of arm-cell probabilities, and finite averaging over ordered prefixes. The auxiliary Poisson experiments separate the relevant counts, while the prefix transfer returns their risk bounds to the original fixed-size experiment.
+
+\subsection{Poisson counts and inverse-count contributions}
+
+We first collect the probability laws, count variables, and arm-level quantities used in the inverse-count calculations.
+
+
+
+Adding one to the denominator makes the contribution well defined at an empty arm count. The following moment bounds quantify the resulting smoothing and its dispersion over the full range of Poisson intensities.
+
+\begin{lemmav}{lem:poisson-inverse-moments}[Inverse Poisson count moments]
+Let \(\lambda\ge 0\), let \(K\sim\operatorname{Poi}(\lambda)\) have the Poisson law with mean \(\lambda\), and define
+\[
+g(K)=\frac{1}{K+1},
+\qquad C_0=2^{16}.
+\]
+Then
+\[
+\mathbb E[g(K)]
+=
+\begin{cases}
+1,&\lambda=0,\\
+\dfrac{1-e^{-\lambda}}{\lambda},&\lambda>0,
+\end{cases}
+\qquad
+\mathbb E[g(K)^2]\le \frac{C_0}{(1+\lambda)^2},
+\qquad
+\operatorname{Var}(g(K))\le \frac{C_0\lambda}{(1+\lambda)^4}.
+\]
+\end{lemmav}
+
+The expectation identity records the smoothing error, while the second-moment and variance bounds control its contribution to sampling error. Applied to the independent outcome-success and marginal counts in \cref{obj:lem:inverse-count-arm-risk}, these controls give an arm-level bound that is uniform over the overlap class.
+
+\begin{lemmav}{lem:inverse-count-arm-risk}[Inverse-count arm risk bounds]
+There exists a universal numerical constant \(C>0\) such that the following holds.
+\begin{itemize}
+\item \textbf{(Parameters.)} Let \(d\ge 2\) be an integer, \(0<\epsilon\le 1/4\), \(a\in\{0,1\}\), and \(u,t>0\).
+\item \textbf{(Population.)} Let \(P\in\mathcal M_{d,\epsilon}\), as defined in \cref{obj:def:model}. For \(j=1,\ldots,d\) and \(b\in\{0,1\}\), write
+\[
+p_j(P)=P(X=j),\qquad
+s_{bj}(P)=P(X=j,A=b),\qquad
+q_{bj}(P)=P(X=j,A=b,Y=1),
+\]
+and define the outcome-success conditional mean by
+\[
+\mu_{bj}(P)=
+\begin{cases}
+q_{bj}(P)/s_{bj}(P),&s_{bj}(P)>0,\\
+0,&s_{bj}(P)=0.
+\end{cases}
+\]
+\item \textbf{(Poisson counts.)} On a common probability space, let \(Z_j,K_j,W_j\) be measurable counts satisfying
+\[
+Z_j\sim\operatorname{Poi}\!\bigl(uq_{aj}(P)\bigr),\qquad
+K_j\sim\operatorname{Poi}\!\bigl(ts_{aj}(P)\bigr),\qquad
+W_j\sim\operatorname{Poi}\!\bigl(ts_{1-a,j}(P)\bigr),
+\]
+where \(\operatorname{Poi}(\lambda)\) denotes the Poisson law with mean \(\lambda\). The entire collection of \(3d\) counts is mutually independent.
+\end{itemize}
+Define the cell contributions and the covariate-weighted arm mean by
+\[
+H_j=\frac{Z_j}{u}\left(1+\frac{W_j}{K_j+1}\right),
+\qquad
+\psi_a=\sum_{j=1}^{d}p_j(P)\mu_{aj}(P).
+\]
+Then
+\[
+\left|\mathbb E\!\left[\sum_{j=1}^{d}H_j\right]-\psi_a\right|
+\le
+\min\left\{1,\frac{d}{\exp(1)t\epsilon}\right\},
+\qquad
+\operatorname{Var}\!\left(\sum_{j=1}^{d}H_j\right)
+\le
+C\left(\frac{1}{u\epsilon}+\frac{1}{t\epsilon}\right).
+\]
+\end{lemmav}
+
+The bias bound captures the accumulation of smoothing error across cells. The variance bound separates the outcome-success intensity from the marginal-count intensity, with the overlap floor controlling both contributions. These are the armwise risk inputs for the inverse-count baseline in \cref{obj:def:baseline}; finite averaging supplies the corresponding rule on the observed records.
+
+\subsection{Transfer to finite ordered pools}
+
+The transfer argument applies to any bounded statistic of independent ordered prefixes. Its notation is local: the risk-bound symbol \(A\) below is distinct from the treatment coordinate.
+
+
+
+A finite pool supports every prefix up to its observed length. Averaging over those prefixes, with zero output on overflow, yields the deterministic transfer rule in the next result.
+
+\begin{lemmav}{lem:finite-prefix-transfer}[Finite prefix risk transfer]
+Let \(I\) be a finite index set. Suppose the following conditions hold.
+\begin{itemize}
+\item \textbf{(Pools.)} For each \(i\in I\), let \(P_i\) be a probability law on an arbitrary measurable observation space, and let \(h_i\geq 1\) be an integer pool length. Observations within pool \(i\) are iid with law \(P_i\), and the pools are mutually independent.
+\item \textbf{(Statistic.)} Let \(T\) be a measurable real-valued statistic on families of finite ordered prefixes, including empty prefixes, such that
+\[
+-1\leq T(s)\leq 1
+\]
+for every prefix family \(s\).
+\item \textbf{(Target and risk.)} Let \(\vartheta\in[-1,1]\) be the target and \(A\in\mathbb R\) the risk bound. Let \(J_i\sim\operatorname{Poi}(h_i/8)\) be mutually independent prefix lengths, independent of all observations. For independent infinite iid observation sequences with respective laws \(P_i\), suppose
+\[
+\mathbb E\!\left[
+\left(T\bigl((s_{i,1:J_i})_{i\in I}\bigr)-\vartheta\right)^2
+\right]\leq A.
+\]
+\end{itemize}
+For finite ordered pools \(s=(s_{i,1:h_i})_{i\in I}\), define the prefix-averaged statistic by
+\[
+T_{\mathrm{fin}}(s)
+=
+\sum_{\substack{(j_i)_{i\in I}\\0\leq j_i\leq h_i\ \forall i}}
+\left(
+\prod_{i\in I}
+e^{-h_i/8}\frac{(h_i/8)^{j_i}}{j_i!}
+\right)
+T\bigl((s_{i,1:j_i})_{i\in I}\bigr).
+\]
+This is the conditional average over the prefix lengths with output zero whenever some \(J_i>h_i\). It defines a total deterministic measurable rule, takes values in \([-1,1]\) for every finite pool family, and satisfies
+\[
+\mathbb E\!\left[
+\left(T_{\mathrm{fin}}\bigl((s_{i,1:h_i})_{i\in I}\bigr)
+-\vartheta\right)^2
+\right]
+\leq A+\sum_{i\in I}e^{-h_i},
+\]
+where the expectation is under the independent finite iid pools. For observation spaces equipped with their Borel sigma-algebras, the rule is Borel measurable.
+\end{lemmav}
+
+The transfer preserves the prefix risk bound up to an explicit exponentially small remainder determined by the finite pool lengths. It also provides measurability and boundedness on every observed pool family. For the baseline, \cref{obj:lem:inverse-count-arm-risk,obj:lem:finite-prefix-transfer} supply the count-risk and finite-experiment ingredients of \cref{obj:thm:uniform-baseline}.
+
+\subsection{A localized polynomial certificate}
+
+The attaining construction in \cref{obj:def:estimator-handle} uses a polynomial correction on the branch selected by a small pilot count. The scalar certificate below collects its approximation and moment controls. We introduce the certificate notation before stating those bounds.
+
+
+
+The residual bound controls reciprocal approximation on the unit interval. The same certificate gives unbiased factorial estimation of the polynomial and a second-moment bound for every nonnegative argument.
+
+\begin{lemmav}{lem:chebyshev-factorial-certificate}[Chebyshev factorial moment certificate]
+Let \(L\) be an integer with \(L\ge2\). Let \(T_L\) be the Chebyshev polynomial specified by
+\[
+T_0(x)=1,\qquad T_1(x)=x,\qquad
+T_{h+1}(x)=2xT_h(x)-T_{h-1}(x)\quad(h\ge1),
+\]
+and define
+\[
+C_L(z)=T_L(1-2z).
+\]
+Define the polynomials \(E_L\) and \(G_L\) by the identities
+\[
+E_L(z)=\frac{1-C_L(z)}{2L^2z},
+\qquad
+G_L(z)=\frac{1-E_L(z)}{z}
+\quad(z\ne0),
+\]
+with their removable values at zero. Then
+\[
+0\le E_L(z)\le\min\{1,(L^2z)^{-1}\}
+\quad(0<z\le1),
+\qquad E_L(0)=1.
+\]
+Moreover,
+\[
+\deg G_L\le L-2,\qquad
+G_L(z)=\sum_{h=0}^{L-2}g_hz^h,\qquad
+\sum_{h=0}^{L-2}|g_h|\le14^L,
+\]
+where \(g_h\) is the coefficient of \(z^h\) in \(G_L\).
+
+For real parameters \(t,B,z\), define
+\[
+D=tB,
+\]
+and suppose that
+\begin{itemize}
+\item \textbf{(Positive scales.)} \(t>0\) and \(B>0\).
+\item \textbf{(Nonnegative argument.)} \(z\ge0\).
+\item \textbf{(Degree calibration.)} \(D\ge L\).
+\end{itemize}
+Let \(K\sim\operatorname{Poi}(tzB)\), the Poisson law with mean \(tzB\), and define
+\[
+(K)_0=1,\qquad
+(K)_h=\prod_{i=0}^{h-1}(K-i)\quad(h\ge1),
+\qquad
+\widehat G=\sum_{h=0}^{L-2}g_h\frac{(K)_h}{D^h}.
+\]
+Then
+\[
+\mathbb E[\widehat G]=G_L(z),
+\qquad
+\mathbb E[\widehat G^2]\le392^L(1+z)^{2L}.
+\]
+\end{lemmav}
+
+The certificate links polynomial approximation to a statistic built from observed counts. Its second-moment bound depends explicitly on both the degree and the argument, making localization part of the risk calculation. The independent pilot count supplies the branch selection, while the inverse-count moment bounds control the contribution on the complementary branch. The following result assembles these ingredients at the calibration used by the attaining estimator.
+
+\begin{lemmav}{lem:uniform-hybrid-arm-risk}[Uniform hybrid arm risk]
+There exists a numerical constant \(C>0\) such that the following holds for every \(n,m,d\in\mathbb N\), overlap parameter \(\epsilon\in\mathbb R\), observable law \(P\), arm \(a\in\{0,1\}\), and pool intensities \(u,t_p,t\in\mathbb R\).
+\begin{itemize}
+\item \textbf{(Experiment.)} The indices satisfy
+\[
+n\ge1,\qquad d\ge2,\qquad 0<\epsilon\le\frac14,\qquad
+S=n\epsilon\ge\exp(4096),\qquad N=n+m.
+\]
+\item \textbf{(Model.)} The law satisfies \(P\in\mathcal M_{d,\epsilon}\), as defined in \cref{obj:def:model}.
+\item \textbf{(Intensities.)} The pool intensities satisfy
+\[
+u\ge\frac n{32},\qquad t_p\ge\frac N{64},\qquad
+t\ge\frac N{64},\qquad \frac13\le\frac t{t_p}\le3.
+\]
+\item \textbf{(Calibration.)} Set
+\[
+L=\left\lfloor\frac{\log S}{1024}\right\rfloor,\qquad
+H_0=2^{20},\qquad B=\frac{H_0L}{\min\{t_p,t\}},\qquad
+k_0=\left\lfloor\frac{t_pB}{4}\right\rfloor.
+\]
+\item \textbf{(Poisson pools.)} On any probability space, let
+\(\{Z_{bj},J_{bj},K_{bj}:b\in\{0,1\},\,1\le j\le d\}\)
+be jointly independent measurable counts with
+\[
+Z_{bj}\sim\operatorname{Poi}\!\left(uq_{bj}(P)\right),\qquad
+J_{bj}\sim\operatorname{Poi}\!\left(t_ps_{bj}(P)\right),\qquad
+K_{bj}\sim\operatorname{Poi}\!\left(ts_{bj}(P)\right).
+\]
+Here \(\operatorname{Poi}(\lambda)\) is the Poisson law with mean \(\lambda\), and the population quantities are
+\[
+q_{bj}(P)=P(X=j,A=b,Y=1),\qquad
+s_{bj}(P)=\sum_{y\in\{0,1\}}P(X=j,A=b,Y=y),
+\]
+\[
+p_j(P)=\sum_{b\in\{0,1\}}s_{bj}(P),\qquad
+\mu_{bj}(P)=
+\begin{cases}
+q_{bj}(P)/s_{bj}(P),&s_{bj}(P)>0,\\
+0,&s_{bj}(P)=0.
+\end{cases}
+\]
+\end{itemize}
+Using the monomial coefficients \(g_h\) of the reciprocal-approximation polynomial \(G_L\) in the estimator construction, form
+\[
+\widehat G_{aj}
+=\sum_{h=0}^{L-2}g_h\frac{(K_{aj})_h}{(tB)^h},
+\qquad
+(K)_0=1,\qquad
+(K)_h=\prod_{r=0}^{h-1}(K-r)\quad(h\ge1),
+\]
+and
+\[
+V_{aj}=
+\begin{cases}
+\displaystyle
+\frac{Z_{aj}}u
+\left(1+\frac{K_{1-a,j}\widehat G_{aj}}{tB}\right),
+&J_{aj}\le k_0,\\[6pt]
+\displaystyle
+\frac{Z_{aj}}u
+\left(1+\frac{K_{1-a,j}}{K_{aj}+1}\right),
+&J_{aj}>k_0.
+\end{cases}
+\]
+Then
+\[
+\mathbb E\!\left[
+\left(\sum_{j=1}^dV_{aj}
+-\sum_{j=1}^dp_j(P)\mu_{aj}(P)\right)^2
+\right]
+\le
+C\left\{\frac1S+
+\left(\frac d{N\epsilon L}\right)^2\right\}.
+\]
+The same constant \(C\) applies to every choice of indices, law, arm, intensities, and probability space satisfying these conditions.
+\end{lemmav}
+
+The arm-risk bound separates the rare-arm outcome scale from the many-cell approximation term. Under the stated logarithmic degree calibration, the polynomial correction improves the dependence of the latter term on total marginal information. Pilot localization and the count-moment controls keep the combined contribution within the displayed squared-error bound, uniformly over the observable laws and balanced pool intensities in the statement.
+
+For the large-information branch of \cref{obj:def:estimator-handle}, \cref{obj:lem:uniform-hybrid-arm-risk} supplies the risk bound for each arm. Their clipped contrast has the same risk order for the target in \cref{obj:def:target}. The prescribed pool allocation satisfies the intensity and balance conditions, and \cref{obj:lem:finite-prefix-transfer} carries this bound to the deterministic finite prefix average on the original complete and auxiliary records. The exponentially small transfer remainder is absorbed by the inverse rare-arm information term, while the degree is comparable to the regularized logarithm in \cref{obj:def:rate-handle}. Together with the bounded-target control for the zero-output branch, these ingredients give the attaining-estimator upper comparison in \cref{obj:thm:uniform-annotation-frontier}.

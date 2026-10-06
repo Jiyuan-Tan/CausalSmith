@@ -1,0 +1,316 @@
+\section{Estimation with outcome-free records}\label{sec:estimation}
+
+The estimator allocates labeled and outcome-free records to two independent statistical roles. One role supplies response information; the other supplies treatment-assignment information. A local polynomial fit estimates the contrast at the target profile \leanref{sym:x0}{\ensuremath{x_0}}, while a finer projection corrects its empirical moments for the unknown propensity and control mean. Separate localization and projection scales allow the construction to use the smoothness of the effect and the combined smoothness of the nuisance functions.
+
+We first specify the neighborhood associated with the localization scale \leanref{sym:h}{\ensuremath{h}} and its probability measure.
+
+\begin{definitionv}{synth_3}[Localization cube and uniform localization measure]
+For an integer \(d\ge1\), let \(x_0=(1/2,\ldots,1/2)\in[0,1]^d\). For \(0<h\le1/2\), define the localization cube of side length \(h\), centered at \(x_0\), by
+\[
+C_h=x_0+[-h/2,h/2]^d.
+\]
+The uniform probability measure \(\nu_h\) on \(C_h\) has density \(w_h\) with respect to \(d\)-dimensional Lebesgue measure \(dx\) on \([0,1]^d\):
+\[
+w_h(x)=h^{-d}\mathbf1\{x\in C_h\},
+\qquad
+d\nu_h(x)=w_h(x)\,dx.
+\]
+Equivalently, for every Borel set \(E\subseteq[0,1]^d\),
+\[
+\nu_h(E)=h^{-d}\int_{E\cap C_h}dx.
+\]
+\end{definitionv}
+
+The localization cube \leanref{sym:Ch}{\ensuremath{C_h}} lies inside the covariate domain. Its uniform probability measure \leanref{sym:nuh}{\ensuremath{\nu_h}} defines the inner product for both polynomial spaces below. Under \cref{obj:ass:uniform-design}, weighting an observed covariate by the localization density \leanref{sym:wh}{\ensuremath{w_h}} converts a population average into an integral under this local probability measure.
+
+The coarse basis \leanref{sym:r}{\ensuremath{r}} consists of scaled tensor-product Legendre polynomials of total degree at most two. This degree accommodates local polynomial approximation throughout the stipulated effect-smoothness range.
+
+\begin{definitionv}{synth_1}[Scaled coarse polynomial basis]
+The coarse polynomial basis vector \(r\), for dimension \(d\in\mathbb N\) and scale \(h\in\mathbb R\), is defined at each \(x\in\mathbb R^d\) by
+\[
+r(x)=
+\left(
+\prod_{i=1}^{d}
+\begin{cases}
+1, & \kappa_i=0,\\
+\sqrt{12}\,\dfrac{x_i-\tfrac12}{h}, & \kappa_i=1,\\
+\sqrt{5}\left(6\left(\dfrac{x_i-\tfrac12}{h}\right)^2-\tfrac12\right),
+& \kappa_i=2
+\end{cases}
+\right)_{\kappa\in\mathbb N_0^d:\,\sum_{i=1}^{d}\kappa_i\le 2}.
+\]
+Division by zero is interpreted as zero, so this definition also specifies \(r\) at \(h=0\).
+\end{definitionv}
+
+\begin{definitionv}{synth_7}[Localized cellwise polynomial basis]
+For \(d\ge1\), \(0<h\le1/2\), and an integer \(J\ge1\), let \(x_0=(1/2,\ldots,1/2)\), \(C_h=x_0+[-h/2,h/2]^d\), and \(\delta=h/J\). Partition each coordinate interval of \(C_h\) into \(J\) intervals of length \(\delta\), taking each interval half-open on the right except for the last interval, which includes the outer right endpoint. Their Cartesian products form the partition \(\{C_{\mathbf j}:\mathbf j\in\{0,\ldots,J-1\}^d\}\). The center of \(C_{\mathbf j}\) is
+\[
+c_{\mathbf j}=x_0-\frac h2\mathbf1+\delta\left(\mathbf j+\frac12\mathbf1\right).
+\]
+Write
+\[
+P_0(u)=1,\qquad P_1(u)=u,\qquad P_2(u)=\frac{3u^2-1}{2}.
+\]
+For each cell index \(\mathbf j\) and multi-index \(\kappa\in\mathbb N_0^d\) with \(|\kappa|\le2\), define
+\[
+b_{\mathbf j,\kappa}(x)
+=
+J^{d/2}\mathbf1\{x\in C_{\mathbf j}\}
+\prod_{v=1}^d
+\sqrt{2\kappa_v+1}\,
+P_{\kappa_v}\!\left(\frac{2(x_v-c_{\mathbf j,v})}{\delta}\right).
+\]
+The vector \(\mathbf b_J(x)\) collects these functions, ordered lexicographically by cell index and then by multi-index. Its dimension is
+\[
+k=J^d\binom{d+2}{2}.
+\]
+These functions form the positive-leading-coefficient cellwise scaled Legendre orthonormal basis, under \(d\nu_h(x)=h^{-d}\mathbf1\{x\in C_h\}\,dx\), of the space \(V_J\) of polynomials of total degree at most two on each partition cell. Set \(\mathbf b_J(x)=0\) for \(x\notin C_h\). Thus the associated kernel is uniquely specified by
+\[
+K_J(x,x')=\mathbf b_J(x)^\top\mathbf b_J(x').
+\]
+\end{definitionv}
+
+
+
+The vector \(r\) is the coarse orthonormal basis and has \(q=\binom{d+2}{2}\) coordinates. Write \leanref{sym:r0}{\ensuremath{r_0=r(x_0)}} for its value at the target profile. A coefficient vector \leanref{sym:v}{\ensuremath{v\in\mathbb R^q}} represents the coarse polynomial \leanref{sym:pv}{\ensuremath{p_v(x)=r(x)^\top v}}; evaluating the fitted contrast therefore amounts to evaluating its coefficient vector against \(r_0\). The prescribed fine basis is \leanref{sym:bvec}{\ensuremath{\mathbf b_J}} from the preceding definition. It has \(k=qJ^d\) coordinates and spans the already specified cellwise space \(V_J\); the associated projection is defined next.
+
+\begin{definitionv}{def:projection}[Projection \(\Pi_J\) and kernel \(K_J\)]
+\[
+\delta=\frac hJ,\qquad
+K_J(x,x')=\mathbf b_J(x)^\top \mathbf b_J(x'),\qquad
+\Pi_Jf(x)=\int K_J(x,x')f(x')\,d\nu_h(x').
+\]
+Here \(\delta\) is the fine-cell side length, \(h\) is the localization scale, \(J\) is the grid resolution, \(\mathbf b_J\) is the cellwise orthonormal fine polynomial basis vector, and \(\nu_h\) is the uniform probability measure on the localization cube \(C_h\). Weighted basis expressions are zero outside \(C_h\).
+\end{definitionv}
+
+The projection kernel \leanref{sym:K}{\ensuremath{K_J}} represents the orthogonal projection \leanref{sym:Proj}{\ensuremath{\Pi_J}} onto \(V_J\). The coarse fit operates across the entire localization cube, whereas the projection resolves nuisance variation on cells of side length \(\delta\). Refining the grid from \(J\) to a multiple \(J'\) of \(J\) subdivides every cell, so \(V_J\subseteq V_{J'}\) and the correction space is enriched; at every resolution \(J\), \(V_J\) contains the coarse polynomials, so the projection reproduces them.
+
+We next assign the original observations to independent roles under the sampling law in \cref{obj:ass:sample-law}.
+
+The concatenated treatment sequence \leanref{sym:DT}{\ensuremath{\mathcal D^T}} retains the covariate coordinate \leanref{sym:XT}{\ensuremath{X_i^T}} and treatment coordinate \leanref{sym:AT}{\ensuremath{A_i^T}} of each record. The outcome-role count \leanref{sym:ell}{\ensuremath{\ell}} is proportional to the labeled sample size, while the treatment-role count \leanref{sym:t}{\ensuremath{t}} is proportional to the total treatment-record count. Their index sets, \leanref{sym:IL}{\ensuremath{I_L}} and \leanref{sym:IT}{\ensuremath{I_T}}, select disjoint records. Thus additional outcome-free observations enlarge the treatment role while the response information remains tied to the labeled sample. The split also makes products of empirical averages across roles suitable for estimating products of population moments.
+
+To interpret the response correction, write
+\[
+\eta_P(x)=\mathbb E_P[Y\mid X=x]
+=\mu_{0,P}(x)+e_P(x)\tau_P(x),
+\]
+using the designated witnesses from \cref{obj:def:primitive-class}. At the population level, residualizing treatment against its propensity gives
+\[
+\mathbb E_P[(A-e_P(X))Y\mid X=x]
+=e_P(x)\{1-e_P(x)\}\tau_P(x).
+\]
+The empirical construction implements this local moment relation through a finite projection and independent roles. Its outcome projection uses the observed response, and its treatment role supplies the assignment factor in the projection correction.
+
+\begin{algorithmv}{def:roles}[Record roles \(\mathcal D^T,I_L,I_T\)]
+Given the original dataset \(\mathcal D_{n,m}\) of \(n\) labeled records and \(m\) independent outcome-free treatment records, form the two roles as follows.
+\begin{enumerate}
+\item Concatenate the covariate-treatment pairs, with total treatment-record count \(N\):
+\[
+N=n+m,\qquad
+\mathcal D^T=((X_i^T,A_i^T))_{i=1}^N,
+\qquad
+(X_i^T,A_i^T)=
+\begin{cases}
+(X_i,A_i),&1\le i\le n,\\
+(\widetilde X_{i-n},\widetilde A_{i-n}),&n<i\le N.
+\end{cases}
+\]
+Here \(X\) denotes the covariate vector and \(A\) the binary treatment indicator; tildes denote auxiliary records.
+\item Define the outcome-role count \(\ell\), treatment-role count \(t\), and their index sets:
+\[
+\ell=\lfloor n/2\rfloor,\qquad
+t=N-\ell,\qquad
+I_L=\{1,\ldots,\ell\},\qquad
+I_T=\{\ell+1,\ldots,N\}.
+\]
+\item Output the outcome-role labeled records and treatment-role covariate-treatment pairs:
+\[
+\bigl((X_j,A_j,Y_j)\bigr)_{j\in I_L},
+\qquad
+\bigl((X_i^T,A_i^T)\bigr)_{i\in I_T}.
+\]
+Here \(Y_j\) is the observed response. Outcomes from treatment-role records are discarded.
+\end{enumerate}
+\end{algorithmv}
+
+The empirical outcome projection \leanref{sym:etahat}{\ensuremath{\widehat\eta_J^L}} estimates \(\Pi_J\eta_P\). In the response vector \leanref{sym:Rhat}{\ensuremath{\widehat R_{h,J}}}, the first average estimates the treated-response moment and the rectangular average supplies its projected treatment-response correction. The raw matrix \leanref{sym:Qraw}{\ensuremath{\widehat Q^{\mathrm{raw}}_{h,J}}} applies the corresponding correction to the local polynomial design. Symmetrization produces the matrix \leanref{sym:Qhat}{\ensuremath{\widehat Q_{h,J}}} used for inversion.
+
+Define the population matrix \leanref{sym:Q}{\ensuremath{Q_{P,h,J}}} and population response vector \(\bar R\) by
+\[
+Q_{P,h,J}=\mathbb E_P[\widehat Q_{h,J}],
+\qquad
+\bar R=\mathbb E_P[\widehat R_{h,J}],
+\]
+where expectations are taken under the original sampling experiment. These are the population counterparts of the projected local estimating equations. Polynomial reproduction links those equations to approximation of the contrast, and overlap supplies the population positivity used to control inversion; the respective statements are \cref{obj:lem:local-polynomial-projection-facts,obj:lem:population-positivity}.
+
+For the sample decision, an eigenvalue guard supplies a criterion for inversion at the public overlap level. We use the clipping operator
+\[
+\mathrm{clip}_{[-1,1]}(z)
+=\max\{-1,\min\{1,z\}\},
+\]
+which projects a real number onto the contrast range implied by the probability-valued arm means in \cref{obj:def:primitive-class}. The guard level is
+\[
+g(\varepsilon)=\frac{\varepsilon(1-\varepsilon)}{2},
+\]
+half the population Gram margin supplied by overlap. The complete decision combines the empirical moments, guard, and clipping.
+
+\begin{algorithmv}{def:moments}[Empirical moments \(\widehat R_{h,J},\widehat Q_{h,J}\)]
+Given the original dataset \(\mathcal D_{n,m}\), localization scale \(h\), grid resolution \(J\), localization cube \(C_h\), localization density \(w_h\), coarse polynomial basis vector \(r\), and fine projection kernel \(K_J\), compute the moments as follows.
+\begin{enumerate}
+\item Form the independent outcome and treatment roles, with counts and index sets
+\[
+N=n+m,\qquad
+\ell=\lfloor n/2\rfloor,\qquad
+t=N-\ell,\qquad
+I_L=\{1,\ldots,\ell\},\qquad
+I_T=\{\ell+1,\ldots,N\}.
+\]
+The treatment sequence consists of the covariate-treatment pairs
+\[
+(X_i^T,A_i^T)=
+\begin{cases}
+(X_i,A_i),&1\le i\le n,\\
+(\widetilde X_{i-n},\widetilde A_{i-n}),&n<i\le N.
+\end{cases}
+\]
+Use labeled records \((X_j,A_j,Y_j)\) for \(j\in I_L\) in the outcome role and pairs \((X_i^T,A_i^T)\) for \(i\in I_T\) in the treatment role. Treatment-role outcomes are discarded. Weighted basis expressions are zero outside \(C_h\).
+\item Define the outcome-role empirical projection:
+\[
+\widehat\eta_J^L(x)=
+\begin{cases}
+\displaystyle\frac1\ell\sum_{j\in I_L}
+w_h(X_j)K_J(x,X_j)Y_j,&x\in C_h,\\
+0,&x\notin C_h.
+\end{cases}
+\]
+\item Define the empirical response vector:
+\[
+\begin{aligned}
+\widehat R_{h,J}
+&=\frac1\ell\sum_{j\in I_L}w_h(X_j)r(X_j)A_jY_j
+-\frac1t\sum_{i\in I_T}w_h(X_i^T)r(X_i^T)A_i^T
+\widehat\eta_J^L(X_i^T)\\
+&=\frac1\ell\sum_{j\in I_L}w_h(X_j)r(X_j)A_jY_j
+-\frac1{t\ell}\sum_{i\in I_T}\sum_{j\in I_L}
+w_h(X_i^T)w_h(X_j)r(X_i^T)A_i^T
+K_J(X_i^T,X_j)Y_j.
+\end{aligned}
+\]
+The response factor in the rectangular correction is \(Y_j\), and the first summand uses \(A_jY_j\). The nested and rectangular expressions define the same vector.
+\item Define the unsymmetrized empirical matrix:
+\[
+\begin{aligned}
+\widehat Q^{\mathrm{raw}}_{h,J}
+&=\frac1\ell\sum_{j\in I_L}w_h(X_j)r(X_j)r(X_j)^\top A_j\\
+&\quad-\frac1{t\ell}\sum_{i\in I_T}\sum_{j\in I_L}
+w_h(X_i^T)w_h(X_j)r(X_i^T)r(X_j)^\top
+A_i^TA_jK_J(X_i^T,X_j).
+\end{aligned}
+\]
+\item Output the response vector and symmetrized matrix:
+\[
+\left(\widehat R_{h,J},\widehat Q_{h,J}\right),
+\qquad
+\widehat Q_{h,J}
+=\frac{\widehat Q^{\mathrm{raw}}_{h,J}
++(\widehat Q^{\mathrm{raw}}_{h,J})^\top}{2}.
+\]
+All inputs are observed in \(\mathcal D_{n,m}\), including when \(m=0\).
+\end{enumerate}
+\end{algorithmv}
+
+The guarded decision \leanref{sym:That}{\ensuremath{\widehat T_{h,J}}} evaluates the fitted polynomial when the empirical matrix meets the eigenvalue cutoff and returns zero otherwise. Clipping bounds the decision on both branches. Together, these operations permit a risk guarantee over every admissible localization scale and grid resolution, including choices with sparse local observations.
+
+The public choices of localization scale \leanref{sym:hstar}{\ensuremath{h_*}} and grid resolution \leanref{sym:Jstar}{\ensuremath{J_*}} balance approximation and sampling error. They determine the tuned decision \leanref{sym:Tup}{\ensuremath{\widehat T_{\mathrm{up}}}} using the sample sizes and the public class parameters.
+
+\begin{definitionv}{def:estimator}[Guarded local polynomial decision \(\widehat T_{h,J}\)]
+The local polynomial decision \(\widehat T_{h,J}\) is defined by
+\[
+\widehat T_{h,J}=
+\begin{cases}
+\mathrm{clip}_{[-1,1]}
+\bigl(r_0^\top\widehat Q_{h,J}^{-1}\widehat R_{h,J}\bigr),
+&\lambda_{\min}(\widehat Q_{h,J})\ge g(\varepsilon),\\
+0,
+&\lambda_{\min}(\widehat Q_{h,J})<g(\varepsilon).
+\end{cases}
+\]
+Here \(r_0\) is the coarse polynomial basis vector evaluated at the target profile, \(\widehat Q_{h,J}\) is the symmetrized corrected empirical matrix, and \(\widehat R_{h,J}\) is the corrected empirical response vector. The operator \(\mathrm{clip}_{[-1,1]}\) projects a real value onto \([-1,1]\), and \(\lambda_{\min}\) denotes the smallest eigenvalue. For the public overlap level \(\varepsilon\), the inversion threshold is
+\[
+g(\varepsilon)=\frac{\varepsilon(1-\varepsilon)}{2}.
+\]
+\end{definitionv}
+
+When \(S\ge\gamma\), the grid choice is \(J_*=1\). When \(S<\gamma\), the grid becomes finer as the localization scale shrinks, making \(\delta^S\) comparable in order to \(h^\gamma\). Thus nuisance approximation can use a finer spatial scale than the local effect fit. The localization choice then balances these approximation terms against the two sampling terms stated below.
+
+For use in the decision-theoretic comparison, the same estimator is recorded as the original-record decision \leanref{sym:Tstar}{\ensuremath{T_*}}.
+
+\begin{definitionv}{def:tuning}[Public tuning \(h_*,J_*,\widehat T_{\mathrm{up}}\)]
+The localization scale \(h_*\), grid resolution \(J_*\), and tuned decision \(\widehat T_{\mathrm{up}}\) are
+\[
+h_*=\frac12\max\left\{n^{-1/(2\gamma+d)},(nN)^{-1/\Delta}\right\},
+\qquad
+J_*=\left\lceil h_*^{-\max\{0,\gamma/S-1\}}\right\rceil,
+\qquad
+\widehat T_{\mathrm{up}}=\widehat T_{h_*,J_*},
+\]
+where \(N\) is the total treatment-record count, \(S\) is the sum of the propensity and control-mean Hölder orders, and \(\Delta\) is the denominator governing the unequal-channel rate exponent.
+\end{definitionv}
+
+\begin{definitionv}{def:sharp-decision}[Sharp-rate decision \(T_*\)]
+\[
+T_*(\mathcal D_{n,m},U)
+=\widehat T_{h_*,J_*}(\mathcal D_{n,m})
+=\widehat T_{\mathrm{up}}(\mathcal D_{n,m}).
+\]
+For every original dataset \(\mathcal D_{n,m}\) and independent uniform randomizer \(U\), this decision uses the prescribed empirical moments, empirical eigenvalue cutoff, clipping, role split, and public tuning parameters \(h_*\) and \(J_*\). Its value is independent of \(U\).
+\end{definitionv}
+
+The following guarantee gives the construction's four statistical terms once: effect approximation \(h^\gamma\), nuisance approximation \(\delta^{\alpha+\beta}\), localized response sampling \((nh^d)^{-1/2}\), and rectangular sampling \((nNh^d\delta^d)^{-1/2}\). The public tuning balances them. The approximation, positivity, and sampling ingredients are isolated in \cref{obj:lem:local-polynomial-projection-facts,obj:lem:population-positivity,obj:lem:rectangular-sampling-bound}; their proofs are organized in \cref{sec:upper-bound-proofs}.
+
+\begin{theoremv}{thm:rectangular-upper}[Rectangular estimation upper bounds]
+Fix public parameters satisfying
+\begin{itemize}
+\item \textbf{(Dimension.)} \(d\) is an integer with \(d\ge1\).
+\item \textbf{(Smoothness.)} \(0<\alpha\le1\), \(0<\beta\le1\), and \(1\le\gamma\le3\).
+\item \textbf{(Radius.)} \(L>1/2\).
+\item \textbf{(Overlap.)} \(0<\varepsilon<1/2\).
+\end{itemize}
+Let \(\mathcal M\) be the primitive class at these fixed parameters from \cref{obj:def:primitive-class}, and use the absolute-error risk from \cref{obj:def:risk}. There exists a finite constant \(C>0\), depending only on these public parameters, with both of the following guarantees.
+
+For every pair of integers \(n\ge2\) and \(m\ge0\), every \(h\in(0,1/2]\), and every integer \(J\ge1\), the estimator \(\widehat T_{h,J}\) from \cref{obj:def:estimator}, viewed as a decision on the original dataset and randomizer that ignores the randomizer, is Borel measurable and satisfies, for every \(P\in\mathcal M\),
+\[
+\mathcal R_{n,m}(\widehat T_{h,J},P)
+\le
+C\min\left\{
+1,\,
+h^\gamma+
+(h/J)^{\alpha+\beta}+
+(nh^d)^{-1/2}+
+\bigl(n(n+m)h^d(h/J)^d\bigr)^{-1/2}
+\right\}.
+\]
+
+Define the supplied-propensity point-estimation order and the denominator governing the unequal-channel rate exponent by
+\[
+r_o(n)=n^{-\gamma/(2\gamma+d)},
+\qquad
+\Delta=2\gamma+d+\frac{\gamma d}{\alpha+\beta},
+\]
+and define the upper rate by
+\[
+r_{\mathrm{up}}(n,m)
+=
+\max\left\{
+r_o(n),\,
+\bigl(n(n+m)\bigr)^{-\gamma/\Delta}
+\right\}.
+\]
+For every pair of integers \(n\ge2\) and \(m\ge0\), the publicly tuned decision \(\widehat T_{\mathrm{up}}\) from \cref{obj:def:tuning}, likewise viewed as a decision that ignores the randomizer, is Borel measurable and satisfies, for every \(P\in\mathcal M\),
+\[
+\mathcal R_{n,m}(\widehat T_{\mathrm{up}},P)
+\le C r_{\mathrm{up}}(n,m).
+\]
+\end{theoremv}
+
+This theorem completes the main-body estimator construction. The approximation, sampling, and inversion arguments are organized in \cref{sec:upper-bound-proofs}.

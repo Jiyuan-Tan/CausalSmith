@@ -1,0 +1,187 @@
+\section{Experiment, target, and causal interpretation}
+
+Throughout, logarithms are natural, norms of finite vectors are Euclidean, and numerical comparison constants are independent of the public experiment indices unless stated otherwise. The relations \(\lesssim\) and \(\asymp\) denote inequalities and two-sided comparisons up to such constants. The public indices are the complete-record sample size \leanref{sym:n}{\ensuremath{n}}\(\ge1\), the auxiliary sample size \leanref{sym:m}{\ensuremath{m}}\(\ge0\), the covariate alphabet size \leanref{sym:d}{\ensuremath{d}}\(\ge2\), and the overlap floor \leanref{sym:\epsilon}{\ensuremath{\epsilon}}\(\in(0,1/4]\). The covariate index \leanref{sym:j}{\ensuremath{j}} ranges from \(1\) to \(d\), and the treatment index \leanref{sym:a}{\ensuremath{a}} ranges over \(\{0,1\}\).
+
+The two information budgets concern different parts of the same population distribution. A complete record contains the covariate coordinate \leanref{sym:X}{\ensuremath{X}}, binary treatment \leanref{sym:A}{\ensuremath{A}}, and binary observed outcome \leanref{sym:Y}{\ensuremath{Y}}; its probability law is \leanref{sym:P}{\ensuremath{P}}. We use the covariate probabilities \leanref{sym:p}{\ensuremath{p_j(P)}}, treatment--covariate probabilities \leanref{sym:s}{\ensuremath{s_{aj}(P)}}, success-marked probabilities \leanref{sym:q}{\ensuremath{q_{aj}(P)}}, treatment propensities \leanref{sym:e}{\ensuremath{e_j(P)}}, outcome regressions \leanref{sym:\mu}{\ensuremath{\mu_{aj}(P)}}, and treatment--covariate marginal \leanref{sym:P_{XA}}{\ensuremath{P_{XA}}}.
+
+Explicitly, for \(a\in\{0,1\}\) and \(j\in\{1,\ldots,d\}\),
+\[
+\begin{aligned}
+p_j(P)&=\sum_{a'\in\{0,1\}}\sum_{y\in\{0,1\}}P(X=j,A=a',Y=y),\\
+s_{aj}(P)&=\sum_{y\in\{0,1\}}P(X=j,A=a,Y=y),\\
+q_{aj}(P)&=P(X=j,A=a,Y=1),\\
+\mu_{aj}(P)&=
+\begin{cases}
+q_{aj}(P)/s_{aj}(P),&s_{aj}(P)>0,\\
+0,&s_{aj}(P)=0.
+\end{cases}
+\end{aligned}
+\]
+Thus \(s_{aj}(P)=P(X=j,A=a)\), while the zero convention makes every outcome regression total and leaves the target unchanged on null arm--cells.
+
+
+
+These quantities distinguish conditional treatment overlap from population cell size. The propensity and marginal definitions used throughout are recorded explicitly below.
+
+\begin{definitionv}{synth_2}[Cell-specific treatment propensity]
+For a probability law \(P\) of \((X,A,Y)\) on \(\{1,\ldots,d\}\times\{0,1\}^2\), let \(p_j(P)=P(X=j)\). Define the treatment propensity in cell \(j\) by
+\[
+e_j(P)=
+\begin{cases}
+\Pr_P(A=1\mid X=j)
+=\dfrac{P(X=j,A=1)}{p_j(P)},&p_j(P)>0,\\[6pt]
+\dfrac12,&p_j(P)=0.
+\end{cases}
+\]
+\end{definitionv}
+
+\begin{assumptionv}{ass:overlap}[Public overlap restriction]
+For every \(j\) with \(p_j(P)>0\),
+\[
+e_j(P)\in[\epsilon,1-\epsilon].
+\]
+\end{assumptionv}
+
+We impose a public restriction on treatment assignment within every occupied covariate cell.
+
+\begin{definitionv}{synth_1}[Covariate and treatment marginal]
+The treatment–covariate marginal \(P_{XA}\) is the probability law obtained from \(P\), the probability law of complete records \((X,A,Y)\), by the projection \((X,A,Y)\mapsto(X,A)\). Here \(X\) takes values in a finite alphabet of size \(d\), for a nonnegative integer \(d\), and \(A,Y\in\{0,1\}\). Its cell-probability table is
+\[
+P_{XA}(j,a)
+=
+\sum_{y\in\{0,1\}} P(X=j,A=a,Y=y),
+\]
+for each covariate value \(j\) and treatment value \(a\in\{0,1\}\).
+\end{definitionv}
+
+The standard strong conditional overlap condition gives each treatment arm positive conditional probability in every occupied cell \citep[model (3)]{ZengBalakrishnanHanKennedy2026Discrete}; propensity adjustment traces to inverse-probability weighting \citep{Horvitz1952,Hirano2003}. Its public floor may vary across experiments, allowing treatment overlap to diminish along an experiment sequence. Covariate probabilities may be arbitrarily small, so the restriction accommodates populations with many sparsely represented cells. The null-cell convention in \cref{obj:synth_2} supplies a value for the propensity wherever the cell has zero population weight.
+
+Sampling supplies complete records and auxiliary records independently from this population. Write \leanref{sym:\mathcal L}{\ensuremath{\mathcal L}} for the ordered complete sample, \leanref{sym:\mathcal V}{\ensuremath{\mathcal V}} for the ordered auxiliary sample, and \leanref{sym:\mathcal D}{\ensuremath{\mathcal D}} for their observed pair.
+
+
+
+An independent seed \leanref{sym:U}{\ensuremath{U}} permits randomized estimation rules on these original records.
+
+\begin{assumptionv}{ass:data-product}[Two-channel product sampling]
+The observed data \(\mathcal D\) have distribution
+\[
+\mathcal D\sim P^{\otimes n}\otimes P_{XA}^{\otimes m}.
+\]
+\end{assumptionv}
+
+The sampling restriction can now be stated as a product experiment.
+
+\begin{definitionv}{synth_5}[Probability laws]
+For a measurable space \(\mathcal Z\), let \(\mathsf{Prob}(\mathcal Z)\) denote the class of probability measures on \(\mathcal Z\).
+\end{definitionv}
+
+Independent complete and outcome-unlabeled samples from the same population are a standard sampling condition in semisupervised treatment-effect estimation \citep[Assumptions 2.1--2.2]{ChakraborttyDai2024Semisupervised}. Here the auxiliary records directly inform the same treatment--covariate table that governs the complete records. Consequently, \(n+m\) records carry marginal information, while \(n\) records also carry outcomes.
+
+To specify the observable model, let probability laws have the following notation.
+
+\begin{definitionv}{def:model}[Observable law class \(\mathcal M_{d,\epsilon}\)]
+The observable law class is
+\[
+\mathcal M_{d,\epsilon}
+=
+\left\{
+P\in\mathsf{Prob}\bigl(\{1,\ldots,d\}\times\{0,1\}^2\bigr):
+P\text{ satisfies }\cref{obj:ass:overlap}
+\right\},
+\qquad d\ge2,\quad 0<\epsilon\le\tfrac14.
+\]
+This is model (3) of Zeng et al., restricted to the stated range of the public overlap floor \(\epsilon\).
+\end{definitionv}
+
+The observable law class \leanref{sym:\mathcal M}{\ensuremath{\mathcal M_{d,\epsilon}}} combines the finite record space with the public overlap restriction.
+
+\begin{definitionv}{def:target}[Outcome-contrast estimand \(\tau(P)\)]
+The estimand is
+\[
+\tau(P)
+=
+\sum_{j=1}^{d}p_j(P)\{\mu_{1j}(P)-\mu_{0j}(P)\},
+\]
+with summands for null covariate cells defined to equal zero.
+\end{definitionv}
+
+The correspondence with the discrete model in \citet[model (3)]{ZengBalakrishnanHanKennedy2026Discrete} fixes the population class for the two-channel experiment. Within that class, the target \leanref{sym:\tau}{\ensuremath{\tau(P)}} averages the conditional outcome contrast using population covariate weights.
+
+\begin{definitionv}{synth_3}[Independent uniform randomization]
+Let \(\mathrm{Uniform}[0,1]\) denote the probability law on \([0,1]\) assigning each Borel set its Lebesgue measure. The estimator randomization seed \(U\) has this law and is independent of the observed data \(\mathcal D=(\mathcal L,\mathcal V)\), where \(\mathcal L\) and \(\mathcal V\) are the ordered complete-record and auxiliary samples, respectively.
+\end{definitionv}
+
+Because the outcome regressions lie in \([0,1]\), the target lies in \([-1,1]\). This range motivates the following convention for admissible estimation rules \leanref{sym:T}{\ensuremath{T}}.
+
+
+
+Clipping weakly reduces squared error for every target value in \([-1,1]\). The minimax risk \leanref{sym:R}{\ensuremath{R(n,m,d,\epsilon)}} therefore evaluates precision over all original-record rules with this bounded range.
+
+\begin{definitionv}{def:risk}[Minimax risk $R(n,m,d,\epsilon)$]
+The minimax squared-error risk is
+\[
+R(n,m,d,\epsilon)
+=
+\inf_T\sup_{P\in\mathcal M_{d,\epsilon}}
+\mathbb E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}\otimes\mathrm{Uniform}[0,1]}
+\bigl[(T(\mathcal D,U)-\tau(P))^2\bigr].
+\]
+The infimum ranges over all Borel estimation rules on the original observed records, including rules randomized through the independent seed \(U\). Clipping under squared-error loss permits restriction to rules taking values in \([-1,1]\).
+\end{definitionv}
+
+The observable target also admits a potential-outcome interpretation. A \leanref{S-2}{compatible potential-outcome extension} has law \leanref{sym:H}{\ensuremath{H}} and carries a binary potential outcome \leanref{sym:Y_a}{\ensuremath{Y_a}} for each treatment value \(a\).
+
+
+
+The causal interpretation rests on consistency and conditional treatment exchangeability under such an extension.
+
+\begin{assumptionv}{ass:consistency}[Potential-outcome consistency condition]
+Under the potential-outcome extension \(H\),
+\[
+Y=AY_1+(1-A)Y_0
+\]
+holds \(H\)-almost surely.
+\end{assumptionv}
+
+The standard consistency condition for binary treatment connects the observed outcome to the potential outcome under the received treatment \citep{SplawaNeyman1990,Rubin1974}. It supplies the link between the observed outcome regressions and the corresponding potential outcomes within each treatment arm. Conditional treatment exchangeability then connects those arm-specific observations to the potential-outcome distribution within the covariate cell.
+
+\begin{assumptionv}{ass:exchangeability}[Conditional treatment exchangeability]
+Under the potential-outcome extension \(H\),
+\[
+(Y_0,Y_1)\perp\!\!\!\perp A\mid X.
+\]
+\end{assumptionv}
+
+This standard conditional treatment exchangeability condition requires treatment assignment to be independent of the pair of potential outcomes given the recorded covariate \citep{Rosenbaum1983,Imbens2015}. Together with consistency and overlap, it identifies the two conditional potential-outcome means from the observable outcome regressions.
+
+\Cref{obj:lem:causal-realization} establishes both existence and identification: every law in \cref{obj:def:model} admits a compatible extension satisfying \cref{obj:ass:consistency,obj:ass:exchangeability}, and every compatible extension satisfying these conditions obeys
+\[
+\tau(P)=\mathbb E_H[Y_1-Y_0].
+\]
+Thus the observable functional in \cref{obj:def:target} is the average treatment effect throughout this class of compatible causal extensions. The observable minimax criterion consequently measures precision for that common causal target under the stated interpretation.
+
+For comparison, the \leanref{S-3}{exact-marginal benchmark experiment} supplies the population treatment--covariate table directly, paralleling the role of known propensity weights in inverse-probability constructions \citep{Horvitz1952,Hirano2003}. Its estimation rule \leanref{sym:T^{\mathrm K}}{\ensuremath{T^{\mathrm K}}} receives this table jointly with the complete records and the seed.
+
+
+
+The corresponding exact-marginal risk \leanref{sym:R^{\mathrm K}}{\ensuremath{R^{\mathrm K}(n,d,\epsilon)}} evaluates estimation with this population information available.
+
+\begin{definitionv}{def:known-risk}[Exact-marginal risk $R^{\mathrm K}(n,d,\epsilon)$]
+Define the minimax squared-error risk with the exact treatment--covariate marginal supplied by
+\[
+R^{\mathrm K}(n,d,\epsilon)
+=
+\inf_{T^{\mathrm K}}\sup_{P\in\mathcal M_{d,\epsilon}}
+\mathbb E_{P^{\otimes n}\otimes\mathrm{Uniform}[0,1]}
+\left[
+\bigl(T^{\mathrm K}(\mathcal L,P_{XA},U)-\tau(P)\bigr)^2
+\right].
+\]
+Here \(\mathcal L\) is the complete-record component of \(\mathcal D\), and the infimum ranges over Borel estimation rules receiving \(\mathcal L\), the exact marginal table \(P_{XA}\), and the independent seed \(U\).
+\end{definitionv}
+
+Supplying the exact table makes the population covariate weights and treatment propensities available to the rule, while the complete sample supplies outcome information. The main comparisons use the capped rare-label benchmark \leanref{sym:b}{\ensuremath{b(n,\epsilon)}} and the fixed-overlap annotation benchmark \leanref{sym:f}{\ensuremath{f(n,m,d)}}; their formulas and comparison properties are given in \cref{obj:prop:benchmark-recovery}.
+
+
+
+The first function records the capped inverse scale of complete-record information under the public overlap floor. The second combines an inverse complete-sample term with a many-cell term governed by the total marginal-information budget. These numerical benchmarks provide a common scale for the exact-marginal and fixed-overlap comparisons in \cref{obj:prop:benchmark-recovery}.

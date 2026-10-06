@@ -1,0 +1,12 @@
+# Revision routing plan (major_revision)
+
+## fix by hand in the authored sources (prose/structure rewrite)
+- [major·structure·rewrite] (Sharp expected length across effect radii; Constructing an honest interval; appendices) The presentation obscures the statistical result beneath implementation and calibration declarations. After the concise statistical summary, readers encounter dyadic policies, arithmetic engines, rank selection, causal extensions, comparison constants, and lengthy calibration maps before the principal theorem. Three extensive frontier theorem statements and their synthesis proofs then repeat substantially the same guarantees. Exhaustive object-reference lists further interrupt the argument.
+- [minor·prose·rewrite] (Sharp expected length across effect radii) The first displayed use of C(P) and S(P), in the main statistical summary, supplies their identity and denominator floor before naming each symbol explicitly or giving its observable definition. Their defining formulas appear substantially later. The comparison-constants definition likewise uses the rate and interval aliases before their defining environment.
+- [minor·prose·rewrite] (Sharp expected length across effect radii) The sentence 'Equating the two contributions yields the radius balance' is followed by the exact assignment r_n=n^{-(a-b)} within a discussion of sequences restricted to [0,1/2]. This assignment exceeds the admissible radius range at n=1 and can remain outside it for additional sample sizes.
+- [minor·prose·rewrite] (Introduction; Constructing an honest interval) Editorial explanations such as 'In reader-facing prose ... the formal layer also uses the aliases' and the isolated sentence 'The results supporting ... hold under their stated assumptions' distract from the scientific exposition. Reusing the same symbols for resolution endpoints and coordinate error radii also requires repeated explanatory interruptions.
+
+## escalate — out of causalsmith scope (bank/causalsmith)
+- [minor·citation·citation_research] (Related work; Identification and projection bounds) The manuscript attributes the projected-product architecture mainly through recent covariance papers. Its extensive treatment of U-statistic moments and smoothness elbows would benefit from explicit credit to the foundational U-statistic and quadratic-functional literature identified in the supplied related-work brief.
+
+→ revise by hand at the level that owns each finding; formal statements remain frozen; then rescore once

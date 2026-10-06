@@ -1,0 +1,472 @@
+\section{Exact efficiency bound and finite optimization}
+
+The contrast-variance convention from the preceding section provides a common criterion for stationary private channels, including channels with singular information matrices that identify the treatment effect. We now characterize its optimum by a finite staircase program and connect that optimum to local squared-error risk for the sequential protocols in \cref{obj:def:sequential-channels}. Throughout this section, assignment is interior, the two arm means are interior, and privacy is fixed as specified in \cref{obj:ass:interior-assignment,obj:ass:interior-means,obj:ass:fixed-privacy}.
+
+\subsection{Staircase channels and nuisance projection}
+
+A staircase release associates each output with a nonconstant pattern on the four-record alphabet. Its conditional release probabilities take two values whose ratio is \(e^\varepsilon\). The following enumeration fixes the fourteen patterns \leanref{sym:S_j}{\ensuremath{S_j}} used to index channel weights and, subsequently, active supports.
+
+\begin{definitionv}{synth_8}[Ordered staircase patterns]
+For the ordered private-record alphabet
+\[
+\mathcal X=\{x_0,x_1,x_2,x_3\}
+=\{(0,0),(0,1),(1,0),(1,1)\},
+\]
+let \(\mathcal S=\{S:\varnothing\ne S\subsetneq\{0,1,2,3\}\}\).
+Define its fixed enumeration by
+\[
+\begin{aligned}
+(S_1,\ldots,S_{14})=\bigl(
+&\{0\},\{1\},\{0,1\},\{2\},\{0,2\},\{1,2\},\{0,1,2\},\\
+&\{3\},\{0,3\},\{1,3\},\{0,1,3\},\{2,3\},\{0,2,3\},\{1,2,3\}
+\bigr).
+\end{aligned}
+\]
+Thus \(S_j\) consists of the positions of the ones in the four-bit binary expansion of \(j\), with position \(0\) the least significant bit. A pattern \(S\) corresponds to the record subset \(\{x_k:k\in S\}\). This order indexes all staircase-weight coordinates and certified active sets.
+\end{definitionv}
+
+The channel is determined by a nonnegative weight vector \leanref{sym:\alpha}{\ensuremath{\alpha}}. Row normalization restricts these weights to a polytope, while the record probabilities in \cref{obj:def:binary-trial-model} determine the information carried by each pattern. The next definition gathers the normalization constraints and the directional information objective.
+
+
+
+The privacy increment \leanref{sym:d}{\ensuremath{d}} determines the two entries of each pattern vector \leanref{sym:b_S}{\ensuremath{b_S}}. The feasible set \leanref{sym:\mathcal A_\varepsilon}{\ensuremath{\mathcal A_\varepsilon}} enforces all four channel row sums simultaneously. For each pattern, the denominator \leanref{sym:h_S(\theta)}{\ensuremath{h_S(\theta)}} is its probability factor, and the vector \leanref{sym:g_S}{\ensuremath{g_S}} is the derivative of that factor with respect to the arm means. These quantities give a direct construction of the staircase channel \leanref{sym:Q_\alpha}{\ensuremath{Q_\alpha}} and its projected output score \leanref{sym:\rho_S(\theta,t)}{\ensuremath{\rho_S(\theta,t)}}.
+
+For \(\alpha\in\mathcal A_\varepsilon\), the stationary staircase channel on \(\mathcal S\) is
+\[
+Q_\alpha(S\mid x_k)=\alpha_S b_S(k),
+\qquad
+\Pr_\theta(S)=\alpha_S h_S(\theta).
+\]
+For an active pattern \(S\), its output score and projected score are
+\[
+s_S^{\mathrm{out}}(\theta)=\frac{g_S}{h_S(\theta)},
+\qquad
+\rho_S(\theta,t)=\frac{g_S^\top v(t)}{h_S(\theta)}.
+\]
+Thus \(I_\theta(Q_\alpha)=I_\theta(\alpha)\) and
+\[
+\kappa(Q_\alpha)=\#\{S\in\mathcal S:\alpha_S>0\}.
+\]
+Write \(\operatorname{vert}(\mathcal A_\varepsilon)\) for the vertices of the feasible weight polytope.
+
+Feasibility in \cref{obj:synth_4} makes these release probabilities sum to one for every record. Within an active output, their largest-to-smallest ratio is \(e^\varepsilon\). The output score \leanref{sym:s_S^{\mathrm{out}}(\theta)}{\ensuremath{s_S^{\mathrm{out}}(\theta)}} therefore yields the staircase information matrix \leanref{sym:I_\theta(\alpha)}{\ensuremath{I_\theta(\alpha)}} directly from the released pattern.
+
+Nuisance projection enters through the direction \leanref{sym:v(t)}{\ensuremath{v(t)}}. Since \(c^\top v(t)=1\), these directions parameterize all arm-mean perturbations that change the treatment effect by one unit. Varying \(t\) adds a common shift to both arm means, which leaves their difference unchanged. Minimizing the directional information \leanref{sym:F_\theta(\alpha,t)}{\ensuremath{F_\theta(\alpha,t)}} over \(t\) thus profiles out that common-mean nuisance direction. When the contrast is estimable, the resulting minimum is the reciprocal of the contrast variance under the preceding convention.
+
+Optimizing this profiled value over feasible releases defines the information benchmark \leanref{sym:J^*(\theta,p,\varepsilon)}{\ensuremath{J^*(\theta,p,\varepsilon)}} and its reciprocal variance benchmark \leanref{sym:V^*(\theta,p,\varepsilon)}{\ensuremath{V^*(\theta,p,\varepsilon)}}.
+
+\begin{definitionv}{synth_4}[Directional information objective]
+Fix \(\theta=(\mu_0,\mu_1)^\top\in(0,1)^2\), \(p\in(0,1)\), and \(\varepsilon>0\). Write \(q=1-p\), \(d=e^\varepsilon-1\), and
+\[
+\pi_\theta=\bigl(q(1-\mu_0),q\mu_0,p(1-\mu_1),p\mu_1\bigr)^\top.
+\]
+For \(S\in\mathcal S=\{S:\varnothing\ne S\subsetneq\{0,1,2,3\}\}\), define
+\[
+b_S=\mathbf1+d\mathbf1_S,\qquad
+h_S(\theta)=\pi_\theta^\top b_S,\qquad
+g_S=d\begin{pmatrix}
+q\{\mathbf1_S(1)-\mathbf1_S(0)\}\\
+p\{\mathbf1_S(3)-\mathbf1_S(2)\}
+\end{pmatrix}.
+\]
+For feasible weights
+\[
+\alpha\in\mathcal A_\varepsilon
+=\left\{\alpha\in\mathbb R_+^{14}:
+\sum_{S\in\mathcal S}\alpha_S b_S=\mathbf1\right\}
+\]
+and \(t\in\mathbb R\), set \(v(t)=(t,t+1)^\top\). The directional information objective is
+\[
+F_\theta(\alpha,t)
+=\sum_{S\in\mathcal S}\alpha_S
+\frac{(g_S^\top v(t))^2}{h_S(\theta)}
+=v(t)^\top I_\theta(\alpha)v(t),
+\qquad
+I_\theta(\alpha)=
+\sum_{S\in\mathcal S}\alpha_S\frac{g_Sg_S^\top}{h_S(\theta)}.
+\]
+Its nuisance-profiled value at \(\alpha\) is \(\min_{t\in\mathbb R}F_\theta(\alpha,t)\); the dependence on \(p\) and \(\varepsilon\) enters through \(\pi_\theta\), \(g_S\), \(b_S\), and \(\mathcal A_\varepsilon\).
+\end{definitionv}
+
+The stationary comparison ranges over every measurable output space, with contrast estimability incorporated into its extended-value criterion. The following result identifies its optimum with the finite staircase benchmark and gives an equivalent optimization over the vertices of the weight polytope.
+
+\begin{definitionv}{def:staircase-saddle}[Profiled information $J^*$ and variance $V^*$]
+The optimized profiled information and its reciprocal variance are
+\[
+J^*(\theta,p,\varepsilon)
+=
+\max_{\alpha\in\mathcal A_\varepsilon}
+\min_{t\in\mathbb R}
+\sum_{S\in\mathcal S}
+\alpha_S\frac{(g_S^{\top}v(t))^2}{h_S(\theta)},
+\qquad
+V^*(\theta,p,\varepsilon)
+=
+\frac{1}{J^*(\theta,p,\varepsilon)}.
+\]
+\end{definitionv}
+
+The finite reduction reflects two features of the objective: it is linear in the channel weights for a fixed profiling direction, and it is quadratic in the profiling coordinate for fixed weights. Accordingly, \cref{obj:thm:finite-oracle} expresses the optimized information as the minimum of a finite upper envelope of convex quadratics. This gives a one-dimensional representation of the efficiency surface at each specified pair of arm means, assignment probability, and privacy level. The contrast-variance convention also permits a singular channel to attain the optimum when its information range contains the contrast.
+
+The staircase refinement underlying the comparison with arbitrary stationary output spaces is presented in \cref{sec:proofs}. For the sequential lower-bound construction, we also record the smooth scalar localization density used there.
+
+\begin{theoremv}{thm:finite-oracle}[Finite staircase oracle]
+Let \(\theta=(\mu_0,\mu_1)^\top\), let \(p\) be the treatment-assignment probability, and let \(\varepsilon\) be the privacy parameter. Suppose:
+\begin{itemize}
+\item \textbf{(Assignment.)} \(p\) satisfies \cref{obj:ass:interior-assignment}.
+\item \textbf{(Means.)} \(\theta\) satisfies \cref{obj:ass:interior-means}.
+\item \textbf{(Fixed privacy.)} The privacy sequence and \(\varepsilon\) satisfy \cref{obj:ass:fixed-privacy}.
+\end{itemize}
+Use the staircase objective and optimized values \(J^*(\theta,p,\varepsilon)\) and \(V^*(\theta,p,\varepsilon)=J^*(\theta,p,\varepsilon)^{-1}\) from \cref{obj:def:staircase-saddle}. For a stationary channel \(Q\), let \(I_\theta(Q)\) be the output Fisher-information matrix, obtained by integrating the products of output-density derivatives divided by the output density against the channel's dominating measure. Evaluate its contrast variance as
+\[
+c^\top I_\theta(Q)^+c
+=
+\begin{cases}
+\displaystyle
+\inf_{\{v:\,I_\theta(Q)v=c\}}c^\top v,
+& c\in\operatorname{range}(I_\theta(Q)),\\
++\infty,
+& c\notin\operatorname{range}(I_\theta(Q)).
+\end{cases}
+\]
+For every measurable output space and every Markov channel \(Q\) on the four-record alphabet satisfying
+\[
+Q(A\mid x)\le e^\varepsilon Q(A\mid x')
+\quad
+\text{for every measurable }A\text{ and every }x,x',
+\]
+the oracle bound is
+\[
+V^*(\theta,p,\varepsilon)\le c^\top I_\theta(Q)^+c.
+\]
+There exists a vector \(\alpha\) of fourteen nonnegative staircase-pattern weights, with all four channel row sums equal to one, such that its staircase channel \(Q_\alpha\) satisfies the same privacy inequalities and
+\[
+c^\top I_\theta(Q_\alpha)^+c
+=
+c^\top I_\theta(\alpha)^+c
+=
+V^*(\theta,p,\varepsilon),
+\qquad
+I_\theta(\alpha)
+=
+\sum_{S\in\mathcal S}
+\alpha_S\frac{g_Sg_S^\top}{h_S(\theta)}.
+\]
+Here the pattern vectors and denominators are those entering the staircase objective in \cref{obj:def:staircase-saddle}. Consequently,
+\[
+\inf_Q c^\top I_\theta(Q)^+c=V^*(\theta,p,\varepsilon),
+\]
+where the infimum ranges over all such stationary private channels and measurable output spaces. Moreover,
+\[
+J^*(\theta,p,\varepsilon)
+=
+\inf_{t\in\mathbb R}
+\max_{\alpha\in\mathcal A_\varepsilon}F_\theta(\alpha,t)
+=
+\inf_{t\in\mathbb R}
+\max_{\alpha\in\operatorname{vert}(\mathcal A_\varepsilon)}
+F_\theta(\alpha,t),
+\]
+and there exists \(t^*\in\mathbb R\) such that
+\[
+\max_{\alpha\in\mathcal A_\varepsilon}
+F_\theta(\alpha,t^*)
+=
+J^*(\theta,p,\varepsilon).
+\]
+\end{theoremv}
+
+The density in \cref{obj:synth_7} combines compact localization with vanishing density and derivative at the endpoints. Its prior-information contribution is explicit and decreases as the localization radius grows. The directional construction and sequential lower-bound apparatus using this density are deferred to \cref{sec:proofs}.
+
+\subsection{Local alternatives and regular procedures}
+
+We first define the local perturbations used to compare procedures near an interior baseline. A perturbation of order \(n^{-1/2}\) changes the treatment-effect contrast on the same scale as the estimator's limiting error.
+
+\begin{definitionv}{synth_2}[Local parameter alternative]
+The local alternative \(\theta_{n,h}\) is defined coordinatewise by
+\[
+\theta_{n,h}(k)=\theta_0(k)+\frac{h(k)}{\sqrt n},
+\qquad k\in\{0,1\},
+\]
+for a baseline vector \(\theta_0\in\mathbb R^2\), a perturbation vector \(h\in\mathbb R^2\), and a nonnegative integer \(n\). At \(n=0\), the quotient is defined to be zero, so \(\theta_{0,h}=\theta_0\).
+\end{definitionv}
+
+The corresponding scaled error centers the estimate at the contrast under this local parameter, so fixed perturbations can share a common limiting error law.
+
+\begin{definitionv}{synth_3}[Scaled local estimation error]
+The scaled local estimation error \(U_{n,h}^{\mathcal P}\) is defined by
+\[
+U_{n,h}^{\mathcal P}(z)
+=
+\sqrt n\left(
+\widehat\tau_n^{\mathcal P}(z)
+-
+\left[
+\theta_0(1)+\frac{h(1)}{\sqrt n}
+-\theta_0(0)-\frac{h(0)}{\sqrt n}
+\right]
+\right).
+\]
+Here \(\mathcal P\) is a sequence of sequential \(\varepsilon\)-locally private protocols, their transcript laws factorizing through the release channels, and measurable real-valued estimators; \(\widehat\tau_n^{\mathcal P}(z)\) denotes its estimate from transcript \(z\). The parameters are \(\varepsilon\in\mathbb R\), \(\theta_0,h\in\mathbb R^2\), and \(n\in\{0,1,\ldots\}\), with \(z\) any element of the product of the \(n\) measurable release spaces. At \(n=0\), each quotient \(h(k)/\sqrt n\) is defined to be zero.
+\end{definitionv}
+
+Regularity combines a common local limiting law with squared-error tail control on bounded local neighborhoods. The next definition packages the admissible perturbations, procedure sequence, scaled error, and regular class used by the minimax theorem.
+
+\begin{definitionv}{synth_6}[Local alternatives and regular sequential private procedures]
+Fix \(p\in(0,1)\), \(\varepsilon>0\), and \(\theta_0\in(0,1)^2\). For \(n\ge1\) and \(h\in\mathbb R^2\), set
+\[
+\theta_{n,h}=\theta_0+\frac{h}{\sqrt n}.
+\]
+For \(0<H<\infty\), the admissible local perturbations are
+\[
+\mathcal H_{n,H}(\theta_0)
+=\left\{h\in\mathbb R^2:
+\|h\|_2\le H,\ 
+0<\theta_{0,k}+\frac{h_k}{\sqrt n}<1
+\text{ for }k=0,1\right\}.
+\]
+
+A sequential private procedure sequence is
+\[
+\mathcal P=((Q^{(n)},\widehat\tau_n))_{n\ge1},
+\]
+where \(Q^{(n)}\in\mathfrak Q^{\mathrm{seq}}_{n,\varepsilon}\) for every \(n\), and \(\widehat\tau_n\) is \(\sigma(Z_1,\ldots,Z_n)\)-measurable. With \(c=(-1,1)^\top\), its scaled local error is
+\[
+U_{n,h}^{\mathcal P}
+=\sqrt n\{\widehat\tau_n-c^\top\theta_{n,h}\}.
+\]
+We say that \(\mathcal P\) is regular at \(\theta_0\) when there exists a Borel probability law \(L_{\mathcal P}\) on \(\mathbb R\) satisfying
+\[
+\int u^2\,dL_{\mathcal P}(u)<\infty
+\]
+such that, for every fixed \(h\in\mathbb R^2\),
+\[
+U_{n,h}^{\mathcal P}\rightsquigarrow L_{\mathcal P}
+\]
+under the experiment at \(\theta_{n,h}\), with the same law \(L_{\mathcal P}\) for every fixed \(h\), and the local squared errors are asymptotically uniformly integrable: for every \(0<H<\infty\),
+\[
+\lim_{M\to\infty}\limsup_{n\to\infty}
+\sup_{h\in\mathcal H_{n,H}(\theta_0)}
+\mathbb E_{\theta_{n,h}}^{\mathcal P}
+\left[
+(U_{n,h}^{\mathcal P})^2
+\mathbf1\{|U_{n,h}^{\mathcal P}|>M\}
+\right]=0.
+\]
+For fixed \(h\), the local alternative is interior for all sufficiently large \(n\). The class \(\mathfrak P^{\mathrm{reg}}_{\varepsilon}(\theta_0)\) consists of all complete procedure sequences satisfying these requirements.
+\end{definitionv}
+
+The common limit makes local error behavior comparable across fixed perturbations, while uniform integrability connects convergence in distribution to squared-error risk. We now turn to the pilot allocation used for attainment. Its first requirement supplies an increasing number of private observations for learning the arm means \citep{KalininSteinberger2025}.
+
+\begin{assumptionv}{ass:pilot-diverges}[Diverging pilot size]
+The pilot sample size \(m_n\) satisfies
+\[
+m_n\to\infty.
+\]
+\end{assumptionv}
+
+The second pilot requirement appears next. Together, the two conditions let the pilot learn the arm means while reserving an asymptotically full fraction of subjects for the selected channel.
+
+\subsection{Private pilot, channel selection, and sequential efficiency}
+
+The pilot fraction vanishes, subject to the finite-sample restrictions that give both stages observations once \(n\ge2\).
+
+\begin{assumptionv}{ass:pilot-sublinear}[Sublinear pilot sample size]
+The pilot sample sizes \(m_n\) are nonnegative integers satisfying
+\[
+\frac{m_n}{n}\longrightarrow 0
+\quad\text{as }n\to\infty,
+\qquad
+1\le m_n<n
+\quad\text{for every integer }n\ge2.
+\]
+\end{assumptionv}
+
+The preliminary release is four-category randomized response on the zero-based record alphabet. Its probabilities are affine in the record probabilities, so their inverse estimates the two success cells used for the arm means.
+
+\begin{definitionv}{synth_10}[Four-category randomized-response pilot]
+For \(\varepsilon>0\) and the ordered private-record categories
+\[
+x_0=(0,0),\qquad x_1=(0,1),\qquad
+x_2=(1,0),\qquad x_3=(1,1),
+\]
+four-category \(\varepsilon\)-randomized response is the release kernel on \(\{0,1,2,3\}\) defined by
+\[
+Q_{\mathrm{RR}}(k\mid x_j)
+=
+\begin{cases}
+\dfrac{\exp(\varepsilon)}{\exp(\varepsilon)+3},&k=j,\\[6pt]
+\dfrac{1}{\exp(\varepsilon)+3},&k\ne j,
+\end{cases}
+\qquad j,k\in\{0,1,2,3\}.
+\]
+The pilot releases \(R_1,\ldots,R_{m_n}\) are generated by applying this kernel to the first \(m_n\) private records with independent randomization. Consequently, for each reported category \(k\),
+\[
+\Pr_\theta(R_i=k)
+=\frac{1+(\exp(\varepsilon)-1)\pi_{\theta,k}}
+       {\exp(\varepsilon)+3}.
+\]
+\end{definitionv}
+
+Inverting these probabilities and clipping the result supplies the interior pilot estimate \leanref{sym:\widetilde\theta}{\ensuremath{\widetilde\theta}}. Under interior assignment and positive privacy, a measurable strong-saddle selector exists; the construction fixes any such selector. It jointly returns feasible channel weights, a minimizing profiling coordinate, and the optimized information value. Conditional on the pilot, the selected channel and projected-score correction are fixed.
+
+\begin{algorithmv}{def:pilot-estimator}[Private pilot estimator]
+The private pilot estimator is the sequence of sequential \(\varepsilon\)-locally private protocols and measurable estimators defined below, for an assignment probability \(p\) satisfying \cref{obj:ass:interior-assignment}, a privacy parameter \(\varepsilon>0\), and an arbitrary pilot-size schedule \(m:\mathbb N\to\mathbb N\), with \(m_n=m(n)\).
+\begin{enumerate}
+\item Fix a measurable selector defined on all real parameter pairs,
+\[
+\vartheta\longmapsto
+(\alpha_{\vartheta},t_{\vartheta},J_{\vartheta}),
+\]
+whose weight component has fourteen real coordinates. For every interior parameter \(\vartheta\), its values satisfy
+\[
+\begin{aligned}
+\alpha_{\vartheta}&\in\mathcal A_\varepsilon,\\
+t_{\vartheta}&\in\arg\min_{t\in\mathbb R}
+F_{\vartheta}(\alpha_{\vartheta},t),\\
+J_{\vartheta}
+&=F_{\vartheta}(\alpha_{\vartheta},t_{\vartheta})
+=J^*(\vartheta,p,\varepsilon),\\
+F_{\vartheta}(\alpha,t_{\vartheta})
+&\le J_{\vartheta}
+\qquad\text{for every }\alpha\in\mathcal A_\varepsilon.
+\end{aligned}
+\]
+The staircase quantities are as in \cref{obj:def:staircase-saddle}.
+
+\item At sample size \(n\), release each available record with index \(i\le m_n\) through four-category \(\varepsilon\)-randomized response, obtaining pilot releases \(R_i\in\{0,1,2,3\}\), with the category indexing of \cref{obj:synth_10}. Define
+\[
+\widehat u_k
+=\frac{1}{m_n}
+\sum_{i=1}^{\min\{m_n,n\}}\mathbf 1\{R_i=k\},
+\qquad
+\widehat\pi_k
+=\frac{(\exp(\varepsilon)+3)\widehat u_k-1}
+{\exp(\varepsilon)-1},
+\qquad k\in\{0,1,2,3\}.
+\]
+Reciprocals of zero are interpreted as zero, and empty sums as zero.
+
+\item Define the clipping margin and pilot parameter estimate by
+\[
+\begin{aligned}
+\delta_n&=(m_n+2)^{-1},\\
+\widetilde\theta_0
+&=\max\left\{\delta_n,
+\min\left\{1-\delta_n,\frac{\widehat\pi_1}{1-p}\right\}\right\},\\
+\widetilde\theta_1
+&=\max\left\{\delta_n,
+\min\left\{1-\delta_n,\frac{\widehat\pi_3}{p}\right\}\right\},\\
+\widetilde\theta
+&=(\widetilde\theta_0,\widetilde\theta_1)^{\top}.
+\end{aligned}
+\]
+Here \(\widehat\pi_1\) and \(\widehat\pi_3\) use the zero-based control-success and treatment-success categories, respectively. Evaluate the selector at this estimate:
+\[
+(\widetilde\alpha,\widetilde t,\widetilde J)
+=
+(\alpha_{\widetilde\theta},
+t_{\widetilde\theta},
+J_{\widetilde\theta}).
+\]
+
+\item Release each remaining record through the selected staircase channel:
+\[
+S_i\sim Q_{\widetilde\alpha}(\,\cdot\mid X_i),
+\qquad m_n<i\le n,
+\]
+conditionally on the pilot releases and the remaining records. The transcript law is the law generated by the successive release kernels. Output
+\[
+\widehat\tau^*
+=
+c^{\top}\widetilde\theta
++\bigl(\max\{n-m_n,0\}\bigr)^{-1}
+\sum_{\substack{1\le i\le n\\m_n<i}}
+\frac{g_{S_i}^{\top}v(\widetilde t)}
+{\widetilde J\,h_{S_i}(\widetilde\theta)}.
+\]
+\end{enumerate}
+\end{algorithmv}
+
+Selection depends only on released pilot observations, so the construction belongs to the history-dependent protocol class in \cref{obj:def:sequential-channels}. The theorem below uses distinct quantifiers for its two conclusions: the lower bound applies to every sequential private procedure sequence with measurable estimators, while attainment and the infimum equality are stated within the regular class. Both conclusions allow arbitrary measurable release spaces and history-dependent channels, and attainment retains the selector condition in \cref{obj:def:pilot-estimator}.
+
+\begin{theoremv}{thm:sequential-minimax}[Sequential local minimax efficiency]
+Fix the treatment-assignment probability \(p\), the privacy level \(\varepsilon\), and the arm-mean parameter \(\theta_0\). Suppose:
+\begin{itemize}
+\item \textbf{(Interior assignment.)} \(p\) satisfies \cref{obj:ass:interior-assignment}.
+\item \textbf{(Interior means.)} \(\theta_0\) satisfies \cref{obj:ass:interior-means}.
+\item \textbf{(Fixed privacy.)} The privacy sequence and \(\varepsilon\) satisfy \cref{obj:ass:fixed-privacy}.
+\item \textbf{(Strong-saddle selection.)} Fix any selector \(\vartheta\mapsto(\alpha_{\vartheta},t_{\vartheta},J_{\vartheta})\) satisfying the strong-saddle selector conditions in \cref{obj:def:pilot-estimator}.
+\end{itemize}
+Write \(V^*(\theta_0,p,\varepsilon)=J^*(\theta_0,p,\varepsilon)^{-1}\) for the reciprocal optimized profiled information in \cref{obj:def:staircase-saddle}. For an arm-mean parameter \(\theta=(\mu_0,\mu_1)^\top\), the treatment-effect target is
+\[
+\tau(\theta)=\mu_1-\mu_0.
+\]
+For \(n\ge1\) and \(H>0\), define the local alternatives and admissible perturbations by
+\[
+\theta_{n,h}=\theta_0+\frac{h}{\sqrt n},
+\qquad
+\mathcal H_{n,H}(\theta_0)
+=
+\left\{
+h\in\mathbb R^2:
+\|h\|_2\le H,\quad
+\theta_0+\frac{h}{\sqrt n}\in(0,1)^2
+\right\}.
+\]
+For a procedure sequence \(\mathcal P\), let its scaled local estimation error be
+\[
+U_{n,h}^{\mathcal P}
+=
+\sqrt n\left(
+\widehat\tau_n^{\mathcal P}-\tau(\theta_{n,h})
+\right),
+\]
+where \(\widehat\tau_n^{\mathcal P}\) is its transcript-measurable estimator.
+
+For every sequence \(\mathcal P\) of sequential \(\varepsilon\)-locally private protocols and measurable estimators, with arbitrary measurable output spaces indexed by sample size and release stage and with transcript laws factorizing according to the history-dependent kernels in \cref{obj:def:sequential-channels},
+\[
+V^*(\theta_0,p,\varepsilon)
+\le
+\sup_{H>0}\;\liminf_{n\to\infty}\;
+\sup_{h\in\mathcal H_{n,H}(\theta_0)}
+\mathbb E_{\theta_{n,h}}^{\mathcal P}
+\!\left[(U_{n,h}^{\mathcal P})^2\right].
+\]
+
+Let \(\mathfrak P^{\mathrm{reg}}_{\varepsilon}(\theta_0)\) denote the class of these procedure sequences whose scaled local errors have a common local weak limit law \(L_{\mathcal P}\) with finite second moment,
+\[
+\int_{\mathbb R}u^2\,L_{\mathcal P}(du)<\infty,
+\]
+and whose squared-error tails satisfy, for every \(H>0\),
+\[
+\lim_{M\to\infty}\;\limsup_{n\to\infty}\;
+\sup_{h\in\mathcal H_{n,H}(\theta_0)}
+\mathbb E_{\theta_{n,h}}^{\mathcal P}
+\!\left[
+(U_{n,h}^{\mathcal P})^2
+\mathbf 1\{|U_{n,h}^{\mathcal P}|>M\}
+\right]
+=0.
+\]
+
+There exists a pilot schedule, specifically
+\[
+m_n=\lfloor\sqrt n\rfloor,
+\]
+satisfying \cref{obj:ass:pilot-diverges,obj:ass:pilot-sublinear}, for which the procedure in \cref{obj:def:pilot-estimator}, using the fixed selector above, belongs to \(\mathfrak P^{\mathrm{reg}}_{\varepsilon}(\theta_0)\) and attains equality in the lower bound. Moreover,
+\[
+\inf_{\mathcal P\in\mathfrak P^{\mathrm{reg}}_{\varepsilon}(\theta_0)}
+\;\sup_{H>0}\;\liminf_{n\to\infty}\;
+\sup_{h\in\mathcal H_{n,H}(\theta_0)}
+\mathbb E_{\theta_{n,h}}^{\mathcal P}
+\!\left[(U_{n,h}^{\mathcal P})^2\right]
+=
+V^*(\theta_0,p,\varepsilon).
+\]
+All risks and the infimum are interpreted in the extended nonnegative reals, with the real variance constant embedded therein.
+\end{theoremv}
+
+The equality in \cref{obj:thm:sequential-minimax} connects the stationary channel problem to the full sequential experiment: the same variance constant governs the local risk lower bound and is attained by the regular private-pilot construction. Intuitively, the diverging pilot learns the design point, while its vanishing sample fraction leaves the first-order allocation to the selected staircase release. With the fixed measurable strong-saddle selector, the schedule \(m_n=\lfloor\sqrt n\rfloor\) implements this allocation and attains the benchmark.
+
+The risk criterion first takes the worst squared error over admissible perturbations at a fixed radius, then its lower asymptotic limit, and finally the supremum over radii. Under these quantifiers, \cref{obj:thm:sequential-minimax} identifies \(V^*(\theta_0,p,\varepsilon)\) as the exact regular local asymptotic squared-error constant at the specified interior design point.

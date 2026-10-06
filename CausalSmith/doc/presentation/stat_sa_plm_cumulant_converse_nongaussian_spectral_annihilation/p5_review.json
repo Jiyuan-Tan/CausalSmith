@@ -1,0 +1,100 @@
+{
+  "recommendation": "major_revision",
+  "score": 6.8,
+  "score_rationale": "The verified mathematical core appears substantial and mostly faithfully represented, but the manuscript is too opaque for journal readers and contains several scope/positioning and clarity problems that must be repaired before publication.",
+  "summary": "The paper develops a contour-instrument estimator for partially linear models with independent cumulant-separated non-Gaussian treatment innovations, proving fixed-code root-n minimax MSE bounds and an aligned comparison with the published ACE guarantee. The formal verification contract supports the main theorem statements, and the manuscript generally avoids overselling the verified results. The contribution is potentially significant, but the exposition is dominated by certification machinery and formal-record language, making the statistical idea and assumptions hard to assess for econometrics readers.",
+  "strengths": [
+    "Novel contour-based use of MGF zeros for partially linear coefficient identification under treatment-code perturbation.",
+    "Strong fixed-code risk theorem with matched n^{-1} MSE bounds on the stated non-Gaussian class and aligned ACE class.",
+    "Careful distinction between the ordinary Borel statistic, represented-data execution, and the imported ACE theorem-local dependency.",
+    "Useful explicit sine-ratio benchmarks that make the transform-zero mechanism concrete."
+  ],
+  "findings": [
+    {
+      "severity": "major",
+      "section": "abstract",
+      "issue": "The abstract foregrounds implementation and verification machinery before the econometric contribution is easy to parse; e.g. 'When a compiled bounded spectral adapter satisfies the full canonical build-and-compilation specification...' is not meaningful to most journal readers at abstract level.",
+      "fix": "Rewrite the abstract around the statistical model, identifying zero-instrument construction, fixed-code assumptions, and risk conclusions. Move the represented-data execution sentence to one short final scope sentence or the appendix summary.",
+      "kind": "prose",
+      "finding_id": "abstract-too-formalized",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "major",
+      "section": "Setup and assumptions",
+      "issue": "The fixed-code decision problem is central, but the paper does not give an intuitive statistical example of what is fixed, what is random, and how conditioning on first-stage code output should be read in practice.",
+      "fix": "Add an early subsection or paragraph with a concrete two-stage sampling interpretation: train codes externally, condition on their clipped values, then analyze the independent evaluation sample over laws compatible with that fixed pair. Explicitly distinguish this from unconditional first-stage learning guarantees.",
+      "kind": "structure",
+      "finding_id": "fixed-code-interpretation-underexplained",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "major",
+      "section": "Main fixed-separation result",
+      "issue": "The estimator definition is too implementation-level for the main text and obscures the statistical construction. The ten-step algorithm mixes sample splitting, contour selection, interval arithmetic, represented reals, rational enclosures, and clipping in one long block.",
+      "fix": "Move most interval-arithmetic and represented-data steps to the certified-construction appendix. In the main text, present a short statistical algorithm: residualize, pilot-select admissible contour, evaluate contour ratio, clip. Then state that the appendix gives the certified rational implementation realizing the same Borel statistic.",
+      "kind": "structure",
+      "finding_id": "estimator-definition-overburdened",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "major",
+      "section": "Comparison with ACE and Gaussian benchmarks",
+      "issue": "The ACE comparison is mathematically careful but rhetorically easy to overread as estimator dominance. Sentences such as 'the contour bound is governed by the fixed-separation sampling term' and 'the ratio of the contour upper guarantee to the imported finite-order ACE upper guarantee tends to zero' should repeatedly make clear that these are displayed upper guarantees, not a lower bound on ACE performance or dominance over the ACE estimator.",
+      "fix": "In the paragraph after \\cref{obj:prop:jms-ace-alignment}, add one explicit sentence that the proposition compares certified upper bounds on the common class and does not rank the actual risks of the two estimators beyond those bounds.",
+      "kind": "prose",
+      "finding_id": "ace-comparison-easy-to-overread",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "Explicit mixture reductions and local benchmarks",
+      "issue": "The prose says, 'The last algebraic clause records how an oracle upper bound that is valid under two sets of hypotheses can be summarized by the smaller of the two displayed upper inputs.' The displayed theorem contains no such last algebraic clause in the submitted text.",
+      "fix": "Delete this sentence, or add the corresponding formal statement if the authors intend to include it. As written, the prose attributes content to the theorem that is not displayed.",
+      "kind": "prose",
+      "finding_id": "missing-local-benchmark-clause",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "Related work",
+      "issue": "The related work is broad and adequate, but the closest competitor discussion is still too table-driven and formula-driven. It does not fully explain why the ACE finite-order terms arise, how its nuisance-radius requirements differ operationally, and when an applied reader would prefer one construction.",
+      "fix": "Add a concise paragraph after the comparison table explaining the practical distinction between ACE eligibility and the contour L1 treatment-code gate, using the existing bound terms rather than introducing new claims.",
+      "kind": "prose",
+      "finding_id": "ace-positioning-needs-interpretation",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "global",
+      "issue": "Several formal environment titles are either missing or too terse for reader navigation, e.g. \\cref{obj:def:gaussian-class} and \\cref{obj:lem:zero-localization} appear without descriptive bracket titles in the source.",
+      "fix": "Give every formal environment a sentence-case descriptive title, such as '[Bounded-outcome Gaussian JMS class]' and '[Zero localization from cumulant separation]'.",
+      "kind": "structure",
+      "finding_id": "missing-formal-titles",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "minor",
+      "section": "global",
+      "issue": "Notation for the code-radius sequences is inconsistent: the paper uses both \\(\\varepsilon_{1,n}\\) and \\(\\varepsilon_{1n}\\), and later \\(\\epsilon_{1n}\\) in the local handle.",
+      "fix": "Standardize notation throughout, preferably \\(\\varepsilon_{1,n}\\) and \\(\\varepsilon_{2,n}\\), and reserve alternative typography only when quoting a source.",
+      "kind": "prose",
+      "finding_id": "radius-notation-inconsistent",
+      "remedy": "rewrite"
+    },
+    {
+      "severity": "nit",
+      "section": "Certified construction and executable correspondence",
+      "issue": "The certification appendix is rigorous but reads as a specification dump; readers need a short map from the arithmetic substrate to the statistical estimator before the long definition.",
+      "fix": "Add a brief pre-definition paragraph listing the three roles of the substrate: certified real inputs, safe complex arithmetic/division, and mesh integration for contour quantities.",
+      "kind": "prose",
+      "finding_id": "certification-roadmap-needed",
+      "remedy": "rewrite"
+    }
+  ],
+  "questions_for_authors": [
+    "Can the authors provide a simple numerical illustration or pseudo-simulation of the sine-ratio and contour estimator behavior under the symmetric mixture benchmark?",
+    "Is the intended audience expected to inspect the Lean artifact, or should the manuscript stand as a conventional econometrics paper with verification as supporting evidence?",
+    "Can the constants in the contour bank be summarized in a reader-facing way, for example by separating statistical constants from certification overhead?"
+  ]
+}

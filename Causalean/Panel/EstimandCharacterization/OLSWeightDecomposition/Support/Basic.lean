@@ -1,0 +1,282 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Saturated finite-cell bridge basics
+
+Basic saturated-control class, cell statistics, and elementary bounds for
+the finite-cell probability-space bridge.
+-/
+
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.Panel.CellBridge
+public import Causalean.Panel.PO.PopulationCells
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+
+/-! # Saturated Finite-Cell Bridge Basics
+
+This file sets up the saturated finite-cell control class and its basic cell
+statistics. It defines
+`saturatedClass`, `cellShare`, `cellTau`, `propensity`, and
+`meanReg`; relates `cellShare` and `cellTau` to the shared
+`normalizedRestrictedIntegral` population-cell operator; and proves the elementary bounds
+`cellMass_nonneg`, `cellMass_sum_eq_one`, `cellShare_nonneg`, and
+`cellShare_le_one`. The membership lemmas `propensity_mem_saturatedClass` and
+`meanReg_mem_saturatedClass` supply the saturated-control pieces used by the
+residualization witnesses. The old `cellMass` name is retained only as a
+deprecated abbreviation of `CellBridge.cellMass`. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
+
+namespace Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition
+
+open MeasureTheory Finset Causalean.Panel
+open scoped BigOperators
+
+/-- For [a finite measure on a sample space](hyp:μ),
+[a finite covariate-valued map](hyp:G), and
+[the measurability of that map](hyp:G_meas), the
+[saturated linear square-integrable control class](goal) consists of functions
+that agree almost everywhere with a linear combination of the cell indicators.
+
+Membership predicate (predicate-style, residualization_core D1 option (b)):
+
+    f ∈ saturatedClass μ G  ↔  ∃ c : 𝒢 → ℝ,
+        f =ᵐ[μ] (fun ω => ∑ g, c g · 𝟙{G ω = g}).
+
+Closed under addition (sum the coefficient maps), scalar multiplication
+(scale the coefficient map), and contains zero (take `c = 0`). Every member
+is square-integrable on the finite measure `μ` because each indicator is
+bounded. -/
+noncomputable def saturatedClass {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
+    [DecidableEq 𝒢] [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
+    (μ : Measure Ω) [IsFiniteMeasure μ]
+    (G : Ω → 𝒢) (G_meas : Measurable G) : LinearL2Class μ :=
+  CellBridge.indicatorSpan μ G G_meas
+
+/-- For [a measure on a sample space](hyp:μ), [a covariate map](hyp:G), and
+[a covariate cell](hyp:g), the [cell mass](goal) is the real-valued measure of
+the event that the covariate map equals that cell. -/
+@[deprecated CellBridge.cellMass (since := "2026-09-19")]
+abbrev cellMass {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (G : Ω → 𝒢) (g : 𝒢) : ℝ :=
+  CellBridge.cellMass μ G g
+
+/-- For [a measure on a sample space](hyp:μ),
+[a treatment-valued function](hyp:D), [a covariate map](hyp:G), and
+[a covariate cell](hyp:g), the [cell-wise treated share](goal) is the
+indicator-weighted treatment integral over that cell divided by its mass.
+On a zero-mass cell, its value is zero. -/
+noncomputable def cellShare {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (D : Ω → ℝ) (G : Ω → 𝒢) (g : 𝒢) : ℝ :=
+  CellBridge.cellMean μ D G g
+
+/-- For [a measure on a sample space](hyp:μ),
+[an untreated potential-outcome function](hyp:Y0),
+[a treated potential-outcome function](hyp:Y1), [a covariate map](hyp:G), and
+[a covariate cell](hyp:g), the [cell-wise treatment effect](goal) is the
+indicator-weighted mean of $Y(1)-Y(0)$ in that cell. On a zero-mass cell, its
+value is zero. -/
+noncomputable def cellTau {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (Y0 Y1 : Ω → ℝ) (G : Ω → 𝒢) (g : 𝒢) : ℝ :=
+  CellBridge.cellMean μ (fun ω => Y1 ω - Y0 ω) G g
+
+/-! ### Bridge to the shared population cell-mean operator
+
+The finite-cell bridge computes cell means with `CellBridge.cellMean` (an
+indicator-weighted integral over `{G = g}` divided by the cell mass). These
+lemmas identify that operator with the shared
+`Causalean.Mathlib.Probability.normalizedRestrictedIntegral`
+underlying `Panel.PO.CellPartition.mean`, so the OLS cell statistics
+`cellShare` / `cellTau` are the same population cell means used by the other
+panel population bridges. A full `CellPartition` cannot be formed here because
+the overlap-weighted estimand tolerates zero-mass cells, whereas `CellPartition`
+requires strictly positive cells; the identity is therefore stated at the
+operator level, which needs no positivity. -/
+
+/-- For [an ambient probability space and covariate space](hyp:Ω,𝒢), [a probability measure
+`μ` on `Ω`](hyp:μ), [an integrand `F`](hyp:F), [a measurable covariate map `G`](hyp:G,G_meas),
+and [a covariate cell `g`](hyp:g), [the `CellBridge` indicator-weighted cell mean of `F` on
+`{G = g}` equals the shared event-level conditional expectation of `F` given `{G = g}`](goal). -/
+theorem cellMean_eq_eventCondExp {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
+    (μ : Measure Ω) (F : Ω → ℝ) (G : Ω → 𝒢) (G_meas : Measurable G) (g : 𝒢) :
+    CellBridge.cellMean μ F G g
+      = Causalean.Mathlib.Probability.normalizedRestrictedIntegral μ {ω | G ω = g} F := by
+  have hA : MeasurableSet {ω | G ω = g} := G_meas (measurableSet_singleton g)
+  rw [eventCondExp_eq]
+  unfold CellBridge.cellMean CellBridge.cellMass
+  congr 1
+  rw [← MeasureTheory.integral_indicator hA]
+  refine MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall (fun ω => ?_))
+  by_cases hω : ω ∈ {ω | G ω = g}
+  · simp [Set.indicator_of_mem hω]
+  · simp [Set.indicator_of_notMem hω]
+
+/-- **OLS treated share is a shared population cell mean.**
+`cellShare μ D G g = E[D | G = g]` in the shared `normalizedRestrictedIntegral` operator. -/
+theorem cellShare_eq_eventCondExp {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
+    (μ : Measure Ω) (D : Ω → ℝ) (G : Ω → 𝒢) (G_meas : Measurable G) (g : 𝒢) :
+    cellShare μ D G g =
+      Causalean.Mathlib.Probability.normalizedRestrictedIntegral μ {ω | G ω = g} D :=
+  cellMean_eq_eventCondExp μ D G G_meas g
+
+/-- **OLS cell treatment effect is a shared population cell mean.**
+`cellTau μ Y0 Y1 G g = E[Y(1) − Y(0) | G = g]` in the shared `normalizedRestrictedIntegral`
+operator — a genuine potential-outcome contrast. -/
+theorem cellTau_eq_eventCondExp {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
+    (μ : Measure Ω) (Y0 Y1 : Ω → ℝ) (G : Ω → 𝒢) (G_meas : Measurable G) (g : 𝒢) :
+    cellTau μ Y0 Y1 G g
+      = Causalean.Mathlib.Probability.normalizedRestrictedIntegral μ
+          {ω | G ω = g} (fun ω => Y1 ω - Y0 ω) :=
+  cellMean_eq_eventCondExp μ (fun ω => Y1 ω - Y0 ω) G G_meas g
+
+/-- For [a measure on a sample space](hyp:μ),
+[a treatment-valued function](hyp:D), and [a finite covariate map](hyp:G), the
+[saturated propensity function](goal) assigns to every sample point the treated
+share of its covariate cell.
+
+It is written as the finite sum of cell-share-weighted cell indicators. -/
+noncomputable def propensity {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
+    (μ : Measure Ω) (D : Ω → ℝ) (G : Ω → 𝒢) : Ω → ℝ :=
+  fun ω => ∑ g, cellShare μ D G g
+    * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω
+
+/-- For [a measure on a sample space](hyp:μ),
+[an outcome-valued function](hyp:Y), and [a finite covariate map](hyp:G), the
+[saturated mean-regression function](goal) assigns to every sample point the
+indicator-weighted mean outcome of its covariate cell.
+
+It is written as the finite sum of cell-mean-weighted cell indicators. -/
+noncomputable def meanReg {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
+    (μ : Measure Ω) (Y : Ω → ℝ) (G : Ω → 𝒢) : Ω → ℝ :=
+  fun ω => ∑ g,
+    ((∫ ω', Y ω'
+        * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω' ∂μ)
+       / CellBridge.cellMass μ G g)
+    * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω
+
+section CellHelpers
+
+/-- Cell mass is nonnegative — `(μ S).toReal ≥ 0`. -/
+theorem cellMass_nonneg {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (G : Ω → 𝒢) (g : 𝒢) :
+    0 ≤ CellBridge.cellMass μ G g := by
+  exact ENNReal.toReal_nonneg
+
+/-- Cell masses sum to `1` under `IsProbabilityMeasure μ` and a measurable
+`G` valued in a finite type with `MeasurableSingletonClass`. The `{G = g}`
+family partitions `Ω` (up to `μ`-null sets) and the `μ`-mass of each is
+finite. This supplies the `π_sum_one` field for the finite-partition algebra. -/
+theorem cellMass_sum_eq_one {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
+    [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
+  (μ : Measure Ω) [IsProbabilityMeasure μ]
+  (G : Ω → 𝒢) (G_meas : Measurable G) :
+  ∑ g, CellBridge.cellMass μ G g = 1 := by
+  classical
+  have hsum :
+      (Finset.univ).sum (fun g => (μ (G ⁻¹' ({g} : Set 𝒢))).toReal) =
+        (μ (G ⁻¹' (Set.univ : Set 𝒢))).toReal := by
+    simpa [Measure.real] using
+      (MeasureTheory.sum_measureReal_preimage_singleton
+        (μ := μ) (s := (Finset.univ : Finset 𝒢)) (f := G)
+        (hf := by
+          intro g hg
+          exact G_meas (measurableSet_singleton g))
+        (h := by
+          intro g hg
+          exact ne_of_lt <| lt_of_le_of_lt (measure_mono (Set.subset_univ _))
+            (by simp [IsProbabilityMeasure.measure_univ])))
+  simpa [CellBridge.cellMass, Set.preimage, preimage_univ] using hsum
+
+/-- Cell-wise treated share is nonnegative when `D` is a.e. nonnegative. -/
+theorem cellShare_nonneg {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (D : Ω → ℝ) (G : Ω → 𝒢)
+    (D_nonneg : ∀ᵐ ω ∂μ, 0 ≤ D ω) (g : 𝒢) :
+    0 ≤ cellShare μ D G g := by
+  have h_num_nonneg :
+      0 ≤ ∫ ω, D ω * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ := by
+    refine integral_nonneg_of_ae ?_
+    filter_upwards [D_nonneg] with ω hD
+    exact mul_nonneg hD (Set.indicator_nonneg (fun _ _ => by norm_num) ω)
+  have h_den_nonneg : 0 ≤ CellBridge.cellMass μ G g := cellMass_nonneg (μ := μ) G g
+  exact div_nonneg h_num_nonneg h_den_nonneg
+
+/-- Cell-wise treated share is at most `1` when `D` lies a.e. between zero and
+one. The integrand `D · 𝟙{G = g} ≤ 𝟙{G = g}` a.e., so the numerator is at most
+`CellBridge.cellMass μ G g`. -/
+theorem cellShare_le_one {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
+  (μ : Measure Ω) [IsFiniteMeasure μ]
+  (D : Ω → ℝ) (G : Ω → 𝒢)
+  (G_meas : Measurable G)
+  (D_bounds : ∀ᵐ ω ∂μ, 0 ≤ D ω ∧ D ω ≤ 1) (g : 𝒢) :
+  cellShare μ D G g ≤ 1 := by
+  let s : Set Ω := {ω | G ω = g}
+  let I : Ω → ℝ := fun ω => Set.indicator s (1 : Ω → ℝ) ω
+  have hI_meas : MeasurableSet s := by
+    exact G_meas (measurableSet_singleton g)
+  have hI_top : μ s ≠ ⊤ := (measure_lt_top μ s).ne
+  have h_num_le_den :
+      ∫ ω, D ω * I ω ∂μ ≤ ∫ ω, I ω ∂μ := by
+    have hI_integrable : Integrable I μ := by
+      unfold I
+      exact (integrable_indicator_iff hI_meas).2
+        (integrableOn_const (s := s) (μ := μ) (hs := hI_top))
+    have hI_nonneg : 0 ≤ᵐ[μ] I := by
+      refine Filter.Eventually.of_forall ?_
+      intro ω
+      exact Set.indicator_nonneg (fun _ _ => (show 0 ≤ (1 : ℝ) by norm_num)) ω
+    have h_nonneg : 0 ≤ᵐ[μ] fun ω => D ω * I ω := by
+      filter_upwards [D_bounds, hI_nonneg] with ω hD hI
+      exact mul_nonneg hD.1 hI
+    have h_le : (fun ω => D ω * I ω) ≤ᵐ[μ] I := by
+      filter_upwards [D_bounds, hI_nonneg] with ω hD hI
+      simpa [mul_comm] using mul_le_of_le_one_right hI hD.2
+    exact integral_mono_of_nonneg h_nonneg hI_integrable h_le
+  have hI_int : (∫ ω, I ω ∂μ) = CellBridge.cellMass μ G g := by
+    change (∫ ω, Set.indicator s (1 : Ω → ℝ) ω ∂μ) = (μ s).toReal
+    rw [MeasureTheory.integral_indicator_one hI_meas]
+    simp [Measure.real, s]
+  have h_num_le_cellmass : ∫ ω, D ω * I ω ∂μ ≤ CellBridge.cellMass μ G g := by
+    simpa [hI_int] using h_num_le_den
+  exact div_le_one_of_le₀ h_num_le_cellmass (cellMass_nonneg (μ := μ) G g)
+
+/-- The pointwise representative `propensity μ D G` lies in
+`saturatedClass μ G G_meas`. Take the coefficient map
+`c g := cellShare μ D G g`; equality holds pointwise (and so a.e.). -/
+theorem propensity_mem_saturatedClass {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    [Fintype 𝒢] [DecidableEq 𝒢] [MeasurableSpace 𝒢]
+    [MeasurableSingletonClass 𝒢]
+    (μ : Measure Ω) [IsFiniteMeasure μ]
+    (D : Ω → ℝ) (G : Ω → 𝒢)
+    (G_meas : Measurable G) :
+    (saturatedClass μ G G_meas).mem (propensity μ D G) := by
+  exact ⟨fun g => cellShare μ D G g, Filter.EventuallyEq.rfl⟩
+
+/-- The mean-regression `meanReg μ Y G` lies in `saturatedClass μ G G_meas`.
+Take the coefficient map
+`c g := (∫ Y · 𝟙{G = g} dμ) / CellBridge.cellMass μ G g`. -/
+theorem meanReg_mem_saturatedClass {Ω 𝒢 : Type*} [MeasurableSpace Ω]
+    [Fintype 𝒢] [DecidableEq 𝒢] [MeasurableSpace 𝒢]
+    [MeasurableSingletonClass 𝒢]
+    (μ : Measure Ω) [IsFiniteMeasure μ]
+    (Y : Ω → ℝ) (G : Ω → 𝒢)
+    (G_meas : Measurable G) :
+    (saturatedClass μ G G_meas).mem (meanReg μ Y G) := by
+  refine ⟨fun g => (∫ ω', Y ω' * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω' ∂μ)
+    / CellBridge.cellMass μ G g, ?_⟩
+  exact Filter.EventuallyEq.rfl
+
+end CellHelpers
+
+end Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition

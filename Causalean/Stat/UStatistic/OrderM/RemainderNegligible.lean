@@ -1,0 +1,164 @@
+module
+public import Causalean.Stat.UStatistic.OrderM.RemainderSecondMoment
+
+/-!
+Discharges the fixed-order Hájek remainder negligibility hypothesis.
+
+The theorem `orderDegenerateNegligible_of_firstDegen` proves that a first-order
+degenerate kernel has `√n`-rescaled U-statistic `o_p(1)`, using the
+second-moment estimate from `OrderM.RemainderSecondMoment` and Chebyshev's
+inequality.  The public wrapper `orderDegenerateNegligible_of_residual` applies
+this result to the residual kernel `uDegenOrder h P`, producing the
+`OrderDegenerateNegligible S h` hypothesis required by the fixed-order
+asymptotic-linearity and CLT statements.
+-/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+public section
+
+namespace Causalean.Stat
+
+open MeasureTheory ProbabilityTheory Filter Topology
+
+variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
+  {μ : Measure Ω} {P : Measure X}
+
+namespace IIDSample
+
+variable [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
+  {m : ℕ} [NeZero m] {g : (Fin m → X) → ℝ} (S : IIDSample Ω X μ P)
+
+omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] in
+/-- The rescaled higher-order remainder has mean zero. -/
+theorem integral_rescaled_order_eq_zero (hg : OrderFirstDegenKernel P g)
+    {n : ℕ} (hmn : m ≤ n) :
+    ∫ ω, Real.sqrt (n : ℝ) * uStatisticOrder S g n ω ∂μ = 0 := by
+  letI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
+  letI : IsProbabilityMeasure P := by
+    rw [← S.law]
+    exact Measure.isProbabilityMeasure_map (S.meas 0).aemeasurable
+  exact S.integral_rescaled_uStatisticOrder_eq_zero_of_uMean_zero hg.meas hg.integrable hmn
+    hg.integral_eq_zero
+
+omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] in
+/-- **Negligibility of the higher-order remainder.** For an i.i.d. sample `S`, if the
+order-`m` kernel `g` is [first-order degenerate: measurable, square-integrable, and mean
+zero after holding any single coordinate fixed and integrating out all remaining
+coordinates](hyp:hg), then [the `√n`-rescaled order-`m` U-statistic of `g` converges to
+zero in probability, i.e. it is
+`o_p(1)`](goal).
+
+Proof: `L²` boundedness (`memLp_rescaled_order`) with mean zero and variance `≤ C/n → 0`
+(`integral_rescaled_order_sq_le`), via Chebyshev — mirror the order-2
+`degenerateNegligible_of_degenKernel`. -/
+theorem orderDegenerateNegligible_of_firstDegen [IsFiniteMeasure P]
+    (hg : OrderFirstDegenKernel P g) :
+    IsLittleOp (fun n ω => Real.sqrt (n : ℝ) * uStatisticOrder S g n ω)
+      (fun _ => (1 : ℝ)) μ := by
+  letI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
+  apply (Modes.isLittleOpF_iff_strict
+    (fun _ => μ) (fun (n : ℕ) ω => Real.sqrt (n : ℝ) * uStatisticOrder S g n ω) atTop
+    (fun _ => (1 : ℝ)) (Eventually.of_forall fun _ => zero_lt_one)).2
+  intro ε hε
+  rcases S.integral_rescaled_order_sq_le hg with ⟨C, hCnn, hCbound⟩
+  have hb_tendsto :
+      Tendsto (fun n : ℕ => ENNReal.ofReal ((C / ε ^ 2) / (n : ℝ))) atTop (𝓝 0) := by
+    rw [← ENNReal.ofReal_zero]
+    apply ENNReal.tendsto_ofReal
+    have : Tendsto (fun n : ℕ => (C / ε ^ 2) * ((n : ℝ))⁻¹)
+        atTop (𝓝 ((C / ε ^ 2) * 0)) := by
+      apply Filter.Tendsto.const_mul
+      exact tendsto_natCast_atTop_atTop.inv_tendsto_atTop
+    simpa [div_eq_mul_inv, mul_zero] using this
+  have hbound : ∀ᶠ n : ℕ in atTop,
+      μ {ω | ε * (fun _ => (1 : ℝ)) n
+          < |Real.sqrt (n : ℝ) * uStatisticOrder S g n ω|}
+        ≤ ENNReal.ofReal ((C / ε ^ 2) / (n : ℝ)) := by
+    filter_upwards [eventually_ge_atTop m] with n hmn
+    set X : Ω → ℝ := fun ω => Real.sqrt (n : ℝ) * uStatisticOrder S g n ω with hXdef
+    have hmem : MemLp X 2 μ := by
+      simpa [X, hXdef] using S.memLp_rescaled_order hg.meas hg.sq n
+    have hmean : ∫ ω, X ω ∂μ = 0 := by
+      simpa [X, hXdef] using S.integral_rescaled_order_eq_zero hg hmn
+    have hvar_le : variance X μ ≤ C / (n : ℝ) := by
+      rw [ProbabilityTheory.variance_eq_sub hmem, hmean]
+      simp only [Pi.pow_apply]
+      simpa [X, hXdef] using hCbound hmn
+    have hcheb := ProbabilityTheory.meas_ge_le_variance_div_sq hmem (c := ε) hε
+    simp only [hmean, sub_zero] at hcheb
+    have hsub :
+        {ω | ε * (fun _ => (1 : ℝ)) n
+            < |Real.sqrt (n : ℝ) * uStatisticOrder S g n ω|}
+          ⊆ {ω | ε ≤ |X ω|} := by
+      intro ω hω
+      simp only [Set.mem_setOf_eq, mul_one, X] at hω ⊢
+      exact le_of_lt hω
+    refine le_trans (measure_mono hsub) ?_
+    calc
+      μ {ω | ε ≤ |X ω|}
+          ≤ ENNReal.ofReal (variance X μ / ε ^ 2) := hcheb
+      _ ≤ ENNReal.ofReal ((C / (n : ℝ)) / ε ^ 2) := by
+          apply ENNReal.ofReal_le_ofReal
+          gcongr
+      _ = ENNReal.ofReal ((C / ε ^ 2) / (n : ℝ)) := by
+          exact congrArg ENNReal.ofReal (by ring)
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hb_tendsto
+    (Eventually.of_forall (fun n => zero_le)) hbound
+
+end IIDSample
+
+/-! ## Discharging `OrderDegenerateNegligible` for the Hájek remainder -/
+
+/-- **The higher-order remainder of a fixed-order U-statistic is negligible.** For an
+i.i.d. sample `S` and order-`m` kernel `h`, write `g` for the higher-order Hájek
+residual of `h`. If `g` is [measurable](hyp:hmeas) and [square-integrable under the
+`m`-fold product law](hyp:hL2), and if for every coordinate [integrating `h` over the
+remaining `m − 1` coordinates yields an integrable function of that
+coordinate](hyp:hslice_int) [with the same population mean `uMeanOrder h P` in every
+coordinate](hyp:hmean) and [`h` remains integrable in the remaining coordinates for
+every fixed value of that coordinate](hyp:hrow), then [the `√n`-rescaled higher-order
+residual U-statistic `√n · Gₙ` converges to zero in probability, i.e. it is
+`o_p(1)`](goal). This discharges the `OrderDegenerateNegligible` hypothesis consumed by
+the order-`m` CLT `uStatisticOrder_clt` (`Causalean.Stat.UStatistic.OrderM.CLT`).
+
+Proof: assemble `OrderFirstDegenKernel P (uDegenOrder h P)` — `firstDeg` is
+`uDegenOrder_integral_tail_eq_zero` — and apply
+`orderDegenerateNegligible_of_firstDegen`; the goal `OrderDegenerateNegligible S h`
+unfolds to negligibility of `uStatisticOrder S (uDegenOrder h P)`. -/
+theorem orderDegenerateNegligible_of_residual
+    {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
+    {μ : Measure Ω} {P : Measure X}
+    (S : IIDSample Ω X μ P) {m : ℕ} [NeZero m] (h : (Fin m → X) → ℝ)
+    (hmeas : Measurable (uDegenOrder h P))
+    (hL2 : Integrable (fun z => (uDegenOrder h P z) ^ 2)
+      (Measure.pi fun _ : Fin m => P))
+    (hslice_int : ∀ j : Fin m, Integrable
+      (fun x => ∫ tail : ({k : Fin m // k ≠ j}) → X,
+        h (insertCoord j x tail) ∂(Measure.pi fun _ : {k : Fin m // k ≠ j} => P)) P)
+    (hmean : ∀ j : Fin m,
+      ∫ x, (∫ tail : ({k : Fin m // k ≠ j}) → X,
+        h (insertCoord j x tail) ∂(Measure.pi fun _ : {k : Fin m // k ≠ j} => P)) ∂P
+        = uMeanOrder h P)
+    (hrow : ∀ (j : Fin m) (x : X),
+      Integrable (fun tail : ({k : Fin m // k ≠ j}) → X =>
+        h (insertCoord j x tail))
+        (Measure.pi fun _ : {k : Fin m // k ≠ j} => P)) :
+    OrderDegenerateNegligible S h := by
+  letI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
+  letI : IsProbabilityMeasure P := by
+    rw [← S.law]
+    exact Measure.isProbabilityMeasure_map (S.meas 0).aemeasurable
+  have hg : OrderFirstDegenKernel P (uDegenOrder h P) := {
+    meas := hmeas
+    firstDeg := fun j x => uDegenOrder_integral_tail_eq_zero hslice_int hmean hrow j x
+    sq := hL2
+  }
+  unfold OrderDegenerateNegligible uRemainderOrder
+  exact S.orderDegenerateNegligible_of_firstDegen hg
+
+end Causalean.Stat

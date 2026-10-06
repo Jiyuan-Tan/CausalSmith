@@ -1,0 +1,710 @@
+\section{Point estimation across ascertainment regimes}
+
+The squared-error comparisons depend jointly on outcome ascertainment and the number of baseline categories. For every arrival floor \(0<q\le1\), the unrestricted minimax risk \leanref{sym:\mathfrak R^{+}_{n,d,q}}{\ensuremath{\mathfrak R^{+}_{n,d,q}}} of \cref{obj:def:unrestricted-minimax-risk} admits an upper envelope combining the mixed-count rate in \cref{obj:def:frontier-rate} with a dimension-free observed-outcome bound. The latter separates a sampling contribution of order \(n^{-1}\) from the squared ascertainment deficit \((1-q)^2\). We first specify the estimators supporting this envelope, then give matched comparisons for large alphabets, rare arrival, and a fixed arrival floor \(0<q<1/2\).
+
+\subsection{An all-arrival envelope and its estimators}
+
+The clipped observed-outcome arm contrast \leanref{sym:\widehat\tau^{\mathrm{HT}}_n}{\ensuremath{\widehat\tau^{\mathrm{HT}}_n}} uses balanced assignment to form a signed average of arrived outcomes. Its projection \leanref{sym:\Pi_{[-1,1]}}{\ensuremath{\Pi_{[-1,1]}}} keeps the estimate in the range of the population treatment effect. The following definition also fixes the clipping convention used by the mixed-count estimator.
+
+\begin{definitionv}{def:complete-arrival-ht-estimator}[Clipped observed-outcome arm contrast]
+The clipped observed-outcome arm contrast is the map
+\[
+\widehat\tau^{\mathrm{HT}}_n(\mathbf O_n)
+:=
+\Pi_{[-1,1]}\!\left\{
+\frac{2}{n}\sum_{i=1}^n
+(2A_i-1)\mathbf{1}\{R_i=1,\ R_iY_i=1\}
+\right\},
+\qquad n\ge1.
+\]
+Here \(n,d\) are nonnegative integers, and \(\mathbf O_n\), the observed sample, consists of records
+\(O_i=(X_i,A_i,S_i,R_i,R_iY_i)\), with \(X_i\in\{0,\ldots,d-1\}\) and all four remaining coordinates binary; the baseline support is empty when \(d=0\). The notation \(R_iY_i\) denotes the stored arrived-outcome coordinate; the indicator equals one exactly when both this coordinate and the arrival coordinate \(R_i\) equal one. Projection and clipping coincide:
+\[
+\Pi_{[-1,1]}(u)=\operatorname{clip}_{[-1,1]}(u)
+=\max\{-1,\min\{1,u\}\},
+\qquad u\in\mathbb R.
+\]
+For \(n=0\), the map is defined to equal zero.
+\end{definitionv}
+
+The \leanref{S-2}{mixed-count construction} combines cell membership information with cell-specific arrived-outcome statistics. It uses the effective sample size \(N=nq\) and the logarithmic scale \(\ell=\log(e+N)\) in \cref{obj:synth_7}. Its polynomial degree \leanref{sym:k}{\ensuremath{k}} grows with this logarithmic scale, according to the following total tuning rule.
+
+\begin{definitionv}{synth_8}[Polynomial degree tuning]
+The degree \(k\), for \(n\in\mathbb N\) and \(q\in\mathbb R\), is defined by
+\[
+k=
+\begin{cases}
+\displaystyle \max\left\{0,\left\lfloor\frac{\log|e+nq|}{64}\right\rfloor\right\},
+& e+nq\ne 0,\\
+0, & e+nq=0.
+\end{cases}
+\]
+\end{definitionv}
+
+On the polynomial branch, the first-kind Chebyshev polynomial \leanref{sym:T_k}{\ensuremath{T_k}} determines the needle polynomial \leanref{sym:Q_k(t)}{\ensuremath{Q_k(t)}}. Here \leanref{sym:t}{\ensuremath{t}} denotes an arrived-count intensity, and the threshold \leanref{sym:B}{\ensuremath{B}} sets the scale of the construction. The next two definitions specify the polynomial and its coefficient sequence \leanref{sym:a_v}{\ensuremath{a_v}}, where \leanref{sym:v}{\ensuremath{v}} indexes the degree.
+
+\begin{definitionv}{synth_18}[Chebyshev needle polynomial]
+Put \(N=nq\), \(\ell=\log(e+N)\), \(k=\lfloor\ell/64\rfloor\), and \(B=256\ell\). Let \(T_k\) be the first-kind Chebyshev polynomial, characterized by \(T_k(\cos u)=\cos(ku)\). On the branch \(\ell\ge128\) and \(d\ge\sqrt N\), where \(k\ge2\), define
+\[
+Q_k(t):=
+\begin{cases}
+\displaystyle\frac{1-T_k(1-2t/B)}{2k^2t/B},&t>0,\\[6pt]
+1,&t=0.
+\end{cases}
+\]
+Here \(t\ge0\) is an arrived-count intensity, and the value at zero is the continuous polynomial extension of the displayed quotient. On every other branch, set \(Q_k(t):=1\) for every \(t\ge0\).
+\end{definitionv}
+
+\begin{definitionv}{synth_13}[Polynomial coefficient rule]
+The coefficients \(a_v\), for \(n,d,v\in\mathbb N\) and \(q\in\mathbb R\), are defined by
+\[
+a_v=
+\begin{cases}
+[t^v]\bigl(1-Q_k(t)\bigr),
+& 128\le \ell \ \text{and}\ \sqrt{N}\le d,\\
+0,
+& \text{otherwise}.
+\end{cases}
+\]
+Here \([t^v]\) denotes the coefficient of \(t^v\), \(N=nq\) is the effective sample size, \(\ell\) is the logarithmic scale, and \(Q_k\) is the Chebyshev needle polynomial. On the indicated branch, this polynomial is the needle radius divided by \(2k^2\), multiplied by the polynomial quotient of
+\[
+1-T_k\!\left(1-\frac{2t}{\text{needle radius}}\right)
+\]
+upon division by \(t\), with the remainder discarded. The degree \(k\) and needle radius are the construction's values at \((n,q)\), and \(T_k\) is the first-kind Chebyshev polynomial.
+\end{definitionv}
+
+The estimator assigns observations to membership, pilot, and estimation streams. The pilot arrived count \leanref{sym:C'_j}{\ensuremath{C'_j}} selects the cell statistic, while the estimation arrived count \leanref{sym:C_j}{\ensuremath{C_j}} and arrived-one count \leanref{sym:U_j}{\ensuremath{U_j}} supply its outcome information. Their definitions retain the observed cell memberships and distinguish the two uses of arrived outcomes.
+
+\begin{definitionv}{synth_17}[Arrived-outcome counts \(C'_j\) and \(C_j\)]
+The pilot and estimation arrived-outcome counts are
+\[
+C'_j:=\sum_{i\in\mathcal I_{\mathrm{pil}}}
+\mathbf1\{A_i=a,\ X_i=x,\ S_i=s,\ R_i=1\},
+\qquad
+C_j:=\sum_{i\in\mathcal I_{\mathrm{est}}}
+\mathbf1\{A_i=a,\ X_i=x,\ S_i=s,\ R_i=1\},
+\quad j=(a,x,s)\in\mathcal J_d.
+\]
+Here \(\mathbf O_n\), the random observed sample, consists of the records
+\[
+O_i=(X_i,A_i,S_i,R_i,R_iY_i),
+\qquad
+\mathbf O_n=(O_i)_{i=1}^n,
+\qquad
+\mathcal L_P(\mathbf O_n)=\bigl(\mathcal L_P(O_1)\bigr)^{\otimes n}.
+\]
+Given a prefix length \(K_0\le n\) and an assignment of its indices to membership, pilot, and estimation streams, \(\mathcal I_{\mathrm{pil}}\) and \(\mathcal I_{\mathrm{est}}\) denote the sets of prefix indices assigned to the pilot and estimation streams, respectively. The cell alphabet and observed-sample law are defined in \cref{obj:synth_6,obj:synth_5}; the prefix and stream assignments are those used in \cref{obj:def:mixed-count-estimator}.
+\end{definitionv}
+
+\begin{definitionv}{synth_10}[Estimation arrived-one count]
+The estimation arrived-one count \(U_j\) is defined for any \(k,d\in\mathbb N\), collection of \(k\) observed records, assignment of each record to a stream in \(\{0,1,2\}\), and cell \(j=(a,x,s)\in\{0,1\}\times\{0,\ldots,d-1\}\times\{0,1\}\) by
+\[
+U_j
+:=
+\#\bigl\{\,0\le i<k:
+i\text{ is assigned to stream }2,\ 
+A_i=a,\ X_i=x,\ S_i=s,\ R_i=1,\ (RY)_i=1
+\,\bigr\}.
+\]
+Here \(O_i=(X_i,A_i,S_i,R_i,(RY)_i)\) denotes the \(i\)th observed record, with baseline coordinate \(X_i\in\{0,\ldots,d-1\}\) and binary coordinates \(A_i,S_i,R_i,(RY)_i\).
+\end{definitionv}
+
+The selected cell statistic \leanref{sym:G_j}{\ensuremath{G_j}} uses a polynomial expression when the pilot count is small and an empirical arrived-outcome mean on the remaining cells. The associated factorial statistic \leanref{sym:H_j}{\ensuremath{H_j}} records the polynomial expression separately, and the elementary ratio \leanref{sym:D_j}{\ensuremath{D_j}} specifies the empirical-mean branch, including its value when the arrived count is zero.
+
+\begin{definitionv}{synth_15}[Selected polynomial cell statistic]
+The selected cell statistic \(G_j\), for natural-number parameters \(n,d\), a real parameter \(q\), a finite collection of observed records with baseline coordinate in \(\{0,\ldots,d-1\}\) and binary assignment, surrogate, arrival, and arrived-outcome coordinates, an assignment of each record to one of three streams, and a cell \(j\in\{0,1\}\times\{0,\ldots,d-1\}\times\{0,1\}\), is defined by
+\[
+G_j=
+\begin{cases}
+\displaystyle
+\sum_{v=1}^{\max\{k-1,0\}}
+a_v U_j
+\prod_{t=0}^{v-2}\max\{C_j-1-t,0\},
+&
+128\le \ell,\quad \sqrt{N}\le d,\quad C'_j\le B/4,
+\\[6pt]
+\displaystyle U_j/C_j,
+&
+C_j>0
+\ \text{and the preceding branch condition fails},
+\\[4pt]
+0,
+&
+C_j=0
+\ \text{and the preceding branch condition fails}.
+\end{cases}
+\]
+Here \(N=nq\) is the effective sample size, \(\ell\) is the construction's logarithmic scale, \(B=256\ell\) is its threshold, \(k\) is its polynomial degree, and \(a_v\) are its polynomial coefficients. The quantities \(C'_j\), \(C_j\), and \(U_j\) are, respectively, the pilot-stream arrived count, the estimation-stream arrived count, and the estimation-stream arrived count with outcome equal to one in cell \(j\). An empty sum equals zero and an empty product equals one.
+\end{definitionv}
+
+\begin{definitionv}{synth_14}[Factorial cell statistic]
+The cell statistic \(H_j\), for a finite collection of observed records, assignments to streams \(0,1,2\), a cell \(j\in\{0,1\}\times\{0,\ldots,d-1\}\times\{0,1\}\), \(n,d\in\mathbb N\), and \(q\in\mathbb R\), is
+\[
+H_j=
+\begin{cases}
+\displaystyle
+\sum_{v=1}^{\max\{k-1,0\}}
+a_v U_j
+\prod_{r=1}^{v-1}\max\{C_j-r,0\},
+& \ell\ge128\ \text{and}\ \sqrt N\le d,\\[6pt]
+0,&\text{otherwise}.
+\end{cases}
+\]
+Here \(N=nq\) is the effective sample size, \(\ell\) is the logarithmic scale, and the degree parameter is
+\[
+k=\max\{\lfloor\ell/64\rfloor,0\}.
+\]
+The estimation-stream arrival count \(C_j\) and arrived-one count \(U_j\) are
+\[
+C_j=\sum_i
+\mathbf 1\{\text{record }i\text{ is assigned to stream }2,\ 
+(A_i,X_i,S_i)=j,\ R_i=1\},
+\qquad
+U_j=\sum_i
+\mathbf 1\{\text{record }i\text{ is assigned to stream }2,\ 
+(A_i,X_i,S_i)=j,\ R_i=1,\ (RY)_i=1\}.
+\]
+The coefficients associated with the Chebyshev polynomial \(Q_k\) are
+\[
+a_v=
+\begin{cases}
+[t^v]\bigl(1-Q_k(t)\bigr),
+&\ell\ge128\ \text{and}\ \sqrt N\le d,\\
+0,&\text{otherwise},
+\end{cases}
+\]
+where \([t^v]\) denotes the coefficient of \(t^v\). Empty sums equal zero and empty products equal one.
+\end{definitionv}
+
+\begin{definitionv}{synth_12}[Elementary cell ratio statistic]
+The elementary cell statistic \(D_j\), for any finite collection of observed records, any assignment of those records to three streams indexed by \(0,1,2\), and any cell \(j\in\{0,1\}\times\{0,\ldots,d-1\}\times\{0,1\}\), is
+\[
+D_j=
+\begin{cases}
+U_j/C_j, & C_j>0,\\
+0, & C_j=0.
+\end{cases}
+\]
+Here the records have baseline coordinate \(X\in\{0,\ldots,d-1\}\) and binary coordinates \(A,S,R,RY\), and the counts are
+\[
+\begin{aligned}
+C_j&=\#\{\text{records assigned to stream }2:
+                 (A,X,S)=j,\ R=1\},\\
+U_j&=\#\{\text{records assigned to stream }2:
+                 (A,X,S)=j,\ R=1,\ RY=1\}.
+\end{aligned}
+\]
+\end{definitionv}
+
+Cell weights use the membership count \leanref{sym:M_j}{\ensuremath{M_j}}, which includes observations with either arrival status. The weight \leanref{sym:W_j}{\ensuremath{W_j}} divides this count by the stream intensity \leanref{sym:m}{\ensuremath{m}}. The following definitions therefore separate estimation of cell mass from estimation of its outcome mean.
+
+\begin{definitionv}{synth_9}[Membership stream cell count]
+The membership count \(M_j\), for any nonnegative integers \(k,d\), a collection of \(k\) observed records \(O_i\) with baseline coordinates in \(\{0,\ldots,d-1\}\) and binary assignment, surrogate, arrival, and recorded-outcome coordinates, an assignment of each record to one of the streams \(0,1,2\), and a cell \(j=(a,x,s)\in\{0,1\}\times\{0,\ldots,d-1\}\times\{0,1\}\), is
+\[
+M_j
+:=
+\#\bigl\{i:0\le i<k,\ 
+i\text{ is assigned to stream }0,\ 
+A_i=a,\ X_i=x,\ S_i=s\bigr\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_11}[Cell membership weight]
+The cell-weight statistic \(W_j\) is defined for nonnegative integers \(k,d,n\), a collection of \(k\) observed records \(O_i\) with baseline coordinate \(X_i\in\{0,\ldots,d-1\}\) and binary coordinates \(A_i,S_i,R_i,RY_i\), an assignment of each record to a stream labelled \(0,1,2\), and a cell
+\[
+j\in\{0,1\}\times\{0,\ldots,d-1\}\times\{0,1\}.
+\]
+Using the membership count and stream intensity
+\[
+M_j=\#\{i\in\{0,\ldots,k-1\}: O_i\text{ is assigned to stream }0,\ (A_i,X_i,S_i)=j\},
+\qquad
+m=\frac{n}{6},
+\]
+define
+\[
+W_j=\frac{M_j}{m}.
+\]
+The count \(M_j\) is interpreted as a real number in this quotient, and division by zero is assigned the value zero, so \(W_j=0\) when \(n=0\). The index sets \(\{0,\ldots,k-1\}\) and \(\{0,\ldots,d-1\}\) are empty when their respective sizes are zero.
+\end{definitionv}
+
+These ingredients define the mixed-count estimator \leanref{sym:\widehat\tau^{\mathrm{mix}}_{n,d,q}}{\ensuremath{\widehat\tau^{\mathrm{mix}}_{n,d,q}}}. A Poisson prefix length \leanref{sym:K_0}{\ensuremath{K_0}} and independent stream assignments produce an auxiliary estimate; averaging over this randomization yields a deterministic function of the observed sample.
+
+\begin{algorithmv}{def:mixed-count-estimator}[Mixed-count estimator $\widehat\tau^{\mathrm{mix}}_{n,d,q}$]
+Given the observed sample \(\mathbf O_n\), parameters \(n,d,q\), effective sample size \(N=nq\), logarithmic scale \(\ell\), and the declared cell-statistic and polynomial formulas, define the estimator by the following steps.
+\begin{enumerate}
+\item Draw an auxiliary prefix length independently of the data:
+\[
+K_0\sim\operatorname{Poisson}(n/2).
+\]
+When \(K_0\le n\), independently assign each of the first \(K_0\) observations to the membership, pilot, or estimation stream, each with probability \(1/3\). Denote the prefix and stream-assignment randomization by \(\omega\).
+
+\item On the event \(K_0>n\), set
+\[
+\widetilde\tau(\mathbf O_n;\omega)=0.
+\]
+When \(K_0\le n\), form the declared statistics \(M_j,C'_j,C_j,U_j,W_j,D_j\). If \(N\le1\), set
+\[
+\widetilde\tau(\mathbf O_n;\omega)=0.
+\]
+
+\item When \(K_0\le n\), \(N>1\), and either \(\ell<128\) or \(d<\sqrt N\), set
+\[
+\widetilde\tau(\mathbf O_n;\omega)
+=
+\operatorname{clip}_{[-1,1]}
+\left\{
+2\sum_{j=(a,x,s)}g(a)W_jD_j
+\right\}.
+\]
+On this branch, the Chebyshev quotient and its coefficients are left unevaluated.
+
+\item When \(K_0\le n\), \(N>1\), \(\ell\ge128\), and \(d\ge\sqrt N\), form the declared total quantities \(Q_k,a_v,H_j,G_j\) and set
+\[
+\widetilde\tau(\mathbf O_n;\omega)
+=
+\operatorname{clip}_{[-1,1]}
+\left\{
+2\sum_{j=(a,x,s)}g(a)W_jG_j
+\right\}.
+\]
+
+\item Output the conditional average
+\[
+\widehat\tau^{\mathrm{mix}}_{n,d,q}(\mathbf O_n)
+:=
+E_\omega\!\left[
+\widetilde\tau(\mathbf O_n;\omega)\mid\mathbf O_n
+\right].
+\]
+This average is a finite sum over prefix lengths \(K_0\le n\) and their stream assignments, together with the zero contribution from the Poisson tail. It defines a total, deterministic, sample-measurable estimator whose squared-error risk is no larger than that of the auxiliary randomized output.
+\end{enumerate}
+\end{algorithmv}
+
+The resulting deterministic risk envelope \leanref{sym:\mathfrak U_{n,d,q}}{\ensuremath{\mathfrak U_{n,d,q}}} is specified branch by branch in the next result. Its certificate uses the effective stream size \leanref{sym:N_0}{\ensuremath{N_0}}, equal to \(mq\). Together with the observed-outcome contrast, it provides two upper bounds applicable throughout the unrestricted arrival domain.
+
+\begin{theoremv}{thm:unrestricted-near-complete-arrival-envelope}[Near-complete arrival risk envelope]
+There exists a universal constant \(\overline C>0\) with the following properties. For every \(n,d\ge1\) and \(0<q\le1\), let \(r_{n,d,q}\) be the rate in \cref{obj:def:frontier-rate}, let \(\ell\) be the logarithmic scale in \cref{obj:synth_7}, let \(k\) be the polynomial degree specified in \cref{obj:synth_8}, and let \(B\) be the threshold specified in \cref{obj:synth_18}. Define the effective sample size \(N\), stream intensity \(m\), effective stream size \(N_0\), and prefix-tail constant \(\gamma_0\) by
+\[
+N=nq,\qquad m=\frac n6,\qquad N_0=mq,\qquad
+\gamma_0=\log 2-\frac12.
+\]
+Define the deterministic squared-error envelope \(\mathfrak U_{n,d,q}\) as follows. When \(N\le1\), set
+\[
+\mathfrak U_{n,d,q}=1.
+\]
+When \(N>1\) and the estimator in \cref{obj:def:mixed-count-estimator} uses its elementary branch, set
+\[
+\mathfrak U_{n,d,q}
+=
+\min\left\{
+4,\,
+\left(\frac{8d}{eN_0}\right)^2
++4\left(\frac4{N_0}+\frac1m\right)
++4e^{-n\gamma_0}
+\right\}.
+\]
+When \(N>1\) and that estimator uses its polynomial branch, define the certificate quantities
+\[
+b_{n,d,q}
+=
+2\left(\frac{4dB}{N_0k^2}+3e^{-16\ell}\right),
+\]
+\[
+v_{n,d,q}
+=
+8\left(\frac4{N_0}+\frac1m\right)
++64d\left(e^{\ell/8}+1\right)
+\left(\frac{B^2}{N_0^2}+\frac{B}{mN_0}\right)
++32e^{-32\ell}\left(1+\frac1m\right),
+\]
+and set
+\[
+\mathfrak U_{n,d,q}
+=
+\min\left\{
+4,\,
+b_{n,d,q}^{\,2}+v_{n,d,q}+4e^{-n\gamma_0}
+\right\}.
+\]
+
+For every full-data law \(P\in\mathcal M^{+}_{n,d,q}\), the unrestricted-arrival model class in \cref{obj:def:unrestricted-arrival-model-class}, suppose that \(\mathbf O_n\), the observed sample, satisfies \cref{obj:ass:iid-sampling} under the canonical product law of \(n\) observed records induced by \(P\). The mixed-count estimator of \cref{obj:def:mixed-count-estimator} satisfies
+\[
+E_P\!\left[
+\left\{
+\widehat\tau^{\mathrm{mix}}_{n,d,q}(\mathbf O_n)-\tau(P)
+\right\}^{2}
+\right]
+\le \mathfrak U_{n,d,q}
+\le \overline C\,r_{n,d,q},
+\]
+where \(\tau(P)\) is the average treatment effect in \cref{obj:def:ate-functional}. It also satisfies
+\[
+E_P\!\left[
+\left\{
+\widehat\tau^{\mathrm{mix}}_{n,d,q}(\mathbf O_n)-\tau(P)
+\right\}^{2}
+\right]
+\le
+E_P\!\left[
+E_\omega\!\left[
+\left\{
+\widetilde\tau(\mathbf O_n;\omega)-\tau(P)
+\right\}^{2}
+\right]
+\right],
+\]
+where \(\widetilde\tau(\mathbf O_n;\omega)\) is the auxiliary randomized output in \cref{obj:def:mixed-count-estimator}, and the inner expectation uses its specified auxiliary randomization, including the zero output when the Poisson prefix length exceeds \(n\).
+
+For every \(n,d\ge1\) and \(0<q\le1\), the minimax squared-error risk \(\mathfrak R^{+}_{n,d,q}\) over the parameter-independent bounded estimator kernels in \cref{obj:def:unrestricted-minimax-risk} obeys the combined envelope
+\[
+\frac{1}{256n}
+\le
+\mathfrak R^{+}_{n,d,q}
+\le
+\min\left\{
+1,\,
+\overline C\,r_{n,d,q},\,
+\frac4n+(1-q)^2
+\right\}.
+\]
+The clipped observed-outcome contrast \(\widehat\tau^{\mathrm{HT}}_n\) of \cref{obj:def:complete-arrival-ht-estimator} satisfies
+\[
+\sup_{P\in\mathcal M^{+}_{n,d,q}}
+E_P\!\left[
+\left\{
+\widehat\tau^{\mathrm{HT}}_n(\mathbf O_n)-\tau(P)
+\right\}^{2}
+\right]
+\le
+\frac4n+(1-q)^2,
+\]
+where each expectation is taken under the canonical product law of \(n\) observed records induced by \(P\).
+\end{theoremv}
+
+The universal comparison constant \leanref{sym:\overline C}{\ensuremath{\overline C}} is independent of sample size, alphabet size, and arrival floor. The two upper bounds express different ways to control squared error: the mixed-count bound accounts for category complexity through \(r_{n,d,q}\), whereas the observed-outcome bound accounts for missing outcomes through the ascertainment deficit. As \(q\) approaches one, the latter supplies a dimension-free guarantee. Conditional averaging in \cref{obj:def:mixed-count-estimator} preserves the mixed-count guarantee while eliminating the auxiliary randomization from the reported estimate.
+
+\subsection{Large alphabets and the uniform near-complete criterion}
+
+For alphabets at least quadratic in sample size, the sampling and ascertainment-deficit terms also give a matching lower bound. The next result establishes their joint order with universal constants throughout the stated large-alphabet region.
+
+\begin{theoremv}{thm:unrestricted-large-alphabet-deficit-lower}[Unrestricted risk with large alphabets]
+Let \(n,d\) be nonnegative integers and \(q\) a real number satisfying:
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\ge 1\).
+\item \textbf{(Alphabet size.)} \(d\ge 1024n^2\).
+\item \textbf{(Arrival floor.)} \(0<q\le 1\).
+\end{itemize}
+Then \(\mathfrak R^{+}_{n,d,q}\), the unrestricted minimax squared-error risk defined in \cref{obj:def:unrestricted-minimax-risk}, satisfies
+\[
+\max\left\{\frac{1}{256n},\frac{(1-q)^2}{1024}\right\}
+\le \mathfrak R^{+}_{n,d,q}
+\le \frac{4}{n}+(1-q)^2.
+\]
+These bounds also give the envelope
+\(\frac{1}{2048}\left\{\frac{1}{n}+(1-q)^2\right\}
+\le \mathfrak R^{+}_{n,d,q}
+\le 4\left\{\frac{1}{n}+(1-q)^2\right\}\).
+\end{theoremv}
+
+The comparison identifies two sources of difficulty on the same scale: ordinary sampling variation and the remaining ascertainment deficit. When \((1-q)^2\) exceeds \(n^{-1}\), it determines the risk order in this region; when it is at most of order \(n^{-1}\), sampling variation determines that order. Thus the dimension-free observed-outcome guarantee in \cref{obj:thm:unrestricted-near-complete-arrival-envelope} is sharp up to universal constants for \(d\ge1024n^2\).
+
+A guarantee uniform over every alphabet size must cover this large-alphabet region. Combining its lower bound with the all-arrival upper envelope yields an exact sequence-level criterion for parametric squared-error risk.
+
+\begin{propositionv}{prop:unrestricted-uniform-near-complete-elbow}[Uniform near-complete arrival elbow]
+Let \((q_n)_{n\ge0}\) satisfy \(0<q_n\le1\) for every \(n\), and let \(\mathfrak R^{+}_{n,d,q}\) be the unrestricted-arrival minimax squared-error risk defined in \cref{obj:def:unrestricted-minimax-risk}. For every integer \(n\ge1\),
+\[
+n\mathfrak R^{+}_{n,d,q_n}\le 4+n(1-q_n)^2
+\qquad\text{for every integer }d\ge1.
+\]
+Moreover, for every real number
+\[
+b<\frac{1}{2048}\bigl\{1+n(1-q_n)^2\bigr\},
+\]
+there exists an integer \(d\ge1\) such that
+\[
+b<n\mathfrak R^{+}_{n,d,q_n}.
+\]
+
+The following two conditions are equivalent:
+\begin{itemize}
+\item \textbf{(Arrival rate.)} There exists a real constant \(M\ge0\) such that, for all sufficiently large integers \(n\),
+\[
+1-q_n\le \frac{M}{\sqrt n}.
+\]
+\item \textbf{(Uniform risk bound.)} There exists a real constant \(D\) such that, for all sufficiently large integers \(n\) and every integer \(d\ge1\),
+\[
+\mathfrak R^{+}_{n,d,q_n}\le \frac{D}{n}.
+\]
+\end{itemize}
+
+For every pair of integers \(n,d\ge1\),
+\[
+\frac{1}{256n}\le \mathfrak R^{+}_{n,d,q_n}.
+\]
+If the sequence \(\bigl(\sqrt n(1-q_n)\bigr)_{n\ge0}\) is unbounded above, then for every real constant \(C\), there are infinitely many integers \(n\) such that
+\[
+C<n\mathfrak R^{+}_{n,\,1024n^2,\,q_n}.
+\]
+\end{propositionv}
+
+The quantifier over all \(d\) is central to this criterion. A deficit of order \(n^{-1/2}\) is necessary and sufficient for an eventual \(n^{-1}\) upper bound holding simultaneously over every alphabet size. The explicit sequence \(d_n=1024n^2\) witnesses the converse when the rescaled deficit is unbounded. For any fixed deficit multiplier, the sufficient window also gives the following numerical comparison along arbitrary alphabet-size sequences.
+
+\begin{propositionv}{prop:unrestricted-near-complete-phase-boundary}[Near-complete arrival phase boundary]
+Let \(\mathfrak R^{+}_{n,d,q}\) be the unrestricted minimax squared-error risk defined in \cref{obj:def:unrestricted-minimax-risk}. Fix a real constant \(M\) and sequences \((d_n)_{n\ge0}\) and \((q_n)_{n\ge0}\) satisfying:
+\begin{itemize}
+\item \textbf{(Constant.)} \(M\ge0\).
+\item \textbf{(Alphabet size.)} \(d_n\) is a natural number with \(d_n\ge1\) for every \(n\).
+\item \textbf{(Arrival floor.)} \(q_n\in(0,1]\) for every \(n\).
+\item \textbf{(Arrival deficit.)} For all sufficiently large \(n\),
+\[
+1-q_n\le \frac{M}{\sqrt n}.
+\]
+\end{itemize}
+Then, for all sufficiently large \(n\),
+\[
+\frac{1}{256n}
+\le \mathfrak R^{+}_{n,d_n,q_n}
+\le \frac{4+M^2}{n}.
+\]
+\end{propositionv}
+
+At complete ascertainment, the deficit is zero. The following endpoint specialization records the observed-outcome contrast as a direct witness to the dimension-free parametric benchmark.
+
+\begin{theoremv}{thm:unrestricted-complete-arrival-frontier}[Complete-arrival minimax risk frontier]
+For every sample size \(n\ge 1\) and alphabet size \(d\ge 1\), let \(\mathcal M^{+}_{n,d,1}\) be the complete-arrival model class of \cref{obj:def:unrestricted-arrival-model-class}, and let \(\mathbf O_n\) consist of \(n\) independent, identically distributed observed records induced by the full-data law \(P\). Let \(\mathfrak R^{+}_{n,d,1}\) be the minimax squared-error risk of \cref{obj:def:unrestricted-minimax-risk}, and let \(\widehat\tau^{\mathrm{HT}}_n\) be the clipped observed-outcome arm contrast of \cref{obj:def:complete-arrival-ht-estimator}. Writing \(\tau(P)\) for the population average treatment effect, we have
+\[
+\frac{1}{256n}
+\le \mathfrak R^{+}_{n,d,1}
+\le
+\sup_{P\in\mathcal M^{+}_{n,d,1}}
+E_P\!\left[
+\left\{\widehat\tau^{\mathrm{HT}}_n(\mathbf O_n)-\tau(P)\right\}^{2}
+\right]
+\le \frac{4}{n}.
+\]
+Consequently, at the complete-arrival endpoint \(q=1\), the minimax squared-error risk has order \(n^{-1}\) with universal constants, uniformly over \(d\ge 1\).
+\end{theoremv}
+
+Complete arrival makes the observed-outcome arm contrast sufficient to attain the minimax order for every alphabet size. The sampling lower bound remains of the same order, so the endpoint comparison is uniform even when the alphabet grows arbitrarily quickly. Its sequence formulation follows directly.
+
+\begin{propositionv}{prop:unrestricted-complete-arrival-phase-boundary}[Complete-arrival point-risk boundary]
+There exist real constants \(0<c\le C\) such that, for every sequence of alphabet sizes \(d_n\ge1\), the unrestricted minimax squared-error risk \(\mathfrak R^{+}_{n,d_n,1}\) defined in \cref{obj:def:unrestricted-minimax-risk} at complete arrival \(q=1\) satisfies, for all sufficiently large \(n\),
+\[
+\frac{c}{n}\le \mathfrak R^{+}_{n,d_n,1}\le \frac{C}{n}.
+\]
+The comparison constants are independent of the chosen alphabet-size sequence.
+\end{propositionv}
+
+\subsection{Rare arrival and effective sample size}
+
+Under \cref{obj:ass:rare-arrival-slice}, the rate in \cref{obj:def:frontier-rate} gives a matched comparison for the rare-arrival risk of \cref{obj:def:minimax-risk}. This comparison retains the full observed experiment, including memberships whose outcomes have yet to arrive, and applies to the entire decision class in that risk definition.
+
+\begin{theoremv}{thm:matched-minimax-frontier}[Matched minimax frontier]
+There exist universal constants \(0<\underline c\le\overline C<\infty\) such that, for every \(n,d\in\mathbb N\) and \(q\in\mathbb R\) satisfying
+\begin{itemize}
+\item \textbf{(Sample size and dimension.)} \(n\ge1\) and \(d\ge1\).
+\item \textbf{(Arrival parameter.)} \(0<q\le1\).
+\item \textbf{(Rare-arrival restriction.)} \cref{obj:ass:rare-arrival-slice} holds.
+\end{itemize}
+the minimax squared-error risk \(\mathfrak R_{n,d,q}\) defined in \cref{obj:def:minimax-risk} and the frontier rate \(r_{n,d,q}\) defined in \cref{obj:def:frontier-rate} satisfy
+\[
+\underline c\,r_{n,d,q}
+\le \mathfrak R_{n,d,q}
+\le \overline C\,r_{n,d,q}.
+\]
+\end{theoremv}
+
+The universal lower constant \leanref{sym:\underline c}{\ensuremath{\underline c}} makes the two components of the rate jointly informative about minimax difficulty. The reciprocal effective sample size captures the sampling scale, while the squared category term captures the cost of estimating the treatment contrast across many cells:
+\[
+r_{n,d,q}
+=
+\min\left\{1,\frac1N+\left(\frac{d}{N\ell}\right)^2\right\}.
+\]
+At fixed alphabet size, the category term becomes asymptotically negligible as \(N\) grows. The next result also establishes this effective-sample-size order within the submodel having a constant surrogate in both treatment arms.
+
+\begin{propositionv}{prop:fixed-d-effective-sample-reduction}[Fixed-alphabet effective sample reduction]
+Fix an integer \(d\ge 1\). Let \(n(t)\) and \(q(t)\) be sequences indexed by \(t\in\mathbb N\) satisfying:
+\begin{itemize}
+\item \textbf{(Sample size and arrival.)} For every \(t\), \(n(t)\in\mathbb N\), \(n(t)\ge 1\), and \(0<q(t)\le 1\).
+\item \textbf{(Rare-arrival slice.)} For every \(t\), the pair \((n(t),q(t))\) satisfies \cref{obj:ass:rare-arrival-slice}.
+\item \textbf{(Effective sample size.)} The effective sample size
+\[
+N(t)=n(t)q(t)
+\]
+satisfies \(N(t)\to\infty\) as \(t\to\infty\).
+\end{itemize}
+Then the frontier rate and minimax squared-error risk of \cref{obj:def:frontier-rate,obj:def:minimax-risk} satisfy
+\[
+r_{n(t),d,q(t)}\asymp N(t)^{-1},
+\qquad
+\mathfrak R_{n(t),d,q(t)}\asymp N(t)^{-1}
+\qquad (t\to\infty).
+\]
+The minimax squared-error risk with the same estimator class and loss as in \cref{obj:def:minimax-risk}, taken over the restricted full-data laws
+\[
+\bigl\{P\in\mathcal M_{n(t),d,q(t)}:
+P\bigl(S(0)=0,\ S(1)=0\bigr)=1\bigr\},
+\]
+is also of order \(N(t)^{-1}\) as \(t\to\infty\). Each order comparison means eventual upper and lower bounds by positive constant multiples of \(N(t)^{-1}\).
+\end{propositionv}
+
+Allowing the alphabet to grow separates consistency from effective-sample-size precision. The category term vanishes when \(d\) is small relative to \(N\log(e+N)\), and it remains at most of order \(N^{-1}\) when \(d\) is at most of order \(\sqrt N\log(e+N)\). The matched comparison turns these rate calculations into exact equivalences for the minimax risk.
+
+\begin{propositionv}{prop:phase-boundaries}[Rare-arrival minimax phase boundaries]
+Let \((n_t)_{t\in\mathbb N}\) and \((d_t)_{t\in\mathbb N}\) be sequences of natural numbers, and let \((q_t)_{t\in\mathbb N}\) be a sequence of real numbers. Define the effective sample size by
+\[
+N_t=n_tq_t.
+\]
+Suppose that:
+\begin{itemize}
+\item \textbf{(Positive sizes.)} \(n_t\ge 1\) and \(d_t\ge 1\) for every \(t\in\mathbb N\).
+\item \textbf{(Arrival probabilities.)} \(0<q_t\le 1\) for every \(t\in\mathbb N\).
+\item \textbf{(Rare-arrival slice.)} \((n_t,q_t)\) satisfies \cref{obj:ass:rare-arrival-slice} for every \(t\in\mathbb N\).
+\item \textbf{(Effective sample growth.)} \(N_t\to\infty\) as \(t\to\infty\).
+\end{itemize}
+Then the minimax squared-error risk \(\mathfrak R_{n_t,d_t,q_t}\) of \cref{obj:def:minimax-risk} satisfies both equivalences:
+\[
+\mathfrak R_{n_t,d_t,q_t}\longrightarrow 0
+\quad\Longleftrightarrow\quad
+d_t=o\!\left(N_t\log(e+N_t)\right),
+\]
+\[
+\mathfrak R_{n_t,d_t,q_t}=\Theta\!\left(N_t^{-1}\right)
+\quad\Longleftrightarrow\quad
+d_t=O\!\left(\sqrt{N_t}\log(e+N_t)\right),
+\]
+where all limits and asymptotic comparisons are taken as \(t\to\infty\).
+\end{propositionv}
+
+These thresholds quantify how many baseline categories can be accommodated at a given outcome-maturity floor. They apply along sequences satisfying the rare-arrival restriction and growing effective sample size. In particular, they distinguish the broader category-growth range permitting consistency from the smaller range preserving squared-error risk of order \(N_t^{-1}\).
+
+\subsection{A fixed strict-interior arrival floor}
+
+A separate matched comparison applies to the unrestricted model when the arrival floor is fixed at \(0<q<1/2\). Its lower comparison uses the discrete observational lower bound of \citet[Theorem~2, Section~3.2, p.~9, and its proof in Section~C.5, pp.~39--44]{ZengBalakrishnanHanKennedy2026}, including the restriction setting the control regression to zero. The resulting comparison holds for every \(n,d\ge1\), with constants depending on the fixed arrival floor.
+
+\begin{theoremv}{thm:unrestricted-fixed-q-minimax-frontier}[Unrestricted fixed-arrival-floor minimax frontier]*
+Fix an arrival floor \(q\) with \(0<q<1/2\). There exist real constants \(0<\underline c(q)\le \overline C(q)<\infty\), depending only on \(q\), such that for every pair of integers \(n,d\ge1\), the unrestricted minimax squared-error risk \(\mathfrak R^{+}_{n,d,q}\) defined in \cref{obj:def:unrestricted-minimax-risk} satisfies
+\[
+\underline c(q)
+\min\left\{1,\frac1n+\left(\frac{d}{n\log(e+n)}\right)^2\right\}
+\le \mathfrak R^{+}_{n,d,q}
+\le \overline C(q)
+\min\left\{1,\frac1n+\left(\frac{d}{n\log(e+n)}\right)^2\right\}.
+\]
+With the same constants, the frontier rate \(r_{n,d,q}\) defined in \cref{obj:def:frontier-rate} satisfies
+\[
+\underline c(q)\,r_{n,d,q}
+\le \mathfrak R^{+}_{n,d,q}
+\le \overline C(q)\,r_{n,d,q}.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:unrestricted-fixed-q-minimax-frontier
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{ZengBalakrishnanHanKennedy2026} (Theorem 2, Section 3.2, p. 9, together with its proof in Section C.5, pp. 39--44, which sets the control regression to zero). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:unrestricted-fixed-q-minimax-frontier
+
+For a fixed arrival floor, effective sample size is proportional to sample size, so the comparison can be written using \(n\) and \(\log(e+n)\). The lower constant \leanref{sym:\underline c(q)}{\ensuremath{\underline c(q)}} and upper constant \leanref{sym:\overline C(q)}{\ensuremath{\overline C(q)}} may depend on that floor. This is a second logarithmic matched regime: \cref{obj:thm:matched-minimax-frontier} gives universal constants under the rare-arrival restriction, while the present result gives a comparison over the unrestricted model at each fixed \(q\in(0,1/2)\).
+
+The fixed-floor comparison yields corresponding sequence-level thresholds. The next statement records both the exact consistency condition and the necessary and sufficient category-growth order for parametric squared-error risk.
+
+\begin{propositionv}{prop:unrestricted-fixed-q-phase-boundaries}[Unrestricted fixed-arrival-floor phase boundaries]*
+Fix \(0<q<1/2\), where \(q\) is the arrival floor, and let \(\mathfrak R^{+}_{n,d,q}\) be the unrestricted-arrival minimax squared-error risk defined in \cref{obj:def:unrestricted-minimax-risk}. For every sequence of integers \(d_n\ge1\),
+\[
+\mathfrak R^{+}_{n,d_n,q}\longrightarrow0
+\quad\Longleftrightarrow\quad
+d_n=o\!\left(n\log(e+n)\right),
+\qquad n\to\infty.
+\]
+
+There exists a real constant \(c>0\) such that, for every real \(M>0\), there exists a real constant \(C\ge c\) with the following property: for every sequence of integers \(d_n\ge1\), if
+\[
+d_n\le M\sqrt n\,\log(e+n)
+\qquad\text{for all sufficiently large }n,
+\]
+then
+\[
+\frac{c}{n}\le\mathfrak R^{+}_{n,d_n,q}\le\frac{C}{n}
+\qquad\text{for all sufficiently large }n.
+\]
+Here \(c\) may depend on the fixed \(q\), and \(C\) may depend on \(q\) and \(M\); the thresholds for sufficiently large \(n\) may depend on the sequence.
+
+Conversely, for every sequence of integers \(d_n\ge1\), if there exist real constants \(0<c_*\le C_*\) such that
+\[
+\frac{c_*}{n}\le\mathfrak R^{+}_{n,d_n,q}\le\frac{C_*}{n}
+\qquad\text{for all sufficiently large }n,
+\]
+then
+\[
+d_n=O\!\left(\sqrt n\,\log(e+n)\right),
+\qquad n\to\infty.
+\]
+\end{propositionv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN prop:unrestricted-fixed-q-phase-boundaries
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{ZengBalakrishnanHanKennedy2026} (Theorem 2, Section 3.2, p. 9, together with its proof in Section C.5, pp. 39--44, which sets the control regression to zero). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END prop:unrestricted-fixed-q-phase-boundaries
+
+The fixed-floor thresholds express consistency on the \(n\log(e+n)\) category scale and parametric precision on the \(\sqrt n\log(e+n)\) scale. For a prescribed category-growth multiplier, the eventual upper constant may depend on that multiplier and on \(q\). This dependence differs from the universal constants in the rare-arrival comparison and from the explicit deficit-dependent constant in the near-complete window.
+
+The following table collects the comparisons while keeping the universal upper envelope, the matched large-alphabet region, and the two logarithmic matched regimes separate. Here \(N=nq\), \(\ell=\log(e+N)\), and \(r_{n,d,q}\) is the rate in \cref{obj:def:frontier-rate}.
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Squared-error comparisons across ascertainment regimes}
+\begin{tabular}{p{0.22\linewidth}p{0.31\linewidth}p{0.18\linewidth}p{0.21\linewidth}}
+\hline
+Domain & Risk comparison & Constants & Supporting results \\
+\hline
+\(n,d\ge1,\ 0<q\le1\)
+&
+\(\displaystyle \frac1{256n}\le\mathfrak R^+_{n,d,q}
+\le\min\{1,\overline C r_{n,d,q},4/n+(1-q)^2\}\)
+&
+Universal
+&
+\cref{obj:thm:unrestricted-near-complete-arrival-envelope}
+\\[4pt]
+\(d\ge1024n^2,\ 0<q\le1\)
+&
+\(\mathfrak R^+_{n,d,q}\asymp n^{-1}+(1-q)^2\)
+&
+Universal
+&
+\cref{obj:thm:unrestricted-large-alphabet-deficit-lower}
+\\[4pt]
+\(1-q_n\le M/\sqrt n\) eventually, all \(d\ge1\)
+&
+\(\displaystyle \frac1{256n}\le\mathfrak R^+_{n,d,q_n}\le\frac{4+M^2}{n}\); uniform \(n^{-1}\) order iff \(1-q_n=O(n^{-1/2})\)
+&
+Explicit dependence on \(M\)
+&
+\cref{obj:prop:unrestricted-uniform-near-complete-elbow,obj:prop:unrestricted-near-complete-phase-boundary}
+\\[4pt]
+\(q=1,\ d\ge1\)
+&
+\(\mathfrak R^+_{n,d,1}\asymp n^{-1}\), uniformly in \(d\)
+&
+Universal
+&
+\cref{obj:thm:unrestricted-complete-arrival-frontier,obj:prop:unrestricted-complete-arrival-phase-boundary}
+\\[4pt]
+Rare-arrival restriction
+&
+\(\displaystyle \mathfrak R_{n,d,q}\asymp
+\min\{1,N^{-1}+[d/(N\ell)]^2\}\)
+&
+Universal
+&
+\cref{obj:thm:matched-minimax-frontier,obj:prop:phase-boundaries}
+\\[4pt]
+Fixed \(0<q<1/2\)
+&
+\(\displaystyle \mathfrak R^+_{n,d,q}\asymp
+\min\{1,n^{-1}+[d/\{n\log(e+n)\}]^2\}\)
+&
+Depend on fixed \(q\)
+&
+\cref{obj:thm:unrestricted-fixed-q-minimax-frontier,obj:prop:unrestricted-fixed-q-phase-boundaries}
+\\
+\hline
+\end{tabular}
+\end{table}

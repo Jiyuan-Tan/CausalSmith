@@ -1,0 +1,137 @@
+\section{Appendix A: Identification and estimation bounds}
+
+The constructive bounds first identify the superpopulation treatment effect from the observed law and then control the estimator's squared error uniformly.
+
+\subsection{Identification under randomized MAR}
+
+The cell means in \cref{obj:synth_5,obj:def:identified-functional} use explicit conventions at null conditioning events. The following result establishes identification with those conventions and the randomized-MAR restrictions.
+
+\begin{lemmav}{lem:identification-infrastructure}[Randomized MAR identification]
+Let \(d\) be a nonnegative integer, let \(q\in[1/2,1]\) be the cellwise arrival floor, and let \(P\) be a full-data probability law with baseline variable \(X\) taking values in a set of \(d\) labels, binary treatment \(A\), binary potential surrogates \(S(0),S(1)\), binary potential outcomes \(Y(0),Y(1)\), binary realized surrogate and outcome \(S,Y\), and binary outcome-arrival indicator \(R\). Suppose that \(P\) satisfies:
+\begin{itemize}
+\item \textbf{(Randomized independence.)} \cref{obj:ass:randomized-independence}.
+\item \textbf{(Balanced randomization.)} \cref{obj:ass:balanced-randomization}.
+\item \textbf{(Consistency.)} \cref{obj:ass:consistency}.
+\item \textbf{(Missing at random.)} \cref{obj:ass:mar}.
+\item \textbf{(Arrival floor.)} \cref{obj:ass:arrival-floor} with floor \(q\).
+\end{itemize}
+Write \(P_O\) for the image of \(P\) under the observation map \(O=(X,A,S,R,RY)\), where \(RY\) is the observed outcome mark. Then the superpopulation average treatment effect satisfies
+\[
+\tau(P)=\mathbb E_P[Y(1)-Y(0)]=\Psi(P_O),
+\]
+where \(\Psi\) is the observed-law functional in \cref{obj:def:identified-functional}, with every contribution from a null \((X,A,S)\) cell equal to zero by definition.
+\end{lemmav}
+
+Randomized independence and consistency give the arm-specific outcome means their potential-outcome interpretation. Within an occupied baseline--treatment--surrogate cell, MAR makes the arrived-outcome conditional mean equal to the cell's realized-outcome mean. The arrival floor ensures that this arrived conditional mean has a positive conditioning probability. The weights in \cref{obj:def:identified-functional} are the conditional cell probabilities within each randomized arm; balanced assignment fixes the arm probabilities at one half. Together, these components give the finite-cell form of the nested-regression identification formula in \citet[Lemma~1.1, equation~(10), under Assumptions~1--3]{KallusMao2025}.
+
+The null-cell conventions complete this interpretation over the entire baseline alphabet. A cell with zero mass receives zero weight, and its arrived-outcome mean is assigned zero. On occupied cells, the positive arrival floor makes the conditional mean well defined. Thus the totalized functional supplies the original superpopulation target for every risk and coverage calculation over \(\mathcal M(d,q)\).
+
+\subsection{Uniform estimation control}
+
+The estimator in \cref{obj:def:mm-estimator} combines an arrived-outcome contribution with a correction for missing outcomes. Its polynomial, ratio, complete-arrival, and fallback branches are covered by one uniform squared-error statement.
+
+\begin{lemmav}{lem:upper-risk}[Uniform upper risk bound]
+There exists a universal numerical constant \(0<C_U<\infty\) such that, for every choice satisfying
+\begin{itemize}
+\item \textbf{(Sample size and dimension.)} \(n,d\) are integers with \(n\ge1\) and \(d\ge1\);
+\item \textbf{(Arrival floor.)} \(q\in[1/2,1]\);
+\item \textbf{(Law and sampling.)} \(P\in\mathcal M(d,q)\), and \(O_1,\ldots,O_n\) are independent observed records with common law \(P_O\), the observed-law image of \(P\);
+\end{itemize}
+the estimator \(\widehat\tau_{\mathrm{MM}}\) satisfies
+\[
+\mathbb E_P\!\left[
+  \bigl(\widehat\tau_{\mathrm{MM}}-\tau(P)\bigr)^2
+\right]
+\le C_U r_{n,d,q},
+\]
+where the expectation is over the stated independent sample.
+\end{lemmav}
+
+The bound accommodates arbitrary cell-frequency imbalance within \(\mathcal M(d,q)\). Its benchmark combines the sampling contribution \(n^{-1}\) with the squared missingness-weighted dimension scale and supplies the upper bounds for point estimation and honest intervals.
+
+To describe the components of the estimation argument, fix a cell \(j=(x,a,s)\) and write
+\[
+p_j=P(X=x,A=a,S=s),\qquad
+b_j=P(X=x,A=a,S=s,R=0),
+\]
+\[
+\theta_j=\mu_P(x,a,s)-\frac12,\qquad
+\lambda_j=mP(X=x,A=a,S=s,R=1),
+\]
+where \(m=n/8\) is the mean stream-size parameter in \cref{obj:def:mm-estimator}. Here \(p_j\) is total cell mass, \(b_j\) is missing-outcome mass, \(\theta_j\) is the centered arrived-outcome mean, and \(\lambda_j\) is the expected arrived count in one stream of the auxiliary Poisson experiment. These quantities are defined on null cells as well, using the conventions of \cref{obj:synth_5}.
+
+The scientific decomposition separates the treatment contrast into arrived outcomes and the outcomes represented by missing records. Centering at one half aligns the first-stream statistic with the centered cell means \(\theta_j\); balanced randomization gives the centered contrast the same population target. MAR identifies the mean needed for the missing component, while the second-stream statistic \(V_j\) estimates its cell weight \(b_j\). The arrival floor controls the relation between missing and arrived cell mass, explaining why the additional error scale is weighted by \(1-q\).
+
+For sparsely observed cells, the polynomial statistic \(H_j\) in \cref{obj:def:mm-estimator} supplies the correction through arrived-count moments. The polynomial \(Q_k\), its specified value at zero, and the falling-factorial convention are all fixed in that construction. The falling-factorial terms implement unbiased estimation of the polynomial terms in the auxiliary Poisson experiment. This use of polynomial approximation and unbiased moment estimation follows the methodological framework of \citet[Sections~III--IV]{JiaoVenkatHanWeissman2015}; related polynomial constructions for discrete treatment-effect estimation appear in \citet{CausalSmith2026,CausalSmith2026Annotation}. The light-cell component addresses aggregate missing-outcome correction when individual cell means have few arrived observations.
+
+Cells selected as heavily populated use the centered ratio \(D_j\), with its specified zero-count value. The selection count \(C'_j\) comes from a separate stream from the counts \(C_j,U_j\) used to form either correction. In the auxiliary Poisson experiment, this separation supports control of the selection rule together with the correction's sampling variation. The thresholded statistic \(G_j\) therefore joins polynomial approximation in light cells with ratio estimation in heavy cells.
+
+Projection and conditional averaging turn the auxiliary construction into an observed-sample estimator in \([-1,1]\) without increasing squared error. The branch definitions and their full parameter ranges are stated once in \cref{obj:def:mm-estimator}; \cref{obj:lem:upper-risk} controls all of them with the same universal constant.
+
+\subsection{Honest clipped intervals}
+
+The uniform risk bound supplies a finite-sample confidence radius through \cref{obj:def:mm-interval}. Clipping the resulting interval to the treatment-effect range gives simultaneous coverage and length guarantees.
+
+\begin{lemmav}{lem:honest-interval-construction}[Honest clipped confidence intervals]
+Suppose that:
+\begin{itemize}
+\item \textbf{(Sample size and dimension.)} \(n,d\) are integers with \(n,d\ge 1\).
+\item \textbf{(Arrival floor.)} \(q\in[1/2,1]\).
+\item \textbf{(Noncoverage level.)} \(\alpha\in(0,1/2)\).
+\item \textbf{(Uniform risk certificate.)} \(C_U>0\) certifies the uniform squared-error bound
+\[
+\mathbb E_{P_O^{\otimes n}}
+\left[
+  \bigl(\widehat\tau_{\mathrm{MM}}(O^n)-\tau(P)\bigr)^2
+\right]
+\le C_U r_{n,d,q}
+\]
+for every \(n,d\ge1\), every \(q\in[1/2,1]\), and every \(P\in\mathcal M(d,q)\), under any iid observed-sample law. Here \(r_{n,d,q}\) is defined in \cref{obj:def:rate}, and
+\(\tau(P)=\mathbb E_P[Y(1)-Y(0)]\) is the population average treatment effect.
+\end{itemize}
+Let \(\widehat I_{\mathrm{MM},\alpha}\) and its radius \(h_{n,d,q,\alpha}\) be as in \cref{obj:def:mm-interval}, using this \(C_U\). The interval has uniform coverage:
+\[
+P_O^{\otimes n}
+\left\{
+  \tau(P)\in\widehat I_{\mathrm{MM},\alpha}(O^n)
+\right\}
+\ge 1-\alpha
+\qquad
+\text{for every }P\in\mathcal M(d,q).
+\]
+For every observed sample \(O^n\), its length satisfies
+\[
+\operatorname{length}
+\left\{\widehat I_{\mathrm{MM},\alpha}(O^n)\right\}
+\le
+\min\{2,2h_{n,d,q,\alpha}\}
+=
+\min\left\{2,2\sqrt{\frac{C_Ur_{n,d,q}}{\alpha}}\right\}.
+\]
+Consequently, for every \(P\in\mathcal M(d,q)\),
+\[
+\mathbb E_{P_O^{\otimes n}}
+\left[
+  \operatorname{length}
+  \left\{\widehat I_{\mathrm{MM},\alpha}(O^n)\right\}
+\right]
+\le
+\min\left\{2,2\sqrt{\frac{C_Ur_{n,d,q}}{\alpha}}\right\}.
+\]
+If \(h_{n,d,q,\alpha}<2\), then for every \(P\in\mathcal M(d,q)\),
+\[
+P_O^{\otimes n}
+\left\{
+  \tau(P)\notin\widehat I_{\mathrm{MM},\alpha}(O^n)
+\right\}
+\le\alpha.
+\]
+If \(h_{n,d,q,\alpha}=2\), then for every \(P\in\mathcal M(d,q)\) and every observed sample \(O^n\),
+\[
+\tau(P)\in\widehat I_{\mathrm{MM},\alpha}(O^n).
+\]
+\end{lemmav}
+
+For a radius below two, the squared-error bound supports the uniform noncoverage bound through Markov's inequality. At radius two, the interval equals the entire treatment-effect range because its center belongs to \([-1,1]\). Endpoint clipping preserves inclusion of a target in that range. These two branches yield the finite-sample coverage requirement in \cref{obj:def:interval-class}.
+
+The interval's radius bounds its length by twice that radius, while the treatment-effect range bounds it by two. This deterministic cap and \cref{obj:lem:upper-risk} give the constructive expected-length bound in \cref{obj:thm:interval-frontier}.

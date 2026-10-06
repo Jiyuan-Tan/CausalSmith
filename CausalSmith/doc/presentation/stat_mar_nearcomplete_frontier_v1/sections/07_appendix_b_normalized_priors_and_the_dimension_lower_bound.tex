@@ -1,0 +1,199 @@
+\section{Appendix B: Normalized priors and the dimension lower bound}
+
+The full-range converse uses two branches. When the squared arrival-weighted dimension scale is at least \(n^{-1}\), paired-label priors over admissible causal laws have close observed-sample distributions and separated population treatment effects. Signed interpolation weights coordinate opposite orientations within each pair, and a fixed filler label normalizes every latent draw. When that squared scale is below \(n^{-1}\), the parametric floors supply the required lower bounds. Together, the normalized prior comparison and parametric floors establish lower bounds across the full parameter range on the complete observed-record experiment used by \cref{obj:def:point-risk,obj:def:length-risk}.
+
+Polynomial approximation and moment matching provide the general tools for constructing such mixture comparisons \citep{WuYang2016,Wu2020}. Here their implementation incorporates the randomized-MAR restrictions directly into the observed atom probabilities. The following construction collects the interpolation scheme, latent distribution, normalized causal laws, and auxiliary count experiment.
+
+\begin{definitionv}{def:paired-prior-handle}[Normalized paired prior construction]
+The paired-prior handle consists of the normalized priors \(\Pi_-,\Pi_+\), their observed-sample mixtures \(Q_-^{(n)},Q_+^{(n)}\), their associated unnormalized count laws, a fixed fallback record \(o_{\circ}\), and the count-ordering kernel \(\kappa_n\), constructed below for parameters satisfying:
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\) is an integer with \(n\ge1\).
+\item \textbf{(Baseline dimension.)} \(d\) is an integer with \(d\ge1\).
+\item \textbf{(Arrival floor.)} \(q\in[1/2,1]\).
+\end{itemize}
+The observed-record space \(O\) consists of tuples \((X,A,S,R,RY)\), with \(X\) taking values in a fixed set of \(d\) baseline labels and the remaining coordinates binary. Fix \(o_{\circ}\in O\).
+
+Set
+\[
+\delta=1-q,\qquad
+L=\log(e+n),\qquad
+K=\lceil8L\rceil,\qquad
+h=K^{-2},\qquad
+m=K-1,\qquad
+B_0=\frac{K}{1024n},
+\]
+\[
+M=\min\left\{
+\left\lfloor\frac{d-1}{2}\right\rfloor,
+\lfloor nL\rfloor
+\right\},
+\qquad
+c_0=\frac1{16},\qquad
+b=1-\frac{\delta}{2},\qquad
+\mu_0=\frac{b^2}{2q}.
+\]
+For \(0\le i\le m\), define the interpolation nodes and their Lagrange cardinal polynomials by
+\[
+x_i=\frac{1+h}{2}+\frac{1-h}{2}\cos\frac{i\pi}{m},
+\qquad
+l_i(t)=\prod_{\substack{0\le t'\le m\\t'\ne i}}
+\frac{t-x_{t'}}{x_i-x_{t'}}.
+\]
+Set
+\[
+D=\sum_{i=0}^{m}|l_i(0)|,
+\qquad
+\nu_i=\frac{l_i(0)}{D}.
+\]
+The latent pair \((p,z)\in[0,B_0]\times\{-1,1\}\) has distribution
+\[
+\Pr\{(p,z)=(B_0x_i,\operatorname{sign}(\nu_i))\}
+=\frac{h|\nu_i|}{x_i},
+\qquad 0\le i\le m,
+\]
+\[
+\Pr\{(p,z)=(0,1)\}
+=1-\sum_{i=0}^{m}\frac{h|\nu_i|}{x_i}.
+\]
+Draw independent copies \((p_j,z_j)\), \(1\le j\le M\), and independent fair orientation signs, independent also of these copies, with
+\[
+\Pr(r_j=1)=\Pr(r_j=-1)=\frac12.
+\]
+
+For each \(\sigma\in\{-1,1\}\), pair \(j\) consists of two distinct baseline labels, each with unnormalized mass \(p_j\), with orientations
+\[
+u\in\{r_j,-r_j\}.
+\]
+At each label, \(X\) equals that label, and the potential surrogates and control outcome satisfy
+\[
+S(0)=S(1)=0,\qquad Y(0)=0.
+\]
+Treatment \(A\) is an independent fair coin, and control arrival is complete. The treated arrival probability and treated outcome mean are
+\[
+\rho_{\sigma,j,u}
+=1-\frac{\delta}{2}(1+\sigma z_ju),
+\qquad
+\mu_{\sigma,j,u}
+=\frac{b/2+c_0u}{\rho_{\sigma,j,u}}.
+\]
+Draw \(Y(1)\) as a Bernoulli variable with mean \(\mu_{\sigma,j,u}\), and draw treated arrival independently of \(Y(1)\) with probability \(\rho_{\sigma,j,u}\). In the coordinate order
+\[
+(A,R,RY)=(0,1,0),(1,0,0),(1,1,1),(1,1,0),
+\]
+the four observed atom coefficients at orientation \(u\) are
+\[
+v_{\sigma}(z_j,u)
+=
+\left(
+\frac12,
+\frac{\delta(1+\sigma z_ju)}4,
+\frac b4+\frac{c_0u}{2},
+\frac b4-\frac{c_0u}{2}-\frac{\sigma\delta z_ju}{4}
+\right).
+\]
+The two orientations specify the complete eight-coordinate observed atom vector for pair \(j\).
+
+Add one distinct fixed filler label with unnormalized mass
+\[
+f=1-2MhB_0.
+\]
+At this label, set
+\[
+S(0)=S(1)=0,\qquad Y(0)=0,
+\]
+let treatment be an independent fair coin, make arrival complete in both treatment arms, and draw \(Y(1)\) as a Bernoulli variable with mean \(\mu_0\). Its observed atom coefficients, in the same coordinate order, are
+\[
+v_{\mathrm{fill}}
+=\left(\frac12,0,\frac{\mu_0}{2},\frac{1-\mu_0}{2}\right).
+\]
+At every label, the realized variables and observed outcome mark satisfy
+\[
+S=S(A),\qquad Y=Y(A),\qquad RY=R\,Y.
+\]
+
+Normalize the label masses by
+\[
+J=f+2\sum_{j=1}^{M}p_j,
+\qquad
+f\longmapsto\frac fJ,
+\qquad
+p_j\longmapsto\frac{p_j}{J}
+\]
+for each of the two labels in pair \(j\). Let \(P_{\sigma}\) be the resulting normalized causal law and \(P_{\sigma,O}\) its observed-law image. Define the prior and complete observed-sample mixture by
+\[
+\Pi_{\sigma}=\operatorname{Law}(P_{\sigma}),
+\qquad
+Q_{\sigma}^{(n)}
+=\int P_{\sigma,O}^{\otimes n}\,d\Pi_{\sigma}(P_{\sigma}).
+\]
+
+For the associated unnormalized count experiment, set
+\[
+\lambda=4n.
+\]
+Conditional on the latent variables, assign independent Poisson counts to the eight atoms of each pair and the filler atoms, with respective mean vectors
+\[
+\lambda p_jv_{\sigma}(z_j,r_j),
+\qquad
+\lambda p_jv_{\sigma}(z_j,-r_j),
+\qquad
+\lambda f v_{\mathrm{fill}}.
+\]
+All other observed atoms have count zero. The associated count law is the mixture of this conditional count experiment over the latent draws.
+
+Define the Markov kernel \(\kappa_n\) by uniformly ordering the counted multiset and returning its first \(n\) records when the total count is at least \(n\); otherwise it returns
+\[
+(o_{\circ},\ldots,o_{\circ})\in O^n.
+\]
+The kernel \(\kappa_n\) is independent of \(\sigma\) and of every latent variable.
+\end{definitionv}
+
+The restrictions defining \cref{obj:def:law-class} are built into \cref{obj:def:paired-prior-handle}. Each pair uses two labels, and the filler uses one, respecting the baseline-support bound. Independent fair treatment supplies randomized independence and balanced allocation. The potential surrogates are constant, and arrival is drawn independently of the treated potential outcome conditional on the label. Together with complete control arrival and the stipulated realization of the potential measurements, these choices supply consistency and MAR. Treated arrival takes values \(q\) and \(1\); the outcome means and observed atom coefficients are valid throughout the stated range of the arrival floor.
+
+The opposite orientations serve complementary roles. They preserve a common total unnormalized mass for each pair while placing the sign-dependent arrival perturbation in both labels' observed distributions. Keeping the full eight-coordinate vector accounts jointly for control records, missing treated outcomes, arrived treated successes, and arrived treated failures at the two labels. Thus the mixture comparison concerns the complete observed record. The arrival deficit \leanref{sym:delta}{\ensuremath{\delta}}, defined in \cref{obj:def:paired-prior-handle}, also governs the attenuation of the treatment-effect perturbation.
+
+Exact normalization is central to this construction. The filler mass is fixed across latent draws and signs, whereas the total mass \(J\) varies with the latent label masses. Dividing all label masses by that same total produces a probability law for every draw while preserving the conditional randomization and arrival restrictions. The normalized priors \leanref{sym:PiPair}{\ensuremath{\Pi_-,\Pi_+}} and complete sample mixtures \leanref{sym:QPair}{\ensuremath{Q_-^{(n)},Q_+^{(n)}}} in \cref{obj:def:paired-prior-handle} therefore belong to the causal model and its original sampling experiment.
+
+The converse argument has three components. First, the interpolation weights support a comparison of the auxiliary Poisson mixtures, using the approximation and moment-matching tools developed in \citet{WuYang2016} and the Poisson-mixture framework described by \citet{Wu2020}. Second, the count-ordering transformation in \cref{obj:def:paired-prior-handle} connects this comparison to samples from the normalized laws. Its independence from the sign and latent variables makes it a common statistical transformation for both alternatives; the fixed fallback specifies its output for every count realization. Third, concentration of the treatment effects under the priors supplies separation around a deterministic center. The same-experiment normalization and the attenuation by the arrival deficit are the construction-specific ingredients linking these components to the randomized-MAR model.
+
+The resulting statement fixes the comparison tolerance \leanref{sym:beta}{\ensuremath{\beta\in(0,1/4)}} before ranging over the sample size, dimension, and arrival floor. Its regime requires the squared missingness-and-dimension scale to be at least the sampling scale.
+
+\begin{theoremv}{thm:normalized-converse}[Normalized priors with separated effects]
+For every fixed \(\beta\in(0,1/4)\), there exists a constant \(c_\beta>0\) such that the following holds for every sample size \(n\), baseline-support bound \(d\), and arrival floor \(q\) satisfying:
+\begin{itemize}
+\item \textbf{(Sample size and dimension.)} \(n,d\) are integers with \(n,d\ge1\).
+\item \textbf{(Arrival floor.)} \(q\in[1/2,1]\).
+\item \textbf{(Separation scale.)} The scale
+\[
+g_{n,d,q}=(1-q)\min\left\{1,\frac{d}{n\log(e+n)}\right\}
+\]
+satisfies \(g_{n,d,q}^{\,2}\ge n^{-1}\).
+\end{itemize}
+There exist discrete probability priors \(\Pi_-\) and \(\Pi_+\) supported on \(\mathcal M(d,q)\) from \cref{obj:def:law-class}, whose laws satisfy \cref{obj:ass:randomized-independence,obj:ass:balanced-randomization,obj:ass:consistency,obj:ass:mar,obj:ass:arrival-floor}. Their complete observed-sample mixtures, defined by
+\[
+Q_-^{(n)}=\int P_O^{\otimes n}\,\Pi_-(dP),
+\qquad
+Q_+^{(n)}=\int P_O^{\otimes n}\,\Pi_+(dP),
+\]
+where \(P_O\) is the observed-law image of the full-data law \(P\), satisfy
+\[
+\operatorname{TV}\!\left(Q_-^{(n)},Q_+^{(n)}\right)
+=\sup_{B\subseteq O^n}
+\left|Q_-^{(n)}(B)-Q_+^{(n)}(B)\right|
+\le\beta.
+\]
+Here \(O^n\) is the complete observed-record sample space, and the supremum is over measurable events. There also exists a deterministic center \(m_0\in\mathbb R\) such that, for the population average treatment effect
+\[
+\tau(P)=\mathbb E_P\!\left[Y(1)-Y(0)\right],
+\]
+where \(Y(1)\) and \(Y(0)\) are the binary potential outcomes,
+\[
+\Pi_-\!\left\{P:\tau(P)\le m_0-c_\beta g_{n,d,q}\right\}\ge1-\beta,
+\qquad
+\Pi_+\!\left\{P:m_0+c_\beta g_{n,d,q}\le\tau(P)\right\}\ge1-\beta.
+\]
+\end{theoremv}
+
+The statistical content of \cref{obj:thm:normalized-converse} is the coexistence of observational proximity and target separation. Every event in the complete observed sample has probabilities differing by at most the fixed tolerance, while each prior places at least \(1-\beta\) probability on its respective side of the deterministic center. Many small baseline masses carry the signed perturbations; their aggregate effect yields separation at the missingness-and-dimension scale. The factor \(1-q\) records how that separation contracts as arrival becomes complete.
+
+The positive separation constant \leanref{sym:c_beta}{\ensuremath{c_\beta}} in \cref{obj:thm:normalized-converse} may depend on the fixed tolerance and is uniform over the parameter triples satisfying the theorem's conditions. In the dimension-dominated regime \(g_{n,d,q}^{\,2}\ge n^{-1}\), the theorem supplies the prior comparison underlying the dimension terms in the estimation and honest-length bounds of \cref{obj:thm:point-frontier,obj:thm:interval-frontier}. Its two probability guarantees keep the observed-mixture comparison and the concentration of the population effects distinct, providing the inputs for the testing reductions.

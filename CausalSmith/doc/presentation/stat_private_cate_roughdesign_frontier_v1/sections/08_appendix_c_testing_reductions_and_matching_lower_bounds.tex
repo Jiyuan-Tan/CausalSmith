@@ -1,0 +1,200 @@
+\section{Testing reductions and matching lower bounds}
+
+The experiments in \cref{obj:def:cosine-family,obj:def:direct-family} provide separated point targets within the causal model. This section collects the probability comparisons that make those experiments useful for both absolute-error risk and honest connected-interval length. The common ingredient is a bound on the distinguishability of their released outputs, uniform over the private procedures admitted by \cref{obj:def:private-kernels}.
+
+\subsection{Dataset laws, released outputs, and testing priors}
+
+Let \(Q\) and \(Q'\) be probability laws on the ordered-dataset space \(\mathcal O^n\). Their total variation distance \(d_{\mathrm{TV}}(Q,Q')\) is the supremum of their probability differences over measurable events. Their Hamming transportation distance \(W_{\mathrm H}(Q,Q')\) is the infimum, over couplings of the two dataset laws, of the expected number of differing record positions. When \(Q\ll Q'\), the chi-square divergence \(\chi^2(Q,Q')\) is the squared deviation of the likelihood ratio from one, integrated under \(Q'\). For a randomized release \(M\), the induced output law \(MQ\) integrates the conditional release probabilities against the dataset law \(Q\).
+
+A finite testing prior is a uniform distribution over a nonempty finite indexed family of causal laws. For \(a\in\{0,1\}\), write this family as \((P_{a,j})_{j=1}^{N_a}\), where \(N_a\) is a positive integer, and define its averaged observed-sample law by
+\[
+Q^{(a)}
+=
+\frac{1}{N_a}\sum_{j=1}^{N_a}
+(P_{a,j}^{\mathrm{obs}})^{\otimes n}.
+\]
+The testing construction uses families satisfying
+\[
+\theta(P_{0,j})=0,
+\qquad
+\theta(P_{1,j})=\Delta,
+\qquad
+\Delta>0,
+\]
+where \(\Delta\) is their common target separation. Averaging takes place over product laws, so each member retains the independent-sampling interpretation of \cref{obj:ass:iid}.
+
+The following comparison connects dataset discrepancies to the distribution of a released statistic. Its privacy bound uses Hamming transportation, while its ordinary probability bounds apply through total variation and chi-square divergence.
+
+\begin{lemmav}{lem:private-kernel-comparison}[Private kernel comparison bounds]
+Let \(n\) be a nonnegative integer and let \(Q,Q'\) be probability laws on \(\mathcal O^n\), the space of ordered datasets of \(n\) observed records. Suppose that:
+\begin{itemize}
+\item \textbf{(Privacy parameter.)} \(0<\epsilon\le 1\).
+\item \textbf{(Output space.)} \(\mathcal B\) is a standard Borel output space.
+\item \textbf{(Private release.)} \(M\in\mathfrak M_{n,\epsilon}(\mathcal B)\), the class of everywhere probability-valued private Markov kernels defined in \cref{obj:def:private-kernels}.
+\end{itemize}
+Write \(MQ\) for the induced output law, so that
+\[
+(MQ)(E)=\int M(D,E)\,Q(dD),
+\qquad E\in\mathcal B(\mathcal B).
+\]
+For probability laws on a common measurable space, let \(d_{\mathrm{TV}}\) denote total variation distance:
+\[
+d_{\mathrm{TV}}(Q,Q')=\sup_{E\ \mathrm{measurable}}|Q(E)-Q'(E)|.
+\]
+Let \(W_{\mathrm H}\) denote the infimum of expected Hamming distance over all joint laws with the specified marginals:
+\[
+W_{\mathrm H}(Q,Q')
+=
+\inf_{\substack{\mathcal L(D)=Q\\\mathcal L(D')=Q'}}
+E\!\left[d_{\mathrm H}(D,D')\right],
+\qquad
+d_{\mathrm H}(D,D')
+=
+\sum_{i=1}^{n}\mathbf 1\{D_i\ne D'_i\}.
+\]
+Then
+\[
+d_{\mathrm{TV}}(MQ,MQ')
+\le 2\epsilon W_{\mathrm H}(Q,Q').
+\]
+Furthermore, for every everywhere probability-valued Markov kernel \(M\) from \(\mathcal O^n\) to \(\mathcal B\),
+\[
+d_{\mathrm{TV}}(MQ,MQ')\le d_{\mathrm{TV}}(Q,Q').
+\]
+If \(Q\ll Q'\) and the squared Radon--Nikodym deviation is integrable, that is,
+\[
+\int_{\mathcal O^n}
+\left(\frac{dQ}{dQ'}(D)-1\right)^2\,Q'(dD)<\infty,
+\]
+then, with chi-square divergence defined by
+\[
+\chi^2(Q,Q')
+=
+\int_{\mathcal O^n}
+\left(\frac{dQ}{dQ'}(D)-1\right)^2\,Q'(dD),
+\]
+one has
+\[
+d_{\mathrm{TV}}(Q,Q')
+\le \frac12\sqrt{\chi^2(Q,Q')}.
+\]
+\end{lemmav}
+
+The first bound makes a coupling of datasets useful for every private release with the stated output space. The second expresses contraction under a randomized procedure, and the third converts a square-integrable likelihood comparison into total variation control. Thus \cref{obj:lem:private-kernel-comparison} accommodates both the sign-mixture likelihood bound in \cref{obj:lem:positive-family-certificate} and the measurable coupling in \cref{obj:lem:measurable-component-contraction}.
+
+\subsection{Finite priors across the budget regimes}
+
+For \(n\ge2\) and \(0<\epsilon\le1\), use the numerical benchmark \(r(n,\epsilon)\) of \cref{obj:thm:matched-risk-frontier} and choose the macro localization radius \(h_{\mathrm L}=r(n,\epsilon)/4\). The calibration in \cref{obj:def:cosine-family,obj:synth_5} then gives
+\[
+\delta_{\mathrm L}=h_{\mathrm L}^{5},
+\qquad
+t=2^{-12}h_{\mathrm L}
+=2^{-14}r(n,\epsilon).
+\]
+The common target value of the sign alternatives is certified by \cref{obj:lem:positive-family-certificate}; the direct contrast is specified in \cref{obj:def:direct-family}.
+
+When the sampling scale dominates, the sign-mixture chi-square bound and \cref{obj:lem:private-kernel-comparison} supply the output comparison. When the sparse privacy scale strictly exceeds both competing scales, the calibrated radius satisfies the sparse-occupancy restriction \(n\delta_{\mathrm L}\le1/128\), allowing the private comparison in \cref{obj:lem:measurable-component-contraction}. The direct alternative supplies the comparison in the direct privacy and saturated branches. The exact selection conditions, including ties, are recorded in the certificate below.
+
+The sign-mixture exponential comparison uses the bounded-differences log-moment conclusion of \citet[Theorem 6.2, displayed log-mgf conclusion in its proof, p.~167]{BoucheronLugosiMassart2013}. The sparse component comparison also uses the enumeration of \(s^{s-2}\) undirected trees on a specified set of \(s\ge2\) vertex labels \citep[Section 5.6, Theorem 5.40]{KellerTrotterAppliedCombinatorics}. These published conclusions enter through \cref{obj:lem:positive-family-certificate,obj:lem:measurable-component-contraction} and support the common testing comparison stated next.
+
+\begin{lemmav}{lem:frontier-testing-priors}[Finite testing priors]*
+For every integer \(n\ge2\) and privacy budget \(0<\epsilon\le1\), define the numerical benchmark
+\[
+r(n,\epsilon)
+=
+\min\left\{1,\max\left\{n^{-1/4},
+\max\left\{(n^2\epsilon)^{-1/7},(n\epsilon)^{-1/2}\right\}\right\}\right\}.
+\]
+There exist two nonempty finite families of laws in \(\mathcal P\), the model class of \cref{obj:def:complete-model}, whose uniformly averaged observed \(n\)-record product laws are \(Q^{(0)}\) and \(Q^{(1)}\), respectively, and a common target separation \(\Delta\) satisfying
+\[
+\Delta\ge2^{-14}r(n,\epsilon).
+\]
+Every member of the first family has point target \(\theta(P)=0\), and every member of the second has \(\theta(P)=\Delta\).
+
+These families can be chosen with macro localization radius
+\[
+h_{\mathrm L}=\frac{r(n,\epsilon)}4,
+\qquad 0<h_{\mathrm L}\le\frac14,
+\]
+and the following properties:
+\begin{itemize}
+\item \textbf{(Null family.)} Every member of the first family equals \(P_0\), the causal law with uniform covariate \(X\), conditionally independent fair binary treatment and potential outcomes given \(X\), and observed outcome \(Y=Y(A)\). Consequently,
+\[
+Q^{(0)}=(P_0^{\mathrm{obs}})^{\otimes n}.
+\]
+\item \textbf{(Sign family.)} If
+\[
+1<n\epsilon
+\quad\text{and}\quad
+\left[
+\left((n^2\epsilon)^{-1/7}\le n^{-1/4}
+\ \text{and}\ (n\epsilon)^{-1/2}\le n^{-1/4}\right)
+\ \text{or}\
+\left(n^{-1/4}<(n^2\epsilon)^{-1/7}
+\ \text{and}\ (n\epsilon)^{-1/2}<(n^2\epsilon)^{-1/7}\right)
+\right],
+\]
+every member of the second family is \(P_\lambda\) for some sign vector \(\lambda\), using the construction of \cref{obj:def:cosine-family} at radius \(h_{\mathrm L}\), and
+\[
+Q^{(1)}=Q_n,
+\]
+where \(Q_n\) is the uniform sign mixture at that radius defined in \cref{obj:def:cosine-family}.
+\item \textbf{(Direct family.)} If the preceding condition fails, every member of the second family equals \(P_1\), the direct alternative of \cref{obj:def:direct-family} at radius \(h_{\mathrm L}\), and
+\[
+Q^{(1)}=(P_1^{\mathrm{obs}})^{\otimes n}.
+\]
+\end{itemize}
+For every standard Borel output space \(\mathcal B\) and every private Markov kernel \(M\in\mathfrak M_{n,\epsilon}(\mathcal B)\) as defined in \cref{obj:def:private-kernels}, the induced output laws satisfy
+\[
+d_{\mathrm{TV}}\!\left(MQ^{(0)},MQ^{(1)}\right)\le\frac14,
+\]
+where \(d_{\mathrm{TV}}\) denotes total variation distance and \(MQ^{(0)},MQ^{(1)}\) are obtained by applying \(M\) to the respective dataset laws.
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:frontier-testing-priors
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BoucheronLugosiMassart2013} (Theorem 6.2, displayed log-mgf conclusion in its proof, printed page 167) and \citep{KellerTrotterAppliedCombinatorics} (Section 5.6, Theorem 5.40). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:frontier-testing-priors
+
+The certificate places a common target separation of benchmark order alongside a uniform bound on released-output distinguishability. Uniform averaging preserves a fixed target within each family, even though the sign family varies the nuisance functions across its members. Its quantification over standard Borel output spaces permits the same priors to enter the scalar and interval decision problems. The experiment changes across budget regimes, while the separation and output-comparison guarantees retain a common form.
+
+\subsection{Scalar absolute loss}
+
+The scalar reduction underlying \cref{obj:thm:matched-risk-frontier} uses the two target values \(0\) and \(\Delta\) to associate an estimator with a test whose cutoff is \(\Delta/2\). Absolute error controls the probability of assigning an estimate to the opposite side of this cutoff. The separation and output comparison in \cref{obj:lem:frontier-testing-priors} therefore supply the testing obstruction for the maximal expected absolute loss of \cref{obj:def:risk-criterion}.
+
+Finite-prior averaging connects this obstruction to the class-wide criterion: the maximal risk over \(\mathcal P\) bounds the average risk under each prior. The resulting lower bound, recorded in \cref{obj:thm:matched-risk-frontier}, is
+\[
+R_{n,\epsilon}\ge2^{-20}r(n,\epsilon).
+\]
+Together with the publicly tuned upper bound in that result, this characterizes the optimal order for every admissible sample size and privacy budget.
+
+\subsection{Honest connected-interval length}
+
+For the interval criterion, the relevant reduction concerns target containment. Uniform \(90\%\) coverage in \cref{obj:def:interval-criterion} applies to every member of each finite prior and hence to its averaged coverage probability. The common output comparison in \cref{obj:lem:frontier-testing-priors} is the ingredient used in \cref{obj:thm:sharp-interval-frontier} to obtain simultaneous containment under a common output law.
+
+Connectedness supplies the geometric link to expected length: an interval containing both \(0\) and \(\Delta\) has Lebesgue length at least \(\Delta\). Thus the interval reduction uses the same target separation as scalar estimation, with honesty governing containment and connectedness governing length. The resulting lower bound in \cref{obj:thm:sharp-interval-frontier} is
+\[
+H_{n,\epsilon}\ge2^{-20}r(n,\epsilon).
+\]
+The publicly tuned interval in that result supplies the matching upper order and establishes the stated comparison between optimal honest expected length and minimax absolute risk.
+
+\subsection{Budget balances and consistency}
+
+The transition budgets in \cref{obj:prop:regime-and-sanity} are the pairwise balances of the benchmark scales:
+\[
+\begin{aligned}
+n^{-1/4}=(n^2\epsilon)^{-1/7}
+&\quad\Longleftrightarrow\quad \epsilon=n^{-1/4},\\
+(n^2\epsilon)^{-1/7}=(n\epsilon)^{-1/2}
+&\quad\Longleftrightarrow\quad \epsilon=n^{-3/5},\\
+(n\epsilon)^{-1/2}=1
+&\quad\Longleftrightarrow\quad \epsilon=n^{-1}.
+\end{aligned}
+\]
+These balances delimit the sampling, sparse privacy, direct privacy, and saturated branches. The benchmark expressions agree at their shared endpoints. In the testing certificate, sampling dominance uses the sign family, strict sparse privacy dominance uses its component comparison, and the direct family covers the remaining branches, including the tie between the two privacy scales.
+
+Along an admissible budget sequence \((\epsilon_n)\), the direct privacy scale identifies the consistency condition \(n\epsilon_n\to+\infty\). Under this condition, both privacy scales vanish, since \(n^2\epsilon_n=n(n\epsilon_n)\), and the sampling scale also vanishes. The lower bound in \cref{obj:thm:matched-risk-frontier} supplies the converse through the truncated direct privacy scale. Accordingly, \cref{obj:prop:regime-and-sanity} gives
+\[
+R_{n,\epsilon_n}\longrightarrow0
+\quad\Longleftrightarrow\quad
+n\epsilon_n\longrightarrow+\infty.
+\]
+The comparison of the two decision criteria in \cref{obj:thm:sharp-interval-frontier} gives the same condition for vanishing optimal honest expected length. The finite testing priors therefore support both finite-sample lower bounds and the common consistency criterion.

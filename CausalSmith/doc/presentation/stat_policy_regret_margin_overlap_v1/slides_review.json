@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "reader_passes": 1,
+  "deck_hash": "2f4cd65941ab49ea8d2d6b5a079938d33119a0cf1f493668ee2787be280b2c97",
+  "question": "How quickly can we learn a treatment rule with small welfare loss when near-ties occur where an informative treatment arm is rarely observed? Ordinary welfare maximization uses inverse-propensity-weighted scores; weak overlap makes those weights large, so the bounded-score reasoning behind strict-overlap regret rates no longer applies.",
+  "result": "The target is regret R_P(π)=E_P[|τ_P(X)|1{π(X)≠π*_P(X)}], where τ_P=μ_1−μ_0 and π*_P=1{τ_P≥0}. Assume independent observations, bounded outcomes, positive arm probabilities, the stated treatment of zero contrasts, margin P(0<|τ_P|≤u)≤C_m u^α, and joint overlap decay P(p_P≤v,0<|τ_P|≤u)≤C_o u^α v^{1/γ} for v≤c_o u^γ. With the stated fixed-constant calibrations, the minimax expected regret over any nonempty policy class is at least c n^(−r_star), where β=αγ/(α+1), r_star=(1+α)/(2+α+β) for γ>0; under strict overlap, β=0. The clipped, cross-fitted AIPW welfare maximizer has conditional upper bound C n^(−r_up)(log n)^p. This additionally requires oracle inclusion, finite VC dimension, bounded outcome estimates, fixed balanced folds, both stated uniform fluctuation assumptions, and nuisance rates r_μ,n≤C_μ n^(−a) and r_μ,n r_e,n≤C_prod n^(−c), with a≥0 and c≥1/2. For γ>0, r_up=min{r_star,g_joint}, where g_joint=max over 0≤s≤1/2 and 0≤t≤s/γ of min{A_α(1−2s),c−s,a+s/(2γ)+αt/2,2a−t}, and A_α=(1+α)/(2+α). Thus the conditional upper bound matches the lower-bound polynomial exponent when g_joint≥r_star. Under strict overlap, r_up=min{A_α,c}.",
+  "mechanism": "For the lower bound, construct two worlds with opposite contrasts ±h on a block of mass proportional to h^α. Only treated observations on that block reveal which world holds. Calibrate their treatment probability to scale as h^β, with β=αγ/(α+1), using the joint overlap restriction across contrast windows. One-observation distinguishability then scales as h^(2+α+β). Set h=n^(−1/(2+α+β)) so the sample cannot reliably distinguish the worlds. Wrong decisions on the block cost h times its mass, producing regret of order h^(1+α). For the learner, clip the estimated propensity to [q,1−q], construct the displayed AIPW contrast score, and maximize its cross-fitted empirical welfare over Π. Compare the learned rule with the oracle. Score fluctuations are controlled by the two additional uniform assumptions, yielding sampling cost (nq²)^(−A_α). The conditional score drift is the propensity discrepancy multiplied by outcome-regression errors. Ordinary estimation-error products contribute r_μ,n r_e,n/q. For clipping bias, split the disagreement region at contrast threshold u: joint overlap decay bounds its rare-arm, small-contrast portion, while regret bounds the remaining portion by R/u. Applying root-mean-square error control and absorbing part of the regret gives r_μ,n u^(α/2)q^(1/(2γ))+r_μ,n²/u. Finally choose q and u as powers of n and maximize the smallest of the four resulting exponents.",
+  "why_true": "The lower-bound difficulty comes from three factors multiplying: few people have uncertain decisions, few of those people reveal the informative arm, and their outcome distributions differ only slightly. Their preferred decisions nevertheless differ, so statistical ambiguity forces welfare loss. For learning, clipping bounds the score magnitude but introduces drift when outcome regressions are imperfect. The joint restriction controls how much of that drift can occur where a candidate rule disagrees with the oracle and the contrast is small. Larger-contrast disagreements already incur substantial regret, allowing their bias contribution to be absorbed. This supplies the clipping-bias control missing from the ordinary strict-overlap argument. The sampling control remains conditional on the explicitly assumed fluctuation bounds.",
+  "example": "X is uniform on [0,1], and B_n=[0,c_B h_n^α]. On B_n, untreated outcomes are zero, treatment occurs with probability q_n, and treated outcomes are ±1 with mean σh_n. The two signs require opposite treatment decisions on the block; outside it the worlds agree. Taking q_n proportional to h_n^β when β>0, otherwise fixed at 1/4, and h_n=n^(−1/(2+α+β)) makes sign learning difficult while a wrong block decision costs order h_n^(1+α).",
+  "findings": [
+    {
+      "slide": 9,
+      "severity": "rough",
+      "problem": "The phrase 'the tight window is v=h^β, u=h^(β/γ)' does not explain why this contrast window is the restrictive one or explicitly check that it contains the block's contrast h.",
+      "fix": "Explain that the allowance increases with u, so the restrictive window is the smallest admissible u that also satisfies u≥h. Show u proportional to max{h,v^(1/γ)} and explain how the displayed calibration selects the relevant branch."
+    },
+    {
+      "slide": 18,
+      "severity": "rough",
+      "problem": "The connection between empirical welfare maximization and the assembled regret bound is implicit. The fluctuation and bias terms have been explained separately, but their common comparison inequality is never displayed.",
+      "fix": "Before the final bound, show R_P(π_hat)≤|centered empirical score difference|+|E_P[(π_hat−π*)b_q]|+1/n, with fold averaging understood. Explain that the preceding fluctuation and bias bounds control these two terms and absorb fractions of regret."
+    },
+    {
+      "slide": 19,
+      "severity": "rough",
+      "problem": "The schedules use s_feas and t_feas before identifying them with a solution of the displayed optimization.",
+      "fix": "State that (s_feas,t_feas) is a maximizing pair in the definition of g_joint, and use the same notation in the optimization and schedules."
+    }
+  ],
+  "understood": "yes"
+}

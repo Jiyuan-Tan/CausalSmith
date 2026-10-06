@@ -1,0 +1,125 @@
+\begin{proof}[Proof of \cref{obj:prop:paired-capacity-identity}]
+Fix a paired completion \(P\) with parameters \(r,\theta\). By \cref{obj:def:paired-family}, each cell \((i,\sigma)\), where \(\sigma\in\{+1,-1\}\), has mass \(p_{i,\sigma}=r_i/2\), treatment propensity \(1/2\) when occupied, and weighted outcome means
+\[
+p_{i,\sigma}\mu_{0,i,\sigma}=\frac{r_i}{2}\frac14,
+\qquad
+p_{i,\sigma}\mu_{1,i,\sigma}
+=\frac{r_i}{2}\left(\frac12+\sigma\theta_i\right).
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.PairedCompletion
+These identities also hold when \(r_i=0\). The paired completion satisfies consistency and conditional exchangeability. Since \(k\geq1\), its alphabet has at least two cells; since \(0<\epsilon<1/2\), propensity \(1/2\) satisfies overlap on every occupied cell. Thus \(P\in\mathcal M_{2k,\epsilon}\) by \cref{obj:def:model-class}. On an occupied cell, division by \(p_{i,\sigma}>0\) gives
+\[
+\tau_{i,\sigma}
+=\mu_{1,i,\sigma}-\mu_{0,i,\sigma}
+=\frac14+\sigma\theta_i
+\in\left[\frac18,\frac38\right].
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_effect_bounds
+
+Summing the weighted control means and using \(\sum_i r_i=1\) gives
+\[
+B(P)=\sum_{i,\sigma}p_{i,\sigma}\mu_{0,i,\sigma}=\frac14.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_controlValue
+Choose the policy that treats the \(+\) cell when \(\theta_i\geq0\) and the \(-\) cell when \(\theta_i<0\):
+\[
+\pi^\star_{i,+}=\mathbf1\{\theta_i\geq0\},
+\qquad
+\pi^\star_{i,-}=\mathbf1\{\theta_i<0\}.
+\]
+It selects exactly one cell per pair, including at a tie. Consequently,
+\[
+\sum_{i,\sigma}p_{i,\sigma}\pi^\star_{i,\sigma}
+=\sum_i\frac{r_i}{2}=\frac12,
+\qquad
+B(P)+\sum_{i,\sigma}p_{i,\sigma}\pi^\star_{i,\sigma}\tau_{i,\sigma}
+=\frac38+\frac12\sum_i r_i|\theta_i|.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedSignPolicy_budget
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedSignPolicy_value
+
+To bound the value above, every \(\pi\in\Pi_b(P)\) and every \(\lambda\geq0\) satisfy
+\[
+\sum_j p_j\pi_j\tau_j
+\leq b\lambda+\sum_j p_j[\tau_j-\lambda]_+.
+\]
+Indeed, \(p_j\pi_j(\tau_j-\lambda)\leq p_j[\tau_j-\lambda]_+\) cell by cell, while \(\lambda\sum_jp_j\pi_j\leq b\lambda\). This bound also makes the feasible gains bounded above in the supremum defining \(V_b(P)\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.weighted_budget_weak_duality
+
+For the observed margin of \(P\), the arm mass in an occupied cell is \(p_j/2\). Hence the stabilized contributions in \cref{obj:def:dual-process} equal \(p_j\mu_{aj}\). In a null cell all four observed masses vanish, so \(q_j=0\). To specify the quotient at this point, interpret \(g_a\) by its zero-mass extension: \(g_a(0)=0\) for each arm \(a\). The formula in \cref{obj:def:dual-process} then gives \(f_{1/4}(0)=0\). At \(\lambda=1/4\), this yields
+\[
+F_P\!\left(\frac14\right)
+=B(P)+\sum_jp_j\left[\tau_j-\frac14\right]_+
+=\frac14+\frac12\sum_i r_i
+ \bigl([\theta_i]_++[-\theta_i]_+\bigr)
+=\frac14+\frac12\sum_i r_i|\theta_i|.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_dualQuarter
+Applying the preceding bound at \(b=1/2\) and \(\lambda=1/4\), and then using the feasible policy \(\pi^\star\) for the reverse inequality, gives
+\[
+V_{1/2}(P)
+=\frac38+\frac12\sum_i r_i|\theta_i|
+=\frac18+F_P\!\left(\frac14\right)
+=B(P)+\sum_jp_j\pi^\star_j\tau_j.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_bindingValue
+Thus \(\pi^\star\) attains the half-population value while using treatment mass exactly \(1/2\).
+
+At budget one, treating every cell is feasible. Every occupied-cell effect is positive, so no feasible policy has greater gain. The weighted treated means cancel pairwise:
+\[
+V_1(P)
+=\sum_{i=1}^k\frac{r_i}{2}
+ \left[\left(\frac12+\theta_i\right)
+       +\left(\frac12-\theta_i\right)\right]
+=\frac12.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_budgetValue_one
+
+For the sample reduction, fix \(R,S\in\Delta_k\) and define \(r,\theta\) as in the statement. Nonnegativity and the simplex equalities for \(R,S\) give \(r\in\Delta_k\). If \(R_i+S_i>0\), then \(|R_i-S_i|\leq R_i+S_i\), so \(|\theta_i|\leq1/8\); when the sum is zero, \(\theta_i=0\). Thus \(\theta\) is an admissible contrast vector. The construction in \cref{obj:def:paired-family} supplies a paired law with these parameters. Moreover, for every \(i\), including a zero-mass pair,
+\[
+r_i\theta_i=\frac{R_i-S_i}{16}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.normalizedPairedParameters
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.normalizedPairedMassContrast
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedLaw_completion
+
+Here is a kernel that depends on the input records but not on \(R,S\). Denote the two independent input samples by
+\[
+(\xi_t)_{t=1}^n\sim R^{\otimes n},\qquad
+(\eta_t)_{t=1}^n\sim S^{\otimes n},\qquad
+(\xi_t)_{t=1}^n\perp(\eta_t)_{t=1}^n.
+\]
+Pair their labels coordinatewise as \((\xi_t,\eta_t)\), \(1\leq t\leq n\). Independently across coordinates, choose \(\xi_t\) or \(\eta_t\) with equal probability to obtain a label, choose a uniform sign \(\sigma\), and choose an independent fair treatment indicator \(a\). Conditional on these choices, generate a Bernoulli outcome with parameter \(1/4\) if \(a=0\), with parameter \(1/2+\sigma/8\) if \(a=1\) and the chosen label came from \(\xi_t\), and with parameter \(1/2-\sigma/8\) if it came from \(\eta_t\). At \(n=0\), the kernel assigns probability one to the empty output sequence.
+
+For clarity, define the Bernoulli atom mass and the two outcome parameters, for \(y,a\in\{0,1\}\) and \(\sigma\in\{+1,-1\}\), by
+\[
+\operatorname{Ber}_{\rho}(y)
+=\begin{cases}1-\rho,&y=0,\\ \rho,&y=1,\end{cases}
+\quad(0\leq\rho\leq1),
+\qquad
+\nu^\pm_{a,\sigma}
+=\begin{cases}\frac14,&a=0,\\[2pt]\frac12\pm\frac{\sigma}{8},&a=1.\end{cases}
+\]
+The conditional mass of one output record is therefore
+\[
+\Pr\{O_t=((i,\sigma),a,y)\mid \xi_t,\eta_t\}
+=\frac{
+ \mathbf1\{\xi_t=i\}\operatorname{Ber}_{\nu^+_{a,\sigma}}(y)
++\mathbf1\{\eta_t=i\}\operatorname{Ber}_{\nu^-_{a,\sigma}}(y)
+}{8}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedKernelAtom
+The factors \(1/8\) come from the three fair choices. Summing over labels, signs, treatments, and outcomes gives one, so this specifies a probability kernel.
+
+Mixing this conditional mass over the independent input labels gives
+\[
+\Pr\{O_t=((i,\sigma),a,y)\}
+=\frac{
+ R_i\operatorname{Ber}_{\nu^+_{a,\sigma}}(y)
++S_i\operatorname{Ber}_{\nu^-_{a,\sigma}}(y)
+}{8}
+=\frac{r_i}{4}\operatorname{Ber}_{\mu_{a,i,\sigma}}(y),
+\qquad
+\mu_{a,i,\sigma}
+=\begin{cases}\frac14,&a=0,\\[2pt]\frac12+\sigma\theta_i,&a=1.\end{cases}
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedKernelAtom_mixed_observed
+For \(a=0\), the second equality uses \(r_i=(R_i+S_i)/2\). For \(a=1\), it also uses \(r_i\theta_i=(R_i-S_i)/16\) and the fact that Bernoulli atom masses are affine in their parameter. The equality covers zero-mass pairs as both sides then vanish. Its right-hand side is exactly the observed atom mass of the paired law in \cref{obj:def:paired-family}.
+
+Finally, the input pairs and the kernel randomizations are independent across \(t\). Thus, for every output sequence \(o_t=((i_t,\sigma_t),a_t,y_t)\), \(1\leq t\leq n\),
+\[
+\Pr\{O_1=o_1,\ldots,O_n=o_n\}
+=\prod_{t=1}^n
+ \frac{r_{i_t}}4\operatorname{Ber}_{\mu_{a_t,i_t,\sigma_t}}(y_t),
+\]
+the product law of \(n\) observed records from that paired law. The empty product gives the same conclusion when \(n=0\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedSampleKernel_reproduces
+\end{proof}

@@ -1,0 +1,298 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Wooldridge scalar TWFE and two-way Mundlak equivalence
+
+Finite balanced-panel, scalar-regressor version of Wooldridge's TWFE /
+two-way Mundlak equivalence. Vector-regressor TWFE and Mundlak variants live in
+the sibling vector files.
+-/
+
+module
+public import Causalean.Panel.UniformTwoWayPanel
+
+/-! # Wooldridge Scalar TWFE and Mundlak
+
+This file formalizes the scalar-regressor finite balanced-panel version of
+Wooldridge's two-way fixed effects and two-way Mundlak equivalence. It defines
+the scalar TWFE problem, coefficient, and normal equation, proves
+`ScalarTWFEProblem.betaTWFE_normalEq` and `ScalarTWFEProblem.betaTWFE_unique`, and
+then proves `twfe_twm_equivalence` and
+`twfe_twm_optional_controls_invariant` for coding-free two-way Mundlak fits. -/
+
+@[expose] public section
+
+namespace Causalean
+namespace Panel.EstimandCharacterization
+namespace FlexibleDIDMundlak
+
+open Finset
+open UniformTwoWayPanel
+
+variable {Unit Time : Type*} [Fintype Unit] [Fintype Time]
+
+/-- A scalar two-way-fixed-effects regression problem on [a finite balanced panel of units and
+time periods](hyp:panel), given [a scalar outcome](hyp:Y) and [a scalar regressor](hyp:X), where
+[the sum of squared double-demeaned regressor values is strictly positive — the scalar full-rank
+condition ensuring the two-way within estimator is well defined](hyp:ddotX_ss_pos). -/
+structure ScalarTWFEProblem (Unit Time : Type*) [Fintype Unit] [Fintype Time] where
+  panel : BalancedPanel Unit Time
+  Y : Unit → Time → ℝ
+  X : Unit → Time → ℝ
+  ddotX_ss_pos : 0 < ∑ i, ∑ t, (ddot X i t)^2
+
+namespace ScalarTWFEProblem
+
+/-- For [finite sets of units and periods](hyp:Unit,Time) and [a scalar
+two-way-fixed-effects regression problem](hyp:P), the [residualized-design
+denominator](goal) is the sum of squared doubly demeaned regressor values over
+all unit--period observations. -/
+noncomputable def twfeDenominator (P : ScalarTWFEProblem Unit Time) : ℝ :=
+  ∑ i, ∑ t, (ddot P.X i t)^2
+
+/-- For [finite sets of units and periods](hyp:Unit,Time) and [a scalar
+two-way-fixed-effects regression problem](hyp:P), the [residualized numerator](goal)
+is the sum, over all unit--period observations, of the doubly demeaned
+regressor times the doubly demeaned outcome. -/
+noncomputable def twfeNumerator (P : ScalarTWFEProblem Unit Time) : ℝ :=
+  ∑ i, ∑ t, ddot P.X i t * ddot P.Y i t
+
+/-- For [finite sets of units and periods](hyp:Unit,Time) and [a scalar
+two-way-fixed-effects regression problem](hyp:P), the [scalar two-way-fixed-
+effects coefficient](goal) is the residualized numerator divided by the
+residualized-design denominator. -/
+noncomputable def betaTWFE (P : ScalarTWFEProblem Unit Time) : ℝ :=
+  P.twfeNumerator / P.twfeDenominator
+
+/-- For [finite sets of units and periods](hyp:Unit,Time), [a scalar two-way-
+fixed-effects regression problem](hyp:P), and [a proposed coefficient](hyp:β),
+the [scalar two-way-fixed-effects normal equation](goal) states that the sum
+of the doubly demeaned regressor times the corresponding residual is zero. -/
+def twfeNormalEq (P : ScalarTWFEProblem Unit Time) (β : ℝ) : Prop :=
+  ∑ i, ∑ t, ddot P.X i t * (ddot P.Y i t - ddot P.X i t * β) = 0
+
+/-- The [closed-form scalar TWFE coefficient solves its normal equation](goal) for
+[a finite balanced-panel regression problem](hyp:P) over [finite unit and period
+sets](hyp:Unit,Time), because its residualized regressor has positive sum of squares. -/
+theorem betaTWFE_normalEq (P : ScalarTWFEProblem Unit Time) :
+    P.twfeNormalEq P.betaTWFE := by
+  let A : ℝ := ∑ i, ∑ t, ddot P.X i t * ddot P.Y i t
+  let B : ℝ := ∑ i, ∑ t, (ddot P.X i t)^2
+  have hden : B ≠ 0 := by
+    dsimp [B]
+    exact ne_of_gt P.ddotX_ss_pos
+  have hfactor : ∀ c : ℝ,
+      (∑ i, ∑ t, ddot P.X i t * (ddot P.X i t * c)) = B * c := by
+    intro c
+    dsimp [B]
+    simp only [← mul_assoc, pow_two, Finset.sum_mul]
+  unfold twfeNormalEq betaTWFE twfeNumerator twfeDenominator
+  change
+    ∑ i, ∑ t, ddot P.X i t *
+      (ddot P.Y i t - ddot P.X i t * (A / B)) = 0
+  calc
+    ∑ i, ∑ t, ddot P.X i t *
+        (ddot P.Y i t - ddot P.X i t * (A / B))
+        = A - B * (A / B) := by
+          dsimp [A]
+          simp only [mul_sub, Finset.sum_sub_distrib]
+          rw [hfactor]
+    _ = 0 := by
+          rw [div_eq_mul_inv]
+          rw [show B * (A * B⁻¹) = A * (B * B⁻¹) by
+            ring]
+          rw [mul_inv_cancel₀ hden]
+          ring
+
+/-- Any [coefficient satisfying the scalar TWFE normal equation](hyp:hβ) [equals the
+closed-form TWFE coefficient](goal) for [a full-rank finite balanced-panel
+problem](hyp:P) over [finite unit and period sets](hyp:Unit,Time). -/
+theorem betaTWFE_unique (P : ScalarTWFEProblem Unit Time) {β : ℝ}
+    (hβ : P.twfeNormalEq β) :
+    β = P.betaTWFE := by
+  unfold twfeNormalEq at hβ
+  change β =
+    (∑ i, ∑ t, ddot P.X i t * ddot P.Y i t) /
+      (∑ i, ∑ t, (ddot P.X i t)^2)
+  have hden : (∑ i, ∑ t, (ddot P.X i t)^2) ≠ 0 := ne_of_gt P.ddotX_ss_pos
+  have hnormal :
+      (∑ i, ∑ t, ddot P.X i t * ddot P.Y i t) -
+          (∑ i, ∑ t, (ddot P.X i t)^2) * β = 0 := by
+    calc
+      (∑ i, ∑ t, ddot P.X i t * ddot P.Y i t) -
+          (∑ i, ∑ t, (ddot P.X i t)^2) * β
+          = ∑ i, ∑ t, ddot P.X i t *
+              (ddot P.Y i t - ddot P.X i t * β) := by
+            simp only [mul_sub, Finset.sum_sub_distrib]
+            ring_nf
+            simp only [pow_two, Finset.sum_mul]
+            simp [mul_comm]
+      _ = 0 := hβ
+  have hnum : (∑ i, ∑ t, ddot P.X i t * ddot P.Y i t) =
+      (∑ i, ∑ t, (ddot P.X i t)^2) * β := sub_eq_zero.mp hnormal
+  calc
+    β = ((∑ i, ∑ t, (ddot P.X i t)^2) * β) /
+        (∑ i, ∑ t, (ddot P.X i t)^2) := by
+          rw [div_eq_mul_inv]
+          rw [show
+            ((∑ i, ∑ t, (ddot P.X i t)^2) * β) *
+                (∑ i, ∑ t, (ddot P.X i t)^2)⁻¹ =
+              β * ((∑ i, ∑ t, (ddot P.X i t)^2) *
+                (∑ i, ∑ t, (ddot P.X i t)^2)⁻¹) by
+            ring]
+          rw [mul_inv_cancel₀ hden, mul_one]
+    _ = (∑ i, ∑ t, ddot P.X i t * ddot P.Y i t) /
+        (∑ i, ∑ t, (ddot P.X i t)^2) := by
+          rw [← hnum]
+
+end ScalarTWFEProblem
+
+variable {Z M : Type*} [Fintype Z] [Fintype M]
+
+/-- For [finite sets of units, periods, unit-level controls, and period-level
+controls](hyp:Unit,Time,Z,M), [a scalar regressor](hyp:X), [unit-level control
+functions](hyp:Zvar), [period-level control functions](hyp:Mvar), and [a
+candidate nuisance function](hyp:h), the [two-way Mundlak nuisance condition](goal)
+holds exactly when the candidate is a constant plus arbitrary multiples of the
+regressor's unit means and period means and linear combinations of the supplied
+unit-level and period-level controls. -/
+def IsTwoWayMundlakNuisance (X : Unit → Time → ℝ)
+    (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ)
+    (h : Unit → Time → ℝ) : Prop :=
+  ∃ c γu γt : ℝ, ∃ ζ : Z → ℝ, ∃ μ : M → ℝ,
+    ∀ i t,
+      h i t =
+        c + γu * unitMean X i + γt * timeMean X t
+          + (∑ z, ζ z * Zvar z i) + (∑ m, μ m * Mvar m t)
+
+/-- Every [function satisfying the scalar two-way Mundlak nuisance
+representation](hyp:hh) is [additive in a unit component and a period
+component](goal) for [a regressor and two families of controls](hyp:X,Zvar,Mvar)
+over [finite unit, period, and control sets](hyp:Unit,Time,Z,M). -/
+theorem mundlak_nuisance_unit_time
+    (X : Unit → Time → ℝ) (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ)
+    {h : Unit → Time → ℝ}
+    (hh : IsTwoWayMundlakNuisance X Zvar Mvar h) :
+    IsUnitTimeAdditive h := by
+  rcases hh with ⟨c, γu, γt, ζ, μ, hrep⟩
+  refine ⟨fun i => c + γu * unitMean X i + ∑ z, ζ z * Zvar z i,
+    fun t => γt * timeMean X t + ∑ m, μ m * Mvar m t, ?_⟩
+  intro i t
+  rw [hrep i t]
+  ring
+
+/-- A scalar two-way Mundlak fit of the TWFE problem `P` against optional time-constant controls
+`Zvar` and time-only controls `Mvar`, stated by normal equations rather than by a particular
+coding of the nuisance regressors. It bundles [a scalar coefficient on the regressor](hyp:beta)
+and [a nuisance function lying in the two-way Mundlak span](hyp:nuisance,nuisance_mem), subject
+to [the pooled normal equation against the regressor](hyp:normal_X) and [the pooled normal
+equation against every nuisance function in that span](hyp:normal_H). -/
+structure ScalarTWMFit (P : ScalarTWFEProblem Unit Time)
+    (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ) where
+  beta : ℝ
+  nuisance : Unit → Time → ℝ
+  nuisance_mem : IsTwoWayMundlakNuisance P.X Zvar Mvar nuisance
+  normal_X :
+    ∑ i, ∑ t, P.X i t * (P.Y i t - P.X i t * beta - nuisance i t) = 0
+  normal_H :
+    ∀ h : Unit → Time → ℝ, IsTwoWayMundlakNuisance P.X Zvar Mvar h →
+      ∑ i, ∑ t, h i t * (P.Y i t - P.X i t * beta - nuisance i t) = 0
+
+/-- For [a scalar finite-panel regression problem](hyp:P) and [unit-only and
+period-only control families](hyp:Zvar,Mvar), [the regressor minus its double
+demean is unit-time additive and the double-demeaned regressor is orthogonal to
+every two-way Mundlak nuisance function](goal) over [finite unit, period, and
+control sets](hyp:Unit,Time,Z,M). -/
+theorem twfe_twm_residual_common (P : ScalarTWFEProblem Unit Time)
+    (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ) :
+    IsUnitTimeAdditive (fun i t => P.X i t - ddot P.X i t) ∧
+      (∀ h : Unit → Time → ℝ, IsTwoWayMundlakNuisance P.X Zvar Mvar h →
+        inner (ddot P.X) h = 0) := by
+  constructor
+  · rw [show (fun i t => P.X i t - ddot P.X i t) = unitTimeProjection P.X by
+        funext i t
+        exact sub_ddot_eq_unitTimeProjection P.X i t]
+    exact unitTimeProjection_additive P.X
+  · intro h hh
+    exact ddot_orthogonal_unit_time
+      (lt_of_lt_of_le (by decide) P.panel.unit_card_ge_two)
+      (lt_of_lt_of_le (by decide) P.panel.time_card_ge_two) P.X h
+      (mundlak_nuisance_unit_time P.X Zvar Mvar hh)
+
+/-- **Wooldridge finite-panel scalar TWFE-two-way-Mundlak equivalence.** [For a scalar
+two-way-fixed-effects panel regression problem `P` with optional time-constant controls
+`Zvar` and time-only controls `Mvar`](hyp:P,Zvar,Mvar), [given any pooled two-way Mundlak
+regression fit stated by its normal equations](hyp:fit), [that fit's coefficient on the
+regressor equals the two-way-fixed-effects coefficient](goal).
+
+The full-rank side condition is `P.ddotX_ss_pos`. -/
+theorem twfe_twm_equivalence (P : ScalarTWFEProblem Unit Time)
+    (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ)
+    (fit : ScalarTWMFit P Zvar Mvar) :
+    fit.beta = P.betaTWFE := by
+  let hres : Unit → Time → ℝ := fun i t => P.X i t - ddot P.X i t
+  have hres_mem : IsTwoWayMundlakNuisance P.X Zvar Mvar hres := by
+    refine ⟨-grandMean P.X, 1, 1, fun _ => 0, fun _ => 0, ?_⟩
+    intro i t
+    dsimp [hres]
+    rw [sub_ddot_eq_unitTimeProjection P.X i t]
+    unfold unitTimeProjection
+    simp
+    ring
+  have hYadd : IsUnitTimeAdditive (fun i t => P.Y i t - ddot P.Y i t) := by
+    rw [show (fun i t => P.Y i t - ddot P.Y i t) = unitTimeProjection P.Y by
+        funext i t
+        exact sub_ddot_eq_unitTimeProjection P.Y i t]
+    exact unitTimeProjection_additive P.Y
+  have hYorth :
+      ∑ i, ∑ t, ddot P.X i t * (P.Y i t - ddot P.Y i t) = 0 := by
+    simpa [inner] using ddot_orthogonal_unit_time
+      (lt_of_lt_of_le (by decide) P.panel.unit_card_ge_two)
+      (lt_of_lt_of_le (by decide) P.panel.time_card_ge_two) P.X
+      (fun i t => P.Y i t - ddot P.Y i t) hYadd
+  have hfw := finite_residualized_coefficient_eq_of_normalEqs
+    (fun h : Unit → Time → ℝ => IsTwoWayMundlakNuisance P.X Zvar Mvar h)
+    (Y := P.Y) (D := P.X)
+    (Yproj := fun i t => P.Y i t - ddot P.Y i t)
+    (Ytilde := ddot P.Y)
+    (Dproj := hres) (Dtilde := ddot P.X) (Hβ := fit.nuisance)
+    (β := fit.beta)
+    (by
+      intro i t
+      ring)
+    (by
+      intro i t
+      dsimp [hres]
+      ring)
+    hres_mem
+    fit.nuisance_mem
+    (twfe_twm_residual_common P Zvar Mvar).2
+    (by simpa [inner] using hYorth)
+    (by simpa [inner, pow_two] using P.ddotX_ss_pos)
+    (by simpa [inner] using fit.normal_X)
+    (by simpa [inner] using fit.normal_H hres hres_mem)
+  simpa [ScalarTWFEProblem.betaTWFE, ScalarTWFEProblem.twfeNumerator,
+    ScalarTWFEProblem.twfeDenominator, finiteResidualizedCoefficient, inner,
+    pow_two]
+    using hfw
+
+/-- [Two scalar two-way Mundlak fits](hyp:fit₁,fit₂) using [possibly different
+unit-only and period-only controls](hyp:Zvar₁,Mvar₁,Zvar₂,Mvar₂) [have the same
+regressor coefficient](goal) for [one finite-panel problem](hyp:P) over [finite
+unit, period, and control sets](hyp:Unit,Time,Z₁,M₁,Z₂,M₂). -/
+theorem twfe_twm_optional_controls_invariant
+    {Z₁ M₁ Z₂ M₂ : Type*} [Fintype Z₁] [Fintype M₁] [Fintype Z₂] [Fintype M₂]
+    (P : ScalarTWFEProblem Unit Time)
+    (Zvar₁ : Z₁ → Unit → ℝ) (Mvar₁ : M₁ → Time → ℝ)
+    (Zvar₂ : Z₂ → Unit → ℝ) (Mvar₂ : M₂ → Time → ℝ)
+    (fit₁ : ScalarTWMFit P Zvar₁ Mvar₁)
+    (fit₂ : ScalarTWMFit P Zvar₂ Mvar₂) :
+    fit₁.beta = fit₂.beta := by
+  rw [twfe_twm_equivalence P Zvar₁ Mvar₁ fit₁,
+    twfe_twm_equivalence P Zvar₂ Mvar₂ fit₂]
+
+end FlexibleDIDMundlak
+end Panel.EstimandCharacterization
+end Causalean

@@ -1,0 +1,184 @@
+module
+public import Causalean.Mathlib.Probability.Kernel.ThreeBernoulli.Selection
+
+/-!
+# Packaged Bernoulli marking assumptions
+
+`Parameters` packages the base measure, mark probabilities, and hypotheses
+so model structures can obtain the full and selected laws with short field lemmas.
+-/
+
+@[expose] public section
+
+set_option linter.style.haveILetI false
+
+open MeasureTheory ProbabilityTheory
+open scoped ENNReal
+
+noncomputable section
+
+namespace Causalean.Mathlib.Probability.Kernel.ThreeBernoulli
+
+universe u
+
+/-- A reusable package of Bernoulli-marking parameters over a
+[measurable base space](hyp:X) records a probability measure, three
+measurable success probabilities, and their pointwise unit-interval bounds. -/
+structure Parameters (X : Type u) [MeasurableSpace X] where
+  μ : Measure X
+  μ_prob : IsProbabilityMeasure μ
+  e : X → ℝ
+  q₀ : X → ℝ
+  q₁ : X → ℝ
+  he : Measurable e
+  hq₀ : Measurable q₀
+  hq₁ : Measurable q₁
+  he01 : ∀ x, e x ∈ Set.Icc (0 : ℝ) 1
+  hq₀01 : ∀ x, q₀ x ∈ Set.Icc (0 : ℝ) 1
+  hq₁01 : ∀ x, q₁ x ∈ Set.Icc (0 : ℝ) 1
+
+namespace Parameters
+
+/-- The [three-mark law associated with a parameter package](goal) uses
+[its base law and mark probabilities](hyp:P). -/
+def fullLaw {X : Type u} [MeasurableSpace X] (P : Parameters X) :
+    Measure (FullCoord X) := jointLaw P.μ P.e P.q₀ P.q₁
+
+/-- The [selected-mark law associated with a parameter package](goal) uses
+[its base law and four Bernoulli cell masses](hyp:P). -/
+def selected {X : Type u} [MeasurableSpace X] (P : Parameters X) :
+    Measure (SelectedCoord X) := selectedLaw P.μ P.e P.q₀ P.q₁
+
+/-- [The packaged three-mark law is a probability measure](goal) for
+[valid Bernoulli parameters](hyp:P). -/
+theorem fullLaw_probability {X : Type u} [MeasurableSpace X] (P : Parameters X) :
+    IsProbabilityMeasure P.fullLaw := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact jointLaw_probability P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01
+
+/-- [The packaged selected law is a probability measure](goal) for
+[valid Bernoulli parameters](hyp:P). -/
+theorem selected_probability {X : Type u} [MeasurableSpace X] (P : Parameters X) :
+    IsProbabilityMeasure P.selected := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact selectedLaw_probability P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01
+
+/-- [The packaged three-mark base marginal is the supplied base law](goal)
+for [valid Bernoulli parameters](hyp:P). -/
+theorem base_marginal {X : Type u} [MeasurableSpace X] (P : Parameters X) :
+    P.fullLaw.map (fun z : FullCoord X => z.1) = P.μ := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact jointLaw_base_marginal P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01
+
+/-- [A measurable full-mass base set has full mass under packaged three marks](goal)
+for [valid parameters](hyp:P), [a measurable set](hyp:B,hB), and
+[full base mass](hyp:hμB). -/
+theorem full_support {X : Type u} [MeasurableSpace X] (P : Parameters X)
+    (B : Set X) (hB : MeasurableSet B) (hμB : P.μ B = 1) :
+    P.fullLaw {z : FullCoord X | z.1 ∈ B} = 1 := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact jointLaw_full_support P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01 B hB hμB
+
+/-- [The observation pushforward of packaged three marks equals the packaged
+selected law](goal) for [valid Bernoulli parameters](hyp:P). -/
+theorem selectMark_map {X : Type u} [MeasurableSpace X] (P : Parameters X) :
+    P.fullLaw.map selectMark = P.selected := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact jointLaw_selectMark_map P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01
+
+/-- [The packaged marks satisfy finite-set conditional independence given the
+base](goal) for [valid parameters](hyp:P), [a measurable base set](hyp:B,hB),
+and [mark sets](hyp:s,t). -/
+theorem conditional_independence_finite {X : Type u} [MeasurableSpace X]
+    (P : Parameters X) (B : Set X) (hB : MeasurableSet B)
+    (s : Set Bool) (t : Set (Bool × Bool)) :
+    P.fullLaw {z : FullCoord X | z.1 ∈ B ∧ z.2.1 ∈ s ∧ z.2.2 ∈ t} =
+      ∫⁻ x in B, firstMarkSetMass (P.e x) s *
+        remainingPairSetMass (P.q₀ x) (P.q₁ x) t ∂P.μ := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact jointLaw_conditional_independent_finite P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01 B hB s t
+
+/-- [The packaged three-mark first mark and remaining-mark pair are
+the formal conditional-independence relation given bases](goal) for [standard Borel bases](hyp:X)
+and [valid Bernoulli parameters](hyp:P). -/
+theorem condIndepFun {X : Type u} [MeasurableSpace X] [StandardBorelSpace X]
+    (P : Parameters X) :
+    letI : IsProbabilityMeasure P.μ := P.μ_prob
+    letI : IsProbabilityMeasure P.fullLaw := P.fullLaw_probability
+    CondIndepFun
+      (MeasurableSpace.comap (fun z : FullCoord X => z.1) inferInstance)
+      ((measurable_fst : Measurable (fun z : FullCoord X => z.1)).comap_le)
+      (fun z : FullCoord X => z.2.1)
+      (fun z : FullCoord X => z.2.2) P.fullLaw := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  simpa [fullLaw] using
+    jointLaw_condIndepFun P.μ P.e P.q₀ P.q₁
+      P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01
+
+/-- [The packaged selected cell event has its cell-mass integral](goal) for
+[valid parameters](hyp:P), [a measurable base set](hyp:B,hB), and
+[the selected cell](hyp:a,y). -/
+theorem selected_cell {X : Type u} [MeasurableSpace X] (P : Parameters X)
+    (B : Set X) (hB : MeasurableSet B) (a y : Bool) :
+    P.selected {z : SelectedCoord X | z.1 ∈ B ∧ z.2.1 = a ∧ z.2.2 = y} =
+      ∫⁻ x in B, ENNReal.ofReal (cellMass (P.e x) (P.q₀ x) (P.q₁ x) a y) ∂P.μ := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact selectedLaw_cell P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01 B hB a y
+
+/-- [The packaged untreated-failure cell has mass given by the integral of
+`(1-e)(1-q₀)`](goal) over [a measurable base set](hyp:B,hB) for
+[valid parameters](hyp:P). -/
+theorem selected_cell_00 {X : Type u} [MeasurableSpace X] (P : Parameters X)
+    (B : Set X) (hB : MeasurableSet B) :
+    P.selected {z : SelectedCoord X |
+      z.1 ∈ B ∧ z.2.1 = false ∧ z.2.2 = false} =
+      ∫⁻ x in B, ENNReal.ofReal ((1 - P.e x) * (1 - P.q₀ x)) ∂P.μ := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact selectedLaw_cell_00 P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01 B hB
+
+/-- [The packaged untreated-success cell has mass given by the integral of
+`(1-e)q₀`](goal) over [a measurable base set](hyp:B,hB) for
+[valid parameters](hyp:P). -/
+theorem selected_cell_01 {X : Type u} [MeasurableSpace X] (P : Parameters X)
+    (B : Set X) (hB : MeasurableSet B) :
+    P.selected {z : SelectedCoord X |
+      z.1 ∈ B ∧ z.2.1 = false ∧ z.2.2 = true} =
+      ∫⁻ x in B, ENNReal.ofReal ((1 - P.e x) * P.q₀ x) ∂P.μ := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact selectedLaw_cell_01 P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01 B hB
+
+/-- [The packaged treated-failure cell has mass given by the integral of
+`e(1-q₁)`](goal) over [a measurable base set](hyp:B,hB) for
+[valid parameters](hyp:P). -/
+theorem selected_cell_10 {X : Type u} [MeasurableSpace X] (P : Parameters X)
+    (B : Set X) (hB : MeasurableSet B) :
+    P.selected {z : SelectedCoord X |
+      z.1 ∈ B ∧ z.2.1 = true ∧ z.2.2 = false} =
+      ∫⁻ x in B, ENNReal.ofReal (P.e x * (1 - P.q₁ x)) ∂P.μ := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact selectedLaw_cell_10 P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01 B hB
+
+/-- [The packaged treated-success cell has mass given by the integral of
+`eq₁`](goal) over [a measurable base set](hyp:B,hB) for
+[valid parameters](hyp:P). -/
+theorem selected_cell_11 {X : Type u} [MeasurableSpace X] (P : Parameters X)
+    (B : Set X) (hB : MeasurableSet B) :
+    P.selected {z : SelectedCoord X |
+      z.1 ∈ B ∧ z.2.1 = true ∧ z.2.2 = true} =
+      ∫⁻ x in B, ENNReal.ofReal (P.e x * P.q₁ x) ∂P.μ := by
+  letI : IsProbabilityMeasure P.μ := P.μ_prob
+  exact selectedLaw_cell_11 P.μ P.e P.q₀ P.q₁
+    P.he P.hq₀ P.hq₁ P.he01 P.hq₀01 P.hq₁01 B hB
+
+end Parameters
+end Causalean.Mathlib.Probability.Kernel.ThreeBernoulli

@@ -1,0 +1,12 @@
+# Revision routing plan (major_revision)
+
+## fix by hand in the authored sources (prose/structure rewrite)
+- [major·structure·rewrite] (Setup and statistical criteria) The presentation-level definitions of the cellwise quantities and estimator class contain exhaustive cross-reference lists spanning almost the entire paper, including later results and mutually referencing definitions. These lists suggest circular dependencies and make elementary statistical objects unnecessarily difficult to read. Repeated empty-alphabet and decidable-equality details further interrupt the model description.
+- [major·structure·rewrite] (Minimax estimation and honest inference; appendices) The detailed estimator construction precedes the headline theorems, while repeated explanations and elementary range, measurability, projection, and square-root calculations dominate the appendices. The novel statistical mechanism—missing-mass weighting and normalization-compatible mixture comparison—is difficult to distinguish from routine infrastructure. Discussions of unbounded real suprema are especially distracting when the defined losses and lengths are uniformly bounded.
+- [minor·prose·rewrite] (Introduction; Normalized priors and the dimension lower bound) The introduction states: “When the squared arrival-weighted dimension scale is at least n^{-1}, oppositely oriented pairs of baseline labels and a fixed filler label give exactly normalized priors,” and the converse appendix repeats this description across that regime. The verified theorem guarantees existential priors throughout the regime, whereas the exhibited proof uses paired priors beyond a tolerance-dependent sample-size threshold and one-label point priors for smaller samples.
+- [minor·prose·rewrite] (Completion of the main comparisons) The sentence “The formal proofs ... appear in the following proof appendix, so no second derivation is repeated here” uses absent-deliverable framing outside the limitations section and refers to an internal structural target without cleveref.
+
+## escalate — out of causalsmith scope (bank/causalsmith)
+- [minor·other·source_change] (Verification note) The verification note identifies a commit, toolchain, source directory, and two bundle filenames, but supplies no reader-accessible repository or archive link. These identifiers alone leave the frozen artifact difficult to retrieve.
+
+→ revise by hand at the level that owns each finding; formal statements remain frozen; then rescore once

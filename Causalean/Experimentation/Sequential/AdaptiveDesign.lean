@@ -1,0 +1,78 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Mathlib.Probability.Process.Predictable
+
+/-! # Adaptive sequential designs
+
+Adaptive experiments allow each treatment probability to depend on the observed pre-assignment
+history. Following Mathlib's discrete predictability convention, the initial propensity is
+initial-information measurable and the propensity at time `t + 1` is measurable from the
+information available at time `t`.
+
+The structure `AdaptiveExperiment` packages the filtration and predictable propensity process.
+Its overlap predicate records a positive margin separating every propensity from zero and one,
+as required by inverse-propensity weighting, and `propensity_pos_of_overlap` extracts strict
+positivity. Sequential inference for such designs is developed through the martingale layer.
+-/
+
+@[expose] public section
+
+open MeasureTheory
+
+namespace Causalean
+namespace Experimentation
+namespace Sequential
+
+/-- An adaptive sequential experiment: [a time-indexed information flow `ℱ` on the outcome
+space](hyp:ℱ) together with [a propensity process `propensity`](hyp:propensity) recording the
+treatment probability of the unit arriving at each time, subject to three conditions —
+[the process is predictable: the time-`0` propensity is measurable with respect to the initial
+information, and the time-`(t+1)` propensity depends only on the information available at time
+`t`](hyp:propensity_predictable), [every propensity is nonnegative](hyp:propensity_nonneg), and
+[every propensity is at most one](hyp:propensity_le_one). -/
+structure AdaptiveExperiment (Ω : Type*) (m0 : MeasurableSpace Ω) where
+  /-- The data-collection filtration: time `t` represents the information available after observing
+  the time-`t` history and before the next assignment is made. -/
+  ℱ : Filtration ℕ m0
+  /-- The propensity process: `propensity t ω` is the probability of treating the time-`t` unit on
+  history `ω`. -/
+  propensity : ℕ → Ω → ℝ
+  /-- The propensity is predictable: `propensity 0` is initial-information measurable, and
+  `propensity (t + 1)` is determined by the information available at time `t`. -/
+  propensity_predictable : IsPredictable ℱ propensity
+  /-- Propensities are nonnegative. -/
+  propensity_nonneg : ∀ t ω, 0 ≤ propensity t ω
+  /-- Propensities are at most one. -/
+  propensity_le_one : ∀ t ω, propensity t ω ≤ 1
+
+namespace AdaptiveExperiment
+
+variable {Ω : Type*} {m0 : MeasurableSpace Ω}
+
+/-- For [a measurable outcome space](hyp:Ω,m0), [an adaptive experiment on that space](hyp:E),
+and [a real number serving as an overlap margin](hyp:δ), the [overlap condition with that
+margin](goal) holds precisely when [the margin is strictly positive](step:1) and [at every time
+and on every outcome history, the experiment's treatment probability lies between the margin and
+one minus the margin](step:2).
+
+This is the positivity condition that makes inverse-propensity
+weighting, and hence the martingale construction underlying valid inference, well behaved. -/
+def HasOverlap (E : AdaptiveExperiment Ω m0) (δ : ℝ) : Prop :=
+  0 < δ ∧ ∀ t ω, δ ≤ E.propensity t ω ∧ E.propensity t ω ≤ 1 - δ
+
+/-- Under [overlap with margin `δ`](hyp:h), [every propensity is at least `δ`, hence strictly
+positive — so inverse-propensity weights are finite](goal). -/
+lemma propensity_pos_of_overlap {E : AdaptiveExperiment Ω m0} {δ : ℝ} (h : E.HasOverlap δ)
+    (t : ℕ) (ω : Ω) : 0 < E.propensity t ω :=
+  lt_of_lt_of_le h.1 (h.2 t ω).1
+
+end AdaptiveExperiment
+
+end Sequential
+end Experimentation
+end Causalean

@@ -1,0 +1,276 @@
+\section{Setup and assumptions}\label{sec:setup}
+
+Throughout, \leanref{sym:c}{\ensuremath{c}} and \leanref{sym:C}{\ensuremath{C}} denote finite positive constants whose values may change between appearances. At fixed public parameters, these constants are independent of the sample sizes. We write \(a\lesssim b\) when \(a\le Cb\), and \(a\asymp b\) when both \(a\lesssim b\) and \(b\lesssim a\). Vector norms are Euclidean unless otherwise indicated. We use \(\mathbb N=\mathbb N_0=\{0,1,\ldots\}\) and write \(\mathbb N_{\ge1}\) for the positive integers. Counts and polynomial multi-indices may be zero; dimensions, resolutions, and sample-index ranges carry their displayed positive lower bounds. The symbol \(N=n+m\) always denotes the total treatment-record count.
+
+Fix the public parameters
+\[
+d\ge1,\qquad
+\alpha,\beta\in(0,1],\qquad
+\gamma\in[1,3],\qquad
+L>1/2,\qquad
+\varepsilon\in(0,1/2).
+\]
+Here \(d\) is the covariate dimension, \(\alpha,\beta,\gamma\) are the propensity, control-mean, and causal-contrast smoothness orders, respectively, \leanref{sym:L}{\ensuremath{L}} is the common Hölder radius, and \leanref{sym:eps}{\ensuremath{\varepsilon}} is the overlap level. These parameters remain fixed as the sample sizes vary.
+
+\subsection{Primitive variables and identifying restrictions}
+
+We use a coordinate-partial convention for Hölder regularity. For a function \leanref{sym:f}{\ensuremath{f}} and a regularity order \leanref{sym:s}{\ensuremath{s}}, the norm \leanref{sym:normH}{\ensuremath{\|f\|_{H^s}}} controls coordinate derivatives indexed by the nonnegative-integer multi-index \leanref{sym:kappa}{\ensuremath{\kappa}}, together with their highest-order Hölder variation. The following definition specifies the convention, including at integer smoothness orders.
+
+\begin{definitionv}{def:holder-norm}[Coordinate-partial Hölder norm]
+The extended-real Hölder norm \(\|f\|_{H^s}\), for \(f:\mathbb R^d\to\mathbb R\), \(d\in\{0,1,\ldots\}\), and \(s\in\mathbb R\), is
+\[
+\|f\|_{H^s}
+=
+\begin{cases}
+\displaystyle
+\max\left\{
+\sup_{\substack{\kappa\in\{0,1,\ldots\}^d,\;
+|\kappa|\le \max\{\lceil s\rceil-1,0\}\\
+x\in[0,1]^d}}
+|\partial^\kappa f(x)|,\;
+\sup_{\substack{\kappa\in\{0,1,\ldots\}^d,\;
+|\kappa|=\max\{\lceil s\rceil-1,0\}\\
+x,x'\in[0,1]^d,\;x\ne x'}}
+\frac{|\partial^\kappa f(x)-\partial^\kappa f(x')|}
+{\|x-x'\|_2^{\,s-\max\{\lceil s\rceil-1,0\}}}
+\right\},
+& f\in C^{\max\{\lceil s\rceil-1,0\}}([0,1]^d),\\[1ex]
++\infty,
+& \text{otherwise}.
+\end{cases}
+\]
+Here \(|\kappa|=\sum_{i=1}^d\kappa_i\), and \(\partial^\kappa f(x)\) is the iterated derivative within \([0,1]^d\), evaluated on coordinate directions with coordinate \(i\) repeated \(\kappa_i\) times. The differentiability condition means continuous differentiability of the indicated order within the cube. Both suprema are taken in the extended nonnegative reals, with an empty supremum equal to zero.
+\end{definitionv}
+
+For positive \(s\), this convention uses derivatives through order \(\lceil s\rceil-1\) and a highest-order Hölder exponent of \(s-\lceil s\rceil+1\). Thus integer orders use a Lipschitz condition on derivatives of one lower order. Every regularity restriction below is evaluated within the unit cube.
+
+A full record consists of a covariate vector \leanref{sym:X}{\ensuremath{X}}, a binary treatment indicator \leanref{sym:A}{\ensuremath{A}}, and binary potential responses \leanref{sym:Yzero}{\ensuremath{Y(0)}} and \leanref{sym:Yone}{\ensuremath{Y(1)}} under control and treatment. Let \leanref{sym:P}{\ensuremath{P=\mathcal L(X,A,Y(0),Y(1))}} denote their primitive Borel law. The observed response \leanref{sym:Y}{\ensuremath{Y}} selects the potential response corresponding to the realized treatment.
+
+\begin{definitionv}{synth_5}[Observed response selection]
+The observed response \(Y\) for a full record \((X,A,Y(0),Y(1))\), where \(X\in\mathbb R^d\) is the covariate vector for a nonnegative integer \(d\), \(A\in\{0,1\}\) is the treatment indicator, and \(Y(0),Y(1)\in\{0,1\}\) are the potential responses under control and treatment, is defined by
+\[
+Y=
+\begin{cases}
+Y(0), & A=0,\\
+Y(1), & A=1.
+\end{cases}
+\]
+The corresponding observed record is \((X,A,Y)\).
+\end{definitionv}
+
+The evaluation profile is the fixed interior point \leanref{sym:x0}{\ensuremath{x_0=(1/2,\ldots,1/2)}}. We write \leanref{sym:e}{\ensuremath{e_P}} for an admissible propensity witness, \leanref{sym:mu0}{\ensuremath{\mu_{0,P}}} and \leanref{sym:mu1}{\ensuremath{\mu_{1,P}}} for admissible control and treated conditional-mean witnesses, and \leanref{sym:tau}{\ensuremath{\tau_P}} for the canonical continuous causal contrast. Their precise admissibility requirements are collected in \cref{obj:def:primitive-class}. The identifying restrictions begin with the covariate design and treatment assignment.
+
+\begin{assumptionv}{ass:uniform-design}[Uniform covariate design]
+The covariate vector \(X\) satisfies
+\[
+\mathcal L_P(X)=\mathrm{Unif}([0,1]^d).
+\]
+\end{assumptionv}
+
+The known uniform design fixes the distribution used for localization and integration and gives full support on the cube. It is the maintained uniform-design restriction of the bounded-density framework considered by \citep{KennedyBalakrishnanRobinsWasserman2024}. Treatment assignment is linked to the potential responses through conditional exchangeability.
+
+\begin{assumptionv}{ass:exchangeability}[Conditional treatment exchangeability]
+The treatment indicator \(A\) and the potential responses \(Y(0),Y(1)\) satisfy
+\[
+A\perp(Y(0),Y(1))\mid X,
+\]
+where \(X\) is the covariate vector.
+\end{assumptionv}
+
+Conditional exchangeability allows treatment-specific observed means to identify the corresponding potential-response means after conditioning on the covariates \citep{ChakraborttyDai2022}. Both treatment arms must also be represented throughout the evaluation domain.
+
+\begin{assumptionv}{ass:overlap}[Pointwise overlap on the cube]
+The overlap condition for a primitive law \(P\), at the overlap level \(\varepsilon\in\mathbb R\), is \(0<\varepsilon\) together with the requirement that the raw Borel propensity witness carried by \(P\) takes values in \([\varepsilon,1-\varepsilon]\) at every \(x\in[0,1]^d\).
+\end{assumptionv}
+
+Bounded overlap keeps both conditional treatment probabilities away from zero, as in the pointwise conditional-effect framework of \citep{KennedyBalakrishnanRobinsWasserman2024}. Here the endpoints are the public values \(\varepsilon\) and \(1-\varepsilon\), with \(0<\varepsilon<1/2\), and the restriction applies at every point of the cube.
+
+The regularity conditions distinguish the two nuisance functions from the causal contrast. We first impose isotropic Hölder regularity on the propensity.
+
+\begin{assumptionv}{ass:propensity-holder}[Hölder smoothness of the propensity]
+The designated Borel propensity witness \(e_P\) satisfies
+\[
+\|e_P\|_{H^\alpha}\le L.
+\]
+\end{assumptionv}
+
+Isotropic Hölder propensity regularity controls how treatment probabilities vary across nearby covariate profiles \citep{KennedyBalakrishnanRobinsWasserman2024}. The order \(\alpha\) is common across coordinates, and the radius \(L\) bounds both the function and its Hölder variation. The control response mean has its own smoothness order.
+
+\begin{assumptionv}{ass:control-holder}[Hölder smoothness of the control mean]
+The designated Borel control-mean witness \(\mu_{0,P}\) satisfies
+\[
+\|\mu_{0,P}\|_{H^\beta}\le L.
+\]
+\end{assumptionv}
+
+Isotropic Hölder control-mean regularity governs variation in the baseline response surface \citep{KennedyBalakrishnanRobinsWasserman2024}. Allowing \(\beta\) to differ from \(\alpha\) separates outcome regularity from treatment-assignment regularity. The target surface is controlled directly by the following restriction.
+
+\begin{assumptionv}{ass:effect-holder}[Hölder smoothness of the causal contrast]
+The canonical continuous causal contrast \(\tau_P\) satisfies
+\[
+\|\tau_P\|_{H^\gamma}\le L.
+\]
+\end{assumptionv}
+
+Isotropic Hölder contrast regularity controls the local variation of the conditional treatment effect itself \citep{KennedyBalakrishnanRobinsWasserman2024}. The separate order \(\gamma\in[1,3]\) permits a smoother causal contrast than either nuisance function and specifies the regularity used to estimate its value at \(x_0\).
+
+The binary-response model also requires pointwise probability bounds on the designated arm means. We state these restrictions explicitly because admissible witnesses are functions defined throughout the cube.
+
+\begin{assumptionv}{ass:control-interior}[Control response bounds]
+The designated Borel control-mean witness \(\mu_{0,P}\) satisfies
+\[
+\mu_{0,P}(x)\in[0,1]
+\qquad\text{for every }x\in[0,1]^d.
+\]
+\end{assumptionv}
+
+This pointwise control-response restriction is specific to the present analysis and keeps the designated control mean within the Bernoulli probability range, including its endpoints. The corresponding treated mean obeys the same numerical bounds.
+
+\begin{assumptionv}{ass:treated-interior}[Treated response bounds]
+The designated Borel treated-mean witness \(\mu_{1,P}\) satisfies
+\[
+\mu_{1,P}(x)\in[0,1]
+\qquad\text{for every }x\in[0,1]^d.
+\]
+\end{assumptionv}
+
+The treated-response restriction is likewise specific to this analysis. Together, the two arm bounds ensure that the designated contrast takes values in \([-1,1]\) everywhere on the cube.
+
+Membership in the primitive class is existential: a law belongs when it admits conditional-mean witnesses satisfying the stated restrictions. Let \leanref{sym:M}{\ensuremath{\mathcal M(d,\alpha,\beta,\gamma,L,\varepsilon)}} denote this class, abbreviated to \(\mathcal M\) at the fixed public parameters.
+
+\begin{definitionv}{def:primitive-class}[Primitive law class \(\mathcal M(d,\alpha,\beta,\gamma,L,\varepsilon)\)]
+\(\mathcal M(d,\alpha,\beta,\gamma,L,\varepsilon)\) is the class of primitive Borel laws \(P=\mathcal L(X,A,Y(0),Y(1))\), where \(X\) is the covariate vector, \(A\) is the binary treatment indicator, and \(Y(0)\) and \(Y(1)\) are the binary potential responses under control and treatment. For public parameters \(L>1/2\) and \(\varepsilon\in(0,1/2)\), membership is defined by the following properties:
+\begin{itemize}
+\item \textbf{(Uniform design.)} The law satisfies \cref{obj:ass:uniform-design}.
+\item \textbf{(Exchangeability.)} The law satisfies \cref{obj:ass:exchangeability}.
+\item \textbf{(Conditional means.)} There exist Borel functions
+\[
+g_e,g_0,g_1:[0,1]^d\to[0,1]
+\]
+such that
+\[
+\begin{aligned}
+g_e(X)&=\mathbb E_P[A\mid X] &&P\text{-almost surely},\\
+g_0(X)&=\mathbb E_P[Y(0)\mid X] &&P\text{-almost surely},\\
+g_1(X)&=\mathbb E_P[Y(1)\mid X] &&P\text{-almost surely}.
+\end{aligned}
+\]
+\item \textbf{(Overlap and smoothness.)} These functions satisfy \cref{obj:ass:overlap,obj:ass:propensity-holder,obj:ass:control-holder,obj:ass:effect-holder}, with \(g_e\), \(g_0\), and \(g_1-g_0\) as the propensity, control mean, and causal contrast.
+\item \textbf{(Response bounds.)} The arm means satisfy \cref{obj:ass:control-interior,obj:ass:treated-interior}.
+\end{itemize}
+For each admitted law, \(e_P,\mu_{0,P},\mu_{1,P}\) designate admissible functions \(g_e,g_0,g_1\), respectively. The function \(\tau_P\) is the canonical continuous representative of the almost-sure conditional causal contrast, and the designated functions satisfy
+\[
+\mu_{1,P}(x)-\mu_{0,P}(x)=\tau_P(x)
+\qquad\text{for every }x\in[0,1]^d.
+\]
+\end{definitionv}
+
+The witness formulation separates almost-sure conditional-expectation identities from restrictions imposed at every covariate profile. Under the positive smoothness orders fixed above, \(e_P\), \(\mu_{0,P}\), and \(\tau_P\) are continuous; the identity in \cref{obj:def:primitive-class} then gives continuity of \(\mu_{1,P}\) as well.
+
+Observed response selection, conditional exchangeability, and overlap yield
+\[
+\mathbb E_P[Y\mid A=a,X]=\mu_{a,P}(X)
+\qquad P\text{-almost surely},\qquad a\in\{0,1\}.
+\]
+Consequently, the observed-record law identifies the causal contrast almost everywhere under the covariate distribution. Uniform design assigns positive probability to every nonempty relatively open subset of the cube. Continuous representatives that agree almost everywhere therefore agree everywhere, which makes \(\tau_P(x_0)\) a uniquely defined, identified point target. The continuous representative gives substantive meaning to evaluation at a fixed profile even though conditional expectations are initially defined through almost-sure identities.
+
+\subsection{Sampling experiment and risk}
+
+Write \leanref{sym:Po}{\ensuremath{P^o=\mathcal L_P(X,A,Y)}} for the observed-record law induced by \cref{obj:synth_5}, and \leanref{sym:PXA}{\ensuremath{P_{XA}=\mathcal L_P(X,A)}} for the covariate-treatment marginal. For \(n\ge2\) and \(m\ge0\), the original dataset \leanref{sym:D}{\ensuremath{\mathcal D_{n,m}}} consists of \(n\) independent labeled records with law \(P^o\) and \(m\) independent outcome-free records with law \(P_{XA}\):
+\[
+\mathcal D_{n,m}
+=
+\left(
+((X_i,A_i,Y_i))_{i=1}^{n},
+((\widetilde X_j,\widetilde A_j))_{j=1}^{m}
+\right).
+\]
+The two blocks are independent. A uniform randomizer \leanref{sym:U}{\ensuremath{U}} on \([0,1]\), independent of both blocks, is available to decisions. Thus the product sampling law \leanref{sym:E}{\ensuremath{\mathsf E_{n,m}(P)}} in \cref{obj:ass:sample-law} is
+\[
+\mathsf E_{n,m}(P)
+=
+(P^o)^{\otimes n}
+\otimes P_{XA}^{\otimes m}
+\otimes\mathrm{Unif}([0,1]).
+\]
+The following condition makes this sampling experiment explicit.
+
+\begin{assumptionv}{ass:sample-law}[Original experiment sampling law]
+The original dataset \(\mathcal D_{n,m}\) and independent uniform randomizer \(U\) have joint law
+\[
+\mathcal L_P(\mathcal D_{n,m},U)=\mathsf E_{n,m}(P),
+\]
+where \(\mathsf E_{n,m}(P)\) is the product sampling law of the original dataset and randomizer.
+\end{assumptionv}
+
+Independent fixed-size labeled and outcome-free samples from a shared law provide the two-channel sampling structure used in semi-supervised causal estimation \citep{ChakraborttyDai2022}; the independent randomizer permits randomized decisions. In this experiment, each labeled record supplies covariates, treatment, and a response, while each outcome-free record supplies covariates and treatment. The common marginal \(P_{XA}\) makes both blocks informative about treatment assignment.
+
+A decision \leanref{sym:T}{\ensuremath{T}} is a Borel real-valued function of the dataset and randomizer. Its absolute-error risk \leanref{sym:risk}{\ensuremath{\mathcal R_{n,m}(T,P)}} measures expected error in estimating the identified point contrast.
+
+\begin{definitionv}{def:risk}[Absolute-error risk $\mathcal R_{n,m}(T,P)$]
+The absolute-error risk is
+\[
+\mathcal R_{n,m}(T,P)
+=
+\int
+\left|T(\mathcal D_{n,m},U)-\tau_P(x_0)\right|
+\,d\mathsf E_{n,m}(P).
+\]
+Here \(T\) is a Borel real-valued decision using the original dataset \(\mathcal D_{n,m}\) and independent uniform randomizer \(U\), \(x_0\) is the fixed interior covariate profile, and \(\mathsf E_{n,m}(P)\) is the product sampling law of the original dataset and randomizer. The target \(\tau_P(x_0)\) is the canonical conditional causal contrast from \cref{obj:def:primitive-class}.
+\end{definitionv}
+
+Absolute loss expresses precision on the scale of the conditional response difference. To assess precision uniformly across admissible primitive laws, the minimax risk \leanref{sym:R}{\ensuremath{R(n,m)}} optimizes the worst-case value of this loss over all Borel decisions.
+
+\begin{definitionv}{def:minimax}[Minimax risk \(R(n,m)\)]
+\[
+R(n,m)=\inf_{T\ {\rm Borel}}\sup_{P\in\mathcal M}\mathcal R_{n,m}(T,P).
+\]
+Here \(\mathcal M\) is the primitive law class at the fixed public parameters, and \(\mathcal R_{n,m}(T,P)\) is the expected absolute error for the point contrast under law \(P\). The infimum ranges over Borel real-valued decisions \(T\) using the original dataset of \(n\) labeled records and \(m\) independent outcome-free treatment records, together with an independent uniform randomizer.
+\end{definitionv}
+
+The sample sizes enter separately because response information is supplied by the labeled block and treatment-assignment information is supplied by both blocks. A complementary experiment supplies the entire admissible propensity function to the decision. Denote such a decision by \leanref{sym:Te}{\ensuremath{T^e}}, and its minimax risk by \leanref{sym:Re}{\ensuremath{R^e(n,m)}}.
+
+\begin{definitionv}{def:oracle-risk}[Supplied propensity minimax risk]
+The supplied propensity minimax risk \(R^e(n,m)\), for \(d,n,m\in\mathbb N\) and \(\alpha,\beta,\gamma,L,\varepsilon\in\mathbb R\), is the extended nonnegative quantity
+\[
+R^e(n,m)=\inf_{T^e}\sup_{P\in\mathcal M}
+\int
+\left|T^e(\mathcal D_{n,m},U,e_P)-\tau_P(x_0)\right|
+\,d\mathsf E_{n,m}(P).
+\]
+Here \(\mathcal M\) is the primitive law class at these parameters, and \(e_P\) and \(\tau_P\) are its designated admissible propensity function and canonical causal contrast, as defined in \cref{obj:def:primitive-class}. The evaluation profile is \(x_0=(1/2,\ldots,1/2)\). The original dataset \(\mathcal D_{n,m}\) comprises \(n\) labeled records and \(m\) independent outcome-free treatment records; \(U\) is the independent uniform randomizer on \([0,1]\), and \(\mathsf E_{n,m}(P)\) is their product sampling law from \cref{obj:ass:sample-law}. The infimum ranges over real-valued decisions \(T^e\) receiving the dataset, randomizer, and a supplied function from the covariate space to \(\mathbb R\), with Borel measurability in \((\mathcal D_{n,m},U)\) for every fixed supplied function.
+\end{definitionv}
+
+Supplying \(e_P\) gives a reference experiment in which treatment probabilities are available throughout the cube. Measurability is required in the observed data and randomizer for each fixed supplied function. Comparing \cref{obj:def:minimax,obj:def:oracle-risk} quantifies how the original sampling experiment approaches the precision available with supplied treatment probabilities.
+
+\subsection{Rate notation}
+
+We introduce the rate notation as a single family. Let \(N=n+m\) be the total treatment-record count and \(S=\alpha+\beta\) the sum of the two nuisance smoothness orders. Define the tuning denominator \leanref{sym:Delta}{\ensuremath{\Delta}}, nuisance-smoothness cutoff \leanref{sym:Scrit}{\ensuremath{S_{\mathrm{crit}}}}, and total-record comparison exponent \leanref{sym:qstar}{\ensuremath{q_*}} by
+\[
+\Delta=2\gamma+d+\frac{\gamma d}{S},
+\qquad
+S_{\mathrm{crit}}=\frac{\gamma d}{2\gamma+d},
+\qquad
+q_*=\frac{\gamma d}{S(2\gamma+d)}
+=\frac{S_{\mathrm{crit}}}{S}.
+\]
+The supplied-propensity reference order \leanref{sym:ro}{\ensuremath{r_o(n)}} and the unequal-channel upper-rate expression \leanref{sym:rup}{\ensuremath{r_{\mathrm{up}}(n,m)}} are
+\[
+r_o(n)=n^{-\gamma/(2\gamma+d)},
+\qquad
+r_{\mathrm{up}}(n,m)
+=
+\max\left\{
+r_o(n),\,
+(nN)^{-\gamma/\Delta}
+\right\}.
+\]
+These expressions distinguish a term indexed by the response-bearing sample size from a term indexed by the product of the labeled and total treatment-record counts. Their statistical interpretation is supplied by \cref{obj:thm:rectangular-upper,obj:thm:sharp-annotation-frontier,obj:thm:supplied-propensity}.
+
+The notation also makes the sample-size comparison transparent. Algebraically,
+\[
+(nN)^{-\gamma/\Delta}\le r_o(n)
+\quad\Longleftrightarrow\quad
+N\ge n^{q_*}.
+\]
+When \(S\ge S_{\mathrm{crit}}\), the exponent satisfies \(q_*\le1\), so \(N\ge n\) meets this comparison. For \(S<S_{\mathrm{crit}}\), one has \(q_*>1\), and the comparison requires total treatment-record growth beyond the labeled count. This division organizes the precision and sample-requirement statements that follow.

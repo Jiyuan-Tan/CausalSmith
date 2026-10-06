@@ -1,0 +1,152 @@
+\begin{proof}[Proof of \cref{obj:lem:poisson-hybrid-risk}]
+Fix \(\epsilon\in(0,1/2)\).  Throughout, let \(M_0,n_p,n_f,m_p,m_f,u,t_p,t,L,B,k_0\) be the block sizes, Poisson intensities, degree, scale, and pilot threshold from \cref{obj:def:mixed-estimator-handle}.  Write
+\[
+\operatorname{rad}_{n,m,d}
+=
+\frac1n+\frac{d^2}{(n+m)^2\log^2(en)} ,
+\]
+so that \(r_\epsilon(n,m,d)=\min\{1,\operatorname{rad}_{n,m,d}\}\) by \cref{obj:def:frontier-rate-handle}.
+
+\(\mathbf{1.}\) First record the uniform bounded-loss estimate.  For \(P\in\mathcal M_{d,\epsilon}\), the functional \(\tau(P)\) lies in \([-1,1]\), since it is a cell-mass average of differences of binary outcome regressions.  On the calibrated branch, the hybrid statistic is clipped to \([-1,1]\), so its squared distance from \(\tau(P)\) is at most \(4\) pointwise.  On the uncalibrated branch, the risk term is the deterministic quantity \(\tau(P)^2\), which is at most \(1\) and hence at most \(4\).  Therefore, for all \(n,m,d\),
+\[
+\mathbb E_P\!\left[(Z^{\mathrm{mix}}-\tau(P))^2\right]\le 4 .
+\]
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poissonHybridMSE_le_four
+
+\(\mathbf{2.}\) We next record the calibrated variance envelope used when \(\mathsf C_\epsilon(n,m)\) holds.  For each \(x\in[d]\), let \(S_{ax}\), \(J_{ax}\), and \(K_{ax}\) be the independent outcome-block, pilot-pool, and factorial-pool Poisson counts from \cref{obj:def:mixed-estimator-handle}, and put \(J_x=J_{0x}+J_{1x}\).  Let \(P_x\) and \(H_x\) be the light-cell polynomial and heavy inverse-count cell contributions from \cref{obj:def:mixed-estimator-handle}, and define the unclipped selected hybrid sum
+\[
+\widetilde Z
+=
+\sum_{x=1}^d
+\left(
+\mathbf 1\{J_x\le k_0\}P_x
++
+\mathbf 1\{J_x>k_0\}H_x
+\right).
+\]
+By \cref{obj:lem:calibrated-hybrid-variance-bound}, there is a constant \(C_{\mathrm{var}}>0\), depending only on \(\epsilon\), such that, whenever \(n\ge1\), \(P\in\mathcal M_{d,\epsilon}\), and \(\mathsf C_\epsilon(n,m)\) holds,
+\[
+\operatorname{Var}_P(\widetilde Z)
+\le
+4A_\star^L
+\left\{
+\frac{\min\{1,dB\}}u+dB^2
+\right\}
++
+C_{\mathrm{var}}\left(u^{-1}+t^{-1}\right)
++
+\frac{8dB^2}{\epsilon^2L^4}
++
+\frac4{\epsilon t}
++
+414\,n^{-12}.
+\]
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.calibrated_hybrid_variance_le
+
+\(\mathbf{3.}\) Still under \(\mathsf C_\epsilon(n,m)\), projection onto \([-1,1]\) cannot increase squared distance from \(\tau(P)\in[-1,1]\).  Hence
+\[
+\mathbb E_P\!\left[(Z^{\mathrm{mix}}-\tau(P))^2\right]
+\le
+\mathbb E_P\!\left[(\widetilde Z-\tau(P))^2\right]
+=
+\operatorname{Var}_P(\widetilde Z)
++
+\bigl(\mathbb E_P\widetilde Z-\tau(P)\bigr)^2 .
+\]
+For the same hybrid branches, \cref{obj:lem:calibrated-hybrid-mean-bias} gives
+\[
+\left|\mathbb E_P\widetilde Z-\tau(P)\right|
+\le
+\frac{2dB}{\epsilon L^2}+6n^{-12}.
+\]
+Consequently,
+\[
+\mathbb E_P\!\left[(Z^{\mathrm{mix}}-\tau(P))^2\right]
+\le
+\operatorname{Var}_P(\widetilde Z)
++
+\left(
+\frac{2dB}{\epsilon L^2}+6n^{-12}
+\right)^2 .
+\]
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poissonHybridMSE_le_variance_add_bias_sq
+
+\(\mathbf{4.}\) Apply \cref{obj:lem:calibrated-envelope-absorption} with \(C_0=C_{\mathrm{var}}\).  That result gives a constant depending on \(\epsilon\) and \(C_{\mathrm{var}}\); since Step 2 chose \(C_{\mathrm{var}}\) depending only on \(\epsilon\), we may write this constant as \(C_{\mathrm{abs}}>0\), depending only on \(\epsilon\).  Under \(\mathsf C_\epsilon(n,m)\),
+\[
+\begin{aligned}
+&4A_\star^L
+\left\{
+\frac{\min\{1,dB\}}u+dB^2
+\right\}
++
+C_{\mathrm{var}}\left(u^{-1}+t^{-1}\right)
++
+\frac{8dB^2}{\epsilon^2L^4}
++
+\frac4{\epsilon t}
++
+414\,n^{-12}
++
+\left(
+\frac{2dB}{\epsilon L^2}+6n^{-12}
+\right)^2
+\\
+&\hspace{5em}\le
+C_{\mathrm{abs}}\operatorname{rad}_{n,m,d}.
+\end{aligned}
+\]
+Set
+\[
+C_{\mathrm{cal}}=\max\{4,C_{\mathrm{abs}}\}.
+\]
+If \(1\le \operatorname{rad}_{n,m,d}\), then \(r_\epsilon(n,m,d)=1\), and Step 1 gives
+\[
+\mathbb E_P\!\left[(Z^{\mathrm{mix}}-\tau(P))^2\right]
+\le 4
+\le C_{\mathrm{cal}}\,r_\epsilon(n,m,d).
+\]
+If \(\operatorname{rad}_{n,m,d}\le1\), then \(r_\epsilon(n,m,d)=\operatorname{rad}_{n,m,d}\).  Steps 2 and 3, followed by the absorption display, give
+\[
+\mathbb E_P\!\left[(Z^{\mathrm{mix}}-\tau(P))^2\right]
+\le
+C_{\mathrm{abs}}\operatorname{rad}_{n,m,d}
+\le
+C_{\mathrm{cal}}\,r_\epsilon(n,m,d).
+\]
+Thus the desired bound holds on the calibrated branch with constant \(C_{\mathrm{cal}}\).
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.calibrated_envelope_absorption_exists
+
+\(\mathbf{5.}\) It remains to cover the finite set of uncalibrated sample sizes.  The uniform calibration-failure bound gives an integer \(n_\epsilon^\dagger\ge1\), depending only on \(\epsilon\), such that
+\[
+\neg\mathsf C_\epsilon(n,m)\quad\Longrightarrow\quad n<n_\epsilon^\dagger
+\qquad\text{for all }n,m .
+\]
+Now set
+\[
+C_\epsilon=\max\{C_{\mathrm{cal}},\,4n_\epsilon^\dagger\}.
+\]
+If \(\mathsf C_\epsilon(n,m)\) holds, Step 4 gives the result because \(C_{\mathrm{cal}}\le C_\epsilon\).  If \(\mathsf C_\epsilon(n,m)\) fails, then \(n<n_\epsilon^\dagger\), so \(n\le n_\epsilon^\dagger\).  Since \(n\ge1\), the frontier rate is positive and dominates \(n^{-1}\): the second entry in the minimum is
+\[
+\frac1n+\frac{d^2}{(n+m)^2\log^2(en)}\ge \frac1n,
+\]
+and \(1/n\le1\), so
+\[
+\frac1n\le r_\epsilon(n,m,d).
+\]
+Multiplying by the positive number \(n\) gives \(1\le n\,r_\epsilon(n,m,d)\).  Since \(n\le n_\epsilon^\dagger\) and \(r_\epsilon(n,m,d)>0\),
+\[
+1\le n\,r_\epsilon(n,m,d)
+\le n_\epsilon^\dagger r_\epsilon(n,m,d).
+\]
+Combining this with Step 1 gives
+\[
+\mathbb E_P\!\left[(Z^{\mathrm{mix}}-\tau(P))^2\right]
+\le4
+\le
+4n_\epsilon^\dagger r_\epsilon(n,m,d)
+\le
+C_\epsilon r_\epsilon(n,m,d).
+\]
+This proves the asserted bound for every \(n,m,d\) and every \(P\in\mathcal M_{d,\epsilon}\).
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_hybrid_risk
+\end{proof}

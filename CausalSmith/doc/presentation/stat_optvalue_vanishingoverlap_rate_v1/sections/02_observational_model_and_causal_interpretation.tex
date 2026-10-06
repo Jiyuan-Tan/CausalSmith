@@ -1,0 +1,245 @@
+\section{Observational model and causal interpretation}
+
+Throughout, \(c\) and \(C\) denote positive universal constants whose values may change between occurrences. The notation \(\|v\|_1\) denotes the sum of the absolute coordinates of a finite vector. We use \(\lesssim\), \(\gtrsim\), and \(\asymp\) for comparisons up to positive universal constants, and all logarithms are natural. Sample indices run from \(1\) to \(n\), treatment and outcome indices take values in \(\{0,1\}\), and covariate indices use the zero-based alphabet defined below. The statistical analysis concerns \(n\ge1\) observed units, \(d\ge2\) covariate cells, and a public overlap floor \(0<\epsilon\le1/2\); the cell count and overlap floor may vary with sample size.
+
+\subsection{Observed experiment and loss}
+
+We first state the sampling condition shared by every observed law in the experiment.
+
+\begin{assumptionv}{ass:iid-sampling}[Independent and identically distributed observations]
+For each \(\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}\), the observed-law class, the observed units \(O_1,\ldots,O_n\) are independent and have common law \(\mathbb P\).
+\end{assumptionv}
+
+Independent and identically distributed sampling controls dependence across units within each experiment; allowing \(d\) and \(\epsilon\) to vary with \(n\) specifies a sequence of such experiments \citep{ZengBalakrishnanHanKennedy2024Discrete}.
+
+The next definition fixes the covariate alphabet \leanref{sym:[d]}{\ensuremath{[d]}} and observed atom index set \leanref{sym:\mathcal J_d}{\ensuremath{\mathcal J_d}}. We write \leanref{sym:x}{\ensuremath{x}} for a cell index, \leanref{sym:a}{\ensuremath{a}} for a treatment index, and \leanref{sym:y}{\ensuremath{y}} for an outcome index.
+
+\begin{definitionv}{synth_1}[Covariate alphabet and atoms]
+The finite covariate alphabet \([d]\) and observed atom index set \(\mathcal J_d\) are defined, for each nonnegative integer \(d\), by
+\[
+[d] := \{x\in\mathbb Z : 0\le x<d\},
+\qquad
+\mathcal J_d := [d]\times\{0,1\}\times\{0,1\}.
+\]
+\end{definitionv}
+
+Cell masses determine how much each covariate category contributes to the population target. Propensities allocate that mass between treatment arms, while outcome means summarize the observed response within each arm. The model restricts treatment allocation through the following public floor.
+
+The restriction in \cref{obj:ass:shrinking-overlap} is the triangular-array version of standard strong positivity: both arms have positive conditional probability in every occupied cell, with a floor that may shrink along the sequence of experiments \citep{ZengBalakrishnanHanKennedy2024Discrete}. A public floor supplies a common bound for the statistical analysis and estimator tuning, while permitting heterogeneous propensities across cells. Null cells follow the zero-ratio convention in \cref{obj:def:observed-class}. These quantities specify the observed-law class \leanref{sym:\mathcal D_{d,\epsilon}^{\mathrm{obs}}}{\ensuremath{\mathcal D_{d,\epsilon}^{\mathrm{obs}}}} of \cref{obj:def:observed-class}.
+
+\begin{assumptionv}{ass:shrinking-overlap}[Public treatment overlap restriction]
+Let \(p_x\) denote the probability of covariate cell \(x\), and let \(\pi_x\) denote its conditional treatment-one probability. For every \(x\in[d]\), the finite covariate alphabet, with \(p_x>0\), the overlap parameter \(\epsilon\) satisfies
+\[
+\epsilon\le\pi_x\le1-\epsilon.
+\]
+\end{assumptionv}
+
+The following definition collects the atom probabilities, cell masses, propensities, outcome means, and their probability constraints into the observed-law class.
+
+\begin{definitionv}{def:observed-class}[Observed laws under overlap]
+The observed class \(\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) consists of probability laws \(\mathbb P\) on \([d]\times\{0,1\}^2\) satisfying \cref{obj:ass:shrinking-overlap} on every cell with \(p_x>0\). Its parameters are \(d\in\mathbb N\) and \(\epsilon\in\mathbb R\), and the covariate alphabet is
+\[
+[d]:=\{x\in\mathbb Z:0\le x<d\}.
+\]
+For the coordinate variables \(X\), \(A\), and \(Y\), representing the covariate, treatment, and observed outcome, respectively, the observed atom probabilities, cell probabilities, treatment propensities, and arm-specific outcome means are defined by
+\[
+q_{ay,x}:=\mathbb P(X=x,A=a,Y=y),
+\qquad
+p_x:=\sum_{a\in\{0,1\}}\sum_{y\in\{0,1\}}q_{ay,x},
+\]
+\[
+\pi_x:=\frac{q_{10,x}+q_{11,x}}{p_x},
+\qquad
+\mu_{ax}:=\frac{q_{a1,x}}{q_{a0,x}+q_{a1,x}},
+\]
+with each ratio defined as zero when its denominator is zero. These quantities satisfy, for every \(x\in[d]\) and \(a\in\{0,1\}\),
+\[
+q_{a1,x}=p_x\pi_x^a(1-\pi_x)^{1-a}\mu_{ax},
+\qquad
+q_{a0,x}=p_x\pi_x^a(1-\pi_x)^{1-a}(1-\mu_{ax}),
+\]
+\[
+p_x\ge0,
+\qquad
+\sum_{x\in[d]}p_x=1,
+\qquad
+\mu_{ax}\in[0,1].
+\]
+\end{definitionv}
+
+The class allows arbitrary cell masses and outcome means subject to the displayed probability constraints, and arbitrary propensities satisfying the public floor.
+
+The scalar target is the observed optimal treatment value \leanref{sym:\Psi(\mathbb P)}{\ensuremath{\Psi(\mathbb P)}} of \cref{obj:def:observed-value}. It chooses the larger conditional outcome mean in each cell and averages those choices using the population cell masses.
+
+\begin{definitionv}{def:observed-value}[Observed optimal treatment value]
+The observed value of a probability law \(\mathbb P\) on \([d]\times\{0,1\}\times\{0,1\}\), for a nonnegative integer \(d\) and the zero-based covariate alphabet \([d]\) of \cref{obj:synth_1}, is
+\[
+\Psi(\mathbb P)
+=\sum_{x\in[d]}p_x\max_{a\in\{0,1\}}\mu_{ax}.
+\]
+Here the observed atom probabilities, covariate cell probabilities, and arm-specific outcome means are defined by
+\[
+q_{ay,x}=\mathbb P(X=x,A=a,Y=y),
+\qquad
+p_x=\sum_{a\in\{0,1\}}\sum_{y\in\{0,1\}}q_{ay,x},
+\qquad
+\mu_{ax}=\frac{q_{a1,x}}{q_{a0,x}+q_{a1,x}},
+\]
+with a zero denominator giving \(\mu_{ax}=0\). Each null-cell summand is therefore zero.
+\end{definitionv}
+
+The maximum introduces the cellwise optimization into the functional, while the zero-denominator convention gives every null cell a zero contribution. We assess estimation of this scalar under squared error, uniformly over the observed-law class, through the minimax risk \leanref{sym:\mathfrak R_{n,d,\epsilon}}{\ensuremath{\mathfrak R_{n,d,\epsilon}}} defined next.
+
+\begin{definitionv}{def:minimax-risk}[Minimax risk \(\mathfrak R_{n,d,\epsilon}\)]
+The minimax squared-error risk is
+\[
+\mathfrak R_{n,d,\epsilon}
+:=
+\inf_{\widehat V}
+\sup_{\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}}
+E_{\mathbb P}
+\left[
+\left\{
+\widehat V(O_1,\ldots,O_n)-\Psi(\mathbb P)
+\right\}^{2}
+\right],
+\]
+where \(O_1,\ldots,O_n\) denotes the observed sample, \(\Psi(\mathbb P)\) denotes the observed value, and the infimum ranges over all measurable real-valued estimators.
+\end{definitionv}
+
+Under \cref{obj:ass:iid-sampling}, the expectation is taken over the product sampling law. The supremum varies the cell masses, propensities, and outcome means within \cref{obj:def:observed-class}, so the risk measures uniform performance when those quantities are unknown. The subsequent rate comparisons use the logarithmic alphabet scale \leanref{sym:L_d}{\ensuremath{L_d}}, defined by
+\[
+L_d=\log(ed).
+\]
+This convention fixes the logarithmic factor in the risk bounds and consistency criterion.
+
+\subsection{Causal interpretation and cellwise representation}
+
+The observed functional acquires a causal interpretation through a \leanref{S-2}{binary potential-outcome overlay}. We introduce the full-data notation together so that the causal restrictions and completion class refer to the same experiment.
+
+
+
+The oracle value chooses a treatment separately for each covariate cell using its conditional potential-outcome means. Relating those means to observed outcomes requires consistency and armwise conditional exchangeability. The first restriction connects the realized outcome to the potential outcome under the treatment received.
+
+\begin{assumptionv}{ass:consistency}[Consistency of observed outcomes]
+The observed outcome \(Y\) equals the potential outcome \(Y(A)\) under the realized treatment \(A\) almost surely:
+\[
+Y=Y(A)\quad\text{almost surely}.
+\]
+\end{assumptionv}
+
+Consistency is the standard condition that gives the observed outcome its treatment-specific potential-outcome interpretation \citep{ZengBalakrishnanHanKennedy2024Discrete}. The second restriction addresses treatment selection within covariate cells.
+
+\begin{assumptionv}{ass:conditional-exchangeability}[Conditional exchangeability of treatment]
+For each treatment \(a\in\{0,1\}\), the potential outcome \(Y(a)\) is conditionally independent of the treatment \(A\) given the categorical covariate \(X\):
+\[
+Y(a)\perp A\mid X.
+\]
+\end{assumptionv}
+
+Armwise conditional exchangeability is the standard condition under which conditioning on the covariate accounts for treatment selection relevant to each potential outcome \citep{ZengBalakrishnanHanKennedy2024Discrete}. Its substantive interpretation is that the recorded covariate provides sufficient adjustment for that selection. Together with consistency and positive overlap in occupied cells, it supplies the conditions for the value identification in \cref{obj:prop:identification}. We collect these restrictions in the causal completion class \leanref{sym:\mathcal P_{d,\epsilon}}{\ensuremath{\mathcal P_{d,\epsilon}}}.
+
+\begin{definitionv}{def:causal-class}[Causal-law class \(\mathcal P_{d,\epsilon}\)]
+Define
+\[
+\mathcal P_{d,\epsilon}
+:=
+\left\{
+P:
+P\text{ is a law of }(X,A,Y,Y(0),Y(1))
+\text{ satisfying the conditions below}
+\right\}.
+\]
+Here \(\operatorname{Obs}(P)\) denotes the observed marginal law of \((X,A,Y)\).
+\begin{itemize}
+\item \textbf{(Consistency.)} \(P\) satisfies \cref{obj:ass:consistency}.
+\item \textbf{(Exchangeability.)} \(P\) satisfies \cref{obj:ass:conditional-exchangeability}.
+\item \textbf{(Observed marginal.)}
+\[
+\operatorname{Obs}(P)\in\mathcal D_{d,\epsilon}^{\mathrm{obs}},
+\]
+whose overlap restriction is given in \cref{obj:ass:shrinking-overlap}.
+\end{itemize}
+This definition applies for every \(n\ge1\), \(d\ge2\), and \(0<\epsilon\le1/2\).
+\end{definitionv}
+
+The statistical problem is defined over observed laws, while this class specifies their causal interpretation. To connect value identification to the estimator construction, we also introduce a representation of each cell's contribution in terms of its four observed atom probabilities.
+
+
+
+The armwise extension \leanref{sym:F_\epsilon(u)}{\ensuremath{F_\epsilon(u)}} of \cref{obj:def:armwise-extension} represents the contribution of an admissible cell and supplies a function on arbitrary nonnegative four-vectors for the estimator. For a generic nonnegative four-vector \leanref{sym:u}{\ensuremath{u}}, its arm mass \leanref{sym:s_a(u)}{\ensuremath{s_a(u)}}, total mass \leanref{sym:s(u)}{\ensuremath{s(u)}}, and overlap-truncated arm denominator \leanref{sym:D_a(u)}{\ensuremath{D_a(u)}} are defined together with the extension.
+
+\begin{definitionv}{def:armwise-extension}[Armwise extension \(F_\epsilon\)]
+The armwise extension is
+\[
+F_\epsilon(u)
+=
+\begin{cases}
+\displaystyle
+\max_{a\in\{0,1\}}\frac{s(u)u_{a1}}{D_a(u)},&u\ne0,\\[6pt]
+0,&u=0,
+\end{cases}
+\qquad u\in\mathbb R_+^4,
+\]
+where the coordinates of \(u\) are indexed by \(a,y\in\{0,1\}\), and
+\[
+s_a(u)=u_{a0}+u_{a1},
+\qquad
+s(u)=s_0(u)+s_1(u),
+\qquad
+D_a(u)=\max\{s_a(u),\epsilon s(u)\}.
+\]
+\end{definitionv}
+
+The denominator uses the larger of the arm mass and the public floor times total mass, and the zero branch retains the null-cell convention. The following result connects this representation to the observed target and connects that target to the causal oracle value.
+
+\begin{propositionv}{prop:identification}[Completion and value identification]
+Let \(d\) be the number of covariate cells and \(\epsilon\) the overlap floor, with
+\begin{itemize}
+\item \textbf{(Cell count.)} \(d\in\mathbb N\) and \(d\ge 2\).
+\item \textbf{(Positive overlap.)} \(0<\epsilon\).
+\item \textbf{(Overlap range.)} \(\epsilon\le 1/2\).
+\end{itemize}
+The following statements hold.
+
+Every observed law \(\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) of \cref{obj:def:observed-class} admits a full-data completion \(P\in\mathcal P_{d,\epsilon}\) of \cref{obj:def:causal-class} such that
+\[
+\operatorname{Obs}(P)=\mathbb P,
+\]
+where \(\operatorname{Obs}(P)\) is the marginal law of the categorical covariate \(X\), binary treatment \(A\), and binary observed outcome \(Y\).
+
+Every \(P\in\mathcal P_{d,\epsilon}\) satisfies
+\[
+V^\star(P)
+=
+\sum_{x\in[d]} P(X=x)
+\max_{a\in\{0,1\}}
+\mathbb E_P[Y(a)\mid X=x]
+=
+\Psi\{\operatorname{Obs}(P)\},
+\]
+where \([d]\) is the finite covariate alphabet, \(Y(a)\) is the potential outcome under arm \(a\), \(V^\star(P)\) is the causal oracle value defined by the displayed sum, and \(\Psi\) is the observed-value functional of \cref{obj:def:observed-value}. Conditional potential-outcome means in cells of zero probability are assigned zero.
+
+For every \(\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) and every \(x\in[d]\), define the four-vector of observed atom probabilities and its cell mass and armwise outcome means by
+\[
+q_{ay,x}=\mathbb P(X=x,A=a,Y=y),
+\qquad
+q_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x}),
+\]
+\[
+p_x=\sum_{a=0}^{1}\sum_{y=0}^{1}q_{ay,x},
+\qquad
+\mu_{ax}=\frac{q_{a1,x}}{q_{a0,x}+q_{a1,x}},
+\]
+with a zero denominator giving \(\mu_{ax}=0\). The armwise extension of \cref{obj:def:armwise-extension} then satisfies
+\[
+F_\epsilon(q_x)=p_x\max_{a\in\{0,1\}}\mu_{ax}.
+\]
+In particular, both sides equal zero when \(p_x=0\).
+\end{propositionv}
+
+\Cref{obj:prop:identification} gives the observed estimation problem its causal scope. Every law in the observed class has an admissible causal completion, and every such completion has the same oracle value determined by its observed marginal. Consequently, the minimax risk in \cref{obj:def:minimax-risk} also describes estimation of the causal oracle value over \cref{obj:def:causal-class} using observed samples. The cellwise identity supplies the representation
+\[
+\Psi(\mathbb P)=\sum_{x\in[d]}F_\epsilon(q_x).
+\]
+This representation preserves the target on the overlap-constrained observed class while extending each cell contribution to the nonnegative vectors used in the estimator construction. Identification therefore connects the causal target, the observed loss, and the cellwise estimation problem under the stated sampling and causal restrictions.

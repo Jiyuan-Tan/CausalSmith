@@ -1,0 +1,567 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# de Chaisemartin-D'Haultfoeuille (2020): finite-cell TWFE algebra
+
+Pure finite group-time algebra for the DCDH TWFE estimand with heterogeneous
+effects. This file formalizes the finite weighted-cell identities only: no
+`POSystem`, measure theory, sampling bridge, or residualization API is used.
+
+Source labels from
+`doc/basic_concepts/po/estimand_characterization/de_chaisemartin_dhaultfoeuille_twfe.md`:
+
+* `def:po-estimand-dcdh-panel`
+* `def:po-estimand-dcdh-residualized-treatment`
+* `def:po-estimand-dcdh-twfe-coefficient`
+* `ass:po-estimand-dcdh-untreated-parallel`
+* `thm:po-estimand-dcdh-twfe-decomposition`
+* `prop:po-estimand-dcdh-weights-sum-one`
+* `prop:po-estimand-dcdh-sign-reversal`
+* `rem:po-estimand-dcdh-negative-weight-warning`
+* `rem:po-estimand-dcdh-lean-shape`
+
+## Scope notes
+
+**Two-way fixed-effect nuisance class.** `IsGTFE` is a local abbreviation for
+`Causalean.Stat.Weighted.IsUnitTimeAdditive`, which itself unfolds to
+`∃ a b, ∀ i t, h i t = a i + b t`.
+
+**Residualized treatment.** The paper motivates D̃ as the FWL
+residual of D projected on the two-way FE span H_GT.  Here it is taken as a
+primitive witness satisfying `D_minus_resid_mem` and `Dtilde_orthogonal`.
+The companion file `FWLBridge.lean` supplies `DCDHPanel.ofTwoWayPanel`, which
+constructs this witness from the uniform two-way-panel double-demeaning operator.
+
+**Treatment effects.** The
+paper defines τ_gt = Y_gt(1) − Y_gt(0) from two potential-outcome functions.
+Here `tau` is a raw field; the only connection to outcomes is the consistency
+axiom `Y = Y0 + D * tau`.  The population origin of this field is supplied in the
+companion file `Causalean/Panel/EstimandCharacterization/HeterogeneousTWFE/PopulationBridge.lean`:
+`cellMean_consistency` shows that for cell-conditional means
+(`normalizedRestrictedIntegral` on a cell event with constant `D ≡ d`), pointwise PO consistency
+`Y = Y0 + d·(Y1 − Y0)` yields the consistency identity `Ȳ = Ȳ(0) + d·τ̄` with
+`τ̄ = E[Y(1)|A] − E[Y(0)|A]` a genuine potential-outcome contrast.  That file
+also provides the full `DCDHPanel.ofPopulation` constructor, which builds a
+genuine `DCDHPanel` from a probability model (`pi = μ(cell)`, `Y/Y0 = E[·|cell]`,
+`tau = E[Y(1)|cell] − E[Y(0)|cell]`), deriving `consistency` from
+`cellMean_consistency` and `pi_sum_one` from finite-partition measure additivity;
+`D̃` is taken as a witness there (the general-weight FWL residual is separate;
+the uniform case is `ofTwoWayPanel`).  This finite-algebra file itself stays
+measure-free.
+-/
+
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.Stat.Weighted.AdditiveSpan
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Data.Fintype.Prod
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Positivity
+public import Mathlib.Tactic.Ring
+
+/-! # Heterogeneous-effects finite-panel algebra
+
+This file develops finite group-by-period algebra for the two-way fixed-effects estimand with heterogeneous treatment effects. It defines weighted binary-treatment panels, their residualized-treatment coefficient, bias, and effect components, and establishes the decomposition, weight, and sign-reversal results; a companion module supplies their probability-model interpretation. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
+
+namespace Causalean
+namespace Panel.EstimandCharacterization
+namespace HeterogeneousTWFE
+
+open Finset
+
+/-- For [group and time index sets](hyp:G,T) and [a group-by-time array](hyp:h), the [group-time fixed-effect condition](goal) holds
+exactly when the array can be written as the sum of a group-specific component and a
+time-specific component.
+
+Group-time fixed-effect span, represented as additive group and period
+components.
+
+Compatibility alias for the shared additive-span predicate. -/
+abbrev IsGTFE {G T : Type*} (h : G → T → ℝ) : Prop :=
+  Causalean.Stat.Weighted.IsUnitTimeAdditive h
+
+/-- A finite de Chaisemartin-D'Haultfoeuille group-time panel: it bundles [group-time cell
+weights](hyp:pi), [a binary treatment indicator](hyp:D), [the observed outcome](hyp:Y), [the
+untreated potential outcome](hyp:Y0), [cell-level treatment effects](hyp:tau), and [a
+residualized-treatment witness](hyp:Dtilde), subject to [strict positivity](hyp:pi_pos) and
+[unit sum](hyp:pi_sum_one) of the weights, [the treatment indicator taking only the values zero
+and one](hyp:D_binary), [potential-outcome consistency — the observed outcome equals the
+untreated outcome plus the treatment indicator times the treatment
+effect](hyp:consistency), [the residualized witness differing from the treatment indicator by a
+group-plus-time additive function](hyp:D_minus_resid_mem), [its orthogonality, in the weighted
+inner product, to every group-plus-time additive function](hyp:Dtilde_orthogonal), and [a
+strictly positive weighted sum of its squares](hyp:SD_pos). -/
+structure DCDHPanel (G T : Type*) [Fintype G] [Fintype T] where
+  pi : G → T → ℝ
+  D : G → T → ℝ
+  Y : G → T → ℝ
+  Y0 : G → T → ℝ
+  tau : G → T → ℝ
+  Dtilde : G → T → ℝ
+  pi_pos : ∀ g t, 0 < pi g t
+  pi_sum_one : ∑ g, ∑ t, pi g t = 1
+  D_binary : ∀ g t, D g t = 0 ∨ D g t = 1
+  consistency : ∀ g t, Y g t = Y0 g t + D g t * tau g t
+  D_minus_resid_mem : IsGTFE (fun g t => D g t - Dtilde g t)
+  Dtilde_orthogonal :
+    ∀ h : G → T → ℝ, IsGTFE h → ∑ g, ∑ t, pi g t * Dtilde g t * h g t = 0
+  SD_pos : 0 < ∑ g, ∑ t, pi g t * (Dtilde g t)^2
+
+namespace DCDHPanel
+
+variable {G T : Type*} [Fintype G] [Fintype T]
+
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [residualized-treatment denominator](goal)
+is the weighted finite sum of squared residualized treatment values over all group-time cells. -/
+def SD (P : DCDHPanel G T) : ℝ :=
+  ∑ g, ∑ t, P.pi g t * (P.Dtilde g t)^2
+
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [finite TWFE coefficient](goal) is the
+weighted finite inner product of residualized treatment and observed outcome, divided by the
+residualized-treatment denominator. -/
+noncomputable def betaTWFE (P : DCDHPanel G T) : ℝ :=
+  (∑ g, ∑ t, P.pi g t * P.Dtilde g t * P.Y g t) / P.SD
+
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [untreated residual contrast](goal) is
+the weighted finite inner product of residualized treatment and the untreated potential outcome,
+divided by the residualized-treatment denominator. -/
+noncomputable def untreatedBias (P : DCDHPanel G T) : ℝ :=
+  (∑ g, ∑ t, P.pi g t * P.Dtilde g t * P.Y0 g t) / P.SD
+
+/-- For [finite group and time sets](hyp:G,T), [a finite DCDH group-time panel](hyp:P), [a group](hyp:g), and [a time period](hyp:t),
+the [normalized DCDH cell weight](goal) is that cell's weight times its residualized treatment,
+divided by the residualized-treatment denominator. -/
+noncomputable def omega (P : DCDHPanel G T) (g : G) (t : T) : ℝ :=
+  (P.pi g t * P.Dtilde g t) / P.SD
+
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [set of treated cells](goal) consists
+exactly of the group-time pairs whose binary treatment indicator equals one. -/
+noncomputable def treatedCells (P : DCDHPanel G T) : Finset (G × T) :=
+  Finset.univ.filter (fun gt : G × T => P.D gt.1 gt.2 = 1)
+
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [all-cell treatment-effect component](goal)
+is the finite sum of each cell's treatment effect weighted by its cell weight, residualized
+treatment, and binary treatment indicator, normalized by the denominator. -/
+noncomputable def DWeightedTau (P : DCDHPanel G T) : ℝ :=
+  ∑ g, ∑ t, ((P.pi g t * P.Dtilde g t * P.D g t) / P.SD) * P.tau g t
+
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [treated-cell weighted treatment-effect
+component](goal) is the finite sum, over treated cells only, of each normalized DCDH cell weight
+times that cell's treatment effect. -/
+noncomputable def treatedWeightedTau (P : DCDHPanel G T) : ℝ :=
+  ∑ gt ∈ P.treatedCells, P.omega gt.1 gt.2 * P.tau gt.1 gt.2
+
+/-- For [finite group and time sets](hyp:G,T) and [a finite DCDH group-time panel](hyp:P), the [zero untreated residual-contrast
+condition](goal) holds exactly when the weighted finite inner product of residualized treatment
+and the untreated potential outcome is zero. -/
+def zeroUntreatedResidualContrast (P : DCDHPanel G T) : Prop :=
+  ∑ g, ∑ t, P.pi g t * P.Dtilde g t * P.Y0 g t = 0
+
+/-- Orthogonality of the residualized treatment against `D - Dtilde` gives
+the DCDH denominator identity. -/
+theorem inner_Dtilde_D_eq_SD_core
+    (pi D Dtilde : G → T → ℝ)
+    (hmem : IsGTFE (fun g t => D g t - Dtilde g t))
+    (horth : ∀ h : G → T → ℝ, IsGTFE h →
+      ∑ g, ∑ t, pi g t * Dtilde g t * h g t = 0) :
+    ∑ g, ∑ t, pi g t * Dtilde g t * D g t =
+      ∑ g, ∑ t, pi g t * (Dtilde g t)^2 := by
+  have horth' : ∑ g, ∑ t, pi g t * Dtilde g t *
+      (D g t - Dtilde g t) = 0 :=
+    horth (fun g t => D g t - Dtilde g t) hmem
+  have hdiff :
+      (∑ g, ∑ t, pi g t * Dtilde g t * D g t) -
+        (∑ g, ∑ t, pi g t * (Dtilde g t)^2) = 0 := by
+    rw [← horth']
+    simp_rw [mul_sub, Finset.sum_sub_distrib, pow_two]
+    ring_nf
+  exact sub_eq_zero.mp hdiff
+
+/-- Orthogonality of the residualized treatment against `D - Dtilde` gives
+the DCDH denominator identity. -/
+theorem inner_Dtilde_D_eq_SD (P : DCDHPanel G T) :
+  ∑ g, ∑ t, P.pi g t * P.Dtilde g t * P.D g t = P.SD := by
+  simpa [SD] using inner_Dtilde_D_eq_SD_core P.pi P.D P.Dtilde
+    P.D_minus_resid_mem P.Dtilde_orthogonal
+
+/-- A weighted residual is orthogonal to every additive array, so its contrast
+with an additive untreated-outcome array vanishes. -/
+theorem weighted_residual_contrast_eq_zero_of_isGTFE
+    (pi Dtilde Y0 : G → T → ℝ)
+    (horth : ∀ h : G → T → ℝ, IsGTFE h →
+      ∑ g, ∑ t, pi g t * Dtilde g t * h g t = 0)
+    (hY0 : IsGTFE Y0) :
+    ∑ g, ∑ t, pi g t * Dtilde g t * Y0 g t = 0 :=
+  horth Y0 hY0
+
+/-- Group-plus-period untreated means imply the zero untreated residual
+contrast. -/
+theorem zeroUntreatedResidualContrast_of_Y0_mem_gtfe
+  (P : DCDHPanel G T) (hY0 : IsGTFE P.Y0) :
+  P.zeroUntreatedResidualContrast := by
+  simpa [zeroUntreatedResidualContrast] using
+    weighted_residual_contrast_eq_zero_of_isGTFE P.pi P.Dtilde P.Y0
+      P.Dtilde_orthogonal hY0
+
+/-- **DCDH finite TWFE decomposition (all-cell weighting).** For [a DCDH panel](hyp:P), [the
+finite two-way fixed-effects (TWFE) coefficient decomposes as the sum of the untreated bias and
+the all-cell `D`-weighted treatment-effect component](goal). -/
+theorem twfe_eq_untreatedBias_add_DWeightedTau (P : DCDHPanel G T) :
+  P.betaTWFE = P.untreatedBias + P.DWeightedTau := by
+  rw [betaTWFE, untreatedBias, DWeightedTau]
+  simp_rw [P.consistency]
+  simp_rw [mul_add, Finset.sum_add_distrib]
+  rw [add_div]
+  congr 1
+  rw [div_eq_mul_inv]
+  rw [Finset.sum_mul]
+  simp_rw [Finset.sum_mul]
+  apply Finset.sum_congr rfl
+  intro g _hg
+  apply Finset.sum_congr rfl
+  intro t _ht
+  ring
+
+/-- The all-cell `D`-weighted component is the same as the treated-cell sum. -/
+theorem DWeightedTau_eq_treatedWeightedTau (P : DCDHPanel G T) :
+  P.DWeightedTau = P.treatedWeightedTau := by
+  unfold DWeightedTau treatedWeightedTau treatedCells omega
+  rw [← Fintype.sum_prod_type'
+    (fun g t => P.pi g t * P.Dtilde g t * P.D g t / P.SD * P.tau g t)]
+  simp_rw [Finset.sum_filter]
+  exact Finset.sum_congr rfl (fun gt _hgt => by
+    rcases gt with ⟨g, t⟩
+    rcases P.D_binary g t with hD | hD
+    · simp [hD]
+    · simp [hD])
+
+/-- **DCDH finite TWFE decomposition (treated-cell weighting).** For [a DCDH panel](hyp:P), [the
+finite TWFE coefficient decomposes as the sum of the untreated bias and the normalized
+treated-cell weighted sum of treatment effects](goal). -/
+theorem twfe_eq_untreatedBias_add_treated_weighted_tau (P : DCDHPanel G T) :
+  P.betaTWFE = P.untreatedBias + P.treatedWeightedTau := by
+  rw [twfe_eq_untreatedBias_add_DWeightedTau, DWeightedTau_eq_treatedWeightedTau]
+
+/-- **Zero untreated bias implies TWFE equals the treated-cell weighted
+effect.** If [the untreated-outcome residual contrast vanishes — the
+residualized-treatment-weighted average of the untreated potential outcome
+`Y0` over the whole panel is zero](hyp:h0), then [the finite two-way
+fixed-effects (TWFE) coefficient equals the treated-cell weighted sum of
+treatment effects](goal). -/
+theorem twfe_eq_treated_weighted_tau_of_zeroUntreatedContrast
+  (P : DCDHPanel G T) (h0 : P.zeroUntreatedResidualContrast) :
+  P.betaTWFE = P.treatedWeightedTau := by
+  rw [twfe_eq_untreatedBias_add_treated_weighted_tau]
+  rw [untreatedBias, h0]
+  simp
+
+/-- **DCDH weights sum to one.** For [a DCDH panel](hyp:P), [the normalized DCDH weights sum to
+one over all treated cells](goal). -/
+theorem treated_omega_sum_eq_one (P : DCDHPanel G T) :
+  ∑ gt ∈ P.treatedCells, P.omega gt.1 gt.2 = 1 := by
+  have hnum :
+      ∑ gt ∈ P.treatedCells, P.pi gt.1 gt.2 * P.Dtilde gt.1 gt.2 = P.SD := by
+    rw [← inner_Dtilde_D_eq_SD P]
+    unfold treatedCells
+    rw [← Fintype.sum_prod_type'
+      (fun g t => P.pi g t * P.Dtilde g t * P.D g t)]
+    simp_rw [Finset.sum_filter]
+    exact (Finset.sum_congr rfl (fun gt _hgt => by
+      rcases gt with ⟨g, t⟩
+      rcases P.D_binary g t with hD | hD
+      · simp [hD]
+      · simp [hD])).symm
+  calc
+    ∑ gt ∈ P.treatedCells, P.omega gt.1 gt.2
+        = (∑ gt ∈ P.treatedCells,
+            P.pi gt.1 gt.2 * P.Dtilde gt.1 gt.2) / P.SD := by
+          unfold omega
+          simp_rw [div_eq_mul_inv]
+          rw [← Finset.sum_mul]
+    _ = 1 := by
+      rw [hnum]
+      exact div_self (ne_of_gt P.SD_pos)
+
+/-- Dividing a positive cell mass times a residual by a positive normalizer
+preserves whether the residual is negative. -/
+theorem normalized_weight_neg_iff_residual_neg
+    {pi Dtilde SD : ℝ} (hpi : 0 < pi) (hSD : 0 < SD) :
+    pi * Dtilde / SD < 0 ↔ Dtilde < 0 := by
+  constructor
+  · intro h
+    have hnum : pi * Dtilde < 0 :=
+      ((div_neg_iff.mp h).resolve_left
+        (fun hpos => not_lt_of_gt hSD hpos.2)).1
+    nlinarith [hpi]
+  · intro h
+    exact div_neg_of_neg_of_pos (mul_neg_of_pos_of_neg hpi h) hSD
+
+/-- **Sign equivalence for the DCDH weight (negative direction).** For [a DCDH panel](hyp:P) and
+[any cohort-period cell](hyp:g,t), [the normalized weight `ω_gt` is negative exactly when the
+residualized treatment `D̃_gt` is negative](goal).
+
+The lemma is named for its treated-cell role in the DCDH weight interpretation, but the
+equivalence holds for any cell with positive cell mass and positive `S_D`. -/
+theorem treated_omega_neg_iff_Dtilde_neg
+  (P : DCDHPanel G T) {g : G} {t : T} :
+  P.omega g t < 0 ↔ P.Dtilde g t < 0 := by
+  simpa [omega, SD] using normalized_weight_neg_iff_residual_neg
+    (P.pi_pos g t) P.SD_pos
+
+/-- Dividing a positive cell mass times a residual by a positive normalizer
+preserves whether the residual is positive. -/
+theorem normalized_weight_pos_iff_residual_pos
+    {pi Dtilde SD : ℝ} (hpi : 0 < pi) (hSD : 0 < SD) :
+    0 < pi * Dtilde / SD ↔ 0 < Dtilde := by
+  rw [div_pos_iff_of_pos_right hSD]
+  constructor
+  · intro h
+    rcases lt_trichotomy Dtilde 0 with h' | h' | h'
+    · exact absurd (mul_neg_of_pos_of_neg hpi h') (not_lt.mpr (le_of_lt h))
+    · simp [h'] at h
+    · exact h'
+  · intro h
+    exact mul_pos hpi h
+
+/-- **Positive-weight direction of the DCDH sign characterization.** For [a DCDH panel](hyp:P)
+and [any cohort-period cell](hyp:g,t), [the normalized weight `ω_gt` is positive exactly when
+the residualized treatment `D̃_gt` is positive](goal).
+
+Together with `treated_omega_neg_iff_Dtilde_neg` and `treated_omega_zero_iff_Dtilde_zero` this
+completes the paper's claim `sign(ω_gt) = sign(D̃_gt)` (.tex Theorem 2 / .md
+prop:po-estimand-dcdh-weights-sum-one). -/
+theorem treated_omega_pos_iff_Dtilde_pos
+  (P : DCDHPanel G T) {g : G} {t : T} :
+  0 < P.omega g t ↔ 0 < P.Dtilde g t := by
+  simpa [omega, SD] using normalized_weight_pos_iff_residual_pos
+    (P.pi_pos g t) P.SD_pos
+
+/-- A positive cell mass and positive normalizer make the normalized weight
+zero exactly when its residual is zero. -/
+theorem normalized_weight_zero_iff_residual_zero
+    {pi Dtilde SD : ℝ} (hpi : 0 < pi) (hSD : 0 < SD) :
+    pi * Dtilde / SD = 0 ↔ Dtilde = 0 := by
+  rw [div_eq_zero_iff]
+  constructor
+  · intro h
+    rcases h with hnum | hSD0
+    · rcases mul_eq_zero.mp hnum with hpi0 | hDt
+      · exact absurd hpi0 (ne_of_gt hpi)
+      · exact hDt
+    · exact absurd hSD0 (ne_of_gt hSD)
+  · intro h
+    left
+    rw [h, mul_zero]
+
+/-- **Zero-weight direction of the DCDH sign characterization.** For [a DCDH panel](hyp:P) and
+[any cohort-period cell](hyp:g,t), [the normalized weight `ω_gt` is zero exactly when the
+residualized treatment `D̃_gt` is zero](goal).
+
+Together with the pos/neg sibling lemmas, this completes `sign(ω_gt) = sign(D̃_gt)` for all
+three cases. -/
+theorem treated_omega_zero_iff_Dtilde_zero
+  (P : DCDHPanel G T) {g : G} {t : T} :
+  P.omega g t = 0 ↔ P.Dtilde g t = 0 := by
+  simpa [omega, SD] using normalized_weight_zero_iff_residual_zero
+    (P.pi_pos g t) P.SD_pos
+
+end DCDHPanel
+
+/-- Two-cell signed-weight calculation from the DCDH sign-reversal example. -/
+theorem two_cell_signed_weights_positive_effects_negative_sum
+  {c ε M : ℝ} (hc : 0 < c) (hε : 0 < ε)
+  (hM : ((1 + c) * ε) / c < M) :
+  0 < ε ∧ 0 < M ∧ (1 + c) * ε + (-c) * M < 0 := by
+  constructor
+  · exact hε
+  constructor
+  · have hnum_pos : 0 < (1 + c) * ε := by
+      nlinarith
+    have hfrac_pos : 0 < ((1 + c) * ε) / c := by
+      positivity
+    linarith
+  · have hdom : (1 + c) * ε < c * M := by
+      have hmul := mul_lt_mul_of_pos_left hM hc
+      field_simp [hc.ne'] at hmul
+      nlinarith
+    nlinarith
+
+/-- Finite signed-average construction: if normalized weights have a strictly
+negative component, some strictly positive effects have a negative weighted
+sum. -/
+theorem exists_positive_effects_negative_weighted_sum_of_negative_component
+  {ι : Type*} [Fintype ι] (w : ι → ℝ)
+  (h_neg_component : ∑ i ∈ (Finset.univ.filter fun i => w i < 0), w i < 0) :
+  ∃ tau : ι → ℝ, (∀ i, 0 < tau i) ∧ ∑ i, w i * tau i < 0 := by
+  classical
+  let N : Finset ι := Finset.univ.filter fun i => w i < 0
+  let B : ℝ := ∑ i ∈ (Finset.univ.filter fun i => ¬ w i < 0), w i
+  have hAneg : (∑ i ∈ N, w i) < 0 := by
+    simpa [N] using h_neg_component
+  have hden_pos : 0 < -(∑ i ∈ N, w i) := by
+    linarith
+  obtain ⟨M, hM⟩ := exists_gt (max 0 (B / (-(∑ i ∈ N, w i))))
+  have hMpos : 0 < M := lt_of_le_of_lt (le_max_left _ _) hM
+  have hBlt : B < M * (-(∑ i ∈ N, w i)) := by
+    have hratio : B / (-(∑ i ∈ N, w i)) < M :=
+      lt_of_le_of_lt (le_max_right _ _) hM
+    have hmul := mul_lt_mul_of_pos_right hratio hden_pos
+    rw [div_mul_cancel₀ B (ne_of_gt hden_pos)] at hmul
+    simpa [mul_comm, mul_left_comm, mul_assoc] using hmul
+  refine ⟨fun i => if w i < 0 then M else 1, ?_, ?_⟩
+  · intro i
+    by_cases hi : w i < 0
+    · simp [hi, hMpos]
+    · simp [hi]
+  · have hsum_split :
+        ∑ i, w i * (if w i < 0 then M else 1) =
+          M * (∑ i ∈ N, w i) + B := by
+      simp only [N, B, Finset.sum_filter]
+      simp_rw [mul_ite, mul_one]
+      rw [Finset.mul_sum, ← Finset.sum_add_distrib]
+      apply Finset.sum_congr rfl
+      intro i _hi
+      by_cases hneg : w i < 0
+      · simp [hneg]
+        ring
+      · simp [hneg]
+    rw [hsum_split]
+    nlinarith
+
+/-- If some treated cell has negative residualized treatment, then the total
+weight over negatively weighted treated cells is strictly negative.
+
+This bridge converts the economically natural hypothesis into the
+negative-weight-sum precondition used by the sign-reversal theorem.
+
+Proof: `treated_omega_neg_iff_Dtilde_neg` identifies the filter
+`{gt ∈ treatedCells | omega < 0}` with `{gt ∈ treatedCells | Dtilde < 0}`;
+the hypothesis provides at least one such cell, so the sum is a nonempty
+sum of negative reals, hence strictly negative. -/
+theorem neg_component_of_exists_Dtilde_neg
+  {G T : Type*} [Fintype G] [Fintype T]
+  (P : DCDHPanel G T)
+  (h : ∃ (g : G) (t : T), P.D g t = 1 ∧ P.Dtilde g t < 0) :
+  ∑ gt ∈ (P.treatedCells.filter fun gt => P.omega gt.1 gt.2 < 0),
+    P.omega gt.1 gt.2 < 0 := by
+  obtain ⟨g₀, t₀, hD, hDt⟩ := h
+  let S := P.treatedCells.filter (fun gt => P.omega gt.1 gt.2 < 0)
+  have hmem : (g₀, t₀) ∈ S := by
+    simp only [S, Finset.mem_filter, DCDHPanel.treatedCells, Finset.mem_filter,
+      Finset.mem_univ, true_and]
+    exact ⟨hD, (DCDHPanel.treated_omega_neg_iff_Dtilde_neg P).mpr hDt⟩
+  have hle : ∀ gt ∈ S, P.omega gt.1 gt.2 ≤ 0 := fun gt hgt =>
+    le_of_lt (Finset.mem_filter.mp hgt).2
+  -- Finset.sum_lt_sum : (∀ i ∈ s, f i ≤ g i) → (∃ i ∈ s, f i < g i) → sum f < sum g
+  have key : ∑ gt ∈ S, P.omega gt.1 gt.2 < ∑ _gt ∈ S, (0 : ℝ) :=
+    Finset.sum_lt_sum hle ⟨(g₀, t₀), hmem, (Finset.mem_filter.mp hmem).2⟩
+  simpa using key
+
+/-- **Panel-level DCDH sign reversal.** If [the untreated-outcome residual
+contrast vanishes](hyp:h0) and [the treated cells with negative normalized
+DCDH weight carry a strictly negative total weight](hyp:h_neg_component), then
+[there exists another finite DCDH panel — sharing the same cell weights,
+treatment indicator, untreated potential outcomes, and residualized
+treatment, but with strictly positive treatment effects on every cell and zero
+untreated residual contrast — whose two-way fixed-effects (TWFE) coefficient
+is strictly negative](goal). -/
+theorem exists_panel_with_positive_treated_effects_twfe_negative_of_negative_component
+  {G T : Type*} [Fintype G] [Fintype T]
+  (P : DCDHPanel G T)
+  (h0 : P.zeroUntreatedResidualContrast)
+  (h_neg_component :
+    ∑ gt ∈ (P.treatedCells.filter fun gt => P.omega gt.1 gt.2 < 0),
+      P.omega gt.1 gt.2 < 0) :
+  ∃ P' : DCDHPanel G T,
+    (∀ g t, P'.pi g t = P.pi g t) ∧
+    (∀ g t, P'.D g t = P.D g t) ∧
+    (∀ g t, P'.Y0 g t = P.Y0 g t) ∧
+    (∀ g t, P'.Dtilde g t = P.Dtilde g t) ∧
+    (∀ g t, 0 < P'.tau g t) ∧
+    P'.zeroUntreatedResidualContrast ∧
+    P'.betaTWFE < 0 := by
+  classical
+  let w : G × T → ℝ :=
+    fun gt => if gt ∈ P.treatedCells then P.omega gt.1 gt.2 else 0
+  have hsum_w : ∑ gt, w gt = 1 := by
+    calc
+      ∑ gt, w gt
+          = ∑ gt ∈ P.treatedCells, P.omega gt.1 gt.2 := by
+            simp [w]
+      _ = 1 := DCDHPanel.treated_omega_sum_eq_one P
+  have hneg_w :
+      ∑ gt ∈ (Finset.univ.filter fun gt => w gt < 0), w gt < 0 := by
+    have hsum_eq :
+        ∑ gt ∈ (Finset.univ.filter fun gt => w gt < 0), w gt =
+          ∑ gt ∈ (P.treatedCells.filter fun gt => P.omega gt.1 gt.2 < 0),
+            P.omega gt.1 gt.2 := by
+      apply Finset.sum_congr
+      · ext gt
+        by_cases htreated : gt ∈ P.treatedCells
+        · simp [w, htreated]
+        · simp [w, htreated]
+      · intro gt hgt
+        have htreated : gt ∈ P.treatedCells := by
+          exact (Finset.mem_filter.mp hgt).1
+        simp [w, htreated]
+    rw [hsum_eq]
+    exact h_neg_component
+  obtain ⟨tau, htau_pos, hweighted_neg⟩ :=
+    exists_positive_effects_negative_weighted_sum_of_negative_component
+      w hneg_w
+  let P' : DCDHPanel G T :=
+    { pi := P.pi
+      D := P.D
+      Y := fun g t => P.Y0 g t + P.D g t * tau (g, t)
+      Y0 := P.Y0
+      tau := fun g t => tau (g, t)
+      Dtilde := P.Dtilde
+      pi_pos := P.pi_pos
+      pi_sum_one := P.pi_sum_one
+      D_binary := P.D_binary
+      consistency := by
+        intro g t
+        rfl
+      D_minus_resid_mem := P.D_minus_resid_mem
+      Dtilde_orthogonal := P.Dtilde_orthogonal
+      SD_pos := P.SD_pos }
+  have hzero' : P'.zeroUntreatedResidualContrast := by
+    simpa [P', DCDHPanel.zeroUntreatedResidualContrast] using h0
+  have htreated_sum :
+      P'.treatedWeightedTau = ∑ gt, w gt * tau gt := by
+    calc
+      P'.treatedWeightedTau
+          = ∑ gt ∈ P.treatedCells, P.omega gt.1 gt.2 * tau gt := by
+            simp [P', DCDHPanel.treatedWeightedTau, DCDHPanel.treatedCells,
+              DCDHPanel.omega, DCDHPanel.SD]
+      _ = ∑ gt, w gt * tau gt := by
+            simp [w]
+  refine ⟨P', ?_, ?_, ?_, ?_, ?_, hzero', ?_⟩
+  · intro g t
+    rfl
+  · intro g t
+    rfl
+  · intro g t
+    rfl
+  · intro g t
+    rfl
+  · intro g t
+    exact htau_pos (g, t)
+  · rw [DCDHPanel.twfe_eq_treated_weighted_tau_of_zeroUntreatedContrast P' hzero']
+    rw [htreated_sum]
+    exact hweighted_neg
+
+end HeterogeneousTWFE
+end Panel.EstimandCharacterization
+end Causalean

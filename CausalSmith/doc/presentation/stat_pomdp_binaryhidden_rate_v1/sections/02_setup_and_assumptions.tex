@@ -1,0 +1,144 @@
+\section{Setup and assumptions}
+
+Probability laws are represented by row vectors and reward functions by column vectors. Unspecified positive constants may depend on the fixed mixing and overlap parameters. Asymptotic comparisons refer to increasing observed trajectory length \(T\), with these parameters fixed; time indices range from \(1\) to \(T\) unless stated otherwise. For probability laws on a finite set, total variation is half the sum of absolute coordinate differences.
+
+The data comprise the observed trajectory \leanref{sym:\mathsf O_T}{\ensuremath{\mathsf O_T=(X_1,A_1,Y_1,\ldots,X_T,A_T,Y_T)}}, recording the observed state \leanref{sym:X_t}{\ensuremath{X_t}}, action \leanref{sym:A_t}{\ensuremath{A_t}}, and reward \leanref{sym:Y_t}{\ensuremath{Y_t}} at each time. The hidden state \leanref{sym:H_t}{\ensuremath{H_t}} combines with the observed state to form the joint state \leanref{sym:S_t}{\ensuremath{S_t=(X_t,H_t)}}. Before action \(A_t\) is drawn, the full experiment has information
+\[
+\mathcal F_t^-=\sigma(S_1,A_1,Y_1,\ldots,S_{t-1},A_{t-1},Y_{t-1},S_t).
+\]
+Thus \(\mathcal F_t^-\) contains the current joint state and the preceding joint states, actions, and rewards, while the statistician observes only \(\mathsf O_T\).
+
+The binary alphabets \leanref{sym:\mathcal X}{\ensuremath{\mathcal X}}, \leanref{sym:\mathcal H}{\ensuremath{\mathcal H}}, and \leanref{sym:\mathcal A}{\ensuremath{\mathcal A}} give the four-point joint-state space \leanref{sym:\mathcal S}{\ensuremath{\mathcal S}}; the reward space \leanref{sym:\mathcal Y}{\ensuremath{\mathcal Y}} bounds rewards between zero and one. The information \leanref{sym:\mathcal F_t^-}{\ensuremath{\mathcal F_t^-}} includes the hidden-state history and therefore describes the full experiment underlying the observed data.
+
+The behavior policy \leanref{sym:b}{\ensuremath{b}} and target policy \leanref{sym:e}{\ensuremath{e}} are known action probabilities indexed by the observed state. A joint reward and next-state law \leanref{sym:K}{\ensuremath{K}} specifies the dynamics conditional on the current joint state and action. For either policy \(p\in\{b,e\}\), its induced joint-state transition matrix is obtained by averaging the successor-state marginal of \(K\) over \(p(a\mid x)\); write this matrix as \leanref{sym:P_p}{\ensuremath{P_p}} and its stationary joint-state law as \leanref{sym:d_p}{\ensuremath{d_p}}. Averaging the conditional reward under the target policy gives the reward function \leanref{sym:r_e}{\ensuremath{r_e}}, represented as a column in matrix products. These objects determine the stationary reward target.
+
+
+
+The joint law accommodates dependence between the current reward and the next state conditional on the current state and action. Marginalizing rewards gives the transition matrices, whereas integrating rewards gives \(r_e\). The evaluation target averages this reward vector under the target stationary law \(d_e\). The contraction restrictions below ensure uniqueness of both \(d_b\) and \(d_e\).
+
+We first specify how the joint law governs the full trajectory and how actions are assigned within it.
+
+\begin{assumptionv}{ass:pomdp-kernel}[Joint reward and transition law]
+The reward \(Y_t\) and next joint state \(S_{t+1}\) have conditional distribution
+\[
+\mathcal L(Y_t,S_{t+1}\mid\mathcal F_t^-,A_t)
+=
+K(\cdot\mid S_t,A_t),
+\qquad t=1,\ldots,T,
+\]
+where \(\mathcal F_t^-\) is the full pre-action history information, \(A_t\) is the action, \(S_t\) is the current joint state, \(K\) is the joint reward and next-state law, and \(T\) is the observed trajectory length.
+\end{assumptionv}
+
+The standard time-homogeneous POMDP kernel condition makes the current joint state and action sufficient for the conditional reward and successor law \citep{HuWager2023}. It permits the hidden component to carry information about both outcomes and transitions. Action assignment is specified separately through the observed component.
+
+\begin{assumptionv}{ass:sequential-ignorability}[Observed-state sequential assignment]
+Given the full pre-action history information \(\mathcal F_t^-\), the action \(A_t\) follows the behavior policy \(b\) at the observed state \(X_t\):
+\[
+\Pr(A_t=a\mid\mathcal F_t^-)=b(a\mid X_t),
+\qquad a\in\mathcal A,\quad t=1,\ldots,T,
+\]
+where \(\mathcal A\) is the action space and \(T\) is the observed trajectory length.
+\end{assumptionv}
+
+Observed-state sequential ignorability is the standard randomization condition under which the behavior action probabilities depend on the recorded state, even conditional on the full history \citep{HuWager2023}. It describes a design that assigns actions using observed information while allowing rewards and transitions to depend on the hidden state. We initialize this behavior experiment in stationarity.
+
+\begin{assumptionv}{ass:stationary-start}[Stationary behavior-policy initial law]
+The initial joint state \(S_1\) has the stationary joint-state law \(d_b\) under the behavior policy:
+\[
+S_1\sim d_b.
+\]
+\end{assumptionv}
+
+Behavior-stationary initialization is a standard sampling condition \citep{HuWager2023}. Together with \cref{obj:ass:pomdp-kernel,obj:ass:sequential-ignorability}, it gives a common stationary joint-state distribution at every observed time. This initialization fixes the sampling law; overlap and contraction govern distinct features of the policy comparison.
+
+We parameterize those restrictions by a fixed mixing-scale parameter \(t_0\) and a fixed logarithmic action likelihood-ratio bound \(\zeta\). The contraction bound \leanref{sym:\alpha}{\ensuremath{\alpha}} and action likelihood-ratio bound \leanref{sym:L}{\ensuremath{L}} use the following convention.
+
+
+
+The class in \cref{obj:def:binary-pomdp-class} keeps the mixing scale and action overlap fixed as the trajectory length increases. We impose overlap directly on the known action probabilities.
+
+\begin{assumptionv}{ass:policy-overlap}[Bounded action likelihood ratios]
+The target action probabilities \(e(a\mid x)\) and behavior action probabilities \(b(a\mid x)\) satisfy
+\[
+e(a\mid x)\le Lb(a\mid x),
+\qquad (a,x)\in\mathcal A\times\mathcal X,
+\]
+where \(L\) is the action likelihood-ratio bound, \(\mathcal A\) is the action space, and \(\mathcal X\) is the observed-state space.
+\end{assumptionv}
+
+Uniform one-step policy overlap is the standard condition controlling the change in action probabilities from behavior to target \citep{HuWager2023}. Every action with positive target probability has positive behavior probability at the same observed state, and its likelihood ratio is bounded by \(L\). This restriction supports weighting observed actions; temporal dependence is controlled through the induced joint-state transitions.
+
+\begin{assumptionv}{ass:behavior-contraction}[Behavior-policy transition contraction]
+The behavior-policy joint-state transition matrix \(P_b\) satisfies
+\[
+\|\mu P_b-\mu'P_b\|_{\mathrm{TV}}
+\le
+\alpha\|\mu-\mu'\|_{\mathrm{TV}},
+\qquad \mu,\mu'\in\Delta(\mathcal S),
+\]
+where \(\alpha\) is the contraction bound, \(\Delta(\mathcal S)\) is the probability simplex on the joint-state space \(\mathcal S\), and \(\|\cdot\|_{\mathrm{TV}}\) denotes total variation.
+\end{assumptionv}
+
+The standard one-step geometric total-variation contraction condition under the behavior policy bounds the persistence of differences between joint-state distributions \citep{HuWager2023}. Iteration gives geometric convergence toward the unique behavior stationary law and controls dependence in the sampled trajectory. Evaluation also requires contraction under the target policy.
+
+\begin{assumptionv}{ass:target-contraction}[Target-policy transition contraction]
+The target-policy joint-state transition matrix \(P_e\) satisfies
+\[
+\|\mu P_e-\mu'P_e\|_{\mathrm{TV}}
+\le
+\alpha\|\mu-\mu'\|_{\mathrm{TV}},
+\qquad \mu,\mu'\in\Delta(\mathcal S),
+\]
+where \(\alpha\) is the contraction bound, \(\Delta(\mathcal S)\) is the probability simplex on the joint-state space \(\mathcal S\), and \(\|\cdot\|_{\mathrm{TV}}\) denotes total variation.
+\end{assumptionv}
+
+Target-policy one-step geometric total-variation contraction is likewise a standard condition \citep{HuWager2023}. It gives a unique target stationary law and geometric convergence toward that law. The two contraction requirements use a common bound but constrain different transition matrices, since each policy averages the action-specific dynamics with its own probabilities.
+
+These six conditions define the binary experiment class \leanref{sym:\mathcal M_T^{(2)}(t_0,\zeta)}{\ensuremath{\mathcal M_T^{(2)}(t_0,\zeta)}} used throughout the analysis.
+
+\begin{definitionv}{def:binary-pomdp-class}[Binary POMDP experiment class]
+The class \(\mathcal M_T^{(2)}(t_0,\zeta)\) consists of binary trajectory experiments of observed length \(T\in\mathbb N\), with observed-state, hidden-state, and action alphabets
+\[
+\mathcal X=\mathcal H=\mathcal A=\{0,1\},
+\qquad \mathcal Y=[0,1].
+\]
+Each experiment comprises a joint reward and next-state law \(K\), behavior and target action probabilities \(b\) and \(e\), and a full trajectory probability law inducing the law of \(\mathsf O_T\), the observed state, action, and reward trajectory. Membership is defined by the following conditions:
+\begin{itemize}
+\item \textbf{(Parameter range.)} The mixing-scale parameter \(t_0\) and logarithmic action likelihood-ratio bound \(\zeta\) satisfy
+\[
+t_0>0,\qquad \zeta\ge 0.
+\]
+The associated contraction and overlap bounds are
+\[
+\alpha=\exp(-1/t_0),\qquad L=\exp(\zeta).
+\]
+\item \textbf{(Joint law.)} The experiment satisfies \cref{obj:ass:pomdp-kernel}.
+\item \textbf{(Sequential assignment.)} The experiment satisfies \cref{obj:ass:sequential-ignorability}.
+\item \textbf{(Stationary start.)} The experiment satisfies \cref{obj:ass:stationary-start}.
+\item \textbf{(Policy overlap.)} The policies satisfy \cref{obj:ass:policy-overlap} with overlap bound \(L\).
+\item \textbf{(Behavior contraction.)} The behavior-induced joint-state transition matrix satisfies \cref{obj:ass:behavior-contraction} with contraction bound \(\alpha\).
+\item \textbf{(Target contraction.)} The target-induced joint-state transition matrix satisfies \cref{obj:ass:target-contraction} with contraction bound \(\alpha\).
+\end{itemize}
+\end{definitionv}
+
+The class fixes the binary alphabets and the regime parameters while allowing the joint law and policies to vary subject to the six restrictions. Within each experiment, the supplied policies determine the behavior sampling law and the target stationary law. The stationary target mean reward \leanref{sym:\theta}{\ensuremath{\theta(K,e)}} is the corresponding evaluation functional.
+
+\begin{definitionv}{def:target-value}[Stationary target value $\theta(K,e)$]
+The stationary target mean reward is
+\[
+\theta(K,e)
+:=
+d_e r_e
+=
+\sum_{s=(x,h)\in\mathcal S}
+d_e(s)
+\sum_{a\in\mathcal A}
+e(a\mid x)
+\sum_{s'\in\mathcal S}
+\int_{\mathcal Y}
+y\,K(dy,s'\mid s,a),
+\]
+where \(d_e\) is the stationary joint-state law under the target policy, \(r_e\) is the vector of target-policy conditional mean rewards, \(\mathcal S\) is the four-point joint-state space, \(e(a\mid x)\) is the target action probability at observed state \(x\), and \(K(dy,s'\mid s,a)\) is the joint reward and next-state law.
+\end{definitionv}
+
+The functional in \cref{obj:def:target-value} is the expected reward per period when the target policy operates in its stationary joint-state distribution. It combines the target policy's action probabilities with its induced stationary state frequencies. Bounded rewards place this value in \([0,1]\), and target contraction makes the stationary averaging law unique.

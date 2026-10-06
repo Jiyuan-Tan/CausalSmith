@@ -1,0 +1,2660 @@
+{
+  "commit": "8f179a26a19156d89598be0173baaccea8453549",
+  "groups": [
+    {
+      "kind": "setup",
+      "items": [
+        {
+          "obj_id": "S1",
+          "kind": "setup",
+          "label": "Setup S-1",
+          "nl": "A potential-outcome system for a binary instrument with treatment-induced sample selection and a finite ordered outcome. Each unit carries a covariate cell \\(X\\in\\mathcal X\\) on a finite set equipped with the discrete measurable structure \\(2^{\\mathcal X}\\), so that every singleton \\(\\{x\\}\\) is measurable, a binary instrument \\(Z\\), potential treatments \\(D_0,D_1\\in\\{0,1\\}\\), potential selection indicators \\(S_0,S_1\\in\\{0,1\\}\\), and potential outcomes \\(Y_0,Y_1\\in\\mathcal Y=\\{0,1,\\ldots,K-1\\}\\) with \\(K\\ge3\\) ordered levels. The received treatment is \\(D=D_Z\\), selection is \\(S=S_D\\), and the outcome \\(Y=Y_D\\) is recorded only on \\(\\{S=1\\}\\); the observed element is \\(O=(X,Z,D,S,SY)\\), which is measurable into the finite discrete observed carrier \\(\\mathcal X\\times\\{0,1\\}^3\\times(\\mathcal Y\\cup\\{\\star\\})\\), so its pushforward law \\(P_{\\mathrm{obs}}=\\mathcal L(O)\\) is a probability law and every observed atomic event is the pushforward of a measurable event. The five system variables \\(X,Z,D,S,Y\\) occupy pairwise distinct nodes of the system, and the ambient sample space carrying the unit-level randomness is standard Borel, so that conditional independence given \\(X\\) is well posed. The latent law \\(P\\) is the joint law of \\((X,Z,D_0,D_1,S_0,S_1,Y_0,Y_1)\\); \\(C=\\{D_1>D_0\\}\\) is the complier stratum, \\(\\pi(x)=P_{\\mathrm{obs}}(Z=1\\mid X=x)\\) the instrument propensity, and \\(p_x=P_{\\mathrm{obs}}(X=x)\\) the cell probability. The target is the survivor-complier probability of benefit \\(\\theta=P(Y_1>Y_0\\mid S_1=S_0=1,C)\\), and \\(\\gamma_{ij,x}=P(Y_0=i,Y_1=j,S_0=S_1=1,C\\mid X=x)\\) is the survivor-complier outcome subcoupling. A latent cellwise direction \\(d(x)\\in\\{-1,+1\\}\\) indexes the permitted weak selection-monotonicity direction. \\(\\mathcal M\\) is the class of latent laws satisfying the maintained restrictions, \\(\\mathcal X_+(P)=\\{x:p_xm(x)>0\\}\\) its positive-survivor support, and \\(\\varepsilon_Z,\\kappa_\\sigma,m_\\star\\) are the overlap, direction-separation, and aggregate survivor-mass constants. — World choice: this is a genuine potential-outcome / IV result (compliers, principal strata, exclusion), so the ambient world is Causalean's `Causalean.PO.POSystem` carrier with `Causalean.PO.POVar` variables, `POVar.cfUnder` counterfactuals, `POSystem.CondIndepCF` for conditional instrument independence, and the bundle-conditional expectation layer `POCFBundle.condExpGiven`/`condExpRatio` (Causalean/PO/Conditioning/{Bundle,EventCondExpBundle}.lean) for cell-conditional stratum quantities. REVISED (F2.5 fix-locus): the world does NOT assume the system-wide axiom `POSystem.Consistency` — consistency and exclusion enter only as the three narrow local atoms `ass:treatment-consistency`, `ass:selection-exclusion-consistency`, and `ass:outcome-exclusion-consistency` (see `ass:treatment-consistency` for the bypass justification); and the identification workhorse is the CONDITIONAL bundle ratio form, not the unconditional `eventCondExp_of_consistency_IndepCF`. Following the established per-paper pattern (`Causalean.PO.POIVSystem` in PO/ID/Exact/LATE.lean:41, `POLeeSystem` in PO/ID/Partial/Lee/Setup.lean, `POBalkePearlSystem` in PO/ID/Partial/BalkePearl/Setup.lean), F2 layers a paper-specific record `POSlateSystem` on top. REVISED (F1 round-3 fix-locus, the flagged defect): the record is planned in the library's own node-plus-equivalence-plus-distinctness shape, NOT as a bare list of five `POVar`s. Its fields are (i) five UNDERLYING NODES `xNode zNode dNode sNode yNode : P.V`; (ii) the five measurable identifications `hX : P.X xNode ≃ᵐ 𝒳` (`Fintype` cell), `hZ : P.X zNode ≃ᵐ Bool`, `hD : P.X dNode ≃ᵐ Bool`, `hS : P.X sNode ≃ᵐ Bool`, `hY : P.X yNode ≃ᵐ Fin K`; (iii) the TEN pairwise-distinctness fields `hXZ : xNode ≠ zNode`, `hXD`, `hXS`, `hXY`, `hZD`, `hZS`, `hZY`, `hDS`, `hDY`, `hSY` — required exactly as `POIVSystem` requires `hZD, hDY, hZY` (LATE.lean:38-47) and `POLeeSystem` requires `hASel, hAY, hSelY` (Lee/Setup.lean:62-67), and NOT derivable from `Fintype 𝒳`, from `Fin K`, or from any constructed witness, so aliasing (e.g. `dNode = sNode`) would otherwise silently collapse the received treatment into the selection indicator and make the eval cascade `Z → D → S → Y`, the complier stratum, and the two capacity contrasts malformed; and (iv) the ambient regularity field `[borel : StandardBorelSpace P.Ω]`, carried instance-implicitly on the record because `POSystem.CondIndepCF` (Assumptions/IndepCF.lean:105-106) takes `[StandardBorelSpace P.Ω]` as an instance argument and `POSystem` (Core/System.lean:35-47) supplies only `Ω : Type*` with `[measΩ : MeasurableSpace Ω]` and `[isProb]` — standard Borel-ness of `Ω` is an EXTRA requirement that follows neither from finiteness of `𝒳`/`Fin K` (which constrain the value spaces `P.X v`, not `Ω`) nor from any constructed witness. `StandardBorelSpace` is a `Prop`-valued class, so carrying it as a record field and additionally opening it with `letI := Sys.borel` (or restating it as a redundant `[StandardBorelSpace P.Ω]` instance binder) at any declaration that mentions `CondIndepCF`/`CondIndepCFBundle` is diamond-free by proof irrelevance; every such declaration in this plan does so explicitly rather than relying on ambient inference. The derived layer is then `xVar : POVar P 𝒳 := ⟨xNode, hX⟩` and likewise `zVar, dVar, sVar, yVar`, with `DofZ z := dVar.cfUnder zVar z`, `SofD d := sVar.cfUnder dVar d`, `YofD d := yVar.cfUnder dVar d`, and `complierEvent` mirroring `POIVSystem.complierEvent` (LATE.lean:97). Any model-constructing node (`def:three-level-witness`, `thm:full-law-endpoint-attainment`) must SUPPLY all ten distinctness proofs and DISCHARGE `borel`; on their finite/countable discrete sample spaces the latter is Mathlib's `standardBorelSpace_of_discreteMeasurableSpace` (`Mathlib.MeasureTheory.Constructions.Polish.Basic`, `[MeasurableSpace α] [DiscreteMeasurableSpace α] [Countable α] → StandardBorelSpace α`), found by `lean_leansearch` \"countable discrete measurable space is a standard Borel space instance\". Search trace for the subsystem record itself: `lean_local_search` on `POSystem`, `POVar`, `Consistency`, `CondIndepCF` over Causalean/PO/** plus reads of Core/System.lean:35-52, Core/Variable.lean:29-90, Assumptions/IndepCF.lean:99-195, ID/Exact/LATE.lean:38-47, ID/Partial/Lee/Setup.lean:37-68 and `grep '^## '` of ../doc/API.md §8h/§9j3/§9j5 — Causalean carries no five-node (X,Z,D,S,Y) selection-IV subsystem with an ordinal outcome; `POIVSystem` fixes `Y : POVar P ℝ`, has no selection and no covariate node, and declares only three distinctness fields, while `POLeeSystem` has selection but no instrument and only three distinctness fields, so the record is new while every field type, the node-plus-equivalence-plus-distinctness shape, and every counterfactual/consistency/independence primitive are reused verbatim. Mathlib side checked for the ambient regularity (`lean_leansearch` \"countable discrete measurable space is a standard Borel space instance\") → `standardBorelSpace_of_discreteMeasurableSpace` is the discharge route for constructed models; there is no route that derives `StandardBorelSpace P.Ω` from a general `POSystem`, which is why the record requires it. REVISED (F1 round-4 fix-locus, the upstream `sym:\\mathcal X` core repair): the covariate carrier is no longer a bare finite set but a FINITE DISCRETE MEASURABLE space, and the world states that regularity explicitly. Every declaration in this plan that mentions `𝒳` carries `[Fintype 𝒳] [DecidableEq 𝒳] [MeasurableSpace 𝒳] [MeasurableSingletonClass 𝒳]`; `MeasurableSingletonClass` is the smallest faithful encoding of the core's `2^{\\mathcal X}` clause and, with `Countable 𝒳` from `Fintype`, upgrades to `DiscreteMeasurableSpace 𝒳` through Mathlib's instance `MeasurableSingletonClass.toDiscreteMeasurableSpace` (`Mathlib.MeasureTheory.MeasurableSpace.Defs`, `[MeasurableSingletonClass α] [Countable α] → DiscreteMeasurableSpace α`), so EVERY subset of `𝒳` is measurable. Three previously-implicit steps become available and are load-bearing: (i) `MeasurableSet ({x} : Set 𝒳)` by `MeasurableSet.singleton`, hence `MeasurableSet (S.xEvent x)` as the preimage under the measurable `S.xVar.value` — this is exactly the `hx : MeasurableSet ({x} : Set α)` premise that every `eventCondExp`/`condExpGiven` workhorse in `Causalean/PO/Conditioning/{EventCondExp,EventCondExpBundle}.lean` already demands (EventCondExp.lean:291,318,395; EventCondExpBundle.lean:96,178), and without which `xBundle` cannot even condition on the cell; (ii) measurability of `observedDatum : P.Ω → 𝒪` into the finite discrete observed carrier by `measurable_to_countable` (`Mathlib.MeasureTheory.MeasurableSpace.Constructions`, `[Countable α] (∀ y, MeasurableSet (f ⁻¹' {f y})) → Measurable f`) applied to the finitely many singleton fibres, each a finite intersection of measurable coordinate events; (iii) consequently `observedLaw = P.μ.map observedDatum` does NOT collapse to zero, `IsProbabilityMeasure observedLaw` holds, and `Measure.map_apply` rewrites every observed atomic event back to a measurable event of `P.Ω`. This is ambient type regularity, NOT a new assumption: no `ass:` node is added, and neither `def:structural-law-class` nor `def:uniform-law-class` gains a member. Search trace for the encoding: `lean_local_search DiscreteMeasurableSpace` (Mathlib `MeasureTheory/MeasurableSpace/Defs.lean`), `lean_leansearch` \"countable type with measurable singletons has discrete measurable space instance\" → `MeasurableSingletonClass.toDiscreteMeasurableSpace`, `lean_loogle measurable_to_countable` → the countable-codomain measurability criterion, plus `grep -n 'singleton' Causalean/PO/Conditioning/*.lean` confirming the library's conditioning layer already takes singleton-measurability as an explicit premise rather than deriving it; Causalean has no finite-discrete covariate-carrier bundle of its own, so the binders are written directly on the paper's declarations.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S2",
+          "kind": "setup",
+          "label": "Setup S-2",
+          "nl": "A finite capacity-and-transport world. For each covariate cell \\(x\\) on a finite set \\(\\mathcal X\\) and each level of the finite ordered support \\(\\mathcal Y=\\{0,\\ldots,K-1\\}\\), two nonnegative capacity arrays \\(\\ell_i(x)\\) and \\(h_j(x)\\) are given, with totals \\(q_0(x)=\\sum_i\\ell_i(x)\\), \\(q_1(x)=\\sum_jh_j(x)\\), gap \\(\\Delta q(x)=q_1(x)-q_0(x)\\), exact mass \\(m(x)=\\min\\{q_0(x),q_1(x)\\}\\), and prefix/tail aggregates \\(\\ell_{\\le t},\\ell_{<t},\\ell_{>t},h_{\\le t},h_{>t}\\). The branch-free exact-mass partial-transport polytope is \\(\\Gamma_x^{\\ast}=\\{\\gamma_x\\ge0:\\sum_j\\gamma_{ij,x}\\le\\ell_i(x),\\ \\sum_i\\gamma_{ij,x}\\le h_j(x),\\ \\sum_{i,j}\\gamma_{ij,x}=m(x)\\}\\), with the exact-row, exact-column, and doubly-exact variants \\(\\Gamma_x^{+},\\Gamma_x^{-},\\Gamma_x^{0}\\) retained for comparison and \\(\\Gamma_x=\\Gamma_x^{\\ast}\\). The benefit functional is \\(b_x(\\gamma_x)=\\sum_{i<j}\\gamma_{ij,x}\\), and the threshold cuts are \\(B_L(x)=\\max\\{0,\\max_t[\\ell_{\\le t}(x)-h_{\\le t}(x)]+\\min\\{\\Delta q(x),0\\}\\}\\) and \\(B_U(x)=\\min\\{m(x),\\min_t[\\ell_{<t}(x)+h_{>t}(x)]\\}\\), with active faces \\(\\mathcal A_L(x)\\) and \\(\\mathcal A_U(x)\\). Aggregating with weights \\(p_x\\) gives \\(M=\\sum_xp_xm(x)\\), \\(\\theta_L=\\sum_xp_xB_L(x)/M\\), \\(\\theta_U=\\sum_xp_xB_U(x)/M\\), the endpoint map \\(\\Psi=(\\theta_L,\\theta_U)\\), and the interval \\(\\Theta_I=[\\theta_L,\\theta_U]\\). — bypass-justified (partially): the sharp-interval vocabulary IS reused — `Causalean.PartialID.IdentifiedInterval`, `identifiedInterval_eq_Icc`, `mem_Icc_of_sandwich`, `mem_Icc_csInf_csSup` (Causalean/PO/ID/Partial/Basic.lean) are the target shape for \\(\\Theta_I\\) and for the sharpness assembly, exactly as `BalkePearl/Main.lean` uses them (`BPIdentifiedInterval := IdentifiedInterval BPObjective (BPFeasible ..)`). What is genuinely absent is the capacity-constrained transport layer, which is therefore scaffolded over Mathlib finite algebra (`Finset.sum`, `Matrix`, `max`/`min`) at a purely algebraic level over `Fintype 𝒳` and `Fin K` — no measure theory is needed for it. Search trace: `lean_local_search maxFlow` and `lean_local_search transport` over the whole workspace (project_root=<repo-root>) → no flow/min-cut/optimal-transport declaration in Causalean at all; scanned Causalean/PO/ID/Partial/{Basic,Frechet,LP/ConicDuality,SupportFunction/*,BalkePearl/*,Manski/*,Lee/*}.lean via `grep '^## '` + section reads of ../doc/API.md §9j2, §9j2sf, §9j3, §9j5 → `Frechet.lean` gives only fixed-joint-law Frechet–Hoeffding CDF bounds (no capacity constraints, no sharpness), `LP/ConicDuality.lean` gives abstract Hilbert conic duality (value form, CQ-gated strong duality) but no finite bipartite min-cut. Mathlib-side check (`lean_leansearch` \"max-flow min-cut theorem for a finite network\" and \"existence of a coupling matrix with prescribed row and column marginals\") → Mathlib has `doublyStochastic`/Birkhoff (`Mathlib.Analysis.Convex.Birkhoff`, `Mathlib.Analysis.Convex.DoublyStochasticMatrix`, incl. `exists_mem_doublyStochastic_eq_smul_iff` for the equal-total-scaled case) but NO max-flow/min-cut and no capacity-inequality transport polytope. Conclusion: build-inline; the note's own proof is an elementary finite two-pointer/greedy argument on the nested Ferrers graphs \\(i<j\\) and \\(j\\le i\\), so no general min-cut theory is required.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S3",
+          "kind": "setup",
+          "label": "Setup S-3",
+          "nl": "An i.i.d. sampling and asymptotic-inference world on the fixed finite observed support. A single sampling probability space \\((\\Omega,\\mu)\\) carries an infinite sequence of observations \\(O_1,O_2,\\ldots\\), each measurable into the finite discrete observed carrier, mutually independent under \\(\\mu\\), and each distributed as \\(P_{\\mathrm{obs}}\\); the sample at size \\(n\\) is the initial segment \\(\\mathbf O_n=(O_1,\\ldots,O_n)\\) of that one sequence, so that every sample size is realized on the same space and the objects indexed by \\(n\\) below form a single stochastic process rather than an unrelated family of finite experiments. The empirical law is \\(\\widehat P_n=n^{-1}\\sum_{r\\le n}\\delta_{O_r}\\), with empirical cell masses \\(\\widehat p_x\\). Empirical conditional probabilities given \\((X=x,Z=z)\\) use the empirical ratio when the denominator is positive and the value zero otherwise; they form the raw contrasts \\(\\widetilde\\ell_i(x),\\widetilde h_j(x)\\), stacked as \\(\\widetilde c_n\\), which are projected onto \\(\\mathfrak C=\\prod_{x}\\mathbb R_+^{2K}\\) by the coordinatewise positive part \\(\\widehat c_n=\\Pi_{\\mathfrak C}(\\widetilde c_n)\\), giving \\(\\widehat\\ell_i(x),\\widehat h_j(x)\\) and hence \\(\\widehat q_0(x),\\widehat q_1(x),\\widehat{\\Delta q}(x),\\widehat m(x),\\widehat B_L(x),\\widehat B_U(x)\\). Cells are screened by \\(\\widehat r_x=\\widehat p_x\\widehat m(x)>\\eta_n\\) with \\(\\eta_n>0\\), \\(\\eta_n\\to0\\) in the ordinary sense, and \\(\\sqrt n\\eta_n\\to\\infty\\) — the screening sequence is NOT assumed monotone in \\(n\\) — giving \\(\\widehat M_n,\\widehat N_{L,n},\\widehat N_{U,n}\\) and the endpoint estimator \\(\\widehat\\Psi_n\\), with fallback \\((0,1)\\) when \\(\\widehat M_n=0\\). Asymptotics use the multinomial Gaussian limit \\(\\mathbb Z_{P_{\\mathrm{obs}}}\\) of the empirical cell-probability vector, the localization tolerance \\(a_n=(n\\eta_n)^{-1/4}\\) with estimated near-active faces \\(\\widehat{\\mathcal A}_{L,n}(x;a_n),\\widehat{\\mathcal A}_{U,n}(x;a_n)\\), a conditional multiplier process \\(\\mathbb G_n^{\\xi}=n^{-1/2}\\sum_r\\xi_r\\{\\delta_{O_r}-\\widehat P_n\\}\\) built from mean-zero unit-variance multipliers \\(\\xi_r\\) (diagnostic only, never a calibrated critical value), and — for the finite-sample guard — the finite observable event class \\(\\mathcal E=\\{\\{X=x\\}\\}\\cup\\{\\{X=x,Z=z\\}\\}\\cup\\{\\{X=x,Z=z,D=d,S=1,Y=k\\}\\}\\), its maximal empirical deviation \\(\\delta_n=\\max_{E\\in\\mathcal E}|\\widehat P_n(E)-P_{\\mathrm{obs}}(E)|\\), the union second-moment threshold \\(b_{n,\\alpha}=\\sqrt{|\\mathcal E|/(4n\\alpha)}\\), the capacity-and-screening envelope \\(A_{n,\\alpha}=64K|\\mathcal X|b_{n,\\alpha}/\\varepsilon_Z^2+|\\mathcal X|\\eta_n\\), the alpha-indexed deterministic guard \\(g_{n,\\alpha}=\\min\\{1,4A_{n,\\alpha}/m_\\star\\}\\), the guarded confidence set \\(\\mathcal C_{1-\\alpha,n}=[\\max\\{0,\\widehat\\Psi_{n,L}-g_{n,\\alpha}\\},\\min\\{1,\\widehat\\Psi_{n,U}+g_{n,\\alpha}\\}]\\) at level \\(\\alpha\\in(0,1)\\), and the triangular-array law class \\(\\mathcal P_n\\). — REVISED (F1 round-5 fix-locus, the flagged defect — the sampling world is now stated CONSISTENTLY as an infinite i.i.d. sequence). The previous version of this block asserted two incompatible things: the notes bound `(S : Causalean.Stat.IIDSample Ω 𝒪 μ P_obs)`, whose `Z : ℕ → Ω → 𝒪` field with `iIndepFun Z μ`, `∀ i, IdentDistrib (Z 0) (Z i) μ μ`, and `μ.map (Z 0) = P_obs` (Sample.lean:44-50, re-read this round) is an ℕ-INDEXED sequence on one sampling space, while a sync-back note claimed a finite-\\(n\\) sampling structure needing 'no countably infinite IIDSample extension'. The infinite reading is the one every consumer actually uses, so the finite-\\(n\\) claim is WITHDRAWN and DELETED (from this block, from `ass:iid-sampling`, from `def:uniform-law-class`, and from `lem:finite-multinomial-central-limit`); the world text now states the infinite sequence explicitly and it is recorded as the stronger sampling world it is. Why the ℕ-indexed sequence rather than a genuinely finite-\\(n\\) local structure: (i) every asymptotic consumer is a statement ABOUT the sequence — `thm:branch-free-pointwise-directional-limit` asserts \\(P\\{\\{x:\\widehat r_x>\\eta_n\\}=\\mathcal X_+(P)\\}\\to1\\), \\(\\widehat\\Psi_n\\to_P\\Psi\\), and a \\(\\sqrt n\\) limit in law; `thm:uniform-deterministic-guard` conclusion (II) is a `Tendsto … atTop (𝓝 0)`; the cited gate `lem:finite-multinomial-central-limit` is a convergence-in-law statement — and a limit in \\(n\\) is well posed only when the \\(n\\)-indexed statistics live on ONE space, i.e. are functionals of one sequence; (ii) every reused Causalean asymptotic decl is stated about `S.Z` at all indices (`IIDSample.sampleMean`, Sample.lean:68, sums `i ∈ Finset.range n` of `S.Z i`; `sampleMean_sub_meas_ge_le` / `sampleMean_sub_sq_lintegral_le`, CrossFitRate.lean:655,532; `clt_normalizedSum_vec`, CLT/GaussianLimit.lean), so a finite-\\(n\\) local structure would need a per-\\(n\\) embedding bridge into `IIDSample` for EACH of them — an un-built bridge of exactly the kind this plan withdraws elsewhere (D-plan-11); and (iii) the strengthening does not restrict the paper's law class: on the finite discrete carrier `𝒪` an i.i.d. sequence with any given marginal always exists (product measure / Ionescu–Tulcea), so requiring one constrains only the ambient \\((\\Omega,\\mu)\\) the results are stated over, not the set of observed-data laws \\(P_{\\mathrm{obs}}\\) covered. The FINITE-SAMPLE character of `thm:uniform-deterministic-guard` conclusion (I) is untouched by this: it remains an every-\\(n\\), no-filter statement proved from the second-moment union bound at that fixed \\(n\\); it is merely stated inside a world where the remaining indices of the sequence also exist. Adaptedness of the size-\\(n\\) statistics to \\(\\sigma(O_1,\\ldots,O_n)\\) is true here but is used by no conclusion, so no such σ-algebra claim is planned. With that settled: the sampling model is `Causalean.Stat.IIDSample Ω 𝒪 μ P_obs` (Causalean/Stat/Sample.lean:44) verbatim, carried as an explicit binder `(S : IIDSample Ω 𝒪 μ Pobs)` and PINNED to the declared observation sequence by `∀ i, S.Z i = O i` (see `ass:iid-sampling`, revised); every empirical object in this world (\\(\\widehat P_n\\), \\(\\widehat p_x\\), \\(\\widetilde c_n\\), \\(\\widehat\\Psi_n\\)) is therefore built from the same sequence the library asymptotics are stated about. REVISED (F1 round-2 type-fit fix): the world's empirical-frequency primitive is `Causalean.Stat.IIDSample.sampleMean` (Causalean/Stat/Sample.lean:68, `S.sampleMean f n ω = (n:ℝ)⁻¹ * ∑ i ∈ Finset.range n, f (S.Z i ω)`) EVALUATED AT AN EVENT INDICATOR: for a set `E ⊆ 𝒪`, \\(\\widehat P_n(E) := S.sampleMean (fun o => if o ∈ E then 1 else 0) n\\). This is generic in the observation type `X`, hence available at the finite `𝒪` used here. Two library objects previously named in this block are DROPPED as type-misfits, verified by reading their sources: (i) `Causalean.Stat.IIDSample.empiricalMeasure` (Causalean/Stat/Quantile/EmpiricalQuantile.lean:58) is declared `(S : IIDSample Ω ℝ μ P) (n) (ω) : Measure ℝ` — hard-wired to a REAL observation type and returning a `Measure ℝ`, so it cannot represent \\(\\widehat P_n\\) on the finite `𝒪`; (ii) `Causalean.Stat.empiricalMass` and its moment lemmas `Stat.integral_empiricalMass` / `_sq` (Causalean/Stat/Sample/EmpiricalMass.lean:25,62,98) are stated about a deterministic `sample : Fin m → 𝒳` integrated against the PRODUCT measure `Measure.pi (fun _ : Fin m => μ)`, not about an `IIDSample Ω 𝒪 μ Pobs` on `(Ω, μ)`; using them on the pinned sample `S.Z` would require an un-built pushforward-to-product bridge (`μ.map (fun ω i => S.Z i ω) = Measure.pi …`, which the library derives only INSIDE the CrossFitRate proofs and does not export). The replacement moment substrate is stated directly for `IIDSample`: `Causalean.Stat.IIDSample.sampleMean_sub_sq_lintegral_le` and `Causalean.Stat.IIDSample.sampleMean_sub_meas_ge_le` (Causalean/Stat/EmpiricalProcess/CrossFitRate.lean:532,655), the second giving verbatim the Chebyshev tail \\(\\mu\\{t\\le|\\widehat P_n(E)-P_{\\mathrm{obs}}(E)|\\}\\le(\\int f^2\\,dP)/(nt^2)\\) for any `MemLp f 2 P`; at an indicator `f=1_E` on a finite type, `∫ f dP = P_obs(E)` and `∫ f² dP = P_obs(E) ≤ 1`, so the bound is \\(\\le1/(nt^2)\\) uniformly in the law. Search trace for the replacement: `grep -n 'sampleMean_sub_sq_lintegral_le|sampleMean_sub_meas_ge_le|empiricalMeasure|def sampleMean'` over Causalean/Stat/** and Causalean/PO/** plus reads of Sample.lean:38-77, Sample/EmpiricalMass.lean:25-159, Quantile/EmpiricalQuantile.lean:53-71, EmpiricalProcess/CrossFitRate.lean:515-670 → the `IIDSample`-native centered-mean second-moment and Chebyshev-tail pair is the only moment substrate stated on `(Ω, μ)` for a general observation type; Mathlib side checked (`lean_leansearch` \"Chebyshev inequality for the empirical frequency of an event under i.i.d. sampling\") → only the generic `ProbabilityTheory.measure_ge_le_variance_div_sq` / Markov forms, strictly weaker than the Causalean pair, so nothing further is needed. Other reused inference substrate is unchanged: `Causalean.Stat.Tendsto_dist_vec` (Causalean/Stat/Limit/ConvergenceVec.lean) is the weak-convergence vocabulary; `Causalean.Stat.gaussianLimit` + `Causalean.Stat.IIDSample.clt_normalizedSum_vec` (Causalean/Stat/CLT/GaussianLimit.lean) is the concrete multivariate Gaussian limit; `Causalean.Stat.HasHadamardDirDerivAt`, `maxDirDeriv`, `minDirDeriv`, `hasHadamardDirDerivAt_max`, `hasHadamardDirDerivAt_min` (Causalean/Stat/Inference/HadamardDeriv.lean) are exactly the tie-case directional-derivative primitives the branch-free lower/upper functionals need at \\(\\Delta q(x)=0\\) and at the mass cap, and `Causalean.Stat.deltaMethod_max_tie` / `deltaMethod_min_tie` (Causalean/Stat/Inference/FunctionalDelta.lean) are the scalar tie delta methods; `Causalean.PartialID.Inference.RandomCoversIcc` and `honest_ci_set_cover` (Causalean/PO/ID/Partial/Inference/Basic.lean) are the set-coverage vocabulary for the guarded confidence set. REVISED (F1 round-4 fix-locus, the upstream guard strengthening): the world's guard objects are now the ALPHA-INDEXED family \\(\\mathcal E,\\delta_n,b_{n,\\alpha},A_{n,\\alpha},g_{n,\\alpha}\\) and the deleted symbol \\(g_n\\) appears nowhere in this plan; \\(a_n=(n\\eta_n)^{-1/4}\\) survives only as the diagnostic near-active-face tolerance and enters no delivered conclusion. \\(\\mathcal E\\) is a `Finset` of subsets of the `Fintype` `𝒪`, each measurable because the observed carrier is finite and discrete (see S1), so `δ_n` is a finite `Finset.sup'` of `|empFreq E n − Pobs.real E|` and needs no empirical-process machinery. CONSTANT REPAIR, now load-bearing (supersedes the factor-of-four concession recorded in D-plan-11): the α-indexed guard is valid only with the note's sharp \\(P(\\delta_n>b_{n,\\alpha})\\le|\\mathcal E|/(4nb_{n,\\alpha}^2)=\\alpha\\), so F2/F3 instantiate `Causalean.Stat.IIDSample.sampleMean_sub_meas_ge_le` (Causalean/Stat/EmpiricalProcess/CrossFitRate.lean:655, bound `(∫ f² dP)/(n t²)`) at the CENTERED indicator `g_E := fun o => (if o ∈ E then (1:ℝ) else 0) - Pobs.real E` rather than at the bare indicator: then `∫ g_E dP = 0`, `∫ g_E² dP = Pobs.real E * (1 - Pobs.real E) ≤ 1/4` (Bernoulli variance), and `S.sampleMean g_E n = S.sampleMean f_E n - Pobs.real E` for `0 < n` because `sampleMean` of a constant is that constant (`(n:ℝ)⁻¹ * ∑ i ∈ Finset.range n, c = c`, one `Finset.sum_const`/`field_simp` line), so the tail is exactly \\(\\le1/(4nt^2)\\) uniformly in the law and the union bound over `\\mathcal E` gives the note's display (1) verbatim. `MemLp g_E 2 Pobs` is `MemLp.of_bound` with bound `1` and `Measurable g_E` is `(measurable_const.ite (MeasurableSet.of_discrete) measurable_const).sub measurable_const` on the discrete `𝒪`, the same two-line pattern used at Sample/EmpiricalMass.lean:71-76. Mathlib side re-checked for the sharper form (`lean_leansearch` \"variance of a Bernoulli indicator is at most one quarter\" / \"Chebyshev bound for an empirical frequency\") → only the generic Markov/variance forms, so the centered-instantiation route above is the plan of record and nothing new is needed. REVISED (F1 round-6 fix-locus, THE FLAGGED DEFECT — the screening sequence is NOT monotone). The upstream repair route was `fix-source`, and the frozen core now declares \\(\\eta_n\\) as nothing more than a positive deterministic sequence with \\(\\eta_n\\to0\\) and \\(\\sqrt n\\eta_n\\to\\infty\\): `sampling_model.nuisance_estimation` says verbatim 'no monotonicity in \\(n\\) is assumed', `thm:branch-free-pointwise-directional-limit`'s proof says 'no monotonicity of \\(n\\mapsto\\eta_n\\) is used', and `thm:uniform-deterministic-guard` says 'No monotonicity of \\((\\eta_n)\\) or \\((L_n)\\) is used or asserted'. The previous world text wrote \\(\\eta_n\\downarrow0\\), which asserts a monotone decrease the core never granted; F2 read that as an `Antitone η` binder on BOTH asymptotic theorems (TUniformDeterministicGuard.lean:56, TBranchFreePointwiseDirectionalLimit.lean:41) and, worse, as an `Antitone ηL` CONJUNCT inside the guard's \\(L_n\\) corollary (TUniformDeterministicGuard.lean:100), which is outright FALSE under the stated premises — take \\(L_n=(n+1)^{1/4}\\) multiplied by 2 on even \\(n\\) and by 1 on odd \\(n\\), which is positive, tends to infinity, and is \\(o(\\sqrt n)\\), yet makes \\(\\eta_n=n^{-1/2}L_n\\) increase infinitely often — and that is exactly the `statement-wrong` blocker F3 recorded at TUniformDeterministicGuard.lean:111. The world text above is corrected accordingly, and the encoding directive is: F2 carries the screening sequence as `(η : ℕ → ℝ)` with EXACTLY three side conditions — `∀ n, 0 < η n`, `Tendsto η atTop (𝓝 0)`, and `Tendsto (fun n : ℕ => Real.sqrt n * η n) atTop atTop` — and must NOT emit `Antitone η`, `StrictAnti η`, or any pointwise `m ≤ n → η n ≤ η m` hypothesis anywhere, nor an `Antitone ηL` conclusion. Scope of the repair: monotonicity was never an `ass:` node, so nothing is added to or removed from `def:structural-law-class` or `def:uniform-law-class`, no disposition, `reuse`, `defer_tier`, member list, or `hyps` list moves, and the only affected declarations are the two consumers that carried the binder plus this world block. No new absence is asserted, so no additional search trace is required: the three retained side conditions are Mathlib `Filter.Tendsto`/`Real.sqrt` vocabulary already reachable from this block's `modules`.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "definition",
+      "items": [
+        {
+          "obj_id": "def:structural-law-class",
+          "kind": "definition",
+          "label": "Definition P-1",
+          "nl": "\\(\\mathcal M=\\{P:P\\text{ satisfies conditional instrument independence, treatment consistency, treatment-mediated selection and outcome exclusion, instrument overlap, no defiers, latent-direction weak selection monotonicity, and positive aggregate survivor-complier mass}\\}\\).  This is the finite-ordered, finite-covariate specialization of Dong--Heiler Assumptions 3.1--3.2 on cells with \\(P(C\\mid X=x)>0\\); cells with \\(P(C\\mid X=x)=0\\) have zero capacities and are inert for the target.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.TieSafeSurvivorModel",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:uniform-law-class",
+          "kind": "definition",
+          "label": "Definition P-2",
+          "nl": "\\(\\mathcal P_n=\\{P\\in\\mathcal M:P\\text{ satisfies the uniform aggregate-survivor and independent-sampling conditions at index }n\\}\\).  No selection-direction separation condition is imposed.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.PositiveUniformInferenceLawClass",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:observable-capacities",
+          "kind": "definition",
+          "label": "Definition P-3",
+          "nl": "For \\(i,j\\in\\mathcal Y\\), form \\(\\ell_i(x)\\) and \\(h_j(x)\\) from the two conditional instrument contrasts displayed in the symbol table, set \\(q_0(x)=\\sum_i\\ell_i(x)\\), \\(q_1(x)=\\sum_jh_j(x)\\), define \\(\\Delta q(x)=q_1(x)-q_0(x)\\), and set \\(m(x)=\\min\\{q_0(x),q_1(x)\\}\\).",
+          "lean": {
+            "file": "Helpers/Capacities.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.paperObservableCapacities",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:partial-transport-polytope",
+          "kind": "definition",
+          "label": "Definition P-4",
+          "nl": "\\[\\Gamma_x^{\\ast}=\\left\\{\\gamma_x\\ge0:\\sum_j\\gamma_{ij,x}\\le\\ell_i(x),\\ \\sum_i\\gamma_{ij,x}\\le h_j(x),\\ \\sum_{i,j}\\gamma_{ij,x}=m(x)\\right\\}.\\]\nFor comparison, retain\n\\[\\Gamma_x^{+}=\\left\\{\\gamma_x\\ge0:\\sum_j\\gamma_{ij,x}=\\ell_i(x),\\ \\sum_i\\gamma_{ij,x}\\le h_j(x)\\right\\},\\qquad\n\\Gamma_x^{-}=\\left\\{\\gamma_x\\ge0:\\sum_j\\gamma_{ij,x}\\le\\ell_i(x),\\ \\sum_i\\gamma_{ij,x}=h_j(x)\\right\\},\\]\nand\n\\[\\Gamma_x^{0}=\\left\\{\\gamma_x\\ge0:\\sum_j\\gamma_{ij,x}=\\ell_i(x),\\ \\sum_i\\gamma_{ij,x}=h_j(x)\\right\\}.\\]\nDefine \\(\\Gamma_x=\\Gamma_x^{\\ast}\\).",
+          "lean": {
+            "file": "Helpers/Transport.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.paperExactMassPolytope",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:threshold-cuts",
+          "kind": "definition",
+          "label": "Definition P-5",
+          "nl": "For every \\(x\\in\\mathcal X\\), define\n\\[\nB_L(x)=\\max\\left\\{0,\\ \\max_{t\\in\\mathcal Y}\\bigl[\\ell_{\\le t}(x)-h_{\\le t}(x)\\bigr]+\\min\\{\\Delta q(x),0\\}\\right\\}\n\\]\nand\n\\[\nB_U(x)=\\min\\left\\{m(x),\\ \\min_{t\\in\\mathcal Y}\\bigl[\\ell_{<t}(x)+h_{>t}(x)\\bigr]\\right\\}.\n\\]\nThese formulas are branch-free and remain defined on positive-survivor zero-gap cells and on zero-survivor cells.",
+          "lean": {
+            "file": "Helpers/Capacities.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.Capacities.paperThresholdCuts",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:identified-interval",
+          "kind": "definition",
+          "label": "Definition P-6",
+          "nl": "\\[\\Psi(P_{\\mathrm{obs}})=(\\theta_L,\\theta_U)=\\left(\\frac{\\sum_{x\\in\\mathcal X}p_xB_L(x)}{M},\\frac{\\sum_{x\\in\\mathcal X}p_xB_U(x)}{M}\\right),\\qquad \\Theta_I(P_{\\mathrm{obs}})=[\\theta_L,\\theta_U].\\]",
+          "lean": {
+            "file": "Helpers/Capacities.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.Capacities.endpointMap",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:threshold-flow-construction",
+          "kind": "definition",
+          "label": "Definition P-7",
+          "nl": "In each cell, first compute the exact mass \\(m(x)\\), the prefix and tail sums, and the two threshold values.  For an upper-attaining coupling, greedily construct a maximum subflow on the nested benefit graph \\(i<j\\); for a lower-attaining coupling, greedily construct a maximum subflow on the nested nonbenefit graph \\(j\\le i\\).  Complete either subflow to total mass \\(m(x)\\) by a two-pointer allocation on the residual complete bipartite graph.  The result belongs to \\(\\Gamma_x^{\\ast}\\).  Allocate every row or column residual to the one-sided selected-complier stratum forced by the sign of \\(q_1(x)-q_0(x)\\), put the remaining compliers in the never-selected stratum, and adjoin the unchanged never-taker and always-taker components of a baseline compatible law.",
+          "lean": {
+            "file": "Helpers/Transport.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.thresholdFlow",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:three-level-witness",
+          "kind": "definition",
+          "label": "Definition P-8",
+          "nl": "Let \\(X=x^{\\star}\\) almost surely, \\(P_{\\mathrm{obs}}^{\\star}(Z=1)=P_{\\mathrm{obs}}^{\\star}(Z=0)=1/2\\), and \\(K=3\\). Given \\(Z=0\\), assign probabilities \\(0.075\\), \\(0.10\\), and \\(0.075\\) to \\((D,S,Y)=(0,1,0),(0,1,1),(0,1,2)\\), respectively, and probability \\(0.75\\) to \\((D,S,Y)=(0,0,\\star)\\). Given \\(Z=1\\), assign probabilities \\(0.10\\), \\(0.25\\), and \\(0.15\\) to \\((D,S,Y)=(1,1,0),(1,1,1),(1,1,2)\\), respectively, and probability \\(0.50\\) to \\((D,S,Y)=(1,0,\\star)\\); all unlisted conditional cells have probability zero. Construct \\(P^{\\star}\\) by taking every unit to satisfy \\(D_0=0,D_1=1\\), allocating masses \\(0.075,0.10,0.075\\) to \\(S_0=S_1=1\\) with diagonal survivor pairs \\((Y_0,Y_1)=(0,0),(1,1),(2,2)\\), allocating mass \\(0.25\\) to \\(S_0=0,S_1=1\\) with \\(Y_1\\) residual masses \\((0.025,0.15,0.075)\\), and allocating mass \\(0.50\\) to \\(S_0=S_1=0\\). Take \\(Z\\) independent with probability one half and assign arbitrary latent outcomes wherever selection makes them unobserved.",
+          "lean": {
+            "file": "TThreeLevelWitness.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.threeLevelWitness",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:plugin-endpoint-estimator",
+          "kind": "definition",
+          "label": "Definition P-9",
+          "nl": "For every empirical conditional probability given \\((X=x,Z=z)\\), use its empirical ratio when the denominator is positive and the fixed value zero when the denominator is zero. Form \\(\\widetilde c_n=(\\widetilde\\ell,\\widetilde h)\\), set \\(\\mathfrak C=\\prod_{x\\in\\mathcal X}\\mathbb R_+^{2K}\\), and define \\(\\widehat c_n=\\Pi_{\\mathfrak C}(\\widetilde c_n)=\\arg\\min_{c\\in\\mathfrak C}\\|c-\\widetilde c_n\\|_2^2\\). The fixed Euclidean metric makes the minimizer unique, and \\(\\Pi_{\\mathfrak C}\\) is the coordinatewise positive-part map. From \\(\\widehat c_n=(\\widehat\\ell,\\widehat h)\\), form \\(\\widehat q_0(x)=\\sum_i\\widehat\\ell_i(x)\\), \\(\\widehat q_1(x)=\\sum_j\\widehat h_j(x)\\), \\(\\widehat{\\Delta q}(x)=\\widehat q_1(x)-\\widehat q_0(x)\\), and \\(\\widehat m(x)=\\min\\{\\widehat q_0(x),\\widehat q_1(x)\\}\\). Evaluate\n\\[\n\\widehat B_L(x)=\\max\\left\\{0,\\ \\max_{t\\in\\mathcal Y}\\left[\\sum_{i\\le t}\\widehat\\ell_i(x)-\\sum_{j\\le t}\\widehat h_j(x)\\right]+\\min\\{\\widehat{\\Delta q}(x),0\\}\\right\\}\n\\]\nand\n\\[\n\\widehat B_U(x)=\\min\\left\\{\\widehat m(x),\\ \\min_{t\\in\\mathcal Y}\\left[\\sum_{i<t}\\widehat\\ell_i(x)+\\sum_{j>t}\\widehat h_j(x)\\right]\\right\\}.\n\\]\nSet \\(\\widehat r_x=\\widehat p_x\\widehat m(x)\\), retain exactly the cells satisfying \\(\\widehat r_x>\\eta_n\\), and form \\(\\widehat M_n=\\sum_x\\mathbf 1\\{\\widehat r_x>\\eta_n\\}\\widehat p_x\\widehat m(x)\\), \\(\\widehat N_{L,n}=\\sum_x\\mathbf 1\\{\\widehat r_x>\\eta_n\\}\\widehat p_x\\widehat B_L(x)\\), and \\(\\widehat N_{U,n}=\\sum_x\\mathbf 1\\{\\widehat r_x>\\eta_n\\}\\widehat p_x\\widehat B_U(x)\\). Define \\(\\widehat\\Psi_n=(\\widehat N_{L,n}/\\widehat M_n,\\widehat N_{U,n}/\\widehat M_n)\\) when \\(\\widehat M_n>0\\), and use the fixed fallback \\(\\widehat\\Psi_n=(0,1)\\) otherwise.",
+          "lean": {
+            "file": "Helpers/Estimator.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.plugInEndpoints",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:face-aware-inference-handle",
+          "kind": "definition",
+          "label": "Definition P-10",
+          "nl": "Use the same retained-cell rule \\(\\widehat r_x>\\eta_n\\).  The near-active lower and upper threshold cuts, the active face of \\(\\min\\{\\widehat{\\Delta q}(x),0\\}\\), the active face of \\(\\min\\{\\widehat q_0(x),\\widehat q_1(x)\\}\\), and the coordinatewise nonnegativity faces generated by \\(\\Pi_{\\mathfrak C}\\) define a computable finite diagnostic face envelope for \\(\\mathbb G_n^\\xi\\).  This multiplier envelope is not used as a calibrated critical value.  Retain \\(a_n=(n\\eta_n)^{-1/4}\\) solely as its near-active-face localization tolerance.  The finite event collection \\(\\mathcal E\\) and its maximal empirical deviation \\(\\delta_n\\) supply the concentration input.  Set\n\\[\nb_{n,\\alpha}=\\sqrt{\\frac{|\\mathcal E|}{4n\\alpha}},\\qquad\nA_{n,\\alpha}=\\frac{64K|\\mathcal X|}{\\varepsilon_Z^2}b_{n,\\alpha}+|\\mathcal X|\\eta_n,\n\\qquad\ng_{n,\\alpha}=\\min\\left\\{1,\\frac{4A_{n,\\alpha}}{m_{\\star}}\\right\\}.\n\\]\nDefine the conservative guarded confidence set\n\\[\n\\mathcal C_{1-\\alpha,n}=\n\\left[\\max\\{0,\\widehat\\Psi_{n,L}-g_{n,\\alpha}\\},\\\n\\min\\{1,\\widehat\\Psi_{n,U}+g_{n,\\alpha}\\}\\right].\n\\]\nThe alpha-indexed deterministic guard supplies finite-sample uniform containment and uniform endpoint consistency; first-order exact calibration of an unguarded face-aware multiplier region remains outside this construction.",
+          "lean": {
+            "file": "Helpers/Estimator.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.guardedConfidenceSet",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "oeq:uniform-face-multiplier",
+          "kind": "definition",
+          "label": "Definition P-11",
+          "nl": "Can the near-active-face directional-multiplier handle be calibrated so that \\[\\liminf_{n\\to\\infty}\\inf_{P\\in\\mathcal P_n}P\\{\\Theta_I(P_{\\mathrm{obs}})\\subseteq\\mathcal C_{1-\\alpha,n}\\}\\ge1-\\alpha,\\] uniformly over direction-separated triangular arrays \\(\\mathcal P_n\\), while allowing arbitrary simultaneous threshold-cut ties and covariate cells whose survivor mass approaches zero and is omitted at the unnormalized threshold \\(\\eta_n\\)?",
+          "lean": {
+            "file": "OpenQuestions.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.openQuestion_uniformFaceMultiplierCalibration",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "assumption",
+      "items": [
+        {
+          "obj_id": "ass:iv-independence",
+          "kind": "assumption",
+          "label": "Assumption A-1",
+          "nl": "\\((D_0,D_1,S_0,S_1,Y_0,Y_1)\\perp Z\\mid X\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.IVIndependence",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:treatment-consistency",
+          "kind": "assumption",
+          "label": "Assumption A-2",
+          "nl": "\\(D=D_Z\\) almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.TreatmentConsistency",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:selection-exclusion-consistency",
+          "kind": "assumption",
+          "label": "Assumption A-3",
+          "nl": "\\(S=S_D\\) almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.SelectionExclusion",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:outcome-exclusion-consistency",
+          "kind": "assumption",
+          "label": "Assumption A-4",
+          "nl": "\\(Y=Y_D\\) on \\(\\{S=1\\}\\) almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.OutcomeExclusion",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:instrument-overlap",
+          "kind": "assumption",
+          "label": "Assumption A-5",
+          "nl": "\\(\\varepsilon_Z\\le\\pi(x)\\le1-\\varepsilon_Z\\) for every \\(x\\in\\mathcal X\\) with \\(p_x>0\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.InstrumentOverlap",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:no-defiers",
+          "kind": "assumption",
+          "label": "Assumption A-6",
+          "nl": "\\(D_1\\ge D_0\\) almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.NoDefiers",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:weak-selection-monotonicity",
+          "kind": "assumption",
+          "label": "Assumption A-7",
+          "nl": "\\(P\\{d(x)(S_1-S_0)\\ge0\\mid C,X=x\\}=1\\) for every \\(x\\) with \\(P(C\\mid X=x)>0\\), where \\(d(x)\\in\\{-1,+1\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.WeakSelectionMonotonicity",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:direction-margin",
+          "kind": "assumption",
+          "label": "Assumption A-8",
+          "nl": "\\(|\\Delta q(x)|\\ge\\kappa_{\\sigma}\\) for every \\(x\\in\\mathcal X\\) with \\(p_x>0\\) and \\(m(x)>0\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.DirectionMargin",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:positive-aggregate-survivors",
+          "kind": "assumption",
+          "label": "Assumption A-9",
+          "nl": "\\(M>0\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.PositiveAggregateSurvivors",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:uniform-aggregate-survivor-bound",
+          "kind": "assumption",
+          "label": "Assumption A-10",
+          "nl": "\\(M\\ge m_{\\star}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.UniformAggregateSurvivorBound",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:iid-sampling",
+          "kind": "assumption",
+          "label": "Assumption A-11",
+          "nl": "\\(O_1,\\ldots,O_n\\) are independent draws from \\(P_{\\mathrm{obs}}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.IidSampling",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "lemma",
+      "items": [
+        {
+          "obj_id": "lem:weighted-capacity-mass-homogeneity",
+          "kind": "lemma",
+          "label": "Lemma lem:weighted-capacity-mass-homogeneity",
+          "nl": "Let \\(c=(\\ell,h)\\) be a capacity array on the finite covariate support \\(\\mathcal X\\) and the ordered levels \\(\\mathcal Y=\\{0,\\ldots,K-1\\}\\), and let \\((w_x)_{x\\in\\mathcal X}\\) be cell weights with \\(w_x\\ge0\\) for every \\(x\\).  Write \\(c^w\\) for the cellwise weighted array whose lower and upper capacities are \\(w_x\\ell_i(x)\\) and \\(w_xh_j(x)\\), and let \\(q_0^w,q_1^w,m^w\\) denote the arm totals and exact survivor-complier mass built from \\(c^w\\) by the formulas of \\cref{obj:def:observable-capacities}.  Then the mass map is positively homogeneous in the cell weight: for every \\(x\\in\\mathcal X\\),\n\\[\nm^w(x)=\\min\\{q_0^w(x),q_1^w(x)\\}=w_x\\min\\{q_0(x),q_1(x)\\}=w_xm(x).\n\\]",
+          "lean": {
+            "file": "Helpers/UniformGuardBounds.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.weightedCapacities_mass",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:weighted-capacity-lower-cut-homogeneity",
+          "kind": "lemma",
+          "label": "Lemma lem:weighted-capacity-lower-cut-homogeneity",
+          "nl": "Let \\(c=(\\ell,h)\\) be a capacity array on the finite covariate support \\(\\mathcal X\\) and the ordered levels \\(\\mathcal Y=\\{0,\\ldots,K-1\\}\\), let \\((w_x)_{x\\in\\mathcal X}\\) satisfy \\(w_x\\ge0\\) for every \\(x\\), and let \\(c^w\\) be the cellwise weighted array with capacities \\(w_x\\ell_i(x)\\) and \\(w_xh_j(x)\\).  Write \\(B_L^w\\) for the lower threshold cut of \\cref{obj:def:threshold-cuts} built from \\(c^w\\).  Then the lower threshold-cut map is positively homogeneous in the cell weight: for every \\(x\\in\\mathcal X\\),\n\\[\nB_L^w(x)\n=\\max\\left\\{0,\\ \\max_{t\\in\\mathcal Y}\\bigl[\\ell_{\\le t}^w(x)-h_{\\le t}^w(x)\\bigr]+\\min\\{\\Delta q^w(x),0\\}\\right\\}\n=w_xB_L(x).\n\\]\nBoth the zero candidate and each branch-free candidate scale by \\(w_x\\), and the finite maximum commutes with multiplication by the nonnegative weight.",
+          "lean": {
+            "file": "Helpers/UniformGuardBounds.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.weightedCapacities_benefitLower",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:weighted-capacity-upper-cut-homogeneity",
+          "kind": "lemma",
+          "label": "Lemma lem:weighted-capacity-upper-cut-homogeneity",
+          "nl": "Let \\(c=(\\ell,h)\\) be a capacity array on the finite covariate support \\(\\mathcal X\\) and the ordered levels \\(\\mathcal Y=\\{0,\\ldots,K-1\\}\\), let \\((w_x)_{x\\in\\mathcal X}\\) satisfy \\(w_x\\ge0\\) for every \\(x\\), and let \\(c^w\\) be the cellwise weighted array with capacities \\(w_x\\ell_i(x)\\) and \\(w_xh_j(x)\\).  Write \\(B_U^w\\) for the upper threshold cut of \\cref{obj:def:threshold-cuts} built from \\(c^w\\).  Then the upper threshold-cut map is positively homogeneous in the cell weight: for every \\(x\\in\\mathcal X\\),\n\\[\nB_U^w(x)\n=\\min\\left\\{m^w(x),\\ \\min_{t\\in\\mathcal Y}\\bigl[\\ell_{<t}^w(x)+h_{>t}^w(x)\\bigr]\\right\\}\n=w_xB_U(x).\n\\]\nThe mass cap contributes \\(m^w(x)=w_xm(x)\\) and each strict-prefix-plus-tail candidate scales by \\(w_x\\), and the finite minimum commutes with multiplication by the nonnegative weight.",
+          "lean": {
+            "file": "Helpers/UniformGuardBounds.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.weightedCapacities_benefitUpper",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "theorem",
+      "items": [
+        {
+          "obj_id": "prop:capacity-identification",
+          "kind": "theorem",
+          "label": "Theorem T-1",
+          "nl": "For every supported \\(x\\in\\mathcal X\\) and \\(i,j\\in\\mathcal Y\\), \\(\\ell_i(x)=P(Y_0=i,S_0=1,C\\mid X=x)\\) and \\(h_j(x)=P(Y_1=j,S_1=1,C\\mid X=x)\\). Hence \\(\\Delta q(x)=P(S_1=1,C\\mid X=x)-P(S_0=1,C\\mid X=x)\\) and, under weak selection monotonicity, \\(m(x)=P(S_0=S_1=1,C\\mid X=x)\\). If \\(\\Delta q(x)>0\\), then \\(d(x)=+1\\); if \\(\\Delta q(x)<0\\), then \\(d(x)=-1\\). No direction is identified from the observable gap when \\(\\Delta q(x)=0\\).",
+          "lean": {
+            "file": "TCapacityIdentification.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.capacity_identification",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:tie-face-collapse",
+          "kind": "theorem",
+          "label": "Theorem T-2",
+          "nl": "For every supported cell, \\(\\Gamma_x^{+}=\\Gamma_x^{-}=\\Gamma_x^{0}\\) if and only if \\(\\Delta q(x)=0\\). On this tie face, weak selection monotonicity implies \\(P(S_0=S_1,C\\mid X=x)=P(C\\mid X=x)\\), and \\(\\Gamma_x^{+}=\\Gamma_x^{-}=\\Gamma_x^{0}=\\Gamma_x\\): in \\(\\Gamma_x^{+}\\), the column inequalities bind because their total capacity equals the required row mass, and symmetrically the row inequalities bind in \\(\\Gamma_x^{-}\\). Moreover, \\(\\ell_{\\le t}(x)-h_{\\le t}(x)=h_{>t}(x)-\\ell_{>t}(x)\\) for every \\(t\\), so the increasing, decreasing, and explicit tie formulas for \\(B_L(x)\\) coincide, while all three branches share \\(B_U(x)\\).",
+          "lean": {
+            "file": "TTieFaceCollapse.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.tie_face_collapse",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:full-law-endpoint-attainment",
+          "kind": "theorem",
+          "label": "Theorem T-3",
+          "nl": "For every \\(P_{\\mathrm{obs}}\\) compatible with \\(\\mathcal M\\), the threshold-flow construction returns full laws \\(P^L\\) and \\(P^U\\) over \\((Y_0,Y_1,S_0,S_1,D_0,D_1,X,Z)\\) that belong to \\(\\mathcal M\\), induce exactly \\(P_{\\mathrm{obs}}\\), and obey \\(P^L(Y_1>Y_0\\mid S_1=S_0=1,C)=\\theta_L\\) and \\(P^U(Y_1>Y_0\\mid S_1=S_0=1,C)=\\theta_U\\), including observable tie cells and zero-survivor cells.",
+          "lean": {
+            "file": "TFullLawEndpointAttainment.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.full_law_endpoint_attainment",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:three-level-witness",
+          "kind": "theorem",
+          "label": "Theorem T-4",
+          "nl": "The displayed latent allocation defines \\(P^{\\star}\\in\\mathcal M\\) and induces exactly the fully specified law \\(P_{\\mathrm{obs}}^{\\star}\\): every unit is a complier, weak selection monotonicity holds in the increasing direction, and the selected cells under each instrument arm equal the listed probabilities. Applying the observable contrasts to \\(P_{\\mathrm{obs}}^{\\star}\\) gives \\(\\ell=(0.075,0.10,0.075)\\), \\(h=(0.10,0.25,0.15)\\), \\(q_0=m=0.25\\), \\(q_1=0.50\\), and \\(\\Delta q=0.25\\). The threshold cuts then give \\(B_L=0\\) and \\(B_U=0.175\\); consequently the sharpness and full-law-attainment theorems imply \\(\\Theta_I(P_{\\mathrm{obs}}^{\\star})=[0,0.7]\\) and attainment of both endpoints.",
+          "lean": {
+            "file": "TThreeLevelWitness.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.three_level_witness_sharp",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:no-selection-reduction",
+          "kind": "theorem",
+          "label": "Theorem T-5",
+          "nl": "On the no-selection submodel with \\(P(S_0=S_1=1\\mid C,X=x)=1\\) for each cell with \\(P(C\\mid X=x)>0\\), one has \\(\\Delta q(x)=0\\) and \\(\\Gamma_x=\\Gamma_x^{0}\\), the full coupling polytope for the identified survivor-complier marginals \\(\\ell(x)/m(x)\\) and \\(h(x)/m(x)\\). After division by \\(m(x)\\), \\(B_L(x)\\) and \\(B_U(x)\\) equal the sharp fixed-marginal strict-benefit formulas in LuDingDasgupta2018 Proposition 2, equation (6), cell by cell.",
+          "lean": {
+            "file": "TNoSelectionReduction.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.no_selection_reduction",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:sharp-exact-mass-threshold-interval",
+          "kind": "theorem",
+          "label": "Theorem T-6",
+          "nl": "Let \\(P_{\\mathrm{obs}}\\) be induced by at least one law in \\(\\mathcal M\\).  For every supported cell,\n\\[\n\\Gamma_x^{\\ast}=\\left\\{\\gamma_x\\ge0:\\sum_j\\gamma_{ij,x}\\le\\ell_i(x),\\ \\sum_i\\gamma_{ij,x}\\le h_j(x),\\ \\sum_{i,j}\\gamma_{ij,x}=m(x)\\right\\}\n\\]\nis exactly the projection of all compatible laws onto the survivor-complier coupling.  Exact mass forces the smaller-total margin to bind: \\(\\Gamma_x^{\\ast}=\\Gamma_x^{+}\\) if \\(\\Delta q(x)>0\\), \\(\\Gamma_x^{\\ast}=\\Gamma_x^{-}\\) if \\(\\Delta q(x)<0\\), and \\(\\Gamma_x^{\\ast}=\\Gamma_x^{0}\\) if \\(\\Delta q(x)=0\\).  Moreover,\n\\[\n\\inf_{\\gamma_x\\in\\Gamma_x^{\\ast}}b_x(\\gamma_x)\n=\\max\\left\\{0,\\max_{t\\in\\mathcal Y}\\bigl[\\ell_{\\le t}(x)-h_{\\le t}(x)\\bigr]+\\min\\{\\Delta q(x),0\\}\\right\\}=B_L(x),\n\\]\nand\n\\[\n\\sup_{\\gamma_x\\in\\Gamma_x^{\\ast}}b_x(\\gamma_x)\n=\\min\\left\\{m(x),\\min_{t\\in\\mathcal Y}\\bigl[\\ell_{<t}(x)+h_{>t}(x)\\bigr]\\right\\}=B_U(x).\n\\]\nConsequently,\n\\[\n\\Theta_I(P_{\\mathrm{obs}})\n=\\left[\\frac{\\sum_{x\\in\\mathcal X}p_xB_L(x)}{M},\\frac{\\sum_{x\\in\\mathcal X}p_xB_U(x)}{M}\\right],\n\\]\nand this interval is sharp; cells with \\(m(x)=0\\) contribute the unique zero coupling.",
+          "lean": {
+            "file": "TSharpExactMassThresholdInterval.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.sharp_exact_mass_threshold_interval",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:linear-sparse-threshold-flow",
+          "kind": "theorem",
+          "label": "Theorem T-7",
+          "nl": "For finite \\(\\mathcal X\\) and \\(K\\), the branch-free threshold formulas and sparse lower- and upper-attaining couplings in \\(\\Gamma_x^{\\ast}\\) can be computed using \\(O(|\\mathcal X|K)\\) arithmetic operations and comparisons.  If every entry of each dense \\(K\\times K\\) coupling matrix must be materialized, the complexity is \\(O(|\\mathcal X|K^2)\\).  Both operation counts are independent of the numerical magnitudes of the capacities.",
+          "lean": {
+            "file": "TLinearSparseThresholdFlow.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.linear_sparse_threshold_flow",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:branch-free-pointwise-directional-limit",
+          "kind": "theorem",
+          "label": "Theorem T-8",
+          "nl": "Fix a finite-support law \\(P_{\\mathrm{obs}}\\) induced by some \\(P\\in\\mathcal M\\) and satisfying instrument overlap, independent sampling, and \\(M>0\\).  No direction-separation condition is required.  Then\n\\[\nP\\!\\left\\{\\{x:\\widehat r_x>\\eta_n\\}=\\mathcal X_+(P)\\right\\}\\to1,\\qquad\n\\widehat\\Psi_n\\to_P\\Psi(P_{\\mathrm{obs}}),\n\\]\nand \\(\\sqrt n\\{\\widehat\\Psi_n-\\Psi(P_{\\mathrm{obs}})\\}\\) converges to \\(\\mathbb Z_{P_{\\mathrm{obs}}}\\) passed through the Hadamard directional derivative of the following reduced-support composite map: coordinatewise projection onto \\(\\mathfrak C\\); the branch-free lower functional\n\\[\n\\max\\left\\{0,\\max_t[\\ell_{\\le t}(x)-h_{\\le t}(x)]+\\min\\{\\Delta q(x),0\\}\\right\\};\n\\]\nthe upper minimum over the mass cap and threshold cuts; and the \\(p_x\\)-weighted common-denominator quotient.  At \\(\\Delta q(x)=0\\), the lower derivative uses the active face \\(g\\mapsto\\min\\{\\Delta q_x'(g),0\\}\\), while the mass-cap derivative uses \\(g\\mapsto\\min\\{q_{0,x}'(g),q_{1,x}'(g)\\}\\).  Thus positive-survivor zero-gap cells and arbitrary simultaneous threshold ties are included.  Zero-survivor cells contribute zero because screening recovers the fixed reduced support with probability tending to one.",
+          "lean": {
+            "file": "TBranchFreePointwiseDirectionalLimit.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.branch_free_pointwise_directional_limit",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:uniform-deterministic-guard",
+          "kind": "theorem",
+          "label": "Theorem T-9",
+          "nl": "Let\n\\[\n\\begin{aligned}\n\\mathcal E={}&\\bigl\\{\\{X=x\\}:x\\in\\mathcal X\\bigr\\}\n\\cup\\bigl\\{\\{X=x,Z=z\\}:x\\in\\mathcal X,\\ z\\in\\{0,1\\}\\bigr\\}\\\\\n&\\cup\\bigl\\{\\{X=x,Z=z,D=d,S=1,Y=k\\}:x\\in\\mathcal X,\\ z,d\\in\\{0,1\\},\\ k\\in\\mathcal Y\\bigr\\},\n\\end{aligned}\n\\]\nand let\n\\[\n\\delta_n=\\max_{E\\in\\mathcal E}\\left|\\widehat P_n(E)-P_{\\mathrm{obs}}(E)\\right|.\n\\]\nFor every \\(n\\ge1\\) and \\(\\alpha\\in(0,1)\\), set\n\\[\nb_{n,\\alpha}=\\sqrt{\\frac{|\\mathcal E|}{4n\\alpha}},\\qquad\nA_{n,\\alpha}=\\frac{64K|\\mathcal X|}{\\varepsilon_Z^2}b_{n,\\alpha}+|\\mathcal X|\\eta_n,\n\\qquad\ng_{n,\\alpha}=\\min\\left\\{1,\\frac{4A_{n,\\alpha}}{m_{\\star}}\\right\\},\n\\]\nand define\n\\[\n\\mathcal C_{1-\\alpha,n}\n=\\left[\\max\\{0,\\widehat\\Psi_{n,L}-g_{n,\\alpha}\\},\\\n\\min\\{1,\\widehat\\Psi_{n,U}+g_{n,\\alpha}\\}\\right].\n\\]\nThen, for every \\(n\\ge1\\),\n\\[\n\\inf_{P\\in\\mathcal P_n}P\\{\\Theta_I(P_{\\mathrm{obs}})\\subseteq\\mathcal C_{1-\\alpha,n}\\}\\ge1-\\alpha.\n\\]\nFor each fixed \\(\\alpha\\in(0,1)\\),\n\\[\n\\sup_{P\\in\\mathcal P_n}\nP\\!\\left\\{\\|\\widehat\\Psi_n-\\Psi(P_{\\mathrm{obs}})\\|_\\infty>g_{n,\\alpha}\\right\\}\\longrightarrow0,\n\\]\nand \\(g_{n,\\alpha}=O(n^{-1/2}+\\eta_n)\\).  In particular, for every positive deterministic sequence \\((L_n)\\) with \\(L_n\\to\\infty\\) and \\(L_n=o(n^{1/2})\\), the choice \\(\\eta_n=n^{-1/2}L_n\\) satisfies the screening conditions and gives guard padding \\(O(n^{-1/2}L_n)\\).  The tolerance \\(a_n=(n\\eta_n)^{-1/4}\\) is used solely by the diagnostic near-active-face multiplier envelope.  Both conclusions permit arbitrary simultaneous threshold-cut ties, positive-survivor zero-gap cells, and survivor masses approaching zero that are screened at \\(\\eta_n\\).  No first-order exact calibration of an unguarded face-aware multiplier confidence set is asserted.",
+          "lean": {
+            "file": "TUniformDeterministicGuard.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.uniform_deterministic_guard",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "cited",
+      "items": [
+        {
+          "obj_id": "lem:hadamard-directional-delta-method",
+          "kind": "cited",
+          "label": "Cited result lem:hadamard-directional-delta-method",
+          "nl": "Let \\(\\mathbb D\\) and \\(\\mathbb E\\) be Banach spaces, let \\(\\mathbb D_\\phi\\subseteq\\mathbb D\\), and let \\(\\phi:\\mathbb D_\\phi\\to\\mathbb E\\).  Fix \\(\\theta_0\\in\\mathbb D_\\phi\\) and \\(\\mathbb D_0\\subseteq\\mathbb D\\).  Suppose that there is a continuous map \\(\\phi'_{\\theta_0}:\\mathbb D_0\\to\\mathbb E\\) such that, whenever \\(t_k\\downarrow0\\), \\(h_k\\to h\\in\\mathbb D_0\\), and \\(\\theta_0+t_kh_k\\in\\mathbb D_\\phi\\),\n\\[\n\\left\\|\\frac{\\phi(\\theta_0+t_kh_k)-\\phi(\\theta_0)}{t_k}-\\phi'_{\\theta_0}(h)\\right\\|_{\\mathbb E}\\longrightarrow0.\n\\]\nThus \\(\\phi\\) is Hadamard directionally differentiable at \\(\\theta_0\\) tangentially to \\(\\mathbb D_0\\).  Let \\(\\widehat\\theta_n\\) be \\(\\mathbb D_\\phi\\)-valued estimators and let \\(r_n\\uparrow\\infty\\) satisfy\n\\[\nr_n(\\widehat\\theta_n-\\theta_0)\\rightsquigarrow\\mathbb G_0\n\\quad\\text{in }\\mathbb D,\n\\]\nwhere \\(\\mathbb G_0\\) is tight and its support is contained in \\(\\mathbb D_0\\).  Then\n\\[\nr_n\\{\\phi(\\widehat\\theta_n)-\\phi(\\theta_0)\\}\n=\\phi'_{\\theta_0}\\!\\left(r_n\\{\\widehat\\theta_n-\\theta_0\\}\\right)+o_P(1)\n\\quad\\text{in }\\mathbb E,\n\\]\nand consequently\n\\[\nr_n\\{\\phi(\\widehat\\theta_n)-\\phi(\\theta_0)\\}\n\\rightsquigarrow\\phi'_{\\theta_0}(\\mathbb G_0)\n\\quad\\text{in }\\mathbb E.\n\\]\nIf a finite-sample direction \\(r_n(\\widehat\\theta_n-\\theta_0)\\) is outside \\(\\mathbb D_0\\), the derivative appearing in the expansion is interpreted, as in Fang and Santos's Remark 2.1, by evaluating a continuous extension of \\(\\phi'_{\\theta_0}\\) from \\(\\mathbb D_0\\) to \\(\\mathbb D\\) at that direction.",
+          "lean": {
+            "file": "Helpers/CitedGates.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.HadamardDirectionalDeltaMethod",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:finite-multinomial-central-limit",
+          "kind": "cited",
+          "label": "Cited result lem:finite-multinomial-central-limit",
+          "nl": "Under independent sampling from a probability law on a fixed finite support, the empirical probability vector satisfies a multivariate central limit theorem: its centered \\(\\sqrt n\\)-scaled error converges to a mean-zero Gaussian vector with the multinomial covariance matrix.",
+          "lean": {
+            "file": "Helpers/CitedGates.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.FiniteMultinomialCLT",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:ordinal-fixed-marginal-strict-benefit",
+          "kind": "cited",
+          "label": "Cited result lem:ordinal-fixed-marginal-strict-benefit",
+          "nl": "For two distributions on \\(\\mathcal Y\\) with masses \\(\\ell_i(x)/m(x)\\) and \\(h_j(x)/m(x)\\), the sharp lower and upper bounds on the strict-benefit probability are\n\\[\n\\max\\left\\{0,\\max_t\\frac{\\ell_{\\le t}(x)-h_{\\le t}(x)}{m(x)}\\right\\}\n\\quad\\text{and}\\quad\n\\min_t\\frac{\\ell_{<t}(x)+h_{>t}(x)}{m(x)},\n\\]\nrespectively.",
+          "lean": {
+            "file": "Helpers/CitedGates.lean",
+            "decl": "CausalSmith.PartialID.SlateBenefitPartialTransport.OrdinalFixedMarginalStrictBenefit",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "auxiliary",
+      "items": [
+        {
+          "obj_id": "aux_benefitLower",
+          "kind": "definition",
+          "label": "Definition benefitLower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_benefitMass",
+          "kind": "definition",
+          "label": "Definition benefitMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_benefitUpper",
+          "kind": "definition",
+          "label": "Definition benefitUpper",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_Capacities",
+          "kind": "definition",
+          "label": "Definition Capacities",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_CompatibleLatentCellTable",
+          "kind": "definition",
+          "label": "Definition CompatibleLatentCellTable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_decPolytope",
+          "kind": "definition",
+          "label": "Definition decPolytope",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_denseThresholdFlowCost",
+          "kind": "definition",
+          "label": "Definition denseThresholdFlowCost",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_EndpointConvergesInProbability",
+          "kind": "definition",
+          "label": "Definition EndpointConvergesInProbability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_endpointError",
+          "kind": "definition",
+          "label": "Definition endpointError",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_endpointFromMassVectorOn",
+          "kind": "definition",
+          "label": "Definition endpointFromMassVectorOn",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_gap",
+          "kind": "definition",
+          "label": "Definition gap",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_guardRadius",
+          "kind": "definition",
+          "label": "Definition guardRadius",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_HasTangentialHadamardDirDerivAt",
+          "kind": "definition",
+          "label": "Definition HasTangentialHadamardDirDerivAt",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_identifiedIcc",
+          "kind": "definition",
+          "label": "Definition identifiedIcc",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_incPolytope",
+          "kind": "definition",
+          "label": "Definition incPolytope",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_IsEndpointWitness",
+          "kind": "definition",
+          "label": "Definition IsEndpointWitness",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_latentTableNonnegative",
+          "kind": "definition",
+          "label": "Definition latentTableNonnegative",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_lowerAttainer",
+          "kind": "definition",
+          "label": "Definition lowerAttainer",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_lowerLe",
+          "kind": "definition",
+          "label": "Definition lowerLe",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_lowerLt",
+          "kind": "definition",
+          "label": "Definition lowerLt",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_mass",
+          "kind": "definition",
+          "label": "Definition mass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_matrixNonnegative",
+          "kind": "definition",
+          "label": "Definition matrixNonnegative",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ObservedDatum",
+          "kind": "definition",
+          "label": "Definition ObservedDatum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_positiveSupport",
+          "kind": "definition",
+          "label": "Definition positiveSupport",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_positiveSupportCard",
+          "kind": "definition",
+          "label": "Definition positiveSupportCard",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_screenedCell",
+          "kind": "definition",
+          "label": "Definition screenedCell",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_screenedSupport",
+          "kind": "definition",
+          "label": "Definition screenedSupport",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_tableSurvivorCoupling",
+          "kind": "definition",
+          "label": "Definition tableSurvivorCoupling",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_thresholdFlowCostFor",
+          "kind": "definition",
+          "label": "Definition thresholdFlowCostFor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_thresholdFlowLower",
+          "kind": "definition",
+          "label": "Definition thresholdFlowLower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_thresholdFlowUpper",
+          "kind": "definition",
+          "label": "Definition thresholdFlowUpper",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_tiePolytope",
+          "kind": "definition",
+          "label": "Definition tiePolytope",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_upperAttainer",
+          "kind": "definition",
+          "label": "Definition upperAttainer",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_upperGt",
+          "kind": "definition",
+          "label": "Definition upperGt",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_upperLe",
+          "kind": "definition",
+          "label": "Definition upperLe",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ValidCapacities",
+          "kind": "definition",
+          "label": "Definition ValidCapacities",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_WeakConverges",
+          "kind": "definition",
+          "label": "Definition WeakConverges",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_aggregateMass",
+          "kind": "definition",
+          "label": "Definition aggregateMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_benefitProbabilityOf",
+          "kind": "definition",
+          "label": "Definition benefitProbabilityOf",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_denseThresholdFlowCostFor",
+          "kind": "definition",
+          "label": "Definition denseThresholdFlowCostFor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_FullLawCandidate",
+          "kind": "definition",
+          "label": "Definition FullLawCandidate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_FullLawFeasible",
+          "kind": "definition",
+          "label": "Definition FullLawFeasible",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_fullLawSurvivorCoupling",
+          "kind": "definition",
+          "label": "Definition fullLawSurvivorCoupling",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_guardedConfidenceInterval",
+          "kind": "definition",
+          "label": "Definition guardedConfidenceInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_GuardedInferenceHandle",
+          "kind": "definition",
+          "label": "Definition GuardedInferenceHandle",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_observableCapacityContrasts",
+          "kind": "definition",
+          "label": "Definition observableCapacityContrasts",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_SupportedIn",
+          "kind": "definition",
+          "label": "Definition SupportedIn",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_TightProbabilityLaw",
+          "kind": "definition",
+          "label": "Definition TightProbabilityLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_branchFreePolytope",
+          "kind": "definition",
+          "label": "Definition branchFreePolytope",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_Costed",
+          "kind": "definition",
+          "label": "Definition Costed",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_costedSparseThresholdFlow",
+          "kind": "definition",
+          "label": "Definition costedSparseThresholdFlow",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_EndpointMapResult",
+          "kind": "definition",
+          "label": "Definition EndpointMapResult",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_PartialTransportPolytopes",
+          "kind": "definition",
+          "label": "Definition PartialTransportPolytopes",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_thresholdFlowLowerSparse",
+          "kind": "definition",
+          "label": "Definition thresholdFlowLowerSparse",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_thresholdFlowUpperSparse",
+          "kind": "definition",
+          "label": "Definition thresholdFlowUpperSparse",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_CompatibleBaseline",
+          "kind": "definition",
+          "label": "Definition CompatibleBaseline",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_denseThresholdFlowActualCostFor",
+          "kind": "definition",
+          "label": "Definition denseThresholdFlowActualCostFor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_SparsePassResult",
+          "kind": "definition",
+          "label": "Definition SparsePassResult",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_thresholdFlowActualCostFor",
+          "kind": "definition",
+          "label": "Definition thresholdFlowActualCostFor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ThresholdFlowResult",
+          "kind": "definition",
+          "label": "Definition ThresholdFlowResult",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ThresholdLatentCompletion",
+          "kind": "definition",
+          "label": "Definition ThresholdLatentCompletion",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "maxBenefitSparseOperations_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.maxBenefitSparseOperations_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "maxNonBenefitSparseOperations_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.maxNonBenefitSparseOperations_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "completeSparseOperations_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.completeSparseOperations_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "maxBenefitPass_residual_length_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.maxBenefitPass_residual_length_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "maxNonBenefitPass_residual_length_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.maxNonBenefitPass_residual_length_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sparseCellActualOperations_le_budget",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.sparseCellActualOperations_le_budget",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sigma_xBundle",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.sigma_xBundle",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "condIndepCFBundle_of_condIndepCF",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.condIndepCFBundle_of_condIndepCF",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_POSlate_SofD",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.measurable_POSlate_SofD",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_rowMass_eq_totalMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.sum_rowMass_eq_totalMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_columnMass_eq_totalMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.sum_columnMass_eq_totalMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pointwise_eq_of_le_of_sum_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.pointwise_eq_of_le_of_sum_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "branchFree_exact_rows_of_q0_le_q1",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.branchFree_exact_rows_of_q0_le_q1",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "branchFree_exact_columns_of_q1_le_q0",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.branchFree_exact_columns_of_q1_le_q0",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "polytope_tie_iff_gap_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.polytope_tie_iff_gap_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "branchFree_eq_tie_of_gap_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.branchFree_eq_tie_of_gap_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prefix_difference_eq_tail_difference_of_gap_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.prefix_difference_eq_tail_difference_of_gap_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "equalSelectionComplierMass_of_zero_gap",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.equalSelectionComplierMass_of_zero_gap",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectedComplierMass_eq_complierMass_of_noSelection",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.selectedComplierMass_eq_complierMass_of_noSelection",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_RealizesThresholdLatentCompletion",
+          "kind": "definition",
+          "label": "Definition RealizesThresholdLatentCompletion",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "WNode",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.WNode",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "instDecidableEqWNode",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.instDecidableEqWNode",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "instFintypeWNode",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.instFintypeWNode",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "WValue",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.WValue",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wMeasurableSpace",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.wMeasurableSpace",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "instMeasurableSpaceWValue",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.instMeasurableSpaceWValue",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wEval",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.wEval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wSeedP",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.wSeedP",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wSeedS",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.wSeedS",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wSeed_p",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wSeed_p",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wSeed_propensity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wSeed_propensity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wTable",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.wTable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wNN",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wNN",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessLatentTable_complier_support",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessLatentTable_complier_support",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessLatentTable_selection_support",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessLatentTable_selection_support",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wNorm",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wNorm",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wHp",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wHp",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wHprop",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wHprop",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessInstrumentMeasure_atom",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessInstrumentMeasure_atom",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessLatentMeasure_atom",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessLatentMeasure_atom",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessLatentMeasure_univ",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessLatentMeasure_univ",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "instIsProbabilityMeasureWitnessLatent",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.instIsProbabilityMeasureWitnessLatent",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessLatentMeasure_ae_compliers",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessLatentMeasure_ae_compliers",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessLatentMeasure_ae_selection",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessLatentMeasure_ae_selection",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessInstrumentMeasure_univ",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessInstrumentMeasure_univ",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "instIsProbabilityMeasureWitnessInstrument",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.instIsProbabilityMeasureWitnessInstrument",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "instIsProbabilityMeasureWitnessFull",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.instIsProbabilityMeasureWitnessFull",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "instIsFiniteMeasureWitnessFull",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.instIsFiniteMeasureWitnessFull",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessObservedMeasure_univ",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessObservedMeasure_univ",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "instIsProbabilityMeasureWitnessObserved",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.instIsProbabilityMeasureWitnessObserved",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witnessObservedMeasure_atom",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.witnessObservedMeasure_atom",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wCandidate",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.wCandidate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wObservedLaw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wObservedLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wLower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wLower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wUpper",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wUpper",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wBenefitLower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wBenefitLower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wBenefitUpper",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wBenefitUpper",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wCapacityFacts",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wCapacityFacts",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wFullLaw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wFullLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wCandidate_p",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wCandidate_p",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "instStandardBorelSpaceWCandidate",
+          "kind": "definition",
+          "label": "Definition CausalSmith.PartialID.SlateBenefitPartialTransport.instStandardBorelSpaceWCandidate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wCandidate_propensity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wCandidate_propensity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wCompliers",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wCompliers",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wSelectionIncreasing",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wSelectionIncreasing",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wValid",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wValid",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wModel",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wModel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wRealization",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wRealization",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wEndpoint",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wEndpoint",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "wEndpointWitnesses",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.PartialID.SlateBenefitPartialTransport.wEndpointWitnesses",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_FiniteIidSampling",
+          "kind": "definition",
+          "label": "Definition FiniteIidSampling",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ObservedLawDomain",
+          "kind": "definition",
+          "label": "Definition ObservedLawDomain",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_observableCapacities",
+          "kind": "definition",
+          "label": "Definition observableCapacities",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_UniformInferenceLawClass",
+          "kind": "definition",
+          "label": "Definition UniformInferenceLawClass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "symbol",
+      "items": [
+        {
+          "obj_id": "sym:K",
+          "kind": "symbol",
+          "label": "K",
+          "nl": "realized by POSlateSystem, OutcomeLevel",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:X",
+          "kind": "symbol",
+          "label": "X",
+          "nl": "realized by POSlateSystem, ObservedDatum",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal X",
+          "kind": "symbol",
+          "label": "\\mathcal X",
+          "nl": "realized by POSlateSystem, ObservedDatum",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Z",
+          "kind": "symbol",
+          "label": "Z",
+          "nl": "realized by POSlateSystem, ObservedDatum",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:D",
+          "kind": "symbol",
+          "label": "D",
+          "nl": "realized by POSlateSystem, ObservedDatum",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:S",
+          "kind": "symbol",
+          "label": "S",
+          "nl": "realized by POSlateSystem, ObservedDatum",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y",
+          "kind": "symbol",
+          "label": "Y",
+          "nl": "realized by POSlateSystem, ObservedDatum",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P",
+          "kind": "symbol",
+          "label": "P",
+          "nl": "realized by POSlateSystem",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:D_0",
+          "kind": "symbol",
+          "label": "D_0",
+          "nl": "realized by D0",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:D_1",
+          "kind": "symbol",
+          "label": "D_1",
+          "nl": "realized by D1",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:S_0",
+          "kind": "symbol",
+          "label": "S_0",
+          "nl": "realized by S0",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:S_1",
+          "kind": "symbol",
+          "label": "S_1",
+          "nl": "realized by S1",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y_0",
+          "kind": "symbol",
+          "label": "Y_0",
+          "nl": "realized by Y0",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y_1",
+          "kind": "symbol",
+          "label": "Y_1",
+          "nl": "realized by Y1",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:C",
+          "kind": "symbol",
+          "label": "C",
+          "nl": "realized by complierEvent",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:p_x",
+          "kind": "symbol",
+          "label": "p_x",
+          "nl": "realized by p, observedCellWeights",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\pi",
+          "kind": "symbol",
+          "label": "\\pi",
+          "nl": "realized by propensity, InstrumentOverlap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:O",
+          "kind": "symbol",
+          "label": "O",
+          "nl": "realized by observedDatum, FiniteIidSampling, ObservedDatum",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P_{\\mathrm{obs}}",
+          "kind": "symbol",
+          "label": "P_{\\mathrm{obs}}",
+          "nl": "realized by observedLaw, FiniteIidSampling, paperObservableCapacities",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\varepsilon_Z",
+          "kind": "symbol",
+          "label": "\\varepsilon_Z",
+          "nl": "realized by InstrumentOverlap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:d(x)",
+          "kind": "symbol",
+          "label": "d(x)",
+          "nl": "realized by WeakSelectionMonotonicity",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\kappa_{\\sigma}",
+          "kind": "symbol",
+          "label": "\\kappa_{\\sigma}",
+          "nl": "realized by DirectionMargin",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:m_{\\star}",
+          "kind": "symbol",
+          "label": "m_{\\star}",
+          "nl": "realized by UniformAggregateSurvivorBound",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbf O_n",
+          "kind": "symbol",
+          "label": "\\mathbf O_n",
+          "nl": "realized by FiniteIidSampling",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:n",
+          "kind": "symbol",
+          "label": "n",
+          "nl": "realized by FiniteIidSampling",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal M",
+          "kind": "symbol",
+          "label": "\\mathcal M",
+          "nl": "realized by TieSafeSurvivorModel",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal P_n",
+          "kind": "symbol",
+          "label": "\\mathcal P_n",
+          "nl": "realized by UniformInferenceLawClass, UniformSlateFamily",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal Y",
+          "kind": "symbol",
+          "label": "\\mathcal Y",
+          "nl": "realized by OutcomeLevel",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\ell_i(x)",
+          "kind": "symbol",
+          "label": "\\ell_i(x)",
+          "nl": "realized by Capacities, observableCapacityContrasts",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:h_j(x)",
+          "kind": "symbol",
+          "label": "h_j(x)",
+          "nl": "realized by Capacities, observableCapacityContrasts",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q_0(x)",
+          "kind": "symbol",
+          "label": "q_0(x)",
+          "nl": "realized by q0",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q_1(x)",
+          "kind": "symbol",
+          "label": "q_1(x)",
+          "nl": "realized by q1",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Delta q(x)",
+          "kind": "symbol",
+          "label": "\\Delta q(x)",
+          "nl": "realized by gap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:m(x)",
+          "kind": "symbol",
+          "label": "m(x)",
+          "nl": "realized by mass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\ell_{\\le t}(x)",
+          "kind": "symbol",
+          "label": "\\ell_{\\le t}(x)",
+          "nl": "realized by lowerLe",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\ell_{<t}(x)",
+          "kind": "symbol",
+          "label": "\\ell_{<t}(x)",
+          "nl": "realized by lowerLt",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\ell_{>t}(x)",
+          "kind": "symbol",
+          "label": "\\ell_{>t}(x)",
+          "nl": "realized by lowerGt",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:h_{\\le t}(x)",
+          "kind": "symbol",
+          "label": "h_{\\le t}(x)",
+          "nl": "realized by upperLe",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:h_{>t}(x)",
+          "kind": "symbol",
+          "label": "h_{>t}(x)",
+          "nl": "realized by upperGt",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:B_L(x)",
+          "kind": "symbol",
+          "label": "B_L(x)",
+          "nl": "realized by benefitLower",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:B_U(x)",
+          "kind": "symbol",
+          "label": "B_U(x)",
+          "nl": "realized by benefitUpper",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:M",
+          "kind": "symbol",
+          "label": "M",
+          "nl": "realized by aggregateMass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\theta_L",
+          "kind": "symbol",
+          "label": "\\theta_L",
+          "nl": "realized by endpointMap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\theta_U",
+          "kind": "symbol",
+          "label": "\\theta_U",
+          "nl": "realized by endpointMap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Theta_I(P_{\\mathrm{obs}})",
+          "kind": "symbol",
+          "label": "\\Theta_I(P_{\\mathrm{obs}})",
+          "nl": "realized by endpointMap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Psi(P_{\\mathrm{obs}})",
+          "kind": "symbol",
+          "label": "\\Psi(P_{\\mathrm{obs}})",
+          "nl": "realized by endpointMap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbb Z_{P_{\\mathrm{obs}}}",
+          "kind": "symbol",
+          "label": "\\mathbb Z_{P_{\\mathrm{obs}}}",
+          "nl": "realized by FiniteMultinomialCLT",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat P_n",
+          "kind": "symbol",
+          "label": "\\widehat P_n",
+          "nl": "realized by empiricalFreq",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat p_x",
+          "kind": "symbol",
+          "label": "\\widehat p_x",
+          "nl": "realized by empiricalCellMass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widetilde\\ell_i(x)",
+          "kind": "symbol",
+          "label": "\\widetilde\\ell_i(x)",
+          "nl": "realized by rawCapacities",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widetilde h_j(x)",
+          "kind": "symbol",
+          "label": "\\widetilde h_j(x)",
+          "nl": "realized by rawCapacities",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widetilde c_n",
+          "kind": "symbol",
+          "label": "\\widetilde c_n",
+          "nl": "realized by rawCapacities",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat\\ell_i(x)",
+          "kind": "symbol",
+          "label": "\\widehat\\ell_i(x)",
+          "nl": "realized by projectedCapacities",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat h_j(x)",
+          "kind": "symbol",
+          "label": "\\widehat h_j(x)",
+          "nl": "realized by projectedCapacities",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat c_n",
+          "kind": "symbol",
+          "label": "\\widehat c_n",
+          "nl": "realized by projectedCapacities",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat r_x",
+          "kind": "symbol",
+          "label": "\\widehat r_x",
+          "nl": "realized by screenedCell",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\eta_n",
+          "kind": "symbol",
+          "label": "\\eta_n",
+          "nl": "realized by screenedCell",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat q_0(x)",
+          "kind": "symbol",
+          "label": "\\widehat q_0(x)",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat q_1(x)",
+          "kind": "symbol",
+          "label": "\\widehat q_1(x)",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat{\\Delta q}(x)",
+          "kind": "symbol",
+          "label": "\\widehat{\\Delta q}(x)",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat m(x)",
+          "kind": "symbol",
+          "label": "\\widehat m(x)",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat B_L(x)",
+          "kind": "symbol",
+          "label": "\\widehat B_L(x)",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat B_U(x)",
+          "kind": "symbol",
+          "label": "\\widehat B_U(x)",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat M_n",
+          "kind": "symbol",
+          "label": "\\widehat M_n",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat N_{L,n}",
+          "kind": "symbol",
+          "label": "\\widehat N_{L,n}",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat N_{U,n}",
+          "kind": "symbol",
+          "label": "\\widehat N_{U,n}",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat\\Psi_n",
+          "kind": "symbol",
+          "label": "\\widehat\\Psi_n",
+          "nl": "realized by plugInEndpoints",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal X_+(P)",
+          "kind": "symbol",
+          "label": "\\mathcal X_+(P)",
+          "nl": "realized by positiveSupport",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:a_n",
+          "kind": "symbol",
+          "label": "a_n",
+          "nl": "realized by localizationTol",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat{\\mathcal A}_{L,n}(x;a_n)",
+          "kind": "symbol",
+          "label": "\\widehat{\\mathcal A}_{L,n}(x;a_n)",
+          "nl": "realized by estimatedActiveLower",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat{\\mathcal A}_{U,n}(x;a_n)",
+          "kind": "symbol",
+          "label": "\\widehat{\\mathcal A}_{U,n}(x;a_n)",
+          "nl": "realized by estimatedActiveUpper",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\xi_r",
+          "kind": "symbol",
+          "label": "\\xi_r",
+          "nl": "realized by multiplierProcess",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbb G_n^{\\xi}",
+          "kind": "symbol",
+          "label": "\\mathbb G_n^{\\xi}",
+          "nl": "realized by multiplierProcess",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal E",
+          "kind": "symbol",
+          "label": "\\mathcal E",
+          "nl": "realized by guardEvents",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\delta_n",
+          "kind": "symbol",
+          "label": "\\delta_n",
+          "nl": "realized by maxDeviation",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:b_{n,\\alpha}",
+          "kind": "symbol",
+          "label": "b_{n,\\alpha}",
+          "nl": "realized by unionThreshold",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:A_{n,\\alpha}",
+          "kind": "symbol",
+          "label": "A_{n,\\alpha}",
+          "nl": "realized by errorEnvelope",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:g_{n,\\alpha}",
+          "kind": "symbol",
+          "label": "g_{n,\\alpha}",
+          "nl": "realized by guardRadius",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\alpha",
+          "kind": "symbol",
+          "label": "\\alpha",
+          "nl": "realized by guardedConfidenceSet",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal C_{1-\\alpha,n}",
+          "kind": "symbol",
+          "label": "\\mathcal C_{1-\\alpha,n}",
+          "nl": "realized by guardedConfidenceSet",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\gamma_x",
+          "kind": "symbol",
+          "label": "\\gamma_x",
+          "nl": "realized by Coupling",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Gamma_x^{\\ast}",
+          "kind": "symbol",
+          "label": "\\Gamma_x^{\\ast}",
+          "nl": "realized by branchFreePolytope",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Gamma_x",
+          "kind": "symbol",
+          "label": "\\Gamma_x",
+          "nl": "realized by branchFreePolytope",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Gamma_x^{+}",
+          "kind": "symbol",
+          "label": "\\Gamma_x^{+}",
+          "nl": "realized by incPolytope",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Gamma_x^{-}",
+          "kind": "symbol",
+          "label": "\\Gamma_x^{-}",
+          "nl": "realized by decPolytope",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Gamma_x^{0}",
+          "kind": "symbol",
+          "label": "\\Gamma_x^{0}",
+          "nl": "realized by tiePolytope",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:b_x(\\gamma_x)",
+          "kind": "symbol",
+          "label": "b_x(\\gamma_x)",
+          "nl": "realized by benefitMass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\theta",
+          "kind": "symbol",
+          "label": "\\theta",
+          "nl": "realized by benefitProbability",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P^L",
+          "kind": "symbol",
+          "label": "P^L",
+          "nl": "realized by full_law_endpoint_attainment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P^U",
+          "kind": "symbol",
+          "label": "P^U",
+          "nl": "realized by full_law_endpoint_attainment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P_{\\mathrm{obs}}^{\\star}",
+          "kind": "symbol",
+          "label": "P_{\\mathrm{obs}}^{\\star}",
+          "nl": "realized by witnessObservedMeasure",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P^{\\star}",
+          "kind": "symbol",
+          "label": "P^{\\star}",
+          "nl": "realized by witnessFullMeasureFamily",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:D_a",
+          "kind": "symbol",
+          "label": "D_a",
+          "nl": "realized by D0, D1",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:S_a",
+          "kind": "symbol",
+          "label": "S_a",
+          "nl": "realized by S0, S1",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y_a",
+          "kind": "symbol",
+          "label": "Y_a",
+          "nl": "realized by Y0, Y1",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    }
+  ]
+}

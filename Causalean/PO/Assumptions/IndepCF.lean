@@ -1,0 +1,215 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Independence and Conditional Independence of Counterfactual Bundles
+
+Named shapes for expressing joint (conditional) independence of PO
+counterfactual variables.  A `POCFBundle` is a heterogeneous bundle of
+`RegimedVar`s over a fixed PO system, packaged into a single dependent-tuple
+measurable map `jointValue : P.Ω → (∀ i, type i)`.  `IndepCF` / `CondIndepCF`
+then express joint (conditional) independence of a single `RegimedVar` from
+such a bundle, replacing bespoke product-tuple encodings in identification
+proofs.
+-/
+
+module
+public import Causalean.PO.Core.Variable
+public import Causalean.Mathlib.Probability.Independence.Basic
+public import Causalean.Mathlib.Probability.Independence.Conditional
+
+/-! # Independence of Counterfactual Bundles
+
+This file packages finite heterogeneous collections of regimed
+potential-outcome variables and defines independence or conditional
+independence between a single regimed variable and such a bundle. These forms
+provide reusable assumptions for identification theorems.
+
+The main structure is `POCFBundle`, whose `jointValue` map turns a finite
+dependent tuple of regimed potential outcomes into one measurable conditioning
+object.  `POSystem.IndepCF` and `POSystem.CondIndepCF` unfold to `IndepFun` and
+`CondIndepFun`, and the projection lemmas let downstream files extract
+independence for a measurable function or a single coordinate of the bundle. -/
+
+@[expose] public section
+
+namespace Causalean
+namespace PO
+
+open MeasureTheory ProbabilityTheory
+
+/-- A finite heterogeneous bundle of [n](hyp:n) regimed potential-outcome variables indexed
+by `Fin n`: [each coordinate carries its own value type equipped with a measurable-space
+structure](hyp:type), and [each coordinate is itself a potential-outcome variable
+paired with the intervention regime under which it is evaluated](hyp:vars).
+
+Used to express joint-independence hypotheses uniformly. -/
+structure POCFBundle (P : POSystem) where
+  /-- Length of the bundle. -/
+  n : ℕ
+  /-- Value type of each component. -/
+  type : Fin n → Type*
+  /-- Measurable-space structure on each component. -/
+  inst : ∀ i, MeasurableSpace (type i)
+  /-- Component `RegimedVar`s. -/
+  vars : ∀ i, RegimedVar P (type i)
+
+namespace POCFBundle
+
+variable {P : POSystem} (B : POCFBundle P)
+
+/-- For [a potential-outcomes system](hyp:P), [a finite bundle of regimed
+potential-outcome variables in that system](hyp:B), and [a coordinate of that
+bundle](hyp:i), [the measurable-space structure on the value space at that
+coordinate](goal) is the structure declared by the bundle.
+
+Each coordinate type in a counterfactual bundle carries its declared
+measurable-space structure. -/
+instance instMeasurableSpaceType (i : Fin B.n) : MeasurableSpace (B.type i) :=
+  B.inst i
+
+/-- For [a finite bundle of regimed potential-outcome variables](hyp:B), the
+[joint counterfactual-value map](goal) assigns to every sample point the tuple
+whose coordinate is that variable's potential outcome under its associated regime. -/
+def jointValue : P.Ω → (∀ i : Fin B.n, B.type i) :=
+  fun ω i => (B.vars i).value ω
+
+/-- The joint counterfactual-value map of a bundle is measurable. -/
+@[fun_prop]
+lemma measurable_jointValue : Measurable B.jointValue :=
+  measurable_pi_lambda _ (fun i => (B.vars i).measurable_value)
+
+/-- For [a potential-outcome system](hyp:P), the [empty counterfactual bundle](goal)
+has no coordinates. -/
+def nil (P : POSystem) : POCFBundle P where
+  n := 0
+  type := Fin.elim0
+  inst := fun i => i.elim0
+  vars := fun i => i.elim0
+
+/-- For [a regimed potential-outcome variable](hyp:a) and [a finite counterfactual
+bundle](hyp:B) in the same potential-outcome system, the [extended counterfactual
+bundle](goal) places that variable first and retains every original coordinate. -/
+def cons {P : POSystem} {α : Type*} [inst : MeasurableSpace α]
+    (a : RegimedVar P α) (B : POCFBundle P) : POCFBundle P where
+  n := B.n + 1
+  type := Fin.cases α B.type
+  inst := Fin.cases inst B.inst
+  vars := Fin.cases a B.vars
+
+end POCFBundle
+
+/-- For [a potential-outcome system](hyp:P), [a regimed potential-outcome variable](hyp:a),
+[a finite counterfactual bundle](hyp:B), and [a measure on the sample space](hyp:μ),
+the [counterfactual-independence condition](goal) says that the variable's potential
+outcome is independent of the bundle's joint potential-outcome vector under that measure. -/
+def POSystem.IndepCF {α : Type*} [MeasurableSpace α] (P : POSystem)
+    (a : RegimedVar P α) (B : POCFBundle P) (μ : Measure P.Ω := P.μ) : Prop :=
+  IndepFun a.value B.jointValue μ
+
+/-- For [a potential-outcome system whose sample space is standard Borel](hyp:P),
+[a regimed potential-outcome variable](hyp:a), [a finite counterfactual bundle](hyp:B),
+[a regimed conditioning variable](hyp:c), and [a finite measure on the sample space](hyp:μ),
+the [conditional counterfactual-independence condition](goal) says that the first
+variable's potential outcome is conditionally independent of the bundle's joint
+potential-outcome vector given the σ-algebra generated by the conditioning variable. -/
+def POSystem.CondIndepCF {α γ : Type*} [MeasurableSpace α] [MeasurableSpace γ]
+    (P : POSystem) [StandardBorelSpace P.Ω]
+    (a : RegimedVar P α) (B : POCFBundle P) (c : RegimedVar P γ)
+    (μ : Measure P.Ω := P.μ) [IsFiniteMeasure μ] : Prop :=
+  CondIndepFun
+    (MeasurableSpace.comap c.value inferInstance)
+    (c.measurable_value.comap_le)
+    a.value B.jointValue μ
+
+namespace POSystem
+
+variable {P : POSystem}
+
+/-- Bridge: `IndepCF` is by definition `IndepFun a.value B.jointValue μ`. -/
+lemma IndepCF.toIndepFun {α : Type*} [MeasurableSpace α]
+    {a : RegimedVar P α} {B : POCFBundle P} {μ : Measure P.Ω} :
+    P.IndepCF a B μ → IndepFun a.value B.jointValue μ := id
+
+/-- Bridge: `IndepFun` ⇒ `IndepCF` (reverse direction, also trivial). -/
+lemma IndepCF.ofIndepFun {α : Type*} [MeasurableSpace α]
+    {a : RegimedVar P α} {B : POCFBundle P} {μ : Measure P.Ω} :
+    IndepFun a.value B.jointValue μ → P.IndepCF a B μ := id
+
+/-- Bridge: `CondIndepCF` unfolds to `CondIndepFun` with the comap σ-algebra
+generated by `c.value`. -/
+lemma CondIndepCF.toCondIndepFun {α γ : Type*}
+    [MeasurableSpace α] [MeasurableSpace γ] [StandardBorelSpace P.Ω]
+    {a : RegimedVar P α} {B : POCFBundle P} {c : RegimedVar P γ}
+    {μ : Measure P.Ω} [IsFiniteMeasure μ] :
+    P.CondIndepCF a B c μ →
+      CondIndepFun
+        (MeasurableSpace.comap c.value inferInstance)
+        (c.measurable_value.comap_le)
+        a.value B.jointValue μ := id
+
+/-- Transport `CondIndepCF` across equality of the conditioning variables'
+generated σ-algebras. -/
+theorem condIndepCF_congr_cond {α γ γ' : Type*}
+    [MeasurableSpace α] [MeasurableSpace γ] [MeasurableSpace γ']
+    [StandardBorelSpace P.Ω]
+    {a : RegimedVar P α} {B : POCFBundle P} {c : RegimedVar P γ}
+    {c' : RegimedVar P γ'} {μ : Measure P.Ω} [IsFiniteMeasure μ]
+    (hcomap : MeasurableSpace.comap c.value inferInstance =
+      MeasurableSpace.comap c'.value inferInstance)
+    (h : P.CondIndepCF a B c μ) : P.CondIndepCF a B c' μ := by
+  unfold CondIndepCF at h ⊢
+  convert h using 1
+  exact hcomap.symm
+
+/-- Projection: independence of `a.value` from any measurable function of the
+bundle's joint value follows from `IndepCF`. -/
+lemma IndepCF.project {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {a : RegimedVar P α} {B : POCFBundle P} {μ : Measure P.Ω}
+    {ψ : (∀ i, B.type i) → β} (h : P.IndepCF a B μ) (hψ : Measurable ψ) :
+    IndepFun a.value (ψ ∘ B.jointValue) μ :=
+  h.toIndepFun.comp measurable_id hψ
+
+/-- Component projection: independence of `a.value` from a single coordinate
+of the bundle follows from `IndepCF`. -/
+lemma IndepCF.component {α : Type*} [MeasurableSpace α]
+    {a : RegimedVar P α} {B : POCFBundle P} {μ : Measure P.Ω}
+    (h : P.IndepCF a B μ) (i : Fin B.n) :
+    IndepFun a.value (fun ω => B.jointValue ω i) μ :=
+  h.project (ψ := fun f => f i) (measurable_pi_apply i)
+
+/-- Fix a potential-outcome system in which [a regimed variable `a` is
+conditionally independent of a counterfactual bundle `B` given a regimed
+variable `c`](hyp:h). Then for [any measurable function `ψ` of the bundle's
+joint value](hyp:hψ), [the value of `a` remains conditionally independent,
+given `c`, of `ψ` composed with the bundle's joint value](goal). -/
+lemma CondIndepCF.project {α β γ : Type*}
+    [MeasurableSpace α] [MeasurableSpace β] [MeasurableSpace γ]
+    [StandardBorelSpace P.Ω]
+    {a : RegimedVar P α} {B : POCFBundle P} {c : RegimedVar P γ}
+    {μ : Measure P.Ω} [IsFiniteMeasure μ]
+    {ψ : (∀ i, B.type i) → β} (h : P.CondIndepCF a B c μ) (hψ : Measurable ψ) :
+    CondIndepFun
+        (MeasurableSpace.comap c.value inferInstance)
+        (c.measurable_value.comap_le)
+        a.value (ψ ∘ B.jointValue) μ :=
+  h.toCondIndepFun.comp measurable_id hψ
+
+/-- Component projection: conditional independence of `a.value` from a single
+coordinate of the bundle follows from `CondIndepCF`. -/
+lemma CondIndepCF.component {α γ : Type*}
+    [MeasurableSpace α] [MeasurableSpace γ] [StandardBorelSpace P.Ω]
+    {a : RegimedVar P α} {B : POCFBundle P} {c : RegimedVar P γ}
+    {μ : Measure P.Ω} [IsFiniteMeasure μ]
+    (h : P.CondIndepCF a B c μ) (i : Fin B.n) :
+    CondIndepFun
+        (MeasurableSpace.comap c.value inferInstance)
+        (c.measurable_value.comap_le)
+        a.value (fun ω => B.jointValue ω i) μ :=
+  h.project (ψ := fun f => f i) (measurable_pi_apply i)
+
+end POSystem
+
+end PO
+end Causalean

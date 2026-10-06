@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "reader_passes": 1,
+  "deck_hash": "d55709a208939ea097ad99eb30ab8caaf95f849a5f8f778923e28318df07e1e7",
+  "question": "When does optimizing assignment covariance produce a covariance that an actual binary treatment randomization can realize, and what is the exact cost of imposing realizability? Correlated assignments can improve design under interference, but the usual positive-semidefinite, unit-diagonal relaxation admits matrices that no assignment law generates.",
+  "result": "Consider two communities of m≥2 units, with interaction weights a/m within communities and b/m across them, a>b>0, and criterion weights r,κ≥0. Optimize F(X)=tr(L_m X)+r tr(L_m† X)+κ||X||_F+tr(J_n X) over sign-symmetric assignment laws, where X=E[ZZᵀ]. After symmetry reduction, let q=2(m−1) and T_m={(x,y,z_sp)≥0: qx+y+z_sp=2m}. The reduced objective is φ(x,y,z_sp)=q[(a+b)+r/(a+b)]x+[2b+r/(2b)]y+2m z_sp+κ√(qx²+y²+z_sp²). A block-symmetric covariance is realizable exactly when y+z_sp≥d_m, where d_m=0 for even m and 2/m for odd m. Consequently, the exact implementability loss is Δ_m^±(r,κ)=min_{T_m, y+z_sp≥d_m}φ−min_{T_m}φ. Loss is zero exactly when some relaxed optimizer satisfies parity; even m therefore always gives zero loss. The relaxed optimizer is unique when κ>0. The slides also give sufficient parameter regions for the cut law to be uniquely optimal and, for odd m, for the relaxed within-community corner to yield strictly positive loss.",
+  "mechanism": "1. Average over permutations within communities and community swaps. This preserves the graph and feasible assignment laws, and convexity prevents the objective from increasing. The covariance then has within-community entry u and across-community entry v. 2. Rewrite it using variances x=1−u, y=1+(m−1)u−mv, and z_sp=1+(m−1)u+mv. Positive semidefiniteness becomes nonnegativity, and the fixed diagonal gives qx+y+z_sp=2m. 3. Solve the resulting three-direction allocation problem. In mass coordinates t=(qx,y,z_sp), set α=(c_x/q,c_y,c_z) and β=(1/q,1,1). For κ>0, enumerate the seven nonempty supports. The common marginal cost λ satisfies Σ_{i∈S}(λ−α_i)²/β_i=κ², with α_i<λ on the support and λ≤α_j outside it. Allocate mass proportionally to (λ−α_i)/β_i, normalizing to total mass 2m; the relaxed value is 2mλ. For κ=0, use the cheapest directions, retaining a parity-feasible optimum if costs tie. 4. Check y+z_sp≥d_m. Community sums explain this restriction: y+z_sp=(E[S_A²]+E[S_B²])/m, and odd community sums cannot be zero. 5. If every relaxed optimizer fails the check, solve on the boundary t=(2m−d_m,s,d_m−s). This is a scalar convex minimization: the linear cost difference favors the cheaper community-level direction, while the norm penalty can favor splitting mass. The slides provide the explicit minimizing split. 6. Implement the chosen covariance by mixing vertex laws. For odd m, use community sums (m,−m), (m,m), (1,−1), and (1,1), uniformly place signs within communities, and apply a fair global flip. For even m, replace the two minimally balanced vertices with the zero-sum law (0,0).",
+  "why_true": "Symmetry makes the reduced problem sufficient for both optimizations, rather than merely a convenient approximation. Parity gives a necessary lower bound on community-total variance. It is also sufficient because the explicit assignment laws attain every vertex of the restricted polygon, and mixtures average second moments, attaining every point inside it. Thus there are no additional binary-feasibility restrictions in this symmetric model. When the relaxed optimum is excluded, convexity places the constrained optimum on the parity boundary: a strictly feasible point could otherwise move toward a relaxed optimum and lower the objective before reaching that boundary. The usual relaxation misses precisely the positive minimum variance of odd community totals.",
+  "example": "For m=3, a=2, b=1, r=8, and κ=0, the costs per unit of variance mass are 17/3, 6, and 6. The relaxation allocates all six units of mass to within-community contrasts, giving (x,y,z_sp)=(3/2,0,0) and value 34. Parity requires 2/3 of mass in the community-level directions. Choosing (4/3,2/3,0) gives value 308/9 and loss 2/9. To implement it, choose community sums (1,−1) or (−1,1) with equal probability and uniformly select assignments with those sums. Their aggregate sum is zero and their squared difference is four, producing exactly the claimed covariance.",
+  "findings": [
+    {
+      "slide": 12,
+      "severity": "rough",
+      "problem": "“For odd m, the feasible triangle has four vertices” gives the geometric object an inconsistent name. The parity restriction has cut off a corner of the original triangle.",
+      "fix": "Call it the parity-truncated triangle or a quadrilateral, consistently distinguishing it from T_m."
+    },
+    {
+      "slide": 14,
+      "severity": "rough",
+      "problem": "The positive-loss idea is clear from the two cost comparisons, but κ_gap, R_x^−, R_x^+, and the two r_gap endpoints introduce too many nested definitions to absorb while listening. The midpoint defining r_gap^− also appears without an explanation of why that particular interval is being selected.",
+      "fix": "Keep the two cost comparisons, the excluded corner, and the numerical interval (7.5,9) on the main slide. Move the expanded sufficient-region formulas to a backup slide, or explain in one sentence why the midpoint is chosen."
+    },
+    {
+      "slide": 15,
+      "severity": "rough",
+      "problem": "The slide simultaneously changes coordinates, introduces α and β, specifies support selection, reconstructs the allocation, and states its value. I understand these relationships from the text, but the complete calculation is difficult to take in on one seminar slide.",
+      "fix": "Split it into support selection and allocation recovery. Carry the same three-direction example through both, showing which support survives and how its masses follow."
+    },
+    {
+      "slide": 16,
+      "severity": "rough",
+      "problem": "The long piecewise radical formula for s* draws attention away from the simple reason the correction works: a convex tradeoff between a linear cost difference and spreading the required variance.",
+      "fix": "Show the scalar objective g(s)=α_x(M−d)+α_y s+α_z(d−s)+κ√(A+s²+(d−s)²), then explain endpoint selection and the interior condition g′(s)=0. Put the expanded radical solution in backup material."
+    }
+  ],
+  "understood": "yes"
+}

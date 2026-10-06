@@ -1,0 +1,237 @@
+\section{Private-pilot estimation and Wald inference}
+
+The efficiency benchmark in \cref{obj:thm:sequential-minimax} is attained by a procedure that uses private pilot releases to select the main-sample channel. The construction combines the pilot treatment-effect estimate with an affine correction computed from the remaining releases. Under interior assignment and positive privacy, a measurable strong-saddle selector exists. The procedure fixes any such selector satisfying the interface in \cref{obj:def:pilot-estimator}: at every interior parameter, it returns feasible staircase weights, a minimizing profiling coordinate, and the optimal information value, with the selected weights also maximizing the objective at that coordinate.
+
+Two restrictions govern the pilot allocation:
+\[
+m_n\longrightarrow\infty,
+\qquad
+\frac{m_n}{n}\longrightarrow0,
+\]
+as specified in \cref{obj:ass:pilot-diverges,obj:ass:pilot-sublinear}. The first supplies an increasing number of private observations for learning the arm means; the second allocates an asymptotically full fraction of subjects to the selected main-sample channel. The attainment result below applies to an arbitrary schedule satisfying these restrictions. The schedule \(m_n=\lfloor\sqrt n\rfloor\) exhibited for the minimax equality in \cref{obj:thm:sequential-minimax} is one such choice.
+
+To describe the estimator, we first specify the selected affine correction \leanref{sym:\widetilde\phi(S)}{\ensuremath{\widetilde\phi(S)}}. It combines the selected profiling direction with the pattern-specific score and normalizes by the selected information value.
+
+\begin{definitionv}{synth_9}[Pilot-selected affine correction]
+Let \(p\in(0,1)\), \(\varepsilon>0\), and let \(\widetilde\theta\in(0,1)^2\) be the private pilot estimate. Apply the measurable strong-saddle selector of \cref{obj:def:pilot-estimator} to obtain
+\[
+(\widetilde\alpha,\widetilde t,\widetilde J)
+=(\alpha_{\widetilde\theta},t_{\widetilde\theta},J_{\widetilde\theta}),
+\qquad
+\widetilde J
+=F_{\widetilde\theta}(\widetilde\alpha,\widetilde t)
+=J^*(\widetilde\theta,p,\varepsilon)>0.
+\]
+For each \(S\in\mathcal S\), define the selected affine correction by
+\[
+\widetilde\phi(S)
+=\frac{g_S^{\top}v(\widetilde t)}
+       {\widetilde J\,h_S(\widetilde\theta)}.
+\]
+Here \(v(t)=(t,t+1)^{\top}\), \(h_S(\vartheta)=\pi_\vartheta^{\top}b_S\), and \(g_S=\nabla_\vartheta h_S(\vartheta)\). The selected weights determine the main-sample channel
+\[
+Q_{\widetilde\alpha}(S\mid x_j)=\widetilde\alpha_S b_S(j)
+\]
+and the information value
+\[
+\widetilde J
+=\sum_{T\in\mathcal S}
+\widetilde\alpha_T
+\frac{(g_T^{\top}v(\widetilde t))^2}
+     {h_T(\widetilde\theta)}.
+\]
+For a transcript entry that is a pilot release, set its correction to zero; for a main-sample pattern release \(S\), use \(\widetilde\phi(S)\).
+\end{definitionv}
+
+The pilot determines both the release probabilities and the numerical correction attached to each main-sample pattern. Conditional on the private pilot history \(H_{m_n}=(R_1,\ldots,R_{m_n})\), these choices are fixed. The remaining subjects then supply releases under the selected channel. The following boxed algorithm collects the implementation in \cref{obj:def:pilot-estimator}, displaying the steps for sample sizes with \(1\le m_n<n\), as eventually implied by the two pilot-size restrictions.
+
+\begin{center}
+\fbox{%
+\begin{minipage}{0.94\linewidth}
+\textbf{Private-pilot estimation algorithm}
+
+\medskip
+\textbf{Inputs.}
+The known assignment probability \(p\in(0,1)\), fixed privacy level \(\varepsilon>0\), a pilot schedule satisfying
+\[
+m_n\to\infty,\qquad m_n/n\to0,
+\]
+and a fixed measurable strong-saddle selector
+\[
+\vartheta\longmapsto
+(\alpha_\vartheta,t_\vartheta,J_\vartheta)
+\]
+defined on all real parameter pairs and satisfying all the interior-parameter selection conditions in \cref{obj:def:pilot-estimator}, including maximization over feasible weights at the selected profiling coordinate. The attainment results assume a fixed measurable strong-saddle selector satisfying these conditions. Numerical evaluation of this input requires a separately specified solver and tie-breaking rule.
+
+\begin{enumerate}
+\item \textbf{Release and estimate the pilot.}
+For the first \(m_n\) subjects, use the four-category \(\varepsilon\)-randomized-response rule in \cref{obj:synth_10}. From the category frequencies, compute
+\[
+\widehat u_k=\frac{1}{m_n}\sum_{i=1}^{m_n}\mathbf1\{R_i=k\},
+\qquad
+\widehat\pi_k
+=\frac{(e^\varepsilon+3)\widehat u_k-1}{e^\varepsilon-1},
+\qquad k\in\{0,1,2,3\}.
+\]
+With \(\delta_n=(m_n+2)^{-1}\), set
+\[
+\begin{aligned}
+\widetilde\theta_0
+&=\max\left\{\delta_n,
+\min\left\{1-\delta_n,\frac{\widehat\pi_1}{1-p}\right\}\right\},\\
+\widetilde\theta_1
+&=\max\left\{\delta_n,
+\min\left\{1-\delta_n,\frac{\widehat\pi_3}{p}\right\}\right\}.
+\end{aligned}
+\]
+The zero-based categories \(1\) and \(3\) represent control success and treatment success, respectively.
+
+\item \textbf{Select the main-sample channel.}
+Evaluate the input selector at
+\(\widetilde\theta=(\widetilde\theta_0,\widetilde\theta_1)^\top\)
+to obtain \((\widetilde\alpha,\widetilde t,\widetilde J)\).
+
+\item \textbf{Release the remaining records.}
+For \(m_n<i\le n\), generate the pattern release
+\[
+S_i\sim Q_{\widetilde\alpha}(\,\cdot\mid X_i)
+\]
+using the selected channel in \cref{obj:synth_9}.
+
+\item \textbf{Estimate the treatment effect.}
+Report the pilot contrast plus the average selected correction:
+\[
+\widehat\tau^*
+=\widetilde\theta_1-\widetilde\theta_0
++\frac{1}{n-m_n}\sum_{i=m_n+1}^{n}\widetilde\phi(S_i).
+\]
+\end{enumerate}
+The complete procedure, including its conventions for every sample size, is defined in \cref{obj:def:pilot-estimator}.
+\end{minipage}%
+}
+\end{center}
+
+Clipping places the pilot estimate in the interior parameter space where the selector conditions apply. The main-sample correction then targets the discrepancy between the pilot contrast and the true treatment effect. The conditional unbiasedness clause in \cref{obj:thm:pilot-attainment} gives this centering an exact interpretation: the estimation error has mean zero conditional on the private pilot history. Consequently, the theorem accommodates every pilot schedule satisfying the two stated limits.
+
+For studentization, use the empirical variance estimator \leanref{sym:\widehat V^*}{\ensuremath{\widehat V^*}}. It centers the main-sample corrections at their empirical mean, so the pilot contrast, which is fixed conditional on the pilot history, contributes no term to this empirical variance.
+
+\begin{definitionv}{synth_1}[Empirical variance of selected corrections]
+The variance estimator \(\widehat V^*\) is defined for any \(p,\varepsilon\in\mathbb R\), pilot-size schedule \(m:\mathbb N\to\mathbb N\), sample size \(n\in\mathbb N\), transcript \(z\) of \(n\) pilot-or-pattern releases, and selector mapping each real parameter pair to a staircase-weight vector and two real numbers. Write \(m_n=m(n)\), and let \(\widetilde\theta\) be the pilot parameter estimate computed from \(p,\varepsilon,m,z\). For each transcript entry, \(\widetilde\phi(z_i)\) denotes zero when the entry is a pilot release and the selected affine correction \(\widetilde\phi(S_i)\), evaluated at \(\widetilde\theta,p,\varepsilon\) using the supplied selector, when the entry is a pattern release. Then
+\[
+\widehat V^*
+=
+\frac{1}{\max\{n-m_n,0\}}
+\sum_{\substack{0\le i<n\\m_n\le i}}
+\left(
+\widetilde\phi(z_i)
+-
+\frac{1}{\max\{n-m_n,0\}}
+\sum_{\substack{0\le j<n\\m_n\le j}}
+\widetilde\phi(z_j)
+\right)^2.
+\]
+Here reciprocals are interpreted as zero at zero, so the definition also gives \(\widehat V^*=0\) when \(m_n\ge n\).
+\end{definitionv}
+
+For a nonempty main sample, this is the empirical second central moment with divisor \(n-m_n\). Its zero-based transcript indexing corresponds to the one-based main-sample indices in the algorithm. Under the attainment conditions, it consistently estimates the asymptotic variance constant \(V^*(\theta,p,\varepsilon)\) defined in \cref{obj:def:staircase-saddle}. The resulting standard error is \(\sqrt{\widehat V^*/n}\), reflecting the theorem's normalization by the total sample size.
+
+Fix the Wald error probability \leanref{sym:\gamma}{\ensuremath{\gamma}} in \((0,1)\), and let \leanref{sym:\Phi}{\ensuremath{\Phi}} denote the standard normal distribution function. The normal critical value \leanref{sym:z_{1-\gamma/2}}{\ensuremath{z_{1-\gamma/2}}} uses the generalized-inverse convention
+\[
+z_{1-\gamma/2}
+=\inf\{z\in\mathbb R:1-\gamma/2\le\Phi(z)\}.
+\]
+Together, the selected estimator and empirical variance yield the interval
+\[
+\left[
+\widehat\tau^*-z_{1-\gamma/2}\sqrt{\widehat V^*/n},
+\quad
+\widehat\tau^*+z_{1-\gamma/2}\sqrt{\widehat V^*/n}
+\right].
+\]
+The next result establishes privacy, conditional centering, regular attainment, variance consistency, and pointwise coverage for this construction.
+
+\begin{theoremv}{thm:pilot-attainment}[Private pilot attainment]
+Let \(\theta=(\mu_0,\mu_1)^{\top}\) be the arm-mean parameter, \(p\) the treatment-assignment probability, and \(\varepsilon\) the fixed privacy level. Suppose:
+\begin{itemize}
+\item \textbf{(Assignment.)} \(p\) satisfies \cref{obj:ass:interior-assignment}.
+\item \textbf{(Means.)} \(\theta\) satisfies \cref{obj:ass:interior-means}.
+\item \textbf{(Privacy.)} The privacy sequence and \(\varepsilon\) satisfy \cref{obj:ass:fixed-privacy}.
+\item \textbf{(Selection.)} The selector in \cref{obj:def:pilot-estimator} satisfies the saddle-selection conditions there and, at every interior parameter \(\vartheta\), its selected weights maximize the objective at its selected profiling coordinate:
+\[
+F_{\vartheta}(\alpha,t_{\vartheta})
+\le F_{\vartheta}(\alpha_{\vartheta},t_{\vartheta})
+\qquad
+\text{for every }\alpha\in\mathcal A_{\varepsilon}.
+\]
+\item \textbf{(Pilot schedule.)} The pilot sizes \(m_n\) satisfy \cref{obj:ass:pilot-diverges,obj:ass:pilot-sublinear}.
+\item \textbf{(Coverage level.)} The Wald error probability \(\gamma\) satisfies \(0<\gamma<1\).
+\end{itemize}
+
+Consider the complete procedure sequence \(\mathcal P\) constructed in \cref{obj:def:pilot-estimator}, with estimator \(\widehat\tau^*\), and write \(\tau=\mu_1-\mu_0\) for the treatment-effect contrast. For every sample size, its channels satisfy sequential \(\varepsilon\)-local differential privacy as specified in \cref{obj:ass:sequential-ldp}.
+
+For \(n\ge2\), let \(H_{m_n}=(R_1,\ldots,R_{m_n})\) be the private pilot history. For every bounded measurable function \(f\) of the transcript whose value depends only on \(H_{m_n}\), the product \((\widehat\tau^*-\tau)f\) is integrable and
+\[
+\mathbb E_{\theta}\!\left[(\widehat\tau^*-\tau)f\right]=0.
+\]
+Under every fixed local perturbation \(h\), the scaled local error \(U_{n,h}^{\mathcal P}\), centered at the contrast of the local parameter \(\theta_{n,h}\), satisfies
+\[
+U_{n,h}^{\mathcal P}
+=
+\sqrt n\left(
+\widehat\tau^*
+-
+\bigl((\theta_{n,h})_1-(\theta_{n,h})_0\bigr)
+\right)
+\rightsquigarrow
+N\!\left(0,V^*(\theta,p,\varepsilon)\right)
+\quad\text{under the transcript law at }\theta_{n,h}.
+\]
+Here \(V^*(\theta,p,\varepsilon)\) is the optimized contrast variance in \cref{obj:def:staircase-saddle}. In particular,
+\[
+\sqrt n(\widehat\tau^*-\tau)
+\rightsquigarrow N\!\left(0,V^*(\theta,p,\varepsilon)\right).
+\]
+The variance estimator \(\widehat V^*\) satisfies
+\[
+\Pr_{\theta}\!\left(
+\left|\widehat V^*-V^*(\theta,p,\varepsilon)\right|>\delta
+\right)\longrightarrow0
+\qquad\text{for every }\delta>0.
+\]
+
+The procedure is regular at \(\theta\), with common local limit law
+\[
+L_{\mathcal P}=N\!\left(0,V^*(\theta,p,\varepsilon)\right).
+\]
+In addition to the local convergence above, its squared scaled errors satisfy asymptotic uniform integrability over every bounded admissible local-perturbation set: writing \(\mathcal H_{n,H}(\theta)\) for that set at radius \(H\), for every \(H>0\),
+\[
+\lim_{\substack{M\to\infty\\ M\in\mathbb N}}
+\limsup_{n\to\infty}
+\sup_{h\in\mathcal H_{n,H}(\theta)}
+\mathbb E_{\theta_{n,h}}\!\left[
+\bigl(U_{n,h}^{\mathcal P}\bigr)^2
+\mathbf 1\!\left\{\left|U_{n,h}^{\mathcal P}\right|>M\right\}
+\right]
+=0.
+\]
+
+Finally, let \(\Phi\) be the standard normal distribution function and define its critical value by
+\[
+z_{1-\gamma/2}
+=
+\inf\left\{z\in\mathbb R:1-\gamma/2\le\Phi(z)\right\}.
+\]
+Then
+\[
+\Pr_{\theta}\!\left(
+\left|\widehat\tau^*-\tau\right|
+\le z_{1-\gamma/2}\sqrt{\widehat V^*/n}
+\right)\longrightarrow1-\gamma.
+\]
+\end{theoremv}
+
+The construction separates learning the release rule from centering the treatment-effect estimate. The increasing pilot informs channel selection, while the affine correction exactly centers the estimator conditional on that selection. A vanishing pilot fraction then leaves the main sample to determine the first-order variance. Under the measurable strong-saddle conditions, these features deliver the optimized variance for every admissible pilot schedule, including the exhibited schedule used in \cref{obj:thm:sequential-minimax}.
+
+Regularity strengthens the fixed-parameter normal approximation by giving the same limiting error law under every fixed local perturbation, with centering at the corresponding treatment effect. The additional uniform-integrability clause controls squared-error tails over bounded admissible perturbation sets. Together, these conclusions connect the estimator's distributional behavior to the regular squared-error benchmark in \cref{obj:thm:sequential-minimax}.
+
+The variance-consistency and coverage conclusions apply pointwise at every interior arm-mean parameter satisfying the stated conditions, including parameter points at which the optimal channel support changes. At such points, the measurable strong-saddle selector remains the governing selection rule, and the empirical variance estimates the same optimized variance constant appearing in the normal limit. Thus the procedure supplies a selected private release rule, a treatment-effect estimate, and an asymptotically valid Wald interval throughout this interior domain.

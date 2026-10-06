@@ -1,0 +1,12 @@
+module
+public import CausalSmith.Stat.STAT_PointcateFinitepSmoothnessFrontier_Research.Helpers
+public import CausalSmith.Stat.STAT_PointcateFinitepSmoothnessFrontier_Research.TCausalCompletion
+public import CausalSmith.Stat.STAT_PointcateFinitepSmoothnessFrontier_Research.TInteractionObstruction
+public import CausalSmith.Stat.STAT_PointcateFinitepSmoothnessFrontier_Research.TLocalCovarianceBias
+public import CausalSmith.Stat.STAT_PointcateFinitepSmoothnessFrontier_Research.TMomentEndpoint
+public import CausalSmith.Stat.STAT_PointcateFinitepSmoothnessFrontier_Research.TObservableHeavyProjections
+public import CausalSmith.Stat.STAT_PointcateFinitepSmoothnessFrontier_Research.TOracleExperiment
+public import CausalSmith.Stat.STAT_PointcateFinitepSmoothnessFrontier_Research.TSharpFiniteMomentPointFrontier
+
+/-! Public imports for the finite-moment point-CATE Main interface. -/
+public section

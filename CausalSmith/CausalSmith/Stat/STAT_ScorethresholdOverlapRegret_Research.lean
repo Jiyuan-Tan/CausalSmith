@@ -1,0 +1,64 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Basic
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.BlockConstruction
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.BlockRisk
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.CitedGates
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.Estimator
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.Decomposition
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.LeftAdapter
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.LeftOracle
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.Measurability
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.MeasurabilityFamilies
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.Moment
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.MomentBuild
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.RestrictedMoments
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.WitnessAdapter
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.WitnessSkeleton
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.FourChain.WitnessTransport
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.JointTail
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.JointTailBias
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.JointTailDecomposition
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.JointTailGrid
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.JointTailPowers
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.JointTailShells
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.LearnerRisk
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.LocalMembership
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.LowerInformation
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.LowerPairs
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.OpenQuestions
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.Regularization
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.RiskBounds
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.RowInformation
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.RowLikelihood
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.ScanOrder
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.ScoreGrouping
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.ScoreIdentity
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.ScoreMoments
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.SelectorMeasurability
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.UpperComparison
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.UpperExpectation
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.UpperIntegrability
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.UpperPeeling
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.UpperRates
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.Welfare
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.Helpers.WelfareIdentity
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.TBankedSpecialCaseComparison
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.TLowerAllProcedure
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.TMatchedFrontier
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.TPhaseBoundary
+public import CausalSmith.Stat.STAT_ScorethresholdOverlapRegret_Research.TUpper
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

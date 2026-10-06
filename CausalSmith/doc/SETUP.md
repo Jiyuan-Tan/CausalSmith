@@ -1,0 +1,252 @@
+# CausalSmith pipeline — environment setup
+
+This document lists everything needed to **run** the CausalSmith (`CausalSmith research`)
+pipeline on a fresh machine. For *using* the pipeline once set up, see
+[`USER_MANUAL.md`](USER_MANUAL.md).
+
+The pipeline resolves its own repository root at runtime (it walks up to the
+`lakefile.toml` named `CausalSmith`), so it is not tied to any absolute path.
+The machine-specific values below are supplied via a gitignored config file and
+environment variables — never hardcoded.
+
+## Prerequisites
+
+| Tool | Purpose | Notes |
+|---|---|---|
+| [`elan`](https://github.com/leanprover/elan) + `lake` | Lean toolchain / build | Toolchain pinned by `lean-toolchain` (currently `leanprover/lean4:v4.33.0`; the file is authoritative — elan reads it, never pin a version by hand). |
+| Node.js **≥ 20.20.2** | TypeScript pipeline runtime | Floor from `tools/package.json` `engines`; 22.x verified. `source tools/scripts/node_env.sh` puts a satisfying install on PATH, locating nvm via `$NVM_DIR` rather than assuming `$HOME`. Older node (e.g. system node 12) silently fails. |
+| [`lean-lsp-mcp`](https://github.com/oOo0oOo/lean-lsp-mcp) on `PATH` (`pip install lean-lsp-mcp` or `uv tool install lean-lsp-mcp`) | Lean type-checking for agents | Or point `leanLspMcpBinary` / `CAUSALSMITH_LEAN_LSP_MCP` at an absolute path. |
+| `codex` CLI (OpenAI) | Discovery + proof agents | Default models `gpt-5.x` (see "Models" below). Billed to the CLI's own login unless you configure api auth (see "Who pays" below). |
+| `claude` CLI (Anthropic) | Reviewer / judge agents | Same: billed to the CLI's stored login by default; an API key is an opt-in alternative, not a requirement. |
+| Python 3 + `sentence-transformers` | Retrieval embeddings (optional) | Only for `npm run embed:library` / semantic search. |
+| [`pandoc`](https://pandoc.org/installing.html) + `latexmk` (from a TeX distribution: TeX Live, MacTeX, or MiKTeX) | Presentation pipeline (`causalsmith present`) | P4 renders the paper body with pandoc and compiles the PDF with latexmk. `present` checks both at startup and stops with install instructions; `research` needs neither. MiKTeX's latexmk also needs Perl. |
+
+Build the Lean packages first (the pipeline pre-warms Lean modules):
+
+```sh
+lake exe cache get              # Mathlib build cache
+scripts/fetch_build_cache.sh    # Causalean's prebuilt oleans (release asset; lake then rebuilds only the delta)
+lake build                      # Causalean
+(cd CausalSmith && lake exe cache get)   # CausalSmith keeps its own Mathlib copy; run the cache tool inside it
+lake -d CausalSmith build       # CausalSmith, light: Causalean + shared helpers
+```
+
+That is all the pipeline needs. The Lean code of existing papers is **opt-in**:
+the default CausalSmith target does not build it, and a new run that imports an
+earlier paper's module compiles only that paper on demand. To present, verify,
+or browse existing papers, fetch their prebuilt oleans, then build what you need:
+
+```sh
+scripts/fetch_build_cache.sh --causalsmith          # prebuilt oleans for every CausalSmith module
+lake -d CausalSmith build CausalSmith.<Area>.<RUN>_Research   # one paper, via its run barrel
+                                                    # (a few early runs have no barrel: name their module files instead)
+bash CausalSmith/tools/scripts/full_tree_build.sh   # every module
+```
+
+`--causalsmith` fetches only the CausalSmith archive, so run the plain form first.
+CI publishes that archive on the same `build-cache` release tag as the Causalean
+one. Its `latest` copy can be a partial build: CI strips every module it did not
+finish, and `lake` builds those.
+
+Install pipeline JS dependencies:
+
+```sh
+cd CausalSmith/tools && npm install
+```
+
+### Retrieval models (semantic search) — rebuilding on a fresh machine
+
+The two fine-tuned retrieval models are **gitignored weights**; only their meta sidecars are
+committed. On a fresh machine, download them rather than retraining:
+`scripts/fetch_retrieval_models.sh` (about 2.4 GB, from the Hugging Face repository
+`jytan12/causalean-retrieval` into `doc/`; `CAUSALEAN_MODELS_REV` pins a revision, each tagged with
+the library commit it was trained against), then `cd CausalSmith/tools && npm run embed:library`. This works on
+Linux, macOS and Windows alike — on Windows run the script from Git Bash —
+and **with or without a GPU**: nothing in the query or corpus path pins a device, so
+sentence-transformers picks CUDA when present and CPU otherwise. CPU and GPU vectors agree to
+within float tolerance (the fp32 GEMM kernels differ in the last ULPs), so corpus embeddings built
+on one are interchangeable with queries embedded on the other. Only *training* the models below
+needs a GPU. Retraining is only
+needed when the index schema or the base checkpoint changes. Everything is derived offline from `doc/library_index.json` (no LLM, no labels), so the
+rebuild is fully reproducible — the train/test split is a deterministic hash of module
+names, which is what keeps the reported numbers leak-free.
+
+The scripts run through a resolved Python 3 interpreter, so **the interpreter that has `torch` +
+`sentence-transformers` installed must be the one it finds** (a venv works; activate it, or
+prepend its `bin/`). Resolution order is `CAUSALSMITH_PYTHON` → `pythonPath` in `local.json` →
+probed platform defaults (`python3`, `python` on Linux/macOS; `python`, `py -3`, `python3` on
+Windows — a candidate counts only if it reports major version 3, so the Windows Store alias stub
+is never picked). Set `pythonPath` explicitly whenever the right venv is not first on `PATH`.
+Otherwise semantic retrieval silently degrades to lexical-only. Weights
+for the base checkpoints (`BAAI/bge-large-en-v1.5`, `BAAI/bge-reranker-base`) must be in the
+HF cache; the scripts default to `HF_HUB_OFFLINE=1`, so set it to `0` for the first download.
+Training needs one GPU:
+
+```sh
+cd CausalSmith/tools
+python3 scripts/build_finetune_data.py --out ../../doc/retrieval_finetune
+python3 scripts/train_biencoder.py --test-modules ../../doc/retrieval_finetune/test_modules.json \
+        --out ../../doc/retrieval_model_ft --epochs 3 --hard-negs 4   # add --grad-checkpoint on a ≤12GB card
+npm run embed:library && npm run lint:embeddings                       # re-embed the corpus with it
+npm run eval:retrieval -- --test-modules ../../doc/retrieval_finetune/test_modules.json --module
+```
+
+The cross-encoder reranker is optional and not wired into the live pipeline — only the
+search CLI's rerank option and the retrieval eval harness use it: `python3 scripts/train_reranker.py --test-modules … --out ../../doc/retrieval_reranker_ft`.
+
+### FoML / lean-rademacher (vendored)
+
+The one non-Mathlib Lean dependency, `FoML`, is **vendored in-tree** under
+`third_party/lean-rademacher/` (an adapted, MIT-licensed copy of
+`github.com/auto-res/lean-rademacher`; see its `UPSTREAM.md`). The root
+`lakefile.toml` references it by relative path, so no sibling checkout or network
+fetch is needed — a fresh clone builds directly. That holds for the framework-only sparse clone
+too (`scripts/clone_framework.sh`): it leaves out the other papers' bundles and Lean, which
+nothing in the default build needs.
+
+## Machine-specific config: `tools/config/local.json`
+
+Copy the example and edit **one file** (gitignored):
+
+```sh
+cp CausalSmith/tools/config/local.example.json CausalSmith/tools/config/local.json
+```
+
+| Field | Meaning | Default |
+|---|---|---|
+| `gitBashPath` | Windows only: absolute path to git-bash `bash.exe` (use forward slashes). | unset |
+| `leanLspMcpBinary` | `lean-lsp-mcp` server binary (PATH name or absolute). | `lean-lsp-mcp` |
+| `leanProjectPath` | Override for lean-lsp `--lean-project-path`. | repo root |
+| `mcpTimeoutMs` | `MCP_TIMEOUT` for the (slow cold-starting) lean-lsp server. | `600000` |
+| `codexSandbox` | Codex local-tool sandbox (`workspace-write` / `danger-full-access`). | `workspace-write` |
+| `authMode` | Who pays for model calls, for both runners: `subscription` or `api`. | `subscription` |
+| `anthropicAuth` / `openaiAuth` | Per-provider override of `authMode`. | unset |
+| `anthropicApiKey` / `anthropicApiKeyFile` | Anthropic key, inline or as a path to a file holding it. Read only in api mode. | unset |
+| `openaiApiKey` / `openaiApiKeyFile` | Same, for OpenAI. | unset |
+| `codexApiHome` | `CODEX_HOME` for codex api mode — deliberately not `~/.codex`. | `~/.codex-causalsmith-api` |
+| `claudeConfigDir` | `CLAUDE_CONFIG_DIR` for the spawned `claude` workers — an account switch, not a billing one: run the pipeline on a different Anthropic subscription while your interactive login keeps `~/.claude`. | unset |
+
+### Module system
+
+Generated Lean files place `module` after the optional copyright block, use contiguous
+`public import` lines, add the `/-! ... -/` module docstring, and open one blanket
+`@[expose] public section` for def-bearing files or `public section` for theorem-only files.
+Declarations remain bare; run barrels and `Helpers.lean` are imports-only. Validate the emitted
+headers and repository placement with `npm run lint:module-headers` and `npm run lint:layout`.
+
+Each field also has an environment-variable override (env wins over the file):
+
+- `CLAUDE_CODE_GIT_BASH_PATH` → `gitBashPath`
+- `CAUSALSMITH_LEAN_LSP_MCP` → `leanLspMcpBinary`
+- `CAUSALSMITH_LEAN_PROJECT_PATH` → `leanProjectPath`
+- `MCP_TIMEOUT` → `mcpTimeoutMs`
+- `CAUSALSMITH_CODEX_SANDBOX` → `codexSandbox`
+- `CAUSALSMITH_AUTH_MODE` → `authMode`; `CAUSALSMITH_ANTHROPIC_AUTH` / `CAUSALSMITH_OPENAI_AUTH` → the per-provider fields
+- `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` → the corresponding key fields
+- `CAUSALSMITH_CODEX_HOME_API` → `codexApiHome`
+- `CAUSALSMITH_CLAUDE_CONFIG_DIR` → `claudeConfigDir`
+
+## Who pays for the model calls
+
+Out of the box the pipeline spends the **interactive logins already on the machine**: whatever `claude` is signed in as, and the ChatGPT plan in `~/.codex`. Nothing to configure — sign the two CLIs in (`claude`, then `codex login`) and runs work.
+
+To bill an **API key** instead, set the mode and supply the key in `local.json` (or by env, which wins):
+
+```jsonc
+{
+  "authMode": "api",
+  "anthropicApiKeyFile": "~/.secrets/anthropic.key",
+  "openaiApiKeyFile": "~/.secrets/openai.key"
+}
+```
+
+Per-provider values let you mix: `"anthropicAuth": "api"` with `"openaiAuth": "subscription"` puts the claude reviewers on a key and leaves codex on the ChatGPT plan. The resolved modes print at startup (`[causalsmith] auth: claude=api codex=subscription`); keys are never printed.
+
+Three behaviours worth knowing before you switch:
+
+- **A missing key aborts the run.** `api` mode with no key throws at startup rather than falling back to the subscription — a silent fallback would only show up on an invoice.
+- **It governs pipeline-issued calls.** Everything dispatched by `causalsmith research/present/study` obeys it. A `codex exec` an orchestrator runs by hand (e.g. the `causalsmith-topics` slate gate) bypasses it and spends the machine's codex login.
+- **Your subscription logins are never disturbed.** claude api calls use `--bare`, which pins that process to `ANTHROPIC_API_KEY` and never reads the keychain. Codex allows only one login method per `CODEX_HOME` and *deletes* stored ChatGPT credentials when api auth is forced on that home, so codex api mode runs against `codexApiHome` instead, bootstrapped once with `codex login --with-api-key` (your `~/.codex/config.toml` is copied in on first use). If you ever do lose the codex login, `codex login --device-auth` restores it.
+
+## Environment variables
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | only in `api` mode | Anthropic key for the claude workers. Unused in the default subscription mode. |
+| `OPENAI_API_KEY` | only in `api` mode | OpenAI key for the codex workers. |
+| `CAUSALSMITH_AUTH_MODE` | no | `subscription` (default) or `api`; `CAUSALSMITH_ANTHROPIC_AUTH` / `CAUSALSMITH_OPENAI_AUTH` override it per provider. |
+| `CAUSALSMITH_CODEX_HOME_API` | no | `CODEX_HOME` used in codex api mode. |
+| `CAUSALSMITH_CONTACT` | no | Contact string sent as the `User-Agent` to citation APIs (crossref/arXiv). Defaults to a generic project identifier. |
+| `HF_HUB_OFFLINE` | no | Retrieval scripts default to `1` (offline; model weights must be cached). Set `0` to allow first-time download of embedding/reranker weights. |
+| `CAUSALSMITH_SHARED_LEAN_LSP_URL` | no | Reuse a shared lean-lsp server instead of spawning per-agent. |
+
+## Windows
+
+- Clone with long paths enabled — `git clone -c core.longpaths=true …` or
+  `git config --global core.longpaths true` once. Tracked paths stay under 200
+  characters, but the Lean build tree under `.lake/` and a deeply nested clone
+  directory can still approach the 260-character limit.
+- Run the shell helpers (`scripts/*.sh`, `tools/scripts/*.sh`) from Git Bash; they
+  need `curl`, `tar` (both bundled with Git for Windows) and `zstd` on `PATH`.
+  `.gitattributes` pins them to LF so `core.autocrlf` cannot break them.
+- codex-cli's default `elevated` sandbox fails to spawn on Windows. Pass
+  `-c windows.sandbox=unelevated` (ignored on other OSes). The pipeline's codex
+  invocations already include this.
+- Set `gitBashPath` in `local.json` (forward slashes, e.g.
+  `C:/Program Files/Git/bin/bash.exe`). Every bash the pipeline starts uses it.
+- `npm run check:setup` (in `tools/`) warns when `core.longpaths` is off, when
+  `gitBashPath` is unset or points nowhere, and when `pandoc` or `latexmk` is missing.
+- Semantic retrieval works on Windows exactly as on Linux/macOS, warm daemon
+  included. The daemons pick their transport in `tools/scripts/daemon_ipc.py`: a
+  unix-domain socket on POSIX, a loopback TCP port on Windows (CPython exposes no
+  `AF_UNIX` there). The model still loads once per daemon and every later query is
+  served warm.
+- `python3` is not a program name on Windows. Every call site resolves the
+  interpreter instead (see "Retrieval models" above); set `pythonPath` in
+  `local.json` — or `CAUSALSMITH_PYTHON` — to the interpreter that has `torch` +
+  `sentence-transformers`, using forward slashes. Point it at the real `python.exe`,
+  not a `.bat`/`.cmd` shim (pyenv-win ships one): the resolver spawns without a shell
+  and Node cannot execute batch files that way. A configured interpreter that fails
+  the probe warns rather than degrading silently.
+- The retrieval scripts pin UTF-8 for stdin and for every index/meta read. Windows
+  otherwise decodes with the ANSI code page, which crashes on
+  `doc/library_index.json` (~4% non-ASCII, from Lean docstrings) and silently
+  mangles queries containing Lean notation such as `=ᵐ[μ]`.
+
+## Models
+
+Every model id flows through `tools/src/models.ts`, which maps each logical
+role to a committed default (the current OpenAI `codex` + Anthropic `claude`
+lineup). To run on a different lineup, set the corresponding env var — no source
+edit needed. The research-pipeline roles:
+
+| Env var | Role | Default | Runner |
+|---|---|---|---|
+| `CAUSALEAN_MODEL_CODEX_KERNEL` | hard math and formalization core (D-1.2/D0/D0.5, F2/F3, unified F2.5/F4 reviewer) | `gpt-5.6-sol` | codex |
+| `CAUSALEAN_MODEL_CODEX_MECH` | mechanical / clerical discovery support plus F1.5 and F5 | `gpt-5.6-terra` | codex |
+| `CAUSALEAN_MODEL_CODEX_CONSULT` | orchestrator D-stage halt-consultation (manual) | `gpt-5.6-sol` | codex |
+| `CAUSALEAN_MODEL_CLAUDE_MAIN` | main reviewer / producer | `opus` | claude |
+| `CAUSALEAN_MODEL_CLAUDE_MID` | mid tier | `sonnet` | claude |
+| `CAUSALEAN_MODEL_CLAUDE_CHEAP` | cheap / bulk | `haiku` | claude |
+
+The presentation pipeline (`causalsmith present`) has its own codex roles on the same
+pattern — `CAUSALEAN_MODEL_CODEX_PRESENT` (authoring/revision, `gpt-5.5`),
+`…_PRESENT_REVIEW` (P5 referee, `gpt-5.6-sol`), `…_CROSSWALK_ASSIGN`, `…_CROSSWALK_VERIFY`,
+`…_COMPONENTS`, `…_NOTATION`, `…_CITATION_SUPPORT` — see the header comment of
+`tools/src/models.ts` for the full list and defaults.
+
+codex roles take an OpenAI model id; claude roles take any `claude --model`
+value (an alias like `opus`, or a pinned id like `claude-opus-4-8`).
+
+Note: the retrieval **embedding/reranker** models (`BAAI/bge-*` in
+`tools/scripts/*.py`) are intentionally *not* runtime-swappable — the committed
+`doc/library_embeddings.*` vectors are tied to that specific model, so changing
+it requires re-running `npm run embed:library`.
+
+## Quick check
+
+```sh
+cd CausalSmith/tools
+npm run check:setup                         # warns about machine setup: long paths + git-bash (Windows), pandoc, latexmk
+npm run search -- "backdoor adjustment"     # retrieval over doc/library_index.json
+```

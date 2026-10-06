@@ -1,0 +1,306 @@
+\begin{proof}[Proof of \cref{obj:lem:all-count-stability}]
+\begin{enumerate}
+\item We first establish the insertion bounds for the two scalar pair contributions. For observed records \(o=(x,a,y)\) and \(o'=(x',a',y')\) in \(\mathcal O\), define
+\[
+X(o)=x,\qquad A(o)=a,\qquad Y(o)=y,
+\]
+\[
+K_N(o,o')=(a-a')(y-y'),
+\qquad
+K_D(o,o')=(a-a')^2.
+\]
+Both kernels are symmetric. Since the treatment and outcome coordinates are binary,
+\[
+|K_N(o,o')|\le K_D(o,o')\le1,
+\qquad
+K_D(o,o')\ge0.
+\]
+Indeed, equal treatment coordinates make both kernels zero; unequal treatment coordinates give \(K_D=1\) and \(|K_N|=|y-y'|\le1\).
+
+For \(\kappa\in\{K_N,K_D\}\), a nonnegative integer \(s\), and an ordered tuple \(\mathscr R=(o_1,\ldots,o_s)\in\mathcal O^s\), define
+\[
+F_\kappa(\mathscr R)=
+\begin{cases}
+0,&s<2,\\[2pt]
+\displaystyle\frac{s}{\binom{s}{2}}
+\sum_{1\le i<i'\le s}\kappa(o_i,o_{i'}),&s\ge2.
+\end{cases}
+\]
+In particular, \(F_\kappa\) is defined on the empty tuple.
+
+These pair contributions agree with the closed cell formulas in \cref{obj:def:private-ratio}. To see this, set
+\[
+a_i=A(o_i),\qquad y_i=Y(o_i)\qquad(1\le i\le s).
+\]
+Symmetry and the vanishing diagonal give
+\[
+\begin{aligned}
+\sum_{i<i'}K_N(o_i,o_{i'})
+&=\frac12\sum_{i=1}^s\sum_{i'=1}^s
+(a_i-a_{i'})(y_i-y_{i'})\\
+&=s\sum_{i=1}^s a_i y_i
+-\left(\sum_{i=1}^s a_i\right)
+ \left(\sum_{i=1}^s y_i\right),\\
+\sum_{i<i'}K_D(o_i,o_{i'})
+&=\frac12\sum_{i=1}^s\sum_{i'=1}^s(a_i-a_{i'})^2\\
+&=s\sum_{i=1}^s a_i-\left(\sum_{i=1}^s a_i\right)^2,
+\end{aligned}
+\]
+where the last equality uses \(a_i^2=a_i\). Multiplication by
+\(s/\binom{s}{2}=2/(s-1)\) for \(s\ge2\) produces the stated cell formulas; for \(s<2\), both constructions give zero.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.pair_moment_formulas
+
+The unit bounds on the kernels imply
+\[
+\left|\sum_{i<i'}\kappa(o_i,o_{i'})\right|
+\le\sum_{i<i'}|\kappa(o_i,o_{i'})|
+\le\binom{s}{2},
+\qquad
+|F_\kappa(\mathscr R)|\le s.
+\]
+For \(s\ge2\), separating the pairs involving an appended record \(o\in\mathcal O\) gives the exact identity
+\[
+F_\kappa(o_1,\ldots,o_s,o)-F_\kappa(o_1,\ldots,o_s)
+=
+\frac2s\sum_{i=1}^s\kappa(o_i,o)
+-\frac{F_\kappa(o_1,\ldots,o_s)}s.
+\]
+Consequently,
+\[
+\begin{aligned}
+\left|F_\kappa(o_1,\ldots,o_s,o)-F_\kappa(o_1,\ldots,o_s)\right|
+&\le\frac2s\left|\sum_{i=1}^s\kappa(o_i,o)\right|
++\frac{|F_\kappa(o_1,\ldots,o_s)|}{s}\\
+&\le\frac2s\,s+\frac{s}{s}=3.
+\end{aligned}
+\]
+For the remaining occupancies, the defining formulas give
+\[
+F_\kappa(o)-F_\kappa(\varnothing)=0,
+\qquad
+F_\kappa(o_1,o)-F_\kappa(o_1)=2\kappa(o_1,o),
+\]
+so the respective absolute increments are zero and at most \(2\le3\). Thus, at every occupancy, each scalar insertion increment is at most \(3\), and the sum of the two absolute insertion increments is at most \(6\).
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.pairContribution_insertion_bound
+
+\item We now prove the replacement bound. Use the public cells \(C_j\) from \cref{obj:synth_11}. For every dataset \(D\in\mathcal O^n\), cell \(j\), and record position \(i_\star\in\{1,\ldots,n\}\), define
+\[
+\begin{aligned}
+\mathscr R_j(D)&=(D_i)_{\,i:\,X(D_i)\in C_j},
+&
+s_j(D)&=|\mathscr R_j(D)|,\\
+\mathscr R_{j,-i_\star}(D)
+&=(D_i)_{\,i:\,i\ne i_\star,\ X(D_i)\in C_j},
+&
+F_{\kappa,j}(D)&=F_\kappa(\mathscr R_j(D)),\\
+F_{\kappa,j}^{(-i_\star)}(D)
+&=F_\kappa(\mathscr R_{j,-i_\star}(D)),
+&
+S_\kappa(D)&=\sum_{j=1}^kF_{\kappa,j}(D).
+\end{aligned}
+\]
+The tuples are listed in increasing record position. Symmetry makes their pair contributions invariant under reordering, so the preceding calculation yields
+\[
+S_{K_N}(D)=S_N(D),\qquad S_{K_D}(D)=S_D(D).
+\]
+
+If \(D\) and \(D'\) have replacement Hamming distance one, their set of differing positions is a singleton. Write its position as \(i_\star\); then
+\[
+D_i=D_i'\qquad(i\ne i_\star).
+\]
+The erased cell tuples are therefore identical, and hence
+\[
+F_{\kappa,j}^{(-i_\star)}(D)
+=F_{\kappa,j}^{(-i_\star)}(D').
+\]
+If the erased position belongs to the cell, reversing its insertion and applying the joint insertion bound gives
+\[
+\sum_{\kappa\in\{K_N,K_D\}}
+\left|F_{\kappa,j}(D)-F_{\kappa,j}^{(-i_\star)}(D)\right|
+\le6\,\mathbf1\{X(D_{i_\star})\in C_j\}.
+\]
+If it belongs elsewhere, the erased and original tuples coincide and the left side is zero. Applying this bound to both datasets and using their common erased contribution gives
+\[
+\sum_{\kappa\in\{K_N,K_D\}}
+|F_{\kappa,j}(D)-F_{\kappa,j}(D')|
+\le
+6\,\mathbf1\{X(D_{i_\star})\in C_j\}
++6\,\mathbf1\{X(D'_{i_\star})\in C_j\}.
+\]
+The cells form a disjoint partition of the public window, so every covariate belongs to at most one cell. Thus
+\[
+\begin{aligned}
+|S_N(D)-S_N(D')|+|S_D(D)-S_D(D')|
+&\le\sum_{j=1}^k\sum_{\kappa\in\{K_N,K_D\}}
+|F_{\kappa,j}(D)-F_{\kappa,j}(D')|\\
+&\le6\sum_{j=1}^k\mathbf1\{X(D_{i_\star})\in C_j\}
++6\sum_{j=1}^k\mathbf1\{X(D'_{i_\star})\in C_j\}\\
+&\le12.
+\end{aligned}
+\]
+This argument includes empty cells, singleton cells, and the transition to occupancy two.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.statistic_hamming_sensitivity
+
+\item For the variance calculation, take a dataset and an independent replacement record with joint law
+\[
+\mathcal L(D,o^\star)
+=(P^{\mathrm{obs}})^{\otimes n}\otimes P^{\mathrm{obs}}.
+\]
+All probabilities and expectations in this step and the next are under this law. For every \(j\) and \(i_\star\), define
+\[
+p_j=P_X(C_j)
+=P^{\mathrm{obs}}\{o:X(o)\in C_j\},
+\qquad
+B_{j,i_\star}(D)=|\mathscr R_{j,-i_\star}(D)|.
+\]
+The occupancy weights and their sum are
+\[
+w_j=np_j\bigl[1-(1-p_j)^{n-1}\bigr],
+\qquad
+W(P)=\sum_{j=1}^k w_j.
+\]
+For every proposed record \(o\in\mathcal O\), define its partner indicator by
+\[
+J_{i_\star}(D,o)
+=
+\mathbf1\{\exists j:\ X(o)\in C_j,\ B_{j,i_\star}(D)\ge1\},
+\]
+and define the old and new indicators by
+\[
+J_{i_\star}^{\mathrm{old}}=J_{i_\star}(D,D_{i_\star}),
+\qquad
+J_{i_\star}^{\mathrm{new}}=J_{i_\star}(D,o^\star).
+\]
+Disjointness of the cells gives the identity
+\[
+J_{i_\star}(D,o)
+=\sum_{j=1}^k
+\mathbf1\{X(o)\in C_j,\ B_{j,i_\star}(D)\ge1\}.
+\]
+
+The product law evaluates the event that all unreplaced records avoid cell \(j\), and the event that the old record is isolated in that cell, as
+\[
+\begin{aligned}
+\Pr\{B_{j,i_\star}(D)=0\}
+&=\prod_{i\ne i_\star}(1-p_j)
+=(1-p_j)^{n-1},\\
+\Pr\{X(D_{i_\star})\in C_j,\ B_{j,i_\star}(D)=0\}
+&=p_j\prod_{i\ne i_\star}(1-p_j)
+=p_j(1-p_j)^{n-1}.
+\end{aligned}
+\]
+Subtracting the isolated-record event from the old record's cell-membership event yields
+\[
+\begin{aligned}
+\Pr\{X(D_{i_\star})\in C_j,\ B_{j,i_\star}(D)\ge1\}
+&=p_j-p_j(1-p_j)^{n-1}\\
+&=p_j\bigl[1-(1-p_j)^{n-1}\bigr].
+\end{aligned}
+\]
+For the independent replacement, the corresponding event is a product of its cell-membership event and the event that the unreplaced records have a partner. Hence
+\[
+\Pr\{X(o^\star)\in C_j,\ B_{j,i_\star}(D)\ge1\}
+=p_j\bigl[1-(1-p_j)^{n-1}\bigr].
+\]
+These formulas include \(p_j=0\) and \(p_j=1\), since \(n-1\ge1\). Summing the cell indicators and using \(n>0\), we obtain
+\[
+\begin{aligned}
+\mathbb E J_{i_\star}^{\mathrm{old}}
+=\mathbb E J_{i_\star}^{\mathrm{new}}
+&=\sum_{j=1}^k p_j\bigl[1-(1-p_j)^{n-1}\bigr]
+=\frac{W(P)}n,\\
+\mathbb E\bigl[J_{i_\star}^{\mathrm{old}}
++J_{i_\star}^{\mathrm{new}}\bigr]
+&=\frac{2W(P)}n.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.iid_partner_sum_expectation
+
+\item Define the replacement dataset, for every \(D\in\mathcal O^n\) and \(o^\star\in\mathcal O\), by
+\[
+D_i^{(i_\star)}
+=
+\begin{cases}
+o^\star,&i=i_\star,\\
+D_i,&i\ne i_\star.
+\end{cases}
+\]
+The scalar insertion bound sharpens when a cell has no remaining partner. For each kernel,
+\[
+\left|F_{\kappa,j}(D)-F_{\kappa,j}^{(-i_\star)}(D)\right|
+\le
+3\,\mathbf1\{X(D_{i_\star})\in C_j,\ B_{j,i_\star}(D)\ge1\}.
+\]
+Indeed, if the record belongs to the cell and a partner remains, its erasure reverses a scalar insertion of size at most \(3\). If it belongs to the cell and no partner remains, the original tuple is a singleton and the erased tuple is empty, so both contributions are zero. If it belongs elsewhere, erasure leaves the cell tuple unchanged.
+
+The original and replacement datasets have the same erased cell tuples. Applying the preceding estimate to both gives
+\[
+\begin{aligned}
+|F_{\kappa,j}(D)-F_{\kappa,j}(D^{(i_\star)})|
+\le{}&
+3\,\mathbf1\{X(D_{i_\star})\in C_j,\ B_{j,i_\star}(D)\ge1\}\\
+&+3\,\mathbf1\{X(o^\star)\in C_j,\ B_{j,i_\star}(D)\ge1\}.
+\end{aligned}
+\]
+Summing over cells and using the partner-indicator identity therefore yields
+\[
+|S_\kappa(D)-S_\kappa(D^{(i_\star)})|
+\le3\bigl(J_{i_\star}^{\mathrm{old}}+J_{i_\star}^{\mathrm{new}}\bigr).
+\]
+Both indicators take values in \(\{0,1\}\). Squaring this bound and checking their four possible pairs gives
+\[
+\begin{aligned}
+\bigl(S_\kappa(D)-S_\kappa(D^{(i_\star)})\bigr)^2
+&\le9\bigl(J_{i_\star}^{\mathrm{old}}+J_{i_\star}^{\mathrm{new}}\bigr)^2\\
+&\le18\bigl(J_{i_\star}^{\mathrm{old}}+J_{i_\star}^{\mathrm{new}}\bigr).
+\end{aligned}
+\]
+For the pairs \((0,0),(1,0),(0,1),(1,1)\), the middle expression is respectively \(0,9,9,36\), while the final expression is \(0,18,18,36\).
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.statistic_partner_square_bound
+
+The bounded measurable statistics and indicators make these expressions integrable. Taking expectations and applying the partner expectation from the preceding step gives, for every record position,
+\[
+\begin{aligned}
+\mathbb E\bigl(S_N(D)-S_N(D^{(i_\star)})\bigr)^2
+&\le18\,\mathbb E\bigl[J_{i_\star}^{\mathrm{old}}
++J_{i_\star}^{\mathrm{new}}\bigr]
+=\frac{36W(P)}n,\\
+\mathbb E\bigl(S_D(D)-S_D(D^{(i_\star)})\bigr)^2
+&\le18\,\mathbb E\bigl[J_{i_\star}^{\mathrm{old}}
++J_{i_\star}^{\mathrm{new}}\bigr]
+=\frac{36W(P)}n.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.statistic_replacement_moments_of_partners
+
+\item To apply the replacement Efron--Stein inequality, observe that disjoint cell membership and the scalar contribution bound imply, for every dataset,
+\[
+|S_\kappa(D)|
+\le\sum_{j=1}^k|F_{\kappa,j}(D)|
+\le\sum_{j=1}^k s_j(D)
+=\sum_{i=1}^n\sum_{j=1}^k\mathbf1\{X(D_i)\in C_j\}
+\le n.
+\]
+The cell formulas are measurable, and this uniform bound gives square integrability.
+
+The replacement-copy form of the Efron--Stein inequality
+\citep[Theorem 3.1, p.~54]{BoucheronLugosiMassart2013}
+now gives, for each \(\kappa\in\{K_N,K_D\}\),
+\[
+\begin{aligned}
+\operatorname{Var}(S_\kappa(D))
+&\le\frac12\sum_{i_\star=1}^n
+\mathbb E\bigl(S_\kappa(D)-S_\kappa(D^{(i_\star)})\bigr)^2\\
+&\le\frac12\sum_{i_\star=1}^n\frac{36W(P)}n
+=18W(P).
+\end{aligned}
+\]
+Consequently,
+\[
+\max\{\operatorname{Var}(S_N(D)),\operatorname{Var}(S_D(D))\}
+\le18W(P).
+\]
+Finally, \cref{obj:ass:iid} identifies the stated dataset law with the product law used in this calculation, proving the asserted variance bound.
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.all_count_stability
+\end{enumerate}
+\end{proof}

@@ -1,0 +1,36 @@
+# Referee review
+
+**Recommendation:** major_revision
+**Overall score:** 7.4/10 — The verified results establish a meaningful extension of response recovery under weak overlap, while substantial compression and a clearer presentation of the central statistical mechanism are needed for journal publication.
+
+The paper characterizes pointwise and expected spatial-supremum minimax response recovery under global propensity tails, with count-based adaptation to overlap at known smoothness. Its substantive contribution combines deterministic equal-cell conditioning, an ordered information profile, a bounded pointwise converse, and recovery guarantees covering degenerating local treatment geometry. The principal claims faithfully preserve the verified scope, and the literature comparison is unusually careful. The manuscript would benefit from substantial editorial restructuring that brings its statistical contribution forward and consolidates repeated technical and source-comparison material.
+
+## Strengths
+- The expected spatial-supremum guarantee over measurable global-tail propensities is a meaningful extension beyond the closest comparator's local anti-concentration domain.
+- The explicit estimator separates polynomial conditioning from treatment-count precision and accommodates overlap through observed design information.
+- The bounded testing subclass supports the pointwise converse throughout the closed cube, including boundary evaluation points.
+- The manuscript carefully distinguishes known-smoothness overlap adaptation, fixed-constant Gaussian upper guarantees, exponent-specific geometric witnesses, and the comparison class supporting the lower bound.
+- The dedicated early related-work section engages competitors' actual loss criteria, assumptions, rates, and adaptation guarantees.
+
+## Findings
+- **[major·structure] Global** — Repeated constructions, source restrictions, and interpretations substantially obscure the contribution. The template is presented through three overlapping environments; the common-regression obstruction appears within the transfer proposition, its own lemma, the source-scope proposition, and several explanatory passages. The appendices then repeat substantial selected-mesh analysis within the main theorem proof.
+  - *Fix:* Consolidate the reader-facing template presentation and source comparison. Retain the full mapped statements and proofs in a technical appendix or supplement, preserving their existing labels and verification mapping. In the main text, present the estimator, recovery theorem, geometric witness, and Gaussian upper transfer once each, and replace repeated explanations with precise cross-references.
+- **[major·structure] Main results — Statistical explanation** — The main text describes the ordered information profile verbally, although this profile and its interaction with count feasibility supply the most distinctive explanation of the spatial-supremum guarantee. Readers must traverse lengthy appendices to see the inequalities connecting the construction to the rate.
+  - *Fix:* Add a compact argument displaying the already established ordered-mass bound, the minimum of the feasibility cap and rank-dependent variance scale, and the resulting selected-mesh maximal-error bound. Explain how the scale ratio determines the relevant ranks and how the final mesh comparison yields the oracle scale. Cite \cref{obj:lem:ordered-mass,obj:lem:selected-mesh} and retain detailed derivations in the appendix.
+- **[minor·structure] Local treatment geometry and the Gaussian transfer — Transfer to fixed-constant Gaussian source envelopes** — The transfer proposition combines envelope containment, expected risk, probability risk, geometric existence, common-curve minimax risk, and a causal-class lower bound. The surrounding prose accurately separates these domains, but the omnibus presentation makes the Gaussian upper transfer unnecessarily difficult to extract.
+  - *Fix:* Move the complete proposition to the source-comparison appendix and give the main text a concise account of the fixed-constant Gaussian upper guarantee, affine transport, and smoothness completion. Present the exponent-specific Gaussian witness and family-richness discussion in separate paragraphs with their existing exact cross-references.
+- **[minor·prose] Discussion** — The sentence “Its constants are common only on the prescribed compact interval of finite exponents; the theorem makes no uniform claim in a stronger-overlap limit” uses contribution-by-negation outside the labelled limitations subsection.
+  - *Fix:* Replace it with an affirmative scope statement, such as: “The theorem supplies common risk constants on each prescribed compact interval of finite overlap exponents.” Place any discussion of the stronger-overlap limiting problem in the existing Limitations and future work subsection.
+- **[minor·prose] Setup and assumptions — Sampling and observational restrictions** — The covariate marginal symbol P_X first appears in the interpretation of the global-tail assumption before receiving a plain-word definition. Its explicit gloss arrives in an appendix.
+  - *Fix:* Introduce P_X as “the covariate marginal of P” in Sample and target, before its first subsequent use.
+- **[minor·prose] Introduction** — The sentence “Dorn's local anti-concentration condition additionally links each neighborhood's largest selected propensity to a common positive fraction of its covariate mass” omits the sufficiently-small-neighborhood qualification in the verified definition. Read literally, “each neighborhood” broadens the condition beyond its radius range.
+  - *Fix:* Specify “every sufficiently small neighborhood,” with constants common across the fixed family and its selected propensity representatives. Preserve the distinction between the source estimator's exponent-free computation and the present compact-range uniformity guarantee.
+- **[minor·prose] Verification note** — The note says “this bundle does not record a separate repository commit identifier,” whereas the supplied verification record identifies commit d07574d7eb0a903c2a049c6ae28702de46193ec0. The manuscript's reproducibility disclosure should reflect the current recorded provenance.
+  - *Fix:* Report the recorded commit and identify the repository or artifact revision it denotes. Distinguish it from the compiler commit, mathlib revision, and emitted-paper checksum, and retain the theorem-local external-dependency disclosures.
+- **[nit·statement] Setup and assumptions — Law class and risk scales** — The risk definition uses E_P for losses depending on the entire sample, while the main theorem explicitly uses E_{P^{\otimes n}}. The earlier sampling convention resolves the meaning, but consistent notation would make the experiment immediately visible.
+  - *Fix:* Use E_{P^{\otimes n}} in both risk displays, consistently with the theorem and the verified product-sample risk definitions.
+
+## Questions for authors
+- Which repository or artifact does the recorded verification commit identify, and what immutable identifier records the adjacent Causalean library?
+- Could the revised main text illustrate the estimator and ordered information profile using the existing centered radial construction at one fixed dimension and smoothness order?
+

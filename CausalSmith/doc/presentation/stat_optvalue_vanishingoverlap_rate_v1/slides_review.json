@@ -1,0 +1,49 @@
+{
+  "question": "How accurately can we estimate the population value of choosing the better treatment in each covariate cell when either treatment may be observed with probability as small as epsilon? The target is Psi(P) = sum_x p_x max_a mu_ax. Plug-in estimates suffer from unstable rare-arm averages and upward selection bias when noisy treatment means are maximized near ties. The previous fixed-overlap result does not characterize deterioration as overlap shrinks.",
+  "result": "For n >= 1 independent observations from a common law of categorical X with d >= 2 cells and binary A and Y, assume epsilon <= P(A=1 | X=x) <= 1-epsilon in every occupied cell, with known 0 < epsilon <= 1/2. Over this class, R_{n,d,epsilon} := inf_hatV sup_P E_P[(hatV-Psi(P))^2] satisfies c min{1, d/[n epsilon log(ed)]} <= R_{n,d,epsilon} <= C min{1, d/[n epsilon log(ed)]}, for universal positive constants c and C. The slides construct a deterministic estimator attaining the upper bound uniformly over unknown cell shares, propensities, and treatment ties. Consequently, uniform mean-square consistency is possible exactly when d_n/[n epsilon_n log(e d_n)] tends to zero. Under consistency and conditional exchangeability, the same target and risk characterization apply to the causal optimal value.",
+  "mechanism": "1. Express each cell's value as F_epsilon(q_x), a weighted maximum of outcome ratios with protected arm denominators. Protection is inactive at admissible true probabilities but makes the function usable throughout a local approximation region. 2. In an auxiliary Poisson experiment, use independent pilot counts to build a rectangle around each cell's four atom probabilities. Its coordinate widths follow each atom's own fluctuations, including uncertainty for zero counts. 3. Smooth F_epsilon in cosine coordinates with Jackson weights to obtain a polynomial of degree proportional to log(ed). The approximation bound pairs each arm's denominator sensitivity with that arm's localization widths, giving cell error at most C[sqrt{p_x/(m epsilon log(ed))} + 1/(m epsilon log(ed))], where m=n/8. 4. Expand the polynomial in centered powers. Replace each power by a centered factorial statistic from independent evaluation counts. Conditional on the pilots, the resulting statistic has expectation equal to the polynomial at q_x. 5. Clip cell statistics to control excursions. Sum them across cells: independence controls variance, while sum_x p_x=1 and sum_x sqrt(p_x)<=sqrt(d) control aggregate noise and bias. This gives squared error of order d/[m epsilon log(ed)] in the active regime. 6. Implement the auxiliary experiment using a random Poisson number of the n records, project the estimate into [0,1], and average over the auxiliary randomness conditional on the observed data. This produces the deterministic estimator. Return 1/2 in the constant-risk regime. 7. For the lower bound, construct two mixtures of cell parameters that match logarithmically many moments but have separated values. Perturbations around treatment ties cover one regime; a mean-one intensity family covers another. Moment matching makes their full observation likelihoods close, while the gain's corner preserves a value gap. An estimator substantially more accurate than that gap would distinguish these close mixtures.",
+  "why_true": "The maximum has a corner at treatment ties, so selecting the larger noisy mean creates bias. Polynomial approximation handles that corner without first choosing a winning arm, and factorial statistics estimate polynomial terms without the bias of ordinary powers of noisy counts. The overlap dependence is controlled by pairing rare-arm sensitivity with rare-arm fluctuations: an inverse arm-mass sensitivity is multiplied by fluctuations proportional to the square root of that same arm mass. Population-mass weighting then prevents summing cell errors from costing an unnecessary additional factor of d. Logarithmic degree balances approximation accuracy against polynomial estimation noise. For necessity, matching low-order moments hides parameter changes from the likelihood, but cannot erase the corner's contribution to value; the resulting separation has the same squared scale as the upper bound.",
+  "example": "With p_x=1/d, pi_x=epsilon, mu_0x=1/2, and mu_1x=1/2+a T_x for T_x in [-1,1], the value is 1/2 + a/(2d) sum_x(|T_x|+T_x). Negative perturbations produce no gain, positive ones produce linear gain, and zero is the treatment tie. The estimator approximates this gain curve locally across zero. Slide 13 makes the unbiased estimation step concrete: U_2(N;b)=N(N-1)/m^2-2bN/m+b^2 has expectation (q-b)^2, whereas replacing N(N-1) by N^2 adds count noise.",
+  "findings": [
+    {
+      "slide": 11,
+      "severity": "rough",
+      "problem": "The square-root endpoint product in the approximation bound appears without connecting it to the cosine coordinates on slide 10. I can use the stated bound, but the reason angular smoothing produces this particular measure of uncertainty remains opaque.",
+      "fix": "Add one sentence explaining that cosine-coordinate sensitivity is proportional to sqrt{(q-lower)(upper-q)}, while the remaining quadratic displacement contributes the half-width/K_n^2 term."
+    },
+    {
+      "slide": 14,
+      "severity": "rough",
+      "problem": "The slide simultaneously presents a factorial second-moment bound, three variation definitions, a d^{1/16} bound, and clipping at d^{1/4}. Tracking this bookkeeping obscures the central degree-versus-noise tradeoff.",
+      "fix": "Keep the arm-weighted variation definition and the resulting cell-noise bound. State clipping's purpose in words and move the intermediate exponential bound and clipping exponent out of the spoken slide."
+    },
+    {
+      "slide": 15,
+      "severity": "rough",
+      "problem": "The chain through mathfrak m_sum, the active-regime inequality, and d^{-15/16}(L^2+8L^4) requires reading several verification steps while the important point is that population mass makes aggregation affordable.",
+      "fix": "Keep sum_x mathfrak a_x = L/(m epsilon) + dL^2/(m^2 epsilon^2) and the final aggregate variance bound. Explain verbally that, in the active regime, the remaining logarithmic factors are absorbed by the power of d."
+    },
+    {
+      "slide": 18,
+      "severity": "rough",
+      "problem": "The sentence identifying K_de with 'K_abs in the scalar approximation argument' refers to notation and an argument that have not appeared in the talk.",
+      "fix": "Remove the K_abs reference and simply define K_de as the number of matched moments in the tie family."
+    },
+    {
+      "slide": 19,
+      "severity": "rough",
+      "problem": "A second, substantially more complicated hard family is introduced before explaining what the bounded tie perturbations cannot cover. Its purpose becomes clear only in the coverage table on slide 24.",
+      "fix": "Open with the limitation: bounded tie amplitudes cap their value separation at order 1/K, so a wider intensity family is needed to obtain larger gaps in the sparse regime."
+    },
+    {
+      "slide": 20,
+      "severity": "rough",
+      "problem": "Slides 20-22 devote three slides to shifted Jackson weights, a twice-integrated kernel, and completion of signed measures. This is a dense second approximation construction late in a 20-minute talk, after a detailed estimator construction.",
+      "fix": "Compress this sequence into the three essential reasons: high frequencies cancel polynomial moments, localization at the tie preserves the corner response, and a common atom produces mean-one probability laws. Retain the final moment-matching and gain-separation statement from slide 22."
+    }
+  ],
+  "understood": "yes",
+  "passed": true,
+  "reader_passes": 2,
+  "deck_hash": "30d8b5157313d79859b3a9e01a53f1fa848759859c299ed98e3d3619caae23bd"
+}

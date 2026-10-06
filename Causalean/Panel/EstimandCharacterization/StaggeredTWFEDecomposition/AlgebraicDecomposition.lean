@@ -1,0 +1,734 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Goodman-Bacon (2021): TWFE decomposition under staggered timing — Layer A theorems
+
+**Role in the folder.** ★ *Algebraic headline.* Pure finite-cell algebra, no
+causal content: expresses the TWFE coefficient as a totalized weighted sum of
+2x2 comparison contrasts. Its causal refinement (potential outcomes) is the
+sibling headline `CausalDecomposition.lean`. See `StaggeredTWFEDecomposition.lean`
+for the folder layer-map.
+
+The five Layer A propositions (NL doc A5.1–A5.5):
+
+* `weights_nonneg` — `λ_TN, λ_EL, λ_LE ≥ 0`.
+* `raw_weight_sum_eq_VD` — denominator identity `Λ P = V_D P`.
+* `twfe_numerator_eq_lambda_delta_sum` — numerator identity.
+* `weights_sum_one` — normalized weights sum to one (uses `hVD_pos`).
+* `twfe_eq_weighted_avg` — weighted-average identity under positive variance.
+
+NL artifact:
+`doc/basic_concepts/po/estimand_characterization/goodman_bacon_twfe_timing.md`.
+Source LaTeX:
+`doc/basic_concepts/po/estimand_characterization/goodman_bacon_twfe_timing.tex`.
+
+Layer C (causal characterization, NL doc A6) is now implemented: the three
+causal-characterization corollaries live in `Causal.lean` (`Δ_TN_eq_ATT`,
+`Δ_EL_eq_ATT`, `Δ_LE_eq_bad_comparison`) and are fused with the weighted-sum
+identity below in `CausalDecomposition.lean`.
+-/
+
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Pairwise
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Ring
+public import Mathlib.Tactic.FieldSimp
+
+/-! # Goodman-Bacon Decomposition
+
+This file establishes the finite staggered-adoption Goodman-Bacon algebraic
+decomposition of a two-way fixed effects coefficient into admissible two-group
+comparisons. It proves nonnegativity of the raw comparison weights, the
+denominator and numerator identities, normalization of the weights under
+positive residualized-treatment variance, and the corresponding weighted-average
+identity. -/
+
+public section
+
+namespace Causalean
+namespace Panel.EstimandCharacterization
+namespace StaggeredTWFEDecomposition
+
+open Finset
+
+variable {𝒢 : Type*} [Fintype 𝒢] [DecidableEq 𝒢] {T : ℕ}
+
+omit [DecidableEq 𝒢] in
+/-- **Prop A5.1 (`weights_nonneg`).** For [a cohort panel](hyp:P) and [any comparison-type
+index](hyp:k), [the raw Goodman-Bacon comparison weight is nonnegative](goal).
+
+Pure algebra: uses `0 ≤ p_g`, `0 ≤ D̄_g ≤ 1`, and `0 ≤ q_{eℓ} ≤ 1`. -/
+theorem weights_nonneg (P : CohortPanel 𝒢 T) (k : CompTag × 𝒢 × 𝒢) :
+    0 ≤ lambdaWeight P k := by
+  classical
+  unfold lambdaWeight
+  have hTpos : 0 < (T : ℝ) := by exact_mod_cast P.T_pos
+  have hTnonneg : 0 ≤ (T : ℝ) := le_of_lt hTpos
+  have hTne : (T : ℝ) ≠ 0 := by exact_mod_cast (Nat.ne_of_gt P.T_pos)
+  have hbar_nonneg : ∀ g : 𝒢, 0 ≤ barD P g := by
+    intro g
+    unfold barD
+    have hsum_nonneg : 0 ≤ ∑ t : Fin T, D P g t := by
+      refine Finset.sum_nonneg' ?_
+      intro t
+      by_cases hD : P.A g ≤ (t : WithTop (Fin T))
+      · simp [D, hD]
+      · simp [D, hD]
+    simpa using (mul_nonneg (inv_nonneg.mpr hTnonneg) hsum_nonneg)
+  have hbar_le_one : ∀ g : 𝒢, barD P g ≤ 1 := by
+    intro g
+    unfold barD
+    have hsum_le : ∑ t : Fin T, D P g t ≤ (T : ℝ) := by
+      have hsum_le' : (∑ t : Fin T, D P g t) ≤ (∑ t : Fin T, (1 : ℝ)) := by
+        refine Finset.sum_le_sum ?_
+        intro t ht
+        by_cases hD : P.A g ≤ (t : WithTop (Fin T))
+        · simp [D, hD]
+        · simp [D, hD]
+      simpa using hsum_le'
+    have hsum_le'' : (∑ t, D P g t) ≤ (T : ℝ) := by simpa using hsum_le
+    have htmp : (T : ℝ)⁻¹ * (∑ t, D P g t) ≤ (T : ℝ)⁻¹ * (T : ℝ) :=
+      mul_le_mul_of_nonneg_left hsum_le'' (inv_nonneg.mpr hTnonneg)
+    simpa [barD, inv_mul_cancel₀ hTne] using htmp
+  by_cases h : admissible P k
+  · simp only [h, if_true]
+    rcases k with ⟨tag, g, u⟩
+    cases tag with
+    | TN =>
+        rcases h with ⟨_, _, hpg, hpu⟩
+        have hmul : 0 ≤ (P.p g * P.p u) * (barD P g * (1 - barD P g)) := by
+          exact mul_nonneg (mul_nonneg (le_of_lt hpg) (le_of_lt hpu))
+            (mul_nonneg (hbar_nonneg g) (sub_nonneg.mpr (hbar_le_one g)))
+        simpa [lambdaTN, mul_assoc, mul_left_comm, mul_comm] using hmul
+    | EL =>
+        rcases h with ⟨hlt, _, hpg, hpu⟩
+        have hbar_mono : barD P u ≤ barD P g := by
+          unfold barD
+          have hsum_le : (∑ t : Fin T, D P u t) ≤ (∑ t : Fin T, D P g t) := by
+            refine Finset.sum_le_sum ?_
+            intro t ht
+            by_cases htu : P.A u ≤ (t : WithTop (Fin T))
+            · have htg : P.A g ≤ (t : WithTop (Fin T)) :=
+                le_of_lt (lt_of_lt_of_le hlt htu)
+              simp [D, htu, htg]
+            · by_cases htg : P.A g ≤ (t : WithTop (Fin T))
+              · simp [D, htu, htg]
+              · simp [D, htu, htg]
+          have hsum_le' : (∑ t : Fin T, D P u t) ≤ (∑ t : Fin T, D P g t) := by
+            simpa using hsum_le
+          exact mul_le_mul_of_nonneg_left hsum_le' (inv_nonneg.mpr hTnonneg)
+        have hq_nonneg : 0 ≤ q P g u := by
+          unfold q
+          exact sub_nonneg.mpr hbar_mono
+        have hq_le_barD : q P g u ≤ barD P g := by
+          unfold q
+          nlinarith [hbar_mono, hbar_nonneg u]
+        have hq_le_one : q P g u ≤ 1 := le_trans hq_le_barD (hbar_le_one g)
+        have h1mq_nonneg : 0 ≤ 1 - q P g u := sub_nonneg.mpr hq_le_one
+        have hmu_nonneg : 0 ≤ mu P g u := by
+          unfold mu
+          exact div_nonneg (sub_nonneg.mpr (hbar_le_one g)) h1mq_nonneg
+        have hnum_le_den : 1 - barD P g ≤ 1 - q P g u := by
+          have hlu_nonneg : 0 ≤ barD P u := hbar_nonneg u
+          unfold q
+          linarith
+        have hmu_le_one : mu P g u ≤ 1 := by
+          by_cases hden : 1 - q P g u = 0
+          · have hqeq : q P g u = 1 := by linarith
+            simp [mu, hqeq]
+          · have hden_pos : 0 < 1 - q P g u :=
+              lt_of_le_of_ne h1mq_nonneg (Ne.symm hden)
+            have hdiv : (1 - barD P g) / (1 - q P g u) ≤ 1 :=
+              (div_le_one₀ hden_pos).2 hnum_le_den
+            simpa [mu] using hdiv
+        have h1m_nonneg : 0 ≤ 1 - mu P g u := sub_nonneg.mpr hmu_le_one
+        have hmul : 0 ≤ P.p g * P.p u * (q P g u * (1 - q P g u) * mu P g u) := by
+          have hmul1 : 0 ≤ P.p g * P.p u := mul_nonneg (le_of_lt hpg) (le_of_lt hpu)
+          have hmul2 : 0 ≤ q P g u * (1 - q P g u) := mul_nonneg hq_nonneg h1mq_nonneg
+          have hmul3 : 0 ≤ q P g u * (1 - q P g u) * mu P g u := mul_nonneg hmul2 hmu_nonneg
+          exact mul_nonneg hmul1 hmul3
+        simpa [lambdaEL, mul_assoc, mul_left_comm, mul_comm] using hmul
+    | LE =>
+        rcases h with ⟨hlt, _, hpg, hpu⟩
+        have hbar_mono : barD P u ≤ barD P g := by
+          unfold barD
+          have hsum_le : (∑ t : Fin T, D P u t) ≤ (∑ t : Fin T, D P g t) := by
+            refine Finset.sum_le_sum ?_
+            intro t ht
+            by_cases htu : P.A u ≤ (t : WithTop (Fin T))
+            · have htg : P.A g ≤ (t : WithTop (Fin T)) :=
+                le_of_lt (lt_of_lt_of_le hlt htu)
+              simp [D, htu, htg]
+            · by_cases htg : P.A g ≤ (t : WithTop (Fin T))
+              · simp [D, htu, htg]
+              · simp [D, htu, htg]
+          have hsum_le' : (∑ t : Fin T, D P u t) ≤ (∑ t : Fin T, D P g t) := by
+            simpa using hsum_le
+          exact mul_le_mul_of_nonneg_left hsum_le' (inv_nonneg.mpr hTnonneg)
+        have hq_nonneg : 0 ≤ q P g u := by
+          unfold q
+          exact sub_nonneg.mpr hbar_mono
+        have hq_le_barD : q P g u ≤ barD P g := by
+          unfold q
+          nlinarith [hbar_mono, hbar_nonneg u]
+        have hq_le_one : q P g u ≤ 1 := le_trans hq_le_barD (hbar_le_one g)
+        have h1mq_nonneg : 0 ≤ 1 - q P g u := sub_nonneg.mpr hq_le_one
+        have hmu_nonneg : 0 ≤ mu P g u := by
+          unfold mu
+          exact div_nonneg (sub_nonneg.mpr (hbar_le_one g)) h1mq_nonneg
+        have hnum_le_den : 1 - barD P g ≤ 1 - q P g u := by
+          have hlu_nonneg : 0 ≤ barD P u := hbar_nonneg u
+          unfold q
+          linarith
+        have hmu_le_one : mu P g u ≤ 1 := by
+          by_cases hden : 1 - q P g u = 0
+          · have hqeq : q P g u = 1 := by linarith
+            simp [mu, hqeq]
+          · have hden_pos : 0 < 1 - q P g u :=
+              lt_of_le_of_ne h1mq_nonneg (Ne.symm hden)
+            have hdiv : (1 - barD P g) / (1 - q P g u) ≤ 1 := by
+              exact (div_le_one₀ hden_pos).2 hnum_le_den
+            simpa [mu] using hdiv
+        have h1m_nonneg : 0 ≤ 1 - mu P g u := sub_nonneg.mpr hmu_le_one
+        have hmul : 0 ≤ P.p g * P.p u * (q P g u * (1 - q P g u) * (1 - mu P g u)) := by
+          have hmul1 : 0 ≤ P.p g * P.p u := mul_nonneg (le_of_lt hpg) (le_of_lt hpu)
+          have hmul2 : 0 ≤ q P g u * (1 - q P g u) := mul_nonneg hq_nonneg h1mq_nonneg
+          have hmul3 : 0 ≤ q P g u * (1 - q P g u) * (1 - mu P g u) := mul_nonneg hmul2 h1m_nonneg
+          exact mul_nonneg hmul1 hmul3
+        simpa [lambdaLE, mul_assoc, mul_left_comm, mul_comm] using hmul
+  · simp [h]
+
+omit [DecidableEq 𝒢] in
+/-- A never-treated cohort has zero average treatment over the panel. -/
+lemma barD_eq_zero_of_isInf (P : CohortPanel 𝒢 T) {g : 𝒢}
+    (hg : AdoptionPath.isInfinite (P.A g)) : barD P g = 0 := by
+  unfold barD
+  simp [D_eq_zero_of_isInf P hg]
+
+omit [DecidableEq 𝒢] in
+/-- When one cohort is never treated, its raw comparison weight with another cohort equals the
+product of their cohort shares, the gap in their average treatment rates, and one minus that gap. -/
+lemma lambdaTN_eq_gap_of_isInf (P : CohortPanel 𝒢 T) {g u : 𝒢}
+    (hu : AdoptionPath.isInfinite (P.A u)) :
+    lambdaTN P g u = P.p g * P.p u * q P g u * (1 - q P g u) := by
+  unfold lambdaTN q
+  rw [barD_eq_zero_of_isInf P hu]
+  ring
+
+omit [DecidableEq 𝒢] in
+/-- The two ordered raw comparison weights between two cohorts sum to the product of their cohort
+shares, the gap in their average treatment rates, and one minus that gap. -/
+lemma lambdaEL_add_lambdaLE_eq_gap (P : CohortPanel 𝒢 T) (e ℓ : 𝒢) :
+    lambdaEL P e ℓ + lambdaLE P e ℓ =
+      P.p e * P.p ℓ * q P e ℓ * (1 - q P e ℓ) := by
+  unfold lambdaEL lambdaLE
+  ring
+
+omit [DecidableEq 𝒢] in
+open Classical in
+/-- The raw denominator of the staggered-adoption two-way fixed-effects decomposition equals the
+sum of treated-versus-never comparison terms and ordered early-versus-late comparison terms. -/
+lemma Lambda_eq_gap_sums (P : CohortPanel 𝒢 T) :
+    Lambda P =
+      (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+              P.p g * P.p u * q P g u * (1 - q P g u) else 0)
+      + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
+                P.p e * P.p ℓ * q P e ℓ * (1 - q P e ℓ) else 0) := by
+  unfold Lambda
+  congr 1
+  · refine Finset.sum_congr rfl ?_
+    intro g _hg
+    refine Finset.sum_congr rfl ?_
+    intro u _hu
+    by_cases h : P.A g ≠ ⊤ ∧ P.A u = ⊤
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h,
+        lambdaTN_eq_gap_of_isInf P h.2]
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h]
+  · refine Finset.sum_congr rfl ?_
+    intro e _he
+    refine Finset.sum_congr rfl ?_
+    intro ℓ _hℓ
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤
+    · simp [AdoptionPath.isFinite, h,
+        lambdaEL_add_lambdaLE_eq_gap P e ℓ]
+    · simp [AdoptionPath.isFinite, h]
+
+omit [DecidableEq 𝒢] in
+/-- Cohorts that share the same adoption date have identical treatment status
+    in every time period. -/
+lemma D_eq_of_A_eq (P : CohortPanel 𝒢 T) {g u : 𝒢}
+    (hA : P.A g = P.A u) (t : Fin T) : D P g t = D P u t := by
+  unfold D
+  rw [hA]
+
+omit [DecidableEq 𝒢] in
+private lemma barD_eq_of_A_eq (P : CohortPanel 𝒢 T) {g u : 𝒢}
+    (hA : P.A g = P.A u) : barD P g = barD P u := by
+  unfold barD
+  congr 1
+  refine Finset.sum_congr rfl ?_
+  intro t _ht
+  exact D_eq_of_A_eq P hA t
+
+omit [DecidableEq 𝒢] in
+private lemma centeredD_eq_of_A_eq (P : CohortPanel 𝒢 T) {g u : 𝒢}
+    (hA : P.A g = P.A u) (t : Fin T) :
+    centeredD P g t = centeredD P u t := by
+  unfold centeredD
+  rw [D_eq_of_A_eq P hA t, barD_eq_of_A_eq P hA]
+
+omit [DecidableEq 𝒢] in
+private lemma vdPairContribution_eq_zero_of_A_eq (P : CohortPanel 𝒢 T) {g u : 𝒢}
+    (hA : P.A g = P.A u) : vdPairContribution P g u = 0 := by
+  unfold vdPairContribution
+  have hsum : (∑ t : Fin T, (centeredD P g t - centeredD P u t) ^ 2) = 0 := by
+    refine Finset.sum_eq_zero ?_
+    intro t _ht
+    rw [centeredD_eq_of_A_eq P hA t]
+    ring
+  rw [hsum]
+  ring
+
+omit [DecidableEq 𝒢] in
+private lemma numPairContribution_eq_zero_of_A_eq (P : CohortPanel 𝒢 T) {g u : 𝒢}
+    (hA : P.A g = P.A u) : numPairContribution P g u = 0 := by
+  unfold numPairContribution
+  have hsum :
+      (∑ t : Fin T,
+        (centeredD P g t - centeredD P u t) * (P.Y g t - P.Y u t)) = 0 := by
+    refine Finset.sum_eq_zero ?_
+    intro t _ht
+    rw [centeredD_eq_of_A_eq P hA t]
+    ring
+  rw [hsum]
+  ring
+
+omit [DecidableEq 𝒢] in
+private lemma adoption_pair_cases (P : CohortPanel 𝒢 T) (g u : 𝒢) :
+    P.A g = P.A u ∨
+      (AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u)) ∨
+      (AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g)) ∨
+      (P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u)) ∨
+      (P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g)) := by
+  rcases lt_trichotomy (P.A g) (P.A u) with hlt | heq | hgt
+  · by_cases hu : AdoptionPath.isInfinite (P.A u)
+    · right; left
+      constructor
+      · intro hg
+        unfold AdoptionPath.isInfinite at hu
+        rw [hg, hu] at hlt
+        exact (lt_irrefl (⊤ : WithTop (Fin T))) hlt
+      · exact hu
+    · right; right; right; left
+      exact ⟨hlt, hu⟩
+  · left
+    exact heq
+  · by_cases hg : AdoptionPath.isInfinite (P.A g)
+    · right; right; left
+      constructor
+      · intro hu
+        unfold AdoptionPath.isInfinite at hg
+        rw [hu, hg] at hgt
+        exact (lt_irrefl (⊤ : WithTop (Fin T))) hgt
+      · exact hg
+    · right; right; right; right
+      exact ⟨hgt, hg⟩
+
+open Classical in
+omit [DecidableEq 𝒢] in
+private lemma adoption_pair_pointwise (P : CohortPanel 𝒢 T) (f : 𝒢 → 𝒢 → ℝ)
+    (hzero : ∀ g u, P.A g = P.A u → f g u = 0) (g u : 𝒢) :
+    f g u =
+      (if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+      (if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then f g u else 0) +
+      (if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
+      (if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0) := by
+  rcases adoption_pair_cases P g u with hEq | hTN | hNT | hLT | hGT
+  · rw [hzero g u hEq]
+    simp [hEq, AdoptionPath.isFinite, AdoptionPath.isInfinite]
+  · rcases hTN with ⟨hgf, hui⟩
+    change P.A g ≠ ⊤ at hgf
+    change P.A u = ⊤ at hui
+    simp [AdoptionPath.isFinite,       AdoptionPath.isInfinite, hgf, hui]
+  · rcases hNT with ⟨huf, hgi⟩
+    change P.A u ≠ ⊤ at huf
+    change P.A g = ⊤ at hgi
+    simp [AdoptionPath.isFinite,       AdoptionPath.isInfinite, huf, hgi]
+  · rcases hLT with ⟨hlt, huf⟩
+    change P.A u ≠ ⊤ at huf
+    have hgf : P.A g ≠ ⊤ := by
+      intro hgi
+      rw [hgi] at hlt
+      exact not_top_lt hlt
+    simp [AdoptionPath.isFinite,       AdoptionPath.isInfinite, hlt, huf, hgf, not_lt_of_gt hlt]
+  · rcases hGT with ⟨hgt, hgf⟩
+    change P.A g ≠ ⊤ at hgf
+    have huf : P.A u ≠ ⊤ := by
+      intro hui
+      rw [hui] at hgt
+      exact not_top_lt hgt
+    simp [AdoptionPath.isFinite,       AdoptionPath.isInfinite, hgt, huf, hgf, not_lt_of_gt hgt]
+
+open Classical in
+omit [DecidableEq 𝒢] in
+/-- When a pairwise cohort contribution is zero for cohorts sharing an adoption
+    date, its total over all cohort pairs decomposes into the four possible
+    ordered timing comparisons. -/
+lemma adoption_pair_sum_decomp (P : CohortPanel 𝒢 T) (f : 𝒢 → 𝒢 → ℝ)
+    (hzero : ∀ g u, P.A g = P.A u → f g u = 0) :
+    (∑ g, ∑ u, f g u) =
+      (∑ g, ∑ u,
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+      (∑ g, ∑ u,
+        if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then f g u else 0) +
+      (∑ g, ∑ u,
+        if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
+      (∑ g, ∑ u,
+        if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0) := by
+  calc
+    (∑ g, ∑ u, f g u)
+        = ∑ g, ∑ u,
+            ((if AdoptionPath.isFinite (P.A g) ∧
+                AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+            (if AdoptionPath.isFinite (P.A u) ∧
+                AdoptionPath.isInfinite (P.A g) then f g u else 0) +
+            (if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
+            (if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0)) := by
+              refine Finset.sum_congr rfl ?_
+              intro g _hg
+              refine Finset.sum_congr rfl ?_
+              intro u _hu
+              exact adoption_pair_pointwise P f hzero g u
+    _ = _ := by simp [Finset.sum_add_distrib, add_assoc]
+
+omit [DecidableEq 𝒢] in
+private lemma sum_swap₂ (f : 𝒢 → 𝒢 → ℝ) :
+    (∑ g, ∑ u, f u g) = ∑ g, ∑ u, f g u := by
+  rw [Finset.sum_comm]
+
+omit [DecidableEq 𝒢] in
+open Classical in
+private lemma TN_sum_pair (P : CohortPanel 𝒢 T) (f : 𝒢 → 𝒢 → ℝ) :
+    (∑ g, ∑ u,
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+          f g u + f u g else 0) =
+      (∑ g, ∑ u,
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+      (∑ g, ∑ u,
+        if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then f g u else 0) := by
+  calc
+    (∑ g, ∑ u,
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+          f g u + f u g else 0)
+        = ∑ g, ∑ u,
+            ((if AdoptionPath.isFinite (P.A g) ∧
+                AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+             (if AdoptionPath.isFinite (P.A g) ∧
+                AdoptionPath.isInfinite (P.A u) then f u g else 0)) := by
+              refine Finset.sum_congr rfl ?_
+              intro g _hg
+              refine Finset.sum_congr rfl ?_
+              intro u _hu
+              by_cases h : P.A g ≠ ⊤ ∧ P.A u = ⊤ <;>
+                simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h]
+    _ = (∑ g, ∑ u,
+          if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+        (∑ g, ∑ u,
+          if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+            f u g else 0) := by
+          simp [Finset.sum_add_distrib]
+    _ = (∑ g, ∑ u,
+          if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+        (∑ g, ∑ u,
+          if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then
+            f g u else 0) := by
+          rw [sum_swap₂ (fun g u =>
+            if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then f g u else 0)]
+
+omit [DecidableEq 𝒢] in
+open Classical in
+private lemma TT_sum_pair (P : CohortPanel 𝒢 T) (f : 𝒢 → 𝒢 → ℝ) :
+    (∑ e, ∑ ℓ,
+        if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ + f ℓ e else 0) =
+      (∑ g, ∑ u,
+        if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
+      (∑ g, ∑ u,
+        if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0) := by
+  calc
+    (∑ e, ∑ ℓ,
+        if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ + f ℓ e else 0)
+        = ∑ e, ∑ ℓ,
+            ((if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ else 0) +
+             (if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f ℓ e else 0)) := by
+              refine Finset.sum_congr rfl ?_
+              intro e _he
+              refine Finset.sum_congr rfl ?_
+              intro ℓ _hℓ
+              by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤ <;>
+                simp [AdoptionPath.isFinite, h]
+    _ = (∑ e, ∑ ℓ,
+          if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ else 0) +
+        (∑ e, ∑ ℓ,
+          if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f ℓ e else 0) := by
+          simp [Finset.sum_add_distrib]
+    _ = (∑ g, ∑ u,
+          if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
+        (∑ g, ∑ u,
+          if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0) := by
+          rw [sum_swap₂ (fun g u =>
+            if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0)]
+
+open Classical in
+omit [DecidableEq 𝒢] in
+private lemma adoption_pair_sum_grouped (P : CohortPanel 𝒢 T) (f : 𝒢 → 𝒢 → ℝ)
+    (hzero : ∀ g u, P.A g = P.A u → f g u = 0) :
+    (∑ g, ∑ u, f g u) =
+      (∑ g, ∑ u,
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+          f g u + f u g else 0) +
+      (∑ e, ∑ ℓ,
+        if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ + f ℓ e else 0) := by
+  have hdecomp := adoption_pair_sum_decomp P f hzero
+  rw [TN_sum_pair P f, TT_sum_pair P f]
+  linarith
+
+open Classical in
+/-- The total of cohort-share products times each pair's treatment-rate gap and one minus that
+gap, over treated-versus-never and ordered early-versus-later pairs, equals the residualized
+treatment variance. -/
+lemma gap_sums_eq_VD (P : CohortPanel 𝒢 T) :
+    (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+              P.p g * P.p u * q P g u * (1 - q P g u) else 0)
+      + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
+                P.p e * P.p ℓ * q P e ℓ * (1 - q P e ℓ) else 0)
+      = VD P := by
+  -- Remaining denominator algebra: expand `VD`, use `P.p_sum_one`, and group
+  -- the pairwise variance of monotone adoption indicators by adoption-date
+  -- order. This is the finite-sum manipulation described in the NL A5.2 doc.
+  rw [VD_eq_pairwise_centeredD P]
+  rw [adoption_pair_sum_grouped P (vdPairContribution P)
+    (fun g u hA => vdPairContribution_eq_zero_of_A_eq P hA)]
+  congr 1
+  · refine Finset.sum_congr rfl ?_
+    intro g _hg
+    refine Finset.sum_congr rfl ?_
+    intro u _hu
+    by_cases h : P.A g ≠ ⊤ ∧ P.A u = ⊤
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h,
+        TN_pair_vd_contribution_eq_gap P h.2]
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h]
+  · refine Finset.sum_congr rfl ?_
+    intro e _he
+    refine Finset.sum_congr rfl ?_
+    intro ℓ _hℓ
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤
+    · simp [AdoptionPath.isFinite, h,
+        TT_pair_vd_contribution_eq_gap P h.1]
+    · simp [AdoptionPath.isFinite, h]
+
+/-- **Prop A5.2 (`raw_weight_sum_eq_VD`).** The aggregate raw-weight
+denominator equals the residualized treatment variance:
+`Λ P = V_D P`. Key denominator identity in
+`thm:po-estimand-goodman-bacon-decomposition`. -/
+theorem raw_weight_sum_eq_VD (P : CohortPanel 𝒢 T) :
+    Lambda P = VD P := by
+  rw [Lambda_eq_gap_sums]
+  exact gap_sums_eq_VD P
+
+open Classical in
+/-- **Prop A5.3 (`twfe_numerator_eq_lambda_delta_sum`).** The TWFE numerator
+decomposes by unordered cohort pairs into raw-weight times 2x2 DID
+contrast contributions. -/
+theorem twfe_numerator_eq_lambda_delta_sum (P : CohortPanel 𝒢 T) :
+    (∑ g, ∑ t, (P.p g / (T : ℝ)) * Dtilde P g t * P.Y g t)
+      = (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u)
+                    then lambdaTN P g u * Δ_TN P g u else 0)
+        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ)
+                      then lambdaEL P e ℓ * Δ_EL P e ℓ
+                            + lambdaLE P e ℓ * Δ_LE P e ℓ else 0) := by
+  rw [twfe_numerator_eq_pairwise_centeredD_Y P]
+  rw [adoption_pair_sum_grouped P (numPairContribution P)
+    (fun g u hA => numPairContribution_eq_zero_of_A_eq P hA)]
+  congr 1
+  · refine Finset.sum_congr rfl ?_
+    intro g _hg
+    refine Finset.sum_congr rfl ?_
+    intro u _hu
+    by_cases h : P.A g ≠ ⊤ ∧ P.A u = ⊤
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h,
+        TN_pair_contribution_eq_lambda_delta P h.1 h.2]
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h]
+  · refine Finset.sum_congr rfl ?_
+    intro e _he
+    refine Finset.sum_congr rfl ?_
+    intro ℓ _hℓ
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤
+    · simp [AdoptionPath.isFinite, h,
+        TT_pair_contribution_eq_lambda_delta_sum P h.1 h.2]
+    · simp [AdoptionPath.isFinite, h]
+
+private lemma sum_compTag (f : CompTag → ℝ) :
+    (∑ tag, f tag) = f CompTag.TN + f CompTag.EL + f CompTag.LE := by
+  rw [show (Finset.univ : Finset CompTag) = {CompTag.TN, CompTag.EL, CompTag.LE} by
+    ext tag
+    cases tag <;> simp]
+  simp [add_assoc]
+
+private lemma if_dup (c : Prop) [Decidable c] (x : ℝ) :
+    (if c then if c then x else 0 else 0) = if c then x else 0 := by
+  by_cases h : c <;> simp [h]
+
+private lemma if_mul_dup (c : Prop) [Decidable c] (x y : ℝ) :
+    (if c then (if c then x else 0) * (if c then y else 0) else 0) =
+      if c then x * y else 0 := by
+  by_cases h : c <;> simp [h]
+
+omit [DecidableEq 𝒢] in
+/-- Across all admissible comparison types and cohort pairs, the raw comparison
+    weights sum to the aggregate normalizing denominator. -/
+lemma sum_lambdaWeight_eq_Lambda (P : CohortPanel 𝒢 T) :
+    ∑ k ∈ 𝒦 P, lambdaWeight P k = Lambda P := by
+  classical
+  rw [show (∑ k ∈ 𝒦 P, lambdaWeight P k)
+      = ∑ k, if admissible P k then lambdaWeight P k else 0 by
+    simp [𝒦, Finset.sum_filter]]
+  rw [Fintype.sum_prod_type]
+  rw [sum_compTag]
+  simp only [lambdaWeight, admissible, P.p_pos, true_and]
+  simp_rw [if_dup]
+  simp_rw [Fintype.sum_prod_type]
+  simp only [and_true]
+  have hELLE :
+      (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
+        lambdaEL P e ℓ else 0)
+        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
+          lambdaLE P e ℓ else 0)
+      = ∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
+        lambdaEL P e ℓ + lambdaLE P e ℓ else 0 := by
+    rw [← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl ?_
+    intro e he
+    rw [← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl ?_
+    intro ℓ hℓ
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤ <;>
+      simp [AdoptionPath.isFinite, h]
+  unfold Lambda
+  rw [← hELLE]
+  rw [add_assoc]
+
+omit [DecidableEq 𝒢] in
+open Classical in
+private lemma sum_lambdaWeight_mul_contrast_eq (P : CohortPanel 𝒢 T) :
+    ∑ k ∈ 𝒦 P, lambdaWeight P k * contrast P k =
+      (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u)
+                    then lambdaTN P g u * Δ_TN P g u else 0)
+        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ)
+                      then lambdaEL P e ℓ * Δ_EL P e ℓ
+                            + lambdaLE P e ℓ * Δ_LE P e ℓ else 0) := by
+  classical
+  rw [show (∑ k ∈ 𝒦 P, lambdaWeight P k * contrast P k)
+      = ∑ k, if admissible P k then lambdaWeight P k * contrast P k else 0 by
+    simp [𝒦, Finset.sum_filter]]
+  rw [Fintype.sum_prod_type]
+  rw [sum_compTag]
+  simp only [lambdaWeight, contrast, admissible, P.p_pos, true_and]
+  simp_rw [if_mul_dup]
+  simp_rw [Fintype.sum_prod_type]
+  simp only [and_true]
+  have hELLE :
+      (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
+        lambdaEL P e ℓ * Δ_EL P e ℓ else 0)
+        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
+          lambdaLE P e ℓ * Δ_LE P e ℓ else 0)
+      = ∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
+        lambdaEL P e ℓ * Δ_EL P e ℓ + lambdaLE P e ℓ * Δ_LE P e ℓ else 0 := by
+    rw [← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl ?_
+    intro e he
+    rw [← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl ?_
+    intro ℓ hℓ
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤ <;>
+      simp [AdoptionPath.isFinite, h]
+  rw [← hELLE]
+  rw [add_assoc]
+
+/-- **Prop A5.4 (`weights_sum_one`).** For a finite Goodman–Bacon cohort panel
+`P`, if [the residualized-treatment variance `VD P` is strictly
+positive](hyp:hVD_pos), then [the normalized comparison weights sum to one
+over all admissible 2×2 comparisons: `Σ_{k ∈ 𝒦 P} weight P k = 1`](goal). -/
+theorem weights_sum_one (P : CohortPanel 𝒢 T) (hVD_pos : 0 < VD P) :
+    ∑ k ∈ 𝒦 P, weight P k = 1 := by
+  classical
+  have hL_ne : Lambda P ≠ 0 := by
+    rw [raw_weight_sum_eq_VD P]
+    exact ne_of_gt hVD_pos
+  have hsum_lambda : ∑ k ∈ 𝒦 P, lambdaWeight P k = Lambda P := by
+    exact sum_lambdaWeight_eq_Lambda P
+  calc
+    ∑ k ∈ 𝒦 P, weight P k = ∑ k ∈ 𝒦 P, lambdaWeight P k / Lambda P := by
+      refine Finset.sum_congr rfl ?_
+      intro k hk
+      have hk' : admissible P k := by
+        simpa [𝒦] using hk
+      rcases k with ⟨tag, pair⟩
+      rcases pair with ⟨g, u⟩
+      cases tag <;> simp [weight, lambdaWeight, w_TN, w_EL, w_LE, hk']
+    _ = (∑ k ∈ 𝒦 P, lambdaWeight P k) / Lambda P := by
+      simp [div_eq_mul_inv, Finset.mul_sum, mul_comm]
+    _ = Lambda P / Lambda P := by rw [hsum_lambda]
+    _ = 1 := by exact div_self hL_ne
+
+/-- For [a cohort panel](hyp:P), [the totalized TWFE ratio equals the totalized normalized sum
+of admissible two-by-two DID contrasts, including in zero-variance cases](goal). -/
+theorem twfe_eq_normalized_comparison_sum (P : CohortPanel 𝒢 T) :
+    betaTWFE P = ∑ k ∈ 𝒦 P, weight P k * contrast P k := by
+  classical
+  have hnum := twfe_numerator_eq_lambda_delta_sum P
+  have hsum :
+      ∑ k ∈ 𝒦 P, lambdaWeight P k * contrast P k =
+        (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u)
+                      then lambdaTN P g u * Δ_TN P g u else 0)
+          + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ)
+                        then lambdaEL P e ℓ * Δ_EL P e ℓ
+                              + lambdaLE P e ℓ * Δ_LE P e ℓ else 0) :=
+    sum_lambdaWeight_mul_contrast_eq P
+  have hweighted :
+      ∑ k ∈ 𝒦 P, weight P k * contrast P k =
+        (∑ k ∈ 𝒦 P, lambdaWeight P k * contrast P k) / Lambda P := by
+    rw [Finset.sum_div]
+    refine Finset.sum_congr rfl ?_
+    intro k hk
+    have hk' : admissible P k := by
+      simpa [𝒦] using hk
+    rcases k with ⟨tag, pair⟩
+    rcases pair with ⟨g, u⟩
+    cases tag <;> simp [weight, lambdaWeight, w_TN, w_EL, w_LE, hk',
+      div_eq_mul_inv, mul_left_comm, mul_comm]
+  calc
+    betaTWFE P
+        = ((∑ k ∈ 𝒦 P, lambdaWeight P k * contrast P k) / Lambda P) := by
+          unfold betaTWFE
+          rw [hnum]
+          rw [← hsum]
+          rw [← raw_weight_sum_eq_VD P]
+    _ = ∑ k ∈ 𝒦 P, weight P k * contrast P k := by
+          rw [hweighted]
+
+/-- **Theorem A5.5 (`twfe_eq_weighted_avg`, `thm:po-estimand-goodman-bacon-decomposition`).**
+For [a cohort panel](hyp:P) whose [residualized-treatment variance is strictly
+positive](hyp:hVD_pos), [the two-way fixed-effects (TWFE) coefficient equals a weighted average
+of admissible two-by-two DID contrasts across comparison groups](goal). The positivity condition
+makes the normalized weights sum to one by `weights_sum_one`. -/
+theorem twfe_eq_weighted_avg (P : CohortPanel 𝒢 T) (hVD_pos : 0 < VD P) :
+    betaTWFE P = ∑ k ∈ 𝒦 P, weight P k * contrast P k :=
+  twfe_eq_normalized_comparison_sum P
+
+end StaggeredTWFEDecomposition
+end Panel.EstimandCharacterization
+end Causalean

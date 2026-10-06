@@ -1,0 +1,168 @@
+\begin{proof}[Proof of \cref{obj:lem:phiw-window-second-moment}]
+\begin{enumerate}
+\item
+Write an observed trajectory as
+\[
+o=((x_j,a_j,y_j))_{j=0}^{T-1}\in \mathsf O_T,
+\]
+and set
+\[
+\mathcal W_{t,k}
+:=
+\{j\in\{0,\ldots,T-1\}: j\le t,\ t-j\le k\}.
+\]
+For every \(j\), define the observable zero-cell policy ratio
+\[
+\rho_j(o)
+:=
+\begin{cases}
+0, & b(a_j\mid x_j)=0,\\[2mm]
+e(a_j\mid x_j)/b(a_j\mid x_j), & b(a_j\mid x_j)\ne 0.
+\end{cases}
+\]
+Then \cref{obj:def:phiw-estimator} gives
+\[
+Z_t(k)(o)=y_t\Pi_{t,k}(o),
+\qquad
+\Pi_{t,k}(o):=\prod_{j\in\mathcal W_{t,k}}\rho_j(o).
+\]
+Since \(k\le t\), the window is the contiguous block
+\[
+\mathcal W_{t,k}=\{t-k,t-k+1,\ldots,t\}.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.phiwScore
+
+\item
+The window product has observed-law mean one:
+\[
+\mathbb E_{\mathrm{obs}}\bigl[\Pi_{t,k}\bigr]=1.
+\]
+Put \(r=t-k\). Since \(k\le t\), this is an integer in \(\{0,\ldots,t\}\), and the window from step 1 is exactly the interval \(\{r,r+1,\ldots,t\}\). First establish the corresponding identity under the full trajectory law. For a full trajectory \(\tau\), write
+\[
+\rho_j(\tau)
+:=
+\begin{cases}
+0, & b(A_j(\tau)\mid X_j(\tau))=0,\\[1mm]
+e(A_j(\tau)\mid X_j(\tau))/b(A_j(\tau)\mid X_j(\tau)),
+& b(A_j(\tau)\mid X_j(\tau))\ne 0,
+\end{cases}
+\]
+so the full-law block identity to prove is
+\[
+\mathbb E\!\left[\prod_{j=r}^{t}\rho_j(\tau)\right]=1.
+\]
+The argument uses the theorem hypothesis that the target carrier is a policy vector, so for every observed state \(x\),
+\[
+e(a\mid x)\ge 0\quad(a\in\mathcal A),
+\qquad
+\sum_{a\in\mathcal A}e(a\mid x)=1,
+\]
+together with the domination inequality supplied by \cref{obj:ass:policy-overlap}. Under \cref{obj:ass:sequential-ignorability}, conditional on the past and current joint state at epoch \(m\), the action has behavior probabilities \(b(\cdot\mid X_m)\). If \(b(a\mid x)=0\), then \(0\le e(a\mid x)\le Lb(a\mid x)=0\), hence \(e(a\mid x)=0\); therefore, for every observed state \(x\),
+\[
+\sum_{a\in\mathcal A} b(a\mid x)\,
+\begin{cases}
+0, & b(a\mid x)=0,\\[1mm]
+e(a\mid x)/b(a\mid x), & b(a\mid x)\ne 0
+\end{cases}
+=
+\sum_{a\in\mathcal A}e(a\mid x)=1.
+\]
+Thus, for every \(m\in\{r,\ldots,t\}\), conditioning on the history and current joint state up to epoch \(m\) gives
+\[
+\mathbb E\!\left[\left.\rho_m(\tau)\,\right|\,
+X_{0:m},H_{0:m},A_{0:m-1},Y_{0:m-1}\right]=1.
+\]
+Peeling the factors one epoch at a time, with \cref{obj:ass:pomdp-kernel} identifying the next history law after each peeled action, gives
+\[
+\mathbb E\!\left[\prod_{j=r}^{m}\rho_j(\tau)\right]
+=
+\mathbb E\!\left[\prod_{j=r}^{m-1}\rho_j(\tau)\right],
+\qquad m=r,\ldots,t,
+\]
+where the product over \(\{r,\ldots,r-1\}\) is the empty product. Iterating from \(m=t\) down to \(m=r\) leaves the empty product, whose expectation is \(1\), and hence
+\[
+\mathbb E\!\left[\prod_{j=r}^{t}\rho_j(\tau)\right]=1.
+\]
+It remains to pass this identity to observed trajectories. Let \(O\) be the observation map
+\[
+O(\tau)=((X_j(\tau),A_j(\tau),Y_j(\tau)))_{j=0}^{T-1},
+\]
+so that the observed law is the pushforward of the full law by \(O\). By definition of \(\Pi_{t,k}\) and the interval identity \(\mathcal W_{t,k}=\{r,
+\ldots,t\}\), for every full trajectory \(\tau\),
+\[
+\Pi_{t,k}(O(\tau))
+=
+\prod_{j\in\mathcal W_{t,k}}\rho_j(O(\tau))
+=
+\prod_{j=r}^{t}\rho_j(\tau).
+\]
+The usual integration formula for a pushforward measure therefore gives
+\[
+\mathbb E_{\mathrm{obs}}\bigl[\Pi_{t,k}\bigr]
+=
+\int \Pi_{t,k}(o)\,d\mathbb P_{\mathrm{obs}}(o)
+=
+\int \Pi_{t,k}(O(\tau))\,d\mathbb P(\tau)
+=
+\int \prod_{j=r}^{t}\rho_j(\tau)\,d\mathbb P(\tau)
+=1.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_phiwWindowProduct_eq_one
+
+\item
+For every observed trajectory \(o\) and every \(j\),
+\[
+0\le \rho_j(o)\le L.
+\]
+The lower bound uses the behavior-policy vector property from \cref{obj:ass:sequential-ignorability} and the theorem hypothesis that the target carrier is a policy vector. The upper bound is immediate in a zero cell and otherwise follows from the domination inequality in \cref{obj:ass:policy-overlap} by dividing \(e(a_j\mid x_j)\le Lb(a_j\mid x_j)\) by the positive number \(b(a_j\mid x_j)\). Hence
+\[
+0\le \Pi_{t,k}(o)\le L^{|\mathcal W_{t,k}|}.
+\]
+The map \(j\mapsto t-j\) injects \(\mathcal W_{t,k}\) into \(\{0,\ldots,k\}\), so
+\[
+|\mathcal W_{t,k}|\le k+1.
+\]
+Since \(L\ge 1\),
+\[
+0\le \Pi_{t,k}(o)\le L^{k+1}.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.phiwWindowProduct_le_pow_card
+
+\item
+By \cref{obj:ass:bounded-reward}, the full trajectory law has \(|Y_t|\le 1\) almost surely; pushing forward to the observed law gives
+\[
+|y_t|\le 1
+\qquad \mathbb P_{\mathrm{obs}}\text{-almost surely}.
+\]
+Together with the preceding product bound, this also gives
+\[
+|Z_t(k)|\le L^{k+1}
+\qquad \mathbb P_{\mathrm{obs}}\text{-almost surely},
+\]
+so the square and the comparison function \(L^{k+1}\Pi_{t,k}\) are integrable under the observed law.
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.phiwScore_memLp
+
+\item
+For \(\mathbb P_{\mathrm{obs}}\)-almost every observed trajectory,
+\[
+Z_t(k)^2
+=
+y_t^2\Pi_{t,k}^2
+\le
+1\cdot \Pi_{t,k}^2
+\le
+L^{k+1}\Pi_{t,k},
+\]
+where the last inequality uses \(0\le \Pi_{t,k}\le L^{k+1}\). Integrating and using the normalization from step 2,
+\[
+\mathbb E_{\mathrm{obs}}\bigl[Z_t(k)^2\bigr]
+\le
+\mathbb E_{\mathrm{obs}}\bigl[L^{k+1}\Pi_{t,k}\bigr]
+=
+L^{k+1}\mathbb E_{\mathrm{obs}}\bigl[\Pi_{t,k}\bigr]
+=
+L^{k+1}.
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_sq_phiwScore_le
+\end{enumerate}
+\end{proof}

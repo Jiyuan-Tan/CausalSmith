@@ -1,0 +1,179 @@
+\section{An observational extension through synthetic assignment}
+
+The \leanref{S-4}{discrete observational experiment} connects adjustment for many covariate categories to the randomized experiment with missing outcomes. Its target is a baseline-weighted regression contrast under a fixed strict positivity margin. An independent synthetic assignment converts observational records into randomized records whose outcomes arrive when the synthetic and observational treatments agree. This construction preserves the contrast and transfers the mixed-count estimator to observational data.
+
+We begin by specifying the observational law and its occupied-category positivity condition.
+\begin{definitionv}{def:zeng-discrete-ate-class}[Observational law class \(\mathcal D_{d,\epsilon}\)]
+The class \(\mathcal D_{d,\epsilon}\), for \(0<\epsilon<1/2\), consists of one-record laws \(P_Z\) of the baseline category, observational treatment, and outcome
+\[
+(X,B^{\mathrm{obs}},Y)\in\{1,\ldots,d\}\times\{0,1\}^2
+\]
+with baseline probabilities
+\[
+p_x=P_Z(X=x)
+\]
+and, on each occupied category \(p_x>0\), conditional treatment probabilities and outcome means
+\[
+\pi_x=P_Z(B^{\mathrm{obs}}=1\mid X=x),
+\qquad
+\mu_{bx}=E_{P_Z}[Y\mid X=x,B^{\mathrm{obs}}=b],
+\]
+satisfying
+\[
+\epsilon\le\pi_x\le1-\epsilon,
+\qquad
+0\le\mu_{bx}\le1
+\quad (b\in\{0,1\}).
+\]
+The conditional quantities \(\pi_x\) and \(\mu_{bx}\) are specified on occupied categories.
+\end{definitionv}
+
+For a law \leanref{sym:P_Z}{\ensuremath{P_Z}} in the class \leanref{sym:\mathcal D_{d,\epsilon}}{\ensuremath{\mathcal D_{d,\epsilon}}}, both values of the observational treatment \leanref{sym:B^{\mathrm{obs}}}{\ensuremath{B^{\mathrm{obs}}}} have positive conditional probability in every occupied category. The margin bounds these probabilities away from zero while allowing arbitrary baseline probabilities, including null categories. Consequently, both conditional outcome means are defined wherever the baseline distribution assigns positive mass.
+
+The estimand aggregates the within-category regression contrasts using that baseline distribution.
+\begin{definitionv}{def:zeng-ate-functional}[Observed-law contrast $\theta_Z$]
+The total observed-law functional \(\theta_Z\) is defined, for every \(P_Z\in\mathcal D_{d,\epsilon}\), by
+\[
+\theta_Z(P_Z)
+:=
+\sum_{x:p_x>0}p_x(\mu_{1x}-\mu_{0x}).
+\]
+Null baseline categories contribute zero.
+\end{definitionv}
+
+The contrast \leanref{sym:\theta_Z(P_Z)}{\ensuremath{\theta_Z(P_Z)}} is a functional of the observational law. Under outcome consistency, \(Y=Y(B^{\mathrm{obs}})\), and conditional exchangeability,
+\[
+\{Y(0),Y(1)\}\perp\!\!\!\perp B^{\mathrm{obs}}\mid X,
+\]
+positivity identifies each occupied-category regression mean with the corresponding conditional potential-outcome mean. The contrast then equals the population average treatment effect \(E[Y(1)-Y(0)]\), giving the usual causal interpretation of covariate adjustment \citep{Rosenbaum1983}.
+
+Let \leanref{sym:\mathbf Z_n}{\ensuremath{\mathbf Z_n}} denote the sample of \(n\) independent observational records. The decision problem allows estimation procedures to use independent auxiliary randomness as well as the sample.
+\begin{definitionv}{def:zeng-minimax-risk}[Observational minimax risk \(\mathfrak R^Z_{n,d,\epsilon}\)]
+The minimax squared-error risk for the observational contrast is
+\[
+\mathfrak R^Z_{n,d,\epsilon}
+:=\inf_{\widehat\theta}
+\sup_{P_Z\in\mathcal D_{d,\epsilon}}
+E_{P_Z}\!\left[
+(\widehat\theta(\mathbf Z_n)-\theta_Z(P_Z))^2
+\right],
+\]
+where \(\mathbf Z_n\) denotes the independent, identically distributed sample of \(n\) observational records with law \(P_Z\). The infimum ranges over all possibly randomized estimators measurable with respect to \(\mathbf Z_n\) and auxiliary randomness independent of \(P_Z\); the expectation integrates both sources of randomness.
+\end{definitionv}
+
+The observational minimax risk \leanref{sym:\mathfrak R^Z_{n,d,\epsilon}}{\ensuremath{\mathfrak R^Z_{n,d,\epsilon}}} therefore measures the smallest worst-case squared error over the full decision class in \cref{obj:def:zeng-minimax-risk}. To connect this problem to the randomized construction, we present together the transformation in \cref{obj:lem:synthetic-randomization-kernel} and the estimation procedure in \cref{obj:thm:zeng-fixed-positivity-polynomial-frontier}.
+
+\paragraph{Synthetic assignment and observational estimation.}
+For an observational record \((x,b,y)\), draw a fair coin \(U\), independently of the record, and define
+\[
+o(x,b,y;u)
+:=
+\bigl(x-1,u,0,1\{b=u\},1\{b=u\}y\bigr),
+\qquad u\in\{0,1\}.
+\]
+The five coordinates are the randomized baseline, assignment, surrogate, arrival indicator, and arrived outcome. For a sample realization \(\mathbf Z_n=((x_i,b_i,y_i))_{i=1}^n\), use independent fair coins \(U_1,\ldots,U_n\) and set
+\[
+o_i(u_i):=o(x_i,b_i,y_i;u_i).
+\]
+The transformation uses the observed record and a known coin distribution, so its rule is independent of the unknown observational law.
+
+The induced randomized full-data law \(P_Z^*\) in \cref{obj:lem:synthetic-randomization-kernel} can be specified through a latent representation. Draw the baseline with probabilities \(p_x\). Conditional on an occupied category \(x\), draw \(B^{\mathrm{obs}}\) with success probability \(\pi_x\), and draw independent binary potential outcomes with means \(\mu_{0x}\) and \(\mu_{1x}\), independently of \(B^{\mathrm{obs}}\). Draw an independent fair assignment \(A\), retain \(X-1\) as the randomized baseline, and set
+\[
+S(0)=S(1)=0,\qquad
+Y=Y(A),\qquad
+R=1\{B^{\mathrm{obs}}=A\}.
+\]
+This representation reproduces the synthetic observed-record distribution. Its arm-specific arrival probabilities are
+\[
+P_Z^*(R=1\mid X-1=x-1,A=1,S=0)=\pi_x,
+\qquad
+P_Z^*(R=1\mid X-1=x-1,A=0,S=0)=1-\pi_x,
+\]
+and its target satisfies
+\[
+\tau(P_Z^*)=\theta_Z(P_Z).
+\]
+Both arrival probabilities are at least \(\epsilon\). Independence of the latent observational treatment and potential outcomes conditional on the baseline supplies the missing-at-random condition in this constructed law. The causal interpretation of the original observational contrast continues to rest on consistency and conditional exchangeability.
+
+Apply the mixed-count estimator
+\leanref{sym:\widehat\tau^{\mathrm{mix}}_{n,d,q}}{\ensuremath{\widehat\tau^{\mathrm{mix}}_{n,d,\epsilon}}}
+from \cref{obj:def:mixed-count-estimator} to the synthetic sample. Averaging over all fair-coin assignments defines the deterministic observational estimator
+\leanref{sym:\widehat\theta^{\mathrm{poly}}_{n,d,\epsilon}}{\ensuremath{\widehat\theta^{\mathrm{poly}}_{n,d,\epsilon}}}:
+\[
+\widehat\theta^{\mathrm{poly}}_{n,d,\epsilon}(\mathbf Z_n)
+:=
+\frac{1}{2^n}
+\sum_{(u_1,\ldots,u_n)\in\{0,1\}^n}
+\widehat\tau^{\mathrm{mix}}_{n,d,\epsilon}
+\bigl(o_1(u_1),\ldots,o_n(u_n)\bigr).
+\]
+This finite average defines the procedure for every observational sample. Conditional averaging weakly reduces squared-error risk relative to retaining the auxiliary coin draws.
+
+The resulting risk bound is uniform over sample size and alphabet size. At each fixed strict positivity margin, it also yields a matching all-estimator comparison.
+\begin{theoremv}{thm:zeng-fixed-positivity-polynomial-frontier}[Fixed positivity polynomial frontier]*
+There exists a universal constant \(\overline C>0\) such that the following holds for every pair of integers \(n,d\ge1\) and every strict positivity margin \(0<\epsilon<1/2\). Let \(\mathcal D_{d,\epsilon}\) be the observational class in \cref{obj:def:zeng-discrete-ate-class}, and let \(\mathbf Z_n=((X_i,B_i^{\mathrm{obs}},Y_i))_{i=1}^n\) be an independent sample from \(P_Z\in\mathcal D_{d,\epsilon}\). Write the observational baseline categories as \(1,\ldots,d\). For a realization \(\mathbf Z_n=((x_i,b_i,y_i))_{i=1}^n\), define the synthetic records, with baseline coordinates indexed from zero, by
+\[
+o_i(u_i)
+=
+\bigl(x_i-1,u_i,0,1\{b_i=u_i\},1\{b_i=u_i\}y_i\bigr),
+\qquad u_i\in\{0,1\},
+\]
+and define the deterministic estimator
+\[
+\widehat\theta^{\mathrm{poly}}_{n,d,\epsilon}(\mathbf Z_n)
+=
+\frac{1}{2^n}
+\sum_{(u_1,\ldots,u_n)\in\{0,1\}^n}
+\widehat\tau^{\mathrm{mix}}_{n,d,\epsilon}
+\bigl(o_1(u_1),\ldots,o_n(u_n)\bigr),
+\]
+where \(\widehat\tau^{\mathrm{mix}}_{n,d,\epsilon}\) is the mixed-count estimator in \cref{obj:def:mixed-count-estimator}. Then
+\[
+\sup_{P_Z\in\mathcal D_{d,\epsilon}}
+E_{P_Z}\!\left[
+\left(
+\widehat\theta^{\mathrm{poly}}_{n,d,\epsilon}(\mathbf Z_n)
+-\theta_Z(P_Z)
+\right)^2
+\right]
+\le
+\overline C\,r_{n,d,\epsilon},
+\]
+where \(\theta_Z(P_Z)\) is the observational contrast in \cref{obj:def:zeng-ate-functional} and \(r_{n,d,\epsilon}\) is the rate in \cref{obj:def:frontier-rate}.
+
+Moreover, for each fixed \(0<\epsilon<1/2\), there exist constants \(0<c_\epsilon\le C_\epsilon<\infty\) such that, for every pair of integers \(n,d\ge1\), the minimax risk in \cref{obj:def:zeng-minimax-risk} satisfies
+\[
+c_\epsilon
+\min\left\{
+1,\frac1n+
+\left[\frac{d}{n\log(e+n)}\right]^2
+\right\}
+\le
+\mathfrak R^Z_{n,d,\epsilon}
+\le
+C_\epsilon
+\min\left\{
+1,\frac1n+
+\left[\frac{d}{n\log(e+n)}\right]^2
+\right\}.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:zeng-fixed-positivity-polynomial-frontier
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{ZengBalakrishnanHanKennedy2026} (Theorem 2, Section 3.2, p. 9, together with its proof in Section C.5, pp. 39--44, which sets the control regression to zero). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:zeng-fixed-positivity-polynomial-frontier
+
+The statistical mechanism is the conversion of observational treatment imbalance into selective outcome arrival under independent assignment. Positivity supplies a common arrival floor, and the target-preserving transformation makes the randomized MAR risk certificate applicable. Averaging over the synthetic assignments then removes their auxiliary variation. For fixed \(\epsilon\), the two terms in the comparison describe sampling error and the cost of adjusting for many categories; the truncation captures the bounded scale of the contrast.
+
+Under consistency and conditional exchangeability, \cref{obj:thm:zeng-fixed-positivity-polynomial-frontier} therefore characterizes minimax squared-error risk for the observational average treatment effect. As \(n\) tends to infinity at a fixed strict positivity margin, uniform mean-square consistency is attainable exactly when
+\[
+d=o\{n\log(e+n)\}.
+\]
+The constants in the two-sided comparison may depend on that margin, while the constructive bound retains the dependence on \(\epsilon\) through the rate in \cref{obj:def:frontier-rate}.
+
+The observational lower-bound input comes from \citet[Theorem~2, Section~3.2, p.~9, together with its proof in Section~C.5, pp.~39--44]{ZengBalakrishnanHanKennedy2026}. Their argument sets the control regression to zero on occupied categories and supplies the lower order
+\[
+\frac1n+\left(\frac{d}{n\log n}\right)^2
+\]
+for fixed strict positivity, sufficiently large \(n\), and \(1\le d\le c_0n\log n\), where \(c_0>0\) is a constant from that result. The comparison in \cref{obj:thm:zeng-fixed-positivity-polynomial-frontier} extends the risk characterization to every pair \(n,d\ge1\), with a total estimator and the bounded-risk truncation.
+
+Finally, the same construction fixes the direction of the experiment comparison supporting the fixed-arrival analysis. At the fixed arrival floor \(q=\epsilon\in(0,1/2)\), the induced laws belong to the randomized class in \cref{obj:def:unrestricted-arrival-model-class}. Any estimator for their randomized observed samples can be applied to observational records by appending independent synthetic assignments, with the same target and risk. The observational sample is therefore at least as informative as its synthetic image. Taking worst-case risk over the containing randomized class gives a risk at least as large as the observational minimax risk, so the published observational lower bound transfers in this direction to the fixed-arrival lower comparison in \cref{obj:thm:unrestricted-fixed-q-minimax-frontier}. The formal target-preserving map is given in \cref{obj:lem:synthetic-randomization-kernel}.

@@ -1,0 +1,577 @@
+% DERIVED from formal_layer.json — read-only, do not edit.
+\begin{assumptionv}{ass:pomdp-kernel}[Joint reward and transition law]
+The reward \(Y_t\) and next joint state \(S_{t+1}\) have conditional distribution
+\[
+\mathcal L(Y_t,S_{t+1}\mid\mathcal F_t^-,A_t)
+=
+K(\cdot\mid S_t,A_t),
+\qquad t=1,\ldots,T,
+\]
+where \(\mathcal F_t^-\) is the full pre-action history information, \(A_t\) is the action, \(S_t\) is the current joint state, \(K\) is the joint reward and next-state law, and \(T\) is the observed trajectory length.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:sequential-ignorability}[Observed-state sequential assignment]
+Given the full pre-action history information \(\mathcal F_t^-\), the action \(A_t\) follows the behavior policy \(b\) at the observed state \(X_t\):
+\[
+\Pr(A_t=a\mid\mathcal F_t^-)=b(a\mid X_t),
+\qquad a\in\mathcal A,\quad t=1,\ldots,T,
+\]
+where \(\mathcal A\) is the action space and \(T\) is the observed trajectory length.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:stationary-start}[Stationary behavior-policy initial law]
+The initial joint state \(S_1\) has the stationary joint-state law \(d_b\) under the behavior policy:
+\[
+S_1\sim d_b.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:policy-overlap}[Bounded action likelihood ratios]
+The target action probabilities \(e(a\mid x)\) and behavior action probabilities \(b(a\mid x)\) satisfy
+\[
+e(a\mid x)\le Lb(a\mid x),
+\qquad (a,x)\in\mathcal A\times\mathcal X,
+\]
+where \(L\) is the action likelihood-ratio bound, \(\mathcal A\) is the action space, and \(\mathcal X\) is the observed-state space.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:behavior-contraction}[Behavior-policy transition contraction]
+The behavior-policy joint-state transition matrix \(P_b\) satisfies
+\[
+\|\mu P_b-\mu'P_b\|_{\mathrm{TV}}
+\le
+\alpha\|\mu-\mu'\|_{\mathrm{TV}},
+\qquad \mu,\mu'\in\Delta(\mathcal S),
+\]
+where \(\alpha\) is the contraction bound, \(\Delta(\mathcal S)\) is the probability simplex on the joint-state space \(\mathcal S\), and \(\|\cdot\|_{\mathrm{TV}}\) denotes total variation.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:target-contraction}[Target-policy transition contraction]
+The target-policy joint-state transition matrix \(P_e\) satisfies
+\[
+\|\mu P_e-\mu'P_e\|_{\mathrm{TV}}
+\le
+\alpha\|\mu-\mu'\|_{\mathrm{TV}},
+\qquad \mu,\mu'\in\Delta(\mathcal S),
+\]
+where \(\alpha\) is the contraction bound, \(\Delta(\mathcal S)\) is the probability simplex on the joint-state space \(\mathcal S\), and \(\|\cdot\|_{\mathrm{TV}}\) denotes total variation.
+\end{assumptionv}
+
+\begin{definitionv}{def:binary-pomdp-class}[Binary POMDP experiment class]
+The class \(\mathcal M_T^{(2)}(t_0,\zeta)\) consists of binary trajectory experiments of observed length \(T\in\mathbb N\), with observed-state, hidden-state, and action alphabets
+\[
+\mathcal X=\mathcal H=\mathcal A=\{0,1\},
+\qquad \mathcal Y=[0,1].
+\]
+Each experiment comprises a joint reward and next-state law \(K\), behavior and target action probabilities \(b\) and \(e\), and a full trajectory probability law inducing the law of \(\mathsf O_T\), the observed state, action, and reward trajectory. Membership is defined by the following conditions:
+\begin{itemize}
+\item \textbf{(Parameter range.)} The mixing-scale parameter \(t_0\) and logarithmic action likelihood-ratio bound \(\zeta\) satisfy
+\[
+t_0>0,\qquad \zeta\ge 0.
+\]
+The associated contraction and overlap bounds are
+\[
+\alpha=\exp(-1/t_0),\qquad L=\exp(\zeta).
+\]
+\item \textbf{(Joint law.)} The experiment satisfies \cref{obj:ass:pomdp-kernel}.
+\item \textbf{(Sequential assignment.)} The experiment satisfies \cref{obj:ass:sequential-ignorability}.
+\item \textbf{(Stationary start.)} The experiment satisfies \cref{obj:ass:stationary-start}.
+\item \textbf{(Policy overlap.)} The policies satisfy \cref{obj:ass:policy-overlap} with overlap bound \(L\).
+\item \textbf{(Behavior contraction.)} The behavior-induced joint-state transition matrix satisfies \cref{obj:ass:behavior-contraction} with contraction bound \(\alpha\).
+\item \textbf{(Target contraction.)} The target-induced joint-state transition matrix satisfies \cref{obj:ass:target-contraction} with contraction bound \(\alpha\).
+\end{itemize}
+\end{definitionv}
+
+\begin{definitionv}{def:target-value}[Stationary target value $\theta(K,e)$]
+The stationary target mean reward is
+\[
+\theta(K,e)
+:=
+d_e r_e
+=
+\sum_{s=(x,h)\in\mathcal S}
+d_e(s)
+\sum_{a\in\mathcal A}
+e(a\mid x)
+\sum_{s'\in\mathcal S}
+\int_{\mathcal Y}
+y\,K(dy,s'\mid s,a),
+\]
+where \(d_e\) is the stationary joint-state law under the target policy, \(r_e\) is the vector of target-policy conditional mean rewards, \(\mathcal S\) is the four-point joint-state space, \(e(a\mid x)\) is the target action probability at observed state \(x\), and \(K(dy,s'\mid s,a)\) is the joint reward and next-state law.
+\end{definitionv}
+
+\begin{definitionv}{def:observable-moments}[Observable moments $m_k$ and $\widehat m_k$]
+The weighted reward scores, their population moments, and their common-window empirical moments are, for \(k=0,\ldots,6\),
+\[
+Z_t(k)
+:=
+Y_t\prod_{j=t-k}^{t}\rho_j,
+\qquad
+m_k
+:=
+\mathbb E_b[Z_t(k)],
+\qquad
+\widehat m_k
+:=
+\frac{1}{T-6}
+\sum_{t=7}^{T}Z_t(k).
+\]
+Here \(Y_t\) is the bounded reward at time \(t\), \(\rho_j\) is the observed action likelihood ratio at time \(j\), \(\mathbb E_b\) denotes expectation under the stationary behavior experiment, and \(T\) is the observed trajectory length.
+\end{definitionv}
+
+\begin{algorithmv}{def:stable-grid-estimator}[Stable grid estimator $\widehat\theta_T$]
+The inputs are the empirical moments \(\widehat m_0,\ldots,\widehat m_6\), the trajectory length \(T\), and the contraction bound \(\alpha\).
+\begin{enumerate}
+\item Set the grid resolution, probability grid, uniform transition matrix, and stabilization weight to
+\[
+M:=\left\lceil(22+36/\alpha)T\right\rceil,
+\qquad
+\mathcal G_M
+:=
+\left\{
+u\in[0,1]^4:
+\sum_{i=1}^{4}u_i=1,\ 
+u_i\in M^{-1}\mathbb Z\ \text{for all }i
+\right\},
+\]
+\[
+U:=\frac{\mathbf1\mathbf1^{\mathsf T}}{4},
+\qquad
+\lambda:=\frac{\alpha}{\alpha+6/M},
+\]
+where \(\mathbf1\) is the four-dimensional vector of ones.
+\item Enumerate the candidate triples in
+\[
+\mathcal C_M
+:=
+\left\{
+(\nu,R,r):
+\begin{gathered}
+\nu\in\mathcal G_M,\quad
+R_{i,\cdot}\in\mathcal G_M\ \text{for }i=1,\ldots,4,\\
+\delta(R)\le\alpha+6/M,\quad
+r\in\{0,1/M,\ldots,1\}^{4}
+\end{gathered}
+\right\},
+\]
+where \(\delta(R)\) is the Dobrushin contraction coefficient. For each candidate, form
+\[
+P(R):=\lambda R+(1-\lambda)U.
+\]
+\item Select the lexicographically first triple \((\nu_*,R_*,r_*)\) among the minimizers
+\[
+(\nu_*,R_*,r_*)
+\in
+\operatorname*{arg\,min}_{(\nu,R,r)\in\mathcal C_M}
+\max_{0\le k\le6}
+\left|\widehat m_k-\nu P(R)^k r\right|.
+\]
+\item Form the selected transition matrix and output its stationary reward:
+\[
+P_*:=P(R_*),
+\qquad
+\widehat\theta_T:=\pi(P_*)r_*,
+\]
+where \(\pi(P_*)\) is the stationary probability vector satisfying
+\[
+\pi(P_*)P_*=\pi(P_*).
+\]
+\end{enumerate}
+\end{algorithmv}
+
+\begin{definitionv}{def:minimax-risk}[Minimax risk $R_T^{(2)}(t_0,\zeta)$]
+The minimax mean-squared error is
+\[
+R_T^{(2)}(t_0,\zeta)
+:=
+\inf_{\substack{\widetilde\theta\colon \mathsf O_T\to[0,1]\ \mathrm{measurable}\\
+\mathrm{with\ respect\ to}\ \sigma(\mathsf O_T,b,e,t_0,\zeta)}}
+\sup_{M\in\mathcal M_T^{(2)}(t_0,\zeta)}
+\mathbb E_M\!\left[(\widetilde\theta-\theta)^2\right].
+\]
+The infimum ranges over measurable observed-data procedures taking values in \( [0,1] \). Here \(\mathsf O_T\) is the observed trajectory of length \(T\); \(b\) and \(e\) are the supplied behavior and target policies; \(t_0\) and \(\zeta\) are the supplied mixing scale and logarithmic action likelihood-ratio bound; \(\mathcal M_T^{(2)}(t_0,\zeta)\) is the binary experiment class; \(\mathbb E_M\) denotes expectation under experiment \(M\); and \(\theta\) is that experiment's stationary target value.
+\end{definitionv}
+
+\begin{theoremv}{thm:stable-grid-upper}[Uniform stable-grid risk bound]
+Let the mixing-scale parameter \(t_0\), logarithmic action likelihood-ratio bound \(\zeta\), and trajectory length \(T\) satisfy:
+\begin{itemize}
+\item \textbf{(Mixing scale.)} \(t_0\in\mathbb R\) and \(t_0>0\).
+\item \textbf{(Overlap bound.)} \(\zeta\in\mathbb R\) and \(\zeta\geq0\).
+\item \textbf{(Horizon.)} \(T\in\mathbb N\) and \(T\geq12\).
+\end{itemize}
+Define the contraction bound \(\alpha\), action likelihood-ratio bound \(L\), stationary-value modulus constant \(B_\alpha\), and moment variance constant \(V_{\alpha,L}\) by
+\[
+\alpha=\exp(-1/t_0),\qquad
+L=\exp(\zeta),\qquad
+B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6,\qquad
+V_{\alpha,L}=13L^7+\frac{2}{1-\alpha}.
+\]
+For every binary-state, binary-action experiment \(M\in\mathcal M_T^{(2)}(t_0,\zeta)\), the stable-grid estimator \(\widehat\theta_T\) of \cref{obj:def:stable-grid-estimator}, using that experiment's behavior and target policies, and the stationary target value \(\theta\) of \cref{obj:def:target-value} satisfy
+\[
+\mathbb E_M\!\left[(\widehat\theta_T-\theta)^2\right]
+\leq
+\frac{B_\alpha^2\bigl(112V_{\alpha,L}+2\bigr)}{T},
+\]
+where \(\mathbb E_M\) denotes expectation under the experiment's observed trajectory law.
+\end{theoremv}
+
+\begin{definitionv}{def:four-state-testing-family}[Four-state testing family]
+The four-state testing family is indexed by the trajectory length \(T\in\{0,1,\ldots\}\) and a signed perturbation \(v\in\{-v_T,+v_T\}\) satisfying \(|v|\le 1/16\), where the testing perturbation amplitude is
+\[
+v_T=
+\begin{cases}
+0,&T=0,\\
+\dfrac{1}{16\sqrt T},&T\ge 1.
+\end{cases}
+\]
+The observed state, hidden state, and action take values in \(\{0,1\}\), so the joint-state space is \(\mathcal S=\{0,1\}^2\). The behavior and target policies are
+\[
+b(a\mid x)=e(a\mid x)=\frac12,
+\qquad x,a\in\{0,1\}.
+\]
+The observation probabilities, reward probabilities, and successor hidden-state probabilities are defined by
+\[
+E(x\mid h)=
+\begin{cases}
+3/5,&x=h,\\
+2/5,&x\ne h,
+\end{cases}
+\qquad
+q_v(h)=\frac12+\frac{2h-1}{8}+v,
+\qquad
+p(a)=\frac14+\frac a2.
+\]
+The joint reward and next-state kernel has mass
+\[
+K_v^{(T)}(y,x',h'\mid x,h,a)
+=
+\operatorname{Ber}_{q_v(h)}(y)
+\operatorname{Ber}_{p(a)}(h')
+E(x'\mid h'),
+\qquad y,x',h'\in\{0,1\},
+\]
+where the Bernoulli masses are
+\[
+\operatorname{Ber}_{q_v(h)}(y)=
+\begin{cases}
+q_v(h),&y=1,\\
+1-q_v(h),&y=0,
+\end{cases}
+\qquad
+\operatorname{Ber}_{p(a)}(h')=
+\begin{cases}
+p(a),&h'=1,\\
+1-p(a),&h'=0.
+\end{cases}
+\]
+The initial joint state \(S_1\) has distribution
+\[
+\Pr\{S_1=(x,h)\}=\frac12 E(x\mid h).
+\]
+The full trajectory law is the finite mixture of Dirac masses over binary state, action, and reward paths, with each path weighted by its initial joint-state mass multiplied by its behavior-policy action probabilities and joint reward and next-state kernel masses.
+\end{definitionv}
+
+\begin{theoremv}{thm:fixed-binary-minimax}[Fixed binary minimax rate]*
+Let \(t_0\) be the mixing-scale parameter, \(\zeta\) the logarithmic action likelihood-ratio bound, and \(T\) the observed trajectory length, with
+\begin{itemize}
+\item \textbf{(Positive mixing scale.)} \(t_0>0\).
+\item \textbf{(Nonnegative overlap exponent.)} \(\zeta\geq0\).
+\item \textbf{(Horizon range.)} \(T\in\mathbb N\) and \(T\geq12\).
+\end{itemize}
+Define the contraction and action-overlap bounds, and the associated modulus and variance constants, by
+\[
+\alpha=\exp(-1/t_0),\qquad L=\exp(\zeta),\qquad
+B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6,\qquad
+V_{\alpha,L}=13L^7+\frac{2}{1-\alpha}.
+\]
+The observable-data minimax mean-squared risk in \cref{obj:def:minimax-risk} satisfies
+\[
+\frac{1}{1024T}
+\leq R_T^{(2)}(t_0,\zeta)
+\leq \frac{B_\alpha^2(112V_{\alpha,L}+2)}{T}.
+\]
+
+Define the testing perturbation amplitude by
+\[
+v_T=\frac{1}{16\sqrt T}.
+\]
+Both experiments in \cref{obj:def:four-state-testing-family} with perturbations \(v=+v_T\) and \(v=-v_T\) belong to the binary class \(\mathcal M_T^{(2)}(t_0,\zeta)\) of \cref{obj:def:binary-pomdp-class}. In each experiment the behavior and target policies are equal fair policies, and their stationary joint-state laws coincide:
+\[
+e(a\mid x)=b(a\mid x)=\frac12,\qquad d_e=d_b.
+\]
+For every stationary occupancy-ratio bound \(C>1\), both experiments satisfy
+\[
+d_e(s)\leq C\,d_b(s)
+\qquad\text{for every joint state }s.
+\]
+For every observable-data estimator \(\widetilde\theta\) taking values in \([0,1]\), the maximum of its mean-squared risks over these two experiments is at least \(1/(1024T)\).
+
+If additionally \(\zeta>0\), then for every \(C>1\), define the cardinality-uniform rate exponent and stationary-overlap radius by
+\[
+\beta=\frac{2}{2+t_0\zeta},\qquad q_C=\frac{C-1}{C}.
+\]
+Then
+\[
+0<\beta<1,\qquad
+\lim_{\substack{n\to\infty\\ n\in\mathbb N}}
+\frac{n^{-1}}{n^{-\beta}q_C^{\,2(1-\beta)}}=0.
+\]
+There exist a positive reset lower-bound constant \(c_{\mathrm{Reset}}>0\) and a depth schedule \(Q:\mathbb N\to\mathbb N\), together with constants \(a_1,a_2>0\), such that, for every sufficiently large \(n\),
+\[
+a_1\log n\leq Q(n)\leq a_2\log n.
+\]
+For every sufficiently large \(n\), one has \(n\geq1\) and \(Q(n)\geq1\), and the two signed depth-\(Q(n)\) reset experiments of \citet{CausalSmithLatentOverlap2026} each have exactly \(2(Q(n)+1)\) hidden states. For every observable-data estimator taking values in \([-1,1]\) in that cardinality-uniform decision problem, the maximum of its mean-squared risks over these two reset experiments is at least
+\[
+c_{\mathrm{Reset}}\,n^{-\beta}.
+\]
+For every sufficiently large \(n\), the negative-sign reset experiment has hidden-state cardinality
+\[
+2\bigl(Q(n)+1\bigr)>2.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:fixed-binary-minimax
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{CausalSmithLatentOverlap2026} (Main minimax theorem and reset-chain lower-bound construction, as supplied in the frozen target and Topic record.). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:fixed-binary-minimax
+
+\begin{propositionv}{prop:coincident-policy-reduction}[Coincident policy reduction]
+Consider a trajectory experiment with binary observed state, binary hidden state, and binary action. Suppose:
+\begin{itemize}
+\item \textbf{(Positive mixing scale.)} The mixing-scale parameter \(t_0\) satisfies \(t_0>0\), and the associated contraction factor is
+\[
+\alpha=\exp(-1/t_0).
+\]
+\item \textbf{(Nonempty horizon.)} The trajectory length \(T\) is an integer with \(T\geq 1\).
+\item \textbf{(Kernel law.)} \cref{obj:ass:pomdp-kernel} holds.
+\item \textbf{(Sequential assignment.)} \cref{obj:ass:sequential-ignorability} holds.
+\item \textbf{(Stationary start.)} \cref{obj:ass:stationary-start} holds.
+\item \textbf{(Behavior contraction.)} \cref{obj:ass:behavior-contraction} holds with contraction factor \(\alpha\).
+\item \textbf{(Coincident policies.)} The target and behavior policies satisfy \(e=b\).
+\end{itemize}
+The induced joint-state transition matrices coincide. Explicitly, for all joint states \(s,s'\in\mathcal S\), the four-point joint-state space,
+\[
+P_e(s,s')
+=
+\sum_{a\in\{0,1\}}e(a\mid x)
+   \int_{[0,1]}K(dy,s'\mid s,a)
+=
+\sum_{a\in\{0,1\}}b(a\mid x)
+   \int_{[0,1]}K(dy,s'\mid s,a)
+=
+P_b(s,s'),
+\]
+where \(x\) is the observed coordinate of \(s\). Their stationary joint-state laws, \(d_e\) and \(d_b\), also coincide:
+\[
+d_e=d_b.
+\]
+Writing \(\theta\) for the stationary target value in \cref{obj:def:target-value}, the depth-zero population weighted-reward moment \(m_0\) satisfies, at every observed epoch,
+\[
+m_0=\mathbb E_b[Y_t]=\theta,
+\qquad t=1,\ldots,T,
+\]
+where \(Y_t\) is the observed reward and \(\mathbb E_b\) denotes expectation under the behavior experiment. The sample mean is unbiased and obeys
+\[
+\mathbb E_b\!\left[T^{-1}\sum_{t=1}^{T}Y_t\right]=\theta,
+\qquad
+\mathbb E_b\!\left[
+\left\{T^{-1}\sum_{t=1}^{T}Y_t-\theta\right\}^{2}
+\right]
+\leq
+\frac{1+2/(1-\alpha)}{T}.
+\]
+\end{propositionv}
+
+\begin{propositionv}{prop:exhaustive-grid-arithmetic-complexity}[Exact grid candidate counts]
+Fix \(t_0>0\), the mixing-scale parameter, and define the associated contraction bound by
+\[
+\alpha=\exp(-1/t_0).
+\]
+For every integer \(M\ge0\), the four-coordinate simplex grid, represented by integer coordinates in \(\{0,\ldots,M\}\) summing to \(M\), has cardinality
+\[
+\binom{M+3}{3}.
+\]
+The unfiltered candidate list consists of an initial simplex vector \(\nu\), four simplex rows forming the transition candidate \(R\), and a reward vector \(r\) with four independently chosen grid coordinates. Its cardinality is exactly
+\[
+\binom{M+3}{3}^{5}(M+1)^4.
+\]
+For every integer \(M\ge0\) and every real contraction threshold \(\alpha\), retaining the candidates satisfying
+\[
+\delta(R)\le \alpha+\frac{6}{M},
+\]
+where \(\delta(R)\) is the Dobrushin contraction coefficient and division by zero is interpreted as zero, yields a cardinality at most
+\[
+\binom{M+3}{3}^{5}(M+1)^4.
+\]
+
+There exists a constant \(c>0\) such that, for every integer trajectory length \(T\ge1\), at the resolution
+\[
+M=\left\lceil(22+36/\alpha)T\right\rceil,
+\qquad \alpha=\exp(-1/t_0),
+\]
+the unfiltered candidate-list cardinality and the filtered candidate-list cardinality are each at most \(cT^{19}\).
+\end{propositionv}
+
+\begin{definitionv}{def:polynomial-time-handle}[Stable fitting problem \(\mathfrak H_{\mathrm{poly}}\)]
+The problem \(\mathfrak H_{\mathrm{poly}}\) is to construct an algorithm with an explicit cost bound in a specified arithmetic or bit-complexity model, including precision requirements, satisfying the following conditions:
+\begin{itemize}
+\item \textbf{(Input.)} The algorithm starts from the \(3\times3\) Hankel matrix
+\[
+\bigl(\widehat m_{i+j+1}-\widehat m_{i+j}\bigr)_{i,j=0}^{2},
+\]
+where \(\widehat m_k\) denotes the common-window empirical weighted reward moment.
+\item \textbf{(Rank adaptation.)} It adapts over recurrence ranks zero through three.
+\item \textbf{(Stability.)} It enforces transient roots in
+\[
+\{z:|z|\leq\alpha\},
+\]
+where \(\alpha\) is the contraction bound.
+\item \textbf{(Objective accuracy.)} It returns a stable four-state scalar realization whose seven-moment objective is within \(T^{-1}\) of the global optimum, with a guarantee of this gap, where \(T\) is the observed trajectory length.
+\item \textbf{(Uniformity.)} The guarantee is uniform over rank-deficient strata, with positive singular-value margins allowed to vanish.
+\end{itemize}
+For fixed \(t_0\), the mixing-scale parameter, the exhaustive estimator is specified by a finite candidate list of size \(O(T^{19})\). Its stated computational bound concerns this candidate count; runtime and arithmetic-operation bounds for fitting and selection form part of the computational target.
+\end{definitionv}
+
+\begin{remarkv}{oeq:polynomial-time-attainment}[Rank-adaptive computational attainment]
+A natural computational question is whether \(\mathfrak H_{\mathrm{poly}}\), the cost-bounded stable fitting problem, can implement fitting and lexicographic selection over, or replace, the \(O(T^{19})\)-sized stable-grid candidate list by a rank-adaptive algorithm with explicit runtime, bit-complexity, and precision semantics. The required output is a stable four-state scalar realization whose seven-moment objective is guaranteed to be within \(T^{-1}\) of the global optimum, uniformly over \(\mathcal M_T^{(2)}(t_0,\zeta)\), the class of binary-state and binary-action experiments satisfying the six law conditions. Here \(T\) is the observed trajectory length, \(t_0\) is the mixing-scale parameter, and \(\zeta\) is the logarithmic action likelihood-ratio bound. The question requires uniformity over every rank-deficient Hankel stratum, with positive singular-value margins allowed to vanish.
+\end{remarkv}
+
+\begin{lemmav}{lem:pair-polynomial-modulus}[Pair-polynomial identity and value modulus]
+Let \(\mathcal S=\{0,1\}\times\{0,1\}\) be the four-state joint-state space. Let \(P,P'\) be real matrices indexed by \(\mathcal S\), and let \(\nu,\nu',\pi,\pi',r,r'\) be real row vectors indexed by \(\mathcal S\). Suppose:
+\begin{itemize}
+\item \textbf{(Contraction parameter.)} The contraction bound \(\alpha\) satisfies \(0<\alpha<1\).
+\item \textbf{(Transition matrices.)} Both \(P\) and \(P'\) are row-stochastic: their entries are nonnegative and each row sums to one.
+\item \textbf{(Initial distributions.)} Both \(\nu\) and \(\nu'\) are probability vectors.
+\item \textbf{(Stationary distributions.)} Both \(\pi\) and \(\pi'\) are probability vectors, with
+\[
+\pi P=\pi,\qquad \pi'P'=\pi'.
+\]
+\item \textbf{(Rewards.)} For every \(s\in\mathcal S\),
+\[
+0\le r(s)\le1,\qquad 0\le r'(s)\le1.
+\]
+\item \textbf{(Contraction bounds.)} The Dobrushin coefficients satisfy
+\[
+\begin{aligned}
+\delta(P)&=\max_{i,j\in\mathcal S}\frac12
+ \sum_{s\in\mathcal S}|P_{is}-P_{js}|\le\alpha,\\
+\delta(P')&=\max_{i,j\in\mathcal S}\frac12
+ \sum_{s\in\mathcal S}|P'_{is}-P'_{js}|\le\alpha.
+\end{aligned}
+\]
+\end{itemize}
+Then eigenvalue \(1\) has algebraic multiplicity one for each of \(P\) and \(P'\). Define the pair transient characteristic polynomial and its coefficients by
+\[
+Q_{P,P'}(z)
+=\frac{\det(z\,\mathrm{Id}-P)}{z-1}
+ \frac{\det(z\,\mathrm{Id}-P')}{z-1}
+=\sum_{k=0}^{6}Q_k z^k,
+\]
+where \(\mathrm{Id}\) is the identity matrix on \(\mathcal S\), and define the modulus constant by
+\[
+B_\alpha=\left(\frac{1+\alpha}{1-\alpha}\right)^6.
+\]
+With products interpreted as
+\[
+\pi r=\sum_{s\in\mathcal S}\pi(s)r(s),
+\qquad
+\nu P^k r=\sum_{s\in\mathcal S}(\nu P^k)(s)r(s),
+\]
+and analogously for the primed vectors, the exact identity and bound are
+\[
+Q_{P,P'}(1)(\pi r-\pi'r')
+=\sum_{k=0}^{6}Q_k\bigl(\nu P^k r-\nu'P'^k r'\bigr)
+\]
+and
+\[
+|\pi r-\pi'r'|
+\le B_\alpha
+ \max_{0\le k\le6}\bigl|\nu P^k r-\nu'P'^k r'\bigr|.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:observable-intervention-moments}[Observable intervention moment bounds]
+Consider an experiment in \(\mathcal M_T^{(2)}(t_0,\zeta)\), the binary experiment class of \cref{obj:def:binary-pomdp-class}, with trajectory length \(T\). Set
+\[
+L=\exp(\zeta),\qquad \alpha=\exp(-1/t_0).
+\]
+On the four-point joint-state space \(\mathcal S\), let \(P_b\) and \(P_e\) be the behavior- and target-policy transition matrices, respectively, and let \(r_e\) be the target-policy conditional mean reward vector:
+\[
+\begin{aligned}
+P_b(s,s')&=\sum_{a\in\{0,1\}}b(a\mid x)
+                  \int_{\mathcal Y}K(dy,s'\mid s,a),\\
+P_e(s,s')&=\sum_{a\in\{0,1\}}e(a\mid x)
+                  \int_{\mathcal Y}K(dy,s'\mid s,a),\\
+r_e(s)&=\sum_{a\in\{0,1\}}e(a\mid x)
+                  \sum_{s'\in\mathcal S}\int_{\mathcal Y}y\,K(dy,s'\mid s,a),
+\qquad s=(x,h).
+\end{aligned}
+\]
+Here \(K\) is the joint reward and successor-state law, \(\mathcal Y=[0,1]\) is the reward space, and \(d_b\) is the stationary probability row vector of \(P_b\).
+
+Use zero-based epochs \(0,\ldots,T-1\). For observed state \(X_j\), action \(A_j\), and reward \(Y_j\), define the observed likelihood ratio and weighted reward score by
+\[
+\rho_j=
+\begin{cases}
+e(A_j\mid X_j)/b(A_j\mid X_j),& b(A_j\mid X_j)>0,\\
+0,& b(A_j\mid X_j)=0,
+\end{cases}
+\qquad
+Z_t(k)=Y_t\prod_{j=t-k}^{t}\rho_j
+\quad (k\le t).
+\]
+Write \(\mathbb E_b\) for expectation under the experiment's stationary behavior law. For every \(k\in\{0,\ldots,6\}\) and every epoch \(t\) with \(k\le t<T\),
+\[
+m_k=\mathbb E_b[Z_t(k)]
+    =d_bP_e^kr_e
+    =\sum_{s\in\mathcal S}(d_bP_e^k)(s)\,r_e(s),
+\qquad
+\mathbb E_b[Z_t(k)^2]\le L^{k+1}.
+\]
+Moreover, for every integer \(h\ge k+1\) such that \(t+h<T\),
+\[
+\left|
+\mathbb E_b\!\left[
+\bigl(Z_t(k)-\mathbb E_b[Z_t(k)]\bigr)
+\bigl(Z_{t+h}(k)-\mathbb E_b[Z_{t+h}(k)]\bigr)
+\right]
+\right|
+\le \alpha^{h-k-1}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:testing-family-membership}[Testing family membership and separation]
+Let \(T\) be the observed trajectory length, \(t_0\) the mixing-scale parameter, and \(\zeta\) the logarithmic action likelihood-ratio bound, with
+\begin{itemize}
+\item \textbf{(Length.)} \(T\in\mathbb N\) and \(T\geq12\).
+\item \textbf{(Mixing scale.)} \(t_0>0\).
+\item \textbf{(Overlap.)} \(\zeta\geq0\).
+\end{itemize}
+Define the testing perturbation amplitude by
+\[
+v_T=\frac{1}{16\sqrt T}.
+\]
+For each \(v\in\{-v_T,+v_T\}\), the experiment of \cref{obj:def:four-state-testing-family}, with kernel \(K_v^{(T)}\), the specified initial and trajectory laws, and fair coincident policies
+\[
+e(a\mid x)=b(a\mid x)=\frac12,
+\]
+belongs to \(\mathcal M_T^{(2)}(t_0,\zeta)\), the class satisfying the six law conditions in \cref{obj:def:binary-pomdp-class}. Its stationary target values, defined in \cref{obj:def:target-value}, satisfy
+\[
+\left|\theta(K_{+v_T}^{(T)},e)-\theta(K_{-v_T}^{(T)},e)\right|
+=\frac{1}{8\sqrt T}.
+\]
+Writing \(\mathbb P_{+}^{\mathsf O_T}\) and \(\mathbb P_{-}^{\mathsf O_T}\) for the respective laws projected onto the observed state, action, and reward trajectory, their relative entropy is finite and satisfies
+\[
+\operatorname{KL}\!\left(
+\mathbb P_{+}^{\mathsf O_T}\Vert\mathbb P_{-}^{\mathsf O_T}
+\right)\leq\frac1{12}.
+\]
+For each of the two experiments, the stationary joint-state laws \(d_e\) and \(d_b\) under the target and behavior policies coincide:
+\[
+d_e=d_b.
+\]
+Moreover, for every stationary occupancy-ratio constant \(C>1\), both experiments satisfy
+\[
+d_e(s)\leq C\,d_b(s)
+\qquad\text{for every }s\in\mathcal S,
+\]
+where \(\mathcal S\) is the four-point joint-state space.
+\end{lemmav}

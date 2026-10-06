@@ -1,0 +1,1023 @@
+\begin{proof}[Proof of \cref{obj:prop:dual-representation}]
+Write
+\[
+p_j=P(X=j),\qquad q_{(a,y)j}=P(X=j,A=a,Y=y),\qquad
+\mu_{aj}=E_P[Y(a)\mid X=j],\qquad
+\tau_j=\mu_{1j}-\mu_{0j},\qquad
+B(P)=\sum_{j=1}^d p_j\mu_{0j}.
+\]
+For a cell with \(p_j=0\), set \(\mu_{aj}=0\); its contributions below vanish. The cell masses are nonnegative, and the binary outcomes give \(\mu_{aj}\in[0,1]\), hence \(\tau_j\leq1\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.poRegression_unit_interval_budget
+
+For an occupied cell, \cref{obj:ass:consistency,obj:ass:conditional-exchangeability,obj:ass:overlap} give \(s_a(q_j)=P(X=j,A=a)\geq\epsilon p_j>0\) and
+\[
+g_a(q_j)
+=p_j\frac{P(X=j,A=a,Y=1)}{P(X=j,A=a)}
+=p_j\mu_{aj}.
+\]
+For a null cell, \(q_j=0\) and the same identity has both sides zero. Substituting these identities into \cref{obj:def:dual-process}, and using \(p_j\geq0\), yields, for \(0\leq\lambda\leq1\),
+\[
+f_\lambda(q_j)=p_j\mu_{0j}+p_j[\tau_j-\lambda]_+,
+\qquad
+F_P(\lambda)=B(P)+\sum_{j=1}^d p_j[\tau_j-\lambda]_+.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.budget_dualProcess_identified
+
+Fix \(b\in[0,1]\). If \(\pi\in\Pi_b(P)\), then \(0\leq\pi_j\leq1\) and \(\sum_jp_j\pi_j\leq b\) by \cref{obj:def:budget-policy-class}. For \(\lambda\in[0,1]\), the inequality
+\(p_j\pi_j(\tau_j-\lambda)\leq p_j[\tau_j-\lambda]_+\)
+holds whether \(\tau_j-\lambda\) is nonnegative or negative. Since \(\lambda\geq0\),
+\[
+\sum_{j=1}^d p_j\pi_j\tau_j
+=\lambda\sum_{j=1}^d p_j\pi_j
+ +\sum_{j=1}^d p_j\pi_j(\tau_j-\lambda)
+\leq b\lambda+\sum_{j=1}^d p_j[\tau_j-\lambda]_+.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.weighted_budget_weak_duality
+Taking the maximum over feasible policies and using \cref{obj:def:budget-value} gives
+\[
+V_b(P)\leq b\lambda+F_P(\lambda)
+\quad(0\leq\lambda\leq1),
+\qquad
+V_b(P)\leq\inf_{0\leq\lambda\leq1}\{b\lambda+F_P(\lambda)\}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.budget_dual_weak_bound
+
+For the reverse inequality, the feasible policy set is a compact subset of \([0,1]^d\), contains the zero policy, and has a continuous gain. Thus a feasible maximizer \(\pi^\star\) exists. Applied to the affine budget and box constraints, the polyhedral normal-cone formula gives nonnegative multipliers \(\lambda^\star,\eta_j^-,\eta_j^+\) satisfying
+\[
+\begin{gathered}
+\sum_jp_j\pi^\star_j\leq b,\qquad
+\lambda^\star\Bigl(b-\sum_jp_j\pi^\star_j\Bigr)=0,\\
+\eta_j^-\pi^\star_j=0,\qquad
+\eta_j^+(1-\pi^\star_j)=0,\qquad
+p_j(\lambda^\star-\tau_j)-\eta_j^-+\eta_j^+=0.
+\end{gathered}
+\] % lean: Causalean.Mathlib.Optimization.finite_knapsack_kkt
+These conditions give the hinge identity cell by cell. It is immediate when \(p_j=0\). When \(p_j>0\), a coordinate with \(\pi^\star_j=0\) has \(\eta_j^+=0\) and \(\tau_j\leq\lambda^\star\); one with \(\pi^\star_j=1\) has \(\eta_j^-=0\) and \(\tau_j\geq\lambda^\star\); an interior coordinate has both box multipliers zero and \(\tau_j=\lambda^\star\). Consequently,
+\[
+p_j\pi^\star_j\tau_j
+=\lambda^\star p_j\pi^\star_j
+ +p_j[\tau_j-\lambda^\star]_+,
+\qquad
+\sum_jp_j\pi^\star_j\tau_j
+=b\lambda^\star+\sum_jp_j[\tau_j-\lambda^\star]_+,
+\]
+where the second equality uses budget complementary slackness. % lean: Causalean.Mathlib.Optimization.finite_knapsack_dual_witness
+
+If \(\lambda^\star\leq1\), this is a witness with price in \([0,1]\). If \(\lambda^\star>1\), then \(\tau_j\leq1\) makes every hinge at \(\lambda^\star\) zero. Also,
+\[
+b\lambda^\star
+=\sum_jp_j\pi^\star_j\tau_j
+\leq\sum_jp_j\pi^\star_j
+\leq b.
+\]
+As \(b\geq0\), this forces \(b=0\). Every hinge at price \(1\) is then zero as well, and the displayed witness equality holds with price \(1\). Hence in every case there is \(\lambda_b\in[0,1]\) such that
+\[
+b\lambda_b+F_P(\lambda_b)
+=B(P)+\sum_jp_j\pi^\star_j\tau_j
+=V_b(P).
+\] % lean: Causalean.Mathlib.Optimization.finite_knapsack_dual_witness
+The process \(F_P\) is a finite sum of continuous hinge functions on \([0,1]\), so it is bounded there. Thus the dual infimum is well defined and is at most its value at \(\lambda_b\). Together with weak duality, this proves the representation. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.dual_representation
+
+Finally, define
+\[
+\omega_{\widehat F,F_P}=\sup_{\lambda\in[0,1]}|\widehat F(\lambda)-F_P(\lambda)|.
+\]
+Both processes are bounded on \([0,1]\), so \(\omega_{\widehat F,F_P}\) is finite and both dual objectives are bounded below for \(b\in[0,1]\). For every such \(b\) and every \(\lambda\in[0,1]\), the two inequalities
+\[
+b\lambda+\widehat F(\lambda)\leq b\lambda+F_P(\lambda)+\omega_{\widehat F,F_P},
+\qquad
+b\lambda+F_P(\lambda)\leq b\lambda+\widehat F(\lambda)+\omega_{\widehat F,F_P}
+\]
+give, on taking infima,
+\[
+\left|
+\inf_{0\leq\lambda\leq1}\{b\lambda+\widehat F(\lambda)\}
+-\inf_{0\leq\lambda\leq1}\{b\lambda+F_P(\lambda)\}
+\right|\leq \omega_{\widehat F,F_P}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.dualMinimum_uniform_contraction
+Substitute the representation just proved and take the supremum over \(b\in[0,1]\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.dual_representation
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:matched-curve-frontier}]
+Set
+\[
+\varrho_{n,d}:=\min\left\{1,\frac{d}{n\log(ed)}\right\}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.curveRate
+Choose \(c_\epsilon>0\) from \cref{obj:thm:capacity-active-lower} and \(C_\epsilon^{\mathrm{up}}>0\) from \cref{obj:thm:curve-upper}, and define
+\[
+C_\epsilon:=C_\epsilon^{\mathrm{up}}+c_\epsilon.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.matched_curve_frontier
+The discrete \(L_1\) lower bound underlying \cref{obj:thm:capacity-active-lower} is supplied by \citep[Theorem 3 and the unknown-both-distributions reduction following Theorem 6]{JiaoHanWeissman2018}.
+
+Fix \(n\ge1\), \(d\ge2\), and \(b_0\in[0,1/2]\), and use the independent observed-record laws of \cref{obj:ass:iid-sampling}. Since \(b_0\le1/2\le1-b_0\), evaluation of any admissible curve estimator \(\widehat V\) at \(1/2\) gives a measurable scalar estimator
+\[
+T_{\widehat V}(O^{(n)}):=\widehat V_{1/2}(O^{(n)}).
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.scalar_coordinate_of_curve_estimator
+By \cref{obj:thm:capacity-active-lower}, there is a law \(P\in\mathcal M_{d,\epsilon}\) for which
+\[
+\begin{aligned}
+c_\epsilon\varrho_{n,d}
+&\le E_P\!\left[\bigl(T_{\widehat V}-V_{1/2}(P)\bigr)^2\right]\\
+&\le E_P\!\left[\sup_{b\in[b_0,1-b_0]}
+       \bigl|\widehat V_b-V_b(P)\bigr|^2\right]\\
+&\le \sup_{P'\in\mathcal M_{d,\epsilon}}
+ E_{P'}\!\left[\sup_{b\in[b_0,1-b_0]}
+       \bigl|\widehat V_b-V_b(P')\bigr|^2\right].
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.scalar_coordinate_risk_le_curve_risk
+The middle inequality holds samplewise because \(1/2\) belongs to the budget interval. The lower-bound result also supplies a law in the model class when applied to the zero scalar estimator, while \cref{obj:def:jf-estimator} supplies an admissible curve estimator. Thus taking the infimum over curve estimators in \cref{obj:def:curve-risk} gives
+\[
+c_\epsilon\varrho_{n,d}
+\le \mathfrak R_{n,d,\epsilon,b_0}^{\mathrm{curve}}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.matched_curve_frontier
+
+For the upper bound, insert the estimator of \cref{obj:def:jf-estimator} into that infimum. \Cref{obj:thm:curve-upper} bounds its worst-case curve risk, so
+\[
+\begin{aligned}
+\mathfrak R_{n,d,\epsilon,b_0}^{\mathrm{curve}}
+&\le \sup_{P\in\mathcal M_{d,\epsilon}}
+ E_P\!\left[\sup_{b\in[b_0,1-b_0]}
+ \bigl|\widehat V_b^{\mathrm{JF}}-V_b(P)\bigr|^2\right]\\
+&\le C_\epsilon^{\mathrm{up}}\varrho_{n,d}
+ \le C_\epsilon\varrho_{n,d}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.matched_curve_frontier
+Here \(\varrho_{n,d}\ge0\), and the chosen constants satisfy \(0<c_\epsilon\le C_\epsilon<\infty\).
+
+Now let \(T\) be any measurable scalar estimator. Applying \cref{obj:thm:capacity-active-lower} to the same independent observed-record laws supplies a law \(P\in\mathcal M_{d,\epsilon}\) with \(V_1(P)=1/2\), a binding half-budget policy \(\pi\in\Pi_{1/2}(P)\), and
+\[
+\sum_{j=1}^d p_j\pi_j=\frac12,\qquad
+V_{1/2}(P)=B(P)+\sum_{j=1}^d p_j\pi_j\tau_j,\qquad
+E_P\!\left[(T-V_{1/2}(P))^2\right]\ge c_\epsilon\varrho_{n,d}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.capacity_active_lower
+For every occupied cell, the same result gives
+\[
+p_j>0\quad\Longrightarrow\quad
+\frac18\le\tau_j\le\frac38
+\quad\Longrightarrow\quad \tau_j>0.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.matched_curve_frontier
+
+Finally, suppose \(b_0=0\) and take any \(P\in\mathcal M_{d,\epsilon}\). Since \(p_j\ge0\) and \(\sum_jp_j=1\), every policy in \([0,1]^d\) is feasible at budget \(1\). For any such policy,
+\[
+\sum_{j=1}^d p_j\pi_j\tau_j
+\le \sum_{j=1}^d p_j\max\{\tau_j,0\},
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.full_budget_value
+and equality is attained by the policy
+\[
+\pi_j^*:=\mathbf1\{\tau_j>0\},\qquad j=1,\ldots,d.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.full_budget_value
+Consequently, \cref{obj:def:budget-value} gives
+\[
+V_1(P)=B(P)+\sum_{j=1}^d p_j\max\{\tau_j,0\}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.full_budget_value
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:capacity-active-lower}]
+Write
+\[
+\mathcal R_{n,k}
+=\inf_{\widehat H}\sup_{R,S\in\Delta_k}
+E_{R,S}\!\left[(\widehat H-\|R-S\|_1)^2\right].
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.twoSampleL1MinimaxRisk
+Here \(\widehat H\) ranges over measurable estimators based on \(n\) observations from each of \(R\) and \(S\). We first establish the two-sample bound used in the proof:
+\[
+\mathcal R_{n,k}\ge c_{\mathrm L}
+\min\left\{1,\frac{k}{n\log(ek)}\right\}
+\qquad(k\ge2,\ n\ge1)
+\]
+for a universal \(c_{\mathrm L}>0\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.two_sample_l1_lower_all_samples
+
+For \(n\le k^2\), this is \cref{obj:lem:two-sample-l1-lower}. Its dense-range input is the published known-\(S\) bound: when \(n\ge a_0k/\log k\) and \(\log n\le C_0\log k\), the worst-case squared risk is at least a positive constant times \(k/(n\log n)\), with constants depending on \(a_0,C_0\) \citep[Theorem 3 and the unknown-both-distributions reduction following Theorem 6]{JiaoHanWeissman2018}. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.two_sample_l1_lower
+
+For completeness, consider the remaining range \(n>k^2\). At sufficiently large \(k\), set
+\[
+h=\lfloor k/2\rfloor,\qquad
+\ell=16\bigl(\lfloor\log_2 k\rfloor+1\bigr),\qquad
+\xi=\sqrt{\frac{h\ell}{200n}}>0,\qquad
+\omega=\frac{\xi}{50\ell}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.exists_pairedLargeParameters
+To obtain the finite priors used here, let
+\[
+\mathcal E_\ell=\inf_{\deg\varphi\le\ell}\sup_{|x|\le1}\bigl||x|-\varphi(x)\bigr|.
+\]
+Polynomial alternation gives nodes \(x_0<\cdots<x_{\ell+1}\) in \([-1,1]\) and signed weights \(a_i\), normalized so that
+\[
+\sum_i|a_i|=1,\qquad
+\sum_i a_i x_i^{\ell'}=0\quad(0\le\ell'\le\ell),\qquad
+\sum_i a_i|x_i|=\mathcal E_\ell.
+\]
+Indeed, the weights proportional to \(\prod_{i'\ne i}(x_i-x_{i'})^{-1}\) annihilate polynomials of degree at most \(\ell\) by Lagrange interpolation; their alternating signs can be oriented to agree with the alternating approximation errors. The required approximation error has the bound
+\[
+\mathcal E_\ell\ge\frac1{100\ell}.
+\]
+For this bound, let \(\mathscr F_\ell\) denote the normalized Fejér kernel of order \(\ell\) on the circle of period \(\pi\), and define
+\[
+g(\phi)=|\sin(2\phi)|,\qquad
+\mathscr D_\ell f=f(0)-\bigl((2\mathscr F_{2\ell}-\mathscr F_\ell)*f\bigr)(0).
+\]
+The Fejér kernels have integral one, so \(\|\mathscr D_\ell\|\le4\). Their Fourier multipliers give \(\mathscr D_\ell[\varphi(\sin(2\phi))]=0\) when \(\deg\varphi\le\ell\). The Fourier series of \(g\) has nonnegative contributions to the magnitude of this functional; retaining the frequencies indexed from \(\ell\) through \(2\ell-1\) yields
+\[
+|\mathscr D_\ell g|
+\ge\sum_{\ell'=\ell}^{2\ell-1}
+ \frac{4}{\pi(4{\ell'}^2-1)}
+\ge\frac1{16\ell}.
+\]
+Thus \(4\mathcal E_\ell\ge1/(16\ell)\), which gives the displayed bound. Writing \(a_i^+=\max(a_i,0)\) and \(a_i^-=\max(-a_i,0)\), define
+\[
+\nu_0=2\sum_i a_i^-\delta_{x_i},\qquad
+\nu_1=2\sum_i a_i^+\delta_{x_i}.
+\]
+The degree-zero identity makes each measure a probability measure. The remaining identities show that their moments agree through degree \(\ell\) and that
+\[
+\int|x|\,d\nu_1(x)-\int|x|\,d\nu_0(x)
+=2\mathcal E_\ell\ge\frac1{50\ell}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.exists_scalarMomentPriors
+
+Use \(2h\) cells and, for \(z=(z_1,\ldots,z_h)\in[-1,1]^h\), define the two probability vectors by
+\[
+R_{i,\pm}=\frac1{2h},\qquad
+S_{i,\pm}(z)=\frac{1\pm\xi z_i}{2h},
+\qquad
+\|R-S(z)\|_1=\frac{\xi}{h}\sum_{i=1}^h|z_i|.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.pairedProductTarget_mean
+Under prior \(\nu_s^{\otimes h}\), the target has center
+\(\gamma_s=\xi\int|z|\,d\nu_s(z)\). Independence gives
+\[
+|\gamma_1-\gamma_0|\ge\omega,\qquad
+\operatorname{Var}_{\nu_s^{\otimes h}}\!\bigl(\|R-S(z)\|_1\bigr)
+\le\frac{\xi^2}{h}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.pairedProductTarget_variance_le
+For the stated sufficiently large alphabet threshold, \(128\xi^2\le h\omega^2\). Chebyshev’s inequality therefore places at most \(1/8\) of either prior outside the interval of radius \(\omega/4\) around its center. % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.pairedProductTarget_bad_mass_le
+
+To compare the sample laws, Poissonize the \(S\)-sample at mean \(2n\). Conditional on \(z_i\), the two counts in pair \(i\) are independent Poisson variables with means \((n/h)(1+\xi z_i)\) and \((n/h)(1-\xi z_i)\). Relative to \(z_i=0\), their likelihood ratios obey
+\[
+E_0[L_zL_{z'}]
+=\exp\!\left(\frac{2n\xi^2}{h}zz'\right).
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.scalarPoissonPairLikelihood_inner
+For \(s\in\{0,1\}\), define the one-pair mixture, its null reference law, its density, and the exponential scale by
+\[
+\mathbb Q_s=\int\!\left[
+ \operatorname{Pois}\!\left(\frac nh(1+\xi z)\right)
+ \otimes\operatorname{Pois}\!\left(\frac nh(1-\xi z)\right)
+ \right]d\nu_s(z),\quad
+\mathbb Q_\circ=\operatorname{Pois}(n/h)^{\otimes2},\quad
+\rho_s=\frac{d\mathbb Q_s}{d\mathbb Q_\circ},\quad
+\Delta\nu=\nu_1-\nu_0,\quad
+\chi=\frac{2n\xi^2}{h}\le\frac\ell{50}.
+\]
+The likelihood identity above and the matching moments give
+\[
+\int(\rho_1-\rho_0)^2\,d\mathbb Q_\circ
+=\sum_{\ell'>\ell}\frac{\chi^{\ell'}}{\ell'!}
+ \left(\int z^{\ell'}\,d\Delta\nu(z)\right)^2
+\le4\sum_{\ell'>\ell}\frac{\chi^{\ell'}}{\ell'!}.
+\]
+Here \(\bigl|\int z^{\ell'}d\Delta\nu(z)\bigr|\le2\) because both priors are supported on \([-1,1]\). For \(\ell'>\ell\), the factorial bound \(\ell'!\ge(\ell'/e)^{\ell'}\), together with \(e<3\), yields \(\chi^{\ell'}/\ell'!\le(1/4)^{\ell'}\). Cauchy–Schwarz therefore gives
+\[
+\operatorname{TV}(\mathbb Q_0,\mathbb Q_1)
+\le\frac12\left(\int(\rho_1-\rho_0)^2\,d\mathbb Q_\circ\right)^{1/2}
+\le\left(\sum_{\ell'>\ell}4^{-\ell'}\right)^{1/2}
+\le2^{-\ell}\le2^{-\ell/4}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.scalarPoissonPredictive_tv_le
+The pair mixtures are independent under either prior. Telescoping their product densities and using the one-pair bound gives
+\[
+\operatorname{TV}(\mathbb Q_0^{\otimes h},\mathbb Q_1^{\otimes h})
+\le h\operatorname{TV}(\mathbb Q_0,\mathbb Q_1)
+\le h2^{-\ell/4}.
+\]
+When a \(\operatorname{Pois}(2n)\) count reaches \(n\), its first \(n\) marks have the fixed-sample law. For each prior, replacing the sample on the complementary event changes its predictive law in total variation by at most \(\Pr\{\operatorname{Pois}(2n)<n\}\). The triangle inequality therefore adds twice this probability. Exponential Markov inequality at \(\log 2\) gives
+\[
+\Pr\{\operatorname{Pois}(2n)<n\}
+\le \exp\{-(1-\log 2)n\}.
+\]
+Since \(h\le k/2\), \(2^{-\ell/4}\le k^{-4}\), and \(n>k^2\), these bounds give, for the stated sufficiently large alphabet threshold, the fixed-sample predictive bound
+\[
+\operatorname{TV}(\text{prior-0 samples},\text{prior-1 samples})
+\le h\,2^{-\ell/4}
+ +2\Pr\{\operatorname{Pois}(2n)<n\}
+\le\frac1{16}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.pairedFixedPredictive_tv_le
+The first sample has the same law \(R\) under both priors, so it leaves this comparison unchanged.
+
+Choose the nearer of \(\gamma_0,\gamma_1\) from an arbitrary estimator of \(\|R-S\|_1\). The sum of its testing errors is at least \(15/16\) by the predictive bound. The two prior tail probabilities contribute at most \(1/4\); on each remaining error event, squared estimation error is at least \(\omega^2/16\). Consequently
+\[
+\mathcal R_{n,2h}\ge\frac{11}{512}\omega^2,
+\qquad
+\omega^2=\frac{h}{500000\,n\ell}
+\ge c\,\frac{k}{n\log(ek)}
+\]
+for a universal \(c>0\). Padding the unused cell when \(k\) is odd preserves the target and sample law. % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.largeSample_fuzzyCertificate
+
+The finitely many alphabet sizes below that threshold are covered by a binary comparison. Take \(R=(1/2,1/2)\), compare \(S=R\) with
+\(S=((1+\xi)/2,(1-\xi)/2)\), and set \(\xi=1/(64\sqrt n)\). The targets differ by \(\xi\), while independence and the one-record chi-squared identity give
+\[
+\chi^2(S^{\otimes n},R^{\otimes n})
+=(1+\xi^2)^n-1\le\frac1{64}.
+\] % lean: Causalean.Stat.Minimax.Multinomial.TwoSampleL1.binary_fuzzyCertificate
+Thus their total variation is at most \(1/16\), and the same testing argument yields a constant multiple of \(1/n\). Zero-mass padding and the finite bound on \(k/\log(ek)\) give the asserted rate for these alphabet sizes. Combining the ranges, and using \(k/(n\log(ek))<1\) when \(n>k^2\), proves the displayed two-sample bound. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.two_sample_l1_lower_all_samples
+
+Now fix \(T,n,d\) as in the statement. Suppose first that \(d\ge4\), and put \(k=\lfloor d/2\rfloor\). Then \(k\ge2\) and \(2k\le d\). For each \(R,S\in\Delta_k\), choose the paired law of \cref{obj:def:paired-family} with
+\[
+r_i=\frac{R_i+S_i}{2},\qquad
+\theta_i=
+\begin{cases}
+0,&R_i+S_i=0,\\[2pt]
+\dfrac{R_i-S_i}{8(R_i+S_i)},&R_i+S_i>0.
+\end{cases}
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedL1_lower_transport_capacity
+The capacity and sample identities in \cref{obj:prop:paired-capacity-identity} give
+\[
+V_{1/2}(P_{R,S})=\frac38+\frac1{32}\|R-S\|_1,
+\qquad V_1(P_{R,S})=\frac12,
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedL1_lower_transport_capacity
+and an exact Markov kernel taking the two independent \(n\)-samples to \(n\) observed records from \(P_{R,S}\). Apply \(T\) after this kernel and condition on the two input samples. The resulting two-sample estimator of \(\|R-S\|_1\) has squared risk at most \(32^2\) times the squared risk of \(T\), by conditional Jensen’s inequality. Since the two-sample lower bound is positive, a parameter pair attains at least half its lower-bound value. Hence some paired law satisfies
+\[
+E_{P_{R,S}}\!\left[(T-V_{1/2}(P_{R,S}))^2\right]
+\ge \frac{c_{\mathrm L}}{2048}
+ \min\left\{1,\frac{k}{n\log(ek)}\right\}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedL1_lower_transport_capacity
+Pad the law with zero-mass cells to reach \(d\) labels. The observed sample law, both budget values, and the occupied-cell properties are preserved; \cref{obj:ass:iid-sampling} identifies the stipulated sampling law with that product law. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedL1_lower_transport_capacity_padded
+
+Because \(k\le d\le3k\) and \(\log(ek)\le\log(ed)\),
+\[
+\min\left\{1,\frac{d}{n\log(ed)}\right\}
+\le3\min\left\{1,\frac{k}{n\log(ek)}\right\}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.curveRate_half_floor
+Thus the required bound holds in this case with coefficient \(c_{\mathrm L}/6144\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.capacity_active_lower
+
+For \(d=2,3\), use one occupied pair and pad any remaining cell by zero mass. Compare paired contrasts \(0\) and
+\[
+t=\frac1{8\sqrt n}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.small_capacity_lower_padded
+Both laws satisfy the class, value, occupied-effect, and binding-capacity properties by \cref{obj:prop:paired-capacity-identity}. Their half-budget values are \(3/8\) and \(3/8+t/2\). The one-record chi-squared divergence is \(2t^2\); tensorization and \(2nt^2=1/32\le\log2\) give total variation at most \(1/2\) for the \(n\)-record laws. Testing at the midpoint of the two values then puts error probability at least \(1/4\) under one law, on an event where absolute estimation error is at least \(t/4\). Therefore one of the laws satisfies
+\[
+E_P\!\left[(T-V_{1/2}(P))^2\right]
+\ge\frac{(t/4)^2}{4}
+=\frac1{4096n}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.small_capacity_lower_padded
+For \(2\le d\le3\), \(\min\{1,d/[n\log(ed)]\}\le3/n\). Taking
+\[
+c_\epsilon=\min\left\{\frac{c_{\mathrm L}}{6144},
+                         \frac1{12288}\right\}>0
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.capacity_active_lower
+completes both cases. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.capacity_active_lower
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:prop:fixed-alphabet-reduction}]
+Fix \(d\ge2\) and write
+\[
+\log(ed)=1+\log d,\qquad
+\alpha_d:=\frac{d}{\log(ed)}.
+\]
+Since \(\log d\le d-1\) and \(d>1\), we have \(0<\log(ed)\le d\), so \(\alpha_d\ge1\). Thus, for every \(n\ge1\),
+\[
+\frac1n
+\le \min\left\{1,\frac{d}{n\log(ed)}\right\}
+=\min\left\{1,\frac{\alpha_d}{n}\right\}
+\le\frac{\alpha_d}{n}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.fixed_alphabet_reduction
+
+The lower-bound input to \cref{obj:thm:matched-curve-frontier} is the known-distribution \(L_1\) minimax result of \citep[Theorem 3 and the unknown-both-distributions reduction following Theorem 6]{JiaoHanWeissman2018}. Applying the stated frontier bound and then the preceding comparison gives, uniformly over \(b_0\in[0,1/2]\),
+\[
+\frac{c_\epsilon}{n}
+\le c_\epsilon\min\left\{1,\frac{d}{n\log(ed)}\right\}
+\le \mathfrak R_{n,d,\epsilon,b_0}^{\mathrm{curve}}
+\le C_\epsilon\min\left\{1,\frac{d}{n\log(ed)}\right\}
+\le\frac{C_\epsilon\alpha_d}{n}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.fixed_alphabet_reduction
+The risk-bound constants can be chosen as \(c_\epsilon\) and \(C_\epsilon\alpha_d\), respectively; they are positive, ordered, and fixed across \(n\) and \(b_0\).
+
+For the identity, denote the common effect in occupied cells by \(\gamma\), so that
+\[
+\tau_j=\gamma>0\qquad\text{whenever }p_j>0.
+\]
+If \(b_0\in[0,1/2]\) and \(b\in[b_0,1-b_0]\), then \(0\le b\le1\). Cell masses satisfy \(p_j\ge0\) and \(\sum_jp_j=1\). In a zero-mass cell both sides of the following identity vanish. Hence, for every \(\pi\in\Pi_b(P)\),
+\[
+\sum_{j=1}^d p_j\pi_j\tau_j
+=\gamma\sum_{j=1}^d p_j\pi_j
+\le \gamma b,
+\]
+where the last inequality is the budget constraint in \cref{obj:def:budget-policy-class}.
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.constant_effect_budget_value
+
+Define the constant policy by \(\pi^{(b)}_j=b\) for every cell \(j\). Because \(0\le b\le1\), its coordinates are valid, and
+\[
+\sum_{j=1}^d p_j\pi^{(b)}_j
+=b\sum_{j=1}^d p_j=b,
+\qquad
+\sum_{j=1}^d p_j\pi^{(b)}_j\tau_j
+=\gamma b.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.constant_effect_budget_value
+Thus \(\pi^{(b)}\in\Pi_b(P)\) attains the upper bound. The maximization in \cref{obj:def:budget-value} equals \(\gamma b\), and therefore \(V_b(P)=B(P)+\gamma b\), as claimed.
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:curve-upper}]
+\textit{1. Constants and unit bound.} Write
+\[
+L:=\log(ed)=1+\log d,\qquad
+\rho_{n,d}:=\frac{d}{nL},\qquad
+\gamma_\epsilon:=3(1+\epsilon^{-1})+1.
+\]
+Let \(C_\epsilon^{\mathrm{proc}}>0\) be the constant supplied by \cref{obj:thm:integrated-process-certificate}, and set
+\[
+C_\epsilon:=\max\{1,C_\epsilon^{\mathrm{proc}},4096\gamma_\epsilon^2\}>0.
+\]
+Since \(d\ge2\), the inequality \(\log d\le d-1\) gives \(0<L\le d\), so \(\rho_{n,d}\ge0\).
+
+The interval \(I=[b_0,1-b_0]\) is nonempty and contained in \([0,1]\). Write
+\[
+p_j=P(X=j),\qquad
+\mu_{aj}=\begin{cases}E_P[Y(a)\mid X=j],&p_j>0,\\0,&p_j=0,\end{cases}
+\qquad
+\tau_j=\mu_{1j}-\mu_{0j},\qquad
+B(P)=\sum_{j=1}^d p_j\mu_{0j}.
+\]
+The binary potential-outcome condition in \cref{obj:def:model-class} gives \(0\le\mu_{aj}\le1\), including the stated convention at empty cells. For any \(b\in I\), the zero policy is feasible under \cref{obj:def:budget-policy-class}, and the value of every feasible policy is
+\[
+B(P)+\sum_{j=1}^d p_j\pi_j\tau_j
+=\sum_{j=1}^d p_j\bigl\{(1-\pi_j)\mu_{0j}+\pi_j\mu_{1j}\bigr\}\in[0,1].
+\]
+Hence \(V_b(P)\in[0,1]\) by \cref{obj:def:budget-value}. The estimator in \cref{obj:def:jf-estimator} is either \(1/2\) or clipped to \([0,1]\). Under \cref{obj:ass:iid-sampling}, its squared supremum loss therefore satisfies
+\[
+E_P\!\left[\sup_{b\in I}
+ \bigl|\widehat V_b^{\mathrm{JF}}-V_b(P)\bigr|^2\right]\le1.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.jfEstimator_curveRisk_le_one
+
+\textit{2. Alphabets with \(2\le d<16\).} In this branch, \(\widehat F\) is the empirical threshold process of \cref{obj:def:jf-estimator}. It is bounded on \([0,1]\) by \cref{obj:lem:empirical-threshold-process-bounded}. The dual representation and its uniform perturbation bound in \cref{obj:prop:dual-representation}, together with contraction by clipping toward \(V_b(P)\in[0,1]\), give, sample by sample,
+\[
+\sup_{b\in I}
+ \bigl|\widehat V_b^{\mathrm{JF}}-V_b(P)\bigr|^2
+\le
+\left(\sup_{\lambda\in[0,1]}
+ \bigl|\widehat F(\lambda)-F_P(\lambda)\bigr|\right)^2.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.jfEstimator_curveLoss_le_processError
+
+Here is the pointwise estimate used for the empirical process. Let \(\mathcal Z=\{0,1\}^2\), index \(\zeta=(a,y)\), and write
+\[
+q_{\zeta j}=P(X=j,A=a,Y=y),\qquad
+s_a(u)=u_{(a,0)}+u_{(a,1)},\qquad
+s(u)=s_0(u)+s_1(u)
+\]
+for every nonnegative four-vector \(u=(u_\zeta)_{\zeta\in\mathcal Z}\). For nonnegative four-vectors \(u,v\), define
+\[
+\Delta(u,v):=\sum_{\zeta\in\mathcal Z}|u_\zeta-v_\zeta|.
+\]
+For the formula in \cref{obj:def:dual-process}, explicitly define its value at the zero vector by \(g_a(0)=0\). This is its continuous extension, since \(0\le g_a(u)\le s(u)\) for every nonnegative \(u\) with \(s(u)>0\). Thus \(f_\lambda(0)=0\), and the stabilized arm contributions, including those of empty covariate cells, obey
+\[
+|g_a(u)-g_a(v)|\le(1+\epsilon^{-1})\Delta(u,v),
+\qquad
+|s(u)-s(v)|\le\Delta(u,v).
+\]
+To see the first inequality, an arm with \(s_a(u)\le\epsilon s(u)\) has \(g_a(u)=u_{a1}/\epsilon\); an arm with \(s_a(u)\ge\epsilon s(u)>0\) has \(g_a(u)=s(u)u_{a1}/s_a(u)\). When both vectors are in the latter regime, use
+\[
+\left|\frac{u_{a1}}{s_a(u)}-\frac{v_{a1}}{s_a(v)}\right|
+\le
+\frac{|u_{a1}-v_{a1}|+|u_{a0}-v_{a0}|}{s_a(u)},
+\qquad
+\frac{s(u)}{s_a(u)}\le\epsilon^{-1},
+\]
+and \(u_{a1}/s_a(u),v_{a1}/s_a(v)\in[0,1]\). When both vectors are in the first regime, \(|g_a(u)-g_a(v)|=|u_{a1}-v_{a1}|/\epsilon\le\epsilon^{-1}\Delta(u,v)\). When \(u\) is in the first regime and \(v\) in the second, use
+\[
+g_a(u)-g_a(v)
+=
+\frac{u_{a1}-v_{a1}}{\epsilon}
++
+\frac{v_{a1}}{s_a(v)}
+ \frac{s_a(v)-\epsilon s(v)}{\epsilon}.
+\]
+The second term is nonnegative and \(0\le v_{a1}/s_a(v)\le1\). Since \(s_a(u)\le\epsilon s(u)\), its numerator satisfies
+\[
+s_a(v)-\epsilon s(v)
+\le s_a(v)-s_a(u)+\epsilon\{s(u)-s(v)\}.
+\]
+Combining these inequalities cancels the \(a1\) coordinate in the upper bound and gives
+\[
+-\epsilon^{-1}\Delta(u,v)
+\le g_a(u)-g_a(v)
+\le \epsilon^{-1}(v_{a0}-u_{a0})+s(u)-s(v)
+\le(1+\epsilon^{-1})\Delta(u,v).
+\]
+Swapping \(u\) and \(v\) handles the reverse case. If either total mass is zero, that vector is zero and \(0\le g_a(w)\le s(w)\) gives the bound directly. Since \(x\mapsto[x]_+\) is one-Lipschitz and \(0\le\lambda\le1\), it follows that
+\[
+|f_\lambda(u)-f_\lambda(v)|
+\le
+2|g_0(u)-g_0(v)|+|g_1(u)-g_1(v)|
+ +\lambda|s(u)-s(v)|
+\le\gamma_\epsilon\Delta(u,v).
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.budget_thresholdFunReal_pointwise_lipschitz
+
+Applying this cellwise and using Cauchy--Schwarz across the \(4d\) category-cell coordinates yields
+\[
+\left(\sup_{\lambda\in[0,1]}
+ |\widehat F(\lambda)-F_P(\lambda)|\right)^2
+\le
+4d\,\gamma_\epsilon^2
+\sum_{j=1}^d\sum_{\zeta\in\mathcal Z}
+ (\widehat q_{\zeta j}-q_{\zeta j})^2.
+\]
+Each \(\widehat q_{\zeta j}\) is the empirical mass of one observed atom. Its Bernoulli second moment under \cref{obj:ass:iid-sampling} gives
+\[
+E_P(\widehat q_{\zeta j}-q_{\zeta j})^2
+=\frac{q_{\zeta j}(1-q_{\zeta j})}{n}\le\frac1n.
+\]
+Consequently,
+\[
+E_P\!\left[\sup_{b\in I}
+ |\widehat V_b^{\mathrm{JF}}-V_b(P)|^2\right]
+\le
+\frac{16d^2\gamma_\epsilon^2}{n}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.jfEstimator_empiricalCurveRisk_le
+
+Because \(L\le d<16\), we have \(dL\le256\), and hence
+\[
+\frac{16d^2\gamma_\epsilon^2}{n}
+\le4096\gamma_\epsilon^2\rho_{n,d}.
+\]
+If \(\rho_{n,d}\ge1\), the unit bound above is at most \(C_\epsilon\min\{1,\rho_{n,d}\}\). If \(\rho_{n,d}<1\), the displayed empirical bound is at most the same quantity.
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.empiricalCurveRate_algebra
+
+\textit{3. Alphabets with \(d\ge16\) and \(d/L\le n\).} Here \(\rho_{n,d}\le1\). The estimator uses the conditionally averaged threshold process \(\widehat F\) specified in \cref{obj:def:jf-estimator}. It is bounded on \([0,1]\) by \cref{obj:lem:averaged-threshold-process-bounded}. The same dual perturbation and clipping argument bounds its curve risk by the averaged process risk:
+\[
+E_P\!\left[\sup_{b\in I}
+ |\widehat V_b^{\mathrm{JF}}-V_b(P)|^2\right]
+\le
+E_P\!\left[
+ \left(\sup_{\lambda\in[0,1]}
+ |\widehat F(\lambda)-F_P(\lambda)|\right)^2\right].
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.jfEstimator_averagedCurveRisk_le
+
+Under the stated sampling and model conditions, \cref{obj:thm:integrated-process-certificate} bounds the right-hand side by \(C_\epsilon^{\mathrm{proc}}\rho_{n,d}\). Thus the curve risk is at most
+\[
+C_\epsilon^{\mathrm{proc}}\rho_{n,d}
+\le C_\epsilon\min\{1,\rho_{n,d}\}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.integrated_process_certificate
+
+\textit{4. Alphabets with \(d\ge16\) and \(n<d/L\).} Now \(\rho_{n,d}>1\), and \cref{obj:def:jf-estimator} sets the entire estimated curve equal to \(1/2\). The unit bound above gives
+\[
+E_P\!\left[\sup_{b\in I}
+ |\widehat V_b^{\mathrm{JF}}-V_b(P)|^2\right]
+\le1\le C_\epsilon\min\{1,\rho_{n,d}\}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.jfEstimator_curveRisk_le_one
+
+These cases give the claimed inequality for every \(P\in\mathcal M_{d,\epsilon}\), with one constant depending only on \(\epsilon\). Consider the set of expected squared losses indexed by these laws. If this set is nonempty, its supremum obeys the same bound because every member does. If it is empty, define its supremum as zero; the bound then follows from \(C_\epsilon>0\) and \(\rho_{n,d}\ge0\). In the present model the set is nonempty: take \(X\) uniform on \([d]\), take \(A\) independent of \(X\) with treatment probability \(1/2\), and set \(Y(0)=Y(1)=Y=0\) almost surely. This law satisfies consistency and conditional exchangeability, and its treatment propensity in every cell is \(1/2\), as required by \(0<\epsilon<1/2\). Thus the nonempty case gives the stated supremum bound.
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.curve_upper
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:integrated-process-certificate}]
+Write \(L=\log(ed)\), \(m=n/8\), and \(K=\max\{2,\lfloor L/512\rfloor\}\). We first establish estimates for an arbitrary observed categorical law in the independent pilot and evaluation count experiment of \cref{obj:def:process-handle}. All constants introduced below are positive and depend at most on \(\epsilon\), unless called numerical.
+
+For each pilot realization, every point \(u\) in the rectangle \(\prod_{\zeta\in\mathcal Z}[\ell_{\zeta j},u_{\zeta j}]\) is nonnegative and satisfies \(\|u-c_j^0\|_1\leq S_j\). Positivity and normalization of the Jackson convolution, together with \cref{obj:lem:bv-lipschitz}, therefore give the uniform bound
+\[
+\sup_{u\in\prod_{\zeta\in\mathcal Z}[\ell_{\zeta j},u_{\zeta j}]}
+\|P_{j,\cdot}(u)-f_\cdot(c_j^0)\|_{BV([0,1])}
+\leq c_{\mathrm{BV}}S_j.
+\]
+Write the polynomial on this rectangle in tensor Chebyshev form, with coefficients \(b_{j,\nu}\):
+\[
+P_{j,\lambda}(u)-f_\lambda(c_j^0)
+ =\sum_{\nu\in\{0,\ldots,D\}^4}b_{j,\nu}(\lambda)
+   \prod_{\zeta\in\mathcal Z}
+   T_{\nu_\zeta}\!\left(\frac{u_\zeta-c^0_{\zeta j}}{R_{\zeta j}}\right),
+\qquad D=2(K-1).
+\]
+Each coefficient is a normalized tensor Chebyshev integral of the uniformly bounded path, so \(\|b_{j,\nu}\|_{BV([0,1])}\leq16c_{\mathrm{BV}}S_j\). If \(A_h\) is the sum of the absolute monomial coefficients of \(T_h\), its recurrence gives \(A_0=A_1=1\), \(A_{h+1}\leq2A_h+A_{h-1}\), and hence \(A_h\leq(1+\sqrt2)^h\). Conversion to the centered monomial coefficients of \cref{obj:def:jf-estimator} now yields
+\[
+\sum_\alpha\|\beta_{j,\alpha}\|_{BV([0,1])}
+ \leq16c_{\mathrm{BV}}S_j(D+1)^4(1+\sqrt2)^{4D}
+ \leq c_{\mathrm{coeff}}S_j e^{12K}.
+\]
+The estimate holds for every pilot realization, including those outside \(G_j\): the pilot radii are strictly positive, and the convolution rectangle lies in \(\mathbb R_+^4\). Also \(L=1+\log d\geq1\) and \(K\leq2+L/512\). Direct expansion of this last bound yields
+\[
+24K+\frac{16K^2}{L}\leq114+\frac L{16}
+ \leq115+\frac{\log d}{16},
+\qquad
+S_j^2e^{24K+16K^2/L}\leq e^{115}d^{1/16}S_j^2.
+\]
+These are the two coefficient bounds required by \cref{obj:def:process-handle}. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.jacksonCoefficientBV_pilot_le
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.jacksonDegree_exponential_budget
+
+Here are the cell estimates used below. Put
+\[
+a_j=\sqrt{\frac{p_j}{mL}}+\frac1{mL},
+\qquad
+v_j=\sqrt{\frac{p_jL}{m}}+\frac Lm.
+\]
+Conditioning on the pilot counts, factorial moments of the independent evaluation counts give
+\[
+\mathbb E\!\left[U_h(N_{\zeta j};c^0_{\zeta j})\mid N'\right]
+ =(q_{\zeta j}-c^0_{\zeta j})^h.
+\]
+On \(G_j\), the localization interval contains \(q_{\zeta j}\), and its radius satisfies
+\(q_{\zeta j}/(mR_{\zeta j}^{\,2})\leq1/L\). The second factorial-moment identity is
+\[
+\mathbb E\!\left[U_h(N_{\zeta j};c^0_{\zeta j})^2\mid N'\right]
+ =\sum_{r=0}^{h}{h\choose r}^{\!2}r!
+   \left(\frac{q_{\zeta j}}m\right)^r
+   (q_{\zeta j}-c^0_{\zeta j})^{2h-2r}.
+\]
+Using \(|q_{\zeta j}-c^0_{\zeta j}|\leq R_{\zeta j}\), \(q_{\zeta j}/(mR_{\zeta j}^2)\leq1/L\), and \({h\choose r}^2r!\leq h^{2r}/r!\), it gives
+\[
+\mathbb E\!\left[\left.
+ \frac{U_h(N_{\zeta j};c^0_{\zeta j})^2}{R_{\zeta j}^{2h}}
+ \right|N'\right]
+ \leq\sum_{r=0}^{h}\frac{(h^2/L)^r}{r!}
+ \leq e^{h^2/L}.
+\]
+For each factorial index \(\alpha\in\{0,\ldots,D\}^{\mathcal Z}\), independence of the four evaluation coordinates and the preceding moment bound give, on \(G_j\),
+\[
+\mathbb E\!\left[\left.
+\prod_{\zeta\in\mathcal Z}
+\frac{U_{\alpha_\zeta}(N_{\zeta j};c^0_{\zeta j})^2}
+     {R_{\zeta j}^{2\alpha_\zeta}}
+\right|N'\right]
+\leq \exp\!\left(\frac{\sum_\zeta\alpha_\zeta^2}{L}\right)
+\leq e^{4D^2/L}.
+\]
+Cauchy–Schwarz over the \((D+1)^4\) factorial indices and the coefficient envelope therefore give
+\[
+\mathbb E\!\left[\|Z_j-f_\cdot(c_j^0)\|_{BV([0,1])}^2\mid N'\right]
+\leq 4\left(\sum_\alpha\|\beta_{j,\alpha}\|_{BV([0,1])}\right)^2
+       \sum_{\alpha\in\{0,\ldots,D\}^{\mathcal Z}}e^{4D^2/L}
+\leq 4c_{\mathrm{coeff}}^2S_j^2(D+1)^4
+       e^{24K+16K^2/L}.
+\]
+Here \(D+1\leq2K\leq e^K\). Using \(K\leq2+L/512\) gives
+\[
+28K+\frac{16K^2}{L}\leq122+\frac L{16}
+=123+\frac{\log d}{16},
+\qquad
+(D+1)^4e^{24K+16K^2/L}\leq e^{123}d^{1/16}.
+\]
+Consequently the conditional squared bounded-variation norm is at most \(4c_{\mathrm{coeff}}^2e^{123}d^{1/16}S_j^2\). Every radius is positive, so \(S_j>0\). Apply \(|\Pi_{[-t,t]}(x)-x|\leq x^2/t\) with \(t=d^{1/4}S_j\). Uniformly in \(\lambda\),
+\[
+\mathbb E\!\left[|T_j(\lambda)-Z_j(\lambda)|\mid N'\right]
+ \leq 4c_{\mathrm{coeff}}^2e^{123}S_jd^{-3/16}
+ \qquad\text{on }G_j.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.goodPilot_localJacksonFourPoissonFactorialPath_sq_integral_le The factorial-moment identity also gives
+\[
+\mathbb E[Z_j(\lambda)\mid N']=P_{j,\lambda}(q_j).
+\]
+To bound its approximation error, put \(\delta=L/m\). On \(G_j\), the vector \(q_j\) lies in the pilot rectangle, so \cref{obj:lem:jackson-boundary-adaptive} gives
+\[
+|P_{j,\lambda}(q_j)-f_\lambda(q_j)|
+\leq32\{3(1+\epsilon^{-1})+1\}
+\left\{
+\frac1K\sum_{\zeta\in\mathcal Z}
+\sqrt{(q_{\zeta j}-\ell_{\zeta j})(u_{\zeta j}-q_{\zeta j})}
++\frac{S_j}{K^2}\right\}.
+\]
+The good-pilot inequality and the truncated endpoints imply, coordinatewise,
+\[
+(q_{\zeta j}-\ell_{\zeta j})(u_{\zeta j}-q_{\zeta j})
+\leq8H_0^2q_{\zeta j}\delta.
+\]
+Indeed, when \(\ell_{\zeta j}>0\), the product is at most \(h_{\zeta j}^2\); the inequalities \(c_{\zeta j}>h_{\zeta j}\) and \(|c_{\zeta j}-q_{\zeta j}|\leq h_{\zeta j}/4\), inserted into the formula for \(h_{\zeta j}\), give the displayed bound. When \(\ell_{\zeta j}=0\), that formula and \(c_{\zeta j}\leq h_{\zeta j}\) give \(u_{\zeta j}\leq8H_0^2\delta\), so the product is at most \(q_{\zeta j}u_{\zeta j}\). Since each \(q_{\zeta j}\leq p_j\) and there are four coordinates,
+\[
+\sum_{\zeta\in\mathcal Z}
+\sqrt{(q_{\zeta j}-\ell_{\zeta j})(u_{\zeta j}-q_{\zeta j})}
+\leq4\sqrt{8H_0^2p_jL/m}.
+\]
+Thus the approximation contribution has the asserted \(\sqrt{p_jL/m}/K+S_j/K^2\) scale, including when \(p_j=0\). Combining it with the conditional clipping contribution gives, on \(G_j\),
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.goodPilot_localJacksonPolynomial_boundary_sharp
+\[
+\sup_{\lambda\in[0,1]}
+\left|\mathbb E\{T_j(\lambda)\mid N'\}-f_\lambda(q_j)\right|
+ \leq c_\epsilon\left\{
+ S_jd^{-3/16}
+ +\frac{\sqrt{p_jL/m}}K+\frac{S_j}{K^2}\right\}.
+\]
+The radius definition and truncation at zero give the pointwise estimates
+\[
+R_{\zeta j}^{2}
+\leq2H_0^2\left\{\frac{N'_{\zeta j}L}{m^2}
++\left(\frac Lm\right)^2\right\},
+\qquad
+S_j^2\leq4\sum_{\zeta\in\mathcal Z}R_{\zeta j}^2.
+\]
+Taking expectations and using \(\mathbb E N'_{\zeta j}=m q_{\zeta j}\) and \(\sum_\zeta q_{\zeta j}=p_j\) yields
+\[
+\mathbb E S_j^2
+\leq8H_0^2\left\{\frac{p_jL}{m}
++4\left(\frac Lm\right)^2\right\}
+\leq32H_0^2v_j^2.
+\]
+This is the second-moment bound in \cref{obj:lem:pilot-radius-second-moment}; Cauchy–Schwarz also gives \(\mathbb E S_j\leq\sqrt{32}\,H_0v_j\).
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pilotRadius_sum_sq_integral_le_cellScale Finally,
+\(K^{-1}\leq768/L\) and \(L^2d^{-3/16}\leq(35/3)^2\) for \(d\geq16\). After averaging over pilots, these inequalities convert the displayed good-pilot bound to the scale \(a_j\).
+
+For the complementary pilot event, put
+\[
+B_j=\sum_{\zeta\in\mathcal Z}
+ \bigl(|c_{\zeta j}-q_{\zeta j}|+h_{\zeta j}\bigr).
+\]
+Applying \cref{obj:lem:pilot-bad-score-moment} with \(t=2\) gives the weighted second-moment estimate
+\[
+\mathbb E[\mathbf1_{G_j^c}B_j^2]
+\leq 16\cdot10^{240}e^{-20L}v_j^2
+=:c_{\mathrm{mom}}e^{-20L}v_j^2.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pilotCell_badScore_sq_integral_le
+The pilot endpoints give \(|c^0_{\zeta j}-c_{\zeta j}|\leq h_{\zeta j}/2\) and \(R_{\zeta j}\leq h_{\zeta j}\). Clipping bounds \(|T_j(\lambda)-f_\lambda(c_j^0)|\) by \(d^{1/4}S_j\), while \cref{obj:lem:bv-lipschitz} bounds \(\sup_\lambda|f_\lambda(c_j^0)-f_\lambda(q_j)|\) by \(c_{\mathrm{BV}}\|c_j^0-q_j\|_1\). Hence, on \(G_j^c\),
+\[
+\sup_{\lambda\in[0,1]}|T_j(\lambda)-f_\lambda(q_j)|
+ \leq(c_{\mathrm{BV}}+d^{1/4})
+ \sum_{\zeta\in\mathcal Z}
+ \bigl(|c_{\zeta j}-q_{\zeta j}|+h_{\zeta j}\bigr).
+\]
+Since \(d^{1/4}\geq1\), taking square roots yields, for a positive \(c_{\mathrm{env}}\),
+\[
+\left\|\mathbf1_{G_j^c}
+ \sup_{\lambda\in[0,1]}|T_j(\lambda)-f_\lambda(q_j)|
+ \right\|_{L_2}
+ \leq c_{\mathrm{env}}d^{1/4}e^{-10L}v_j.
+\]
+Splitting the expectation over \(G_j\) and \(G_j^c\), and using the preceding conditional and bad-event bounds, gives a positive \(c_{\mathrm{bias}}\) such that
+\[
+\sup_{\lambda\in[0,1]}
+ \left|\mathbb ET_j(\lambda)-f_\lambda(q_j)\right|
+ \leq c_{\mathrm{bias}}a_j.
+\]
+In particular, the exponentially weighted bad-event contribution is absorbed at this scale because \(v_j\leq L^2a_j\) and
+\(d^{1/4}e^{-10L}L^2\) is bounded for \(d\geq16\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.uncappedJacksonCellBias_le_rate
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.badPilotCellEnvelope_le
+
+Define the good- and bad-pilot error paths by
+\[
+W_j^{\mathrm{good}}(\lambda)
+ =\mathbf1_{G_j}\{T_j(\lambda)-f_\lambda(q_j)\},
+\qquad
+W_j^{\mathrm{bad}}(\lambda)
+ =\mathbf1_{G_j^c}\{T_j(\lambda)-f_\lambda(q_j)\}.
+\]
+The pilot and evaluation counts are independent across cells. On \(G_j\), clipping is one-Lipschitz and cannot increase total variation. The preceding conditional factorial-moment bound, the coefficient envelope, and \cref{obj:lem:bv-lipschitz} therefore give
+\[
+\mathbb E\!\left[\|W_j^{\mathrm{good}}\|_{BV([0,1])}^2\mid N'\right]
+ \leq c\,\mathbf1_{G_j}d^{1/16}S_j^2.
+\]
+Indeed, the clipped factorial path has squared bounded-variation norm at most a constant times \(d^{1/16}S_j^2\); its correction from the pilot center to \(q_j\) has bounded-variation norm at most \(c_\epsilon S_j\), since \(q_j\) lies in the pilot rectangle. The second-moment calculation above gives \(\mathbb ES_j^2\leq32H_0^2v_j^2\). Consequently,
+\[
+\mathbb E\|W_j^{\mathrm{good}}\|_{BV([0,1])}^2
+ \leq c\,d^{1/16}v_j^2.
+\]
+The paths are independent across cells, continuous, and have the finite variation and second moments established above. By \cref{obj:lem:bv-maximal-cell-paths}, and because \(\|W_j^{\mathrm{good}}\|_\infty+\operatorname{TV}(W_j^{\mathrm{good}})\leq2\|W_j^{\mathrm{good}}\|_{BV([0,1])}\),
+\[
+\begin{aligned}
+\mathbb E\left\|\sum_j
+ (W_j^{\mathrm{good}}-\mathbb EW_j^{\mathrm{good}})
+ \right\|_\infty^2
+&\leq 16384\sum_j\mathbb E
+ \left[\bigl(\|W_j^{\mathrm{good}}\|_\infty+
+ \operatorname{TV}(W_j^{\mathrm{good}})\bigr)^2\right]\\
+&\leq65536\sum_j\mathbb E
+ \|W_j^{\mathrm{good}}\|_{BV([0,1])}^2\\
+&\leq c\,d^{1/16}
+ \left(\frac{2L}{m}+2d\frac{L^2}{m^2}\right).
+\end{aligned}
+\]
+The last scale follows from \(\sum_jp_j=1\) and
+\(\sum_jv_j^2\leq2L/m+2d(L/m)^2\). On the branch \(d/L\leq n=8m\), the inequalities \(L\leq17d^{1/16}\) and \(d/m\leq8L\) turn the last display into
+\[
+\mathbb E\left\|\sum_j
+ (W_j^{\mathrm{good}}-\mathbb EW_j^{\mathrm{good}})
+ \right\|_\infty^2
+ \leq c_{\mathrm{good}}\frac d{mL}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.centeredIdealGoodPilotErrorRisk_le_rate
+
+For the bad-pilot paths, centering, the triangle inequality, and Cauchy–Schwarz give
+\[
+\mathbb E\left\|\sum_j
+ (W_j^{\mathrm{bad}}-\mathbb EW_j^{\mathrm{bad}})
+ \right\|_\infty^2
+ \leq4d\sum_j\mathbb E\|W_j^{\mathrm{bad}}\|_\infty^2
+ \leq c\,d^{3/2}e^{-20L}
+ \left(\frac{2L}{m}+2d\frac{L^2}{m^2}\right).
+\]
+Here \(L\leq d\), \(dL/m\leq8L^2\), and
+\(d^{1/2}e^{-20L}\leq d^{-4}\). They absorb the remaining factors and give a positive \(c_{\mathrm{bad}}\) with
+\[
+\mathbb E\left\|\sum_j
+ (W_j^{\mathrm{bad}}-\mathbb EW_j^{\mathrm{bad}})
+ \right\|_\infty^2
+ \leq c_{\mathrm{bad}}\frac d{mL}.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.centeredIdealBadPilotErrorRisk_le_rate
+
+It remains to combine the centered terms with their mean. Define
+\[
+\mathfrak b=c_{\mathrm{bias}}\sum_j a_j.
+\]
+The good and bad error paths partition \(\sum_j(T_j-f_\cdot(q_j))\), so the absolute value of its mean at every \(\lambda\) is at most \(\mathfrak b\). Since \(\sum_jp_j=1\), Cauchy–Schwarz and \(d/(nL)\leq1\) give
+\[
+\mathfrak b^2
+ \leq144c_{\mathrm{bias}}^2\frac d{nL}.
+\]
+Applying \((x+y+z)^2\leq3(x^2+y^2+z^2)\) to the centered good path, centered bad path, and mean, then using \(m=n/8\), proves
+\[
+\mathbb E_{\mathrm{id}}
+ \left\|\sum_jT_j-F_P\right\|_\infty^2
+ \leq\Gamma_{\mathrm{id}}\frac d{nL},
+\qquad
+\Gamma_{\mathrm{id}}
+ =24c_{\mathrm{good}}+24c_{\mathrm{bad}}
+   +432c_{\mathrm{bias}}^2.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.idealProcessRisk_le_rate
+
+For the averaged process of \cref{obj:def:jf-estimator}, define the nonnegative count-table function
+\[
+\mathcal G(N',N)
+ =\left\|\sum_jT_j(\cdot;N',N)-F_P\right\|_\infty^2.
+\]
+Its ideal expectation is finite by the preceding process bound. Conditional Jensen bounds the averaged-process risk by the capped auxiliary risk. Apply \cref{obj:lem:capped-marked-count-identity} to \(\mathcal G\); in the uncapped marked-Poisson experiment, \(M\) is the total number of marked records, and the count-table marginal is the ideal law. Hence
+\[
+\mathbb E_{O,\mathrm{aux}}[\mathbf1_{\{M\leq n\}}\mathcal G(N',N)]
+ =\mathbb E_{\mathrm{uncap}}[\mathbf1_{\{M\leq n\}}\mathcal G(N',N)]
+ \leq\mathbb E_{\mathrm{id}}\mathcal G(N',N).
+\]
+On \(M>n\), the auxiliary process is zero; \(0\leq f_\lambda(q_j)\leq p_j\) implies \(\|F_P\|_\infty\leq1\). The Poisson cap-tail bound therefore gives
+\[
+\begin{aligned}
+\mathbb E\|\widehat F-F_P\|_\infty^2
+&\leq\mathbb E_{O,\mathrm{aux}}\|\widetilde F^{\mathrm{cap}}-F_P\|_\infty^2\\
+&=\mathbb E_{O,\mathrm{aux}}[\mathbf1_{\{M\leq n\}}\mathcal G(N',N)]
+  +\Pr(M>n)\|F_P\|_\infty^2\\
+&\leq\mathbb E_{\mathrm{id}}
+       \left\|\sum_jT_j-F_P\right\|_\infty^2
+       +e^{-n/16}.
+\end{aligned}
+\]
+The elementary bounds \(e^{-n/16}\leq16/n\) and
+\(L=1+\log d\leq d\) show that \(e^{-n/16}\leq16d/(nL)\). Hence
+\[
+\mathbb E\|\widehat F-F_P\|_\infty^2
+ \leq(\Gamma_{\mathrm{id}}+16)\frac d{nL}.
+\]
+Under \cref{obj:ass:iid-sampling}, the product law used in this expectation is the law of the observed sample. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.capTransferRisk
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.exponential_cap_remainder_le_rate
+
+Choose one constant larger than every coefficient used above; for example, with the cap-transfer coefficient written \(c_{\mathrm{cap}}=1\), take
+\[
+C_\epsilon
+ =1+c_{\mathrm{coeff}}+e^{115}
+   +8c_{\mathrm{bias}}+8c_{\mathrm{good}}
+   +c_{\mathrm{env}}+c_{\mathrm{bad}}
+   +\Gamma_{\mathrm{id}}
+   +c_{\mathrm{cap}}(\Gamma_{\mathrm{id}}+16).
+\]
+All terms are nonnegative, so \(C_\epsilon>0\). The five estimates established for arbitrary observed categorical laws and every pilot realization give \(C_\epsilon\in\mathsf H_{n,d}\) as defined in \cref{obj:def:process-handle}.
+
+Finally, take the observed margin of the full-data law \(P\in\mathcal M_{d,\epsilon}\) from \cref{obj:def:model-class}. Summing its four observed category masses in cell \(j\) gives the same covariate mass \(p_j\) as summing the corresponding full-data masses. Moreover,
+\[
+\sqrt{\frac{p_j}{mL}}+\frac1{mL}
+ =\sqrt{\frac{8p_j}{nL}}+\frac8{nL}
+ \leq8\left\{\sqrt{\frac{p_j}{nL}}+\frac1{nL}\right\},
+\qquad
+\frac d{mL}=8\frac d{nL}.
+\]
+Thus the common choice \(C_\epsilon\) gives the stated \(nL\)-scale cell-bias and good-pilot bounds, the stated \(mL\)-scale bad-pilot bound, the cellwise bad-pilot envelope, and both process-risk bounds simultaneously. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.integrated_process_certificate
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:prop:paired-capacity-identity}]
+Fix a paired completion \(P\) with parameters \(r,\theta\). By \cref{obj:def:paired-family}, each cell \((i,\sigma)\), where \(\sigma\in\{+1,-1\}\), has mass \(p_{i,\sigma}=r_i/2\), treatment propensity \(1/2\) when occupied, and weighted outcome means
+\[
+p_{i,\sigma}\mu_{0,i,\sigma}=\frac{r_i}{2}\frac14,
+\qquad
+p_{i,\sigma}\mu_{1,i,\sigma}
+=\frac{r_i}{2}\left(\frac12+\sigma\theta_i\right).
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.PairedCompletion
+These identities also hold when \(r_i=0\). The paired completion satisfies consistency and conditional exchangeability. Since \(k\geq1\), its alphabet has at least two cells; since \(0<\epsilon<1/2\), propensity \(1/2\) satisfies overlap on every occupied cell. Thus \(P\in\mathcal M_{2k,\epsilon}\) by \cref{obj:def:model-class}. On an occupied cell, division by \(p_{i,\sigma}>0\) gives
+\[
+\tau_{i,\sigma}
+=\mu_{1,i,\sigma}-\mu_{0,i,\sigma}
+=\frac14+\sigma\theta_i
+\in\left[\frac18,\frac38\right].
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_effect_bounds
+
+Summing the weighted control means and using \(\sum_i r_i=1\) gives
+\[
+B(P)=\sum_{i,\sigma}p_{i,\sigma}\mu_{0,i,\sigma}=\frac14.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_controlValue
+Choose the policy that treats the \(+\) cell when \(\theta_i\geq0\) and the \(-\) cell when \(\theta_i<0\):
+\[
+\pi^\star_{i,+}=\mathbf1\{\theta_i\geq0\},
+\qquad
+\pi^\star_{i,-}=\mathbf1\{\theta_i<0\}.
+\]
+It selects exactly one cell per pair, including at a tie. Consequently,
+\[
+\sum_{i,\sigma}p_{i,\sigma}\pi^\star_{i,\sigma}
+=\sum_i\frac{r_i}{2}=\frac12,
+\qquad
+B(P)+\sum_{i,\sigma}p_{i,\sigma}\pi^\star_{i,\sigma}\tau_{i,\sigma}
+=\frac38+\frac12\sum_i r_i|\theta_i|.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedSignPolicy_budget
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedSignPolicy_value
+
+To bound the value above, every \(\pi\in\Pi_b(P)\) and every \(\lambda\geq0\) satisfy
+\[
+\sum_j p_j\pi_j\tau_j
+\leq b\lambda+\sum_j p_j[\tau_j-\lambda]_+.
+\]
+Indeed, \(p_j\pi_j(\tau_j-\lambda)\leq p_j[\tau_j-\lambda]_+\) cell by cell, while \(\lambda\sum_jp_j\pi_j\leq b\lambda\). This bound also makes the feasible gains bounded above in the supremum defining \(V_b(P)\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.weighted_budget_weak_duality
+
+For the observed margin of \(P\), the arm mass in an occupied cell is \(p_j/2\). Hence the stabilized contributions in \cref{obj:def:dual-process} equal \(p_j\mu_{aj}\). In a null cell all four observed masses vanish, so \(q_j=0\). To specify the quotient at this point, interpret \(g_a\) by its zero-mass extension: \(g_a(0)=0\) for each arm \(a\). The formula in \cref{obj:def:dual-process} then gives \(f_{1/4}(0)=0\). At \(\lambda=1/4\), this yields
+\[
+F_P\!\left(\frac14\right)
+=B(P)+\sum_jp_j\left[\tau_j-\frac14\right]_+
+=\frac14+\frac12\sum_i r_i
+ \bigl([\theta_i]_++[-\theta_i]_+\bigr)
+=\frac14+\frac12\sum_i r_i|\theta_i|.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_dualQuarter
+Applying the preceding bound at \(b=1/2\) and \(\lambda=1/4\), and then using the feasible policy \(\pi^\star\) for the reverse inequality, gives
+\[
+V_{1/2}(P)
+=\frac38+\frac12\sum_i r_i|\theta_i|
+=\frac18+F_P\!\left(\frac14\right)
+=B(P)+\sum_jp_j\pi^\star_j\tau_j.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_bindingValue
+Thus \(\pi^\star\) attains the half-population value while using treatment mass exactly \(1/2\).
+
+At budget one, treating every cell is feasible. Every occupied-cell effect is positive, so no feasible policy has greater gain. The weighted treated means cancel pairwise:
+\[
+V_1(P)
+=\sum_{i=1}^k\frac{r_i}{2}
+ \left[\left(\frac12+\theta_i\right)
+       +\left(\frac12-\theta_i\right)\right]
+=\frac12.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedCompletion_budgetValue_one
+
+For the sample reduction, fix \(R,S\in\Delta_k\) and define \(r,\theta\) as in the statement. Nonnegativity and the simplex equalities for \(R,S\) give \(r\in\Delta_k\). If \(R_i+S_i>0\), then \(|R_i-S_i|\leq R_i+S_i\), so \(|\theta_i|\leq1/8\); when the sum is zero, \(\theta_i=0\). Thus \(\theta\) is an admissible contrast vector. The construction in \cref{obj:def:paired-family} supplies a paired law with these parameters. Moreover, for every \(i\), including a zero-mass pair,
+\[
+r_i\theta_i=\frac{R_i-S_i}{16}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.normalizedPairedParameters
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.normalizedPairedMassContrast
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedLaw_completion
+
+Here is a kernel that depends on the input records but not on \(R,S\). Denote the two independent input samples by
+\[
+(\xi_t)_{t=1}^n\sim R^{\otimes n},\qquad
+(\eta_t)_{t=1}^n\sim S^{\otimes n},\qquad
+(\xi_t)_{t=1}^n\perp(\eta_t)_{t=1}^n.
+\]
+Pair their labels coordinatewise as \((\xi_t,\eta_t)\), \(1\leq t\leq n\). Independently across coordinates, choose \(\xi_t\) or \(\eta_t\) with equal probability to obtain a label, choose a uniform sign \(\sigma\), and choose an independent fair treatment indicator \(a\). Conditional on these choices, generate a Bernoulli outcome with parameter \(1/4\) if \(a=0\), with parameter \(1/2+\sigma/8\) if \(a=1\) and the chosen label came from \(\xi_t\), and with parameter \(1/2-\sigma/8\) if it came from \(\eta_t\). At \(n=0\), the kernel assigns probability one to the empty output sequence.
+
+For clarity, define the Bernoulli atom mass and the two outcome parameters, for \(y,a\in\{0,1\}\) and \(\sigma\in\{+1,-1\}\), by
+\[
+\operatorname{Ber}_{\rho}(y)
+=\begin{cases}1-\rho,&y=0,\\ \rho,&y=1,\end{cases}
+\quad(0\leq\rho\leq1),
+\qquad
+\nu^\pm_{a,\sigma}
+=\begin{cases}\frac14,&a=0,\\[2pt]\frac12\pm\frac{\sigma}{8},&a=1.\end{cases}
+\]
+The conditional mass of one output record is therefore
+\[
+\Pr\{O_t=((i,\sigma),a,y)\mid \xi_t,\eta_t\}
+=\frac{
+ \mathbf1\{\xi_t=i\}\operatorname{Ber}_{\nu^+_{a,\sigma}}(y)
++\mathbf1\{\eta_t=i\}\operatorname{Ber}_{\nu^-_{a,\sigma}}(y)
+}{8}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedKernelAtom
+The factors \(1/8\) come from the three fair choices. Summing over labels, signs, treatments, and outcomes gives one, so this specifies a probability kernel.
+
+Mixing this conditional mass over the independent input labels gives
+\[
+\Pr\{O_t=((i,\sigma),a,y)\}
+=\frac{
+ R_i\operatorname{Ber}_{\nu^+_{a,\sigma}}(y)
++S_i\operatorname{Ber}_{\nu^-_{a,\sigma}}(y)
+}{8}
+=\frac{r_i}{4}\operatorname{Ber}_{\mu_{a,i,\sigma}}(y),
+\qquad
+\mu_{a,i,\sigma}
+=\begin{cases}\frac14,&a=0,\\[2pt]\frac12+\sigma\theta_i,&a=1.\end{cases}
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedKernelAtom_mixed_observed
+For \(a=0\), the second equality uses \(r_i=(R_i+S_i)/2\). For \(a=1\), it also uses \(r_i\theta_i=(R_i-S_i)/16\) and the fact that Bernoulli atom masses are affine in their parameter. The equality covers zero-mass pairs as both sides then vanish. Its right-hand side is exactly the observed atom mass of the paired law in \cref{obj:def:paired-family}.
+
+Finally, the input pairs and the kernel randomizations are independent across \(t\). Thus, for every output sequence \(o_t=((i_t,\sigma_t),a_t,y_t)\), \(1\leq t\leq n\),
+\[
+\Pr\{O_1=o_1,\ldots,O_n=o_n\}
+=\prod_{t=1}^n
+ \frac{r_{i_t}}4\operatorname{Ber}_{\mu_{a_t,i_t,\sigma_t}}(y_t),
+\]
+the product law of \(n\) observed records from that paired law. The empty product gives the same conclusion when \(n=0\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.pairedSampleKernel_reproduces
+\end{proof}

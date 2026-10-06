@@ -1,0 +1,60 @@
+---
+/**
+ * The AI score, folded to one line, and what unfolds under it: the score
+ * rationale, the MAJOR findings as "Main criticisms", the finding counts, a
+ * staleness note, and the way through to the full report.
+ *
+ * What is NOT here is the point of the design: the referee's recommendation
+ * never appears. `Review` does not carry it (see `lib/review.ts`), so this
+ * component could not print it even by accident — it shows the critique and
+ * lets the reader judge.
+ */
+import { formatDate } from "../lib/citation.js";
+import { renderReviewText } from "../lib/reviewText.js";
+import { stalenessNote, type Review } from "../lib/review.js";
+
+interface Props {
+  review: Review;
+  /** ISO date of the paper's current version, for the staleness comparison. */
+  revised?: string | null;
+  /** sha256 of the current `paper.tex` — the stronger staleness signal. */
+  paperSha256?: string | null;
+  /** Link to the full report. */
+  reviewHref: string;
+  /** DOM id — the toggle's `aria-controls` target. */
+  id: string;
+  /** obj_id → paper label, so `\cref{obj:…}` in the referee's prose resolves. */
+  labels?: Record<string, string>;
+}
+const { review, revised, paperSha256, reviewHref, id, labels = {} } = Astro.props as Props;
+const c = review.counts;
+const countBits = [
+  c.major > 0 && `${c.major} major`,
+  c.minor > 0 && `${c.minor} minor`,
+  c.nit > 0 && `${c.nit} nit`,
+].filter(Boolean) as string[];
+---
+
+<section class="ai-fold" id={id} data-collapsed aria-label="AI referee report, summary">
+  {review.rationale && <p class="ai-rationale" set:html={renderReviewText(review.rationale, labels)} />}
+  {review.majors.length > 0 && (
+    <>
+      <div class="ai-crit-k">Main criticisms</div>
+      <ul class="ai-crit">
+        {review.majors.map((f) => (
+          <li>
+            {f.section && <span class="f-sec">{f.section}</span>}
+            <span set:html={renderReviewText(f.issue, labels)} />
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+  <p class="ai-counts">
+    {c.total > 0 && (
+      <>{c.total} finding{c.total === 1 ? "" : "s"}{countBits.length > 0 && <> &mdash; {countBits.join(" · ")}</>}&nbsp;&nbsp;</>
+    )}
+    <a href={reviewHref}>Read the entire review &rarr;</a>
+  </p>
+  <div class="ai-stale">{stalenessNote(review, { revised, paperSha256 }, formatDate)}</div>
+</section>

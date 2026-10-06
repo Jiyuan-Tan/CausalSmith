@@ -1,0 +1,223 @@
+\section{Model and experiment}\label{sec:model}
+
+Throughout the paper, \(x\) indexes a finite covariate cell, \(a\in\{0,1\}\) indexes a treatment arm, and sums over cells run over the known alphabet \([d]=\{1,\ldots,d\}\). Generic constants may depend on the overlap level \(\epsilon\) when this dependence is indicated, while sample-size dependence is displayed explicitly. Norms and asymptotic notation are used in their standard finite-dimensional sense, and all probability laws below live on finite measurable spaces unless stated otherwise.
+
+The statistical object is an observed record with a finite covariate, a binary treatment, and a binary outcome. Writing \leanref{sym:X}{\ensuremath{X}} for the covariate, \leanref{sym:A}{\ensuremath{A}} for treatment, and \leanref{sym:Y}{\ensuremath{Y}} for the observed outcome, the complete record takes values in the following finite space.
+
+\begin{definitionv}{synth_11}[Complete observed-record space]
+For each natural number \(d\), define the complete observed-record space by
+\[
+\operatorname{Obs}(d)\coloneqq [d]\times\{0,1\}\times\{0,1\}.
+\]
+An element of \(\operatorname{Obs}(d)\) is a triple \((X,A,Y)\), where \(X\in[d]\) is the finite-alphabet covariate, \(A\in\{0,1\}\) is the binary treatment indicator, and \(Y\in\{0,1\}\) is the binary observed outcome.
+\end{definitionv}
+
+Let \leanref{sym:P}{\ensuremath{P}} denote a probability law on this observed record space. For a cell \(x\), the covariate mass \leanref{sym:p_x}{\ensuremath{p_x}} records how much population probability lies in that cell.
+
+\begin{definitionv}{synth_16}[Covariate cell mass]
+For an observed-data law \(P\) on \([d]\times\{0,1\}^2\) and a covariate value \(x\in[d]\), define the covariate cell mass
+\[
+p_x
+=
+\sum_{a\in\{0,1\}}\sum_{y\in\{0,1\}}
+P(X=x,A=a,Y=y).
+\]
+\end{definitionv}
+
+We also write \leanref{sym:s_{ax}}{\ensuremath{s_{ax}}} for the treatment-covariate mass in arm \(a\). The treatment propensity \leanref{sym:e_x}{\ensuremath{e_x}} is the conditional treatment probability in the cell, with the finite-space convention made explicit next.
+
+\begin{definitionv}{synth_10}[Cell treatment propensity]
+For an observed-data law \(P\) on \([d]\times\{0,1\}^2\) and a covariate cell \(x\in[d]\), define the treatment propensity \(e_x\) by
+\[
+e_x
+:=
+\frac{\sum_{y\in\{0,1\}} P(X=x,A=1,Y=y)}
+{\sum_{a\in\{0,1\}}\sum_{y\in\{0,1\}} P(X=x,A=a,Y=y)}.
+\]
+The ratio is interpreted with the usual totalized real division convention, so it is \(0\) when the denominator is \(0\).
+\end{definitionv}
+
+\begin{assumptionv}{ass:overlap}[Occupied-cell overlap]
+For every covariate cell \(x\in[d]\) with cell mass \(p_x>0\), the propensity score satisfies
+\[
+\epsilon \le e_x \le 1-\epsilon .
+\]
+\end{assumptionv}
+
+The occupied-cell overlap condition in \cref{obj:ass:overlap} is the standard strong-overlap restriction on cells that occur with positive probability \citep{ZengBalakrishnanHanKennedy2024}. It keeps both treatment arms represented wherever the covariate distribution places mass and therefore gives the outcome regressions in the ATE functional a common observed-data interpretation.
+
+The experiment combines complete outcome-labeled records with additional treatment-covariate records. We first record the sampling law for the labeled observations and then define the marginal law governing the auxiliary observations.
+
+\begin{assumptionv}{ass:labeled-iid}[Labeled sampling]
+The labeled sample is distributed as
+\[
+\mathcal L_n \sim P^{\otimes n}.
+\]
+\end{assumptionv}
+
+The labeled sampling condition in \cref{obj:ass:labeled-iid} is the standard independent and identically distributed sampling condition for complete records \citep{ZengBalakrishnanHanKennedy2024}. These observations supply the outcome information used to learn the arm-specific regressions.
+
+\begin{definitionv}{synth_14}[Treatment-covariate marginal]
+For any \(d\) and any observed-data law \(P\) on \([d]\times\{0,1\}^2\), the treatment-covariate marginal \(P_{XA}\) is the probability mass function on \([d]\times\{0,1\}\) obtained by pushing \(P\) forward under the projection \((x,a,y)\mapsto (x,a)\):
+\[
+P_{XA}
+=
+P\circ\bigl((x,a,y)\mapsto (x,a)\bigr)^{-1}.
+\]
+\end{definitionv}
+
+The marginal \leanref{sym:P_{XA}}{\ensuremath{P_{XA}}} records the \(2d\) treatment-covariate cell probabilities while integrating out the outcome. The auxiliary sample \leanref{sym:\mathcal U_m}{\ensuremath{\mathcal U_m}} is drawn from this same population marginal.
+
+\begin{assumptionv}{ass:auxiliary-iid}[Auxiliary sampling]
+The auxiliary sample is distributed as
+\[
+\mathcal U_m \sim P_{XA}^{\otimes m}.
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:auxiliary-iid} is the standard same-population outcome-unlabeled sampling condition \citep{ChakraborttyDai2024}. It lets the auxiliary records refine information about the treatment-covariate distribution relevant for weighting cell-level outcome contrasts.
+
+\begin{assumptionv}{ass:sample-independence}[Sample independence]
+The labeled and auxiliary samples are independent:
+\[
+\mathcal L_n \perp\!\!\!\perp \mathcal U_m .
+\]
+\end{assumptionv}
+
+The independent two-sample design in \cref{obj:ass:sample-independence} is standard in semisupervised treatment-effect settings with separate labeled and outcome-unlabeled samples \citep{ChakraborttyDai2024}. Under this design, the product experiment separates outcome information from additional marginal information.
+
+The causal interpretation uses a finite potential-outcome overlay on the same observed-data law. Let \leanref{sym:Y(a)}{\ensuremath{Y(a)}} denote the binary potential outcome under arm \(a\); the following assumptions connect the observed-data functional to the causal average treatment effect in the usual potential-outcome framework \citep{Rubin1974,ImbensRubin2015}.
+
+\begin{assumptionv}{ass:consistency}[Potential-outcome consistency]
+The observed binary outcome equals the potential outcome under the realized treatment:
+\[
+Y = Y(A)
+\]
+almost surely.
+\end{assumptionv}
+
+\Cref{obj:ass:consistency} is the standard consistency condition \citep{ZengBalakrishnanHanKennedy2024}. It identifies the observed outcome within each treatment arm with the corresponding potential outcome.
+
+\begin{assumptionv}{ass:conditional-exchangeability}[Conditional exchangeability]
+The potential outcomes are conditionally independent of treatment given the finite covariate:
+\[
+(Y(0),Y(1)) \perp\!\!\!\perp A \mid X .
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:conditional-exchangeability} is the standard conditional exchangeability condition \citep{ZengBalakrishnanHanKennedy2024}. Together with \cref{obj:ass:consistency,obj:ass:overlap}, it gives the observed conditional means their usual causal meaning within each finite covariate cell \citep{RosenbaumRubin1983,ImbensRubin2015}.
+
+More explicitly, let \(Q\) be a full-data law for
+\((X,A,Y(0),Y(1))\), and let \(P\) be its observed-data pushforward under
+\[
+(x,a,y_0,y_1)\longmapsto (x,a,y_a).
+\]
+Consistency and conditional exchangeability imply, for every occupied cell \(x\) and arm \(a\),
+\[
+\mathbb E_Q\{Y(a)\mid X=x\}
+=
+\mathbb E_Q\{Y(a)\mid X=x,A=a\}
+=
+\mathbb E_P\{Y\mid X=x,A=a\}.
+\]
+Overlap makes the last conditional mean identified in every occupied cell. Therefore
+\[
+\mathbb E_Q\{Y(1)-Y(0)\}
+=
+\sum_{x=1}^d p_x
+\left[
+\mathbb E_P\{Y\mid X=x,A=1\}
+-
+\mathbb E_P\{Y\mid X=x,A=0\}
+\right],
+\]
+which is exactly the observed-data functional defined below. Thus the minimax analysis is over observed laws \(P\), while the causal interpretation is supplied by any compatible full-data law \(Q\) satisfying these assumptions.
+
+We now collect the finite-space probability notation, the model class, and the target functional used in the risk analysis.
+
+\begin{definitionv}{synth_13}[Probability laws on a measurable space]
+For a measurable space \(\mathcal Z\), let \(\mathsf{Prob}(\mathcal Z)\) denote the set of all probability measures on \(\mathcal Z\). For the finite spaces used below, including \([d]\times\{0,1\}^2\) and \([d]\times\{0,1\}\), the measurable structure is the full power set.
+\end{definitionv}
+
+\begin{definitionv}{def:model-class}[Model class \(\mathcal M_{d,\epsilon}\)]
+For an overlap constant \(\epsilon\) and alphabet size \(d\), define
+\[
+\mathcal M_{d,\epsilon}
+:=
+\Bigl\{
+P\in\mathsf{Prob}\bigl([d]\times\{0,1\}^2\bigr):
+d\ge2,\ 0<\epsilon<1/2,\ \text{\(P\) satisfies \cref{obj:ass:overlap}}
+\Bigr\}.
+\]
+\end{definitionv}
+
+Thus \leanref{sym:\mathcal M_{d,\epsilon}}{\ensuremath{\mathcal M_{d,\epsilon}}} is the class of observed-data laws on the finite alphabet satisfying occupied-cell overlap at level \(\epsilon\). All suprema in the main risk statements range over this unrestricted cell-level model.
+
+For each arm and cell, the outcome regression \leanref{sym:mu_{ax}}{\ensuremath{\mu_{ax}}} is the conditional success probability computed from the observed law.
+
+\begin{definitionv}{synth_17}[Outcome regression]
+For a law \(P\) on \([d]\times\{0,1\}^2\), a treatment arm \(a\in\{0,1\}\), and a covariate cell \(x\in[d]\), define
+\[
+\mu_{ax}(P)
+:=
+\frac{P(X=x,A=a,Y=1)}
+{\sum_{y\in\{0,1\}} P(X=x,A=a,Y=y)} .
+\]
+The quotient is interpreted as total real division, so \(\mu_{ax}(P)=0\) when the treatment--covariate cell mass \(\sum_{y\in\{0,1\}}P(X=x,A=a,Y=y)\) is zero. In particular, \(\mu_{1x}(P)\) and \(\mu_{0x}(P)\) are obtained by taking \(a=1\) and \(a=0\), respectively.
+\end{definitionv}
+
+\begin{definitionv}{def:ate-functional}[Average treatment effect functional]
+For a finite alphabet size \(d\) and an observed-data law \(P\) on \([d]\times\{0,1\}^2\), define the average treatment effect functional by
+\[
+\tau(P):=\sum_{x=1}^{d}p_x(P)\bigl(\mu_{1x}(P)-\mu_{0x}(P)\bigr).
+\]
+Here \(p_x(P)\) is the covariate cell mass at \(x\), and \(\mu_{ax}(P)\) is the binary outcome regression in treatment arm \(a\) and covariate cell \(x\), totalized by division in the arm cell.
+\end{definitionv}
+
+The functional \leanref{sym:\tau(P)}{\ensuremath{\tau(P)}} averages the within-cell treated-control contrast using the population covariate distribution. Under the potential-outcome conditions above, it is the finite-alphabet causal average treatment effect.
+
+Finally, the annotation experiment and minimax risk formalize the statistical problem studied in the rest of the paper.
+
+\begin{definitionv}{def:annotation-experiment}[Annotation experiment \(\mathcal E_{n,m,d,\epsilon}\)]
+Define the annotation experiment by
+\[
+\mathcal E_{n,m,d,\epsilon}
+:=
+\Bigl\{
+P^{\otimes n}\otimes P_{XA}^{\otimes m}:
+P\in\mathcal M_{d,\epsilon},\ n\ge1,\ m\ge0,\ d\ge2
+\Bigr\}.
+\]
+The product law corresponds to \(n\) independent complete outcome-labeled records and \(m\) independent additional outcome-unlabeled treatment-covariate records, with independence between the two samples.
+\end{definitionv}
+
+\Cref{obj:def:annotation-experiment} defines \leanref{sym:\mathcal E_{n,m,d,\epsilon}}{\ensuremath{\mathcal E_{n,m,d,\epsilon}}}, the experiment in which outcome labels and treatment-covariate information enter through separate independent samples. This formulation makes the amount of outcome information and the amount of marginal information explicit.
+
+The realized data live on the corresponding product sample space.
+
+\begin{definitionv}{synth_18}[Joint sample space]
+For natural numbers \(n,m,d\), the joint sample space is
+\[
+\mathrm{Sample}(n,m,d)
+=
+\bigl([n]\to [d]\times\{0,1\}\times\{0,1\}\bigr)
+\times
+\bigl([m]\to [d]\times\{0,1\}\bigr).
+\]
+Equivalently, an element consists of \(n\) complete records \((X,A,Y)\) and \(m\) outcome-unlabeled records \((X,A)\).
+\end{definitionv}
+
+\begin{definitionv}{def:minimax-risk}[Minimax risk \(R_\epsilon(n,m,d)\)]
+Define the minimax mean-squared risk by
+\[
+R_\epsilon(n,m,d)
+:=
+\inf_{T\in\mathcal T_{n,m,d}}
+\sup_{P\in\mathcal M_{d,\epsilon}}
+E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}}
+\!\left[\bigl(T-\tau(P)\bigr)^2\right],
+\]
+where \(\mathcal T_{n,m,d}\) is the class of estimators measurable with respect to the labeled sample and auxiliary sample.
+\end{definitionv}
+
+The risk \leanref{sym:R_\epsilon(n,m,d)}{\ensuremath{R_\epsilon(n,m,d)}} measures the best possible uniform mean-squared accuracy for estimating the ATE functional in \cref{obj:def:ate-functional} under the experiment in \cref{obj:def:annotation-experiment}. The estimator class \leanref{sym:\mathcal T_{n,m,d}}{\ensuremath{\mathcal T_{n,m,d}}} contains all measurable procedures based on the two samples, so the minimax risk isolates the statistical difficulty created by finite cells, overlap, and the split between outcome-labeled and outcome-unlabeled information.

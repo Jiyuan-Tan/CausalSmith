@@ -1,0 +1,209 @@
+\begin{proof}[Proof of \cref{obj:lem:fixed-sample-hybrid-transfer}]
+Take \(C=384\).  Fix \(0<\epsilon<1/2\), \(n\ge1\), \(m\ge0\), \(d\ge2\), and \(P\in\mathcal M_{d,\epsilon}\).  The estimator is measurable because it is either the constant zero map or, on the calibrated branch of \cref{obj:def:mixed-estimator-handle}, a finite linear combination of measurable prefix-count statistics.  It remains to prove the displayed risk bound. % lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.measurable_mixedEstimator
+
+1. Suppose first that \(\mathsf C_\epsilon(n,m)\) holds.  Put
+\[
+M_0=\lfloor n/3\rfloor,\qquad
+M_p=n_p+m_p,\qquad
+M_f=n_f+m_f,
+\]
+and
+\[
+u=\frac{M_0}{8},\qquad t_p=\frac{M_p}{8},\qquad t=\frac{M_f}{8}.
+\]
+Let \(\mathbb P_3\) be the three-pool product law whose complete-record coordinate has law \(P\) on
+\([d]\times\{0,1\}\times\{0,1\}\), while the two shared coordinates have law \(P_{XA}\) on
+\([d]\times\{0,1\}\).  Let \(\boldsymbol\lambda=(u,t_p,t)\) and let the capacity vector be
+\(\boldsymbol M=(M_0,M_p,M_f)\).  For a three-prefix array
+\[
+\mathfrak s=(\mathfrak s_0,\mathfrak s_p,\mathfrak s_f),
+\]
+define
+\[
+\Psi_{n,m,d,\epsilon}(\mathfrak s)
+=
+Z^{\mathrm{mix}}_{n,m,\epsilon,u,t}
+\bigl(\operatorname{hist}(\mathfrak s_0),
+      \operatorname{hist}(\mathfrak s_p),
+      \operatorname{hist}(\mathfrak s_f)\bigr),
+\]
+where the first histogram records complete outcome-labeled observations and the last two record treatment-covariate observations.  This prefix statistic is measurable and satisfies
+\[
+-1\le \Psi_{n,m,d,\epsilon}(\mathfrak s)\le 1
+\quad\text{for every }\mathfrak s,
+\qquad
+-1\le \tau(P)\le 1,
+\]
+the first bound coming from clipping in \cref{obj:def:mixed-estimator-handle} and the second from \cref{obj:def:ate-functional} together with occupied-cell overlap in \cref{obj:def:model-class}. % lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.finitePrefixHybridStatistic_mem_Icc; CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.ateFunctional_mem_Icc_neg_one_one
+
+2. For fixed pools
+\[
+\mathfrak p=(\mathfrak p_0,\mathfrak p_p,\mathfrak p_f)
+\in
+\bigl([d]\times\{0,1\}^2\bigr)^{M_0}
+\times
+\bigl([d]\times\{0,1\}\bigr)^{M_p}
+\times
+\bigl([d]\times\{0,1\}\bigr)^{M_f},
+\]
+define the Rao--Blackwellized prefix statistic by
+\[
+\operatorname{RB}(\mathfrak p)
+=
+\sum_{r_0,r_p,r_f\ge0}
+\Pr\{\operatorname{Poi}(u)=r_0\}
+\Pr\{\operatorname{Poi}(t_p)=r_p\}
+\Pr\{\operatorname{Poi}(t)=r_f\}
+\,\Psi^\circ(\mathfrak p;r_0,r_p,r_f),
+\]
+where
+\[
+\Psi^\circ(\mathfrak p;r_0,r_p,r_f)
+=
+\begin{cases}
+\Psi_{n,m,d,\epsilon}
+\bigl(\mathfrak p_0[1{:}r_0],
+      \mathfrak p_p[1{:}r_p],
+      \mathfrak p_f[1{:}r_f]\bigr),
+& r_0\le M_0,\ r_p\le M_p,\ r_f\le M_f,\\
+0,&\text{otherwise.}
+\end{cases}
+\]
+Under \(\mathsf C_\epsilon(n,m)\), expanding the finite sums in \cref{obj:def:mixed-estimator-handle} gives the pointwise identity
+\[
+\widehat\tau^{\mathrm{mix}}_{n,m,d}(\mathcal L_n,\mathcal U_m)
+=
+\operatorname{RB}\bigl(\mathfrak P(\mathcal L_n,\mathcal U_m)\bigr),
+\]
+where \(\mathfrak P(\mathcal L_n,\mathcal U_m)\) is the deterministic three-pool split formed from the first \(M_0\) complete labeled records, the next \(n_p\) labeled records projected to \((X,A)\) together with the first \(m_p\) auxiliary records, and the remaining \(n_f\) projected labeled records together with the remaining \(m_f\) auxiliary records.  By \cref{obj:def:annotation-experiment}, this split has law equal to the fixed-pool law with coordinate law \(\mathbb P_3\) and capacities \(\boldsymbol M\).  Hence
+\[
+\mathbb E\!\left[
+\left\{\widehat\tau^{\mathrm{mix}}_{n,m,d}-\tau(P)\right\}^2
+\right]
+=
+\int
+\bigl\{\operatorname{RB}(\mathfrak p)-\tau(P)\bigr\}^2
+\,d\mathbb P_{\mathrm{fix}}(\mathfrak p).
+\]
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.prefixRaoBlackwellStatistic_hybridFixedPools; CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.hybridFixedPools_map_annotationLaw
+
+3. The finite-pool-to-Poisson comparison used here is the following.  For any prefix statistic with values in an interval \([a,b]\), any target and overflow value in \([a,b]\), and independent Poisson requested lengths with means \(\boldsymbol\lambda\),
+\[
+\int
+\bigl\{\operatorname{RB}(\mathfrak p)-\theta\bigr\}^2
+\,d\mathbb P_{\mathrm{fix}}(\mathfrak p)
+\le
+\int
+\bigl\{\Psi(\mathfrak s)-\theta\bigr\}^2
+\,d\mathbb P_{\mathrm{Pois}}(\mathfrak s)
++
+(b-a)^2
+\sum_{\iota\in\{0,p,f\}}
+\Pr\{\operatorname{Poi}(\lambda_\iota)>M_\iota\}.
+\]
+Indeed, \(\operatorname{RB}\) is the conditional expectation of the capped randomized-prefix statistic given the fixed pools, so Jensen's inequality bounds its squared risk by the capped randomized-prefix risk.  Off the overflow event the capped and uncapped prefixes agree; on overflow both the capped value and the target lie in \([a,b]\), so the extra squared loss is bounded by \((b-a)^2\) times the overflow probability.  Applying this with \(a=-1\), \(b=1\), \(\theta=\tau(P)\), overflow value \(0\), and \(\Psi=\Psi_{n,m,d,\epsilon}\) gives
+\[
+\int
+\bigl\{\operatorname{RB}(\mathfrak p)-\tau(P)\bigr\}^2
+\,d\mathbb P_{\mathrm{fix}}(\mathfrak p)
+\le
+\int
+\bigl\{\Psi_{n,m,d,\epsilon}(\mathfrak s)-\tau(P)\bigr\}^2
+\,d\mathbb P_{\mathrm{Pois}}(\mathfrak s)
++
+4\bigl[
+\pi_0+\pi_p+\pi_f
+\bigr],
+\]
+where
+\[
+\pi_0=\Pr\{\operatorname{Poi}(u)>M_0\},\qquad
+\pi_p=\Pr\{\operatorname{Poi}(t_p)>M_p\},\qquad
+\pi_f=\Pr\{\operatorname{Poi}(t)>M_f\}.
+\]
+The image of the independent Poisson-prefix law under the three histograms is exactly
+\(\mathbb P^{\mathrm{Pois}}_{P,u,t_p,t}\), and therefore
+\[
+\int
+\bigl\{\Psi_{n,m,d,\epsilon}(\mathfrak s)-\tau(P)\bigr\}^2
+\,d\mathbb P_{\mathrm{Pois}}(\mathfrak s)
+=
+\mathcal R^{\mathrm{Pois}}_{\mathrm{hyb}}(P;n,m,\epsilon)
+\]
+on the calibrated branch. % lean: Causalean.Stat.FiniteRaoBlackwell.IndependentPoissonPrefix.FiniteFamily.finiteAlphabet_threePoolSharedLaw_risk_le; CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.hybridPrefixCounts_map_eq_hybridPoissonCountLaw
+
+4. It remains to bound the three overflow probabilities.  The calibration predicate gives \(24\le n\).  From the definitions of the integer blocks,
+\[
+n\le4M_0,\qquad n\le4M_p,\qquad n\le4M_f,
+\]
+and all three capacities are positive.  For any positive integer \(M_\bullet\) satisfying \(n\le4M_\bullet\),
+\[
+\Pr\{\operatorname{Poi}(M_\bullet/8)>M_\bullet\}
+\le
+\frac{8}{M_\bullet}
+\le
+\frac{32}{n}.
+\]
+To prove the first inequality, let \(X_\bullet\sim\operatorname{Poi}(M_\bullet/8)\).  The overflow event is contained in the self-normalized Bernstein event at parameter \(M_\bullet/4\), because
+\[
+\sqrt{2\cdot\frac{M_\bullet}{8}\cdot\frac{M_\bullet}{4}}
+=\frac{M_\bullet}{4}
+\]
+and \(X_\bullet>M_\bullet\) implies
+\[
+X_\bullet-\frac{M_\bullet}{8}
+>\frac{7M_\bullet}{8}
+>\frac{M_\bullet}{4}+2\cdot\frac{M_\bullet}{4}.
+\]
+The Poisson Bernstein bound for this larger event gives
+\[
+\Pr\{\operatorname{Poi}(M_\bullet/8)>M_\bullet\}
+\le
+\exp(-M_\bullet/4)
+=
+\frac1{\exp(M_\bullet/4)}
+\le
+\frac{4}{M_\bullet}
+\le
+\frac{8}{M_\bullet},
+\]
+where \(1+M_\bullet/4\le \exp(M_\bullet/4)\) gives the penultimate inequality.
+Consequently
+\[
+\pi_0+\pi_p+\pi_f\le \frac{96}{n},
+\]
+and the preceding display yields
+\[
+\mathbb E\!\left[
+\left\{\widehat\tau^{\mathrm{mix}}_{n,m,d}-\tau(P)\right\}^2
+\right]
+\le
+\mathcal R^{\mathrm{Pois}}_{\mathrm{hyb}}(P;n,m,\epsilon)
++\frac{384}{n}.
+\]
+Since \(\mathcal R^{\mathrm{Pois}}_{\mathrm{hyb}}(P;n,m,\epsilon)\ge0\), this is at most
+\[
+2\,\mathcal R^{\mathrm{Pois}}_{\mathrm{hyb}}(P;n,m,\epsilon)
++\frac{384}{n}.
+\]
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_eighth_tail; CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.fixed_sample_hybrid_transfer
+
+5. If \(\mathsf C_\epsilon(n,m)\) fails, then \cref{obj:def:mixed-estimator-handle} sets
+\(\widehat\tau^{\mathrm{mix}}_{n,m,d}=0\), while the definition of the hybrid Poisson risk gives
+\[
+\mathcal R^{\mathrm{Pois}}_{\mathrm{hyb}}(P;n,m,\epsilon)=\tau(P)^2.
+\]
+Because the annotation law is a probability measure,
+\[
+\mathbb E\!\left[
+\left\{\widehat\tau^{\mathrm{mix}}_{n,m,d}-\tau(P)\right\}^2
+\right]
+=
+\tau(P)^2
+\le
+2\tau(P)^2+\frac{384}{n}
+=
+2\,\mathcal R^{\mathrm{Pois}}_{\mathrm{hyb}}(P;n,m,\epsilon)+\frac{384}{n},
+\]
+using \(n\ge1\).  The two cases prove the asserted bound with the universal constant \(C=384\). % lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.fixed_sample_hybrid_transfer
+\end{proof}

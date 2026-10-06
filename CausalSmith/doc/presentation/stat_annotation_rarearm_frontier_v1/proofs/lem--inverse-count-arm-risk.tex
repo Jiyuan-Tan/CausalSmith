@@ -1,0 +1,350 @@
+\begin{proof}[Proof of \cref{obj:lem:inverse-count-arm-risk}]
+Take \(C=2^{20}>0\), and fix the parameters, law, and counts in the statement. Throughout, suppress the argument \(P\) in the population quantities. For every cell,
+\[
+p_j=s_{aj}+s_{1-a,j},\qquad
+0\le q_{aj}\le s_{aj},\qquad
+0\le\mu_{aj}\le1,\qquad
+\sum_{j=1}^{d}p_j=1.
+\]
+Indeed, the arm probabilities partition the covariate-cell probability, and the outcome-success event is contained in the corresponding arm-cell event. Dividing \(0\le q_{aj}\le s_{aj}\) by \(s_{aj}>0\) gives the conditional-mean bounds; when \(s_{aj}=0\), both \(q_{aj}\) and \(\mu_{aj}\) are zero.
+
+\begin{enumerate}
+\item \emph{Exact expectation.}
+Define the nonnegative Poisson means
+\[
+\lambda_j=t s_{aj},\qquad \rho_j=t s_{1-a,j}.
+\]
+The Poisson first moments give
+\[
+\mathbb E Z_j=u q_{aj},\qquad \mathbb E W_j=\rho_j.
+\]
+By \cref{obj:lem:poisson-inverse-moments},
+\[
+\mathbb E\!\left[\frac1{K_j+1}\right]
+=
+\begin{cases}
+1,&\lambda_j=0,\\[2pt]
+\dfrac{1-e^{-\lambda_j}}{\lambda_j},&\lambda_j>0.
+\end{cases}
+\]
+Mutual independence permits factorization of the product expectation:
+\[
+\begin{aligned}
+\mathbb E H_j
+&=\frac1u\left(
+\mathbb E Z_j+
+\mathbb E Z_j\,
+\mathbb E\!\left[\frac1{K_j+1}\right]\,
+\mathbb E W_j\right)\\
+&=q_{aj}\left(1+\rho_j
+\begin{cases}
+1,&\lambda_j=0,\\[2pt]
+\dfrac{1-e^{-\lambda_j}}{\lambda_j},&\lambda_j>0.
+\end{cases}\right).
+\end{aligned}
+\]
+The count factors are integrable, the reciprocal factor is bounded by one, and independence makes their products integrable. Thus finite-sum linearity yields
+\[
+\mathbb E\!\left[\sum_{j=1}^{d}H_j\right]
+=
+\sum_{j=1}^{d}q_{aj}\left(1+\rho_j
+\begin{cases}
+1,&\lambda_j=0,\\[2pt]
+\dfrac{1-e^{-\lambda_j}}{\lambda_j},&\lambda_j>0.
+\end{cases}\right).
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_poisson_arm_mean
+
+\item \emph{Bias bound.}
+First suppose \(s_{aj}=0\). Then \(q_{aj}=\mu_{aj}=0\), so
+\[
+\mathbb E H_j
+=p_j\mu_{aj}-s_{1-a,j}\mu_{aj}e^{-t s_{aj}}
+=0.
+\]
+If \(s_{aj}>0\), then \(\lambda_j>0\), and the preceding expectation simplifies to
+\[
+\begin{aligned}
+\mathbb E H_j
+&=q_{aj}
++s_{1-a,j}\frac{q_{aj}}{s_{aj}}
+  \bigl(1-e^{-t s_{aj}}\bigr)\\
+&=(s_{aj}+s_{1-a,j})\mu_{aj}
+-s_{1-a,j}\mu_{aj}e^{-t s_{aj}}\\
+&=p_j\mu_{aj}-s_{1-a,j}\mu_{aj}e^{-t s_{aj}}.
+\end{aligned}
+\]
+Consequently, in all cells,
+\[
+\mathbb E\!\left[\sum_{j=1}^{d}H_j\right]-\psi_a
+=-\sum_{j=1}^{d}s_{1-a,j}\mu_{aj}e^{-t s_{aj}}.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_cell_mean_identity
+
+For \(p_j>0\), \cref{obj:ass:overlap} gives
+\(s_{1j}\ge\epsilon p_j\) and \(s_{0j}\ge\epsilon p_j\):
+multiply its lower propensity bound and its upper propensity bound by
+\(p_j\), respectively. For \(p_j=0\), the same inequalities follow from
+nonnegativity. Hence, for every \(j\),
+\[
+s_{aj}\ge\epsilon p_j,\qquad
+0\le s_{1-a,j}\mu_{aj}\le s_{1-a,j}\le p_j.
+\]
+Since every summand in the bias expression is nonnegative,
+\[
+\left|\mathbb E\!\left[\sum_{j=1}^{d}H_j\right]-\psi_a\right|
+=\sum_{j=1}^{d}s_{1-a,j}\mu_{aj}e^{-t s_{aj}}
+\le\sum_{j=1}^{d}p_j e^{-t\epsilon p_j}.
+\]
+The last sum is at most one, because
+\[
+\sum_{j=1}^{d}p_j e^{-t\epsilon p_j}
+\le\sum_{j=1}^{d}p_j=1.
+\]
+The elementary exponential bound gives
+\[
+(t\epsilon p_j)e^{-t\epsilon p_j}\le e^{-1},
+\qquad
+p_j e^{-t\epsilon p_j}\le\frac1{\exp(1)t\epsilon}.
+\]
+Summing this second bound proves
+\[
+\left|\mathbb E\!\left[\sum_{j=1}^{d}H_j\right]-\psi_a\right|
+\le
+\min\left\{1,\frac{d}{\exp(1)t\epsilon}\right\}.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_mean_bias_bound
+
+\item \emph{Weight moments.}
+Use the reciprocal function and numerical constant from
+\cref{obj:lem:poisson-inverse-moments}, and define the nonnegative real
+random variables
+\[
+g(K_j)=\frac1{K_j+1},\qquad
+C_0=2^{16},\qquad
+\omega_j=W_jg(K_j),\qquad
+\beta_j=1+\omega_j.
+\]
+The cited result supplies
+\[
+\mathbb E[g(K_j)^2]\le\frac{C_0}{(1+\lambda_j)^2},
+\qquad
+\operatorname{Var}(g(K_j))
+\le\frac{C_0\lambda_j}{(1+\lambda_j)^4}.
+\]
+The usual Poisson moments are
+\[
+\mathbb E W_j=\rho_j,\qquad
+\mathbb E W_j^2=\rho_j^2+\rho_j,\qquad
+\operatorname{Var}(W_j)=\rho_j.
+\]
+Independence of \(W_j\) and \(K_j\) therefore gives
+\[
+\mathbb E\omega_j^2
+=(\rho_j^2+\rho_j)\mathbb E[g(K_j)^2].
+\]
+In particular, \(\omega_j\) and \(\beta_j\) are square integrable. Since
+\((1+\omega_j)^2\le2+2\omega_j^2\), by
+\((\omega_j-1)^2\ge0\),
+\[
+\mathbb E\beta_j^2
+\le2+2\mathbb E\omega_j^2
+\le2+2C_0\frac{\rho_j^2+\rho_j}{(1+\lambda_j)^2}.
+\]
+Expanding variance and factoring the independent expectations yields
+\[
+\begin{aligned}
+\operatorname{Var}(\beta_j)
+&=\operatorname{Var}(\omega_j)\\
+&=(\rho_j^2+\rho_j)\mathbb E[g(K_j)^2]
+-\rho_j^2\bigl(\mathbb E g(K_j)\bigr)^2\\
+&=\rho_j\mathbb E[g(K_j)^2]
++\rho_j^2\operatorname{Var}(g(K_j))\\
+&\le C_0\left\{
+\frac{\rho_j}{(1+\lambda_j)^2}
++\frac{\rho_j^2\lambda_j}{(1+\lambda_j)^4}
+\right\}.
+\end{aligned}
+\]
+These calculations also cover \(\lambda_j=0\) and \(\rho_j=0\).
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_weight_moments
+
+\item \emph{Cell variance.}
+The Poisson moments of the outcome-success count give
+\[
+\mathbb E(Z_j/u)=q_{aj},\qquad
+\mathbb E[(Z_j/u)^2]=q_{aj}^2+\frac{q_{aj}}u,
+\qquad
+\operatorname{Var}(Z_j/u)=\frac{q_{aj}}u.
+\]
+Moreover, \(Z_j/u\) is independent of \(\beta_j\), because \(Z_j\) is
+independent of the pair \((W_j,K_j)\). Their product is square integrable:
+its second moment factors into the two finite second moments. Thus
+\[
+\begin{aligned}
+\operatorname{Var}(H_j)
+&=\mathbb E[(Z_j/u)^2]\mathbb E\beta_j^2
+-\bigl(\mathbb E(Z_j/u)\bigr)^2
+ \bigl(\mathbb E\beta_j\bigr)^2\\
+&=\frac{q_{aj}}u\,\mathbb E\beta_j^2
++q_{aj}^2\operatorname{Var}(\beta_j).
+\end{aligned}
+\]
+Define the deterministic cell envelope by
+\[
+\mathcal V_{\mathrm{cell},j}
+=
+\frac{q_{aj}}u\left(
+2+2C_0\frac{\rho_j^2+\rho_j}{(1+\lambda_j)^2}
+\right)
++C_0q_{aj}^2\left(
+\frac{\rho_j}{(1+\lambda_j)^2}
++\frac{\rho_j^2\lambda_j}{(1+\lambda_j)^4}
+\right).
+\]
+Multiplying the weight bounds by the nonnegative coefficients
+\(q_{aj}/u\) and \(q_{aj}^2\) gives
+\[
+\operatorname{Var}(H_j)\le\mathcal V_{\mathrm{cell},j}.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_poisson_cell_variance
+
+\item \emph{Variance of the sum.}
+For \(j\ne k\), the count blocks use disjoint members of the mutually
+independent collection, so
+\[
+(Z_j,K_j,W_j)\ \perp\!\!\!\perp\ (Z_k,K_k,W_k),
+\qquad
+H_j\ \perp\!\!\!\perp\ H_k.
+\]
+The second assertion follows by applying the measurable function defining
+each contribution to its block. Pairwise independence and square
+integrability now give
+\[
+\operatorname{Var}\!\left(\sum_{j=1}^{d}H_j\right)
+=\sum_{j=1}^{d}\operatorname{Var}(H_j)
+\le\sum_{j=1}^{d}\mathcal V_{\mathrm{cell},j}.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_cell_blocks_independent
+
+\item \emph{Deterministic cell envelope.}
+If \(s_{aj}=0\), then \(q_{aj}=0\), and
+\(\epsilon(s_{aj}+s_{1-a,j})\le s_{aj}\) forces
+\(s_{1-a,j}=0\). Thus \(p_j=0\) and
+\(\mathcal V_{\mathrm{cell},j}=0\).
+
+Suppose henceforth that \(s_{aj}>0\). Overlap implies
+\[
+p_j\le\frac{s_{aj}}\epsilon\le\frac{p_j}\epsilon,
+\qquad
+s_{1-a,j}\le\frac{p_j}\epsilon,
+\qquad
+q_{aj}\le\frac{p_j}\epsilon.
+\]
+It also gives \(\epsilon s_{1-a,j}\le s_{aj}\), whence
+\[
+\epsilon s_{1-a,j}^2
+\le s_{aj}s_{1-a,j}
+\le s_{aj}p_j,
+\qquad
+\frac{s_{1-a,j}^2}{s_{aj}}\le\frac{p_j}\epsilon.
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_overlap_ratio_bound
+
+The rational factors satisfy
+\[
+0\le\frac{\lambda_j}{1+\lambda_j}\le1,
+\qquad
+\lambda_j\le(1+\lambda_j)^2.
+\]
+Consequently,
+\[
+\begin{aligned}
+\frac{s_{aj}\rho_j^2}{(1+\lambda_j)^2}
+&=\frac{s_{1-a,j}^2}{s_{aj}}
+  \left(\frac{\lambda_j}{1+\lambda_j}\right)^2
+\le\frac{s_{1-a,j}^2}{s_{aj}},\\
+\frac{s_{aj}\rho_j}{(1+\lambda_j)^2}
+&=s_{1-a,j}\frac{\lambda_j}{(1+\lambda_j)^2}
+\le s_{1-a,j},\\
+\frac{s_{aj}^2\rho_j}{(1+\lambda_j)^2}
+&=\frac{s_{1-a,j}}t
+  \left(\frac{\lambda_j}{1+\lambda_j}\right)^2
+\le\frac{s_{1-a,j}}t,\\
+\frac{s_{aj}^2\rho_j^2\lambda_j}{(1+\lambda_j)^4}
+&=\frac{s_{1-a,j}^2}{t s_{aj}}
+  \left(\frac{\lambda_j}{1+\lambda_j}\right)^4
+\le\frac{s_{1-a,j}^2}{t s_{aj}}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_rational_factors
+
+Using \(q_{aj}\le s_{aj}\) in the first two bounds yields
+\[
+\begin{aligned}
+q_{aj}\frac{\rho_j^2+\rho_j}{(1+\lambda_j)^2}
+&\le
+\frac{s_{aj}\rho_j^2}{(1+\lambda_j)^2}
++\frac{s_{aj}\rho_j}{(1+\lambda_j)^2}\\
+&\le\frac{s_{1-a,j}^2}{s_{aj}}+s_{1-a,j}
+\le\frac{2p_j}\epsilon.
+\end{aligned}
+\]
+Similarly, \(q_{aj}^2\le s_{aj}^2\) and the last two bounds give
+\[
+\begin{aligned}
+q_{aj}^2\left(
+\frac{\rho_j}{(1+\lambda_j)^2}
++\frac{\rho_j^2\lambda_j}{(1+\lambda_j)^4}
+\right)
+&\le
+\frac{s_{aj}^2\rho_j}{(1+\lambda_j)^2}
++\frac{s_{aj}^2\rho_j^2\lambda_j}{(1+\lambda_j)^4}\\
+&\le\frac{s_{1-a,j}}t
++\frac{s_{1-a,j}^2}{t s_{aj}}
+\le\frac{2p_j}{t\epsilon}.
+\end{aligned}
+\]
+Substitution into the cell envelope proves
+\[
+\begin{aligned}
+\mathcal V_{\mathrm{cell},j}
+&\le
+\frac2u\frac{p_j}\epsilon
++\frac{2C_0}u\frac{2p_j}\epsilon
++C_0\frac{2p_j}{t\epsilon}\\
+&=(2+4C_0)\frac{p_j}{u\epsilon}
++2C_0\frac{p_j}{t\epsilon}\\
+&\le
+(2+4C_0)p_j
+\left(\frac1{u\epsilon}+\frac1{t\epsilon}\right).
+\end{aligned}
+\]
+The last inequality adds the nonnegative quantity
+\((2+2C_0)p_j/(t\epsilon)\). Together with the zero-mass case, this
+establishes the envelope for every cell.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_cell_variance_envelope
+
+\item \emph{Summation and constant calibration.}
+Summing the cell envelopes and using \(\sum_jp_j=1\) gives
+\[
+\begin{aligned}
+\operatorname{Var}\!\left(\sum_{j=1}^{d}H_j\right)
+&\le\sum_{j=1}^{d}\mathcal V_{\mathrm{cell},j}\\
+&\le(2+4C_0)
+\left(\frac1{u\epsilon}+\frac1{t\epsilon}\right).
+\end{aligned}
+\]
+Finally,
+\[
+2+4C_0=262146\le1048576=2^{20}=C.
+\]
+Since the reciprocal-intensity sum is nonnegative, this proves
+\[
+\operatorname{Var}\!\left(\sum_{j=1}^{d}H_j\right)
+\le C\left(\frac1{u\epsilon}+\frac1{t\epsilon}\right),
+\]
+as required.
+% lean: CausalSmith.Stat.AnnotationRarearmFrontier.inverse_count_arm_variance_envelope
+\end{enumerate}
+\end{proof}

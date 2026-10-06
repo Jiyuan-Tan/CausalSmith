@@ -1,0 +1,323 @@
+\section{A private release based on within-cell pairs}
+
+A single release of local pair statistics supplies both an estimator for the pointwise treatment effect and an honest confidence interval under the criteria in \cref{obj:def:risk-criterion,obj:def:interval-criterion}. The construction uses public cell geometry and gives the numerator and denominator the same occupancy weights. This shared weighting accommodates every measurable design density satisfying \cref{obj:ass:density}. We first specify the clipping operation used to keep the reported estimate within the target range.
+\begin{definitionv}{synth_12}[Clipping to a closed interval]
+For real numbers \(a\le b\) and \(u\in\mathbb R\), define
+\[
+\operatorname{clip}_{[a,b]}(u)=\min\{b,\max\{a,u\}\}.
+\]
+\end{definitionv}
+
+Localization uses a public radius \leanref{sym:h}{\ensuremath{h}} around \(x_0=1/2\). A public cell count \leanref{sym:k}{\ensuremath{k}} determines the cell width \leanref{sym:delta}{\ensuremath{\delta}} and the equal-cell partition \leanref{sym:cells}{\ensuremath{(C_j)_{j=1}^k}}. The cell occupancy \leanref{sym:Nj}{\ensuremath{N_j(D)}} counts records with their dataset multiplicities. The following geometry fixes these quantities before the release is computed.
+\begin{definitionv}{synth_11}[Public local cells]
+Let \(x_0=1/2\), let \(h\in(0,1/4]\) be the public localization radius, and let \(k\ge2\) be the integer public cell count. Set \(\delta=2h/k\). The public local window is \([x_0-h,x_0+h]\subseteq[0,1]\), with indexed partition \((C_j)_{j=1}^k\) defined by
+\[
+C_j=
+\begin{cases}
+[x_0-h+(j-1)\delta,\ x_0-h+j\delta),&1\le j<k,\\
+[x_0-h+(k-1)\delta,\ x_0+h],&j=k.
+\end{cases}
+\]
+Public cell \(j\) means \(C_j\). A record \((X_i,A_i,Y_i)\) belongs to public cell \(j\) precisely when \(X_i\in C_j\); its count is
+\[
+N_j(D)=\sum_{i=1}^n\mathbf1\{X_i\in C_j\}.
+\]
+Records are counted with their dataset multiplicities.
+\end{definitionv}
+
+The public occupancy scale \leanref{sym:info}{\ensuremath{\mathcal A}} measures the effective amount of information available from cells containing pairs:
+\[
+\mathcal A=nh\min\{1,n\delta\}.
+\]
+The factor \(nh\) describes the local sample size, while \(\min\{1,n\delta\}\) accounts for the availability of a second record in the same cell. Thus the scale accommodates both sparse and densely occupied cells.
+
+For the procedures below, define the public mean-squared-error envelope \leanref{sym:Vbound}{\ensuremath{V(h,\delta)}} and its conservative bias component \leanref{sym:bias}{\ensuremath{b_{\mathrm{env}}}} by
+\[
+V(h,\delta)=2^{20}\left(
+h^2+\delta^{2/5}+\mathcal A^{-1}+(\epsilon\mathcal A)^{-2}
+\right),
+\qquad
+b_{\mathrm{env}}=2^{10}\sqrt{h^2+\delta^{2/5}}.
+\]
+Here \(b_{\mathrm{env}}^2\) collects the localization and within-cell bias terms in the envelope. The appendix separately writes \(b_{\mathrm{cell}}=3h+24\delta^{1/5}\) for the sharper cellwise population certificate. The numerical benchmark \leanref{sym:r}{\ensuremath{r(n,\epsilon)}}, which will determine the public tuning, is
+\[
+r(n,\epsilon)=
+\min\left\{1,\,
+\max\left\{
+n^{-1/4},\,
+(n^2\epsilon)^{-1/7},\,
+(n\epsilon)^{-1/2}
+\right\}\right\}.
+\]
+All of these quantities depend on public parameters.
+
+The numerator statistic \leanref{sym:SN}{\ensuremath{S_N(D)}} aggregates within-cell treatment--outcome differences, and the denominator statistic \leanref{sym:SD}{\ensuremath{S_D(D)}} aggregates within-cell treatment differences. Their common occupancy weighting explains the construction's treatment of the design density. To describe that weighting, let \((X,A,Y)\) and \((X',A',Y')\) be independent records drawn from the observed law conditional on membership in cell \(C_j\). Define the conditional pair moments \leanref{sym:nu}{\ensuremath{\nu_j}} and \leanref{sym:dj}{\ensuremath{d_j}}, and the occupancy weight \leanref{sym:w}{\ensuremath{w_j}}, by
+\[
+\nu_j=E\{(A-A')(Y-Y')\mid X,X'\in C_j\},
+\qquad
+d_j=E\{(A-A')^2\mid X,X'\in C_j\},
+\qquad
+w_j=E\{N_j(D)\mathbf1\{N_j(D)\ge2\}\}.
+\]
+The population means \leanref{sym:Nbar}{\ensuremath{\overline N}} and \leanref{sym:Dbar}{\ensuremath{\overline D}} of the two statistics consequently take the form
+\[
+\overline N=\sum_{j=1}^k w_j\nu_j,
+\qquad
+\overline D=\sum_{j=1}^k w_jd_j.
+\]
+Both sums use the same weights, including the effect of cells containing fewer than two records. Their ratio therefore averages the cell ratios with weights proportional to \(w_jd_j\). The smoothness restrictions in \cref{obj:ass:propensity-holder,obj:ass:control-holder,obj:ass:contrast-lipschitz} control the cellwise approximation to the target, while the measurable density determines the common weighting. The detailed occupancy argument is given in \cref{obj:lem:occupancy-cancellation}.
+
+The first procedure computes a single joint noisy release \leanref{sym:release}{\ensuremath{\widetilde S}}. A positive public denominator floor \leanref{sym:d0}{\ensuremath{d_0}} then stabilizes the ratio. The local estimator \leanref{sym:Thk}{\ensuremath{\widehat T_{h,k}}} and local interval \leanref{sym:Ihk}{\ensuremath{\widehat I_{h,k}}} are both postprocessings of that release.
+\begin{algorithmv}{def:private-ratio}[Private ratio \(\widehat T_{h,k}\) and interval \(\widehat I_{h,k}\)]
+The inputs are an ordered dataset \(D\in\mathcal O^n\), the public localization radius \(h\), the public cell count \(k\), the privacy parameter \(\epsilon\), the public occupancy scale \(\mathcal A\), and the public error envelope \(V\).
+\begin{enumerate}
+\item Set the cell width and positive denominator floor to
+\[
+\delta=\frac{2h}{k},
+\qquad
+d_0=\frac{3\mathcal A}{64}>0.
+\]
+For public cell \(j\), let its records and record count be
+\[
+D_j=\{(X_i,A_i,Y_i):i\text{ indexes a record of }D
+\text{ in public cell }j\},
+\qquad
+s_j=|D_j|,
+\]
+where records are counted with their dataset multiplicities.
+
+\item Form the numerator and denominator statistics by summing the cell contributions:
+\[
+S_N(D)=
+\sum_j
+\begin{cases}
+0,&s_j<2,\\[2pt]
+\displaystyle
+\frac{2\left\{
+s_j\sum_{(X,A,Y)\in D_j}AY
+-\left(\sum_{(X,A,Y)\in D_j}A\right)
+ \left(\sum_{(X,A,Y)\in D_j}Y\right)
+\right\}}{s_j-1},&s_j\ge2,
+\end{cases}
+\]
+\[
+S_D(D)=
+\sum_j
+\begin{cases}
+0,&s_j<2,\\[2pt]
+\displaystyle
+\frac{2\left\{
+s_j\sum_{(X,A,Y)\in D_j}A
+-\left(\sum_{(X,A,Y)\in D_j}A\right)^2
+\right\}}{s_j-1},&s_j\ge2.
+\end{cases}
+\]
+Only occupied cells need to be included in these sums.
+
+\item Draw independent Laplace noises once:
+\[
+\xi_N,\xi_D\ \stackrel{\mathrm{ind}}{\sim}\
+\operatorname{Laplace}\!\left(0,\frac{12}{\epsilon}\right).
+\]
+Release the joint statistic
+\[
+\widetilde S
+=
+(\widetilde S_N,\widetilde S_D)
+=
+\bigl(S_N(D)+\xi_N,\ S_D(D)+\xi_D\bigr).
+\]
+
+\item Output the following postprocessing of this single release:
+\[
+\widehat T_{h,k}
+=
+\operatorname{clip}_{[-1,1]}
+\left\{
+\frac{\widetilde S_N}
+{\max\{d_0,\widetilde S_D\}}
+\right\},
+\]
+\[
+\widehat I_{h,k}
+=
+\left[
+\max\left\{-1,\widehat T_{h,k}-\sqrt{10V(h,\delta)}\right\},
+\min\left\{1,\widehat T_{h,k}+\sqrt{10V(h,\delta)}\right\}
+\right].
+\]
+The map is defined on every \(D\in\mathcal O^n\).
+\end{enumerate}
+\end{algorithmv}
+
+The cell formulas are count-weighted sums of symmetric pair contributions. They can be computed from cell totals, preserving the pair construction while retaining a direct implementation. Cells with zero or one record contribute zero to both coordinates. Replacement privacy requires control of changes across all cell counts, including replacements that move a record between cells; \cref{obj:lem:all-count-stability} supplies this sensitivity argument. The independent Laplace perturbations implement the joint release, and the estimator and interval inherit its privacy by postprocessing \citep{Dwork2006,Dwork2014}.
+
+Public tuning selects the estimator \leanref{sym:Tstar}{\ensuremath{\widehat T^*}} and interval \leanref{sym:Istar}{\ensuremath{\widehat I^*}} using the benchmark alone. In the local branch, the dyadic choice of \(h\) makes \(k\) an integer and sets \(\delta=h^5\), balancing the two squared-bias terms. The following procedure also specifies the constant outputs for the branch \(r(n,\epsilon)\ge1/8\).
+\begin{algorithmv}{def:public-tuning}[Public tuning for \(\widehat T^*\) and \(\widehat I^*\)]
+The inputs are the dataset, the sample size \(n\), the privacy parameter \(\epsilon\), and the numerical benchmark \(r(n,\epsilon)\).
+\begin{enumerate}
+\item If \(r(n,\epsilon)\ge1/8\), output
+\[
+\widehat T^*=0,
+\qquad
+\widehat I^*=[-1,1].
+\]
+
+\item If \(r(n,\epsilon)<1/8\), choose the public tuning parameters
+\[
+h=2^{-\lceil\log_2(1/r(n,\epsilon))\rceil},
+\qquad
+k=2h^{-4},
+\qquad
+\delta=\frac{2h}{k}=h^5,
+\]
+and output the local private ratio and interval:
+\[
+(\widehat T^*,\widehat I^*)
+=
+(\widehat T_{h,k},\widehat I_{h,k}).
+\]
+\end{enumerate}
+This defines a single sample map whose public tuning depends only on \(n\) and \(\epsilon\).
+\end{algorithmv}
+
+The stated interval is deliberately conservative at moderate sample sizes. In the local branch, \(\delta=h^5\), so \(V(h,\delta)\ge 2^{21}h^2\). The dyadic rule gives \(h>r(n,\epsilon)/2\), while \(r(n,\epsilon)\ge n^{-1/4}\); hence
+\[
+10V(h,\delta)>5\cdot 2^{20}n^{-1/2}.
+\]
+For \(2\le n\le 2^{40}\), its square root exceeds the diameter of \([-1,1]\), and the clipped centered interval is therefore exactly \([-1,1]\), with the theorem's uniform coverage guarantee. The fallback branch has the same output. The practical interpretation of these constants is discussed under Limitations and future work.
+
+The interval also has a candidate-value interpretation. For each candidate effect \leanref{sym:vartheta}{\ensuremath{\vartheta}}, inversion compares a clipped numerator with the candidate multiplied by the stabilized denominator. The resulting interval \leanref{sym:Iopt}{\ensuremath{I^*_{n,\epsilon}}} uses the same joint release as the point estimate. To express the connected output of the acceptance rule, we first define the interval hull.
+\begin{definitionv}{synth_17}[Interval hull]
+For a nonempty subset \(S\subseteq\mathbb R\), define its interval hull as the smallest connected interval containing \(S\):
+\[
+\operatorname{hull}(S)
+=
+\{x\in\mathbb R:\text{there exist }a,b\in S\text{ with }a\le x\le b\}.
+\]
+\end{definitionv}
+
+With this operation, the inversion procedure expresses the interval directly in terms of the released coordinates and public error envelope. In the inversion algorithm, the symbol \(b\) denotes \(b_{\mathrm{env}}\).
+\begin{algorithmv}{def:interval-handle}[Interval inversion $I^*_{n,\epsilon}$]
+The inputs are the sample size \(n\), privacy parameter \(\epsilon\), benchmark \(r(n,\epsilon)\), public tuning parameters \(h,k,\delta\), denominator floor \(d_0\), and mean-squared-error envelope \(V(h,\delta)\). The envelope incorporates the bias envelope \(b\), occupancy scale \(\mathcal A\), and Laplace second moment.
+\begin{enumerate}
+\item If \(r(n,\epsilon)\ge 1/8\), accept every candidate \(\vartheta\in[-1,1]\) and output
+\[
+I^*_{n,\epsilon}=\widehat I^*=[-1,1].
+\]
+Otherwise, proceed to the following steps.
+\item Compute the single joint noisy release \(\widetilde S\), with numerator coordinate \(\widetilde S_N\) and denominator coordinate \(\widetilde S_D\), using the public tuning parameters. Define
+\[
+B_D=\max\{d_0,\widetilde S_D\},\qquad
+B_N=\operatorname{clip}_{[-B_D,B_D]}(\widetilde S_N),\qquad
+\rho=\sqrt{10V(h,\delta)}.
+\]
+\item Accept a candidate \(\vartheta\in[-1,1]\) precisely when
+\[
+|B_N-\vartheta B_D|\le \rho B_D.
+\]
+Output the interval hull of the accepted set, with \([-1,1]\) as the output if the accepted set is empty:
+\[
+I^*_{n,\epsilon}=\widehat I^*=
+\begin{cases}
+\operatorname{hull}\{\vartheta\in[-1,1]:|B_N-\vartheta B_D|\le\rho B_D\},
+& \{\vartheta\in[-1,1]:|B_N-\vartheta B_D|\le\rho B_D\}\ne\varnothing,\\
+[-1,1],
+& \{\vartheta\in[-1,1]:|B_N-\vartheta B_D|\le\rho B_D\}=\varnothing.
+\end{cases}
+\]
+\end{enumerate}
+\end{algorithmv}
+
+Because \(B_D\) is positive, dividing the acceptance inequality by \(B_D\) gives an interval centered at \(B_N/B_D=\widehat T_{h,k}\), with radius \(\rho\), intersected with \([-1,1]\). The acceptance set contains its center and is connected. Hence the inversion reproduces the interval in \cref{obj:def:private-ratio,obj:def:public-tuning}. Computing the point estimate and this interval together uses one draw of the joint noise.
+
+The next result establishes privacy for every dataset and uniform statistical guarantees over the causal class. It gives both the local squared-error envelope and the absolute-error and expected-length bounds obtained by public tuning.
+\begin{theoremv}{thm:uniform-private-upper}[Uniform private upper bounds]*
+Let the public parameters satisfy
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\in\mathbb N\) and \(n\ge2\).
+\item \textbf{(Cell count.)} \(k\in\mathbb N\) and \(k\ge2\).
+\item \textbf{(Privacy budget.)} \(0<\epsilon\le1\).
+\item \textbf{(Localization radius.)} \(0<h\le1/4\).
+\end{itemize}
+Define the cell width \(\delta\), public occupancy scale \(\mathcal A\), and public squared-error envelope \(V(h,\delta)\) by
+\[
+\delta=\frac{2h}{k},
+\qquad
+\mathcal A=nh\min\{1,n\delta\},
+\qquad
+V(h,\delta)=2^{20}\left(
+h^2+\delta^{2/5}+\mathcal A^{-1}+(\epsilon\mathcal A)^{-2}
+\right).
+\]
+Define the numerical benchmark for public tuning by
+\[
+r(n,\epsilon)=
+\min\left\{1,\,
+\max\left\{
+n^{-1/4},\,
+(n^2\epsilon)^{-1/7},\,
+(n\epsilon)^{-1/2}
+\right\}\right\}.
+\]
+The joint release in \cref{obj:def:private-ratio} is
+\[
+\widetilde S=
+\bigl(S_N(D)+\xi_N,\ S_D(D)+\xi_D\bigr),
+\qquad
+\xi_N,\xi_D\overset{\mathrm{ind}}{\sim}
+\operatorname{Laplace}(0,12/\epsilon).
+\]
+This release and its scalar and interval postprocessings
+\(\widehat T_{h,k}\) and \(\widehat I_{h,k}\) in
+\cref{obj:def:private-ratio}, together with the publicly tuned outputs
+\(\widehat T^*\) and \(\widehat I^*\) in \cref{obj:def:public-tuning},
+are everywhere-defined Markov kernels satisfying pure
+\(\epsilon\)-replacement privacy on all of \(\mathcal O^n\) in the sense of
+\cref{obj:def:private-kernels}.
+
+For every \(P\in\mathcal P\), the causal-law class in
+\cref{obj:def:complete-model}, let \(\theta(P)=\tau_P(x_0)\) be the point
+target at \(x_0=1/2\). Under the observed sample law
+\((P^{\mathrm{obs}})^{\otimes n}\), the local outputs satisfy
+\[
+E_{(P^{\mathrm{obs}})^{\otimes n},\widehat T_{h,k}}
+\left[(\widehat T_{h,k}(D)-\theta(P))^2\right]
+\le V(h,\delta),
+\]
+\[
+\Pr_{(P^{\mathrm{obs}})^{\otimes n},\widehat I_{h,k}}
+\left\{\theta(P)\in\widehat I_{h,k}(D)\right\}
+\ge\frac9{10},
+\qquad
+E_{(P^{\mathrm{obs}})^{\otimes n},\widehat I_{h,k}}
+\operatorname{Leb}(\widehat I_{h,k}(D))
+\le\min\left\{2,\ 2\sqrt{10V(h,\delta)}\right\}.
+\]
+The publicly tuned outputs satisfy
+\[
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},\widehat T^*}
+\left|\widehat T^*(D)-\theta(P)\right|
+\le2^{18}r(n,\epsilon),
+\]
+\[
+\sup_{P\in\mathcal P}
+E_{(P^{\mathrm{obs}})^{\otimes n},\widehat I^*}
+\operatorname{Leb}(\widehat I^*(D))
+\le2^{22}r(n,\epsilon),
+\]
+and, for every \(P\in\mathcal P\),
+\[
+\Pr_{(P^{\mathrm{obs}})^{\otimes n},\widehat I^*}
+\left\{\theta(P)\in\widehat I^*(D)\right\}
+\ge\frac9{10}.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:uniform-private-upper
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BoucheronLugosiMassart2013} (Theorem 3.1, replacement-copy form, printed page 54). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:uniform-private-upper
+
+The four terms in the error envelope separate the statistical mechanisms. Localization of the Lipschitz contrast contributes \(h^2\), and within-cell approximation of the two rough nuisance functions contributes \(\delta^{2/5}\). Pair-statistic variation contributes at scale \(\mathcal A^{-1}\). The replacement-copy variance inequality of \citet[Theorem 3.1, replacement-copy form, p.~54]{BoucheronLugosiMassart2013} controls this variation through changes induced by replacing individual independent records. Denominator stabilization keeps the noisy ratio defined across all occupancies, while the Laplace second moments contribute the term \((\epsilon\mathcal A)^{-2}\). The occupancy and replacement-sensitivity details appear in \cref{obj:lem:occupancy-cancellation,obj:lem:all-count-stability}.
+
+Under the public choice \(\delta=h^5\), the two squared-bias terms have the same order. The benchmark balances this bias against pair variation and privacy noise in the sparse and dense occupancy regimes. Finally, the squared-error bound supplies the \(90\%\) coverage guarantee through the radius \(\sqrt{10V(h,\delta)}\). Intersecting the interval with the target range preserves coverage and bounds its length by two. Thus \cref{obj:thm:uniform-private-upper} supplies a common private release with uniform estimation and finite-sample interval guarantees throughout the causal class in \cref{obj:def:complete-model}.

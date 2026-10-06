@@ -1,0 +1,18 @@
+module
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TBalancedReduction
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TFiniteOracle
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TFiveOutputRegion
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TFiveOutputUpperBound
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TLaplaceComparison
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TPilotAttainment
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TSequentialMinimax
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TSupportTransition
+public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TThreeOutputRegion
+
+/-! # LDP efficiency surface for the binary-trial ATE
+
+This barrel exposes the scaffolded private information oracle, support
+certificates, comparison, and sequential local asymptotic minimax theorem. -/
+
+public section

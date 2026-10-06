@@ -1,0 +1,932 @@
+{
+  "schema": "causalsmith-p5-verification-contract-v1",
+  "commit": "4e6bd948ba34087b02a789ea17c0e01eee57952a",
+  "objects": [
+    {
+      "obj_id": "synth_7",
+      "kind": "definition",
+      "title": "Observed treatment, outcome, and potential outcomes",
+      "status": "presentation-synthesized",
+      "paper_statement": "We write \\(A\\in\\{0,1\\}\\) for the observed binary treatment, with \\(A=1\\) denoting treated status and \\(A=0\\) untreated status, and \\(Y\\in\\{0,1\\}\\) for the observed binary outcome. The potential outcomes \\(Y(0)\\) and \\(Y(1)\\) are \\(\\{0,1\\}\\)-valued random variables on the same probability space as the observed variables, where \\(Y(a)\\) is the outcome that would be recorded under treatment level \\(a\\in\\{0,1\\}\\).",
+      "external_dependencies": [],
+      "lean": null,
+      "audits": {
+        "statement": null,
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "ass:iid-sampling",
+      "kind": "assumption",
+      "title": "IID observed-data model",
+      "status": "matched",
+      "paper_statement": "The observed data are \\(O_i=(X_i,A_i,Y_i)\\), \\(i=1,\\ldots,n\\), with \\(O_1,\\ldots,O_n\\stackrel{\\mathrm{iid}}{\\sim}P\\), where the covariate \\(X\\) takes values in \\(\\{1,\\ldots,d\\}\\), the treatment \\(A\\) and outcome \\(Y\\) are binary. For each category \\(k\\in\\{1,\\ldots,d\\}\\) write \\(p_k=P(X=k)\\) for the category mass, \\(\\pi_k=P(A=1\\mid X=k)\\) for the treatment probability, and, for each treatment arm \\(a\\in\\{0,1\\}\\), \\(\\mu_{ak}=E_P[Y\\mid A=a,X=k]\\) for the conditional mean outcome.",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "(composite)",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "c2958a692ec345ef",
+          "d3d074b41e771047",
+          "a9e3bbe11e514c65"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "ass:overlap",
+      "kind": "assumption",
+      "title": "Fixed overlap",
+      "status": "matched",
+      "paper_statement": "For the overlap level \\(\\epsilon\\), every category \\(k\\) with category mass \\(p_k>0\\) satisfies\n\\[\n\\epsilon \\le \\pi_k \\le 1-\\epsilon .\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "(composite)",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "37b330f93b3beb8b",
+          "d3d074b41e771047"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "ass:consistency",
+      "kind": "assumption",
+      "title": "Observed-outcome consistency",
+      "status": "matched",
+      "paper_statement": "The observed outcome satisfies\n\\[\nY=Y(A)\n\\]\nalmost surely.",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.Consistency",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "b4ccf4977e2802d5"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "ass:conditional-exchangeability",
+      "kind": "assumption",
+      "title": "Conditional exchangeability",
+      "status": "matched",
+      "paper_statement": "The potential outcomes satisfy\n\\[\n(Y(0),Y(1))\\perp A\\mid X .\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.ConditionalExchangeability",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "041a32266d3a55fd"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "def:experiment-class",
+      "kind": "definition",
+      "title": "Experiment class \\(\\mathcal E_{n,d,\\epsilon}\\)",
+      "status": "matched",
+      "paper_statement": "For \\(n,d\\in\\mathbb N\\) and \\(0<\\epsilon\\le 1/2\\), the overlap-restricted iid experiment class is\n\\[\n\\mathcal E_{n,d,\\epsilon}\n:=\n\\left\\{\nP^{\\otimes n}:\nP\\in\\mathsf{Prob}(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2)\n\\ \\text{and } P \\text{ satisfies } \\cref{obj:ass:overlap}\n\\right\\}.\n\\]\nThe law \\(P^{\\otimes n}\\) is formed from the single-observation law in \\cref{obj:ass:iid-sampling}.",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "(composite)",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "0917cb0a54c22618",
+          "d3d074b41e771047",
+          "a9e3bbe11e514c65",
+          "c2958a692ec345ef",
+          "37b330f93b3beb8b"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "def:overlap-cone",
+      "kind": "definition",
+      "title": "Overlap cone \\(\\mathcal C_\\epsilon\\)",
+      "status": "matched",
+      "paper_statement": "The overlap-restricted cone of nonnegative four-cell vectors is\n\\[\n\\mathcal C_\\epsilon\n:=\n\\left\\{\nu=(u_{00},u_{01},u_{10},u_{11})\\in\\mathbb R_+^4:\n\\epsilon(u_{00}+u_{01}+u_{10}+u_{11})\n\\le\nu_{10}+u_{11}\n\\le\n(1-\\epsilon)(u_{00}+u_{01}+u_{10}+u_{11})\n\\right\\}.\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.overlapCone",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "9a7e43740bf476b3"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "def:cell-functional",
+      "kind": "definition",
+      "title": "Cell functional \\(\\phi(u)\\)",
+      "status": "matched",
+      "paper_statement": "For \\(u=(u_{00},u_{01},u_{10},u_{11})\\in\\mathcal C_\\epsilon\\) as in \\cref{obj:def:overlap-cone}, define\n\\[\n\\phi(u)\n:=\n\\begin{cases}\n(u_{00}+u_{01}+u_{10}+u_{11})\n\\left[\n\\dfrac{u_{11}}{u_{10}+u_{11}}\n-\n\\dfrac{u_{01}}{u_{00}+u_{01}}\n\\right],\n& u\\neq(0,0,0,0),\\\\[1.2em]\n0,\n& u=(0,0,0,0).\n\\end{cases}\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "(composite)",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "40f9e647edfc2b30",
+          "9a7e43740bf476b3"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "def:ate-functional",
+      "kind": "definition",
+      "title": "Average treatment effect \\(\\tau(P)\\)",
+      "status": "matched",
+      "paper_statement": "For a probability law \\(P\\) on \\(\\{1,\\ldots,d\\}\\times\\{0,1\\}\\times\\{0,1\\}\\), with arbitrary masses on this finite observation alphabet, define, for \\(a,y\\in\\{0,1\\}\\) and \\(k\\in\\{1,\\ldots,d\\}\\), the joint cell mass\n\\[\nq_{aky}=P(A=a,X=k,Y=y),\n\\]\nand set\n\\[\nq_k=(q_{0k0},q_{0k1},q_{1k0},q_{1k1}).\n\\]\nThe average treatment effect functional is\n\\[\n\\tau(P)\n=\n\\sum_{k=1}^{d}\\phi(q_k).\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "(composite)",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "d6224b8baca53235",
+          "d3d074b41e771047"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "def:minimax-risk",
+      "kind": "definition",
+      "title": "Minimax risk \\(\\mathsf R_{n,d,\\epsilon}\\)",
+      "status": "matched",
+      "paper_statement": "\\[\n\\mathsf R_{n,d,\\epsilon}\n:=\n\\inf_{\\widehat\\tau}\n\\sup_{P^{\\otimes n}\\in\\mathcal E_{n,d,\\epsilon}}\nE_P\\!\\left[(\\widehat\\tau-\\tau(P))^2\\right].\n\\]\nThe infimum ranges over all measurable estimators \\(\\widehat\\tau\\) based on \\(O_1,\\ldots,O_n\\).",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.minimaxRisk",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "641595e258010d12"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "lem:ate-lower-bound-transfer",
+      "kind": "lemma",
+      "title": "ATE lower-bound transfer",
+      "status": "matched",
+      "paper_statement": "Fix an overlap level \\(\\epsilon\\) with \\(0<\\epsilon<1/2\\). For the minimax risk \\(\\mathsf R_{n,d,\\epsilon}\\) in \\cref{obj:def:minimax-risk}, there exist constants \\(a_\\epsilon,b_\\epsilon>0\\) and an integer \\(N_\\epsilon\\) such that, for every \\(n,d\\in\\mathbb N\\), if \\(d>0\\), \\(n\\ge N_\\epsilon\\), and\n\\[\nd\\le b_\\epsilon n\\log n,\n\\]\nthen\n\\[\n\\mathsf R_{n,d,\\epsilon}\n\\ge\na_\\epsilon\\left\\{\\frac1n+\\frac{d^2}{n^2(\\log n)^2}\\right\\}.\n\\]",
+      "external_dependencies": [
+        {
+          "node_id": "lem:zeng-one-arm-minimax-lower",
+          "cite_id": "cite:zeng-balakrishnan-han-kennedy-2024",
+          "cite_key": "ZengBalakrishnanHanKennedy2024",
+          "locator": "Theorem 2; Appendix C.5; Lemma 4; Appendix D.2",
+          "statement": "Fix \\(0<\\epsilon<1/2\\). Let \\(\\mathcal D_0^{(n,d)}(\\epsilon)\\) be the fixed-sample binary-outcome subclass of \\(\\mathcal E_{n,d,\\epsilon}\\) consisting of laws \\(P^{\\otimes n}\\) with arbitrary masses \\(p_k\\ge0\\), \\(\\sum_{k=1}^d p_k=1\\), propensities satisfying \\(\\epsilon\\le\\pi_k\\le1-\\epsilon\\) on every positive-mass category, arbitrary treated response means \\(\\mu_{1k}\\in[0,1]\\), and \\(\\mu_{0k}=0\\) for every \\(k\\). Define \\(\\psi_1(P)=\\sum_{k=1}^d p_k\\mu_{1k}\\). There are constants \\(a_\\epsilon,b_\\epsilon>0\\) and \\(N_\\epsilon<\\infty\\) such that, for all \\(n\\ge N_\\epsilon\\) and \\(d\\le b_\\epsilon n\\log n\\),\n\\[\n\\inf_{\\widehat\\psi}\\sup_{P^{\\otimes n}\\in\\mathcal D_0^{(n,d)}(\\epsilon)}E_P[(\\widehat\\psi-\\psi_1(P))^2]\\ge a_\\epsilon\\left\\{\\frac1n+\\frac{d^2}{n^2\\log^2n}\\right\\},\n\\]\nwhere the infimum is over measurable estimators based on the fixed sample of size \\(n\\).",
+          "status": "matched"
+        }
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.ate_lower_bound_transfer",
+        "file": "Helpers/LowerBound.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "99cd82bb21c12968"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "synth_10",
+      "kind": "definition",
+      "title": "Centered endpoint estimator $\\widehat\\tau_{\\mathrm{ctr}}$",
+      "status": "presentation-synthesized",
+      "paper_statement": "For \\(n\\in\\mathbb N\\) with \\(n>0\\) and observed units \\(O_i=(X_i,A_i,Y_i)\\in\\{1,\\ldots,d\\}\\times\\{0,1\\}\\times\\{0,1\\}\\), define the centered endpoint estimator by \\[ \\widehat\\tau_{\\mathrm{ctr}}(O_1,\\ldots,O_n)=\\frac1n\\sum_{i=1}^n 2(2A_i-1)\\left(Y_i-\\frac12\\right). \\]",
+      "external_dependencies": [],
+      "lean": null,
+      "audits": {
+        "statement": null,
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "synth_13",
+      "kind": "definition",
+      "title": "Product sampling laws",
+      "status": "presentation-synthesized",
+      "paper_statement": "For a finite index set \\(J\\) and a probability law \\(P\\) for one observed unit \\(O=(X,A,Y)\\), \\(P^{\\otimes J}\\) denotes the product law on families \\((O_j)_{j\\in J}\\) under which the coordinates are independent and each coordinate has law \\(P\\). For a sample \\(O_1,\\ldots,O_n\\) with single-observation law \\(P\\) on \\(\\{1,\\ldots,d\\}\\times\\{0,1\\}\\times\\{0,1\\}\\), we write \\(\\mu_n=P^{\\otimes n}\\) for the \\(n\\)-fold product law of the observed sample.",
+      "external_dependencies": [],
+      "lean": null,
+      "audits": {
+        "statement": null,
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "lem:near-randomization-linear-upper",
+      "kind": "lemma",
+      "title": "Near-randomization linear bound",
+      "status": "matched",
+      "paper_statement": "For \\(n\\in\\mathbb N\\) with \\(n>0\\), \\(d\\in\\mathbb N\\), a law \\(P\\) on \\(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2\\), and a sample law \\(\\mu_n\\), suppose that \\(\\mu_n\\in\\mathcal E_{n,d,\\epsilon}\\) in the sense of \\cref{obj:def:experiment-class}. Thus \\(0<\\epsilon\\le 1/2\\), \\(\\mu_n=P^{\\otimes n}\\), and \\(P\\) satisfies overlap at level \\(\\epsilon\\). Define\n\\[\n\\widehat\\tau_{\\mathrm{ctr}}\n=\n\\frac1n\\sum_{i=1}^n\n2(2A_i-1)\\left(Y_i-\\frac12\\right).\n\\]\nThen, for \\(\\tau(P)\\) as in \\cref{obj:def:ate-functional},\n\\[\n\\int\n\\left(\\widehat\\tau_{\\mathrm{ctr}}(O_1,\\ldots,O_n)-\\tau(P)\\right)^2\n\\,d\\mu_n\n\\le\n\\frac1n+4\\left(\\frac12-\\epsilon\\right)^2 .\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.near_randomization_linear_upper",
+        "file": "Helpers/Endpoint.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "926bed77c2d56654"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:one-category-bernoulli-lower",
+      "kind": "lemma",
+      "title": "One-category Bernoulli lower bound",
+      "status": "matched",
+      "paper_statement": "For any positive integers \\(n\\) and \\(d\\), the minimax mean-squared-error risk \\(\\mathsf R_{n,d,\\epsilon}\\) of \\cref{obj:def:minimax-risk}, evaluated at randomization \\(\\epsilon=1/2\\), satisfies\n\\[\n\\frac{1}{100n}\\le \\mathsf R_{n,d,1/2}.\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.one_category_bernoulli_lower",
+        "file": "Helpers/Endpoint.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "748c2b3a32c77e2f"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:randomized-endpoint-minimax",
+      "kind": "lemma",
+      "title": "Randomization endpoint risk",
+      "status": "matched",
+      "paper_statement": "Let \\(n,d\\in\\mathbb N\\) satisfy \\(n>0\\) and \\(d>0\\). For the minimax MSE risk \\(\\mathsf R_{n,d,\\epsilon}\\) defined in \\cref{obj:def:minimax-risk}, exact randomization satisfies\n\\[\n\\frac{1}{100n}\\le \\mathsf R_{n,d,1/2}\\le \\frac{1}{n}.\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.randomized_endpoint_minimax",
+        "file": "Helpers/Endpoint.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "03b073052a90f219"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:ambient-sample-marginal",
+      "kind": "lemma",
+      "title": "Ambient sample marginal law",
+      "status": "matched",
+      "paper_statement": "Let \\(P\\) be a probability law on a measurable single-observation space, and let \\(n\\in\\mathbb N\\). Write \\(P^{\\otimes\\infty}\\) for the infinite product law on sequences \\((O_i)_{i\\ge 0}\\), and write \\(P^{\\otimes n}\\) for the finite product law on \\(n\\)-tuples. Then the coordinate restriction map\n\\[\n(O_i)_{i\\ge 0}\\longmapsto (O_i)_{i\\in\\{0,\\ldots,n-1\\}}\n\\]\npushes \\(P^{\\otimes\\infty}\\) forward to \\(P^{\\otimes n}\\):\n\\[\n(P^{\\otimes\\infty})\\circ\\bigl((O_i)_{i\\ge 0}\\mapsto (O_i)_{i\\in\\{0,\\ldots,n-1\\}}\\bigr)^{-1}\n=\nP^{\\otimes n}.\n\\]\nIn particular, for the observed-data laws \\(P\\) used in \\cref{obj:ass:iid-sampling}, the initial sample segment has the \\(n\\)-fold product law \\(P^{\\otimes n}\\) appearing in \\cref{obj:def:experiment-class}.",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.finProductLaw_eq_map",
+        "file": "Basic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "39156a6a6eed45e8"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "def:sample-splits",
+      "kind": "definition",
+      "title": "Sample splits \\(I_0,I_1\\) and counts \\(N^{(j)}_{aky}\\)",
+      "status": "matched",
+      "paper_statement": "For a sample \\(O_1,\\ldots,O_n\\) with \\(O_i=(X_i,A_i,Y_i)\\in\\{1,\\ldots,d\\}\\times\\{0,1\\}\\times\\{0,1\\}\\), define the deterministic half-sample splits, their sizes, and the logarithmic scale\n\\[\nI_0=\\{1,\\ldots,\\lfloor n/2\\rfloor\\},\\qquad I_1=\\{\\lfloor n/2\\rfloor+1,\\ldots,n\\},\\qquad m_j=|I_j|,\\qquad L=\\log(en),\n\\]\nand, for each split \\(j\\in\\{0,1\\}\\), treatment arm \\(a\\in\\{0,1\\}\\), category \\(k\\in\\{1,\\ldots,d\\}\\), and outcome \\(y\\in\\{0,1\\}\\), the split cell count\n\\[\nN^{(j)}_{aky}=\\#\\{i\\in I_j:(A_i,X_i,Y_i)=(a,k,y)\\}.\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.splitCellCount",
+        "file": "Helpers/Estimator.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "8fc9ea2bfbecf2fa"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "synth_1",
+      "kind": "definition",
+      "title": "Category and cell counts",
+      "status": "presentation-synthesized",
+      "paper_statement": "For observations \\(O_i=(X_i,A_i,Y_i)\\) indexed by a finite set \\(I\\), a category \\(k\\in\\{1,\\ldots,d\\}\\), and an arm \\(a\\in\\{0,1\\}\\), the category count, the arm-specific category count, and the arm-specific outcome-one count are \\[ N_k=\\sum_{i\\in I}\\mathbf 1\\{X_i=k\\},\\qquad N_{ak}=\\sum_{i\\in I}\\mathbf 1\\{X_i=k,A_i=a\\},\\qquad N_{ak1}=\\sum_{i\\in I}\\mathbf 1\\{X_i=k,A_i=a,Y_i=1\\}. \\] For the deterministic pilot split \\(I_0\\) of \\cref{obj:def:sample-splits} we write \\(m_0=|I_0|\\) for its size and \\(N_k^{(0)}=\\sum_{a,y\\in\\{0,1\\}}N^{(0)}_{aky}\\) for the pilot count of category \\(k\\).",
+      "external_dependencies": [],
+      "lean": null,
+      "audits": {
+        "statement": null,
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "synth_3",
+      "kind": "definition",
+      "title": "Chebyshev polynomials, falling factorials, and four-cell monomials",
+      "status": "presentation-synthesized",
+      "paper_statement": "For \\(M\\in\\mathbb N\\), \\(T_M\\) denotes the degree-\\(M\\) Chebyshev polynomial of the first kind, characterized by \\(T_M(\\cos\\theta)=\\cos(M\\theta)\\) for every \\(\\theta\\in\\mathbb R\\). For a real number \\(z\\) and an integer \\(t\\ge1\\), the falling factorial is \\((z)_t=z(z-1)\\cdots(z-t+1)\\), with \\((z)_0=1\\); it is applied to the split cell counts as \\((N^{(1)}_{aky})_{r_{ay}}\\) and to the estimation-split size as \\((m_1)_{|r|}=\\prod_{\\ell=0}^{|r|-1}(m_1-\\ell)\\), the empty product being \\(1\\). For a four-cell vector \\(u=(u_{00},u_{01},u_{10},u_{11})\\) and a multi-index \\(r=(r_{ay})_{a,y\\in\\{0,1\\}}\\in\\mathbb N_0^4\\) of total degree \\(|r|=\\sum_{a,y\\in\\{0,1\\}}r_{ay}\\), the monomial \\(u^r\\) is \\(\\prod_{a,y\\in\\{0,1\\}}u_{ay}^{r_{ay}}\\). For a category \\(k\\) and a multi-index \\(r\\), the normalized factorial-moment monomial is \\[ \\mathfrak m_{k,r} = \\frac{\\prod_{a,y\\in\\{0,1\\}}(N^{(1)}_{aky})_{r_{ay}}}{(m_1)_{|r|}}. \\]",
+      "external_dependencies": [],
+      "lean": null,
+      "audits": {
+        "statement": null,
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "def:hybrid-estimator-handle",
+      "kind": "definition",
+      "title": "Hybrid estimator \\(\\widehat\\tau_n^{\\mathrm{hyb}}\\)",
+      "status": "matched",
+      "paper_statement": "Using the deterministic splits \\(I_0,I_1\\), split sizes \\(m_j\\), logarithmic scale \\(L=\\log(en)\\), and split counts \\(N^{(j)}_{aky}\\) from \\cref{obj:def:sample-splits}, set\n\\[\nA_0=6,\\qquad \\lambda_0=256,\\qquad b_0=4096,\n\\]\n\\[\nD_{A_0}=8\\log(9A_0/8)=8\\log(27/4),\n\\]\nand\n\\[\n\\alpha_0=\\min\\left\\{1,\\frac1{32\\log A_0},\\frac1{256D_{A_0}}\\right\\}.\n\\]\nFor \\(n\\ge2\\), define\n\\[\nM(n)=\\max\\{2,\\lfloor\\alpha_0L\\rfloor\\},\\qquad B(n)=b_0L/m_1.\n\\]\nLet \\(N_0\\) be the least numerical cutoff such that, for every \\(n\\ge N_0\\),\n\\[\n\\alpha_0L\\ge2,\\qquad 4M(n)^2\\le m_1,\\qquad 4M(n)/m_1\\le 3B(n)/4.\n\\]\nFor every \\(n\\), define the pilot-certified heavy and light category sets\n\\[\n\\widehat{\\mathcal H}_n\n=\n\\left\\{k:\\sum_{a,y}N^{(0)}_{aky}>\\lambda_0L\\right\\},\n\\qquad\n\\widehat{\\mathcal L}_n=\\widehat{\\mathcal H}_n^c\\quad(n\\ge N_0),\n\\qquad\n\\widehat{\\mathcal L}_n=\\varnothing\\quad(n<N_0),\n\\]\nso that for \\(n<N_0\\) every category is treated by the ratio branch below. For \\(n\\ge N_0\\), abbreviate \\(M=M(n)\\) and \\(B=B(n)\\).\nPut\n\\[\nN_k^{(1)}=\\sum_{a,y}N^{(1)}_{aky},\n\\qquad\nN_{ak}^{(1)}=\\sum_yN^{(1)}_{aky},\n\\]\nand define the heavy-category ratio contribution\n\\[\n\\widehat h_k\n=\n\\frac{N_k^{(1)}}{m_1}\n\\left\\{\n\\frac{N^{(1)}_{1k1}}{N^{(1)}_{1k}}\\mathbf1\\{N^{(1)}_{1k}>0\\}\n-\n\\frac{N^{(1)}_{0k1}}{N^{(1)}_{0k}}\\mathbf1\\{N^{(1)}_{0k}>0\\}\n\\right\\}.\n\\]\nDefine\n\\[\nH_M(x)=\\frac{1-T_M(1-2x)}{2M^2},\n\\qquad\nE_M(x)=\\frac{H_M(x)}{x},\n\\qquad\nG_M(x)=\\frac{1-E_M(x)}{x},\n\\]\nwhere \\(E_M\\) and \\(G_M\\) are interpreted by polynomial continuation at zero. For \\(u=(u_{00},u_{01},u_{10},u_{11})\\), set\n\\[\ns_a(u)=u_{a0}+u_{a1},\\qquad s(u)=s_0(u)+s_1(u),\n\\]\n\\[\nt_1(u)=u_{11},\\qquad t_0(u)=u_{01},\n\\]\nand define the light-cell polynomial\n\\[\nP_{M,B}(u)\n=\n\\frac{s(u)t_1(u)}B\nG_M\\!\\left(\\frac{s_1(u)}B\\right)\n-\n\\frac{s(u)t_0(u)}B\nG_M\\!\\left(\\frac{s_0(u)}B\\right).\n\\]\nExpand\n\\[\nP_{M,B}(u)=\\sum_{|r|\\le M}c_ru^r.\n\\]\nFor each category \\(k\\), define\n\\[\n\\widehat P_k\n=\n\\sum_{|r|\\le M}\nc_r\n\\frac{\\prod_{a,y}(N^{(1)}_{aky})_{r_{ay}}}{(m_1)_{|r|}}.\n\\]\nThe heavy and light sums are\n\\[\n\\widehat T_{\\mathcal H}\n=\n\\sum_{k\\in\\widehat{\\mathcal H}_n}\\widehat h_k,\n\\qquad\n\\widehat T_{\\mathcal L}\n=\n\\sum_{k\\in\\widehat{\\mathcal L}_n}\\widehat P_k.\n\\]\nThe truncated balanced ratio-polynomial hybrid estimator is\n\\[\n\\widehat\\tau_n^{\\mathrm{hyb}}\n=\n\\max\\{-1,\\min(1,\\widehat T_{\\mathcal H}+\\widehat T_{\\mathcal L})\\}.\n\\]\nThe same calibrated estimator is used for every overlap level.",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "(composite)",
+        "file": "Helpers/Estimator.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "8833e339f1187e57",
+          "a9e3bbe11e514c65",
+          "8fc9ea2bfbecf2fa"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "lem:pilot-sandwich",
+      "kind": "lemma",
+      "title": "Pilot sandwich tail bound",
+      "status": "matched",
+      "paper_statement": "Let \\(L=\\log(en)\\) and let \\(m_0=|I_0|\\) be the pilot-split size from \\cref{obj:def:sample-splits}.  For a threshold \\(t\\in\\mathbb R\\), define\n\\[\n\\widehat{\\mathcal H}(t)=\\{k:N_k^{(0)}>tL\\},\\qquad\n\\widehat{\\mathcal L}(t)=\\widehat{\\mathcal H}(t)^c,\n\\]\nand\n\\[\nB_-(t)=\\frac{tL}{2m_0},\\qquad\nB_+(t)=\\frac{2tL}{m_0}.\n\\]\nThe pilot heavy/light sandwich has the following two polynomial tail guarantees.\n\\begin{itemize}\n\\item \\textbf{(Arbitrary polynomial exponent.)} For every \\(K>0\\) and \\(c>0\\), there exist constants \\(t_0>0\\), \\(C>0\\), and \\(N\\) such that, for every \\(t\\ge t_0\\), every \\(n\\ge N\\), every dimension \\(d\\) satisfying \\(d\\le c\\,nL\\), every probability law \\(P\\) on \\(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2\\), and every sample law \\(\\mu_n\\) satisfying the iid sampling condition in \\cref{obj:ass:iid-sampling},\n\\[\n\\mu_n\\!\\left(\n\\widehat{\\mathcal H}(t)\\not\\subseteq\\{k:p_k\\ge B_-(t)\\}\n\\;\\text{or}\\;\n\\widehat{\\mathcal L}(t)\\not\\subseteq\\{k:p_k\\le B_+(t)\\}\n\\right)\n\\le C n^{-K}.\n\\]\n\\item \\textbf{(Fixed threshold specialization.)} For every \\(c>0\\), there exist constants \\(C>0\\) and \\(N\\) such that, for every \\(n\\ge N\\), every dimension \\(d\\) satisfying \\(d\\le c\\,nL\\), every probability law \\(P\\) on \\(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2\\), and every sample law \\(\\mu_n\\) satisfying the iid sampling condition in \\cref{obj:ass:iid-sampling},\n\\[\n\\mu_n\\!\\left(\n\\widehat{\\mathcal H}(256)\\not\\subseteq\\{k:p_k\\ge B_-(256)\\}\n\\;\\text{or}\\;\n\\widehat{\\mathcal L}(256)\\not\\subseteq\\{k:p_k\\le B_+(256)\\}\n\\right)\n\\le C n^{-4}.\n\\]\n\\end{itemize}",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.pilot_sandwich",
+        "file": "Helpers/PilotSandwich.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "fd2963cb1718c4fa"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:combined-upper-envelope",
+      "kind": "lemma",
+      "title": "Combined envelope selector",
+      "status": "matched",
+      "paper_statement": "Fix constants \\(\\epsilon,C_\\epsilon,\\rho_\\epsilon\\in\\mathbb R\\) and \\(N_\\epsilon\\in\\mathbb N\\). Assume:\n\\begin{itemize}\n\\item \\textbf{(Interior overlap.)} \\(0<\\epsilon<1/2\\).\n\\item \\textbf{(Positive constants.)} \\(C_\\epsilon>0\\) and \\(\\rho_\\epsilon>0\\).\n\\item \\textbf{(Hybrid bound.)} For every \\(n,d\\in\\mathbb N\\), if \\(0<n\\), \\(N_\\epsilon\\le n\\), and \\(d\\le \\rho_\\epsilon n\\log n\\), then the hybrid estimator \\(\\widehat\\tau_n^{\\mathrm{hyb}}\\) of \\cref{obj:def:hybrid-estimator-handle} satisfies\n\\[\n\\sup_{P^{\\otimes n}\\in\\mathcal E_{n,d,\\epsilon}}\n\\mathbb E_{P^{\\otimes n}}\\!\\left[\\left(\\widehat\\tau_n^{\\mathrm{hyb}}-\\tau(P)\\right)^2\\right]\n\\le\nC_\\epsilon\\left\\{\\frac1n+\\frac{d^2}{n^2(\\log n)^2}\\right\\}.\n\\]\n\\end{itemize}\nThen for every \\(n,d\\in\\mathbb N\\) with \\(0<n\\), \\(N_\\epsilon\\le n\\), and \\(d\\le \\rho_\\epsilon n\\log n\\), set\n\\[\nK_\\epsilon=\\max\\{C_\\epsilon,4\\}.\n\\]\nDefine the \\(C_\\epsilon,\\epsilon\\)-dependent selected estimator \\(\\widehat\\tau^{\\mathrm{sel}}_{C_\\epsilon,\\epsilon}\\) to be \\(\\widehat\\tau_n^{\\mathrm{hyb}}\\) when\n\\[\nC_\\epsilon\\left\\{\\frac1n+\\frac{d^2}{n^2(\\log n)^2}\\right\\}\n\\le\n\\frac1n+4(1/2-\\epsilon)^2\n\\]\nand to be \\(\\widehat\\tau_{\\mathrm{ctr}}\\) otherwise. This selected estimator satisfies\n\\[\n\\mathsf R_{n,d,\\epsilon}\\le\n\\sup_{P^{\\otimes n}\\in\\mathcal E_{n,d,\\epsilon}}\n\\mathbb E_{P^{\\otimes n}}\\!\\left[\\left(\\widehat\\tau^{\\mathrm{sel}}_{C_\\epsilon,\\epsilon}-\\tau(P)\\right)^2\\right]\n\\le\nK_\\epsilon\\left[\n\\frac1n+\n\\min\\left\\{\\frac{d^2}{n^2(\\log n)^2},(1/2-\\epsilon)^2\\right\\}\n\\right],\n\\]\nwhere \\(\\mathsf R_{n,d,\\epsilon}\\) is the minimax risk of \\cref{obj:def:minimax-risk}.",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.combined_upper_envelope",
+        "file": "Helpers/CombinedEnvelope.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "731aac659bc14a2a"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "thm:sharp-minimax-fixed-interior",
+      "kind": "theorem",
+      "title": "Sharp fixed-interior minimax rate",
+      "status": "matched",
+      "paper_statement": "Fix an overlap level \\(\\epsilon\\) with \\(0<\\epsilon<1/2\\).  Then there are constants\n\\(a_\\epsilon,\\rho_\\epsilon,C_\\epsilon>0\\) and an integer \\(N_\\epsilon<\\infty\\) such that, writing\n\\[\nr_{n,d}:=\\frac1n+\\frac{d^2}{n^2(\\log n)^2},\n\\]\nthe following statements hold.\n\\begin{itemize}\n\\item \\textbf{(Matched minimax envelope.)} For every \\(n,d\\), every single-observation law \\(P\\), and every sample law \\(\\mu_n\\) in the experiment class \\(\\mathcal E_{n,d,\\epsilon}\\) of \\cref{obj:def:experiment-class}, if\n\\[\nd>0,\\qquad n\\ge N_\\epsilon,\\qquad d\\le \\rho_\\epsilon n\\log n,\n\\]\nthen the minimax risk \\(\\mathsf R_{n,d,\\epsilon}\\) of \\cref{obj:def:minimax-risk} and the truncated balanced ratio-polynomial hybrid estimator \\(\\widehat\\tau_n^{\\mathrm{hyb}}\\) of \\cref{obj:def:hybrid-estimator-handle} satisfy\n\\[\na_\\epsilon r_{n,d}\n\\le\n\\mathsf R_{n,d,\\epsilon}\n\\le\n\\sup_{P^{\\otimes n}\\in\\mathcal E_{n,d,\\epsilon}}\nE_P\\!\\left[\\left(\\widehat\\tau_n^{\\mathrm{hyb}}-\\tau(P)\\right)^2\\right]\n\\le\nC_\\epsilon r_{n,d}.\n\\]\n\\item \\textbf{(Parametric interior.)} For every \\(K>0\\) there is a constant \\(C_K>0\\) such that, for every \\(n,d\\), every single-observation law \\(P\\), and every sample law \\(\\mu_n\\) in \\(\\mathcal E_{n,d,\\epsilon}\\), if\n\\[\nd>0,\\qquad n\\ge N_\\epsilon,\\qquad\nd\\le K\\sqrt n\\log n,\\qquad\nd\\le \\rho_\\epsilon n\\log n,\n\\]\nthen\n\\[\n\\frac{a_\\epsilon}{n}\n\\le\n\\mathsf R_{n,d,\\epsilon}\n\\le\n\\frac{C_K}{n}.\n\\]\n\\item \\textbf{(Consistency threshold.)} For every pair of integer sequences \\(n_j,d_j\\) with \\(n_j\\to\\infty\\), \\(d_j>0\\) eventually, and\n\\[\nd_j\\le \\rho_\\epsilon n_j\\log n_j\n\\]\neventually, the minimax risk converges to zero exactly along the sequences satisfying the vanishing normalized dimension condition:\n\\[\n\\mathsf R_{n_j,d_j,\\epsilon}\\to 0\n\\quad\\Longleftrightarrow\\quad\n\\frac{d_j}{n_j\\log n_j}\\to 0.\n\\]\n\\end{itemize}",
+      "external_dependencies": [
+        {
+          "node_id": "lem:zeng-one-arm-minimax-lower",
+          "cite_id": "cite:zeng-balakrishnan-han-kennedy-2024",
+          "cite_key": "ZengBalakrishnanHanKennedy2024",
+          "locator": "Theorem 2; Appendix C.5; Lemma 4; Appendix D.2",
+          "statement": "Fix \\(0<\\epsilon<1/2\\). Let \\(\\mathcal D_0^{(n,d)}(\\epsilon)\\) be the fixed-sample binary-outcome subclass of \\(\\mathcal E_{n,d,\\epsilon}\\) consisting of laws \\(P^{\\otimes n}\\) with arbitrary masses \\(p_k\\ge0\\), \\(\\sum_{k=1}^d p_k=1\\), propensities satisfying \\(\\epsilon\\le\\pi_k\\le1-\\epsilon\\) on every positive-mass category, arbitrary treated response means \\(\\mu_{1k}\\in[0,1]\\), and \\(\\mu_{0k}=0\\) for every \\(k\\). Define \\(\\psi_1(P)=\\sum_{k=1}^d p_k\\mu_{1k}\\). There are constants \\(a_\\epsilon,b_\\epsilon>0\\) and \\(N_\\epsilon<\\infty\\) such that, for all \\(n\\ge N_\\epsilon\\) and \\(d\\le b_\\epsilon n\\log n\\),\n\\[\n\\inf_{\\widehat\\psi}\\sup_{P^{\\otimes n}\\in\\mathcal D_0^{(n,d)}(\\epsilon)}E_P[(\\widehat\\psi-\\psi_1(P))^2]\\ge a_\\epsilon\\left\\{\\frac1n+\\frac{d^2}{n^2\\log^2n}\\right\\},\n\\]\nwhere the infimum is over measurable estimators based on the fixed sample of size \\(n\\).",
+          "status": "matched"
+        }
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.sharp_minimax_fixed_interior",
+        "file": "T_SharpMinimaxFixedInterior.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "ff2d00f670543ca6"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "thm:overlap-adaptive-universal-hybrid",
+      "kind": "theorem",
+      "title": "Overlap adaptive hybrid envelope",
+      "status": "matched",
+      "paper_statement": "With \\(\\widehat\\tau_n^{\\mathrm{hyb}}\\) as in \\cref{obj:def:hybrid-estimator-handle} and \\(\\mathsf R_{n,d,\\epsilon}\\) as in \\cref{obj:def:minimax-risk}, the following assertions hold.\n\\begin{itemize}\n\\item \\textbf{Computability.} There is a universal integer \\(K>0\\) such that, for every \\(n,d\\in\\mathbb N\\), a real-arithmetic program based on the hybrid count input has operation count at most\n\\[\nK\\,d\\,M(n)^4\n\\]\nand, for every sample \\(O_1,\\ldots,O_n\\), evaluates exactly to \\(\\widehat\\tau_n^{\\mathrm{hyb}}\\).\n\\item \\textbf{Fixed-overlap hybrid calibration.} For every overlap level \\(\\epsilon\\) with \\(0<\\epsilon<1/2\\), there are constants \\(C_\\epsilon,\\rho_\\epsilon>0\\) and an integer \\(N_\\epsilon\\) such that, for all \\(n,d\\in\\mathbb N\\) with \\(n>0\\), \\(d>0\\), \\(n\\ge N_\\epsilon\\), and\n\\[\nd\\le \\rho_\\epsilon n\\log n,\n\\]\nthe hybrid estimator satisfies\n\\[\n\\sup_{P^{\\otimes n}\\in\\mathcal E_{n,d,\\epsilon}}\nE_P\\!\\left[\\left(\\widehat\\tau_n^{\\mathrm{hyb}}-\\tau(P)\\right)^2\\right]\n\\le\nC_\\epsilon\\left\\{\\frac1n+\\frac{d^2}{n^2(\\log n)^2}\\right\\}.\n\\]\nFor the deterministic estimator\n\\[\n\\widehat\\tau_{C_\\epsilon,\\epsilon}\n=\n\\begin{cases}\n\\widehat\\tau_n^{\\mathrm{hyb}},\n& \\text{if } C_\\epsilon\\left\\{\\frac1n+\\frac{d^2}{n^2(\\log n)^2}\\right\\}\n\\le \\frac1n+4(1/2-\\epsilon)^2,\\\\\n\\widehat\\tau_{\\mathrm{ctr}},\n& \\text{otherwise,}\n\\end{cases}\n\\]\none also has\n\\[\n\\mathsf R_{n,d,\\epsilon}\n\\le\n\\sup_{P^{\\otimes n}\\in\\mathcal E_{n,d,\\epsilon}}\nE_P\\!\\left[\\left(\\widehat\\tau_{C_\\epsilon,\\epsilon}-\\tau(P)\\right)^2\\right]\n\\le\n\\max\\{C_\\epsilon,4\\}\n\\left[\n\\frac1n+\n\\min\\left\\{\n\\frac{d^2}{n^2(\\log n)^2},(1/2-\\epsilon)^2\n\\right\\}\n\\right].\n\\]\n\\item \\textbf{Centered randomization bound.} For every overlap level \\(\\epsilon\\) with \\(0<\\epsilon\\le 1/2\\) and every \\(n,d\\in\\mathbb N\\) with \\(n>0\\) and \\(d>0\\), the centered estimator\n\\[\n\\widehat\\tau_{\\mathrm{ctr}}\n=\n\\frac1n\\sum_{i=1}^n\n2(2A_i-1)\\left(Y_i-\\frac12\\right)\n\\]\nsatisfies\n\\[\n\\sup_{P^{\\otimes n}\\in\\mathcal E_{n,d,\\epsilon}}\nE_P\\!\\left[\\left(\\widehat\\tau_{\\mathrm{ctr}}-\\tau(P)\\right)^2\\right]\n\\le\n\\frac1n+4(1/2-\\epsilon)^2.\n\\]\n\\item \\textbf{Endpoint randomization bracket.} For every \\(n,d\\in\\mathbb N\\) with \\(n>0\\) and \\(d>0\\),\n\\[\n\\frac{1}{100n}\\le \\mathsf R_{n,d,1/2}\\le \\frac1n.\n\\]\n\\end{itemize}",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.overlap_adaptive_universal_hybrid",
+        "file": "T_OverlapAdaptiveUniversalHybrid.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "b4e14f20381c8183"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:calibration-consequences",
+      "kind": "lemma",
+      "title": "Calibration consequences",
+      "status": "matched",
+      "paper_statement": "Let \\(L=\\log(en)\\), let \\(\\ell=\\log n\\), and let \\(m_1=|I_1|\\) be the second split size from \\cref{obj:def:sample-splits}. Let \\(M=M(n)\\) and \\(B=B(n)\\) be the polynomial degree and light-cell approximation scale from \\cref{obj:def:hybrid-estimator-handle}. If \\(n\\ge N_0\\) and \\(L\\ge240\\), then\n\\[\n0<\\ell,\\qquad\n\\ell\\le L,\\qquad\nL\\le2\\ell,\\qquad\n0<m_1,\\qquad\nn\\le2m_1,\\qquad\nM\\le L,\\qquad\nB\\le\\frac{8192L}{n},\\qquad\n(6^{2M})^2L^6\\le n .\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.large_calibration_bounds",
+        "file": "Helpers/LightCellRateAsymptotic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "f5336c9839f525d1"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "synth_19",
+      "kind": "definition",
+      "title": "Chebyshev reciprocal coefficients \\(g_{M,j}\\)",
+      "status": "presentation-synthesized",
+      "paper_statement": "For an integer \\(M\\ge2\\), we say \\(g_{M,j}\\), \\(0\\le j\\le M-2\\), are the Chebyshev reciprocal coefficients when they are the unique real coefficients satisfying \\[\\frac{1-\\frac{1-T_M(1-2x)}{2M^2x}}{x}=\\sum_{j=0}^{M-2}g_{M,j}x^j,\\] with the left-hand side interpreted by polynomial continuation at \\(x=0\\), where \\(T_M\\) is the degree-\\(M\\) Chebyshev polynomial of the first kind.",
+      "external_dependencies": [],
+      "lean": null,
+      "audits": {
+        "statement": null,
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "lem:sparse-arm-expansion",
+      "kind": "lemma",
+      "title": "Sparse arm expansion",
+      "status": "matched",
+      "paper_statement": "For any sample \\(O_1,\\ldots,O_n\\), with each \\(O_i=(X_i,A_i,Y_i)\\in\\{1,\\ldots,d\\}\\times\\{0,1\\}^2\\), and any category \\(k\\in\\{1,\\ldots,d\\}\\), let \\(M=M(n)\\) and \\(B=B(n)\\) be the polynomial degree and light-cell approximation scale of \\cref{obj:def:hybrid-estimator-handle}.  For each arm \\(a\\in\\{0,1\\}\\), define\n\\[\n\\widehat A_{a,k}\n=\n\\sum_{j=0}^{M-2}\\sum_{t=0}^{j}\\sum_{c\\in\\{0,1\\}^2}\nB^{-1} g_{M,j} B^{-j}\\binom jt\\,\n\\mathfrak m_{k,r^{a,c,j,t}},\n\\]\nwhere \\(g_{M,j}\\) are the coefficients of \\(G_M\\), \\(r^{a,c,j,t}\\) is the four-cell exponent vector determined by\n\\(u^{r^{a,c,j,t}}=u_cu_{a1}u_{a0}^{\\,t}u_{a1}^{\\,j-t}\\), and \\(\\mathfrak m_{k,r^{a,c,j,t}}\\) is the corresponding normalized factorial-moment monomial computed from the sample.  Then the factorial-moment polynomial estimate for category \\(k\\) satisfies\n\\[\n\\widehat P_k=\\widehat A_{1,k}-\\widehat A_{0,k}.\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.factorialPolynomialContribution_eq_sparseArms",
+        "file": "Helpers/LightCellVariance.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "77e1e21e9187ccf7"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:factorial-moment-mean",
+      "kind": "lemma",
+      "title": "Factorial mean identity",
+      "status": "matched",
+      "paper_statement": "Let \\(P\\) be a probability law for one observation \\(O=(X,A,Y)\\) with \\(X\\in\\{1,\\ldots,d\\}\\) and \\(A,Y\\in\\{0,1\\}\\), and let \\(k\\in\\{1,\\ldots,d\\}\\). Let \\(P^{\\otimes\\infty}\\) denote the ambient infinite iid product law generated by \\(P\\). Suppose that \\(n\\ge N_0\\), where \\(N_0\\) is the calibration cutoff in \\cref{obj:def:hybrid-estimator-handle}. For\n\\[\nq_k=\\bigl(P(X=k,A=a,Y=y)\\bigr)_{a,y\\in\\{0,1\\}},\n\\]\nthe factorial-moment polynomial estimate \\(\\widehat P_k\\) from \\cref{obj:def:hybrid-estimator-handle}, evaluated on the first \\(n\\) coordinates under \\(P^{\\otimes\\infty}\\), satisfies\n\\[\n\\int \\widehat P_k(O_1,\\ldots,O_n)\\,dP^{\\otimes\\infty}\n=\nP_{M(n),B(n)}(q_k).\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_factorialPolynomialContribution_trunc",
+        "file": "Helpers/LightCell.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "d55334c5baa920b1"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:chebyshev-reciprocal-certificate",
+      "kind": "lemma",
+      "title": "Polynomial approximation certificate",
+      "status": "matched",
+      "paper_statement": "Fix a degree \\(M\\in\\mathbb N\\), a real scale \\(B\\), the overlap level \\(\\epsilon\\), and a four-cell vector \\(u\\). Assume:\n\\begin{itemize}\n\\item \\textbf{(Degree.)} \\(M\\ge 1\\).\n\\item \\textbf{(Overlap level.)} \\(\\epsilon>0\\).\n\\item \\textbf{(Cone membership.)} \\(u\\in\\mathcal C_\\epsilon\\), where \\(\\mathcal C_\\epsilon\\) is the overlap-restricted cone in \\cref{obj:def:overlap-cone}.\n\\item \\textbf{(Mass bound.)} \\(s(u)\\le B\\).\n\\end{itemize}\nFor the light-cell polynomial \\(P_{M,B}\\) from \\cref{obj:def:hybrid-estimator-handle} and the homogeneous cell contribution \\(\\phi\\) from \\cref{obj:def:cell-functional},\n\\[\n\\left|P_{M,B}(u)-\\phi(u)\\right|\\le \\frac{2B}{\\epsilon M^2}.\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.cellApproxPolynomial_error",
+        "file": "Helpers/ChebyshevCertificate.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "600c036fda85113a"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:heavy-residual-bound",
+      "kind": "lemma",
+      "title": "Fixed-set residual variance",
+      "status": "matched",
+      "paper_statement": "Let \\(P\\) be a probability law on the finite observed-data alphabet\n\\(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2\\), let \\(I\\) be a finite index set, and write\n\\(m=|I|\\).  For observations \\(O_i=(X_i,A_i,Y_i)\\), \\(i\\in I\\), drawn independently\nfrom \\(P\\), let \\(H\\subseteq\\{1,\\ldots,d\\}\\) be deterministic and fix\n\\(a\\in\\{0,1\\}\\).\n\nAssume:\n\\begin{itemize}\n\\item \\textbf{(Overlap.)} The overlap level \\(\\epsilon\\) satisfies \\(\\epsilon>0\\), and for every category \\(k\\) with \\(p_k=P(X=k)>0\\),\n\\[\n\\epsilon\\le \\pi_k\\le 1-\\epsilon .\n\\]\n\\item \\textbf{(Positive mass on \\(H\\).)} For every \\(k\\in H\\), \\(p_k>0\\).\n\\end{itemize}\n\nWith counts computed from the sample,\n\\[\n\\mathcal R_a(H)\n=\n\\sum_{k\\in H}\nN_k\\frac{\\mathbf 1\\{N_{ak}>0\\}}{N_{ak}}\n\\left\\{N_{ak1}-\\mu_{ak}N_{ak}\\right\\}.\n\\]\nThen\n\\[\nE_P\\!\\left[\\mathcal R_a(H)^2\\right]\n\\le\n\\frac{2m}{\\epsilon}\\sum_{k\\in H}p_k .\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_fixedRatioResidual_sq_le",
+        "file": "Helpers/HeavyCellMoments.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "d2210d73afce6bc8"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:missing-arm-envelope",
+      "kind": "lemma",
+      "title": "Missing-arm second moment",
+      "status": "matched",
+      "paper_statement": "Let \\(J\\) be a finite sample-index set and write \\(m=|J|\\). For a probability law \\(P\\) on \\(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2\\), a deterministic category set \\(H\\subseteq\\{1,\\ldots,d\\}\\), and an arm \\(a\\in\\{0,1\\}\\), define\n\\[\nZ_{ak}=N_k\\mathbf 1\\{N_{ak}=0\\},\n\\]\nwhere \\(N_k\\) is the number of observations in category \\(k\\) and \\(N_{ak}\\) is the number of observations in category \\(k\\) and arm \\(a\\) in the \\(J\\)-indexed iid sample from \\(P\\).\n\nAssume:\n\\begin{itemize}\n\\item \\textbf{(Sample size.)} \\(m\\ge 3\\).\n\\item \\textbf{(Overlap.)} The overlap level \\(\\epsilon\\) satisfies \\(\\epsilon>0\\), and for every category \\(k\\) with \\(p_k=P(X=k)>0\\),\n\\[\n\\epsilon\\le P(A=1\\mid X=k)\\le 1-\\epsilon .\n\\]\n\\item \\textbf{(Mass floor.)} \\(B>0\\), and \\(p_k\\ge B\\) for every \\(k\\in H\\).\n\\end{itemize}\nThen\n\\[\n\\mathbb E_{P^{\\otimes J}}\\left[\n\\left(\\sum_{k\\in H} Z_{ak}\\right)^2\n\\right]\n\\le\nm+m^2\n\\left[\n\\frac{|H|}\n{\\left\\{\\left((m-2)/2\\right)\\epsilon\\right\\}^2 B}\n\\right]^2 .\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_fixedMissingCount_sq_le",
+        "file": "Helpers/HeavyCellMoments.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "d60b41a53514d4dd"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:factorial-product-moment",
+      "kind": "lemma",
+      "title": "Factorial product moment",
+      "status": "matched",
+      "paper_statement": "Fix \\(n,d\\in\\mathbb N\\), \\(P\\in\\mathsf{Prob}(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2)\\), a category \\(k\\in\\{1,\\ldots,d\\}\\), and four-cell multi-indices \\(r,s\\). Using the split counts and split size in \\cref{obj:def:sample-splits}, let\n\\[\n\\mathfrak m_{k,r}\n=\n\\frac{\\prod_{(a,y)}(N^{(1)}_{aky})_{r_{ay}}}{(m_1)_{|r|}},\n\\]\nwhere \\((z)_t\\) denotes the falling factorial and \\(|r|=\\sum_{(a,y)}r_{ay}\\). Let \\(q_{aky}\\) denote the treatment--outcome cell mass in category \\(k\\), as in \\cref{obj:def:ate-functional}. Assume:\n\\begin{itemize}\n\\item \\textbf{(Nonempty estimation split.)} \\(m_1>0\\).\n\\item \\textbf{(Degree ordering.)} \\(|r|\\le |s|\\).\n\\item \\textbf{(Split-size condition.)} \\(4|s|^2\\le m_1\\).\n\\end{itemize}\nThen, under the iid product law generated by \\(P\\),\n\\[\n\\mathbb E_{P^{\\otimes n}}\\!\\left[\\mathfrak m_{k,r}\\mathfrak m_{k,s}\\right]\n\\le \\mathrm e\\,\\prod_{(a,y)}q_{aky}^{\\,r_{ay}}\n\\prod_{(a,y)}\n\\left(q_{aky}+\\frac{|s|}{m_1}\\right)^{s_{ay}} .\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_factorialMonomial_mul_trunc_le",
+        "file": "Helpers/LightCellAssembly.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "77e74270d52a2f49"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:coefficient-sum-certificate",
+      "kind": "lemma",
+      "title": "Coefficient sum certificate",
+      "status": "matched",
+      "paper_statement": "Let \\(M\\) be a positive integer and let \\(z\\ge 0\\). With \\(g_{M,j}\\) denoting the coefficients of the polynomial continuation \\(G_M\\) from \\cref{obj:def:hybrid-estimator-handle}, define\n\\[\ng_M^+(z)\n=\n\\sum_{j\\in\\{0,\\ldots,M-2\\}} |g_{M,j}| z^j,\n\\]\nwith the sum interpreted as empty when \\(M=1\\). Then\n\\[\ng_M^+(z)\n\\le\n6^M \\max\\{1,z^{M\\dotminus 2}\\},\n\\]\nwhere \\(M\\dotminus 2=\\max\\{M-2,0\\}\\).",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.gpos_bound",
+        "file": "Helpers/ChebyshevCertificate.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "9ea3d679cf2d25e9"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:universal-heavy-cell-rate",
+      "kind": "lemma",
+      "title": "Heavy-cell rate bound",
+      "status": "matched",
+      "paper_statement": "For every overlap level \\(\\epsilon\\) satisfying \\(0<\\epsilon<1/2\\), there exist constants \\(C_\\epsilon,\\rho_\\epsilon>0\\) and an integer \\(N_\\epsilon\\) such that the following holds. For every \\(n,d\\), every single-observation law \\(P\\) on \\(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2\\), and every sample law \\(\\mu_n\\), if\n\\begin{itemize}\n\\item \\textbf{(Sample size.)} \\(n\\ge N_\\epsilon\\);\n\\item \\textbf{(Dimension range.)} \\(d\\le \\rho_\\epsilon n\\log n\\);\n\\item \\textbf{(Experiment membership.)} \\(\\mu_n\\) and \\(P\\) belong to the overlap-restricted iid product-law experiment class \\(\\mathcal E_{n,d,\\epsilon}\\) of \\cref{obj:def:experiment-class},\n\\end{itemize}\nthen the aggregate heavy-cell ratio estimator satisfies\n\\[\n\\int \\left\\{\n\\widehat T_{\\mathcal H}(O_1,\\ldots,O_n)\n-\n\\sum_{k\\in\\widehat{\\mathcal H}_n(O_1,\\ldots,O_n)} \\phi(q_k)\n\\right\\}^2\\,d\\mu_n\n\\le\nC_\\epsilon\\left\\{\n\\frac1n+\\frac{d^2}{n^2(\\log n)^2}\n\\right\\}.\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.universal_heavy_cell_rate",
+        "file": "Helpers/HeavyCell.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "b48a6bf31ded9ccf"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "synth_20",
+      "kind": "definition",
+      "title": "Sparse factorial-polynomial means",
+      "status": "presentation-synthesized",
+      "paper_statement": "Given a law \\(P\\), a category \\(k\\in\\{1,\\ldots,d\\}\\), a degree \\(M\\), and a scale \\(B\\), write \\(q_k=(q_{0k0},q_{0k1},q_{1k0},q_{1k1})\\) for the four-cell mass vector of category \\(k\\) under \\(P\\). For an arm \\(a\\in\\{0,1\\}\\), the sparse-arm mean is \\[ \\bar A_{a,k}(P,M,B) = \\frac{s(q_k)\\,t_a(q_k)}{B}\\,G_M\\!\\left(\\frac{s_a(q_k)}{B}\\right), \\] with \\(s\\), \\(s_a\\), \\(t_a\\), and \\(G_M\\) as in \\cref{obj:def:hybrid-estimator-handle}. The sparse factorial-polynomial mean of category \\(k\\) is the difference of the two arm means, \\[ \\bar P_k = P_{M,B}(q_k) = \\bar A_{1,k}(P,M,B) - \\bar A_{0,k}(P,M,B). \\]",
+      "external_dependencies": [],
+      "lean": null,
+      "audits": {
+        "statement": null,
+        "proof": null
+      }
+    },
+    {
+      "obj_id": "lem:factorial-moment-variance",
+      "kind": "lemma",
+      "title": "Factorial moment variance bound",
+      "status": "matched",
+      "paper_statement": "Use the split notation and hybrid-estimator calibration in \\cref{obj:def:sample-splits,obj:def:hybrid-estimator-handle}.  For any sample size \\(n\\), alphabet size \\(d\\), probability law \\(P\\) on the finite observed-data alphabet, and category \\(k\\), let \\(\\bar P_k\\) denote the sparse factorial-polynomial mean of the light-cell statistic \\(\\widehat P_k\\).  Suppose that\n\\begin{itemize}\n\\item \\textbf{(Split size.)} \\(m_1>0\\).\n\\item \\textbf{(Degree and scale.)} \\(M(n)>0\\) and \\(B(n)>0\\).\n\\item \\textbf{(Sample-size calibration.)} \\(4M(n)^2\\le m_1\\).\n\\item \\textbf{(Mass envelope.)} The category mass \\(p_k=P(X=k)\\) satisfies\n\\[\np_k+\\frac{4M(n)}{m_1}\\le B(n)\n\\qquad\\text{and}\\qquad\np_k\\le B(n).\n\\]\n\\end{itemize}\nThen, under the ambient infinite iid product law \\(P^{\\otimes\\infty}\\),\n\\[\n\\int\n\\left(\\widehat P_k-\\bar P_k\\right)^2\n\\,dP^{\\otimes\\infty}\n\\le\n8(\\mathrm e+1)\\left(B(n)6^{M(n)}\\right)^2 .\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_factorialPolynomial_centered_sq_le",
+        "file": "Helpers/LightCellRateDeterministic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "32aedb31baa7d7bf"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:factorial-moment-covariance",
+      "kind": "lemma",
+      "title": "Off-diagonal factorial covariance",
+      "status": "matched",
+      "paper_statement": "Use the split notation and calibration \\(m_1\\), \\(M(n)\\), and \\(B(n)\\) from \\cref{obj:def:sample-splits,obj:def:hybrid-estimator-handle}.  For each category \\(k\\), let \\(\\widehat P_k\\) be the factorial-moment polynomial estimate from \\cref{obj:def:hybrid-estimator-handle}, computed from the first \\(n\\) coordinates of the ambient iid sequence, and let\n\\[\n\\bar P_k\n=\n\\bar A_{1,k}\\bigl(P,M(n),B(n)\\bigr)\n-\n\\bar A_{0,k}\\bigl(P,M(n),B(n)\\bigr)\n\\]\ndenote the corresponding sparse factorial-polynomial mean, written as the treated sparse-arm mean minus the control sparse-arm mean.\n\nFor any single-observation law \\(P\\) on \\(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2\\) and any two categories \\(k,l\\in\\{1,\\ldots,d\\}\\), suppose that\n\\begin{itemize}\n\\item \\textbf{Distinct categories.} \\(k\\ne l\\).\n\\item \\textbf{Positive calibration.} \\(M(n)>0\\) and \\(B(n)>0\\).\n\\item \\textbf{Second-split size.} \\(4M(n)^2\\le m_1\\).\n\\item \\textbf{Light masses.} \\(p_k\\le B(n)\\) and \\(p_l\\le B(n)\\).\n\\end{itemize}\nThen, under the ambient infinite iid product law \\(P^{\\otimes\\infty}\\),\n\\[\n\\mathbb E_{P^{\\otimes\\infty}}\n\\!\\left[\n\\bigl(\\widehat P_k-\\bar P_k\\bigr)\n\\bigl(\\widehat P_l-\\bar P_l\\bigr)\n\\right]\n\\le\n\\frac{8M(n)^2}{m_1}\n\\left\\{B(n)\\,6^{M(n)}\\right\\}^2 .\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_factorialPolynomial_centered_cross_le",
+        "file": "Helpers/LightCellRateDeterministic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "0c9ccd0e3e432c36"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:false-light-envelope",
+      "kind": "lemma",
+      "title": "False-light error envelope",
+      "status": "matched",
+      "paper_statement": "Let \\(P\\) be a probability law on \\(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2\\). Suppose that:\n\\begin{itemize}\n\\item \\textbf{(Overlap.)} For every category \\(k\\) with \\(p_k>0\\), the treatment probability satisfies\n\\[\n\\epsilon \\le \\pi_k \\le 1-\\epsilon .\n\\]\n\\item \\textbf{(Calibration cutoff.)} The sample size satisfies \\(n\\ge N_0\\), where \\(N_0\\) is the least numerical cutoff satisfying the calibration inequalities used in the estimator.\n\\item \\textbf{(Logarithmic scale.)} With \\(L=\\log(en)\\), one has \\(L\\ge 240\\).\n\\end{itemize}\nFor the pilot-light indicator \\(S_k=\\mathbf 1\\{k\\in\\widehat{\\mathcal L}_n\\}\\), the selected false-light error over categories whose population mass exceeds the light-cell threshold satisfies\n\\[\nE_{P^{\\otimes n}}\\left[\n\\left\\{\n\\sum_{\\substack{k\\in\\{1,\\ldots,d\\}\\\\ p_k>B(n)/4}}\nS_k\\bigl(\\widehat P_k-\\phi(q_k)\\bigr)\n\\right\\}^2\n\\right]\n\\le\n8(\\mathrm e+1)8192^2\n\\left\\{\n\\frac1n+\\frac{d^2}{n^2(\\log n)^2}\n\\right\\}.\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.selectedFalseLightError_rate",
+        "file": "Helpers/LightCellRateAsymptotic.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "507f1f3e88c5354d"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    },
+    {
+      "obj_id": "lem:light-cell-polynomial",
+      "kind": "lemma",
+      "title": "Light-cell polynomial rate",
+      "status": "matched",
+      "paper_statement": "Fix an overlap level \\(\\epsilon\\) with \\(0<\\epsilon\\le 1/2\\). The hybrid estimator is computable in the real-arithmetic count model: there is a universal constant \\(K\\in\\mathbb N\\), \\(K>0\\), such that for every \\(n,d\\) a real-arithmetic program using the split-count vector evaluates \\(\\widehat\\tau_n^{\\mathrm{hyb}}\\) exactly and uses at most \\(K\\,d\\,M(n)^4\\) arithmetic and comparison operations.\n\nThere are constants \\(C_\\epsilon,c_\\epsilon>0\\), depending only on \\(\\epsilon\\), such that, for every \\(n,d\\), every \\(P\\in\\mathsf{Prob}(\\{1,\\ldots,d\\}\\times\\{0,1\\}^2)\\), and every sample law \\(\\mu_n\\), if\n\\begin{itemize}\n\\item \\textbf{(Experiment class.)} \\(\\mu_n=P^{\\otimes n}\\) belongs to the overlap-restricted iid product-law experiment class \\(\\mathcal E_{n,d,\\epsilon}\\) of \\cref{obj:def:experiment-class};\n\\item \\textbf{(Dimension range.)} \\(d\\le c_\\epsilon n\\log n\\);\n\\end{itemize}\nthen the light-cell contribution \\(\\widehat T_{\\mathcal L}\\) satisfies\n\\[\n\\int\\left(\\widehat T_{\\mathcal L}(O_1,\\ldots,O_n)\n-\\sum_{k\\in\\widehat{\\mathcal L}_n}\\phi(q_k)\\right)^2\\,d\\mu_n\n\\le\nC_\\epsilon\\left\\{\\frac1n+\\frac{d^2}{n^2(\\log n)^2}\\right\\}.\n\\]",
+      "external_dependencies": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.light_cell_polynomial",
+        "file": "Helpers/LightCell.lean",
+        "sorry_free": true,
+        "declaration_refs": [
+          "6f33724f340a160f"
+        ]
+      },
+      "audits": {
+        "statement": "faithful",
+        "proof": "faithful"
+      }
+    }
+  ],
+  "declarations": {
+    "c2958a692ec345ef": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.IidSampling",
+      "statement": "/-- The observed sample law is the `n`-fold product of the one-unit law. -/\ndef IidSampling {d n : ℕ} (P : DiscreteLaw d)\n    (mu_n : Measure (Fin n → Obs d)) : Prop :=\n  mu_n = productLaw P n"
+    },
+    "d3d074b41e771047": {
+      "label": "DiscreteLaw",
+      "statement": "/-- A probability law with arbitrary masses on the finite observation alphabet. -/\nstructure DiscreteLaw (d : ℕ) where\n  pmf : PMF (Obs d) -- @realizes P(probability law on Fin d × Bool × Bool)"
+    },
+    "a9e3bbe11e514c65": {
+      "label": "Obs",
+      "statement": "/-- One observed unit `(X,A,Y)`. -/\nabbrev Obs (d : ℕ) := Fin d × Bool × Bool"
+    },
+    "37b330f93b3beb8b": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.Overlap",
+      "statement": "/-- Positive-mass categories have propensity in `[epsilon,1-epsilon]`. -/\ndef Overlap {d : ℕ} (epsilon : ℝ) (P : DiscreteLaw d) : Prop :=\n  ∀ k, 0 < cellMass P k →\n    epsilon ≤ propensity P k ∧ propensity P k ≤ 1 - epsilon"
+    },
+    "b4ccf4977e2802d5": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.Consistency",
+      "statement": "/-- `Y=Y(A)` almost surely, written as zero mass on inconsistent atoms. -/\ndef Consistency {d : ℕ} (Q : PotentialLaw d) : Prop :=\n  ∀ z, z.2.2.1 ≠ (if z.2.1 then z.2.2.2.2 else z.2.2.2.1) → fullMass Q z = 0"
+    },
+    "041a32266d3a55fd": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.ConditionalExchangeability",
+      "statement": "/-- Finite conditional-independence identity `(Y(0),Y(1)) ⟂ A | X`. -/\ndef ConditionalExchangeability {d : ℕ} (Q : PotentialLaw d) : Prop :=\n  ∀ k a y0 y1,\n    poAtom Q k a y0 y1 *\n        (∑ a' : Bool, ∑ y0' : Bool, ∑ y1' : Bool, poAtom Q k a' y0' y1') =\n      (∑ a' : Bool, poAtom Q k a' y0 y1) *\n        (∑ y0' : Bool, ∑ y1' : Bool, poAtom Q k a y0' y1')"
+    },
+    "0917cb0a54c22618": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.ExperimentClass",
+      "statement": "/-- Membership of a sample law in the unrestricted overlap experiment class. -/\nstructure ExperimentClass (n : ℕ) {d : ℕ} (epsilon : ℝ)\n    (P : DiscreteLaw d) (mu_n : Measure (Fin n → Obs d)) : Prop where\n  epsilon_pos : 0 < epsilon\n    -- @realizes epsilon(strictly positive overlap constant)\n  epsilon_le_half : epsilon ≤ 1 / 2\n    -- @realizes epsilon(overlap constant at most 1/2)\n  product_law : IidSampling P mu_n\n    -- @realizes \\mathcal E_{n,d,\\epsilon}(member law is productLaw P n)\n    -- @realizes O_i(i.i.d. observations governed by the product law)\n  overlap : Overlap epsilon P"
+    },
+    "9a7e43740bf476b3": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.overlapCone",
+      "statement": "/-- The nonnegative four-cell cone with treatment mass in the overlap band. -/\ndef overlapCone (epsilon : ℝ) : Set (Cell → ℝ) :=\n  {u | (∀ i, 0 ≤ u i) ∧\n    epsilon * vectorMass u ≤ vectorArmMass u 1 ∧\n    vectorArmMass u 1 ≤ (1 - epsilon) * vectorMass u}"
+    },
+    "40f9e647edfc2b30": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.cellPhiOnCone",
+      "statement": "/-- The homogeneous four-cell ATE contribution on its stated overlap-cone domain. -/\nnoncomputable def cellPhiOnCone (epsilon : ℝ) (u : overlapCone epsilon) : ℝ :=\n  cellPhi u.1"
+    },
+    "d6224b8baca53235": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.ateFunctional",
+      "statement": "noncomputable def ateFunctional {d : ℕ} (P : DiscreteLaw d) : ℝ :=\n  ∑ k : Fin d, cellPhi (cellVector P k)"
+    },
+    "641595e258010d12": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.minimaxRisk",
+      "statement": "noncomputable def minimaxRisk (n d : ℕ) (epsilon : ℝ) : ℝ :=\n  ⨅ est : {f : (Fin n → Obs d) → ℝ // Measurable f},\n    worstCaseMSE n d epsilon est.1"
+    },
+    "bd522e40641db5b5": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.two_category_confounding",
+      "statement": "/-- The explicit full-data witness is consistent, conditionally exchangeable and\noverlapping, has ATE `1/2`, and naive observed contrast `epsilon`. -/\ntheorem two_category_confounding (epsilon : ℝ) (he0 : 0 < epsilon)\n    (he1 : epsilon ≤ 1 / 2) :\n    let Q"
+    },
+    "99cd82bb21c12968": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.ate_lower_bound_transfer",
+      "statement": "/-- Transfers the cited control-zero one-arm converse to the unrestricted ATE\nminimax problem by restriction of the law class. -/\nlemma ate_lower_bound_transfer {epsilon : ℝ}\n    (hZeng : ZengOneArmMinimaxLower epsilon) (he0 : 0 < epsilon)\n    (he1 : epsilon < 1 / 2) :\n    ∃ a_epsilon b_epsilon : ℝ, ∃ N_epsilon : ℕ,\n      0 < a_epsilon ∧ 0 < b_epsilon ∧\n      ∀ n d : ℕ, 0 < d → N_epsilon ≤ n →\n        (d : ℝ) ≤ b_epsilon * n * Real.log n →\n        a_epsilon * minimaxRate n d ≤ minimaxRisk n d epsilon"
+    },
+    "926bed77c2d56654": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.near_randomization_linear_upper",
+      "statement": "/-- All-`n,d` MSE bound for the centered estimator. -/\nlemma near_randomization_linear_upper {n d : ℕ} {epsilon : ℝ}\n    (P : DiscreteLaw d) (mu_n : Measure (Fin n → Obs d))\n    (hClass : ExperimentClass n epsilon P mu_n) (hn : 0 < n) :\n    mse mu_n centeredEstimator (ateFunctional P) ≤\n      1 / (n : ℝ) + 4 * (1 / 2 - epsilon) ^ 2"
+    },
+    "748c2b3a32c77e2f": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.one_category_bernoulli_lower",
+      "statement": "/-- Explicit one-category Bernoulli two-point lower bound at randomization. -/\nlemma one_category_bernoulli_lower (n d : ℕ) (hn : 0 < n) (hd : 0 < d) :\n    -- @realizes d(positive alphabet size for the one-category witness)\n    1 / (100 * (n : ℝ)) ≤ minimaxRisk n d (1 / 2)"
+    },
+    "03b073052a90f219": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.randomized_endpoint_minimax",
+      "statement": "/-- At exact randomization the minimax risk is parametric uniformly in `d`. -/\nlemma randomized_endpoint_minimax (n d : ℕ) (hn : 0 < n) (hd : 0 < d) :\n    -- @realizes d(positive alphabet size inherited by the endpoint bracket)\n    1 / (100 * (n : ℝ)) ≤ minimaxRisk n d (1 / 2) ∧\n      minimaxRisk n d (1 / 2) ≤ 1 / (n : ℝ)"
+    },
+    "39156a6a6eed45e8": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.finProductLaw_eq_map",
+      "statement": "  -- @realizes X(first coordinate in Fin d)\n  -- @realizes A(second coordinate in Bool)\n  -- @realizes Y(third coordinate in Bool)\n\n/-- The ambient infinite sample pushes forward to the canonical finite product. -/\nlemma finProductLaw_eq_map {X : Type*} [MeasurableSpace X]\n    (P : Measure X) [IsProbabilityMeasure P] (n : ℕ) :\n    (Measure.infinitePi (fun _ : ℕ => P)).map\n        (fun ω : ℕ → X => fun i : Fin n => ω i) =\n      Measure.pi (fun _ : Fin n => P)"
+    },
+    "8fc9ea2bfbecf2fa": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.splitCellCount",
+      "statement": "/-- Count of one `(k,a,y)` atom in a split. -/\ndef splitCellCount {n d : ℕ} (sample : Fin n → Obs d) (j : Fin 2)\n    (k : Fin d) (a y : Fin 2) : ℕ :=\n  ((splitIndices n j).filter\n    (fun i => sample i = (k, finTwoEquiv a, finTwoEquiv y))).card"
+    },
+    "8833e339f1187e57": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.hybridEstimator",
+      "statement": "noncomputable def hybridEstimator {n d : ℕ} (sample : Fin n → Obs d) : ℝ :=\n  max (-1) (min 1 (heavyContribution sample + lightContribution sample))"
+    },
+    "fd2963cb1718c4fa": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.pilot_sandwich",
+      "statement": "/-- Polynomially small failure probability for the pilot heavy/light sandwich. -/\nlemma pilot_sandwich :\n    (∀ K c : ℝ, 0 < K → 0 < c →\n        -- @realizes c(positive constant in d ≤ c n log n)\n        ∃ t₀ C N, 0 < t₀ ∧ 0 < C ∧ ∀ t : ℝ, t₀ ≤ t →\n            ∀ (n d : ℕ) (P : DiscreteLaw d)\n              (mu_n : Measure (Fin n → Obs d)),\n              N ≤ n → (d : ℝ) ≤ c * n * logScale n →\n              IidSampling P mu_n →\n              mu_n.real (pilotBadEvent P t) ≤ C * Real.rpow n (-K)) ∧\n      (∀ c : ℝ, 0 < c →\n        -- @realizes c(positive constant in the K=4 specialization)\n        ∃ C N, 0 < C ∧\n          ∀ (n d : ℕ) (P : DiscreteLaw d)\n            (mu_n : Measure (Fin n → Obs d)),\n            N ≤ n → (d : ℝ) ≤ c * n * logScale n →\n            IidSampling P mu_n →\n            mu_n.real (pilotBadEvent P 256) ≤ C * Real.rpow n (-4))"
+    },
+    "731aac659bc14a2a": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.combined_upper_envelope",
+      "statement": "/-- The deterministic smaller-bound selector attains the combined envelope. -/\nlemma combined_upper_envelope (epsilon C_epsilon rho_epsilon : ℝ)\n    (N_epsilon : ℕ) (he0 : 0 < epsilon) (he1 : epsilon < 1 / 2)\n    (hC : 0 < C_epsilon) (hrho : 0 < rho_epsilon)\n    (hHybrid : ∀ n d : ℕ, 0 < n → N_epsilon ≤ n →\n      (d : ℝ) ≤ rho_epsilon * n * Real.log n →\n      worstCaseMSE n d epsilon hybridEstimator ≤\n        C_epsilon * minimaxRate n d) :\n    ∀ n d : ℕ, 0 < n → N_epsilon ≤ n →\n      (d : ℝ) ≤ rho_epsilon * n * Real.log n →\n      let K_epsilon"
+    },
+    "ff2d00f670543ca6": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.sharp_minimax_fixed_interior",
+      "statement": "/-- Matched fixed-interior minimax rate.  The lower half is explicitly\nconditional on the cited `ZengOneArmMinimaxLower` interface. -/\ntheorem sharp_minimax_fixed_interior (epsilon : ℝ)\n    (hZeng : ZengOneArmMinimaxLower epsilon) (he0 : 0 < epsilon)\n    (he1 : epsilon < 1 / 2) :\n    ∃ a_epsilon rho_epsilon C_epsilon : ℝ, ∃ N_epsilon : ℕ,\n      0 < a_epsilon ∧ 0 < rho_epsilon ∧ 0 < C_epsilon ∧\n      (∀ (n d : ℕ) (P : DiscreteLaw d)\n        (mu_n : Measure (Fin n → Obs d)),\n        ExperimentClass n epsilon P mu_n →\n        0 < d →\n        N_epsilon ≤ n →\n        (d : ℝ) ≤ rho_epsilon * n * Real.log n →\n        a_epsilon * minimaxRate n d ≤ minimaxRisk n d epsilon ∧\n        minimaxRisk n d epsilon ≤ worstCaseMSE n d epsilon hybridEstimator ∧\n        worstCaseMSE n d epsilon hybridEstimator ≤\n          C_epsilon * minimaxRate n d) ∧\n      (∀ K : ℝ, 0 < K → ∃ C_K : ℝ, 0 < C_K ∧\n        ∀ (n d : ℕ) (P : DiscreteLaw d)\n          (mu_n : Measure (Fin n → Obs d)),\n          ExperimentClass n epsilon P mu_n →\n          0 < d →\n          N_epsilon ≤ n →\n          (d : ℝ) ≤ K * Real.sqrt n * Real.log n →\n          (d : ℝ) ≤ rho_epsilon * n * Real.log n →\n          a_epsilon / n ≤ minimaxRisk n d epsilon ∧\n          minimaxRisk n d epsilon ≤ C_K / n) ∧\n      (∀ ns ds : ℕ → ℕ,\n        Tendsto ns atTop atTop →\n        (∀ᶠ j in atTop, 0 < ds j) →\n        (∀ᶠ j in atTop,\n          (ds j : ℝ) ≤ rho_epsilon * ns j * Real.log (ns j)) →\n        (Tendsto (fun j => minimaxRisk (ns j) (ds j) epsilon) atTop (nhds 0) ↔\n          Tendsto (fun j => (ds j : ℝ) / (ns j * Real.log (ns j)))\n            atTop (nhds 0)))"
+    },
+    "b4e14f20381c8183": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.overlap_adaptive_universal_hybrid",
+      "statement": "/-- Universal fixed-class calibration, the all-sample centered bound, the exact\nrandomization bracket, and the combined upper envelope.  Clause (i) includes a\nfinite real-arithmetic realization with the stated `O(d M^4)` operation bound;\nthe hybrid's type has no `epsilon` argument, realizing its no-selector claim. -/\ntheorem overlap_adaptive_universal_hybrid :\n    HybridEstimatorComputable ∧\n    (∀ epsilon : ℝ, 0 < epsilon → epsilon < 1 / 2 →\n      ∃ C_epsilon rho_epsilon : ℝ, ∃ N_epsilon : ℕ,\n        0 < C_epsilon ∧ 0 < rho_epsilon ∧\n        ∀ n d : ℕ, 0 < n → 0 < d → N_epsilon ≤ n →\n          (d : ℝ) ≤ rho_epsilon * n * Real.log n →\n          worstCaseMSE n d epsilon hybridEstimator ≤\n              C_epsilon * minimaxRate n d ∧\n          minimaxRisk n d epsilon ≤\n              worstCaseMSE n d epsilon\n                (selectedEstimator C_epsilon epsilon) ∧\n          worstCaseMSE n d epsilon\n              (selectedEstimator C_epsilon epsilon) ≤\n            max C_epsilon 4 *\n              (1 / (n : ℝ) +\n                min (d ^ 2 / ((n : ℝ) ^ 2 * (Real.log n) ^ 2))\n                  ((1 / 2 - epsilon) ^ 2))) ∧\n    (∀ epsilon : ℝ, 0 < epsilon → epsilon ≤ 1 / 2 →\n      ∀ n d : ℕ, 0 < n → 0 < d →\n        worstCaseMSE n d epsilon centeredEstimator ≤\n          1 / (n : ℝ) + 4 * (1 / 2 - epsilon) ^ 2) ∧\n    (∀ n d : ℕ, 0 < n → 0 < d →\n      1 / (100 * (n : ℝ)) ≤ minimaxRisk n d (1 / 2) ∧\n        minimaxRisk n d (1 / 2) ≤ 1 / (n : ℝ))"
+    },
+    "f5336c9839f525d1": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.large_calibration_bounds",
+      "statement": "/-- Establishes the stated upper bound for large calibration bounds. -/\nlemma large_calibration_bounds {n : ℕ}\n    (hcut : calibrationCutoff ≤ n) (hLlarge : 240 ≤ logScale n) :\n    let L"
+    },
+    "77e1e21e9187ccf7": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.factorialPolynomialContribution_eq_sparseArms",
+      "statement": "/-- Establishes the stated equality relating factorial Polynomial Contribution eq sparse Arms. -/\nlemma factorialPolynomialContribution_eq_sparseArms {n d : ℕ}\n    (sample : Fin n → Obs d) (k : Fin d) :\n    factorialPolynomialContribution sample k =\n      sparseArmContribution sample k 1 - sparseArmContribution sample k 0"
+    },
+    "d55334c5baa920b1": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_factorialPolynomialContribution_trunc",
+      "statement": "/-- Evaluates or bounds the stated integral involving integral factorial Polynomial Contribution trunc. -/\nlemma integral_factorialPolynomialContribution_trunc {n d : ℕ}\n    (P : DiscreteLaw d) (k : Fin d)\n    (hcut : calibrationCutoff ≤ n) :\n    ∫ ω : ℕ → Obs d,\n        factorialPolynomialContribution (fun i : Fin n => ω i) k\n        ∂(Measure.infinitePi (fun _ : ℕ => obsLaw P)) =\n      (cellApproxPolynomial (polynomialDegree n) (bandwidth n)).eval\n        (cellVector P k)"
+    },
+    "600c036fda85113a": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.cellApproxPolynomial_error",
+      "statement": "/-- Cone approximation bound for the explicit four-cell polynomial. -/\nlemma cellApproxPolynomial_error {M : ℕ} (hM : 0 < M) {B epsilon : ℝ}\n    {u : Cell → ℝ} (he0 : 0 < epsilon) (hu : u ∈ overlapCone epsilon)\n    (hB : vectorMass u ≤ B) :\n    |(cellApproxPolynomial M B).eval u - cellPhi u| ≤\n      2 * B / (epsilon * M ^ 2)"
+    },
+    "d2210d73afce6bc8": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_fixedRatioResidual_sq_le",
+      "statement": "/-- Aggregate fixed-set residual variance.  Cross-cell cancellation preserves\nthe parametric order and the only overlap loss is one factor epsilon inverse. -/\nlemma integral_fixedRatioResidual_sq_le\n    {I : Type*} [Fintype I] [DecidableEq I] {d : ℕ} {epsilon : ℝ}\n    (P : DiscreteLaw d) (hOverlap : Overlap epsilon P) (hepsilon : 0 < epsilon)\n    (H : Finset (Fin d)) (a : Fin 2)\n    (hp : ∀ k ∈ H, 0 < cellMass P k) :\n    ∫ z : I → Obs d, (fixedRatioResidual P z H a) ^ 2\n        ∂(Measure.pi (fun _ : I => obsLaw P)) ≤\n      (2 * (Fintype.card I : ℝ) / epsilon) *\n        ∑ k ∈ H, cellMass P k"
+    },
+    "d60b41a53514d4dd": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_fixedMissingCount_sq_le",
+      "statement": "/-- Aggregate second-moment bound for the missing-arm count on a fixed set of\nheavy categories.  The diagonal contributes at most `m`; the off-diagonal\nand exponentially small part of the diagonal combine into the square of one\nmass-exponential sum. -/\nlemma integral_fixedMissingCount_sq_le {J : Type*} [Fintype J] [DecidableEq J]\n    {d : ℕ} {epsilon B : ℝ} (P : DiscreteLaw d) (H : Finset (Fin d))\n    (a : Bool) (hm : 3 ≤ Fintype.card J) (hOverlap : Overlap epsilon P)\n    (hepsilon : 0 < epsilon) (hB : 0 < B)\n    (hp : ∀ k ∈ H, B ≤ cellMass P k) :\n    ∫ z : J → Obs d, (fixedMissingCount z H a) ^ 2\n        ∂(Measure.pi (fun _ : J => obsLaw P)) ≤\n      (Fintype.card J : ℝ) + (Fintype.card J : ℝ) ^ 2 *\n        (H.card /\n          (((((Fintype.card J - 2 : ℕ) : ℝ) / 2 * epsilon) ^ 2) * B)) ^ 2"
+    },
+    "77e74270d52a2f49": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_factorialMonomial_mul_trunc_le",
+      "statement": "/-- Evaluates or bounds the stated integral involving integral factorial Monomial mul trunc le. -/\nlemma integral_factorialMonomial_mul_trunc_le {n d : ℕ} (P : DiscreteLaw d)\n    (k : Fin d) (r s : MultiIndex)\n    (hn : 0 < splitSize n 1) (hdeg : multiDegree r ≤ multiDegree s)\n    (hsize : 4 * (multiDegree s) ^ 2 ≤ splitSize n 1) :\n    ∫ ω : ℕ → Obs d,\n        factorialMonomial (fun i : Fin n => ω i) k r *\n          factorialMonomial (fun i : Fin n => ω i) k s\n        ∂(Measure.infinitePi (fun _ : ℕ => obsLaw P)) ≤\n      Real.exp 1 *\n        (∏ ay : Cell, (cellVector P k ay) ^ (r ay)) *\n        ∏ ay : Cell,\n          (cellVector P k ay + (multiDegree s : ℝ) / splitSize n 1) ^ (s ay)"
+    },
+    "9ea3d679cf2d25e9": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.gpos_bound",
+      "statement": "/-- Establishes the stated upper bound for gpos bound. -/\nlemma gpos_bound {M : ℕ} (hM : 0 < M) {z : ℝ} (hz : 0 ≤ z) :\n    gpos M z ≤ (6:ℝ)^M * max 1 (z^(M-2))"
+    },
+    "b48a6bf31ded9ccf": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.universal_heavy_cell_rate",
+      "statement": "/-- The aggregate ratio branch has the same rate on pilot-heavy categories. -/\nlemma universal_heavy_cell_rate (epsilon : ℝ) (he0 : 0 < epsilon)\n    (he1 : epsilon < 1 / 2) :\n    ∃ C_epsilon rho_epsilon : ℝ, ∃ N_epsilon : ℕ,\n      0 < C_epsilon ∧ 0 < rho_epsilon ∧\n      ∀ (n d : ℕ) (P : DiscreteLaw d)\n        (mu_n : Measure (Fin n → Obs d)),\n        N_epsilon ≤ n →\n        (d : ℝ) ≤ rho_epsilon * n * Real.log n →\n        ExperimentClass n epsilon P mu_n →\n        componentErrorMSE mu_n heavyContribution (targetHeavy P) ≤\n          C_epsilon * minimaxRate n d"
+    },
+    "32aedb31baa7d7bf": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_factorialPolynomial_centered_sq_le",
+      "statement": "/-- Evaluates or bounds the stated integral involving integral factorial Polynomial centered sq le. -/\nlemma integral_factorialPolynomial_centered_sq_le {n d : ℕ}\n    (P : DiscreteLaw d) (k : Fin d) (hn : 0 < splitSize n 1)\n    (hM : 0 < polynomialDegree n) (hB : 0 < bandwidth n)\n    (hsize : 4 * polynomialDegree n ^ 2 ≤ splitSize n 1)\n    (hmassShift : cellMass P k +\n      4 * (polynomialDegree n : ℝ) / splitSize n 1 ≤ bandwidth n)\n    (hmass : cellMass P k ≤ bandwidth n) :\n    ∫ ω : ℕ → Obs d,\n        (factorialPolynomialContribution (fun i : Fin n => ω i) k -\n          sparsePolynomialMean P k (polynomialDegree n) (bandwidth n)) ^ 2\n        ∂(Measure.infinitePi (fun _ : ℕ => obsLaw P)) ≤\n      8 * (Real.exp 1 + 1) *\n        (bandwidth n * 6 ^ polynomialDegree n) ^ 2"
+    },
+    "0c9ccd0e3e432c36": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.integral_factorialPolynomial_centered_cross_le",
+      "statement": "/-- The off-diagonal centered covariance estimate, packaged separately so that\nthe pilot-selection layer need not normalize a large factorial expression. -/\nlemma integral_factorialPolynomial_centered_cross_le {n d : ℕ}\n    (P : DiscreteLaw d) (k l : Fin d) (hkl : k ≠ l)\n    (hM : 0 < polynomialDegree n) (hB : 0 < bandwidth n)\n    (hsize : 4 * polynomialDegree n ^ 2 ≤ splitSize n 1)\n    (hk : cellMass P k ≤ bandwidth n)\n    (hl : cellMass P l ≤ bandwidth n) :\n    ∫ ω : ℕ → Obs d,\n        (factorialPolynomialContribution (fun i : Fin n => ω i) k -\n          sparsePolynomialMean P k (polynomialDegree n) (bandwidth n)) *\n        (factorialPolynomialContribution (fun i : Fin n => ω i) l -\n          sparsePolynomialMean P l (polynomialDegree n) (bandwidth n))\n        ∂(Measure.infinitePi (fun _ : ℕ => obsLaw P)) ≤\n      8 * (polynomialDegree n : ℝ) ^ 2 / splitSize n 1 *\n        (bandwidth n * 6 ^ polynomialDegree n) ^ 2"
+    },
+    "507f1f3e88c5354d": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.selectedFalseLightError_rate",
+      "statement": "/-- Establishes the stated upper bound for selected False Light Error rate. -/\nlemma selectedFalseLightError_rate {n d : ℕ} {epsilon : ℝ}\n    (P : DiscreteLaw d) (hOverlap : Overlap epsilon P)\n    (hcut : calibrationCutoff ≤ n) (hLlarge : 240 ≤ logScale n) :\n    ∫ ω : ℕ → Obs d,\n        selectedFalseLightError P (fun i : Fin n => ω i) ^ 2\n        ∂(Measure.infinitePi (fun _ : ℕ => obsLaw P)) ≤\n      (8 * (Real.exp 1 + 1) * 8192 ^ 2) * lightAsymptoticRate n d"
+    },
+    "6f33724f340a160f": {
+      "label": "CausalSmith.Stat.DiscreteAteMinimaxLoggap.light_cell_polynomial",
+      "statement": "/-- The factorial-polynomial light branch attains the fixed-interior minimax rate.\nThe constants are chosen before the law and are allowed to depend only on the\nfixed overlap constant. -/\nlemma light_cell_polynomial (epsilon : ℝ) (he0 : 0 < epsilon)\n    (he1 : epsilon ≤ 1 / 2) :\n    HybridEstimatorComputable ∧\n      ∃ C_epsilon c_epsilon : ℝ,\n        0 < C_epsilon ∧ 0 < c_epsilon ∧\n        ∀ (n d : ℕ) (P : DiscreteLaw d)\n          (mu_n : Measure (Fin n → Obs d)),\n          ExperimentClass n epsilon P mu_n →\n          (d : ℝ) ≤ c_epsilon * n * Real.log n →\n          componentErrorMSE mu_n lightContribution (targetLight P) ≤\n            C_epsilon * minimaxRate n d"
+    }
+  }
+}

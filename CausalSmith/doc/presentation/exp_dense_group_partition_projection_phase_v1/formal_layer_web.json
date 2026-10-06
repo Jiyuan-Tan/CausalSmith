@@ -1,0 +1,2669 @@
+{
+  "commit": "6417af76f30c0a74ca58bf0484e4aeeee92afcf5",
+  "groups": [
+    {
+      "kind": "setup",
+      "items": [
+        {
+          "obj_id": "S2",
+          "kind": "setup",
+          "label": "Setup S-2",
+          "nl": "The uniform \\(M\\)-slice \\(\\Omega_{n,M}\\), for \\(n\\ge2M\\), is regarded as the vertex set of the Johnson association scheme. Its function space \\(L^2(\\Omega_{n,M})\\) carries harmonic degree subspaces \\(\\mathcal H_{n,0},\\ldots,\\mathcal H_{n,M}\\) with \\(\\langle\\cdot,\\cdot\\rangle_n\\)-orthogonal projections \\(\\Pi_{n,k}\\), and the normalized Kneser disjointness operator \\((\\mathsf K_nf)(A)=\\binom{n-M}{M}^{-1}\\sum_{C\\in\\Omega_{n,M}:C\\cap A=\\varnothing}f(C)\\), which averages \\(f\\) over a uniform group disjoint from \\(A\\) and acts on \\(\\mathcal H_{n,k}\\) by the scalar \\(\\lambda_{n,k}\\). The derived quadratic functionals of the arm table are the ordered-disjoint covariances \\(C_{ab,n}=\\langle h_{a,n}^{\\circ},\\mathsf K_nh_{b,n}^{\\circ}\\rangle_n\\) for \\(a,b\\in\\mathcal Z\\), their contrast \\(C_{\\tau\\tau,n}=C_{11,n}+C_{00,n}-2C_{10,n}\\), and the degree-one arm-difference energy \\(E_{\\tau,1,n}=\\|\\Pi_{n,1}(h_{1,n}-h_{0,n})\\|_n^2\\). — Redirect-synchronized local Johnson world. The concrete inclusion-monomial filtration defines each canonical harmonic degree space. `JohnsonProjections` is a genuine orthogonal projection structure with ranges fixed to those spaces, and the node anchor for [def:johnson-decomposition] is the construction `johnsonComponents J f` built over it (round-4 kind correction: the core node has `inputs`, so its Lean object is that `def`, with the structure retained as supporting projection data). The cited Johnson gate supplies centered completeness and cross-degree orthogonality, and the cited Kneser gate states the adjacency eigenvalue on the same canonical spaces. The normalized operator and covariance remain local constructions. Causalean and Mathlib still contain no Johnson/Kneser association-scheme implementation (grep -rni 'johnson|kneser|BoseMesner|associationScheme' ../Causalean → zero hits, re-run this round; Mathlib has only `SimpleGraph.StronglyRegular` generalities).",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S3",
+          "kind": "setup",
+          "label": "Setup S-3",
+          "nl": "The two-stage dense random-group design on the population of S1. First an ordered tuple \\(\\mathbf A_n=(A_{n1},\\ldots,A_{nG_n})\\) is drawn uniformly from the ordered tuples of pairwise-disjoint members of \\(\\Omega_{n,M}\\), so that \\(N_n=MG_n\\le n\\) units are grouped and the grouped-unit fraction satisfies \\(N_n/n\\to\\rho\\in[0,1]\\); no birthday-scale condition on \\(N_n^2/n\\) is imposed. Then, independently of \\(\\mathbf A_n\\), a group-treatment vector \\(\\mathbf Z_n\\in\\{0,1\\}^{G_n}\\) is drawn uniformly among vectors with exactly \\(G_{1n}\\) treated groups, \\(G_{0n}=G_n-G_{1n}\\), \\(p_n=G_{1n}/G_n\\to p\\in(0,1)\\); treatment is shared within each realized group. The assignment is the only randomness. This world carries the observed group means \\(H^{\\mathrm{obs}}_{ng}=Z_{ng}h_{1,n}(A_{ng})+(1-Z_{ng})h_{0,n}(A_{ng})\\), the estimand \\(\\tau_n=\\mathbb E_nh_{1,n}-\\mathbb E_nh_{0,n}\\) and its difference-in-means estimator \\(\\widehat\\tau_n=G_{1n}^{-1}\\sum_gZ_{ng}h_{1,n}(A_{ng})-G_{0n}^{-1}\\sum_g(1-Z_{ng})h_{0,n}(A_{ng})\\) with exact design variance \\(\\sigma_n^2=\\operatorname{Var}(\\widehat\\tau_n)\\), the independent-group leading variance \\(R_n=V_{1,n}/p_n+V_{0,n}/(1-p_n)\\), the within-arm sample variances \\(s_{z,n}^2\\) and the scalar equal-group CR2 statistic \\(\\widehat V_{\\mathrm{CR2},n}=s_{1,n}^2/G_{1n}+s_{0,n}^2/G_{0n}\\). The one-realization observation channel is \\(\\mathcal O_n=(\\mathcal U_n,\\mathbf A_n,\\mathbf Z_n,\\{Y_{i,n}(Z_{ng},A_{ng})\\})\\), on which an arbitrary variance statistic \\(\\widehat S_n(\\mathcal O_n)\\) may be computed. Triangular arrays of such rows satisfying growth, fraction, envelope and scaled-variance conditions form the uniformity class \\(\\mathcal C_{\\mathrm{dense}}\\) with constants \\(B\\) and \\(c_\\sigma\\). There are no superpopulation nuisances. — Partial world reuse: only the stage-one law is new; the stage-two law AND the independent two-stage combination are both existing decls. Stage two is an EXACT reuse: `completeRandomization (V := Fin G) G1 h : FiniteDesign {S : Finset (Fin G) // S.card = G1}` is exactly the complete randomization of group labels, and `completeRandomization_incl` / `completeRandomization_incl_pair` are exactly the first- and second-order moments \\(p_n\\) and \\(G_{1n}(G_{1n}-1)/(G_n(G_n-1))\\) that the variance proof needs. The independent combination of the two stages is EXACT reuse of `prodDesign`: its signature `prodDesign (D : forall i, FiniteDesign (alpha i)) : FiniteDesign (forall i, alpha i)` (`Product.lean:49`, with `alpha : iota -> Type*` at `:43`) is parameterized by a DEPENDENT family, so a two-index family `alpha : Fin 2 -> Type` given by `alpha 0 := PartitionTuple n M G`, `alpha 1 := {S : Finset (Fin G) // S.card = G1}` realizes exactly the independent heterogeneous pair; `randomPartitionDesign := (prodDesign twoStageDesigns).map (fun w => (w 0, w 1))` then transports the outcome to the product type through the existing pushforward `FiniteDesign.map` (`DesignCore.lean:323`) along that `Equiv`, with `FiniteDesign.E_map` / `Pr_map` (`:343`, `:357`) carrying every expectation and probability identity across. No local product combinator is written. Structural cross-stage independence is then free from `E_prod_prod` / `E_prod_apply` / `Cov_prod_apply_of_ne` (`Product.lean:68,79`, `ProductVariance.lean:77`). Stage one alone has NO analogue in either library: `PartitionTuple n M G := {T : Fin G -> Omega n M // Pairwise (fun g g' => Disjoint (T g).val (T g').val)}` with the uniform law is new. Convergence in probability reuses `FiniteDesign.TendstoInProb` / `tendstoInProb_of_var` / `tendstoInProb_div_one` / `TendstoInProb.sub` / `deterministic_tendstoInProb` / `tendstoInProb_continuousMap` (`InProb.lean`, indexed by `n` exactly as the triangular array needs) and `FiniteDesign.chebyshev`. `FiniteDesign.map` (`DesignCore.lean:323`) pushes the design forward to the observed-data space \\(\\mathcal O_n\\); `FiniteDesign.toMeasure` (`FiniteDesignMeasure.lean:51`) bridges to `Causalean.Stat.tvDist`. SEARCH: grep -rn 'partition|disjoint.*tuple|perfect matching' ../Causalean/Experimentation → `ProductBlock.lean` (disjoint coordinate *blocks* of a product design, not disjoint random subsets), `MatchedPairDesign/` (a FIXED pairing `P` with independent within-pair coins, i.e. the pairing is not randomized) — neither is the random-partition first stage; lean_leansearch 'uniform random partition of a finite set into blocks of equal size' → no Mathlib decl (`Finpartition` exists but carries no uniform law). RE-SURVEY (round 3, combination step): grep -n 'def prodDesign' -A8 ../Causalean/Experimentation/DesignBased/Product.lean → `:49` with `variable {alpha : iota -> Type*} [forall i, Fintype (alpha i)]` at `:43`, i.e. the dependent family DOES express a heterogeneous pair over a two-element index; grep -n 'def map|E_map|Pr_map' ../Causalean/Experimentation/DesignBased/DesignCore.lean → `:323`, `:343`, `:357`. The earlier claim that a new heterogeneous pair combinator was needed is withdrawn.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "definition",
+      "items": [
+        {
+          "obj_id": "def:random-partition-design",
+          "kind": "definition",
+          "label": "Definition P-1",
+          "nl": "Draw \\(\\mathbf A_n\\) uniformly from ordered pairwise-disjoint \\(G_n\\)-tuples in \\(\\Omega_{n,M}\\), then independently draw \\(\\mathbf Z_n\\) uniformly from assignments with exactly \\(G_{1n}\\) treated groups.",
+          "lean": {
+            "file": "Helpers/PartitionDesign.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.randomPartitionDesign",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:group-table",
+          "kind": "definition",
+          "label": "Definition P-2",
+          "nl": "For every \\(z\\in\\mathcal Z\\) and \\(A\\in\\Omega_{n,M}\\), set \\(h_{z,n}(A)=M^{-1}\\sum_{i\\in A}Y_{i,n}(z,A)\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:pame-estimator",
+          "kind": "definition",
+          "label": "Definition P-3",
+          "nl": "Set \\(\\tau_n=\\mathbb E_n[h_{1,n}-h_{0,n}]\\) and \\(\\widehat\\tau_n=G_{1n}^{-1}\\sum_gZ_{ng}h_{1,n}(A_{ng})-G_{0n}^{-1}\\sum_g(1-Z_{ng})h_{0,n}(A_{ng})\\).",
+          "lean": {
+            "file": "Helpers/Estimator.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pameAndEstimator",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:johnson-decomposition",
+          "kind": "definition",
+          "label": "Definition P-4",
+          "nl": "For every \\(f\\in L^2(\\Omega_{n,M})\\), write \\(f-\\mathbb E_nf=\\sum_{k=1}^M\\Pi_{n,k}f\\) orthogonally under \\(\\langle\\cdot,\\cdot\\rangle_n\\).",
+          "lean": {
+            "file": "Helpers/Kneser.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonComponents",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:kneser-covariance",
+          "kind": "definition",
+          "label": "Definition P-5",
+          "nl": "Use \\((\\mathsf K_nf)(A)=\\binom{n-M}{M}^{-1}\\sum_{C:C\\cap A=\\varnothing}f(C)\\) and \\(C_{ab,n}=\\langle h_{a,n}^{\\circ},\\mathsf K_nh_{b,n}^{\\circ}\\rangle_n\\).",
+          "lean": {
+            "file": "Helpers/Kneser.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:dense-correction",
+          "kind": "definition",
+          "label": "Definition P-6",
+          "nl": "Set \\(E_{\\tau,1,n}=\\|\\Pi_{n,1}(h_{1,n}-h_{0,n})\\|_n^2\\) and \\(R_n=V_{1,n}/p_n+V_{0,n}/(1-p_n)\\).",
+          "lean": {
+            "file": "Helpers/Estimator.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.denseCorrection",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:cr2-statistic",
+          "kind": "definition",
+          "label": "Definition P-7",
+          "nl": "Compute the within-arm sample variances \\(s_{z,n}^2\\) with denominator \\(G_{zn}-1\\), then set \\(\\widehat V_{\\mathrm{CR2},n}=s_{1,n}^2/G_{1n}+s_{0,n}^2/G_{0n}\\).",
+          "lean": {
+            "file": "Helpers/Estimator.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2Var",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:dense-schedule-class",
+          "kind": "definition",
+          "label": "Definition P-8",
+          "nl": "\\(\\mathcal C_{\\mathrm{dense}}=\\{(Y_{i,n},G_n,G_{1n})_{n\\ge1}:G_n\\to\\infty,\\ p_n\\to p,\\ N_n/n\\to\\rho,\\ \\sup_{n,i,z,A}|Y_{i,n}(z,A)|\\le B,\\ \\liminf_nG_n\\sigma_n^2\\ge c_\\sigma\\}\\).",
+          "lean": {
+            "file": "Helpers/Asymptotics.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.DenseScheduleClass",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:eight-unit-witness",
+          "kind": "definition",
+          "label": "Definition P-9",
+          "nl": "Take \\(n=N_n=8\\), \\(M=2\\), \\(G_n=4\\), \\(G_{1n}=2\\), \\(Y_{i,n}(0,A)=0\\), and \\(Y_{i,n}(1,A)=(a_j+a_k)/2\\) for every \\(i\\in A=\\{j,k\\}\\), where \\(\\mathbf a_8=(a_1,\\ldots,a_8)\\).",
+          "lean": {
+            "file": "Helpers/Witness.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8Bundle",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "assumption",
+      "items": [
+        {
+          "obj_id": "ass:group-count-growth",
+          "kind": "assumption",
+          "label": "Assumption A-1",
+          "nl": "\\(G_n\\to\\infty\\).",
+          "lean": {
+            "file": "Helpers/Asymptotics.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.GroupCountGrowth",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:stable-treatment-fraction",
+          "kind": "assumption",
+          "label": "Assumption A-2",
+          "nl": "\\(p_n\\to p\\in(0,1)\\).",
+          "lean": {
+            "file": "Helpers/Asymptotics.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.StableTreatmentFraction",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:sampling-fraction",
+          "kind": "assumption",
+          "label": "Assumption A-3",
+          "nl": "\\(N_n/n\\to\\rho\\in[0,1]\\).",
+          "lean": {
+            "file": "Helpers/Asymptotics.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.SamplingFractionLimit",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:bounded-potential-outcomes",
+          "kind": "assumption",
+          "label": "Assumption A-4",
+          "nl": "\\(\\sup_{n,i,z,A}|Y_{i,n}(z,A)|\\le B<\\infty\\).",
+          "lean": {
+            "file": "Helpers/Asymptotics.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.BoundedSchedule",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:scaled-variance-nondegeneracy",
+          "kind": "assumption",
+          "label": "Assumption A-5",
+          "nl": "\\(\\liminf_{n\\to\\infty}G_n\\sigma_n^2\\ge c_\\sigma\\).",
+          "lean": {
+            "file": "Helpers/Asymptotics.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ScaledVarianceNondegenerate",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "lemma",
+      "items": [
+        {
+          "obj_id": "lem:johnson-kneser-adjacency-eigenvalue",
+          "kind": "lemma",
+          "label": "Lemma lem:johnson-kneser-adjacency-eigenvalue",
+          "nl": "For nonnegative integers \\(n\\) and \\(M\\) with \\(2M\\le n\\), and for a harmonic degree \\(k\\in\\{0,\\ldots,M\\}\\), let \\(\\mathrm{Adj}_{n,M}\\) be the linear operator on \\(L^2(\\Omega_{n,M})\\) sending \\(f\\) to \\(\\Gamma\\mapsto\\sum_{\\Delta\\in\\Omega_{n,M}}\\mathbf 1\\{\\Gamma\\cap\\Delta=\\varnothing\\}f(\\Delta)\\). Then every \\(f\\) in the degree-\\(k\\) Johnson harmonic subspace \\(\\mathcal H_{n,k}\\) is an eigenfunction of \\(\\mathrm{Adj}_{n,M}\\) with eigenvalue \\((-1)^k\\binom{n-M-k}{M-k}\\); that is, \\(\\mathrm{Adj}_{n,M}f=(-1)^k\\binom{n-M-k}{M-k}\\,f\\) as an identity in \\(L^2(\\Omega_{n,M})\\).",
+          "lean": {
+            "file": "Helpers/Kneser.lean",
+            "decl": "Causalean.Mathlib.Combinatorics.JohnsonKneser.kneserAdjacency_eigen",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:classical-kneser-spectrum",
+          "kind": "lemma",
+          "label": "Lemma lem:classical-kneser-spectrum",
+          "nl": "For the Kneser graph on the \\(M\\)-subsets of an \\(n\\)-set, where adjacency means disjointness and \\(n\\ge2M\\), the unnormalized adjacency eigenvalue on \\(\\mathcal H_{n,k}\\) is \\((-1)^k\\binom{n-M-k}{M-k}\\), for \\(0\\le k\\le M\\).",
+          "lean": {
+            "file": "Helpers/Kneser.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.canonicalKneserAdjacencySpectrum",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:classical-johnson-decomposition",
+          "kind": "lemma",
+          "label": "Lemma lem:classical-johnson-decomposition",
+          "nl": "On the uniform \\(M\\)-slice with \\(n\\ge2M\\), the Johnson harmonic degree spaces \\(\\mathcal H_{n,0},\\ldots,\\mathcal H_{n,M}\\) form an orthogonal direct-sum decomposition of \\(L^2(\\Omega_{n,M})\\).",
+          "lean": {
+            "file": "Helpers/Kneser.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.canonicalJohnsonOrthogonalDecomposition",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "theorem",
+      "items": [
+        {
+          "obj_id": "thm:exact-kneser-identity",
+          "kind": "theorem",
+          "label": "Theorem T-1",
+          "nl": "For every \\(n\\ge2M\\), \\(\\mathsf K_n\\) acts on \\(\\mathcal H_{n,k}\\) by \\(\\lambda_{n,k}=(-1)^k(M)_k/(n-M)_k\\). Consequently, for centered \\(f,g\\in L^2(\\Omega_{n,M})\\) and a uniform ordered disjoint pair \\((A,C)\\), \\(\\operatorname{Cov}(f(A),g(C))=\\sum_{k=1}^M\\lambda_{n,k}\\langle\\Pi_{n,k}f,\\Pi_{n,k}g\\rangle_n\\), and \\(C_{\\tau\\tau,n}=\\sum_{k=1}^M\\lambda_{n,k}\\|\\Pi_{n,k}(h_{1,n}-h_{0,n})\\|_n^2\\).",
+          "lean": {
+            "file": "TExactKneserIdentity.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.exact_kneser_identity",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:exact-pame-variance",
+          "kind": "theorem",
+          "label": "Theorem T-2",
+          "nl": "Under the two-stage design, \\(\\mathbb E[\\widehat\\tau_n]=\\tau_n\\) and the exact finite-sample variance is \\[\\sigma_n^2=\\frac{R_n}{G_n}+C_{\\tau\\tau,n}-\\frac{C_{11,n}}{G_{1n}}-\\frac{C_{00,n}}{G_{0n}}.\\] Moreover, \\(\\mathbb E[\\widehat V_{\\mathrm{CR2},n}]=(V_{1,n}-C_{11,n})/G_{1n}+(V_{0,n}-C_{00,n})/G_{0n}\\), so \\(\\mathbb E[\\widehat V_{\\mathrm{CR2},n}]-\\sigma_n^2=-C_{\\tau\\tau,n}\\) exactly.",
+          "lean": {
+            "file": "TExactPameVariance.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.exact_pame_variance",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:dense-projection-limit",
+          "kind": "theorem",
+          "label": "Theorem T-3",
+          "nl": "For every array satisfying group-count growth, stable treatment and sampling fractions, and bounded potential outcomes, \\[G_n\\sigma_n^2=R_n-\\rho E_{\\tau,1,n}+o(1).\\] More precisely, \\(G_nC_{\\tau\\tau,n}+\\rho E_{\\tau,1,n}\\to0\\) and \\(C_{11,n}/p_n+C_{00,n}/(1-p_n)\\to0\\); all Johnson degrees \\(k\\ge2\\) vanish at the \\(G_n\\)-scale uniformly over the bounded schedules.",
+          "lean": {
+            "file": "TDenseProjectionLimit.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.dense_projection_limit",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:cr2-phase-frontier",
+          "kind": "theorem",
+          "label": "Theorem T-4",
+          "nl": "For every array in \\(\\mathcal C_{\\mathrm{dense}}\\),\n\\[\n G_n\\widehat V_{\\mathrm{CR2},n}-R_n\\xrightarrow{p}0\n \\quad\\text{and}\\quad\n G_n\\bigl(\\widehat V_{\\mathrm{CR2},n}-\\sigma_n^2\\bigr)\n   -\\rho E_{\\tau,1,n}\\xrightarrow{p}0.\n\\]\nConsequently, CR2 is asymptotically conservative in the sense that, for every \\(\\varepsilon>0\\),\n\\[\n \\Pr\\!\\left\\{\n   \\widehat V_{\\mathrm{CR2},n}/\\sigma_n^2<1-\\varepsilon\n \\right\\}\\longrightarrow0,\n\\]\nand it is ratio-consistent if and only if\n\\[\n \\frac{\\rho E_{\\tau,1,n}}{R_n-\\rho E_{\\tau,1,n}}\\longrightarrow0.\n\\]\nThese conclusions are unconditional over \\(\\mathcal C_{\\mathrm{dense}}\\) and use no predictable quadratic-variation premise.",
+          "lean": {
+            "file": "TCr2PhaseFrontier.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2_phase_frontier",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:sparse-beyond-birthday",
+          "kind": "theorem",
+          "label": "Theorem T-5",
+          "nl": "For every array in \\(\\mathcal C_{\\mathrm{dense}}\\) with \\(\\rho=0\\), equivalently \\(N_n/n\\to0\\),\n\\[\n \\frac{\\widehat V_{\\mathrm{CR2},n}}{\\sigma_n^2}\\xrightarrow{p}1.\n\\]\nNo condition \\(N_n^2/n\\to0\\) is imposed.  In particular, the conclusion applies whenever the remaining defining conditions of \\(\\mathcal C_{\\mathrm{dense}}\\) hold with \\(N_n=M\\lfloor n^{3/4}/M\\rfloor\\); these grouped-unit counts satisfy \\(N_n/n\\to0\\) but \\(N_n^2/n\\to\\infty\\).",
+          "lean": {
+            "file": "TSparseBeyondBirthday.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sparse_beyond_birthday",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:clubsandwich-consumer",
+          "kind": "theorem",
+          "label": "Theorem T-6",
+          "nl": "Suppose \\(G_{1n}\\ge 2\\) and \\(G_{0n}\\ge 2\\). Let \\({\\tt fit}={\\tt lm}(Y^{\\mathrm{obs}}\\sim Z)\\) be unweighted, with only an intercept and numeric binary group treatment, equal group size \\(M\\), and clusters equal the realized groups. With the default identity target, the treatment-coordinate entry of \\({\\tt clubSandwich::vcovCR}({\\tt fit},\\ {\\tt cluster}={\\tt group},\\ {\\tt type}={\\tt 'CR2'})\\) equals \\(\\widehat V_{\\mathrm{CR2},n}=s_{1,n}^2/G_{1n}+s_{0,n}^2/G_{0n}\\) exactly.",
+          "lean": {
+            "file": "TClubsandwichConsumer.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.clubsandwich_cr2_consumer_identity",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:eight-unit-witness",
+          "kind": "theorem",
+          "label": "Theorem T-7",
+          "nl": "For the balanced \\(n=N_n=8\\), \\(M=2\\), \\(G_n=4\\), \\(G_{1n}=2\\) witness, \\(V_{1,n}=E_{\\tau,1,n}=3/7\\), \\(C_{11,n}=-1/7\\), \\(\\sigma_n^2=1/7\\), and \\(\\mathbb E[\\widehat V_{\\mathrm{CR2},n}]=2/7\\). Exhaustive enumeration over the \\(105\\) perfect matchings and the \\(6\\) balanced treatment allocations, totaling \\(630\\) design points, reproduces both moments.",
+          "lean": {
+            "file": "TEightUnitWitness.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.eight_unit_witness_moments",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:rademacher-mixture-separation",
+          "kind": "theorem",
+          "label": "Theorem T-8",
+          "nl": "Under \\(\\mathbb H_n^{\\mathrm{same}}\\) and \\(\\mathbb H_n^{\\mathrm{ind}}\\), the induced laws of \\(\\mathcal O_n\\) are exactly equal for every \\(n\\). Suppose \\(G_n\\to\\infty\\), \\(p_n\\to p\\in(0,1)\\), and \\(N_n/n\\to\\rho\\in(0,1]\\). With prior probability tending to one, \\(V_{1,n}\\to1/M\\), \\(V_{0,n}\\to1/M\\), and \\(E_{\\tau,1,n}\\to0\\) under \\(\\mathbb H_n^{\\mathrm{same}}\\), whereas \\(E_{\\tau,1,n}\\to2/M\\) under \\(\\mathbb H_n^{\\mathrm{ind}}\\). Hence \\(G_n\\sigma_n^2\\to1/(Mp(1-p))\\) under the first prior and \\(G_n\\sigma_n^2\\to1/(Mp(1-p))-2\\rho/M\\) under the second. The limit gap is \\(2\\rho/M>0\\), and the smaller limit satisfies \\(1/(Mp(1-p))-2\\rho/M\\ge2/M\\). Consequently, for every fixed \\(c_\\sigma\\) with \\(0<c_\\sigma<1/(Mp(1-p))-2\\rho/M\\), the probability of \\(G_n\\sigma_n^2\\ge c_\\sigma\\) tends to one under each prior; the separated-limit claim is therefore confined to dense rows \\(\\rho>0\\) that satisfy scaled-variance nondegeneracy with high prior probability.",
+          "lean": {
+            "file": "TRademacherMixtureSeparation.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.rademacher_mixture_separation",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:qv-diagonal-impossibility",
+          "kind": "theorem",
+          "label": "Theorem T-9",
+          "nl": "Fix \\(M\\ge2\\), \\(p\\in(0,1)\\), \\(\\rho\\in(0,1]\\), \\(B\\ge1\\), and design sequences satisfying the three fraction and growth assumptions.  Put\n\\[\n d_{\\mathrm{same}}=\\frac1{Mp(1-p)},\\qquad\n d_{\\mathrm{ind}}=\\frac1{Mp(1-p)}-\\frac{2\\rho}{M},\n\\]\nand suppose \\(0<c_\\sigma<d_{\\mathrm{ind}}\\).  There are high-prior-probability sets of deterministic Rademacher schedule rows whose Cartesian diagonal selections all belong to \\(\\mathcal C_{\\mathrm{dense}}\\); after conditioning \\(\\mathbb H_n^{\\mathrm{same}}\\) and \\(\\mathbb H_n^{\\mathrm{ind}}\\) on these sets, their induced one-realization mixture laws have total-variation distance tending to zero, while \\(G_n\\sigma_n^2\\) converges uniformly on the respective supports to \\(d_{\\mathrm{same}}\\) and \\(d_{\\mathrm{ind}}\\).  Consequently there exists \\(\\varepsilon>0\\) such that every measurable \\(\\widehat S_n(\\mathcal O_n)\\) obeys\n\\[\n \\liminf_{n\\to\\infty}\\sup_{Y\\in\\mathcal C_{\\mathrm{dense}}}\n \\Pr_Y\\left(\\left|\\frac{\\widehat S_n}{\\sigma_n^2}-1\\right|>\\varepsilon\\right)\n \\ge\\frac12.\n\\]\nThus no estimator from one realization is uniformly ratio-consistent for the exact variance over the full dense class.  The deterministic support arrays, rather than a generally unavailable pair of deterministic arrays with close laws, are the valid diagonal certificate.",
+          "lean": {
+            "file": "TQvDiagonalImpossibility.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.qv_diagonal_impossibility",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "cited",
+      "items": [
+        {
+          "obj_id": "lem:clubsandwich-cr2-software-contract",
+          "kind": "cited",
+          "label": "Cited result lem:clubsandwich-cr2-software-contract",
+          "nl": "Let \\({\\tt fit}\\) be an unweighted, full-column-rank \\({\\tt lm}\\) fit with \\(N_{\\rm obs}\\) fitted observations, model matrix \\(X\\), cluster-row blocks \\(X_g\\), and ordinary-least-squares residual blocks \\(e_g\\).  Suppose that \\(I-X_g(X^{\\mathsf T}X)^{-1}X_g^{\\mathsf T}\\) is positive definite for every cluster.  In \\({\\tt clubSandwich}\\) version \\(0.7.0\\), the call \\({\\tt vcovCR}({\\tt fit},\\ {\\tt cluster},\\ {\\tt type}={\\tt 'CR2'})\\), with \\({\\tt target}\\), \\({\\tt inverse\\_var}\\), and \\({\\tt form}\\) omitted, uses the identity working target and returns\n\\[\n \\widetilde B\n \\sum_gX_g^{\\mathsf T}A_ge_ge_g^{\\mathsf T}A_g^{\\mathsf T}X_g\n \\widetilde B,\n \\qquad\n \\widetilde B=\\frac{{\\tt sandwich::bread}({\\tt fit})}{N_{\\rm obs}},\n \\qquad\n A_g=\\left\\{I-X_g(X^{\\mathsf T}X)^{-1}X_g^{\\mathsf T}\\right\\}^{-1/2},\n\\]\nwhere the inverse square root is the symmetric positive-definite one.",
+          "lean": {
+            "file": "Helpers/Software.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ClubSandwichCR2Contract",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:sandwich-lm-bread-contract",
+          "kind": "cited",
+          "label": "Cited result lem:sandwich-lm-bread-contract",
+          "nl": "Let \\({\\tt fit}\\) be a full-column-rank, unweighted \\({\\tt lm}\\) fit with \\(N_{\\rm obs}\\) fitted observations and model matrix \\(X\\).  In \\({\\tt sandwich}\\) version \\(3.1\\text{-}3\\),\n\\[\n {\\tt sandwich::bread}({\\tt fit})=N_{\\rm obs}(X^{\\mathsf T}X)^{-1}.\n\\]",
+          "lean": {
+            "file": "Helpers/Software.lean",
+            "decl": "CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.SandwichLmBreadContract",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "auxiliary",
+      "items": [
+        {
+          "obj_id": "aux_armVar",
+          "kind": "definition",
+          "label": "Definition armVar",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_birthdayGroupedUnits",
+          "kind": "definition",
+          "label": "Definition birthdayGroupedUnits",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_crossCov",
+          "kind": "definition",
+          "label": "Definition crossCov",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_crossCovContrast",
+          "kind": "definition",
+          "label": "Definition crossCovContrast",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_higherDegreeContribution",
+          "kind": "definition",
+          "label": "Definition higherDegreeContribution",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_indepGroupVar",
+          "kind": "definition",
+          "label": "Definition indepGroupVar",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_JohnsonProjections",
+          "kind": "definition",
+          "label": "Definition JohnsonProjections",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_kneserEigenvalue",
+          "kind": "definition",
+          "label": "Definition kneserEigenvalue",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_Omega",
+          "kind": "definition",
+          "label": "Definition Omega",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_orderedDisjointPairDesign",
+          "kind": "definition",
+          "label": "Definition orderedDisjointPairDesign",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_pame",
+          "kind": "definition",
+          "label": "Definition pame",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_QVDiagonalCertificate",
+          "kind": "definition",
+          "label": "Definition QVDiagonalCertificate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_sigmaSq",
+          "kind": "definition",
+          "label": "Definition sigmaSq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_sliceInner",
+          "kind": "definition",
+          "label": "Definition sliceInner",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_sliceNorm",
+          "kind": "definition",
+          "label": "Definition sliceNorm",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_worstCaseRatioError",
+          "kind": "definition",
+          "label": "Definition worstCaseRatioError",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "a8",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.a8",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_JohnsonOrthogonalDecomposition",
+          "kind": "definition",
+          "label": "Definition JohnsonOrthogonalDecomposition",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_KneserAdjacencySpectrum",
+          "kind": "definition",
+          "label": "Definition KneserAdjacencySpectrum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_kneserOp",
+          "kind": "definition",
+          "label": "Definition kneserOp",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_pameHat",
+          "kind": "definition",
+          "label": "Definition pameHat",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_BirthdayBenchmark",
+          "kind": "definition",
+          "label": "Definition BirthdayBenchmark",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_CountAlignment",
+          "kind": "definition",
+          "label": "Definition CountAlignment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "orderedPairSigmaEquiv",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedPairSigmaEquiv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointFiber_card",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointFiber_card",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointPair_card",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_card",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointPair_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointPair_E_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_E_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "kneserChooseRatio_eq_descFactorialRatio",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserChooseRatio_eq_descFactorialRatio",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sliceInner_sum_left",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_sum_left",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sliceInner_sum_right",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_sum_right",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sliceInner_const_mul_right",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_const_mul_right",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sliceInner_self_eq_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_self_eq_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sliceInner_self_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_self_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sliceInner_sub_self",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_sub_self",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "kneserOp_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserOp_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointPair_first_E_eq_slice",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_first_E_eq_slice",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointPair_swap",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPairSwap",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointPair_second_E_eq_slice",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_second_E_eq_slice",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "johnson_proj_const_eq_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnson_proj_const_eq_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "johnson_proj_centered_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnson_proj_centered_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "partitionTuplePermEquiv",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.partitionTuplePermEquiv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointPairPermEquiv",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPairPermEquiv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointPair_perm_exists",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_perm_exists",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finiteDesign_ext_p",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_ext_p",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "randomPartitionDesign_eq_compoundCore",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.randomPartitionDesign_eq_compoundCore",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finiteDesign_E_compoundCore_tower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_E_compoundCore_tower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finiteDesign_Var_compoundCore_tower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_Var_compoundCore_tower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finiteDesign_Var_map",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_Var_map",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "randomPartition_E_partition",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.randomPartition_E_partition",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "expectedSampleVariance_exchangeable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.expectedSampleVariance_exchangeable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "partition_expected_sample_variance",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.partition_expected_sample_variance",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pameHat_eq_diffInMeans",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pameHat_eq_diffInMeans",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cr2Var_eq_varHat",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2Var_eq_varHat",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "conditional_E_pameHat",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditional_E_pameHat",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "conditional_Var_pameHat",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditional_Var_pameHat",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "conditional_E_cr2Var",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditional_E_cr2Var",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "partition_E_mean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.partition_E_mean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "Stau_eq_S1_sub",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.Stau_eq_S1_sub",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "orderedDisjointPair_E_mul_comm",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.orderedDisjointPair_E_mul_comm",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "disjointCov_sub_self",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.disjointCov_sub_self",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "varianceMean_exchangeable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.varianceMean_exchangeable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "partition_mean_variance",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.partition_mean_variance",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "twoStagePairEquiv",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.twoStagePairEquiv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_armTable_eq_sampleMean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armTable_eq_sampleMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_sampleMean_eq_signSum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_sampleMean_eq_signSum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_armTable_mean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armTable_mean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_armVar_treated",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armVar_treated",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_armTable_control",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armTable_control",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_armVar_control",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_armVar_control",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_crossCov_control_right",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_crossCov_control_right",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_crossCov_control_left",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_crossCov_control_left",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_orderedDisjoint_signSum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_orderedDisjoint_signSum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_orderedDisjoint_signSum_real",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_orderedDisjoint_signSum_real",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_crossCov_treated",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_crossCov_treated",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_positive_fin_three",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sum_positive_fin_three",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "witness8_degreeOne_from_spectrum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.witness8_degreeOne_from_spectrum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "matrix_sandwich_rank_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.matrix_sandwich_rank_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "posDef_rankOne_inverse_sqrt",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.posDef_rankOne_inverse_sqrt",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "birthdayGroupedUnits_ratio_identity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayGroupedUnits_ratio_identity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "birthdayGroupedUnits_feasible",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayGroupedUnits_feasible",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "birthdayGroupedUnits_lower_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayGroupedUnits_lower_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "birthdayGroupedUnits_power_identity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayGroupedUnits_power_identity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "birthdayBenchmark_proof",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.birthdayBenchmark_proof",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sparse_dense_ratio_consistency",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sparse_dense_ratio_consistency",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armTable_abs_le_of_boundedSchedule",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_abs_le_of_boundedSchedule",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sliceInner_self_le_sq_of_abs_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceInner_self_le_sq_of_abs_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "johnsonProjection_energy_le_of_abs_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonProjection_energy_le_of_abs_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "kneserEigenvalue_abs_le_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserEigenvalue_abs_le_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "kneserEigenvalue_abs_le_ge_four",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserEigenvalue_abs_le_ge_four",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "johnsonSpectralSum_abs_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonSpectralSum_abs_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "higherDegreeContribution_uniform_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.higherDegreeContribution_uniform_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scaledContrastCrossCov_decomposition",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scaledContrastCrossCov_decomposition",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sliceExpectation_abs_le_of_abs_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceExpectation_abs_le_of_abs_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCrossCov_abs_le_ge_four",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armCrossCov_abs_le_ge_four",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "tableSchedule",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tableSchedule",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armTable_tableSchedule_same",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_tableSchedule_same",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armTable_tableSchedule_ne",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_tableSchedule_ne",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectedMean",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pameHat_tableSchedule_true",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pameHat_tableSchedule_true",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pameHat_tableSchedule_false",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pameHat_tableSchedule_false",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pame_tableSchedule_true",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pame_tableSchedule_true",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pame_tableSchedule_false",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.pame_tableSchedule_false",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armVar_tableSchedule_same",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_tableSchedule_same",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armVar_tableSchedule_ne",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_tableSchedule_ne",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "crossCov_tableSchedule_same",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov_tableSchedule_same",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "crossCov_tableSchedule_left_ne",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov_tableSchedule_left_ne",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "crossCov_tableSchedule_right_ne",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov_tableSchedule_right_ne",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectedMean_variance_true",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_variance_true",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectedMean_variance_false",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_variance_false",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "treated_tendsto_atTop",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.treated_tendsto_atTop",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "controls_tendsto_atTop",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.controls_tendsto_atTop",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ScheduleArray.withTable",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ScheduleArray.withTable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "withTable_bounded",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.withTable_bounded",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sliceVar_le_sq_of_abs_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sliceVar_le_sq_of_abs_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectedMean_expectation_true",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_expectation_true",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectedMean_expectation_false",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_expectation_false",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectedMean_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sampleVariance_finset_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sampleVariance_finset_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "realizedArmSet_card",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.realizedArmSet_card",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectedMean_eq_realized",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_eq_realized",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectedMean_abs_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectedMean_abs_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armSampleVar_eq_selectedMoments",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armSampleVar_eq_selectedMoments",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "boundedInProb_of_pointwise_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.boundedInProb_of_pointwise_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "FiniteDesign.TendstoInProb.square_of_bounded",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.FiniteDesign.TendstoInProb.square_of_bounded",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "FiniteDesign.TendstoInProb.scale_tendsto_one_of_bounded",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.FiniteDesign.TendstoInProb.scale_tendsto_one_of_bounded",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armSampleVar_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armSampleVar_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "boundedInProb_deterministic_of_tendsto",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.boundedInProb_deterministic_of_tendsto",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cr2_centered_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2_centered_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cr2_variance_gap_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2_variance_gap_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scaledVariance_eventually_lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scaledVariance_eventually_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "exists_global_abs_bound_of_eventually",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.exists_global_abs_bound_of_eventually",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cr2_ratio_leading_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.cr2_ratio_leading_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "FiniteDesign.TendstoInProb.retarget",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.FiniteDesign.TendstoInProb.retarget",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "tendsto_of_deterministic_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tendsto_of_deterministic_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "tendstoInProb_target_unique",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tendstoInProb_target_unique",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lower_tail_vanishes_of_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.lower_tail_vanishes_of_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radMean",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radMean_E",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radMean_E",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radMean_var",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radMean_var",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "popVar_rademacher",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.popVar_rademacher",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radMean_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radMean_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armTable_samePrior_eq_sampleMean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_samePrior_eq_sampleMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armTable_independentPrior_eq_sampleMean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armTable_independentPrior_eq_sampleMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armVar_samePrior_eq_popVar",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_samePrior_eq_popVar",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armVar_independentPrior_eq_popVar",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_independentPrior_eq_popVar",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "degreeOneEnergy_samePrior",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.degreeOneEnergy_samePrior",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ScheduleArray.popSize_tendsto_atTop",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ScheduleArray.popSize_tendsto_atTop",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radArmMean",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radArmMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radArmMean_E",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radArmMean_E",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radArmMean_var",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radArmMean_var",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radArmMean_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radArmMean_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "rademacherSliceCoefficient_tendsto",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.rademacherSliceCoefficient_tendsto",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armVar_samePrior_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_samePrior_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armVar_independentPrior_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.armVar_independentPrior_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scheduleArray_same_armVar_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_same_armVar_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scheduleArray_independent_armVar_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_independent_armVar_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scheduleArray_same_degreeOne_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_same_degreeOne_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "mem_johnsonHarmonic_one_of_degreeOne_mean_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.mem_johnsonHarmonic_one_of_degreeOne_mean_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "johnsonMean_sampleMean_eq_sliceExpectation",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonMean_sampleMean_eq_sliceExpectation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sampleMean_mem_degreeAtMost_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sampleMean_mem_degreeAtMost_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "centeredSampleMean_mem_johnsonHarmonic_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.centeredSampleMean_mem_johnsonHarmonic_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "johnsonProj_sampleMean_eq_centered",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.johnsonProj_sampleMean_eq_centered",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "degreeOneEnergy_independentPrior_eq_popVar",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.degreeOneEnergy_independentPrior_eq_popVar",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radCrossMean",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radCrossMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radPair_E",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radPair_E",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radPair_var",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radPair_var",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radPair_cov_ne",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radPair_cov_ne",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radCrossMean_E",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radCrossMean_E",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radCrossMean_var",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radCrossMean_var",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "radCrossMean_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.radCrossMean_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "popVar_independentDifference_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.popVar_independentDifference_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "FiniteDesign.TendstoInProb.deterministic_mul",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.FiniteDesign.TendstoInProb.deterministic_mul",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "natCast_ratio_sub_one_tendsto",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.natCast_ratio_sub_one_tendsto",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "independentDifferencePopVar_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.independentDifferencePopVar_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scheduleArray_independent_degreeOne_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_independent_degreeOne_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectSwapEquiv",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.selectSwapEquiv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fairCoinWeight",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.fairCoinWeight",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "priorIndependent_E_select",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.priorIndependent_E_select",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedArmSelector",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.observedArmSelector",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedArmSelector_of_mem",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.observedArmSelector_of_mem",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observe_independent_eq_same_selected",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.observe_independent_eq_same_selected",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finiteDesign_E_swap",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.finiteDesign_E_swap",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sameObservedExpectation_eq_independent",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sameObservedExpectation_eq_independent",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "FiniteDesign.TendstoInProb.congr_eventually",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.FiniteDesign.TendstoInProb.congr_eventually",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "probability_ge_tendsto_one_of_tendstoInProb",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.probability_ge_tendsto_one_of_tendstoInProb",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "kneserEigenvalue_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserEigenvalue_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "crossCov_eq_kneserEigenvalue_mul_armVar_of_sampleMean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCov_eq_kneserEigenvalue_mul_armVar_of_sampleMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "crossCovContrast_eq_kneserEigenvalue_mul_degreeOne_of_sampleMean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.crossCovContrast_eq_kneserEigenvalue_mul_degreeOne_of_sampleMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scaledSigmaSq_eq_of_additive_armTables",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scaledSigmaSq_eq_of_additive_armTables",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "FiniteDesign.TendstoInProb.exists_uniform_support",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.FiniteDesign.TendstoInProb.exists_uniform_support",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ScheduleArray.withSchedule",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ScheduleArray.withSchedule",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "abs_conditionedExpectation_sub_le_two_compl",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.abs_conditionedExpectation_sub_le_two_compl",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseClass_withSchedule_of_scaled_tendsto",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.denseClass_withSchedule_of_scaled_tendsto",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "tendsto_of_uniform_support_error",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tendsto_of_uniform_support_error",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "conditionedMixtureTV_le_complements",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditionedMixtureTV_le_complements",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "conditionedFiniteExpectation_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditionedFiniteExpectation_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "conditionedFiniteExpectation_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditionedFiniteExpectation_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "conditionedFiniteExpectation_compl",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.conditionedFiniteExpectation_compl",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "tendsto_of_eventually_uniform_support_error",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.tendsto_of_eventually_uniform_support_error",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ratio_good_implies_same_decision",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ratio_good_implies_same_decision",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ratio_good_implies_independent_decision",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.ratio_good_implies_independent_decision",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "symbol",
+      "items": [
+        {
+          "obj_id": "sym:n",
+          "kind": "symbol",
+          "label": "n",
+          "nl": "realized by variable@22, ScheduleArray, witness8Bundle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:M",
+          "kind": "symbol",
+          "label": "M",
+          "nl": "realized by variable@22, ScheduleArray, witness8Bundle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal U_n",
+          "kind": "symbol",
+          "label": "\\mathcal U_n",
+          "nl": "realized by Population",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Omega_{n,M}",
+          "kind": "symbol",
+          "label": "\\Omega_{n,M}",
+          "nl": "realized by Omega",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal Z",
+          "kind": "symbol",
+          "label": "\\mathcal Z",
+          "nl": "realized by Arm",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y_{i,n}(z,A)",
+          "kind": "symbol",
+          "label": "Y_{i,n}(z,A)",
+          "nl": "realized by PotentialOutcome, ScheduleArray",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbb E_n",
+          "kind": "symbol",
+          "label": "\\mathbb E_n",
+          "nl": "realized by slice",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\langle\\cdot",
+          "kind": "symbol",
+          "label": "\\langle\\cdot",
+          "nl": "realized by sliceInner",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\cdot\\rangle_n",
+          "kind": "symbol",
+          "label": "\\cdot\\rangle_n",
+          "nl": "realized by sliceInner",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\|\\cdot\\|_n",
+          "kind": "symbol",
+          "label": "\\|\\cdot\\|_n",
+          "nl": "realized by sliceNormSq",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:h_{z,n}",
+          "kind": "symbol",
+          "label": "h_{z,n}",
+          "nl": "realized by armTable",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:h_{z,n}^{\\circ}",
+          "kind": "symbol",
+          "label": "h_{z,n}^{\\circ}",
+          "nl": "realized by armTableCentered",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:V_{z,n}",
+          "kind": "symbol",
+          "label": "V_{z,n}",
+          "nl": "realized by armVar",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:G_n",
+          "kind": "symbol",
+          "label": "G_n",
+          "nl": "realized by ScheduleArray, witness8Bundle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:G_{1n}",
+          "kind": "symbol",
+          "label": "G_{1n}",
+          "nl": "realized by ScheduleArray, witness8Bundle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:N_n",
+          "kind": "symbol",
+          "label": "N_n",
+          "nl": "realized by ScheduleArray, ScheduleArray.grouped, witness8Bundle, birthdayGroupedUnits",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:G_{0n}",
+          "kind": "symbol",
+          "label": "G_{0n}",
+          "nl": "realized by ScheduleArray.controls",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:p_n",
+          "kind": "symbol",
+          "label": "p_n",
+          "nl": "realized by ScheduleArray.treatmentFraction, pFrac",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:p",
+          "kind": "symbol",
+          "label": "p",
+          "nl": "realized by StableTreatmentFraction",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\rho",
+          "kind": "symbol",
+          "label": "\\rho",
+          "nl": "realized by SamplingFractionLimit",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:B",
+          "kind": "symbol",
+          "label": "B",
+          "nl": "realized by BoundedSchedule",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:c_\\sigma",
+          "kind": "symbol",
+          "label": "c_\\sigma",
+          "nl": "realized by ScaledVarianceNondegenerate",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal C_{\\mathrm{dense}}",
+          "kind": "symbol",
+          "label": "\\mathcal C_{\\mathrm{dense}}",
+          "nl": "realized by DenseScheduleClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:H^{\\mathrm{obs}}_{ng}",
+          "kind": "symbol",
+          "label": "H^{\\mathrm{obs}}_{ng}",
+          "nl": "realized by obsGroupMean",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\tau_n",
+          "kind": "symbol",
+          "label": "\\tau_n",
+          "nl": "realized by pame, pameAndEstimator",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat\\tau_n",
+          "kind": "symbol",
+          "label": "\\widehat\\tau_n",
+          "nl": "realized by pameHat, pameAndEstimator",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\sigma_n^2",
+          "kind": "symbol",
+          "label": "\\sigma_n^2",
+          "nl": "realized by sigmaSq",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:R_n",
+          "kind": "symbol",
+          "label": "R_n",
+          "nl": "realized by indepGroupVar, denseCorrection",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:E_{\\tau,1,n}",
+          "kind": "symbol",
+          "label": "E_{\\tau,1,n}",
+          "nl": "realized by degreeOneEnergy, denseCorrection",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:s_{z,n}^2",
+          "kind": "symbol",
+          "label": "s_{z,n}^2",
+          "nl": "realized by armSampleVar",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat V_{\\mathrm{CR2},n}",
+          "kind": "symbol",
+          "label": "\\widehat V_{\\mathrm{CR2},n}",
+          "nl": "realized by cr2Var",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal H_{n,k}",
+          "kind": "symbol",
+          "label": "\\mathcal H_{n,k}",
+          "nl": "realized by johnsonHarmonicSpace",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Pi_{n,k}",
+          "kind": "symbol",
+          "label": "\\Pi_{n,k}",
+          "nl": "realized by JohnsonProjections",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathsf K_n",
+          "kind": "symbol",
+          "label": "\\mathsf K_n",
+          "nl": "realized by kneserOp",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\lambda_{n,k}",
+          "kind": "symbol",
+          "label": "\\lambda_{n,k}",
+          "nl": "realized by kneserEigenvalue",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:C_{ab,n}",
+          "kind": "symbol",
+          "label": "C_{ab,n}",
+          "nl": "realized by crossCov",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:C_{\\tau\\tau,n}",
+          "kind": "symbol",
+          "label": "C_{\\tau\\tau,n}",
+          "nl": "realized by crossCovContrast",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbf A_n",
+          "kind": "symbol",
+          "label": "\\mathbf A_n",
+          "nl": "realized by PartitionTuple",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbf Z_n",
+          "kind": "symbol",
+          "label": "\\mathbf Z_n",
+          "nl": "realized by TreatmentSpace",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbb H_n^{\\mathrm{same}}",
+          "kind": "symbol",
+          "label": "\\mathbb H_n^{\\mathrm{same}}",
+          "nl": "realized by priorSame",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbb H_n^{\\mathrm{ind}}",
+          "kind": "symbol",
+          "label": "\\mathbb H_n^{\\mathrm{ind}}",
+          "nl": "realized by priorIndependent",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal O_n",
+          "kind": "symbol",
+          "label": "\\mathcal O_n",
+          "nl": "realized by ObservedData",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat S_n",
+          "kind": "symbol",
+          "label": "\\widehat S_n",
+          "nl": "realized by VarianceStatistic",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbf a_8",
+          "kind": "symbol",
+          "label": "\\mathbf a_8",
+          "nl": "realized by a8",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    }
+  ]
+}

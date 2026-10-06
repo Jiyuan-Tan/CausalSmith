@@ -1,0 +1,56 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AdaptiveSelectorPacket
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianKL
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianOutcomePath
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianSubGaussian
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.BoundedCertifiedComplex
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.CertifiedComplex
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.CertifiedTranscendental
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ClassRelations
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ComplexAnalysisLocal
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ContourBank
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Cumulant
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransform
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransformSeries
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.FixedCodeConverse
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.GaussianRademacherBenchmark
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.HardSubmodel
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JensenBlaschke
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JmsComparator
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.KnownZeroAssembly
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.KnownZeroConditional
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.KnownZeroOrthogonality
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.LuxemburgMGF
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.PopulationNumeratorBound
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ProjectedOutputCertification
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SelectorSoundness
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SineRisk
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SineScore
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SpectralEstimator
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SpectralMeasurability
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.UniformDiskSeries
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.OpenQuestions
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T1_KnownZeroInstrument
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T2_ExactContourIdentification
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T3_AdaptiveRootNMinimax
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T4_JmsAceAlignment
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T5_CommonExperimentDichotomy
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T6_SymmetricMixtureReduction
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T7_LocalToGaussianPartialBenchmarks
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T8_BoundedOutcomeGaussianDegeneracy
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

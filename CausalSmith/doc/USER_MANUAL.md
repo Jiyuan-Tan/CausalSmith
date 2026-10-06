@@ -1,0 +1,452 @@
+# CausalSmith User Manual
+
+CausalSmith is a Lean 4 + TypeScript umbrella package that auto-generates and curates causal-inference theorems on top of the foundational `Causalean` library. The live pipeline is:
+
+- **`causalsmith research`** — derive, formalize, verify, and bank causal-inference theorems end-to-end from a question id and specialization.
+- **`causalsmith present`** — turn an accepted bank entry into a verified paper bundle.
+- **`causalsmith study`** — build and promote one reusable Causalean substrate module.
+
+
+### Two phases: discovery → formalization
+
+Read each `causalsmith research` run as two phases of one research activity:
+
+- **Discovery** (proposing) — propose a question, scope it against the literature, and solve the math informally. This is D-1, D0, and D0.5; by D0.5 the math claim has cleared informal review.
+- **Formalization** (testing) — translate the math into Lean and prove it. This is F1 (NL formalization plan), F1.5 (review of that plan), F2 (Lean scaffold), F3 (proof fill), F4 (equivalence review), and F5 (bank + API.md). F1 is informal but already Lean-shaped — committing to types, hypotheses, and quantifier scope — so it counts as the first formalization step.
+
+Formalization is the *verification* half of research, not a mechanical post-step: a failed F1.5 or F3 usually means the math claim itself was wrong, not that the translator broke. Stage identifiers below use the D-/F- prefix convention — "discovery" and "formalization" are just the conceptual grouping.
+
+This manual is the user-facing entry point. For per-declaration documentation see [`doc/API.md`](API.md); for the pipeline run protocol start with the `causalsmith` skill at `.claude/skills/causalsmith/SKILL.md`. It dispatches the D- and F-stage sub-orchestrators as needed.
+
+## Repository layout
+
+```
+CausalSmith/
+  lakefile.toml             # name = "CausalSmith"; defaultTargets = ["CausalSmith"]
+  CausalSmith.lean          # light default target (Causalean + shared helpers); papers build via run barrels
+  CausalSmith/              # Lean source root (namespace CausalSmith.*)
+    Panel/                  # panel / linear-projection theorems (panel_* runs)
+    ExactID/                # exact-identification outputs (populated by /causalsmith research eid_*)
+    PartialID/              # partial-identification outputs (populated by /causalsmith research pid_*)
+    Stat/                   # estimation/inference outputs — rates, efficiency, limit laws (/causalsmith research stat_*)
+    Experimentation/        # design-based / randomization-inference outputs (/causalsmith research exp_*)
+    SCM/                    # graphical-identification / SCM outputs (/causalsmith research scm_*)
+    Mathlib/                # Mathlib-shaped helpers awaiting promotion to Causalean
+    Panel/Regression/       # regression-side helpers awaiting promotion
+  doc/
+    USER_MANUAL.md          # this file
+    API.md                  # per-file / per-declaration documentation
+    qid-naming.md           # qid conventions
+    research/active/<qid>/  # per-run artifacts (state.json, graph.json, reviews/, discovery/, formalization/)
+    research/_bank/         # banked entries by tier
+    research/_topics/       # topic-selection rounds (ignored by git)
+    templates/              # Python+Jinja2 prompt rendering layer
+  tools/                    # TypeScript pipeline + supporting binaries
+    bin/                    # CLI entry points (see below)
+    src/                    # pipeline source
+      cli.ts                # argument parsing
+      pipeline.ts           # stage advancement loop
+      state.ts              # state-machine schema (zod)
+      shared/bank_router.ts # banking destination routing
+      pipeline_stages.ts    # all stage handlers + dispatcher (formerly research/index.ts)
+      pipeline_support.ts   # cross-stage helpers (formerly research/support.ts)
+      discovery/            # discovery-phase artifacts (D-1, D0, D0.5)
+        prompts/{D-1,D-0.5,D0,D0.5,_shared}/  # per-stage Codex/Claude prompts
+      formalization/        # formalization-phase artifacts (F1, F1.5, F2, F3, F4, F5)
+        prompts/{F1,F1.5,F2,F4,F5}/          # per-stage Codex/Claude prompts
+        proof_review_loop.ts # unified proof-review loop (owns F2.5+F3+F3.5+F4)
+      templates/            # D-1 reviewer output JSON template
+      workers/              # subagent dispatch adapters
+    test/                   # vitest unit + smoke tests
+```
+
+`CausalSmith` depends on `Causalean` via `[[require]] path = ".."`. The dependency is one-way: `Causalean` never imports anything from `CausalSmith`. Promotion only adds to Causalean: the helper is added there, generalized where a faithful general statement exists, and the banked run keeps its own version, unedited.
+
+## Prerequisites
+
+| Tool | Version | Why |
+|---|---|---|
+| Lean 4 | as pinned in `lean-toolchain` | Build CausalSmith + Causalean |
+| Lake | bundled with Lean | Build orchestration |
+| Node.js | ≥ `20.20.2` (the `engines.node` floor; 22.x verified) | TypeScript pipeline runtime — `source tools/scripts/node_env.sh` selects a satisfying install; an older default shell node fails silently |
+| Codex CLI | latest | Pipeline worker/reviewer dispatch for D-1 / D0 / F2 / F3 / F4 / F5 |
+| pandoc + latexmk | any recent; latexmk from a TeX distribution | `causalsmith present` only — P4 renders the HTML body and compiles the PDF |
+
+```bash
+source tools/scripts/node_env.sh
+```
+
+Install TS deps once:
+
+```bash
+cd CausalSmith/tools && npm install
+```
+
+## Build
+
+```bash
+lake build Causalean                # build the foundational library
+lake -d CausalSmith build        # light default target: Causalean + shared helpers
+```
+
+The Lean code of existing papers is opt-in. Build one paper with its run barrel (`lake -d CausalSmith build CausalSmith.<Area>.<RUN>_Research`; a few early runs have no barrel, so name their module files instead), every module with `npm run build:full-tree`, or fetch prebuilt oleans with `scripts/fetch_build_cache.sh --causalsmith` (see [`SETUP.md`](SETUP.md)). A research run never needs them up front: the pipeline builds each run through its own run barrel, and importing one earlier paper compiles only that paper. Fetch Mathlib's cache for the CausalSmith project from inside it: `(cd CausalSmith && lake exe cache get)`.
+
+With the Mathlib and Causalean caches fetched, a first build takes minutes; from source it takes hours. Incremental builds are fast. For iteration during proof work, prefer the `lean-lsp` MCP (`lean_diagnostic_messages`, `lean_goal`, `lean_multi_attempt`) over `lake build`.
+
+**Warm the build cache before F1/F2/F3.** Those stages query Lean live via the `lean-lsp` MCP (see below). The first such call on a cold `.olean` cache triggers a dependency compile that can stall the stage; run `lake -d CausalSmith build` once first so the cache is warm.
+
+## Local configuration (machine-specific paths)
+
+Machine-specific paths live in **one** place: `tools/config/local.json` (gitignored; copy from `local.example.json`). `tools/src/local_config.ts` reads it, and every env var listed below overrides the file. `applyWorkerEnv()` runs at CLI startup to inject the worker env automatically.
+
+| Field | Env override | Purpose |
+|---|---|---|
+| `gitBashPath` | `CLAUDE_CODE_GIT_BASH_PATH` | **Windows only.** Absolute path to git-bash `bash.exe`. The headless `claude` worker (F1/F1.5, intervention judge) exits empty without it. Leave `null` on Linux. |
+| `leanLspMcpBinary` | `CAUSALSMITH_LEAN_LSP_MCP` | The `lean-lsp-mcp` server binary (PATH name or absolute). |
+| `leanProjectPath` | `CAUSALSMITH_LEAN_PROJECT_PATH` | Optional override for lean-lsp `--lean-project-path`; `null` ⇒ the run's repoRoot (the lake project that transitively sees Causalean). |
+| `mcpTimeoutMs` | `MCP_TIMEOUT` | Per-call timeout for the slow-cold-starting lean-lsp server (code default 600000; `local.example.json` ships the same). |
+| `pythonPath` | `CAUSALSMITH_PYTHON` | Interpreter for the Python retrieval scripts — the one with `torch` + `sentence-transformers`. `null` ⇒ probe the platform defaults (`python3`/`python` on Linux and macOS; `python`, `py -3`, `python3` on Windows, where `python3` is not a program name and the Store alias stub is rejected). Set it when the right venv is not first on `PATH`. |
+| `codexSandbox` | `CAUSALSMITH_CODEX_SANDBOX` | Codex local-tool sandbox. Default `workspace-write`. `danger-full-access` is a persistent machine-local grant of unrestricted filesystem/network tools to every CausalSmith Codex worker; use it only when that is explicitly intended or an outer environment supplies confinement. |
+
+## Who pays for the model calls (subscription vs API key)
+
+By default the pipeline bills the interactive logins already on the machine: `claude` uses its stored OAuth login, `codex` uses the ChatGPT plan in `~/.codex`. That is `subscription` mode and needs no configuration.
+
+The alternative is `api` mode: you supply an API key and the run is billed to it. Set it in the same `tools/config/local.json`, or via env (env always wins). `tools/src/auth.ts` is the only module that interprets these; it prints the resolved modes at startup (`[causalsmith] auth: claude=… codex=…`) and never prints a key.
+
+| Field | Env override | Purpose |
+|---|---|---|
+| `authMode` | `CAUSALSMITH_AUTH_MODE` | `subscription` (default) or `api`, for **both** runners. |
+| `anthropicAuth` | `CAUSALSMITH_ANTHROPIC_AUTH` | Per-provider override for the `claude` workers. |
+| `openaiAuth` | `CAUSALSMITH_OPENAI_AUTH` | Per-provider override for the `codex` workers. |
+| `anthropicApiKey` / `anthropicApiKeyFile` | `ANTHROPIC_API_KEY` | The Anthropic key, inline or as a path to a file whose first non-empty line is the key. |
+| `openaiApiKey` / `openaiApiKeyFile` | `OPENAI_API_KEY` | Same, for OpenAI. |
+| `codexApiHome` | `CAUSALSMITH_CODEX_HOME_API` | `CODEX_HOME` used in codex api mode. Default `~/.codex-causalsmith-api`. |
+| `claudeConfigDir` | `CAUSALSMITH_CLAUDE_CONFIG_DIR` | `CLAUDE_CONFIG_DIR` for the `claude` workers — an account switch, not a billing one. `null` ⇒ workers use `~/.claude`. |
+
+Mixed modes are supported and often what you want — e.g. `"anthropicAuth": "api"` with `"openaiAuth": "subscription"` runs the claude reviewers on an API key while codex keeps the ChatGPT plan.
+
+Four properties worth knowing:
+
+- **A missing key is a hard failure, not a fallback.** `api` mode with no key throws at CLI startup, naming every place a key may live. A run that quietly reverted to subscription billing would only surface on an invoice.
+- **This covers the calls the PIPELINE makes, not every model call in the project.** Both dispatchers (`runClaude`, `runCodex`) route through `src/auth.ts`, so every D-/F-/P-stage worker obeys the setting. Calls an *orchestrator* fires by hand — the `codex exec` adversarial gate in `causalsmith-topics`, or any `codex exec` you run yourself under the CLAUDE.md tooling grant — never touch this module and always use the machine's own codex login.
+- **API mode never touches your subscription credentials.** `claude` api calls run with `--bare`, which restricts that process to `ANTHROPIC_API_KEY` and never reads the keychain — the stored OAuth login is left alone. Codex is stricter: it permits one login method per `CODEX_HOME` and *deletes* stored ChatGPT credentials when api auth is forced on that home, so api-mode codex runs against its own `codexApiHome`, bootstrapped once with `codex login --with-api-key` (your global `~/.codex/config.toml` is copied in on first use).
+- **`--bare` also skips CLAUDE.md auto-discovery, hooks, and auto-memory** for the claude workers. That is safe here because pipeline prompts are self-contained by contract, and the MCP set is passed explicitly via `--strict-mcp-config` in both modes.
+
+**lean-lsp MCP wiring.** Both worker backends can query Lean live, but MCP must be configured explicitly (it is NOT auto-enabled): the `claude` worker gets a generated `--mcp-config` (F1 feasibility gate, F2 scaffold verify); the `codex` worker gets inline `-c mcp_servers.lean-lsp.*` flags when a stage passes `leanLsp: true` (F3 proof-fill). In the default network-off `workspace-write` mode, the *search* tools (`lean_leansearch`/`lean_loogle`/`lean_leanfinder`) are blocked but the local tools (`lean_diagnostic_messages`/`lean_goal`/`lean_multi_attempt`/`lean_local_search`) work.
+
+## Running the `causalsmith research` pipeline
+
+The `/causalsmith research` slash command (`.claude/skills/causalsmith/SKILL.md`) is the canonical entry. The main skill owns the run lifecycle and dispatches `causalsmith-d` for discovery and `causalsmith-f` for formalization. It launches `tools/bin/causalsmith.ts research`. **The pipeline's cwd must be the CausalSmith package root** — `findCausalSmithRoot` (`tools/src/shared/repo_root.ts`) walks upward from cwd looking for `lakefile.toml` with `name = "CausalSmith"`.
+
+### Direct invocation
+
+```bash
+cd <AUTOID>/CausalSmith
+source tools/scripts/node_env.sh
+npx --prefix tools tsx tools/bin/causalsmith.ts research <ARGS>
+```
+
+### Argument forms
+
+Each row is a distinct **entrypoint shape**. The `research` forms enter the
+theorem pipeline; `study` runs the separate substrate builder; `present` runs
+the paper pipeline; `--reopen` is a pure file move; and `--discharge-gate`
+re-enters theorem verification at F2.5.
+
+| Form | Effect |
+|---|---|
+| `research <qid> <spec>` | Cold start a theorem run with the given question id + specialization. |
+| `research --resume <qid> <spec>` | Resume after CKPT 1 / 1.5 / 2 or a `missing_architecture` block. |
+| `research --propose <topic> <qid> <spec>` | Run D-1 (question proposal) first, then proceed. |
+| `research --angle-action <continue\|switch\|retry\|give-up> <qid> <spec>` | Resolve a D-0.5 proposal checkpoint before another proposer starts. Add `--angle-directive <text\|->` to persist the D-orchestrator repair atomically; `retry` REQUIRES both `--angle-directive` and `--extra-revisions N`. |
+| `research --propose <topic> --novelty <tier> --upgrade <parent>_<spec> --upgrade-axis <axis> <qid> <spec>` | Upgrade a banked accepted/downgraded parent. `<tier>` must be at or above the parent's `banked_novelty_tier` — equal is allowed (e.g. field→field). `--propose <topic>` is optional here (topic auto-derived from the parent README). |
+| `study <slug> [--resume [--clear-build-cap\|--clear-coordinate-cap]]` | **Substrate-build mode** — builds ONE missing Causalean substrate module. The first invocation writes a blank `requirement.md` template and halts for you to fill in; re-run to proceed. Boots one shared warm `lean-lsp` for the whole run. |
+| `present <qid> <spec>` | Create or resume a verified paper bundle from an accepted bank entry. |
+| `research --reopen <qid> <spec>` | Pull a **banked** entry back to its working dir and clear `banked` (inverse of banking's move), so the normal toolchain operates on it again. |
+| `research --discharge-gate <qid> <spec> <node_id>` | Reopen a banked entry, ungate `<node_id>`, re-verify F2.5→F5, re-bank. Use once a banked entry's gated substrate has been built. |
+| `research --downgrade-tier <tier> <qid> <spec>` | Accept an achieved lower tier when D0.5 lands **below** the novelty floor (the field advance proved unreachable): lower the persisted floor to `<tier>` and re-pass D0.5, then continue per `--auto` (into F) or halt at the go/no-go. |
+
+Useful flags:
+- `--auto` — run autonomously: the orchestrator decides every checkpoint per its skill, halting only on terminal failure or CKPT 2 (bank/promote/commit). Without it the run stops at each checkpoint for a human call.
+- `--novelty <incremental|subfield|field|flagship>` — D0.5 acceptance threshold for proposal mode. The vocabulary **is** the reviewer publishability-tier ladder (`flagship > field > subfield > incremental`): the target you pass is the floor tier a note must clear. Default `field`. (The pre-unification spellings `relative-to-repo` → `incremental` and `relative-to-literature` → `subfield` are still accepted and normalized, so old scripts and banked runs keep working.)
+- `--proposer <codex|claude>` — override which draft runner writes the D-1 proposal. Defaults to the model configured in `models.ts`.
+- `--upgrade <parent_qid>_<parent_spec>` — requires an explicit `--novelty <tier>` at or **above** the parent's achieved `banked_novelty_tier`; a target below it is refused as a downgrade. Equal-tier upgrades are legitimate (field→field): the tier is not the delta — the declared `--upgrade-axis` is, and D-0.5 fires `N-upgrade-thin` on any draft that does not deliver it. Starts D-1 from a banked entry; the accepted child carries a `supersedes:` link to the parent.
+- `--upgrade-axis <computation|estimation|generalization|mechanism>` — required with `--upgrade`. Declares the typed delta the upgrade must deliver.
+- `--clear-gate <flag>` — repeatable, **`--resume`-only**. Clears one resume-blocking cap-gate flag in `state.flags` instead of hand-editing it. A cap-gate is a deliberate halt the run must not blow through silently, so clearing it is an explicit act. Valid flags: `stage_neg1_fallback`, `general_review_halt`, `substrate_build_required`, `theorem_splits_cap_hit`, `stage0_budget_exhausted`, `stage1_rewinds_cap_hit`, `scaffold_redirect_cap_hit`, `proof_loop_cap_hit`, `d0_loop_cap_hit`. (Distinct from a *substrate*-gate — see "Discharging a gate" below; the two share the word but are unrelated mechanisms.)
+- `--stop-after <stage>` — halt cleanly after the named stage completes. Valid stages (in order): `D-1.1`, `D-1.2`, `D-0.5`, `D0`, `D0.5`, `F1`, `F1.5`, `F2`, `F2.5`, `F3`, `F3.5`, `F4`, `F5`. Useful for smoke-testing one stage in isolation (e.g. `--stop-after F4` to inspect equivalence review without auto-banking; old numeric forms are accepted but deprecated). Validated at parse time; plumbed via `CAUSALSMITH_STOP_AFTER` env var.
+- `--from-stage <stage>` — with `--resume` (or `--discharge-gate`, where it overrides the F2.5 default); re-enter the run AT the named stage instead of at `state.stage_completed + 1`. Same stage vocabulary as `--stop-after`. This is the clean way to re-run a stage (e.g. `--resume … --from-stage F2.5` to re-review after registering a substrate-gate) without hand-editing `state.stage_completed`. Sets `runPipeline`'s `startStage`; pair with `--stop-after` to run a single stage in isolation. No effect on a cold start.
+- `--dry-run` — validate state-machine mechanics only; no Codex calls. Use for plumbing checks. NEVER `--dry-run` a live run: it fast-forwards `state.stage_completed`.
+
+### qid conventions
+
+| Prefix | Substrate |
+|---|---|
+| `panel_*` (e.g. `panel_synthetic_did_*`, `panel_event_study_*`, `panel_lp_var_*`) | Panel / linear-projection (`CausalSmith/Panel/`) |
+| `eid_*` (e.g. `eid_backdoor_*`, `eid_iv_*`, `eid_shiftshare_*`, `eid_rdd_*`) | Exact identification (`CausalSmith/ExactID/`) |
+| `pid_*` (e.g. `pid_manski_*`, `pid_sensitivity_*`, `pid_bunching_*`) | Partial identification (`CausalSmith/PartialID/`) |
+| `stat_*` (e.g. `stat_ate_overlap_decay_*`, `stat_policy_regret_*`) | Estimation / inference theory for a causal estimand — a convergence rate, semiparametric efficiency bound, or limit law where the rate/efficiency/limit IS the kernel (`CausalSmith/Stat/`) |
+| `exp_*` (e.g. `exp_aronow_samii_*`, `exp_saturation_*`, `exp_adaptive_*`) | Design-based / randomization inference (`CausalSmith/Experimentation/`) |
+| `scm_*` (e.g. `scm_proxy_transport_*`, `scm_selection_*`) | Graphical identification / structural causal models (`CausalSmith/SCM/`) |
+
+Full conventions: [`doc/qid-naming.md`](qid-naming.md).
+
+
+The **Stat** and **Experimentation** clusters share a "method-as-kernel" framing distinct from the identification clusters: identification of the causal estimand is GIVEN, and the contribution is the estimation/inference theory. They differ in the randomness source. **Stat** is superpopulation (units sampled from a population); the kernel is a rate / efficiency bound / limit law, and a matched minimax converse is the strongest but NOT the only creditable frontier-advance — a strictly sharper upper rate, the first nontrivial bound for a method/estimand, an efficiency bound with an attaining estimator, or a nontrivial estimator for a *novel* causal estimand each also qualify. **Experimentation** is the design and analysis of experiments: the design (or the interference / dependence structure) is a first-class object; admissible shapes are a design-based limit law + Wald-coverage for a *given* design (assignment is the only randomness; potential outcomes fixed / finite-population), an optimal / efficient *chosen* design with an optimality certificate, adaptive / sequential inference under a *data-dependent* design (martingale CLT), and super-population inference under network / spatial dependence (weak-dependence CLT + HAC variance) — with the operative limit / optimality always DERIVED from primitive design conditions, never assumed.
+
+### Output layout per run
+
+Artifacts use bare, presentation-style names (the folder is already `<qid>`, so the
+old `<qid>_<spec>_` prefix is dropped); the spec lives inside `state.json`. Phase
+artifacts nest under `discovery/` and `formalization/`. Pre-rename runs keep their
+`<qid>_<spec>_`-prefixed names and resolve transparently (back-compat).
+
+```
+CausalSmith/doc/research/active/<qid>/
+  state.json                             # canonical state machine (zod-validated; carries qid + specialization)
+  pipeline.jsonl                         # stage advancement log
+  reviews/                               # reviews.jsonl, review_{general,math,rubric}.json, angle*_v*.json, stage_*_attempt<N>.json
+  graph.json                             # note↔Lean formalization graph
+  orchestrator/decision_log.jsonl        # orchestrator decisions
+  logs/                                  # per-stage transcripts + the .run.active heartbeat (gitignored)
+  discovery/
+    writeup.tex                          # D0 derivation
+    proposal.tex                         # D-1 proposal (proposal mode only)
+    gaps.json                            # D-1.1 literature scan output
+    core.json / proto_core.json          # typed-D0 rendered graph (working copy) / D-1.2 proposal core
+    vcs/                                 # the D0 graph store: commits, node objects, refs/main, prs/
+  formalization/
+    formalization.md                     # F1 NL formalization
+    plan.json                            # F1 formalization plan
+CausalSmith/CausalSmith/<substrate>/<QidCamel>/   # Lean output (scaffold + proof)
+CausalSmith/doc/research/MISSING_ARCHITECTURE.md   # deferred-infra ledger across qids (created by the first run that defers infrastructure)
+```
+
+The Lean output directory is computed by `canonicalLeanSubdir(qid)` in `tools/src/paths.ts`.
+
+### Module system
+
+Emitted run files place `module` after the optional copyright block, use `public import`, add the
+`/-! ... -/` module docstring, and open one blanket
+`@[expose] public section` for def-bearing files or `public section` for theorem-only files.
+Declarations remain bare; run barrels and `Helpers.lean` are imports-only.
+
+From `CausalSmith/tools`, validate headers and repository placement with:
+
+```sh
+npm run lint:module-headers
+npm run lint:layout
+```
+
+### Stage discipline notes
+
+The formalization phase enforces a small set of cross-stage invariants that keep downstream stages cheap. Brief summary; canonical wording lives in the per-stage prompts under [`tools/src/formalization/prompts/`](../tools/src/formalization/prompts/).
+
+- **Formalization planning (F1).** F1 maps every typed-core node (`ass:`/`def:`/`thm:`…) to the Lean object realizing it in `plan.json`, choosing `reuse` / `define-local` / `defer_tier` per node and maximizing reuse of existing Causalean substrate; `formalization.md` is rendered from core + plan as the human-readable bridge. (Prompt: `prompts/F1/stage1_template.txt`.)
+- **Mixed-feasibility extraction (F1).** When the core bundles a formalizable sub-result with parts that need infrastructure that does not exist yet, F1 does NOT bounce the whole theorem: each node carries one of `formalizable-now` / `needs-new-infrastructure` / `blocked-infeasible`, the formalizable part proceeds, and the missing infrastructure is recorded as a gate for F1.5 to classify. (Prompt: `prompts/F1/stage1_template.txt`.)
+- **Persistent F2 scaffold directive (orchestrator).** When the F2.5 faithfulness loop keeps escalating the SAME statement-shape drift the scaffolder re-introduces on every pass — an over-assumed premise the note DERIVES, a universal constant quantified after the model parameters, a missing mechanical domain hypothesis — and the one-shot capped `scaffold_redirect` (or a hand-edit) gets reverted by the next re-scaffold, the orchestrator injects a PERSISTENT constraint via `tools/bin/f2_directive.ts <qid> <spec> --directive "…"` (`--clear`/`--show` too). It persists on `state.flags.f2_scaffold_directive` and `runStage2` applies it verbatim as a top-priority constraint on EVERY scaffold/revise pass until cleared (uncapped, unlike `scaffold_redirect`). It is the F2 analogue of `bin/f3_directive.ts` (which hands the F3 fill loop a PROOF hint). Statement-SHAPE / faithfulness steer only — the F2.5 review + anti-laundering gates still apply. (`tools/bin/f2_directive.ts`, `src/formalization/stage2.ts`.)
+- **Missing-architecture ledger.** Deferred infrastructure is mirrored to a permanent, append-only ledger at `CausalSmith/doc/research/MISSING_ARCHITECTURE.md` (written by `tools/src/shared/missing_architecture_ledger.ts`; created on first use) so a maintainer can scan it, land an item, then re-run the qid. Two writers: F1 on `needs-new-infrastructure` (writes `infrastructure_needed` + the `deferred_conjecture`), and F2 on `blocked-missing-architecture` (writes `missing_items`). Blocks are keyed by `qid:spec:source` and replaced in place on re-run, so repeated runs update rather than duplicate. (`tools/src/shared/missing_architecture_ledger.ts`.)
+- **Gated vs cited substrate (D0 `status` → F1 `gate_class`).** A missing-substrate node is one of two kinds, decided at D0 and propagated by F1 (it does not re-judge). **`gated`** — a result we will DISCHARGE (a real Lean proof, possibly transcribed from a source): built before banking (background builders → discharge → rewind to F2.5), tracked in `SUBSTRATE_DEBT.md`. **`cited`** — an external source dependency not proved in this run (D0 marks `status:"cited"`, a leaf carrying its `source`). Frozen `source.carrier:"logical-claim"` (the legacy default) becomes a `def … : Prop` threaded into logical consumers; `source.carrier:"bibliographic-metadata"` becomes a closed non-Prop scope/provenance/delivery record that is never threaded or discharged. F4 independently audits that classification and source-MATCHES either carrier (`cited-verified`/`cited-verified-attested`; a `cited-mismatch` or `cited-underspecified` blocks banking), then records a passing match in `CITED_DEPENDENCIES.md`. A failing match is persisted to `state.cited_checks` and escalates. Presentation citation erasure applies only to source-matched logical cited propositions; metadata remains trust-boundary description, never a hidden premise. P3/P4/P9 enforce carrier kind, logical threading, emitted Lean shape, and source resolution. (Prompts: `stage0_solve.txt`, `stage1_template.txt`, `proof_reviewer.txt`.)
+- **Canonical cited carriers.** A deferred logical citation uses `Sort 0` syntax (semantically Prop), avoiding a shadowable `Prop` identifier. “Closed non-Prop metadata” means a direct literal `_root_.String`, `_root_.List _root_.String`, or `_root_.Array _root_.String` payload. Unqualified carrier names, `Sort` metadata, aliases, and helper-defined metadata payloads are rejected so elaboration cannot change the carrier or receipt meaning indirectly.
+- **Atomic logical substrate-gate registration (orchestrator).** Registering a logical substrate-gate by hand-editing a `.lean` theorem does NOT survive an F2 re-scaffold, so `tools/bin/gate.ts` registers it atomically in plan, graph, state, and debt ledger and threads it into consumers. `--class gated` is our own hard fact; `--class cited` is a borrowed logical claim and requires `--source`. The command deliberately refuses a frozen `source.carrier:"bibliographic-metadata"` node: metadata is neither a hypothesis nor dischargeable and must remain the closed non-Prop carrier produced by F1/F2. `--show` remains available for either kind. Minting a prose-only logical debt uses `--statement` plus consumers; bibliographic metadata is never minted through this gate path. NEVER hand-edit `graph.json`; `bin/add_assumption.ts` also cannot substitute for registration.
+- **Banking invariants (enforced, not advisory).** `bankEntry` REFUSES tier `accepted` on either condition, naming each offender and printing the fix; lower tiers still park debt-carrying work. **(1) Unregistered gate** — any `state.added_assumptions` entry classified `substrate-gate` whose node lacks `gate:true` (plan) / `kind:"gate"` (graph). Disclosure alone is prose: the hypothesis is dropped by the next F2 re-scaffold and silently becomes a `sorry`. **(2) Cited mismatch** — any `state.cited_checks` entry with `cited-mismatch`/`cited-underspecified`. The F4 reviewer's verdict is now PERSISTED to `state.cited_checks`, so the documented block survives outside the review loop (it was previously in-memory only, and a `bank_entry.ts --tier accepted` or a resume re-entering at F5 banked a mismatched cited def silently). Pre-flight condition (1) any time with `tools/bin/gate.ts <qid> <spec> --audit` (exit 1 + findings, 0 when clean). "Build before banking" admits NO exemption — it applies to a gate standing in for a proof step *and* to one realizing a fact the note declares as its own `ass:`; only a non-dischargeable modeling primitive escapes, and that is not a substrate-gate at all.
+- **Discharging a gate (`--discharge`/`--ungate`).** *(A `gate` here is a **substrate-gate**: a disclosed proof-debt NODE in `plan.json`/`graph.json`. It is unrelated to a **cap-gate** — the resume-blocking boolean in `state.flags` cleared by `causalsmith research --clear-gate`. The two share the word and nothing else.)* Once a `gated` node is PROVEN in Lean (or was mis-registered), reverse the registration with the SAME CLI — never by hand-clearing `graph.json`/`state.json` (a hand-clear leaves the gate marked open, so CKPT 2 falsely discloses proven work as outstanding debt). `tools/bin/gate.ts <qid> <spec> <node_id> --discharge [--lean-name <Name>]` (aliases `--ungate`, `--unset`) undoes all three stores atomically: clears `gate` from the plan + graph node (back to a plain `definition`), un-threads `<node_id>` from every consumer's `hyps`, drops the `proof-uses` edges, reopens each consumer to `unreviewed` (so F2.5/F4 re-verify it is now honestly UNCONDITIONAL — not silently still assuming it), and removes the `state.added_assumptions` + `SUBSTRATE_DEBT.md` disclosures. Consumers are **auto-detected** from the graph/plan (no need to re-supply `--consumers`), and hand-authored prose in `SUBSTRATE_DEBT.md` is preserved (only the `gate.ts`-appended bullet is removed). F5 keys its derived disclosure by the Lean type name while `gate.ts` keys its own by the node id; both clear automatically because the Lean name is **inferred** from the plan's `lean_name` (written at registration) or the graph node's `lean.decl_name` — `--lean-name <Name>` is now only a fallback for a node neither store names. Follow with `--resume --from-stage F2.5` to re-review the now-unconditional consumers. A registered `gated` node is DURABLE with no `.lean` hand-editing: the F2 scaffolder (`gatedHypsBlockFromPlan`) emits it as an explicit `_of_gate` hypothesis on every consumer on each re-scaffold, and the F2.5 delta + F4 convergence reviewers (`proof_reviewer.ts`) EXEMPT that gated hypothesis from the added-premise/drift/content-gate check — so the theorem passes review as a sorry-free CONDITIONAL on disclosed debt (tracked in `SUBSTRATE_DEBT.md`).
+- **Discharging a gate on an ALREADY-BANKED entry (`--discharge-gate`).** The bullet above assumes the run is still open. When an entry was banked `accepted` with disclosed debt and its substrate is built only LATER, the same tools cannot reach it: banking `rename`-MOVES the run dir to `_bank/<tier>/<qid>_<spec>/` and sets `banked:true`, while `gate.ts` and `--resume` both resolve paths to the working `doc/research/active/<qid>/` location. Two commands close that gap. `causalsmith research --reopen <qid> <spec>` is the inverse of banking's move: it pulls the entry back to its working dir, sets `banked:false`, and stamps `reopened_from:{tier,banked_on,reopened_on}` — the crash-safety marker identifying an entry that is out of the bank but not yet re-banked. It refuses if the working dir already exists (never clobbers an in-flight run), if no banked entry is found, or if the dir is not marked `banked`. `causalsmith research --discharge-gate <qid> <spec> <node_id>` is the fused, resumable, idempotent form: reopen → `gate.ts --ungate <node_id>` → re-verify from **F2.5** (same convention as the live-run case: the ungate reopened every consumer to `unreviewed`, so the F2.5 delta/added-premise review must re-run; override with `--from-stage`, e.g. `F4`) → F5 → re-bank. Because banking is a MOVE, the banked entry retains `plan.json` / `graph.json` / `state.json` / the Lean, so it is fully re-verifiable in place. F5 does NOT auto-bank, so the wrapper owns the `bankEntry` call; the re-bank bumps a `revision` counter and appends `<node_id>` to `discharged_gates`, consuming `reopened_from`. **On a reviewer reject the entry is LEFT reopened** at the working dir — no auto-rollback, no re-bank; fix the Lean and re-invoke `--discharge-gate` (each step no-ops if already done) or `--resume --from-stage F2.5`. There is no pre-promotion existence check on the named decl: the F2.5/F4 reviewers are the sole gate.
+- **Reuse-soundness review (F1.5).** A deterministic gate has already checked plan/core coverage, `lean_kind` match, hypothesis closure and declaration existence; F1.5 makes the one judgment the gate cannot — whether each `reuse` decision is SOUND (type fit, abstraction level, world soundness, knowing dependence on sorry-backed declarations) and whether each `define-local` / `defer_tier` is justified rather than an unjustified rebuild or a laundered crux. (Prompt: `prompts/F1.5/stage1_5_reuse_soundness.txt`.)
+- **Statement↔note correspondence (the formalization graph).** The per-question graph (`graph.json`) is the materialized note↔Lean correspondence the proof-review loop's reviewer sources its skeleton from and writes verdicts back to (`node.review`); it replaced the old per-round flat crosswalk. Definition/assumption/theorem drift is caught by the reviewer unfolding each Lean `def`/bundle and comparing clause-by-clause to the `.md`/`.tex` — chiefly a class `def` that silently WIDENS its membership class (the safe-for-the-prover, green-but-weaker direction on a minimax converse). (`tools/src/graph/`; reviewer prompt `tools/src/formalization/prompts/F4/proof_reviewer.txt`.)
+- **Complete tex↔Lean crosswalk (F5).** At end of pipeline — F4 has passed and no stage edits Lean past here, so the lemma set is final and line numbers are accurate — F5 emits `crosswalk_full.json` + `.md`: the COMPLETE correspondence backbone for the visualization, now lemma-inclusive (definitions, assumptions, theorems, **lemmas, propositions**). Built from `graph.json` (`buildCompleteCrosswalkFromGraph` in `tools/src/formalization/crosswalk.ts`; F5 requires the graph F2 emitted); it re-stamps every `(file, line)` from the final files (the line re-stamp deferred at F2.5) and carries the F2.5 drift verdicts forward onto the def/assumption/theorem rows. It is DESCRIPTIVE, not a gate: F3 restructures proofs, so paper↔Lean lemmas are many-to-many — a `lean: null` row is a paper object with no Lean counterpart, a Lean-only entry is a lemma the proof introduced that the paper does not name. Faithfulness gating stays upstream (F2.5 def/theorem drift, F4 equivalence). Emitted best-effort so it never blocks API.md / the checkpoint. (`tools/src/formalization/stage5.ts`.)
+- **F3.5 unused-hypothesis lint (mechanical, in-loop).** No LLM. Once every frozen theorem's uses-closure is proof-complete, the loop runs a regex/AST lint (`tools/src/formalization/unused_hypothesis_lint.ts`) over the `.lean` files. A definite **transitive** finding (a public theorem forwards a hypothesis only into a bridge where it is provably unused) blocks completion; direct/advisory findings are surfaced in the loop log but don't block, since the name-based lint can't see wildcard-tactic use (`omega`/`linarith`/`simp`). Upstream minimal-hypothesis tiering means most runs see zero blocking findings.
+- **Statement-faithfulness, and its guarantee boundary.** The pipeline gates *statement*-faithfulness: Lean certifies the theorem statement is true, and the loop's reviewer keeps the `.tex`/note statement matched to the Lean one — catching laundering/weakening (an added premise that is the crux, a `def` narrowed to the proof's objects, a silently weakened theorem) so Lean↔`.tex` never agree by construction. It does NOT gate *proof*-faithfulness — a `.tex` proof step can be wrong while the statement is Lean-certified (full `.tex`-proof-vs-Lean-proof verification is a planned post-pipeline pass). The final gate is the **dual-model convergence review** (codex + claude) over the full frozen surface; reviewer output is parsed defensively (raw output logged before parse; a malformed reply escalates rather than crashes the loop). Each F4 verdict is persisted as a per-peer **receipt** on `graph.convergenceReview`, bound to an evidence hash of everything the reviewer saw (the NL, the Lean statement — or whole declaration for a def/structure — every declaration it transitively references in the run's Lean dir including untagged helpers, the file's `variable`/`open` commands, the gated hypotheses, and the reviewer rubric). A later F4 round — typically a resume after an escalation fix — skips a target only when BOTH peers hold a `matched` receipt at its current evidence; a single-peer pass, a delta-only `matched`, or any evidence change forces a fresh dual review. F5 and accepted banking re-verify the ledger against the tree as it is then (`auditConvergenceReview`), so a skipped target can never be banked on a receipt the tree has outgrown — if that audit fails, `--resume --from-stage F4`.
+
+## Bank lifecycle
+
+After a run terminates, it lives in `doc/research/active/<qid>/`. Banked runs are moved into `doc/research/_bank/<tier>/<qid>_<spec>/`. The repository tracks one summary per shelved run, `run_digest.json` (`cd tools && npm run runs:digest` writes it from the run's own files); the raw records of published runs are in the dataset `jytan12/causalsmith-runs`, and `scripts/fetch_runs.sh <tier>[/<id>]` (repository root) unpacks them into the bank. Tiers:
+
+| Tier | Meaning |
+|---|---|
+| `accepted` | F5 clean, reviewer approved. |
+| `downgraded` | Run had to be downgraded from the proposed tier to a lower band. |
+| `failed` | Run terminated without reaching F5; kept for diagnostics. |
+
+### Bank tooling
+
+```bash
+# Move a run into _bank/<tier>/, patching state.json and generating a README scaffold:
+npx tsx tools/bin/bank_entry.ts --qid <qid> --spec <spec> \
+  --tier accepted|downgraded|failed \
+  [--reason "<one-sentence verbatim verdict>"] \
+  [--achieved-tier <incremental|subfield|field|flagship>] \
+  [--orchestrator-tokens <nonnegative integer>] \
+  [--seeds-burned "0,3"] [--seed-burn-reason "<why>"] \
+  [--dry-run]
+
+# Compute proposal→derivation tier-drift across the bank (calibration report):
+npx tsx tools/bin/bank_drift.ts            # human-readable
+npx tsx tools/bin/bank_drift.ts --json     # machine-readable
+
+# One-shot D0.5 field-reviewer for ad-hoc proposals (debugging):
+npx tsx tools/bin/oneshot_stage0_5_field.ts <args>
+```
+
+Banking a research run at the `accepted` tier also records `promotion_snapshot.json` in the entry: the sha256 of every Lean file of the run (its directory outside `tmp/` scratch folders, and its module file), and a structural fingerprint of the compiled statement of each declaration of the run and of each declaration outside the run that those statements use (a theorem's type; a definition's type and body; a structure's constructor types and field names), taken by the `statement_scan` executable (`CausalSmith/StatementScan.lean`). "Uses" follows definitions, structures and instances through their type and value and theorems through their type; proofs are not followed. The run and the modules it imports must be built from their current sources; otherwise banking fails with the run untouched. If the module that is not built belongs to another run or to a library file someone else is editing, wait and bank again rather than building or reverting it. The snapshot is written once (a reopened entry that is banked again replaces it), records the Lean toolchain and Mathlib revision it was taken under, and is not committed.
+
+```bash
+# Promotion gate — promotion only adds to Causalean; the banked run is never edited.
+# After the promotion and a full build:
+cd tools
+npm run promotion:invariance -- check --entry <bank entry dir>
+```
+
+The check passes when the run's Lean files are byte-identical to what was banked, every declaration of the run states what it stated, and every declaration outside the run that its statements use states what it stated. Nothing else is compared: a library edit, refactor or addition the run's statements do not use never fails it. It exits 1 with one line per file or declaration, each with its next step, and writes nothing. The fingerprint sees binder kinds, hypothesis order and number, universe levels, definition bodies and theorem-versus-axiom; it does not see binder names, docstrings, attributes, notation or proofs. `--entry` is the entry folder (`CausalSmith/doc/research/_bank/accepted/<qid>_<spec>`), absolute or relative to the repository root or to where the command is typed.
+
+An entry with no snapshot cannot be checked; the operator records one on the committed, not yet promoted run with `npm run promotion:invariance -- snapshot --entry <bank entry dir>`. Fingerprints are comparable only under one Lean toolchain and Mathlib revision, and a deliberate refactor of a library declaration the run uses also changes them: in either case the operator removes the entry's `promotion_snapshot.json` by hand and records a new one with the same command, again on the committed, unpromoted run.
+
+`bank_entry.ts` is conservative: it refuses to re-bank an already-banked entry, refuses to overwrite an existing destination, and leaves the source untouched in `--dry-run`.
+
+### Failed theorems stay on the record
+
+When a paper-scoped run banks a state.json whose `theorems[]` array contains
+entries with `status: "failed"`, the bank entry's README lists every failed
+theorem in its YAML frontmatter (`failed_theorems:`) and in a body section,
+with the stage at which each failed.
+
+## `causalsmith present` (presentation pipeline)
+
+Turns an **accepted** bank entry into an arXiv-grade paper bundle that the website renders.
+
+```bash
+cd CausalSmith/tools
+npx tsx bin/causalsmith.ts present <qid> <spec>              # cold start (P0…)
+npx tsx bin/causalsmith.ts present <qid> <spec> --resume     # approve a checkpoint / continue
+npx tsx bin/causalsmith.ts present <qid> <spec> --dry-run    # exercise the state machine, no models
+npx tsx bin/causalsmith.ts present <qid> <spec> --stop-after P1
+npx tsx bin/causalsmith.ts present <qid> <spec> --auto --from P1   # re-enter a stage; --auto decides checkpoints itself
+npx tsx bin/causalsmith.ts present <qid> <spec> --from P6           # slides, outside the P0–P5 loop
+```
+
+`pandoc` and `latexmk` must be on `PATH`. The command checks both before P0 and stops with install instructions if either is missing (`--dry-run` and `--from P6` skip the check); `npm run check:setup` runs the same check on its own.
+
+Stages: P0 builds a *verified* citation pool (retrieve-before-write; entries checked against Crossref/arXiv, unverifiable ones dropped) and a related-work brief. P1 generates the **frozen formal layer** — one `theoremv/assumptionv/lemmav/definitionv` environment per note object, obj_id-anchored, rendered once and repaired only on a judge's defect (a codex notation reviewer for symbol resolvability, a Lean-fidelity judge for statement equivalence), ordered deterministically (outline order, definitions before first use) — plus `outline.md` (valid authored homes are retained, including after correctly placed helper promotions); halts at the **outline checkpoint**. P2 drafts body sections (opus) and Lean-faithful appendix proofs (codex + lean-lsp), writes abstract/intro last; halts at the **draft checkpoint**. P3 runs the whole-paper hard gates (overclaiming, citation pool + support, anchor/frozen lint) with a ≤2-round revise loop, then an advisory rubric ensemble (statement equivalence is judged at P1, proof faithfulness at P2). Its prose revisions exclude protected proofs and validate each patch before source propagation. An optional rubric edit that changes no editable prose leaves findings for operator/P5 review; hard-gate failures still block. P4 re-verifies citations, compiles the PDF, and emits the bundle: `presentation_crosswalk.json`, `lean_snippets.json`, `paper_body.html`, `assumption_table.md`, `meta.json` (all under `doc/presentation/<qid>_<spec>/`). P5 sends the compiled paper to a codex referee, writing `p5_review.{json,md}` and routing findings in `p5_revision_routing.md` for hand revision — there is no automatic reviser pass. P6 (slides) sits outside the P0–P5 loop: run it with `--from P6` once P5 has settled. Other flags: `--promote-again`, `--refresh-frozen-bodies` (see the usage string in `tools/src/presentation/cli.ts`).
+
+Invariants: every formal environment carries a bank-crosswalk obj_id (no anchor → no build); frozen bodies cannot drift after P1 (hash check at P2/P3/P4); citations outside the verified pool fail P3; the Lean side is extracted mechanically at the pinned commit. The verification badge is currently a source-level sorry scan (`axioms: null` until the axiom audit lands).
+
+P1 re-entry starts from the authored `home_objs:` in `outline.md`; `objs:` records the resolved layout for later stages. Edit the homes to change planned placement. Definitions, algorithms and assumptions move before explicit consumers identified by graph edges or paper references; matching variable spellings alone do not create dependencies. Supporting lemmas retain their planned placement. Recomputing from homes lets an object return when a dependency is removed, instead of accumulating earlier hoists. Existing renders, synthesized definitions and unchanged successful reviews are reused. P2 follows this one resolved order; later stages check it rather than solve another order.
+
+If a statement has an unmapped supporting Lean theorem, P1 halts with `lean-coverage` and preserves the body. Correct the source mapping using the graph node's `lean.supporting_decls` list of fully qualified declarations, then re-enter P1. These declarations certify clauses of the same statement; they do not introduce paper objects or ordering dependencies. The normal resolver and equivalence audit validate the corrected mapping. Unchanged coverage failures reuse their cached verdict instead of paying for the same rejection.
+
+P2 gives each section writer its own statements, notation and compact continuity context. Each proof writer receives the target Lean declaration, selected dependencies and an object catalogue for targeted retrieval. Existing proof files remain candidates and must pass an audit against current source. Repairs use the same writer with exact ordered text replacements and retain earlier findings through the existing two-repair limit. A replacement must match uniquely after the preceding replacements; the whole set is rejected if any edit fails. Accepted candidates are saved before auditing, so an interruption preserves completed authoring work. An unchanged terminal failure keeps its stop receipt across re-entry instead of buying another repair budget. A changed relevant input allows reconsideration; a missing mathematical step still requires the existing promotion/adjudication path.
+
+For an ordinary recovery, preserve artifacts and caches and re-enter the stage that owes work (`--from P1` for statement or plan changes). `--stop-after P2` bounds a P1–P2 test. Cache keys determine which reviews need repeating; clearing caches discards paid work. A content gap can legitimately halt a run even when persistence, ordering and retries work correctly.
+
+Every P0–P6 model dispatch appends exact provider usage to `token_usage.jsonl` in the presentation bundle. A Codex dispatch total includes its internal model/tool turns; it is not the initial prompt size. Cached input is a subset of input tokens, and reasoning is a subset of output tokens. Artifact/verdict cache hits can avoid a dispatch entirely; provider prefix caching only reduces the cost of a dispatch that still runs. Each checkpoint or terminal halt refreshes `token_usage_summary.json` and prints the cumulative presentation-pipeline total, with Codex/Claude and missing-usage counts. To include an external P-orchestrator's exact host total, run `bin/token_usage.ts --run-dir <presentation-dir> --orchestrator-tokens <exact-total>`; never estimate it.
+
+## Library explorer (Causalean demonstration)
+
+The site's `/library` section renders every Causalean declaration as an NL-first card:
+the **first paragraph of the docstring is, by convention, the natural-language
+translation** of the formal statement; the formal statement (identifier-linkified) sits
+beneath it, with sorry/axiom badges and a `file:line` source link. The first paragraph
+may carry **NL↔Lean crosslinks** — `[phrase](hyp:binderName)` around the phrase
+translating a hypothesis (or introducing a definition's parameter), `[phrase](goal)`
+around the conclusion phrase (or the phrase naming the defined object), and
+`[phrase](step:N)` around the N-th clause of a split conclusion / given-by value —
+rendered as dash-underlined spans that cross-highlight with the structured statement's
+rows on hover. Every declaration kind gets the same labelled-row layout: a theorem as
+hypotheses · conclusion (nested clause cards, as in the paper drawer), a definition as
+parameters · def · given by (section `variable`s recovered from the index), a Prop-valued
+structure as parameters · assumes (each clause with its own docstring), a data structure
+as parameters · fields, an instance as parameters · instance · given by, an inductive as
+parameters · inductive · constructors (StatLean-style, but with mandatory full coverage for annotated theorems;
+`npm run lint:nl-links` in `CausalSmith/tools` validates, and the site test suite
+hard-fails defective annotations). Tier-1 (definitions,
+structures, classes, inductives, axioms, plus sidecar-listed headline theorems) is the
+curated trust layer; lemmas/instances collapse into per-module helper lists.
+
+Badge semantics: **reviewed** = a human stamped that the NL faithfully renders the formal
+statement at its current hash; editing the decl flips it to **stale**; everything else is
+**unreviewed** (machine-drafted prose, not yet certified).
+
+Beyond the cards, the explorer ships (all live):
+
+- **Hierarchical module tree** — each area page shows submodules as an expand-on-click
+  tree (never flat leaf lists), with a per-level description: file levels use the module
+  docstring's first sentence, directory levels use `namespace_intros` from the sidecar.
+- **Search** — a search bar on every library page (backed by the static
+  `/library/search.json`; `/library/names.json` is the machine-readable name map that
+  also powers drawer cross-links), usable by humans and agents.
+- **Dependency graph** — `/library/graph`: statement-level dependency edges over the
+  whole library (d3 force layout; `/library/graph.json` is the data).
+- **Review mode** — dev server only: a Review button on each tier-1 card POSTs to
+  `/api/review` and writes the stamp into the area sidecar; production builds render
+  the badges read-only.
+- **Paper integration** — each paper links a *Formalization* page (its research module
+  rendered library-style, from the bundle's `paper_library_index.json`, emitted by
+  CausalSmith present P4), and every Lean drawer cross-links identifiers into the library.
+
+```bash
+# regenerate the index after editing Causalean (writes doc/library_index.json);
+# the exe imports the compiled olean, so BUILD FIRST or you index a stale library
+lake build && lake exe library_index
+# integrity + per-area coverage table (--seed creates missing area sidecars).
+# Also FAILS on orphaned modules: any Causalean/*.lean unreachable from the
+# Causalean.lean root import graph is invisible to the explorer — wire it into
+# the root (deliberately stale modules are exempted by name in the checker).
+cd CausalSmith/tools && npx tsx bin/check_library_index.ts
+# fill missing tier-1 NL translations via codex (dry-run without --apply);
+# --module-docs-only sweeps only missing top-of-file /-! -/ headers
+npx tsx bin/library_nl_sweep.ts --area <Area> [--apply] [--all] [--module-docs-only]
+```
+
+Review stamps live in `doc/library_review/<Area>.json` (`reviews[]`, `headline_theorems[]`,
+`flags[]`, `intro`, `namespace_intros{}`), keyed by decl name + statement hash. The site
+build fails on a sidecar entry that references a missing decl.
+
+Maintenance rule (also in CLAUDE.md): **Causalean and this page move together** — any
+change to Causalean declarations or docstrings must regenerate the index before
+committing, and new files need a `/-! -/` module docstring whose first paragraph reads
+for an econometrician with no Lean background.
+
+## Tests
+
+```bash
+cd CausalSmith/tools
+npx vitest run                 # full suite
+npx vitest run test/state.test.ts   # one file
+```
+
+The suite covers the state machine, banking conventions, F3 classifier, and a small set of smoke tests (`*_smoke.ts`). Smoke tests do not call Codex.
+
+## Concurrency
+
+Runs on distinct qids execute simultaneously; a second run on the SAME qid is refused regardless of specialization. `pipeline.ts` takes a per-qid lock via `withRunHeartbeat` (`tools/src/shared/run_heartbeat.ts`), whose heartbeat file is `CausalSmith/doc/research/active/<qid>/logs/.run.active`.
+
+## Source-of-truth pointers
+
+| Topic | Where |
+|---|---|
+| Per-declaration Lean API | [`CausalSmith/doc/API.md`](API.md) |
+| qid naming conventions | [`CausalSmith/doc/qid-naming.md`](qid-naming.md) |
+| State machine schema | [`CausalSmith/tools/src/state.ts`](../tools/src/state.ts) (zod) |
+| Path helpers | [`CausalSmith/tools/src/paths.ts`](../tools/src/paths.ts) |
+| Stage handlers + dispatcher | [`CausalSmith/tools/src/pipeline_stages.ts`](../tools/src/pipeline_stages.ts) |
+| Cross-stage helpers | [`CausalSmith/tools/src/pipeline_support.ts`](../tools/src/pipeline_support.ts) |
+| Proof-review loop (F2.5+F3+F3.5+F3.7+F4) | [`CausalSmith/tools/src/formalization/proof_review_loop.ts`](../tools/src/formalization/proof_review_loop.ts) (+ `proof_filler.ts`, `proof_reviewer.ts`) |
+| Discovery-phase prompts (D-1, D0, D0.5) | [`CausalSmith/tools/src/discovery/prompts/`](../tools/src/discovery/prompts/) |
+| Formalization-phase prompts (F1, F1.5, F2, F3, F4, F5; intervention) | [`CausalSmith/tools/src/formalization/prompts/`](../tools/src/formalization/prompts/) |
+| Skeleton LaTeX templates | [`CausalSmith/tools/src/templates/`](../tools/src/templates/) |
+| Slash-command entry point and lifecycle owner | `.claude/skills/causalsmith/SKILL.md` |
+| Discovery sub-orchestrator | `.claude/skills/causalsmith-d/SKILL.md` |
+| Formalization sub-orchestrator | `.claude/skills/causalsmith-f/SKILL.md` |
+| Shared recipes (state, banking, rewinds, watcher) | `.claude/skills/causalsmith-shared/reference.md` |
+| Guardrail hook (run-scoped) | `.claude/hooks/causalsmith-guardrail.sh` |
+
+## When to update this manual
+
+Edit this file when:
+- A new CLI flag or argument form ships in `tools/bin/causalsmith.ts research` or any sibling `tools/bin/*.ts`.
+- A new bank tier or banking rule is introduced.
+- A new live pipeline becomes invocable.
+- The repository layout changes at the directory level (file-level changes belong in `doc/API.md`).
+- Prerequisites (Node / Lean / Codex versions) change.
+
+Keep prose terse and link out rather than duplicating content from `API.md` or the skill docs.

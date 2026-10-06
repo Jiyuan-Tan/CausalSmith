@@ -1,0 +1,200 @@
+\section{Identification and upper-bound proofs}
+
+The auxiliary results establish the pointwise interpretation of the target, the population bias of the pair ratio, and the stability of its two coordinates. Their statistical roles are complementary: identification fixes the estimand, common occupancy weights preserve the cellwise approximation, and replacement bounds support both privacy and variance control. Together they supply the ingredients used in \cref{obj:thm:uniform-private-upper}.
+
+\subsection{Point identification}
+
+The selected contrast satisfies the Lipschitz restriction in \cref{obj:ass:contrast-lipschitz}. Its continuity, together with the positive density in \cref{obj:ass:density}, determines a unique continuous version throughout the covariate domain. The following result connects this version to the potential-outcome contrast and establishes that its value at the evaluation point is determined by the observed-record law.
+
+\begin{lemmav}{lem:point-version}[Continuous contrast and point identification]
+Let \(P\in\mathcal P\), the class of causal laws specified in \cref{obj:def:complete-model}. Write \(P_X\) for the law of the covariate \(X\), and \(P^{\mathrm{obs}}\) for the law of the observed record \((X,A,Y)\). The selected observational contrast \(\tau_P\) is the difference of the selected treated and control outcome regressions:
+\[
+\tau_P(x)
+=
+E_P[Y\mid X=x,A=1]
+-
+E_P[Y\mid X=x,A=0],
+\qquad x\in[0,1].
+\]
+Here the conditional means denote the selected regression versions carried by \(P\). Define the point target by
+\[
+x_0=\tfrac12,
+\qquad
+\theta(P)=\tau_P(x_0).
+\]
+
+Then \(\tau_P\) is continuous on \([0,1]\). For every continuous function \(v:[0,1]\to\mathbb R\),
+\[
+v=\tau_P\quad P_X\text{-almost everywhere}
+\quad\Longrightarrow\quad
+v(x)=\tau_P(x)\quad\text{for every }x\in[0,1].
+\]
+Moreover, the point target and the potential-outcome contrast satisfy
+\[
+\theta(P)\in[-1,1],
+\qquad
+\tau_P(X)=E_P[Y(1)-Y(0)\mid X]
+\quad P\text{-almost surely},
+\]
+where \(Y(0)\) and \(Y(1)\) are the binary control and treated potential outcomes. Finally, for every \(P'\in\mathcal P\),
+\[
+P'^{\mathrm{obs}}=P^{\mathrm{obs}}
+\quad\Longrightarrow\quad
+\theta(P')=\theta(P).
+\]
+\end{lemmav}
+
+Consistency, conditional exchangeability, and overlap give the observational contrast its causal interpretation under \cref{obj:ass:consistency,obj:ass:exchangeability,obj:ass:overlap}. Positive design density and contrast continuity then give that interpretation a unique continuous representative. Thus \cref{obj:lem:point-version} supplies the pointwise target used in the estimation and coverage criteria, while its range statement justifies clipping estimates and truncating intervals to \([-1,1]\).
+
+\subsection{Population pair moments and occupancy}
+
+Fix the public cells \(C_j\) of \cref{obj:synth_11}. Write the population cell mass as \leanref{sym:p}{\ensuremath{p_j}}, with \(p_j=P_X(C_j)\). For two observed records \(z=(x,a,y)\) and \(z'=(x',a',y')\), the numerator pair contribution \leanref{sym:KN}{\ensuremath{K_N(z,z')}} and denominator pair contribution \leanref{sym:KD}{\ensuremath{K_D(z,z')}} are
+\[
+K_N(z,z')=(a-a')(y-y'),
+\qquad
+K_D(z,z')=(a-a')^2.
+\]
+The moments \(\nu_j\) and \(d_j\) are their expectations under two independent draws from \(P^{\mathrm{obs}}\) conditional on membership in \(C_j\). Equivalently,
+\[
+\nu_j=E\{K_N(Z,Z')\mid X,X'\in C_j\},
+\qquad
+d_j=E\{K_D(Z,Z')\mid X,X'\in C_j\}.
+\]
+The density restriction ensures that each cell has positive probability, so these conditional laws are well defined.
+
+The count weighting in \cref{obj:def:private-ratio} assigns a cell with \(s\ge2\) records \(s\) times its average unordered-pair contribution. Its population occupancy weight and the \leanref{sym:Wocc}{\ensuremath{W(P)}}, total population occupancy weight, are therefore specified by
+\[
+w_j
+=
+E_Q\{N_j(D)\mathbf1\{N_j(D)\ge2\}\}
+=
+np_j\bigl[1-(1-p_j)^{n-1}\bigr],
+\qquad
+W(P)=\sum_{j=1}^k w_j,
+\]
+where \(Q=(P^{\mathrm{obs}})^{\otimes n}\) is the dataset law under \cref{obj:ass:iid}. The population means are
+\[
+\overline N=\int S_N(D)\,dQ(D),
+\qquad
+\overline D=\int S_D(D)\,dQ(D).
+\]
+These quantities retain the within-cell conditional distribution and the random occupancy separately.
+
+For the cellwise certificate below, write \(b_{\mathrm{cell}}=3h+24\delta^{1/5}\). This bound describes the population approximation; the public mean-squared-error envelope in \cref{obj:thm:uniform-private-upper} uses the distinct conservative quantity \(b_{\mathrm{env}}=2^{10}\sqrt{h^2+\delta^{2/5}}\). In the occupancy lemma, its symbol \(b\) denotes \(b_{\mathrm{cell}}\). The next result establishes the shared occupancy representation and its denominator and bias bounds.
+
+\begin{lemmav}{lem:occupancy-cancellation}[Occupancy cancellation and ratio bias]
+Suppose the following conditions hold:
+\begin{itemize}
+\item \textbf{(Sample and cells.)} The sample size \(n\) and public cell count \(k\) are integers satisfying \(n\ge 2\) and \(k\ge 2\).
+\item \textbf{(Localization.)} The public localization radius \(h\) satisfies \(0<h\le 1/4\).
+\item \textbf{(Model.)} The causal law \(P\) belongs to the class \(\mathcal P\) of \cref{obj:def:complete-model}.
+\item \textbf{(Sampling.)} The dataset law \(Q\) satisfies \cref{obj:ass:iid} for sample size \(n\) and causal law \(P\).
+\end{itemize}
+Write \(\delta=2h/k\) for the cell width, and define the public bias envelope \(b\) and occupancy scale \(\mathcal A\) by
+\[
+b=3h+24\delta^{1/5},
+\qquad
+\mathcal A=nh\min\{1,n\delta\}.
+\]
+Let \(\overline N\) and \(\overline D\) be the population means of the numerator and denominator statistics:
+\[
+\overline N=\int S_N(D)\,dQ(D),
+\qquad
+\overline D=\int S_D(D)\,dQ(D).
+\]
+For each public cell \(j=1,\ldots,k\), let \(\nu_j\) and \(d_j\) be the expectations of the numerator and denominator pair contributions, respectively, under two independent observations drawn from the conditional observed law in that cell. Define its occupancy weight by
+\[
+w_j
+=
+nP_X(\text{cell }j)
+\left[1-\left(1-P_X(\text{cell }j)\right)^{n-1}\right].
+\]
+With \(W(P)\) denoting the total population occupancy weight, \(\theta(P)=\tau_P(1/2)\) the point target, and \(d_0\) the public denominator floor, the population moments satisfy
+\[
+\overline N=\sum_{j=1}^{k}w_j\nu_j,
+\qquad
+\overline D=\sum_{j=1}^{k}w_jd_j.
+\]
+For every \(j=1,\ldots,k\),
+\[
+d_j\ge\frac38,
+\qquad
+\left|\nu_j-\theta(P)d_j\right|\le b\,d_j.
+\]
+Moreover,
+\[
+\frac{\mathcal A}{8}\le W(P)\le\frac{9\mathcal A}{2},
+\qquad
+\overline D\ge d_0,
+\qquad
+\left|\frac{\overline N}{\overline D}-\theta(P)\right|\le b.
+\]
+\end{lemmav}
+
+The same nonnegative occupancy weights enter both population moments. Consequently, variation in cell probabilities changes their common weighting while preserving the cellwise approximation to the target. The bound \(d_j\ge3/8\) expresses the contribution of overlap to denominator strength, and the comparison of \(W(P)\) with \(\mathcal A\) translates random occupancy into a public scale. The bias bound separates localization of the Lipschitz contrast from within-cell approximation of the two Hölder nuisance regressions.
+
+\subsection{Stability across all cell counts}
+
+Privacy compares arbitrary replacement-adjacent datasets in \(\mathcal O^n\), whereas variance concerns independent records sampled from the model. The next result provides the respective bounds for the same statistics. Its replacement statement includes changes in cell membership and occupancies zero, one, and two.
+
+\begin{lemmav}{lem:all-count-stability}[All-count stability and variance]*
+Let \(S_N(D)\) and \(S_D(D)\) be the sums over the \(k\) public cells of the count-weighted within-cell treatment–outcome pair contributions and treatment pair contributions, respectively. Let \(W(P)\), the total population occupancy weight, be
+\[
+W(P)=\sum_{j=1}^{k}w_j,
+\]
+where \(w_j\) is the population occupancy weight of cell \(j\). Suppose:
+\begin{itemize}
+\item \textbf{(Parameters.)} The integers \(n,k\) satisfy \(n\ge2\) and \(k\ge2\), and the public window radius \(h\) satisfies \(0<h\le1/4\).
+\item \textbf{(Model.)} The causal law \(P\) belongs to \(\mathcal P\) as specified in \cref{obj:def:complete-model}.
+\item \textbf{(Sampling.)} The dataset law satisfies \cref{obj:ass:iid}.
+\end{itemize}
+For every pair of ordered datasets \(D,D^{\prime}\in\mathcal O^n\) whose replacement Hamming distance, the number of differing record positions, is \(d_{\mathrm H}(D,D^{\prime})=1\),
+\[
+\left|S_N(D)-S_N(D^{\prime})\right|
++\left|S_D(D)-S_D(D^{\prime})\right|
+\le12.
+\]
+Under the stated dataset law,
+\[
+\max\left\{
+\operatorname{Var}(S_N(D)),
+\operatorname{Var}(S_D(D))
+\right\}
+\le18W(P).
+\]
+The replacement bound applies to every input dataset, including cells with occupancies zero, one, and two.
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:all-count-stability
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BoucheronLugosiMassart2013} (Theorem 3.1, replacement-copy form, printed page 54). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:all-count-stability
+
+Count weighting allows a record to contribute to several pairs while retaining a uniform bound on the change in the joint statistic. The all-count statement covers transitions between the zero contribution for occupancies below two and the pair contribution for larger occupancies. Its constant \(12\) is the sensitivity used to calibrate the joint Laplace release in \cref{obj:def:private-ratio}.
+
+The variance argument uses the replacement-copy inequality of \citet[Theorem 3.1, replacement-copy form, p.~54]{BoucheronLugosiMassart2013}. For a square-integrable measurable statistic \(Z=\Psi(D)\) of independent records, let \(D^{(i)}\) replace record \(i\) by an independent copy. The cited inequality states
+\[
+\operatorname{Var}(Z)
+\le
+\frac12\sum_{i=1}^n
+E\bigl\{\bigl(\Psi(D)-\Psi(D^{(i)})\bigr)^2\bigr\}.
+\]
+In \cref{obj:lem:all-count-stability}, this comparison yields variance control in terms of \(W(P)\). That occupancy dependence connects sampling variation to the same scale that controls the population denominator.
+
+\subsection{Role in the uniform upper bound}
+
+The public envelope in \cref{obj:thm:uniform-private-upper} combines the preceding ingredients through
+\[
+V(h,\delta)
+=
+2^{20}\left(
+h^2+\delta^{2/5}
++\mathcal A^{-1}
++(\epsilon\mathcal A)^{-2}
+\right).
+\]
+The first two terms accommodate the squared population bias from \cref{obj:lem:occupancy-cancellation}. The variance bound in \cref{obj:lem:all-count-stability}, together with the population denominator and occupancy comparisons, supplies the sampling term \(\mathcal A^{-1}\). Independent Laplace perturbations of scale \(12/\epsilon\) have second moments \(288/\epsilon^2\); denominator stabilization places their contribution on the scale \((\epsilon\mathcal A)^{-2}\). The public floor keeps the ratio defined throughout the dataset space, and clipping respects the target range established in \cref{obj:lem:point-version}.
+
+The joint sensitivity bound supports pure replacement privacy for the release, and deterministic postprocessing preserves that guarantee \citep[Theorem 3.6 and Proposition 2.1]{Dwork2014}. Thus the estimator, centered interval, and candidate-value inversion share the privacy guarantee of the same released coordinates. The squared-error envelope supports the radius \(\sqrt{10V(h,\delta)}\) used for uniform \(90\%\) coverage in \cref{obj:thm:uniform-private-upper}. Truncation to the target range also supplies the stated upper bound of two on interval length.
+
+Public tuning in \cref{obj:def:public-tuning} sets \(\delta=h^5\) in the local branch, aligning the localization and within-cell squared-bias scales. The benchmark accounts for sampling variation and privacy noise across sparse and dense occupancy regimes. For the complementary public branch, the constant estimate and full target interval supply the outputs specified there. These choices are the procedures covered by the uniform absolute-error and expected-length bounds in \cref{obj:thm:uniform-private-upper}.
+
+Finally, \cref{obj:def:interval-handle} expresses interval construction through candidate values using the floored denominator \(B_D\), clipped numerator \(B_N\), and public radius \(\rho\) defined there. Its acceptance rule describes the same target-range-truncated interval centered on the private ratio. Inversion therefore uses the numerator and denominator already released for estimation, with the public envelope controlling the acceptance radius.

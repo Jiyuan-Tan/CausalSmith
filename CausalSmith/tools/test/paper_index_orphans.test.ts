@@ -1,0 +1,102 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import { findOrphanPaperModules, hasPublicPaperDeclaration } from "../src/presentation/paper_index_orphans.js";
+
+describe("findOrphanPaperModules", () => {
+  it("recognizes bare declarations inside a module public section", () => {
+    expect(hasPublicPaperDeclaration(`module
+@[expose] public section
+def first : Nat := 1
+theorem second : True := by trivial
+lemma third : True := by trivial
+`)).toBe(true);
+  });
+
+  it("recognizes bare declarations inside a public noncomputable section", () => {
+    expect(hasPublicPaperDeclaration(`module
+@[expose] public noncomputable section
+theorem visible : True := by trivial
+`)).toBe(true);
+  });
+
+  it("catches a public orphan and spares private-only and indexed modules", async () => {
+    const runDir = await mkdtemp(path.join(tmpdir(), "paper-index-orphans-"));
+    try {
+      await mkdir(path.join(runDir, "Helpers"));
+      await mkdir(path.join(runDir, "tmp"));
+      await writeFile(
+        path.join(runDir, "Orphan.lean"),
+        `-- theorem commentedOut : True := by trivial
+/- def blockCommented := 1 -/
+private lemma hidden : True := by trivial
+lemma exposed : True := by trivial
+`,
+      );
+      await writeFile(
+        path.join(runDir, "Helpers", "PrivateOnly.lean"),
+        `/- theorem notCode : True := by trivial -/
+private theorem hiddenTheorem : True := by trivial
+private noncomputable def hiddenDef : Nat := 0
+`,
+      );
+      await writeFile(
+        path.join(runDir, "CommentsOnly.lean"),
+        `-- lemma lineCommented : True := by trivial
+/- def blockCommentedAgain := 2 -/
+`,
+      );
+      await writeFile(
+        path.join(runDir, "Indexed.lean"),
+        "def represented : Nat := 1\n",
+      );
+      await writeFile(
+        path.join(runDir, "tmp", "Probe.lean"),
+        "lemma disposableProbe : True := by trivial\n",
+      );
+
+      const prefix = "CausalSmith.Stat.SCRATCH_Research";
+      await expect(
+        findOrphanPaperModules(
+          runDir,
+          prefix,
+          new Set([`${prefix}.Indexed`]),
+        ),
+      ).resolves.toEqual([
+        { module: `${prefix}.Orphan`, file: "Orphan.lean" },
+      ]);
+    } finally {
+      await rm(runDir, { recursive: true, force: true });
+    }
+  });
+
+  it("spares git-untracked modules (concurrent-run work-in-progress) but still catches tracked orphans", async () => {
+    const runDir = await mkdtemp(path.join(tmpdir(), "paper-index-orphans-git-"));
+    try {
+      const exec = promisify(execFile);
+      const git = (...args: string[]) => exec("git", ["-C", runDir, ...args]);
+      await git("init", "-q");
+      await mkdir(path.join(runDir, "Helpers"));
+      await writeFile(
+        path.join(runDir, "TrackedOrphan.lean"),
+        "lemma trackedButUnindexed : True := by trivial\n",
+      );
+      await git("add", "TrackedOrphan.lean");
+      // Untracked: another run's in-progress helper deposited into this dir.
+      await writeFile(
+        path.join(runDir, "Helpers", "InFlight.lean"),
+        "lemma inFlightWork : True := by trivial\n",
+      );
+
+      const prefix = "CausalSmith.Stat.SCRATCH_Research";
+      await expect(findOrphanPaperModules(runDir, prefix, new Set())).resolves.toEqual([
+        { module: `${prefix}.TrackedOrphan`, file: "TrackedOrphan.lean" },
+      ]);
+    } finally {
+      await rm(runDir, { recursive: true, force: true });
+    }
+  });
+});

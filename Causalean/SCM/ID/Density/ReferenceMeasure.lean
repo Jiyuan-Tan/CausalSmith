@@ -1,0 +1,120 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.SCM.Model.Kernel
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
+
+/-! # Reference measure and joint observational density
+
+A *reference measure family* assigns one σ-finite measure to every SWIG-node value
+space: the counting measure for a discrete node, Lebesgue measure for a continuous
+node, or any σ-finite choice.  Its finite product over a node set is the joint
+reference measure, and a gSCM is *dominated* when its observational kernel is
+absolutely continuous with respect to that joint reference.  In the dominated case
+the observational law has a joint density (Radon–Nikodym derivative), and the law
+is recovered from the density.
+
+This is the foundation for the density-assisted c-component factorization: Tian's
+assembly step `P(v) = ∏_C Q[C]` is a commutative regrouping of scalar density
+factors, which has no kernel-composition analogue.  The downstream ID theorems in
+this slice specialize these reference-measure definitions to finite node value
+spaces with measurable singleton sets and faithful finite-product references.
+-/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
+namespace Causalean.SCM
+
+open scoped MeasureTheory ProbabilityTheory
+
+variable {N : Type*} [DecidableEq N] [Fintype N]
+variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
+
+/-- A reference measure family assigns [a measure on every random or fixed node's value
+space](hyp:μ), required to be [σ-finite](hyp:sigmaFinite).
+
+Take the counting measure on discrete nodes and Lebesgue measure on continuous
+nodes; any sigma-finite choice is allowed. This is the dominating measure
+against which observational densities are formed. -/
+structure ReferenceMeasures (Ω : N → Type*) [∀ n, MeasurableSpace (Ω n)] where
+  /-- The reference measure on the value space of node `v`. -/
+  μ : ∀ v : SWIGNode N, MeasureTheory.Measure (swigΩ Ω v)
+  /-- Each reference measure is σ-finite. -/
+  sigmaFinite : ∀ v, MeasureTheory.SigmaFinite (μ v)
+
+attribute [instance] ReferenceMeasures.sigmaFinite
+
+/-- For [a node population with measurable value spaces](hyp:N,Ω), [a reference-measure
+family](hyp:ref), and [a finite node set](hyp:I), [the joint reference measure](goal) is the
+finite product of the reference measures assigned to the nodes in that set.
+
+For counting references this is counting measure on the discrete product; for
+Lebesgue references it is Lebesgue measure on the continuous product. -/
+noncomputable def jointRef (ref : ReferenceMeasures Ω) (I : Finset (SWIGNode N)) :
+    MeasureTheory.Measure (ValuesOn I (swigΩ Ω)) :=
+  MeasureTheory.Measure.pi (fun i : {i // i ∈ I} => ref.μ i.val)
+
+/-- For [a node population with measurable value spaces](hyp:N,Ω), [a reference-measure
+family](hyp:ref), and [a finite set of nodes](hyp:I), [the σ-finiteness structure for their
+joint reference measure](goal) asserts that the finite product of the selected coordinate
+reference measures is σ-finite. -/
+instance instSigmaFiniteJointRef (ref : ReferenceMeasures Ω) (I : Finset (SWIGNode N)) :
+    MeasureTheory.SigmaFinite (jointRef ref I) := by
+  unfold jointRef
+  infer_instance
+
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), and [a reference-measure family](hyp:ref), [observational domination](goal) holds
+exactly when, for every assignment of fixed-node values, the model's observational law is
+absolutely continuous with respect to the joint reference measure on its observed nodes.
+
+Equivalently, the observational law admits a joint density at every fixed-value
+slice. -/
+def DominatedObs (M : Causalean.SCM N Ω) (ref : ReferenceMeasures Ω) : Prop :=
+  ∀ s : M.FixedValues, M.obsKernel s ≪ jointRef ref M.observed
+
+/-- For [a finite node population with measurable value spaces](hyp:N,Ω), [a structural causal
+model](hyp:M), [a reference-measure family](hyp:ref), and [fixed-node values](hyp:s), [the joint
+observational density](goal) is the Radon--Nikodym derivative of the model's observational law at
+those fixed-node values with respect to the joint reference measure on the observed nodes. -/
+noncomputable def obsDensity (M : Causalean.SCM N Ω) (ref : ReferenceMeasures Ω)
+    (s : M.FixedValues) : ValuesOn M.observed (swigΩ Ω) → ENNReal :=
+  (M.obsKernel s).rnDeriv (jointRef ref M.observed)
+
+/-- In a structural causal model whose observational law is [absolutely continuous with
+respect to the joint reference measure on the observed nodes](hyp:hdom), [weighting that joint
+reference measure by the observational density recovers the observational law exactly](goal). -/
+theorem withDensity_obsDensity_eq (M : Causalean.SCM N Ω) (ref : ReferenceMeasures Ω)
+    (hdom : DominatedObs M ref) (s : M.FixedValues) :
+    (jointRef ref M.observed).withDensity (M.obsDensity ref s) = M.obsKernel s := by
+  unfold obsDensity
+  exact MeasureTheory.Measure.withDensity_rnDeriv_eq _ _ (hdom s)
+
+/-- Within a [model whose observational law is dominated by the joint reference
+measure](hyp:hdom), if [the joint observational densities at two fixed-value slices agree
+almost everywhere with respect to that reference measure](hyp:hdens), then [the two slices
+induce the same observational law](goal).
+
+The cross-model determination used for soundness is assembled downstream, where
+the shared graph equality lets the two laws be compared in one type. -/
+theorem obsKernel_eq_of_obsDensity_ae_eq
+    (M : Causalean.SCM N Ω) (ref : ReferenceMeasures Ω)
+    (hdom : DominatedObs M ref) (s₁ s₂ : M.FixedValues)
+    (hdens : (M.obsDensity ref s₁)
+        =ᵐ[jointRef ref M.observed] (M.obsDensity ref s₂)) :
+    M.obsKernel s₁ = M.obsKernel s₂ := by
+  rw [← withDensity_obsDensity_eq M ref hdom s₁,
+    ← withDensity_obsDensity_eq M ref hdom s₂,
+    MeasureTheory.withDensity_congr_ae hdens]
+
+end Causalean.SCM

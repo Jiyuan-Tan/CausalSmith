@@ -1,0 +1,171 @@
+\begin{proof}[Proof of \cref{obj:thm:minimax-honest-length}]
+Put
+\[
+\ell=1-2\varepsilon,\qquad \beta=1-2\alpha,\qquad
+B_\alpha=\frac{\beta\sqrt{\log(1+\beta^2)}}4,\qquad
+U_{\varepsilon,\alpha}
+=\frac{\ell}{\varepsilon(1-\varepsilon)}
++\frac8\varepsilon\sqrt{\log(4/\alpha)},\qquad
+C_{\varepsilon,\alpha}=\max\{B_\alpha,U_{\varepsilon,\alpha}\}.
+\]
+The overlap and miscoverage conditions give \(\ell>0\), \(\beta>0\), and \(B_\alpha>0\); hence \(C_{\varepsilon,\alpha}>0\). % lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_order
+
+First fix any probability score law \(H\), any \(n,K\geq1\), and any honest pair \((g,C_n)\). Set
+\[
+u_n=\frac12\sqrt{\frac{\log(1+\beta^2)}{n}}.
+\]
+Construct two causal laws \(P^{(0)},P^{(1)}\) as follows. Under both, \(E\sim H\), \(Y_0=0\), \(R=g(E)\), and, conditional on the latent variables, \(A\) is Bernoulli with parameter \(E\). Independently of \(E\), take \(Y_1\) to be Bernoulli with parameter \(1/2\) under \(P^{(0)}\) and \(1/2+u_n\) under \(P^{(1)}\); set \(Y=AY_1+(1-A)Y_0\). Since \(0<u_n<1/2\), both laws belong to \(\mathfrak P(H,g)\) of \cref{obj:def:causal-law-class}, and their average treatment effects are \(1/2\) and \(1/2+u_n\). % lean: CausalSmith.PartialID.UnlinkedPropensityAte.honestProcedure_sampling_baseline_expectedLength_lower
+
+Let \(Q_j\) be the released \(n\)-row law under \(P^{(j)}\), for \(j=0,1\). The released rows are measurable functions of Bernoulli potential outcomes and a common, independent score-and-assignment design. Total variation contracts under this readout. The chi-squared divergence of Bernoulli\((1/2+u_n)\) from Bernoulli\((1/2)\) is \(4u_n^2\); its product-law identity and Cauchy–Schwarz therefore give
+\[
+\operatorname{TV}(Q_0,Q_1)
+\leq \frac12\sqrt{(1+4u_n^2)^n-1}.
+\]
+Writing \(x=\log(1+\beta^2)\), we have \(4u_n^2=x/n\), so \((1+x/n)^n\leq e^x=1+\beta^2\). Consequently,
+\[
+\operatorname{TV}(Q_0,Q_1)\leq\frac{\beta}{2}.
+\]
+The two coverage events have probabilities at least \(1-\alpha\) under their respective laws. Transferring the second event to \(Q_0\) and intersecting the events shows that, with \(Q_0\)-probability at least
+\(1-2\alpha-\operatorname{TV}(Q_0,Q_1)\geq\beta/2\), the interval contains both treatment effects. Its length is then at least \(u_n\). Thus
+\[
+\sup_{P\in\mathfrak P(H,g)}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}|C_n|
+\geq \mathbb E_{Q_0}|C_n|
+\geq \frac{\beta u_n}{2}
+=B_\alpha n^{-1/2}.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.honestProcedure_sampling_worstCaseExpectedLength_lower
+
+This bound holds for every honest pair. The collection of such pairs is nonempty: a constant release paired with the interval \([-1,1]\) is honest. Their expected lengths lie in \([0,2]\). Taking the infimum as in \cref{obj:def:minimax-honest-length} yields
+\[
+B_\alpha n^{-1/2}\leq\mathcal L^\star_{n,K,\alpha}(H).
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_sampling_lower
+
+Now suppose \(H\in\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\), where \(m_f>0\). By \cref{obj:def:score-lower-density-class}, \(H(de)=f(e)\,de\) with \(f\geq m_f\) almost everywhere. Fix an arbitrary \(g\in\mathcal G_K\), and write
+\[
+C_r=\{e\in\mathcal E:g(e)=r\},\qquad
+h_r=\operatorname{Leb}(C_r),\qquad r\in\mathcal R_K.
+\]
+These measurable cells partition \(\mathcal E\), including when some are empty or disconnected, so \(\sum_rh_r=\ell\). For \(c\in[1/(1-\varepsilon),1/\varepsilon]\), put
+\[
+z_{1,c}=c^{-1},\qquad z_{0,c}=1-c^{-1}.
+\]
+Both centers lie in \(\mathcal E\). With \(p_1(e)=e\) and \(p_0(e)=1-e\), as in \cref{obj:thm:all-label-ambiguity}, for either arm \(a\) we have
+\[
+\int_{C_r}|1-cp_a(e)|\,H(de)
+=c\int_{C_r}|e-z_{a,c}|\,H(de)
+\geq\frac{m_f}{1-\varepsilon}
+       \int_{C_r}|e-z_{a,c}|\,de.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.cellAbsoluteDeviation_lower_cellLengthSq
+
+Here is the geometric bound used for each cell. For any measurable set \(V\) of finite Lebesgue measure \(h\) and any real \(z\), the interval \(\{|e-z|\leq t\}\) has measure at most \(2t\). The layer-cake identity gives, also when \(h=0\),
+\[
+\int_V|e-z|\,de
+=\int_0^\infty\operatorname{Leb}\{e\in V:|e-z|>t\}\,dt
+\geq\int_0^{h/2}(h-2t)\,dt
+=\frac{h^2}{4}.
+\]
+Applying this with \(V=C_r\) bounds each arm’s infimum in the exact ambiguity formula of \cref{obj:thm:all-label-ambiguity}. Since \(\sum_rh_r^2\geq(\sum_rh_r)^2/K=\ell^2/K\), that formula yields
+\[
+D_H(g)\geq
+\frac{m_f}{2(1-\varepsilon)}\sum_r h_r^2
+\geq\frac{m_f\ell^2}{2(1-\varepsilon)K}.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.worstCaseAmbiguity_finiteLabel_lower
+
+For this same release, \cref{obj:thm:all-label-ambiguity} supplies two causal laws with a common released law and treatment effects separated by \(D_H(g)\). Under their common \(n\)-row law, honesty makes the two coverage events intersect with probability at least \(1-2\alpha\). On that intersection, the interval has length at least \(D_H(g)\). Hence every honest \((g,C_n)\) satisfies
+\[
+\sup_{P\in\mathfrak P(H,g)}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}|C_n|
+\geq(1-2\alpha)D_H(g)
+\geq A_{\varepsilon,m_f,\alpha}K^{-1},
+\qquad
+A_{\varepsilon,m_f,\alpha}
+:=\frac{(1-2\alpha)m_f\ell^2}{2(1-\varepsilon)}>0.
+\]
+Taking the infimum over honest pairs preserves this bound. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_finiteLabel_lower
+
+Define
+\[
+c_{\varepsilon,m_f,\alpha}
+=\frac12\min\{A_{\varepsilon,m_f,\alpha},B_\alpha\}>0.
+\]
+The label and sampling bounds give
+\[
+c_{\varepsilon,m_f,\alpha}
+\bigl(K^{-1}+n^{-1/2}\bigr)
+\leq
+\max\{A_{\varepsilon,m_f,\alpha}K^{-1},
+      B_\alpha n^{-1/2}\}
+\leq\mathcal L^\star_{n,K,\alpha}(H).
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_rate_assembly
+
+For the upper bound, use the equal-width release and midpoints in the statement. Its endpoint convention assigns every \(e\in\mathcal E\) a label and gives
+\[
+z_{g_K(e)}\in[\varepsilon,1-\varepsilon],
+\qquad |e-z_{g_K(e)}|\leq\frac{\ell}{2K}.
+\]
+Fix \(P\in\mathfrak P(H,g_K)\), and choose conditional means
+\[
+\eta_a(e)=\mathbb E_P[Y_a\mid E=e]\in[0,1],
+\qquad a\in\{0,1\}.
+\]
+The score-based assignment and consistency conditions in \cref{obj:def:causal-law-class} give
+\[
+\begin{aligned}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n
+&=\int_{\mathcal E}
+ \left\{\frac{e\eta_1(e)}{z_{g_K(e)}}
+ -\frac{(1-e)\eta_0(e)}{1-z_{g_K(e)}}\right\}H(de),\\
+\theta(P)&=\int_{\mathcal E}\{\eta_1(e)-\eta_0(e)\}\,H(de).
+\end{aligned}
+\]
+Subtracting and using \(z(1-z)\geq\varepsilon(1-\varepsilon)\) on the score interval gives
+\[
+\begin{aligned}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n-\theta(P)
+&=\int_{\mathcal E}(e-z_{g_K(e)})
+ \left\{\frac{\eta_1(e)}{z_{g_K(e)}}
+       +\frac{\eta_0(e)}{1-z_{g_K(e)}}\right\}H(de),\\
+\left|\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n-\theta(P)\right|
+&\leq\frac{\ell}{2K\varepsilon(1-\varepsilon)}.
+\end{aligned}
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.midpointWeightedRow_integral_sub_ate_abs_le
+
+Each summand of \(\widehat T_n\) lies in \([-\varepsilon^{-1},\varepsilon^{-1}]\). Hoeffding’s inequality for the independent released rows, with
+\[
+t_n=\frac4\varepsilon\sqrt{\frac{\log(4/\alpha)}n},
+\]
+therefore gives
+\[
+P_{\mathrm{rel}}^{\otimes n}
+ \left(\left|\widehat T_n-
+ \mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n\right|\geq t_n\right)
+\leq 2\exp\!\left(-\frac{n\varepsilon^2t_n^2}{2}\right)
+=2(\alpha/4)^8\leq\alpha.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.midpointWeightedCenter_deviation_probability_le
+
+The radius in the statement is \(R_{n,K}=t_n+\ell/[2K\varepsilon(1-\varepsilon)]\). Outside the displayed deviation event, the bias bound implies
+\(\lvert\widehat T_n-\theta(P)\rvert\leq R_{n,K}\). Also \(\theta(P)\in[-1,1]\), since \(Y_0,Y_1\in[0,1]\). Clamping the two endpoints to \([-1,1]\) therefore preserves containment of \(\theta(P)\). The radius is nonnegative, and the clamp is measurable and nondecreasing, so the stated endpoints form an interval for every sample. The release is measurable. As the argument holds for every \(P\in\mathfrak P(H,g_K)\), \((g_K,C_n)\in\mathcal J_{n,K,\alpha}(H)\) by \cref{obj:def:honest-procedures}. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.equalWidth_midpointInterval_honest
+
+Finally, the clamp is one-Lipschitz. Pointwise in the sample,
+\[
+|C_n|
+\leq 2R_{n,K}
+=\frac{\ell}{\varepsilon(1-\varepsilon)}K^{-1}
+ +\frac8\varepsilon\sqrt{\log(4/\alpha)}\,n^{-1/2}
+\leq U_{\varepsilon,\alpha}
+ \bigl(K^{-1}+n^{-1/2}\bigr).
+\]
+Integrating under every released \(n\)-row law gives the asserted expected-length bound with \(C_{\varepsilon,\alpha}\geq U_{\varepsilon,\alpha}\). Taking the supremum over causal laws and the infimum over honest pairs also gives
+\[
+\mathcal L^\star_{n,K,\alpha}(H)
+\leq C_{\varepsilon,\alpha}\bigl(K^{-1}+n^{-1/2}\bigr).
+\]
+Together with the two lower bounds, this proves the claims. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_order
+\end{proof}

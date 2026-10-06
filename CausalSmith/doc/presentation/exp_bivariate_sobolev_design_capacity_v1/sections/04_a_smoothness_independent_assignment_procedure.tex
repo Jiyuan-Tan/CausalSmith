@@ -1,0 +1,189 @@
+\section{A smoothness-independent assignment procedure}
+
+The simultaneous attainment in \cref{obj:thm:log-free-bivariate-capacity} is achieved by an assignment rule that prioritizes low-frequency covariate balance. The rule uses sample size, dimension, observed covariates, and auxiliary random seeds. The same rule serves every smoothness level \(0<s\leq1\): smoothness enters the evaluation of its performance through the spectral budget.
+
+We first describe the spectral construction used to supply the balancing rows. Work on the period-two torus \(\mathbb T_2^d=[0,2)^d\), with addition modulo two and normalized Haar probability. Its coordinatewise fold onto the cube is
+\[
+b_d(y)_j=\min\{y_j,2-y_j\}.
+\]
+For each original unit and coordinate, independently choose the lift \(X_{ij}\) or \(2-X_{ij}\), each with probability \(1/2\). Add a common Haar-uniform shift \(T\in\mathbb T_2^d\), independent of the sample, the reflection choices, and the rounding seeds. The resulting transformed covariates are
+\[
+W_i=\bigl(\text{lift of }X_i+T\bigr)\bmod 2.
+\]
+These transformations retain the correspondence between each transformed covariate vector and its original experimental unit.
+
+The reflected prognostic function is \(F=m\circ b_d\). Writing
+\[
+e_k(y)=\exp(\mathrm i\pi k^{\mathsf T}y),
+\qquad
+\widehat F(k)=\int_{\mathbb T_2^d}F(y)\overline{e_k(y)}\,dy,
+\]
+where integration uses normalized Haar probability, gives the Fourier representation underlying the spectral budget. Reflection and translation preserve the original prognostic values through
+\[
+F(W_i-T)=m(X_i).
+\]
+The order-two structure in \cref{obj:ass:order-two} directs attention to nonzero integer frequencies supported on one or two coordinates. Their frequency complexity is
+\[
+t(k)=\frac{\|k\|_2^2}{|\operatorname{supp}(k)|},
+\qquad
+\operatorname{supp}(k)=\{j:k_j\ne0\}.
+\]
+Take one representative of each pair \(\{k,-k\}\), choosing the representative whose first nonzero entry is positive. Order these representatives by increasing complexity, with lexicographic tie breaking, and place the cosine row before the sine row for each representative. The corresponding real features are
+\[
+\sqrt2\cos(\pi k^{\mathsf T}W_i),
+\qquad
+\sqrt2\sin(\pi k^{\mathsf T}W_i).
+\]
+The first \(\lfloor n/4\rfloor\) rows of this ordered family form the input matrix for rounding. Thus reflection, the common shift, frequency ordering, and real features constitute a single construction shared across smoothness levels.
+
+The assignment procedure protects an initial segment of these rows while enough fractional coordinates remain available. As coordinates reach their assignment boundaries, the protected segment becomes shorter. Low-frequency rows consequently receive protection for more of the procedure. Randomization between the two boundary directions preserves the conditional mean of each assignment coordinate, linking covariate balance to fair marginal assignment probabilities.
+
+The independent prior used in the converse places random signs on a finite family of pair-cosine features. Its sample-dependent cutoff and smoothness-dependent normalization are specified next.
+
+\begin{definitionv}{def:cosine-prior}[Pair-cosine prior \(m_\xi\)]
+Let
+\[
+B=\binom d2,\qquad
+L=\max\left\{1,\left\lceil\sqrt{4096n/B}\right\rceil\right\},\qquad
+M=BL^2,\qquad
+C_0=\sqrt{48+32\pi^2}.
+\]
+Before observing \(X\), draw every coefficient \(\xi_\alpha\) independently and uniformly from \(\{-1,+1\}\). For \(\alpha=(j,h,k,\ell)\), where \(j<h\) and \(1\leq k,\ell\leq L\), put
+\[
+V_\alpha(x)=2\cos(\pi kx_j)\cos(\pi\ell x_h),
+\qquad
+m_\xi(x)=\frac{1}{C_0L^s\sqrt M}\sum_\alpha\xi_\alpha V_\alpha(x).
+\]
+The prior \(\nu^\star_{n,d,s}\) is the law of this normalized pair-cosine function.
+\end{definitionv}
+
+The pair-cosine features \leanref{sym:V}{\ensuremath{V_\alpha(x)}} in \cref{obj:def:cosine-prior} are indexed by \leanref{sym:alpha}{\ensuremath{\alpha}}; the frequency cutoff \leanref{sym:L}{\ensuremath{L}} gives the feature count \leanref{sym:M}{\ensuremath{M}}. The coefficient signs \leanref{sym:xi}{\ensuremath{\xi_\alpha}} are sampled independently of \(X\), while the normalization constant \leanref{sym:C0}{\ensuremath{C_0}} and the factor \(L^s\sqrt M\) determine the amplitude of the prior functions.
+
+The following construction combines this assignment rule with the comparison scale and the independent prior used in the converse.
+
+\begin{algorithmv}{def:capacity-handle}[Capacity construction \((a_s,\pi^\star,\nu^\star)\)]
+For \(n,d\) and \(s\), construct the capacity handle as follows.
+\begin{enumerate}
+\item Set
+\[
+a_s(n,d)=\min\{1,(\tbinom d2/n)^s\}.
+\]
+\item If \(n\leq\binom d2\), let \(\pi^\star_{n,d}\) assign independent fair signs. If \(\binom d2<n\), let \(\pi^\star_{n,d}\) use the reflected, commonly shifted spectral features and ordered-boundary rounding on the original sample.
+\item Let \(\nu^\star_{n,d,s}\) be the independent uniform coefficient-sign prior defining the pair-cosine functions at the cutoff in \cref{obj:def:cosine-prior}.
+\item Return the triple
+\[
+(a_s(n,d),\pi^\star_{n,d},\nu^\star_{n,d,s}),
+\]
+\end{enumerate}
+\end{algorithmv}
+
+At saturation, \(n\leq\binom d2\), the comparison scale in \cref{obj:def:capacity-handle} equals one, and independent fair signs attain the upper comparison established in \cref{obj:thm:log-free-bivariate-capacity}. When the sample exceeds the coordinate-pair count, the same construction instead balances the ordered spectral features. Its assignment component \(\pi^\star_{n,d}\), defined in \cref{obj:def:capacity-handle}, is independent of \(s\), whereas the comparison scale and the coefficient prior retain their smoothness dependence.
+
+To implement the balancing branch, the fractional assignment starts at zero and moves within the active-coordinate subspace subject to the current row constraints. The boxed procedure specifies the ordering, boundary probabilities, and tie conventions that determine each move.
+
+\begin{algorithmv}{def:ordered-boundary-rounding}[Ordered boundary rounding $Z$]
+The input is a real matrix \(a\in\mathbb R^{K\times n}\), with
+\[
+K=\lfloor n/4\rfloor.
+\]
+\begin{enumerate}
+\item Initialize the fractional assignment state by
+\[
+u=0\in[-1,1]^n.
+\]
+A coordinate \(i\) is active exactly when \(|u_i|<1\). Inactive coordinates remain fixed.
+
+\item At the start of each phase, set
+\[
+r=\#\{i:|u_i|<1\}.
+\]
+If \(r\leq3\), round the remaining active coordinates independently, in increasing index order, according to
+\[
+\mathbb P(u_i\leftarrow+1)=\frac{1+u_i}{2},
+\qquad
+\mathbb P(u_i\leftarrow-1)=\frac{1-u_i}{2},
+\]
+and proceed to the output step. If \(r\geq4\), set
+\[
+q_1=\lfloor r/4\rfloor
+\]
+and retain this value throughout the phase, until the active count is at most \(\lfloor r/2\rfloor\).
+
+\item At each move, form the orthogonal projection \(P\) onto the vectors supported on the current active coordinates and orthogonal to the first \(q_1\) input rows:
+\[
+P=
+\operatorname{proj}_{\left\{
+v\in\mathbb R^n:
+v_i=0\ \text{if }|u_i|=1,\ 
+\sum_{i=1}^n a_{\ell i}v_i=0\ (1\leq\ell\leq q_1)
+\right\}}.
+\]
+Compute \(P\) by orthonormalizing the constraint rows restricted to the active coordinates in row order, discarding zero Gram--Schmidt residuals and normalizing residuals with positive norm. Subtract their rank-one projections from the identity on the active coordinate subspace.
+
+\item Process \(Pe_1,\ldots,Pe_n\) in index order, where \(e_1,\ldots,e_n\) are the standard coordinate vectors. Discard zero Gram--Schmidt residuals and normalize residuals with positive norm to obtain the ordered orthonormal basis \(v_1,\ldots,v_h\), characterized by
+\[
+h=\dim(\operatorname{im}P),
+\qquad
+\operatorname{span}\{v_1,\ldots,v_h\}=\operatorname{im}P,
+\qquad
+v_b^{\mathsf T}v_c=
+\begin{cases}
+1,&b=c,\\
+0,&b\ne c.
+\end{cases}
+\]
+
+\item For each basis vector, compute the boundary step lengths and their product:
+\[
+\delta_b^+
+=
+\min\left(
+\left\{\frac{1-u_i}{(v_b)_i}:(v_b)_i>0\right\}
+\cup
+\left\{\frac{1+u_i}{-(v_b)_i}:(v_b)_i<0\right\}
+\right),
+\]
+\[
+\delta_b^-
+=
+\min\left(
+\left\{\frac{1+u_i}{(v_b)_i}:(v_b)_i>0\right\}
+\cup
+\left\{\frac{1-u_i}{-(v_b)_i}:(v_b)_i<0\right\}
+\right),
+\qquad
+t_b=\delta_b^+\delta_b^-.
+\]
+These sets contain active nonzero entries. Set the normalizer to
+\[
+S=\sum_{b=1}^h t_b^{-1}.
+\]
+
+\item Choose a basis index according to
+\[
+\mathbb P(\text{chosen index}=b)=\frac{t_b^{-1}}{S}.
+\]
+Conditional on that choice, update the state according to
+\[
+u\leftarrow
+\begin{cases}
+u+\delta_b^+v_b,
+&\text{with probability }\displaystyle\frac{\delta_b^-}{\delta_b^++\delta_b^-},\\[6pt]
+u-\delta_b^-v_b,
+&\text{with probability }\displaystyle\frac{\delta_b^+}{\delta_b^++\delta_b^-}.
+\end{cases}
+\]
+Repeat the moves until the active count is at most \(\lfloor r/2\rfloor\), then start a new phase. Every random choice uses an independent uniform seed. Inverse distribution functions use half-open intervals, assigning the value one to the last interval. Comparisons with zero and boundary comparisons are exact; ties in finite minima use the least index.
+
+\item Output the terminal assignment sign vector
+\[
+Z=u\in\mathcal Z_n.
+\]
+\end{enumerate}
+\end{algorithmv}
+
+The protected rows in \cref{obj:def:ordered-boundary-rounding} retain their current imbalances throughout each phase. Starting from zero therefore gives the earliest rows the strongest initial protection. The asymmetric boundary probabilities and the terminal coordinate probabilities preserve conditional means, yielding a fair sign for every original unit. Each boundary move fixes at least one previously active coordinate, so the construction requires at most \(n\) boundary moves, followed by independent rounding of at most three remaining coordinates. This is a finite guarantee under the specified exact-real arithmetic conventions.
+
+Every output coordinate remains attached to its original unit. Reflection and shifting provide balancing features, while all \(n\) units enter the original Horvitz--Thompson estimator with their original weight \(2/n\). Consequently, the assignment improvement applies directly to the original-sample criterion in \cref{obj:def:criterion}.
+
+The quantitative link between ordered protection and prognostic imbalance is supplied by \cref{obj:lem:ordered-prefix-rounding}. Its row-imbalance bound combines with the reflected spectral budget and transfer in \cref{obj:lem:exact-reflection-budget,obj:lem:reflection-transfer}. Frequency ordering allocates the strongest balance to the rows whose coefficients receive the greatest weight under smoothness. These bounds yield the simultaneous smoothness attainment stated in \cref{obj:thm:log-free-bivariate-capacity}. The supporting bounds and measurable realization arguments accompany those auxiliary results in the appendix.

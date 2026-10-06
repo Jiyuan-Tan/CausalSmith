@@ -1,0 +1,307 @@
+\section{Main results}
+
+The oracle scales introduced in the setup suggest selecting a resolution from the observed treatment information. We implement this choice with local polynomial fits whose conditioning is controlled by a fixed interpolation template. The construction uses the known smoothness order \(\beta>1\), with polynomial degree \(m=\lceil\beta\rceil-1\), and selects a mesh through treated observation counts.
+
+\subsection{Construction}
+
+The tensor nodes \leanref{sym:v_ell}{\ensuremath{v_\ell}} specify the locations around which the fitting observations are collected. Their placement leaves room for small neighborhoods inside the reference cube.
+
+\begin{definitionv}{synth_1}[Tensor interpolation nodes]
+The tensor node \(v_\ell\in\mathbb R^d\), for nonnegative integers \(d,m\) and an index vector \(\ell\in\{0,\ldots,m\}^d\), is defined by
+\[
+(v_\ell)_i=\frac{\ell_i+1}{m+2},
+\qquad i=1,\ldots,d.
+\]
+\end{definitionv}
+
+We use total-degree monomials indexed by \leanref{sym:Im}{\ensuremath{\mathcal I_m}} to form the polynomial vector \leanref{sym:U}{\ensuremath{U}}. The node count \leanref{sym:J}{\ensuremath{J}} determines the equal weights in the reference Gram matrix. The following construction fixes both the polynomial basis and the neighborhoods used to fit it.
+
+\begin{definitionv}{synth_2}[Polynomial template and microcell width]
+Fix a dimension \(d\ge1\) and a polynomial degree \(m\in\mathbb N_0\). Let
+\[
+\mathcal I_m:=\{\alpha\in\mathbb N_0^d:|\alpha|\le m\},
+\qquad p:=|\mathcal I_m|,
+\qquad U(z):=(z^\alpha)_{\alpha\in\mathcal I_m},
+\quad z\in[0,1]^d,
+\]
+with the coordinates of \(U\) ordered lexicographically. For
+\(\ell\in\{0,\ldots,m\}^d\), define
+\[
+v_\ell:=\left(\frac{\ell_1+1}{m+2},\ldots,
+\frac{\ell_d+1}{m+2}\right),
+\qquad J:=(m+1)^d,
+\]
+and set
+\[
+G_0:=\frac1J\sum_{\ell\in\{0,\ldots,m\}^d}
+U(v_\ell)U(v_\ell)^\top,
+\qquad \lambda_0:=\lambda_{\min}(G_0).
+\]
+The template Lipschitz constant is
+\[
+L_U:=
+\sup_{\substack{z,z'\in[0,1]^d\\z\ne z'}}
+\frac{\|U(z)U(z)^\top-U(z')U(z')^\top\|_{\mathrm{op}}}
+{\|z-z'\|_\infty},
+\]
+where \(\|\cdot\|_{\mathrm{op}}\) is the matrix operator norm induced by the Euclidean vector norm. This finite constant gives the bound
+\[
+\|U(z)U(z)^\top-U(z')U(z')^\top\|_{\mathrm{op}}
+\le L_U\|z-z'\|_\infty.
+\]
+Define the microcell width and reference microcubes by
+\[
+\eta:=\min\left\{\frac1{2(m+2)},\frac{\lambda_0}{1+L_U}\right\},
+\qquad
+V_\ell:=v_\ell+[-\eta/2,\eta/2]^d.
+\]
+In particular, for \(z\in V_\ell\), the bound entering the width rule is
+\[
+\|U(z)U(z)^\top-U(v_\ell)U(v_\ell)^\top\|_{\mathrm{op}}
+\le \frac{L_U\eta}{2}\le\frac{\lambda_0}{2}.
+\]
+\end{definitionv}
+
+The reference Gram matrix \leanref{sym:G0}{\ensuremath{G_0}} is positive definite because the tensor grid identifies every polynomial in the chosen basis. Its least eigenvalue \leanref{sym:lambda0}{\ensuremath{\lambda_0}} provides a deterministic conditioning benchmark. The matrix Lipschitz constant \leanref{sym:LU}{\ensuremath{L_U}} controls the perturbation caused by moving observations away from the nodes. Accordingly, the width \leanref{sym:eta}{\ensuremath{\eta}} makes the reference microcubes \leanref{sym:V_ell}{\ensuremath{V_\ell}} small enough to preserve that benchmark; the conditioning argument is recorded in \cref{obj:lem:template-conditioning}.
+
+For the fitting formulas, we enumerate the tensor nodes by a single index from \(1\) to \(J\). The template notation under this enumeration is collected below.
+
+\begin{definitionv}{def:template}[Polynomial template $G_0$ and microcubes $V_\ell$]
+The equally weighted template Gram matrix \(G_0\) and its least eigenvalue \(\lambda_0\) are
+\[
+G_0=\frac{1}{J}\sum_{\ell=1}^{J}U(v_\ell)U(v_\ell)^\top,
+\qquad
+\lambda_0=\lambda_{\min}(G_0),
+\]
+where \(U\) is the polynomial template vector, \(v_\ell\) are its tensor nodes, and \(J\) is the number of nodes. With \(m\) denoting the polynomial order and \(L_U\) the constant entering the width rule, define the microcube width
+\[
+\eta=\min\left\{\frac{1}{2(m+2)},\frac{\lambda_0}{1+L_U}\right\}.
+\]
+The disjoint reference microcubes are
+\[
+V_\ell=v_\ell+[-\eta/2,\eta/2]^d,
+\qquad \ell=1,\ldots,J.
+\]
+\end{definitionv}
+
+Each partition cube receives a scaled copy of this same template. We search over the finite dyadic mesh collection \leanref{sym:Hn}{\ensuremath{\mathcal H_n}}, with \leanref{sym:Qh}{\ensuremath{\mathcal Q_h}} denoting the partition at mesh \(h\).
+
+\begin{definitionv}{synth_3}[Candidate dyadic meshes]
+For a sample size \(n\ge1\), dimension \(d\ge1\), and smoothness parameter \(\beta>1\), define the finite candidate mesh collection
+\[
+\mathcal H_n:=
+\left\{2^{-j}:j\in\mathbb N_0,\ 
+0\le j\le
+\left\lfloor\frac{\log_2 n}{2\beta+d}\right\rfloor
+\right\}.
+\]
+For \(h\in\mathcal H_n\), let \(\mathcal Q_h\) be the dyadic partition of
+\(\mathcal X=[0,1]^d\) into cubes of side length \(h\). Each coordinate interval is half-open, with the right endpoint \(1\) included in the last interval of that coordinate. Write \(a_Q\) for the lower-left corner of \(Q\in\mathcal Q_h\).
+\end{definitionv}
+
+The corner \leanref{sym:aQ}{\ensuremath{a_Q}} supplies the translation for placing the reference template in a partition cube. The resulting microcells \leanref{sym:EQell}{\ensuremath{E_{Q\ell}}} have treated observation counts \leanref{sym:NQell}{\ensuremath{N_{Q\ell}}}. We require each count to reach the smoothness-dependent threshold \(h^{-2\beta}\). The feasible mesh set \leanref{sym:Fh}{\ensuremath{\mathcal F_n}} collects the resolutions meeting this requirement, and the selected width \leanref{sym:hhat}{\ensuremath{\widehat h}} is the finest feasible resolution, with the exceptional-sample convention specified below.
+
+\begin{algorithmv}{def:mesh-selector}[Count-feasible mesh $\widehat h$]
+Given the candidate meshes \(\mathcal H_n\), the observed sample \(\mathcal D_n=((X_i,A_i,Y_i))_{i=1}^n\), the smoothness parameter \(\beta\), and the reference microcubes \(V_\ell\), proceed as follows.
+\begin{enumerate}
+\item For each \(h\in\mathcal H_n\), form the cube partition \(\mathcal Q_h\). For each partition cube \(Q\), with corner \(a_Q\), define its microcells and treated observation counts by
+\[
+E_{Q\ell}=a_Q+hV_\ell,
+\qquad
+N_{Q\ell}=\sum_{i=1}^n\mathbf 1_{\{X_i\in E_{Q\ell},\,A_i=1\}}.
+\]
+\item Define the set of feasible meshes by
+\[
+\mathcal F_n
+=
+\left\{h\in\mathcal H_n:
+\min_{Q\in\mathcal Q_h,\,1\le\ell\le J}N_{Q\ell}
+\ge h^{-2\beta}\right\},
+\]
+where \(J\) is the number of reference microcubes.
+\item Output the numerically smallest feasible mesh, with zero assigned when the feasible set is empty:
+\[
+\widehat h=
+\begin{cases}
+\min\mathcal F_n,&\mathcal F_n\ne\varnothing,\\
+0,&\mathcal F_n=\varnothing.
+\end{cases}
+\]
+\end{enumerate}
+\end{algorithmv}
+
+Selection depends on the sampled covariates and treatment indicators. The threshold calibrates the amount of treatment information to the approximation scale \(h^\beta\). At a feasible mesh, each microcell receives the same total fitting weight, so the template geometry governs the empirical matrix even when treated observations are distributed unevenly across microcells.
+
+The empirical equal-cell Gram matrix \leanref{sym:GhatQ}{\ensuremath{\widehat G_Q}} and coefficient estimate \leanref{sym:chatQ}{\ensuremath{\widehat c_Q}} make this weighting explicit.
+
+\begin{definitionv}{synth_4}[Equal-cell local polynomial coefficients]
+Let \(\mathcal D_n=((X_i,A_i,Y_i))_{i=1}^n\) be the observed sample. Fix a feasible mesh \(h\), a partition cube \(Q\in\mathcal Q_h\) with lower-left corner \(a_Q\), the polynomial template vector \(U\), and its \(J\) reference microcubes \(V_\ell\). Define
+\[
+E_{Q\ell}:=a_Q+hV_\ell,
+\qquad
+N_{Q\ell}:=\sum_{i=1}^n
+\mathbf 1_{\{A_i=1,\ X_i\in E_{Q\ell}\}}.
+\]
+Feasibility means that \(N_{Q\ell}\ge h^{-2\beta}\) for every partition cube and template microcell, so these counts are positive. The equal-cell empirical Gram matrix is
+\[
+\widehat G_Q:=
+\frac1J\sum_\ell\frac1{N_{Q\ell}}
+\sum_{\substack{1\le i\le n\\ A_i=1,\ X_i\in E_{Q\ell}}}
+U\!\left(\frac{X_i-a_Q}{h}\right)
+U\!\left(\frac{X_i-a_Q}{h}\right)^\top.
+\]
+Using the polynomial template and its microcell width, this matrix is invertible at every feasible mesh. Define the equal-cell local polynomial coefficient estimate by
+\[
+\widehat c_Q:=
+\widehat G_Q^{-1}
+\frac1J\sum_\ell\frac1{N_{Q\ell}}
+\sum_{\substack{1\le i\le n\\ A_i=1,\ X_i\in E_{Q\ell}}}
+U\!\left(\frac{X_i-a_Q}{h}\right)Y_i.
+\]
+Thus each microcell receives weight \(1/J\), and the treated observations within that microcell receive equal weights.
+\end{definitionv}
+
+Invertibility follows from the deterministic template perturbation bound whenever the count requirement is met. The fitted polynomial is evaluated throughout its partition cube, including points outside the fitting microcells. Projection onto the response-bound interval completes the response estimator \leanref{sym:muhat}{\ensuremath{\widehat\mu_n}} and controls its magnitude on every sample realization.
+
+\begin{algorithmv}{def:estimator}[Clipped response estimator $\widehat\mu_n$]
+Given the selected mesh \(\widehat h\), the polynomial template vector \(U\), and the response bound \(B\), proceed as follows.
+\begin{enumerate}
+\item If \(\widehat h=0\), output
+\[
+\widehat\mu_n(x)=0
+\qquad(x\in\mathcal X).
+\]
+\item Otherwise, set
+\[
+h=\widehat h.
+\]
+For every \(Q\in\mathcal Q_h\), compute the empirical equal-cell Gram matrix \(\widehat G_Q\) and the equal-cell polynomial coefficient estimate \(\widehat c_Q\).
+\item For \(x\in\mathcal X\), let \(Q\) be the unique half-open partition cube containing \(x\), and let \(a_Q\) be its corner. Output
+\[
+\widehat\mu_n(x)
+=
+\operatorname{clip}_{[-B,B]}
+\left\{
+U\left(\frac{x-a_Q}{h}\right)^\top\widehat c_Q
+\right\},
+\qquad
+\operatorname{clip}_{[-B,B]}(t)=\max\{-B,\min\{B,t\}\}.
+\]
+\end{enumerate}
+\end{algorithmv}
+
+\subsection{Recovery guarantee}
+
+The count-selected estimator attains the overlap-dependent oracle rate uniformly over a compact range of overlap exponents. A matching converse holds within the model's bounded, two-valued potential-outcome subclass.
+
+\begin{theoremv}{thm:adaptive-minimax}[Adaptive minimax response recovery]
+Fix the model parameters subject to the following conditions:
+\begin{itemize}
+\item \textbf{(Dimension and smoothness.)} \(d\in\mathbb N\), \(d>0\), and \(\beta>1\).
+\item \textbf{(Response and smoothness bounds.)} \(B>0\) and \(L>0\).
+\item \textbf{(Overlap and density constants.)} \(C\ge1\) and \(0<c_f\le1\).
+\item \textbf{(Adaptation interval.)} The real endpoints satisfy \(1<\gamma_{\min}<\gamma_{\max}\), and the adaptation interval is
+\[
+\Gamma=[\gamma_{\min},\gamma_{\max}].
+\]
+\end{itemize}
+Let \(\mathcal X=[0,1]^d\) be the covariate cube, and let \(\mathcal P_\gamma\) be the observational causal model of \cref{obj:def:model}, with fixed parameters \(d,\beta,B,L,C,c_f,\gamma\), including the propensity-tail envelope in \cref{obj:ass:global-tail}. Define the effective dimension \(D_\gamma\), oracle mesh \(h_{\gamma,n}\), and oracle response-recovery scale \(r_{\gamma,n}\), for \(n\ge1\), by
+\[
+D_\gamma=\frac{d\gamma}{\gamma-1},
+\qquad
+h_{\gamma,n}=n^{-1/(2\beta+D_\gamma)},
+\qquad
+r_{\gamma,n}=h_{\gamma,n}^{\beta}.
+\]
+
+The count-selected equal-cell estimator \(\widehat\mu_n\) of \cref{obj:def:estimator} takes \(n,d,\beta,B\) and the observed sample \(\mathcal D_n\) as inputs. There exist \(K>0\) and \(n_0\in\mathbb N\) such that, for every integer \(n\ge\max\{n_0,1\}\), every \(\gamma\in\Gamma\), and every \(P\in\mathcal P_\gamma\),
+\[
+\mathbb E_{P^{\otimes n}}
+\left[
+\sup_{x\in\mathcal X}
+\left|\widehat\mu_n(x)-\mu_{1,P}(x)\right|
+\right]
+\le K r_{\gamma,n}.
+\]
+Here \(P^{\otimes n}\) is the sampling law of \(n\) independent observed triples \((X,A,Y)\), and \(\mu_{1,P}\) is the treated causal response under \(P\).
+
+For every real \(\gamma>1\) and every \(x_0\in\mathcal X\), there exist finite constants \(0<c_\gamma\le K_\gamma\), possibly depending on \(x_0\) and the fixed model parameters, such that, for every integer \(n\ge1\),
+\[
+\begin{aligned}
+c_\gamma r_{\gamma,n}
+&\le
+\inf_T
+\sup_{\substack{P\in\mathcal P_\gamma\\
+P\text{ admits a causal completion with}\\
+Y(0),Y(1)\in\{0,B\}\ \text{a.s.}}}
+\mathbb E_{P^{\otimes n}}
+\left|T(\mathcal D_n,x_0)-\mu_{1,P}(x_0)\right|
+\\
+&\le R_{\mathrm{pt}}(n,\gamma,x_0)
+\le R_\infty(n,\gamma)
+\le K_\gamma r_{\gamma,n}.
+\end{aligned}
+\]
+The infimum ranges over sample-measurable estimators \(T\); the pointwise and expected supremum minimax risks \(R_{\mathrm{pt}}\) and \(R_\infty\) are those of \cref{obj:def:risks}.
+\end{theoremv}
+
+The rate reflects a balance between polynomial approximation and the treatment information available at a given resolution. Smoothness supplies the approximation scale \(h^\beta\), while the global overlap tail determines the effective dimension \(D_\gamma\). At the oracle mesh these scales satisfy
+\[
+n h_{\gamma,n}^{D_\gamma}
+=
+h_{\gamma,n}^{-2\beta}.
+\]
+The count threshold implements this balance through the realized treatment design, and the fixed template turns feasible counts into stable polynomial fits.
+
+Adaptation in \cref{obj:thm:adaptive-minimax} concerns the overlap exponent at a known smoothness order. For fixed \(d,\beta,B,L,C,c_f\) and a fixed compact interval \(\Gamma\subset(1,\infty)\) with distinct endpoints, one estimator and common constants \(K,n_0\) provide the upper bound for every \(\gamma\in\Gamma\). Its inputs are the observed sample and \(n,d,\beta,B\). Thus the overlap exponent is accommodated through count selection, while \(\beta\) determines the polynomial degree, candidate resolutions, and feasibility threshold.
+
+The upper bound controls expected spatial-supremum error: the largest error over the closed covariate cube is evaluated within each sample realization and then averaged over samples. This criterion matches \cref{obj:def:risks} and covers boundary points as well as interior points. For each fixed \(\gamma>1\), the converse establishes the same rate at every fixed evaluation point, already among laws admitting potential outcomes in \(\{0,B\}\). Consequently, both pointwise recovery and recovery under expected spatial-supremum loss have minimax scale
+\[
+r_{\gamma,n}
+=
+n^{-\beta/(2\beta+D_\gamma)}.
+\]
+The constants in the fixed-exponent comparison may depend on the evaluation point and fixed model parameters, as specified in \cref{obj:thm:adaptive-minimax}.
+
+\subsection{Statistical explanation}
+
+Two features of the construction account for the guarantee. First, equal-cell weighting separates polynomial conditioning from the distribution of treated observations within a cube. Every microcell contributes total weight \(1/J\), and every normalized fitting location remains near its reference node. The empirical Gram matrix therefore stays close to the same positive-definite template at every feasible resolution. \Cref{obj:lem:template-conditioning} supplies this deterministic step, while \cref{obj:lem:selected-mesh} connects count feasibility to the oracle resolution.
+
+Second, the global overlap restriction controls the spatial distribution of scarce treatment information. To describe this distribution, fix a law \(P\) and a candidate mesh \(h\). Let the population treated microcell mass \leanref{sym:qQell}{\ensuremath{q_{Q\ell}}} and the weakest such mass in a partition cube \leanref{sym:qQ}{\ensuremath{q_Q}} be
+\[
+q_{Q\ell}
+=
+P\{X\in E_{Q\ell},\,A=1\},
+\qquad
+q_Q=\min_{1\le\ell\le J}q_{Q\ell}.
+\]
+Write \leanref{sym:qorder}{\ensuremath{q_{(k)}}} for these weakest-cell masses arranged in ascending order, with \(k=1,\ldots,|\mathcal Q_h|\). This ordering records how treatment information improves as one moves beyond the least-informed cubes.
+
+The density lower bound in \cref{obj:ass:density} assigns covariate probability to each microcell, and the global tail envelope in \cref{obj:ass:global-tail} limits how much of that probability can carry very small propensities. Their combination yields the ordered treatment-information bound
+\[
+q_{(k)}\ge \kappa_\Gamma h^{D_\gamma}k^{1/(\gamma-1)},
+\qquad
+D_\gamma=\frac{d\gamma}{\gamma-1},
+\]
+uniformly over the compact overlap range; this is \cref{obj:lem:ordered-mass}. On the count-concentration event of \cref{obj:lem:selected-mesh}, the conditional variance proxy for every fitted coefficient in the cube of rank \(k\) is bounded, up to a common constant, by
+\[
+\min\!\left\{
+\widehat h^{2\beta},
+n^{-1}\widehat h^{-D_\gamma}k^{-1/(\gamma-1)}
+\right\}.
+\]
+The first term is the feasibility cap; the second decreases with rank according to the ordered-mass profile. Their equality marks the ranks at which the envelope leaves the common cap. Applying the ordered maximal inequality across these ranks and comparing the selected mesh with the oracle mesh gives
+\[
+\mathbb E\!\left[
+\max_{Q\in\mathcal Q_{\widehat h}}
+\left\|\widehat c_Q-
+\mathbb E[\widehat c_Q\mid(X_i,A_i)_{i=1}^n]\right\|_\infty
+\,\middle|\,(X_i,A_i)_{i=1}^n
+\right]
+\le K\widehat h^\beta
+\sqrt{1+\max\{0,\log(h_{\gamma,n}/\widehat h)\}}
+\le K'r_{\gamma,n}.
+\]
+Thus the few least-informed cubes are controlled by feasibility, while the improving ranks pay progressively smaller stochastic scales. Deterministic template conditioning then transfers this coefficient bound to expected spatial-supremum response error at the oracle rate. The appendix proves the concentration event and the maximal inequality in full.
+
+The appendix develops the corresponding probability bounds and the bounded testing experiment. Their roles are complementary: the selected-mesh analysis establishes the estimator's recovery guarantee, and \cref{obj:lem:bounded-lower-pair} supplies the bounded-response comparison underlying the minimax converse.

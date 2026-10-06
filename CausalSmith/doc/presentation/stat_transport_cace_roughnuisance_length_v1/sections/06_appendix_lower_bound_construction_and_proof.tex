@@ -1,0 +1,420 @@
+\section{Appendix: Lower-bound construction and proof}
+\label{sec:lower-appendix}
+
+The converse in \cref{obj:thm:honest-lower-full-elbow} rests on a \leanref{S-6}{lower experiment}, specified in \cref{obj:def:legal-iv-mixture}, whose components satisfy the causal and transport restrictions while spanning a continuum of complier effects. The construction couples perturbations of the target covariate distribution, encouragement probabilities, and receipt--outcome cells. Throughout, the observed experiment consists of independent source and target samples, each of size \(n\).
+
+We first specify the interval cells on which the perturbations are placed.
+
+\begin{definitionv}{synth_18}[Resolution-\(K\) interval cells]
+For a positive integer \(K\) and an index \(\ell\in\{0,\ldots,K-1\}\), define
+\[
+\operatorname{cell}(K,\ell)=
+\begin{cases}
+[\ell/K,(\ell+1)/K),&0\le\ell<K-1,\\
+[(K-1)/K,1],&\ell=K-1.
+\end{cases}
+\]
+Thus each cell includes its left endpoint, and the final cell also includes the endpoint \(1\).
+\end{definitionv}
+
+The endpoint convention assigns every covariate value in the unit interval to one cell. A centered sinusoidal bump then supplies the within-cell perturbation.
+
+\begin{definitionv}{synth_12}[Tiled and coupled perturbations]
+The tiled perturbation \(u_{\lambda}\), for \(c_{\star}\in\mathbb R\), \(n\in\mathbb N\), and a cellwise sign vector \(\lambda\in\{-1,1\}^{K_{\mathrm L}}\), is defined for every \(x\in\mathbb R\) by
+\[
+K_{\mathrm L}=\left\lceil n^{4/3}\right\rceil,
+\qquad
+h_n=c_{\star}K_{\mathrm L}^{-1/8},
+\qquad
+u_{\lambda}(x)=
+\sum_{\ell=0}^{K_{\mathrm L}-1}
+\begin{cases}
+h_n\lambda_\ell\sin\!\bigl(2\pi(K_{\mathrm L}x-\ell)\bigr),
+& x\in\operatorname{cell}(K_{\mathrm L},\ell),\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+Each sign \(\lambda_\ell\) equals \(1\) when the supplied Boolean entry for cell \(\ell\) is true and \(-1\) when it is false. For \(0\leq\ell<K_{\mathrm L}\), the cells are
+\[
+\operatorname{cell}(K_{\mathrm L},\ell)=
+\begin{cases}
+[\ell/K_{\mathrm L},1],
+& \ell+1=K_{\mathrm L},\\
+[\ell/K_{\mathrm L},(\ell+1)/K_{\mathrm L}),
+& \ell+1\ne K_{\mathrm L}.
+\end{cases}
+\]
+At \(n=0\), the sum is empty and equals zero, with the convention \(0^{-1/8}=0\).
+The coupled perturbation \(v_{\lambda,\tau}\), for any \(\tau\in\mathbb R\), is defined by
+\[
+v_{\lambda,\tau}(x)=\tau u_{\lambda}(x),
+\qquad x\in\mathbb R.
+\]
+\end{definitionv}
+
+The bump \leanref{sym:B}{\ensuremath{B}} in \cref{obj:synth_16} has zero integral and positive squared integral. Its endpoint values allow adjacent rescaled copies to meet continuously, while its antisymmetry will make the effect separation common across cellwise sign choices. The following definition specifies the resolution and height of the tiled perturbation.
+
+\begin{definitionv}{synth_15}[Baseline receipt–outcome cell laws]
+For a baseline compliance share \(b\in(0,1/4]\) and \(z\in\{0,1\}\), set
+\[
+r_z^{(b)}=\frac{1+(2z-1)b}{2}.
+\]
+Define the baseline conditional receipt–outcome probability mass function on \(\{0,1\}^2\) by
+\[
+R_z^{(b)}(d,y)=
+\begin{cases}
+r_z^{(b)}/2,&d=1,\\
+(1-r_z^{(b)})/2,&d=0,
+\end{cases}
+\qquad z,d,y\in\{0,1\}.
+\]
+Equivalently, for each \(y\in\{0,1\}\),
+\[
+R_0^{(b)}(0,y)=R_1^{(b)}(1,y)=\frac{1+b}{4},
+\qquad
+R_0^{(b)}(1,y)=R_1^{(b)}(0,y)=\frac{1-b}{4}.
+\]
+Under this baseline law, receipt has probability \(r_z^{(b)}\) conditional on instrument value \(z\), and the binary outcome is independent of receipt with probability \(1/2\) for each outcome value. In the lower-mixture construction, the baseline share is \(b=\max\{a,n^{-1/3}\}\) for \(n\ge n_0=256\) and \(0<a\le1/4\).
+\end{definitionv}
+
+In \cref{obj:synth_12}, \leanref{sym:K_{\mathrm L}}{\ensuremath{K_{\mathrm L}}} is the number of perturbation cells, \leanref{sym:h_n}{\ensuremath{h_n}} is the perturbation height, and \leanref{sym:\lambda}{\ensuremath{\lambda}} is the cellwise sign vector. The amplitude \leanref{sym:c_{\star}}{\ensuremath{c_{\star}}} controls the height relative to the resolution. The tiled perturbation \leanref{sym:u_{\lambda}}{\ensuremath{u_{\lambda}}} is used in the probability-law construction of \cref{obj:def:legal-iv-mixture}.
+
+Before forming those laws, we specify the baseline receipt--outcome probabilities. They retain a positive compliance share while assigning equal probability to the two outcome values within each receipt cell.
+
+\begin{algorithmv}{def:legal-iv-mixture}[Legal IV mixture construction]
+The legal IV mixture is the triple \((Q_{\lambda,\tau},M_{\tau},P_{\star})\), consisting of a component law, its uniform sign-mixture experiment, and a center law, defined for the following parameters:
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\in\mathbb N\) satisfies
+\[
+n\ge n_0=256,
+\qquad
+K_{\mathrm L}=\left\lceil n^{4/3}\right\rceil.
+\]
+Here \(K_{\mathrm L}\) is the number of perturbation cells.
+\item \textbf{(Baseline strength.)} The strength parameter \(a\) satisfies \(0<a\le1/4\), and the baseline compliance share is
+\[
+b=\bar a=\max\{a,n^{-1/3}\}.
+\]
+\item \textbf{(Amplitude and admissibility.)} The amplitude \(c_{\star}\) satisfies \(c_{\star}<1\). With perturbation height
+\[
+h=h_n=c_{\star}K_{\mathrm L}^{-1/8},
+\]
+require \(n>0\) and \(\operatorname{Adm}_{n,a}(c_{\star})\), where
+\[
+\operatorname{Adm}_{n,a}(c_{\star})
+\Longleftrightarrow
+\left(
+0<c_{\star}
+\ \text{and}\
+h\le\frac{3}{16}
+\ \text{and}\
+h^2\le b\left(\frac14-h^2\right)
+\right).
+\]
+\item \textbf{(Sign and continuum indices.)} The cellwise sign vector and continuum index satisfy
+\[
+\lambda\in\{-1,1\}^{K_{\mathrm L}},
+\qquad
+\tau\in[-1,1].
+\]
+For the tiled covariate perturbation \(u_{\lambda}\) indexed by these signs, set
+\[
+v_{\lambda,\tau}=\tau u_{\lambda}.
+\]
+\end{itemize}
+
+Define the source and target covariate densities and encouragement probabilities by
+\[
+f_{\mathrm S}=1,
+\qquad
+f_{\mathrm T}=1+u_{\lambda},
+\qquad
+e_1^{(\lambda)}=\frac12+u_{\lambda},
+\qquad
+e_0^{(\lambda)}=\frac12-u_{\lambda}.
+\]
+For \(z,d,y\in\{0,1\}\), the source joint cells conditional on covariates are
+\[
+Q_{\lambda,\tau}(Z=z,D=d,Y=y\mid X=x)
+=
+e_z^{(\lambda)}(x)R_z^{(b)}(d,y)
++\frac{v_{\lambda,\tau}(x)(2y-1)}4,
+\]
+where \(R_z^{(b)}(d,y)\) is the baseline receipt–outcome cell probability at compliance share \(b\). The cells conditional on encouragement and covariates are
+\[
+Q_{\lambda,\tau}(D=d,Y=y\mid Z=z,X=x)
+=
+\frac{
+e_z^{(\lambda)}(x)R_z^{(b)}(d,y)
++v_{\lambda,\tau}(x)(2y-1)/4
+}{
+e_z^{(\lambda)}(x)
+}.
+\]
+
+Let \(C\) be the complier indicator, \(D(z)\) potential receipt under encouragement \(z\), and \(Y(d)\) the potential outcome under receipt state \(d\). Define the complier outcome margins by
+\[
+M_{1y}(x)
+=
+P(C=1,Y(1)=y\mid X=x)
+=
+\frac b2
+-
+\frac{(2y-1)u_{\lambda}(x)v_{\lambda,\tau}(x)}
+{2\{1/4-u_{\lambda}(x)^2\}},
+\]
+\[
+M_{0y}(x)
+=
+P(C=1,Y(0)=y\mid X=x)
+=
+\frac b2
++
+\frac{(2y-1)u_{\lambda}(x)v_{\lambda,\tau}(x)}
+{2\{1/4-u_{\lambda}(x)^2\}},
+\qquad y\in\{0,1\}.
+\]
+Assign always-takers and never-takers the conditional masses
+\[
+P(D(0)=D(1)=1,Y(1)=y\mid X=x)
+=
+Q_{\lambda,\tau}(D=1,Y=y\mid Z=0,X=x),
+\]
+\[
+P(D(0)=D(1)=0,Y(0)=y\mid X=x)
+=
+Q_{\lambda,\tau}(D=0,Y=y\mid Z=1,X=x).
+\]
+For compliers, set \(D(0)=0\), \(D(1)=1\), and
+\[
+P(Y(d)=y\mid X=x,C=1)
+=
+\frac{M_{dy}(x)}b,
+\qquad d,y\in\{0,1\},
+\]
+coupling \(Y(0)\) and \(Y(1)\) independently under these binary marginals. Set
+\[
+Y(0)=0\quad\text{for always-takers},
+\qquad
+Y(1)=0\quad\text{for never-takers}.
+\]
+Draw encouragement according to
+\[
+Z\ \perp\ (D(0),D(1),Y(0),Y(1))\mid X,
+\qquad
+P(Z=1\mid X=x)=e_1^{(\lambda)}(x),
+\]
+and observe
+\[
+D=D(Z),
+\qquad
+Y=Y(D).
+\]
+Use the same conditional primitive full-data law given \(X\) in source and target. Represent the resulting combined law \(Q_{\lambda,\tau}\) by
+\[
+Q_{\lambda,\tau}(S=\mathrm{source})
+=
+Q_{\lambda,\tau}(S=\mathrm{target})
+=
+\frac12.
+\]
+This allocation is a convention for representing the constructed witness; admissibility specifies the parameter domain of the construction.
+
+Define the center law by
+\[
+P_{\star}
+=
+\left.Q_{\lambda,\tau}\right|_{u_{\lambda}=v_{\lambda,\tau}=0},
+\]
+retaining the baseline compliance share \(b\) and the representation convention
+\[
+P_{\star}(S=\mathrm{source})
+=
+P_{\star}(S=\mathrm{target})
+=
+\frac12.
+\]
+For each component and for the center, take independent source and target product samples, each of size \(n\). Writing \(P_{\mathrm S}\) and \(P_{\mathrm T}\) for the one-record observed source and target laws induced by the law in question, the center experiment and uniform sign mixture are
+\[
+P_{\star}^{(n,n)}
+=
+\left.
+\left(P_{\mathrm S}^{\otimes n}\otimes P_{\mathrm T}^{\otimes n}\right)
+\right|_{P_{\star}},
+\]
+\[
+M_{\tau}
+=
+2^{-K_{\mathrm L}}
+\sum_{\lambda\in\{-1,1\}^{K_{\mathrm L}}}
+\left.
+\left(P_{\mathrm S}^{\otimes n}\otimes P_{\mathrm T}^{\otimes n}\right)
+\right|_{Q_{\lambda,\tau}}.
+\]
+\end{algorithmv}
+
+The baseline receipt probability \leanref{sym:r_z^{(a)}}{\ensuremath{r_z^{(b)}}} and receipt--outcome mass function \leanref{sym:R_z^{(a)}}{\ensuremath{R_z^{(b)}(d,y)}} in \cref{obj:synth_15} provide the cells around which the lower family is perturbed. Their receipt contrast equals the baseline compliance share \(b\). The next construction specifies both the observed cells and a compatible potential-outcome law, with an explicit admissibility predicate governing the probability assignments.
+
+\begin{definitionv}{synth_17}[Distances between observed experiments]
+For probability measures \(P\) and \(Q\) on the same measurable observation space \((\Omega,\mathcal F)\), define the chi-square divergence by
+\[
+\chi^2(P,Q)=
+\begin{cases}
+\displaystyle\int_\Omega
+\left(\frac{dP}{dQ}-1\right)^2\,dQ,&P\ll Q,\\
++\infty,&P\not\ll Q.
+\end{cases}
+\]
+The integral is understood in the extended nonnegative reals. Define total-variation distance with the probability-distance normalization by
+\[
+\operatorname{TV}(P,Q)
+=\sup_{A\in\mathcal F}|P(A)-Q(A)|
+=\frac12\int_\Omega
+\left|\frac{dP}{d\nu}-\frac{dQ}{d\nu}\right|\,d\nu,
+\qquad \nu=P+Q.
+\]
+Thus \(\operatorname{TV}(P,Q)\in[0,1]\). For the lower mixture, take \(P=M_\tau\) and \(Q=P_\star^{(n,n)}\) on the observation space of the independent source and target samples, each of size \(n\).
+\end{definitionv}
+
+The admissibility predicate \leanref{sym:\operatorname{Adm}_{n,a}(c_{\star})}{\ensuremath{\operatorname{Adm}_{n,a}(c_{\star})}} in \cref{obj:def:legal-iv-mixture} controls two distinct probability requirements. The height restriction keeps the perturbed observed cells nonnegative and encouragement probabilities positive. The squared-height restriction ensures compatibility of the complier outcome margins: each margin is nonnegative, and the two outcome masses for either receipt state sum to \(b\). Dividing those masses by \(b\) therefore supplies binary conditional outcome distributions for compliers.
+
+The component law \leanref{sym:Q_{\lambda,\tau}(component)}{\ensuremath{Q_{\lambda,\tau}}} in \cref{obj:def:legal-iv-mixture} assigns receipt types to always-takers, never-takers, and compliers, with conditional randomization of encouragement and observed variables obtained by consistency. Sharing the conditional potential-outcome law across populations supplies the transport restrictions. The source--target allocation in that construction represents the full-data law; the sampling experiment remains the product of two independent samples with fixed counts \(n\) and \(n\).
+
+The continuum index \leanref{sym:\tau}{\ensuremath{\tau}} and the scaled perturbation \leanref{sym:v_{\lambda,\tau}}{\ensuremath{v_{\lambda,\tau}}} in \cref{obj:def:legal-iv-mixture} vary the outcome component of the family. Its uniform sign mixture \leanref{sym:M_{\tau}}{\ensuremath{M_{\tau}}} is compared with the equal-size observed product experiment at the center law \leanref{sym:P_{\star}}{\ensuremath{P_{\star}}}. We use the following distance conventions for that comparison.
+
+\begin{lemmav}{lem:legal-iv-mixture-full-elbow}[Legal mixture and effect separation]
+Fix the prescribed noncoverage probability \(\alpha\), density envelopes \(c_f,C_f\), and Hölder radius \(L\), satisfying:
+\begin{itemize}
+\item \textbf{(Noncoverage.)} \(0<\alpha<1\).
+\item \textbf{(Lower envelope.)} \(0<c_f<1\).
+\item \textbf{(Upper envelope.)} \(1<C_f\).
+\item \textbf{(Radius.)} \(1<L\).
+\end{itemize}
+There exists an amplitude \(c_{\star}\in(0,1)\), chosen uniformly in the sample size and strength floor, with the following properties. For every integer \(n\ge n_0=256\) and every \(0<a\le1/4\), set
+\[
+K_{\mathrm L}=\lceil n^{4/3}\rceil,
+\qquad
+\bar a=\max\{a,n^{-1/3}\},
+\qquad
+h_n=c_{\star}K_{\mathrm L}^{-1/8}.
+\]
+The amplitude satisfies the construction's admissibility conditions
+\[
+c_{\star}>0,
+\qquad
+h_n\le\frac{3}{16},
+\qquad
+h_n^2\le\bar a\left(\frac14-h_n^2\right).
+\]
+
+For every \(\tau\in[-1,1]\) and every cellwise sign vector
+\(\lambda\in\{-1,1\}^{K_{\mathrm L}}\), the constructed component
+\(Q_{\lambda,\tau}\) belongs to the strength slice
+\(\mathcal M_n(a)\) of \cref{obj:def:strength-slice}.
+For each \(s\in\{0,1\}\) and every \(x\in[0,1]\), its pointwise conditional-mass averages satisfy
+\[
+\mathbb E_{Q_{\lambda,\tau}}[C\mid X=x,S=s]=\bar a,
+\qquad
+\mathbb E_{Q_{\lambda,\tau}}
+ [(Y(1)-Y(0))C\mid X=x,S=s]
+ =
+ -\frac{u_{\lambda}(x)v_{\lambda,\tau}(x)}
+ {1/4-u_{\lambda}(x)^2},
+\]
+where \(C=\mathbf 1\{D(1)>D(0)\}\), \(u_{\lambda}\) is the construction's tiled covariate perturbation, and \(v_{\lambda,\tau}=\tau u_{\lambda}\). These pointwise averages also define versions of the corresponding conditional means under \(Q_{\lambda,\tau}\). Its transported first stage \(\mu\) and target complier effect \(\theta\) satisfy
+\[
+\mu(Q_{\lambda,\tau})=\bar a,
+\qquad
+\theta(Q_{\lambda,\tau})=-\frac{\tau J_n}{\bar a},
+\]
+where the common separation functional \(J_n\) is characterized by
+\[
+J_n=-\bar a\,\theta(Q_{\lambda,1}).
+\]
+
+The unperturbed center \(P_{\star}\) belongs to
+\(\mathcal M_n(a)\), and
+\[
+\mu(P_{\star})=\bar a,
+\qquad
+\theta(P_{\star})=0,
+\qquad
+2^{3/4}c_{\star}^2n^{-1/3}
+\le J_n\le4c_{\star}^2n^{-1/3}.
+\]
+For the uniform sign mixture and the center's equal-size observed product experiment,
+\[
+M_{\tau}
+=
+2^{-K_{\mathrm L}}
+\sum_{\lambda\in\{-1,1\}^{K_{\mathrm L}}}
+\left(Q_{\lambda,\tau,\mathrm S}^{\otimes n}
+\otimes Q_{\lambda,\tau,\mathrm T}^{\otimes n}\right),
+\qquad
+P_{\star}^{(n,n)}
+=
+P_{\star,\mathrm S}^{\otimes n}
+\otimes P_{\star,\mathrm T}^{\otimes n},
+\]
+the subscripts \(\mathrm S,\mathrm T\) denote the observed source-record and target-covariate laws. Uniformly over \(\tau\in[-1,1]\),
+\[
+1+\chi^2(M_{\tau},P_{\star}^{(n,n)})
+\le
+\exp\{C_{\mathrm{mix}}c_{\star}^4\},
+\qquad
+C_{\mathrm{mix}}=\frac{19321}{1800},
+\qquad
+\operatorname{TV}(M_{\tau},P_{\star}^{(n,n)})
+\le\frac{1-\alpha}{2}.
+\]
+Moreover, \(M_{\tau}\ll P_{\star}^{(n,n)}\), and its likelihood ratio minus one is square-integrable under \(P_{\star}^{(n,n)}\).
+\end{lemmav}
+
+The total-variation normalization in \cref{obj:synth_17} measures the largest difference in event probabilities between the mixture and the center experiment. The next result combines this comparison with membership in the causal model and a common effect separation across sign choices.
+
+\begin{definitionv}{synth_16}[Tiled perturbation bump]
+Define \(\operatorname{bump}:\mathbb R\to[-1,1]\) by
+\[
+\operatorname{bump}(t)=
+\begin{cases}
+\sin(2\pi t),&t\in[0,1],\\
+0,&t\notin[0,1].
+\end{cases}
+\]
+Its restriction to \([0,1]\) is the function \(B(t)=\sin(2\pi t)\) used in the tiled perturbation. Its support is \([0,1]\), and its normalization is
+\[
+\|\operatorname{bump}\|_\infty=1,\qquad
+\int_0^1\operatorname{bump}(t)\,dt=0,\qquad
+\int_0^1\operatorname{bump}(t)^2\,dt=\frac12.
+\]
+It satisfies \(\operatorname{bump}(1-t)=-\operatorname{bump}(t)\) for \(t\in[0,1]\) and vanishes at both endpoints. The zero extension is continuous and globally Lipschitz with constant \(2\pi\); its restriction to \([0,1]\) is smooth. In particular, for \(\beta=1/8\),
+\[
+|\operatorname{bump}(s)-\operatorname{bump}(t)|
+\le 2\pi |s-t|^\beta,\qquad s,t\in\mathbb R.
+\]
+\end{definitionv}
+
+\Cref{obj:lem:legal-iv-mixture-full-elbow} places the entire lower family inside the strength slice while choosing one amplitude uniformly over sample sizes and strength floors. Its separation functional \leanref{sym:J_n}{\ensuremath{J_n}} has order \(n^{-1/3}\), and every sign component at a given continuum index has the same target effect. Uniform sign averaging keeps the observed mixture close to the center's equal-size product experiment. These properties connect effect separation to observational similarity within the causal model.
+
+The actual compliance share is \(\bar a\), as specified in \cref{obj:def:legal-iv-mixture}, for both the components and the center. When \(a\ge n^{-1/3}\), this share equals \(a\), and the effect separation has order \(n^{-1/3}/a\). When \(0<a\le n^{-1/3}\), the share equals \(n^{-1/3}\), and the effect separation has constant order. In both regimes the family belongs to the slice indexed by \(a\). This distinction accounts for the bounded-length regime of the converse while retaining positive compliance and compatible complier outcome margins.
+
+To translate a continuum of effect values into expected confidence-set length, the argument uses the following identity.
+
+\begin{lemmav}{lem:random-set-length-identity}[Expected random-set length]
+Let \(C_n\subseteq\Theta\) be a measurable random set under \(P\), where \(\Theta\) is the effect domain and \(\lambda_{\Theta}\) denotes Lebesgue length restricted to that domain. Then
+\[
+\mathbb E_P\!\left[\lambda_{\Theta}(C_n)\right]
+=
+\int_{\Theta}P(t\in C_n)\,dt.
+\]
+\end{lemmav}
+
+The restricted Lebesgue length \leanref{sym:\lambda_{\Theta}}{\ensuremath{\lambda_{\Theta}}} in \cref{obj:lem:random-set-length-identity} aggregates pointwise inclusion probabilities over the effect domain. Its role in the converse is to convert coverage along the lower continuum into expected length at a single center experiment.
+
+Specifically, the continuum supplied by \cref{obj:lem:legal-iv-mixture-full-elbow} spans the effect interval
+\[
+\left[-\frac{J_n}{\bar a},\frac{J_n}{\bar a}\right].
+\]
+Global honesty, as defined in \cref{obj:def:honest-intervals}, applies to every component of that continuum. The uniform total-variation comparison makes the center experiment a common reference for these coverage requirements, and \cref{obj:lem:random-set-length-identity} supplies their length interpretation. This is the continuum argument underlying \cref{obj:thm:honest-lower-full-elbow}; all probability comparisons concern the independent source and target product samples of size \(n\) each.
+
+The two compliance regimes therefore give the lower expected-length scale \(\min\{1,n^{-1/3}/a\}\) stated in \cref{obj:thm:honest-lower-full-elbow}. Combining that converse with the attaining interval of \cref{obj:thm:honest-upper-full-elbow} yields the sharp two-sided comparison in \cref{obj:thm:sharp-length-frontier-full-elbow}. Under the prescribed density, smoothness, and coverage conditions, the minimax expected length on each strength slice is thus characterized by the rough estimation scale divided by the strength floor, capped at constant order.

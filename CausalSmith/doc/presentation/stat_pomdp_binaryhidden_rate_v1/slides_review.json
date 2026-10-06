@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "reader_passes": 1,
+  "deck_hash": "9353ef9ba5c642435e33fe894e35438d7181e34e35d891911d06dcd42252c0b7",
+  "question": "How can we estimate a target policy’s stationary mean reward from one logged trajectory when a hidden state affects rewards and transitions? Action weighting changes the action distribution, but short weighted windows still start from the behavior policy’s state distribution. The usual approach lengthens those windows to reduce initialization bias, at the cost of increasing weighting variance. The paper asks whether fixed binary recorded states, hidden states, and actions allow faster estimation.",
+  "result": "The estimand is θ(K,e)=d_e r_e, the target-policy mean reward averaged over its stationary joint-state distribution. The class has binary recorded states, hidden states, and actions; rewards in [0,1]; known policies depending only on the recorded state; behavior assignment satisfying Pr(A_t=a|F_t^-)=b(a|X_t); a stationary behavior start; overlap e(a|x)≤L b(a|x); and total-variation contraction at most α<1 under both policies. For fixed α=exp(-1/t_0), L=exp(ζ), t_0>0, ζ≥0, and T≥12, the minimax risk satisfies 1/(1024T)≤R_T^(2)(t_0,ζ)≤B_α²(112V_{α,L}+2)/T, where B_α=((1+α)/(1-α))^6 and V_{α,L}=13L^7+2/(1-α). A finite contracting moment-fit estimator attains the upper bound. Thus the minimax mean-squared error has order T^(-1), with constants depending on the fixed contraction and overlap bounds.",
+  "mechanism": "1. Compute action ratios ρ_j=e(A_j|X_j)/b(A_j|X_j). For k=0,…,6, average Z_t(k)=Y_t∏_{j=t-k}^tρ_j over t=7,…,T to obtain seven empirical moments. 2. Randomization gives the population identity m_k=d_bP_e^k r_e: the current weight supplies the target reward rule, preceding weights supply target transitions, and the starting distribution remains d_b. 3. Search a finite grid of four-state initial distributions, transition matrices, and reward vectors. Repair candidate transitions by mixing them with a uniform transition matrix so that every fitted transition contracts at most α. 4. Choose the candidate minimizing max_{0≤k≤6}|m̂_k−νP(R)^k r|. A sufficiently fine grid supplies a candidate close to the true seven moments. 5. Report θ̂_T=π(P_*)r_*, the selected candidate’s stationary reward. Seven-moment agreement controls stationary-reward agreement even if the candidate’s hidden dynamics are not uniquely determined.",
+  "why_true": "Each contracting four-state matrix has one stationary component and three transient eigenvalues. Comparing the true and fitted reward sequences requires cancelling the transient components of both matrices. A degree-six polynomial Q with those six roots gives Q(1)(πr−π′r′)=∑_{k=0}^6 Q_k(νP^kr−ν′P′^kr′). This removes the starting-distribution effects. Contraction keeps the transient roots away from one, making extraction stable: |πr−π′r′|≤B_α max_{0≤k≤6}|νP^kr−ν′P′^kr′|. Meanwhile, fixed weighting windows have bounded second moments, and behavior contraction makes covariance decay after the windows separate, giving empirical moment mean-squared errors of order T^(-1). Good fitting and stable extraction transfer that accuracy to the stationary reward. Unlike growing-window weighting, the method removes initialization discrepancy through finite-dimensional structure while keeping window lengths fixed. The matching lower bound uses two admissible equal-policy experiments with stationary values separated by 1/(8√T) but recorded-data KL divergence at most 1/12, so they cannot be reliably distinguished.",
+  "example": "With b(a|x)=e(a|x)=1/2, all action ratios equal one and the behavior stationary distribution is already the target distribution. Consequently m_0=E_b[Y_t]=θ, and ordinary reward averaging is unbiased with mean-squared error of order T^(-1). This illustrates the baseline and supports the lower-bound discussion, but it does not demonstrate how the moment fit removes a discrepancy when policies differ.",
+  "findings": [
+    {
+      "slide": 5,
+      "severity": "rough",
+      "problem": "The equal-policy example makes the starting-distribution discrepancy vanish before the method is used. I never see a concrete instance of the paper’s central extraction step working when m_0 differs from θ.",
+      "fix": "Extend the example to unequal policies, display the short moment sequence and its stationary limit, and show how a contracting candidate matching those moments recovers that limit despite m_0≠θ."
+    },
+    {
+      "slide": 18,
+      "severity": "rough",
+      "problem": "The lower-bound experiments 'share transitions and noisy observations,' but those transitions and observations are not specified. The displayed q_v(h) alone does not explain the claimed stationary reward 1/2+v or make the pair’s membership in the contraction class transparent.",
+      "fix": "Briefly specify the common transition and recorded-state observation scheme, including the stationary hidden-state probabilities, and explain why it satisfies the contraction conditions. The KL calculation and testing argument can remain stated without derivation."
+    }
+  ],
+  "understood": "yes"
+}

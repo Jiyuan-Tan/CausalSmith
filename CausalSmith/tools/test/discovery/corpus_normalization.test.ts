@@ -1,0 +1,89 @@
+// Corpus regression for the TeX-JSON escape defense.
+//
+// Every escape-family gap so far (\forall, \texttt, \v...) was discovered by a
+// LIVE pipeline incident. This test runs the full three-layer defense
+// (normalizeRawModelJson → parse → repairLatexStringsDeep →
+// assertNoDecodedControlChars) over every real discovery artifact in the repo
+// — active runs and the bank — so the next gap surfaces as a red test offline
+// instead of a mid-run halt. It also pins idempotence of the raw normalizer on
+// real-world payloads (the unit suite pins it only on synthetic cases).
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import {
+  assertNoDecodedControlChars,
+  normalizeRawModelJson,
+  repairLatexStringsDeep,
+} from "../../src/discovery/core/latex_serialization.js";
+
+const RESEARCH_ROOT = fileURLToPath(new URL("../../../doc/research", import.meta.url));
+
+function walkJson(dir: string, out: string[]): void {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, e.name);
+    // .premigration holds pre-normalization snapshots kept verbatim on purpose. `vcs` is the
+    // D0 graph store: content-addressed history that can never be re-emitted (an edit would
+    // break its hash); the defense guards the live working copy beside it, which IS walked.
+    if (e.isDirectory()) {
+      if (e.name !== ".premigration" && e.name !== "vcs") walkJson(p, out);
+    } else if (e.name.endsWith(".json")) {
+      out.push(p);
+    }
+  }
+}
+
+function corpusFiles(): string[] {
+  const files: string[] = [];
+  for (const root of ["active", "_bank"]) {
+    const dir = path.join(RESEARCH_ROOT, root);
+    if (existsSync(dir)) walkJson(dir, files);
+  }
+  // Model-authored TeX-bearing artifacts live under each run's discovery/ dir;
+  // state/review JSON elsewhere is pipeline-authored and out of scope here.
+  return files.filter((f) => f.split(path.sep).includes("discovery"));
+}
+
+describe("escape-defense corpus regression (doc/research discovery artifacts)", () => {
+  const files = corpusFiles();
+
+  it("finds every run's discovery artifacts (walker-rot canary)", () => {
+    // A checkout carries as many run records as were fetched into it; whatever is there, every
+    // run folder with a discovery core must contribute to the corpus, or the walker or the
+    // layout drifted.
+    const cores = ["active", "_bank/accepted", "_bank/downgraded", "_bank/failed"].flatMap((group) => {
+      const dir = path.join(RESEARCH_ROOT, group);
+      return existsSync(dir)
+        ? readdirSync(dir).map((run) => path.join(dir, run, "discovery", "core.json")).filter((core) => existsSync(core))
+        : [];
+    });
+    expect(cores.length).toBeGreaterThanOrEqual(1);
+    for (const core of cores) expect(files).toContain(core);
+  });
+
+  it("every artifact survives the full three-layer defense with no control chars", () => {
+    const failures: string[] = [];
+    for (const f of files) {
+      const rel = path.relative(RESEARCH_ROOT, f);
+      try {
+        const raw = readFileSync(f, "utf8");
+        const normalized = normalizeRawModelJson(raw);
+        if (normalizeRawModelJson(normalized) !== normalized) {
+          failures.push(`${rel} :: normalizeRawModelJson is not idempotent on this payload`);
+          continue;
+        }
+        const value = JSON.parse(normalized) as unknown;
+        repairLatexStringsDeep(value);
+        assertNoDecodedControlChars(value, rel);
+      } catch (e) {
+        failures.push(`${rel} :: ${e instanceof Error ? e.message.slice(0, 200) : String(e)}`);
+      }
+    }
+    expect(
+      failures,
+      `escape defense failed on real artifacts — a new TeX escape family or a ` +
+        `corrupted persisted payload. Fix the normalizer/repair (or the artifact) ` +
+        `before it halts a live run:\n${failures.join("\n")}`,
+    ).toEqual([]);
+  });
+});

@@ -1,0 +1,436 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Graph.DAG
+public import Causalean.Graph.DSep.Separation
+public import Causalean.Graph.SWIG
+public import Causalean.Graph.CComponents
+public import Causalean.SCM.Model.EdgeType
+public import Causalean.SCM.Model.SCM
+
+/-! # Instrumental Variable Example
+
+This file constructs the familiar instrumental-variable graph shape with an instrument, a
+treatment, an outcome, and an unobserved confounder of the treatment-outcome relationship. It
+checks graph and component operations, separately demonstrates metadata that labels the
+instrument-to-treatment edge as increasing, and constructs a one-point, all-nonparametric toy
+SCM. The file does not establish instrument relevance or semantic monotonicity of a structural
+function. -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+set_option linter.style.nativeDecide false
+
+namespace Causalean.SCM.Examples.IV
+
+-- ============================================================
+-- Vertex type
+-- ============================================================
+
+/-- For the instrumental-variable example, [the set of node categories](goal) consists of
+[an instrument](hyp:Z), [a treatment](hyp:D), [an outcome](hyp:Y), and
+[an unobserved confounder](hyp:U). -/
+inductive IVNode
+  | Z  -- instrument
+  | D  -- treatment
+  | Y  -- outcome
+  | U  -- unobserved confounder
+  deriving DecidableEq
+
+open IVNode
+
+namespace instReprIVNode
+
+/--
+For each vertex of the instrumental-variable DAG and each natural-number precedence level, this
+method returns [a formatted textual rendering of that vertex](goal). There are no additional
+hypotheses or side conditions.
+
+This helper is the explicit form of the representation method that `deriving Repr` would generate.
+-/
+protected def repr : IVNode → Nat → Std.Format
+  | Z, _ => "Causalean.SCM.Examples.IV.IVNode.Z"
+  | D, _ => "Causalean.SCM.Examples.IV.IVNode.D"
+  | Y, _ => "Causalean.SCM.Examples.IV.IVNode.Y"
+  | U, _ => "Causalean.SCM.Examples.IV.IVNode.U"
+
+end instReprIVNode
+
+/-- [A textual rendering of an instrumental-variable node](goal) assigns to each node its
+fully qualified constructor name [by the stated rendering rule](step:1). -/
+instance instReprIVNode : Repr IVNode where
+  reprPrec := instReprIVNode.repr
+
+/-- [The finite enumeration of instrumental-variable nodes](goal)
+[lists the instrument, treatment, outcome, and unobserved confounder](step:1), and
+[establishes that every such node occurs in that list](step:2). -/
+instance : Fintype IVNode where
+  elems := {Z, D, Y, U}
+  complete := by intro x; cases x <;> simp
+
+-- ============================================================
+-- Edge relation
+-- ============================================================
+
+/-- [The instrumental-variable edge relation](goal) contains exactly
+[the arrow from instrument to treatment](step:1),
+[the arrow from treatment to outcome](step:2),
+[the arrow from the latent confounder to treatment](step:3), and
+[the arrow from the latent confounder to outcome](step:4);
+[all other ordered pairs have no edge](step:5). -/
+def ivEdge : IVNode → IVNode → Prop
+  | Z, D => True
+  | D, Y => True
+  | U, D => True
+  | U, Y => True
+  | _, _ => False
+
+/-- [Decidability of the instrumental-variable edge relation](goal) determines whether each
+ordered pair of instrumental-variable nodes is an edge. -/
+instance : DecidableRel ivEdge := by
+  intro a b
+  cases a <;> cases b <;>
+    first | exact isTrue trivial | exact isFalse (by simp only [ivEdge]; exact fun h => h)
+
+-- ============================================================
+-- Topological order
+-- ============================================================
+
+/-- [The topological-order label for the instrumental-variable graph](goal)
+[assigns label 0 to the latent confounder](step:1),
+[label 1 to the instrument](step:2), [label 2 to treatment](step:3), and
+[label 3 to outcome](step:4). -/
+def ivTopo : IVNode → ℕ
+  | U => 0
+  | Z => 1
+  | D => 2
+  | Y => 3
+
+/-- [Every edge of the instrumental-variable example graph connects a node with a smaller assigned
+order label to one with a larger label, so the chosen ordering is a valid topological
+order](goal). -/
+theorem ivTopo_lt : ∀ u v, ivEdge u v → ivTopo u < ivTopo v := by
+  intro u v h; cases u <;> cases v <;> simp_all [ivEdge, ivTopo]
+
+-- ============================================================
+-- The DAG
+-- ============================================================
+
+/-- [The instrumental-variable directed acyclic graph](goal) has the stated edge relation and
+topological ordering, and is acyclic. -/
+def ivDAG : DAG IVNode where
+  edge := ivEdge
+  decEdge := inferInstance
+  acyclic := DAG.acyclic_of_topoOrder ivTopo_lt
+
+-- ============================================================
+-- Testing DAG.lean: parents, children
+-- ============================================================
+
+-- Parents: Z and U are parents of D
+example : Z ∈ ivDAG.parents D := by decide
+example : U ∈ ivDAG.parents D := by decide
+
+-- Parents: D and U are parents of Y
+example : D ∈ ivDAG.parents Y := by decide
+example : U ∈ ivDAG.parents Y := by decide
+
+-- Z is a root (no parents)
+example : ivDAG.parents Z = ∅ := by decide
+
+-- U is a root (no parents)
+example : ivDAG.parents U = ∅ := by decide
+
+-- Children: Z has child D
+example : D ∈ ivDAG.children Z := by decide
+
+-- Children: D has child Y
+example : Y ∈ ivDAG.children D := by decide
+
+-- Children: U has children D and Y
+example : D ∈ ivDAG.children U := by decide
+example : Y ∈ ivDAG.children U := by decide
+
+-- Y is a leaf (no children)
+example : ivDAG.children Y = ∅ := by decide
+
+-- ============================================================
+-- Testing DAG.lean: roots
+-- ============================================================
+
+-- Z and U are roots
+example : ivDAG.isRoot Z := by decide
+example : ivDAG.isRoot U := by decide
+
+-- D is not a root (it has parents)
+example : ¬ivDAG.isRoot D := by decide
+
+-- Y is not a root
+example : ¬ivDAG.isRoot Y := by decide
+
+-- ============================================================
+-- Testing DAG.lean: ancestors, descendants (inductive)
+-- ============================================================
+
+-- Z is an ancestor of D (one edge)
+example : ivDAG.isAncestor Z D :=
+  DAG.isAncestor.edge (show ivDAG.edge Z D from trivial)
+
+-- Z is an ancestor of Y (transitively: Z → D → Y)
+example : ivDAG.isAncestor Z Y :=
+  DAG.isAncestor.trans
+    (DAG.isAncestor.edge (show ivDAG.edge Z D from trivial))
+    (show ivDAG.edge D Y from trivial)
+
+-- U is an ancestor of Y (directly)
+example : ivDAG.isAncestor U Y :=
+  DAG.isAncestor.edge (show ivDAG.edge U Y from trivial)
+
+-- U is an ancestor of D (directly)
+example : ivDAG.isAncestor U D :=
+  DAG.isAncestor.edge (show ivDAG.edge U D from trivial)
+
+-- Irreflexivity: no vertex is its own ancestor
+example : ¬ivDAG.isAncestor Z Z := ivDAG.isAncestor_irrefl Z
+example : ¬ivDAG.isAncestor Y Y := ivDAG.isAncestor_irrefl Y
+
+-- Asymmetry: if Z is ancestor of D, D is not ancestor of Z
+example (h : ivDAG.isAncestor Z D) : ¬ivDAG.isAncestor D Z := by
+  intro h'
+  exact absurd (ivDAG.isAncestor_trans h h') (ivDAG.isAncestor_irrefl Z)
+
+-- ============================================================
+-- Testing DSep.lean: d-separation
+-- ============================================================
+
+-- Z and Y are NOT d-separated by ∅ (active path Z → D → Y)
+example : ¬ivDAG.dSep {Z} {Y} ∅ := by decide
+
+-- Z and Y are NOT d-separated by {D} either
+-- (conditioning on D opens the collider path Z → D ← U → Y)
+example : ¬ivDAG.dSep {Z} {Y} {D} := by decide
+
+-- Z and Y ARE d-separated by {D, U}
+example : ivDAG.dSep {Z} {Y} {D, U} := by decide
+
+-- Graphical separation check: Z and U are d-separated without conditioning.
+example : ivDAG.dSep {Z} {U} ∅ := by decide
+
+-- D and U are NOT d-separated by ∅ (direct edge U → D)
+example : ¬ivDAG.dSep {D} {U} ∅ := by decide
+
+-- ============================================================
+-- Testing Graph/SWIG.lean and Graph/CComponents.lean: C-components
+-- ============================================================
+
+/-- [The pre-intervention SWIG graph for the instrumental-variable example](goal) has the
+instrumental-variable directed acyclic graph, no fixed nodes, instrument, treatment, and
+outcome as observed random nodes, and the latent confounder as an unobserved random node.
+
+The instrument, treatment, and outcome are observed random nodes, while the
+unobserved confounder is the sole unobserved random node. -/
+def ivSWIGGraph : SWIGGraph IVNode where
+  dag := initialSWIG ivDAG
+  fixed := ∅
+  observed := {SWIGNode.random Z, SWIGNode.random D, SWIGNode.random Y}
+  unobserved := {SWIGNode.random U}
+  fixed_is_fixed := by intro s hs; simp at hs
+  observed_is_random := by
+    intro v hv
+    simp only [Finset.mem_insert, Finset.mem_singleton] at hv
+    rcases hv with rfl | rfl | rfl <;> exact ⟨_, rfl⟩
+  unobserved_is_random := by
+    intro u hu
+    simp only [Finset.mem_singleton] at hu
+    subst u
+    exact ⟨U, rfl⟩
+  obs_unobs_disjoint := by decide
+  dag_edges_classified := by decide
+  fixed_image_in_observed := by intro s hs; simp at hs
+  fixed_are_roots := by intro s hs; simp at hs
+  unobs_are_roots := by
+    intro u hu
+    simp only [Finset.mem_singleton] at hu
+    subst u
+    simpa [initialSWIG] using
+      (swig_random_root_of_root ivDAG ∅ U (by decide : ivDAG.parents U = ∅))
+  fixed_outside_fixed_isolated := by
+    intro n _
+    cases n <;> exact ⟨by decide, by decide⟩
+  all_children_in_observed := by decide
+
+-- D and Y are directly confounded (they share unobserved parent U)
+example : ivSWIGGraph.directlyConfounded (SWIGNode.random D) (SWIGNode.random Y) := by decide
+
+-- Z and D are NOT directly confounded (no shared unobserved parent)
+example : ¬ivSWIGGraph.directlyConfounded (SWIGNode.random Z) (SWIGNode.random D) := by decide
+
+-- Z and Y are NOT directly confounded
+example : ¬ivSWIGGraph.directlyConfounded (SWIGNode.random Z) (SWIGNode.random Y) := by decide
+
+-- C-component of D includes Y (via shared confounder U)
+example : SWIGNode.random Y ∈ ivSWIGGraph.cComponentOf (SWIGNode.random D) := by decide
+
+-- C-component of Z is just {Z} (no bidirected edges to Z)
+example : ivSWIGGraph.cComponentOf (SWIGNode.random Z) = {SWIGNode.random Z} := by decide
+
+-- ============================================================
+-- Testing EdgeType.lean: edge type assignment
+-- ============================================================
+
+/-- [The edge-type assignment for the instrumental-variable graph](goal)
+[labels the instrument-to-treatment edge as strictly increasing](step:1) and labels every other
+ordered pair as nonparametric.
+
+This metadata is separate from the toy model below, which uses an all-nonparametric assignment;
+the label does not itself prove monotonicity of any structural function. -/
+def ivEdgeTypes : Causalean.SCM.Model.EdgeTypeAssignment ivDAG where
+  edgeType
+    | Z, D => .monotonic .strictlyIncreasing
+    | _, _ => .nonparametric
+
+-- The Z → D edge receives the strictly-increasing metadata label.
+example : ivEdgeTypes.edgeType Z D = .monotonic .strictlyIncreasing := rfl
+
+-- The D → Y edge is nonparametric
+example : ivEdgeTypes.edgeType D Y = .nonparametric := rfl
+
+-- The U → D edge is nonparametric
+example : ivEdgeTypes.edgeType U D = .nonparametric := rfl
+
+-- The U → Y edge is nonparametric
+example : ivEdgeTypes.edgeType U Y = .nonparametric := rfl
+
+-- The assignment is NOT fully nonparametric (Z → D is monotonic)
+example : ¬EdgeTypeAssignment.isFullyNonparametric ivEdgeTypes := by
+  intro h
+  have := h Z D (show ivEdge Z D from trivial)
+  simp [ivEdgeTypes] at this
+
+-- The default all-nonparametric assignment IS fully nonparametric
+example : EdgeTypeAssignment.isFullyNonparametric
+    (EdgeTypeAssignment.allNonparametric ivDAG) := by
+  intro u v _
+  rfl
+
+-- The monotonicity label refines the nonparametric label (a weaker assumption).
+example : Causalean.EdgeType.refines
+    (.monotonic .strictlyIncreasing : Causalean.SCM.Model.EdgeType) .nonparametric :=
+  EdgeType.refines_nonparametric _
+
+-- ============================================================
+-- Testing SCM.lean: explicit SCM construction (trivial Unit model)
+-- ============================================================
+
+section ExplicitModel
+
+/-- [The value-space assignment for the toy instrumental-variable model](goal) gives every
+node a one-point state space.
+
+In a substantive application, the instrument and treatment could be Boolean and
+the outcome real-valued. -/
+def ivΩ : IVNode → Type := fun _ => Unit
+
+/-- For [each node of the toy instrumental-variable model](hyp:n),
+[the measurable structure on its one-point value space](goal) is trivial. -/
+instance ivΩ_measurable : ∀ n, MeasurableSpace (ivΩ n) := fun _ => ⊤
+
+/-- [The toy instrumental-variable structural causal model](goal) has the stated graph,
+one-point node value spaces, constant structural functions, and a point-mass distribution
+for the latent root.
+
+It demonstrates the full construction pattern: provide the SWIG graph, structural
+functions for observed nodes, and a probability law for the latent root. With
+one-point value spaces these data are constant functions and a point mass. -/
+noncomputable def ivSCM : Causalean.SCM IVNode ivΩ where
+  dag := initialSWIG ivDAG
+  fixed := ∅
+  observed := {SWIGNode.random Z, SWIGNode.random D, SWIGNode.random Y}
+  unobserved := {SWIGNode.random U}
+  fixed_is_fixed := by intro s hs; simp at hs
+  observed_is_random := by
+    intro v hv; simp at hv
+    rcases hv with rfl | rfl | rfl <;> exact ⟨_, rfl⟩
+  unobserved_is_random := by
+    intro u hu; simp at hu; subst hu; exact ⟨U, rfl⟩
+  obs_unobs_disjoint := by decide
+  dag_edges_classified := by decide
+  fixed_image_in_observed := by intro s hs; simp at hs
+  fixed_are_roots := by intro s hs; simp at hs
+  unobs_are_roots := by
+    intro u hu; simp at hu; subst hu
+    simpa [initialSWIG] using
+      (swig_random_root_of_root ivDAG ∅ U (by decide : ivDAG.parents U = ∅))
+  fixed_outside_fixed_isolated := by
+    intro n _
+    cases n <;> exact ⟨by decide, by decide⟩
+  all_children_in_observed := by decide
+  edgeTypes := EdgeTypeAssignment.allNonparametric (initialSWIG ivDAG)
+  iota_valueSpace := by
+    intro s
+    exact (Finset.notMem_empty s.val s.property).elim
+  structFun := fun v => by
+    -- `swigΩ ivΩ v.val = Unit` for any constructor of `SWIGNode`, since `ivΩ _ = Unit`.
+    rcases v with ⟨n, _⟩
+    cases n <;> exact fun _ => ()
+  structFun_measurable := by
+    intro v
+    rcases v with ⟨n, _⟩
+    cases n <;> exact measurable_const
+  latentDist := fun u => by
+    rcases u with ⟨n, _⟩
+    cases n <;> exact MeasureTheory.Measure.dirac ()
+  isProbability_latent := by
+    intro u
+    rcases u with ⟨n, _⟩
+    cases n <;>
+      exact inferInstanceAs
+        (MeasureTheory.IsProbabilityMeasure (MeasureTheory.Measure.dirac (α := Unit) ()))
+
+-- The model has no fixed nodes (standard model).
+example : ivSCM.isStandard := by
+  rfl
+
+end ExplicitModel
+
+-- ============================================================
+-- Testing SWIG intervention graph (pure DAG content, unchanged)
+-- ============================================================
+
+section InterventionGraph
+
+/-- [The intervention graph for treatment in the instrumental-variable example](goal) is the
+single-world intervention graph obtained by fixing treatment in the instrumental-variable
+directed acyclic graph. -/
+def ivDoDGraph : DAG (SWIGNode IVNode) :=
+  swigDAG ivDAG {D}
+
+-- The fixed intervention node `d` is a root in the SWIG.
+example : ivDoDGraph.parents (.fixed D) = ∅ := by
+  simpa [ivDoDGraph] using swig_fixed_are_roots ivDAG {D} D
+
+-- The intervened value `d` inherits the outgoing edge to Y.
+example : ivDoDGraph.edge (.fixed D) (.random Y) := by
+  decide
+
+-- The random copy of D keeps its incoming edges.
+example : ivDoDGraph.edge (.random Z) (.random D) := by
+  decide
+
+example : ivDoDGraph.edge (.random U) (.random D) := by
+  decide
+
+-- The random copy of D no longer has the outgoing edge to Y.
+example : ¬ivDoDGraph.edge (.random D) (.random Y) := by
+  decide
+
+end InterventionGraph
+
+end Causalean.SCM.Examples.IV

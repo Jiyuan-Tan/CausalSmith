@@ -1,0 +1,198 @@
+\section{Experiment, assumptions, and decision criteria}
+
+Throughout, \(\lvert\cdot\rvert\) denotes absolute value and \(\|\cdot\|\) denotes the Euclidean norm. Generic positive constants, denoted by \leanref{sym:C}{\ensuremath{C}}, may depend on the fixed smoothness parameter unless another dependence is stated; their values may change between displays. We write \(a\lesssim b\) when \(a\le Cb\), and \(a\asymp b\) when both inequalities hold. The public smoothness parameter \leanref{sym:beta}{\ensuremath{\beta}} lies in \((0,1]\), the known noise scale \leanref{sym:sigma}{\ensuremath{\sigma}} lies in \([0,1]\), and the sample size \leanref{sym:n}{\ensuremath{n}} is an integer at least two. Treatment indices \leanref{sym:d}{\ensuremath{d}} range over \(\{0,1\}\), and sample indices \leanref{sym:i}{\ensuremath{i}} range from \(1\) to \(n\).
+
+\subsection{Latent and observed experiments}
+
+The experiment combines a latent running variable, binary potential outcomes, and an additive measurement error. Treatment follows the latent cutoff side, and the realized assignment is recorded alongside the outcome and the contaminated score. We first specify the latent law and the versions of its density and conditional means.
+
+\begin{assumptionv}{ass:gaussian}[Gaussian measurement error]
+Under \(P\), the ambient latent law, the standardized measurement error \(\varepsilon\) satisfies
+\[
+\varepsilon\sim N(0,1).
+\]
+\end{assumptionv}
+
+Under the ambient latent law \leanref{sym:P}{\ensuremath{P}}, the running variable \leanref{sym:X}{\ensuremath{X}} has known support \([-1,1]\), the pair \leanref{sym:Ypot}{\ensuremath{(Y^0,Y^1)}} contains the untreated and treated potential outcomes, and \leanref{sym:epsilon}{\ensuremath{\varepsilon}} is the standardized measurement error. The density \leanref{sym:f}{\ensuremath{f(P,\cdot)}} and conditional-mean versions \leanref{sym:mu}{\ensuremath{\mu_d(P,\cdot)}} are part of this specification. Their continuous versions give a precise meaning to evaluation at the cutoff and at the support endpoints.
+
+\begin{assumptionv}{ass:error-independence}[Independent measurement error]
+Under \(P\), the measurement error \(\varepsilon\) is independent of the latent running variable \(X\) and the binary potential outcomes \(Y^0,Y^1\):
+\[
+\varepsilon\perp(X,Y^0,Y^1).
+\]
+\end{assumptionv}
+
+The observation map retains the true-side assignment \leanref{sym:D}{\ensuremath{D}}, selects the observed outcome \leanref{sym:Y}{\ensuremath{Y}} from the potential outcomes, and reports the proxy score \leanref{sym:W}{\ensuremath{W}}:
+\[
+D=\mathbf1\{X\ge0\},\qquad
+Y=(1-D)Y^0+DY^1,\qquad
+W=X+\sigma\varepsilon.
+\]
+We consistently order the observed triple as
+\[
+O=(W,D,Y),\qquad
+P_{\mathrm{obs}}=P\circ O^{-1}.
+\]
+The recorded assignment identifies the treatment arm of each observation, while the proxy supplies information about its latent distance from the cutoff. The causal target \leanref{sym:theta}{\ensuremath{\theta(P)}} is
+\[
+\theta(P)=\mu_1(P,0)-\mu_0(P,0).
+\]
+Continuity connects this contrast to the arm-specific limits at zero. Statistical procedures use an independent observed sample \leanref{sym:Sample}{\ensuremath{S_n}} and may randomize through an independent uniform seed \leanref{sym:U}{\ensuremath{U}}. Their joint law is
+\[
+\mathbb P_{P,n}=P_{\mathrm{obs}}^{\otimes n}\otimes\operatorname{Unif}[0,1],
+\qquad
+S_n=(O_1,\ldots,O_n),\quad U\sim\operatorname{Unif}[0,1].
+\]
+The seed permits randomized estimators and interval procedures within a common decision class. Deterministic procedures are included by taking their outputs to be constant in the seed.
+
+\subsection{Law restrictions and benchmark}
+
+The benchmark imposes five restrictions on the latent experiment: two determine the measurement-error structure, two give uniform density and mean bounds, and one controls the smoothness of the potential-outcome means. The Gaussian distribution and joint-independence conditions were stated with the observation map above. We now fix the ambient latent law and its continuous conditional-mean versions before imposing the quantitative density, mean, and Hölder restrictions.
+
+\begin{definitionv}{synth_2}[Continuous conditional potential-outcome means]
+For a latent law \(P\) with score \(X\in[-1,1]\) and binary potential outcomes \(Y^0,Y^1\), let \(\mu_d(P,\cdot)\) be a specified continuous version on \([-1,1]\) of the conditional mean of \(Y^d\) given \(X\), for \(d\in\{0,1\}\). Thus
+\[
+\mu_d(P,x)=\mathbb E_P[Y^d\mid X=x],
+\qquad x\in[-1,1],
+\]
+with the conditional expectation interpreted through this specified continuous version, including at the endpoints and at the cutoff \(x=0\).
+\end{definitionv}
+
+The Gaussian classical measurement-error condition supplies a calibrated error distribution, with the public scale determining the magnitude of contamination \citep{PeiShen2017DevilTails}. Independence specifies how this error is coupled to the latent score and potential outcomes.
+
+\begin{definitionv}{synth_1}[Latent law and continuous versions]
+An ambient latent law \(P\) is a probability law on \(\mathbb R\times\{0,1\}\times\{0,1\}\times\mathbb R\), with coordinates \((X,Y^0,Y^1,\varepsilon)\), together with a density \(f(P,\cdot):\mathbb R\to\mathbb R\) and conditional potential-outcome mean versions \(\mu_d(P,\cdot):\mathbb R\to\mathbb R\), \(d\in\{0,1\}\), satisfying:
+\begin{itemize}
+\item \textbf{(Latent interval.)} \(P(X\in[-1,1])=1\).
+\item \textbf{(Score density.)} The function \(f(P,\cdot)\) is continuous on \([-1,1]\), nonnegative on \(\mathbb R\), and zero outside \([-1,1]\). Moreover,
+\[
+\int_{-1}^{1} f(P,x)\,dx=1,
+\qquad
+P(X\in B)=\int_B f(P,x)\,dx
+\]
+for every measurable set \(B\subseteq\mathbb R\).
+\item \textbf{(Continuous mean versions.)} For each \(d\in\{0,1\}\), the function \(\mu_d(P,\cdot)\) is continuous on \([-1,1]\), and for every measurable set \(B\subseteq\mathbb R\),
+\[
+\int_{\{X\in B\}} Y^d\,dP
+=
+\int_{B\cap[-1,1]} \mu_d(P,x)f(P,x)\,dx.
+\]
+\end{itemize}
+\end{definitionv}
+
+The joint-independence condition in \cref{obj:ass:error-independence} is specific to this analysis. It makes the same calibrated error distribution apply across latent scores and potential-outcome realizations, so the observation map has a common additive contamination mechanism. We next fix uniform bounds on the density throughout the known support.
+
+\begin{assumptionv}{ass:density-bounds}[Latent density bounds]
+The latent-score density \(f(P,x)\) satisfies
+\[
+\frac14\le f(P,x)\le\frac34
+\qquad\text{for every }x\in[-1,1].
+\]
+\end{assumptionv}
+
+The density bounds are specific to this analysis: they maintain positive latent-score density across the entire support and control its maximum. Continuity is imposed on the latent interval through \cref{obj:synth_1}; together, these requirements specify both the domain and the amount of score mass available near either side of the cutoff. A separate restriction keeps the binary conditional means uniformly interior.
+
+\begin{assumptionv}{ass:mean-bounds}[Potential-outcome mean bounds]
+The conditional potential-outcome means \(\mu_d(P,x)\) satisfy
+\[
+\frac14\le\mu_d(P,x)\le\frac34
+\qquad\text{for every }d\in\{0,1\}\text{ and }x\in[-1,1].
+\]
+\end{assumptionv}
+
+These mean bounds are also specific to this analysis. They keep each conditional success probability away from zero and one throughout the latent interval and imply \(\theta(P)\in[-1/2,1/2]\). Smoothness is specified separately through the full-interval Hölder seminorm \leanref{sym:Hseminorm}{\ensuremath{[\mu_d(P,\cdot)]_\beta}}, which measures variation between every pair of latent-score values.
+
+\begin{definitionv}{synth_3}[Full-interval Hölder seminorm]
+For \(0<\beta\le1\) and a continuous function \(v:[-1,1]\to\mathbb R\), define its full-interval Hölder seminorm by
+\[
+[v]_\beta
+=
+\sup_{\substack{x,t\in[-1,1]\\x\ne t}}
+\frac{|v(x)-v(t)|}{|x-t|^\beta}.
+\]
+In particular, for \(d\in\{0,1\}\),
+\[
+[\mu_d(P,\cdot)]_\beta
+=
+\sup_{\substack{x,t\in[-1,1]\\x\ne t}}
+\frac{|\mu_d(P,x)-\mu_d(P,t)|}{|x-t|^\beta}.
+\]
+The supremum is taken over the entire latent-score interval and may equal \(+\infty\).
+\end{definitionv}
+
+Using this seminorm, the smoothness restriction fixes a common radius for both potential-outcome mean functions.
+
+\begin{assumptionv}{ass:mean-holder}[Potential-outcome Hölder bounds]
+The full-interval Hölder seminorms \([\mu_d(P,\cdot)]_\beta\) satisfy
+\[
+[\mu_d(P,\cdot)]_\beta\le2
+\qquad\text{for every }d\in\{0,1\}.
+\]
+\end{assumptionv}
+
+The standard Hölder-ball restriction gives a fractional-order extension of the Lipschitz smoothness condition used in honest inference \citep{ArmstrongKolesar2020SimpleHonest}. Here the maintained radius is two, and the restriction applies on the entire latent interval, including pairs of points on opposite sides of the cutoff. Thus the density is continuous and globally bounded on its support, while the potential-outcome means satisfy an explicit full-domain Hölder bound. These conditions define the exact benchmark class.
+
+\begin{definitionv}{def:model}[Latent-law class \(\mathcal M_\beta(\sigma)\)]
+\(\mathcal M_\beta(\sigma)\) is the class of individual latent laws \(P\) satisfying \cref{obj:ass:gaussian,obj:ass:error-independence,obj:ass:density-bounds,obj:ass:mean-bounds,obj:ass:mean-holder} and the following conditions:
+\begin{itemize}
+\item \textbf{(Latent support.)} \(P\) is a probability law on
+\[
+[-1,1]\times\{0,1\}^{2}\times\mathbb R
+\]
+with coordinates \((X,Y^0,Y^1,\varepsilon)\).
+\item \textbf{(Density continuity.)} The latent-score density \(f(P,\cdot)\) is continuous on \([-1,1]\).
+\item \textbf{(Density normalization.)}
+\[
+\int_{-1}^{1}f(P,x)\,dx=1.
+\]
+\end{itemize}
+The Gaussian-contaminated observed score \(W\) is
+\[
+W=X+\sigma\varepsilon.
+\]
+For every integer \(n\ge2\), the independent observed sample \(S_n\) has distribution
+\[
+S_n\sim P_{\mathrm{obs}}^{\otimes n},
+\]
+where \(P_{\mathrm{obs}}\) denotes the induced observed law.
+\end{definitionv}
+
+The benchmark class \leanref{sym:Model}{\ensuremath{\mathcal M_\beta(\sigma)}} treats the Gaussian calibration, noise scale, latent support, and smoothness exponent as known inputs. Its density and conditional means vary across admissible laws. Fixing these public inputs makes the statistical comparison uniform over the latent laws satisfying the displayed restrictions, with the smoothness radius and numerical bounds held fixed.
+
+\subsection{Estimation and honest inference}
+
+For estimation, the decision class \leanref{sym:Estimators}{\ensuremath{\mathcal T_n}} consists of all measurable real-valued procedures on the randomized observed experiment. Its minimax absolute risk is
+\[
+R_\beta(n,\sigma)
+=
+\inf_{\widehat\theta\in\mathcal T_n}
+\sup_{P\in\mathcal M_\beta(\sigma)}
+\mathbb E_{P,n}\!\left[|\widehat\theta(S_n,U)-\theta(P)|\right].
+\]
+The infimum permits every measurable estimator, including procedures chosen using the public inputs. The supremum requires a single chosen procedure to control risk across the entire benchmark class. For inference, the corresponding requirement is uniform coverage. The honest connected-interval class \leanref{sym:Intervals}{\ensuremath{\mathcal I_{\beta,n,\sigma}}} imposes this requirement at each sample size.
+
+\begin{definitionv}{def:honest-class}[Honest interval class $\mathcal I_{\beta,n,\sigma}$]
+The class of honest connected intervals is
+\[
+\mathcal I_{\beta,n,\sigma}
+=
+\left\{
+I:(S_n,U)\mapsto[\ell,\upsilon]\subset[-1,1]:
+\ell\le\upsilon,\quad
+I\text{ is measurable},\quad
+\inf_{P\in\mathcal M_\beta(\sigma)}
+\mathbb P_{P,n}\{\theta(P)\in I(S_n,U)\}\ge0.9
+\right\}.
+\]
+Here \(S_n\) is the observed sample, \(U\) is the independent procedure seed, \(\mathbb P_{P,n}\) is their joint law under the latent law \(P\), \(\mathcal M_\beta(\sigma)\) is the benchmark law class, and \(\theta(P)\) is the cutoff treatment contrast. The endpoints \(\ell\) and \(\upsilon\) are the outputs of the interval procedure.
+\end{definitionv}
+
+Honesty requires coverage of at least \(0.9\) for every law in the benchmark, with probability taken over both sampling and procedure randomization. Precision is measured by
+\[
+\mathcal L_\beta(n,\sigma)
+=
+\inf_{I\in\mathcal I_{\beta,n,\sigma}}
+\sup_{P\in\mathcal M_\beta(\sigma)}
+\mathbb E_{P,n}\!\left[\operatorname{length}(I(S_n,U))\right].
+\]
+The interval \([-1,1]\) belongs to the honest class because it contains every admissible cutoff contrast. The length criterion therefore compares the precision of uniformly valid connected intervals over a nonempty decision class. Together, the minimax absolute risk \(R_\beta(n,\sigma)\) and minimax worst expected length \(\mathcal L_\beta(n,\sigma)\) place estimation and honest inference on the same latent-law benchmark, with common public calibration, support, and smoothness inputs.

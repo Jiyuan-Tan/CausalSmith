@@ -1,0 +1,37 @@
+{
+  "question": "Can records containing covariates and treatment, but no outcomes, improve estimation of a treatment effect at a particular covariate profile? Separate treated and control regressions can waste the effect’s greater smoothness, while residualization still incurs error from learning treatment assignment and baseline response. The paper asks when additional treatment information reduces that adjustment error enough to improve the estimation rate.",
+  "result": "The target is τ_P(x₀)=μ₁,P(x₀)−μ₀,P(x₀), at x₀=(1/2,…,1/2). There are n≥2 labeled records and m≥0 outcome-free records, all independent and from the same population; N=n+m. The model assumes known uniform covariates on [0,1]^d, binary treatment and potential responses, conditional exchangeability, fixed overlap ε≤e_P≤1−ε, and Hölder bounds of radius L>1/2 on e_P, μ₀,P, and τ_P, with respective orders 0<α,β≤1 and 1≤γ≤3. Under these conditions, the minimax expected absolute error satisfies c r_*≤R(n,m)≤sup_P E_P|T_*−τ_P(x₀)|≤C r_*, where r_*=max{n^(−γ/(2γ+d)), [nN]^(−γ/(2γ+d+γd/(α+β)))}. Constants depend only on fixed model parameters. The first term is an unavoidable response-label floor; extra treatment records reduce the second term.",
+  "mechanism": "1. Split records into independent roles: ℓ=⌊n/2⌋ labeled records supply responses, and t=N−ℓ records supply treatment information. Discard outcomes in the treatment role.\n2. Fit the effect with a coarse polynomial on a neighborhood of width h. Use a finer cellwise projection Π_J, with cell width δ=h/J, to approximate the rough adjustment functions.\n3. Form a response vector from local treated responses, subtracting a projected treatment–response product estimated across the two roles. Each treatment-role record pairs with every response-role record. Form a corresponding design matrix by subtracting a projected treatment–treatment product.\n4. The intended population cancellation can be written as follows. Let η(x)=E[Y|X=x]=μ₀(x)+e(x)τ(x). If τ=rᵀv is a coarse polynomial, the corrected population moments satisfy (R−Qv)_u=∫e r_u μ₀ dν_h−∫e r_u Π_Jμ₀ dν_h. Orthogonal projection turns this into ∫(e r_u−Π_J(e r_u))(μ₀−Π_Jμ₀)dν_h. Thus the remaining nuisance bias has order δ^(α+β); approximating the actual effect adds h^γ.\n5. Invert the symmetric corrected design when its smallest eigenvalue exceeds ε(1−ε)/2, evaluate the fitted polynomial at x₀, and clip to [−1,1]. Otherwise return zero.\n6. The error budget is h^γ+δ^(α+β)+(nh^d)^(−1/2)+(nNh^dδ^d)^(−1/2), capped by a constant. With S=α+β and Δ=2γ+d+γd/S, choose h_*=(1/2)max{n^(−1/(2γ+d)),(nN)^(−1/Δ)} and J_*=ceil(h_*^(−max{0,γ/S−1})). These choices give r_*.\n7. For sharpness, construct local assignment and response patterns with individually fair signs whose correlation changes between two hypotheses. Add opposite effect shifts so a single labeled observation has the same mixture distribution under both hypotheses. Nearby groups containing a label and another record can reveal the correlation. Their total information is bounded by CnNh^dδ^d a²b². Choose amplitudes and spatial scales to keep this information small while separating the target effects by order (nN)^(−γ/Δ). The cited testing inequality then gives the adjustment lower bound; the supplied-propensity lower bound supplies the response-label floor.",
+  "why_true": "The response and design corrections cancel the effect-dependent adjustment terms together. Projection orthogonality eliminates terms containing only one nuisance residual, leaving a product of two approximation errors. Independent record roles make the rectangular correction estimate population products, while enlarging the treatment role reduces its sampling noise. The usual labeled-only construction has a product of sample counts of order n²; this construction has order nN. The lower bound mirrors that advantage: singleton observations hide the opposite effects, and information arises through nearby interactions involving a label. Small occupancy controls larger groups. Thus extra treatment information helps precisely until the unavoidable response sampling term dominates.",
+  "example": "With d=1, γ=1, and α=β=1/8, the sharp order is max{n^(−1/3),[nN]^(−1/7)}. Labeled records alone give n^(−2/7). The terms meet at N=n^(4/3): for n=1000, N=10000, requiring 9000 outcome-free records. Additional treatment records beyond that boundary do not improve the order. This illustrates rates rather than actual finite-sample risks, whose constants remain unspecified.",
+  "findings": [
+    {
+      "slide": 3,
+      "severity": "rough",
+      "problem": "“Residualization,” “localized projection correction,” and “nuisance approximation” arrive before their meanings are explained. I understand the motivation here, but cannot yet attach those names to concrete operations.",
+      "fix": "Briefly identify residualization as subtracting treatment probability from treatment, and preview projection correction as approximating adjustment functions on small cells. Name assignment and baseline response as the nuisance functions."
+    },
+    {
+      "slide": 6,
+      "severity": "rough",
+      "problem": "The potential-response contrast is displayed, but its identification from observed data is stated only in words.",
+      "fix": "Show τ_P(x₀)=E_P[Y|A=1,X=x₀]−E_P[Y|A=0,X=x₀], alongside the potential-response contrast, and connect the equality to exchangeability, overlap, and the point-identification conditions."
+    },
+    {
+      "slide": 14,
+      "severity": "rough",
+      "problem": "Slide 12 projects the mean observed response, whereas this slide applies the product-residual identity to μ₀,P. The cancellation involving the corrected design is implicit, so I have to reconstruct why the baseline response is the function left over.",
+      "fix": "Show η=μ₀+eτ and, for τ=rᵀv, the population equation (R−Qv)_u=∫e r_u μ₀−∫e r_u Π_Jμ₀. Then apply the displayed projection identity. This supplies the bridge without a lengthy derivation."
+    },
+    {
+      "slide": 21,
+      "severity": "rough",
+      "problem": "The group-density bound, density floor, exponential and polynomial group-size factors, and Hellinger conversion make this slide difficult to absorb within a 20-minute talk. The central point—that informative pairs carry order a²b² information—competes with bookkeeping.",
+      "fix": "Display the pair-information bound prominently. Compress the general-group calculation to one bound of the form H²_group≤C^p p⁴a²b², explain that group-size growth must be controlled, and let slide 22 explain how small occupancy does that."
+    }
+  ],
+  "understood": "yes",
+  "passed": true,
+  "reader_passes": 1,
+  "deck_hash": "75d4937c90a65a620b82b7bf0b25de848b1e8a37d478f675d5112cdb3de777c7"
+}

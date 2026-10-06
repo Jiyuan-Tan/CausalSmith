@@ -1,0 +1,356 @@
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import { canonicalLeanSubdir, qidToCamel, statePath } from "../src/paths.js";
+import { createInitialState, findActiveStates, loadState, saveState, stateSchema } from "../src/state.js";
+
+describe("state schema", () => {
+  it("normalizes legacy hook fields without preserving them", () => {
+    const parsed = stateSchema.parse({
+      stage_completed: "0.5",
+      ckpt_pending: false,
+      lean_subdir: "CausalSmith/Panel/Q1_GenericMinimality",
+      pending_sorries: [],
+      design_decisions: {},
+      added_assumptions: [],
+      flags: {
+        rewound_from_stage4d: null,
+        local_fix_from_4d: false,
+        bucket_a_blocked: false,
+      },
+    });
+
+    expect("ckpt_pending" in parsed).toBe(false);
+    expect("bucket_a_blocked" in parsed.flags).toBe(false);
+    expect(parsed.flags.missing_architecture).toBe(false);
+  });
+
+  it("round-trips a valid state and enforces qid/lean_subdir", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-state-"));
+    const state = createInitialState("panel_minimal_basis");
+    await saveState(repoRoot, "panel_minimal_basis", "p1_bernoulli", state);
+    const loaded = await loadState(repoRoot, "panel_minimal_basis", "p1_bernoulli");
+    expect(loaded.lean_subdir).toBe("CausalSmith/Panel/PANEL_MinimalBasis_Research");
+
+    const file = statePath(repoRoot, "panel_minimal_basis", "p1_bernoulli");
+    expect(await readFile(file, "utf8")).toContain('"stage_completed": "-1.2"');
+  });
+
+  it("migrates a legacy serialized draft handoff to the compact version marker", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-draft-marker-"));
+    const qid = "panel_minimal_basis";
+    const spec = "p1_bernoulli";
+    const state = createInitialState(qid);
+    state.proposed_from = {
+      topic: "test",
+      novelty_target: "field",
+      pivot_budget_used: 0,
+      final_verdict: "pending",
+      proposal_path: "proto_core.json",
+      novelty_justification: "test",
+      chosen_qid: qid,
+      chosen_specialization: spec,
+      current_version: 4,
+      last_draft_status: "completed",
+      last_draft_handoff: '{"status":"completed","large":"payload"}',
+    };
+    const file = statePath(repoRoot, qid, spec);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, `${JSON.stringify(state, null, 2)}\n`, "utf8");
+
+    const loaded = await loadState(repoRoot, qid, spec);
+    expect(loaded.proposed_from?.last_draft_version).toBe(4);
+    expect(loaded.proposed_from?.last_draft_handoff).toBeUndefined();
+  });
+
+  it("converts qid to canonical CamelCase Lean subdir with mode suffix", () => {
+    // Research-mode qids carry a `_Research` suffix.
+    expect(qidToCamel("panel_spectral_threshold")).toBe("PANEL_SpectralThreshold_Research");
+    expect(canonicalLeanSubdir("panel_spectral_threshold")).toBe(
+      "CausalSmith/Panel/PANEL_SpectralThreshold_Research",
+    );
+    // Study-mode (insight-style) qids carry a `_Study` suffix.
+    expect(qidToCamel("manski_nonparametric_bounds")).toBe("ManskiNonparametricBounds_Study");
+  });
+
+  it("rejects drifted lean_subdir", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-bad-state-"));
+    const state = createInitialState("panel_minimal_basis");
+    state.lean_subdir = "CausalSmith/Panel/PANEL_Wrong";
+    await expect(saveState(repoRoot, "panel_minimal_basis", "p1_bernoulli", state)).rejects.toThrow(
+      /invariant failed/,
+    );
+  });
+
+  it("accepts a cluster-consistent proposal re-anchor", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-reanchored-state-"));
+    const qid = "stat_bounds_kernel";
+    const state = createInitialState(qid);
+    state.proposed_from = {
+      topic: "test",
+      novelty_target: "field",
+      pivot_budget_used: 0,
+      final_verdict: "ACCEPT",
+      proposal_path: "proto_core.json",
+      novelty_justification: "test",
+      chosen_qid: qid,
+      chosen_specialization: "v1",
+      cluster: "partialid",
+    };
+    state.lean_subdir = "CausalSmith/PartialID/STAT_BoundsKernel_Research";
+    await saveState(repoRoot, qid, "v1", state);
+    expect((await loadState(repoRoot, qid, "v1")).lean_subdir).toBe(state.lean_subdir);
+  });
+
+  // The re-anchor widening admits the DECLARED cluster's substrate and nothing
+  // else: the module name still comes from the qid, and the substrate still comes
+  // from a closed enum. Without this the widening has acceptance coverage only,
+  // and a later refactor of the name extraction could let any path through while
+  // the positive test stayed green.
+  it("still rejects a destination the re-anchored cluster does not license", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-reanchor-reject-"));
+    const qid = "stat_bounds_kernel";
+    const base = createInitialState(qid);
+    base.proposed_from = {
+      topic: "test",
+      novelty_target: "field",
+      pivot_budget_used: 0,
+      final_verdict: "ACCEPT",
+      proposal_path: "proto_core.json",
+      novelty_justification: "test",
+      chosen_qid: qid,
+      chosen_specialization: "v1",
+      cluster: "partialid",
+    };
+    for (const subdir of [
+      // a substrate the declared cluster does not name
+      "CausalSmith/SCM/STAT_BoundsKernel_Research",
+      // the right substrate, but a module name that is not this qid's
+      "CausalSmith/PartialID/PID_SomethingElse_Research",
+      // outside the package root
+      "CausalSmith/PartialID/../../etc/STAT_BoundsKernel_Research",
+    ]) {
+      const state = { ...base, lean_subdir: subdir } as typeof base;
+      await expect(
+        saveState(repoRoot, qid, "v1", state),
+        `${subdir} must not satisfy the invariant`,
+      ).rejects.toThrow(/invariant failed/);
+    }
+  });
+
+  it("accepts proposed_from.final_verdict: null so hand-edited resumes load", () => {
+    // Manual operators sometimes need to clear the verdict between resume
+    // attempts (e.g. re-run D0 with an upgraded solver on a previously
+    // banked proposal). Schema must accept null.
+    const parsed = stateSchema.parse({
+      stage_completed: "-0.5",
+      lean_subdir: "CausalSmith/ExactID/Foo",
+      pending_sorries: [],
+      design_decisions: {},
+      added_assumptions: [],
+      flags: { local_fix_from_4d: false, missing_architecture: false },
+      proposed_from: {
+        topic: "t",
+        novelty_target: "flagship",
+        pivot_budget_used: 0,
+        final_verdict: null,
+        proposal_path: "/tmp/p.tex",
+        novelty_justification: "",
+        chosen_qid: "eid_foo",
+        chosen_specialization: "v1",
+      },
+    });
+    expect(parsed.proposed_from?.final_verdict).toBeNull();
+  });
+
+  it("accepts proposed_from.iterations[].version: 0 (pre-draft pivot marker)", () => {
+    // Historical pipelines emit `version: 0` when pivoting to a new angle
+    // before drafting; banked entries with this artifact must load on resume.
+    const parsed = stateSchema.parse({
+      stage_completed: "-0.5",
+      lean_subdir: "CausalSmith/ExactID/Foo",
+      pending_sorries: [],
+      design_decisions: {},
+      added_assumptions: [],
+      flags: { local_fix_from_4d: false, missing_architecture: false },
+      proposed_from: {
+        topic: "t",
+        novelty_target: "flagship",
+        pivot_budget_used: 0,
+        final_verdict: "ACCEPT",
+        proposal_path: "/tmp/p.tex",
+        novelty_justification: "",
+        chosen_qid: "eid_foo",
+        chosen_specialization: "v1",
+        iterations: [
+          { angle: 2, version: 0, mode: "pivot", verdict: "REVISE" },
+          { angle: 2, version: 1, mode: "revise", verdict: "REVISE" },
+        ],
+      },
+    });
+    expect(parsed.proposed_from?.iterations?.[0].version).toBe(0);
+    expect(parsed.proposed_from?.iterations?.[1].version).toBe(1);
+  });
+
+  it("finds active states using qid prefix rather than underscore counting", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-active-state-"));
+    await saveState(
+      repoRoot,
+      "panel_minimal_basis",
+      "p1_iid_bernoulli",
+      createInitialState("panel_minimal_basis"),
+    );
+    const active = await findActiveStates(repoRoot);
+    expect(active).toHaveLength(1);
+    expect(active[0].specialization).toBe("p1_iid_bernoulli");
+  });
+
+  it("finds study active states whose qid looks research-like", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-active-study-"));
+    const qid = "stat_paper_insight";
+    const dir = path.join(repoRoot, "doc", "study", "runs", qid);
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, "state.json"), JSON.stringify({
+      ...createInitialState(qid),
+      specialization: "default",
+      qid,
+      lean_subdir: "CausalSmith/Stat/STAT_PaperInsight_Research",
+    }), "utf8");
+    const active = await findActiveStates(repoRoot);
+    expect(active.map((a) => a.path)).toEqual([path.join(dir, "state.json")]);
+  });
+});
+
+describe("StateJson — paper-scoped fields", () => {
+  it("stateSchema accepts theorems[] and current_theorem_index", () => {
+    const parsed = stateSchema.parse({
+      stage_completed: "0.5",
+      lean_subdir: "CausalSmith/PartialID/Manski1990",
+      pending_sorries: [],
+      design_decisions: {},
+      added_assumptions: [],
+      flags: { local_fix_from_4d: false, missing_architecture: false },
+      theorems: [
+        {
+          theorem_local_id: "t1",
+          origin_theorem_id: "ins1_t1",
+          statement: "If A then B.",
+          proof_sketch: "Apply L.",
+          status: "pending",
+          stage_completed: null,
+          lean_file_relpath: null,
+        },
+      ],
+      current_theorem_index: 0,
+    });
+    expect(parsed.theorems).toHaveLength(1);
+    expect(parsed.theorems?.[0].theorem_local_id).toBe("t1");
+    expect(parsed.current_theorem_index).toBe(0);
+  });
+
+  it("stateSchema accepts a state with no theorems[] (legacy single-theorem)", () => {
+    const parsed = stateSchema.parse({
+      stage_completed: "0.5",
+      lean_subdir: "CausalSmith/Foo/Bar",
+      pending_sorries: [],
+      design_decisions: {},
+      added_assumptions: [],
+      flags: { local_fix_from_4d: false, missing_architecture: false },
+    });
+    expect(parsed.theorems).toBeUndefined();
+    expect(parsed.current_theorem_index).toBeUndefined();
+  });
+
+  it("remaps legacy stage strings inside theoremEntrySchema.stage_completed", () => {
+    const parsed = stateSchema.parse({
+      stage_completed: "0.5",
+      lean_subdir: "CausalSmith/PartialID/Manski1990",
+      pending_sorries: [],
+      design_decisions: {},
+      added_assumptions: [],
+      flags: { local_fix_from_4d: false, missing_architecture: false },
+      theorems: [
+        {
+          theorem_local_id: "t1",
+          origin_theorem_id: "ins1_t1",
+          statement: "S",
+          proof_sketch: null,
+          status: "pending",
+          stage_completed: "-1",
+          lean_file_relpath: null,
+        },
+      ],
+      current_theorem_index: 0,
+    });
+    expect(parsed.theorems?.[0].stage_completed).toBe("-1.2");
+  });
+
+  it("stateSchema accepts bt_id on a theorems[] entry", () => {
+    const parsed = stateSchema.parse({
+      stage_completed: "5",
+      lean_subdir: "CausalSmith/PartialID/Manski1990",
+      pending_sorries: [],
+      design_decisions: {},
+      added_assumptions: [],
+      flags: { local_fix_from_4d: false, missing_architecture: false },
+      theorems: [
+        {
+          theorem_local_id: "t1",
+          origin_theorem_id: "manski1990_t1",
+          statement: "If A then B.",
+          proof_sketch: null,
+          status: "completed",
+          stage_completed: "5",
+          lean_file_relpath: "Theorem_t1.lean",
+          bt_id: "manski1990_t1_v1",
+        },
+      ],
+      current_theorem_index: 0,
+    });
+    expect(parsed.theorems?.[0].bt_id).toBe("manski1990_t1_v1");
+  });
+});
+
+describe("theoremEntry.minted_oq_id", () => {
+  it("round-trips a failed theorem entry with a minted_oq_id", () => {
+    const raw = {
+      ...createInitialState("panel_minimal_basis"),
+      stage_completed: "5",
+      theorems: [{
+        theorem_local_id: "t1",
+        origin_theorem_id: "panel_minimal_basis_t1",
+        statement: "...",
+        proof_sketch: null,
+        status: "failed",
+        stage_completed: "3",
+        lean_file_relpath: "CausalSmith/Panel/Q1_MinimalBasis/T1.lean",
+        failure_reason: "stuck",
+        minted_oq_id: "oq_failed_panel_minimal_basis_bernoulli_t1",
+      }],
+    };
+    const parsed = stateSchema.parse(raw);
+    expect(parsed.theorems?.[0]?.minted_oq_id).toBe(
+      "oq_failed_panel_minimal_basis_bernoulli_t1",
+    );
+  });
+
+  it("accepts a theorem entry without minted_oq_id (back-compat)", () => {
+    const raw = {
+      ...createInitialState("panel_minimal_basis"),
+      stage_completed: "5",
+      theorems: [{
+        theorem_local_id: "t1",
+        origin_theorem_id: "panel_minimal_basis_t1",
+        statement: "...",
+        proof_sketch: null,
+        status: "completed",
+        stage_completed: "5",
+        lean_file_relpath: "CausalSmith/Panel/Q1_MinimalBasis/T1.lean",
+        bt_id: "panel_minimal_basis_bernoulli",
+      }],
+    };
+    const parsed = stateSchema.parse(raw);
+    expect(parsed.theorems?.[0]?.minted_oq_id).toBeUndefined();
+  });
+});

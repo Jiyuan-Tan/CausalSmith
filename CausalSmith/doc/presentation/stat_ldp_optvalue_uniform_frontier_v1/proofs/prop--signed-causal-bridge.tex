@@ -1,0 +1,646 @@
+\begin{proof}[Proof of \cref{obj:prop:signed-causal-bridge}]
+Throughout, \(d\ge2\), so every stratum has positive probability under a law in \(\mathcal V_d\).
+
+\begin{enumerate}
+\item \emph{Identification of the signed mean.}
+Fix \(P\in\mathcal V_d\) and \(j\in[d]\). By \cref{obj:ass:fair-randomization}, summing over the potential outcome for the other arm gives, for \(a\in\{0,1\}\),
+\[
+\begin{aligned}
+&P(X=j,A=a,Y^a=1)\\
+&\qquad=\sum_{y\in\{0,1\}}
+ P(X=j,A=a,Y^a=1,Y^{1-a}=y)\\
+&\qquad=\frac12\sum_{y\in\{0,1\}}
+ P(X=j,Y^a=1,Y^{1-a}=y)
+ =\frac12P(X=j,Y^a=1).
+\end{aligned}
+\]
+Summing the analogous identity over both values of \(Y^a\) yields
+\[
+P(X=j,A=a)=\frac12P(X=j)=\frac1{2d},
+\]
+where the last equality uses \cref{obj:ass:uniform-covariates}.
+
+By \cref{obj:ass:consistency}, the following indicator identity holds almost surely:
+\[
+\begin{aligned}
+\mathbf1_{\{X=j\}}S
+={}&2\mathbf1_{\{X=j,A=1,Y^1=1\}}
+-\mathbf1_{\{X=j,A=1\}}\\
+&-2\mathbf1_{\{X=j,A=0,Y^0=1\}}
++\mathbf1_{\{X=j,A=0\}}.
+\end{aligned}
+\]
+Integrating and using the fair-assignment identities gives
+\[
+\mathbb E_P[\mathbf1_{\{X=j\}}S]
+=P(X=j,Y^1=1)-P(X=j,Y^0=1).
+\]
+Dividing by \(P(X=j)=1/d>0\), we obtain
+\[
+\mathbb E_P[S\mid X=j]
+=\mu_{1j}(P)-\mu_{0j}(P)
+=\tau_j(P).
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.signedCellMean_eq_contrast
+
+\item \emph{Identification of the paired law.}
+Because \(S\) takes values in \(\{-1,1\}\), its two signed atoms satisfy
+\[
+\begin{aligned}
+P(X=j,S=1)+P(X=j,S=-1)&=\frac1d,\\
+P(X=j,S=1)-P(X=j,S=-1)
+&=\mathbb E_P[\mathbf1_{\{X=j\}}S]
+=\frac{\tau_j(P)}d.
+\end{aligned}
+\]
+Solving these two equations gives, for \(s\in\{-1,1\}\),
+\[
+P(X=j,S=s)=\frac{1+s\tau_j(P)}{2d}.
+\]
+Moreover, \cref{obj:ass:interior-means} gives
+\[
+-\frac12
+=\frac14-\frac34
+\le \tau_j(P)
+\le \frac34-\frac14
+=\frac12.
+\]
+For any \(\theta\in[-1/2,1/2]^d\), the paired masses satisfy
+\[
+\frac{1+s\theta_j}{2d}\ge0,
+\qquad
+\sum_{j=1}^d\sum_{s\in\{-1,1\}}
+\frac{1+s\theta_j}{2d}
+=\sum_{j=1}^d\frac1d=1.
+\]
+Thus \(P_{\tau(P)}\) is a probability law. Equality of the displayed atom probabilities on the finite alphabet proves
+\[
+\mathcal L_P(X,S)=P_{\tau(P)}.
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.causal_signed_law
+
+\item \emph{Decomposition of the causal value.}
+For each stratum, the two cases
+\(\mu_{0j}(P)\le\mu_{1j}(P)\) and
+\(\mu_{1j}(P)\le\mu_{0j}(P)\) give
+\[
+\max\{\mu_{0j}(P),\mu_{1j}(P)\}
+=\frac{\mu_{0j}(P)+\mu_{1j}(P)}2
++\frac{|\tau_j(P)|}2.
+\]
+Consequently,
+\[
+V(P)
+=\frac1d\sum_{j=1}^d
+ \frac{\mu_{0j}(P)+\mu_{1j}(P)}2
++\frac{F(\tau(P))}2.
+\]
+
+To identify the first term, consistency gives the almost-sure identity
+\[
+\mathbf1_{\{X=j\}}Y
+=\mathbf1_{\{X=j,A=0,Y^0=1\}}
++\mathbf1_{\{X=j,A=1,Y^1=1\}}.
+\]
+The fair-assignment identity
+\(P(X=j,A=a,Y^a=1)=\frac12P(X=j,Y^a=1)\)
+therefore yields
+\[
+\begin{aligned}
+\mathbb E_P[\mathbf1_{\{X=j\}}Y]
+&=\frac{P(X=j,Y^0=1)+P(X=j,Y^1=1)}2\\
+&=\frac1d\,\frac{\mu_{0j}(P)+\mu_{1j}(P)}2.
+\end{aligned}
+\]
+Since the strata partition the sample space,
+\[
+B(P)=\mathbb E_P[Y]
+=\sum_{j=1}^d\mathbb E_P[\mathbf1_{\{X=j\}}Y]
+=\frac1d\sum_{j=1}^d
+ \frac{\mu_{0j}(P)+\mu_{1j}(P)}2.
+\]
+Substitution proves
+\[
+V(P)=B(P)+\frac{F(\tau(P))}2.
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.causal_value_decomposition
+
+\item \emph{Total variation from the uniform law.}
+Fix \(\theta\in[-1/2,1/2]^d\). Both \(P_\theta\) and
+\(\mathsf U_{2d}=P_0\) are probability laws by the mass calculation above.
+Define the event of nonnegative atom differences by
+\[
+\mathcal E_{\theta,+}
+:=\left\{(j,s)\in[d]\times\{-1,1\}:
+P_\theta(j,s)-\frac1{2d}\ge0\right\}.
+\]
+The atom differences sum to zero:
+\[
+\sum_{j=1}^d\sum_{s\in\{-1,1\}}
+\left(P_\theta(j,s)-\frac1{2d}\right)=0.
+\]
+Splitting this sum into its nonnegative and negative terms gives
+\[
+P_\theta(\mathcal E_{\theta,+})
+-\mathsf U_{2d}(\mathcal E_{\theta,+})
+=\frac12\sum_{j=1}^d\sum_{s\in\{-1,1\}}
+\left|P_\theta(j,s)-\frac1{2d}\right|.
+\]
+For every event \(\mathcal E\subseteq[d]\times\{-1,1\}\), its sum of atom
+differences lies between the sum of all negative differences and the sum
+of all nonnegative differences. Hence
+\[
+\left|P_\theta(\mathcal E)-\mathsf U_{2d}(\mathcal E)\right|
+\le\frac12\sum_{j=1}^d\sum_{s\in\{-1,1\}}
+\left|P_\theta(j,s)-\frac1{2d}\right|.
+\]
+The event \(\mathcal E_{\theta,+}\) attains this bound, proving the finite
+atom formula for total variation. For each \(j\), its two summands reduce to
+\[
+\begin{aligned}
+\sum_{s\in\{-1,1\}}
+\left|\frac{1+s\theta_j}{2d}-\frac1{2d}\right|
+&=\left|\frac{\theta_j}{2d}\right|
++\left|-\frac{\theta_j}{2d}\right|\\
+&=\frac{|\theta_j|}{d}.
+\end{aligned}
+\]
+Therefore
+\[
+\operatorname{TV}(P_\theta,\mathsf U_{2d})
+=\frac1{2d}\sum_{j=1}^d|\theta_j|
+=\frac{F(\theta)}2.
+\]
+Applying this identity at \(\theta=\tau(P)\) proves
+\[
+V(P)=B(P)+\operatorname{TV}(P_{\tau(P)},\mathsf U_{2d}).
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.tvFromUniform_pairedLaw
+
+\item \emph{The symmetric causal construction.}
+Fix \(\theta\in[-1/2,1/2]^d\). For
+\(a,y\in\{0,1\}\) and \(j\in[d]\), define the Bernoulli masses
+\[
+\pi_{aj}(y)
+:=
+\left(\frac{1+(2a-1)\theta_j}{2}\right)^y
+\left(\frac{1-(2a-1)\theta_j}{2}\right)^{1-y}.
+\]
+Their success probabilities belong to \([1/4,3/4]\), so
+\[
+\pi_{aj}(y)\ge0,
+\qquad
+\sum_{y\in\{0,1\}}\pi_{aj}(y)=1.
+\]
+By \cref{obj:def:symmetric-law}, the full-data atom masses are
+\[
+\begin{aligned}
+&G_\theta(X=j,A=a,Y=y,Y^0=y^0,Y^1=y^1)\\
+&\qquad=\frac1{2d}\,
+\pi_{0j}(y^0)\pi_{1j}(y^1)
+\mathbf1_{\{y=(1-a)y^0+ay^1\}},
+\qquad a,y,y^0,y^1\in\{0,1\}.
+\end{aligned}
+\]
+Summing first over \(y\), then over the two potential outcomes and
+assignment, gives total mass
+\[
+\sum_{j=1}^d\sum_{a\in\{0,1\}}\frac1{2d}
+\left(\sum_{y^0\in\{0,1\}}\pi_{0j}(y^0)\right)
+\left(\sum_{y^1\in\{0,1\}}\pi_{1j}(y^1)\right)
+=1.
+\]
+Thus \(G_\theta\) is a probability law. The same atom formula gives
+\[
+G_\theta(X=j)=\frac1d
+\]
+and
+\[
+\begin{aligned}
+&G_\theta(X=j,A=a,Y^0=y^0,Y^1=y^1)\\
+&\qquad=\frac1{2d}\pi_{0j}(y^0)\pi_{1j}(y^1)
+=\frac12G_\theta(X=j,Y^0=y^0,Y^1=y^1).
+\end{aligned}
+\]
+These are the conditions in
+\cref{obj:ass:uniform-covariates,obj:ass:fair-randomization}.
+The atom formula assigns all mass to \(Y=Y_A^{\mathrm{pot}}\), supplying
+\cref{obj:ass:consistency}. Finally, summing over the other coordinates yields
+\[
+G_\theta(X=j,Y^a=1)
+=\frac1d\,\frac{1+(2a-1)\theta_j}{2},
+\]
+and hence
+\[
+\mu_{0j}(G_\theta)=\frac{1-\theta_j}{2},
+\qquad
+\mu_{1j}(G_\theta)=\frac{1+\theta_j}{2}.
+\]
+Both means lie in \([1/4,3/4]\), as required by
+\cref{obj:ass:interior-means}. All four conditions of
+\cref{obj:def:causal-model} therefore hold.
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.symmetricLaw_causalModel
+
+\item \emph{Symmetric value and the ancillary assignment.}
+The arm means just computed satisfy
+\[
+\tau_j(G_\theta)=\theta_j,
+\qquad
+\frac{\mu_{0j}(G_\theta)+\mu_{1j}(G_\theta)}2=\frac12.
+\]
+Applying the armwise maximum decomposition gives
+\[
+V(G_\theta)
+=\frac1d\sum_{j=1}^d\frac12+\frac{F(\theta)}2
+=\frac12+\frac{F(\theta)}2.
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.symmetricLaw_value
+
+Define the observed-record reconstruction map on the whole paired
+alphabet and both assignment values by
+\[
+\operatorname{rec}(j,s,a)
+:=\left(j,a,\frac{1+s(2a-1)}2\right),
+\qquad
+j\in[d],\quad s\in\{-1,1\},\quad a\in\{0,1\}.
+\]
+Its outcome coordinate is binary. Summing the full-data atom masses over
+the unused potential outcome gives
+\[
+\begin{aligned}
+G_\theta(X=j,S=s,A=a)
+&=\frac1{2d}\,
+\pi_{aj}\!\left(\frac{1+s(2a-1)}2\right)\\
+&=\frac1{2d}\,\frac{1+s\theta_j}{2}
+=\frac{P_\theta(j,s)}2.
+\end{aligned}
+\]
+Indeed, for \(a=0\), the reconstructed outcome is \((1-s)/2\), so the
+two choices of \(s\) select the failure and success masses of
+\(\operatorname{Bernoulli}((1-\theta_j)/2)\). For \(a=1\), it is
+\((1+s)/2\), selecting the success and failure masses of
+\(\operatorname{Bernoulli}((1+\theta_j)/2)\). In both cases the selected
+mass is \((1+s\theta_j)/2\). Thus the joint signed-input and assignment
+law is
+\[
+\mathcal L_{G_\theta}(X,S,A)
+=P_\theta\otimes\operatorname{Bernoulli}(1/2).
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.symmetricLaw_ancillary
+
+For every binary observed record, \((2A-1)^2=1\), and therefore
+\[
+S(2A-1)
+=(2A-1)(2Y-1)(2A-1)=2Y-1.
+\]
+This identity holds pointwise and hence \(G_\theta\)-almost surely.
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.outcome_sign_reconstruction
+
+\item \emph{Class preservation by averaging.}
+Fix \(\varepsilon\in\mathbb R\) and an original-record protocol \(Q\).
+Using the same seed law and message spaces, define
+\[
+\mathsf K_i(\cdot\mid(j,s),h,r)
+:=\frac12\sum_{a\in\{0,1\}}
+Q_i(\cdot\mid\operatorname{rec}(j,s,a),h,r).
+\]
+Each kernel is a finite mixture of measurable probability kernels, so
+this defines a protocol.
+
+Suppose \(Q\) satisfies \cref{obj:ass:full-record-privacy}. For every
+\(i,h,r\), measurable message event \(E\), and paired inputs
+\((j,s),(j',s')\), apply that inequality separately with assignment zero
+and assignment one:
+\[
+Q_i(E\mid\operatorname{rec}(j,s,a),h,r)
+\le e^\varepsilon
+Q_i(E\mid\operatorname{rec}(j',s',a),h,r),
+\qquad a\in\{0,1\}.
+\]
+Adding the two inequalities with weights \(1/2\) gives
+\[
+\mathsf K_i(E\mid(j,s),h,r)
+\le e^\varepsilon\mathsf K_i(E\mid(j',s'),h,r).
+\]
+This proves sequential membership as specified by
+\cref{obj:def:sequential-class}. If \(Q\) also satisfies
+\cref{obj:ass:noninteraction}, then for all histories \(h,h'\),
+\[
+\begin{aligned}
+\mathsf K_i(\cdot\mid(j,s),h,r)
+&=\frac12\sum_a
+Q_i(\cdot\mid\operatorname{rec}(j,s,a),h,r)\\
+&=\frac12\sum_a
+Q_i(\cdot\mid\operatorname{rec}(j,s,a),h',r)
+=\mathsf K_i(\cdot\mid(j,s),h',r).
+\end{aligned}
+\]
+Thus \cref{obj:def:noninteractive-class} is preserved as well. These
+arguments apply at every declared history and seed, for every real
+\(\varepsilon\).
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.signed_protocol_classes
+
+\item \emph{Reconstruction of the complete sampled input.}
+For deterministic vectors, define
+\[
+\begin{gathered}
+\mathbf v=((j_i,s_i))_{i=1}^n
+\in([d]\times\{-1,1\})^n,
+\qquad
+\mathbf a=(a_i)_{i=1}^n\in\{0,1\}^n,\\
+\operatorname{rec}^{(n)}(\mathbf v,\mathbf a)
+:=\bigl(\operatorname{rec}(j_i,s_i,a_i)\bigr)_{i=1}^n.
+\end{gathered}
+\]
+The single-participant ancillary identity and
+\cref{obj:ass:iid-people} imply
+\[
+\mathcal L_{G_\theta}\!\left(
+((X_i,S_i))_{i=1}^n,(A_i)_{i=1}^n\right)
+=P_\theta^{\otimes n}
+ \otimes\operatorname{Bernoulli}(1/2)^{\otimes n}.
+\]
+To see the factorization directly, the probability of a specified pair
+of vectors is
+\[
+\prod_{i=1}^n\frac{P_\theta(j_i,s_i)}2
+=\left(\prod_{i=1}^nP_\theta(j_i,s_i)\right)2^{-n}.
+\]
+Reconstruction recovers every observed record, so pushing this product
+law through \(\operatorname{rec}^{(n)}\) gives
+\[
+\bigl(P_\theta^{\otimes n}
+ \otimes\operatorname{Bernoulli}(1/2)^{\otimes n}\bigr)
+ \circ(\operatorname{rec}^{(n)})^{-1}
+=(G_\theta)_O^{\otimes n}.
+\]
+
+Write \(\lambda=\mathcal L(R)\) for the protocol's seed law. Including
+the independent randomness from
+\cref{obj:ass:independent-randomness}, define
+\[
+\Lambda_\theta
+:=P_\theta^{\otimes n}
+ \otimes\operatorname{Bernoulli}(1/2)^{\otimes n}
+ \otimes\lambda\otimes\operatorname{Uniform}[0,1]
+\]
+on tuples \((\mathbf v,\mathbf a,r,u)\). Its pushforward satisfies
+\[
+\mathcal L_{G_\theta}(\mathbf O,R,U)
+=\Lambda_\theta\circ
+\bigl[(\mathbf v,\mathbf a,r,u)
+\mapsto(\operatorname{rec}^{(n)}(\mathbf v,\mathbf a),r,u)\bigr]^{-1}.
+\]
+Thus running \(Q\) on the sampled causal records has the same joint
+message and randomizer law as running it on these reconstructed
+product-law inputs.
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.symmetricLaw_reconstructed_decisionLaw
+
+\item \emph{Averaging through the sequential recursion.}
+For \(0\le\ell\le n\), define the prefix message space
+\[
+\mathcal Z_{\le\ell}:=\prod_{i=1}^{\ell}\mathcal Z_i,
+\qquad
+\mathcal Z_{\le0}:=\{\langle\rangle\}.
+\]
+For a fixed observed-input vector
+\(\mathbf o\in([d]\times\{0,1\}^2)^n\), paired-input vector
+\(\mathbf v\in([d]\times\{-1,1\})^n\), and seed \(r\in\mathcal R\),
+let \(\Pi_\ell^Q(\cdot\mid\mathbf o,r)\) and
+\(\Pi_\ell^{\mathsf K}(\cdot\mid\mathbf v,r)\) be the prefix probability
+laws defined by
+\[
+\Pi_0^Q=\Pi_0^{\mathsf K}=\delta_{\langle\rangle}
+\]
+and, for \(0\le\ell<n\),
+\[
+\begin{aligned}
+\Pi_{\ell+1}^Q(dh,dz\mid\mathbf o,r)
+&=\Pi_\ell^Q(dh\mid\mathbf o,r)\,
+ Q_{\ell+1}(dz\mid o_{\ell+1},h,r),\\
+\Pi_{\ell+1}^{\mathsf K}(dh,dz\mid\mathbf v,r)
+&=\Pi_\ell^{\mathsf K}(dh\mid\mathbf v,r)\,
+ \mathsf K_{\ell+1}(dz\mid v_{\ell+1},h,r),
+\end{aligned}
+\]
+where \(h\in\mathcal Z_{\le\ell}\), \(z\in\mathcal Z_{\ell+1}\), and
+\((h,z)\) denotes the appended history.
+
+We prove by induction on \(\ell\) that, for every measurable
+\(\varphi:\mathcal Z_{\le\ell}\to[0,\infty]\),
+\[
+\begin{aligned}
+&2^{-n}\sum_{\mathbf a\in\{0,1\}^n}
+ \int\varphi(h)\,
+ \Pi_\ell^Q(dh\mid
+ \operatorname{rec}^{(n)}(\mathbf v,\mathbf a),r)\\
+&\qquad=\int\varphi(h)\,
+ \Pi_\ell^{\mathsf K}(dh\mid\mathbf v,r).
+\end{aligned}
+\]
+For \(\ell=0\), both prefix laws are concentrated on the empty history,
+and \(2^{-n}\sum_{\mathbf a\in\{0,1\}^n}1=1\).
+
+For the induction step, take measurable
+\(\varphi:\mathcal Z_{\le\ell+1}\to[0,\infty]\) and define
+\[
+\varphi_{\mathrm{av},\ell}(h)
+:=\int\varphi(h,z)\,
+ \mathsf K_{\ell+1}(dz\mid v_{\ell+1},h,r),
+\qquad h\in\mathcal Z_{\le\ell}.
+\]
+This is a measurable nonnegative function. For \(i\in[n]\) and
+\(a\in\{0,1\}\), define the updated bit vector by
+\[
+(\mathbf a^{\,i\leftarrow a})_{i'}
+:=
+\begin{cases}
+a,&i'=i,\\
+a_{i'},&i'\ne i,
+\end{cases}
+\qquad i'\in[n].
+\]
+The uniform distribution on bit vectors is invariant under flipping
+coordinate \(i\). Pairing each vector with its flipped vector shows that
+averaging any nonnegative function over all bit vectors equals
+averaging its two versions with coordinate \(i\) set to zero and one.
+
+Apply this identity at \(i=\ell+1\). Updating that coordinate leaves the
+first \(\ell\) inputs unchanged, hence leaves the preceding prefix law
+unchanged. The recursion and the definition of \(\mathsf K_{\ell+1}\)
+therefore give, for every \(\mathbf a\),
+\[
+\begin{aligned}
+&\frac12\sum_{a\in\{0,1\}}
+ \int\varphi(h,z)\,
+ \Pi_{\ell+1}^Q
+ \bigl(dh,dz\mid
+ \operatorname{rec}^{(n)}
+   (\mathbf v,\mathbf a^{\,\ell+1\leftarrow a}),r\bigr)\\
+&\qquad=
+ \int\left[
+ \frac12\sum_{a\in\{0,1\}}
+ \int\varphi(h,z)\,
+ Q_{\ell+1}(dz\mid
+ \operatorname{rec}(j_{\ell+1},s_{\ell+1},a),h,r)
+ \right]\\
+&\hspace{6em}\cdot
+ \Pi_\ell^Q(dh\mid
+ \operatorname{rec}^{(n)}(\mathbf v,\mathbf a),r)\\
+&\qquad=
+ \int\varphi_{\mathrm{av},\ell}(h)\,
+ \Pi_\ell^Q(dh\mid
+ \operatorname{rec}^{(n)}(\mathbf v,\mathbf a),r).
+\end{aligned}
+\]
+Averaging this equality over \(\mathbf a\), applying the induction
+hypothesis to \(\varphi_{\mathrm{av},\ell}\), and using the paired
+recursion proves
+\[
+\begin{aligned}
+&2^{-n}\sum_{\mathbf a}
+ \int\varphi\,
+ \Pi_{\ell+1}^Q
+ (\,\cdot\mid\operatorname{rec}^{(n)}(\mathbf v,\mathbf a),r)\\
+&\qquad=
+ \int\varphi_{\mathrm{av},\ell}(h)\,
+ \Pi_\ell^{\mathsf K}(dh\mid\mathbf v,r)
+ =\int\varphi\,\Pi_{\ell+1}^{\mathsf K}
+ (\,\cdot\mid\mathbf v,r).
+\end{aligned}
+\]
+At \(\ell=n\), indicator functions of measurable transcript events give
+the equality of probability laws
+\[
+2^{-n}\sum_{\mathbf a\in\{0,1\}^n}
+\Pi_n^Q
+(\,\cdot\mid\operatorname{rec}^{(n)}(\mathbf v,\mathbf a),r)
+=\Pi_n^{\mathsf K}(\,\cdot\mid\mathbf v,r).
+\]
+Integrating against \(P_\theta^{\otimes n}\), \(\lambda\), and the uniform
+analyst randomizer, and using the identity expressing
+\(\mathcal L_{G_\theta}(\mathbf O,R,U)\) as the reconstruction
+pushforward of \(\Lambda_\theta\), proves
+\[
+\begin{aligned}
+&\mathcal L_{G_\theta,Q}(\mathbf Z,R,U)\\
+&\qquad=
+P_\theta^{\otimes n}\otimes\lambda
+ \otimes\operatorname{Uniform}[0,1]
+\ \text{followed by }\ 
+\mathbf Z\sim\Pi_n^{\mathsf K}(\cdot\mid\mathbf v,r).
+\end{aligned}
+\]
+Equivalently, for every measurable
+\(\mathcal E\subseteq\mathcal Z_{\le n}\times\mathcal R\times[0,1]\),
+the common probability is
+\[
+\int\!\int\!\int\!\int
+\mathbf1_{\mathcal E}(\mathbf z,r,u)\,
+\Pi_n^{\mathsf K}(d\mathbf z\mid\mathbf v,r)\,
+\operatorname{Uniform}[0,1](du)\,
+\lambda(dr)\,P_\theta^{\otimes n}(d\mathbf v).
+\]
+Projecting onto \((R,\mathbf Z)\) gives the first asserted joint
+seed-transcript equality. The induction begins at zero and therefore
+also covers \(n=0\).
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.averagedProtocol_reconstructed_decisionLaw
+
+\item \emph{Class preservation by signed preprocessing.}
+For the converse direction, fix a paired-alphabet protocol \(\mathsf K\).
+Define the deterministic paired-record map by
+\[
+\operatorname{pair}(j,a,y)
+:=\bigl(j,(2a-1)(2y-1)\bigr),
+\qquad
+(j,a,y)\in[d]\times\{0,1\}^2,
+\]
+and define \(Q\), with the same seed law and message spaces, by
+\[
+Q_i(\cdot\mid(j,a,y),h,r)
+:=\mathsf K_i(\cdot\mid\operatorname{pair}(j,a,y),h,r).
+\]
+Composition with this measurable finite-alphabet map preserves the
+probability-kernel property.
+
+If \(\mathsf K\) satisfies the paired privacy inequality, then for every
+two observed records \(o,o'\), every history and seed, and every
+measurable message event \(E\),
+\[
+\begin{aligned}
+Q_i(E\mid o,h,r)
+&=\mathsf K_i(E\mid\operatorname{pair}(o),h,r)\\
+&\le e^\varepsilon
+ \mathsf K_i(E\mid\operatorname{pair}(o'),h,r)
+=e^\varepsilon Q_i(E\mid o',h,r).
+\end{aligned}
+\]
+Thus \(Q\) satisfies \cref{obj:ass:full-record-privacy} and belongs to
+the sequential class whenever \(\mathsf K\) does. If \(\mathsf K\) is
+independent of history, then
+\[
+Q_i(\cdot\mid o,h,r)
+=\mathsf K_i(\cdot\mid\operatorname{pair}(o),h,r)
+=\mathsf K_i(\cdot\mid\operatorname{pair}(o),h',r)
+=Q_i(\cdot\mid o,h',r).
+\]
+This supplies \cref{obj:ass:noninteraction} and hence the noninteractive
+membership in \cref{obj:def:noninteractive-class}.
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.signed_protocol_classes
+
+\item \emph{The converse transcript identity.}
+For a deterministic observed vector \(\mathbf o\), define its
+coordinatewise paired image by
+\[
+\operatorname{pair}^{(n)}(\mathbf o)
+:=\bigl(\operatorname{pair}(o_i)\bigr)_{i=1}^n.
+\]
+The previously established identities
+\(\tau(G_\theta)=\theta\) and
+\(\mathcal L_{G_\theta}(X,S)=P_\theta\) imply, by coordinatewise
+pushforward of the independent observed sample,
+\[
+\begin{aligned}
+&\bigl((G_\theta)_O^{\otimes n}
+ \otimes\lambda\otimes\operatorname{Uniform}[0,1]\bigr)
+ \circ
+ \bigl[(\mathbf o,r,u)
+ \mapsto(\operatorname{pair}^{(n)}(\mathbf o),r,u)\bigr]^{-1}\\
+&\qquad=
+P_\theta^{\otimes n}\otimes\lambda
+ \otimes\operatorname{Uniform}[0,1].
+\end{aligned}
+\]
+Here \cref{obj:ass:iid-people,obj:ass:independent-randomness} identify the
+measure on the left before pushforward with the sampling scheme's
+joint input law.
+
+For each fixed \(\mathbf o,r\), induction through the prefix recursion
+gives
+\[
+\Pi_\ell^Q(\cdot\mid\mathbf o,r)
+=\Pi_\ell^{\mathsf K}
+(\cdot\mid\operatorname{pair}^{(n)}(\mathbf o),r),
+\qquad 0\le\ell\le n.
+\]
+The zero-length laws are the same point mass. At a successor step,
+the induction hypothesis identifies the preceding prefix laws, and
+the defining equality
+\[
+Q_{\ell+1}(dz\mid o_{\ell+1},h,r)
+=\mathsf K_{\ell+1}
+(dz\mid\operatorname{pair}(o_{\ell+1}),h,r)
+\]
+identifies their extension kernels. Thus their successor prefix laws
+are equal as well. In particular, their full fixed-input transcript
+laws agree at \(\ell=n\).
+
+Integrating this fixed-input equality and using the displayed input
+pushforward proves that the joint law of \((\mathbf Z,R,U)\) under
+\(G_\theta,Q\) equals the law obtained from independent \(P_\theta\)
+inputs, the seed law \(\lambda\), and \(\mathsf K\). Projecting onto
+\((R,\mathbf Z)\) gives the asserted converse equality. The same
+zero-length base case covers \(n=0\).
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.pulledProtocol_decisionLaw
+\end{enumerate}
+\end{proof}

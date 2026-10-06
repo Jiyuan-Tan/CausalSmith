@@ -1,0 +1,105 @@
+\section{An attaining estimator}\label{sec:attaining-estimator}
+
+The estimator corrects a mismatch between the quantities observed with outcomes and the arm means entering the target. In arm \(a\) and cell \(j\), complete records identify the success mass \(q_{aj}=s_{aj}\mu_{aj}\), whereas the target contribution is \(p_j\mu_{aj}=q_{aj}p_j/s_{aj}\). Since \(p_j=s_{0j}+s_{1j}\), this requires estimating a reciprocal arm mass. The pilot pool localizes each arm--cell: populated cells use an inverse count, while sparse cells use a polynomial reciprocal whose monomials are estimated from factorial counts in an independent pool.
+
+The degree calibration is tied to \(S=n\epsilon\), rather than to \(N=n+m\), because only the complete records carry the success marks \(q_{aj}\), and the least-favored arm supplies them at the overlap scale \(\epsilon\). Auxiliary records reduce marginal-count noise but cannot create outcome marks. The choice \(L=\lfloor\log S/1024\rfloor\) balances the sparse-cell approximation bias with the coefficient and outcome noise controlled by the complete sample. The formal clipping rule and complete prefix-average estimator appear in \cref{obj:synth_4,obj:def:estimator-handle}; this section explains their mechanism and compares their guarantee with a simpler inverse-count baseline.
+
+
+
+
+
+A simpler comparison isolates the role of the polynomial correction. The inverse-count baseline \leanref{sym:T^{\mathrm B}}{\ensuremath{T^{\mathrm B}}} uses an outcome pool and a single marginal pool, applying the same count-plus-one correction throughout. It retains the clipping and finite-averaging construction, as specified next.
+
+
+
+
+
+\begin{algorithmv}{def:baseline}[Inverse-count baseline $T^{\mathrm B}$]
+The baseline takes the ordered complete and auxiliary records \(\mathcal D\) and the public parameters \(n,m,d,\epsilon\) as inputs.
+\begin{enumerate}
+\item If \(n<6\), output
+\[
+T^{\mathrm B}(\mathcal D)=0.
+\]
+For \(n\ge6\), proceed through the remaining steps.
+
+\item Define the pool lengths and Poisson prefix means by
+\[
+h_{\mathrm o}=\lfloor n/2\rfloor,\qquad
+h_{\mathrm m}=n-h_{\mathrm o}+m,\qquad
+u_{\mathrm B}=h_{\mathrm o}/8,\qquad
+t_{\mathrm B}=h_{\mathrm m}/8.
+\]
+Use the first \(h_{\mathrm o}\) complete records as the outcome pool. Form the marginal pool by concatenating the treatment--covariate projections of the remaining complete records with all auxiliary records, preserving their order.
+
+\item Write the outcome-pool observations as
+\((X_i^{\mathrm o},A_i^{\mathrm o},Y_i^{\mathrm o})\) and the marginal-pool observations as
+\((X_i^{\mathrm m},A_i^{\mathrm m})\). For each prefix pair satisfying
+\[
+0\le h'\le h_{\mathrm o},\qquad
+0\le h''\le h_{\mathrm m},
+\]
+and for \(a\in\{0,1\}\), \(j\in\{1,\ldots,d\}\), define
+\[
+\begin{aligned}
+Z_{aj}^{\mathrm B}
+&=\sum_{i=1}^{h'}
+\mathbf1\{X_i^{\mathrm o}=j,\ A_i^{\mathrm o}=a,\ Y_i^{\mathrm o}=1\},\\
+K_{aj}^{\mathrm B}
+&=\sum_{i=1}^{h''}
+\mathbf1\{X_i^{\mathrm m}=j,\ A_i^{\mathrm m}=a\},\\
+H_{aj}^{\mathrm B}
+&=\frac{Z_{aj}^{\mathrm B}}{u_{\mathrm B}}
+\left(1+\frac{K_{1-a,j}^{\mathrm B}}{K_{aj}^{\mathrm B}+1}\right),\\
+F_{\mathrm B}(h',h'';\mathcal D)
+&=\operatorname{clip}_{[-1,1]}
+\left(\sum_{j=1}^d(H_{1j}^{\mathrm B}-H_{0j}^{\mathrm B})\right).
+\end{aligned}
+\]
+
+\item Output the deterministic finite average
+\[
+T^{\mathrm B}(\mathcal D)
+=
+\sum_{h'=0}^{h_{\mathrm o}}\sum_{h''=0}^{h_{\mathrm m}}
+\exp(-u_{\mathrm B}-t_{\mathrm B})
+\frac{u_{\mathrm B}^{h'}}{h'!}
+\frac{t_{\mathrm B}^{h''}}{h''!}
+F_{\mathrm B}(h',h'';\mathcal D).
+\]
+The weights are the probabilities of independent Poisson prefix lengths with means \(u_{\mathrm B}\) and \(t_{\mathrm B}\); prefix pairs exceeding either pool length have output zero.
+\end{enumerate}
+\end{algorithmv}
+
+The denominator regularizes the marginal correction even when an observed arm--cell is empty. Outcome information enters through the success counts, while auxiliary records enlarge the pool estimating the treatment--covariate distribution. The following guarantee quantifies these two contributions uniformly over the observable model.
+
+\begin{theoremv}{thm:uniform-baseline}[Uniform inverse-count risk guarantee]
+There exists a universal numerical constant \(C>0\), independent of \(n,m,d,\epsilon\), such that, for every experiment satisfying
+\begin{itemize}
+\item \textbf{(Sample sizes.)} \(n,m\) are nonnegative integers with \(n\ge 1\).
+\item \textbf{(Alphabet size.)} \(d\) is an integer with \(d\ge 2\).
+\item \textbf{(Overlap parameter.)} \(\epsilon\) is real and \(0<\epsilon\le 1/4\).
+\end{itemize}
+the baseline \(T^{\mathrm B}\) of \cref{obj:def:baseline} is measurable and satisfies
+\[
+-1\le T^{\mathrm B}(\mathcal D)\le 1
+\]
+for every data realization \(\mathcal D\). For every observable law \(P\in\mathcal M_{d,\epsilon}\), its squared-error risk satisfies
+\[
+\mathbb E_P\!\left[
+  \bigl(T^{\mathrm B}(\mathcal D)-\tau(P)\bigr)^2
+\right]
+\le
+C\min\!\left\{
+1,\,
+\frac{1}{n\epsilon}
++
+\left(\frac{d}{(n+m)\epsilon}\right)^2
+\right\}.
+\]
+The expectation is over the two-channel data under \(P\); the rule ignores the independent uniform randomization seed.
+\end{theoremv}
+
+The bound reflects the different roles of the two pools. Rare-arm outcome information determines the term \(1/(n\epsilon)\), while the marginal pool controls the many-cell term through the total number of treatment--covariate observations. Increasing the auxiliary budget therefore sharpens the baseline guarantee through the second term. Comparing the two displayed worst-case upper guarantees, the attaining estimator replaces the baseline guarantee's many-cell term by one smaller by the squared regularized logarithmic factor \(\ell^2\), up to numerical constants, while preserving the inverse rare-arm information term. This comparison motivates the polynomial correction in sparse arm--cells and provides a transparent uniform benchmark for the three-pool construction.
+
+The supporting moment bounds appear in \cref{obj:lem:poisson-inverse-moments,obj:lem:inverse-count-arm-risk}. The polynomial certificate and the localized arm-risk bound are given in \cref{obj:lem:chebyshev-factorial-certificate,obj:lem:uniform-hybrid-arm-risk}. Finally, \cref{obj:lem:finite-prefix-transfer} supplies the transfer argument connecting the Poisson calculations to the finite prefix averages on the original records.

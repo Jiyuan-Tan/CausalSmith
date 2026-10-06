@@ -1,0 +1,107 @@
+module
+public import Mathlib.Probability.Distributions.Poisson.Basic
+public import Mathlib.Probability.ProductMeasure
+
+/-!
+# I.i.d. streams paired with an independent Poisson count
+
+This file provides the paper-neutral count-and-stream probability space used
+as the elementary input to finite marked Poisson constructions.  An infinite
+i.i.d. stream has exact finite product marginals, and pairing it with an
+independent scalar Poisson count preserves both the count and prefix laws.
+-/
+
+@[expose] public section
+
+open MeasureTheory ProbabilityTheory Set
+open scoped ENNReal NNReal
+
+namespace Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition
+
+variable {X : Type*} [MeasurableSpace X]
+
+/-- Given [a probability measure on a measurable sample space](hyp:P),
+[the infinite i.i.d. stream law](goal) is the product probability measure on
+infinite sequences whose every coordinate has that measure as its marginal. -/
+noncomputable def iidStreamLaw (P : Measure X) [IsProbabilityMeasure P] :
+    Measure (ℕ → X) :=
+  Measure.infinitePi (fun _ : ℕ => P)
+
+/-- [The infinite i.i.d. stream law is a probability measure](goal) on
+[a measurable sample space](hyp:X) with [a probability law](hyp:P). -/
+instance iidStreamLaw_isProbabilityMeasure (P : Measure X) [IsProbabilityMeasure P] :
+    IsProbabilityMeasure (iidStreamLaw P) := by
+  unfold iidStreamLaw
+  infer_instance
+
+/-- [Every finite prefix length](hyp:n) under [an i.i.d. stream law](hyp:P)
+[has the corresponding finite product law](goal). -/
+lemma iidStreamLaw_map_finPrefix (P : Measure X) [IsProbabilityMeasure P] (n : ℕ) :
+    Measure.map (fun z : ℕ → X => fun i : Fin n => z i) (iidStreamLaw P) =
+      Measure.pi (fun _ : Fin n => P) := by
+  unfold iidStreamLaw
+  symm
+  apply Measure.pi_eq
+  intro s hs
+  rw [Measure.map_apply (by fun_prop) (.univ_pi hs)]
+  rw [show (fun z : ℕ → X => fun i : Fin n => z i) ⁻¹' Set.univ.pi s =
+      Set.pi (Finset.range n)
+        (fun i : ℕ => if h : i < n then s ⟨i, h⟩ else Set.univ) by
+    ext z
+    simp only [Set.mem_preimage, Set.mem_pi, Set.mem_univ, forall_const]
+    constructor
+    · intro hz i hi
+      have hin : i < n := by simpa using hi
+      rw [dif_pos hin]
+      simpa using hz ⟨i, hin⟩
+    · intro hz i
+      have hi := hz (i : ℕ)
+        (show (i : ℕ) ∈ Finset.range n from Finset.mem_range.mpr i.2)
+      rw [dif_pos i.2] at hi
+      simpa using hi]
+  rw [Measure.infinitePi_pi (μ := fun _ : ℕ => P)
+    (s := Finset.range n)
+    (t := fun i : ℕ => if h : i < n then s ⟨i, h⟩ else Set.univ)]
+  · rw [Finset.prod_range]
+    simp
+  · intro i hi
+    rw [dif_pos (Finset.mem_range.1 hi)]
+    exact hs _
+
+/-- Given [an observation probability law](hyp:P) and [a nonnegative Poisson rate](hyp:lam),
+[the joint count-and-stream law](goal) is the product law of a Poisson count with
+that rate and an independent infinite stream whose coordinates are independent with the given
+common distribution. -/
+noncomputable def poissonIIDStreamLaw (P : Measure X) [IsProbabilityMeasure P]
+    (lam : ℝ≥0) : Measure (ℕ × (ℕ → X)) :=
+  (poissonMeasure lam).prod (iidStreamLaw P)
+
+/-- [The independent Poisson count-and-stream law is a probability measure](goal) on
+[a measurable sample space](hyp:X) with [an observation probability law](hyp:P) and
+[a nonnegative Poisson rate](hyp:lam). -/
+instance poissonIIDStreamLaw_isProbabilityMeasure (P : Measure X) [IsProbabilityMeasure P]
+    (lam : ℝ≥0) : IsProbabilityMeasure (poissonIIDStreamLaw P lam) := by
+  unfold poissonIIDStreamLaw
+  infer_instance
+
+/-- For [an observation probability law](hyp:P) and [a nonnegative Poisson rate](hyp:lam),
+[the count coordinate has the scalar Poisson law with that rate](goal). -/
+lemma poissonIIDStreamLaw_map_count (P : Measure X) [IsProbabilityMeasure P]
+    (lam : ℝ≥0) :
+    Measure.map Prod.fst (poissonIIDStreamLaw P lam) = poissonMeasure lam := by
+  unfold poissonIIDStreamLaw iidStreamLaw
+  rw [Measure.map_fst_prod, measure_univ, one_smul]
+
+/-- For [an observation probability law](hyp:P), [a nonnegative Poisson rate](hyp:lam), and
+[a prefix length](hyp:n), [the stream prefix has the exact product observation law](goal). -/
+lemma poissonIIDStreamLaw_map_finPrefix (P : Measure X) [IsProbabilityMeasure P]
+    (lam : ℝ≥0) (n : ℕ) :
+    Measure.map (fun z : ℕ × (ℕ → X) => fun i : Fin n => z.2 i)
+        (poissonIIDStreamLaw P lam) = Measure.pi (fun _ : Fin n => P) := by
+  rw [show (fun z : ℕ × (ℕ → X) => fun i : Fin n => z.2 i) =
+      (fun z : ℕ → X => fun i : Fin n => z i) ∘ Prod.snd by rfl,
+    ← Measure.map_map (by fun_prop) (by fun_prop)]
+  unfold poissonIIDStreamLaw
+  rw [Measure.map_snd_prod, measure_univ, one_smul, iidStreamLaw_map_finPrefix]
+
+end Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition

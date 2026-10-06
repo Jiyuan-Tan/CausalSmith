@@ -1,0 +1,264 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Graph.DAG
+public import Causalean.Graph.SWIG
+public import Causalean.Graph.SWIGSplitMono
+public import Causalean.Graph.CComponents
+public import Causalean.SCM.ID.GraphicalThms.DoGFormulaRec
+public import Causalean.SCM.ID.DiscreteID.Checker
+
+/-! # Frontdoor Example
+
+This file constructs the canonical frontdoor graph with one latent confounder
+between treatment and outcome, an observed mediator, and no intervention fixed
+at the initial graph. The declarations `FDNode`, `fdEdge`, `fdDAG`, and `fdSWIG`
+define the graph and standard SWIG representation. The examples verify the
+c-components, show that the recursive ID certificate `idSucceedsRec` succeeds
+for `P(Y | do(X))`, show that the simpler no-fixing reachability certificate
+does not apply to the same outcome district, and check that the executable
+`idAlgorithm` returns `true` on the concrete graph.
+-/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+set_option linter.style.nativeDecide false
+
+namespace Causalean.SCM.Examples.Frontdoor
+
+-- ============================================================
+-- Vertex type
+-- ============================================================
+
+/-- [The frontdoor-example node type](goal) consists of
+[the latent-confounder vertex](hyp:fdU), [the treatment vertex](hyp:fdX),
+[the mediator vertex](hyp:fdM), and [the outcome vertex](hyp:fdY). -/
+inductive FDNode
+  | fdU  -- latent confounder of X and Y
+  | fdX  -- treatment
+  | fdM  -- mediator
+  | fdY  -- outcome
+  deriving DecidableEq
+
+open FDNode
+
+/-- [A finite enumeration of the frontdoor-example node type](goal) is provided by
+[the collection of its four named vertices](step:1) together with
+[the assertion that every frontdoor-example vertex belongs to that collection](step:2). -/
+instance : Fintype FDNode where
+  elems := {fdU, fdX, fdM, fdY}
+  complete := by intro x; cases x <;> simp
+
+-- ============================================================
+-- Edge relation
+-- ============================================================
+
+/-- [The frontdoor-edge relation](goal) contains exactly
+[the arrow from the latent confounder to treatment](step:1),
+[the arrow from the latent confounder to outcome](step:2),
+[the arrow from treatment to the mediator](step:3),
+[the arrow from the mediator to outcome](step:4), and
+[all other ordered pairs have no edge](step:5). -/
+def fdEdge : FDNode → FDNode → Prop
+  | fdU, fdX => True
+  | fdU, fdY => True
+  | fdX, fdM => True
+  | fdM, fdY => True
+  | _,   _   => False
+
+/-- For every ordered pair of frontdoor-example vertices,
+[a decision procedure for whether the pair is a directed edge](goal) is provided. -/
+instance : DecidableRel fdEdge := by
+  intro a b; cases a <;> cases b <;> simp [fdEdge] <;> infer_instance
+
+-- ============================================================
+-- Topological order
+-- ============================================================
+
+/-- [The topological-order label for the frontdoor graph](goal)
+[assigns label 0 to the latent confounder](step:1), [label 1 to treatment](step:2),
+[label 2 to the mediator](step:3), and [label 3 to outcome](step:4). -/
+def fdTopo : FDNode → ℕ
+  | fdU => 0
+  | fdX => 1
+  | fdM => 2
+  | fdY => 3
+
+/-- [Every edge of the frontdoor-example graph connects a node with a smaller assigned order label
+to one with a larger label, so the chosen ordering is a valid topological order](goal). -/
+theorem fdTopo_lt : ∀ u v, fdEdge u v → fdTopo u < fdTopo v := by
+  intro u v h; cases u <;> cases v <;> simp_all [fdEdge, fdTopo]
+
+-- ============================================================
+-- The DAG
+-- ============================================================
+
+/-- [The frontdoor directed acyclic graph](goal) has the specified frontdoor edge relation and
+topological ordering, and is acyclic. -/
+def fdDAG : DAG FDNode where
+  edge := fdEdge
+  decEdge := inferInstance
+  acyclic := DAG.acyclic_of_topoOrder fdTopo_lt
+
+-- ============================================================
+-- SWIG graph (standard model, no intervention)
+-- ============================================================
+
+/-- [The pre-intervention SWIG graph for the frontdoor example](goal) has the frontdoor directed
+acyclic graph, no fixed nodes, treatment, mediator, and outcome as observed random nodes, and the
+latent confounder as an unobserved random node. -/
+def fdSWIG : SWIGGraph FDNode where
+  dag := initialSWIG fdDAG
+  fixed := ∅
+  observed := {SWIGNode.random fdX, SWIGNode.random fdM, SWIGNode.random fdY}
+  unobserved := {SWIGNode.random fdU}
+  fixed_is_fixed := by intro s hs; simp at hs
+  observed_is_random := by
+    intro v hv; simp at hv
+    rcases hv with rfl | rfl | rfl <;> exact ⟨_, rfl⟩
+  unobserved_is_random := by
+    intro u hu; simp at hu
+    subst hu
+    exact ⟨_, rfl⟩
+  obs_unobs_disjoint := by decide
+  dag_edges_classified := by decide
+  fixed_image_in_observed := by intro s hs; simp at hs
+  fixed_are_roots := by intro s hs; simp at hs
+  unobs_are_roots := by
+    intro u hu; simp at hu
+    subst hu
+    simpa [initialSWIG] using
+      swig_random_root_of_root fdDAG ∅ fdU (by decide : fdDAG.parents fdU = ∅)
+  fixed_outside_fixed_isolated := by
+    intro n _
+    cases n <;> exact ⟨by decide, by decide⟩
+  all_children_in_observed := by decide
+
+-- ============================================================
+-- C-components and recursive ID witness
+-- ============================================================
+
+example : fdSWIG.cComponentOf (SWIGNode.random fdX) =
+    {SWIGNode.random fdX, SWIGNode.random fdY} := by decide
+
+example : fdSWIG.cComponentOf (SWIGNode.random fdM) =
+    {SWIGNode.random fdM} := by decide
+
+example : fdSWIG.cComponentOf (SWIGNode.random fdY) =
+    {SWIGNode.random fdX, SWIGNode.random fdY} := by decide
+
+example : Causalean.SCM.ID.inducedAncestral fdSWIG
+    ({SWIGNode.random fdX, SWIGNode.random fdY} : Finset (SWIGNode FDNode))
+    ({SWIGNode.random fdY} : Finset (SWIGNode FDNode)) =
+    {SWIGNode.random fdY} := by
+  unfold Causalean.SCM.ID.inducedAncestral
+  simp [SWIGGraph.induce]
+  decide
+
+example : Causalean.SCM.ID.containingCComponent fdSWIG
+    ({SWIGNode.random fdY} : Finset (SWIGNode FDNode)) =
+    {SWIGNode.random fdX, SWIGNode.random fdY} := by
+  unfold Causalean.SCM.ID.containingCComponent
+  split
+  · rename_i hne
+    have hchoose :
+        Exists.choose hne = SWIGNode.random fdY := by
+      have hmem := Exists.choose_spec hne
+      simpa using hmem
+    rw [hchoose]
+    decide
+  · rename_i hne
+    exact False.elim (hne (by simp))
+
+example : Causalean.SCM.ID.idSucceedsRec ({fdX} : Finset FDNode)
+    ({SWIGNode.random fdY} : Finset (SWIGNode FDNode)) fdSWIG := by
+  let hX : Causalean.SCM.ID.interventionValid {fdX} fdSWIG := by
+    refine ⟨?_, ?_⟩
+    · intro D hD
+      simp at hD
+      subst hD
+      decide
+    · intro D hD
+      simp at hD
+      subst hD
+      decide
+  refine ⟨hX, ?_, ?_, ?_⟩
+  · decide
+  · decide
+  · intro S hS
+    have hSet :
+        ((fdSWIG.splitMono {fdX} hX.1 hX.2).induce
+          ((fdSWIG.splitMono {fdX} hX.1 hX.2).dag.ancestralSet
+            ({SWIGNode.random fdY} : Finset (SWIGNode FDNode)))).cComponentSet =
+        ({ {SWIGNode.random fdM}, {SWIGNode.random fdY} } :
+          Finset (Finset (SWIGNode FDNode))) := by
+      rw [SWIGGraph.cComponentSet]
+      simp [SWIGGraph.splitMono, SWIGGraph.induce]
+      decide
+    rw [hSet] at hS
+    simp at hS
+    rcases hS with hS | hS
+    · subst hS
+      have hMmem :
+          ({SWIGNode.random fdM} : Finset (SWIGNode FDNode)) ∈ fdSWIG.cComponentSet := by
+        rw [SWIGGraph.cComponentSet]
+        refine Finset.mem_image.mpr ⟨SWIGNode.random fdM, by decide, ?_⟩
+        decide
+      rw [Causalean.SCM.ID.containingCComponent_of_mem_cComponentSet fdSWIG _ hMmem]
+      exact Causalean.SCM.ID.CFactorReachableRec.base (by simp) (by simp)
+        (Causalean.SCM.ID.inducedAncestral_self_of_mem_cComponentSet fdSWIG _ hMmem)
+    · subst hS
+      have hContaining :
+          Causalean.SCM.ID.containingCComponent fdSWIG
+            ({SWIGNode.random fdY} : Finset (SWIGNode FDNode)) =
+          {SWIGNode.random fdX, SWIGNode.random fdY} := by
+        unfold Causalean.SCM.ID.containingCComponent
+        split
+        · rename_i hne
+          have hchoose :
+              Exists.choose hne = SWIGNode.random fdY := by
+            have hmem := Exists.choose_spec hne
+            simpa using hmem
+          rw [hchoose]
+          decide
+        · rename_i hne
+          exact False.elim (hne (by simp))
+      rw [hContaining]
+      exact Causalean.SCM.ID.CFactorReachableRec.base (by simp) (by simp) (by
+        unfold Causalean.SCM.ID.inducedAncestral
+        simp [SWIGGraph.induce]
+        decide)
+
+example : ¬ Causalean.SCM.ID.cFactorReachable fdSWIG
+    (Causalean.SCM.ID.containingCComponent fdSWIG
+      ({SWIGNode.random fdY} : Finset (SWIGNode FDNode)))
+    ({SWIGNode.random fdY} : Finset (SWIGNode FDNode)) := by
+  rintro ⟨_, _, hmem⟩
+  have hnot :
+      ({SWIGNode.random fdY} : Finset (SWIGNode FDNode)) ∉ fdSWIG.cComponentSet := by
+    rw [SWIGGraph.cComponentSet]
+    decide
+  exact hnot hmem
+
+/-! ### Running the executable checker
+
+The `idAlgorithm` decision procedure *computes* on the concrete frontdoor graph and
+returns `true`. Via the checker's soundness theorem, this verifies identification of
+`P(Y ∣ do(X))` for standard finite-discrete positive models, with the fixing step the no-fixing
+fragment cannot handle. -/
+
+set_option maxRecDepth 4096 in
+/-- `#eval` runs the checker; it prints `true`. -/
+example :
+    Causalean.SCM.ID.idAlgorithm 10 fdSWIG ({fdX} : Finset FDNode)
+      ({SWIGNode.random fdY} : Finset (SWIGNode FDNode)) = true := by
+  decide
+
+end Causalean.SCM.Examples.Frontdoor

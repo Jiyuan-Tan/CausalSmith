@@ -1,0 +1,278 @@
+\section{Minimax precision with two information budgets}
+
+The complete records supply outcome information, while both complete and auxiliary records supply treatment--covariate information. The frontier proved in this section is \(R(n,m,d,\epsilon)\asymp r(n,m,d,\epsilon)\), where \(r(n,m,d,\epsilon)\) is the numerical risk rate defined next, with comparison constants uniform in all four public indices. Its two components have distinct origins: complete records estimate the rare-arm success masses, while all records estimate the treatment--covariate masses needed to convert those successes into population-weighted arm means. Sparse arm masses require a reciprocal correction; its usable polynomial degree is limited by rare-arm outcome information \(n\epsilon\), even when auxiliary records make the marginal sample much larger. We first define the resulting rate, then give the complete attaining rule required by the frozen verification layer, followed by the formal comparison and its benchmark consequences.
+
+\begin{definitionv}{def:rate-handle}[Numerical rate $r(n,m,d,\epsilon)$]
+Define
+\[
+r(n,m,d,\epsilon)
+=
+\min\left\{
+1,\frac1S+\left(\frac d{N\epsilon\ell}\right)^2
+\right\},
+\qquad
+N=n+m,\quad S=n\epsilon,\quad
+\ell=\log(\exp(1)+S).
+\]
+All denominators are strictly positive on the public index range, and \(r(n,m,d,\epsilon)\) is a positive numerical function.
+\end{definitionv}
+
+\begin{definitionv}{synth_4}[Clipping to the target range]
+For every \(x\in\mathbb R\), define
+\[
+\operatorname{clip}_{[-1,1]}(x)=\max\{-1,\min\{x,1\}\}.
+\]
+\end{definitionv}
+
+\begin{algorithmv}{def:estimator-handle}[Prefix-average estimator $\widehat\tau$]
+The estimator takes the ordered complete and auxiliary records \(\mathcal D\), the independent seed \(U\), and the public parameters \(n,m,d,\epsilon\) as inputs.
+\begin{enumerate}
+\item Set
+\[
+S=n\epsilon.
+\]
+If \(S<\exp(4096)\), output
+\[
+\widehat\tau(\mathcal D,U)=0.
+\]
+For \(S\ge\exp(4096)\), proceed through the remaining steps.
+
+\item Define the pool lengths and tuning parameters by
+\[
+\begin{aligned}
+h_0&=\lfloor n/3\rfloor,
+&
+h_p&=\lfloor(n-h_0)/2\rfloor,
+&
+h_f&=n-h_0-h_p,\\
+M_p&=h_p+\lfloor m/2\rfloor,
+&
+M_f&=h_f+m-\lfloor m/2\rfloor,\\
+u&=h_0/8,
+&
+t_p&=M_p/8,
+&
+t&=M_f/8,\\
+L&=\lfloor\log S/1024\rfloor,
+&
+B&=\frac{2^{20}L}{\min\{t_p,t\}},
+&
+k_0&=\lfloor t_pB/4\rfloor.
+\end{aligned}
+\]
+Use the first \(h_0\) complete records as the outcome pool. Form the pilot pool by concatenating the treatment--covariate projections of the next \(h_p\) complete records with the first \(\lfloor m/2\rfloor\) auxiliary records. Form the factorial pool by concatenating the remaining complete-record projections with the remaining auxiliary records. Preserve the stated order within each pool.
+
+\item Define the Chebyshev polynomials and the reciprocal-approximation coefficients by
+\[
+\begin{aligned}
+T_0(x)&=1,\qquad T_1(x)=x,\\
+T_{h+1}(x)&=2xT_h(x)-T_{h-1}(x),\qquad h\ge1,\\
+E_L(z)&=\frac{1-T_L(1-2z)}{2L^2z},\\
+G_L(z)&=\frac{1-E_L(z)}z
+=\sum_{h=0}^{L-2}g_hz^h.
+\end{aligned}
+\]
+Use the removable extensions at zero in the definitions of \(E_L\) and \(G_L\).
+
+\item For each prefix triple satisfying
+\[
+0\le h'\le h_0,\qquad
+0\le h''\le M_p,\qquad
+0\le h'''\le M_f,
+\]
+write the ordered outcome-pool observations as
+\((X_i^{\mathrm o},A_i^{\mathrm o},Y_i^{\mathrm o})\), the pilot-pool observations as
+\((X_i^{\mathrm p},A_i^{\mathrm p})\), and the factorial-pool observations as
+\((X_i^{\mathrm f},A_i^{\mathrm f})\). For \(a\in\{0,1\}\) and \(j\in\{1,\ldots,d\}\), define
+\[
+\begin{aligned}
+Z_{aj}
+&=\sum_{i=1}^{h'}
+\mathbf1\{X_i^{\mathrm o}=j,\ A_i^{\mathrm o}=a,\ Y_i^{\mathrm o}=1\},\\
+J_{aj}
+&=\sum_{i=1}^{h''}
+\mathbf1\{X_i^{\mathrm p}=j,\ A_i^{\mathrm p}=a\},\\
+K_{aj}
+&=\sum_{i=1}^{h'''}
+\mathbf1\{X_i^{\mathrm f}=j,\ A_i^{\mathrm f}=a\}.
+\end{aligned}
+\]
+Define the falling factorials of an integer count \(x\) by
+\[
+(x)_0=1,\qquad
+(x)_h=\prod_{r=0}^{h-1}(x-r),\qquad h\ge1.
+\]
+
+\item For each prefix triple, define
+\[
+\begin{aligned}
+\widehat G_{aj}
+&=\sum_{h=0}^{L-2}g_h\frac{(K_{aj})_h}{(tB)^h},\\
+P_{aj}^{\mathrm{pol}}
+&=\frac{Z_{aj}}u
+\left(1+\frac{K_{1-a,j}\widehat G_{aj}}{tB}\right),\\
+H_{aj}
+&=\frac{Z_{aj}}u
+\left(1+\frac{K_{1-a,j}}{K_{aj}+1}\right),\\
+V_{aj}
+&=\mathbf1\{J_{aj}\le k_0\}P_{aj}^{\mathrm{pol}}
++\mathbf1\{J_{aj}>k_0\}H_{aj},\\
+F(h',h'',h''';\mathcal D)
+&=\operatorname{clip}_{[-1,1]}
+\left(\sum_{j=1}^d(V_{1j}-V_{0j})\right).
+\end{aligned}
+\]
+
+\item Output the deterministic finite average
+\[
+\widehat\tau(\mathcal D,U)
+=
+\sum_{h'=0}^{h_0}\sum_{h''=0}^{M_p}\sum_{h'''=0}^{M_f}
+\exp(-u-t_p-t)
+\frac{u^{h'}}{h'!}
+\frac{t_p^{h''}}{h''!}
+\frac{t^{h'''}}{h'''!}
+F(h',h'',h''';\mathcal D).
+\]
+Poisson prefix combinations exceeding a pool length have output zero. The estimator is independent of \(U\). Every denominator is a strictly positive public quantity or an integer count plus one, including for empty observed cells; all quantities in the construction are determined by the observed data and public parameters.
+\end{enumerate}
+\end{algorithmv}
+
+The zero-output branch for \(S<\exp(4096)\) is a proof device: bounded loss on that branch is absorbed into the universal comparison constant because the numerical rate is at least \(\exp(-4096)\). Thus the construction certifies the uniform minimax order with proof-oriented constants; the threshold should not be read as calibrated moderate-sample tuning.
+
+
+
+
+
+The rare-arm outcome scale \leanref{sym:S}{\ensuremath{S}} combines the complete-record sample size with the overlap floor. The total marginal-information budget \(N\) counts all records carrying treatment and covariate observations, and the regularized logarithm \leanref{sym:\ell}{\ensuremath{\ell}} depends on the outcome scale. Thus \(S^{-1}\) records the outcome-information component, while \(\{d/(N\epsilon\ell)\}^2\) records the many-cell component. The cap at one accommodates experiments with bounded information.
+
+The rate separates the precision associated with observing rare-arm outcomes from the precision associated with learning the treatment--covariate distribution across many cells. Increasing the auxiliary sample enlarges \(N\), reducing the many-cell term, while the complete-record outcome scale remains \(S\). A smaller overlap floor raises both terms and also reduces the logarithmic factor. The following theorem compares this rate with the minimax risk in \cref{obj:def:risk}; its upper bound is attained by the deterministic prefix-average estimator \leanref{sym:\widehat\tau}{\ensuremath{\widehat\tau}} specified in \cref{obj:def:estimator-handle}. The causal clause connects the observable target to \cref{obj:lem:causal-realization}.
+
+\begin{theoremv}{thm:uniform-annotation-frontier}[Uniform annotation frontier]
+There exist numerical constants \(0<c\le C<\infty\), independent of all public indices, such that the following holds for every experiment with:
+\begin{itemize}
+\item \textbf{(Sample sizes.)} Integers \(n\ge1\) and \(m\ge0\).
+\item \textbf{(Covariate alphabet.)} An integer \(d\ge2\).
+\item \textbf{(Overlap floor.)} A real parameter \(0<\epsilon\le1/4\).
+\end{itemize}
+The deterministic estimator \(\widehat\tau(\mathcal D,U)\) constructed in \cref{obj:def:estimator-handle} is Borel measurable, ignores the randomization seed \(U\), and takes values in \([-1,1]\) for every data realization. With \(R(n,m,d,\epsilon)\) the minimax squared-error risk from \cref{obj:def:risk} and \(r(n,m,d,\epsilon)\) the rate from \cref{obj:def:rate-handle},
+\[
+c\,r(n,m,d,\epsilon)
+\le R(n,m,d,\epsilon)
+\le \sup_{P\in\mathcal M_{d,\epsilon}}
+\mathbb E_P\!\left[
+\bigl(\widehat\tau(\mathcal D,U)-\tau(P)\bigr)^2
+\right]
+\le C\,r(n,m,d,\epsilon).
+\]
+Here \(\mathcal M_{d,\epsilon}\) is the observable model class in \cref{obj:def:model}, \(\tau(P)\) is the observable target in \cref{obj:def:target}, and the expectation uses the experiment specified in \cref{obj:def:risk}.
+
+Moreover, for every integer \(d\ge2\), every \(0<\epsilon\le1/4\), and every observable law \(P\in\mathcal M_{d,\epsilon}\), there exists a joint law \(H\) of the observed coordinates and binary potential outcomes \(Y_0,Y_1\) whose observed marginal is \(P\) and which satisfies \cref{obj:ass:consistency,obj:ass:exchangeability}. Every such law \(H\) satisfies
+\[
+\mathbb E_H[Y_1-Y_0]=\tau(P).
+\]
+\end{theoremv}
+
+The outcome-information component has a direct lower benchmark that applies both to the two-channel risk and to the exact-marginal risk in \cref{obj:def:known-risk}. The next theorem establishes it using two laws with a common treatment--covariate marginal, so auxiliary records cannot distinguish them.
+
+\begin{theoremv}{thm:rare-label-floor}[Uniform rare-label risk floors]
+There is a numerical constant \(c>0\), independent of all public indices, such that, for every \(n,m,d\in\mathbb N\) satisfying
+\begin{itemize}
+\item \textbf{(Complete-record sample size.)} \(n\ge 1\).
+\item \textbf{(Covariate alphabet.)} \(d\ge 2\).
+\item \textbf{(Overlap parameter.)} \(0<\epsilon\le 1/4\).
+\end{itemize}
+the minimax risks in \cref{obj:def:risk,obj:def:known-risk} satisfy
+\[
+R(n,m,d,\epsilon)\ge c\,b(n,\epsilon),
+\qquad
+R^{\mathrm K}(n,d,\epsilon)\ge c\,b(n,\epsilon),
+\qquad
+b(n,\epsilon)=\min\{1,(n\epsilon)^{-1}\}.
+\]
+The first bound applies to the infimum over all clipped Borel randomized original-record rules specified in \cref{obj:def:risk}.
+
+Moreover, for every \(d\in\mathbb N\), overlap parameter \(\epsilon\in\mathbb R\), and separation \(\delta\in\mathbb R\) satisfying
+\begin{itemize}
+\item \textbf{(Covariate alphabet.)} \(d\ge 2\).
+\item \textbf{(Overlap parameter.)} \(0<\epsilon\le 1/4\).
+\item \textbf{(Separation.)} \(0<\delta\le 1/8\).
+\end{itemize}
+the two complete-record laws \(P_+\) and \(P_-\) specified by
+\[
+\begin{aligned}
+p_j(P_\pm)&=\frac12,
+&
+e_j(P_\pm)&=\epsilon,
+&
+\mu_{0j}(P_\pm)&=\frac12,
+&
+\mu_{1j}(P_\pm)&=\frac12\pm\delta,
+&& j=1,2,\\
+p_j(P_\pm)&=0,
+&&&&&&&& j=3,\ldots,d
+\end{aligned}
+\]
+belong to \(\mathcal M_{d,\epsilon}\) of \cref{obj:def:model}. Their targets, defined in \cref{obj:def:target}, and treatment–covariate marginals satisfy
+\[
+\tau(P_+)=\delta,
+\qquad
+\tau(P_-)=-\delta,
+\qquad
+(P_+)_{XA}=(P_-)_{XA}.
+\]
+At \(\delta=1/8\), their one-record Kullback--Leibler divergence is exactly
+\[
+D(P_+\Vert P_-)
+=
+\sum_{z:\,P_+(z)>0}
+P_+(z)\log\frac{P_+(z)}{P_-(z)}
+=
+\frac{\epsilon}{4}\log\frac53,
+\]
+where \(z\) ranges over complete-record atoms and \(\log\) is the natural logarithm.
+\end{theoremv}
+
+The target separation is carried entirely by treated outcomes at the public overlap floor. The auxiliary observations and the supplied exact marginal have the same distribution under the two laws, so the floor persists for every auxiliary budget. We next compare the uniform rate with the rare-label benchmark, the fixed-overlap benchmark, and the exact-marginal experiment.
+
+\begin{propositionv}{prop:benchmark-recovery}[Benchmark recovery and oracle comparison]
+Let \(r(n,m,d,\epsilon)\), \(R(n,m,d,\epsilon)\), and \(R^{\mathrm K}(n,d,\epsilon)\) be as in \cref{obj:def:rate-handle,obj:def:risk,obj:def:known-risk}. Define the rare-label and fixed-overlap benchmark functions by
+\[
+b(n,\epsilon)=\min\left\{1,\frac{1}{n\epsilon}\right\},
+\qquad
+f(n,m,d)=\min\left\{1,\frac{1}{n}
++\frac{d^2}{(n+m)^2[\log(\exp(1)n)]^2}\right\}.
+\]
+The following statements hold.
+\begin{enumerate}
+\item For every fixed \(0<\epsilon\le 1/4\), there exist constants \(a,B_c>0\), depending only on \(\epsilon\), such that for all integers \(n\ge1\), \(m\ge0\), and \(d\ge2\),
+\[
+a f(n,m,d)\le r(n,m,d,\epsilon)\le B_c f(n,m,d).
+\]
+
+\item There exist numerical constants \(c,C>0\) such that for all integers \(n\ge1\), \(m\ge0\), and \(d\ge2\), and every \(0<\epsilon\le1/4\),
+\[
+c b(n,\epsilon)\le R(n,m,2,\epsilon)\le C b(n,\epsilon),
+\qquad
+c b(n,\epsilon)\le R^{\mathrm K}(n,d,\epsilon)\le C b(n,\epsilon).
+\]
+
+\item For all integers \(n\ge1\), \(m\ge1\), and \(d\ge2\), and every \(0<\epsilon\le1/4\),
+\[
+0\le R(n,m,d,\epsilon)-R^{\mathrm K}(n,d,\epsilon)
+\le \min\left\{1,6(n+2)\sqrt{\frac{2d}{m}}\right\}.
+\]
+
+\item For every fixed integer \(n\ge1\), integer \(d\ge2\), and \(0<\epsilon\le1/4\), the limit along integer auxiliary sample sizes satisfies
+\[
+\lim_{m\to\infty}R(n,m,d,\epsilon)=R^{\mathrm K}(n,d,\epsilon).
+\]
+
+\item For every real \(M_0>0\), there exists \(\kappa>0\), depending only on \(M_0\), such that for all integers \(n\ge1\), \(m\ge0\), and \(d\ge2\), and every \(0<\epsilon\le1/4\) satisfying \(n\epsilon\le M_0\),
+\[
+R(n,m,d,\epsilon)\ge\kappa.
+\]
+\end{enumerate}
+\end{propositionv}
+
+At fixed overlap, the first clause recovers the benchmark combining inverse complete-sample precision with a many-cell term governed by the total sample size and a squared logarithmic factor; only these comparison constants may depend on the chosen floor. With two covariate cells, the risk has rare-label order for every auxiliary budget, and supplying the exact marginal gives that order for every allowed alphabet size. At fixed \(n,d,\epsilon\), the third and fourth clauses additionally give an explicit comparison and convergence of the minimax risk to the exact-marginal risk as \(m\to\infty\). \Cref{sec:attaining-estimator} explains the construction in \cref{obj:def:estimator-handle} and compares its guarantee with an inverse-count baseline. The technical many-cell lower-bound construction and its testing comparison are presented through \cref{obj:def:prior-handle,obj:lem:normalized-affine-testing}.

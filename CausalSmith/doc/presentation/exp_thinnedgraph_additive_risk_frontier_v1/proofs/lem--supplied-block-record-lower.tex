@@ -1,0 +1,533 @@
+\begin{proof}[Proof of \cref{obj:lem:supplied-block-record-lower}]
+\begin{enumerate}
+\item The design assumptions identify the joint experimental law. Relabel the population as
+\[
+V=\{1,\ldots,n\},
+\qquad
+D=\operatorname{Law}(Z,W).
+\]
+The assignment marginal is a probability measure, so \(D\) is a probability measure. Independence and the two specified marginals give
+\[
+D
+=
+\operatorname{Law}(Z)\otimes\operatorname{Law}(W)
+=
+\left(\bigotimes_{j\in V}\operatorname{Bernoulli}(1/2)\right)
+\otimes
+\left(\bigotimes_{\substack{i,j\in V\\i\ne j}}
+\operatorname{Bernoulli}(q)\right),
+\]
+by \cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence}.
+We work with this product design, first for the complete-record risk and then for the supplied-graph risk.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.design_eq_thinnedDesign
+
+\item For the complete-record case, define the block size, block count, covered fraction, and amplitude by
+\[
+k_0=d+1,
+\qquad
+r_0=\left\lfloor\frac{n}{k_0}\right\rfloor,
+\qquad
+\rho=\frac{r_0k_0}{n},
+\qquad
+h=\frac{1}{100\pi}
+\sqrt{\min\left\{1,\frac{k_0^2}{n}\right\}}.
+\]
+Here \(2\le k_0\le n\), so \(r_0\ge1\) and every denominator is positive. The quantity under the square root is positive and at most one. Since \(\pi\ge2\),
+\[
+0<h\le\frac{1}{100\pi}\le\frac14,
+\qquad
+h^2=
+\frac{1}{10000\pi^2}
+\min\left\{1,\frac{k_0^2}{n}\right\}.
+\]
+To check coverage, define the integer remainder by
+\[
+\operatorname{rem}_0=n-r_0k_0.
+\]
+Euclidean division and \(r_0\ge1\) imply
+\[
+0\le\operatorname{rem}_0<k_0\le r_0k_0,
+\qquad
+n=r_0k_0+\operatorname{rem}_0\le2r_0k_0.
+\]
+Consequently,
+\[
+\frac12\le\rho\le1,
+\qquad
+\Delta:=\rho h>0.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlockLowerAmplitude_properties
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_coverage_ge_half
+
+\item Construct two priors on fixed schedules. Define the labeled blocks and their common graph by
+\[
+\mathcal B_v=\{(v-1)k_0+1,\ldots,vk_0\},
+\quad v=1,\ldots,r_0,
+\qquad
+G_{n,d}
+=
+\bigcup_{v=1}^{r_0}
+\{(j,i):i,j\in\mathcal B_v,\ j\ne i\}.
+\]
+Each block has \(k_0\) members. Both off-diagonal degrees are \(k_0-1=d\) on the blocks and zero on the remaining units.
+
+Use the baseline density of \cref{obj:lem:baseline-translation-affinity},
+\[
+f(w)=
+\begin{cases}
+4\cos^2(2\pi w),& |w|\le1/4,\\
+0,& |w|>1/4.
+\end{cases}
+\]
+It is nonnegative and integrable, and
+\[
+\int_{\mathbb R}f(w)\,dw
+=
+\int_{-1/4}^{1/4}4\cos^2(2\pi w)\,dw
+=
+\left[2w+\frac{\sin(4\pi w)}{2\pi}\right]_{-1/4}^{1/4}
+=1.
+\]
+Define the baseline-vector law by
+\[
+U=(U_1,\ldots,U_{r_0}),
+\qquad
+\operatorname{Law}(U)=\bigotimes_{v=1}^{r_0}f(w)\,dw.
+\]
+This is a probability law, and \(|U_v|\le1/4\) for every \(v\) almost surely.
+
+For \(\sigma\in\{-1,1\}\) and \(U\in\mathbb R^{r_0}\), let
+\(\theta^{\mathrm{cb}}_{\sigma,h}(U)\) be the schedule with graph \(G_{n,d}\) and coefficients
+\[
+a_i=
+\begin{cases}
+U_v-\sigma h/2,&i\in\mathcal B_v,\\
+0,&i>r_0k_0,
+\end{cases}
+\qquad
+t_i=
+\begin{cases}
+\sigma h/k_0,&i\le r_0k_0,\\
+0,&i>r_0k_0,
+\end{cases}
+\qquad
+b_{ij}=\frac{\sigma h}{k_0}
+\quad\bigl((j,i)\in G_{n,d}\bigr).
+\]
+For a supported baseline draw and \(i\in\mathcal B_v\),
+\[
+|a_i|+|t_i|+\sum_{j:(j,i)\in G_{n,d}}|b_{ij}|
+=
+|U_v-\sigma h/2|+\frac{h}{k_0}
++d\frac{h}{k_0}
+\le\frac14+\frac h2+h
+\le\frac58\le1.
+\]
+The corresponding expression is zero for a padding unit. Thus these schedules belong almost surely to the class in \cref{obj:def:model}.
+
+For a binary assignment \(z\in\{0,1\}^{V}\), define
+\[
+X_j(z)=2z_j-1,
+\qquad j\in V.
+\]
+The additive outcome formula gives
+\[
+Y_i(z)=
+\begin{cases}
+\displaystyle
+U_v-\frac{\sigma h}{2}
++\frac{\sigma h}{k_0}\sum_{j\in\mathcal B_v}z_j
+=
+U_v+\frac{\sigma h}{2k_0}
+\sum_{j\in\mathcal B_v}X_j(z),
+&i\in\mathcal B_v,\\[6pt]
+0,&i>r_0k_0.
+\end{cases}
+\]
+In particular,
+\[
+Y_i(\mathbf1)-Y_i(\mathbf0)=
+\begin{cases}
+\sigma h,&i\le r_0k_0,\\
+0,&i>r_0k_0,
+\end{cases}
+\qquad
+\tau\bigl(\theta^{\mathrm{cb}}_{\sigma,h}(U)\bigr)
+=
+\sigma\frac{r_0k_0h}{n}
+=\sigma\Delta.
+\]
+Define the priors by
+\[
+\Pi^{\mathrm{cb}}_{\sigma,h}
+=
+\operatorname{Law}\bigl(\theta^{\mathrm{cb}}_{\sigma,h}(U)\bigr).
+\]
+Under each prior the schedule is drawn before, and independently of, the experiment. The recording map is jointly measurable: its graph and assignment coordinates are finite, and its outcome coordinates are affine functions of \(U\) for each design draw.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_support
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_record_measurable
+
+\item Define the complete-record mixture laws by
+\[
+\mathsf Q_+
+=
+\int P_{\theta,q}\,\Pi^{\mathrm{cb}}_{1,h}(d\theta),
+\qquad
+\mathsf Q_-
+=
+\int P_{\theta,q}\,\Pi^{\mathrm{cb}}_{-1,h}(d\theta).
+\]
+The support, constant-target, and measurability requirements of
+\cref{obj:lem:full-record-two-prior-risk} have just been verified. It therefore supplies
+\[
+R_{n,d}(q)
+\ge
+\frac{\Delta^2}{2}
+\left(1-\operatorname{TV}(\mathsf Q_+,\mathsf Q_-)\right).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.full_record_two_prior_risk
+
+\item To bound this testing distance, retain the entire design draw \((z,w)\) and the vector \(y\in\mathbb R^{r_0}\) of distinct block responses. Define the shifts and response densities by
+\[
+\delta_{\sigma,v}(z)
+=
+\frac{\sigma h}{2k_0}
+\sum_{j\in\mathcal B_v}X_j(z),
+\qquad
+\sigma\in\{-1,1\},\quad v=1,\ldots,r_0,
+\]
+\[
+\lambda^{\mathrm{cb}}_{\sigma,h}(y\mid z,w)
+=
+\prod_{v=1}^{r_0}f\bigl(y_v-\delta_{\sigma,v}(z)\bigr).
+\]
+For every design draw these densities are nonnegative and normalized:
+\[
+\int_{\mathbb R^{r_0}}
+\lambda^{\mathrm{cb}}_{\sigma,h}(y\mid z,w)\,dy
+=
+\prod_{v=1}^{r_0}
+\int_{\mathbb R}f\bigl(y_v-\delta_{\sigma,v}(z)\bigr)\,dy_v
+=1.
+\]
+Indeed, translating \(U_v\) by \(\delta_{\sigma,v}(z)\) gives the density
+\(f(y_v-\delta_{\sigma,v}(z))\); taking the product gives the displayed vector density.
+
+Define the joint laws by
+\[
+\mathsf J_\pm(dz,dw,dy)
+=
+D(dz,dw)\,
+\lambda^{\mathrm{cb}}_{\pm1,h}(y\mid z,w)\,dy.
+\]
+These are precisely the laws of the full design draw together with
+\((U_v+\delta_{\pm1,v}(Z))_{v=1}^{r_0}\).
+
+For an audit array \(w\), define the retained graph by
+\[
+H(w)_{ij}
+=
+\mathbf1\{(j,i)\in G_{n,d}\}\,w_{ij},
+\qquad i\ne j.
+\]
+The common recording map is
+\[
+\mathcal C_{\mathrm{rec}}((z,w),y)
+=
+\left(
+H(w),\,z,\,
+\left(
+\begin{cases}
+y_v,&i\in\mathcal B_v,\\
+0,&i>r_0k_0
+\end{cases}
+\right)_{i\in V}
+\right).
+\]
+The outcome identity in the preceding construction proves
+\[
+O
+=
+\mathcal C_{\mathrm{rec}}
+\left((Z,W),(U_v+\delta_{\sigma,v}(Z))_{v=1}^{r_0}\right),
+\qquad
+\mathsf Q_\pm=(\mathcal C_{\mathrm{rec}})_\#\mathsf J_\pm.
+\]
+Here the subscript \(\#\) denotes the pushforward of a measure by the displayed map. The map is measurable, and its pushforward preserves the labeled retained graph and every treatment coordinate. Taking preimages of measurable events yields
+\[
+\operatorname{TV}(\mathsf Q_+,\mathsf Q_-)
+\le
+\operatorname{TV}(\mathsf J_+,\mathsf J_-).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_mixture_density_representation
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_mixture_tv_population_le
+
+\item Define the conditional squared Hellinger energy by
+\[
+\mathcal E_{\mathrm{cb}}(z,w)
+=
+\int_{\mathbb R^{r_0}}
+\left(
+\sqrt{\lambda^{\mathrm{cb}}_{1,h}(y\mid z,w)}
+-
+\sqrt{\lambda^{\mathrm{cb}}_{-1,h}(y\mid z,w)}
+\right)^2dy.
+\]
+The product-translation bound in
+\cref{obj:lem:baseline-translation-affinity} gives
+\[
+\mathcal E_{\mathrm{cb}}(z,w)
+\le
+\sum_{v=1}^{r_0}
+4\pi^2
+\bigl(\delta_{1,v}(z)-\delta_{-1,v}(z)\bigr)^2.
+\]
+
+Write \(X_j=X_j(Z)\) for the random treatment signs. Under the assignment marginal of \(D\),
+\[
+\mathbb E_D[X_j]=0,
+\qquad
+\mathbb E_D[X_j^2]=1,
+\qquad
+\mathbb E_D[X_iX_j]=0\quad(i\ne j).
+\]
+Expanding the square therefore gives, for every block,
+\[
+\mathbb E_D
+\left[\left(\sum_{j\in\mathcal B_v}X_j\right)^2\right]
+=
+\sum_{j\in\mathcal B_v}\mathbb E_D[X_j^2]
++
+\sum_{\substack{i,j\in\mathcal B_v\\i\ne j}}
+\mathbb E_D[X_iX_j]
+=k_0.
+\]
+Since
+\[
+\delta_{1,v}(Z)-\delta_{-1,v}(Z)
+=
+\frac{h}{k_0}\sum_{j\in\mathcal B_v}X_j,
+\]
+it follows that
+\[
+\mathbb E_D
+\left[
+\bigl(\delta_{1,v}(Z)-\delta_{-1,v}(Z)\bigr)^2
+\right]
+=
+\frac{h^2}{k_0}.
+\]
+Define the averaged energy by
+\[
+\mathcal E_{\mathrm{joint}}
+=
+\int\mathcal E_{\mathrm{cb}}(z,w)\,D(dz,dw).
+\]
+Integrating the conditional bound and using \(r_0k_0\le n\) gives
+\[
+\mathcal E_{\mathrm{joint}}
+\le
+4\pi^2h^2\frac{r_0}{k_0}
+\le
+4\pi^2h^2\frac{n}{k_0^2}.
+\]
+
+The common-marginal identity in
+\cref{obj:lem:baseline-translation-affinity} identifies
+\(\mathcal E_{\mathrm{joint}}\) as the unhalved squared Hellinger distance between \(\mathsf J_+\) and \(\mathsf J_-\).
+For completeness, the sharper total-variation comparison used here follows directly from Cauchy--Schwarz. Define the common reference measure by
+\[
+\mu_{\mathrm{cb}}(dz,dw,dy)=D(dz,dw)\,dy.
+\]
+Normalization and the definition of the energy imply
+\[
+\int
+\left(
+\sqrt{\lambda^{\mathrm{cb}}_{1,h}}
++
+\sqrt{\lambda^{\mathrm{cb}}_{-1,h}}
+\right)^2d\mu_{\mathrm{cb}}
+=
+4-\mathcal E_{\mathrm{joint}}.
+\]
+Consequently,
+\[
+\begin{aligned}
+\operatorname{TV}(\mathsf J_+,\mathsf J_-)
+&=
+\frac12\int
+\left|\lambda^{\mathrm{cb}}_{1,h}
+-\lambda^{\mathrm{cb}}_{-1,h}\right|d\mu_{\mathrm{cb}}\\
+&\le
+\frac12
+\sqrt{\mathcal E_{\mathrm{joint}}}
+\sqrt{4-\mathcal E_{\mathrm{joint}}}\\
+&=
+\sqrt{\mathcal E_{\mathrm{joint}}
+\left(1-\mathcal E_{\mathrm{joint}}/4\right)}
+\le
+\sqrt{\mathcal E_{\mathrm{joint}}}.
+\end{aligned}
+\]
+The densities in these integrals are evaluated at \((y\mid z,w)\). Together with the recording-map bound, this proves
+\[
+\operatorname{TV}(\mathsf Q_+,\mathsf Q_-)
+\le
+\sqrt{4\pi^2h^2\frac{n}{k_0^2}}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_shift_separation_moment
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_response_energy_population_le
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_densityJoint_tv_le
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_mixture_tv_population_le
+
+\item The amplitude calibration now gives
+\[
+4\pi^2h^2\frac{n}{k_0^2}
+=
+\min\left\{1,\frac{k_0^2}{n}\right\}
+\frac{n}{2500k_0^2}
+\le\frac1{2500},
+\]
+and hence
+\[
+\operatorname{TV}(\mathsf Q_+,\mathsf Q_-)\le\frac1{50}.
+\]
+Coverage and positivity give the separation comparisons
+\[
+\frac h2\le\rho h=\Delta,
+\qquad
+\frac{h^2}{4}\le\Delta^2.
+\]
+The exact squared-amplitude identity also gives
+\[
+\frac{1}{160000\pi^2}
+\min\left\{1,\frac{(d+1)^2}{n}\right\}
+=\frac{h^2}{16}.
+\]
+Substituting these comparisons into the complete-record two-prior bound yields
+\[
+\begin{aligned}
+R_{n,d}(q)
+&\ge
+\frac{\Delta^2}{2}
+\left(1-\operatorname{TV}(\mathsf Q_+,\mathsf Q_-)\right)\\
+&\ge
+\frac{h^2}{8}\left(1-\frac1{50}\right)
+\ge\frac{h^2}{16}\\
+&=
+\frac{1}{160000\pi^2}
+\min\left\{1,\frac{(d+1)^2}{n}\right\}.
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_testing_distance
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_risk_lower_assembly
+
+\item For the supplied-graph case, use the same amplitude and priors. Their support and target properties are
+\[
+\Pi^{\mathrm{cb}}_{\sigma,h}(\mathcal M_{n,d})=1,
+\qquad
+\tau\bigl(\theta^{\mathrm{cb}}_{\sigma,h}(U)\bigr)=\sigma\Delta,
+\qquad
+G\bigl(\theta^{\mathrm{cb}}_{\sigma,h}(U)\bigr)=G_{n,d}.
+\]
+Fix any measurable randomized rule \(T^G\) admitted by
+\cref{obj:def:supplied-risk}. Define its rule with the graph fixed, and its supplied-graph worst-case risk, by
+\[
+T_{\mathrm{fix}}(o,\xi)=T^G(o,G_{n,d},\xi),
+\qquad \xi\in[0,1],
+\]
+\[
+\mathcal W^G(T^G)
+=
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathbb E_{P_{\theta,q}\otimes\nu_\xi}
+\left[
+\bigl(T^G(O,G(\theta),\xi)-\tau(\theta)\bigr)^2
+\right],
+\qquad
+\nu_\xi=\operatorname{Uniform}[0,1].
+\]
+Inserting the constant finite graph is measurable. For every schedule in either prior,
+\[
+\bigl(T_{\mathrm{fix}}(O,\xi)-\tau(\theta)\bigr)^2
+=
+\bigl(T^G(O,G(\theta),\xi)-\tau(\theta)\bigr)^2.
+\]
+Integrating over the supported schedules therefore gives
+\[
+\int
+\bigl(T_{\mathrm{fix}}(o,\xi)-\Delta\bigr)^2
+\,d(\mathsf Q_+\otimes\nu_\xi)(o,\xi)
+\le\mathcal W^G(T^G),
+\]
+\[
+\int
+\bigl(T_{\mathrm{fix}}(o,\xi)+\Delta\bigr)^2
+\,d(\mathsf Q_-\otimes\nu_\xi)(o,\xi)
+\le\mathcal W^G(T^G).
+\]
+These are nonnegative integrals, so the identities and inequalities also hold when the risk is infinite.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.hardcodeSuppliedEstimator_sqLoss
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.mixture_seeded_risk_le_supplied_worst
+
+\item Adding the common independent seed preserves total variation:
+\[
+\operatorname{TV}
+(\mathsf Q_+\otimes\nu_\xi,\mathsf Q_-\otimes\nu_\xi)
+=
+\operatorname{TV}(\mathsf Q_+,\mathsf Q_-).
+\]
+Define the measurable testing event by
+\[
+\mathcal E_{\mathrm{err}}
+=
+\{(o,\xi):T_{\mathrm{fix}}(o,\xi)<0\}.
+\]
+The definition of total variation gives
+\[
+(\mathsf Q_+\otimes\nu_\xi)(\mathcal E_{\mathrm{err}})
++
+(\mathsf Q_-\otimes\nu_\xi)(\mathcal E_{\mathrm{err}}^c)
+\ge
+1-\operatorname{TV}(\mathsf Q_+,\mathsf Q_-).
+\]
+Because \(\Delta>0\), the pointwise loss comparisons are
+\[
+\bigl(T_{\mathrm{fix}}(o,\xi)-\Delta\bigr)^2
+\ge\Delta^2\mathbf1_{\mathcal E_{\mathrm{err}}}(o,\xi),
+\]
+\[
+\bigl(T_{\mathrm{fix}}(o,\xi)+\Delta\bigr)^2
+\ge\Delta^2\mathbf1_{\mathcal E_{\mathrm{err}}^c}(o,\xi).
+\]
+Integrating and using the two worst-case-risk comparisons proves
+\[
+2\mathcal W^G(T^G)
+\ge
+\Delta^2\left(1-\operatorname{TV}(\mathsf Q_+,\mathsf Q_-)\right).
+\]
+Division by the positive finite constant \(2\) is valid in the extended nonnegative reals. Infimizing over \(T^G\) thus yields
+\[
+R^G_{n,d}(q)
+\ge
+\frac{\Delta^2}{2}
+\left(1-\operatorname{TV}(\mathsf Q_+,\mathsf Q_-)\right).
+\]
+The same testing-distance and separation bounds give
+\[
+\begin{aligned}
+R^G_{n,d}(q)
+&\ge
+\frac{h^2}{8}\left(1-\frac1{50}\right)
+\ge\frac{h^2}{16}\\
+&=
+\frac{1}{160000\pi^2}
+\min\left\{1,\frac{(d+1)^2}{n}\right\}.
+\end{aligned}
+\]
+The construction has at least one full block throughout the stated parameter range, and the density comparison integrates over the full design law. These arguments apply for every \(q\in[0,1]\), including both endpoints, and for every measurable randomized estimator in the two risk definitions.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.two_prior_squared_testing
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_supplied_two_prior
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.completeBlock_supplied_risk_lower_assembly
+\end{enumerate}
+\end{proof}

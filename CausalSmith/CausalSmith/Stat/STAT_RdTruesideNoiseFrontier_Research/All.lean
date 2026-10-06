@@ -1,0 +1,11 @@
+module
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TDirectReduction
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TFiniteCertificate
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TPublishedClassConverseTransfer
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TUniformFrontier
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TUniformFrontierResolution
+
+/-! Complete endpoint-frontier scaffold import interface. -/
+
+public section

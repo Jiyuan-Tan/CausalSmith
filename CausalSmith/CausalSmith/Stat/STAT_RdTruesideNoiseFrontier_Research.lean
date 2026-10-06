@@ -1,0 +1,64 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.All
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Basic
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.CitedGates
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.ClassicalFactInterfaces
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Covariance
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DerivativeBounds
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DerivativeChains
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DerivativeCoefficients
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DirectGaussianChannel
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DirectLowerAssembly
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DirectTestingAssembly
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DirectWitness
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DirectZeroInformation
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DongInference
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.EmpiricalMoments
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.EmpiricalPopulationBridge
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.EmpiricalPopulationMoments
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.FrontierComparison
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.FrontierRoot
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.FrontierSequences
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.GaussianLikelihood
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Handle
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.HeatAlgebra
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.HeatHermite
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Kernel
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.LegalRegularity
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.LegendreBasis
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.LegendreBlock
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.LegendreFacts
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.LowerWitness
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.MarkedCells
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.MarkedConvolution
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.MarkedDomination
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.MatchedFrontierLower
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.MatchedFrontierUpper
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.ObservedCellDensity
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.PopulationBias
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Procedure
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Rate
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.ScalarRootCompact
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.ScalarRootCore
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.TwoPoint
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Witness
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.WitnessModel
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TDirectReduction
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TFiniteCertificate
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TPublishedClassConverseTransfer
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TUniformFrontier
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.TUniformFrontierResolution
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

@@ -1,0 +1,412 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Graph.DAG
+public import Causalean.Graph.DSep.Separation
+public import Causalean.Graph.SWIG
+public import Causalean.Graph.SWIGSplitMono
+public import Causalean.Graph.CComponents
+public import Causalean.SCM.Model.EdgeType
+public import Causalean.SCM.Model.SCM
+public import Causalean.SCM.ID.BackdoorCriterion
+public import Causalean.SCM.ID.GraphicalThms.DoGFormula
+
+/-! # Backdoor Adjustment Example
+
+This file constructs the canonical directed acyclic graph for backdoor
+adjustment, with a treatment, an outcome, an observed confounder, and latent root
+noise variables. The declarations `BDNode`, `bdEdge`, `bdDAG`, and `bdSWIG`
+define the graph and its standard SWIG representation. The examples check
+parents, roots, c-components, ID reachability, and the split-graph
+d-separation condition behind the graphical backdoor criterion; the final
+backdoor-criterion example verifies that the observed confounder is a valid
+adjustment set for the treatment-outcome effect.
+-/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+set_option linter.style.nativeDecide false
+
+namespace Causalean.SCM.Examples.BackDoor
+
+-- ============================================================
+-- Vertex type
+-- ============================================================
+
+/-- [The backdoor-example node type](goal) consists of
+[the treatment vertex](hyp:bdD), [the outcome vertex](hyp:bdY),
+[the observed-confounder vertex](hyp:bdZ),
+[the latent root for the confounder](hyp:bdU1),
+[the latent root for treatment](hyp:bdU2), and
+[the latent root for the outcome](hyp:bdU3). -/
+inductive BDNode
+  | bdD  -- treatment
+  | bdY  -- outcome
+  | bdZ  -- observed confounder
+  | bdU1 -- latent root for Z
+  | bdU2 -- latent root for D
+  | bdU3 -- latent root for Y
+  deriving DecidableEq
+
+open BDNode
+
+namespace instReprBDNode
+
+/--
+For each vertex of the backdoor-adjustment DAG and each natural-number precedence level, this
+method returns [a formatted textual rendering of that vertex](goal). There are no additional
+hypotheses or side conditions.
+
+This helper is the explicit form of the representation method that `deriving Repr` would generate.
+-/
+protected def repr : BDNode → Nat → Std.Format
+  | bdD, _ => "Causalean.SCM.Examples.BackDoor.BDNode.bdD"
+  | bdY, _ => "Causalean.SCM.Examples.BackDoor.BDNode.bdY"
+  | bdZ, _ => "Causalean.SCM.Examples.BackDoor.BDNode.bdZ"
+  | bdU1, _ => "Causalean.SCM.Examples.BackDoor.BDNode.bdU1"
+  | bdU2, _ => "Causalean.SCM.Examples.BackDoor.BDNode.bdU2"
+  | bdU3, _ => "Causalean.SCM.Examples.BackDoor.BDNode.bdU3"
+
+end instReprBDNode
+
+/-- [A textual representation structure for backdoor-example vertices](goal) is provided by
+[rendering each vertex through its fully qualified constructor name](step:1). -/
+instance instReprBDNode : Repr BDNode where
+  reprPrec := instReprBDNode.repr
+
+/-- [A finite enumeration of the backdoor-example node type](goal) is provided by
+[the collection of its six named vertices](step:1) together with
+[the assertion that every backdoor-example vertex belongs to that collection](step:2). -/
+instance : Fintype BDNode where
+  elems := {bdD, bdY, bdZ, bdU1, bdU2, bdU3}
+  complete := by intro x; cases x <;> simp
+
+-- ============================================================
+-- Edge relation
+-- ============================================================
+
+/-- [The backdoor-edge relation](goal) contains exactly
+[the arrow from the observed confounder to treatment](step:1),
+[the arrow from the observed confounder to outcome](step:2),
+[the arrow from treatment to outcome](step:3),
+[the arrow from the first latent root to the confounder](step:4),
+[the arrow from the second latent root to treatment](step:5), and
+[the arrow from the third latent root to outcome](step:6);
+[all other ordered pairs have no edge](step:7). -/
+def bdEdge : BDNode → BDNode → Prop
+  | bdZ,  bdD  => True
+  | bdZ,  bdY  => True
+  | bdD,  bdY  => True
+  | bdU1, bdZ  => True
+  | bdU2, bdD  => True
+  | bdU3, bdY  => True
+  | _,    _    => False
+
+/-- For every ordered pair of backdoor-example vertices,
+[a decision procedure for whether the pair is a directed edge](goal) is provided. -/
+instance : DecidableRel bdEdge := by
+  intro a b; cases a <;> cases b <;> simp [bdEdge] <;> infer_instance
+
+-- ============================================================
+-- Topological order
+-- ============================================================
+
+/-- [The topological-order label for the backdoor graph](goal)
+[assigns label 0 to the first latent root](step:1),
+[label 1 to the second latent root](step:2),
+[label 2 to the third latent root](step:3),
+[label 3 to the observed confounder](step:4),
+[label 4 to treatment](step:5), and [label 5 to outcome](step:6). -/
+def bdTopo : BDNode → ℕ
+  | bdU1 => 0
+  | bdU2 => 1
+  | bdU3 => 2
+  | bdZ  => 3
+  | bdD  => 4
+  | bdY  => 5
+
+/-- [Every edge of the backdoor-example graph connects a node with a strictly smaller assigned
+order label to one with a strictly larger label — the chosen ordering is a valid topological order
+for the graph](goal). -/
+theorem bdTopo_lt : ∀ u v, bdEdge u v → bdTopo u < bdTopo v := by
+  intro u v h; cases u <;> cases v <;> simp_all [bdEdge, bdTopo]
+
+-- ============================================================
+-- The DAG
+-- ============================================================
+
+/-- [The backdoor-adjustment directed acyclic graph](goal) has the specified edge relation and
+the displayed topological ordering, and is therefore acyclic. -/
+def bdDAG : DAG BDNode where
+  edge := bdEdge
+  decEdge := inferInstance
+  acyclic := DAG.acyclic_of_topoOrder bdTopo_lt
+
+-- ============================================================
+-- Testing DAG.lean: parents and roots
+-- ============================================================
+
+-- Z and U₂ are parents of D
+example : bdZ  ∈ bdDAG.parents bdD := by decide
+example : bdU2 ∈ bdDAG.parents bdD := by decide
+
+-- Z, D, U₃ are parents of Y
+example : bdZ  ∈ bdDAG.parents bdY := by decide
+example : bdD  ∈ bdDAG.parents bdY := by decide
+example : bdU3 ∈ bdDAG.parents bdY := by decide
+
+-- Latent roots have no parents
+example : bdDAG.parents bdU1 = ∅ := by decide
+example : bdDAG.parents bdU2 = ∅ := by decide
+example : bdDAG.parents bdU3 = ∅ := by decide
+
+-- U₁, U₂, U₃ are roots; D, Y, Z are not
+example : bdDAG.isRoot bdU1 := by decide
+example : bdDAG.isRoot bdU2 := by decide
+example : bdDAG.isRoot bdU3 := by decide
+example : ¬bdDAG.isRoot bdD := by decide
+example : ¬bdDAG.isRoot bdY := by decide
+example : ¬bdDAG.isRoot bdZ := by decide
+
+-- ============================================================
+-- Testing DSep.lean: d-separation in the full DAG
+-- ============================================================
+
+-- Y and D are NOT d-separated by ∅ (direct edge D → Y)
+example : ¬bdDAG.dSep {bdY} {bdD} ∅ := by decide
+
+-- Even conditioning on Z, D and Y are not d-separated because the direct edge D → Y remains open.
+example : ¬bdDAG.dSep {bdD} {bdY} {bdZ} := by decide
+
+-- Z d-separates Y from D in the *interventional* graph (see splitMono below)
+
+-- Instrument: Z and U₂ are NOT d-separated by ∅ (path Z → D ← U₂ is blocked by D;
+-- but Z → D is direct, so Z and D are not d-sep by ∅)
+example : ¬bdDAG.dSep {bdZ} {bdD} ∅ := by decide
+
+-- U₁ and U₂ are d-separated by ∅ (no path between them)
+example : bdDAG.dSep {bdU1} {bdU2} ∅ := by decide
+
+-- ============================================================
+-- SWIG graph (standard model, no intervention)
+-- ============================================================
+
+/-- [The pre-intervention SWIG graph for the backdoor example](goal) has the backdoor directed
+acyclic graph, no fixed nodes, treatment, outcome, and confounder as observed random nodes,
+and the three latent roots as unobserved random nodes.
+
+The treatment, outcome, and confounder are observed random nodes, while the three
+latent roots are unobserved random nodes. -/
+def bdSWIG : SWIGGraph BDNode where
+  dag := initialSWIG bdDAG
+  fixed := ∅
+  observed := {SWIGNode.random bdD, SWIGNode.random bdY, SWIGNode.random bdZ}
+  unobserved := {SWIGNode.random bdU1, SWIGNode.random bdU2, SWIGNode.random bdU3}
+  fixed_is_fixed := by intro s hs; simp at hs
+  observed_is_random := by
+    intro v hv; simp at hv
+    rcases hv with rfl | rfl | rfl <;> exact ⟨_, rfl⟩
+  unobserved_is_random := by
+    intro u hu; simp at hu
+    rcases hu with rfl | rfl | rfl <;> exact ⟨_, rfl⟩
+  obs_unobs_disjoint := by decide
+  dag_edges_classified := by decide
+  fixed_image_in_observed := by intro s hs; simp at hs
+  fixed_are_roots := by intro s hs; simp at hs
+  unobs_are_roots := by
+    intro u hu; simp at hu
+    rcases hu with rfl | rfl | rfl
+    · simpa [initialSWIG] using
+        swig_random_root_of_root bdDAG ∅ bdU1 (by decide : bdDAG.parents bdU1 = ∅)
+    · simpa [initialSWIG] using
+        swig_random_root_of_root bdDAG ∅ bdU2 (by decide : bdDAG.parents bdU2 = ∅)
+    · simpa [initialSWIG] using
+        swig_random_root_of_root bdDAG ∅ bdU3 (by decide : bdDAG.parents bdU3 = ∅)
+  fixed_outside_fixed_isolated := by
+    intro n _
+    cases n <;> exact ⟨by decide, by decide⟩
+  all_children_in_observed := by decide
+
+-- ============================================================
+-- C-components
+-- ============================================================
+
+-- D and Y share no unobserved parent in this DAG (their unobserved parents are distinct)
+example : ¬bdSWIG.directlyConfounded (SWIGNode.random bdD) (SWIGNode.random bdY) := by decide
+
+-- D and Z share no unobserved parent
+example : ¬bdSWIG.directlyConfounded (SWIGNode.random bdD) (SWIGNode.random bdZ) := by decide
+
+-- Each observed node is its own singleton C-component
+example : bdSWIG.cComponentOf (SWIGNode.random bdD) = {SWIGNode.random bdD} := by decide
+example : bdSWIG.cComponentOf (SWIGNode.random bdY) = {SWIGNode.random bdY} := by decide
+example : bdSWIG.cComponentOf (SWIGNode.random bdZ) = {SWIGNode.random bdZ} := by decide
+
+example : Causalean.SCM.ID.idSucceeds ({bdD} : Finset BDNode)
+    ({SWIGNode.random bdY} : Finset (SWIGNode BDNode)) bdSWIG := by
+  let hX : Causalean.SCM.ID.interventionValid {bdD} bdSWIG := by
+    refine ⟨?_, ?_⟩
+    · intro D hD
+      simp at hD
+      subst hD
+      decide
+    · intro D hD
+      simp at hD
+      subst hD
+      decide
+  refine ⟨hX, ?_, ?_, ?_⟩
+  · decide
+  · decide
+  · intro S hS
+    rw [SWIGGraph.cComponentSet] at hS
+    rcases Finset.mem_image.mp hS with ⟨a, haObs, rfl⟩
+    simp [SWIGGraph.induce] at haObs
+    rcases haObs with ⟨haAnc, haObsOrig⟩
+    simp [bdSWIG] at haObsOrig
+    rcases haObsOrig with rfl | rfl | rfl
+    · have hnot :
+          SWIGNode.random bdD ∉
+            (bdSWIG.splitMono {bdD} hX.1 hX.2).dag.ancestralSet {SWIGNode.random bdY} := by
+        simp [SWIGGraph.splitMono]
+        decide
+      exact False.elim (hnot haAnc)
+    · have hComp :
+          ((bdSWIG.splitMono {bdD} hX.1 hX.2).induce
+              ((bdSWIG.splitMono {bdD} hX.1 hX.2).dag.ancestralSet
+                {SWIGNode.random bdY})).cComponentOf (SWIGNode.random bdY) =
+            {SWIGNode.random bdY} := by
+        simp [SWIGGraph.splitMono, SWIGGraph.induce]
+        decide
+      rw [hComp]
+      unfold Causalean.SCM.ID.cFactorReachable Causalean.SCM.ID.containingCComponent
+      refine ⟨by simp, ?_, ?_⟩
+      · intro v hv
+        simp at hv
+        have hOrigComp :
+            bdSWIG.cComponentOf (SWIGNode.random bdY) = {SWIGNode.random bdY} := by
+          decide
+        subst v
+        split
+        · rename_i hne
+          have hchoose :
+              Exists.choose hne = SWIGNode.random bdY := by
+            have hmem := Exists.choose_spec hne
+            simpa using hmem
+          rw [hchoose, hOrigComp]
+          simp
+        · rename_i hne
+          exact False.elim (hne (by simp))
+      · rw [SWIGGraph.cComponentSet]
+        refine Finset.mem_image.mpr ⟨SWIGNode.random bdY, by decide, ?_⟩
+        decide
+    · have hComp :
+          ((bdSWIG.splitMono {bdD} hX.1 hX.2).induce
+              ((bdSWIG.splitMono {bdD} hX.1 hX.2).dag.ancestralSet
+                {SWIGNode.random bdY})).cComponentOf (SWIGNode.random bdZ) =
+            {SWIGNode.random bdZ} := by
+        simp [SWIGGraph.splitMono, SWIGGraph.induce]
+        decide
+      rw [hComp]
+      unfold Causalean.SCM.ID.cFactorReachable Causalean.SCM.ID.containingCComponent
+      refine ⟨by simp, ?_, ?_⟩
+      · intro v hv
+        simp at hv
+        have hOrigComp :
+            bdSWIG.cComponentOf (SWIGNode.random bdZ) = {SWIGNode.random bdZ} := by
+          decide
+        subst v
+        split
+        · rename_i hne
+          have hchoose :
+              Exists.choose hne = SWIGNode.random bdZ := by
+            have hmem := Exists.choose_spec hne
+            simpa using hmem
+          rw [hchoose, hOrigComp]
+          simp
+        · rename_i hne
+          exact False.elim (hne (by simp))
+      · rw [SWIGGraph.cComponentSet]
+        refine Finset.mem_image.mpr ⟨SWIGNode.random bdZ, by decide, ?_⟩
+        decide
+
+-- ============================================================
+-- Backdoor criterion: condition (ii) via splitMono
+--
+-- The backdoor criterion for (D → Y) w.r.t. adjustment set Z requires:
+--   (ii) Z d-separates Y from D in the lower-bar graph G_{D̄},
+--        i.e., the graph where all edges INTO D are removed.
+-- In SWIG terms this is `bdSWIG.splitMono {bdD}`:
+--   the split reroutes D's incoming edges so that `.random bdD` has no parents,
+--   while `.fixed bdD` carries D's outgoing edges.
+-- We demonstrate (ii) directly:
+-- ============================================================
+
+-- Demonstrates condition (ii) of the backdoor criterion directly:
+-- Z d-seps Y from D in the lower-bar graph (= bdSWIG.splitMono {bdD}).
+-- We use the underlying computable DAG `splitMonoDAG` directly (since `splitMono`
+-- is noncomputable due to its SWIGGraph fields, but the DAG is fully computable).
+example : (bdSWIG.splitMonoDAG {bdD}).dSep
+    {SWIGNode.random bdY} {SWIGNode.random bdD} {SWIGNode.random bdZ} := by decide
+
+-- Condition (i): Z contains no descendant of D
+-- (bdZ is not a descendant of bdD in bdDAG)
+example : ¬bdDAG.isAncestor bdD bdZ := by decide
+
+-- ============================================================
+-- Edge type assignment
+-- ============================================================
+
+/-- [The edge-type assignment for the backdoor graph](goal) classifies every graph edge as
+nonparametric. -/
+def bdEdgeTypes : Causalean.SCM.Model.EdgeTypeAssignment bdDAG :=
+  EdgeTypeAssignment.allNonparametric bdDAG
+
+example : EdgeTypeAssignment.isFullyNonparametric bdEdgeTypes := by
+  intro u v _; rfl
+
+-- ============================================================
+-- Backdoor criterion (graph-level): (D, Y) with adjustment set {Z}
+-- ============================================================
+
+/-- The observed confounder
+[satisfies the graphical backdoor criterion for the treatment-outcome effect](goal) in this
+example. -/
+example :
+    Causalean.SWIGGraph.backdoorCriterion bdSWIG {bdD}
+      (by intro D hD; simp at hD; subst hD; decide)
+      (by intro D hD; simp at hD; subst hD; decide)
+      {SWIGNode.random bdY}
+      {SWIGNode.random bdZ} := by
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · -- Guard: {Z} is observed.
+    intro z hz
+    simp at hz
+    subst hz
+    decide
+  · -- Guard: {Z} is disjoint from {Y}.
+    decide
+  · -- Guard: {Z} is disjoint from {D}.
+    decide
+  · -- Condition (i): {Z} contains no descendant of any random D
+    intro z hz D hD
+    simp at hz hD
+    subst hz; subst hD
+    decide
+  · -- Condition (ii): Z d-separates Y from X in splitMono.
+    -- `splitMono` is noncomputable, but `splitMono.dag = splitMonoDAG`
+    -- definitionally, so we discharge via the computable `splitMonoDAG`
+    -- decided natively (inlined to keep the goal free of free variables
+    -- that would trip up `decide`).
+    exact (by decide :
+      (bdSWIG.splitMonoDAG {bdD}).dSep
+        {SWIGNode.random bdY} (Finset.image SWIGNode.random {bdD})
+        ({SWIGNode.random bdZ} ∪ Finset.image SWIGNode.fixed {bdD}))
+
+end Causalean.SCM.Examples.BackDoor

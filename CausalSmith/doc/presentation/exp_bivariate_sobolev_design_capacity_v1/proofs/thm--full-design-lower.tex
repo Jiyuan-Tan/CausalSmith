@@ -1,0 +1,243 @@
+\begin{proof}[Proof of \cref{obj:thm:full-design-lower}]
+Fix \(s\in(0,1]\) and integers \(n,d\geq2\). We use the parameters and features of \cref{obj:def:cosine-prior}, written explicitly as
+\[
+B=\binom d2,\qquad
+L=\max\left\{1,\left\lceil\sqrt{4096n/B}\right\rceil\right\},
+\qquad
+M=BL^2,\qquad
+C_0=\sqrt{48+32\pi^2},
+\]
+\[
+\mathcal I_{d,L}
+=\{(j,h,k,\ell):1\leq j<h\leq d,\ 1\leq k,\ell\leq L\},
+\qquad
+V_\alpha(x)=2\cos(\pi kx_j)\cos(\pi\ell x_h),
+\qquad
+V(x)=(V_\alpha(x))_{\alpha\in\mathcal I_{d,L}}.
+\]
+Thus \(B>0\), \(L\geq1\), \(M>0\), and \(C_0>0\).
+
+\begin{enumerate}
+\item
+The constant
+\[
+c_s=\frac{2}{(48+32\pi^2)\,16384^s}>0
+\]
+depends on \(s\) alone. We first compare it with the cutoff normalization. Define
+\[
+\eta_{\mathrm{cut}}=\frac{4096n}{B},
+\qquad
+\Gamma_{\mathrm{cut}}=\max\{1,n/B\},
+\qquad
+\Lambda_{\mathrm{cut}}=16384^s.
+\]
+Since \(\eta_{\mathrm{cut}}\leq4096\Gamma_{\mathrm{cut}}\) and
+\(\Gamma_{\mathrm{cut}}\geq1\), the ceiling bound gives
+\[
+\sqrt{\eta_{\mathrm{cut}}}\leq64\sqrt{\Gamma_{\mathrm{cut}}},
+\qquad
+\left\lceil\sqrt{\eta_{\mathrm{cut}}}\right\rceil
+\leq\sqrt{\eta_{\mathrm{cut}}}+1,
+\]
+and hence
+\[
+L\leq64\sqrt{\Gamma_{\mathrm{cut}}}+1
+\leq128\sqrt{\Gamma_{\mathrm{cut}}},
+\qquad
+L^2\leq16384\Gamma_{\mathrm{cut}}.
+\]
+Raising the last inequality to the positive power \(s\) yields
+\[
+L^{2s}=(L^2)^s
+\leq\Lambda_{\mathrm{cut}}\Gamma_{\mathrm{cut}}^s.
+\]
+
+We next verify the scale comparison in its two cases. If \(n/B\leq1\), then
+\[
+b_s(n,d)\Gamma_{\mathrm{cut}}^s=b_s(n,d)\leq1.
+\]
+If \(n/B>1\), then
+\[
+\begin{aligned}
+b_s(n,d)\Gamma_{\mathrm{cut}}^s
+&\leq (B/n)^s(n/B)^s\\
+&=\bigl((B/n)(n/B)\bigr)^s=1.
+\end{aligned}
+\]
+Because \(b_s(n,d)\geq0\) and \(\Lambda_{\mathrm{cut}}>0\), these inequalities imply
+\[
+L^{2s}b_s(n,d)
+\leq\Lambda_{\mathrm{cut}}
+       b_s(n,d)\Gamma_{\mathrm{cut}}^s
+\leq\Lambda_{\mathrm{cut}}.
+\]
+Using \(C_0^2=48+32\pi^2\) and positive denominators, we obtain
+\[
+c_sb_s(n,d)
+=\frac{2b_s(n,d)}{C_0^2\Lambda_{\mathrm{cut}}}
+\leq\frac{2}{C_0^2L^{2s}}.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.priorCutoff_sq_upper
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.priorCutoff_normalized_lower
+
+\item
+Fix an admissible design \(\pi\in\mathcal D_{n,d,s}\). With \(X\) drawn as in
+\cref{obj:ass:uniform-draw} and \(Z\) drawn conditionally from \(\pi(X)\), write the scaled signing loss appearing in \cref{obj:def:criterion} as
+\[
+\mathcal L_{n,d,s}(\pi,m)
+=\frac4n\mathbb E_{X,Z}
+ \left[\left(\sum_{i=1}^n Z_i m(X_i)\right)^2\right].
+\]
+The coefficient signs have the independent uniform law of
+\cref{obj:def:cosine-prior}, independently of this experiment. Their second moments satisfy
+\[
+\mathbb E_\xi[\xi_\alpha\xi_\beta]
+=
+\begin{cases}
+1,&\alpha=\beta,\\
+0,&\alpha\ne\beta.
+\end{cases}
+\]
+For the first case, \(\xi_\alpha^2=1\). For the second, flipping the sign at
+\(\alpha\) preserves the uniform coefficient law and reverses the product
+\(\xi_\alpha\xi_\beta\), so its mean is zero.
+
+For every deterministic sample
+\(x=(x_1,\ldots,x_n)\in([0,1]^d)^n\) and signing
+\(z\in\{-1,1\}^n\), the prior formula gives
+\[
+\sum_{i=1}^n z_i m_\xi(x_i)
+=\frac{1}{C_0L^s\sqrt M}
+ \sum_{\alpha\in\mathcal I_{d,L}}
+ \xi_\alpha\sum_{i=1}^n z_iV_\alpha(x_i).
+\]
+Expanding the square and applying the second-moment identity therefore gives
+\[
+\begin{aligned}
+\mathbb E_\xi
+ \left[\left(\sum_{i=1}^n z_i m_\xi(x_i)\right)^2\right]
+&=\frac{1}{C_0^2L^{2s}M}
+ \sum_{\alpha,\beta\in\mathcal I_{d,L}}
+ \mathbb E_\xi[\xi_\alpha\xi_\beta]
+ \left(\sum_i z_iV_\alpha(x_i)\right)
+ \left(\sum_i z_iV_\beta(x_i)\right)\\
+&=\frac{1}{C_0^2L^{2s}M}
+ \sum_{\alpha\in\mathcal I_{d,L}}
+ \left(\sum_i z_iV_\alpha(x_i)\right)^2\\
+&=\frac{1}{C_0^2L^{2s}M}
+ \left\|\sum_i z_iV(x_i)\right\|_2^2.
+\end{aligned}
+\]
+Finite coefficient averaging commutes with the nonnegative sample and assignment integrals. Consequently,
+\[
+\mathbb E_\xi\mathcal L_{n,d,s}(\pi,m_\xi)
+=\frac{4}{nC_0^2L^{2s}M}
+ \mathbb E_{X,Z}
+ \left\|\sum_i Z_iV(X_i)\right\|_2^2.
+\]
+For each fixed sample \(x\), the probability kernel satisfies
+\[
+\int_{\{-1,1\}^n}
+ \left\|\sum_i z_iV(x_i)\right\|_2^2\,\pi(x,dz)
+\geq
+\min_{z\in\{-1,1\}^n}
+ \left\|\sum_i z_iV(x_i)\right\|_2^2.
+\]
+Integrating this pointwise comparison yields
+\[
+\mathbb E_\xi\mathcal L_{n,d,s}(\pi,m_\xi)
+\geq
+\frac{4}{nC_0^2L^{2s}M}
+\mathbb E_X
+ \min_{z\in\{-1,1\}^n}
+ \left\|\sum_i z_iV(X_i)\right\|_2^2.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.coefficientSigns_product_integral
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.coefficientSigns_sum_second_moment
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.mXi_signed_sum_prior_second_moment
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.priorRisk_eq_feature_energy
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.priorRisk_ge_min_feature_energy
+
+\item
+The cutoff also supplies the feature-dimension threshold. Indeed,
+\[
+\sqrt{4096n/B}
+\leq\left\lceil\sqrt{4096n/B}\right\rceil
+\leq L.
+\]
+Squaring these nonnegative quantities and multiplying by \(B>0\) gives
+\[
+\frac{4096n}{B}\leq L^2,
+\qquad
+4096n\leq BL^2=M.
+\]
+Under \cref{obj:ass:uniform-draw}, the feature rows \(V(X_i)\) are independent copies. Their coordinates are measurable and square-integrable, and
+\cref{obj:lem:cosine-prior} supplies
+\[
+\mathbb E\!\left[V(X_1)V(X_1)^{\mathsf T}\right]=I_M.
+\]
+The expected absolute-supremum contraction inequality of
+\citep[Theorem~12(4), with Rademacher complexity as in Definition~2]{BartlettMendelson2002Complexities}
+supplies the contraction step underlying \cref{obj:lem:isotropic-row-signing}, for its finite classes and finite-dimensional Euclidean unit-ball linear class. Applying that signing bound with feature dimension \(M\geq4096n\) gives
+\[
+\mathbb E_X
+ \min_{z\in\{-1,1\}^n}
+ \left\|\sum_i z_iV(X_i)\right\|_2^2
+\geq\frac{nM}{2}.
+\]
+The finite minimum is measurable, so this is the same sample integral that appears in the preceding step.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.priorCutoff_dimension_lower
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.prior_min_feature_energy_lower
+
+\item
+Substituting the feature-energy bound into the prior-risk comparison and cancelling the positive factors gives
+\[
+\begin{aligned}
+\mathbb E_\xi\mathcal L_{n,d,s}(\pi,m_\xi)
+&\geq
+\frac4n\left(\frac{1}{C_0L^s\sqrt M}\right)^2
+\frac{nM}{2}\\
+&=\frac{2}{C_0^2L^{2s}}\\
+&\geq c_sb_s(n,d).
+\end{aligned}
+\]
+The final inequality uses the cutoff comparison \(c_sb_s(n,d)\leq 2/(C_0^2L^{2s})\). This proves the asserted prior lower bound for every admissible design.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.priorRisk_ge_normalized_cutoff
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.full_design_lower
+
+\item
+Since \(d\geq2\), \(L\geq1\), and \(0<s\leq1\),
+\cref{obj:lem:cosine-prior} ensures that every prior realization belongs to
+\(\mathcal H_{d,s}\). The coefficient index set has cardinality \(M\), so its uniform law has total mass
+\[
+\sum_{\xi\in\{-1,1\}^{\mathcal I_{d,L}}}2^{-M}=1.
+\]
+For each fixed admissible \(\pi\), every prior atom satisfies
+\[
+\mathcal L_{n,d,s}(\pi,m_\xi)
+\leq
+\sup_{m\in\mathcal H_{d,s}}\mathcal L_{n,d,s}(\pi,m).
+\]
+Multiplying by the prior weights and summing therefore yields
+\[
+\begin{aligned}
+\mathbb E_\xi\mathcal L_{n,d,s}(\pi,m_\xi)
+&=\sum_{\xi\in\{-1,1\}^{\mathcal I_{d,L}}}
+ 2^{-M}\mathcal L_{n,d,s}(\pi,m_\xi)\\
+&\leq
+\left(\sum_{\xi\in\{-1,1\}^{\mathcal I_{d,L}}}2^{-M}\right)
+\sup_{m\in\mathcal H_{d,s}}\mathcal L_{n,d,s}(\pi,m)\\
+&=\sup_{m\in\mathcal H_{d,s}}\mathcal L_{n,d,s}(\pi,m).
+\end{aligned}
+\]
+Thus every admissible design has worst-case loss at least \(c_sb_s(n,d)\). Taking the infimum in \cref{obj:def:criterion} gives
+\[
+R_s(n,d)
+=\inf_{\pi\in\mathcal D_{n,d,s}}
+ \sup_{m\in\mathcal H_{d,s}}\mathcal L_{n,d,s}(\pi,m)
+\geq c_sb_s(n,d).
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.priorRisk_le_worstLoss_of_legal
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.capacity_lower_of_priorRisk
+\end{enumerate}
+\end{proof}

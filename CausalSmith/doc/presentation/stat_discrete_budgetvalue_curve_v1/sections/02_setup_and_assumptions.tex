@@ -1,0 +1,220 @@
+\section{Setup and assumptions}
+
+Let \leanref{sym:d}{\ensuremath{d}} denote the known number of covariate cells, with \(d\ge2\), and let \leanref{sym:[d]}{\ensuremath{[d]}} denote their index set. The sample size is \leanref{sym:n}{\ensuremath{n}}; we use \leanref{sym:j}{\ensuremath{j}} for a cell index and \leanref{sym:a}{\ensuremath{a}} for an arm index in \(\{0,1\}\). For nonnegative sequences, \(r_{n,d}\lesssim s_{n,d}\) means \(r_{n,d}\le C s_{n,d}\), where \(C\) is independent of \(n,d\) but may depend on fixed overlap; \(\asymp\) denotes the corresponding two-sided comparison. The norm \(\|h\|_\infty\) is the supremum norm on the indicated domain.
+
+Let \leanref{sym:P}{\ensuremath{P}} be a full-data causal law for the covariate \leanref{sym:X}{\ensuremath{X}}, treatment \leanref{sym:A}{\ensuremath{A}}, and potential outcomes \leanref{sym:Y(a)}{\ensuremath{Y(a)}}. Treatment selects the observed outcome \leanref{sym:Y}{\ensuremath{Y}}, so an observed record is \leanref{sym:O}{\ensuremath{O=(X,A,Y)}}. The observation map makes the relation between the full-data law and its observed margin explicit. For the observed sample \leanref{sym:O^{(n)}}{\ensuremath{O^{(n)}=(O_1,\ldots,O_n)}}, we impose independent superpopulation sampling.
+
+\begin{assumptionv}{ass:iid-sampling}[Independent observed records]
+The observed records \(O_1,\ldots,O_n\) are independent and identically distributed under the observed margin of \(P\).
+\end{assumptionv}
+
+Independent superpopulation sampling makes the observed margin the common law of every record and supplies the product-law experiment used in the risk criterion \citep{vanDerVaart1998}. The identification conditions concern how that margin relates to potential outcomes. First, consistency connects each recorded outcome to the potential outcome under the received treatment.
+
+\begin{assumptionv}{ass:consistency}[Consistency of observed outcomes]
+\(Y=Y(A)\) almost surely.
+\end{assumptionv}
+
+Consistency is the standard link between observed and potential outcomes \citep{HernanRobins2020}. The observation map records this link atomwise.
+
+\begin{assumptionv}{ass:conditional-exchangeability}[Conditional exchangeability of treatment]
+Under \(P\), \((Y(0),Y(1))\perp A\mid X\).
+\end{assumptionv}
+
+Conditional exchangeability then relates treatment assignment to the two potential outcomes within each covariate cell.
+
+\begin{definitionv}{synth_1}[Observations from potential outcomes]
+For \(d\in\mathbb N\), let \(P\) be a full-data causal law on \((X,A,Y(0),Y(1))\), where \(X\) ranges over a \(d\)-element alphabet and \(A,Y(0),Y(1)\in\{0,1\}\). The associated full observation is defined atomwise by
+\[
+(X,A,Y(0),Y(1))\longmapsto
+\bigl(X,A,Y(A),Y(0),Y(1)\bigr),
+\qquad
+Y(A)=
+\begin{cases}
+Y(1),& A=1,\\
+Y(0),& A=0.
+\end{cases}
+\]
+The observed margin of \(P\) is the law of \((X,A,Y(A))\).
+\end{definitionv}
+
+Conditional exchangeability permits arm-specific observed outcome means to identify the corresponding cell potential-outcome means \citep{RosenbaumRubin1983}. To state the remaining restriction precisely, we record cell masses and propensities.
+
+\begin{definitionv}{synth_2}[Observed covariate-cell mass]
+For a discrete law \(P\) on a covariate alphabet of size \(d\), the observed mass of cell \(j\) is
+\[
+p_j := P(X=j).
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_3}[Product law and propensity]
+For a discrete observed-data law \(P\) on a \(d\)-cell covariate alphabet and a sample size \(n\), the product law is the joint law of \(n\) independent records \(O_i=(X_i,A_i,Y_i)\) drawn from \(P\). For each occupied cell \(j\), write \(p_j=P(X=j)>0\) and define its treatment propensity by \(e_j:=P(A=1\mid X=j)\).
+\end{definitionv}
+
+The cell mass \leanref{sym:p_j}{\ensuremath{p_j}} determines whether a conditional quantity in cell \(j\) is relevant to population value.
+
+\begin{assumptionv}{ass:overlap}[Fixed treatment overlap]
+For every \(j\in[d]\) with \(p_j>0\), the treatment propensity satisfies
+\[
+\epsilon\le e_j\le 1-\epsilon.
+\]
+\end{assumptionv}
+
+The known alphabet fixes the cells over which policies are optimized; cell probabilities may be arbitrarily small, so the law class includes rare cells and cells absent from a sample. Binary outcomes give the observed arm-and-outcome categories used by the factorial-moment estimator. For each occupied cell, the treatment propensity \leanref{sym:e_j}{\ensuremath{e_j}} lies in the band set by the fixed overlap parameter \leanref{sym:\epsilon}{\ensuremath{\epsilon}}, where \(0<\epsilon<1/2\). This condition supports identification of both cell means \citep{RosenbaumRubin1983} and places no lower bound on a cell’s probability. The risk constants depend only on fixed overlap; the paired lower-bound family uses propensity \(1/2\) in every occupied cell. Consistency is encoded by the observation map, which records the observed outcome as \(Y(A)\).
+
+\begin{definitionv}{def:model-class}[Causal law class \(\mathcal M_{d,\epsilon}\)]
+\(\mathcal M_{d,\epsilon}\), for each integer \(d\ge2\), is the class of laws \(P\) satisfying:
+\begin{itemize}
+\item \textbf{(Covariate alphabet.)} \(X\in[d]\).
+\item \textbf{(Binary variables.)} \(A,Y(0),Y(1)\in\{0,1\}\).
+\item \textbf{(Identification conditions.)} \cref{obj:ass:consistency,obj:ass:conditional-exchangeability,obj:ass:overlap}.
+\end{itemize}
+\end{definitionv}
+
+The class \leanref{sym:\mathcal M_{d,\epsilon}}{\ensuremath{\mathcal M_{d,\epsilon}}} fixes the covariate alphabet, binary variables, and identification conditions for the minimax comparison. We next specify how a population treatment capacity restricts randomized policies.
+
+\begin{definitionv}{def:budget-policy-class}[Budget policy class \(\Pi_b(P)\)]
+\[
+\Pi_b(P)=\left\{\pi\in[0,1]^d:\sum_{j=1}^d p_j\pi_j\le b\right\}.
+\]
+\end{definitionv}
+
+A policy assigns each cell a treatment probability \leanref{sym:\pi}{\ensuremath{\pi_j}}. At population capacity \(b\), its average treatment share is constrained by the cell masses; the resulting feasible class is \leanref{sym:\Pi_b(P)}{\ensuremath{\Pi_b(P)}}. The value of assigning every cell to control supplies the baseline for evaluating these policies.
+
+\begin{definitionv}{synth_7}[Control-policy value]
+For a full-data law \(P\), let \(p_j=P(X=j)\) and let \(\mu_{0j}=E_P[Y(0)\mid X=j]\) on occupied cells, with \(\mu_{0j}=0\) on null cells. The population value of assigning every cell to control is
+\[
+B(P)=\sum_{j=1}^d p_j\mu_{0j}.
+\]
+\end{definitionv}
+
+Population value depends on the arm-specific potential-outcome mean \leanref{sym:\mu_{aj}}{\ensuremath{\mu_{aj}}} in each occupied cell and on the cell treatment effect \leanref{sym:\tau_j}{\ensuremath{\tau_j}}. The control-policy value \leanref{sym:B(P)}{\ensuremath{B(P)}} provides the baseline for evaluating feasible policies.
+
+\begin{definitionv}{synth_4}[Cell potential-outcome means]
+For a full-data causal law \(P\) on a \(d\)-cell covariate alphabet, an arm \(a\in\{0,1\}\), and a cell \(j\), let \(p_j=P(X=j)\). On occupied cells, where \(p_j>0\), define
+\[
+\mu_{aj}=\mathbb E_P\!\left[Y(a)\mid X=j\right].
+\]
+On null cells, where \(p_j=0\), set \(\mu_{aj}=0\).
+\end{definitionv}
+
+\begin{definitionv}{synth_5}[Cell treatment effect]
+For a full-data causal law \(P\) on a \(d\)-cell covariate alphabet and a cell \(j\), define the cell treatment effect by
+\[
+\tau_j := \mu_{1j}-\mu_{0j},
+\]
+where \(\mu_{aj}\) is the potential-outcome mean for arm \(a\) in cell \(j\).
+\end{definitionv}
+
+The zero convention gives \(\tau_j=0\) on null cells and leaves every population value unchanged.
+
+These cell quantities determine the maximum population value attainable at each budget.
+
+\begin{definitionv}{def:budget-value}[Budget value $V_b(P)$ and curve $V(P)$]
+The maximum population value at budget \(b\) and the budget-indexed oracle-value curve on \(I\) are
+\[
+V_b(P)=B(P)+\max_{\pi\in\Pi_b(P)}\sum_{j=1}^d p_j\pi_j\tau_j,
+\qquad
+V(P)=\bigl(V_b(P):b\in I\bigr).
+\]
+\end{definitionv}
+
+Fix an endpoint parameter \leanref{sym:b_0}{\ensuremath{b_0}}\(\in[0,1/2]\) and write \leanref{sym:I}{\ensuremath{I=[b_0,1-b_0]}} for the closed budget interval. Maximizing over feasible randomized policies gives the budget value \leanref{sym:V_b(P)}{\ensuremath{V_b(P)}} and its curve on \(I\).
+
+To express this value through the observed margin, we use treatment-outcome masses within each cell and their arm totals.
+
+\begin{definitionv}{synth_9}[Arm and total masses of a four-vector]
+For \(u=(u_{ay}:(a,y)\in\{0,1\}^2)\in\mathbb R_+^4\), define the mass in treatment arm \(a\) and the total mass by
+\[
+s_a(u)=u_{a0}+u_{a1},\qquad
+s(u)=s_0(u)+s_1(u)=\sum_{a,y\in\{0,1\}}u_{ay}.
+\]
+\end{definitionv}
+
+For each cell, let the observed four-mass vector \leanref{sym:q_j}{\ensuremath{q_j}} have coordinates \(q_{ay,j}=P(X=j,A=a,Y=y)\), for \(a,y\in\{0,1\}\). Its entries encode the observed treatment-outcome distribution without conditioning on a possibly null cell. For a generic nonnegative four-vector \leanref{sym:u}{\ensuremath{u}}, write \leanref{sym:s_a(u)}{\ensuremath{s_a(u)}} for its arm mass and \leanref{sym:s(u)}{\ensuremath{s(u)}} for its total mass.
+
+The finite full-data support can equivalently be indexed by potential atoms.
+
+\begin{definitionv}{synth_6}[Potential atom space]
+For a covariate alphabet of size \(d\in\mathbb N\), a potential atom is an element of
+\[
+\{j\in\mathbb N:j<d\}\times\{0,1\}\times\{0,1\}\times\{0,1\}.
+\]
+\end{definitionv}
+
+A shadow price \leanref{sym:\lambda}{\ensuremath{\lambda}}\(\in[0,1]\) converts the capacity constraint into a threshold comparison within each cell. The stabilized arm contribution \leanref{sym:g_a(u)}{\ensuremath{g_a(u)}}, threshold contribution \leanref{sym:f_\lambda(u)}{\ensuremath{f_\lambda(u)}}, and aggregate process \leanref{sym:F_P(\lambda)}{\ensuremath{F_P(\lambda)}} express that comparison in observed masses.
+
+\begin{definitionv}{def:dual-process}[Dual threshold process $F_P(\lambda)$]
+For \(u\in\mathbb R_+^4\), define the stabilized arm contributions, cell contribution, and dual threshold process by
+\[
+g_a(u)=\frac{s(u)u_{a1}}{\max\{s_a(u),\epsilon s(u)\}},
+\qquad
+f_\lambda(u)=g_0(u)+\bigl[g_1(u)-g_0(u)-\lambda s(u)\bigr]_+,
+\qquad
+F_P(\lambda)=\sum_{j=1}^d f_\lambda(q_j).
+\]
+When all four cell masses vanish (\(u=0\)), the quotient defining \(g_a(u)\) takes the value zero: \(g_a(0)=0\).
+\end{definitionv}
+
+\begin{definitionv}{synth_12}[Binding half-budget capacity]
+We say the half-budget constraint is binding for \(P\) when there exists an optimal policy \(\pi^\star\in\Pi_{1/2}(P)\) such that
+\[
+V_{1/2}(P)=B(P)+\sum_{j=1}^d p_j\pi^\star_j\tau_j
+\quad\text{and}\quad
+\sum_{j=1}^d p_j\pi^\star_j=\frac12.
+\]
+\end{definitionv}
+
+The zero convention in \cref{obj:def:dual-process} gives \(f_\lambda(0)=0\) and covers empty covariate cells.
+
+Under \cref{obj:ass:conditional-exchangeability,obj:ass:overlap}, the stabilized arm contribution at an occupied cell equals \(p_j\mu_{aj}\). The threshold contribution therefore combines control value with the positive part of the cell treatment gain after charging the shadow price for treatment capacity. The following identity turns those cellwise contributions into the population budget value.
+
+\begin{propositionv}{prop:dual-representation}[Dual representation of budget value]
+Let \(P\) be a full-data causal law with observed margin. Suppose:
+\begin{itemize}
+\item \textbf{Alphabet size.} The known covariate alphabet has size \(d\ge 2\).
+\item \textbf{Overlap parameter.} The fixed overlap parameter satisfies \(0<\epsilon<1/2\).
+\item \textbf{Model membership.} \(P\in\mathcal M_{d,\epsilon}\) as defined in \cref{obj:def:model-class}.
+\end{itemize}
+For \(0\le\lambda\le1\), write \(F_P(\lambda)=\sum_{j=1}^{d}f_\lambda(q_j)\) for the dual threshold process formed from the observed margin of \(P\). Then, for every \(b\in[0,1]\), the budget value \(V_b(P)\) of \cref{obj:def:budget-value} satisfies
+\[
+V_b(P)=\inf_{0\le\lambda\le1}\{b\lambda+F_P(\lambda)\}.
+\]
+Moreover, for every process \(\widehat F\) bounded on \([0,1]\),
+\[
+\sup_{b\in[0,1]}
+\left|
+\inf_{0\le\lambda\le1}\{b\lambda+\widehat F(\lambda)\}
+-V_b(P)
+\right|
+\le
+\sup_{\lambda\in[0,1]}
+\left|\widehat F(\lambda)-F_P(\lambda)\right|.
+\]
+\end{propositionv}
+
+The identity represents every budget value as the lower envelope of the same shadow-price process plus \(b\lambda\). Its second assertion transfers a uniform process error bound to a uniform curve error bound with factor one, so a single estimated process serves the entire budget interval. The identity and contraction concern the optimized value and permit multiple maximizing policies or minimizing shadow prices.
+
+The observed sample collects the records on which a curve estimator may depend.
+
+\begin{definitionv}{synth_11}[Finite observed sample]
+For \(n,d\in\mathbb N\), the observed sample \(O^{(n)}=(O_i)_{i=1}^n\) consists of \(n\) observed records \(O_i=(X_i,A_i,Y_i)\), each with \(X_i\) in the \(d\)-element covariate alphabet.
+\end{definitionv}
+
+We assess curve estimation by the all-procedure expected squared supremum risk \leanref{sym:\mathfrak R_{n,d,\epsilon,b_0}^{\mathrm{curve}}}{\ensuremath{\mathfrak R_{n,d,\epsilon,b_0}^{\mathrm{curve}}}}. The criterion compares bounded-function-valued estimators over the causal law class and the closed interval \(I\).
+
+\begin{definitionv}{def:curve-risk}[Curve risk $\mathfrak R_{n,d,\epsilon,b_0}^{\mathrm{curve}}$]
+For \(b_0\in[0,1/2]\), set \(I=[b_0,1-b_0]\). The all-procedure expected squared supremum risk is
+\[
+\mathfrak R_{n,d,\epsilon,b_0}^{\mathrm{curve}}
+=
+\inf_{\widehat V}
+\sup_{P\in\mathcal M_{d,\epsilon}}
+E_P\!\left[
+\sup_{b\in I}
+\left|\widehat V_b(O^{(n)})-V_b(P)\right|^2
+\right],
+\]
+where the infimum ranges over all measurable maps from the observed sample into bounded functions on \(I\).
+\end{definitionv}
+
+Both endpoints belong to \(I\). In particular, \(b_0=0\) gives the full interval \([0,1]\), while \(b_0=1/2\) gives the single budget \(1/2\).

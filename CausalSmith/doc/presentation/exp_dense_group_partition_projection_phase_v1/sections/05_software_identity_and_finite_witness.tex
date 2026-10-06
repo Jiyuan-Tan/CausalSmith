@@ -1,0 +1,98 @@
+\section{Software identity and finite witness}\label{sec:software-witness}
+
+The preceding results analyze the scalar equal-group CR2 statistic in \cref{obj:def:cr2-statistic}. This section records how that scalar statistic is obtained from a standard software call in the equal-group design, then gives a fully finite calculation that fixes the sign and magnitude of the dense correction. The software statement is deliberately versioned: the relevant covariance entry is the treatment-coordinate entry returned by \texttt{clubSandwich} for an unweighted intercept-plus-treatment regression using the \texttt{sandwich} bread convention \citep{ClubSandwich2026,Sandwich2026,Zeileis2004,Zeileis2006,ZeileisKollGraham2020,PustejovskyTipton2018}.
+
+\begin{definitionv}{def:eight-unit-witness}[Eight-unit witness $\mathbf a_8$]
+The eight-unit witness fixes
+\[
+n=N_n=8,\qquad
+M=2,\qquad
+G_n=4,\qquad
+G_{1n}=2,
+\]
+and uses the balanced sign vector
+\[
+\mathbf a_8=(a_1,\ldots,a_8).
+\]
+For every group \(A=\{j,k\}\) and every unit \(i\in A\), the potential outcomes are
+\[
+Y_{i,n}(0,A)=0,
+\qquad
+Y_{i,n}(1,A)=\frac{a_j+a_k}{2}.
+\]
+\end{definitionv}
+
+\Cref{obj:prop:clubsandwich-consumer} identifies the population-design statistic with the coefficient variance delivered by the stated \texttt{vcovCR} call. The row-identification and outcome clauses align the regression rows with the realized groups in \cref{obj:def:random-partition-design}; the design-matrix and unweighted-fit clauses make the treatment coefficient equal to the group-level treated-control contrast in \cref{obj:def:pame-estimator}. The block-algebra and bread-scaling clauses then pin down the CR2 adjustment and the normalization used by the versioned software implementation.
+
+The sign vector in \cref{obj:def:eight-unit-witness} is balanced in the sense that half of its entries equal \(+1\) and half equal \(-1\); the verified witness takes the canonical representative
+\[
+a_i=+1\ (1\le i\le 4),
+\qquad
+a_i=-1\ (5\le i\le 8),
+\]
+so that \(\sum_{i=1}^{8}a_i=0\). The numbers reported below are computed for this representative. The finite calculation below specializes the design to eight units, four pairs, and two treated groups. It provides a small balanced schedule in which the exact variance components and the expected CR2 statistic can be evaluated without asymptotics.
+
+\begin{propositionv}{prop:clubsandwich-consumer}[CR2 software identity]*
+Suppose \(M\ge 2\), \(G_{1n}\ge 2\), and \(G_{0n}\ge 2\).  Fix a deterministic potential-outcome schedule \(Y_{i,n}(z,A)\), an ordered tuple \(\mathbf A_n\) of pairwise-disjoint realized groups of common size \(M\), and a balanced group-treatment assignment vector \(\mathbf Z_n\) with \(G_{1n}\) treated groups and \(G_{0n}=G_n-G_{1n}\) control groups.  Assume the software regression data satisfy the following conditions.
+\begin{itemize}
+\item \textbf{(Row identification.)} For each realized group, the \(M\) regression rows are in bijection with the units in that group.
+\item \textbf{(Design matrix.)} The fitted model matrix has exactly two columns, an intercept and the numeric binary group-treatment regressor:
+\[
+X_{gij}
+=
+\begin{cases}
+1, & j=0,\\
+1\{Z_g=1\}, & j=1.
+\end{cases}
+\]
+\item \textbf{(Observed outcomes.)} The regression outcome in row \(i\) of group \(g\) is the realized potential outcome \(Y_{i,n}(Z_g,A_g)\), and its within-group average equals the observed group mean.
+\item \textbf{(Unweighted fit.)} The fit is an unweighted full-column-rank least-squares fit, with residuals \(e_{gi}\), and the average residual in each group equals the observed group mean minus the observed mean in that group's treatment arm.
+\item \textbf{(Block algebra.)} The stacked cross-product satisfies \(X^{\mathsf T}X=\sum_g X_g^{\mathsf T}X_g\), the group hat matrices are
+\[
+H_g=X_g(X^{\mathsf T}X)^{-1}X_g^{\mathsf T},
+\]
+each \(I-H_g\) is positive definite, and each CR2 adjustment \(A_g\) is symmetric positive definite with
+\[
+A_gA_g(I-H_g)=I.
+\]
+\item \textbf{(Bread scaling.)} The matrix used by the CR2 covariance calculation is \(\widetilde B=(G_nM)^{-1}B\), where \(B\) is the unweighted \({\tt sandwich::bread}({\tt fit})\) matrix.
+\end{itemize}
+Let \(\Sigma\) be the covariance matrix returned by \({\tt clubSandwich::vcovCR}({\tt fit}, {\tt cluster}={\tt group}, {\tt type}={\tt 'CR2'})\) in version \(0.7.0\), with \({\tt target}\), \({\tt inverse\_var}\), and \({\tt form}\) omitted, applied to this unweighted intercept-plus-treatment fit using \({\tt sandwich}\) version \(3.1\text{-}3\) for the bread.  Then the treatment-coordinate entry equals the scalar equal-group CR2 statistic in \cref{obj:def:cr2-statistic}:
+\[
+\Sigma_{11}
+=
+\widehat V_{\mathrm{CR2},n}
+=
+\frac{s_{1,n}^2}{G_{1n}}+\frac{s_{0,n}^2}{G_{0n}}.
+\]
+\end{propositionv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN prop:clubsandwich-consumer
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{ClubSandwich2026} (Version 0.7.0 source package: R/lm.R lines 47--52 and 70--72; R/S3-methods.R lines 21--33 and 63--65; R/clubSandwich.R lines 167--175, 216--225, 237--287; R/CR-adjustments.R lines 5--7 and 22--42) and \citep{Sandwich2026} (Version 3.1-3 source package, R/bread.R lines 10--15). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END prop:clubsandwich-consumer
+
+The witness in \cref{obj:def:eight-unit-witness} makes treatment outcomes depend only on the average sign within the realized pair, while control outcomes are identically zero. Balance of \leanref{sym:\mathbf a_8}{\ensuremath{\mathbf a_8}} gives a concrete degree-one component in the treated arm table, so the exact finite-pool correction in \cref{obj:thm:exact-pame-variance} has a visible numerical effect.
+
+\begin{propositionv}{prop:eight-unit-witness}[Eight-unit witness moments]
+For the balanced eight-unit witness schedule with \(n=N_n=8\), \(M=2\), \(G_n=4\), and \(G_{1n}=2\), suppose that:
+\begin{itemize}
+\item \textbf{(Johnson projections.)} There is a system of orthogonal projections \(\{\Pi_{8,k}\}_{k=0}^2\) onto the canonical Johnson harmonic spaces \(\mathcal H_{8,k}\) in \(L^2(\Omega_{8,2})\).
+\item \textbf{(Centered decomposition.)} These projections decompose every \(f\in L^2(\Omega_{8,2})\) after removal of its uniform-slice mean, with different harmonic degrees orthogonal under \(\langle\cdot,\cdot\rangle_n\).
+\item \textbf{(Kneser spectrum.)} The unnormalized Kneser adjacency operator acts on each \(\mathcal H_{8,k}\) by the eigenvalue
+\[
+(-1)^k {8-2-k \choose 2-k}.
+\]
+\end{itemize}
+Then the witness satisfies
+\[
+V_{1,n}=\frac{3}{7},\qquad
+E_{\tau,1,n}=\frac{3}{7},\qquad
+C_{11,n}=-\frac{1}{7},\qquad
+\sigma_n^2=\frac{1}{7},
+\]
+and, for the random partition design in \cref{obj:def:random-partition-design} and the scalar equal-group CR2 statistic in \cref{obj:def:cr2-statistic},
+\[
+\mathbb E\!\left[\widehat V_{\mathrm{CR2},n}\right]=\frac{2}{7}.
+\]
+\end{propositionv}
+
+\Cref{obj:prop:eight-unit-witness} shows that the finite design variance is \(1/7\), while the expected equal-group CR2 statistic is \(2/7\). The same calculation reports \(V_{1,n}=E_{\tau,1,n}=3/7\) and \(C_{11,n}=-1/7\), matching the geometry in \cref{obj:thm:exact-kneser-identity}: the treated table's degree-one energy generates a negative ordered-disjoint covariance, and that covariance enters the exact variance through the dense correction. Thus the witness supplies a concrete numerical check on both the Kneser covariance normalization and the software-facing CR2 statistic before the one-realization lower bound studied next.

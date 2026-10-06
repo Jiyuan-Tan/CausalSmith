@@ -1,0 +1,325 @@
+\section{A finite insulin-policy adaptation}
+
+The minimax characterization in \cref{obj:thm:uniform-overlap-frontier} is stated for an abstract finite partially observed model class. This section records a finite insulin-policy construction that keeps the glucose-threshold structure familiar from mobile-health and diabetes treatment applications while putting every component on a finite alphabet \citep{MaahsEtAl2012,LiaoKlasnjaMurphy2021,LuckettEtAl2020}. The construction, denoted \leanref{sym:\mathcal I_{\mathrm{grid}}}{\ensuremath{\mathcal I_{\mathrm{grid}}}}, uses refreshed diet and activity coordinates to create latent heterogeneity, uniform mixing, and stationary overlap in a single controlled Markov model.
+
+\begin{definitionv}{def:insulin-grid}[Insulin grid \(\mathcal I_{\mathrm{grid}}\)]
+The finite insulin-grid state is
+\[
+s=(g,d_1,d_2,x_1,x_2,a_1)
+\in
+\{50,100,150,200,250\}
+\times\{0,78\}^2
+\times\{0,31,850\}^2
+\times\{0,1\},
+\]
+so the state space has \(360\) states. The diet coordinates form
+\[
+H_t=(d_1,d_2),
+\]
+and all other coordinates form \(X_t\). The behavior and target policies are
+\[
+b(1\mid X_t)=0.3,
+\qquad
+e(1\mid X_t)=\mathbf 1\{g\ge 125\}.
+\]
+With probability \(1/2\), the next full state is drawn uniformly. With the remaining probability, draw
+\[
+d_0\in\{0,78\}
+\quad\text{with probabilities}\quad
+(0.8,0.2),
+\]
+draw
+\[
+x_0\in\{0,31,850\}
+\quad\text{with probabilities}\quad
+(0.4,0.4,0.2),
+\]
+draw \(\xi\sim N(0,25)\), and set
+\[
+g'
+=
+\operatorname{round}_{\{50,100,150,200,250\}}
+\operatorname{clip}_{[50,250]}
+\bigl(
+10+0.9g+0.1d_1+0.1d_2-0.01x_1-0.01x_2-2A_t-4a_1+\xi
+\bigr).
+\]
+The memory coordinates then shift to
+\[
+(g',d_0,d_1,x_0,x_1,A_t).
+\]
+The reward is
+\[
+Y_t=
+\begin{cases}
+-1, & g\le 70,\\
+-2/3, & g>150,\\
+-1/3, & 70<g\le 80\ \text{or}\ 120<g\le 150,\\
+0, & \text{otherwise}.
+\end{cases}
+\]
+This construction defines \(\mathcal I_{\mathrm{grid}}\).
+\end{definitionv}
+
+Two conventions in the displayed transition fix the numbers the certificate uses, so we state them explicitly. First, \(N(0,25)\) is the centered Gaussian of \emph{variance} \(25\), that is standard deviation \(5\). Second, the composite clip-and-round operator is the nearest-grid map with cutpoints at the midpoints \(75,125,175,225\) of the glucose grid, the two extreme cells absorbing everything beyond them; each cell is the interval closed on the left, so a value landing exactly on a midpoint is assigned to the higher grid point, a tie that has probability zero under the continuous noise. Writing \(m\) for the deterministic part of the displayed expression and \(\Phi\) for the standard normal distribution function, the next-glucose weights are therefore
+\[
+\Pr\{g'=50\}=\Phi\!\left(\frac{75-m}{5}\right),
+\qquad
+\Pr\{g'=250\}=1-\Phi\!\left(\frac{225-m}{5}\right),
+\]
+and, for \(i\in\{1,2,3\}\),
+\[
+\Pr\{g'=50+50i\}
+=
+\Phi\!\left(\frac{75+50i-m}{5}\right)
+-
+\Phi\!\left(\frac{75+50(i-1)-m}{5}\right).
+\]
+
+The observed coordinate contains the glucose level, lagged activity, and lagged treatment, while the diet coordinates are latent. The target rule is a deterministic threshold policy on the observed glucose coordinate, and the behavior rule randomizes treatment with fixed probability. The refresh step supplies a direct minorization component, so the example aligns with the contraction and overlap conditions used by \cref{obj:thm:uniform-overlap-frontier} within a finite-state adaptation of the insulin-policy setting.
+
+The next two facts record the mixing and stationary-law ingredients behind the certified contraction and stationary-overlap constants. They apply to any policy rule on the observed grid states, including the behavior and target policies in \cref{obj:def:insulin-grid}.
+
+\begin{lemmav}{lem:insulin-policy-contraction}[Uniform one-half contraction of the insulin-grid policy kernels]
+Let \(T\in\mathbb N\) and let \(p\) assign to each of the \(90\) observed states of the refreshed finite insulin adaptation \(\mathcal I_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid} a probability law on the action set \(\{0,1\}\). Write \(\mathsf S_{\mathrm{grid}}\) for the \(360\)-point joint state space, \(x(s)\) for the observed coordinate of a grid state \(s\), \(K_T\) for the transition kernel of \(\mathcal I_{\mathrm{grid}}\), and
+\[
+P_p^{(T)}(s,s')=\sum_{a\in\{0,1\}}p(a\mid x(s))\,K_T\{(q,s''):\ s''=s'\mid s,a\},
+\qquad s,s'\in\mathsf S_{\mathrm{grid}},
+\]
+for the induced transition matrix. Then, for all probability vectors \(\nu,\nu'\) on \(\mathsf S_{\mathrm{grid}}\),
+\[
+\|\nu P_p^{(T)}-\nu'P_p^{(T)}\|_{\mathrm{TV}}
+\le
+\frac12\|\nu-\nu'\|_{\mathrm{TV}} ,
+\]
+equivalently, in the \(\ell^1\) norm \(\|\cdot\|_1=2\|\cdot\|_{\mathrm{TV}}\),
+\[
+\|\nu P_p^{(T)}-\nu'P_p^{(T)}\|_1\le\frac12\|\nu-\nu'\|_1 .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:insulin-stationary-law}[The selected insulin-grid stationary law is stationary]
+Let \(T\in\mathbb N\) and let \(p\) assign to each observed state of the refreshed finite insulin adaptation \(\mathcal I_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid} a probability law on \(\{0,1\}\). Suppose that the induced transition matrix \(P_p^{(T)}\) on the joint state space \(\mathsf S_{\mathrm{grid}}\) satisfies
+\[
+\|\nu P_p^{(T)}-\nu'P_p^{(T)}\|_{\mathrm{TV}}\le\frac12\|\nu-\nu'\|_{\mathrm{TV}}
+\]
+for all probability vectors \(\nu,\nu'\) on \(\mathsf S_{\mathrm{grid}}\). Then the stationary law \(d_p\) selected for \(P_p^{(T)}\) is a probability vector and satisfies the stationarity equations
+\[
+d_p(s')=\sum_{s\in\mathsf S_{\mathrm{grid}}}d_p(s)P_p^{(T)}(s,s'),
+\qquad s'\in\mathsf S_{\mathrm{grid}} .
+\]
+\end{lemmav}
+
+\Cref{obj:lem:insulin-policy-contraction} gives the one-half total-variation contraction supplied by the refresh component. \Cref{obj:lem:insulin-stationary-law} then identifies the selected stationary distribution as a genuine invariant law for each policy-induced transition matrix, providing the stationary objects needed for the target value and the bias diagnostic.
+
+The reward in \cref{obj:def:insulin-grid} is a function of the current grid state. The following regressions make this explicit under target-policy averaging and under one-step target-to-behavior reweighting.
+
+\begin{lemmav}{lem:insulin-target-reward-regression}[Target-policy reward regression on the insulin grid]
+Let \(T\in\mathbb N\), let \(\mathcal I_{\mathrm{grid}}\) be the refreshed finite insulin adaptation of \cref{obj:def:insulin-grid} with transition kernel \(K_T\) and target policy \(e\), and for a grid state \(s=(g,d_1,d_2,x_1,x_2,a_1)\) write \(x(s)=(g,x_1,x_2,a_1)\) for its observed coordinate and
+\[
+r_{\mathrm{ins}}(s)=
+\begin{cases}
+-1,&g\le70,\\
+-2/3,&g>150,\\
+-1/3,&70<g\le80\ \text{or}\ 120<g\le150,\\
+0,&\text{otherwise},
+\end{cases}
+\]
+for the insulin reward vector. Writing \(p_1\) for the numeric reward coordinate of a reward/state pair \(p\) drawn by \(K_T\), we have, for every \(s\in\mathsf S_{\mathrm{grid}}\),
+\[
+\sum_{a\in\{0,1\}}e(a\mid x(s))\int p_1\,K_T(dp\mid s,a)
+=
+r_{\mathrm{ins}}(s) .
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:insulin-immediate-reward-regression}[Immediate weighted reward regression on the insulin grid]
+Let \(T\in\mathbb N\), let \(\mathcal I_{\mathrm{grid}}\) be the refreshed finite insulin adaptation of \cref{obj:def:insulin-grid} with transition kernel \(K_T\), behavior policy \(b\) and target policy \(e\), and for a grid state \(s=(g,d_1,d_2,x_1,x_2,a_1)\) write \(x(s)=(g,x_1,x_2,a_1)\). Let
+\[
+\rho(x,a)=\begin{cases}e(a\mid x)/b(a\mid x),&b(a\mid x)\ne0,\\0,&\text{otherwise},\end{cases}
+\]
+and let \(r_{\mathrm{ins}}\) be the insulin reward vector
+\[
+r_{\mathrm{ins}}(s)=
+\begin{cases}
+-1,&g\le70,\\
+-2/3,&g>150,\\
+-1/3,&70<g\le80\ \text{or}\ 120<g\le150,\\
+0,&\text{otherwise},
+\end{cases}
+\]
+Writing \(p_1\) for the numeric reward coordinate of a reward/state pair \(p\) drawn by \(K_T\), we have, for every \(s\in\mathsf S_{\mathrm{grid}}\),
+\[
+\sum_{a\in\{0,1\}}b(a\mid x(s))\,\rho(x(s),a)\int p_1\,K_T(dp\mid s,a)
+=
+r_{\mathrm{ins}}(s) .
+\]
+\end{lemmav}
+
+Together, \cref{obj:lem:insulin-target-reward-regression,obj:lem:insulin-immediate-reward-regression} show that the immediate reward regression is the same state reward under target averaging and under one-step reweighting. The remaining discrepancy in current-action weighting therefore comes from the stationary law used to average this regression: behavior-stationary weighting versus the target-stationary value in \cref{obj:def:target-value}.
+
+The finite diagnostic uses certified interval arithmetic for stationary reward averages. The next statements first give the general enclosure principle and then instantiate it for the behavior and target stationary reward averages on the insulin grid.
+
+\begin{lemmav}{lem:certified-stationary-reward-enclosure}[Stationary reward enclosure]
+Let \(\mathsf S\) be a finite set, and let \(P\) be a stochastic matrix on \(\mathsf S\) whose entries satisfy
+\[
+P(s,s')\in\mathfrak A(s,s')
+\]
+for all \(s,s'\in\mathsf S\). The intervals are rational intervals \([\ell,u]\) with \(\ell\le u\), combined by exact interval arithmetic:
+\[
+[a,b]+[c,d]=[a+c,b+d],\qquad
+[a,b]\ominus[c,d]=[a-d,b-c],
+\]
+and \([a,b]\cdot[c,d]\) is the interval whose endpoints are the smallest and largest of the four endpoint products. For an interval \(\mathfrak r\), write \(\ell(\mathfrak r)\) and \(u(\mathfrak r)\) for its endpoints and
+\[
+|\mathfrak r|_{\max}=\max\{|\ell(\mathfrak r)|,|u(\mathfrak r)|\}.
+\]
+Suppose the following conditions hold.
+\begin{itemize}
+\item \textbf{(Initial row and interval rows.)} There are an exact rational probability vector \(\mu_0\) on \(\mathsf S\), a number \(m\in\mathbb N\), and interval rows \(\mathfrak T_0,\ldots,\mathfrak T_{m+1}\) on \(\mathsf S\) such that
+\[
+\mu_0(s)\in\mathfrak T_0(s)
+\]
+for every \(s\in\mathsf S\).
+
+\item \textbf{(Chunked recurrence.)} For every \(k\le m\) and every output state \(s'\), there are pairwise disjoint blocks \(\mathcal G_1,\ldots,\mathcal G_J\subseteq\mathsf S\) covering \(\mathsf S\), each with at most a fixed positive number of states; block intervals \(\Xi_1(s'),\ldots,\Xi_J(s')\); and partial-sum intervals \(\Sigma_1,\ldots,\Sigma_{J+1}\) such that
+\[
+\sum_{s\in\mathcal G_j}\mathfrak T_k(s)\cdot\mathfrak A(s,s')\subseteq\Xi_j(s')
+\]
+for each \(j\),
+\[
+0\in\Sigma_{J+1},\qquad
+\Xi_j(s')+\Sigma_{j+1}\subseteq\Sigma_j
+\]
+for \(j=J,\ldots,1\), and
+\[
+\Sigma_1=\mathfrak T_{k+1}(s').
+\]
+
+\item \textbf{(Reward bounds.)} There are a reward vector \(r:\mathsf S\to\mathbb R\), rational intervals \(\mathfrak r(s)\ni r(s)\), and a rational bound \(B\ge0\) such that
+\[
+|\mathfrak r(s)|_{\max}\le B
+\]
+for every \(s\in\mathsf S\).
+
+\item \textbf{(Contraction and stationarity.)} There are a rational coefficient \(0\le\rho<1\) and a probability vector \(\pi\) such that
+\[
+\|\nu P-\nu'P\|_1\le\rho\|\nu-\nu'\|_1
+\]
+for all probability vectors \(\nu,\nu'\) on \(\mathsf S\), and
+\[
+\pi P=\pi .
+\]
+\end{itemize}
+Define
+\[
+\delta=\sum_{s\in\mathsf S}\bigl|\mathfrak T_m(s)\ominus\mathfrak T_{m+1}(s)\bigr|_{\max},
+\qquad
+\mathfrak E=\sum_{s\in\mathsf S}\mathfrak T_m(s)\cdot\mathfrak r(s),
+\]
+and
+\[
+\mathfrak J=
+\left[
+\ell(\mathfrak E)-\frac{B\delta}{1-\rho},
+u(\mathfrak E)+\frac{B\delta}{1-\rho}
+\right].
+\]
+Then
+\[
+\sum_{s\in\mathsf S}\pi(s)\,r(s)\in\mathfrak J .
+\]
+\end{lemmav}
+
+\Cref{obj:lem:certified-stationary-reward-enclosure} converts a finite number of interval matrix calculations into a bound on the stationary reward average. In the insulin grid, it supplies the certificate used to compare the behavior-stationary immediate-weighted average with the target-stationary value.
+
+\begin{lemmav}{lem:insulin-bias-interval-evaluation}[Insulin bias interval bounds]
+For \(\star\in\{\mathrm b,\mathrm e\}\), let \(\mathfrak T_{\star,0}\) and \(\mathfrak T_{\star,1}\) be the terminal and successor rational interval rows on the \(360\)-state grid \(\mathsf S_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid} recorded by the zero-step chunked iterate certificate, in blocks of at most \(40\) states, for the rational interval enclosure of the behavior-policy case \(\star=\mathrm b\) or target-policy case \(\star=\mathrm e\). Let \(\mathfrak r_{\mathrm{ins}}(s)=[r_{\mathrm{ins}}(s),r_{\mathrm{ins}}(s)]\), where \(r_{\mathrm{ins}}(s)\in\{-1,-2/3,-1/3,0\}\) is the grid reward from \cref{obj:def:insulin-grid}. Using the exact rational interval arithmetic of \cref{obj:lem:certified-stationary-reward-enclosure}, define
+\[
+\delta_\star=\sum_{s\in\mathsf S_{\mathrm{grid}}}\bigl|\mathfrak T_{\star,0}(s)\ominus\mathfrak T_{\star,1}(s)\bigr|_{\max},
+\qquad
+\mathfrak E_\star=\sum_{s\in\mathsf S_{\mathrm{grid}}}\mathfrak T_{\star,0}(s)\cdot\mathfrak r_{\mathrm{ins}}(s),
+\]
+\[
+\mathfrak J_\star=
+\left[
+\ell(\mathfrak E_\star)-\frac{\delta_\star}{1-1/2},
+\,
+u(\mathfrak E_\star)+\frac{\delta_\star}{1-1/2}
+\right],
+\qquad
+\mathfrak B=\mathfrak J_{\mathrm b}\ominus\mathfrak J_{\mathrm e}.
+\]
+Equivalently,
+\[
+\mathfrak B=
+\left[
+\ell(\mathfrak J_{\mathrm b})-u(\mathfrak J_{\mathrm e}),
+\,
+u(\mathfrak J_{\mathrm b})-\ell(\mathfrak J_{\mathrm e})
+\right].
+\]
+Then the endpoints of this rational interval satisfy
+\[
+-\frac{6}{1000}<\ell(\mathfrak B)
+\qquad\text{and}\qquad
+u(\mathfrak B)<-\frac{58}{10000}.
+\]
+\end{lemmav}
+
+\Cref{obj:lem:insulin-bias-interval-evaluation} is the finite arithmetic step behind the diagnostic. It encloses the behavior- and target-stationary reward averages in rational intervals and shows that their interval difference lies strictly below zero.
+
+The first diagnostic isolates the stationary bias of current-action weighting in this finite construction. It compares the one-step reweighted reward under the behavior stationary law with the stationary target value.
+
+\begin{lemmav}{lem:insulin-bias-certificate}[Insulin-grid bias certificate]
+For every natural horizon \(T\), let \(\Delta_{\mathrm{imm}}(T)\) be the stationary immediate-weighting bias for the refreshed finite insulin adaptation \(\mathcal I_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid},
+\[
+\Delta_{\mathrm{imm}}(T)
+=
+\sum_s d_b(s)
+\sum_{a\in\{0,1\}}
+b(s_1,a)\,
+\rho(s_1,a)\,
+\int p_1\,K_T(dp\mid s,a)
+-
+\theta(K_T,e),
+\]
+where \(d_b\) is the stationary law of the behavior-policy transition kernel on the insulin grid, \(K_T\) is the refreshed insulin-grid transition kernel, \(b\) and \(e\) are its behavior and target policies, \(\rho(s_1,a)\) is the one-step target-to-behavior policy ratio, and \(\theta(K_T,e)\) is the target value in \cref{obj:def:target-value}. Then
+\[
+-\frac{6}{1000}
+<
+\Delta_{\mathrm{imm}}(T)
+<
+-\frac{58}{10000}.
+\]
+\end{lemmav}
+
+The interval in \cref{obj:lem:insulin-bias-certificate} is a finite-state certificate for the immediate-weighting bias diagnostic \leanref{sym:\Delta_{\mathrm{imm}}}{\ensuremath{\Delta_{\mathrm{imm}}}}. The theorem below records the model-class properties of the same construction and restates the diagnostic in the notation of the insulin-grid transition law.
+
+\begin{theoremv}{prop:finite-insulin-demonstration}[Finite insulin witness]
+For every horizon \(T\), the refreshed insulin experiment \(\mathcal I_{\mathrm{grid}}\) of \cref{obj:def:insulin-grid} satisfies:
+\begin{itemize}
+\item \textbf{(State count.)} Its observed--latent joint-state alphabet has cardinality \(90\cdot 4=360\).
+\item \textbf{(Uniform contraction.)} It satisfies \cref{obj:ass:uniform-contraction} with contraction parameter \(\alpha=1/2\).
+\item \textbf{(Policy overlap.)} It satisfies \cref{obj:ass:policy-overlap} with one-step overlap constant \(L=10/3\).
+\item \textbf{(Stationary overlap.)} It satisfies \cref{obj:ass:latent-stationary-overlap} with stationary-overlap constant \(C=720\).
+\end{itemize}
+Define the immediate-weighting bias diagnostic by
+\[
+\Delta_{\mathrm{imm}}(T)
+=
+\sum_s d_b(s)\sum_{a\in\{0,1\}} b(a\mid s_X)\,
+\frac{e(a\mid s_X)}{b(a\mid s_X)}
+\int r\,K(ds',dr\mid s,a)
+-
+\theta(K,e),
+\]
+where \(K,b,e\) are the transition kernel, behavior policy, and target policy of \(\mathcal I_{\mathrm{grid}}\), \(s_X\) is the observed coordinate of \(s\), and \(d_b\) is the stationary law induced by \(b\). This diagnostic is interval-certified as strictly negative:
+\[
+-0.006 < \Delta_{\mathrm{imm}}(T) < -0.0058 .
+\]
+\end{theoremv}
+
+\Cref{obj:prop:finite-insulin-demonstration} certifies five things about the grid, and exactly these five. Its joint observed--latent alphabet has \(360\) states. It contracts in total variation at rate \(\alpha=1/2\), so it meets \cref{obj:ass:uniform-contraction}. Its policy pair has one-step overlap constant \(L=10/3\), so it meets \cref{obj:ass:policy-overlap}. Its two stationary joint-state laws satisfy the latent stationary overlap bound of \cref{obj:ass:latent-stationary-overlap} at radius \(C=720\). And its immediate-weighting diagnostic \(\Delta_{\mathrm{imm}}\) lies in the interval \((-0.006,-0.0058)\), certified by interval arithmetic.
+
+The last of these is the substantive one, and it is what the construction was built to isolate. Immediate weighting reweights the observed reward by the current-action ratio alone, so it averages the observed-glucose reward under behavior-stationary occupancy; the target value averages the same reward under target-stationary occupancy. The certified interval quantifies the gap between these two occupancies in a model whose latent stationary overlap is finite and whose mixing is fast. Bounded latent occupancy and fast forgetting are therefore compatible with a stationary bias for current-action weighting, and the source of that bias is occupancy rather than slow mixing or a divergent action ratio. This is the mechanism the depth parameter of \cref{obj:def:phiw-estimator} exists to control.

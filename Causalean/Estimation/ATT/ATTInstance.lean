@@ -1,0 +1,373 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# AIPW instance of the abstract `GeneralMoment` framework — ATT version
+
+Instantiates `Causalean/Estimation/OrthogonalMoments/MomentFunctional.lean` and friends
+with the AIPW back-door **ATT** moment, and rebuilds the ATT AIPW
+asymptotic-linearity theorem on top of the abstract
+`oneStepOracleDML_isAsymLinear_of_everywhere`.
+
+* `attGeneralMoment S hη₀_mem hπ_pos` — `GeneralMoment` instance.
+* `att_meanZero`                            — `MeanZero` for ATT AIPW.
+* `att_bilinearRem`                         — `BilinearRemainder` for ATT AIPW.
+* `att_oneStepOracleDML_isAsymLinear`       — oracle ATT AIPW asymptotic
+                                              linearity, via
+`oneStepOracleDML_isAsymLinear_of_everywhere`.
+
+Structural deviations from the ATE counterpart in
+`Estimation/OrthogonalMoments/AIPWInstance.lean`:
+
+* The bilinear seminorm `ρ₁` is the L²(P_X) norm of the **single** μ-residual
+  `Δμ₀ := η.μ₀_fn − η'.μ₀_fn` — there is no sum over treatment arms (the ATT
+  AIPW form only uses `μ₀`).
+* `ρ₂` is the L²(P_X) norm of `Δe` (same as ATE).
+* The Jacobian `J₀ = −π_T` (not `−1`) because the ATT AIPW moment is
+  rescaled: `m_AIPW^ATT(η, z, θ) = ψ̃(η, z) − A·θ`, and
+  `∂_θ ∫ m_AIPW^ATT(η₀, z, θ) dP_Z = −∫ A dP_Z = −π_T`.
+* `η₀_mem` records the a.e. one-sided-overlap and L²/L∞ gates in `H_ε`.
+
+Since `J₀ = −π_T`, the influence function in the abstract conclusion
+`fun z => −linScaleInv · m(η₀, z, θ₀)` is
+`(1/π_T) · aipwMomentATTFunctional S.η₀ z S.θ₀`,
+which equals `S.ψ_ATT z` modulo a constant `θ₀` shift on the `−A·θ` slot.
+
+References:
+* NL doc `lem:est-aipw-mean-zero-att`, `lem:est-aipw-finite-var-att`,
+  `thm:est-dml-att-al`.
+* Plan §11 (ATTInstance), §12 (DML), §13 (InfluenceFunction).
+-/
+
+module
+public import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov
+public import Causalean.Estimation.ATT.Remainder.Bound
+public import Causalean.Estimation.ATT.Score.AIPWMoment
+public import Causalean.Estimation.ATT.Score.FiniteVar
+public import Causalean.Estimation.ATT.Score.AIPWScoreL2
+public import Causalean.Estimation.ATT.Score.MeanZero
+
+/-!
+Instantiates the abstract orthogonal-moment DML theorem for the average
+treatment effect on the treated. It connects the ATT AIPW score, remainder
+identity, score-continuity bounds, and sample-splitting assumptions to
+asymptotic linearity.
+
+The main declarations are `attGeneralMoment`, the `MeanZero` bridge
+`att_meanZero`, the bilinear remainder bridge `att_bilinearRem`, and the
+headline abstract asymptotic-linearity theorem `att_oneStepOracleDML_isAsymLinear`. This
+file is the ATT specialization of the general orthogonal-moment interface; the
+user-facing estimator wrapper is in `Estimation/ATT/DML.lean`.
+-/
+
+@[expose] public section
+
+namespace Causalean
+namespace Estimation
+namespace ATT
+
+open MeasureTheory ProbabilityTheory Filter Topology Causalean.PO Causalean.Stat
+open Causalean.Estimation.OrthogonalMoments
+open TreatedEstimationSystem
+
+variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
+  [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+
+/-- For [a potential-outcomes system with a standard Borel sample space and finite probability measure](hyp:P), [a measurable covariate space](hyp:γ), [a treated estimation system](hyp:S), [a real overlap radius](hyp:ε), [the condition that the system's true nuisance vector belongs to its overlap-bounded candidate set at that radius](hyp:hη₀_mem), and [the condition that its marginal treatment probability is strictly positive](hyp:hπ_pos), the [ATT augmented inverse-probability-weighted general moment](goal) is the general moment whose score is the ATT AIPW score, whose target nuisance vector and target parameter are the system's true nuisance vector and ATT, whose candidate set is that overlap-bounded set, whose two seminorms are the $L^2$ distances between control-outcome regressions and between propensity scores, and whose Jacobian is the negative marginal treatment probability.
+
+The bilinear seminorms are the L²(P_X) norms of the `μ₀_fn` and `e_fn`
+differences.  Only the control-arm μ-residual appears (no sum over arms),
+matching the single cross-product produced by `aipw_remainder_bound_ATT`.
+
+The Jacobian `J₀ = −π_T` is taken as a parameter (via the positivity
+hypothesis `hπ_pos`) because the ATT AIPW moment carries an `A·θ` term
+rather than a plain `θ` term, so the population Jacobian is the marginal
+treatment probability rather than `±1`. -/
+noncomputable def attGeneralMoment
+    (S : TreatedEstimationSystem P γ) {ε : ℝ}
+    (hη₀_mem : S.η₀ ∈ H_ε S ε)
+    (hπ_pos : 0 < S.π_val) :
+    GeneralMoment P.Ω P.μ (γ × Bool × ℝ) S.P_Z (TreatedNuisanceVec γ) where
+  m       := fun η z θ => aipwMomentATTFunctional η z θ
+  η₀      := S.η₀
+  θ₀      := S.θ₀
+  H_ε     := H_ε S ε
+  ρ₁      := fun η η' =>
+    ⟨(eLpNorm (fun x => η.μ₀_fn x - η'.μ₀_fn x) 2 S.P_X).toReal,
+     ENNReal.toReal_nonneg⟩
+  ρ₂      := fun η η' =>
+    ⟨(eLpNorm (fun x => η.e_fn x - η'.e_fn x) 2 S.P_X).toReal,
+     ENNReal.toReal_nonneg⟩
+  m_meas  := fun η θ =>
+    TreatedEstimationSystem.measurable_aipwMomentATTFunctional η θ
+  η₀_mem  := hη₀_mem
+  -- ATT AIPW is a linear-in-`θ` score `m_AIPW^ATT(η, z, θ) = ψ̃(η, z) − A·θ`,
+  -- so the population Jacobian is
+  -- `J₀ = ∂_θ ∫ m(η₀, z, θ) dP_Z |_{θ=θ₀} = −∫ A dP_Z = −π_T`.
+  linScale         := -S.π_val
+  linScale_ne_zero := by
+    intro h
+    have : S.π_val = 0 := by linarith [show -S.π_val = 0 from h]
+    linarith
+
+/-- **ATT AIPW mean-zero packaging.** Given [membership of the true nuisance in the
+candidate set](hyp:hη₀_mem), [the one-sided ATT assumptions](hyp:hA), [positive marginal
+treatment probability](hyp:hπ_pos), and [integrability of the inverse-probability-weighted
+control residual](hyp:hIPW), [the ATT AIPW general moment has mean zero](goal). This is a
+direct repackaging of `aipw_mean_zero_ATT` from
+`Estimation/ATT/Score/MeanZero.lean`. -/
+theorem att_meanZero
+    (S : TreatedEstimationSystem P γ) {ε : ℝ}
+    (hη₀_mem : S.η₀ ∈ H_ε S ε)
+    (hA : S.toPOBackdoorSystem.ATTAssumptions)
+    (hπ_pos : 0 < S.π_val)
+    (hIPW : Integrable (fun ω =>
+        (1 - S.toPOBackdoorSystem.dVar.indicator true ω)
+          * (S.toPOBackdoorSystem.propScore true ω
+              / (1 - S.toPOBackdoorSystem.propScore true ω))
+          * (S.toPOBackdoorSystem.factualY ω
+              - S.toPOBackdoorSystem.adjustedCE false ω)) P.μ) :
+    MeanZero (attGeneralMoment S hη₀_mem hπ_pos) := by
+  unfold MeanZero attGeneralMoment
+  exact aipw_mean_zero_ATT S hA hπ_pos hIPW
+
+/-- ATT AIPW satisfies `BilinearRemainder` with constant `aipw_rem_const_ATT ε`.
+
+Direct corollary of `aipw_remainder_bound_ATT` from
+`Estimation/ATT/Remainder/Bound.lean`: the ATT remainder is a single L²(P_X)
+cross-product `‖Δμ₀‖ · ‖Δe‖`, so no Σ-over-arms shape conversion is needed
+(unlike the ATE counterpart). -/
+theorem att_bilinearRem
+    (S : TreatedEstimationSystem P γ) {ε : ℝ}
+    (hη₀_mem : S.η₀ ∈ H_ε S ε)
+    (h_overlap : S.OneSidedOverlap ε)
+    (hA : S.toPOBackdoorSystem.ATTAssumptions)
+    (hπ_pos : 0 < S.π_val)
+    (h_y2 : Integrable (fun ω => (S.toPOBackdoorSystem.factualY ω) ^ 2) P.μ)
+    (h_y0_2 : Integrable (fun ω => (S.toPOBackdoorSystem.YofD false ω) ^ 2) P.μ)
+    (h_L2 : ∀ η ∈ H_ε S ε,
+      MemLp (fun x => η.μ₀_fn x - S.μ₀_val x) 2 S.P_X ∧
+      MemLp (fun x => η.e_fn x - S.e_val x) 2 S.P_X)
+    (h_IPW : ∀ η ∈ H_ε S ε, Integrable (fun z =>
+        (1 - Causalean.Estimation.ATE.BackdoorEstimationSystem.indA z)
+          * (η.e_fn (Causalean.Estimation.ATE.BackdoorEstimationSystem.projX z)
+              / (1 - η.e_fn
+                  (Causalean.Estimation.ATE.BackdoorEstimationSystem.projX z)))
+          * (Causalean.Estimation.ATE.BackdoorEstimationSystem.projY z
+              - η.μ₀_fn
+                  (Causalean.Estimation.ATE.BackdoorEstimationSystem.projX z)))
+        S.P_Z) :
+    ∃ C, BilinearRemainder (attGeneralMoment S hη₀_mem hπ_pos) C := by
+  refine ⟨aipw_rem_const_ATT ε, ?_⟩
+  intro η hη
+  obtain ⟨hΔμ₀, hΔe⟩ := h_L2 η hη
+  have h := aipw_remainder_bound_ATT S h_overlap hA hπ_pos h_y2 h_y0_2
+    η hη hΔμ₀ hΔe (h_IPW η hη)
+  change |∫ z, aipwMomentATTFunctional η z S.θ₀ ∂(S.P_Z)| ≤
+      aipw_rem_const_ATT ε *
+        (eLpNorm (fun x => η.μ₀_fn x - S.μ₀_val x) 2 S.P_X).toReal *
+        (eLpNorm (fun x => η.e_fn x - S.e_val x) 2 S.P_X).toReal
+  exact h
+
+/-- **Headline ATT AIPW DML asymptotic-linearity theorem**, derived from the abstract
+`oneStepOracleDML_isAsymLinear_of_everywhere` in
+`Estimation/OrthogonalMoments/DMLChernozhukov.lean`.
+Fix an estimated-nuisance sequence `η_hat`, [an i.i.d. sample of the data
+triple](hyp:sample), and [a one-shot cross-fitting split of that sample](hyp:split).
+Under [membership of the truth nuisance in the overlap-bounded realization set
+`H_ε`](hyp:hη₀_mem), [nonnegativity of the true propensity](hyp:h_e_lb), [one-sided
+overlap `ε` on the true propensity](hyp:h_overlap), [the one-sided back-door ATT
+assumptions](hyp:hA), [a strictly positive marginal treatment probability](hyp:hπ_pos),
+[square-integrability of the factual outcome](hyp:h_y2) and of [the untreated potential
+outcome `Y(0)`](hyp:h_y0_2), [integrability of the truth-side control-arm IPW
+correction](hyp:hIPW), and [a limiting fold-size fraction `c` strictly between `0` and
+`1`](hyp:hc_pos,_hc_lt) with [the treated-fold cardinality fraction converging to
+`c`](hyp:h_split_rate): if [every candidate draw `η_hat n ω` lies in the overlap-bounded
+realization set `H_ε`](hyp:h_in_Hε), [every candidate propensity is
+nonnegative](hyp:h_e_lb_hat), [each candidate control-regression and propensity error
+has an `L²(P_X)` witness](hyp:h_mu_diff_memLp,h_e_diff_memLp), [each candidate IPW
+correction is integrable](hyp:h_IPW_at), [the AIPW moment functional is measurable jointly
+in the probability-space and data arguments, and on each cross-fitting fold, both singly
+and jointly](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry), [the moment at every candidate
+nuisance is integrable and square-integrable against the observed data
+law](hyp:h_m_int,h_m_sq_int), [the control-regression and propensity error rates are
+individually `o_p(1)` in `L²(P_X)`](hyp:h_indiv_rate_ρ₁,h_indiv_rate_ρ₂), and [their
+product is `o_p(n^{-1/2})`](hyp:h_product_rate), then [the Chernozhukov one-step DML
+estimator built from the ATT AIPW moment, the sample, the split, and the candidate
+nuisance sequence is asymptotically linear at the true ATT `θ₀`, with influence function
+`ψ(z) = (1/π_T) · aipwMomentATTFunctional η₀ z θ₀`](goal).
+
+**Conclusion (Chernozhukov form):** the Chernozhukov one-step estimator
+`θ̂_n = θ₀ − J₀⁻¹ · Pₙ m(η̂, ·, θ₀)` for `M = attGeneralMoment` is
+asymptotically linear at `S.θ₀` with influence function
+
+  `ψ(z) = −M.linScaleInv · M.m M.η₀ z M.θ₀
+        = (1/π_T) · aipwMomentATTFunctional S.η₀ z S.θ₀`
+
+(using `linScale = −π_T`, so `linScaleInv = −1/π_T`). Modulo the linear-in-`θ` shift on
+the `−A·θ` slot of the ATT moment, this matches the standard ATT influence
+function `ψ_ATT` from `AIPWMoment.lean`.
+
+This theorem is oracle because `oneStepOracleDML` inserts the true `θ₀` and
+population Jacobian `J₀ = -π`. The feasible result that estimates the treated
+share is `dml_ATT_isAsymLinear` in `ATT/DML/Feasible.lean`.
+
+Composes the abstract theorem with `att_meanZero`, `aipw_finite_var_ATT`,
+and a per-η̂_n bilinear remainder bound built directly from
+`aipw_remainder_bound_ATT` (the ATT analogue of the per-η̂ route used in
+`aipw_dml_isAsymLinear`).  The score-difference rate is supplied by
+`aipw_score_diff_isLittleOp_one_ATT` from `Estimation/ATT/Score/AIPWScoreL2.lean`. -/
+theorem att_oneStepOracleDML_isAsymLinear
+    (S : TreatedEstimationSystem P γ) {ε : ℝ}
+    (hη₀_mem : S.η₀ ∈ H_ε S ε)
+    (h_e_lb : ∀ x, 0 ≤ S.e_val x)
+    (h_overlap : S.OneSidedOverlap ε)
+    (hA : S.toPOBackdoorSystem.ATTAssumptions)
+    (hπ_pos : 0 < S.π_val)
+    (h_y2 : Integrable (fun ω => (S.toPOBackdoorSystem.factualY ω) ^ 2) P.μ)
+    (h_y0_2 : Integrable (fun ω => (S.toPOBackdoorSystem.YofD false ω) ^ 2) P.μ)
+    (hIPW : Integrable (fun ω =>
+        (1 - S.toPOBackdoorSystem.dVar.indicator true ω)
+          * (S.toPOBackdoorSystem.propScore true ω
+              / (1 - S.toPOBackdoorSystem.propScore true ω))
+          * (S.toPOBackdoorSystem.factualY ω
+              - S.toPOBackdoorSystem.adjustedCE false ω)) P.μ)
+    (sample : IIDSample P.Ω (γ × Bool × ℝ) P.μ S.P_Z)
+    (split : OneShotSplit sample)
+    {c : ℝ} (hc_pos : 0 < c) (_hc_lt : c < 1)
+    (h_split_rate :
+      Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
+    (η_hat : ℕ → P.Ω → TreatedNuisanceVec γ)
+    (h_in_Hε : ∀ n ω, η_hat n ω ∈ H_ε S ε)
+    (h_e_lb_hat : ∀ n ω x, 0 ≤ (η_hat n ω).e_fn x)
+    (h_mu_diff_memLp :
+      ∀ n ω, MemLp
+        (fun x => (η_hat n ω).μ₀_fn x - S.μ₀_val x) 2 S.P_X)
+    (h_e_diff_memLp :
+      ∀ n ω, MemLp
+        (fun x => (η_hat n ω).e_fn x - S.e_val x) 2 S.P_X)
+    (h_IPW_at :
+      ∀ n ω, Integrable (fun z =>
+        (1 - Causalean.Estimation.ATE.BackdoorEstimationSystem.indA z)
+          * ((η_hat n ω).e_fn
+                (Causalean.Estimation.ATE.BackdoorEstimationSystem.projX z)
+              / (1 - (η_hat n ω).e_fn
+                  (Causalean.Estimation.ATE.BackdoorEstimationSystem.projX z)))
+          * (Causalean.Estimation.ATE.BackdoorEstimationSystem.projY z
+              - (η_hat n ω).μ₀_fn
+                  (Causalean.Estimation.ATE.BackdoorEstimationSystem.projX z)))
+        S.P_Z)
+    (h_m_meas :
+      ∀ n, Measurable (fun (p : P.Ω × (γ × Bool × ℝ)) =>
+        aipwMomentATTFunctional (η_hat n p.1) p.2 S.θ₀))
+    (h_m_foldA :
+      ∀ n,
+        Measurable[MeasurableSpace.comap
+          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
+          (fun ω z => aipwMomentATTFunctional (η_hat n ω) z S.θ₀))
+    (h_m_foldA_uncurry :
+      ∀ n,
+        Measurable[(MeasurableSpace.comap
+            (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
+          (inferInstance : MeasurableSpace (γ × Bool × ℝ))]
+          (fun (p : P.Ω × (γ × Bool × ℝ)) =>
+            aipwMomentATTFunctional (η_hat n p.1) p.2 S.θ₀))
+    (h_m_int : ∀ n ω,
+      Integrable (fun z => aipwMomentATTFunctional (η_hat n ω) z S.θ₀) S.P_Z)
+    (h_m_sq_int : ∀ n ω,
+      Integrable (fun z => (aipwMomentATTFunctional (η_hat n ω) z S.θ₀) ^ 2) S.P_Z)
+    (h_indiv_rate_ρ₁ :
+      IsLittleOp
+        (fun n ω =>
+          (((attGeneralMoment S hη₀_mem hπ_pos).ρ₁
+              (η_hat n ω) S.η₀ : NNReal) : ℝ))
+        (fun _ => (1 : ℝ)) P.μ)
+    (h_indiv_rate_ρ₂ :
+      IsLittleOp
+        (fun n ω =>
+          (((attGeneralMoment S hη₀_mem hπ_pos).ρ₂
+              (η_hat n ω) S.η₀ : NNReal) : ℝ))
+        (fun _ => (1 : ℝ)) P.μ)
+    (h_product_rate :
+      IsLittleOp
+        (fun n ω =>
+          (((attGeneralMoment S hη₀_mem hπ_pos).ρ₁
+              (η_hat n ω) S.η₀ : NNReal) : ℝ) *
+            (((attGeneralMoment S hη₀_mem hπ_pos).ρ₂
+                (η_hat n ω) S.η₀ : NNReal) : ℝ))
+        (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ) :
+    IsAsymLinear
+      (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML
+        (attGeneralMoment S hη₀_mem hπ_pos) sample split η_hat)
+      S.θ₀
+      (fun z => -(attGeneralMoment S hη₀_mem hπ_pos).linScaleInv *
+                aipwMomentATTFunctional S.η₀ z S.θ₀)
+      sample
+      split.foldB := by
+  have hMZ := att_meanZero S hη₀_mem hA hπ_pos hIPW
+  have hFV :
+      Integrable (fun z =>
+        ((attGeneralMoment S hη₀_mem hπ_pos).m
+          (attGeneralMoment S hη₀_mem hπ_pos).η₀ z
+          (attGeneralMoment S hη₀_mem hπ_pos).θ₀) ^ 2) S.P_Z := by
+    simpa [attGeneralMoment, ψ_ATT, η₀, aipwMomentATTFunctional] using
+      aipw_finite_var_ATT S h_overlap hA h_y2 h_y0_2
+  have hBR_at :
+      ∀ n ω,
+        |∫ z, (attGeneralMoment S hη₀_mem hπ_pos).m (η_hat n ω) z
+                (attGeneralMoment S hη₀_mem hπ_pos).θ₀ ∂S.P_Z| ≤
+          aipw_rem_const_ATT ε *
+            (((attGeneralMoment S hη₀_mem hπ_pos).ρ₁
+                (η_hat n ω) (attGeneralMoment S hη₀_mem hπ_pos).η₀ : NNReal) : ℝ) *
+            (((attGeneralMoment S hη₀_mem hπ_pos).ρ₂
+                (η_hat n ω) (attGeneralMoment S hη₀_mem hπ_pos).η₀ : NNReal) : ℝ) := by
+    intro n ω
+    have h := aipw_remainder_bound_ATT S h_overlap hA hπ_pos h_y2 h_y0_2
+      (η_hat n ω) (h_in_Hε n ω) (h_mu_diff_memLp n ω) (h_e_diff_memLp n ω)
+      (h_IPW_at n ω)
+    change |∫ z, aipwMomentATTFunctional (η_hat n ω) z S.θ₀ ∂(S.P_Z)| ≤
+        aipw_rem_const_ATT ε *
+          (eLpNorm (fun x => (η_hat n ω).μ₀_fn x - S.μ₀_val x) 2 S.P_X).toReal *
+          (eLpNorm (fun x => (η_hat n ω).e_fn x - S.e_val x) 2 S.P_X).toReal
+    exact h
+  have h_mu_rate :
+      IsLittleOp
+        (fun n ω =>
+          (eLpNorm (fun x => (η_hat n ω).μ₀_fn x - S.μ₀_val x) 2 S.P_X).toReal)
+        (fun _ => (1 : ℝ)) P.μ := by
+    exact h_indiv_rate_ρ₁
+  have h_e_rate :
+      IsLittleOp
+        (fun n ω =>
+          (eLpNorm (fun x => (η_hat n ω).e_fn x - S.e_val x) 2 S.P_X).toReal)
+        (fun _ => (1 : ℝ)) P.μ := by
+    exact h_indiv_rate_ρ₂
+  have h_score_diff_rate :
+      IsLittleOp
+        (fun n ω =>
+          (eLpNorm
+            (fun z =>
+              (attGeneralMoment S hη₀_mem hπ_pos).m (η_hat n ω) z
+                  (attGeneralMoment S hη₀_mem hπ_pos).θ₀ -
+                (attGeneralMoment S hη₀_mem hπ_pos).m
+                  (attGeneralMoment S hη₀_mem hπ_pos).η₀ z
+                  (attGeneralMoment S hη₀_mem hπ_pos).θ₀)
+            2 S.P_Z).toReal)
+        (fun _ => (1 : ℝ)) P.μ := by
+    simpa [attGeneralMoment] using
+      aipw_score_diff_isLittleOp_one_ATT S h_overlap hη₀_mem h_e_lb hA
+        h_y2 h_y0_2 η_hat h_in_Hε h_e_lb_hat h_mu_diff_memLp h_e_diff_memLp
+        h_mu_rate h_e_rate
+  simpa [attGeneralMoment] using
+    (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML_isAsymLinear_of_everywhere
+      (attGeneralMoment S hη₀_mem hπ_pos)
+      hMZ hFV
+      sample split hc_pos h_split_rate
+      η_hat (Crem := aipw_rem_const_ATT ε) hBR_at
+      h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int h_m_sq_int
+      h_score_diff_rate h_product_rate)
+
+end ATT
+end Estimation
+end Causalean

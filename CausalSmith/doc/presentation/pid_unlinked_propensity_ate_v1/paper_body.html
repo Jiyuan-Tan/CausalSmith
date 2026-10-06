@@ -1,0 +1,984 @@
+<div class="abstract"><h2>Abstract</h2><p>We study a randomized trial in which treatment and outcome remain linked to a deterministic label of the assignment probability. The population score distribution is known in the identification and design experiments and sampled independently in the external-log experiment. Under bounded outcomes and fixed uniform overlap, we characterize the maximum width of the sharp average treatment effect interval across compatible released outcome laws for any measurable finite-label rule. Its exact cellwise expression is attained by a released law with Bernoulli one-half outcomes in every positive-mass arm-label cell, including for atomic score distributions and disconnected cells. Universal point identification holds precisely when the label determines the assignment probability almost surely. With a budget of <span class="math inline">\(K\)</span> labels, optimal worst-case ambiguity has order <span class="math inline">\(K^{-1}\)</span> over score laws with a common positive density lower bound; an equal-width construction gives the upper bound for every score law. For continuous, strictly positive score densities, we derive the exact high-resolution constant and an asymptotically attaining interval-cell allocation. For trial size <span class="math inline">\(n\)</span> and a known score law, the minimax expected length of a uniformly honest interval has order <span class="math inline">\(K^{-1}+n^{-1/2}\)</span> over the lower-density class. With a fixed release and an independent score log of size <span class="math inline">\(m\)</span>, a projection interval attains excess-length order <span class="math inline">\(n^{-1/2}+m^{-1/2}\)</span>; separate lower bounds establish both sampling directions at a fixed positive trial-to-log size ratio.</p></div>
+<h1 id="introduction">Introduction</h1>
+<p>Randomized assignment can use a probability that varies across people even when a released trial file records only treatment and outcome. We consider a release that attaches to each trial row a deterministic label of that assignment probability. In the identification, design, and known-score inference experiments, the analyst knows the population distribution of assignment probabilities. In the external-log experiment, that distribution is learned from an independent score sample. This observation scheme retains the link among label, treatment, and outcome, while the population score distribution supplies the probabilities represented within each label. The question is how much information the labels preserve about the average treatment effect (ATE), and how to choose them when their number is limited.</p>
+<p>Under bounded potential outcomes and a fixed uniform overlap margin, the sharp ATE interval for a specified compatible released law follows from within-cell quantile rearrangement. We use the bounded-outcome specialization of Fan et al. (2014) for this fixed-law interval; Lemma <a class="objref" href="#obj-lem:fixed-released-law-baseline">2</a> records the resulting endpoints. Our release-design criterion then takes the largest interval width across the released outcome laws compatible with a given score distribution and label rule. Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a> expresses that width as a sum of paired absolute-deviation losses over label cells and constructs two causal laws attaining its endpoints under the same released law. The construction applies to arbitrary score distributions on the overlap interval and measurable cells, including atoms and disconnected sets. Theorem <a class="objref" href="#obj-thm:universal-point-identification">3</a> gives the corresponding disclosure criterion: worst-case ambiguity is zero exactly when the label determines the score almost surely.</p>
+<p>This criterion turns finite-label release into a design problem measured in ATE units. For a budget of <span class="math inline">\(K\)</span> labels, Theorem <a class="objref" href="#obj-thm:k-label-rate">4</a> bounds the smallest worst-case ambiguity above and below at order <span class="math inline">\(K^{-1}\)</span> when the score density has a common positive lower bound. Its equal-width upper construction applies to every score distribution on the overlap interval. When the density is continuous and strictly positive, Theorem <a class="objref" href="#obj-thm:sharp-high-resolution-constant">5</a> gives the exact leading constant. Writing <span class="math inline">\(\varepsilon\)</span> for the overlap margin, <span class="math inline">\(e\)</span> for a score value, and <span class="math inline">\(f\)</span> for the score density, an asymptotically attaining sequence places interval boundaries at equal increments of <span class="math inline">\(\int_\varepsilon^e \sqrt{f(t)/[t(1-t)]}\,dt\)</span>. Thus label allocation responds to both score mass and the sensitivity of inverse assignment weights.</p>
+<p>The design criterion also governs inference from independent released trial rows. With a known score law and a jointly chosen release and uniformly honest interval, Theorem <a class="objref" href="#obj-thm:minimax-honest-length">6</a> establishes minimax expected length of order <span class="math inline">\(K^{-1}+n^{-1/2}\)</span> over the common positive lower-density class, where <span class="math inline">\(n\)</span> is trial size. An equal-width release and midpoint inverse-probability weights attain the upper order. A label budget proportional to <span class="math inline">\(\sqrt n\)</span> balances ambiguity from score variation within cells with trial sampling variation. This connects the partial-identification criterion to confidence-set analysis (Imbens et al., 2004; Stoye, 2009; Chernozhukov et al., 2007; Kaido et al., 2019).</p>
+<p>We also study a fixed finite-label release when the score distribution is learned from an independent log of <span class="math inline">\(m\)</span> scores. The criterion here is worst-case expected positive excess length beyond the population sharp interval. For every measurable fixed release and score law on the overlap interval, Theorem <a class="objref" href="#obj-thm:external-score-root-order">7</a> constructs a uniformly honest projection interval with excess length bounded at order <span class="math inline">\(n^{-1/2}+m^{-1/2}\)</span>. A trial-sample lower bound holds at every positive pair of sample sizes, and a positive score-log lower bound holds asymptotically uniformly over trial sizes. Together they establish that order when the trial-to-log size ratio tends to a positive constant. The result includes atomic score laws and quantile functions with flat pieces.</p>
+<p>The setting connects partial identification under combined marginals (Manski, 1990; Tamer, 2010; Torgovitsky, 2019) with statistical matching (D’Orazio et al., 2006; Conti et al., 2017) and propensity-score subclassification (Cochran, 1968; Rosenbaum et al., 1984). The released label specifies a deterministic score cell, making within-cell association and the choice of cells central to the analysis. We document the scope of the Lean 4 verification in the appendix. We place the observation scheme among related work in the next section. The paper then develops the trial setup and sharp interval, characterizes information retained by labels, studies finite-label design and honest intervals, analyzes the independent score-log experiment, and closes with discussion and open questions.</p>
+<h1 id="related-work">Related work</h1>
+<p>Partial-identification analysis characterizes the target values compatible with an observed law (Manski, 1990; Horowitz et al., 1995; Tamer, 2010). For a known distribution of assignment probabilities and a fixed released trial law, the sharp average treatment effect interval developed below is the bounded-outcome, overlap specialization of Fan et al. (2014). Within each released label, its endpoints account for the possible association between outcomes and assignment probabilities.</p>
+<p>Data-combination and conditional-transport analyses also characterize outcomes consistent with observed marginal or conditional distributions. In particular, Fan et al. (2025) obtain convex identified sets and transport-computable support functions for affine moment models with incomplete data. Here the fixed-law interval is one part of a release-design problem: the analysis ranges over compatible released trial laws to measure the largest attainable interval width, then chooses a finite-label rule to minimize that width. The score-based randomization model and this outer optimization are specific to the present problem.</p>
+<p>Statistical matching and record-linkage studies analyze information recovered by linking separate files. Komarova et al. (2018) show that a positive bound on individual disclosure risk generally leaves their model parameter only partially pseudo-identified. Their object is a probabilistic matching rule based on personal identifiers and a disclosure constraint. Our released object is instead a deterministic function of the assignment score attached to every trial row; its information loss is measured by sharp ATE ambiguity, and point identification occurs exactly when the label determines the score almost surely.</p>
+<p>Coarsening also appears in treatment-effect estimation with linked covariates. Under unconfoundedness, outcome smoothness, and restrictions on extreme scores, Kalavasis et al. (2024) construct a data-dependent coarse IPW estimator whose error accounts for propensity-score inaccuracy and sampling. Lee et al. (2026) obtain treatment-effect bounds and inference by pooling outcomes across small groups of observations with linked covariates, including settings with limited overlap. For identification and known-score design, our experiment retains a deterministic label in place of the row-level score and assumes a known score marginal; the independent-score-log extension learns that marginal from a separate sample. Under a positive density floor, the resulting optimal ambiguity is of order <span class="math inline">\(K^{-1}\)</span>, and honest length in the known-score experiment is of order <span class="math inline">\(K^{-1}+n^{-1/2}\)</span>. These rates quantify label design under a different observation scheme and different regularity conditions.</p>
+<p>The inference questions fit the literature on confidence sets for partially identified parameters (Imbens et al., 2004; Stoye, 2009; Chernozhukov et al., 2007; Kaido et al., 2019). With a known score distribution, the criterion is worst-case expected length for a jointly chosen label rule and uniformly honest interval. With an independent score log, the rule is fixed and the criterion is worst-case expected positive excess length beyond the population sharp interval from estimation with both released trial rows and the independent score log. These two criteria measure, respectively, the length of an honest interval under label coarsening and the additional length generated by the two sampled data sources.</p>
+<h1 id="trial-setup-and-the-sharp-identified-interval">Trial setup and the sharp identified interval</h1>
+<p>Throughout, generic positive constants may change from line to line, absolute values and Euclidean norms have their usual meanings, and <span class="math inline">\(O(\cdot)\)</span> and <span class="math inline">\(o(\cdot)\)</span> denote asymptotic bounds. Arm and label indices range over the sets defined below.</p>
+<p>We consider <span class="leanref" data-objid="S-1">a randomized causal population</span> governed by a law <span class="leanref" data-objid="sym:P"><span class="math inline">\(P\)</span></span>. For an overlap margin <span class="leanref" data-objid="sym:epsilon"><span class="math inline">\(\varepsilon\)</span></span>, the score <span class="leanref" data-objid="sym:E"><span class="math inline">\(E\)</span></span> takes values in the interval <span class="leanref" data-objid="sym:Espace"><span class="math inline">\(\mathcal E\)</span></span> given by <span class="math inline">\([\varepsilon,1-\varepsilon]\)</span>. The control and treatment potential outcomes <span class="leanref" data-objid="sym:Y0"><span class="math inline">\(Y_0\)</span></span> and <span class="leanref" data-objid="sym:Y1"><span class="math inline">\(Y_1\)</span></span> take values in the bounded outcome space <span class="leanref" data-objid="sym:Yspace"><span class="math inline">\(\mathcal Y=[0,1]\)</span></span>. The assigned arm is <span class="leanref" data-objid="sym:A"><span class="math inline">\(A\)</span></span>, and the observed outcome is <span class="leanref" data-objid="sym:Y"><span class="math inline">\(Y\)</span></span>. The population score law is <span class="leanref" data-objid="sym:H"><span class="math inline">\(H\)</span></span>; a measurable release rule <span class="leanref" data-objid="sym:g"><span class="math inline">\(g\)</span></span> applied to the score determines the released label <span class="leanref" data-objid="sym:R"><span class="math inline">\(R\)</span></span>; the joint law of the released trial variables is <span class="leanref" data-objid="sym:Prel"><span class="math inline">\(P_{\mathrm{rel}}\)</span></span>. Our target is the average treatment effect <span class="leanref" data-objid="sym:theta"><span class="math inline">\(\theta(P)\)</span></span> for the population law <span class="math inline">\(P\)</span>, defined by <span class="math inline">\(\theta(P)=\mathbb E_P[Y_1-Y_0]\)</span>. For identification, release design, and known-score inference, <span class="math inline">\(H\)</span> is known to the analyst; in the external-log experiment it is learned from an independent sample of scores.</p>
+<p>The population model combines overlap, a specified population score marginal, and score-based randomized assignment. The overlap margin is fixed throughout the analysis.</p>
+<div class="formal-block kind-assumption" id="obj-ass:overlap" data-objid="ass:overlap" tabindex="0"><span class="env-label">Assumption 1 <span class="obj-tag">[ass:overlap]</span> (Overlap parameter).</span><p>The overlap parameter <span class="math inline">\(\varepsilon\)</span> satisfies <span class="math inline">\(0&lt;\varepsilon&lt;1/2\)</span>.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The uniform propensity-score overlap condition keeps both assignment probabilities positive throughout the score space (Fan et al., 2014). It also bounds the reciprocal assignment weights used in the endpoint formulas below.</p>
+<div class="formal-block kind-assumption" id="obj-ass:score-marginal" data-objid="ass:score-marginal" tabindex="0"><span class="env-label">Assumption 2 <span class="obj-tag">[ass:score-marginal]</span> (Score marginal law).</span><p>The score <span class="math inline">\(E\)</span> has law <span class="math inline">\(H\)</span> under <span class="math inline">\(P\)</span>: <span class="math display">\[\mathcal L_P(E)=H.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>This specifies the population covariate or propensity marginal used in the data-combination experiment (Fan et al., 2014). It supplies the score distribution within each released label, even though individual scores are not linked to outcomes in the released data.</p>
+<div class="formal-block kind-assumption" id="obj-ass:randomized-assignment" data-objid="ass:randomized-assignment" tabindex="0"><span class="env-label">Assumption 3 <span class="obj-tag">[ass:randomized-assignment]</span> (Score-based treatment assignment).</span><p><span class="math display">\[P(A=1\mid E,Y_0,Y_1)=E
+\quad\text{almost surely}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Conditional on the score, assignment is Bernoulli and unconfounded with respect to both potential outcomes (Fan et al., 2014). Thus the score determines how the population score law is weighted in each treatment arm.</p>
+<p>The observed outcome and the release are connected to the potential outcomes and score by two further conditions.</p>
+<div class="formal-block kind-assumption" id="obj-ass:consistency" data-objid="ass:consistency" tabindex="0"><span class="env-label">Assumption 4 <span class="obj-tag">[ass:consistency]</span> (Observed outcome consistency).</span><p><span class="math display">\[Y=AY_1+(1-A)Y_0
+\quad\text{almost surely}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Potential-outcome consistency identifies the observed outcome with the potential outcome under the assigned arm (Rubin, 1974). It connects each observed arm-label outcome distribution to the corresponding potential outcome.</p>
+<div class="formal-block kind-assumption" id="obj-ass:deterministic-release" data-objid="ass:deterministic-release" tabindex="0"><span class="env-label">Assumption 5 <span class="obj-tag">[ass:deterministic-release]</span> (Deterministic score release).</span><p><span class="math display">\[R=g(E)
+\quad\text{almost surely}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The deterministic release condition is specific to this analysis: each score is assigned a label by the declared rule. The released label therefore identifies a score cell while retaining uncertainty about the pairing of scores and outcomes within that cell.</p>
+<div class="formal-block kind-assumption" id="obj-ass:released-law" data-objid="ass:released-law" tabindex="0"><span class="env-label">Assumption 6 <span class="obj-tag">[ass:released-law]</span> (Released data law).</span><p><span class="math display">\[\mathcal L_P(R,A,Y)=P_{\mathrm{rel}}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Observed-law compatibility requires a candidate causal law to reproduce the distribution available to the analyst, a standard restriction in data-combination identification (Fan et al., 2014). Here that distribution includes the label alongside assignment and outcome.</p>
+<p>These conditions define the population laws under a release rule and, for a specified released distribution, the compatible laws.</p>
+<div class="formal-block kind-definition" id="obj-def:causal-law-class" data-objid="def:causal-law-class" tabindex="0"><span class="env-label">Definition 1 <span class="obj-tag">[def:causal-law-class]</span> (Causal-law class <span class="math inline">\(\mathfrak P(H,g)\)</span>).</span><p>The causal-law class <span class="math inline">\(\mathfrak P(H,g)\)</span> consists of all laws <span class="math inline">\(P\)</span> satisfying Assumptions <a class="objref" href="#obj-ass:score-marginal">2</a>, <a class="objref" href="#obj-ass:randomized-assignment">3</a>, <a class="objref" href="#obj-ass:consistency">4</a>, and <a class="objref" href="#obj-ass:deterministic-release">5</a>.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The class <span class="leanref" data-objid="sym:Pclass"><span class="math inline">\(\mathfrak P(H,g)\)</span></span> in Definition <a class="objref" href="#obj-def:causal-law-class">1</a> fixes the score law and release rule while allowing the joint distribution of scores and potential outcomes to vary subject to the stated population conditions.</p>
+<div class="formal-block kind-definition" id="obj-def:compatible-law-class" data-objid="def:compatible-law-class" tabindex="0"><span class="env-label">Definition 2 <span class="obj-tag">[def:compatible-law-class]</span> (Compatible-law class <span class="math inline">\(\mathfrak M(H,g,P_{\mathrm{rel}})\)</span>).</span><p>The compatible-law class is <span class="math display">\[\mathfrak M(H,g,P_{\mathrm{rel}})
+=
+\bigl\{P\in\mathfrak P(H,g):\mathcal L_P(R,A,Y)=P_{\mathrm{rel}}\bigr\}.\]</span> Here <span class="math inline">\(\mathfrak P(H,g)\)</span> imposes Assumptions <a class="objref" href="#obj-ass:score-marginal">2</a>, <a class="objref" href="#obj-ass:randomized-assignment">3</a>, <a class="objref" href="#obj-ass:consistency">4</a>, and <a class="objref" href="#obj-ass:deterministic-release">5</a>, and the released-law condition is Assumption <a class="objref" href="#obj-ass:released-law">6</a>.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>For a fixed released law, <span class="leanref" data-objid="sym:Mclass"><span class="math inline">\(\mathfrak M(H,g,P_{\mathrm{rel}})\)</span></span> in Definition <a class="objref" href="#obj-def:compatible-law-class">2</a> is the population class over which the identified set is formed.</p>
+<p>We next fix the index sets used to describe released cells. Let <span class="leanref" data-objid="sym:J"><span class="math inline">\(J\)</span></span> denote a positive label count; a later release-design problem uses a positive label budget <span class="leanref" data-objid="sym:K"><span class="math inline">\(K\)</span></span>.</p>
+<div class="formal-block kind-definition" id="obj-synth_3" data-presentation-only="true"><span class="env-label">Definition 3 <span class="obj-tag">[synth_3]</span> (Released-label alphabets).</span><p>For each positive integer <span class="math inline">\(J\)</span>, the released-label alphabet is <span class="math inline">\(\mathcal R_J=\{1,\ldots,J\}\)</span>. In particular, <span class="math inline">\(\mathcal R_K=\{1,\ldots,K\}\)</span> for a positive label budget <span class="math inline">\(K\)</span>; a release into <span class="math inline">\(\mathcal R_K\)</span> may use fewer than <span class="math inline">\(K\)</span> labels.</p></div>
+<p>The alphabet <span class="leanref" data-objid="sym:Rspace"><span class="math inline">\(\mathcal R_J\)</span></span> in Definition <a class="objref" href="#obj-synth_3">3</a> includes labels that may have zero probability under a particular release.</p>
+<div class="formal-block kind-definition" id="obj-synth_2" data-presentation-only="true"><span class="env-label">Definition 4 <span class="obj-tag">[synth_2]</span> (Treatment-arm set).</span><p>The treatment-arm set is <span class="math inline">\(\mathcal A=\{0,1\}\)</span>, where <span class="math inline">\(0\)</span> denotes control and <span class="math inline">\(1\)</span> denotes treatment.</p></div>
+<p>The arm index <span class="leanref" data-objid="sym:a"><span class="math inline">\(a\)</span></span> ranges over <span class="leanref" data-objid="sym:Aspace"><span class="math inline">\(\mathcal A\)</span></span> as defined in Definition <a class="objref" href="#obj-synth_2">4</a>. For each arm-label cell, the observed outcome law and the score law induced by assignment enter the endpoint calculation together. The endpoint formulas use the generalized quantile <span class="math inline">\(Q_F(u)=\inf\{x:F((-\infty,x])\ge u\}\)</span> for <span class="math inline">\(0&lt;u&lt;1\)</span>, with support endpoints at <span class="math inline">\(u=0,1\)</span>. This convention also applies when <span class="math inline">\(F\)</span> has atoms; its formal definition appears in Definition <a class="objref" href="#obj-synth_4">8</a>.</p>
+<div class="formal-block kind-definition" id="obj-def:arm-cell-primitives" data-objid="def:arm-cell-primitives" tabindex="0"><span class="env-label">Definition 5 <span class="obj-tag">[def:arm-cell-primitives]</span> (Arm-cell quantities <span class="math inline">\(p_a,C_r,q_{ar},F_{ar},G_{ar},E_{ar},W_{ar}\)</span>).</span><p>For each arm <span class="math inline">\(a\in\mathcal A\)</span> and label <span class="math inline">\(r\in\mathcal R_J\)</span>, define <span class="math display">\[p_1(e)=e,\qquad p_0(e)=1-e,\qquad
+C_r=\{e:g(e)=r\},\qquad
+q_{ar}=\int_{C_r}p_a(e)\,H(de).\]</span> When <span class="math inline">\(P_{\mathrm{rel}}(A=a,R=r)&gt;0\)</span>, define the observed outcome law <span class="math display">\[F_{ar}=\mathcal L_{P_{\mathrm{rel}}}(Y\mid A=a,R=r).\]</span> For <span class="math inline">\(q_{ar}&gt;0\)</span>, define <span class="math display">\[G_{ar}(de)=\frac{\mathbf 1\{e\in C_r\}p_a(e)\,H(de)}{q_{ar}},
+\qquad E_{ar}\sim G_{ar},
+\qquad W_{ar}=\frac{1}{p_a(E_{ar})}.\]</span> The endpoint formulas apply to triples <span class="math inline">\((H,g,P_{\mathrm{rel}})\)</span> satisfying <span class="math inline">\(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\)</span> for every arm and label. Their sums include cells with <span class="math inline">\(q_{ar}&gt;0\)</span>, for which <span class="math inline">\(F_{ar}\)</span> is defined.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>For each arm-label cell, the observed outcome law and the score law induced by assignment enter the endpoint calculation together.</p>
+<div class="formal-block kind-definition" id="obj-def:mean-endpoints" data-objid="def:mean-endpoints" tabindex="0"><span class="env-label">Definition 6 <span class="obj-tag">[def:mean-endpoints]</span> (Mean endpoints <span class="math inline">\(\underline\mu_a,\overline\mu_a\)</span>).</span><p>For a triple <span class="math inline">\((H,g,P_{\mathrm{rel}})\)</span> satisfying <span class="math inline">\(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\)</span> for every arm and label, define <span class="math display">\[\underline\mu_a
+=\sum_{r:q_{ar}&gt;0}q_{ar}\int_0^1
+Q_{F_{ar}}(u)Q_{W_{ar}}(1-u)\,du,
+\qquad
+\overline\mu_a
+=\sum_{r:q_{ar}&gt;0}q_{ar}\int_0^1
+Q_{F_{ar}}(u)Q_{W_{ar}}(u)\,du.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>In Definition <a class="objref" href="#obj-def:arm-cell-primitives">5</a>, <span class="leanref" data-objid="sym:p"><span class="math inline">\(p_a(e)\)</span></span> is the arm-specific assignment probability, <span class="leanref" data-objid="sym:C"><span class="math inline">\(C_r\)</span></span> is the score cell assigned label <span class="math inline">\(r\)</span>, and <span class="leanref" data-objid="sym:q"><span class="math inline">\(q_{ar}\)</span></span> is its arm-label probability. The observed outcome law <span class="leanref" data-objid="sym:F"><span class="math inline">\(F_{ar}\)</span></span> and the assignment-weighted score law <span class="leanref" data-objid="sym:G"><span class="math inline">\(G_{ar}\)</span></span> are the two marginals available for a positive-mass cell. The reciprocal weight <span class="leanref" data-objid="sym:W"><span class="math inline">\(W_{ar}\)</span></span> converts an arm-specific outcome distribution into a potential-outcome mean; its association with outcomes within the cell determines the endpoint range.</p>
+<div class="formal-block kind-definition" id="obj-def:sharp-ate-set" data-objid="def:sharp-ate-set" tabindex="0"><span class="env-label">Definition 7 <span class="obj-tag">[def:sharp-ate-set]</span> (Sharp ATE interval <span class="math inline">\(I(P_{\mathrm{rel}};H,g)\)</span>).</span><p><span class="math display">\[I(P_{\mathrm{rel}};H,g)
+=
+[\underline\mu_1-\overline\mu_0,\,
+ \overline\mu_1-\underline\mu_0].\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The generalized quantile <span class="leanref" data-objid="sym:Q"><span class="math inline">\(Q_F\)</span></span> in Definition <a class="objref" href="#obj-synth_4">8</a> makes the same endpoint expressions apply to discrete and continuous cell distributions. Pairing outcome and reciprocal-weight quantiles in opposite or matching order gives the lower and upper mean endpoints.</p>
+<div class="formal-block kind-definition" id="obj-synth_4" data-presentation-only="true"><span class="env-label">Definition 8 <span class="obj-tag">[synth_4]</span> (Generalized quantile).</span><p>For a probability law <span class="math inline">\(F\)</span> with compact support in <span class="math inline">\(\mathbb R\)</span>, define <span class="math display">\[Q_F(u)=\inf\{x\in\mathbb R:F((-\infty,x])\ge u\},\qquad 0&lt;u&lt;1.\]</span> Set <span class="math inline">\(Q_F(0)=\inf\operatorname{supp}(F)\)</span> and <span class="math inline">\(Q_F(1)=\sup\operatorname{supp}(F)\)</span>. At an atom <span class="math inline">\(x\)</span>, this convention gives <span class="math inline">\(Q_F(u)=x\)</span> whenever <span class="math inline">\(F((-\infty,x))&lt;u\le F((-\infty,x])\)</span>.</p></div>
+<p>The interval <span class="leanref" data-objid="sym:Isharp"><span class="math inline">\(I(P_{\mathrm{rel}};H,g)\)</span></span> in Definition <a class="objref" href="#obj-def:sharp-ate-set">7</a> combines the attainable arm-specific mean endpoints into the fixed-law sharp identified interval for the average treatment effect. The mathematical antecedent is Fan et al. (2014); the displayed result here is proved under the paper’s stated model conditions.</p>
+<p>Before reporting that interval for a proposed release, one can check whether the declared score law and released law admit a common causal population. The observable criterion uses the label masses and the treated masses within labels.</p>
+<div class="formal-block kind-theorem" id="obj-prop:compatibility" data-objid="prop:compatibility" tabindex="0"><span class="env-label">Theorem 1 <span class="obj-tag">[prop:compatibility]</span> (Compatibility of released laws).</span><p>Suppose Assumption <a class="objref" href="#obj-ass:overlap">1</a> holds. Let <span class="math inline">\(H\)</span> be a probability law on the score interval <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span>, let <span class="math inline">\(g:\mathcal E\to\mathcal R_J\)</span> be a measurable release rule, and let <span class="math inline">\(P_{\mathrm{rel}}\)</span> be a probability law on <span class="math inline">\((R,A,Y)\)</span>. The compatible causal-law class <span class="math inline">\(\mathfrak M(H,g,P_{\mathrm{rel}})\)</span> of Definition <a class="objref" href="#obj-def:compatible-law-class">2</a> is nonempty if and only if, for every <span class="math inline">\(r\in\mathcal R_J\)</span>, <span class="math display">\[\begin{aligned}
+P_{\mathrm{rel}}(R=r) &amp;= H(C_r),\\
+P_{\mathrm{rel}}(A=1,R=r) &amp;= \int_{C_r} e\,H(de).
+\end{aligned}\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Under Assumptions <a class="objref" href="#obj-ass:randomized-assignment">3</a> and <a class="objref" href="#obj-ass:deterministic-release">5</a>, the score mass of a cell gives its label probability, and score-weighting that mass gives its treated probability. The control probability then follows from the label total. Theorem <a class="objref" href="#obj-prop:compatibility">1</a> establishes that these equalities also suffice for a compatible causal law, so an archive can check the coherence of its declared release and randomization law before using the fixed-law interval.</p>
+<h1 id="information-retained-by-a-score-label">Information retained by a score label</h1>
+<p>For a fixed score law and deterministic release, the sharp interval in Definition <a class="objref" href="#obj-def:sharp-ate-set">7</a> can vary with the released outcome law. The worst-case ambiguity <span class="leanref" data-objid="sym:D"><span class="math inline">\(D_H(g)\)</span></span>, the largest such interval width over the causal laws in Definition <a class="objref" href="#obj-def:causal-law-class">1</a>, measures the information retained by the label across outcome laws.</p>
+<p>Three criteria answer different questions. The sharp width measures identification for a specified released law; worst-case ambiguity maximizes that width over released laws at a fixed score law and release. With trial sampling and a known score law, Theorem <a class="objref" href="#obj-thm:minimax-honest-length">6</a> studies expected honest interval length. With an independently sampled score law, Definition <a class="objref" href="#obj-def:external-excess-risk">19</a> studies expected length in excess of the population sharp interval. The latter two criteria include sampling uncertainty; the sharp width does not.</p>
+<div class="formal-block kind-definition" id="obj-def:worst-case-ambiguity" data-objid="def:worst-case-ambiguity" tabindex="0"><span class="env-label">Definition 9 <span class="obj-tag">[def:worst-case-ambiguity]</span> (Worst-case ambiguity <span class="math inline">\(D_H(g)\)</span>).</span><p><span class="math display">\[D_H(g)
+=
+\sup_{P\in\mathfrak P(H,g)}
+\operatorname{len}\!\left\{
+I\bigl(\mathcal L_P(R,A,Y);H,g\bigr)
+\right\}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The supremum has a cellwise expression in terms of the score law and release rule. The next result also gives a released outcome law at which the width is attained.</p>
+<div class="formal-block kind-theorem" id="obj-thm:all-label-ambiguity" data-objid="thm:all-label-ambiguity" tabindex="0"><span class="env-label">Theorem 2 <span class="obj-tag">[thm:all-label-ambiguity]</span> (Exact all-label ambiguity width).</span><p>Suppose that:</p>
+<ul>
+<li><p><strong>(Overlap.)</strong> The overlap condition in Assumption <a class="objref" href="#obj-ass:overlap">1</a> holds.</p></li>
+<li><p><strong>(Score law.)</strong> <span class="math inline">\(H\)</span> is a probability law on <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span>.</p></li>
+<li><p><strong>(Release.)</strong> <span class="math inline">\(g:\mathcal E\to\mathcal R_J\)</span> is measurable.</p></li>
+</ul>
+<p>Write <span class="math inline">\(C_r=\{e:g(e)=r\}\)</span>, <span class="math inline">\(p_1(e)=e\)</span>, <span class="math inline">\(p_0(e)=1-e\)</span>, and <span class="math inline">\(q_{ar}=\int_{C_r}p_a(e)\,H(de)\)</span>. Let <span class="math inline">\(P_{\mathrm{rel}}\)</span> be the released law <span class="math display">\[P_{\mathrm{rel}}
+=\sum_{r\in\mathcal R_J}\sum_{a\in\{0,1\}}
+\frac{q_{ar}}{2}\bigl(\delta_{(r,a,0)}+\delta_{(r,a,1)}\bigr).\]</span> Thus its observed outcome law <span class="math inline">\(F_{ar}\)</span> is Bernoulli<span class="math inline">\((1/2)\)</span> in every positive-mass arm-label cell.</p>
+<p>The worst-case ambiguity <span class="math inline">\(D_H(g)\)</span> of Definition <a class="objref" href="#obj-def:worst-case-ambiguity">9</a> satisfies <span class="math display">\[D_H(g)=
+\sum_{r\in\mathcal R_J}
+\left[
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-ce|\,H(de)
++
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-c(1-e)|\,H(de)
+\right].\]</span></p>
+<p>For each <span class="math inline">\(a\in\{0,1\}\)</span> and each cell with <span class="math inline">\(q_{ar}&gt;0\)</span>, let <span class="math inline">\(E_{ar}\)</span> have law <span class="math inline">\(p_a(e)\mathbf 1_{C_r}(e)H(de)/q_{ar}\)</span>, and let <span class="math inline">\(W_{ar}=1/p_a(E_{ar})\)</span>. Define <span class="math display">\[\underline\mu_a
+=\sum_{r:q_{ar}&gt;0}q_{ar}\int_0^1
+Q_{F_{ar}}(u)Q_{W_{ar}}(1-u)\,du,
+\qquad
+\overline\mu_a
+=\sum_{r:q_{ar}&gt;0}q_{ar}\int_0^1
+Q_{F_{ar}}(u)Q_{W_{ar}}(u)\,du.\]</span> The sharp ATE interval for <span class="math inline">\(P_{\mathrm{rel}}\)</span> has length <span class="math inline">\(D_H(g)\)</span>. Moreover, there are two probability laws <span class="math inline">\(P_-,P_+\in\mathfrak M(H,g,P_{\mathrm{rel}})\)</span>, as defined in Definition <a class="objref" href="#obj-def:compatible-law-class">2</a>, such that <span class="math display">\[\mathbb E_{P_-}[Y_1-Y_0]=\underline\mu_1-\overline\mu_0,
+\qquad
+\mathbb E_{P_+}[Y_1-Y_0]=\overline\mu_1-\underline\mu_0,
+\qquad
+\mathbb E_{P_+}[Y_1-Y_0]-\mathbb E_{P_-}[Y_1-Y_0]=D_H(g).\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Assignment tilts the score distribution within a label differently in the two arms. Pairing the Bernoulli outcome with reciprocal assignment weights in opposite or matching quantile order produces the mean endpoints in Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a>. Its two compatible causal laws attain those endpoints under the same released outcome law, so the paired absolute-deviation expression gives the exact worst-case width. Because the expression depends on <span class="math inline">\(H\)</span> and <span class="math inline">\(g\)</span>, it permits comparison of candidate releases without specifying an outcome regression. The result applies to arbitrary probability laws <span class="math inline">\(H\)</span>, including atomic laws, and to measurable releases with disconnected score cells.</p>
+<p>For a concrete one-label release, take <span class="math inline">\(\varepsilon=1/4\)</span>, let <span class="math inline">\(H\)</span> put mass <span class="math inline">\(1/2\)</span> on each of the scores <span class="math inline">\(1/4\)</span> and <span class="math inline">\(3/4\)</span>, and set <span class="math inline">\(g\equiv1\)</span>. Use the released law in Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a>, so outcomes are Bernoulli<span class="math inline">\((1/2)\)</span> in each arm. In either arm the lower and upper attainable potential-outcome means are <span class="math inline">\(1/3\)</span> and <span class="math inline">\(2/3\)</span>: assignment tilts the two scores, but the outcome can be matched to the larger or smaller reciprocal weight. The sharp ATE interval is therefore <span class="math inline">\([-1/3,1/3]\)</span>, with width <span class="math inline">\(2/3\)</span>. If each score instead receives its own label, the score is recovered from the label and the ambiguity width is zero. This example isolates uncertainty from within-label score variation before any trial sampling is introduced.</p>
+<p>The zero-width case has a direct disclosure interpretation. The following characterization expresses it both as recovery of the score from the label and as concentration of the score within every positive-mass cell.</p>
+<div class="formal-block kind-theorem" id="obj-thm:universal-point-identification" data-objid="thm:universal-point-identification" tabindex="0"><span class="env-label">Theorem 3 <span class="obj-tag">[thm:universal-point-identification]</span> (Universal point identification).</span><p>Let <span class="math inline">\(J\in\mathbb N\)</span>, let <span class="math inline">\(H\)</span> be a probability law on the score interval <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span>, and let <span class="math inline">\(g:\mathcal E\to\mathcal R_J\)</span> be a measurable deterministic release into <span class="math inline">\(J\)</span> labels. Under Assumption <a class="objref" href="#obj-ass:overlap">1</a>, write <span class="math inline">\(C_r=\{e\in\mathcal E:g(e)=r\}\)</span> for each label <span class="math inline">\(r\)</span>. Each of the following is equivalent to <span class="math inline">\(D_H(g)=0\)</span>, where <span class="math inline">\(D_H(g)\)</span> is defined in Definition <a class="objref" href="#obj-def:worst-case-ambiguity">9</a>:</p>
+<ol>
+<li><p>There exists a measurable map <span class="math inline">\(h:\mathcal R_J\to\mathcal E\)</span> such that <span class="math inline">\(e=h(g(e))\)</span> for <span class="math inline">\(H\)</span>-almost every <span class="math inline">\(e\)</span>.</p></li>
+<li><p>For every <span class="math inline">\(r\in\mathcal R_J\)</span> with <span class="math inline">\(H(C_r)&gt;0\)</span>, there exists <span class="math inline">\(x\in\mathcal E\)</span> such that <span class="math inline">\(e=x\)</span> for <span class="math inline">\(H\)</span>-almost every <span class="math inline">\(e\in C_r\)</span>.</p></li>
+</ol><span class="lean-hint">⊢ Lean</span></div>
+<p>The absolute-deviation terms in Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a> vanish when each positive-mass cell carries a single score value. Score variation within a cell produces positive worst-case ambiguity, while score-degenerate cells yield universal point identification. For a finite-support score law with at most <span class="math inline">\(J\)</span> positive-mass atoms, giving each atom a distinct label achieves point identification. With more atoms than labels, at least one positive-mass cell contains score variation, so universal point identification fails.</p>
+<h1 id="designing-a-finite-label-release">Designing a finite-label release</h1>
+<p>The cellwise criterion in Theorem <a class="objref" href="#obj-thm:universal-point-identification">3</a> makes label design an allocation problem. A release with <span class="leanref" data-objid="sym:K"><span class="math inline">\(K\)</span></span> labels groups score values, and Definition <a class="objref" href="#obj-def:worst-case-ambiguity">9</a> measures the resulting worst-case ATE ambiguity. A lower bound on score density supports a comparison across score laws.</p>
+<div class="formal-block kind-assumption" id="obj-ass:density-lower" data-objid="ass:density-lower" tabindex="0"><span class="env-label">Assumption 7 <span class="obj-tag">[ass:density-lower]</span> (Lower bound on score density).</span><p>The score law <span class="math inline">\(H\)</span> has density <span class="math inline">\(f\)</span> on the score interval <span class="math inline">\(\mathcal E\)</span>, with <span class="math display">\[H(de)=f(e)\,de,\qquad f(e)\ge m_f\]</span> for Lebesgue-almost every <span class="math inline">\(e\in\mathcal E\)</span>.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The density <span class="leanref" data-objid="sym:f"><span class="math inline">\(f\)</span></span> and its floor <span class="leanref" data-objid="sym:mf"><span class="math inline">\(m_f\)</span></span>, when the floor is positive, give the standard compact-support positive-density condition used in quantization (Lemaire et al., 2020). A positive floor assigns every subinterval a baseline amount of score mass, which permits a uniform lower bound on ambiguity.</p>
+<p>The release budget, its optimal ambiguity, and the common comparison class are defined as follows.</p>
+<div class="formal-block kind-definition" id="obj-def:k-label-releases" data-objid="def:k-label-releases" tabindex="0"><span class="env-label">Definition 10 <span class="obj-tag">[def:k-label-releases]</span> (<span class="math inline">\(K\)</span>-label release class <span class="math inline">\(\mathcal G_K\)</span>).</span><p><span class="math display">\[\mathcal G_K
+=
+\bigl\{g:\mathcal E\to\{1,\ldots,K\}:g\text{ is measurable}\bigr\}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The release family <span class="leanref" data-objid="sym:GK"><span class="math inline">\(\mathcal G_K\)</span></span> allows any measurable partition with at most <span class="math inline">\(K\)</span> nonempty label cells. Its design criterion takes the infimum of worst-case ambiguity over that family.</p>
+<div class="formal-block kind-definition" id="obj-def:optimal-k-ambiguity" data-objid="def:optimal-k-ambiguity" tabindex="0"><span class="env-label">Definition 11 <span class="obj-tag">[def:optimal-k-ambiguity]</span> (Optimal <span class="math inline">\(K\)</span>-label ambiguity <span class="math inline">\(\Delta_K(H)\)</span>).</span><p><span class="math display">\[\Delta_K(H)=\inf_{g\in\mathcal G_K}D_H(g).\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The optimal ambiguity <span class="leanref" data-objid="sym:DeltaK"><span class="math inline">\(\Delta_K(H)\)</span></span> expresses the best worst-case ATE resolution available at the given label budget. For a uniform comparison, the density floor defines a class of score laws on the common overlap interval.</p>
+<div class="formal-block kind-definition" id="obj-def:score-lower-density-class" data-objid="def:score-lower-density-class" tabindex="0"><span class="env-label">Definition 12 <span class="obj-tag">[def:score-lower-density-class]</span> (Lower-density score class <span class="math inline">\(\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\)</span>).</span><p>Under Assumption <a class="objref" href="#obj-ass:density-lower">7</a>, the class of score laws is <span class="math display">\[\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}
+=
+\left\{
+H\in\mathcal P(\mathcal E):
+H(de)=f(e)\,de,\quad
+f(e)\ge m_f\ \text{for Lebesgue-almost every }e\in\mathcal E
+\right\}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The class is nonempty only in the feasible range <span class="math inline">\(0&lt;m_f\le (1-2\varepsilon)^{-1}\)</span>; this is the range in which the uniform lower bound below has content. Within this class, the label budget yields matching inverse-budget bounds. The constructive upper bound applies to every score law on the overlap interval.</p>
+<div class="formal-block kind-theorem" id="obj-thm:k-label-rate" data-objid="thm:k-label-rate" tabindex="0"><span class="env-label">Theorem 4 <span class="obj-tag">[thm:k-label-rate]</span> (Bounds for optimal label ambiguity).</span><p>Suppose:</p>
+<ul>
+<li><p><strong>(Overlap.)</strong> The condition in Assumption <a class="objref" href="#obj-ass:overlap">1</a> holds for <span class="math inline">\(\varepsilon\)</span>.</p></li>
+<li><p><strong>(Density floor.)</strong> <span class="math inline">\(m_f&gt;0\)</span>.</p></li>
+<li><p><strong>(Label budget.)</strong> <span class="math inline">\(K\geq 1\)</span> is an integer.</p></li>
+</ul>
+<p>Let <span class="math inline">\(\ell=1-2\varepsilon\)</span> and <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span>. For every <span class="math inline">\(H\in\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\)</span> as defined in Definition <a class="objref" href="#obj-def:score-lower-density-class">12</a>, <span class="math display">\[\frac{m_f\ell^2}{2(1-\varepsilon)K}\leq\Delta_K(H).\]</span> For every probability law <span class="math inline">\(H\)</span> on <span class="math inline">\(\mathcal E\)</span>, the equal-width release <span class="math inline">\(g:\mathcal E\to\mathcal R_K=\{1,\ldots,K\}\)</span> defined by <span class="math display">\[g(e)=1+\min\left\{\left\lfloor\frac{K(e-\varepsilon)}{\ell}\right\rfloor,K-1\right\}\]</span> is measurable and satisfies <span class="math display">\[\Delta_K(H)\leq\frac{\ell}{2\varepsilon(1-\varepsilon)K},
+\qquad
+D_H(g)\leq\frac{\ell}{2\varepsilon(1-\varepsilon)K}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>A positive density floor gives an inverse-budget lower bound on ambiguity for every <span class="math inline">\(K\)</span>-label design. Equal-width cells give a matching upper bound for the optimal ambiguity under that floor, and an inverse-budget upper bound for any score law, including laws with atoms. The displayed constants thus translate a label budget into a worst-case ATE-width guarantee before outcomes are analyzed.</p>
+<p>For a continuous, strictly positive score density, the leading coefficient has an exact law-specific form. An interval-cell release attains that coefficient asymptotically.</p>
+<div class="formal-block kind-theorem" id="obj-thm:sharp-high-resolution-constant" data-objid="thm:sharp-high-resolution-constant" tabindex="0"><span class="env-label">Theorem 5 <span class="obj-tag">[thm:sharp-high-resolution-constant]</span> (Sharp high resolution constant).</span><p>Let <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span> be the score interval, and let <span class="math inline">\(H\)</span> be a probability law on <span class="math inline">\(\mathcal E\)</span>. Suppose:</p>
+<ul>
+<li><p><strong>(Overlap.)</strong> The overlap condition in Assumption <a class="objref" href="#obj-ass:overlap">1</a> holds.</p></li>
+<li><p><strong>(Density.)</strong> <span class="math inline">\(H(de)=f(e)\,de\)</span> on <span class="math inline">\(\mathcal E\)</span>.</p></li>
+<li><p><strong>(Regularity.)</strong> The density <span class="math inline">\(f\)</span> is continuous and strictly positive on <span class="math inline">\(\mathcal E\)</span>.</p></li>
+</ul>
+<p>Let <span class="math inline">\(\Delta_K(H)\)</span> and <span class="math inline">\(D_H(g)\)</span> be the optimal <span class="math inline">\(K\)</span>-label ambiguity and the worst-case ambiguity defined in Definitions <a class="objref" href="#obj-def:optimal-k-ambiguity">11</a> and <a class="objref" href="#obj-def:worst-case-ambiguity">9</a>. For every positive integer <span class="math inline">\(K\)</span>, there is a measurable release <span class="math inline">\(g_K:\mathcal E\to\{0,\ldots,K-1\}\)</span> whose label cells are intervals, such that <span class="math display">\[\lim_{K\to\infty}K\Delta_K(H)
+=
+\lim_{K\to\infty}K D_H(g_K)
+=
+\frac14\left(
+\int_{\varepsilon}^{1-\varepsilon}
+\sqrt{\frac{f(e)}{e(1-e)}}\,de
+\right)^2.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The theorem writes the attaining labels as <span class="math inline">\(0,\ldots,K-1\)</span>, whereas <span class="math inline">\(\mathcal G_K\)</span> uses <span class="math inline">\(1,\ldots,K\)</span>. The bijection <span class="math inline">\(r\mapsto r+1\)</span> preserves every label cell and hence preserves <span class="math inline">\(D_H(g_K)\)</span>, so the displayed construction is a member of the release class after relabeling.</p>
+<p>The integrand weights score regions by their density and by the reciprocal-assignment factor <span class="math inline">\(1/[e(1-e)]\)</span>. It suggests an ordered interval allocation with boundaries at approximately equal increments of the cumulative weight <span class="math inline">\(\int_{\varepsilon}^{e}\sqrt{f(t)/[t(1-t)]}\,dt\)</span>: regions with greater weight receive narrower cells and more labels. The constant in Theorem <a class="objref" href="#obj-thm:sharp-high-resolution-constant">5</a> quantifies the leading ambiguity under optimal allocation, and its interval-cell sequence attains that value.</p>
+<h1 id="honest-intervals-with-a-known-score-law">Honest intervals with a known score law</h1>
+<p>A finite-label release determines how much of the assignment score is retained. We now consider interval estimation when its score law is known to the analyst. For trial size <span class="leanref" data-objid="sym:n"><span class="math inline">\(n\)</span></span>, the <span class="leanref" data-objid="S-2">known-score trial experiment</span> observes independent released rows under a chosen release. The sampling condition is stated explicitly.</p>
+<div class="formal-block kind-assumption" id="obj-ass:iid-trial-sampling" data-objid="ass:iid-trial-sampling" tabindex="0"><span class="env-label">Assumption 8 <span class="obj-tag">[ass:iid-trial-sampling]</span> (Independent trial sampling).</span><p>The trial observations are independent and identically distributed under <span class="math inline">\(P\)</span>: <span class="math display">\[(R_i,A_i,Y_i)_{i=1}^n\stackrel{\mathrm{iid}}{\sim}\mathcal L_P(R,A,Y).\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<div class="formal-block kind-definition" id="obj-synth_1" data-objid="synth_1" tabindex="0"><span class="env-label">Definition 13 <span class="obj-tag">[synth_1]</span> (Average treatment effect functional).</span><p>For any measure <span class="math inline">\(P\)</span> on full rows <span class="math inline">\((E,Y_0,Y_1,A,Y,R)\)</span> with score parameter <span class="math inline">\(\varepsilon\)</span> and <span class="math inline">\(J\)</span> labels, define the average treatment effect functional <span class="math inline">\(\theta(P)\)</span> by <span class="math display">\[\theta(P)=\int (Y_1-Y_0)\,dP.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Independent superpopulation sampling governs how the released-row law generates the trial data and is a standard condition for interval inference in partially identified models (Imbens et al., 2004).</p>
+<p>Coverage must account for every causal law in Definition <a class="objref" href="#obj-def:causal-law-class">1</a> consistent with the chosen release and score law. At miscoverage level <span class="leanref" data-objid="sym:alpha"><span class="math inline">\(\alpha\)</span></span>, the following criterion allows the release and interval procedure to be selected jointly.</p>
+<p>In the next two displays, <span class="math inline">\(P^{\otimes n}\)</span> acts only on functions of the observed released rows. Its pushforward to those rows is <span class="math inline">\(\mathcal L_P(R,A,Y)^{\otimes n}\)</span>, the sampling law in Assumption <a class="objref" href="#obj-ass:iid-trial-sampling">8</a>.</p>
+<div class="formal-block kind-definition" id="obj-def:honest-procedures" data-objid="def:honest-procedures" tabindex="0"><span class="env-label">Definition 14 <span class="obj-tag">[def:honest-procedures]</span> (Uniformly honest procedures <span class="math inline">\(\mathcal J_{n,K,\alpha}(H)\)</span>).</span><p><span class="math display">\[\mathcal J_{n,K,\alpha}(H)
+=
+\left\{
+(g,C_n):
+g\in\mathcal G_K,\quad
+\inf_{P\in\mathfrak P(H,g)}
+P^{\otimes n}\!\left[
+\theta(P)\in C_n\bigl((R_i,A_i,Y_i)_{i=1}^n\bigr)
+\right]
+\ge 1-\alpha
+\right\}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>For each pair in <span class="leanref" data-objid="sym:Jhonest"><span class="math inline">\(\mathcal J_{n,K,\alpha}(H)\)</span></span>, the interval <span class="leanref" data-objid="sym:Cn"><span class="math inline">\(C_n\)</span></span> attains the stated coverage uniformly over causal laws for its release. Among these pairs, the design criterion is worst-case expected interval length.</p>
+<div class="formal-block kind-definition" id="obj-def:minimax-honest-length" data-objid="def:minimax-honest-length" tabindex="0"><span class="env-label">Definition 15 <span class="obj-tag">[def:minimax-honest-length]</span> (Minimax honest length <span class="math inline">\(\mathcal L^\star_{n,K,\alpha}(H)\)</span>).</span><p><span class="math display">\[\mathcal L^\star_{n,K,\alpha}(H)
+=
+\inf_{(g,C_n)\in\mathcal J_{n,K,\alpha}(H)}
+\sup_{P\in\mathfrak P(H,g)}
+\mathbb E_{P^{\otimes n}}\!\left[\operatorname{len}(C_n)\right].\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The criterion <span class="leanref" data-objid="sym:Lminimax"><span class="math inline">\(\mathcal L^\star_{n,K,\alpha}(H)\)</span></span> measures the shortest worst-case expected length attainable through joint choice of a release and an honest interval. The next result gives matching orders over the positive lower-density class in Definition <a class="objref" href="#obj-def:score-lower-density-class">12</a>, together with a sampling lower bound for every score law.</p>
+<div class="formal-block kind-theorem" id="obj-thm:minimax-honest-length" data-objid="thm:minimax-honest-length" tabindex="0"><span class="env-label">Theorem 6 <span class="obj-tag">[thm:minimax-honest-length]</span> (Minimax honest interval length).</span><p>Consider the following conditions:</p>
+<ul>
+<li><p><strong>(Overlap.)</strong> The overlap parameter <span class="math inline">\(\varepsilon\)</span> satisfies Assumption <a class="objref" href="#obj-ass:overlap">1</a>.</p></li>
+<li><p><strong>(Miscoverage.)</strong> <span class="math inline">\(0&lt;\alpha&lt;1/2\)</span>.</p></li>
+<li><p><strong>(Trial size.)</strong> <span class="math inline">\(n\geq1\)</span>.</p></li>
+<li><p><strong>(Label budget.)</strong> <span class="math inline">\(K\geq1\)</span>.</p></li>
+</ul>
+<p>There are constants <span class="math inline">\(C_{\varepsilon,\alpha}&gt;0\)</span> and <span class="math inline">\(c_{\varepsilon,\alpha}&gt;0\)</span>, independent of <span class="math inline">\(H,n,K\)</span>, such that every score law <span class="math inline">\(H\)</span> on <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span> satisfies <span class="math display">\[c_{\varepsilon,\alpha}n^{-1/2}
+\leq \mathcal L^\star_{n,K,\alpha}(H),\]</span> where the minimax expected length is defined in Definition <a class="objref" href="#obj-def:minimax-honest-length">15</a>.</p>
+<p>For every <span class="math inline">\(m_f&gt;0\)</span>, there is a constant <span class="math inline">\(c_{\varepsilon,m_f,\alpha}&gt;0\)</span> such that every <span class="math inline">\(H\in\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\)</span>, as defined in Definition <a class="objref" href="#obj-def:score-lower-density-class">12</a>, satisfies <span class="math display">\[c_{\varepsilon,m_f,\alpha}\bigl(K^{-1}+n^{-1/2}\bigr)
+\leq \mathcal L^\star_{n,K,\alpha}(H)
+\leq C_{\varepsilon,\alpha}\bigl(K^{-1}+n^{-1/2}\bigr).\]</span></p>
+<p>An interval attaining the upper bound uses the equal-width release with labels <span class="math inline">\(r\in\mathcal R_K=\{1,\ldots,K\}\)</span>: <span class="math display">\[g_K(e)=1+\min\left\{\left\lfloor\frac{K(e-\varepsilon)}{1-2\varepsilon}\right\rfloor,K-1\right\},
+\qquad
+z_r=\varepsilon+\frac{(r-\tfrac12)(1-2\varepsilon)}{K}.\]</span> For released trial rows <span class="math inline">\((R_i,A_i,Y_i)_{i=1}^n\)</span>, define <span class="math display">\[\widehat T_n=\frac1n\sum_{i=1}^n
+\left\{\frac{A_iY_i}{z_{R_i}}-\frac{(1-A_i)Y_i}{1-z_{R_i}}\right\},
+\qquad
+R_{n,K}=\frac4\varepsilon\sqrt{\frac{\log(4/\alpha)}{n}}
++\frac{1-2\varepsilon}{2K\varepsilon(1-\varepsilon)}.\]</span> With <span class="math inline">\(\operatorname{clampATE}(t)=\max\{-1,\min\{1,t\}\}\)</span>, the interval <span class="math display">\[C_n(x)=
+\left[
+\operatorname{clampATE}\bigl(\widehat T_n(x)-R_{n,K}\bigr),
+\operatorname{clampATE}\bigl(\widehat T_n(x)+R_{n,K}\bigr)
+\right]\]</span> satisfies <span class="math inline">\((g_K,C_n)\in\mathcal J_{n,K,\alpha}(H)\)</span>, with honesty defined in Definition <a class="objref" href="#obj-def:honest-procedures">14</a>. For every <span class="math inline">\(P\in\mathfrak P(H,g_K)\)</span>, as defined in Definition <a class="objref" href="#obj-def:causal-law-class">1</a>, its expected length under the <span class="math inline">\(n\)</span>-fold released-row law satisfies <span class="math display">\[\int |C_n(x)|\,dP_{\mathrm{rel}}^{\otimes n}(x)
+\leq C_{\varepsilon,\alpha}\bigl(K^{-1}+n^{-1/2}\bigr).\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The two terms in Theorem <a class="objref" href="#obj-thm:minimax-honest-length">6</a> reflect score variation within a label cell and sampling variation across released rows. Midpoint inverse-probability weights give an honest interval whose radius accounts for both. Over the positive lower-density class, a label budget of order <span class="math inline">\(\sqrt n\)</span> balances these terms and attains root-<span class="math inline">\(n\)</span> expected length. The matching lower bound makes this balance a property of the experiment, rather than of the particular interval construction.</p>
+<h1 id="inference-with-an-independent-score-log">Inference with an independent score log</h1>
+<p>The known-score analysis in Theorem <a class="objref" href="#obj-thm:minimax-honest-length">6</a> takes the score law as given. The <span class="leanref" data-objid="S-3">external score-log experiment</span> instead fixes a finite-label release and combines the trial rows with an independent log of <span class="leanref" data-objid="sym:m"><span class="math inline">\(m\)</span></span> scores. The score-log array <span class="leanref" data-objid="sym:Elog"><span class="math inline">\((E_j^{\mathrm{log}})_{j=1}^m\)</span></span> supplies information about the score law while retaining the trial’s released-row data structure. Two sampling conditions specify this combination.</p>
+<div class="formal-block kind-assumption" id="obj-ass:external-log-iid" data-objid="ass:external-log-iid" tabindex="0"><span class="env-label">Assumption 9 <span class="obj-tag">[ass:external-log-iid]</span> (Independent score-log sampling).</span><p>The external score-log observations are independent and identically distributed with law <span class="math inline">\(H\)</span>: <span class="math display">\[(E_j^{\mathrm{log}})_{j=1}^m\stackrel{\mathrm{iid}}{\sim}H.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Independent and identically distributed auxiliary-sample observations are a standard data-combination condition (Marella et al., 2019). Here they make the empirical score distribution informative about the population score law.</p>
+<div class="formal-block kind-assumption" id="obj-ass:external-log-independent" data-objid="ass:external-log-independent" tabindex="0"><span class="env-label">Assumption 10 <span class="obj-tag">[ass:external-log-independent]</span> (Independent trial and score log).</span><p>The external score log is independent of the trial observations: <span class="math display">\[(E_j^{\mathrm{log}})_{j=1}^m
+\mathrel{\perp\!\!\!\perp}
+(R_i,A_i,Y_i)_{i=1}^n.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Independence across the two samples is the standard independent two-sample data-combination condition (Marella et al., 2019). It gives the trial and score-log empirical measures separate sampling scales. The admissible law pairs and their joint sampling law can now be stated.</p>
+<div class="formal-block kind-definition" id="obj-def:external-law-class" data-objid="def:external-law-class" tabindex="0"><span class="env-label">Definition 16 <span class="obj-tag">[def:external-law-class]</span> (External law class <span class="math inline">\(\mathfrak X(g)\)</span>).</span><p><span class="math display">\[\mathfrak X(g)
+=
+\left\{
+(P,H):
+H\in\mathcal P(\mathcal E),\quad
+P\in\mathfrak P(H,g)
+\right\}.\]</span> The class uses the conditions in Assumptions <a class="objref" href="#obj-ass:overlap">1</a>, <a class="objref" href="#obj-ass:score-marginal">2</a>, <a class="objref" href="#obj-ass:randomized-assignment">3</a>, <a class="objref" href="#obj-ass:consistency">4</a>, and <a class="objref" href="#obj-ass:deterministic-release">5</a>.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>The external law class <span class="leanref" data-objid="sym:Xext"><span class="math inline">\(\mathfrak X(g)\)</span></span> lets the score law vary over probability measures on the score interval, including atomic laws, while maintaining the causal and release conditions of Definition <a class="objref" href="#obj-def:causal-law-class">1</a>.</p>
+<div class="formal-block kind-definition" id="obj-def:external-experiment" data-objid="def:external-experiment" tabindex="0"><span class="env-label">Definition 17 <span class="obj-tag">[def:external-experiment]</span> (External experiment <span class="math inline">\(\mathbb Q_{P,H}^{n,m}\)</span>).</span><p>For <span class="math inline">\((P,H)\in\mathfrak X(g)\)</span>, the joint law of <span class="math inline">\(n\)</span> released trial observations <span class="math inline">\((R_i,A_i,Y_i)\)</span> and <span class="math inline">\(m\)</span> independent score-log observations <span class="math inline">\(E_j^{\mathrm{log}}\)</span> is <span class="math display">\[\mathbb Q_{P,H}^{n,m}
+=
+\mathcal L_P(R,A,Y)^{\otimes n}\otimes H^{\otimes m}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The product law <span class="leanref" data-objid="sym:Qext"><span class="math inline">\(\mathbb Q_{P,H}^{n,m}\)</span></span> makes coverage a joint-sample requirement. For a fixed release, honest intervals must cover the population average treatment effect uniformly over the external law class.</p>
+<div class="formal-block kind-definition" id="obj-def:external-honest-procedures" data-objid="def:external-honest-procedures" tabindex="0"><span class="env-label">Definition 18 <span class="obj-tag">[def:external-honest-procedures]</span> (External honest procedures <span class="math inline">\(\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)\)</span>).</span><p><span class="math display">\[\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)
+=
+\left\{
+C_{n,m}:
+\inf_{(P,H)\in\mathfrak X(g)}
+\mathbb Q_{P,H}^{n,m}\!\left[
+\theta(P)\in C_{n,m}
+\right]
+\ge 1-\alpha
+\right\}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>Membership in <span class="leanref" data-objid="sym:Jext"><span class="math inline">\(\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)\)</span></span> requires coverage for every admissible score law and causal law. Interval length is evaluated relative to the sharp identified interval in Definition <a class="objref" href="#obj-def:sharp-ate-set">7</a> at the same released and score laws.</p>
+<div class="formal-block kind-definition" id="obj-def:external-excess-risk" data-objid="def:external-excess-risk" tabindex="0"><span class="env-label">Definition 19 <span class="obj-tag">[def:external-excess-risk]</span> (Minimax external excess risk <span class="math inline">\(\mathcal R^{\star}_{n,m,\alpha}(g)\)</span>).</span><p><span class="math display">\[\mathcal R^{\star}_{n,m,\alpha}(g)
+=
+\inf_{C_{n,m}\in\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)}
+\sup_{(P,H)\in\mathfrak X(g)}
+\mathbb E_{\mathbb Q_{P,H}^{n,m}}
+\!\left[
+\left(
+\operatorname{len}(C_{n,m})
+-
+\operatorname{len}I(\mathcal L_P(R,A,Y);H,g)
+\right)_+
+\right].\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The risk <span class="leanref" data-objid="sym:Rext"><span class="math inline">\(\mathcal R^{\star}_{n,m,\alpha}(g)\)</span></span> measures expected positive excess length beyond the identified interval, then takes the worst case over admissible law pairs and the best honest procedure. To compare experiments with different trial and log sizes, the following normalization uses the sum of their square-root sampling scales.</p>
+<div class="formal-block kind-definition" id="obj-def:external-normalized-risk" data-objid="def:external-normalized-risk" tabindex="0"><span class="env-label">Definition 20 <span class="obj-tag">[def:external-normalized-risk]</span> (Normalized external risk <span class="math inline">\(T_{n,m,\alpha}(g)\)</span>).</span><p><span class="math display">\[b_{n,m}=\left(n^{-1/2}+m^{-1/2}\right)^{-1},
+\qquad
+T_{n,m,\alpha}(g)=b_{n,m}\mathcal R^{\star}_{n,m,\alpha}(g).\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The normalizer <span class="leanref" data-objid="sym:bext"><span class="math inline">\(b_{n,m}\)</span></span> puts the excess risk on the two-sample root scale; <span class="leanref" data-objid="sym:Text"><span class="math inline">\(T_{n,m,\alpha}(g)\)</span></span> records the resulting normalized risk. Constructing an interval on this scale uses distances between finite measures that account for both cell mass and distribution within a cell.</p>
+<div class="formal-block kind-definition" id="obj-synth_5" data-presentation-only="true"><span class="env-label">Definition 21 <span class="obj-tag">[synth_5]</span> (Finite-measure distances).</span><p>For finite nonnegative measures <span class="math inline">\(\mu,\nu\)</span> on a compact interval <span class="math inline">\(S\)</span>, define their total-mass-plus-integrated-CDF distance by <span class="math display">\[d_S(\mu,\nu)
+=
+|\mu(S)-\nu(S)|
++
+\int_S
+\bigl|\mu(S\cap(-\infty,t])-\nu(S\cap(-\infty,t])\bigr|\,dt.\]</span> The outcome-measure distance <span class="math inline">\(d_{[0,1]}\)</span> uses <span class="math inline">\(S=[0,1]\)</span>, with integration over <span class="math inline">\([0,1]\)</span>; the score-measure distance <span class="math inline">\(d_{\mathcal E}\)</span> uses <span class="math inline">\(S=\mathcal E=[\varepsilon,1-\varepsilon]\)</span>, with integration over <span class="math inline">\([\varepsilon,1-\varepsilon]\)</span>.</p></div>
+<p>The total-mass term records arm-label frequencies, while the integrated distribution-function term records variation in outcome or score values. The projection below uses the trial and score-log empirical measures to select nearby candidate laws. Their compatible ATE ranges are collected into one confidence interval. The countable rational sieve makes this mathematical construction measurable.</p>
+<div class="formal-block kind-definition" id="obj-def:external-projection-handle" data-objid="def:external-projection-handle" tabindex="0"><span class="env-label">Definition 22 <span class="obj-tag">[def:external-projection-handle]</span> (External projection confidence interval).</span><p>The external projection confidence interval <span class="math inline">\(C_{n,m}\)</span> is defined for <span class="math inline">\(\varepsilon,\alpha\in\mathbb R\)</span>, <span class="math inline">\(J,n,m\in\mathbb N\)</span>, a release map <span class="math inline">\(g:[\varepsilon,1-\varepsilon]\to\mathcal R_J\)</span>, and a sample of <span class="math inline">\(n\)</span> trial rows and <span class="math inline">\(m\)</span> score-log values. Here <span class="math inline">\(\mathcal R_J\)</span> is the set of <span class="math inline">\(J\)</span> labels. For each arm <span class="math inline">\(a\)</span> and label <span class="math inline">\(r\)</span>, form the empirical finite measures <span class="math display">\[\widehat\lambda_{ar}(B)
+=\frac1n\sum_{i=1}^{n}\mathbf 1\{R_i=r,A_i=a,Y_i\in B\},
+\qquad
+\widehat\sigma_{ar}(B)
+=\frac1m\sum_{j=1}^{m}p_a(E_j^{\mathrm{log}})
+\mathbf 1\{g(E_j^{\mathrm{log}})=r,E_j^{\mathrm{log}}\in B\}.\]</span> Equip finite measures on each compact support with total-mass plus integrated-CDF distance, and set <span class="math display">\[r_n=\frac{4J}{\alpha\sqrt n},
+\qquad
+r_m=\frac{2J(2-2\varepsilon)}{\alpha\sqrt m}.\]</span></p>
+<p>For <span class="math inline">\(q\in\mathbb Q\)</span>, define the clamped outcome and score support codes <span class="math display">\[x(q)=\max\{0,\min\{1,q\}\},
+\qquad
+e_\varepsilon(q)=\varepsilon+(1-2\varepsilon)x(q).\]</span> For a finite sequence <span class="math inline">\(L=((q_s,w_s))_{s=1}^{N}\)</span> of rational support-weight pairs, define the finitely supported measures <span class="math display">\[\nu_Y(L)=\sum_{s=1}^{N}\max\{w_s,0\}\,\delta_{x(q_s)},
+\qquad
+\nu_E(L)=\sum_{s=1}^{N}\max\{w_s,0\}\,\delta_{e_\varepsilon(q_s)},\]</span> where the nonnegative weights are viewed as extended-real weights.</p>
+<p>When <span class="math inline">\(0&lt;\varepsilon&lt;1/2\)</span>, let <span class="math inline">\(\mathcal D_{\varepsilon,J}\)</span> consist of all pairs of arrays <span class="math display">\[\left(
+(\nu_Y(L^Y_{ar}))_{a,r},
+(\nu_E(L^E_{ar}))_{a,r}
+\right)\]</span> formed from separate, arbitrary finite sequences <span class="math inline">\(L^Y_{ar}\)</span> and <span class="math inline">\(L^E_{ar}\)</span> for every arm-label cell, subject to equality of the outcome and score measures’ total masses in each cell. For all other <span class="math inline">\(\varepsilon\)</span>, set <span class="math inline">\(\mathcal D_{\varepsilon,J}=\varnothing\)</span>. Define the candidate set by the two closed empirical-ball conditions <span class="math display">\[\mathcal B_{n,m}
+=
+\left\{
+(\lambda&#39;,\sigma&#39;)\in\mathcal D_{\varepsilon,J}:
+\sum_{a,r}d_{[0,1]}(\lambda&#39;_{ar},\widehat\lambda_{ar})\le r_n,\quad
+\sum_{a,r}d_{\mathcal E}(\sigma&#39;_{ar},\widehat\sigma_{ar})\le r_m
+\right\},\]</span> where <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span> is the score interval.</p>
+<p>For any sieve array <span class="math inline">\(b=(\lambda^b,\sigma^b)\)</span>, put <span class="math inline">\(q^b_{ar}=\lambda^b_{ar}([0,1])=\sigma^b_{ar}(\mathcal E)\)</span>. In a cell with <span class="math inline">\(q^b_{ar}&gt;0\)</span>, let <span class="math inline">\(F^b_{ar}=\lambda^b_{ar}/q^b_{ar}\)</span> be the normalized outcome law and let <span class="math inline">\(W^b_{ar}\)</span> be the pushforward of <span class="math inline">\(\sigma^b_{ar}/q^b_{ar}\)</span> under <span class="math inline">\(e\mapsto 1/p_a(e)\)</span>. Define the lower and upper arm endpoints by <span class="math display">\[\underline M_a(b)=\sum_{r:q^b_{ar}&gt;0}q^b_{ar}\int_0^1 Q_{F^b_{ar}}(u)Q_{W^b_{ar}}(1-u)\,du,
+\qquad
+\overline M_a(b)=\sum_{r:q^b_{ar}&gt;0}q^b_{ar}\int_0^1 Q_{F^b_{ar}}(u)Q_{W^b_{ar}}(u)\,du.\]</span> Each zero-mass cell contributes <span class="math inline">\(0\)</span> to both sums; no normalized law is needed for that cell. For each <span class="math inline">\(b\in\mathcal B_{n,m}\)</span>, set <span class="math display">\[I(b)=[\underline M_1(b)-\overline M_0(b),\,\overline M_1(b)-\underline M_0(b)].\]</span> When <span class="math inline">\(\mathcal B_{n,m}\ne\varnothing\)</span>, form <span class="math display">\[J_{n,m}
+=
+[-1,1]\cap
+\operatorname{cl}\operatorname{conv}
+\left(\bigcup_{b\in\mathcal B_{n,m}}I(b)\right).\]</span> The totalized interval is <span class="math display">\[C_{n,m}
+=
+\begin{cases}
+J_{n,m},&amp;
+\mathcal B_{n,m}\ne\varnothing\ \text{and}\ J_{n,m}\ne\varnothing,\\
+\{0\},&amp;
+\mathcal B_{n,m}=\varnothing\ \text{or}\
+\bigl(\mathcal B_{n,m}\ne\varnothing\ \text{and}\ J_{n,m}=\varnothing\bigr).
+\end{cases}\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>In Definition <a class="objref" href="#obj-def:external-projection-handle">22</a>, trial observations determine empirical outcome measures and the log determines assignment-weighted empirical score measures. The sieve combines finitely supported rationally coded measures with matched outcome and score masses in each arm-label cell, including arrays assembled independently across cells, and retains candidates in the two displayed empirical balls. This conservative projection contains the population sharp interval on the coverage event; closing and convexifying the candidate intervals produces the interval <span class="leanref" data-objid="sym:Cext"><span class="math inline">\(C_{n,m}\)</span></span> used in the rate result.</p>
+<div class="formal-block kind-theorem" id="obj-thm:external-score-root-order" data-objid="thm:external-score-root-order" tabindex="0"><span class="env-label">Theorem 7 <span class="obj-tag">[thm:external-score-root-order]</span> (External-score root order).</span><p>Let <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span>, and let <span class="math inline">\(g:\mathcal E\to\mathcal R_J\)</span> be a measurable finite-label release. Suppose:</p>
+<ul>
+<li><p><strong>(Overlap.)</strong> The overlap condition in Assumption <a class="objref" href="#obj-ass:overlap">1</a> holds.</p></li>
+<li><p><strong>(Miscoverage.)</strong> <span class="math inline">\(0&lt;\alpha&lt;1/2\)</span>.</p></li>
+<li><p><strong>(Joint sampling.)</strong> For every <span class="math inline">\(n,m\)</span>, a joint sampling law <span class="math inline">\(\mathbb Q_{P,H}^{n,m}\)</span> is specified for each admissible causal law <span class="math inline">\(P\)</span> and score law <span class="math inline">\(H\)</span>. Its trial marginal consists of <span class="math inline">\(n\)</span> independent draws from the released law. Its score-log marginal and independence from the trial sample satisfy Assumptions <a class="objref" href="#obj-ass:external-log-iid">9</a> and <a class="objref" href="#obj-ass:external-log-independent">10</a>.</p></li>
+</ul>
+<p>Set <span class="math display">\[L_\alpha=1+(1-2\alpha)^2,\qquad
+S_g=
+\sup_{\substack{r\in\mathcal R_J,\ e_1&lt;e_2&lt;e_3\\
+e_1,e_2,e_3\in C_r}}
+\frac{(e_3-e_2)(1-e_1/e_2)}
+{\sqrt{(e_3-e_2)^2+(e_3-e_1)^2+(e_2-e_1)^2}},\]</span> and <span class="math display">\[c_{\mathrm{tr}}(\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{4},
+\qquad
+c_{\mathrm{log}}(g,\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{2\sqrt3}\,S_g.\]</span> Then <span class="math inline">\(0&lt;S_g\le 1\)</span>. There is a constant <span class="math inline">\(C_{\varepsilon,J,\alpha,g}&gt;0\)</span> such that, for every positive <span class="math inline">\(n,m\)</span>, the minimax excess risk of Definition <a class="objref" href="#obj-def:external-excess-risk">19</a> satisfies <span class="math display">\[c_{\mathrm{tr}}(\alpha)n^{-1/2}
+\le \mathcal R^\star_{n,m,\alpha}(g)
+\le C_{\varepsilon,J,\alpha,g}
+\bigl(n^{-1/2}+m^{-1/2}\bigr).\]</span> For each such <span class="math inline">\(n,m\)</span>, an interval procedure <span class="math inline">\(C_{n,m}\)</span> belongs to the honest class of Definition <a class="objref" href="#obj-def:external-honest-procedures">18</a>, agrees pointwise as a closed interval with the projection interval of Definition <a class="objref" href="#obj-def:external-projection-handle">22</a>, and, for every admissible pair <span class="math inline">\((P,H)\)</span>, satisfies <span class="math display">\[\mathbb E_{\mathbb Q_{P,H}^{n,m}}
+\!\left[
+\max\!\left\{0,\,
+\operatorname{length}(C_{n,m})
+-\operatorname{length}\bigl(I(P_{\mathrm{rel}};H,g)\bigr)
+\right\}
+\right]
+\le C_{\varepsilon,J,\alpha,g}
+\bigl(n^{-1/2}+m^{-1/2}\bigr).\]</span></p>
+<p>In the external-score direction, <span class="math display">\[\liminf_{m\to\infty}\inf_{n\ge1}
+\sqrt m\,\mathcal R^\star_{n,m,\alpha}(g)
+\ge c_{\mathrm{log}}(g,\alpha)&gt;0.\]</span> For every <span class="math inline">\(\rho&gt;0\)</span>, the normalized risk <span class="math inline">\(T_{n,m,\alpha}(g)\)</span> of Definition <a class="objref" href="#obj-def:external-normalized-risk">20</a> obeys <span class="math display">\[0&lt;
+\max\left\{
+\frac{c_{\mathrm{tr}}(\alpha)}{1+\sqrt\rho},
+\frac{c_{\mathrm{log}}(g,\alpha)\sqrt\rho}{1+\sqrt\rho}
+\right\}
+\le
+\liminf_{\substack{n,m\to\infty\\ n/m\to\rho}}
+T_{n,m,\alpha}(g)
+\le
+\limsup_{\substack{n,m\to\infty\\ n/m\to\rho}}
+T_{n,m,\alpha}(g)
+\le C_{\varepsilon,J,\alpha,g}.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<p>The upper bound in Theorem <a class="objref" href="#obj-thm:external-score-root-order">7</a> follows the two sources of empirical variation in the projection: released trial rows contribute the <span class="math inline">\(n^{-1/2}\)</span> scale, and assignment-weighted score-log measures contribute the <span class="math inline">\(m^{-1/2}\)</span> scale. The theorem also gives separate lower bounds. The trial-sample lower bound applies at every positive pair of sample sizes, and the score-log lower bound remains positive asymptotically uniformly over trial sizes. For a positive limiting trial-to-log ratio <span class="leanref" data-objid="sym:rho"><span class="math inline">\(\rho\)</span></span>, these lower bounds and the projection interval establish the joint order <span class="math inline">\(n^{-1/2}+m^{-1/2}\)</span>. The law class includes atomic score distributions and quantile functions with flat pieces.</p>
+<h1 id="discussion-and-open-questions">Discussion and open questions</h1>
+<p>A score label linked to each trial row preserves the association between a measurable set of assignment probabilities, treatment, and outcome. Given a known score law, the arm-label outcome and score distributions determine the sharp mean endpoints in Definition <a class="objref" href="#obj-def:mean-endpoints">6</a> and hence the average treatment effect interval in Definition <a class="objref" href="#obj-def:sharp-ate-set">7</a>. The worst-case width in Definition <a class="objref" href="#obj-def:worst-case-ambiguity">9</a> measures the information retained by a release in units of the target parameter. Theorem <a class="objref" href="#obj-thm:universal-point-identification">3</a> characterizes when that information suffices for point identification across compatible released laws.</p>
+<p>For score laws on <span class="math inline">\([\varepsilon,1-\varepsilon]\)</span> with a common density floor <span class="math inline">\(m_f\)</span> satisfying <span class="math inline">\(0&lt;m_f\le(1-2\varepsilon)^{-1}\)</span>, Theorem <a class="objref" href="#obj-thm:k-label-rate">4</a> gives an order-<span class="math inline">\(K^{-1}\)</span> rate for optimal worst-case ambiguity. Under the score-law conditions of Theorem <a class="objref" href="#obj-thm:sharp-high-resolution-constant">5</a>, its high-resolution allocation rule assigns finer cells where local variation contributes more to the ambiguity criterion. The rule connects the placement of labels to the sharp interval that an analyst can recover from the released data. Theorem <a class="objref" href="#obj-thm:minimax-honest-length">6</a> establishes a <span class="math inline">\(K^{-1}+n^{-1/2}\)</span> minimax honest-length rate for known score laws with a positive density lower bound, attained up to constants by equal-width labels.</p>
+<h2 id="open-questions">Open questions</h2>
+<p>The projection interval in Definition <a class="objref" href="#obj-def:external-projection-handle">22</a> is defined through a countable rational sieve. A finite truncation and optimization rule, with an error bound that preserves coverage and controls excess length for atomic laws and arbitrary measurable cells, remains to be developed.</p>
+<p>The two-source bounds in Theorem <a class="objref" href="#obj-thm:external-score-root-order">7</a> establish the root scale for excess interval length with an independent score log. A sharp limit would quantify the combined contribution of trial and score-log sampling when their sizes grow at a fixed positive ratio. The question is stated for the full external-law class and, where appropriate, for a specified regular subclass.</p>
+<div class="formal-block kind-remark" id="obj-oeq:external-score-projection" data-objid="oeq:external-score-projection" tabindex="0"><span class="env-label">Remark 1 <span class="obj-tag">[oeq:external-score-projection]</span> (External-score sharp limits).</span><p>Fix a measurable release <span class="math inline">\(g\)</span>, <span class="math inline">\(0&lt;\alpha&lt;1/2\)</span>, and <span class="math inline">\(\rho\in(0,\infty)\)</span>. The sharp asymptotic analysis over <span class="math inline">\(\mathfrak X(g)\)</span>, with confidence procedures in <span class="math inline">\(\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)\)</span>, concerns <span class="math display">\[\liminf_{\substack{n,m\to\infty\\ n/m\to\rho}}T_{n,m,\alpha}(g)
+\qquad\text{and}\qquad
+\limsup_{\substack{n,m\to\infty\\ n/m\to\rho}}T_{n,m,\alpha}(g).\]</span> It asks whether these limits coincide and, if so, for their common sharp constant. If a common sharp limit fails over the full class, the corresponding question concerns an explicitly defined regular subclass of <span class="math inline">\(\mathfrak X(g)\)</span>, with both uniform honesty and the supremum in expected excess length restricted to that subclass. The subclass analysis specifies its regularity conditions and sharp limit for each <span class="math inline">\(\rho\in(0,\infty)\)</span>, using the external projection construction to obtain an attaining procedure or a counterexample.</p><span class="lean-hint">⊢ Lean</span></div>
+<p>For a regular subclass, the honesty requirement and worst-case excess-length criterion in Remark <a class="objref" href="#obj-oeq:external-score-projection">1</a> apply to the same collection of laws. The projection construction in Definition <a class="objref" href="#obj-def:external-projection-handle">22</a> supplies a concrete route for studying attainment, while the fixed sample-size ratio keeps both sources of sampling variation in the asymptotic comparison.</p>
+<h1 class="unnumbered" id="appendices">Appendices</h1>
+<h1 id="proofs-and-verification-scope">Proofs and verification scope</h1>
+<h2 id="fixed-law-bounds-and-compatibility">Fixed-law bounds and compatibility</h2>
+<p>The fixed released-law calculation precedes the optimization over released laws. We attribute its mathematical antecedent to Fan et al. (2014). The formal declaration and proof displayed here are independently checked under the paper’s stated model conditions. The compatibility criterion in Theorem <a class="objref" href="#obj-prop:compatibility">1</a> identifies the released laws to which the calculation applies. The first auxiliary result records the arm-label masses implied by a score law and release rule.</p>
+<div class="formal-block kind-lemma" id="obj-lem:released-arm-cell-masses" data-objid="lem:released-arm-cell-masses" tabindex="0"><span class="env-label">Lemma 1 <span class="obj-tag">[lem:released-arm-cell-masses]</span> (Released arm-cell masses).</span><p>Let <span class="math inline">\(H\)</span> be a measure on the score interval <span class="math inline">\(\mathcal E\)</span>, let <span class="math inline">\(g:\mathcal E\to\mathcal R_J\)</span> be a release rule, and let <span class="math inline">\(P\in\mathfrak P(H,g)\)</span> as in Definition <a class="objref" href="#obj-def:causal-law-class">1</a>. Write <span class="math inline">\(P_{\mathrm{rel}}=\mathcal L_P(R,A,Y)\)</span> for the released law. Then <span class="math inline">\(H\)</span> and <span class="math inline">\(P_{\mathrm{rel}}\)</span> are probability laws, and, for every <span class="math inline">\(a\in\mathcal A\)</span> and <span class="math inline">\(r\in\mathcal R_J\)</span>, <span class="math display">\[P_{\mathrm{rel}}(A=a,R=r)=q_{ar},\]</span> where <span class="math inline">\(q_{ar}\)</span> is the arm-cell mass defined in Definition <a class="objref" href="#obj-def:arm-cell-primitives">5</a>.</p><span class="lean-hint">⊢ Lean</span></div>
+<div class="proof"><span class="env-label">Proof of Lemma <a class="objref" href="#obj-lem:released-arm-cell-masses">1</a>.</span><p>The law <span class="math inline">\(P\)</span> is a probability law by Definition <a class="objref" href="#obj-def:causal-law-class">1</a>. Its score marginal is <span class="math inline">\(H\)</span> by Assumption <a class="objref" href="#obj-ass:score-marginal">2</a>, and its released-record marginal is <span class="math inline">\(P_{\mathrm{rel}}\)</span>. Both marginals are therefore probability laws.</p>
+<p>Fix <span class="math inline">\(r\in\mathcal R_J\)</span>. By Assumption <a class="objref" href="#obj-ass:deterministic-release">5</a>, <span class="math inline">\(R=g(E)\)</span> almost surely. Conditioning on <span class="math inline">\((E,Y_0,Y_1)\)</span> and applying Assumption <a class="objref" href="#obj-ass:randomized-assignment">3</a> gives <span class="math display">\[\begin{aligned}
+P_{\mathrm{rel}}(A=1,R=r)
+&amp;=P(A=1,g(E)=r)\\
+&amp;=\mathbb E_P\!\left[E\,\mathbf 1_{\{g(E)=r\}}\right]\\
+&amp;=\int_{C_r}e\,H(de).
+\end{aligned}\]</span></p>
+<p>For the control arm, partition the event <span class="math inline">\(E\in C_r\)</span> by treatment assignment. The score marginal condition and the preceding identity yield <span class="math display">\[\begin{aligned}
+P_{\mathrm{rel}}(A=0,R=r)
+&amp;=P(E\in C_r)-P(A=1,E\in C_r)\\
+&amp;=H(C_r)-\int_{C_r}e\,H(de)\\
+&amp;=\int_{C_r}(1-e)\,H(de)
+=q_{0r}.
+\end{aligned}\]</span> The integral subtraction is valid because the score is bounded on <span class="math inline">\(\mathcal E\)</span>. Finally, <span class="math inline">\(p_1(e)=e\)</span> in Definition <a class="objref" href="#obj-def:arm-cell-primitives">5</a>, so the treated-arm identity is <span class="math inline">\(P_{\mathrm{rel}}(A=1,R=r)=q_{1r}\)</span>. These two identities cover every <span class="math inline">\(a\in\mathcal A\)</span>.</p><span class="qed">∎</span></div>
+<p>These mass equalities connect the causal-law class to the compatibility criterion in Theorem <a class="objref" href="#obj-prop:compatibility">1</a>. For each compatible released law, the fixed-law result gives sharp bounds through quantile rearrangement within positive-mass arm-label cells.</p>
+<div class="formal-block kind-lemma" id="obj-lem:fixed-released-law-baseline" data-objid="lem:fixed-released-law-baseline" tabindex="0"><span class="env-label">Lemma 2 <span class="obj-tag">[lem:fixed-released-law-baseline]</span> (Sharp fixed released law bounds).</span><p>Let <span class="math inline">\(H\)</span> be a measure on the score interval <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span>, let <span class="math inline">\(g:\mathcal E\to\mathcal R_J\)</span> be a release rule, and let <span class="math inline">\(P_{\mathrm{rel}}\)</span> be a measure on the released label, treatment arm, and outcome. Suppose:</p>
+<ul>
+<li><p><strong>(Overlap.)</strong> The score support satisfies Assumption <a class="objref" href="#obj-ass:overlap">1</a>.</p></li>
+<li><p><strong>(Release.)</strong> The rule <span class="math inline">\(g\)</span> is measurable.</p></li>
+<li><p><strong>(Compatibility.)</strong> <span class="math inline">\(\mathfrak M(H,g,P_{\mathrm{rel}})\ne\varnothing\)</span>.</p></li>
+</ul>
+<p>For each arm <span class="math inline">\(a\in\{0,1\}\)</span> and label <span class="math inline">\(r\)</span>, let <span class="math inline">\(C_r=\{e:g(e)=r\}\)</span>, let <span class="math inline">\(p_a(e)\)</span> be the probability of arm <span class="math inline">\(a\)</span> at score <span class="math inline">\(e\)</span>, and set <span class="math inline">\(q_{ar}=\int_{C_r}p_a(e)\,H(de)\)</span>. In each cell with <span class="math inline">\(q_{ar}&gt;0\)</span>, let <span class="math inline">\(F_{ar}\)</span> be the outcome law conditional on arm <span class="math inline">\(a\)</span> and label <span class="math inline">\(r\)</span> under <span class="math inline">\(P_{\mathrm{rel}}\)</span>, let <span class="math inline">\(E_{ar}\)</span> have law <span class="math inline">\(q_{ar}^{-1}\mathbf 1_{C_r}(e)p_a(e)\,H(de)\)</span>, and let <span class="math inline">\(W_{ar}=1/p_a(E_{ar})\)</span>. Writing <span class="math inline">\(Q\)</span> for a generalized quantile, define <span class="math display">\[\underline\mu_a
+=\sum_{r:q_{ar}&gt;0}q_{ar}\int_0^1 Q_{F_{ar}}(u)Q_{W_{ar}}(1-u)\,du,
+\qquad
+\overline\mu_a
+=\sum_{r:q_{ar}&gt;0}q_{ar}\int_0^1 Q_{F_{ar}}(u)Q_{W_{ar}}(u)\,du.\]</span> Then, for every <span class="math inline">\(a\in\{0,1\}\)</span>, <span class="math display">\[\left\{\mathbb E_P[Y_a]:P\in\mathfrak M(H,g,P_{\mathrm{rel}})\right\}
+=[\underline\mu_a,\overline\mu_a].\]</span> The attainable average treatment effects form the interval defined in Definition <a class="objref" href="#obj-def:sharp-ate-set">7</a>: <span class="math display">\[\left\{\mathbb E_P[Y_1-Y_0]:P\in\mathfrak M(H,g,P_{\mathrm{rel}})\right\}
+=I(P_{\mathrm{rel}};H,g)
+=[\underline\mu_1-\overline\mu_0,\,
+  \overline\mu_1-\underline\mu_0].\]</span> Moreover, there exist <span class="math inline">\(P^-,P^+\in\mathfrak M(H,g,P_{\mathrm{rel}})\)</span> such that <span class="math display">\[\mathbb E_{P^-}[Y_1-Y_0]=\underline\mu_1-\overline\mu_0,
+\qquad
+\mathbb E_{P^+}[Y_1-Y_0]=\overline\mu_1-\underline\mu_0.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<div class="proof"><span class="env-label">Proof of Lemma <a class="objref" href="#obj-lem:fixed-released-law-baseline">2</a>.</span><p><em>1. Construct compatible endpoint laws.</em> Compatibility implies that <span class="math inline">\(H\)</span> and <span class="math inline">\(P_{\mathrm{rel}}\)</span> are probability laws and, for every arm <span class="math inline">\(a\)</span> and label <span class="math inline">\(r\)</span>, <span class="math display">\[P_{\mathrm{rel}}(A=a,R=r)=q_{ar}.\]</span> By Assumption <a class="objref" href="#obj-ass:overlap">1</a>, <span class="math inline">\(\varepsilon\le p_a(e)\le 1-\varepsilon\)</span> on <span class="math inline">\(\mathcal E\)</span>. Thus <span class="math display">\[\varepsilon H(C_r)\le q_{ar}\le(1-\varepsilon)H(C_r),\]</span> so a zero-mass arm cell is also <span class="math inline">\(H\)</span>-null. Define, on <span class="math inline">\(\mathcal E\)</span>, <span class="math display">\[w_a(e)=\frac{1}{p_a(e)}.\]</span> For each <span class="math inline">\(q_{ar}&gt;0\)</span>, let <span class="math inline">\(U\)</span> be uniform on <span class="math inline">\((0,1)\)</span> and define two laws on outcome–weight pairs: <span class="math display">\[\pi_{ar}^{-}
+=\mathcal L\bigl(Q_{F_{ar}}(U),Q_{W_{ar}}(1-U)\bigr),
+\qquad
+\pi_{ar}^{+}
+=\mathcal L\bigl(Q_{F_{ar}}(U),Q_{W_{ar}}(U)\bigr).\]</span> Both have marginals <span class="math inline">\(F_{ar}\)</span> and <span class="math inline">\(\mathcal L(W_{ar})\)</span>. They can be lifted to laws <span class="math inline">\(\gamma_{ar}^{s}\)</span> on score–outcome pairs, for <span class="math inline">\(s\in\{-,+\}\)</span>, satisfying <span class="math display">\[\mathcal L_{\gamma_{ar}^{s}}(E)=G_{ar},
+\qquad
+\mathcal L_{\gamma_{ar}^{s}}\bigl(Y,w_a(E)\bigr)=\pi_{ar}^{s}.\]</span> Indeed, <span class="math inline">\(\mathcal L(W_{ar})\)</span> is the common weight marginal of <span class="math inline">\(\pi_{ar}^{s}\)</span> and <span class="math inline">\(\mathcal L(E_{ar},w_a(E_{ar}))\)</span>. Conditional on that weight, couple their outcome and score coordinates. Conditional laws exist on these standard Borel spaces.</p>
+<p>For either sign, form the assigned and potential-outcome laws <span class="math display">\[N_a^{s}=\sum_{r:q_{ar}&gt;0}q_{ar}\gamma_{ar}^{s},
+\qquad
+M_a^{s}(de,dy)=w_a(e)\,N_a^{s}(de,dy).\]</span> The score marginal of <span class="math inline">\(N_a^{s}\)</span> is <span class="math inline">\(p_a(e)H(de)\)</span>: on <span class="math inline">\(C_r\)</span>, its score marginal is <span class="math inline">\(q_{ar}G_{ar}(de)=\mathbf1_{C_r}(e)p_a(e)H(de)\)</span>, and zero-mass cells are <span class="math inline">\(H\)</span>-null. Consequently, <span class="math display">\[M_a^{s}(de,[0,1])=H(de),
+\qquad
+p_a(e)M_a^{s}(de,dy)=N_a^{s}(de,dy).\]</span> For signs <span class="math inline">\(s_0,s_1\in\{-,+\}\)</span>, glue <span class="math inline">\(M_0^{s_0}\)</span> and <span class="math inline">\(M_1^{s_1}\)</span> along their common score marginal <span class="math inline">\(H\)</span>, obtaining a law of <span class="math inline">\((E,Y_0,Y_1)\)</span> with those two score–outcome marginals. Conditional on the resulting variables, draw <span class="math inline">\(A=1\)</span> with probability <span class="math inline">\(E\)</span>, and set <span class="math inline">\(R=g(E)\)</span> and <span class="math inline">\(Y=Y_A\)</span>. Denote the resulting full law by <span class="math inline">\(P^{s_0s_1}\)</span>.</p>
+<p>This construction has score law <span class="math inline">\(H\)</span>, score-based assignment, consistency, and deterministic release. For <span class="math inline">\(q_{ar}&gt;0\)</span> and measurable <span class="math inline">\(B\subseteq[0,1]\)</span>, it also gives <span class="math display">\[P^{s_0s_1}(R=r,A=a,Y\in B)
+=\int_{C_r\times B}p_a(e)\,M_a^{s_a}(de,dy)
+=q_{ar}F_{ar}(B)
+=P_{\mathrm{rel}}(R=r,A=a,Y\in B).\]</span> Both sides vanish when <span class="math inline">\(q_{ar}=0\)</span>. Hence every <span class="math inline">\(P^{s_0s_1}\)</span> belongs to the class in Definition <a class="objref" href="#obj-def:compatible-law-class">2</a>.</p>
+<p><em>2. Compute their means and treatment effects.</em> The two quantile couplings give, for every positive-mass cell, <span class="math display">\[\int yw\,\pi_{ar}^{-}(dy,dw)
+=\int_0^1 Q_{F_{ar}}(u)Q_{W_{ar}}(1-u)\,du,
+\qquad
+\int yw\,\pi_{ar}^{+}(dy,dw)
+=\int_0^1 Q_{F_{ar}}(u)Q_{W_{ar}}(u)\,du.\]</span> Since <span class="math inline">\(M_a^{s}=w_aN_a^{s}\)</span>, summing these identities over cells yields <span class="math display">\[\mathbb E_{P^{s_0s_1}}[Y_a]
+=\sum_{r:q_{ar}&gt;0}q_{ar}\int yw\,\pi_{ar}^{s_a}(dy,dw)
+=
+\begin{cases}
+\underline\mu_a,&amp;s_a=-,\\
+\overline\mu_a,&amp;s_a=+.
+\end{cases}\]</span> Set <span class="math display">\[P_{\mathrm{lo}}=P^{--},\qquad P_{\mathrm{hi}}=P^{++},
+\qquad P^-=P^{+-},\qquad P^+=P^{-+},\]</span> where the first sign selects the control-arm coupling. Bounded outcomes permit subtraction of their expectations, so <span class="math display">\[\mathbb E_{P^-}[Y_1-Y_0]=\underline\mu_1-\overline\mu_0,
+\qquad
+\mathbb E_{P^+}[Y_1-Y_0]=\overline\mu_1-\underline\mu_0.\]</span></p>
+<p><em>3. Bound every compatible arm mean.</em> Fix <span class="math inline">\(P\in\mathfrak M(H,g,P_{\mathrm{rel}})\)</span>. For <span class="math inline">\(q_{ar}&gt;0\)</span>, define its conditional outcome–weight coupling by <span class="math display">\[\pi_{ar,P}
+=\mathcal L_P\bigl(Y_a,w_a(E)\mid A=a,R=r\bigr).\]</span> Consistency and the released-law condition give its outcome marginal <span class="math inline">\(F_{ar}\)</span>; score-based assignment and score marginality give its weight marginal <span class="math inline">\(\mathcal L(W_{ar})\)</span>. The same assignment identity, now weighted by <span class="math inline">\(w_a(E)\)</span>, gives <span class="math display">\[\mathbb E_P[Y_a]
+=\sum_{r:q_{ar}&gt;0}q_{ar}\int yw\,\pi_{ar,P}(dy,dw).\]</span> Cells with <span class="math inline">\(q_{ar}=0\)</span> contribute zero.</p>
+<p>For any coupling <span class="math inline">\(\pi\)</span> of <span class="math inline">\(F_{ar}\)</span> and <span class="math inline">\(\mathcal L(W_{ar})\)</span>, the layer-cake identity writes <span class="math inline">\(\int yw\,d\pi\)</span> as the integral of joint upper-tail probabilities. For thresholds <span class="math inline">\(\tau_Y,\tau_W\ge0\)</span>, those probabilities lie between the intersection bounds <span class="math display">\[\max\!\left\{P(Y&gt;\tau_Y)+P(W&gt;\tau_W)-1,0\right\}
+\le P(Y&gt;\tau_Y,W&gt;\tau_W)
+\le \min\!\left\{P(Y&gt;\tau_Y),P(W&gt;\tau_W)\right\}.\]</span> The couplings <span class="math inline">\(\pi_{ar}^{-}\)</span> and <span class="math inline">\(\pi_{ar}^{+}\)</span> attain the respective bounds: their quantile upper-tail events are oppositely ordered and nested, respectively. Integrating the tail bounds therefore gives <span class="math display">\[\int_0^1 Q_{F_{ar}}(u)Q_{W_{ar}}(1-u)\,du
+\le \int yw\,\pi_{ar,P}(dy,dw)
+\le \int_0^1 Q_{F_{ar}}(u)Q_{W_{ar}}(u)\,du.\]</span> All integrals are finite because <span class="math inline">\(0\le Y_a\le1\)</span> and <span class="math inline">\(w_a(E)\le\varepsilon^{-1}\)</span>. Multiplication by <span class="math inline">\(q_{ar}\)</span> and summation show that <span class="math display">\[\underline\mu_a\le\mathbb E_P[Y_a]\le\overline\mu_a.\]</span></p>
+<p><em>4. Fill each arm interval.</em> For any <span class="math inline">\(x\in[\underline\mu_a,\overline\mu_a]\)</span>, choose <span class="math inline">\(\rho_a\in[0,1]\)</span> with <span class="math display">\[x=(1-\rho_a)\underline\mu_a+\rho_a\overline\mu_a,\]</span> including <span class="math inline">\(\rho_a=0\)</span> when the endpoints coincide, and define <span class="math display">\[P_{a,x}=(1-\rho_a)P_{\mathrm{lo}}+\rho_aP_{\mathrm{hi}}.\]</span> Probability normalization, the score and released marginals, and the assignment identity are preserved by this mixture; consistency and deterministic release hold under both component laws and hence under the mixture. Thus <span class="math inline">\(P_{a,x}\)</span> is compatible. Linearity of integration gives <span class="math display">\[\mathbb E_{P_{a,x}}[Y_a]
+=(1-\rho_a)\mathbb E_{P_{\mathrm{lo}}}[Y_a]
++\rho_a\mathbb E_{P_{\mathrm{hi}}}[Y_a]=x.\]</span> Together with Equation 2, this proves the claimed attainable interval for each arm.</p>
+<p><em>5. Fill the treatment-effect interval.</em> For every compatible <span class="math inline">\(P\)</span>, the two arm bounds and <span class="math inline">\(\mathbb E_P[Y_1-Y_0]=\mathbb E_P[Y_1]-\mathbb E_P[Y_0]\)</span> give <span class="math display">\[\underline\mu_1-\overline\mu_0
+\le\mathbb E_P[Y_1-Y_0]
+\le\overline\mu_1-\underline\mu_0.\]</span> Conversely, for any <span class="math inline">\(x\)</span> in this interval, choose <span class="math inline">\(\rho_{\mathrm{ATE}}\in[0,1]\)</span> such that <span class="math display">\[x=(1-\rho_{\mathrm{ATE}})(\underline\mu_1-\overline\mu_0)
++\rho_{\mathrm{ATE}}(\overline\mu_1-\underline\mu_0),\]</span> and set <span class="math display">\[P_x=(1-\rho_{\mathrm{ATE}})P^-+\rho_{\mathrm{ATE}}P^+.\]</span> The same mixture argument makes <span class="math inline">\(P_x\)</span> compatible, and linearity gives <span class="math inline">\(\mathbb E_{P_x}[Y_1-Y_0]=x\)</span>. The interval is <span class="math inline">\(I(P_{\mathrm{rel}};H,g)\)</span> by Definition <a class="objref" href="#obj-def:sharp-ate-set">7</a>; the compatible laws <span class="math inline">\(P^-\)</span> and <span class="math inline">\(P^+\)</span> attain its two endpoints as computed in Equation 1.</p><span class="qed">∎</span></div>
+<p>The attainable endpoints make the interval sharp for each compatible released law. With the compatibility characterization in Theorem <a class="objref" href="#obj-prop:compatibility">1</a>, this fixed-law result supplies the interval whose width is optimized in Definition <a class="objref" href="#obj-def:worst-case-ambiguity">9</a>.</p>
+<h2 id="ambiguity-and-finite-label-design">Ambiguity and finite-label design</h2>
+<p>The all-label result in Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a> applies that outer optimization to the fixed-law interval, while Theorem <a class="objref" href="#obj-thm:universal-point-identification">3</a> characterizes universal point identification. For finite-label design, the proof first expresses the paired distortion as an optimization over arbitrary measurable partitions. The next lemma establishes the high-resolution limit over arbitrary measurable partitions and constructs an asymptotically attaining sequence of ordered interval cells.</p>
+<div class="formal-block kind-lemma" id="obj-lem:paired-high-resolution-quantization" data-objid="lem:paired-high-resolution-quantization" tabindex="0"><span class="env-label">Lemma 3 <span class="obj-tag">[lem:paired-high-resolution-quantization]</span> (Paired high-resolution quantization).</span><p>Let <span class="math inline">\(\mathcal I=[a,b]\)</span>, let <span class="math inline">\(S\)</span> be an integer, and let <span class="math inline">\(\beta_s:\mathcal I\times\mathcal I\to\mathbb R\)</span>, <span class="math inline">\(s=1,\ldots,S\)</span>, satisfy:</p>
+<ul>
+<li><p><strong>(Interval.)</strong> <span class="math inline">\(a&lt;b\)</span>.</p></li>
+<li><p><strong>(Number of components.)</strong> <span class="math inline">\(S\geq1\)</span>.</p></li>
+<li><p><strong>(Continuity.)</strong> Each <span class="math inline">\(\beta_s\)</span> is continuous on <span class="math inline">\(\mathcal I\times\mathcal I\)</span>.</p></li>
+<li><p><strong>(Positivity.)</strong> <span class="math inline">\(\beta_s(x,z)&gt;0\)</span> for every <span class="math inline">\(s\)</span> and every <span class="math inline">\(x,z\in\mathcal I\)</span>.</p></li>
+</ul>
+<p>For each positive integer <span class="math inline">\(k\)</span>, define <span class="math display">\[V_k=
+\inf_{\substack{(B_1,\ldots,B_k)\ \mathrm{measurable,\ pairwise\ disjoint}\\
+\bigcup_{j=1}^{k}B_j=\mathcal I,\quad z_{js}\in\mathcal I}}
+\sum_{j=1}^{k}\sum_{s=1}^{S}
+\int_{B_j}\beta_s(x,z_{js})|x-z_{js}|\,dx,
+\qquad
+w(x)=\sum_{s=1}^{S}\beta_s(x,x).\]</span> Then <span class="math display">\[\lim_{k\to\infty}kV_k
+=\frac14\left(\int_a^b\sqrt{w(x)}\,dx\right)^2.\]</span> For each positive integer <span class="math inline">\(k\)</span>, let <span class="math inline">\(a=t_0&lt;\cdots&lt;t_k=b\)</span> be boundaries satisfying <span class="math display">\[\int_a^{t_j}\sqrt{w(x)}\,dx
+=\frac{j}{k}\int_a^b\sqrt{w(x)}\,dx
+\qquad (j=0,\ldots,k).\]</span> Set <span class="math inline">\(B_j=[t_{j-1},t_j)\)</span> for <span class="math inline">\(j&lt;k\)</span>, <span class="math inline">\(B_k=[t_{k-1},t_k]\)</span>, and <span class="math inline">\(z_{js}=(t_{j-1}+t_j)/2\)</span> for every <span class="math inline">\(s\)</span>. These cells form a measurable, pairwise-disjoint partition of <span class="math inline">\(\mathcal I\)</span>, every <span class="math inline">\(z_{js}\)</span> belongs to <span class="math inline">\(\mathcal I\)</span>, and <span class="math display">\[\lim_{k\to\infty}
+k\sum_{j=1}^{k}\sum_{s=1}^{S}
+\int_{B_j}\beta_s(x,z_{js})|x-z_{js}|\,dx
+=\frac14\left(\int_a^b\sqrt{w(x)}\,dx\right)^2.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<div class="proof"><span class="env-label">Proof of Lemma <a class="objref" href="#obj-lem:paired-high-resolution-quantization">3</a>.</span><p>Write <span class="math display">\[f(x)=\sqrt{w(x)},\qquad \Lambda=\int_a^b f(x)\,dx.\]</span> Continuity, positivity, and compactness give <span class="math display">\[\underline\beta
+=\min_{\substack{1\le s\le S\\x,z\in[a,b]}}\beta_s(x,z)&gt;0,
+\qquad
+\underline f=\min_{x\in[a,b]}f(x)&gt;0,
+\qquad
+\overline f=\max_{x\in[a,b]}f(x)&lt;\infty.\]</span></p>
+<p>For the stated construction, the continuous function <span class="math inline">\(x\mapsto\int_a^x f(u)\,du\)</span> is strictly increasing from <span class="math inline">\(0\)</span> to <span class="math inline">\(\Lambda\)</span>. Equivalently, its boundaries can be written <span class="math display">\[t_j=\inf\left\{x\in[a,b]:
+\frac{j\Lambda}{k}\le\int_a^x f(u)\,du\right\},
+\qquad j=0,\ldots,k.\]</span> Thus <span class="math inline">\(t_0=a\)</span>, <span class="math inline">\(t_k=b\)</span>, the boundaries are ordered, and each cell has <span class="math inline">\(f\)</span>-mass <span class="math inline">\(\Lambda/k\)</span>. Put <span class="math inline">\(h_j=t_j-t_{j-1}\)</span> and <span class="math inline">\(u_j=(t_{j-1}+t_j)/2\)</span>. Then <span class="math display">\[0&lt;h_j\le\frac{\Lambda}{k\underline f},
+\qquad
+k\sum_{j=1}^k h_j^2
+\le\frac{\Lambda}{\underline f}\sum_{j=1}^k h_j
+=\frac{\Lambda(b-a)}{\underline f}.\]</span> Uniform continuity of <span class="math inline">\(f\)</span> and the <span class="math inline">\(\beta_s\)</span>, together with <span class="math inline">\(\int_{B_j}|x-u_j|\,dx=h_j^2/4\)</span>, shows that, for every <span class="math inline">\(\varepsilon&gt;0\)</span> and all sufficiently large <span class="math inline">\(k\)</span>, uniformly over the cells, <span class="math display">\[\left|w(u_j)h_j^2-\left(\frac{\Lambda}{k}\right)^2\right|
+\le\varepsilon h_j^2,
+\qquad
+\left|
+\sum_{s=1}^S\int_{B_j}\beta_s(x,u_j)|x-u_j|\,dx
+-\frac{w(u_j)h_j^2}{4}
+\right|
+\le\varepsilon h_j^2.\]</span> The bounded scaled sum of squared cell lengths therefore gives <span class="math display">\[k\sum_{j=1}^k\sum_{s=1}^S
+\int_{B_j}\beta_s(x,u_j)|x-u_j|\,dx
+\longrightarrow\frac{\Lambda^2}{4}.\]</span></p>
+<p>For the lower bound, take any admissible measurable partition and reproduction points, and define its cost by <span class="math display">\[\mathcal D_k(B,z)
+=\sum_{j=1}^k\sum_{s=1}^S
+\int_{B_j}\beta_s(x,z_{js})|x-z_{js}|\,dx.\]</span> Fix <span class="math inline">\(0&lt;\eta&lt;1\)</span>. Choose <span class="math inline">\(e&gt;0\)</span> sufficiently small that <span class="math display">\[e\le\min\{1,\underline\beta/2\},
+\qquad
+e(2\overline f+1+S)\le\eta S\underline\beta.\]</span> Uniform continuity supplies <span class="math inline">\(\delta&gt;0\)</span> such that, for each cell <span class="math inline">\(j\)</span>, whenever <span class="math inline">\(x,y\in[a,b]\)</span> satisfy <span class="math inline">\(|x-z_{js}|&lt;\delta\)</span> and <span class="math inline">\(|y-z_{js}|&lt;\delta\)</span> for every <span class="math inline">\(s=1,\ldots,S\)</span>, one has <span class="math display">\[\bigl|\beta_s(x,z_{js})-\beta_s(y,y)\bigr|&lt;e
+\quad(1\le s\le S),
+\qquad |f(x)-f(y)|&lt;e.\]</span> Set <span class="math display">\[G_j=\{x\in B_j:|x-z_{js}|&lt;\delta\ \text{for every }s\},
+\qquad D_j=B_j\setminus G_j.\]</span> For a nonempty <span class="math inline">\(G_j\)</span>, choose <span class="math inline">\(y_j\in G_j\)</span> and set <span class="math display">\[\gamma_{js}=\beta_s(y_j,y_j)-e,\qquad
+Q_j=f(y_j)+e,\qquad
+\Gamma_j=\sum_{s=1}^S\gamma_{js}.\]</span> These coefficients are positive. On <span class="math inline">\(G_j\)</span>, <span class="math inline">\(\beta_s(x,z_{js})\ge\gamma_{js}\)</span> and <span class="math inline">\(f(x)\le Q_j\)</span>. Moreover, the choice of <span class="math inline">\(e\)</span>, <span class="math inline">\(w(y_j)\ge S\underline\beta\)</span>, and <span class="math inline">\(f(y_j)\le\overline f\)</span> give <span class="math display">\[(1-\eta)Q_j^2
+\le w(y_j)-Se
+=\Gamma_j.\]</span></p>
+<p>For any measurable <span class="math inline">\(G\subset\mathbb R\)</span> of finite measure and any <span class="math inline">\(v\in\mathbb R\)</span>, filling the points nearest <span class="math inline">\(v\)</span> first yields <span class="math display">\[\int_G|x-v|\,dx
+\ge\int_0^{|G|/2}(|G|-2r)\,dr
+=\frac{|G|^2}{4}.\]</span> With <span class="math inline">\(v=\Gamma_j^{-1}\sum_s\gamma_{js}z_{js}\)</span>, the triangle inequality gives <span class="math inline">\(\sum_s\gamma_{js}|x-z_{js}|\ge\Gamma_j|x-v|\)</span>. Consequently, including the trivial case <span class="math inline">\(G_j=\varnothing\)</span>, <span class="math display">\[\sum_{s=1}^S\int_{B_j}\beta_s(x,z_{js})|x-z_{js}|\,dx
+\ge\frac{\Gamma_j|G_j|^2}{4}
+\ge\frac{1-\eta}{4}\left(\int_{G_j}f(x)\,dx\right)^2.\]</span> Summing and applying Cauchy–Schwarz, with disjointness and coverage of the cells, gives <span class="math display">\[k\mathcal D_k(B,z)
+\ge\frac{1-\eta}{4}
+\left(\Lambda-\sum_{j=1}^k\int_{D_j}f(x)\,dx\right)^2.\]</span></p>
+<p>At every <span class="math inline">\(x\in D_j\)</span>, some reproduction point is at distance at least <span class="math inline">\(\delta\)</span>. Hence <span class="math display">\[\underline\beta\delta\sum_{j=1}^k|D_j|
+\le\mathcal D_k(B,z),
+\qquad
+\sum_{j=1}^k\int_{D_j}f(x)\,dx
+\le\frac{\overline f}{\underline\beta\delta}\mathcal D_k(B,z).\]</span> If <span class="math inline">\(k\mathcal D_k(B,z)\le\Lambda^2/4\)</span>, the omitted <span class="math inline">\(f\)</span>-mass is therefore at most <span class="math inline">\(\overline f\Lambda^2/(4\underline\beta\delta k)\)</span>; for larger costs the desired asymptotic lower bound is immediate. It follows uniformly over admissible partitions that <span class="math display">\[\liminf_{k\to\infty}kV_k\ge\frac{1-\eta}{4}\Lambda^2.\]</span> Letting <span class="math inline">\(\eta\downarrow0\)</span> proves the lower bound. The constructed cost bounds <span class="math inline">\(V_k\)</span> from above and has limit <span class="math inline">\(\Lambda^2/4\)</span>, so <span class="math inline">\(kV_k\)</span> has that limit as well.</p>
+<p>Finally, the ordered boundaries with <span class="math inline">\(t_0=a\)</span> and <span class="math inline">\(t_k=b\)</span> make the stated half-open cells, with the last cell closed on the right, a measurable pairwise-disjoint partition of <span class="math inline">\([a,b]\)</span>. Each <span class="math inline">\(u_j\)</span> lies between its two boundaries, hence in <span class="math inline">\([a,b]\)</span>, and serves as <span class="math inline">\(z_{js}\)</span> for every component.</p><span class="qed">∎</span></div>
+<p>The auxiliary result identifies the leading constant for the paired loss and gives an attaining sequence of ordered cells. It supplies the quantization component of the high-resolution conclusion in Theorem <a class="objref" href="#obj-thm:sharp-high-resolution-constant">5</a>.</p>
+<h2 id="external-log-excess-risk">External-log excess risk</h2>
+<p>The external-log analysis has two sampling contributions: released trial rows and independent score draws. The following certificate supplies lower bounds for both contributions to the excess-risk criterion in Definition <a class="objref" href="#obj-def:external-excess-risk">19</a>.</p>
+<div class="formal-block kind-lemma" id="obj-lem:external-two-source-lower-certificate" data-objid="lem:external-two-source-lower-certificate" tabindex="0"><span class="env-label">Lemma 4 <span class="obj-tag">[lem:external-two-source-lower-certificate]</span> (Two-source excess-risk lower bounds).</span><p>Let <span class="math inline">\(\mathcal E=[\varepsilon,1-\varepsilon]\)</span> be the score interval, let <span class="math inline">\(\mathcal R_J\)</span> be the finite label set, and fix a measurable release <span class="math inline">\(g:\mathcal E\to\mathcal R_J\)</span>. Let <span class="math inline">\(\mathbb Q_{P,H}^{n,m}\)</span> be a family of joint sampling laws on <span class="math inline">\(n\)</span> released trial rows and <span class="math inline">\(m\)</span> score-log draws. Suppose:</p>
+<ul>
+<li><p><strong>(Overlap and level.)</strong> Assumption <a class="objref" href="#obj-ass:overlap">1</a> holds and <span class="math inline">\(0&lt;\alpha&lt;1/2\)</span>.</p></li>
+<li><p><strong>(Trial sampling.)</strong> For every <span class="math inline">\(n,m\)</span> and every admissible causal-law and score-law pair <span class="math inline">\((P,H)\)</span> under <span class="math inline">\(g\)</span>, the trial marginal of <span class="math inline">\(\mathbb Q_{P,H}^{n,m}\)</span> is the <span class="math inline">\(n\)</span>-fold product of the released-row law under <span class="math inline">\(P\)</span>.</p></li>
+<li><p><strong>(Score-log sampling.)</strong> The joint sampling laws satisfy Assumptions <a class="objref" href="#obj-ass:external-log-iid">9</a> and <a class="objref" href="#obj-ass:external-log-independent">10</a> for every <span class="math inline">\(n,m\)</span>.</p></li>
+</ul>
+<p>Set <span class="math display">\[L_\alpha=1+(1-2\alpha)^2,\qquad
+S_g=\sup_{\substack{r\in\mathcal R_J,\ e_1,e_2,e_3\in\mathcal E\\
+e_1&lt;e_2&lt;e_3,\ g(e_1)=g(e_2)=g(e_3)=r}}
+\frac{(e_3-e_2)(1-e_1/e_2)}
+{\sqrt{(e_3-e_2)^2+(e_3-e_1)^2+(e_2-e_1)^2}},\]</span> and <span class="math display">\[c_{\mathrm{tr}}(\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{4},
+\qquad
+c_{\mathrm{log}}(g,\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{2\sqrt{3}}S_g.\]</span> Then <span class="math inline">\(0&lt;S_g\leq 1\)</span>. The external-score minimax excess risk of Definition <a class="objref" href="#obj-def:external-excess-risk">19</a> satisfies, for every <span class="math inline">\(n,m\geq 1\)</span>, <span class="math display">\[\mathcal R^\star_{n,m,\alpha}(g)
+\geq \frac{c_{\mathrm{tr}}(\alpha)}{\sqrt n}.\]</span> It also satisfies <span class="math display">\[\liminf_{m\to\infty}\inf_{n\geq 1}
+\left\{\sqrt m\,\mathcal R^\star_{n,m,\alpha}(g)\right\}
+\geq c_{\mathrm{log}}(g,\alpha)&gt;0.\]</span> For every <span class="math inline">\(\rho&gt;0\)</span>, the normalized risk of Definition <a class="objref" href="#obj-def:external-normalized-risk">20</a> satisfies <span class="math display">\[\liminf_{\substack{n,m\to\infty\\ n/m\to\rho}}
+T_{n,m,\alpha}(g)
+\geq
+\max\left\{
+\frac{c_{\mathrm{tr}}(\alpha)}{1+\sqrt\rho},
+\frac{c_{\mathrm{log}}(g,\alpha)\sqrt\rho}{1+\sqrt\rho}
+\right\}&gt;0.\]</span></p><span class="lean-hint">⊢ Lean</span></div>
+<div class="proof"><span class="env-label">Proof of Lemma <a class="objref" href="#obj-lem:external-two-source-lower-certificate">4</a>.</span><p>Write <span class="math inline">\(\beta=1-2\alpha\)</span>, so <span class="math inline">\(0&lt;\beta&lt;1\)</span>, <span class="math inline">\(L_\alpha=1+\beta^2&gt;1\)</span>, and both displayed certificate coefficients are positive once <span class="math inline">\(S_g&gt;0\)</span>.</p>
+<p>The interval <span class="math inline">\(\mathcal E\)</span> is infinite, whereas the label set is finite. Thus some fiber of <span class="math inline">\(g\)</span> contains three points <span class="math inline">\(e_1&lt;e_2&lt;e_3\)</span>. For any such triple, put <span class="math display">\[D(e_1,e_2,e_3)
+=\sqrt{(e_3-e_2)^2+(e_3-e_1)^2+(e_2-e_1)^2}.\]</span> Overlap gives <span class="math inline">\(0&lt;e_1/e_2&lt;1\)</span>, and <span class="math inline">\(D(e_1,e_2,e_3)\ge e_3-e_2&gt;0\)</span>. Consequently every ratio in the definition of <span class="math inline">\(S_g\)</span> is positive and at most one. The set of ratios is nonempty, so <span class="math display">\[0&lt;S_g\le1,\qquad c_{\mathrm{tr}}(\alpha)&gt;0,\qquad
+c_{\mathrm{log}}(g,\alpha)&gt;0.\]</span></p>
+<p>We first establish a uniform upper bound used to pass the score-log certificate through an infimum and a liminf. For finite measures on <span class="math inline">\(\mathcal V=[v_-,v_+]\)</span>, define <span class="math display">\[d_{\mathcal V}(\mu,\nu)
+=|\mu(\mathcal V)-\nu(\mathcal V)|
+ +\int_{v_-}^{v_+}
+   |\mu(\mathcal V\cap(-\infty,t])-\nu(\mathcal V\cap(-\infty,t])|\,dt.\]</span> Let <span class="math inline">\(\lambda_{ar}(B)=P_{\mathrm{rel}}(A=a,R=r,Y\in B)\)</span> and <span class="math inline">\(\sigma_{ar}(B)=\int_{B\cap C_r}p_a(e)\,H(de)\)</span>. Using the empirical cell measures in Definition <a class="objref" href="#obj-def:external-projection-handle">22</a>, set <span class="math display">\[D_Y=\sum_{a,r}d_{[0,1]}(\widehat\lambda_{ar},\lambda_{ar}),
+\qquad
+D_E=\sum_{a,r}d_{\mathcal E}(\widehat\sigma_{ar},\sigma_{ar}),
+\qquad
+\Lambda_\varepsilon=\varepsilon^{-1}+\varepsilon^{-2}.\]</span> For a retained sieve array, the triangle inequality places its outcome and score arrays within <span class="math inline">\(r_n+D_Y\)</span> and <span class="math inline">\(r_m+D_E\)</span>, respectively, of the population arrays. The quantile-transport arm endpoints are Lipschitz in these distances with coefficient <span class="math inline">\(\Lambda_\varepsilon\)</span>: the reciprocal arm probabilities are bounded by <span class="math inline">\(\varepsilon^{-1}\)</span>, their variation across scores is bounded by <span class="math inline">\(\varepsilon^{-2}\)</span>, and integration of the corresponding distribution-function differences gives the two distances above. Hence each of the four arm endpoints differs from its population endpoint by at most <span class="math display">\[\delta=\Lambda_\varepsilon(r_n+D_Y+r_m+D_E).\]</span> The lower and upper ATE endpoints each combine two arm endpoints. Taking their convex hull and clipping to <span class="math inline">\([-1,1]\)</span> therefore gives, on the projection branch of Definition <a class="objref" href="#obj-def:external-projection-handle">22</a>, for its interval <span class="math inline">\(C_{n,m}\)</span>, <span class="math display">\[\bigl(\operatorname{len}C_{n,m}
+       -\operatorname{len}I(P_{\mathrm{rel}};H,g)\bigr)_+
+\le 4\Lambda_\varepsilon(r_n+D_Y+r_m+D_E).\]</span> The same inequality holds when the totalized interval in Definition <a class="objref" href="#obj-def:external-projection-handle">22</a> is <span class="math inline">\(\{0\}\)</span>, since its length is zero. The empirical-CDF variance bound, integrated over each support interval and summed over the <span class="math inline">\(2J\)</span> cells, yields <span class="math display">\[\mathbb E D_Y\le\frac{2J}{\sqrt n},
+\qquad
+\mathbb E D_E\le\frac{J(2-2\varepsilon)}{\sqrt m}.\]</span> The radii <span class="math inline">\(r_n=4J/(\alpha\sqrt n)\)</span> and <span class="math inline">\(r_m=2J(2-2\varepsilon)/(\alpha\sqrt m)\)</span> make the projection interval honest: Markov’s inequality assigns probability at most <span class="math inline">\(\alpha/2\)</span> to each failed empirical ball, and approximation by compatible rational arrays places the population sharp interval in the resulting closed projection hull on the complementary event. Thus Definition <a class="objref" href="#obj-def:external-excess-risk">19</a> and the preceding bounds give <span class="math display">\[\mathcal R^\star_{n,m,\alpha}(g)
+\le 4\Lambda_\varepsilon
+\left[
+ \left(\frac{4J}{\alpha}+2J\right)n^{-1/2}
+ +\left(\frac{2J(2-2\varepsilon)}{\alpha}
+          +J(2-2\varepsilon)\right)m^{-1/2}
+\right].\]</span> In particular, with <span class="math display">\[M=4\Lambda_\varepsilon
+\left(\frac{4J}{\alpha}+2J+
+      \frac{2J(2-2\varepsilon)}{\alpha}
+      +J(2-2\varepsilon)\right)+1,\]</span> we have <span class="math inline">\(T_{n,m,\alpha}(g)\le M\)</span> for all <span class="math inline">\(n,m\ge1\)</span>, by the definition of <span class="math inline">\(b_{n,m}\)</span> in Definition <a class="objref" href="#obj-def:external-normalized-risk">20</a>.</p>
+<p>Fix an ordered triple <span class="math inline">\(e_1&lt;e_2&lt;e_3\)</span> in one fiber, and define <span class="math display">\[\mathbf h=(e_3-e_2,\;-(e_3-e_1),\;e_2-e_1),
+\quad
+u_m=\frac{\sqrt{\log L_\alpha}}
+          {\sqrt3\,\|\mathbf h\|_2\sqrt m},
+\quad
+q=\frac{e_1+e_2+e_3}{3},
+\quad
+t=\frac12\left\{\frac{e_1}{3}
+       +\min\!\left(\frac{e_1+e_2}{3},\frac{e_3}{3}\right)\right\},
+\quad s=\frac tq.\]</span> The identities <span class="math inline">\(\sum_i h_i=\sum_i e_i h_i=0\)</span> show that <span class="math display">\[H_0=\frac13\sum_{i=1}^3\delta_{e_i},
+\qquad
+H_m=\sum_{i=1}^3\left(\frac13+u_mh_i\right)\delta_{e_i}\]</span> are probability laws with the same score mean <span class="math inline">\(q\)</span> for all sufficiently large <span class="math inline">\(m\)</span>. The strict inequalities <span class="math display">\[\frac{e_1}{3}&lt;t&lt;
+\min\!\left(\frac{e_1+e_2}{3},\frac{e_3}{3}\right),
+\qquad 0&lt;s&lt;1,\]</span> hold by the choice of <span class="math inline">\(t\)</span>. Writing <span class="math inline">\(w_{i,m}=1/3+u_mh_i\)</span> for <span class="math inline">\(i=1,2,3\)</span>, continuity and <span class="math inline">\(u_m\to0\)</span> give, for all sufficiently large <span class="math inline">\(m\)</span>, <span class="math display">\[w_{i,m}&gt;0\quad(i=1,2,3),\qquad
+e_1w_{1,m}&lt;t&lt;
+\min\{e_1w_{1,m}+e_2w_{2,m},\,e_3w_{3,m}\}.\]</span> Under either score law, take <span class="math inline">\(Y_0=0\)</span>, an independent Bernoulli<span class="math inline">\((s)\)</span> potential outcome <span class="math inline">\(Y_1\)</span>, score-based treatment assignment, and the fixed label of the triple. These constructions satisfy Definition <a class="objref" href="#obj-def:external-law-class">16</a>; their released trial laws coincide, with treatment probability <span class="math inline">\(q\)</span> and treated-success probability <span class="math inline">\(t\)</span>.</p>
+<p>For score masses <span class="math inline">\(w_i\)</span> in this neighborhood, the upper rearrangement of the treated successes fills score <span class="math inline">\(e_1\)</span> and then score <span class="math inline">\(e_2\)</span>, while the lower rearrangement fits them at score <span class="math inline">\(e_3\)</span>. The endpoint formulas in Definition <a class="objref" href="#obj-def:mean-endpoints">6</a> therefore reduce to <span class="math display">\[U(w)=w_1+\frac{t-e_1w_1}{e_2},
+\qquad L(w)=\frac{t}{e_3}.\]</span> The control endpoints are zero. The two sharp intervals have common lower endpoint <span class="math inline">\(L(w)\)</span>, and their upper endpoints differ by <span class="math display">\[\Delta_m
+=U\!\left(\tfrac13+u_mh_1,\tfrac13+u_mh_2,\tfrac13+u_mh_3\right)
+ -U\!\left(\tfrac13,\tfrac13,\tfrac13\right)
+=u_m(e_3-e_2)\left(1-\frac{e_1}{e_2}\right)&gt;0.\]</span> By the endpoint-attainment assertion of Lemma <a class="objref" href="#obj-lem:fixed-released-law-baseline">2</a>, choose causal populations attaining the lower endpoint under <span class="math inline">\(H_0\)</span> and the upper endpoint under <span class="math inline">\(H_m\)</span>, while preserving their respective released laws. If <span class="math inline">\(W_0\)</span> denotes the sharp interval length under <span class="math inline">\(H_0\)</span>, their ATEs differ by <span class="math inline">\(W_0+\Delta_m\)</span>.</p>
+<p>Only the score logs distinguish these endpoint-attaining experiments. Direct calculation gives <span class="math display">\[\chi^2(H_m,H_0)
+=3u_m^2\|\mathbf h\|_2^2
+=\frac{\log L_\alpha}{m}.\]</span> For product laws, <span class="math inline">\(1+\chi^2\)</span> raises to the sample-size power; Cauchy–Schwarz then bounds total variation by half the square root of <span class="math inline">\(\chi^2\)</span>. Using <span class="math inline">\((1+x/m)^m\le e^x\)</span>, the joint experiments consequently satisfy, uniformly in <span class="math inline">\(n\)</span>, <span class="math display">\[\operatorname{TV}(\mathbb Q_0^{n,m},\mathbb Q_m^{n,m})
+\le\frac12
+ \sqrt{\left(1+\frac{\log L_\alpha}{m}\right)^m-1}
+\le\frac12\sqrt{L_\alpha-1}
+=\frac{\beta}{2}.\]</span> For any honest interval, transfer coverage of the second ATE to the first experiment and intersect it with coverage of the first ATE. The intersection has first-experiment probability at least <span class="math inline">\(1-2\alpha-\operatorname{TV}\ge\beta/2\)</span>. On it the interval length is at least <span class="math inline">\(W_0+\Delta_m\)</span>. Taking the supremum over laws and the infimum over honest procedures gives, for every <span class="math inline">\(n\ge1\)</span> and all sufficiently large <span class="math inline">\(m\)</span>, <span class="math display">\[\mathcal R^\star_{n,m,\alpha}(g)
+\ge\frac{\beta\Delta_m}{2}
+=\frac{\beta\sqrt{\log L_\alpha}}{2\sqrt3\,\sqrt m}
+  \frac{(e_3-e_2)(1-e_1/e_2)}
+       {D(e_1,e_2,e_3)}.\]</span></p>
+<p>To pass from a fixed triple to <span class="math inline">\(S_g\)</span>, take any number below <span class="math inline">\(\beta\sqrt{\log L_\alpha}S_g/(2\sqrt3)\)</span>. The definition of the supremum supplies a triple whose displayed coefficient exceeds that number. Its eventual lower bound holds uniformly over <span class="math inline">\(n\ge1\)</span>. The infimum over <span class="math inline">\(n\)</span> is finite: it is bounded below by this eventual certificate and above by the choice <span class="math inline">\(n=m\)</span>, for which <span class="math inline">\(b_{m,m}=\sqrt m/2\)</span> and the bound <span class="math inline">\(T_{m,m,\alpha}(g)\le M\)</span> gives <span class="math inline">\(\sqrt m\,\mathcal R^\star_{m,m,\alpha}(g)\le2M\)</span>. Taking the liminf and then letting the chosen number increase to the supremum proves <span class="math display">\[\liminf_{m\to\infty}\inf_{n\ge1}
+ \sqrt m\,\mathcal R^\star_{n,m,\alpha}(g)
+\ge c_{\mathrm{log}}(g,\alpha).\]</span></p>
+<p>For the trial certificate, take <span class="math inline">\(H=\delta_{1/2}\)</span>, which is supported on <span class="math inline">\(\mathcal E\)</span> by Assumption <a class="objref" href="#obj-ass:overlap">1</a>. Let <span class="math inline">\(P_0\)</span> have <span class="math inline">\(Y_0=0\)</span> and an independent Bernoulli<span class="math inline">\((1/2)\)</span> outcome <span class="math inline">\(Y_1\)</span>, and let <span class="math inline">\(P_1\)</span> replace its success probability by <span class="math inline">\(1/2+v_n\)</span>, where <span class="math display">\[v_n=\frac12\sqrt{\frac{\log L_\alpha}{n}}.\]</span> Both laws use treatment probability <span class="math inline">\(E=1/2\)</span>, consistency, and the fixed release <span class="math inline">\(g(1/2)\)</span>. Since <span class="math inline">\(0&lt;\beta&lt;1\)</span> and <span class="math inline">\(n\ge1\)</span>, <span class="math inline">\(0&lt;v_n&lt;1/2\)</span>; both pairs belong to Definition <a class="objref" href="#obj-def:external-law-class">16</a>. The fixed score makes the reciprocal treatment weights constant, so Definitions <a class="objref" href="#obj-def:mean-endpoints">6</a> and <a class="objref" href="#obj-def:sharp-ate-set">7</a> give singleton sharp intervals at <span class="math inline">\(1/2\)</span> and <span class="math inline">\(1/2+v_n\)</span>.</p>
+<p>For a latent Bernoulli outcome, the chi-squared divergence between these two success probabilities is <span class="math inline">\(4v_n^2\)</span>. Adding the common randomized arm, releasing the trial row, and adding the common score log cannot increase total variation. Hence <span class="math display">\[\operatorname{TV}(\mathbb Q_0^{n,m},\mathbb Q_1^{n,m})
+\le\frac12\sqrt{(1+4v_n^2)^n-1}
+\le\frac12\sqrt{e^{\log L_\alpha}-1}
+=\frac{\beta}{2},\]</span> where the middle inequality uses <span class="math inline">\((1+\log L_\alpha/n)^n\le L_\alpha\)</span>. Under the first experiment, honesty and transfer of the second coverage event put both ATEs in any honest interval with probability at least <span class="math inline">\(\beta/2\)</span>. Its length on that event is at least <span class="math inline">\(v_n\)</span>, while the first sharp interval has length zero. Thus every honest procedure has worst-case expected excess length at least <span class="math display">\[\frac{\beta v_n}{2}
+=\frac{\beta\sqrt{\log L_\alpha}}{4\sqrt n}
+=\frac{c_{\mathrm{tr}}(\alpha)}{\sqrt n}.\]</span> The full interval <span class="math inline">\([-1,1]\)</span> is honest, so the infimum defining the minimax risk is over a nonempty set; every candidate satisfies the displayed bound. This proves the finite-sample assertion.</p>
+<p>Finally, for positive <span class="math inline">\(n,m\)</span>, multiplying the trial bound by <span class="math inline">\(b_{n,m}\)</span> gives <span class="math display">\[T_{n,m,\alpha}(g)
+\ge c_{\mathrm{tr}}(\alpha)
+ \frac{\sqrt m}{\sqrt n+\sqrt m}.\]</span> If <span class="math inline">\(n,m\to\infty\)</span> with <span class="math inline">\(n/m\to\rho&gt;0\)</span>, the fraction tends to <span class="math inline">\(1/(1+\sqrt\rho)\)</span>. For the log bound, let any <span class="math inline">\(\gamma&lt;c_{\mathrm{log}}(g,\alpha)\)</span> be fixed. The preceding liminf inequality implies, eventually in <span class="math inline">\(m\)</span>, uniformly over <span class="math inline">\(n\ge1\)</span>, <span class="math inline">\(\mathcal R^\star_{n,m,\alpha}(g)\ge\gamma/\sqrt m\)</span>. Hence eventually <span class="math display">\[T_{n,m,\alpha}(g)
+\ge \gamma\frac{\sqrt n}{\sqrt n+\sqrt m}
+\longrightarrow
+\gamma\frac{\sqrt\rho}{1+\sqrt\rho}.\]</span> The uniform bound <span class="math inline">\(T_{n,m,\alpha}(g)\le M\)</span> makes the normalized liminf finite. Letting <span class="math inline">\(\gamma\)</span> increase to <span class="math inline">\(c_{\mathrm{log}}(g,\alpha)\)</span> and combining the two lower bounds yields <span class="math display">\[\liminf_{\substack{n,m\to\infty\\ n/m\to\rho}}
+T_{n,m,\alpha}(g)
+\ge
+\max\left\{
+\frac{c_{\mathrm{tr}}(\alpha)}{1+\sqrt\rho},
+\frac{c_{\mathrm{log}}(g,\alpha)\sqrt\rho}{1+\sqrt\rho}
+\right\}&gt;0,\]</span> as required.</p><span class="qed">∎</span></div>
+<p>The trial bound applies at every pair of positive sample sizes. The score-log bound persists when trial size is unrestricted, and the final bound records both contributions at a fixed positive sample-size ratio. These bounds provide the lower-risk component of Theorem <a class="objref" href="#obj-thm:external-score-root-order">7</a>.</p>
+<h2 id="verification-scope">Verification scope</h2>
+<p>The displayed theorem and lemma declarations and their rendered proofs are machine-checked with Lean <code>4.33.0</code> at source commit <code>9135ac11b7d3e6ebd997f8c56bc48396dde396e4</code>. The machine-readable manifest <code>verification_contract.json</code> maps each paper object identifier to its Lean declaration, source file, statement and proof audits, external dependencies, and sorry-free status. It records 44 displayed objects and 82 referenced Lean declarations. Objects marked <code>matched</code> have a checked formal counterpart; synthesized presentation definitions organize notation and are identified separately in that manifest. The fixed-law result is credited to Fan et al. (2014) as prior mathematics, while Lemma <a class="objref" href="#obj-lem:fixed-released-law-baseline">2</a> has no external formal dependency and its present proof is checked under the displayed assumptions.</p>
+<h1 id="sec:deferred-proofs">Proofs of the main results</h1>
+<div class="proof"><span class="env-label">Proof of Theorem <a class="objref" href="#obj-prop:compatibility">1</a>.</span><p>Suppose <span class="math inline">\(P\in\mathfrak M(H,g,P_{\mathrm{rel}})\)</span>. For each label <span class="math inline">\(r\)</span>, score-based assignment, deterministic release, and the score marginal give the treated-arm identity <span class="math display">\[\begin{aligned}
+P_{\mathrm{rel}}(A=1,R=r)
+&amp;=P(A=1,g(E)=r)\\
+&amp;=\mathbb E_P\!\left[\mathbf 1\{g(E)=r\}p_1(E)\right]
+=\int_{C_r}e\,H(de)=q_{1r}.
+\end{aligned}\]</span> This is the treated-arm instance of Lemma <a class="objref" href="#obj-lem:released-arm-cell-masses">1</a>; the arm-cell quantities are defined in Definition <a class="objref" href="#obj-def:arm-cell-primitives">5</a>. The score marginal and deterministic release also give <span class="math display">\[P_{\mathrm{rel}}(R=r)=P(g(E)=r)=H(C_r).\]</span> Partitioning the label event by arm therefore yields the control-arm identity <span class="math display">\[\begin{aligned}
+P_{\mathrm{rel}}(A=0,R=r)
+&amp;=P_{\mathrm{rel}}(R=r)-P_{\mathrm{rel}}(A=1,R=r)\\
+&amp;=H(C_r)-\int_{C_r}e\,H(de)
+=\int_{C_r}(1-e)\,H(de)=q_{0r}.
+\end{aligned}\]</span> Thus <span class="math inline">\(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\)</span> for both arms.</p>
+<p>Since <span class="math inline">\(p_0(e)+p_1(e)=1\)</span>, summing the arm masses gives <span class="math display">\[P_{\mathrm{rel}}(R=r)
+=\sum_{a\in\mathcal A}P_{\mathrm{rel}}(A=a,R=r)
+=\sum_{a\in\mathcal A}q_{ar}
+=\int_{C_r}1\,H(de)
+=H(C_r).\]</span> The treated-arm identity above is the second required equality.</p>
+<p>Conversely, suppose the two stated equalities hold for every <span class="math inline">\(r\)</span>. Partitioning each label event by arm and using <span class="math inline">\(p_0=1-p_1\)</span> yields <span class="math display">\[\begin{aligned}
+P_{\mathrm{rel}}(A=0,R=r)
+&amp;=P_{\mathrm{rel}}(R=r)-P_{\mathrm{rel}}(A=1,R=r)\\
+&amp;=H(C_r)-\int_{C_r}e\,H(de)
+=\int_{C_r}(1-e)\,H(de)=q_{0r}.
+\end{aligned}\]</span> The assumed treated equality is <span class="math inline">\(P_{\mathrm{rel}}(A=1,R=r)=q_{1r}\)</span>. Thus <span class="math inline">\(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\)</span> for both arms and every label.</p>
+<p>For every <span class="math inline">\((a,r)\in\mathcal A\times\mathcal R_J\)</span>, define a probability law on the outcome interval by <span class="math display">\[F^\star_{ar}(\mathcal U):=
+\begin{cases}
+P_{\mathrm{rel}}(Y\in\mathcal U\mid A=a,R=r), &amp; P_{\mathrm{rel}}(A=a,R=r)&gt;0,\\
+\mathbf 1\{0\in\mathcal U\}, &amp; P_{\mathrm{rel}}(A=a,R=r)=0,
+\end{cases}
+\qquad \mathcal U\subseteq[0,1]\text{ Borel}.\]</span> On positive-mass pairs this is <span class="math inline">\(F_{ar}\)</span> from Definition <a class="objref" href="#obj-def:arm-cell-primitives">5</a>; on zero-mass pairs it is point mass at zero. In particular, for every Borel outcome set <span class="math inline">\(\mathcal U\)</span>, <span class="math display">\[P_{\mathrm{rel}}(Y\in\mathcal U,A=a,R=r)
+=P_{\mathrm{rel}}(A=a,R=r)F^\star_{ar}(\mathcal U)
+=q_{ar}F^\star_{ar}(\mathcal U).\]</span> Define a law for the latent variables by <span class="math display">\[\Lambda(de,dy_0,dy_1)
+=H(de)\,F^\star_{0,g(e)}(dy_0)\,F^\star_{1,g(e)}(dy_1).\]</span> Its score marginal is <span class="math inline">\(H\)</span>, and its two potential outcomes are conditionally independent given the score. The finite label alphabet and measurability of <span class="math inline">\(g\)</span> make these kernels measurable.</p>
+<p>From <span class="math inline">\(\Lambda\)</span>, construct <span class="math inline">\(\widetilde P\)</span> by drawing <span class="math inline">\(A\)</span> conditionally on <span class="math inline">\((E,Y_0,Y_1)\)</span> with probabilities <span class="math inline">\(p_a(E)\)</span>, then setting <span class="math inline">\(R=g(E)\)</span> and <span class="math inline">\(Y=AY_1+(1-A)Y_0\)</span>. Equivalently, in the full-row coordinate order <span class="math inline">\((E,Y_0,Y_1,A,Y,R)\)</span>, its law is <span class="math display">\[\widetilde P
+=\sum_{a\in\mathcal A}
+\bigl((e,y_0,y_1)\mapsto(e,y_0,y_1,a,ay_1+(1-a)y_0,g(e))\bigr)_{\#}
+\bigl(p_a(e)\,\Lambda(de,dy_0,dy_1)\bigr).\]</span> Overlap gives <span class="math inline">\(0\leq p_a(e)\leq1\)</span>, and <span class="math display">\[p_0(e)+p_1(e)=1,\qquad
+\widetilde P(E\in\mathcal S)
+=\int_{\mathcal S}\sum_{a\in\mathcal A}p_a(e)\,H(de)
+=H(\mathcal S)\]</span> for every Borel score set <span class="math inline">\(\mathcal S\)</span>. Hence <span class="math inline">\(\widetilde P\)</span> is a probability law with score marginal <span class="math inline">\(H\)</span>. Its conditional assignment probabilities are <span class="math inline">\(p_a(E)\)</span>, while consistency and deterministic release hold by construction.</p>
+<p>Finally, for every <span class="math inline">\(a,r,\mathcal U\)</span> as above, <span class="math display">\[\begin{aligned}
+\widetilde P(R=r,A=a,Y\in\mathcal U)
+&amp;=\int_{C_r}p_a(e)F^\star_{ar}(\mathcal U)\,H(de)\\
+&amp;=q_{ar}F^\star_{ar}(\mathcal U)
+=P_{\mathrm{rel}}(R=r,A=a,Y\in\mathcal U).
+\end{aligned}\]</span> These events determine the law of <span class="math inline">\((R,A,Y)\)</span>, including zero-mass cells. Thus its law under <span class="math inline">\(\widetilde P\)</span> is <span class="math inline">\(P_{\mathrm{rel}}\)</span>, and <span class="math inline">\(\widetilde P\in\mathfrak M(H,g,P_{\mathrm{rel}})\)</span>.</p><span class="qed">∎</span></div>
+<div class="proof"><span class="env-label">Proof of Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a>.</span><p><em>Step 1 (general upper bound).</em> For each arm and label, define <span class="math display">\[\Gamma_{ar}
+:=\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+       \int_{C_r}|1-cp_a(e)|\,H(de),
+\qquad
+\Gamma_{\mathrm{all}}:=\sum_{r\in\mathcal R_J}
+       \bigl(\Gamma_{1r}+\Gamma_{0r}\bigr).\]</span> Consider any causal law <span class="math inline">\(\widetilde P\)</span> in the supremum defining <span class="math inline">\(D_H(g)\)</span>, and set <span class="math display">\[\widetilde P_{\mathrm{rel}}
+:=\mathcal L_{\widetilde P}(R,A,Y).\]</span> For a cell with <span class="math inline">\(q_{ar}&gt;0\)</span>, let <span class="math inline">\(\widetilde F_{ar}\)</span> be its observed outcome law under <span class="math inline">\(\widetilde P_{\mathrm{rel}}\)</span>, and define its contribution to the interval width by <span class="math display">\[\Delta_{ar}(\widetilde P_{\mathrm{rel}})
+:=q_{ar}\int_0^1 Q_{\widetilde F_{ar}}(u)
+       \bigl\{Q_{W_{ar}}(u)-Q_{W_{ar}}(1-u)\bigr\}\,du.\]</span> Set <span class="math inline">\(\Delta_{ar}(\widetilde P_{\mathrm{rel}})=0\)</span> when <span class="math inline">\(q_{ar}=0\)</span>. By Lemma <a class="objref" href="#obj-lem:fixed-released-law-baseline">2</a> and the definitions of the mean endpoints, <span class="math display">\[\operatorname{len}I(\widetilde P_{\mathrm{rel}};H,g)
+=\sum_{r\in\mathcal R_J}
+ \bigl\{\Delta_{1r}(\widetilde P_{\mathrm{rel}})
+       +\Delta_{0r}(\widetilde P_{\mathrm{rel}})\bigr\}.\]</span></p>
+<p>Fix a positive-mass cell and <span class="math inline">\(c\in[1/(1-\varepsilon),1/\varepsilon]\)</span>. Since <span class="math inline">\(0\le Q_{\widetilde F_{ar}}(u)\le1\)</span> almost everywhere, the positive and negative parts give <span class="math display">\[\begin{aligned}
+\int_0^1 Q_{\widetilde F_{ar}}(u)Q_{W_{ar}}(u)\,du
+&amp;\le c\int_0^1Q_{\widetilde F_{ar}}(u)\,du
+   +\int_0^1\bigl(Q_{W_{ar}}(u)-c\bigr)_+\,du,\\
+\int_0^1 Q_{\widetilde F_{ar}}(u)Q_{W_{ar}}(1-u)\,du
+&amp;\ge c\int_0^1Q_{\widetilde F_{ar}}(u)\,du
+   -\int_0^1\bigl(c-Q_{W_{ar}}(1-u)\bigr)_+\,du.
+\end{aligned}\]</span> The quantiles at <span class="math inline">\(u\)</span> and <span class="math inline">\(1-u\)</span> each have law <span class="math inline">\(W_{ar}\)</span> under uniform <span class="math inline">\(u\)</span>. Subtraction therefore yields <span class="math display">\[\frac{\Delta_{ar}(\widetilde P_{\mathrm{rel}})}{q_{ar}}
+\le \mathbb E|W_{ar}-c|.\]</span> The defining score law of <span class="math inline">\(E_{ar}\)</span> and <span class="math inline">\(p_a(e)&gt;0\)</span> give the scaling identity <span class="math display">\[q_{ar}\mathbb E|W_{ar}-c|
+=\int_{C_r}p_a(e)\left|\frac1{p_a(e)}-c\right|H(de)
+=\int_{C_r}|1-cp_a(e)|\,H(de).\]</span> Taking the infimum shows <span class="math inline">\(\Delta_{ar}(\widetilde P_{\mathrm{rel}})\le\Gamma_{ar}\)</span>. If <span class="math inline">\(q_{ar}=0\)</span>, then <span class="math inline">\(H(C_r)=0\)</span>, since <span class="math inline">\(p_a(e)\ge\varepsilon&gt;0\)</span> on <span class="math inline">\(\mathcal E\)</span>; hence both sides are zero. Summing over all cells proves <span class="math display">\[\operatorname{len}I(\widetilde P_{\mathrm{rel}};H,g)
+\le\Gamma_{\mathrm{all}},
+\qquad D_H(g)\le\Gamma_{\mathrm{all}}.\]</span></p>
+<p><em>Step 2 (width of the half-outcome release).</em> For the <span class="math inline">\(P_{\mathrm{rel}}\)</span> in the statement, every positive-mass cell has outcome law Bernoulli<span class="math inline">\((1/2)\)</span>, whose quantile is zero below <span class="math inline">\(1/2\)</span> and one above <span class="math inline">\(1/2\)</span>, up to a null set. Put <span class="math inline">\(m_{ar}:=Q_{W_{ar}}(1/2)\)</span> in such a cell. Monotonicity of the quantile and a change of variable give <span class="math display">\[\begin{aligned}
+\frac{\Delta_{ar}(P_{\mathrm{rel}})}{q_{ar}}
+&amp;=\int_{1/2}^1Q_{W_{ar}}(u)\,du
+  -\int_0^{1/2}Q_{W_{ar}}(u)\,du\\
+&amp;=\int_0^1|Q_{W_{ar}}(u)-m_{ar}|\,du
+ =\mathbb E|W_{ar}-m_{ar}|.
+\end{aligned}\]</span> Overlap places <span class="math inline">\(W_{ar}\)</span>, and thus its median <span class="math inline">\(m_{ar}\)</span>, in <span class="math inline">\([1/(1-\varepsilon),1/\varepsilon]\)</span>. The preceding cellwise bound applies to this fair outcome law for every admissible <span class="math inline">\(c\)</span>, while <span class="math inline">\(m_{ar}\)</span> attains that bound. The scaling identity consequently gives <span class="math display">\[\Delta_{ar}(P_{\mathrm{rel}})
+=q_{ar}\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+       \mathbb E|W_{ar}-c|
+=\Gamma_{ar}.\]</span> The equality also holds in zero-mass cells by the zero-mass argument above. Summing the armwise contributions yields <span class="math display">\[\operatorname{len}I(P_{\mathrm{rel}};H,g)
+=\Gamma_{\mathrm{all}}.\]</span></p>
+<p><em>Step 3 (compatible laws and endpoints).</em> The cell masses satisfy <span class="math display">\[\sum_{r\in\mathcal R_J}\sum_{a\in\{0,1\}}q_{ar}
+=\int_{\mathcal E}\bigl(p_1(e)+p_0(e)\bigr)\,H(de)=1.\]</span> Thus <span class="math inline">\(P_{\mathrm{rel}}\)</span> is a probability law. For every label <span class="math inline">\(r\)</span>, its defining mixture gives <span class="math display">\[P_{\mathrm{rel}}(R=r)=q_{1r}+q_{0r}=H(C_r),
+\qquad
+P_{\mathrm{rel}}(A=1,R=r)=q_{1r}
+=\int_{C_r}e\,H(de).\]</span> By Theorem <a class="objref" href="#obj-prop:compatibility">1</a>, there is a compatible full law producing <span class="math inline">\(P_{\mathrm{rel}}\)</span>. Applying Lemma <a class="objref" href="#obj-lem:fixed-released-law-baseline">2</a> to this released law gives compatible probability laws <span class="math inline">\(P_-,P_+\)</span> with <span class="math display">\[\mathbb E_{P_-}[Y_1-Y_0]=\underline\mu_1-\overline\mu_0,
+\qquad
+\mathbb E_{P_+}[Y_1-Y_0]=\overline\mu_1-\underline\mu_0,\]</span> and hence <span class="math display">\[\mathbb E_{P_+}[Y_1-Y_0]-\mathbb E_{P_-}[Y_1-Y_0]
+=\operatorname{len}I(P_{\mathrm{rel}};H,g)
+=\Gamma_{\mathrm{all}}.\]</span></p>
+<p><em>Step 4 (supremum and conclusion).</em> The set of widths in Definition <a class="objref" href="#obj-def:worst-case-ambiguity">9</a> is bounded above by <span class="math inline">\(\Gamma_{\mathrm{all}}\)</span>, by the general upper bound. The compatible law constructed for <span class="math inline">\(P_{\mathrm{rel}}\)</span> puts its width in that set, and the half-outcome calculation shows that this width equals <span class="math inline">\(\Gamma_{\mathrm{all}}\)</span>. Therefore <span class="math display">\[D_H(g)=\Gamma_{\mathrm{all}}
+=\sum_{r\in\mathcal R_J}\left[
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+ \int_{C_r}|1-ce|\,H(de)
++
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+ \int_{C_r}|1-c(1-e)|\,H(de)
+\right].\]</span> Substituting this equality into the attained endpoint gap above proves the asserted gap. The hypotheses also cover the index-set boundary: <span class="math inline">\(\mathcal E\)</span> contains <span class="math inline">\(\varepsilon\)</span>, so the value <span class="math inline">\(g(\varepsilon)\)</span> ensures <span class="math inline">\(\mathcal R_J\)</span> is nonempty.</p><span class="qed">∎</span></div>
+<div class="proof"><span class="env-label">Proof of Theorem <a class="objref" href="#obj-thm:universal-point-identification">3</a>.</span><ol>
+<li><p>For <span class="math inline">\(a\in\{0,1\}\)</span> and <span class="math inline">\(r\in\mathcal R_J\)</span>, set <span class="math display">\[\delta_{ar}:=
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-cp_a(e)|\,H(de),
+\qquad p_1(e)=e,\quad p_0(e)=1-e.\]</span> The coefficient interval is nonempty under overlap. Each defining integral is finite and nonnegative, so <span class="math inline">\(\delta_{ar}\geq0\)</span>. By Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a>, <span class="math display">\[D_H(g)=\sum_{r\in\mathcal R_J}(\delta_{1r}+\delta_{0r}).\]</span> Thus <span class="math inline">\(D_H(g)=0\)</span> implies <span class="math inline">\(\delta_{1r}=0\)</span> for every <span class="math inline">\(r\)</span>: each term in this finite sum is nonnegative.</p></li>
+<li><p>Fix <span class="math inline">\(r\)</span> with <span class="math inline">\(H(C_r)&gt;0\)</span>, and define, for every real <span class="math inline">\(t\)</span>, <span class="math display">\[\Phi_r(t):=\int_{C_r}|1-te|\,H(de).\]</span> Since <span class="math inline">\(0\leq e\leq1\)</span> on <span class="math inline">\(\mathcal E\)</span>, for all real <span class="math inline">\(t,t&#39;\)</span>, <span class="math display">\[|\Phi_r(t)-\Phi_r(t&#39;)|
+\leq \int_{C_r}|t-t&#39;|e\,H(de)
+\leq |t-t&#39;|H(C_r)
+\leq |t-t&#39;|.\]</span> Hence <span class="math inline">\(\Phi_r\)</span> is continuous and attains its minimum on the compact coefficient interval. Let <span class="math inline">\(c_r\)</span> attain it. The preceding step gives <span class="math display">\[0=\delta_{1r}=\Phi_r(c_r)
+=\int_{C_r}|1-c_re|\,H(de),\]</span> so <span class="math inline">\(1-c_re=0\)</span> for <span class="math inline">\(H\)</span>-almost every <span class="math inline">\(e\in C_r\)</span>. Because <span class="math inline">\(H(C_r)&gt;0\)</span>, there is an <span class="math inline">\(x_r\in C_r\)</span> with <span class="math inline">\(1-c_rx_r=0\)</span>. Also <span class="math inline">\(c_r\geq1/(1-\varepsilon)&gt;0\)</span>. Consequently, <span class="math display">\[c_r(e-x_r)=0
+\quad\text{for \(H\)-almost every \(e\in C_r\),}\]</span> and therefore <span class="math inline">\(e=x_r\)</span> there almost surely. This proves the cellwise condition.</p></li>
+<li><p>Conversely, suppose the cellwise condition holds. Choose its value <span class="math inline">\(x_r\)</span> on each positive-mass cell and define the map on the entire label set by <span class="math display">\[h(r):=
+\begin{cases}
+x_r,&amp;H(C_r)&gt;0,\\
+\varepsilon,&amp;H(C_r)=0,
+\end{cases}
+\qquad r\in\mathcal R_J.\]</span> Here <span class="math inline">\(\varepsilon\in\mathcal E\)</span> by overlap. The finite label set makes <span class="math inline">\(h\)</span> measurable. On every positive-mass cell, <span class="math inline">\(e=h(r)\)</span> almost surely; the same assertion is vacuous on a zero-mass cell. Taking the finite union of these cellwise assertions yields <span class="math display">\[e=h(g(e))\qquad\text{for \(H\)-almost every \(e\)}.\]</span></p></li>
+<li><p>For every <span class="math inline">\(a\in\{0,1\}\)</span> and <span class="math inline">\(r\in\mathcal R_J\)</span>, set <span class="math display">\[c_{ar}:=\frac{1}{p_a(h(r))}.\]</span> Overlap gives <span class="math display">\[\varepsilon\leq p_a(h(r))\leq1-\varepsilon,
+\qquad
+\frac1{1-\varepsilon}\leq c_{ar}\leq\frac1\varepsilon.\]</span> The cellwise equality established above gives <span class="math inline">\(p_a(e)=p_a(h(r))\)</span> almost surely on <span class="math inline">\(C_r\)</span>, including when that cell has zero mass. Thus <span class="math display">\[0\leq\delta_{ar}
+\leq\int_{C_r}|1-c_{ar}p_a(e)|\,H(de)=0.\]</span> Every summand in the all-label formula is zero, and hence <span class="math inline">\(D_H(g)=0\)</span>. Finally, if a measurable <span class="math inline">\(h\)</span> satisfies <span class="math inline">\(e=h(g(e))\)</span> <span class="math inline">\(H\)</span>-almost surely, then on each positive-mass <span class="math inline">\(C_r\)</span> its value <span class="math inline">\(h(r)\)</span> witnesses the cellwise condition. The two stated conditions are therefore each equivalent to <span class="math inline">\(D_H(g)=0\)</span>.</p></li>
+</ol><span class="qed">∎</span></div>
+<div class="proof"><span class="env-label">Proof of Theorem <a class="objref" href="#obj-thm:k-label-rate">4</a>.</span><p>The overlap condition gives <span class="math inline">\(\ell&gt;0\)</span>. First fix <span class="math inline">\(H\in\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\)</span> and an arbitrary measurable <span class="math inline">\(g\in\mathcal G_K\)</span>. For each label <span class="math inline">\(r\)</span>, set <span class="math display">\[C_r=\{e\in\mathcal E:g(e)=r\},
+\qquad h_r=\operatorname{Leb}(C_r).\]</span> The measurable cells partition <span class="math inline">\(\mathcal E\)</span>, including any empty cells, so <span class="math inline">\(h_r\geq0\)</span> and <span class="math inline">\(\sum_r h_r=\ell\)</span>.</p>
+<p>For every <span class="math inline">\(\zeta\in\mathbb R\)</span> and <span class="math inline">\(t\geq0\)</span>, the points within distance <span class="math inline">\(t\)</span> of <span class="math inline">\(\zeta\)</span> occupy an interval of length <span class="math inline">\(2t\)</span>. Thus <span class="math display">\[\operatorname{Leb}\{e\in C_r:|e-\zeta|&gt;t\}\geq h_r-2t,\]</span> and the layer-cake identity gives <span class="math display">\[\int_{C_r}|e-\zeta|\,de
+\geq\int_0^{h_r/2}(h_r-2t)\,dt
+=\frac{h_r^2}{4}.\]</span></p>
+<p>Since <span class="math inline">\(H(de)=f(e)\,de\)</span> with <span class="math inline">\(f\geq m_f\)</span> almost everywhere, it follows for every <span class="math inline">\(\zeta\in\mathbb R\)</span> that <span class="math display">\[\int_{C_r}|e-\zeta|\,H(de)
+\geq m_f\int_{C_r}|e-\zeta|\,de
+\geq \frac{m_fh_r^2}{4}.\]</span></p>
+<p>Write <span class="math inline">\(p_1(e)=e\)</span> and <span class="math inline">\(p_0(e)=1-e\)</span>, as in Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a>. For any <span class="math inline">\(c\in[1/(1-\varepsilon),1/\varepsilon]\)</span>, define the two score centers by <span class="math display">\[z_{1,c}=c^{-1},\qquad z_{0,c}=1-c^{-1}.\]</span> Here <span class="math inline">\(c&gt;0\)</span>, and direct algebra gives <span class="math display">\[|1-cp_a(e)|=c|e-z_{a,c}|,
+\qquad a\in\{0,1\}.\]</span></p>
+<p>Because <span class="math inline">\(c\geq1/(1-\varepsilon)\)</span>, the preceding cell bound yields, for either arm, <span class="math display">\[\int_{C_r}|1-cp_a(e)|\,H(de)
+\geq \frac{m_fh_r^2}{4(1-\varepsilon)}.\]</span></p>
+<p>By the exact cell formula in Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a>, <span class="math display">\[D_H(g)
+=\sum_r\sum_{a\in\{0,1\}}
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-cp_a(e)|\,H(de)
+\geq \frac{m_f}{2(1-\varepsilon)}\sum_r h_r^2.\]</span></p>
+<p>There are <span class="math inline">\(K\)</span> labels, so Cauchy–Schwarz gives <span class="math display">\[\sum_r h_r^2
+\geq \frac{(\sum_r h_r)^2}{K}
+=\frac{\ell^2}{K}.\]</span> Consequently every <span class="math inline">\(g\in\mathcal G_K\)</span> satisfies <span class="math display">\[D_H(g)\geq\frac{m_f\ell^2}{2(1-\varepsilon)K}.\]</span> The class <span class="math inline">\(\mathcal G_K\)</span> is nonempty because <span class="math inline">\(K\geq1\)</span> permits a constant measurable release. Taking the infimum as in Definition <a class="objref" href="#obj-def:optimal-k-ambiguity">11</a> proves the lower bound for <span class="math inline">\(\Delta_K(H)\)</span>.</p>
+<p>Now let <span class="math inline">\(H\)</span> be any probability law on <span class="math inline">\(\mathcal E\)</span>, and take the equal-width release <span class="math inline">\(g\)</span> in the statement. It is measurable: the score transformation inside the floor is continuous, the floor is measurable, and clipping its value to the finite label set preserves measurability.</p>
+<p>Index its labels by <span class="math inline">\(r=1,\ldots,K\)</span>, write <span class="math inline">\(C_r=\{e\in\mathcal E:g(e)=r\}\)</span>, and define <span class="math display">\[z_r=\varepsilon+\left(r-\frac12\right)\frac{\ell}{K}.\]</span> For <span class="math inline">\(e\in C_r\)</span>, the floor rule places <span class="math inline">\(e\)</span> between <span class="math inline">\(\varepsilon+(r-1)\ell/K\)</span> and <span class="math inline">\(\varepsilon+r\ell/K\)</span>. At the right endpoint of <span class="math inline">\(\mathcal E\)</span>, clipping assigns the last label, for which the same closed bounds hold. Hence <span class="math inline">\(z_r\in\mathcal E\)</span> and <span class="math display">\[|e-z_r|\leq\frac{\ell}{2K}\qquad(e\in C_r).\]</span></p>
+<p>The candidates <span class="math inline">\(z_r^{-1}\)</span> and <span class="math inline">\((1-z_r)^{-1}\)</span> lie in <span class="math inline">\([1/(1-\varepsilon),1/\varepsilon]\)</span>. Moreover, <span class="math display">\[z_r(1-z_r)-\varepsilon(1-\varepsilon)
+=(z_r-\varepsilon)(1-\varepsilon-z_r)\geq0.\]</span> Thus, for <span class="math inline">\(e\in C_r\)</span>, <span class="math display">\[\left|1-\frac e{z_r}\right|
++\left|1-\frac{1-e}{1-z_r}\right|
+=\frac{|e-z_r|}{z_r(1-z_r)}
+\leq \frac{|e-z_r|}{\varepsilon(1-\varepsilon)}.\]</span></p>
+<p>Using these candidates in the two cell infima, then applying the midpoint bound, gives <span class="math display">\[\sum_{a\in\{0,1\}}
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-cp_a(e)|\,H(de)
+\leq
+\frac{1}{\varepsilon(1-\varepsilon)}
+\int_{C_r}|e-z_r|\,H(de)
+\leq
+\frac{\ell}{2\varepsilon(1-\varepsilon)K}H(C_r).\]</span></p>
+<p>The cells partition <span class="math inline">\(\mathcal E\)</span> and <span class="math inline">\(H(\mathcal E)=1\)</span>. Summing the cell bounds therefore yields <span class="math display">\[D_H(g)\leq
+\frac{\ell}{2\varepsilon(1-\varepsilon)K}
+\sum_r H(C_r)
+=
+\frac{\ell}{2\varepsilon(1-\varepsilon)K}.\]</span></p>
+<p>Finally, the exact cell formula shows <span class="math inline">\(D_H(g&#39;)\geq0\)</span> for every measurable release <span class="math inline">\(g&#39;\)</span>, while the measurable <span class="math inline">\(g\)</span> above belongs to <span class="math inline">\(\mathcal G_K\)</span>. Hence the defining infimum satisfies <span class="math display">\[\Delta_K(H)\leq D_H(g)
+\leq\frac{\ell}{2\varepsilon(1-\varepsilon)K}.\]</span></p><span class="qed">∎</span></div>
+<div class="proof"><span class="env-label">Proof of Theorem <a class="objref" href="#obj-thm:sharp-high-resolution-constant">5</a>.</span><p>By Assumption <a class="objref" href="#obj-ass:overlap">1</a>, <span class="math inline">\(\mathcal E\)</span> is a nondegenerate compact interval and <span class="math inline">\(e,1-e\geq\varepsilon&gt;0\)</span> throughout <span class="math inline">\(\mathcal E\)</span>. Continuity and strict positivity give <span class="math display">\[0&lt;\min_{e\in\mathcal E}f(e)
+\leq\max_{e\in\mathcal E}f(e)&lt;\infty.\]</span></p>
+<p>For <span class="math inline">\(x,z\in\mathcal E\)</span>, define the two distortion coefficients <span class="math display">\[\beta_1(x,z)=\frac{f(x)}{z},
+\qquad
+\beta_0(x,z)=\frac{f(x)}{1-z}.\]</span> Both are continuous and strictly positive on <span class="math inline">\(\mathcal E^2\)</span>. Their diagonal weight is <span class="math display">\[w(x):=\beta_0(x,x)+\beta_1(x,x)
+=\frac{f(x)}{x(1-x)}.\]</span> Thus Lemma <a class="objref" href="#obj-lem:paired-high-resolution-quantization">3</a> applies with two components. In particular, if <span class="math inline">\(V_K\)</span> denotes its optimal paired cost for these coefficients, then <span class="math display">\[K V_K\longrightarrow
+\frac14\left(\int_{\varepsilon}^{1-\varepsilon}
+\sqrt{\frac{f(x)}{x(1-x)}}\,dx\right)^2.\]</span></p>
+<p>We identify this paired cost with the release objective. Fix <span class="math inline">\(K&gt;0\)</span> and a measurable release <span class="math inline">\(g:\mathcal E\to\{0,\ldots,K-1\}\)</span>, and put <span class="math inline">\(C_r=\{x\in\mathcal E:g(x)=r\}\)</span>. For centers <span class="math inline">\(\mathbf z=(z_{r,a})_{r,a}\in\mathcal E^{\{0,\ldots,K-1\}\times\{0,1\}}\)</span>, define <span class="math display">\[\Phi_K(g,\mathbf z)
+:=
+\sum_{r=0}^{K-1}\sum_{a=0}^{1}
+\int_{C_r}\beta_a(x,z_{r,a})|x-z_{r,a}|\,dx.\]</span> The changes of variables <span class="math inline">\(z_{r,1}=c^{-1}\)</span> and <span class="math inline">\(z_{r,0}=1-c^{-1}\)</span> each map the coefficient range in Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a> bijectively onto <span class="math inline">\(\mathcal E\)</span>, and give <span class="math display">\[f(x)|1-cx|
+=\beta_1(x,z_{r,1})|x-z_{r,1}|,
+\qquad
+f(x)|1-c(1-x)|
+=\beta_0(x,z_{r,0})|x-z_{r,0}|.\]</span> The cellwise infima are independent. Each has a nonempty set of feasible values bounded below by zero, including when its cell is empty. Hence Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a> yields <span class="math display">\[D_H(g)=\inf_{\mathbf z}\Phi_K(g,\mathbf z).\]</span> Taking the infimum over releases flattens these independent choices. Their cells are measurable, pairwise disjoint, and cover <span class="math inline">\(\mathcal E\)</span>; conversely, every such <span class="math inline">\(K\)</span>-cell partition defines a measurable release by assigning its cell indices as labels. Empty cells are allowed in both descriptions. Therefore Definition <a class="objref" href="#obj-def:optimal-k-ambiguity">11</a> gives the exact identity <span class="math display">\[\Delta_K(H)
+=\inf_{g\in\mathcal G_K}\inf_{\mathbf z}\Phi_K(g,\mathbf z)
+=V_K.\]</span> It follows that <span class="math display">\[K\Delta_K(H)\longrightarrow
+\frac14\left(\int_{\varepsilon}^{1-\varepsilon}
+\sqrt{\frac{f(x)}{x(1-x)}}\,dx\right)^2.\]</span></p>
+<p>To construct the releases, set <span class="math display">\[A_H:=\int_{\varepsilon}^{1-\varepsilon}\sqrt{w(x)}\,dx.\]</span> For each <span class="math inline">\(K&gt;0\)</span>, choose boundaries <span class="math inline">\(t_{0,K},\ldots,t_{K,K}\)</span> by <span class="math display">\[t_{0,K}=\varepsilon,\qquad t_{K,K}=1-\varepsilon,\qquad
+\int_{\varepsilon}^{t_{j,K}}\sqrt{w(x)}\,dx=\frac{j}{K}A_H
+\quad(0\leq j\leq K).\]</span> Positivity of <span class="math inline">\(w\)</span> makes these boundaries strictly increasing. Let <span class="math inline">\(g_K\)</span> assign label <span class="math inline">\(j\)</span> to <span class="math inline">\([t_{j,K},t_{j+1,K})\)</span> for <span class="math inline">\(j&lt;K-1\)</span>, and label <span class="math inline">\(K-1\)</span> to <span class="math inline">\([t_{K-1,K},t_{K,K}]\)</span>. Put <span class="math display">\[\zeta_{j,K}:=\frac{t_{j,K}+t_{j+1,K}}2,
+\qquad
+U_K:=\Phi_K(g_K,\mathbf z)
+\quad\text{with }z_{j,0}=z_{j,1}=\zeta_{j,K}.\]</span> The construction clause of Lemma <a class="objref" href="#obj-lem:paired-high-resolution-quantization">3</a> ensures that these cells form a measurable partition, that every midpoint lies in <span class="math inline">\(\mathcal E\)</span>, and that <span class="math display">\[K U_K\longrightarrow
+\frac14 A_H^2.\]</span></p>
+<p>For every <span class="math inline">\(K&gt;0\)</span>, optimality over releases gives the lower bound, while the chosen centers give a feasible value for each cellwise infimum: <span class="math display">\[\Delta_K(H)\leq D_H(g_K)
+=\inf_{\mathbf z}\Phi_K(g_K,\mathbf z)
+\leq U_K.\]</span> Multiplication by <span class="math inline">\(K\geq0\)</span> preserves both inequalities. At <span class="math inline">\(K=0\)</span>, assign zero to the two auxiliary scaled quantities; both bounds then read <span class="math inline">\(0\leq0\leq0\)</span>. The two established limits squeeze <span class="math inline">\(K D_H(g_K)\)</span> to <span class="math inline">\(\frac14A_H^2\)</span>.</p>
+<p>Finally, each displayed cell of <span class="math inline">\(g_K\)</span> is an interval and is measurable. If <span class="math inline">\(x,z\)</span> carry the same label and <span class="math inline">\(x\leq y\leq z\)</span>, that interval also contains <span class="math inline">\(y\)</span>; thus the label cells have the asserted interval property.</p><span class="qed">∎</span></div>
+<div class="proof"><span class="env-label">Proof of Theorem <a class="objref" href="#obj-thm:minimax-honest-length">6</a>.</span><p>Put <span class="math display">\[\ell=1-2\varepsilon,\qquad \beta=1-2\alpha,\qquad
+B_\alpha=\frac{\beta\sqrt{\log(1+\beta^2)}}4,\qquad
+U_{\varepsilon,\alpha}
+=\frac{\ell}{\varepsilon(1-\varepsilon)}
++\frac8\varepsilon\sqrt{\log(4/\alpha)},\qquad
+C_{\varepsilon,\alpha}=\max\{B_\alpha,U_{\varepsilon,\alpha}\}.\]</span> The overlap and miscoverage conditions give <span class="math inline">\(\ell&gt;0\)</span>, <span class="math inline">\(\beta&gt;0\)</span>, and <span class="math inline">\(B_\alpha&gt;0\)</span>; hence <span class="math inline">\(C_{\varepsilon,\alpha}&gt;0\)</span>.</p>
+<p>First fix any probability score law <span class="math inline">\(H\)</span>, any <span class="math inline">\(n,K\geq1\)</span>, and any honest pair <span class="math inline">\((g,C_n)\)</span>. Set <span class="math display">\[u_n=\frac12\sqrt{\frac{\log(1+\beta^2)}{n}}.\]</span> Construct two causal laws <span class="math inline">\(P^{(0)},P^{(1)}\)</span> as follows. Under both, <span class="math inline">\(E\sim H\)</span>, <span class="math inline">\(Y_0=0\)</span>, <span class="math inline">\(R=g(E)\)</span>, and, conditional on the latent variables, <span class="math inline">\(A\)</span> is Bernoulli with parameter <span class="math inline">\(E\)</span>. Independently of <span class="math inline">\(E\)</span>, take <span class="math inline">\(Y_1\)</span> to be Bernoulli with parameter <span class="math inline">\(1/2\)</span> under <span class="math inline">\(P^{(0)}\)</span> and <span class="math inline">\(1/2+u_n\)</span> under <span class="math inline">\(P^{(1)}\)</span>; set <span class="math inline">\(Y=AY_1+(1-A)Y_0\)</span>. Since <span class="math inline">\(0&lt;u_n&lt;1/2\)</span>, both laws belong to <span class="math inline">\(\mathfrak P(H,g)\)</span> of Definition <a class="objref" href="#obj-def:causal-law-class">1</a>, and their average treatment effects are <span class="math inline">\(1/2\)</span> and <span class="math inline">\(1/2+u_n\)</span>.</p>
+<p>Let <span class="math inline">\(Q_j\)</span> be the released <span class="math inline">\(n\)</span>-row law under <span class="math inline">\(P^{(j)}\)</span>, for <span class="math inline">\(j=0,1\)</span>. The released rows are measurable functions of Bernoulli potential outcomes and a common, independent score-and-assignment design. Total variation contracts under this readout. The chi-squared divergence of Bernoulli<span class="math inline">\((1/2+u_n)\)</span> from Bernoulli<span class="math inline">\((1/2)\)</span> is <span class="math inline">\(4u_n^2\)</span>; its product-law identity and Cauchy–Schwarz therefore give <span class="math display">\[\operatorname{TV}(Q_0,Q_1)
+\leq \frac12\sqrt{(1+4u_n^2)^n-1}.\]</span> Writing <span class="math inline">\(x=\log(1+\beta^2)\)</span>, we have <span class="math inline">\(4u_n^2=x/n\)</span>, so <span class="math inline">\((1+x/n)^n\leq e^x=1+\beta^2\)</span>. Consequently, <span class="math display">\[\operatorname{TV}(Q_0,Q_1)\leq\frac{\beta}{2}.\]</span> The two coverage events have probabilities at least <span class="math inline">\(1-\alpha\)</span> under their respective laws. Transferring the second event to <span class="math inline">\(Q_0\)</span> and intersecting the events shows that, with <span class="math inline">\(Q_0\)</span>-probability at least <span class="math inline">\(1-2\alpha-\operatorname{TV}(Q_0,Q_1)\geq\beta/2\)</span>, the interval contains both treatment effects. Its length is then at least <span class="math inline">\(u_n\)</span>. Thus <span class="math display">\[\sup_{P\in\mathfrak P(H,g)}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}|C_n|
+\geq \mathbb E_{Q_0}|C_n|
+\geq \frac{\beta u_n}{2}
+=B_\alpha n^{-1/2}.\]</span></p>
+<p>This bound holds for every honest pair. The collection of such pairs is nonempty: a constant release paired with the interval <span class="math inline">\([-1,1]\)</span> is honest. Their expected lengths lie in <span class="math inline">\([0,2]\)</span>. Taking the infimum as in Definition <a class="objref" href="#obj-def:minimax-honest-length">15</a> yields <span class="math display">\[B_\alpha n^{-1/2}\leq\mathcal L^\star_{n,K,\alpha}(H).\]</span></p>
+<p>Now suppose <span class="math inline">\(H\in\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\)</span>, where <span class="math inline">\(m_f&gt;0\)</span>. By Definition <a class="objref" href="#obj-def:score-lower-density-class">12</a>, <span class="math inline">\(H(de)=f(e)\,de\)</span> with <span class="math inline">\(f\geq m_f\)</span> almost everywhere. Fix an arbitrary <span class="math inline">\(g\in\mathcal G_K\)</span>, and write <span class="math display">\[C_r=\{e\in\mathcal E:g(e)=r\},\qquad
+h_r=\operatorname{Leb}(C_r),\qquad r\in\mathcal R_K.\]</span> These measurable cells partition <span class="math inline">\(\mathcal E\)</span>, including when some are empty or disconnected, so <span class="math inline">\(\sum_rh_r=\ell\)</span>. For <span class="math inline">\(c\in[1/(1-\varepsilon),1/\varepsilon]\)</span>, put <span class="math display">\[z_{1,c}=c^{-1},\qquad z_{0,c}=1-c^{-1}.\]</span> Both centers lie in <span class="math inline">\(\mathcal E\)</span>. With <span class="math inline">\(p_1(e)=e\)</span> and <span class="math inline">\(p_0(e)=1-e\)</span>, as in Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a>, for either arm <span class="math inline">\(a\)</span> we have <span class="math display">\[\int_{C_r}|1-cp_a(e)|\,H(de)
+=c\int_{C_r}|e-z_{a,c}|\,H(de)
+\geq\frac{m_f}{1-\varepsilon}
+       \int_{C_r}|e-z_{a,c}|\,de.\]</span></p>
+<p>Here is the geometric bound used for each cell. For any measurable set <span class="math inline">\(V\)</span> of finite Lebesgue measure <span class="math inline">\(h\)</span> and any real <span class="math inline">\(z\)</span>, the interval <span class="math inline">\(\{|e-z|\leq t\}\)</span> has measure at most <span class="math inline">\(2t\)</span>. The layer-cake identity gives, also when <span class="math inline">\(h=0\)</span>, <span class="math display">\[\int_V|e-z|\,de
+=\int_0^\infty\operatorname{Leb}\{e\in V:|e-z|&gt;t\}\,dt
+\geq\int_0^{h/2}(h-2t)\,dt
+=\frac{h^2}{4}.\]</span> Applying this with <span class="math inline">\(V=C_r\)</span> bounds each arm’s infimum in the exact ambiguity formula of Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a>. Since <span class="math inline">\(\sum_rh_r^2\geq(\sum_rh_r)^2/K=\ell^2/K\)</span>, that formula yields <span class="math display">\[D_H(g)\geq
+\frac{m_f}{2(1-\varepsilon)}\sum_r h_r^2
+\geq\frac{m_f\ell^2}{2(1-\varepsilon)K}.\]</span></p>
+<p>For this same release, Theorem <a class="objref" href="#obj-thm:all-label-ambiguity">2</a> supplies two causal laws with a common released law and treatment effects separated by <span class="math inline">\(D_H(g)\)</span>. Under their common <span class="math inline">\(n\)</span>-row law, honesty makes the two coverage events intersect with probability at least <span class="math inline">\(1-2\alpha\)</span>. On that intersection, the interval has length at least <span class="math inline">\(D_H(g)\)</span>. Hence every honest <span class="math inline">\((g,C_n)\)</span> satisfies <span class="math display">\[\sup_{P\in\mathfrak P(H,g)}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}|C_n|
+\geq(1-2\alpha)D_H(g)
+\geq A_{\varepsilon,m_f,\alpha}K^{-1},
+\qquad
+A_{\varepsilon,m_f,\alpha}
+:=\frac{(1-2\alpha)m_f\ell^2}{2(1-\varepsilon)}&gt;0.\]</span> Taking the infimum over honest pairs preserves this bound.</p>
+<p>Define <span class="math display">\[c_{\varepsilon,m_f,\alpha}
+=\frac12\min\{A_{\varepsilon,m_f,\alpha},B_\alpha\}&gt;0.\]</span> The label and sampling bounds give <span class="math display">\[c_{\varepsilon,m_f,\alpha}
+\bigl(K^{-1}+n^{-1/2}\bigr)
+\leq
+\max\{A_{\varepsilon,m_f,\alpha}K^{-1},
+      B_\alpha n^{-1/2}\}
+\leq\mathcal L^\star_{n,K,\alpha}(H).\]</span></p>
+<p>For the upper bound, use the equal-width release and midpoints in the statement. Its endpoint convention assigns every <span class="math inline">\(e\in\mathcal E\)</span> a label and gives <span class="math display">\[z_{g_K(e)}\in[\varepsilon,1-\varepsilon],
+\qquad |e-z_{g_K(e)}|\leq\frac{\ell}{2K}.\]</span> Fix <span class="math inline">\(P\in\mathfrak P(H,g_K)\)</span>, and choose conditional means <span class="math display">\[\eta_a(e)=\mathbb E_P[Y_a\mid E=e]\in[0,1],
+\qquad a\in\{0,1\}.\]</span> The score-based assignment and consistency conditions in Definition <a class="objref" href="#obj-def:causal-law-class">1</a> give <span class="math display">\[\begin{aligned}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n
+&amp;=\int_{\mathcal E}
+ \left\{\frac{e\eta_1(e)}{z_{g_K(e)}}
+ -\frac{(1-e)\eta_0(e)}{1-z_{g_K(e)}}\right\}H(de),\\
+\theta(P)&amp;=\int_{\mathcal E}\{\eta_1(e)-\eta_0(e)\}\,H(de).
+\end{aligned}\]</span> Subtracting and using <span class="math inline">\(z(1-z)\geq\varepsilon(1-\varepsilon)\)</span> on the score interval gives <span class="math display">\[\begin{aligned}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n-\theta(P)
+&amp;=\int_{\mathcal E}(e-z_{g_K(e)})
+ \left\{\frac{\eta_1(e)}{z_{g_K(e)}}
+       +\frac{\eta_0(e)}{1-z_{g_K(e)}}\right\}H(de),\\
+\left|\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n-\theta(P)\right|
+&amp;\leq\frac{\ell}{2K\varepsilon(1-\varepsilon)}.
+\end{aligned}\]</span></p>
+<p>Each summand of <span class="math inline">\(\widehat T_n\)</span> lies in <span class="math inline">\([-\varepsilon^{-1},\varepsilon^{-1}]\)</span>. Hoeffding’s inequality for the independent released rows, with <span class="math display">\[t_n=\frac4\varepsilon\sqrt{\frac{\log(4/\alpha)}n},\]</span> therefore gives <span class="math display">\[P_{\mathrm{rel}}^{\otimes n}
+ \left(\left|\widehat T_n-
+ \mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n\right|\geq t_n\right)
+\leq 2\exp\!\left(-\frac{n\varepsilon^2t_n^2}{2}\right)
+=2(\alpha/4)^8\leq\alpha.\]</span></p>
+<p>The radius in the statement is <span class="math inline">\(R_{n,K}=t_n+\ell/[2K\varepsilon(1-\varepsilon)]\)</span>. Outside the displayed deviation event, the bias bound implies <span class="math inline">\(\lvert\widehat T_n-\theta(P)\rvert\leq R_{n,K}\)</span>. Also <span class="math inline">\(\theta(P)\in[-1,1]\)</span>, since <span class="math inline">\(Y_0,Y_1\in[0,1]\)</span>. Clamping the two endpoints to <span class="math inline">\([-1,1]\)</span> therefore preserves containment of <span class="math inline">\(\theta(P)\)</span>. The radius is nonnegative, and the clamp is measurable and nondecreasing, so the stated endpoints form an interval for every sample. The release is measurable. As the argument holds for every <span class="math inline">\(P\in\mathfrak P(H,g_K)\)</span>, <span class="math inline">\((g_K,C_n)\in\mathcal J_{n,K,\alpha}(H)\)</span> by Definition <a class="objref" href="#obj-def:honest-procedures">14</a>.</p>
+<p>Finally, the clamp is one-Lipschitz. Pointwise in the sample, <span class="math display">\[|C_n|
+\leq 2R_{n,K}
+=\frac{\ell}{\varepsilon(1-\varepsilon)}K^{-1}
+ +\frac8\varepsilon\sqrt{\log(4/\alpha)}\,n^{-1/2}
+\leq U_{\varepsilon,\alpha}
+ \bigl(K^{-1}+n^{-1/2}\bigr).\]</span> Integrating under every released <span class="math inline">\(n\)</span>-row law gives the asserted expected-length bound with <span class="math inline">\(C_{\varepsilon,\alpha}\geq U_{\varepsilon,\alpha}\)</span>. Taking the supremum over causal laws and the infimum over honest pairs also gives <span class="math display">\[\mathcal L^\star_{n,K,\alpha}(H)
+\leq C_{\varepsilon,\alpha}\bigl(K^{-1}+n^{-1/2}\bigr).\]</span> Together with the two lower bounds, this proves the claims.</p><span class="qed">∎</span></div>
+<div class="proof"><span class="env-label">Proof of Theorem <a class="objref" href="#obj-thm:external-score-root-order">7</a>.</span><p><em>Step 1: Lower certificates.</em> Lemma <a class="objref" href="#obj-lem:external-two-source-lower-certificate">4</a> gives <span class="math inline">\(0&lt;S_g\leq1\)</span>, the trial and score-log lower bounds, and the stated lower bound on the normalized risk. It also gives <span class="math inline">\(c_{\mathrm{log}}(g,\alpha)&gt;0\)</span>. We construct an interval attaining the upper bound.</p>
+<p><em>Step 2: Empirical distances and endpoint stability.</em> Fix positive <span class="math inline">\(n,m\)</span> and an admissible pair <span class="math inline">\((P,H)\)</span>. For each arm <span class="math inline">\(a\)</span> and label <span class="math inline">\(r\)</span>, define the population finite measures <span class="math display">\[\lambda_{ar}(B)=P(R=r,A=a,Y\in B),\quad B\subseteq[0,1],
+\qquad
+\sigma_{ar}(B)=\int_{B\cap C_r}p_a(e)\,H(de),\quad B\subseteq\mathcal E.\]</span> Their total masses agree by the score-marginal, assignment, and release conditions. For finite measures <span class="math inline">\(\xi,\xi&#39;\)</span> on a compact interval <span class="math inline">\(\mathcal I\)</span>, write <span class="math display">\[d_{\mathcal I}(\xi,\xi&#39;)
+=
+|\xi(\mathcal I)-\xi&#39;(\mathcal I)|
++\int_{\mathcal I}|F_\xi(t)-F_{\xi&#39;}(t)|\,dt,
+\qquad F_\xi(t)=\xi((-\infty,t]).\]</span> For a joint sample <span class="math inline">\(\omega\)</span>, set <span class="math display">\[D_Y(\omega)=\sum_{a,r}d_{[0,1]}(\widehat\lambda_{ar}(\omega),\lambda_{ar}),
+\qquad
+D_E(\omega)=\sum_{a,r}d_{\mathcal E}(\widehat\sigma_{ar}(\omega),\sigma_{ar}).\]</span> The empirical measures are those of Definition <a class="objref" href="#obj-def:external-projection-handle">22</a>. Each empirical cumulative mass, including its total mass, is an average of independent variables in <span class="math inline">\([0,1]\)</span>. Its expected absolute deviation is at most <span class="math inline">\(1/(2\sqrt n)\)</span> for a trial cell and <span class="math inline">\(1/(2\sqrt m)\)</span> for a score-log cell. Integrating over intervals of lengths <span class="math inline">\(1\)</span> and <span class="math inline">\(1-2\varepsilon\)</span>, respectively, and summing the <span class="math inline">\(2J\)</span> cells gives <span class="math display">\[\mathbb E_{\mathbb Q_{P,H}^{n,m}}D_Y\leq\frac{2J}{\sqrt n},
+\qquad
+\mathbb E_{\mathbb Q_{P,H}^{n,m}}D_E
+\leq\frac{J(2-2\varepsilon)}{\sqrt m}.\]</span></p>
+<p>Here is the stability estimate used below. For compatible finite measures <span class="math inline">\(\xi\)</span> on <span class="math inline">\([0,1]\)</span> and <span class="math inline">\(\zeta\)</span> on <span class="math inline">\(\mathcal E\)</span>, let their common mass be <span class="math inline">\(\kappa\)</span>. When <span class="math inline">\(\kappa&gt;0\)</span>, define <span class="math display">\[\Psi_a^-(\xi,\zeta)
+=\kappa\int_0^1 Q_{\xi/\kappa}(u)
+ Q_{(p_a^{-1})_\#(\zeta/\kappa)}(1-u)\,du,
+\qquad
+\Psi_a^+(\xi,\zeta)
+=\kappa\int_0^1 Q_{\xi/\kappa}(u)
+ Q_{(p_a^{-1})_\#(\zeta/\kappa)}(u)\,du;\]</span> when <span class="math inline">\(\kappa=0\)</span>, set both values to zero. For another compatible pair <span class="math inline">\((\xi&#39;,\zeta&#39;)\)</span> of mass <span class="math inline">\(\kappa&#39;\)</span>, put <span class="math inline">\(\kappa_\wedge=\min\{\kappa,\kappa&#39;\}\)</span>. Suppose first that both masses are positive. The quantile transport identity on a compact interval <span class="math inline">\(\mathcal I\)</span> identifies the integral of the absolute difference of normalized quantiles with the integral of the absolute difference of normalized CDFs. If <span class="math inline">\(\kappa\leq\kappa&#39;\)</span>, then <span class="math inline">\(0\leq F_{\xi&#39;}(t)\leq\kappa&#39;\)</span> gives, pointwise, <span class="math display">\[\kappa\left|\frac{F_\xi(t)}{\kappa}-\frac{F_{\xi&#39;}(t)}{\kappa&#39;}\right|
+\leq |F_\xi(t)-F_{\xi&#39;}(t)|+|\kappa-\kappa&#39;|.\]</span> The same inequality with the pairs exchanged covers <span class="math inline">\(\kappa&#39;\leq\kappa\)</span>. Applying it to the outcome and score CDFs and integrating over supports of lengths <span class="math inline">\(1\)</span> and <span class="math inline">\(1-2\varepsilon\)</span>, respectively, yields <span class="math display">\[\begin{aligned}
+\kappa_\wedge\int_0^1
+ |Q_{\xi/\kappa}(u)-Q_{\xi&#39;/\kappa&#39;}(u)|\,du
+&amp;\leq
+\int_0^1|F_\xi(t)-F_{\xi&#39;}(t)|\,dt+|\kappa-\kappa&#39;|,\\
+\kappa_\wedge\int_0^1
+ |Q_{\zeta/\kappa}(u)-Q_{\zeta&#39;/\kappa&#39;}(u)|\,du
+&amp;\leq
+\int_{\mathcal E}|F_\zeta(t)-F_{\zeta&#39;}(t)|\,dt
+ +(1-2\varepsilon)|\kappa-\kappa&#39;|.
+\end{aligned}\]</span> Since <span class="math inline">\(0\leq y\leq1\)</span>, <span class="math inline">\(p_a(e)\geq\varepsilon\)</span>, and <span class="math inline">\(e\mapsto p_a(e)^{-1}\)</span> is <span class="math inline">\(\varepsilon^{-2}\)</span>-Lipschitz, the product difference in either definition of <span class="math inline">\(\Psi_a^\pm\)</span>, multiplied by <span class="math inline">\(\kappa_\wedge\)</span>, is bounded using <a href="#eq:external-root-order-transport" data-reference-type="ref" data-reference="eq:external-root-order-transport">[eq:external-root-order-transport]</a> by <span class="math display">\[\varepsilon^{-1}
+ \left(\int_0^1|F_\xi-F_{\xi&#39;}|+|\kappa-\kappa&#39;|\right)
++\varepsilon^{-2}
+ \left(\int_{\mathcal E}|F_\zeta-F_{\zeta&#39;}|
+       +|\kappa-\kappa&#39;|\right).\]</span> The remaining mass contributes at most <span class="math inline">\(\varepsilon^{-1}|\kappa-\kappa&#39;|\)</span>. Because both distances contain that mass difference, <a href="#eq:external-root-order-product" data-reference-type="ref" data-reference="eq:external-root-order-product">[eq:external-root-order-product]</a> implies, with <span class="math inline">\(\Lambda_\varepsilon=\varepsilon^{-1}+\varepsilon^{-2}\)</span>, <span class="math display">\[|\Psi_a^\pm(\xi,\zeta)-\Psi_a^\pm(\xi&#39;,\zeta&#39;)|
+\leq
+\Lambda_\varepsilon
+ \bigl(d_{[0,1]}(\xi,\xi&#39;)+d_{\mathcal E}(\zeta,\zeta&#39;)\bigr).\]</span> If either mass is zero, the bound <span class="math inline">\(0\leq\Psi_a^\pm(\xi,\zeta)\leq\varepsilon^{-1}\kappa\)</span> and the mass term in the distance give <a href="#eq:external-root-order-stability" data-reference-type="ref" data-reference="eq:external-root-order-stability">[eq:external-root-order-stability]</a> directly. Summing <a href="#eq:external-root-order-stability" data-reference-type="ref" data-reference="eq:external-root-order-stability">[eq:external-root-order-stability]</a> over labels gives the same bound, with summed distances, for each arm endpoint. By Lemma <a class="objref" href="#obj-lem:fixed-released-law-baseline">2</a>, those endpoints at <span class="math inline">\((\lambda_{ar},\sigma_{ar})_{a,r}\)</span> are <span class="math inline">\(\underline\mu_a,\overline\mu_a\)</span>.</p>
+<p><em>Step 3: Honesty and excess length.</em> Use the interval <span class="math inline">\(C_{n,m}\)</span> of Definition <a class="objref" href="#obj-def:external-projection-handle">22</a>. Its countable rational sieve and selected endpoints give measurable endpoints and a closed interval in <span class="math inline">\([-1,1]\)</span>. The release <span class="math inline">\(g:\mathcal E\to\mathcal R_J\)</span>, with nonempty <span class="math inline">\(\mathcal E\)</span>, also ensures <span class="math inline">\(J\geq1\)</span>. The radii in that construction are <span class="math display">\[r_n=\frac{4J}{\alpha\sqrt n},
+\qquad
+r_m=\frac{2J(2-2\varepsilon)}{\alpha\sqrt m}.\]</span> By <a href="#eq:external-root-order-mean" data-reference-type="ref" data-reference="eq:external-root-order-mean">[eq:external-root-order-mean]</a>, Markov’s inequality applied to the nonnegative distances gives <span class="math display">\[\mathbb Q_{P,H}^{n,m}\{D_Y&lt;r_n,\ D_E&lt;r_m\}\geq1-\alpha.\]</span> On the strict-ball event in <a href="#eq:external-root-order-coverage" data-reference-type="ref" data-reference="eq:external-root-order-coverage">[eq:external-root-order-coverage]</a>, define the available slack <span class="math display">\[\eta_* = \min\{r_n-D_Y(\omega),\,r_m-D_E(\omega)\}&gt;0,
+\qquad \eta_k=\frac{\eta_*}{k+1}\quad(k\geq1).\]</span> For each arm-label cell, its population outcome and score measures have the same finite mass. Given <span class="math inline">\(\eta&gt;0\)</span>, choose a common nonnegative rational mass and a common positive atom count for two equal-weight atomic approximations, with outcome and score atoms on their respective dense rational grids. To see the quantitative bound, first approximate each normalized measure by equally weighted quantile atoms; increasing the common atom count makes the sum of their integrated CDF errors arbitrarily small. Moving those atoms to the rational grids preserves that convergence. If the common population mass is <span class="math inline">\(\kappa\)</span> and the chosen rational mass is <span class="math inline">\(\kappa&#39;\)</span>, changing the weight of each atom from <span class="math inline">\(\kappa/N\)</span> to <span class="math inline">\(\kappa&#39;/N\)</span> adds at most <span class="math inline">\((1+|\mathcal I|)|\kappa-\kappa&#39;|\)</span> to the distance on support <span class="math inline">\(\mathcal I\)</span>. Thus the combined weight error for the two supports is at most <span class="math inline">\((4-2\varepsilon)|\kappa-\kappa&#39;|\)</span>. Choosing <span class="math inline">\(\kappa&#39;\)</span> sufficiently close to <span class="math inline">\(\kappa\)</span> gives combined cell error below any prescribed tolerance; this also covers zero mass by taking rational mass zero.</p>
+<p>Apply this construction in every cell with tolerance <span class="math inline">\(\eta_k/[2(J+1)]\)</span>. Since there are <span class="math inline">\(2J\)</span> cells, it gives a compatible rational array <span class="math inline">\(b_k\)</span> satisfying <span class="math display">\[\sum_{a,r}\!\left(d_{[0,1]}(\lambda_{ar},\lambda_{ar}(b_k))
++d_{\mathcal E}(\sigma_{ar},\sigma_{ar}(b_k))\right)
+&lt;\frac{2J}{2(J+1)}\eta_k&lt;\eta_k.\]</span> Here <span class="math inline">\(\lambda_{ar}(b_k)\)</span> and <span class="math inline">\(\sigma_{ar}(b_k)\)</span> denote the two measures encoded by <span class="math inline">\(b_k\)</span>. Each of the two separate distance sums is therefore below <span class="math inline">\(\eta_k\)</span>. The triangle inequality gives empirical distances below <span class="math inline">\(D_Y(\omega)+\eta_k&lt;r_n\)</span> and <span class="math inline">\(D_E(\omega)+\eta_k&lt;r_m\)</span>, so <span class="math inline">\(b_k\)</span> belongs to both closed empirical balls. As <span class="math inline">\(k\to\infty\)</span>, <a href="#eq:external-root-order-stability" data-reference-type="ref" data-reference="eq:external-root-order-stability">[eq:external-root-order-stability]</a> makes all four arm endpoints converge to their population values. Write <span class="math display">\[I(b_k)=[\underline\theta_k,\overline\theta_k],
+\qquad
+I(P_{\mathrm{rel}};H,g)=[\underline\theta_\star,\overline\theta_\star].\]</span> Both candidate endpoints converge to their corresponding population endpoints. Fix any <span class="math inline">\(v\in I(P_{\mathrm{rel}};H,g)\)</span> and clamp it to the candidate interval: <span class="math display">\[v_k=\min\{\max\{v,\underline\theta_k\},\overline\theta_k\}\in I(b_k).\]</span> If <span class="math inline">\(v&lt;\underline\theta_k\)</span>, the distance <span class="math inline">\(|v_k-v|\)</span> is at most <span class="math inline">\(|\underline\theta_k-\underline\theta_\star|\)</span>; if <span class="math inline">\(\overline\theta_k&lt;v\)</span>, it is at most <span class="math inline">\(|\overline\theta_k-\overline\theta_\star|\)</span>; otherwise it is zero. Thus <span class="math inline">\(v_k\to v\)</span>. Every point of the population interval therefore lies in the closure of the union of candidate intervals, and hence in their closed convex hull. Write <span class="math inline">\(\theta(P)=\mathbb E_P[Y_1-Y_0]\)</span>. By Lemma <a class="objref" href="#obj-lem:fixed-released-law-baseline">2</a>, <span class="math inline">\(\theta(P)\)</span> belongs to that sharp interval; its potential-outcome support also places it in <span class="math inline">\([-1,1]\)</span>. Thus the clipped hull contains <span class="math inline">\(\theta(P)\)</span> on the event in <a href="#eq:external-root-order-coverage" data-reference-type="ref" data-reference="eq:external-root-order-coverage">[eq:external-root-order-coverage]</a>, proving <span class="math display">\[C_{n,m}\in\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g),
+\qquad
+C_{n,m}(\omega)=\text{the closed interval of Definition <a class="objref" href="#obj-def:external-projection-handle">22</a> at }\omega
+\quad\text{for every }\omega.\]</span></p>
+<p>For any retained candidate, the two empirical-ball inequalities and the triangle inequality bound its summed distance from the population array by <span class="math inline">\(r_n+D_Y(\omega)+r_m+D_E(\omega)\)</span>. therefore bounds each candidate arm endpoint’s error by <span class="math inline">\(\Lambda_\varepsilon(r_n+D_Y(\omega)+r_m+D_E(\omega))\)</span>. Each average-treatment-effect endpoint combines two arm endpoints; taking the hull and clipping it to <span class="math inline">\([-1,1]\)</span> yields <span class="math display">\[\left(\operatorname{length}(C_{n,m}(\omega))
+-\operatorname{length}I(P_{\mathrm{rel}};H,g)\right)_+
+\leq
+4\Lambda_\varepsilon
+ \bigl(r_n+D_Y(\omega)+r_m+D_E(\omega)\bigr).\]</span> In either fallback branch of the construction the interval is <span class="math inline">\(\{0\}\)</span>, so its positive excess is zero and <a href="#eq:external-root-order-excess" data-reference-type="ref" data-reference="eq:external-root-order-excess">[eq:external-root-order-excess]</a> holds there as well. Taking expectations and using <a href="#eq:external-root-order-mean" data-reference-type="ref" data-reference="eq:external-root-order-mean">[eq:external-root-order-mean]</a> gives, uniformly over admissible <span class="math inline">\((P,H)\)</span>, <span class="math display">\[\mathbb E_{\mathbb Q_{P,H}^{n,m}}
+ \left[\left(\operatorname{length}(C_{n,m})
+-\operatorname{length}I(P_{\mathrm{rel}};H,g)\right)_+\right]
+\leq
+4\Lambda_\varepsilon
+ \left(
+ \frac{4J/\alpha+2J}{\sqrt n}
+ +\frac{2J(2-2\varepsilon)/\alpha+J(2-2\varepsilon)}{\sqrt m}
+ \right).\]</span> The joint marginal and independence assumptions identify <span class="math inline">\(\mathbb Q_{P,H}^{n,m}\)</span> with the product experiment in Definition <a class="objref" href="#obj-def:external-experiment">17</a>. Hence honesty and <a href="#eq:external-root-order-mean-excess" data-reference-type="ref" data-reference="eq:external-root-order-mean-excess">[eq:external-root-order-mean-excess]</a>, followed by the infimum and supremum in Definition <a class="objref" href="#obj-def:external-excess-risk">19</a>, give the same upper bound for <span class="math inline">\(\mathcal R^\star_{n,m,\alpha}(g)\)</span>. Set <span class="math display">\[C_{\varepsilon,J,\alpha,g}
+=
+4\Lambda_\varepsilon
+ \left(\frac{4J}{\alpha}+2J
+       +\frac{2J(2-2\varepsilon)}{\alpha}
+       +J(2-2\varepsilon)\right)+1&gt;0.\]</span> Both <a href="#eq:external-root-order-mean-excess" data-reference-type="ref" data-reference="eq:external-root-order-mean-excess">[eq:external-root-order-mean-excess]</a> and the minimax bound are then at most <span class="math inline">\(C_{\varepsilon,J,\alpha,g}(n^{-1/2}+m^{-1/2})\)</span>, as required.</p>
+<p><em>Step 4: Normalized bounds.</em> For positive <span class="math inline">\(n,m\)</span>, the upper bound just proved and Definition <a class="objref" href="#obj-def:external-normalized-risk">20</a> imply <span class="math display">\[0\leq T_{n,m,\alpha}(g)
+=b_{n,m}\mathcal R^\star_{n,m,\alpha}(g)
+\leq C_{\varepsilon,J,\alpha,g},
+\qquad
+b_{n,m}=(n^{-1/2}+m^{-1/2})^{-1}.\]</span> The lower inequality follows from the positive trial certificate in Lemma <a class="objref" href="#obj-lem:external-two-source-lower-certificate">4</a>. Along the nonempty joint regime <span class="math inline">\(n,m\to\infty\)</span>, <span class="math inline">\(n/m\to\rho&gt;0\)</span>, <a href="#eq:external-root-order-normalized" data-reference-type="ref" data-reference="eq:external-root-order-normalized">[eq:external-root-order-normalized]</a> bounds the limsup by <span class="math inline">\(C_{\varepsilon,J,\alpha,g}\)</span> and ensures that the liminf is at most the limsup. The same cited lower certificate supplies <span class="math display">\[\liminf T_{n,m,\alpha}(g)\geq
+\max\left\{
+\frac{c_{\mathrm{tr}}(\alpha)}{1+\sqrt\rho},
+\frac{c_{\mathrm{log}}(g,\alpha)\sqrt\rho}{1+\sqrt\rho}
+\right\}&gt;0.\]</span> Together with the score-log liminf bound in Lemma <a class="objref" href="#obj-lem:external-two-source-lower-certificate">4</a>, these are all the asserted inequalities.</p><span class="qed">∎</span></div>
+<section class="references"><h2>References</h2><ul>
+<li id="ref-Rubin1974">Rubin, Donald B. (1974). Estimating Causal Effects of Treatments in Randomized and Nonrandomized Studies. <em>Journal of Educational Psychology</em>. <a href="https://doi.org/10.1037/h0037350">doi</a></li>
+<li id="ref-Manski1990">Manski, Charles F. (1990). Nonparametric Bounds on Treatment Effects. <em>American Economic Review</em>. <a href="https://doi.org/10.2307/2006592">doi</a></li>
+<li id="ref-Tamer2010">Tamer, Elie (2010). Partial Identification in Econometrics. <em>Annual Review of Economics</em>. <a href="https://doi.org/10.1146/annurev.economics.050708.143401">doi</a></li>
+<li id="ref-HorowitzManski1995">Horowitz, Joel L. and Manski, Charles F. (1995). Identification and Robustness with Contaminated and Corrupted Data. <em>Econometrica</em>. <a href="https://doi.org/10.2307/2951627">doi</a></li>
+<li id="ref-DOrazio2006">D'Orazio, Marcello and Di Zio, Marco and Scanu, Mauro (2006). Statistical Matching: Theory and Practice. <em>Wiley</em>. <a href="https://doi.org/10.1002/0470023554">doi</a></li>
+<li id="ref-FanShermanShum2014">Fan, Yanqin and Sherman, Robert and Shum, Matthew (2014). Identifying Treatment Effects Under Data Combination. <em>Econometrica</em>. <a href="https://doi.org/10.3982/ECTA10601">doi</a></li>
+<li id="ref-Torgovitsky2019">Torgovitsky, Alexander (2019). Partial Identification by Extending Subdistributions. <em>Quantitative Economics</em>. <a href="https://doi.org/10.3982/QE634">doi</a></li>
+<li id="ref-FanParkPassShi2025">Fan, Yanqin and Park, Hyeonseok and Pass, Brendan and Shi, Xuetao (2025). Partial Identification in Moment Models with Incomplete Data---A Conditional Optimal Transport Approach. <em></em>. <a href="https://arxiv.org/abs/2503.16098">arXiv</a></li>
+<li id="ref-Cochran1968">Cochran, William G. (1968). The Effectiveness of Adjustment by Subclassification in Removing Bias in Observational Studies. <em>Biometrics</em>. <a href="https://doi.org/10.2307/2528036">doi</a></li>
+<li id="ref-RosenbaumRubin1984">Rosenbaum, Paul R. and Rubin, Donald B. (1984). Reducing Bias in Observational Studies Using Subclassification on the Propensity Score. <em>Journal of the American Statistical Association</em>. <a href="https://doi.org/10.1080/01621459.1984.10478078">doi</a></li>
+<li id="ref-KalavasisMehrotraZampetakis2024">Kalavasis, Alkis and Mehrotra, Anay and Zampetakis, Manolis (2024). Smaller Confidence Intervals From {IPW} Estimators via Data-Dependent Coarsening. <em>Proceedings of the 37th Conference on Learning Theory</em>. <a href="https://arxiv.org/abs/2410.01658">arXiv</a></li>
+<li id="ref-LeeWeidner2026">Lee, Sokbae and Weidner, Martin (2026). Bounding Treatment Effects by Pooling Limited Information across Observations. <em>Journal of Econometrics</em>. <a href="https://doi.org/10.1016/j.jeconom.2026.106254">doi</a></li>
+<li id="ref-Komarova2018">Komarova, Tatiana and Nekipelov, Denis and Yakovlev, Evgeny (2018). Identification, Data Combination, and the Risk of Disclosure. <em>Quantitative Economics</em>. <a href="https://doi.org/10.3982/QE568">doi</a></li>
+<li id="ref-Conti2017">Conti, Pier Luigi and Marella, Daniela and Scanu, Mauro (2017). How Far from Identifiability? A Systematic Overview of the Statistical Matching Problem in a Nonparametric Framework. <em>Communications in Statistics---Theory and Methods</em>. <a href="https://doi.org/10.1080/03610926.2015.1010005">doi</a></li>
+<li id="ref-MarellaPfeffermann2019">Marella, Daniela and Pfeffermann, Danny (2019). Matching Information from Two Independent Informative Samples. <em>Journal of Statistical Planning and Inference</em>. <a href="https://doi.org/10.1016/j.jspi.2019.03.001">doi</a></li>
+<li id="ref-LemaireMontesPages2020">Lemaire, Vincent and Montes, Thibaut and Pag{\`e}s, Gilles (2020). New Weak Error Bounds and Expansions for Optimal Quantization. <em>Journal of Computational and Applied Mathematics</em>. <a href="https://doi.org/10.1016/j.cam.2019.112670">doi</a></li>
+<li id="ref-ImbensManski2004">Imbens, Guido W. and Manski, Charles F. (2004). Confidence Intervals for Partially Identified Parameters. <em>Econometrica</em>. <a href="https://doi.org/10.1111/j.1468-0262.2004.00555.x">doi</a></li>
+<li id="ref-Stoye2009">Stoye, J{\&quot;o}rg (2009). More on Confidence Intervals for Partially Identified Parameters. <em>Econometrica</em>. <a href="https://doi.org/10.3982/ECTA7347">doi</a></li>
+<li id="ref-ChernozhukovHongTamer2007">Chernozhukov, Victor and Hong, Han and Tamer, Elie (2007). Estimation and Confidence Regions for Parameter Sets in Econometric Models. <em>Econometrica</em>. <a href="https://doi.org/10.1111/j.1468-0262.2007.00794.x">doi</a></li>
+<li id="ref-KaidoMolinariStoye2019">Kaido, Hiroaki and Molinari, Francesca and Stoye, J{\&quot;o}rg (2019). Confidence Intervals for Projections of Partially Identified Parameters. <em>Econometrica</em>. <a href="https://doi.org/10.3982/ECTA14075">doi</a></li>
+</ul></section>

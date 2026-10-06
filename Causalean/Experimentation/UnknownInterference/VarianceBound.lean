@@ -1,0 +1,230 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Experimentation.DesignBased.EdgeVarianceBound
+public import Causalean.Experimentation.DesignBased.ProductBlock
+public import Causalean.Experimentation.DesignBased.ProductVariance
+public import Causalean.Experimentation.DesignBased.Risk
+public import Causalean.Experimentation.UnknownInterference.Bernoulli
+
+/-! # Variance bounds under unknown interference
+
+Under Bernoulli assignment, overlap and second-moment control bound the Horvitz-Thompson variance
+by the average amount of interference dependence:
+
+    Var(ĤT) ≤ k⁴ · d̄ / n.
+
+This file identifies the assignment-coordinate support of each unit's summand. Summands with
+disjoint supports have zero covariance by product-design independence; every remaining covariance
+is bounded by `k⁴`. Summing over the `n * dbar` interference-dependent ordered pairs gives the
+finite-sample bound used by the consistency development.
+-/
+
+@[expose] public section
+
+open scoped BigOperators
+open Finset
+
+namespace Causalean
+namespace Experimentation
+namespace UnknownInterference
+
+open DesignBased
+
+variable {U : Type*} [Fintype U] [DecidableEq U]
+
+open Classical in
+/-- For every [finite population of units whose members can be compared for equality](hyp:U),
+every [schedule of potential outcomes indexed by a unit and a complete binary treatment
+assignment](hyp:y),
+and every [unit in that population](hyp:i), the [interferer set](goal) is the finite set consisting
+of that unit and every other unit whose treatment can affect that unit's potential outcome.
+
+The interferer set is the coordinate support of the corresponding Horvitz--Thompson summand. -/
+noncomputable def interferers (y : U → (U → Bool) → ℝ) (i : U) : Finset U :=
+  Finset.univ.filter (fun ℓ => Interferes y ℓ i)
+
+/-- The `i`ᵗʰ HT summand depends only on the treatments of the units interfering with `i`. -/
+theorem htSummand_depends_on_interferers (p : U → ℝ) (y : U → (U → Bool) → ℝ) (i : U)
+    (z z' : U → Bool) (h : ∀ ℓ ∈ interferers y i, z ℓ = z' ℓ) :
+    htSummand p y i z = htSummand p y i z' := by
+  classical
+  have hmem : ∀ ℓ : U, Interferes y ℓ i → ℓ ∈ interferers y i := by
+    intro ℓ hℓ
+    exact Finset.mem_filter.mpr ⟨Finset.mem_univ ℓ, hℓ⟩
+  -- `i` interferes with itself, so `z i = z' i`.
+  have hzi : z i = z' i := h i (hmem i (Or.inl rfl))
+  -- The outcome agrees because `z, z'` agree on all interferers of `i`.
+  have hyi : y i z = y i z' :=
+    y_eq_of_agree_on_interferers y i z z' (fun ℓ hℓ => h ℓ (hmem ℓ hℓ))
+  unfold htSummand
+  rw [hzi, hyi]
+
+/-- If `i` and `j` are not interference dependent, their interferer blocks are disjoint. -/
+theorem disjoint_interferers_of_not_interfDep (y : U → (U → Bool) → ℝ) {i j : U}
+    (h : ¬ InterfDep y i j) :
+    Disjoint (interferers y i) (interferers y j) := by
+  classical
+  rw [Finset.disjoint_left]
+  intro ℓ hℓi hℓj
+  have hi : Interferes y ℓ i := (Finset.mem_filter.mp hℓi).2
+  have hj : Interferes y ℓ j := (Finset.mem_filter.mp hℓj).2
+  exact h ⟨ℓ, hi, hj⟩
+
+/-- **No covariance off the interference-dependence graph.** Under a Bernoulli design in which each
+unit `i` is treated independently with probability `p i`, [where every `p i` lies in the unit
+interval](hyp:hp0,hp1), if [units `i` and `j` are not interference dependent](hyp:h) — no unit's
+treatment affects both units' outcomes — then [their Horvitz–Thompson summands have zero
+covariance under this design](goal). -/
+theorem cov_htSummand_zero (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
+    (y : U → (U → Bool) → ℝ) {i j : U} (h : ¬ InterfDep y i j) :
+    (DesignBased.bernoulliDesign p hp0 hp1).Cov (htSummand p y i) (htSummand p y j) = 0 := by
+  letI : MeasurableSpace Bool := ⊤
+  letI : MeasurableSingletonClass Bool := ⟨fun _ => trivial⟩
+  unfold DesignBased.bernoulliDesign
+  exact FiniteDesign.Cov_prod_disjoint_zero (fun i => coinDesign (p i) (hp0 i) (hp1 i))
+    (interferers y i) (interferers y j) (disjoint_interferers_of_not_interfDep y h)
+    (htSummand p y i) (htSummand p y j)
+    (fun z z' hzz => htSummand_depends_on_interferers p y i z z' hzz)
+    (fun z z' hzz => htSummand_depends_on_interferers p y j z z' hzz)
+
+/-- **Per-summand variance bound.** Fix [a regularity constant `k` at least 1](hyp:hk) and a
+Bernoulli design with per-unit treatment probabilities [lying in the unit
+interval](hyp:hp0,hp1) and further satisfying [the overlap bounds `k⁻¹ ≤ p i ≤ 1 − k⁻¹` for every
+unit](hyp:hplo,hphi). If [the outcome function's second moment `E[(y i)²]` is at most `k²` for
+every unit under this design](hyp:hmom), then [the variance of the `i`ᵗʰ Horvitz–Thompson summand
+is at most `k⁴`](goal). -/
+theorem var_htSummand_le (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
+    (y : U → (U → Bool) → ℝ) (k : ℝ) (hk : 1 ≤ k)
+    (hplo : ∀ i, k⁻¹ ≤ p i) (hphi : ∀ i, p i ≤ 1 - k⁻¹)
+    (hmom : ∀ i, (DesignBased.bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2) (i : U) :
+    (DesignBased.bernoulliDesign p hp0 hp1).Var (htSummand p y i) ≤ k ^ 4 := by
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
+  have hk0 : (0 : ℝ) < k := lt_of_lt_of_le zero_lt_one hk
+  have hkinv0 : (0 : ℝ) < k⁻¹ := inv_pos.mpr hk0
+  have hpi0 : (0 : ℝ) < p i := lt_of_lt_of_le hkinv0 (hplo i)
+  have hpi1 : (0 : ℝ) < 1 - p i := lt_of_lt_of_le hkinv0 (by linarith [hphi i])
+  -- `1/p i ≤ k` and `1/(1 - p i) ≤ k`.
+  have hrecp : 1 / p i ≤ k := by
+    rw [div_le_iff₀ hpi0]
+    have := (hplo i)
+    have hk' : k⁻¹ * k = 1 := inv_mul_cancel₀ (ne_of_gt hk0)
+    nlinarith [mul_le_mul_of_nonneg_right (hplo i) (le_of_lt hk0)]
+  have hrecq : 1 / (1 - p i) ≤ k := by
+    rw [div_le_iff₀ hpi1]
+    nlinarith [mul_le_mul_of_nonneg_right (by linarith [hphi i] : k⁻¹ ≤ 1 - p i) (le_of_lt hk0),
+      inv_mul_cancel₀ (ne_of_gt hk0)]
+  -- Pointwise: `(htSummand)² ≤ k² (y i)²`.
+  have hpt : ∀ z, (htSummand p y i z) ^ 2 ≤ k ^ 2 * (y i z) ^ 2 := by
+    intro z
+    have habs : |htSummand p y i z| ≤ k * |y i z| := by
+      unfold htSummand
+      by_cases hz : z i = true
+      · rw [if_pos hz, if_pos hz]
+        rw [show (1 : ℝ) * y i z / p i - (0 : ℝ) * y i z / (1 - p i) = y i z / p i by ring]
+        rw [abs_div, abs_of_pos hpi0]
+        calc |y i z| / p i = |y i z| * (1 / p i) := by ring
+          _ ≤ |y i z| * k := by
+                apply mul_le_mul_of_nonneg_left hrecp (abs_nonneg _)
+          _ = k * |y i z| := by ring
+      · rw [if_neg hz, if_neg hz]
+        rw [show (0 : ℝ) * y i z / p i - (1 : ℝ) * y i z / (1 - p i)
+              = - (y i z / (1 - p i)) by ring]
+        rw [abs_neg, abs_div, abs_of_pos hpi1]
+        calc |y i z| / (1 - p i) = |y i z| * (1 / (1 - p i)) := by ring
+          _ ≤ |y i z| * k := by
+                apply mul_le_mul_of_nonneg_left hrecq (abs_nonneg _)
+          _ = k * |y i z| := by ring
+    have h1 : (htSummand p y i z) ^ 2 = |htSummand p y i z| ^ 2 := (sq_abs _).symm
+    have h2 : (k * |y i z|) ^ 2 = k ^ 2 * (y i z) ^ 2 := by
+      rw [mul_pow, sq_abs]
+    rw [h1, ← h2]
+    exact pow_le_pow_left₀ (abs_nonneg _) habs 2
+  -- `Var ≤ E[(htSummand)²] ≤ E[k² (y i)²] = k² E[(y i)²] ≤ k² · k² = k⁴`.
+  calc D.Var (htSummand p y i)
+      ≤ D.E (fun z => (htSummand p y i z) ^ 2) := by
+        rw [D.Var_eq]; linarith [sq_nonneg (D.E (htSummand p y i))]
+    _ ≤ D.E (fun z => k ^ 2 * (y i z) ^ 2) := D.E_mono hpt
+    _ = k ^ 2 * D.E (fun z => (y i z) ^ 2) := D.E_const_mul _ _
+    _ ≤ k ^ 2 * k ^ 2 := by
+        apply mul_le_mul_of_nonneg_left (hmom i) (sq_nonneg k)
+    _ = k ^ 4 := by ring
+
+/-- **The Horvitz–Thompson variance bound (Sävje–Aronow–Hudgens 2021).** Fix [a regularity
+constant `k` at least 1](hyp:hk) over [a nonempty finite unit population](hyp:hcard), with a
+Bernoulli design whose per-unit treatment probabilities [lie in the unit
+interval](hyp:hp0,hp1) and further satisfy [the overlap bounds `k⁻¹ ≤ p i ≤ 1 − k⁻¹` for every
+unit](hyp:hplo,hphi). If [the outcome function's second moment `E[(y i)²]` is at most `k²` for
+every unit under this design](hyp:hmom), then [the Horvitz–Thompson estimator's variance is at
+most `k⁴ · d̄ / n`, where `d̄` is the average interference-dependence degree and `n` the number of
+units](goal). -/
+theorem var_htEst_le (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
+    (y : U → (U → Bool) → ℝ) (k : ℝ) (hk : 1 ≤ k) (hcard : 1 ≤ Fintype.card U)
+    (hplo : ∀ i, k⁻¹ ≤ p i) (hphi : ∀ i, p i ≤ 1 - k⁻¹)
+    (hmom : ∀ i, (DesignBased.bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2) :
+    (DesignBased.bernoulliDesign p hp0 hp1).Var (htEst p y) ≤ k ^ 4 * dbar y / (Fintype.card U : ℝ) := by
+  classical
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
+  set n : ℝ := (Fintype.card U : ℝ) with hn
+  have hn0 : (0 : ℝ) < n := by
+    rw [hn]; exact_mod_cast lt_of_lt_of_le zero_lt_one hcard
+  have hk0 : (0 : ℝ) < k := lt_of_lt_of_le zero_lt_one hk
+  -- Termwise covariance bound: `Cov(HTᵢ, HTⱼ) ≤ (if InterfDep then k⁴ else 0)`.
+  have hcov : ∀ i j, D.Cov (htSummand p y i) (htSummand p y j)
+      ≤ (if InterfDep y i j then (k ^ 4 : ℝ) else 0) := by
+    intro i j
+    by_cases hdep : InterfDep y i j
+    · rw [if_pos hdep]
+      -- `Var(X−Y) ≥ 0` gives `Cov ≤ (Var X + Var Y)/2 ≤ k⁴`.
+      have hVsub : 0 ≤ D.Var (fun z => htSummand p y i z - htSummand p y j z) :=
+        D.Var_nonneg _
+      rw [D.Var_sub] at hVsub
+      have hVi : D.Var (htSummand p y i) ≤ k ^ 4 :=
+        var_htSummand_le p hp0 hp1 y k hk hplo hphi hmom i
+      have hVj : D.Var (htSummand p y j) ≤ k ^ 4 :=
+        var_htSummand_le p hp0 hp1 y k hk hplo hphi hmom j
+      linarith
+    · rw [if_neg hdep]
+      exact le_of_eq (cov_htSummand_zero p hp0 hp1 y hdep)
+  -- `htEst = n⁻¹ * ∑ᵢ HTᵢ`, so `Var(htEst) = (n⁻¹)² Var(∑ᵢ HTᵢ)`.
+  have hEstEq : htEst p y
+      = fun z => n⁻¹ * ∑ i : U, (1 : ℝ) * htSummand p y i z := by
+    funext z; unfold htEst; rw [hn, div_eq_inv_mul]; congr 1
+    exact Finset.sum_congr rfl (fun i _ => (one_mul _).symm)
+  have hVarEst : D.Var (htEst p y)
+      = (n⁻¹) ^ 2 * ∑ i : U, ∑ j : U, D.Cov (htSummand p y i) (htSummand p y j) := by
+    rw [hEstEq, D.Var_const_mul, D.Var_linear_comb Finset.univ (fun _ => (1:ℝ)) (htSummand p y)]
+    congr 1
+    refine Finset.sum_congr rfl (fun i _ => Finset.sum_congr rfl (fun j _ => ?_))
+    rw [one_mul, one_mul]
+  -- Bound the double sum by `k⁴ · dbarCount`.
+  have hsumle : (∑ i : U, ∑ j : U, D.Cov (htSummand p y i) (htSummand p y j))
+      ≤ k ^ 4 * dbarCount y := by
+    have hstep : (∑ i : U, ∑ j : U, D.Cov (htSummand p y i) (htSummand p y j))
+        ≤ ∑ i : U, ∑ j : U, (if InterfDep y i j then (k ^ 4 : ℝ) else 0) :=
+      Finset.sum_le_sum (fun i _ => Finset.sum_le_sum (fun j _ => hcov i j))
+    refine le_trans hstep ?_
+    rw [dbarCount]
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum (fun i _ => ?_)
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum (fun j _ => ?_)
+    by_cases hdep : InterfDep y i j <;> simp [hdep]
+  -- Assemble the final bound.
+  rw [hVarEst]
+  have hk4 : (0 : ℝ) ≤ k ^ 4 := by positivity
+  have hninv2 : (0 : ℝ) ≤ (n⁻¹) ^ 2 := sq_nonneg _
+  calc (n⁻¹) ^ 2 * ∑ i : U, ∑ j : U, D.Cov (htSummand p y i) (htSummand p y j)
+      ≤ (n⁻¹) ^ 2 * (k ^ 4 * dbarCount y) :=
+        mul_le_mul_of_nonneg_left hsumle hninv2
+    _ = k ^ 4 * dbar y / n := by
+        rw [dbar, hn]
+        ring
+
+end UnknownInterference
+end Experimentation
+end Causalean

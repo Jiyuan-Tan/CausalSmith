@@ -1,0 +1,134 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Stacked block-Vandermonde injectivity
+
+For distinct nodes, this file constructs concrete block weights for which the stacked
+contraction map is injective. The construction separates one coordinate into the first
+block and uses Vandermonde independence on the remaining coordinates in the last block.
+-/
+
+module
+public import Mathlib.LinearAlgebra.Vandermonde
+public import Mathlib.Analysis.Complex.Basic
+
+/-!
+# Stacked Vandermonde systems
+
+This file gives a constructive injectivity certificate for a stacked family of
+weighted Vandermonde evaluation maps at distinct nodes in a commutative domain.
+-/
+
+@[expose] public section
+
+namespace Causalean.Mathlib.LinearAlgebra
+
+open scoped BigOperators
+
+noncomputable section
+
+/-- Given [an element \(z\) of a multiplicative monoid](hyp:z) and [a nonnegative integer
+\(k\)](hyp:k), the [affine power vector](goal) is the vector indexed by the integers from zero
+through \(k\) whose entry at \(r\) is \(z^r\).
+
+Over a field, this is the coefficient vector of `(X₀ + z X₁)^k` after normalization by the
+corresponding nonzero binomial coefficient. -/
+def affineBinaryPower {K : Type*} [Monoid K] (z : K) (k : ℕ) : Fin (k + 1) → K :=
+  fun r => z ^ (r : ℕ)
+
+/-- Given [a nonnegative integer \(N\)](hyp:N), [\(N+1\) slope values](hyp:slopes),
+[a weight assigned to each slope and each of the \(N\) blocks](hyp:weights), and
+[a coefficient attached to each slope](hyp:e), the [stacked contraction](goal) maps a block
+index \(k<N\) and an exponent \(r\leq k\) to the sum, over all slopes, of the weight times the
+coefficient times the \(r\)-th power of that slope.
+
+Over a field in the affine chart `ℓ j = X₀ + slopes j X₁`, its `k`-th component agrees with the
+coefficient vector of `∑ j, weights j k * e j • (ℓ j)^k` up to invertible binomial diagonal
+rescaling. -/
+def stackedContraction {K : Type*} [Semiring K] (N : ℕ) (slopes : Fin (N + 1) → K)
+    (weights : Fin (N + 1) → Fin N → K) (e : Fin (N + 1) → K) :
+    (k : Fin N) → Fin (k.1 + 1) → K :=
+  fun k r => ∑ j, weights j k * e j * affineBinaryPower (slopes j) k.1 r
+
+/-- Given [a positive integer \(N\)](hyp:N,hN), the [block-Vandermonde witness weights](goal)
+assign weight one only to index zero in block zero and to every nonzero index in block \(N-1\),
+and assign weight zero in all other cases. [The first block is chosen as block zero](step:1),
+the second as block \(N-1\), and the stated case assignment defines the weights.
+
+This is the two-block specialization from the block-Vandermonde argument: `J₀ = {0}` and
+`J_{N-1} = {1, …, N}`. -/
+def blockVandermondeWitnessWeights {K : Type*} [Zero K] [One K] (N : ℕ) (hN : 1 ≤ N) :
+    Fin (N + 1) → Fin N → K :=
+  let zeroBlock : Fin N := ⟨0, by omega⟩
+  let topBlock : Fin N := ⟨N - 1, Nat.sub_lt (by omega) (by omega)⟩
+  fun j k =>
+    if j = 0 then
+      if k = zeroBlock then 1 else 0
+    else if k = topBlock then 1 else 0
+
+/-- For a commutative integral domain `K`, [at least three indices `N + 1`](hyp:hN) (`2 ≤ N`),
+and [slope values `slopes : Fin (N + 1) → K`](hyp:slopes) that are
+[pairwise distinct](hyp:hslopes),
+[there exist weights `Fin (N + 1) → Fin N → K` for which the stacked contraction is
+injective](goal). The first block detects coordinate `0`, while the
+last block is a square Vandermonde system on coordinates `1,…,N`.
+
+This is an explicit-witness existence result; it does not characterize a generic set of weights. -/
+theorem exists_weights_stackedContraction_injective {K : Type*} [CommRing K] [IsDomain K]
+  {N : ℕ} (hN : 2 ≤ N) (slopes : Fin (N + 1) → K)
+    (hslopes : Function.Injective slopes) :
+    ∃ weights : Fin (N + 1) → Fin N → K,
+      Function.Injective (stackedContraction N slopes weights) := by
+  let zeroBlock : Fin N := ⟨0, by omega⟩
+  let topBlock : Fin N := ⟨N - 1, Nat.sub_lt (by omega) (by omega)⟩
+  have htop_ne_zero : topBlock ≠ zeroBlock := by
+    intro h
+    have : N - 1 = 0 := Fin.ext_iff.mp h
+    omega
+  have hzero_ne_top : (0 : ℕ) ≠ N - 1 := by omega
+  refine ⟨blockVandermondeWitnessWeights N (by omega), ?_⟩
+  intro e e' he
+  have hzero : e 0 = e' 0 := by
+    have h := congrFun (congrFun he zeroBlock) (0 : Fin 1)
+    simpa [stackedContraction, blockVandermondeWitnessWeights,
+      affineBinaryPower, zeroBlock, topBlock, htop_ne_zero,
+      hzero_ne_top, Fin.sum_univ_succ] using h
+  have hsucc : (fun i : Fin N => e i.succ) = fun i => e' i.succ := by
+    have htop := fun r => congrFun (congrFun he topBlock) r
+    have hsum : ∀ r : Fin N,
+        (∑ i : Fin N, e i.succ * slopes i.succ ^ (r : ℕ)) =
+          ∑ i : Fin N, e' i.succ * slopes i.succ ^ (r : ℕ) := by
+      intro r
+      let rTop : Fin (topBlock.1 + 1) := ⟨r.1, by
+        change r.1 < N - 1 + 1
+        omega⟩
+      simpa [stackedContraction, blockVandermondeWitnessWeights,
+        affineBinaryPower, zeroBlock, topBlock, htop_ne_zero,
+        Fin.sum_univ_succ, rTop] using htop rTop
+    have hv : (fun i : Fin N => e i.succ - e' i.succ) = 0 := by
+      apply Matrix.eq_zero_of_vecMul_eq_zero
+        (Matrix.det_vandermonde_ne_zero_iff.mpr
+          (hslopes.comp (Fin.succ_injective N)))
+      funext r
+      change ∑ i : Fin N, (e i.succ - e' i.succ) * slopes i.succ ^ (r : ℕ) = 0
+      calc
+        ∑ i : Fin N, (e i.succ - e' i.succ) * slopes i.succ ^ (r : ℕ) =
+            (∑ i : Fin N, e i.succ * slopes i.succ ^ (r : ℕ)) -
+              ∑ i : Fin N, e' i.succ * slopes i.succ ^ (r : ℕ) := by
+          rw [← Finset.sum_sub_distrib]
+          apply Finset.sum_congr rfl
+          intro i _
+          ring
+        _ = 0 := sub_eq_zero.mpr (hsum r)
+    funext i
+    exact sub_eq_zero.mp (congrFun hv i)
+  funext j
+  refine Fin.cases ?_ (fun i => ?_) j
+  · exact hzero
+  · exact congrFun hsucc i
+
+end
+
+end Causalean.Mathlib.LinearAlgebra

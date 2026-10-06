@@ -1,0 +1,688 @@
+\begin{proof}[Proof of \cref{obj:lem:original-score-mean-ledger}]
+\begin{enumerate}
+\item
+Fix a block index \(b\). The clipped outcomes, treatment indicators, histogram features, and histogram kernels are bounded measurable functions for every fixed choice of the public ranks and cutoffs. In each branch of \cref{obj:def:explicit-score-ledger}, \(Z_b(c)\) is a finite linear combination of products of these functions. Consequently, for every \(c\in\mathbb R\),
+\[
+\int \|Z_b(c)\|_2\,dP^{\otimes n}<\infty,
+\qquad
+\theta_P(c)=\int Z_b(c)\,dP^{\otimes n}.
+\]
+The mean calculations below have the same right-hand side for both blocks.
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.integrable_ledgerScore
+
+\item
+The ranks in \cref{obj:def:explicit-score-ledger} are positive powers of two, and the definition of the fine rank gives
+\[
+0<M\le K,\qquad M\mid K.
+\]
+Indeed, the dyadic exponent of \(K\) is at least that of \(M\), so their quotient is an integer power of two. The cutoffs satisfy
+\[
+T_0\ge1,\qquad T_j\ge1\quad(1\le j\le L)
+\]
+in the branch where the increment cutoffs occur.
+
+We record the histogram identities needed for the mean calculation. For every positive integer \(J\) and measurable integrable function \(f:[0,1]\to\mathbb R\), define
+\[
+\operatorname{coef}_J(f)
+=
+\int_0^1 f(x)F_J(x)\,d\lambda(x)\in\mathbb R^J.
+\]
+The cells in \cref{obj:def:projection} partition \([0,1]\), with the stipulated convention at the right endpoint, and each has measure \(1/J\). Thus, for \(x\in I_{j,J}\),
+\[
+(\Pi_J f)(x)=J\int_{I_{j,J}}f(z)\,d\lambda(z),
+\qquad
+\bigl(\operatorname{coef}_J(f)\bigr)_j
+=
+\sqrt J\int_{I_{j,J}}f(z)\,d\lambda(z).
+\]
+In particular, if \(\mathfrak c\in[0,\infty)\) and \(|f|\le\mathfrak c\) almost everywhere, then
+\[
+\left|\bigl(\operatorname{coef}_J(f)\bigr)_j\right|
+\le\frac{\mathfrak c}{\sqrt J},
+\qquad
+\|\operatorname{coef}_J(f)\|_2^2
+\le\sum_{j=1}^J\frac{\mathfrak c^2}{J}
+=\mathfrak c^2.
+\]
+Hence
+\[
+\|\operatorname{coef}_J(f)\|_2\le\mathfrak c.
+\]
+Cell averaging also preserves almost-everywhere bounds and constants.
+
+For a function \(f\) with Hölder exponent \(\mathfrak s\in(0,1]\) and Hölder constant at most \(20\), the diameter of a cell gives, for \(x\in I_{j,J}\),
+\[
+\begin{aligned}
+|f(x)-(\Pi_Jf)(x)|
+&\le J\int_{I_{j,J}}|f(x)-f(z)|\,d\lambda(z)\\
+&\le20J\int_{I_{j,J}}|x-z|^{\mathfrak s}\,d\lambda(z)
+\le20J^{-\mathfrak s}.
+\end{aligned}
+\]
+
+If \(M\mid J\), the fine cells partition each coarse cell. Averaging their integrals therefore yields
+\[
+\Pi_M(\Pi_Jf)=\Pi_Mf,
+\qquad
+\Pi_J(\Pi_Jf)=\Pi_Jf.
+\]
+Moreover, the support of \(\Pi_J(x,z)\) places \(x\) and \(z\) in the same coarse cell, so
+\[
+\Pi_J(x,z)F_M(x)=\Pi_J(z,x)F_M(z).
+\]
+For a bounded measurable function \(\varphi_{\mathrm{bd}}:[0,1]\to\mathbb R\) and a measurable integrable function \(\varphi_{\mathrm{int}}:[0,1]\to\mathbb R\), Fubini's theorem consequently gives
+\[
+\begin{aligned}
+\operatorname{coef}_M\bigl(\varphi_{\mathrm{bd}}\Pi_J\varphi_{\mathrm{int}}\bigr)
+&=\int_0^1\int_0^1
+\varphi_{\mathrm{bd}}(x)\Pi_J(x,z)\varphi_{\mathrm{int}}(z)F_M(x)\,d\lambda(z)\,d\lambda(x)\\
+&=\int_0^1 \varphi_{\mathrm{int}}(z)F_M(z)
+\left[\int_0^1\Pi_J(z,x)\varphi_{\mathrm{bd}}(x)\,d\lambda(x)\right]d\lambda(z)\\
+&=\operatorname{coef}_M\bigl((\Pi_J\varphi_{\mathrm{bd}})\varphi_{\mathrm{int}}\bigr).
+\end{aligned}
+\]
+The double integral is absolutely integrable because \(\varphi_{\mathrm{bd}}\), the kernel, and the features are bounded.
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledger_increment_rank_bound
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledger_coarse_dvd_fine
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledgerT0_ge_one
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledgerT_ge_one
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.histogram_coefficient_norm_le
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.projection_holder_error
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.projection_nesting
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.histogram_feature_selfAdjoint_integrable
+
+\item
+For every positive integer \(J\) divisible by \(M\) and every \(c\in\mathbb R\), define the original mean vector
+\[
+\theta^{\mathrm{orig}}_{P,J}(c)
+=
+\operatorname{coef}_M\!\left(
+e_P(1-\Pi_Je_P)(\tau_P-c)
++(e_P-\Pi_Je_P)m_{0,P}
+\right).
+\]
+Also define the weighted effect vector
+\[
+\theta^{\mathrm{wt}}_P(c)
+=
+\operatorname{coef}_M\bigl(w_K(\tau_P-c)\bigr).
+\]
+Their difference at the fine rank is
+\[
+\theta^{\mathrm{orig}}_{P,K}(c)-\theta^{\mathrm{wt}}_P(c)
+=
+\operatorname{coef}_M\bigl((e_P-e_K)m_{0,P}\bigr).
+\]
+Idempotence and the self-adjointness identity established above imply
+\[
+\Pi_K(e_P-e_K)=0,
+\qquad
+\operatorname{coef}_M\bigl((e_P-e_K)\Pi_Km_{0,P}\bigr)=0.
+\]
+Subtracting the latter zero vector gives the residual identity
+\[
+\operatorname{coef}_M\bigl((e_P-e_K)m_{0,P}\bigr)
+=
+\operatorname{coef}_M\bigl(
+(e_P-e_K)(m_{0,P}-\Pi_Km_{0,P})
+\bigr).
+\]
+The smoothness restrictions in
+\cref{obj:ass:propensity-smoothness,obj:ass:baseline-smoothness},
+together with the Hölder estimate above, give
+\[
+|e_P-e_K|\le20K^{-\alpha},
+\qquad
+|m_{0,P}-\Pi_Km_{0,P}|\le20K^{-\beta}.
+\]
+Since \(S=\alpha+\beta\) in \cref{obj:def:explicit-score-ledger},
+\[
+\left|(e_P-e_K)(m_{0,P}-\Pi_Km_{0,P})\right|
+\le400K^{-S}.
+\]
+Applying the coefficient norm bound proves, for every real \(c\),
+\[
+\|\theta^{\mathrm{orig}}_{P,K}(c)-\theta^{\mathrm{wt}}_P(c)\|_2
+\le400K^{-S}.
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.baseline_projection_residual_identity
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.baseline_projection_residual_norm_le
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.origMeanVector_weighted_error_le
+
+\item
+First consider the single-correction branch of
+\cref{obj:def:explicit-score-ledger}. We derive the mean identity for any positive \(J\) divisible by \(M\), so that it can also be used at successive ranks in the other branch.
+
+Use the clipping function \(\ell_T\) and the score formulas defined in \cref{obj:def:score-family}. For \(T\ge1\), \(x\in[0,1]\), and \(\mathfrak a\in\{0,1\}\), define the arm-specific and pooled clipping remainders by
+\[
+r_T^{(\mathfrak a)}(x)
+=
+\int_{\mathbb R}\bigl(y-\ell_T(y)\bigr)
+\,Q_{\mathfrak a,P}(dy\mid x),
+\qquad
+r_T(x)
+=
+e_P(x)r_T^{(1)}(x)+(1-e_P(x))r_T^{(0)}(x).
+\]
+At a covariate where the integrand in an arm-specific integral is nonintegrable, assign that integral the value zero. The moment restriction makes these integrands integrable for almost every covariate.
+
+Indeed, admissibility gives \(p>1\), and
+\[
+|y|\le1+|y|^p.
+\]
+Thus \cref{obj:ass:raw-moment} supplies integrability of the original outcome in each conditional arm almost everywhere. For \(|y|\le T\), the clipping remainder vanishes; for \(|y|>T\),
+\[
+|y-\ell_T(y)|
+\le |y|
+=|y|^p|y|^{1-p}
+\le |y|^pT^{1-p}.
+\]
+Integration therefore gives, almost everywhere,
+\[
+|r_T^{(\mathfrak a)}(x)|
+\le
+T^{1-p}\int_{\mathbb R}|y|^pQ_{\mathfrak a,P}(dy\mid x)
+\le10T^{1-p}.
+\]
+Taking the propensity-weighted average yields
+\[
+|r_T(x)|
+\le e_P(x)\,10T^{1-p}
++(1-e_P(x))\,10T^{1-p}
+=10T^{1-p}.
+\]
+
+For \(c\in\mathbb R\), define
+\[
+f^{\mathrm{mark}}_{P,c}(x)
+=
+m_{0,P}(x)+e_P(x)(\tau_P(x)-c).
+\]
+The conditional arm means specified in \cref{obj:def:model} give, almost everywhere,
+\[
+\mathbb E_P[\ell_T(Y)-cA\mid X=x]
+=
+f^{\mathrm{mark}}_{P,c}(x)-r_T(x),
+\]
+\[
+\mathbb E_P[A(\ell_T(Y)-c)\mid X=x]
+=
+e_P(x)\bigl(m_{0,P}(x)+\tau_P(x)-c-r_T^{(1)}(x)\bigr).
+\]
+By \cref{obj:def:blocks}, \(s_n\ge2\), and each block contains \(s_n\) records and \(s_n(s_n-1)\) ordered pairs of distinct records. Identical distribution cancels the single-record normalization, and independence cancels the ordered-pair normalization. Conditioning and
+\cref{obj:ass:uniform} consequently give
+\[
+\begin{aligned}
+\mathbb E_{P^{\otimes n}}[H_{b,T}(c)]
+&=
+\operatorname{coef}_M\bigl(e_P(m_{0,P}+\tau_P-c)\bigr)
+-\operatorname{coef}_M\bigl(e_Pr_T^{(1)}\bigr),\\
+\mathbb E_{P^{\otimes n}}[U_{b,\Pi_J,T}(c)]
+&=
+\operatorname{coef}_M\bigl(e_P\Pi_Jf^{\mathrm{mark}}_{P,c}\bigr)
+-\operatorname{coef}_M\bigl(e_P\Pi_Jr_T\bigr).
+\end{aligned}
+\]
+Self-adjointness moves the projection in the first correction term:
+\[
+\operatorname{coef}_M\bigl(e_P\Pi_Jf^{\mathrm{mark}}_{P,c}\bigr)
+=
+\operatorname{coef}_M\bigl((\Pi_Je_P)f^{\mathrm{mark}}_{P,c}\bigr).
+\]
+The resulting original-outcome difference is exactly
+\[
+\begin{aligned}
+&\operatorname{coef}_M\bigl(
+e_P(m_{0,P}+\tau_P-c)-(\Pi_Je_P)f^{\mathrm{mark}}_{P,c}
+\bigr)\\
+&\hspace{2em}
+=
+\operatorname{coef}_M\bigl(
+e_P(1-\Pi_Je_P)(\tau_P-c)+(e_P-\Pi_Je_P)m_{0,P}
+\bigr)
+=
+\theta^{\mathrm{orig}}_{P,J}(c).
+\end{aligned}
+\]
+Define, for these \(J\) and \(T\),
+\[
+\theta^{\mathrm{tail}}_{P,J}(T)
+=
+-\operatorname{coef}_M\bigl(e_Pr_T^{(1)}\bigr)
++\operatorname{coef}_M\bigl(e_P\Pi_Jr_T\bigr).
+\]
+We have proved the exact identity
+\[
+\mathbb E_{P^{\otimes n}}
+[H_{b,T}(c)-U_{b,\Pi_J,T}(c)]
+=
+\theta^{\mathrm{orig}}_{P,J}(c)
++\theta^{\mathrm{tail}}_{P,J}(T).
+\]
+
+Since \(0\le e_P\le1\), and cell averaging preserves the almost-everywhere bound on \(r_T\),
+\[
+|e_Pr_T^{(1)}|\le10T^{1-p}\quad\text{almost everywhere},
+\qquad
+|e_P\Pi_Jr_T|\le10T^{1-p}\quad\text{everywhere}.
+\]
+The coefficient norm bound and the triangle inequality give
+\[
+\begin{aligned}
+\|\theta^{\mathrm{tail}}_{P,J}(T)\|_2
+&\le
+\|\operatorname{coef}_M(e_Pr_T^{(1)})\|_2
++\|\operatorname{coef}_M(e_P\Pi_Jr_T)\|_2\\
+&\le10T^{1-p}+10T^{1-p}
+=20T^{1-p}.
+\end{aligned}
+\]
+In the single-correction branch, take \(J=K\) and \(T=T_0\). Combining this estimate with the original-mean error bound gives
+\[
+\begin{aligned}
+\|\theta_P(c)-\theta^{\mathrm{wt}}_P(c)\|_2
+&\le
+\|\theta^{\mathrm{orig}}_{P,K}(c)-\theta^{\mathrm{wt}}_P(c)\|_2
++\|\theta^{\mathrm{tail}}_{P,K}(T_0)\|_2\\
+&\le400K^{-S}+20T_0^{1-p}
+=B.
+\end{aligned}
+\]
+This calculation applies to every \(c\in\mathbb R\).
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.conditional_truncation_moments
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.tailRemainder_abs_le
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.singleMean_exact
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.singleMeanTail_norm_le
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledgerScore_weighted_mean_error_le
+
+\item
+Now consider the multiresolution branch. Because \(M\) and \(K\) are ordered powers of two, the increment chain in
+\cref{obj:def:explicit-score-ledger} satisfies
+\[
+L=\log_2(K/M)\in\mathbb N_0,
+\qquad
+R_0=M,\qquad R_j=2R_{j-1},\qquad R_L=2^LM=K.
+\]
+For a measurable integrable \(f:[0,1]\to\mathbb R\), the action of its increment kernel is
+\[
+(D_jf)(x)
+=
+\int_0^1D_j(x,z)f(z)\,d\lambda(z)
+=
+(\Pi_{R_j}f)(x)-(\Pi_{R_{j-1}}f)(x),
+\qquad 1\le j\le L.
+\]
+Linearity of the ordered-pair score gives
+\[
+U_{b,D_j,T_j}(c)
+=
+U_{b,\Pi_{R_j},T_j}(c)
+-
+U_{b,\Pi_{R_{j-1}},T_j}(c).
+\]
+The exact single-correction identity established above applies at both ranks. Also, subtracting the definitions of the two tail vectors gives
+\[
+\theta^{\mathrm{tail}}_{P,R_j}(T_j)
+-
+\theta^{\mathrm{tail}}_{P,R_{j-1}}(T_j)
+=
+\operatorname{coef}_M(e_PD_jr_{T_j}).
+\]
+Consequently,
+\[
+\mathbb E_{P^{\otimes n}}[U_{b,D_j,T_j}(c)]
+=
+\theta^{\mathrm{orig}}_{P,R_{j-1}}(c)
+-
+\theta^{\mathrm{orig}}_{P,R_j}(c)
+-
+\operatorname{coef}_M(e_PD_jr_{T_j}).
+\]
+The original means telescope:
+\[
+\sum_{j=1}^L
+\left(
+\theta^{\mathrm{orig}}_{P,R_{j-1}}(c)
+-
+\theta^{\mathrm{orig}}_{P,R_j}(c)
+\right)
+=
+\theta^{\mathrm{orig}}_{P,M}(c)
+-
+\theta^{\mathrm{orig}}_{P,K}(c).
+\]
+Taking the expectation of the multiresolution score therefore yields
+\[
+\theta_P(c)
+=
+\theta^{\mathrm{orig}}_{P,K}(c)
++
+\theta^{\mathrm{tail}}_{P,M}(T_0)
++
+\sum_{j=1}^L\operatorname{coef}_M(e_PD_jr_{T_j}).
+\]
+
+For each increment, self-adjointness at its two ranks gives
+\[
+\operatorname{coef}_M(e_PD_jr_{T_j})
+=
+\operatorname{coef}_M\bigl((D_je_P)r_{T_j}\bigr).
+\]
+The propensity Hölder estimate and \(R_j=2R_{j-1}\) imply
+\[
+\begin{aligned}
+|D_je_P|
+&\le |e_P-\Pi_{R_j}e_P|
++|e_P-\Pi_{R_{j-1}}e_P|\\
+&\le20R_j^{-\alpha}+20R_{j-1}^{-\alpha}
+\le40R_{j-1}^{-\alpha}
+=a_j.
+\end{aligned}
+\]
+Together with the pooled tail bound, this gives
+\[
+|(D_je_P)r_{T_j}|
+\le10a_jT_j^{1-p}\quad\text{almost everywhere},
+\qquad
+\|\operatorname{coef}_M(e_PD_jr_{T_j})\|_2
+\le10a_jT_j^{1-p}.
+\]
+Hence the complete tail vector satisfies
+\[
+\left\|
+\theta^{\mathrm{tail}}_{P,M}(T_0)
++\sum_{j=1}^L\operatorname{coef}_M(e_PD_jr_{T_j})
+\right\|_2
+\le
+20T_0^{1-p}
++10\sum_{j=1}^La_jT_j^{1-p}.
+\]
+Combining this with the original-mean error bound proves
+\[
+\|\theta_P(c)-\theta^{\mathrm{wt}}_P(c)\|_2
+\le
+400K^{-S}+20T_0^{1-p}
++10\sum_{j=1}^La_jT_j^{1-p}
+=B.
+\]
+When \(L=0\), \(K=M\), both increment sums are empty, and the same identities reduce to the single correction at rank \(M\). Thus, in either branch, we have established for every real \(c\)
+\[
+\left\|
+\theta_P(c)
+-
+\int_0^1w_K(x)(\tau_P(x)-c)F_M(x)\,d\lambda(x)
+\right\|_2
+\le B.
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledger_final_rank_eq
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.multiresMean_exact
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.propensity_projection_increment_bound
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.mean_increment_tail_norm_le
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.multiresMeanTail_norm_le
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledgerScore_weighted_mean_error_le
+
+\item
+Fix now \(c\in\mathbb R\) with \(|c|\le1/2\), and define
+\[
+f^{\mathrm{cell}}_{P,c}(x)
+=
+(\Pi_M\tau_P)(x)-c,
+\qquad
+\theta^{\mathrm{cell}}_P(c)
+=
+\operatorname{coef}_M\bigl(w_Kf^{\mathrm{cell}}_{P,c}\bigr).
+\]
+By \cref{obj:ass:overlap} and preservation of bounds under cell averaging,
+\[
+\frac14\le e_P(x),e_K(x)\le\frac34,
+\qquad
+0\le w_K(x)=e_P(x)(1-e_K(x))\le\frac9{16}.
+\]
+Since \(e_K\) is constant on each fine cell,
+\[
+(\Pi_Kw_K)(x)=e_K(x)(1-e_K(x)).
+\]
+For every real number in \([1/4,3/4]\), the product with its complement lies in \([3/16,1/4]\). Indeed,
+\[
+e_K(1-e_K)-\frac3{16}
+=
+\left(e_K-\frac14\right)\left(\frac34-e_K\right)\ge0,
+\qquad
+\frac14-e_K(1-e_K)
+=
+\left(e_K-\frac12\right)^2\ge0.
+\]
+Projection nesting and preservation of bounds now yield
+\[
+\Pi_Mw_K=\Pi_M(\Pi_Kw_K),
+\qquad
+\frac3{16}\le(\Pi_Mw_K)(x)\le\frac14.
+\]
+
+Define the coarse-cell average weights by
+\[
+\bar w_{j,M}
+=
+M\int_{I_{j,M}}w_K(x)\,d\lambda(x),
+\qquad j\in\{1,\ldots,M\}.
+\]
+The function \(f^{\mathrm{cell}}_{P,c}\) is constant on each coarse cell, so the coordinate formula gives
+\[
+\bigl(\theta^{\mathrm{cell}}_P(c)\bigr)_j
+=
+\bar w_{j,M}
+\bigl(\operatorname{coef}_M(f^{\mathrm{cell}}_{P,c})\bigr)_j,
+\qquad
+\bar w_{j,M}\ge\frac3{16}.
+\]
+Squaring and summing proves
+\[
+\|\theta^{\mathrm{cell}}_P(c)\|_2^2
+\ge
+\left(\frac3{16}\right)^2
+\|\operatorname{coef}_M(f^{\mathrm{cell}}_{P,c})\|_2^2,
+\]
+and therefore
+\[
+\|\theta^{\mathrm{cell}}_P(c)\|_2
+\ge
+\frac3{16}
+\|\operatorname{coef}_M(f^{\mathrm{cell}}_{P,c})\|_2.
+\]
+The effect cap in \cref{obj:ass:effect-cap} also gives the bounds used to integrate these vectors:
+\[
+|\Pi_M\tau_P|\le\frac12,
+\qquad
+|f^{\mathrm{cell}}_{P,c}|\le1,
+\qquad
+|\tau_P-c|\le1.
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.propensity_weight_abs_le
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.coarse_propensity_weight_range
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.weighted_histogram_coefficient_norm_ge
+
+\item
+To compare the unweighted coarse coefficients with heterogeneity, define
+\[
+f^{\mathrm{raw}}_{P,c}(x)=\tau_P(x)-c,
+\qquad
+\bar\tau_P=\int_0^1\tau_P(x)\,d\lambda(x).
+\]
+Preservation of constants and cell integrals gives
+\[
+\Pi_Mf^{\mathrm{raw}}_{P,c}=f^{\mathrm{cell}}_{P,c},
+\qquad
+\operatorname{coef}_M(f^{\mathrm{raw}}_{P,c})
+=
+\operatorname{coef}_M(f^{\mathrm{cell}}_{P,c}).
+\]
+The histogram coordinate formula reconstructs the projection:
+\[
+(\Pi_Mf^{\mathrm{raw}}_{P,c})(x)
+=
+\left\langle
+\operatorname{coef}_M(f^{\mathrm{raw}}_{P,c}),F_M(x)
+\right\rangle.
+\]
+Integrating this identity against \(f^{\mathrm{raw}}_{P,c}\) gives
+\[
+\int_0^1
+f^{\mathrm{raw}}_{P,c}(x)(\Pi_Mf^{\mathrm{raw}}_{P,c})(x)\,d\lambda(x)
+=
+\|\operatorname{coef}_M(f^{\mathrm{raw}}_{P,c})\|_2^2.
+\]
+Disjointness of the cells and their measure \(1/M\) likewise give
+\[
+\int_0^1(\Pi_Mf^{\mathrm{raw}}_{P,c})(x)^2\,d\lambda(x)
+=
+\sum_{j=1}^M
+\bigl(\operatorname{coef}_M(f^{\mathrm{raw}}_{P,c})\bigr)_j^2
+=
+\|\operatorname{coef}_M(f^{\mathrm{raw}}_{P,c})\|_2^2.
+\]
+Expanding the squared projection residual consequently proves the energy identity
+\[
+\int_0^1f^{\mathrm{raw}}_{P,c}(x)^2\,d\lambda(x)
+=
+\|\operatorname{coef}_M(f^{\mathrm{cell}}_{P,c})\|_2^2
++
+\int_0^1
+\bigl(f^{\mathrm{raw}}_{P,c}(x)-(\Pi_Mf^{\mathrm{raw}}_{P,c})(x)\bigr)^2
+\,d\lambda(x).
+\]
+
+The Hölder estimate applied using
+\cref{obj:ass:effect-smoothness} gives
+\[
+\left|f^{\mathrm{raw}}_{P,c}(x)-(\Pi_Mf^{\mathrm{raw}}_{P,c})(x)\right|
+=
+|\tau_P(x)-(\Pi_M\tau_P)(x)|
+\le20M^{-\gamma}.
+\]
+Since \(\lambda\) is a probability measure,
+\[
+\int_0^1
+\bigl(f^{\mathrm{raw}}_{P,c}-\Pi_Mf^{\mathrm{raw}}_{P,c}\bigr)^2
+\,d\lambda
+\le(20M^{-\gamma})^2.
+\]
+On the other hand, expansion around the mean gives
+\[
+\begin{aligned}
+\int_0^1(\tau_P(x)-c)^2\,d\lambda(x)
+&=\int_0^1\tau_P(x)^2\,d\lambda(x)-2c\bar\tau_P+c^2\\
+&=d(P)^2+(\bar\tau_P-c)^2
+\ge d(P)^2.
+\end{aligned}
+\]
+Combining these displays yields
+\[
+d(P)^2
+\le
+\|\operatorname{coef}_M(f^{\mathrm{cell}}_{P,c})\|_2^2
++(20M^{-\gamma})^2
+\le
+\left(
+\|\operatorname{coef}_M(f^{\mathrm{cell}}_{P,c})\|_2
++20M^{-\gamma}
+\right)^2.
+\]
+Both sides inside the last square are nonnegative, so
+\[
+d(P)-20M^{-\gamma}
+\le
+\|\operatorname{coef}_M(f^{\mathrm{cell}}_{P,c})\|_2.
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.histogram_projection_energy
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.effect_distance_sq_le_const_energy
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.effect_histogram_coefficient_distance
+
+\item
+The difference between the weighted effect vector and its coarse-effect approximation is
+\[
+\theta^{\mathrm{wt}}_P(c)-\theta^{\mathrm{cell}}_P(c)
+=
+\operatorname{coef}_M\bigl(w_K(\tau_P-\Pi_M\tau_P)\bigr).
+\]
+The weight and Hölder bounds imply
+\[
+|w_K(x)(\tau_P(x)-(\Pi_M\tau_P)(x))|
+\le
+\frac9{16}\,20M^{-\gamma}
+=
+\frac{45}{4}M^{-\gamma}.
+\]
+Thus
+\[
+\|\theta^{\mathrm{wt}}_P(c)-\theta^{\mathrm{cell}}_P(c)\|_2
+\le\frac{45}{4}M^{-\gamma}.
+\]
+The triangle inequality, together with the diagonal and distance bounds, gives
+\[
+\begin{aligned}
+\frac3{16}\bigl(d(P)-20M^{-\gamma}\bigr)
+&\le
+\frac3{16}\|\operatorname{coef}_M(f^{\mathrm{cell}}_{P,c})\|_2\\
+&\le\|\theta^{\mathrm{cell}}_P(c)\|_2\\
+&\le
+\|\theta^{\mathrm{wt}}_P(c)\|_2
++\frac{45}{4}M^{-\gamma}.
+\end{aligned}
+\]
+Since
+\[
+\frac3{16}\,20+\frac{45}{4}=15,
+\]
+we obtain the weighted separation estimate
+\[
+\frac3{16}d(P)-15M^{-\gamma}
+\le\|\theta^{\mathrm{wt}}_P(c)\|_2.
+\]
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.weighted_effect_coefficient_separation
+
+\item
+To transfer this estimate to the score mean, write
+\[
+\theta^{\mathrm{wt}}_P(c)
+=
+\theta_P(c)-\bigl(\theta_P(c)-\theta^{\mathrm{wt}}_P(c)\bigr).
+\]
+The triangle inequality and the established mean-error bound give
+\[
+\|\theta^{\mathrm{wt}}_P(c)\|_2
+\le
+\|\theta_P(c)\|_2
++\|\theta_P(c)-\theta^{\mathrm{wt}}_P(c)\|_2
+\le
+\|\theta_P(c)\|_2+B.
+\]
+Consequently,
+\[
+\|\theta_P(c)\|_2
+\ge\frac3{16}d(P)-15M^{-\gamma}-B
+\ge\frac3{16}d(P)-16M^{-\gamma}-B,
+\]
+where the last inequality uses \(M^{-\gamma}\ge0\).
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.original_score_mean_ledger
+
+\item
+Finally, let \(P\in H_0(v)\), as specified in
+\cref{obj:def:null}, and let \(c_0\in\mathbb R\) satisfy
+\(\tau_P(x)=c_0\) for every \(x\in[0,1]\). Then
+\[
+\theta^{\mathrm{wt}}_P(c_0)
+=
+\int_0^1w_K(x)(\tau_P(x)-c_0)F_M(x)\,d\lambda(x)
+=0.
+\]
+The mean-error bound was established for every real candidate constant. Applying it at \(c_0\) therefore gives
+\[
+\|\theta_P(c_0)\|_2
+=
+\|\theta_P(c_0)-\theta^{\mathrm{wt}}_P(c_0)\|_2
+\le B.
+\]
+All calculations apply to either block, which completes the proof.
+% lean: CausalSmith.Stat.FinitepHomogeneityDensegamma.ledgerTheta_null_norm_le
+\end{enumerate}
+\end{proof}

@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "reader_passes": 1,
+  "deck_hash": "7a37031be4c4b50900887daa3d822175de1e4d397ea788c6c90c14e4f24e7d9f",
+  "question": "How accurately can we estimate an average treatment effect after adjustment for many discrete confounder cells, when many sampled cells lack a treated-control comparison? Population overlap does not prevent empty sample arm-cells. Ordinary regression, weighting and doubly robust methods have an extra MSE cost of order d²/n². The paper asks whether polynomial adjustment and a known bound on treatment-effect heterogeneity can reduce that cost.",
+  "result": "The estimand is τ(P)=Σ_k p_k(μ_1k−μ_0k). Assume independent observations, consistency, conditional exchangeability, fixed overlap ε≤π_k≤1−ε, arbitrary cell masses, |μ_ak|≤M/2, conditional variance≤M², and max_k|τ_k−τ(P)|≤σM, with known M≥1 and σ∈[0,2]. Define u=d²/[n²log²(en)], h=σ²+d/n², and r=1/n+min{h,u,1}. For all n,d≥1, the proposed selector satisfies sup_P E[(τ̂*−τ(P))²]≤C_εM²r. The minimax risk is at least c_εM²{1/n+min(1,d/n²)+σ²min(1,u)}. These bounds match in order at exact homogeneity, at every radius bounded away from zero, and when u≥1, u≤Kb, or σ²≤Kb, where b=1/n+d/n² and K is fixed. Matching remains unresolved in some regimes with shrinking positive σ.",
+  "mechanism": "First construct a borrowing estimator: keep cells containing both treatment arms, average their sample contrasts with weights N_k/R_n, and clip to the target range. Its weights can differ from population masses because every cell effect is within σM of the ATE. Second construct a polynomial estimator: split the sample into independent classification and estimation blocks; use ordinary frequency-weighted contrasts for heavy cells. For light cells, write each normalized contribution as p_k(z_1k/s_1k−z_0k/s_0k). Approximate the reciprocals with a polynomial at scale B of order log(n)/n. Estimate each resulting product p_k s_ak^j z_ak using products over distinct observations, implemented through outcome totals and falling factorials. Subtract the control contributions from the treated contributions, add heavy-cell contributions, and clip. A degree of order log(n), with a small multiplier, balances approximation error and coefficient growth. Finally compare h and u: choose crossed-cell averaging when h is smallest, polynomial adjustment when u is smallest, and zero when the scale cap is smallest.",
+  "why_true": "Borrowing works because convex averaging of cell effects changes the target by at most σM; at homogeneity that discrepancy vanishes. Crossed comparisons supply the d/n² scarcity scale. Polynomial adjustment works because distinct-observation products estimate probability powers without dividing by observed arm counts. Although reciprocals become singular near zero, their contribution to the ATE is weighted by p_kz_ak. The mean and overlap bounds make weighted approximation sufficient: per-cell error is at most B/(εK_n²), so aggregate squared bias is of order d²/[n²log²(en)]. The stated covariance bound controls variance with a sufficiently small logarithmic degree. Clipping supplies the scale cap. For the lower bound, the slides invoke two existing hard families; common randomization attenuates effect separation while preserving their difficulty of statistical distinction.",
+  "example": "Exact homogeneity: every supported cell has the same effect. The estimator averages contrasts only from crossed cells, weighting them by their observed cell sizes. Even though those weights exclude uncrossed cells and differ from population frequencies, every included contrast targets the same population effect. The example is symbolic rather than a worked sample.",
+  "findings": [
+    {
+      "slide": 11,
+      "severity": "rough",
+      "problem": "The collision explanation establishes intuition for uniform cell masses, then says 'Our occupancy analysis makes this intuition uniform over arbitrary cell masses.' I did not learn why uneven masses preserve the scarcity bound for the actual crossed-cell estimator.",
+      "fix": "Add a brief explanation of why concentrating cell mass cannot worsen the relevant scarcity measure, and connect that measure to crossed-cell averaging. The occupancy proof can remain omitted."
+    },
+    {
+      "slide": 21,
+      "severity": "rough",
+      "problem": "'Two binary hard families from Zeng et al. (2024)' supplies the lower-bound scales without describing what makes either family hard. The attenuation step is understandable, but the underlying difficulty remains a cited black box.",
+      "fix": "Describe, in a sentence for each family, what differs between competing populations and what sparse observations fail to reveal. Retain the attenuation formula and omit technical lower-bound derivations."
+    }
+  ],
+  "understood": "yes"
+}

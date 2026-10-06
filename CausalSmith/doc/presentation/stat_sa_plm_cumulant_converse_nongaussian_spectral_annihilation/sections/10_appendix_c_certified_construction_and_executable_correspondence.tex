@@ -1,0 +1,231 @@
+\section{Appendix C: certified construction and executable correspondence}
+
+This appendix records the finite arithmetic contract behind the contour statistic in \cref{obj:def:adaptive-contour-estimator}. The statistical arguments in the main text use ordinary empirical transforms and contour ratios; the material here specifies a rational interval substrate, a deterministic contour-bank record, and the deterministic perturbation statement that connects a selected represented contour calculation to the population ratio. The construction follows the computable-analysis and interval-arithmetic convention that real inputs are accessed through nested rational enclosures with effective moduli \citep{Weihrauch2000,Ko1991,Moore1966}.
+
+The first definition fixes the elementary arithmetic layer. It gives represented real and positive-real records, complex rectangles, guarded division, elementary functions on bounded intervals, circle-node construction, and certified mesh integration. These operations are the only numerical primitives used by the represented contour program.
+
+\begin{definitionv}{def:certified-contour-arithmetic-substrate}[Certified contour arithmetic substrate \(\mathsf{CCIA}_{\mathrm{build}}\)]
+The bounded-build specification \(\mathsf{CCIA}_{\mathrm{build}}\) consists of the following finite rational arithmetic operations and their stated enclosure properties.
+
+A represented real number \(x\) is given by rational closed intervals \(I_m=[I_m^-,I_m^+]\) and an executable modulus \(\mu:\mathbb Q_{>0}\to\mathbb N\) such that
+\[
+x\in I_{m+1}\subseteq I_m,
+\qquad
+I_{\mu(e)}^+-I_{\mu(e)}^-\le e .
+\]
+A positive represented real number additionally supplies a rational lower bound \(p>0\) with \(p\le x\). The executable data are the interval sequence, the modulus, and the positive lower bound.
+
+For rational intervals \(A=[a_-,a_+]\) and \(B=[b_-,b_+]\), interval addition, subtraction, and multiplication are
+\[
+A+B=[a_-+b_-,a_++b_+],
+\qquad
+A-B=[a_--b_+,a_+-b_-],
+\]
+\[
+AB=
+\left[
+\min\{a_-b_-,a_-b_+,a_+b_-,a_+b_+\},
+\max\{a_-b_-,a_-b_+,a_+b_-,a_+b_+\}
+\right].
+\]
+A complex rectangle is \(A+iB\). Complex addition, subtraction, conjugation, and multiplication use these endpoint operations together with
+\[
+(A+iB)(C+iD)=(AC-BD)+i(AD+BC).
+\]
+For \(A=[a_-,a_+]\), define
+\[
+\operatorname{sq}_{-}(A)=
+\begin{cases}
+0,&a_-\le0\le a_+,\\
+\min\{a_-^2,a_+^2\},&\text{otherwise},
+\end{cases}
+\qquad
+\operatorname{sq}_{+}(A)=\max\{a_-^2,a_+^2\}.
+\]
+The squared modulus of \(A+iB\) is enclosed by adding the corresponding lower and upper square bounds. Rational bisection between nonnegative rational endpoints gives lower and upper square-root enclosures whose width after \(q\) bisections is at most the initial width times \(2^{-q}\). Division is the guarded operation
+\[
+\frac{A+iB}{C+iD}
+=(A+iB)(C-iD)(C^2+D^2)^{-1},
+\]
+performed when the modulus routine returns a rational lower bound \(m>0\), with outward division by the positive rational interval enclosing \(C^2+D^2\).
+
+The represented value of \(\pi\) is constructed from Machin's identity
+\[
+\pi=16\arctan(1/5)-4\arctan(1/239).
+\]
+For \(0<x<1\),
+\[
+\arctan x=\sum_{j=0}^{N}(-1)^j\frac{x^{2j+1}}{2j+1}+R_N(x),
+\qquad
+|R_N(x)|\le\frac{x^{2N+3}}{2N+3}.
+\]
+Intersecting the first \(m+1\) requested enclosures gives rational nested enclosures. If \(e=p/q>0\) is in lowest terms, the choice \(N=5q+5\) makes the propagated Machin remainder smaller than \(e\), giving an effective modulus.
+
+For a rational interval contained in \([-B,B]\), with rational \(B\ge0\), the Taylor polynomials for \(\exp\), \(\sin\), and \(\cos\) are evaluated by the preceding interval operations, with Lagrange remainders bounded by
+\[
+3^{\lceil B\rceil}\frac{B^{N+1}}{(N+1)!},
+\qquad
+\frac{B^{N+1}}{(N+1)!},
+\qquad
+\frac{B^{N+1}}{(N+1)!}.
+\]
+For a requested rational error \(e=p/q>0\), take
+\[
+N=\lceil2B\rceil+q+2\lceil B\rceil+2.
+\]
+After index \(\lceil2B\rceil\), successive absolute Taylor terms decrease by at least a factor \(1/2\); since \(3^{\lceil B\rceil}<2^{2\lceil B\rceil}\) and \(2^{-q}\le q^{-1}\le e\), the displayed \(N\) gives error at most \(e\). Finite intersections make the output rectangles nested. Consequently,
+\[
+\exp(x+iy)=\exp(x)\{\cos y+i\sin y\}
+\]
+has a nested complex-rectangle extension with an effective modulus on every bounded input rectangle. Combining the constructed representation of \(\pi\) with these trigonometric operations gives, from a positive radius representation \(\mathfrak r\) and integers \(N\ge1\) and \(0\le q<N\), represented circle-node values
+\[
+r\exp(2\pi iq/N)
+\qquad\text{and}\qquad
+2\pi i r\exp(2\pi iq/N).
+\]
+
+Finite rectangle sums and products are primitive recursive. If a complex-valued function on \([0,1]\) has a supplied rational Lipschitz bound \(L\), then a uniform mesh with
+\[
+N_{\mathrm{mesh}}=\lceil L/e\rceil+1
+\]
+has oscillation at most \(e\) on each cell. Evaluating every node to a rational error budget divided by the displayed finite number of operations yields sound finite infimum, supremum, and trapezoidal-integral enclosures. The required finite computation consists of \(N_{\mathrm{mesh}}+1\) node evaluations, the displayed Taylor cutoffs, square-root bisection cutoffs, and finitely many endpoint operations. Absolute value of a real interval is implemented by the square-free endpoint rule implicit in \(\operatorname{sq}_{-}\) and \(\operatorname{sq}_{+}\), with the same compositional modulus property.
+
+A concrete implementation satisfies \(\mathsf{CCIA}_{\mathrm{build}}\) when it implements these algorithms, exports their soundness and effective-modulus contracts, and compiles the resulting module. Later executable conclusions are conditional on a compiled implementation satisfying this bounded-build specification.
+\end{definitionv}
+
+\Cref{obj:def:certified-contour-arithmetic-substrate} supplies the finite representation interface used throughout the executable clauses. Nested intervals and moduli give a standard Type-2-style name for real values, while the endpoint operations and guarded division give sound complex-rectangle enclosures for the contour integrands. The mesh rule turns a supplied Lipschitz bound into finite enclosures for boundary moduli and contour integrals, matching the interval-analysis approach of \citet{Moore1966} within the computable-real framework of \citet{Weihrauch2000,Ko1991}.
+
+The next definition specializes that arithmetic substrate to the contour bank. The primitive record stores certified names for the fixed separation, treatment-noise scale, zero-localization radius, and outer search radius. From those names and the parameter record, the bank construction produces a deterministic translated dyadic list of circles and a positive dyadic lower-modulus certificate.
+
+\begin{definitionv}{def:contour-bank-handle}[Certified contour-bank handle $\mathfrak p_{\star}$]
+Let \(p\) be a parameter record with sample size \(n\in\mathbb N\), \(1\le n\), orders \(r,k\in\mathbb N\) satisfying \(k=r+1\) and \(2\le r\), exponent \(s\in[0,\infty]\) satisfying \(r\le s\), probability level \(\gamma\in(1/2,1)\), constants \(C_{\theta},C_g,C_q,\psi_{\eta},\psi_{\xi},\delta,\sigma>0\), and sequences \(\varepsilon_1,\varepsilon_2:\mathbb N\to\mathbb R\) satisfying \(\varepsilon_\ell(t)\ge0\) for \(t\ge1\) and \(\varepsilon_\ell(j)\le\varepsilon_\ell(i)\) whenever \(1\le i\le j\), for \(\ell=1,2\). Let \(\operatorname{Name}(x)\) denote a supplied certified-real record with value \(x\), and let \(\operatorname{Name}_{+}(x)\) denote such a record together with a rational lower-bound witness \(\ell>0\) satisfying \(\ell\le x\). As part of the experiment convention, fix the supplied record
+\[
+ \mathfrak p_{\star}=
+ \bigl(k_{\star},\mathfrak d_{\star},\mathfrak p_{\eta,\star},
+       \mathfrak r_{0,\star},\mathfrak r_{1,\star}\bigr),
+\]
+where \(k_{\star}\) is exact with \(k_{\star}=k\) and
+\[
+ \mathfrak d_{\star}:\operatorname{Name}_{+}(\delta),\quad
+ \mathfrak p_{\eta,\star}:\operatorname{Name}_{+}(\psi_{\eta}),\quad
+ \mathfrak r_{0,\star}:\operatorname{Name}_{+}(R_0),\quad
+ \mathfrak r_{1,\star}:\operatorname{Name}_{+}(R_1).
+\]
+The value contracts are
+\[
+ R_0=(2^{k+4}k!)^{1/(k-2)}
+       (\psi_{\eta}^2/\delta)^{1/(k-2)},
+ \qquad R_1=R_0+1.
+\]
+Writing \(A_k=(2^{k+4}k!)^{1/(k-2)}\) for the numerical factor, this reads \(R_0=A_k(\psi_{\eta}^2/\delta)^{1/(k-2)}\). The search radius of the record is this outer radius: \(\operatorname{searchRadius}(p)=R_1\).
+The record \(\mathfrak p_{\star}\) is the primitive certified input shared by the bank and the estimator for this parameter record.  The bank data assembled below from \(p\) and \(\mathfrak p_{\star}\) is written \(B\).
+
+Invoke the supplied moduli of \(\mathfrak p_{\eta,\star}\) and \(\mathfrak r_{1,\star}\) at error one. If the returned intervals have rational upper endpoints \(u_{\psi}\) and \(u_R\), define
+\[
+ U_{\psi}=\left\lceil\max\{1,u_{\psi}\}\right\rceil,
+ \qquad
+ U_R=\left\lceil\max\{1,u_R\}\right\rceil,
+ \qquad
+ N_{\mathrm{cert}}=4U_{\psi}^2(U_R+2)^3.
+\]
+Set
+\[
+ m_{\star}=N_{\mathrm{cert}}+3,
+ \qquad d_{\star}=2^{-m_{\star}},
+ \qquad h_{\star}=d_{\star}/3,
+ \qquad J_{\mathrm{base}}=2^{m_{\star}-1}.
+\]
+The bank therefore contains
+\[
+ J=J_{\mathrm{base}}+1
+\]
+circles, indexed by \(j\in\{0,\ldots,J_{\mathrm{base}}\}\).
+For each \(j=0,\ldots,J_{\mathrm{base}}\), use certified addition on the fixed record \(\mathfrak r_{0,\star}\) and the rational point record for \(1/4+j2^{-m_{\star}}\) to form
+\[
+ \mathfrak\rho_j
+ =\mathfrak r_{0,\star}+\operatorname{Name}(1/4+j2^{-m_{\star}}).
+\]
+The associated real-valued radius field is
+\[
+ \rho_j=(\mathfrak\rho_j).\operatorname{value}
+       =R_0+1/4+j2^{-m_{\star}}.
+\]
+
+Define the integers
+\[
+ e_{\star}=8U_RU_{\psi}^2(U_R+1)^2,
+ \qquad
+ d_{\star}^{\mathrm{den}}=3(2U_R+1),
+\]
+\[
+ u_{\star}=2e_{\star}
+ +N_{\mathrm{cert}}(m_{\star}+d_{\star}^{\mathrm{den}}).
+\]
+Define the rational dyadic certificate and its real value by
+\[
+ a_{\star,\mathbb Q}=2^{-u_{\star}}>0,
+ \qquad
+ a_{\star}=(a_{\star,\mathbb Q}:\mathbb R).
+\]
+Every output datum is obtained by the displayed finite modulus calls, rational endpoint operations, certified additions with rational point records, and primitive recursion over the displayed integer bounds. The construction is a finite certified procedure in the supplied record \(\mathfrak p_{\star}\).
+\end{definitionv}
+
+\Cref{obj:def:contour-bank-handle} converts the analytic radius from \cref{obj:lem:zero-localization} into a finite bank used by \cref{obj:def:adaptive-contour-estimator}. The radii fill a translated dyadic grid outside the zero-localization disk and inside the outer search region, and the certificate \(a_{\star}\) gives the deterministic denominator scale used by the selector. Because the construction depends on fixed primitive records and finite modulus calls, the same bank can be transported across the common-experiment sequences described in \cref{obj:thm:common-experiment-dichotomy}.
+
+The represented-data transducer in \cref{obj:def:adaptive-contour-estimator} applies \cref{obj:def:certified-contour-arithmetic-substrate} to the sample records \(\mathfrak t_i,\mathfrak y_i,\mathfrak g_i\). It first forms certified residual records, then evaluates the pilot-fold winding integrand on each bank circle, and finally evaluates the selected contour ratio on the evaluation fold. The fallback branches are part of the total rule: a failed admissibility check or a failed evaluation-fold modulus check returns the displayed value \(0\), while a successful run returns the clipped midpoint of a certified real interval. Thus the ordinary statistic and the represented execution have the same branch structure and the same clipped value whenever the compiled arithmetic implementation satisfies the bounded-build contract.
+
+The final lemma is the deterministic accuracy statement used by the statistical risk proof. It compares the evaluation-fold empirical transforms with arbitrary population maps \(F\) and \(G\) on the selected circle, assumes the selected contour identifies a real target \(\vartheta\), and turns uniform transform errors into a bound for the clipped contour statistic.
+
+\begin{lemmav}{lem:selected-contour-perturbation-bound}[Selected contour perturbation]
+Fix a parameter record \(p\) as in \cref{obj:def:model-parameters}, the certified primitive and range records \(\mathfrak p_{\star}\) and \(\mathfrak c_{\theta,\star}\) of \cref{obj:def:contour-bank-handle,obj:def:adaptive-contour-estimator}, a supplied treatment-regression code sequence, and observations \(O_1,\ldots,O_n\) with \(O=(X,T,Y)\) as in \cref{obj:def:plm-model}.  Let \(B\) be the contour bank generated by \(p\) and \(\mathfrak p_{\star}\), let \(a_{\star}\) be its dyadic lower-modulus certificate, let \(C_j\) have radius \(\rho_j\), and write \(R_1=\operatorname{searchRadius}(p)\).  Let \(F,G:\mathbb C\to\mathbb C\), let \(d,e,C_G,\mu,\nu\in\mathbb R\), and let \(\vartheta\in\mathbb R\) be the target value.
+
+Assume:
+\begin{itemize}
+\item \textbf{(Target range.)} The target satisfies
+\[
+|\vartheta|\le C_{\theta}.
+\]
+\item \textbf{(Selector event.)} The canonical represented input built from the clipped current code and the sample satisfies
+\[
+d\ge0,\qquad e\ge0,\qquad C_G\ge0,\qquad \mu>0,\qquad \nu>0,
+\]
+\[
+\mu=\frac{31a_{\star}}{64},\qquad \nu=\frac{23a_{\star}}{64},\qquad d\le \mu-\nu,
+\]
+and there are a bank index \(j\) and an integer \(N_j\) such that the certified selector of \cref{obj:def:adaptive-contour-estimator} selects \(C_j\), the pilot winding output on \(C_j\) decodes to \(N_j\), \(N_j\ge1\), the evaluation-fold modulus enclosure on \(C_j\) has lower endpoint at least \(a_{\star}/4\), and every \(z\in C_j\) satisfies
+\[
+\mu\le |F(z)|,\qquad |G(z)|\le C_G,\qquad
+|\widehat F_{1,n}(z)-F(z)|\le d,\qquad
+|\widehat G_{1,n}(z)-G(z)|\le e,
+\]
+where \(\widehat F_{1,n}\) and \(\widehat G_{1,n}\) are the split-fold empirical transforms of \cref{obj:def:local-gaussian-handle}.
+\item \textbf{(Contour integrability.)} For every bank index \(j\) selected by the canonical selector, both contour ratios
+\[
+z\mapsto \frac{\widehat G_{1,n}(z)}{\widehat F_{1,n}(z)}
+\qquad\text{and}\qquad
+z\mapsto \frac{G(z)}{F(z)}
+\]
+are integrable on the circle \(C_j\).
+\item \textbf{(Exact identification.)} For every bank index \(j\) and every integer \(N\), if the canonical selector selects \(C_j\) and the pilot winding output on \(C_j\) decodes to \(N\), then
+\[
+\vartheta
+=
+\Re\left[
+\{N\,2\pi i\}^{-1}
+\oint_{C_j}\frac{G(z)}{F(z)}\,dz
+\right].
+\]
+\end{itemize}
+Then the total Borel contour statistic \(\widehat\theta_{\mathrm{spec},n}\) of \cref{obj:def:adaptive-contour-estimator}, computed on the same canonicalized sample, satisfies
+\[
+\left|\widehat\theta_{\mathrm{spec},n}-\vartheta\right|
+\le
+R_1\max\left\{\nu^{-1},\,C_G(\mu\nu)^{-1}\right\}(d+e)
++
+\frac{1}{\max\{n,1\}}.
+\]
+\end{lemmav}
+
+\Cref{obj:lem:selected-contour-perturbation-bound} is the deterministic bridge between certified execution and the risk calculation in \cref{obj:thm:adaptive-rootn-minimax}. The selector event supplies a lower bound for the population denominator and an evaluation-fold lower-modulus check; the exact-identification clause supplies the population target represented by the same selected contour. The conclusion then bounds the statistic by the uniform denominator and numerator errors on the selected circle, with the final \(1/\max\{n,1\}\) term coming from the certified interval radius used when the real contour moment is converted into the clipped rational midpoint.
+
+Combining \cref{obj:def:certified-contour-arithmetic-substrate,obj:def:contour-bank-handle,obj:lem:selected-contour-perturbation-bound} gives the executable correspondence needed by the main contour theorem. The arithmetic substrate provides sound finite enclosures, the bank handle supplies the fixed finite search geometry, and the perturbation lemma states the deterministic accuracy of the selected represented statistic on the good event used in the statistical argument.

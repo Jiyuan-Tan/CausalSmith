@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "reader_passes": 1,
+  "deck_hash": "36890266803f2f2c04bad322d8e3c98ed0e9e8d94996e365be9c7821fe0ec8a1",
+  "question": "How accurately can we estimate an average treatment effect when n records have outcomes and m additional records have only treatment and covariates? The standard estimator averages estimated within-cell outcome differences, but sparsely observed treatment arms produce unreliable means and accumulating bias. The paper asks whether auxiliary records and better treatment of rare cells can close the logarithmic gap between existing supervised upper and lower bounds.",
+  "result": "The target is τ(P)=Σ_x p_x(μ_1x−μ_0x). For independent records from the same population, binary treatment and outcomes, d known covariate values, n≥1, m≥0, d≥2, and fixed overlap ε≤e_x≤1−ε in every occupied cell, the unrestricted class has minimax MSE R_ε satisfying c_ε r_ε≤R_ε≤C_ε r_ε, where r_ε=min{1,1/n+d²/[(n+m)² log²(en)]}. The constants depend only on ε. The hybrid estimator attains the upper bound, and the lower bound applies to every estimator. Consistency and conditional exchangeability give τ its causal ATE interpretation.",
+  "mechanism": "Write q_ax=P(X=x,A=a,Y=1), s_ax=P(X=x,A=a), and p_x=s_0x+s_1x. Each target arm contribution is q_ax p_x/s_ax. Split records into independent outcome, pilot, and weight pools. Outcome counts estimate q_ax; pooled treatment–covariate counts estimate weights. In common cells, use the stabilized ratio (K_0x+K_1x+1)/(K_ax+1). In rare cells, use W_a=(p_x/B)G_L(s_ax/B), where H_L(z)=[1−T_L(1−2z)]/(2L²), E_L(z)=H_L(z)/z, and G_L(z)=[1−E_L(z)]/z. Estimate the polynomial's mass powers with Poisson falling-factorial moments. An independent pilot selects the branch. Sum treated minus control contributions and clip to [−1,1]; the slides describe a transfer to fixed sample sizes. Choose L proportional to a sufficiently small multiple of log(en) and B proportional to L/(n+m). These choices yield bias of order d/[(n+m)log(en)] while keeping variance within the claimed risk scale.",
+  "why_true": "The stabilized inverse-count estimator already has suitable variance, but its bias can accumulate at order d/(n+m). Polynomial correction controls contribution error rather than demanding accurate reciprocal weights near zero. Its missing contribution is p_x μ_ax E_L(s_ax/B). Since E_L(z)≤1/(L²z) and overlap gives s_ax≥εp_x, that error is at most B/(εL²) per rare cell. Unbiased factorial moments and independence preserve this contribution calculation after estimation. Polynomial variance grows exponentially with degree, so labels limit L; auxiliary records shrink B. For optimality, outcome-only alternatives with identical treatment–covariate tables force the 1/n floor. The rare-cell lower bound uses signed masses whose moments cancel through degree L but whose target contributions remain separated. A specially chosen mass distribution converts low-degree joint likelihood differences into those canceled moments. Taking B proportional to L/(n+m) controls the remaining likelihood tail even with auxiliary observations. When the alphabet term dominates, target concentration preserves separation after normalization, and testing difficulty forces the matching squared-separation bound.",
+  "example": "In the two-cell example, p_1=1/2, e_1=1/2, and q_11=1/4. The correct treated contribution from cell one is q_11/e_1=1/2. Multiplying success mass by twice an independent auxiliary cell indicator instead gives 2q_11p_1=1/4. This demonstrates the required mass–weight decomposition and why independence alone does not validate a weight. It does not demonstrate the rare-cell polynomial correction.",
+  "findings": [
+    {
+      "slide": 5,
+      "severity": "rough",
+      "problem": "The candidate weight consisting of twice the auxiliary cell indicator has no explained connection to the standard estimator. The example establishes the correct contribution but never shows the paper's rare-cell improvement working.",
+      "fix": "Extend or replace the example with one rare cell: show its missing contribution under the stabilized ratio and under polynomial correction, using the residual fraction E_L."
+    },
+    {
+      "slide": 14,
+      "severity": "rough",
+      "problem": "The two amplified terms, two absorption regimes, exact constant 7056, and several calibration inequalities are difficult to absorb during a 20-minute talk. The reason variance permits logarithmic degree gets buried in the table.",
+      "fix": "Keep the amplified terms and explain their absorption briefly, then display the resulting variance bound C[1/n+(dB/L²)²] under logarithmic degree. Move the exact constant and calibration powers out of the spoken slide."
+    },
+    {
+      "slide": 20,
+      "severity": "rough",
+      "problem": "v is called the auxiliary Poisson intensity but is said to be proportional to N=n+m rather than m. I cannot tell whether it counts auxiliary-only observations or a separate pool of treatment–covariate observations.",
+      "fix": "Specify which observations v represents and state the relation between u+v and N, including how this interpretation works when m=0."
+    }
+  ],
+  "understood": "yes"
+}

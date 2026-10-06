@@ -1,0 +1,232 @@
+\begin{proof}[Proof of \cref{obj:lem:two-arm-scalar-prior-schedule-kernel}]
+Fix a triple \(\vartheta=(p_+,p_-,r_0)\).  For a complete two-arm schedule \(z\), write
+\[
+P(z)=\{i:z_{i,1}=1,\ z_{i,2}=0\},\qquad
+N(z)=\{i:z_{i,1}=0,\ z_{i,2}=1\},\qquad
+R(z)=\{i:z_{i,1}=z_{i,2}\}.
+\]
+Let
+\[
+\Omega_\vartheta
+=
+\frac{n!}{p_+!\,p_-!\,r_0!}\,2^{r_0}
+=
+\binom n{p_+}\binom{n-p_+}{p_-}2^{r_0},
+\]
+where the second equality uses \(p_++p_-+r_0=n\).  Define
+\[
+K_\vartheta(z)
+=
+\begin{cases}
+\Omega_\vartheta^{-1},
+& |P(z)|=p_+,\ |N(z)|=p_-,\ |R(z)|=r_0,\\
+0,&\text{otherwise.}
+\end{cases}
+\]
+When \(n=0\), the only triple is \((0,0,0)\), \(\Omega_\vartheta=1\), and all sums below are the corresponding one-point or empty sums.
+
+\begin{enumerate}
+\item Define the lifted prior by
+\[
+\widetilde\nu(z)=\sum_{\vartheta}\nu_\vartheta K_\vartheta(z),
+\qquad z\in\mathcal T_2^n .
+\]
+Each summand is nonnegative.  For fixed \(\vartheta\), there are
+\(\binom n{p_+}\binom{n-p_+}{p_-}\) choices of the sets \(P,N\), after which \(R\) is forced, and the \(r_0\) equal-potential-outcome units have \(2^{r_0}\) binary choices.  Thus exactly \(\Omega_\vartheta\) schedules have positive \(K_\vartheta\)-mass, each with mass \(\Omega_\vartheta^{-1}\), so
+\[
+\sum_{z\in\mathcal T_2^n}K_\vartheta(z)=1.
+\]
+It follows that
+\[
+\sum_{z\in\mathcal T_2^n}\widetilde\nu(z)
+=
+\sum_\vartheta \nu_\vartheta\sum_{z\in\mathcal T_2^n}K_\vartheta(z)
+=
+\sum_\vartheta \nu_\vartheta
+=
+1,
+\]
+and the displayed definition is exactly the canonical mixture formula. % lean: canonicalNuLift
+
+\item For \(A\in\mathcal A_2^n\), define the transformed score vector and scalar count by
+\[
+S_i(z,A)=
+\begin{cases}
+z_{i,1},&A_i=1,\\
+1-z_{i,2},&A_i=2,
+\end{cases}
+\qquad
+X(z,A)=\sum_{i=1}^n S_i(z,A).
+\]
+Fix a binary vector \(s\in\{0,1\}^n\), and put \(x_s=\sum_i s_i\).  A schedule in the \(\vartheta\)-fiber can produce \(S(z,A)=s\) exactly by choosing \(P(z)\) as a \(p_+\)-element subset of \(\{i:s_i=1\}\) and \(N(z)\) as a \(p_-\)-element subset of \(\{i:s_i=0\}\); after these choices the schedule is determined.  Hence
+\[
+\sum_{z\in\mathcal T_2^n}
+\mathbf 1\{S(z,A)=s\}K_\vartheta(z)
+=
+\frac{\binom{x_s}{p_+}\binom{n-x_s}{p_-}}
+{\binom n{p_+}\binom{n-p_+}{p_-}2^{r_0}}.
+\]
+If \(p_+\le x_s\le p_++r_0\), the factorial identity
+\[
+\binom n{x_s}\binom{x_s}{p_+}\binom{n-x_s}{p_-}
+=
+\binom n{p_+}\binom{n-p_+}{p_-}\binom{r_0}{x_s-p_+}
+\]
+gives
+\[
+\sum_{z\in\mathcal T_2^n}
+\mathbf 1\{S(z,A)=s\}K_\vartheta(z)
+=
+\frac{\operatorname{binom}_{1/2}(r_0,x_s-p_+)}{\binom n{x_s}}.
+\]
+If \(x_s<p_+\) or \(p_++r_0<x_s\), the same mass is \(0\), since respectively \(\binom{x_s}{p_+}=0\) or \(\binom{n-x_s}{p_-}=0\).  Summing over the \(\binom n x\) vectors \(s\) with \(x_s=x\) yields
+\[
+\sum_{z\in\mathcal T_2^n}
+\mathbf 1\{X(z,A)=x\}K_\vartheta(z)
+=
+\sum_{k=0}^{r_0}
+\mathbf 1\{x=p_+ + k\}\operatorname{binom}_{1/2}(r_0,k).
+\]
+Summing this identity over \(x=0,\ldots,n\) gives
+\[
+\sum_{z\in\mathcal T_2^n}K_\vartheta(z)
+=
+\sum_{k=0}^{r_0}\operatorname{binom}_{1/2}(r_0,k)=1.
+\]
+Finally, if \(\sum_i s_i=x\), then the event \(\{S(z,A)=s\}\) already implies \(\{X(z,A)=x\}\), and the preceding display gives
+\[
+\sum_{z\in\mathcal T_2^n}
+\mathbf 1\{X(z,A)=x,\ S(z,A)=s\}K_\vartheta(z)
+=
+\frac{
+\sum_{z\in\mathcal T_2^n}\mathbf 1\{X(z,A)=x\}K_\vartheta(z)
+}{
+\binom n x
+}.
+\]
+These identities are independent of \(A\). % lean: hasTwoArmScalarKernel_canonical
+
+\item Fix an assignment law \(\mathcal D\) and an estimator \(\widehat\tau\).  For a binary score vector \(s\), let \(y(A,s)\) be the observed-outcome vector obtained by inverting the preceding score map:
+\[
+y_i(A,s)=
+\begin{cases}
+s_i,&A_i=1,\\
+1-s_i,&A_i=2.
+\end{cases}
+\]
+Set
+\[
+T(A,s)=\widehat\tau(A,y(A,s)),
+\qquad
+\psi(\vartheta)=
+\begin{cases}
+(p_+-p_-)/n,& n>0,\\
+0,& n=0.
+\end{cases}
+\]
+Throughout the displays below, the expression \((p_+-p_-)/n\) is read with this same total convention when \(n=0\).  The risk under the lifted schedule prior is the prior risk in the induced score experiment:
+\[
+\mathbb E_{\widetilde\nu}\!\left[R_n(\mathcal D,\widehat\tau;z)\right]
+=
+\sum_\vartheta \nu_\vartheta
+\sum_A \mathcal D(A)
+\sum_z K_\vartheta(z)\{T(A,S(z,A))-\psi(\vartheta)\}^2 .
+\]
+For \(x=0,\ldots,n\), define
+\[
+\beta_\vartheta(x)=
+\sum_{k=0}^{r_0}\mathbf 1\{x=p_+ + k\}\operatorname{binom}_{1/2}(r_0,k),
+\qquad
+\omega(A,s)=\frac{\mathcal D(A)}{\binom n{\sum_i s_i}}.
+\]
+The scalar-kernel calculation gives the factorization
+\[
+\mathcal D(A)
+\sum_z \mathbf 1\{S(z,A)=s\}K_\vartheta(z)
+=
+\omega(A,s)\,\beta_\vartheta\!\left(\sum_i s_i\right).
+\]
+Moreover, for each \(x\),
+\[
+\sum_{A}\sum_{s:\sum_i s_i=x}\omega(A,s)
+=
+\sum_A\mathcal D(A)\frac{\binom n x}{\binom n x}
+=
+1.
+\]
+Since the displayed weights form a probability distribution on each fiber \(\{(A,s):\sum_i s_i=x\}\), define the scalar average
+\[
+g(x)=
+\sum_A\sum_{s:\sum_i s_i=x}
+\omega(A,s)T(A,s),
+\qquad x=0,\ldots,n .
+\]
+For each fixed \(\vartheta\) and \(x\), Jensen's inequality on this finite fiber gives
+\[
+\{g(x)-\psi(\vartheta)\}^2
+\le
+\sum_A\sum_{s:\sum_i s_i=x}
+\omega(A,s)\{T(A,s)-\psi(\vartheta)\}^2 .
+\]
+Multiplying by \(\nu_\vartheta\beta_\vartheta(x)\), summing over \(\vartheta\) and \(x\), and using the preceding factorization gives
+\[
+\sum_\vartheta\nu_\vartheta
+\sum_{x=0}^n
+\beta_\vartheta(x)\{g(x)-\psi(\vartheta)\}^2
+\le
+\mathbb E_{\widetilde\nu}\!\left[R_n(\mathcal D,\widehat\tau;z)\right].
+\]  Extend \(g\) to \(f:\mathbb N\to\mathbb R\) by setting \(f(x)=g(x)\) for \(0\le x\le n\) and \(f(x)=0\) for \(x>n\).  Expanding \(\beta_\vartheta\) gives
+\[
+\sum_{\vartheta=(p_+,p_-,r_0)}
+\nu_\vartheta
+\sum_{k=0}^{r_0}
+\operatorname{binom}_{1/2}(r_0,k)
+\left\{
+f(p_+ + k)-\frac{p_+-p_-}{n}
+\right\}^2
+\le
+\mathbb E_{\widetilde\nu}\!\left[
+R_n(\mathcal D,\widehat\tau;z)
+\right].
+\] % lean: twoArmRaoBlackwellThroughX
+
+\item It remains to identify the two infima.  Let
+\[
+\operatorname{clip}(u)=\max\{-1,\min\{1,u\}\}.
+\]
+For every \(\vartheta\), the target \(\psi(\vartheta)\) lies in \([-1,1]\): this is immediate when \(n=0\), and for \(n>0\) the identities \(p_++p_-+r_0=n\) and nonnegativity give \(0\le p_+,p_-\le n\), so \(-n\le p_+-p_-\le n\), and division by the positive number \(n\) gives \(-1\le (p_+-p_-)/n\le 1\).  Therefore, for every scalar rule \(f:\mathbb N\to\mathbb R\),
+\[
+\left\{\operatorname{clip}(f(p_+ + k))-\psi(\vartheta)\right\}^2
+\le
+\left\{f(p_+ + k)-\psi(\vartheta)\right\}^2.
+\]
+The full-data estimator
+\[
+\widehat\tau_f(A,y)
+=
+\operatorname{clip}\!\left(
+f\!\left(\sum_{i=1}^n
+\begin{cases}
+y_i,&A_i=1,\\
+1-y_i,&A_i=2
+\end{cases}\right)\right)
+\]
+therefore has lifted Bayes risk at most the scalar risk of \(f\).  Taking the infimum over \(f\) gives
+\[
+\inf_{\widehat\tau}
+\mathbb E_{\widetilde\nu}\!\left[
+R_n(\mathcal D,\widehat\tau;z)
+\right]
+\le
+\inf_{f:\mathbb N\to\mathbb R}
+\sum_{\vartheta=(p_+,p_-,r_0)}
+\nu_\vartheta
+\sum_{k=0}^{r_0}
+\operatorname{binom}_{1/2}(r_0,k)
+\left\{
+f(p_+ + k)-\frac{p_+-p_-}{n}
+\right\}^2 .
+\]
+Conversely, the Rao--Blackwell domination from the previous step says that every full-data estimator has a scalar rule whose scalar risk is no larger than its lifted Bayes risk.  Taking the infimum over \(\widehat\tau\) gives the reverse inequality.  Both risk classes are nonempty and bounded below by \(0\), since they contain the zero rule and all losses are squared losses, so the two infimum comparisons combine to the claimed identity. % lean: fullScheduleBayesRisk_canonicalNuLift_eq
+\end{enumerate}
+\end{proof}

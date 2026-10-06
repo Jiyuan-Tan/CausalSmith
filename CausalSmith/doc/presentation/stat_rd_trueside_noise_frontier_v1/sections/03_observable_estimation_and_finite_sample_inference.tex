@@ -1,0 +1,233 @@
+\section{Observable estimation and finite-sample inference}
+
+For the benchmark class in \cref{obj:def:model}, the \leanref{S-3}{public polynomial procedure} combines positive averaging near the latent cutoff with an observable correction for Gaussian measurement error. The recorded assignment identifies the latent cutoff side, allowing the two arms to be treated separately. A stabilized ratio then estimates each arm's endpoint mean, and deterministic comparisons of public radii select the effect estimate and confidence interval.
+
+The construction begins with a positive integer \leanref{sym:L}{\ensuremath{L}}, the polynomial index. We use the Chebyshev polynomial \leanref{sym:Chebyshev}{\ensuremath{T_L}} with the following normalization.
+
+\begin{definitionv}{synth_4}[Chebyshev polynomials]
+For each nonnegative integer \(L\), let \(T_L\) be the Chebyshev polynomial of the first kind, characterized by
+\[
+T_L(\cos t)=\cos(Lt),
+\qquad t\in\mathbb R.
+\]
+This normalization gives \(T_0(x)=1\), \(T_1(x)=x\), and \(T_L(1)=1\). Each \(T_L\) is evaluated as a polynomial on all of \(\mathbb R\); the endpoint-kernel construction uses integers \(L\ge1\).
+\end{definitionv}
+
+From this family, we construct the normalized endpoint weight \leanref{sym:Kernel}{\ensuremath{K_L}}. Its nonnegative values on the unit interval support latent averaging, while its polynomial extension permits evaluation at every observed proxy value.
+
+\begin{definitionv}{def:endpoint-kernel}[Endpoint polynomial weight $K_L$]
+The endpoint polynomial weight is
+\[
+K_L(x)
+=
+\frac{
+\left(\dfrac{1-T_L(1-2x)}{2x}\right)^3
+}{
+\displaystyle\int_0^1
+\left(\dfrac{1-T_L(1-2t)}{2t}\right)^3\,dt
+}.
+\]
+Here \(T_L\) is the Chebyshev polynomial. Removable values are filled by continuity, and \(K_L\) is extended polynomially to every real argument.
+\end{definitionv}
+
+The normalization makes \(K_L\) integrate to one on \([0,1]\). The polynomial inequalities governing its concentration near zero are developed in \cref{obj:lem:positive-endpoint}. To specify the observable correction, first record the polynomial degree \leanref{sym:Degree}{\ensuremath{m_L}} and derivative convention.
+
+
+
+Gaussian averaging acts on a polynomial through finitely many even derivatives. The inverse-heat polynomial \leanref{sym:Inverse}{\ensuremath{Q_{L,\sigma}}} reverses that averaging using the known measurement-error scale.
+
+\begin{definitionv}{def:inverse-heat}[Inverse-heat polynomial $Q_{L,\sigma}$]
+The inverse-heat polynomial is
+\[
+Q_{L,\sigma}(w)
+=
+\sum_{k=0}^{\lfloor m_L/2\rfloor}
+\frac{(-\sigma^2/2)^k}{k!}\,
+K_L^{(2k)}(w).
+\]
+Here \(m_L\) is the degree of the endpoint polynomial \(K_L\), \(\sigma\) is the measurement-error scale, and \(K_L^{(2k)}\) denotes its derivative of order \(2k\).
+\end{definitionv}
+
+Under \cref{obj:ass:gaussian,obj:ass:error-independence}, averaging this correction over the measurement error recovers the corresponding latent polynomial weight. At zero noise, the correction equals \(K_L\). For positive noise, its observable values may have either sign even though the recovered latent weight is nonnegative. The ratio construction therefore stabilizes the empirical denominator explicitly.
+
+Both arms use the same endpoint weight after reflection onto the positive latent interval. The arm sign \leanref{sym:Sign}{\ensuremath{s_d}} fixes this convention.
+
+\begin{definitionv}{synth_5}[Arm-reflection convention]
+For the treatment-arm index \(d\in\{0,1\}\), define
+\[
+s_d=2d-1,
+\qquad s_1=1,\qquad s_0=-1.
+\]
+With \(D=\mathbf1\{X\ge0\}\), the reflected latent score \(s_dX\) lies in \([0,1]\) on the event \(\{D=d\}\). The observable polynomial weight for arm \(d\) is evaluated at the reflected proxy \(s_dW\).
+\end{definitionv}
+
+The population marked average \leanref{sym:Amean}{\ensuremath{A_{d,L}(P)}} and unmarked average \leanref{sym:Bmean}{\ensuremath{B_{d,L}(P)}} describe the endpoint averaging that the observable correction targets. We define them before introducing their sample counterparts.
+
+\[
+A_{d,L}(P)
+=\int_0^1 K_L(x)\,\mu_d(P,s_dx)\,f(P,s_dx)\,dx,
+\qquad
+B_{d,L}(P)
+=\int_0^1 K_L(x)\,f(P,s_dx)\,dx.
+\]
+
+The ratio \(A_{d,L}(P)/B_{d,L}(P)\) averages the arm's conditional mean with a positive, density-adjusted endpoint weight. Gaussian correction makes these population quantities accessible through averages of the observed triple. The outcome-marked sample average \leanref{sym:Ahat}{\ensuremath{\widehat A_{d,L}}} estimates the numerator, and the unmarked sample average \leanref{sym:Bhat}{\ensuremath{\widehat B_{d,L}}} estimates its normalizing mass. Their stabilized ratio gives the projected arm estimate \leanref{sym:muhat}{\ensuremath{\widehat\mu_{d,L}}}. The algorithm lists the coordinates in the computational order \((D_i,Y_i,W_i)\), but their law is the consistently ordered observed triple \(O_i=(W_i,D_i,Y_i)\) defined above.
+
+\begin{algorithmv}{def:ratio}[Projected arm estimate $\widehat\mu_{d,L}$]
+Inputs are the observed sample \((D_i,Y_i,W_i)_{i=1}^n\), the arm \(d\), the index \(L\), the measurement-error scale \(\sigma\), the inverse-heat polynomial \(Q_{L,\sigma}\), and the arm-reflection sign \(s_d\).
+\begin{enumerate}
+\item Compute the outcome-marked average:
+\[
+\widehat A_{d,L}
+=
+\frac1n\sum_{i=1}^n
+\mathbf1\{D_i=d\}Y_iQ_{L,\sigma}(s_dW_i).
+\]
+\item Compute the unmarked average:
+\[
+\widehat B_{d,L}
+=
+\frac1n\sum_{i=1}^n
+\mathbf1\{D_i=d\}Q_{L,\sigma}(s_dW_i).
+\]
+\item Output the projected arm estimate:
+\[
+\widehat\mu_{d,L}
+=
+\Pi_{[1/4,3/4]}
+\left(
+\frac{\widehat A_{d,L}}
+{\max\{\widehat B_{d,L},1/8\}}
+\right).
+\]
+Here \(\Pi_{[1/4,3/4]}\) denotes ordinary projection onto \([1/4,3/4]\).
+\end{enumerate}
+\end{algorithmv}
+
+The two averages retain normalization by the full sample size, so their ratio adjusts for the arm's weighted population mass. Their expectations are \(A_{d,L}(P)\) and \(B_{d,L}(P)\), respectively. The denominator floor makes the estimate well defined for every observed sample, including samples with small or negative corrected mass. Projection enforces the conditional-mean range in \cref{obj:ass:mean-bounds}.
+
+To assemble the effect estimate and interval, we use two public quantities: the endpoint bias moment \leanref{sym:Moment}{\ensuremath{M_{L,\beta}}} and the derivative variance cost \leanref{sym:Variance}{\ensuremath{V_L(\sigma)}}. The former measures the displacement of the latent weight from the cutoff under the maintained Hölder exponent; the latter governs the sampling term in the certificate. The candidate effect estimate \leanref{sym:thetahat}{\ensuremath{\widehat\theta_L}}, public radius \leanref{sym:radius}{\ensuremath{\rho_L}}, and connected interval \leanref{sym:Ipoly}{\ensuremath{I_L}} are defined together, including their constant fallback values.
+
+\begin{definitionv}{synth_6}[Candidate effect estimates, public radii, and intervals]
+Fix public parameters \(0<\beta\le1\), an integer \(n\ge2\), and \(0\le\sigma\le1\). For each integer \(L\ge1\), let \(K_L\) be the endpoint kernel, put \(m_L=3(L-1)\), and define the public moment and covariance quantities
+\[
+M_{L,\beta}=\int_0^1x^\beta K_L(x)\,dx,
+\qquad
+V_L(\sigma)=\frac34\sum_{j=0}^{m_L}
+\frac{\sigma^{2j}}{j!}
+\int_0^1[K_L^{(j)}(x)]^2\,dx.
+\]
+Here \(K_L^{(j)}\) denotes the ordinary \(j\)th derivative, and the \(j=0\) coefficient is one, including at \(\sigma=0\). Using the projected arm estimates, define
+\[
+\widehat\theta_L=\widehat\mu_{1,L}-\widehat\mu_{0,L},
+\qquad
+\rho_L=12M_{L,\beta}
++28\sqrt{\frac{40V_L(\sigma)}{n}},
+\]
+and the connected closed interval
+\[
+I_L=
+[\widehat\theta_L-\rho_L,\widehat\theta_L+\rho_L]
+\cap[-1,1].
+\]
+The index-zero candidate is
+\[
+\widehat\theta_0=0,\qquad
+\rho_0=\frac12,\qquad
+I_0=\left[-\frac12,\frac12\right].
+\]
+Thus each radius is a deterministic function of \((\beta,n,\sigma)\), while each positive-index interval is centered at its observable candidate estimate before intersection with \([-1,1]\).
+\end{definitionv}
+
+The fallback interval contains the full target range implied by \cref{obj:ass:mean-bounds}. Positive-index candidates combine the two projected arm estimates and add a radius accounting for endpoint approximation and sampling variability. Intersecting with \([-1,1]\) preserves coverage of the admissible target and gives a connected closed interval. Polynomial derivative bounds and the Gaussian covariance calculation are presented in \cref{obj:lem:factorial-derivatives,obj:lem:exact-covariance}.
+
+Selection takes place over a finite candidate set. Its public upper limit \leanref{sym:Lmax}{\ensuremath{L_{\max}}} is specified before observing the sample.
+
+\[
+L_{\max}=\left\lceil n^{1/(4\beta+2)}\right\rceil.
+\]
+
+The selected index \leanref{sym:Lstar}{\ensuremath{L_\star}} minimizes the public radius over this set, with the smallest index resolving ties. The selected certificate \leanref{sym:Certificate}{\ensuremath{E_\beta(n,\sigma)}} is that minimum radius.
+
+\begin{algorithmv}{def:public-selection}[Public selection $L_\star$]
+Inputs are \((\beta,n,\sigma)\), the finite index cap \(L_{\max}\), and the candidate radii \(\rho_L\), effect estimates \(\widehat\theta_L\), and intervals \(I_L\); index zero uses the specified constant estimate and the full target-range interval.
+\begin{enumerate}
+\item Select the smallest index minimizing the radius:
+\[
+L_\star
+=
+\min\operatorname*{arg\,min}_{L\in\{0,\ldots,L_{\max}\}}
+\rho_L.
+\]
+All comparisons are deterministic functions of \((\beta,n,\sigma)\).
+\item Define the selected radius:
+\[
+E_\beta(n,\sigma)=\rho_{L_\star}.
+\]
+\item Output the selected estimate and interval:
+\[
+\bigl(\widehat\theta_{L_\star},I_{L_\star}\bigr).
+\]
+\end{enumerate}
+\end{algorithmv}
+
+The displayed public cap and selection rule define the procedures used in \cref{obj:thm:uniform-frontier}. For fixed public inputs, the selected index is fixed across samples. Consequently, its coverage guarantee follows from the corresponding fixed-index guarantee, or from the full target-range fallback when index zero is selected. Including that fallback also ensures \(E_\beta(n,\sigma)\le1/2\). The complete procedure has the following finite-sample certificate.
+
+\begin{theoremv}{thm:finite-certificate}[Finite sample certificate]
+Suppose that:
+\begin{itemize}
+\item \textbf{(Smoothness.)} The public smoothness parameter satisfies \(0<\beta\le1\).
+\item \textbf{(Noise.)} The noise scale satisfies \(0\le\sigma\le1\).
+\item \textbf{(Sample and degree.)} The sample size \(n\) and polynomial index \(L\) are integers satisfying \(n\ge2\) and \(L\ge1\).
+\item \textbf{(Latent law.)} \(P\in\mathcal M_\beta(\sigma)\).
+\end{itemize}
+Write
+\[
+\theta(P)=\mu_1(P,0)-\mu_0(P,0),
+\qquad
+B_{d,L}(P)=\mathbb E_{P,n}\widehat B_{d,L},
+\]
+where \(\mathbb P_{P,n}\) is the joint law of the independent observed sample and independent uniform procedure seed, and \(\mathbb E_{P,n}\) denotes expectation under this law. Define the endpoint bias moment and derivative variance cost by
+\[
+M_{L,\beta}
+=\int_0^1 x^\beta K_L(x)\,dx,
+\qquad
+V_L(\sigma)
+=\frac34\sum_{j=0}^{m_L}
+\frac{\sigma^{2j}}{j!}
+\int_0^1\bigl(K_L^{(j)}(x)\bigr)^2\,dx,
+\]
+where \(m_L\) is the degree of the endpoint polynomial \(K_L\).
+For the effect estimate
+\[
+\widehat\theta_L=\widehat\mu_{1,L}-\widehat\mu_{0,L}
+\]
+and its connected closed interval \(I_L\), the following guarantees hold:
+\[
+B_{d,L}(P)\ge\frac14
+\quad\text{for every }d\in\{0,1\},
+\]
+\[
+\mathbb E_{P,n}\bigl|\widehat\theta_L-\theta(P)\bigr|
+\le
+12M_{L,\beta}
++28\sqrt{\frac{V_L(\sigma)}{n}},
+\qquad
+\mathbb P_{P,n}\{\theta(P)\in I_L\}\ge\frac9{10}.
+\]
+Moreover, the publicly selected interval \(I_{L_\star}\) belongs to the uniformly honest class \(\mathcal I_{\beta,n,\sigma}\) of \cref{obj:def:honest-class}, and the selected estimator and interval satisfy
+\[
+\sup_{P\in\mathcal M_\beta(\sigma)}
+\mathbb E_{P,n}
+\bigl|\widehat\theta_{L_\star}-\theta(P)\bigr|
+\le E_\beta(n,\sigma),
+\qquad
+\sup_{P\in\mathcal M_\beta(\sigma)}
+\mathbb E_{P,n}\operatorname{length}(I_{L_\star})
+\le2E_\beta(n,\sigma).
+\]
+\end{theoremv}
+
+The certificate separates endpoint approximation from sampling variability. Positive latent averaging and the density lower bound give each population denominator mass of at least \(1/4\), placing the empirical floor below that mass. Smoothness controls approximation through the endpoint moment, while the derivative variance cost accounts for the observable Gaussian correction. Together, these terms yield both an absolute-error bound and coverage of at least \(0.9\) at each positive index.
+
+Public selection converts these candidate guarantees into a single uniformly honest procedure over the benchmark class. Its deterministic radius bounds worst expected absolute error, and twice that radius bounds worst expected interval length. Under the stated calibration, support, density, and conditional-mean restrictions, \cref{obj:thm:finite-certificate} therefore supplies a finite-sample comparison of candidate precision together with a coverage guarantee for the selected interval.

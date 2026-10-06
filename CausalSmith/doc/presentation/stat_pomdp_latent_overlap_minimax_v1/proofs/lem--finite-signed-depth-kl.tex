@@ -1,0 +1,253 @@
+\begin{proof}[Proof of \cref{obj:lem:finite-signed-depth-kl}]
+Let
+\[
+D:=\frac{4c_0^2K_0^2}{1-c_0^2}.
+\]
+Since \(t_0>0\), \(\alpha=\exp(-1/t_0)\) lies in \((0,1)\), and hence
+\[
+0<c_0=\frac{1-\alpha}{4}<1,\qquad 0\le 1-c_0^2,\qquad D\ge 0 .
+\]
+Also \(\varepsilon_C^2\ge 0\), \(\alpha^{2Q}\ge 0\), and \(L^{-Q}\ge 0\).  We prove the claimed bound by induction on the horizon \(T\). % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_finiteObs_klDiv_le
+
+\emph{Step 1. The zero-horizon case.}
+For \(T=0\), the observed word has a single possible value.  The finite-word chain rule gives
+\[
+\operatorname{KL}\!\left(\mathbb P_{Q,+1}^{\mathrm{fin},0}\middle\|
+\mathbb P_{Q,-1}^{\mathrm{fin},0}\right)=0,
+\]
+so the desired inequality is immediate. % lean: Causalean.Mathlib.InformationTheory.FiniteWordChainRule.klDiv_eq_chainKL
+
+\emph{Step 2. Full support and projectivity.}
+Fix \(k\ge 0\) and assume the bound at horizon \(k\).  Every observed word
+\[
+w=((x_1,a_1,y_1),\ldots,(x_{k+1},a_{k+1},y_{k+1}))
+\]
+has positive mass under each signed-depth alternative.  Indeed, the observed coordinate has only one value, and one may choose a hidden trajectory with the displayed observed actions and reward symbols.  The initial weights are positive because \(0<\alpha<1\) and \(0<\varepsilon_C\le 1/2\); the behavior weights are positive because \(L=\exp(\zeta)>1\); and the selected hidden transitions have positive reset or continuation weight, with the case \(Q=0\) handled directly by the reset transition.  Thus
+\[
+\mathbb P_{Q,v}^{\mathrm{fin},k+1}(w)>0,
+\qquad v\in\{-1,+1\}.
+\]
+Moreover, summing the chronological law over the last observed action-reward symbol gives the prefix law:
+\[
+\operatorname{pref}_k\mathbb P_{Q,v}^{\mathrm{fin},k+1}
+=
+\mathbb P_{Q,v}^{\mathrm{fin},k}.
+\]
+Consequently the last-coordinate chain rule applies and yields
+\[
+\begin{aligned}
+&\operatorname{KL}\!\left(\mathbb P_{Q,+1}^{\mathrm{fin},k+1}
+ \middle\|\mathbb P_{Q,-1}^{\mathrm{fin},k+1}\right)  \\
+&\quad =
+\operatorname{KL}\!\left(\mathbb P_{Q,+1}^{\mathrm{fin},k}
+ \middle\|\mathbb P_{Q,-1}^{\mathrm{fin},k}\right)
++
+\sum_{w}
+\mathbb P_{Q,+1}^{\mathrm{fin},k}(w)\,
+\operatorname{KL}\!\left(\widetilde P_{+,w}^{\mathrm{next}}\middle\|\widetilde P_{-,w}^{\mathrm{next}}\right),
+\end{aligned}
+\]
+where \(\widetilde P_{v,w}^{\mathrm{next}}\) is the conditional law of the next full observed symbol \((x,a,r)\in\{0\}\times\{0,1\}\times\{0,1\}\) after prefix \(w\). % lean: Causalean.Mathlib.InformationTheory.FiniteWordChainRule.klDiv_lastCoordinate_eq_add_sum_of_fullSupport
+
+\emph{Step 3. The one-step increment.}
+For a prefix \(w\) of length \(k\), write \(o(w)=((a_1,y_1),\ldots,(a_k,y_k))\) for its action/reward-symbol projection and define
+\[
+\mathfrak a_k(o)
+:=
+L^{-(Q-\min\{Q,k\})}
+\prod_{i:\,k-\min\{Q,k\}<i\le k}\mathbf 1\{a_i=1\}.
+\]
+For \(v\in\{-1,+1\}\), let \(P_{v,w}^{\mathrm{ar}}\) be the image of \(\widetilde P_{v,w}^{\mathrm{next}}\) under the bijection
+\[
+\{0\}\times\{0,1\}\times\{0,1\}\longrightarrow \{0,1\}\times\{0,1\},
+\qquad
+(0,a,r)\longmapsto(a,r).
+\]
+The KL divergence is unchanged by this relabelling, so
+\[
+\operatorname{KL}\!\left(\widetilde P_{+,w}^{\mathrm{next}}\middle\|\widetilde P_{-,w}^{\mathrm{next}}\right)
+=
+\operatorname{KL}\!\left(P_{+,w}^{\mathrm{ar}}\middle\|P_{-,w}^{\mathrm{ar}}\right).
+\]
+For \(a\in\{0,1\}\) and reward symbol \(r\in\{0,1\}\), write \(\bar y(r)=-1\) if \(r=0\) and \(\bar y(r)=1\) if \(r=1\).  Let
+\[
+m_v(w):=
+\mathbb E_v[Y_{k+1}\mid\mathcal F_k^{\mathrm{obs}}=o(w)]
+\]
+with the conditional ratio evaluated on the finite prefix mass; full support from Step 2 makes this ordinary conditional expectation on the present prefix.  Summing the chronological law over all hidden states at time \(k+1\) gives, for every \((a,r)\),
+\[
+\begin{aligned}
+P_{v,w}^{\mathrm{ar}}(a,r)
+&=
+\frac{
+\Pr_v\{\mathcal F_k^{\mathrm{obs}}=o(w),\ A_{k+1}=a,\ Y_{k+1}=\bar y(r)\}}
+{\Pr_v\{\mathcal F_k^{\mathrm{obs}}=o(w)\}}  \\
+&=
+ b(a)\,\Pr_v\{Y_{k+1}=\bar y(r)\mid\mathcal F_k^{\mathrm{obs}}=o(w)\} \\
+&=
+ b(a)\,\frac{1+\bar y(r)m_v(w)}{2},
+\end{aligned}
+\]
+where \(b(1)=L^{-1}\) and \(b(0)=1-L^{-1}\).  The second equality uses the behavior policy in \cref{obj:def:signed-depth-family}, which chooses the next action with mass \(b(a)\) independently of the alternative after the observed prefix.  The last equality is the two-symbol reward law determined by its mean: for a variable taking values \(\{-1,+1\}\), mass \((1+m)/2\) is assigned to \(+1\) and mass \((1-m)/2\) to \(-1\).  The positivity assumptions give \(|m_v(w)|<1\), so all displayed masses are positive.
+
+By \cref{obj:lem:signed-depth-conditional-reward-mean}, these means are
+\[
+m_+(w)=c_0\varepsilon_C\mathfrak a_k(o(w))q_{k+1}^{+1}(o(w)),
+\qquad
+m_-(w)=-c_0\varepsilon_C\mathfrak a_k(o(w))q_{k+1}^{-1}(o(w)).
+\]
+Using the preceding mass formula and writing out the finite KL sum,
+\[
+\begin{aligned}
+\operatorname{KL}\!\left(P_{+,w}^{\mathrm{ar}}\middle\|P_{-,w}^{\mathrm{ar}}\right)
+&=
+\sum_{a\in\{0,1\}}\sum_{r\in\{0,1\}}
+ b(a)\frac{1+\bar y(r)m_+(w)}{2}
+\log\frac{b(a)(1+\bar y(r)m_+(w))/2}{b(a)(1+\bar y(r)m_-(w))/2} \\
+&=
+\sum_{r\in\{0,1\}}
+\frac{1+\bar y(r)m_+(w)}{2}
+\log\frac{1+\bar y(r)m_+(w)}{1+\bar y(r)m_-(w)}.
+\end{aligned}
+\]
+Here \(\sum_a b(a)=1\), and the positive common factor \(b(a)\) cancels inside the logarithm.  The standard two-point comparison, valid for \(|m_+(w)|<1\) and \(|m_-(w)|<1\), yields
+\[
+\operatorname{KL}\!\left(\widetilde P_{+,w}^{\mathrm{next}}\middle\|\widetilde P_{-,w}^{\mathrm{next}}\right)
+\le
+\frac{(m_+(w)-m_-(w))^2}{1-m_-(w)^2}.
+\] % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_observedNext_klDiv_le
+
+\emph{Step 4. The conditional chi-square calibration.}
+Set
+\[
+d(w):=c_0\varepsilon_C\mathfrak a_k(o(w)).
+\]
+The signed-depth factors are nonnegative: \(c_0>0\), \(\varepsilon_C\ge 0\), and \(\mathfrak a_k(o(w))\ge 0\).  The action factor also obeys
+\[
+0\le \mathfrak a_k(o(w))\le 1,
+\qquad
+\varepsilon_C\mathfrak a_k(o(w))\le 1.
+\]
+Hence
+\[
+0\le d(w)
+\quad\text{and}\quad
+ d(w)^2
+=c_0^2\bigl(\varepsilon_C\mathfrak a_k(o(w))\bigr)^2
+\le c_0^2.
+\]
+The terminal posteriors are probabilities, so
+\[
+0\le q_{k+1}^{v}(o(w))\le 1,
+\qquad v\in\{-1,+1\}.
+\]
+Together with the assumed posterior bound,
+\[
+q_{k+1}^{v}(o(w))\le K_0\alpha^Q,
+\qquad v\in\{-1,+1\},
+\]
+this gives
+\[
+q_{k+1}^{+1}(o(w))+q_{k+1}^{-1}(o(w))
+\le 2K_0\alpha^Q.
+\]
+Substituting the conditional-mean identities from Step 3,
+\[
+\begin{aligned}
+(m_+(w)-m_-(w))^2
+&=d(w)^2\bigl(q_{k+1}^{+1}(o(w))+q_{k+1}^{-1}(o(w))\bigr)^2  \\
+&=c_0^2\varepsilon_C^2\mathfrak a_k(o(w))^2
+\bigl(q_{k+1}^{+1}(o(w))+q_{k+1}^{-1}(o(w))\bigr)^2 \\
+&\le
+4c_0^2K_0^2\varepsilon_C^2\mathfrak a_k(o(w))^2\alpha^{2Q}.
+\end{aligned}
+\]
+The denominator is compared using both \(d(w)^2\le c_0^2\) and \(q_{k+1}^{-1}(o(w))^2\le 1\):
+\[
+\begin{aligned}
+1-m_-(w)^2
+&=1-d(w)^2q_{k+1}^{-1}(o(w))^2 \\
+&\ge 1-c_0^2.
+\end{aligned}
+\]
+Since \(0<c_0<1\), the lower bound \(1-c_0^2\) is positive.  Applying the preceding numerator and denominator comparisons to the one-step KL bound from Step 3 gives
+\[
+\begin{aligned}
+\operatorname{KL}\!\left(\widetilde P_{+,w}^{\mathrm{next}}\middle\|\widetilde P_{-,w}^{\mathrm{next}}\right)
+&\le
+\frac{4c_0^2K_0^2\varepsilon_C^2\mathfrak a_k(o(w))^2\alpha^{2Q}}{1-c_0^2} \\
+&=
+D\,\varepsilon_C^2\alpha^{2Q}\mathfrak a_k(o(w))^2 .
+\end{aligned}
+\] % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_conditional_chiSq_le
+
+\emph{Step 5. Averaging over prefixes.}
+For an action/reward-symbol prefix \(o\) of length \(k\), define its finite prefix mass using the horizon \(k+1\) model by
+\[
+\pi_{k,k+1}^{+1}(o)
+:=
+\Pr_{Q,+1}^{\mathrm{fin},k+1}\!
+\bigl((A_1,Y_1),\ldots,(A_k,Y_k)=o\bigr).
+\]
+For every observed word \(w\) of length \(k\), the observed state coordinate is fixed, and the mass of \(w\) under the horizon-\(k\) observed law is
+\[
+\mathbb P_{Q,+1}^{\mathrm{fin},k}(w)
+=
+\pi_{k,k+1}^{+1}(o(w)).
+\]
+Thus the average increment is bounded by
+\[
+\begin{aligned}
+&\sum_{w}
+\mathbb P_{Q,+1}^{\mathrm{fin},k}(w)\,
+\operatorname{KL}\!\left(\widetilde P_{+,w}^{\mathrm{next}}\middle\|\widetilde P_{-,w}^{\mathrm{next}}\right)\\
+&\quad\le
+D\,\varepsilon_C^2\alpha^{2Q}
+\sum_{w}
+\pi_{k,k+1}^{+1}(o(w))\mathfrak a_k(o(w))^2 .
+\end{aligned}
+\]
+The map \(w\mapsto o(w)\) is a bijection from length-\(k\) observed words to length-\(k\) action/reward-symbol prefixes, because the observed state coordinate has the unique value.  Reindexing the finite sum gives
+\[
+\sum_{w}
+\pi_{k,k+1}^{+1}(o(w))\mathfrak a_k(o(w))^2
+=
+\sum_o \pi_{k,k+1}^{+1}(o)\mathfrak a_k(o)^2 .
+\]
+By \cref{obj:lem:rare-action-second-moment-exact}, with \(\ell=\min\{Q,k\}\),
+\[
+\sum_o \pi_{k,k+1}^{+1}(o)\mathfrak a_k(o)^2
+=
+L^{-2(Q-\ell)}
+\left(\frac{1}{L}\right)^{|\{i:\ k-\ell<i\le k\}|}.
+\]
+The index set \(\{i:\ k-\ell<i\le k\}\) contains exactly the final \(\ell\) positions of the length-\(k\) prefix; if \(\ell=0\) it is empty, and otherwise the shift \(j\mapsto k-\ell+j\), \(1\le j\le\ell\), is a bijection.  Therefore
+\[
+\sum_o \pi_{k,k+1}^{+1}(o)\mathfrak a_k(o)^2
+=
+L^{-2(Q-\ell)}L^{-\ell}
+=
+L^{-2Q+\ell}
+\le L^{-Q},
+\]
+because \(\ell\le Q\) and \(L\ge 1\).  Hence the increment is bounded by
+\[
+D\,\varepsilon_C^2\alpha^{2Q}L^{-Q}.
+\] % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.rareAction_secondMoment_le
+
+\emph{Step 6. Closing the induction.}
+Using the induction hypothesis and the increment bound,
+\[
+\begin{aligned}
+\operatorname{KL}\!\left(\mathbb P_{Q,+1}^{\mathrm{fin},k+1}
+ \middle\|\mathbb P_{Q,-1}^{\mathrm{fin},k+1}\right)
+&\le
+D\,k\,\varepsilon_C^2\alpha^{2Q}L^{-Q}
++
+D\,\varepsilon_C^2\alpha^{2Q}L^{-Q} \\
+&=
+D\,(k+1)\,\varepsilon_C^2\alpha^{2Q}L^{-Q}.
+\end{aligned}
+\]
+Substituting the definition of \(D\) gives the asserted bound for \(T=k+1\), completing the induction. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_finiteObs_klDiv_le
+\end{proof}

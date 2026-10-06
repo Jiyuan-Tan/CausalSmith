@@ -1,0 +1,152 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.SCM.ID.Density.ReferenceMeasure
+public import Mathlib.Probability.Kernel.RadonNikodym
+
+/-! # Finite reference measures for discrete ID densities
+
+When every node value space is finite with measurable singletons, the per-node
+reference measures in a σ-finite reference family are finite.  Consequently the
+finite products `jointRef ref I` are finite as well.  This file packages those
+instances and the simple measurability fact used by the finite/discrete
+chain-rule density proof.
+-/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
+namespace Causalean.SCM
+
+open scoped MeasureTheory ProbabilityTheory
+
+variable {N : Type*} [DecidableEq N] [Fintype N]
+variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
+
+/-- For [a collection of node labels](hyp:N), [a family of finite base-node value spaces](hyp:Ω), and [a random or fixed SWIG node](hyp:sn), [the finite enumeration of that node's value space](goal) is inherited from the finite enumeration of its corresponding base-node value space [by the random-node case](step:1) or [by the fixed-node case](step:2). -/
+instance instFintypeSwigΩ [∀ n, Fintype (Ω n)] :
+    ∀ sn : SWIGNode N, Fintype (swigΩ Ω sn)
+  | .random _ => inferInstance
+  | .fixed _ => inferInstance
+
+/-- For [a collection of node labels](hyp:N), [a family of base-node value spaces with measurable singletons](hyp:Ω), and [a random or fixed SWIG node](hyp:sn), [the measurable-singleton structure on that node's value space](goal) is inherited from its corresponding base-node value space [in the random-node case](step:1) or [in the fixed-node case](step:2). -/
+instance instMeasurableSingletonClassSwigΩ [∀ n, MeasurableSingletonClass (Ω n)] :
+    ∀ sn : SWIGNode N, MeasurableSingletonClass (swigΩ Ω sn)
+  | .random _ => inferInstance
+  | .fixed _ => inferInstance
+
+/-- A σ-finite measure on a finite measurable-singleton space is finite. -/
+lemma isFiniteMeasure_of_finite_measurableSingleton
+    {α : Type*} [MeasurableSpace α] [Finite α] [MeasurableSingletonClass α]
+    (μ : MeasureTheory.Measure α) [MeasureTheory.SigmaFinite μ] :
+    MeasureTheory.IsFiniteMeasure μ := by
+  refine ⟨?_⟩
+  have hcover :
+      (Set.univ : Set α) = ⋃ x ∈ (Set.univ : Set α), ({x} : Set α) := by
+    ext x
+    simp
+  rw [hcover]
+  exact MeasureTheory.measure_biUnion_lt_top Set.finite_univ
+    (fun x _ => MeasureTheory.measure_singleton_lt_top (μ := μ) (a := x))
+
+/-- For [a collection of node labels](hyp:N), [finite measurable base-node value spaces with measurable singletons](hyp:Ω), [a family of reference measures](hyp:ref), and [a random or fixed SWIG node](hyp:v), [the reference measure at that node](goal) has finite total mass. -/
+instance instIsFiniteMeasure_refMu [∀ n, Finite (Ω n)]
+    [∀ n, MeasurableSingletonClass (Ω n)]
+    (ref : ReferenceMeasures Ω) (v : SWIGNode N) :
+    MeasureTheory.IsFiniteMeasure (ref.μ v) := by
+  haveI : Finite (swigΩ Ω v) := by
+    cases v <;> infer_instance
+  haveI : MeasureTheory.SigmaFinite (ref.μ v) := ref.sigmaFinite v
+  exact isFiniteMeasure_of_finite_measurableSingleton (ref.μ v)
+
+/-- For [a collection of node labels](hyp:N), [finite measurable base-node value spaces with measurable singletons](hyp:Ω), [a family of reference measures](hyp:ref), and [a finite set of random or fixed SWIG nodes](hyp:I), [the corresponding product reference measure](goal) has finite total mass. -/
+instance instIsFiniteMeasure_jointRef [∀ n, Finite (Ω n)]
+    [∀ n, MeasurableSingletonClass (Ω n)]
+    (ref : ReferenceMeasures Ω) (I : Finset (SWIGNode N)) :
+    MeasureTheory.IsFiniteMeasure (jointRef ref I) := by
+  unfold jointRef
+  infer_instance
+
+/-- For any node set with measurable node-value spaces and [a family of reference
+measures](hyp:ref), [reference faithfulness](goal) means that every value at every random or
+fixed node has nonzero mass under that node's reference measure.
+
+A reference family is faithful when every single coordinate value has nonzero reference mass.
+
+Counting reference measures on finite spaces satisfy this full-support condition. -/
+def ReferenceFaithful (ref : ReferenceMeasures Ω) : Prop :=
+  ∀ (v : SWIGNode N) (x : swigΩ Ω v), ref.μ v {x} ≠ 0
+
+/-- Any measure is absolutely continuous with respect to a measure that gives every singleton nonzero mass.
+
+A null set for such a reference measure cannot contain any point. -/
+lemma absolutelyContinuous_of_singleton_ne_zero {α : Type*} [MeasurableSpace α]
+    (μ ν : MeasureTheory.Measure α) (hν : ∀ x : α, ν ({x} : Set α) ≠ 0) :
+    μ ≪ ν := by
+  refine MeasureTheory.Measure.AbsolutelyContinuous.mk ?_
+  intro s _hs hνs
+  have hs_empty : s = ∅ := by
+    ext x
+    constructor
+    · intro hx
+      exfalso
+      have hsingle_subset : ({x} : Set α) ⊆ s := by
+        intro y hy
+        have hyx : y = x := by simpa using hy
+        simpa [hyx] using hx
+      have hle : ν ({x} : Set α) ≤ ν s := MeasureTheory.measure_mono hsingle_subset
+      have hzero : ν ({x} : Set α) = 0 :=
+        le_antisymm (by simpa [hνs] using hle) zero_le
+      exact hν x hzero
+    · intro hx
+      cases hx
+  simp [hs_empty]
+
+omit [DecidableEq N] [Fintype N] in
+/-- A faithful reference family gives every point in a finite coordinate product
+nonzero joint reference mass. -/
+lemma jointRef_singleton_ne_zero [∀ n, MeasurableSingletonClass (Ω n)]
+    (ref : ReferenceMeasures Ω) (href : ReferenceFaithful ref)
+    (I : Finset (SWIGNode N)) (x : ValuesOn I (swigΩ Ω)) :
+    jointRef ref I ({x} : Set (ValuesOn I (swigΩ Ω))) ≠ 0 := by
+  classical
+  unfold jointRef
+  rw [MeasureTheory.Measure.pi_singleton]
+  exact Finset.prod_ne_zero_iff.mpr (by
+    intro i _hi
+    exact href i.val (x i))
+
+omit [DecidableEq N] [Fintype N] in
+/-- **Faithful references dominate.** On a finite coordinate product indexed by a node
+set `I`, if [the reference family `ref` is faithful — every single coordinate value
+carries nonzero reference mass](hyp:href), then [every measure `μ` on that product is
+absolutely continuous with respect to the joint reference measure](goal). -/
+lemma absolutelyContinuous_jointRef_of_faithful [∀ n, MeasurableSingletonClass (Ω n)]
+    (ref : ReferenceMeasures Ω) (href : ReferenceFaithful ref)
+    (I : Finset (SWIGNode N)) (μ : MeasureTheory.Measure (ValuesOn I (swigΩ Ω))) :
+    μ ≪ jointRef ref I := by
+  exact absolutelyContinuous_of_singleton_ne_zero μ (jointRef ref I)
+    (jointRef_singleton_ne_zero ref href I)
+
+/-- [For finite index types `α` and `β`](hyp:α,β), [a joint measure `μ` on `α × β`](hyp:μ), [a
+measure `ρ` on `β`](hyp:ρ), and [a Markov kernel `κ` from `α` to `β`](hyp:κ), [the fibre
+Radon-Nikodym derivative selector `(κ p.1).rnDeriv ρ p.2` is almost-everywhere measurable with
+respect to `μ`](goal). -/
+@[fun_prop]
+lemma aemeasurable_fiber_rnDeriv_of_finite
+    {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    [Finite α] [Finite β] [MeasurableSingletonClass α] [MeasurableSingletonClass β]
+    (μ : MeasureTheory.Measure (α × β)) (ρ : MeasureTheory.Measure β)
+    (κ : ProbabilityTheory.Kernel α β) :
+    AEMeasurable (fun p : α × β => (κ p.1).rnDeriv ρ p.2) μ :=
+  (measurable_of_finite (fun p : α × β => (κ p.1).rnDeriv ρ p.2)).aemeasurable
+
+end Causalean.SCM

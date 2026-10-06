@@ -1,0 +1,218 @@
+\section{Constructing an honest interval}
+
+The statistical ingredients used by the interval are defined first. The primitive arithmetic contracts and their finite rational realization appear in \cref{sec:rational-realization}. In reader-facing prose, \(d_n\) is the rate and \(I^{\mathrm{up}}\) is the interval; the formal layer also uses the aliases \(\rho_n=d_n\) and \(I^\star=I^{\mathrm{up}}\). It reuses \(b_C,b_S\) locally for resolution-box upper endpoints and, later, for coordinate error radii; we refer to these quantities by role outside the formal environments.
+
+The attaining procedure combines separate estimates of two observable coordinates with a joint inversion of their confidence bounds. Write an observed record as \leanref{sym:O}{\ensuremath{O}}, with covariate \leanref{sym:X}{\ensuremath{X}}, binary treatment \leanref{sym:A}{\ensuremath{A}}, and binary outcome \leanref{sym:Y}{\ensuremath{Y}}. Under an observed law \leanref{sym:P}{\ensuremath{P}} in \cref{obj:def:model}, the numerator and denominator coordinates of \cref{obj:lem:observable-odds} have the representations
+\[
+C(P)
+=
+E_P[AY]
+-
+\int_0^1
+E_P[A\mid X=x]E_P[Y\mid X=x]\,dx,
+\]
+\[
+S(P)
+=
+\int_0^1
+E_P[A(1-Y)\mid X=x]
+E_P[(1-A)Y\mid X=x]\,dx.
+\]
+That result supplies the identity
+\[
+C(P)=\bigl(\exp\{\theta(P)\}-1\bigr)S(P),
+\qquad
+\theta(P)=\log\!\left(1+\frac{C(P)}{S(P)}\right),
+\]
+together with the uniform denominator lower bound \leanref{sym:s_0}{\ensuremath{s_0=1/512}}. These coordinates therefore reduce effect estimation to estimating products of conditional means.
+
+The projection family in \cref{obj:synth_3} approximates those conditional means under the uniform covariate design. At integer rank \leanref{sym:k}{\ensuremath{k\ge1}}, its cosine projection and associated kernel satisfy
+\[
+\Pi_k f
+=
+\sum_{j=0}^{k-1}
+\langle f,\varphi_j\rangle_{L^2(\lambda)}\varphi_j,
+\qquad
+H_k(x,z)
+=
+1+2\sum_{j=1}^{k-1}\cos(\pi jx)\cos(\pi jz).
+\]
+With this family fixed, the ordered-pair statistic of \cref{obj:def:projection-statistic} estimates a projected product using distinct records:
+\[
+\mathbb U_{n,k}(W,V)
+=
+\frac{1}{n(n-1)}
+\sum_{\substack{1\le i,j\le n\\i\ne j}}
+H_k(X_i,X_j)W(O_i)V(O_j).
+\]
+The coordinate estimates in \cref{obj:def:coordinate-estimates} apply this statistic to the marks \(A,Y\) for the numerator and \(A(1-Y),(1-A)Y\) for the denominator.
+
+Separate resolutions accommodate the different projection errors in \cref{obj:lem:projection-control}. The numerator bias is controlled at order \(k^{-(\alpha+\beta)}\), whereas the denominator bias is controlled at order \(k^{-2\beta}\). Balancing each against the rank-dependent stochastic term gives the two target resolutions in \cref{obj:def:resolutions}. Their numerical selection uses the admissible arithmetic and naming conventions of \cref{obj:def:arithmetic-engine,obj:def:dyadic-name-convention}; \cref{obj:lem:concrete-arithmetic-engine} supplies an explicit admissible engine.
+
+\paragraph{Rank selection.}
+For \(n\ge2\), the numbered implementation of \cref{obj:def:resolutions} is as follows.
+\begin{enumerate}
+\item Set the public rank precision \leanref{sym:q_{\mathrm{rank}}}{\ensuremath{q_{\mathrm{rank}}(n)}} and the two target resolutions:
+\[
+q_{\mathrm{rank}}(n)=7+3\lceil\log_2 n\rceil,
+\qquad
+R_C=n^{2/(2\alpha+2\beta+1)},
+\qquad
+R_S=n^{2/(4\beta+1)}.
+\]
+\item Query the public exponent names at this precision, intersect their responses with the prescribed exponent boxes, and use the fixed engine to enclose the two target resolutions.
+\item Retain the nonnegative integer ceilings of the enclosure upper endpoints as \(k_C\) and \(k_S\). For valid inputs in the stated exponent domain, \cref{obj:def:resolutions} gives
+\[
+R_C\le k_C\le3R_C,
+\qquad
+R_S\le k_S\le3R_S.
+\]
+These ranks are fixed before sampling and retained throughout endpoint evaluation.
+\end{enumerate}
+\paragraph{Interval construction.}
+The observed sample \leanref{sym:\mathcal O}{\ensuremath{\mathcal O}} determines the two coordinate estimates. Bias allowances and variance bounds give a confidence rectangle for their population targets. Clipping its denominator endpoints to the known positive range makes the logarithmic inversion well defined. For each positive denominator, the inversion is increasing in the numerator; for each fixed numerator, its extrema over a denominator interval occur at the endpoints. Evaluating the appropriate corners therefore produces the ideal effect interval.
+
+The upper interval \leanref{sym:I^{\mathrm{up}}}{\ensuremath{I^{\mathrm{up}}_{n,\mathsf E,\mathsf N}(\alpha,\beta)}} is the rational output of the following construction. Its exact-real expressions specify the quantities to be enclosed, while the endpoint precision \leanref{sym:q_{\mathrm{end}}}{\ensuremath{q_{\mathrm{end}}(n,k_C,k_S)}} governs their finite rational evaluation.
+
+\begin{algorithmv}{def:upper-handle}[Upper interval $I^{\mathrm{up}}_{n,\mathsf E,\mathsf N}(\alpha,\beta)$]
+The inputs are the sample size \(n\ge1\), public smoothness exponents \(\alpha,\beta\), and observed sample \(\mathcal O\); the tuning choices are an independently fixed admissible rational interval-arithmetic engine \(\mathsf E\) and a Borel policy \(\mathsf N\) selecting valid numerical representations of the exponents and observed covariates.
+\begin{enumerate}
+\item For \(n=1\), return
+\[
+I^{\mathrm{up}}_{1,\mathsf E,\mathsf N}(\alpha,\beta)
+=[-1/2,1/2].
+\]
+For \(n\ge2\), proceed through the remaining steps.
+
+\item Select the numerator and denominator projection ranks using \(\mathsf E\), the public exponent representations selected by \(\mathsf N\), and the fixed public precision budget \(q_{\mathrm{rank}}(n)\):
+\[
+k_C=k_C(n,\alpha,\beta;\mathsf E,\mathsf N),
+\qquad
+k_S=k_S(n,\alpha,\beta;\mathsf E,\mathsf N).
+\]
+Use these retained integers in the coordinate estimates \(\widehat C_n\), the numerator estimate, and \(\widehat S_n\), the denominator estimate, from \cref{obj:def:coordinate-estimates}, with ranks defined in \cref{obj:def:resolutions}.
+
+\item Define the smoothness sum, variance envelope, and coordinate error radii by
+\[
+s=\alpha+\beta,\qquad
+V_n(k)=\frac{10}{n}+\frac{4k}{n(n-1)},
+\]
+\[
+b_C=8k_C^{-s}+\sqrt{20V_n(k_C)},
+\qquad
+b_S=25k_S^{-2\beta}+\sqrt{20V_n(k_S)}.
+\]
+Here \(b_C\) and \(b_S\) denote error radii, distinct from the resolution-enclosure endpoints in \cref{obj:def:resolutions}.
+
+\item Define scalar clipping, the fixed denominator lower bound from \cref{obj:lem:observable-odds}, and the confidence-rectangle endpoints by
+\[
+\operatorname{clip}_{[l,u]}(v)=\max\{l,\min\{u,v\}\},
+\qquad s_0=\frac{1}{512},
+\]
+\[
+c_\pm=\widehat C_n\pm b_C,
+\qquad
+s_\pm=\operatorname{clip}_{[s_0,1]}(\widehat S_n\pm b_S).
+\]
+Define the clipped logarithmic inversion and its ideal interval endpoints by
+\[
+F(c,d)=
+\log\!\left(
+\operatorname{clip}_{[\exp(-1/2),\exp(1/2)]}(1+c/d)
+\right),
+\]
+\[
+L=\min\{F(c_-,s_-),F(c_-,s_+)\},
+\qquad
+R=\max\{F(c_+,s_-),F(c_+,s_+)\}.
+\]
+Here \(R\) denotes the ideal upper endpoint, distinct from the generic rank target in \cref{obj:def:resolutions}. These exact-real expressions specify the quantities enclosed in the next step.
+
+\item Define the largest retained rank and the endpoint precision budget by
+\[
+K=\max\{k_C,k_S\},
+\qquad
+q_{\mathrm{end}}(n,k_C,k_S)
+=44+\lceil\log_2(n+1)\rceil
++4\lceil\log_2(K+1)\rceil.
+\]
+At this single precision, query the supplied numerical representations of both exponents and all observed covariates. Evaluate the displayed finite expressions with the same engine \(\mathsf E\), its primitive maps at precision \(q_{\mathrm{end}}\), and exact rational range operations in the displayed expression tree, retaining \(k_C,k_S\) from the rank step. Obtain rational endpoint enclosures satisfying
+\[
+L_-\le L\le L_+,
+\qquad
+R_-\le R\le R_+.
+\]
+For every valid input with \(0<\beta<1/4\), \(\beta<\alpha\le1\), and \(n\ge2\), \cref{obj:lem:fixed-budget-realization} gives
+\[
+L_+-L_-\le\frac1n,
+\qquad
+R_+-R_-\le\frac1n.
+\]
+
+\item Output the closed rational interval
+\[
+I^{\mathrm{up}}_{n,\mathsf E,\mathsf N}(\alpha,\beta)
+=
+\left[
+\max\{-1/2,L_-\},
+\min\{1/2,R_+\}
+\right].
+\]
+For every valid input with \(0<\beta<1/4\), \(\beta<\alpha\le1\), and \(n\ge2\), the output is nonempty, contains the ideal interval, and satisfies
+\[
+[L,R]\subseteq
+I^{\mathrm{up}}_{n,\mathsf E,\mathsf N}(\alpha,\beta),
+\]
+\[
+0\le
+\min\{1/2,R_+\}-\max\{-1/2,L_-\}-(R-L)
+\le\frac2n.
+\]
+The computation terminates after the fixed rank and endpoint precision budgets.
+\end{enumerate}
+For fixed \(\mathsf E,\mathsf N\), this construction defines a sample map with inputs \((n,\alpha,\beta,\mathcal O)\). Its rational endpoints may depend on the admissible engine and valid numerical representations supplied.
+
+The model and honesty conditions are specified in \cref{obj:synth_1,obj:synth_2,obj:synth_3,obj:ass:uniform-design,obj:ass:homogeneous-logit,obj:ass:effect-envelope,obj:ass:propensity-envelope,obj:ass:prognosis-envelope,obj:ass:propensity-holder,obj:ass:prognosis-holder,obj:ass:evaluation-radius,obj:ass:global-coverage,obj:def:logistic-class,obj:def:model,obj:def:radius-model,obj:def:honest-procedures,obj:def:length-objective}. The associated constructions are given in \cref{obj:def:causal-extension,obj:def:projection-statistic,obj:def:diagnostic-envelope,obj:def:frontier-handle,obj:def:calibration-maps,obj:def:continuous-calibrated-priors,obj:def:dyadic-name-convention,obj:def:arithmetic-engine}. Their bounds and realization properties are stated in \cref{obj:lem:projection-control,obj:thm:finite-honest-upper,obj:lem:parametric-null-floor,obj:thm:sharp-honest-frontier,obj:lem:scalar-implicit-function,obj:lem:exact-calibrations,obj:lem:calibrated-support,obj:lem:original-record-mixtures,obj:thm:full-honest-frontier-solution,obj:lem:concrete-arithmetic-engine,obj:thm:full-honest-frontier-answer}.
+\end{algorithmv}
+
+The exact endpoints \(L,R\) describe the interval used in the statistical analysis. On valid named inputs, the delivered endpoints are rational outward enclosures, clipped to the effect range, with total additional length at most \(2/n\). The realization guarantee in \cref{obj:lem:fixed-budget-realization} applies at the single prescribed endpoint precision. Different admissible engines or names may produce different rational endpoints within these guarantees.
+
+Every tuning choice uses the sample size and public exponents, so the same procedure serves all evaluation radii. Clipping uses the known denominator and effect ranges from \cref{obj:lem:observable-odds,obj:ass:effect-envelope}. At sample size one, the full effect interval supplies the specified output. The following result establishes global honesty and the effect-sensitive expected-length bound for this finite-sample procedure.
+
+\begin{theoremv}{thm:finite-honest-upper}[Uniform honesty and length bound]
+There exists an absolute constant \(K_0>0\) such that the following guarantees hold for every choice satisfying:
+\begin{itemize}
+\item \textbf{(Arithmetic engine.)} \(\mathsf E\) is an admissible, independently fixed deterministic rational interval-arithmetic engine satisfying the quantitative contracts of \cref{obj:def:arithmetic-engine}.
+\item \textbf{(Naming policy.)} \(\mathsf N\) is an admissible Borel policy satisfying \cref{obj:def:dyadic-name-convention}, selecting valid names for the public exponents and observed covariates, with public exponent names fixed independently of the sample.
+\item \textbf{(Public exponents.)} The real exponents \(\alpha,\beta\) satisfy
+\[
+0<\beta<\frac14,\qquad \beta<\alpha\le1.
+\]
+\item \textbf{(Sample size.)} The integer sample size \(n\) satisfies \(n\ge1\).
+\end{itemize}
+
+Let \(I^{\mathrm{up}}_{n,\mathsf E,\mathsf N}(\alpha,\beta)\) denote the measurable interval procedure given by the literal rational output of the upper construction, whose inputs are the engine, naming policy, sample size, public exponents, and observed records. This procedure satisfies
+\[
+I^{\mathrm{up}}_{n,\mathsf E,\mathsf N}(\alpha,\beta)
+\in\mathcal A_n(\alpha,\beta),
+\]
+where \(\mathcal A_n(\alpha,\beta)\) is the class of globally honest procedures in \cref{obj:def:honest-procedures}.
+
+For every \(r\in[0,1/2]\) and every observed law \(P\in\mathcal M_r(\alpha,\beta)\), the effect-radius model of \cref{obj:def:radius-model},
+\[
+E_{P^{\otimes n}\otimes\lambda}
+\left[
+\left|I^{\mathrm{up}}_{n,\mathsf E,\mathsf N}(\alpha,\beta)(\mathcal O,U)\right|
+\right]
+\le K_0\,d_n(\alpha,\beta;r).
+\]
+Here \(\mathcal O\) is the sample of original observed records, \(U\) is the independent randomization seed with uniform law \(\lambda\) on the unit interval, and \(d_n(\alpha,\beta;r)\) is the diagnostic envelope of \cref{obj:def:diagnostic-envelope}. The same constant \(K_0\) applies to all the engines, naming policies, exponents, sample sizes, radii, and laws quantified above.
+
+For every sample and seed, there exist rational endpoints \(l,u\) such that the output is the closed interval \([l,u]\) and
+\[
+-\frac12\le l\le u\le\frac12.
+\]
+When \(n=1\), every sample and seed yields the full interval \([-1/2,1/2]\).
+\end{theoremv}
+
+The length bound reflects the structure of the odds identity. Numerator uncertainty contributes even at a zero effect, while denominator uncertainty enters the inversion through a numerator proportional to \(\exp\{\theta(P)\}-1\). This explains the numerator term and the radius-scaled denominator term in \cref{obj:def:diagnostic-envelope}. Separate ranks accommodate their distinct smoothness requirements, and outward numerical enclosure preserves the ideal interval. Consequently, the literal rational output has global \(90\%\) coverage over the ambient model and the stated unconditional expected-length bound on every radius slice, with one common constant across the admissible arithmetic engines and naming policies.

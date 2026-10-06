@@ -1,0 +1,174 @@
+\begin{proof}[Proof of \cref{obj:lem:inverse-count-poisson-prefix-transfer}]
+Put
+\[
+M_f:=n_f+m_f,\qquad m_p:=\lfloor m/2\rfloor .
+\]
+All lists below use the empty-list convention when one of the displayed lengths is zero.
+
+\begin{enumerate}
+\item
+For finite prefixes \(\omega_0\) of outcome-marked observations and \(\omega_f\) of treatment--covariate observations, write
+\[
+\Phi_u(\omega_0,\omega_f)
+:=
+\text{the clipped finite-prefix inverse-count output at scale }u
+\]
+so that, by clipping,
+\[
+-1\le \Phi_u(\omega_0,\omega_f)\le 1
+\qquad\text{for every }(\omega_0,\omega_f).
+\]
+Also,
+\[
+|\tau(P)|
+=
+\left|\sum_{x=1}^{d}p_x(\mu_{1x}-\mu_{0x})\right|
+\le
+\sum_{x=1}^{d}p_x|\mu_{1x}-\mu_{0x}|
+\le
+\sum_{x=1}^{d}p_x
+=1,
+\]
+using \cref{obj:def:ate-functional}, the fact that \(P\) is a probability law in \cref{obj:def:model-class}, and \(\mu_{ax}\in[0,1]\), with the standard zero-mass-cell convention.
+
+For fixed pools \(\mathbf o=(o_1,\ldots,o_{M_0})\) and \(\mathbf v=(v_1,\ldots,v_{M_f})\), define the capped prefix value
+\[
+\mathcal C(\mathbf o,\mathbf v,r_0,r_f)
+:=
+\begin{cases}
+\Phi_u\bigl((o_1,\ldots,o_{r_0}),(v_1,\ldots,v_{r_f})\bigr),
+& r_0\le M_0,\ r_f\le M_f,\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+Let \(R_0\sim\operatorname{Poi}(u)\) and \(R_f\sim\operatorname{Poi}(t)\) be independent, and set
+\[
+\mathcal R_{u,t}(\mathbf o,\mathbf v)
+:=
+\mathbb E\!\left[\mathcal C(\mathbf o,\mathbf v,R_0,R_f)\right].
+\]
+If \((\mathbf O,\mathbf V)\sim P^{\otimes M_0}\otimes P_{XA}^{\otimes M_f}\), Jensen's inequality for the conditional expectation over \((R_0,R_f)\) gives
+\[
+\mathbb E\!\left[
+  \bigl(\mathcal R_{u,t}(\mathbf O,\mathbf V)-\tau(P)\bigr)^2
+\right]
+\le
+\mathbb E\!\left[
+  \bigl(\mathcal C(\mathbf O,\mathbf V,R_0,R_f)-\tau(P)\bigr)^2
+\right].
+\]
+On the event \(\Omega_{\mathrm{fit}}=\{R_0\le M_0,\ R_f\le M_f\}\), the selected prefixes have the same law as the independent Poisson prefixes restricted to their lengths fitting in the two pools. Hence
+\[
+\mathbb E\!\left[
+  \bigl(\mathcal C-\tau(P)\bigr)^2\mathbf 1_{\Omega_{\mathrm{fit}}}
+\right]
+\le
+\mathbb E_{\mathbb P^{\mathrm{pref}}_{P,u,t}}\!\left[
+  \bigl(\Phi_u-\tau(P)\bigr)^2
+\right].
+\]
+On \(\Omega_{\mathrm{fit}}^c\), the capped value is \(0\), and the interval bound above gives
+\[
+\bigl(0-\tau(P)\bigr)^2\le (1-(-1))^2=4.
+\]
+The union bound gives
+\[
+\Pr(\Omega_{\mathrm{fit}}^c)
+\le
+\Pr\{\operatorname{Poi}(u)>M_0\}
++
+\Pr\{\operatorname{Poi}(t)>M_f\}.
+\]
+Combining these displays,
+\[
+\mathbb E\!\left[
+  \bigl(\mathcal R_{u,t}(\mathbf O,\mathbf V)-\tau(P)\bigr)^2
+\right]
+\le
+\mathbb E_{\mathbb P^{\mathrm{pref}}_{P,u,t}}\!\left[
+  \bigl(\Phi_u-\tau(P)\bigr)^2
+\right]
++4\Bigl[
+  \Pr\{\operatorname{Poi}(u)>M_0\}
+  +
+  \Pr\{\operatorname{Poi}(t)>M_f\}
+\Bigr].
+\]
+% lean: Causalean.Stat.FiniteRaoBlackwell.IndependentPoissonPrefix.finiteAlphabet_independentUnequalPrefix_risk_le
+
+\item
+For a full sample \(z=((O_1,\ldots,O_n),(V_1,\ldots,V_m))\), with \(O_i=(X_i,A_i,Y_i)\) and \(V_j\in[d]\times\{0,1\}\), define the fixed-pool projection
+\[
+\Psi(z)
+:=
+\Bigl(
+  (O_1,\ldots,O_{M_0}),
+  \bigl((X_{M_0+n_p+1},A_{M_0+n_p+1}),\ldots,(X_n,A_n),
+        V_{m_p+1},\ldots,V_m\bigr)
+\Bigr).
+\]
+For every \(z\),
+\[
+\widehat\tau^{\mathrm{IC}}_{n,m,d}(z)
+=
+\mathcal R_{u,t}(\Psi(z)).
+\]
+Indeed, expanding \(\mathcal R_{u,t}\) gives
+\[
+\sum_{r_0,r_f\ge0}
+\Pr\{\operatorname{Poi}(u)=r_0\}
+\Pr\{\operatorname{Poi}(t)=r_f\}
+\mathcal C(\Psi(z),r_0,r_f),
+\]
+and the terms with \(r_0>M_0\) or \(r_f>M_f\) are zero, leaving exactly the finite average over \(0\le r_0\le M_0\) and \(0\le r_f\le M_f\) in the derandomized inverse-count estimator.
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.independentPrefixInverseCountStatistic_fixedPools
+
+\item
+Under the annotation experiment in \cref{obj:def:annotation-experiment},
+\[
+\Psi_{\#}\bigl(P^{\otimes n}\otimes P_{XA}^{\otimes m}\bigr)
+=
+P^{\otimes M_0}\otimes P_{XA}^{\otimes M_f}.
+\]
+The first component selects the first \(M_0\) labeled records. The second component concatenates the treatment--covariate projections of the final \(n_f\) labeled records with the final \(m_f\) auxiliary records; independence of the original product samples and the definition of \(P_{XA}\) give the displayed product law. Therefore the change of variables formula yields
+\[
+\begin{aligned}
+&\mathbb E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}}
+ \!\left[
+  \bigl(\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)\bigr)^2
+ \right]  \\
+&\qquad =
+\mathbb E_{P^{\otimes M_0}\otimes P_{XA}^{\otimes M_f}}
+ \!\left[
+  \bigl(\mathcal R_{u,t}-\tau(P)\bigr)^2
+ \right].
+\end{aligned}
+\]
+Measurability is immediate because all sample spaces involved are finite products and the statistic is clipped.
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.inverseCountFixedPools_map_annotationLaw
+
+\item
+Applying the transfer bound from the first step to the fixed-pool risk in the last display gives
+\[
+\begin{aligned}
+&\mathbb E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}}
+ \!\left[
+  \bigl(\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)\bigr)^2
+ \right] \\
+&\qquad\le
+\mathbb E_{\mathbb P^{\mathrm{pref}}_{P,u,t}}
+ \!\left[
+  \bigl(\Phi_u-\tau(P)\bigr)^2
+ \right]
++4\Bigl[
+  \Pr\{\operatorname{Poi}(u)>M_0\}
+  +
+  \Pr\{\operatorname{Poi}(t)>M_f\}
+\Bigr].
+\end{aligned}
+\]
+Under \(\mathbb P^{\mathrm{pref}}_{P,u,t}\), the random value \(\Phi_u\) is precisely
+\(\widehat\tau^{\mathrm{IC,pref}}_{u,t}\), and \(M_f=n_f+m_f\). This is the claimed inequality.
+% lean: CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.inverseCountEstimator_risk_le_poissonPrefixes
+\end{enumerate}
+\end{proof}

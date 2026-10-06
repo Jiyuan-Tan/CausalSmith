@@ -1,0 +1,595 @@
+import type { Core } from "./schema.js";
+
+/** N-family TeX control words (spelled without the leading `n`) whose under-escaped
+ * `\n...` form silently decodes to a newline + remainder. Unlike b/f/r/t, a decoded
+ * newline is legitimate content (multi-line TeX must use `\n` escapes in valid JSON),
+ * so restoration is dictionary-gated. Multi-char suffixes require a non-letter,
+ * non-dot boundary (the dot exclusion keeps a line break before "e.g."/"eg." intact). */
+const N_COMMAND_MULTI =
+  /^(?:eq|otin|otag|ot|abla|mid|eg|olimits|onumber|atural|earrow|warrow|ewline|cong|leq|geq|gtr|sim|prec|succ|vdash|vDash|Vdash|VDash|Rightarrow|Leftarrow|Leftrightarrow|subseteq|supseteq|triangleleft|triangleright|orm)(?![A-Za-z.])/;
+// Deliberately ABSENT from the table: suffixes that are common prose words
+// ("exists" for `\nexists`, "less" for `\nless`, "parallel" for `\nparallel`).
+// A line break before such a word is far more frequent than an under-escaped
+// spelling of the command, so inferring the command there corrupts legitimate
+// prose; those three commands must be authored with the doubled backslash.
+/** The single-letter suffix `e` (`\ne`) needs the legacy tight boundary: only a
+ * delimiter that is natural after the relation but implausible after the letter
+ * `e` as ordinary math. Corpus-verified exclusions: `e^`/`e_` (the exponential
+ * and subscripted variables, e.g. an mgf bound `\[` + newline + `e^{s\lambda n}`)
+ * must stay newlines. `u` (`\nu`) is deliberately NOT inferred at all — accepted
+ * papers legitimately open display math with the variable `u` (`u^\alpha`,
+ * `u\ge…`), so an under-escaped `\nu` is accepted silent residue instead. */
+const N_COMMAND_SHORT = /^e(?=$|[\s\\}\],])/;
+
+/** Normalize raw model-authored JSON bytes BEFORE `JSON.parse`. Post-parse, an
+ * under-escaped `\theta` and an intended tab+`heta` are the same characters — the
+ * information is destroyed — but in the raw bytes the single backslash is still
+ * visible, so repair is exact rather than heuristic. Inside string literals, an
+ * odd-count backslash followed by:
+ *   - `b`/`f`/`r`/`t` + a letter is an under-escaped TeX control word (`\beta`,
+ *     `\frac`, `\rho`, `\theta`, `\to`, …): double the backslash. Intentional
+ *     control characters directly before a letter do not occur in this pipeline;
+ *     a wrong doubling is visible TeX garbage caught by the render gate, whereas
+ *     the alternative was silent data corruption.
+ *   - `n` is doubled only for dictionary-listed TeX commands at a word boundary;
+ *     every other `\n` stays a genuine line break.
+ *   - `u` + 4 hex digits is a genuine `\uXXXX` escape and is preserved; any other
+ *     `\u` (`\underline`, …) is doubled.
+ *   - any character that is not a valid JSON escape (`\alpha`, `\{`, `\[`, …) is
+ *     doubled: JSON.parse would otherwise throw, and the only sane reading of an
+ *     isolated invalid escape is a literal TeX backslash.
+ * Text outside string literals, even-count backslash runs, `\"`, `\/`, and `\\`
+ * are untouched. The transform is idempotent. */
+export function normalizeRawModelJson(raw: string): string {
+  let out = "";
+  let i = 0;
+  let inString = false;
+  while (i < raw.length) {
+    const ch = raw[i];
+    if (!inString) {
+      if (ch === '"') inString = true;
+      out += ch;
+      i += 1;
+      continue;
+    }
+    if (ch === '"') {
+      inString = false;
+      out += ch;
+      i += 1;
+      continue;
+    }
+    if (ch !== "\\") {
+      out += ch;
+      i += 1;
+      continue;
+    }
+    let j = i;
+    while (j < raw.length && raw[j] === "\\") j += 1;
+    const run = raw.slice(i, j);
+    const next = raw[j] ?? "";
+    if (run.length % 2 === 0) {
+      // Pairs decode to literal backslashes; the following char is plain content.
+      out += run;
+      i = j;
+      continue;
+    }
+    // Odd run: the final backslash + `next` forms a JSON escape (or an invalid one).
+    const keep = () => {
+      out += run + next;
+      i = j + 1;
+    };
+    const double = () => {
+      out += run + "\\" + next;
+      i = j + 1;
+    };
+    if (next === '"' || next === "\\" || next === "/") keep();
+    else if (next === "u") {
+      if (/^[0-9a-fA-F]{4}/.test(raw.slice(j + 1))) keep();
+      else double();
+    } else if (next === "b" || next === "f" || next === "r" || next === "t") {
+      if (/^[A-Za-z]/.test(raw.slice(j + 1))) double();
+      else keep();
+    } else if (next === "n") {
+      const rest = raw.slice(j + 1);
+      if (N_COMMAND_MULTI.test(rest) || N_COMMAND_SHORT.test(rest)) double();
+      else keep();
+    } else double();
+  }
+  return out;
+}
+
+/** True iff any string in `value` contains a newline directly followed by a
+ * dictionary n-command suffix (`\neq` → newline+`eq`, `\nabla` → newline+`abla`,
+ * …). That shape is the signature of a `\n`-family TeX command decoded WITHOUT
+ * raw-byte normalization — the post-parse repair restores only `\ne`/`\notin`,
+ * and the control-char backstop deliberately permits newlines, so nothing else
+ * catches it. Used by raw-stdout fallback parsers to fail closed instead of
+ * persisting silently corrupted TeX. */
+export function containsLikelyDecodedTexNewlines(value: unknown): boolean {
+  const suspect = (s: string): boolean => {
+    for (const m of s.matchAll(/\n([A-Za-z]+)/g)) {
+      if (N_COMMAND_MULTI.test(m[1])) return true;
+    }
+    return false;
+  };
+  const visit = (v: unknown): boolean => {
+    if (typeof v === "string") return suspect(v);
+    if (Array.isArray(v)) return v.some(visit);
+    if (v !== null && typeof v === "object") return Object.values(v).some(visit);
+    return false;
+  };
+  return visit(value);
+}
+
+/** Recursively apply `repairSerializedLatex` to every string in a parsed model
+ * payload (arrays/objects mutated in place). Shared by every model boundary that
+ * ingests TeX-bearing JSON without a typed Core shape. */
+export function repairLatexStringsDeep(value: unknown, opaqueKeys: ReadonlySet<string> = new Set()): void {
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i++) {
+      if (typeof value[i] === "string") value[i] = repairSerializedLatex(value[i]);
+      else repairLatexStringsDeep(value[i], opaqueKeys);
+    }
+    return;
+  }
+  if (value === null || typeof value !== "object") return;
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    // Some fields contain serialized JSON as an opaque string. Repairing their
+    // backslashes as if they were direct TeX decodes the inner JSON one layer early
+    // and corrupts canonical fingerprints / before-after journal snapshots.
+    if (opaqueKeys.has(key)) continue;
+    if (typeof child === "string") (value as Record<string, unknown>)[key] = repairSerializedLatex(child);
+    else repairLatexStringsDeep(child, opaqueKeys);
+  }
+}
+
+/** Post-parse backstop behind `normalizeRawModelJson`: no decoded string at a model
+ * boundary may contain a control character other than newline. After normalization
+ * such a character can only arise from an escaping error the normalizer declined to
+ * guess about, so fail loudly with the field path instead of letting corrupted data
+ * reach schema validation or proposal comparison. */
+export function assertNoDecodedControlChars(
+  value: unknown,
+  source: string,
+  recoveryGuidance =
+    `usually an under-escaped TeX backslash (e.g. \`\\theta\` written with one backslash decodes to tab + "heta"); ` +
+    `a U+0009 before a non-letter is instead literal tab indentation (use spaces). ` +
+    `Re-emit with every TeX backslash doubled.`,
+): void {
+  const offenses: string[] = [];
+  const visit = (v: unknown, path: string): void => {
+    if (typeof v === "string") {
+      // CR directly before LF is a CRLF line ending (verbatim quotes copied from
+      // CRLF sources), not an escaping error; a lone CR (`\rho` → CR + "ho") still fails.
+      const m = /[\u0000-\u0009\u000b\u000c\u000e-\u001f]|\r(?!\n)/.exec(v);
+      if (m) {
+        const code = m[0].charCodeAt(0).toString(16).toUpperCase().padStart(4, "0");
+        const snippet = JSON.stringify(v.slice(Math.max(0, m.index - 20), m.index + 20));
+        offenses.push(`${path || "(root)"}: U+${code} at offset ${m.index} near ${snippet}`);
+      }
+      return;
+    }
+    if (Array.isArray(v)) {
+      v.forEach((child, idx) => visit(child, `${path}[${idx}]`));
+      return;
+    }
+    if (v !== null && typeof v === "object") {
+      for (const [key, child] of Object.entries(v)) visit(child, path ? `${path}.${key}` : key);
+    }
+  };
+  visit(value, "");
+  if (offenses.length > 0) {
+    throw new Error(
+      `${source}: decoded JSON control character(s) in model-authored content — ${recoveryGuidance} ` +
+        `Offending field(s):\n` +
+        offenses.map((o) => `  - ${o}`).join("\n"),
+    );
+  }
+}
+
+/** Refuse to seal a payload whose LaTeX cannot survive downstream rendering.
+ * This is the validate-before-immortalize gate for records that become immutable
+ * once written (D0 exact-edit mandates): a payload rejected here can simply be
+ * re-emitted, whereas the same defect sealed into a content-addressed record
+ * needs an audited cancellation to undo. Read-only by design — the payload must
+ * stay byte-identical to what was adjudicated, so nothing is repaired in place.
+ * Checks, per string field: (1) decoded control characters (shared boundary
+ * rule); (2) inline `\(`/`\)` and display `\[`/`\]` delimiters balance, counting
+ * only odd backslash runs (an even run is a row break plus a literal bracket);
+ * (3) the whole-string over-escape signature — paired doubled inline delimiters
+ * with no canonical single-backslash TeX anywhere (the same evidence rule as
+ * `repairSerializedLatex`, but rejecting instead of rewriting). */
+export function assertSealableLatexPayload(value: unknown, source: string): void {
+  assertNoDecodedControlChars(value, source);
+  const offenses: string[] = [];
+  const checkString = (s: string, path: string): void => {
+    // Tokenize in source order: percent is a comment only in ordinary TeX,
+    // whereas URL and verbatim commands read it as literal data. Stripping
+    // comments before recognizing these commands changes the TeX being checked.
+    const masked = s.split("");
+    const opaquePatterns = [
+      /^\\begin\s*\{(verbatim\*?|Verbatim|BVerbatim|LVerbatim|SaveVerbatim|lstlisting\*?|minted\*?|alltt\*?)\}[\s\S]*?\\end\s*\{\1\}/,
+      /^\\verb\*?([^A-Za-z\s])[^\n]*?\1/,
+      /^\\(?:Verb\*?|lstinline\*?)(?:\[[^\]\n]*\])?([^A-Za-z\s])[^\n]*?\1/,
+      /^\\mintinline(?:\[[^\]\n]*\])?\{[^{}\n]*\}\{[^{}\n]*\}/,
+      /^\\mintinline(?:\[[^\]\n]*\])?\{[^{}\n]*\}([^A-Za-z\s])[^\n]*?\1/,
+    ];
+    const mask = (start: number, end: number): void => {
+      for (let i = start; i < end; i += 1) if (s[i] !== "\n") masked[i] = " ";
+    };
+    for (let i = 0; i < s.length;) {
+      if (s[i] === "%") {
+        const newline = s.indexOf("\n", i);
+        const end = newline < 0 ? s.length : newline;
+        mask(i, end);
+        i = end;
+      } else if (s[i] === "\\") {
+        const tail = s.slice(i);
+        // URL commands switch the argument's catcodes before reading it. Once
+        // an opener is recognized, never fall back to ordinary comment syntax:
+        // a missing closer is malformed literal syntax, not a TeX comment.
+        const url = /^\\(?:url|nolinkurl|path)(?![A-Za-z@])\s*/.exec(tail);
+        if (url) {
+          const start = i + url[0].length;
+          const opener = s[start];
+          let end = -1;
+          if (opener === "{") {
+            let depth = 1;
+            for (let j = start + 1; j < s.length; j += 1) {
+              if (s[j] === "{") depth += 1;
+              else if (s[j] === "}" && --depth === 0) {
+                end = j + 1;
+                break;
+              }
+            }
+          } else if (opener && !/[\s{}]/.test(opener)) {
+            const closer = s.indexOf(opener, start + 1);
+            if (closer >= 0) end = closer + 1;
+          }
+          if (end < 0) {
+            offenses.push(`${path}: unterminated or malformed opaque TeX URL`);
+            i += url[0].length;
+          } else {
+            mask(i, end);
+            i = end;
+          }
+          continue;
+        }
+        const opaque = opaquePatterns.map((pattern) => pattern.exec(tail)).find(Boolean);
+        if (opaque) {
+          mask(i, i + opaque[0].length);
+          i += opaque[0].length;
+        } else {
+          // TeX control symbols consume the following byte. This handles \%
+          // and paired backslashes without interpreting an escaped opener.
+          const command = /^\\[A-Za-z@]+/.exec(tail);
+          i += command ? command[0].length : Math.min(2, s.length - i);
+        }
+      } else i += 1;
+    }
+    const analysis = masked.join("");
+    // Complete inline literals were consumed above. Any recognized opener still
+    // visible in the analysis view is malformed (usually a missing closing
+    // delimiter); fail closed rather than treating its opaque tail as prose.
+    if (/\\(?:verb\*?|Verb\*?|lstinline\*?|mintinline)(?![A-Za-z@])/.test(analysis)) {
+      offenses.push(`${path}: unterminated or malformed inline TeX literal`);
+    }
+    const counts = { "(": 0, ")": 0, "[": 0, "]": 0 };
+    const depths = { paren: 0, bracket: 0 };
+    let closeBeforeOpen = false;
+    for (const m of analysis.matchAll(/(\\+)([()[\]])/g)) {
+      if (m[1].length % 2 === 0) continue;
+      const delim = m[2] as keyof typeof counts;
+      counts[delim] += 1;
+      const kind = delim === "(" || delim === ")" ? "paren" : "bracket";
+      depths[kind] += delim === "(" || delim === "[" ? 1 : -1;
+      if (depths[kind] < 0) closeBeforeOpen = true;
+    }
+    if (counts["("] !== counts[")"]) {
+      offenses.push(`${path}: unbalanced inline-math delimiters (${counts["("]} \\( vs ${counts[")"]} \\))`);
+    }
+    if (counts["["] !== counts["]"]) {
+      offenses.push(`${path}: unbalanced display-math delimiters (${counts["["]} \\[ vs ${counts["]"]} \\])`);
+    }
+    if (closeBeforeOpen) {
+      offenses.push(`${path}: a math close delimiter appears before any open`);
+    }
+    // TeX groups are independent of \(...\)/\[...\] delimiters. A payload can
+    // balance every math delimiter yet still truncate `\mathrm{...}` or a
+    // subscript group. Count only unescaped braces and ignore TeX comments;
+    // `\{`/`\}` are literal glyphs, not grouping tokens.
+    let braceDepth = 0;
+    let braceCloseBeforeOpen = false;
+    for (let i = 0; i < analysis.length; i += 1) {
+      const ch = analysis[i];
+      let slashCount = 0;
+      for (let j = i - 1; j >= 0 && analysis[j] === "\\"; j -= 1) slashCount += 1;
+      const escaped = slashCount % 2 === 1;
+      if (escaped) continue;
+      if (ch === "{") braceDepth += 1;
+      else if (ch === "}") {
+        braceDepth -= 1;
+        if (braceDepth < 0) {
+          braceCloseBeforeOpen = true;
+          braceDepth = 0;
+        }
+      }
+    }
+    if (braceCloseBeforeOpen || braceDepth !== 0) {
+      offenses.push(
+        `${path}: unbalanced TeX grouping braces` +
+          (braceCloseBeforeOpen ? " (a close brace appears before any open)" : ` (${braceDepth} unmatched open)`),
+      );
+    }
+    const hasCanonicalSingleBackslash = /(?<!\\)\\(?!\\)/.test(analysis);
+    const doubledInlinePair = /\\\\\(/.test(analysis) && /\\\\\)/.test(analysis);
+    const doubledDisplayPair = /\\\\\[/.test(analysis) && /\\\\\]/.test(analysis);
+    if ((doubledInlinePair || doubledDisplayPair) && !hasCanonicalSingleBackslash) {
+      offenses.push(`${path}: over-escaped LaTeX (doubled math delimiters with no single-backslash command)`);
+    }
+    // LaTeX environments must nest properly, so validate with a stack rather
+    // than per-name counts: crossed or end-before-begin sequences whose counts
+    // happen to balance are still invalid TeX.
+    const envStack: string[] = [];
+    let envOffense: string | null = null;
+    for (const m of analysis.matchAll(/(\\+)(begin|end)\{([A-Za-z*]+)\}/g)) {
+      if (m[1].length % 2 === 0) continue;
+      if (m[2] === "begin") envStack.push(m[3]);
+      else if (envStack.pop() !== m[3]) {
+        envOffense = `${path}: \\end{${m[3]}} does not match the innermost open environment`;
+        break;
+      }
+    }
+    if (envOffense !== null) offenses.push(envOffense);
+    else if (envStack.length > 0) {
+      offenses.push(`${path}: unmatched \\begin/\\end for environment '${envStack[envStack.length - 1]}'`);
+    }
+    for (const v of alignedRowTerminatorViolations(analysis)) {
+      offenses.push(`${path}: noncanonical aligned row terminator (block ${v.block} line ${v.line}, ${v.count} backslashes)`);
+    }
+  };
+  const visit = (v: unknown, path: string): void => {
+    if (typeof v === "string") checkString(v, path || "(root)");
+    else if (Array.isArray(v)) v.forEach((child, idx) => visit(child, `${path}[${idx}]`));
+    else if (v !== null && typeof v === "object") {
+      for (const [key, child] of Object.entries(v)) visit(child, path ? `${path}.${key}` : key);
+    }
+  };
+  visit(value, "");
+  if (offenses.length > 0) {
+    throw new Error(
+      `${source}: LaTeX payload cannot be sealed — re-emit the payload with these field(s) corrected ` +
+        `(do not hand-patch the persisted record):\n` +
+        offenses.map((o) => `  - ${o}`).join("\n"),
+    );
+  }
+}
+
+/** Restore a decoded C0 control before a letter to its TeX command prefix.
+ * Raw companion blocks use only this unambiguous repair; JSON serialization
+ * heuristics do not apply to their literal backslashes and line breaks. */
+export function repairDecodedTexControls(value: string): string {
+  return value
+    .replace(/\x07(?=[A-Za-z])/g, "\\a")
+    .replace(/[\b](?=[A-Za-z])/g, "\\b")
+    .replace(/\f(?=[A-Za-z])/g, "\\f")
+    .replace(/\r(?=[A-Za-z])/g, "\\r")
+    .replace(/\t(?=[A-Za-z])/g, "\\t")
+    .replace(/\v(?=[A-Za-z])/g, "\\v");
+}
+
+/** Repair recurrent JSON escape ambiguities from model-authored LaTeX. In JSON,
+ * an under-escaped `\ne` becomes a newline followed by `e`, and `\notin` becomes
+ * a newline followed by `otin`. A row break emitted as three JSON backslashes
+ * can likewise decode to one TeX backslash plus a newline. These repairs are
+ * deliberately narrow so ordinary prose line breaks remain untouched. */
+export function repairSerializedLatex(value: string): string {
+  // A model that emits LaTeX inside a JSON string can over-escape every command,
+  // leaving two literal backslashes after JSON.parse (for example `\\(` and
+  // `\\pi`). Doubled inline-math delimiters are invalid TeX and therefore a
+  // reliable signal for this whole-string serialization error. Preserve real
+  // `\\` row/line breaks: the collapse only applies before non-space,
+  // non-digit characters.
+  // Treat this as a WHOLE-STRING over-escape only when the string has no
+  // canonical single-backslash LaTeX at all.  In an otherwise valid proof,
+  // `\\\\(` can instead be a legitimate row break followed immediately by a
+  // parenthesized expression (for example inside `cases`).  Globally
+  // de-doubling that mixed string turns the row break into an inline-math
+  // opener and makes the deterministic render invalid.
+  const hasCanonicalSingleBackslash = /(?<!\\)\\(?!\\)/.test(value);
+  // Positive whole-string evidence is required before de-doubling: PAIRED doubled
+  // inline-math delimiters (`\\(` and `\\)`). A lone `\\(` is equally consistent
+  // with a legitimate row break directly before a parenthesized expression, and
+  // de-doubling that silently changes meaning; an unpaired doubled delimiter
+  // instead stays invalid TeX and fails loudly at the render gate.
+  const hasOverEscapeEvidence = /\\\\\(/.test(value) && /\\\\\)/.test(value);
+  const overEscapeRepaired = hasOverEscapeEvidence && !hasCanonicalSingleBackslash
+    ? value.replace(/\\\\(?=[^\s\d])/g, "\\")
+    : value;
+  const repaired = repairDecodedTexControls(overEscapeRepaired)
+    // A decoded control character in a/b/f/r/t position followed by a letter is a
+    // TeX control word whose backslash was eaten by escape processing — either
+    // JSON's own grammar (an under-escaped `\theta` decodes to tab + "heta") or
+    // a model/tool boundary that interpreted a C-style escape itself (BEL from
+    // `\asymp`'s non-JSON `\a` is a corpus-verified case) and re-serialized
+    // the control character as a valid Unicode escape, which pre-parse raw-byte
+    // normalization must preserve. The pipeline invariant makes the restore
+    // unambiguous: authored control characters are forbidden in formal/prose
+    // fields (enforced by `assertNoDecodedControlChars` at every model
+    // boundary), while each TeX command family here is broad (`\beta`/`\begin`,
+    // `\frac`/`\forall`, `\rho`/`\rightarrow`, `\theta`/`\text`/`\to`). A
+    // control character NOT followed by a letter is left alone and fails closed
+    // at the backstop. `\v...` (the same rule for vertical tab) follows below.
+    // Some model/tool boundaries permissively interpret the non-JSON `\v`
+    // escape and then re-serialize the resulting vertical tab as `\u000b`.
+    // At that point raw-byte normalization sees a valid Unicode escape, so the
+    // only recoverable signal is the decoded vertical tab. Vertical tabs are
+    // forbidden in authored pipeline text, while TeX has a broad `\v...`
+    // command family (`\varnothing`, `\varepsilon`, `\vartheta`, ...), hence
+    // a vertical tab immediately before a letter is unambiguously that lost
+    // TeX backslash.
+    // Models occasionally serialize a visual newline as the two literal
+    // characters `\\n`. TeX has no whitespace-followed `\\n` command, so this
+    // case is unambiguous; command names such as `\\nu` remain untouched.
+    // A display delimiter does not disambiguate a following n-prefixed TeX
+    // command. Leave ambiguous text unchanged; the command-boundary repairs
+    // below cover unambiguous newline escapes.
+    // Dictionary-gate the uppercase branch: `\nRightarrow`/`\nLeftarrow`/
+    // `\nLeftrightarrow`/`\nVdash`/`\nVDash` are the amssymb negated relations —
+    // correctly-authored TeX, not a serialized newline. Converting them here
+    // silently corrupted valid proofs (`A \nRightarrow B` became a line break
+    // plus the word "Rightarrow").
+    .replace(/(?<!\\)((?:\\\\)*)\\n(?!(?:Rightarrow|Leftarrow|Leftrightarrow|Vdash|VDash)(?![A-Za-z]))(?=\s|\\|[A-Z])/g, "$1\n")
+    // A TeX control word cannot continue into a digit or punctuation.  In this
+    // pipeline `\n` is not a defined one-letter macro, so model-emitted `\n1`,
+    // `\n=`, or `\n_` is unambiguously a serialized newline.  This covers the
+    // same boundary defect as the whitespace/backslash branch without guessing
+    // at lowercase command names such as `\nu` or the protected negated arrows.
+    .replace(/(?<!\\)((?:\\\\)*)\\n(?=[^A-Za-z\s\\])/g, "$1\n")
+    // `e` directly opening an alignment row (`e &= mc`) is the variable `e`,
+    // not a decoded `\ne`: rewriting that line break into `\ne` destroyed the
+    // row separator and injected a spurious ≠.
+    .replace(/\n(?=e(?:\\|[}\],]|\s(?!\s*&)))/g, "\\n")
+    .replace(/\n(?=otin(?:\\|\s|[}\],]))/g, "\\n")
+    .replace(/(?<!\\)\\\n(?=\s*&)/g, "\\\\\n")
+    // Model-authored DOI strings occasionally omit the closing brace of a
+    // final `\\mathrm{...}` immediately before the inline-math delimiter,
+    // yielding `\\mathrm{token\\)` and an invalid render.  The delimiter is
+    // an unambiguous boundary, so restore only that missing brace.
+    .replace(/\\mathrm\{([^{}\n]*?)\\\)/g, "\\mathrm{$1}\\)");
+  const alignedRepaired = repaired.replace(
+    /\\begin\{aligned\}([\s\S]*?)\\end\{aligned\}/g,
+    (_block, body: string) =>
+      `\\begin{aligned}${body.replace(/\\+(?=(?:\[[^\]\n]*\])?[ \t]*\n)/g, "\\\\")}\\end{aligned}`,
+  );
+  return stripRedundantTerminalInlineClose(alignedRepaired);
+}
+
+/** Drop a model-emitted final `\)` only when it is provably redundant: every
+ * earlier inline delimiter is balanced, at least one complete inline span has
+ * closed, and only sentence punctuation / whitespace separates that span from
+ * the extra close. This canonicalizes a serialization artifact without guessing
+ * about a genuinely missing opener elsewhere in the field. */
+function stripRedundantTerminalInlineClose(value: string): string {
+  // The seal guard masks comments and literal/code regions before interpreting
+  // delimiter-shaped text. This narrow repair declines such strings entirely so
+  // it cannot delete a literal example that the guard intentionally ignores.
+  for (let i = 0; i < value.length; i += 1) {
+    if (value[i] !== "%") continue;
+    let slashCount = 0;
+    for (let j = i - 1; j >= 0 && value[j] === "\\"; j -= 1) slashCount += 1;
+    if (slashCount % 2 === 0) return value;
+  }
+  for (const match of value.matchAll(
+    /(\\+)(?:begin\s*\{(?:verbatim\*?|Verbatim|BVerbatim|LVerbatim|SaveVerbatim|lstlisting\*?|minted\*?|alltt\*?)\}|verb\*?(?![A-Za-z@])|Verb\*?(?![A-Za-z@])|lstinline\*?(?![A-Za-z@])|mintinline(?![A-Za-z@]))/g,
+  )) {
+    if (match[1].length % 2 === 1) return value;
+  }
+
+  const tokens = [...value.matchAll(/(\\+)([()])/g)]
+    .filter((match) => match[1].length % 2 === 1);
+  if (tokens.length < 3) return value;
+  const last = tokens[tokens.length - 1];
+  if (last[2] !== ")" || last.index === undefined) return value;
+  const lastDelimiterIndex = last.index + last[1].length - 1;
+  if (!/^\s*$/.test(value.slice(lastDelimiterIndex + 2))) return value;
+
+  let depth = 0;
+  let sawClosedSpan = false;
+  for (const token of tokens.slice(0, -1)) {
+    if (token[2] === "(") {
+      // Inline-math spans cannot nest. A merely count-balanced nested sequence
+      // is still malformed, so leave it for the seal guard rather than making
+      // its trailing error disappear.
+      if (depth !== 0) return value;
+      depth = 1;
+    }
+    else {
+      if (depth === 0) return value;
+      depth = 0;
+      sawClosedSpan = true;
+    }
+  }
+  const previous = tokens[tokens.length - 2];
+  const previousEnd = (previous.index ?? 0) + previous[0].length;
+  if (
+    depth !== 0 || !sawClosedSpan ||
+    !/^[\s.,;:!?]*$/.test(value.slice(previousEnd, lastDelimiterIndex))
+  ) return value;
+  return value.slice(0, lastDelimiterIndex) + value.slice(lastDelimiterIndex + 2);
+}
+
+export interface AlignedRowTerminatorViolation {
+  block: number;
+  line: number;
+  count: number;
+}
+
+/** TeX parsers are too permissive here and accept several malformed backslash
+ * counts. Enforce the serialization contract directly at the source boundary. */
+export function alignedRowTerminatorViolations(value: string): AlignedRowTerminatorViolation[] {
+  const violations: AlignedRowTerminatorViolation[] = [];
+  let block = 0;
+  for (const match of value.matchAll(/\\begin\{aligned\}([\s\S]*?)\\end\{aligned\}/g)) {
+    block += 1;
+    match[1].split("\n").forEach((line, index) => {
+      const row = /(\\+)(?:\[[^\]\n]*\])?[ \t]*$/.exec(line);
+      if (row && row[1].length !== 2) violations.push({ block, line: index + 1, count: row[1].length });
+    });
+  }
+  return violations;
+}
+
+export function assertCanonicalAlignedRowTerminators(value: string, source: string): void {
+  const violations = alignedRowTerminatorViolations(value);
+  if (violations.length === 0) return;
+  throw new Error(
+    `${source} has noncanonical aligned row terminator(s): ` +
+      violations.map((v) => `block ${v.block} line ${v.line} has ${v.count} backslashes`).join("; "),
+  );
+}
+
+/** Normalize every authored string that can carry LaTeX before core.json is
+ * persisted. This keeps the typed core and deterministic TeX render in sync. */
+export function repairCoreLatexSerialization(core: Core): void {
+  const repair = (value: string | undefined): string | undefined =>
+    value === undefined ? undefined : repairSerializedLatex(value);
+
+  core.target_estimand = repairSerializedLatex(core.target_estimand);
+  core.estimand_functional = repair(core.estimand_functional);
+  core.tldr = repair(core.tldr);
+  core.related_work = repair(core.related_work);
+  core.interpretation = repair(core.interpretation);
+  core.technical_internal_limitation = repair(core.technical_internal_limitation);
+  core.honest_scope = repair(core.honest_scope);
+  if (core.project_justification) {
+    core.project_justification.gap = repairSerializedLatex(core.project_justification.gap);
+    core.project_justification.niche = repairSerializedLatex(core.project_justification.niche);
+    core.project_justification.fill = repairSerializedLatex(core.project_justification.fill);
+  }
+  for (const symbol of core.symbols) {
+    symbol.type = repairSerializedLatex(symbol.type);
+    symbol.space = repair(symbol.space);
+    symbol.sig = repair(symbol.sig);
+    symbol.def = repair(symbol.def);
+    symbol.role = repair(symbol.role);
+  }
+  for (const assumption of core.assumptions) {
+    assumption.condition = repairSerializedLatex(assumption.condition);
+    if (assumption.novel) assumption.novel.justification = repairSerializedLatex(assumption.novel.justification);
+  }
+  for (const definition of core.definitions) {
+    definition.name = repairSerializedLatex(definition.name);
+    definition.construction = repairSerializedLatex(definition.construction);
+  }
+  for (const statement of core.statements) {
+    statement.statement = repairSerializedLatex(statement.statement);
+    statement.proof_tex = repair(statement.proof_tex);
+    statement.justification = repair(statement.justification);
+    statement.gap = repair(statement.gap);
+    statement.consumer = repair(statement.consumer);
+  }
+  for (const entry of core.bibliography) {
+    entry.citation = repair(entry.citation);
+  }
+}

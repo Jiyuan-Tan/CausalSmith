@@ -1,0 +1,253 @@
+\begin{proof}[Proof of \cref{obj:prop:complete-arrival-reduction}]
+\begin{enumerate}
+\item Choose universal constants \(0<c<C\) from \cref{obj:thm:point-frontier}. Fix \(\alpha\in(0,1/2)\), and choose constants \(0<c_\alpha<C_\alpha\), depending only on \(\alpha\), from \cref{obj:thm:interval-frontier}. For positive integers \(n,d\), the inclusion \(1\in[1/2,1]\) gives
+\[
+c\,r_{n,d,1}
+\le \mathfrak R^*_{n,d,1}
+\le C\,r_{n,d,1},
+\qquad
+c_\alpha\sqrt{r_{n,d,1}}
+\le \mathfrak L^*_{n,d,1,\alpha}
+\le C_\alpha\sqrt{r_{n,d,1}}.
+\]
+We retain these inequalities while establishing the estimator and risk identities at complete arrival.
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.complete_arrival_reduction
+
+\item The law class is nonempty. Indeed, the paired-law construction with zero perturbation and every latent draw at the residual zero-mass atom reduces, at \(q=1\), to the law
+\[
+P_{\mathrm{fill}}
+:=
+\text{the full-data law specified by }
+\left\{
+\begin{aligned}
+&A,Y(1)\text{ independent, each with law }\operatorname{Bernoulli}(1/2),\\
+&X=0,\qquad S(0)=S(1)=S=Y(0)=0,\\
+&R=1,\qquad Y=A\,Y(1).
+\end{aligned}
+\right.
+\]
+This law has one occupied baseline label, independent balanced treatment assignment, and consistent realized measurements. Its constant arrival indicator satisfies conditional independence and has arrival probability one in every occupied cell. Thus
+\[
+P_{\mathrm{fill}}\in\mathcal M(d,1)
+\qquad(d\ge1).
+\]
+This construction also applies when \(d=1\), when the collection of baseline pairs is empty.
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.pairedClassLaw
+
+\item Fix \(P\in\mathcal M(d,1)\). On the entire Cartesian observed-record space, define the complete-arrival score by
+\[
+\zeta_{\mathrm{HT}}(O)
+:=2(2A-1)(RY),
+\qquad
+O=(X,A,S,R,RY)\in\{0,\ldots,d-1\}\times\{0,1\}^{4}.
+\]
+Under the observed-data law, the fifth coordinate is the product of arrival and realized outcome. Splitting the finite expectation according to the treatment and outcome-mark coordinates therefore gives
+\[
+\mathbb E_P[\zeta_{\mathrm{HT}}(O)]
+=
+2\bigl\{
+P(A=1,R=1,Y=1)-P(A=0,R=1,Y=1)
+\bigr\}.
+\]
+
+To remove the arrival restriction, define, for every
+\(x\in\{0,\ldots,d-1\}\) and \(a,s\in\{0,1\}\),
+\[
+\begin{aligned}
+\mathsf p_{\mathrm{cell}}(x,a,s)
+&:=P(X=x,A=a,S=s),\\
+\mathsf p_{\mathrm{arr}}(x,a,s)
+&:=P(X=x,A=a,S=s,R=1),\\
+\mathsf p_{\mathrm{mis}}(x,a,s)
+&:=P(X=x,A=a,S=s,R=0).
+\end{aligned}
+\]
+These masses satisfy
+\[
+\mathsf p_{\mathrm{cell}}(x,a,s)
+=
+\mathsf p_{\mathrm{arr}}(x,a,s)
++\mathsf p_{\mathrm{mis}}(x,a,s),
+\qquad
+\mathsf p_{\mathrm{arr}}(x,a,s),
+\mathsf p_{\mathrm{mis}}(x,a,s)\ge0.
+\]
+If the cell mass is zero, this identity forces its missing mass to be zero. If the cell mass is positive, \cref{obj:ass:arrival-floor} at \(q=1\) gives
+\[
+1\le
+\frac{\mathsf p_{\mathrm{arr}}(x,a,s)}
+     {\mathsf p_{\mathrm{cell}}(x,a,s)}
+\quad\Longrightarrow\quad
+\mathsf p_{\mathrm{cell}}(x,a,s)
+\le\mathsf p_{\mathrm{arr}}(x,a,s)
+\quad\Longrightarrow\quad
+\mathsf p_{\mathrm{mis}}(x,a,s)=0.
+\]
+Consequently, every missing-cell mass is zero, including null cells. Every nonnegative full-data atom mass contributing to such a cell is also zero. Separating the cases \(R=1\) and \(R=0\) in the finite atom sums yields
+\[
+P(A=a,R=1,Y=1)=P(A=a,Y=1),
+\qquad a\in\{0,1\}.
+\]
+
+By \cref{obj:ass:balanced-randomization},
+\[
+P(A=0)=1-P(A=1)=\frac12.
+\]
+Using \cref{obj:ass:consistency,obj:ass:randomized-independence}, we obtain, for each \(a\in\{0,1\}\),
+\[
+\begin{aligned}
+2P(A=a,Y=1)
+&=2P(A=a,Y(a)=1)\\
+&=2P(A=a)P(Y(a)=1)
+=P(Y(a)=1).
+\end{aligned}
+\]
+Substitution into the score expectation, followed by the binary-outcome identity, gives
+\[
+\begin{aligned}
+\mathbb E_P[\zeta_{\mathrm{HT}}(O)]
+&=2\{P(A=1,Y=1)-P(A=0,Y=1)\}\\
+&=P(Y(1)=1)-P(Y(0)=1)\\
+&=\mathbb E_P[Y(1)-Y(0)]
+=\tau(P).
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.complete_arrival_score_mean
+
+\item For every Cartesian sample \(O^n=(O_1,\ldots,O_n)\), define
+\[
+\overline\zeta_{n,\mathrm{HT}}(O^n)
+:=
+\frac1n\sum_{i=1}^{n}\zeta_{\mathrm{HT}}(O_i)
+=
+\frac2n\sum_{i=1}^{n}(2A_i-1)Y_i^{\mathrm{obs}},
+\qquad
+Y_i^{\mathrm{obs}}:=(RY)_i.
+\]
+The binary coordinates imply
+\[
+\zeta_{\mathrm{HT}}(O)\in\{-2,0,2\}\subseteq[-2,2].
+\]
+The bounded-variable variance inequality therefore gives
+\[
+\operatorname{Var}_P\{\zeta_{\mathrm{HT}}(O)\}\le4.
+\]
+All these variables are square integrable because their domain is finite. Under \cref{obj:ass:iid}, the iid average identities and the score mean established above give
+\[
+\mathbb E_P[\overline\zeta_{n,\mathrm{HT}}(O^n)]=\tau(P),
+\qquad
+\operatorname{Var}_P\{\overline\zeta_{n,\mathrm{HT}}(O^n)\}
+=
+\frac1n\operatorname{Var}_P\{\zeta_{\mathrm{HT}}(O)\}.
+\]
+Thus
+\[
+\begin{aligned}
+\mathbb E_P\!\left[
+\{\overline\zeta_{n,\mathrm{HT}}(O^n)-\tau(P)\}^{2}
+\right]
+&=\operatorname{Var}_P\{\overline\zeta_{n,\mathrm{HT}}(O^n)\}\\
+&=\frac1n\operatorname{Var}_P\{\zeta_{\mathrm{HT}}(O)\}
+\le\frac4n.
+\end{aligned}
+\]
+Taking the supremum over the nonempty law class gives
+\[
+\sup_{P\in\mathcal M(d,1)}
+\mathbb E_P\!\left[
+\{\overline\zeta_{n,\mathrm{HT}}(O^n)-\tau(P)\}^{2}
+\right]
+\le\frac4n.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.complete_arrival_unprojected_risk_of_mean
+
+\item The \(q=1\) branch of \cref{obj:def:mm-estimator} gives, for every Cartesian sample,
+\[
+\widehat\tau_{\mathrm{MM}}(O^n)
+=
+\Pi_{[-1,1]}\!\left[\overline\zeta_{n,\mathrm{HT}}(O^n)\right].
+\]
+Binary potential outcomes have difference in \([-1,1]\). Averaging these pointwise bounds against the full-data probability law gives
+\[
+-1=\mathbb E_P[-1]
+\le \mathbb E_P[Y(1)-Y(0)]
+=\tau(P)
+\le\mathbb E_P[1]=1.
+\]
+
+The projection inequality follows by its three defining cases. If
+\(\overline\zeta_{n,\mathrm{HT}}(O^n)\le-1\), then
+\[
+\left|\widehat\tau_{\mathrm{MM}}(O^n)-\tau(P)\right|
+=\tau(P)+1
+\le\tau(P)-\overline\zeta_{n,\mathrm{HT}}(O^n)
+=
+\left|\overline\zeta_{n,\mathrm{HT}}(O^n)-\tau(P)\right|.
+\]
+If \(-1\le\overline\zeta_{n,\mathrm{HT}}(O^n)\le1\), then
+\[
+\left|\widehat\tau_{\mathrm{MM}}(O^n)-\tau(P)\right|
+=
+\left|\overline\zeta_{n,\mathrm{HT}}(O^n)-\tau(P)\right|.
+\]
+If \(1\le\overline\zeta_{n,\mathrm{HT}}(O^n)\), then
+\[
+\left|\widehat\tau_{\mathrm{MM}}(O^n)-\tau(P)\right|
+=1-\tau(P)
+\le\overline\zeta_{n,\mathrm{HT}}(O^n)-\tau(P)
+=
+\left|\overline\zeta_{n,\mathrm{HT}}(O^n)-\tau(P)\right|.
+\]
+This proves the asserted pointwise comparison for every sample.
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.complete_arrival_projection_error
+
+\item Squaring the pointwise comparison and integrating gives, for each \(P\in\mathcal M(d,1)\),
+\[
+\mathbb E_P\!\left[
+\{\widehat\tau_{\mathrm{MM}}(O^n)-\tau(P)\}^{2}
+\right]
+\le
+\mathbb E_P\!\left[
+\{\overline\zeta_{n,\mathrm{HT}}(O^n)-\tau(P)\}^{2}
+\right].
+\]
+The unprojected risks form a nonempty family bounded above by \(4/n\). Each projected risk is therefore bounded by their supremum, and taking the supremum of the projected risks yields
+\[
+\sup_{P\in\mathcal M(d,1)}
+\mathbb E_P\!\left[
+\{\widehat\tau_{\mathrm{MM}}(O^n)-\tau(P)\}^{2}
+\right]
+\le
+\sup_{P\in\mathcal M(d,1)}
+\mathbb E_P\!\left[
+\{\overline\zeta_{n,\mathrm{HT}}(O^n)-\tau(P)\}^{2}
+\right]
+\le\frac4n.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.complete_arrival_projection_risk
+
+\item Finally, the error-scale definition and \cref{obj:def:rate} give
+\[
+g_{n,d,1}
+=(1-1)\min\left\{1,\frac{d}{n\log(e+n)}\right\}=0,
+\qquad
+r_{n,d,1}=\frac1n+g_{n,d,1}^{2}=\frac1n.
+\]
+Since \(n\ge1\),
+\[
+\sqrt{r_{n,d,1}}
+=\sqrt{\frac1n}
+=\frac1{\sqrt n}.
+\]
+Substituting these identities into the frontier inequalities selected at the start proves
+\[
+\frac cn\le\mathfrak R^*_{n,d,1}\le\frac Cn,
+\qquad
+\frac{c_\alpha}{\sqrt n}
+\le\mathfrak L^*_{n,d,1,\alpha}
+\le\frac{C_\alpha}{\sqrt n}.
+\]
+The constants retain their stated dependence uniformly over all positive integers \(n,d\).
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.complete_arrival_reduction
+\end{enumerate}
+\end{proof}

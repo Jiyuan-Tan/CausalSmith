@@ -1,0 +1,155 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Dimension of a Vandermonde synthesis kernel
+-/
+
+module
+public import Mathlib.LinearAlgebra.Dimension.Constructions
+public import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
+public import Mathlib.LinearAlgebra.Matrix.ToLinearEquiv
+public import Mathlib.LinearAlgebra.Vandermonde
+public import Mathlib.Analysis.Complex.Basic
+
+/-!
+# Vandermonde synthesis maps
+
+This file computes the kernel dimension of a finite moment-synthesis map with distinct nodes over
+a field and one endpoint coordinate.
+-/
+
+@[expose] public section
+
+namespace Causalean.Mathlib.LinearAlgebra
+
+open scoped BigOperators
+
+noncomputable section
+
+/-- Given [a nonnegative integer \(n\)](hyp:n), [a commutative semiring of coefficients](hyp:K),
+[\(n\) node values](hyp:s), and [a nonnegative integer \(r\)](hyp:r), the
+[endpoint-order synthesis map](goal) sends \(n+1\) coefficients to the first \(r+1\) moment
+sums of the node coefficients, with the terminal coefficient added only to the moment of order
+\(r\). -/
+def endpointOrderSynthesis {n : ℕ} {K : Type*} [CommSemiring K] (s : Fin n → K) (r : ℕ) :
+    (Fin (n + 1) → K) →ₗ[K] (Fin (r + 1) → K) where
+  toFun z a :=
+    ∑ j : Fin n, z j.castSucc * s j ^ a.val +
+      if a.val = r then z (Fin.last n) else 0
+  map_add' x y := by
+    funext a
+    simp only [Pi.add_apply, add_mul, Finset.sum_add_distrib]
+    split <;> ring
+  map_smul' c x := by
+    funext a
+    simp only [Pi.smul_apply, smul_eq_mul, RingHom.id_apply]
+    split <;> (simp [← Finset.mul_sum, mul_assoc] <;> ring)
+
+/-- [The standard-basis vector for a selected node](hyp:j) is sent by the moment-synthesis map
+determined by [the nodes](hyp:s) to [the vector of that node's powers](goal). -/
+lemma endpointOrderSynthesis_single {n r : ℕ} {K : Type*} [CommSemiring K] (s : Fin n → K)
+    (j : Fin n) :
+    endpointOrderSynthesis s r (Pi.single j.castSucc 1) =
+      fun a => s j ^ a.val := by
+  funext a
+  simp only [endpointOrderSynthesis, LinearMap.coe_mk, AddHom.coe_mk]
+  rw [Finset.sum_eq_single j]
+  · simp
+  · intro b _ hb
+    have hcast : b.castSucc ≠ j.castSucc := fun h => hb (Fin.castSucc_injective n h)
+    simp [Pi.single_eq_of_ne hcast]
+  · simp
+
+/-- The moment-synthesis map for [the supplied nodes](hyp:s) [covers every target vector](goal)
+when the nodes are [pairwise distinct](hyp:hs) and [the requested order is below their
+number](hyp:hr). -/
+lemma endpointOrderSynthesis_surjective {n r : ℕ} {K : Type*} [Field K]
+    (s : Fin n → K) (hs : Function.Injective s) (hr : r < n) :
+    Function.Surjective (endpointOrderSynthesis s r) := by
+  let e : Fin (r + 1) → Fin n := fun j => ⟨j, by omega⟩
+  have he : Function.Injective e := by
+    intro x y h
+    apply Fin.ext
+    simpa [e] using congrArg Fin.val h
+  let A : Matrix (Fin (r + 1)) (Fin (r + 1)) K :=
+    (Matrix.vandermonde (s ∘ e)).transpose
+  have hdet : A.det ≠ 0 := by
+    rw [Matrix.det_transpose]
+    exact Matrix.det_vandermonde_ne_zero_iff.mpr (hs.comp he)
+  have hAinj : Function.Injective A.mulVecLin := by
+    intro x y hxy
+    apply sub_eq_zero.mp
+    apply Matrix.eq_zero_of_mulVec_eq_zero hdet
+    change A.mulVec x = A.mulVec y at hxy
+    rw [Matrix.mulVec_sub, hxy, sub_self]
+  let E : (Fin (r + 1) → K) ≃ₗ[K] (Fin (r + 1) → K) :=
+    LinearEquiv.ofInjectiveEndo A.mulVecLin hAinj
+  intro y
+  let w : Fin (r + 1) → K := E.symm y
+  let z : Fin (n + 1) → K :=
+    ∑ j : Fin (r + 1), w j •
+      (Pi.single (e j).castSucc (1 : K) : Fin (n + 1) → K)
+  refine ⟨z, ?_⟩
+  rw [show z = ∑ j : Fin (r + 1), w j •
+      (Pi.single (e j).castSucc (1 : K) : Fin (n + 1) → K) by rfl,
+    map_sum]
+  simp_rw [map_smul, endpointOrderSynthesis_single]
+  have hEy : A.mulVec w = y := E.apply_symm_apply y
+  funext a
+  simp only [Finset.sum_apply, Pi.smul_apply, smul_eq_mul]
+  calc
+    ∑ j : Fin (r + 1), w j * s (e j) ^ a.val = A.mulVec w a := by
+      simp [A, Matrix.mulVec, dotProduct,
+        Matrix.vandermonde_apply, e, mul_comm]
+    _ = y a := congrFun hEy a
+
+/-- The moment-synthesis map for [the supplied nodes](hyp:s) [uniquely determines its input](goal)
+when the nodes are [pairwise distinct](hyp:hs) and [the requested order is at least their
+number](hyp:hr). -/
+lemma endpointOrderSynthesis_injective {n r : ℕ} {K : Type*} [CommRing K] [IsDomain K]
+    (s : Fin n → K) (hs : Function.Injective s) (hr : n ≤ r) :
+    Function.Injective (endpointOrderSynthesis s r) := by
+  intro z z' hzz'
+  apply sub_eq_zero.mp
+  let v := z - z'
+  have hv : endpointOrderSynthesis s r v = 0 := by
+    rw [map_sub, hzz', sub_self]
+  have hfinite : (fun j : Fin n => v j.castSucc) = 0 := by
+    apply Matrix.eq_zero_of_forall_pow_sum_mul_pow_eq_zero hs
+    intro a
+    have ha : a.val < r := lt_of_lt_of_le a.isLt hr
+    have hcoord := congrFun hv ⟨a, by omega⟩
+    simpa [endpointOrderSynthesis, ha.ne] using hcoord
+  funext j
+  refine Fin.lastCases ?_ (fun i => ?_) j
+  · have hcoord := congrFun hv (Fin.last r)
+    have hzero : ∀ i : Fin n, v i.castSucc = 0 := fun i => congrFun hfinite i
+    simpa [v, endpointOrderSynthesis, hzero] using hcoord
+  · exact congrFun hfinite i
+
+/-- For natural numbers `n`, `r`, a field `K`, and [pairwise distinct nodes
+`s : Fin n → K`](hyp:hs), [the dimension of the kernel of the order-`r` endpoint synthesis map
+equals `n - r`](goal): below the square threshold (`r < n`) the kernel has dimension `n - r`,
+and at or above it (`r ≥ n`) the kernel is zero, matching `n - r = 0` under truncated
+subtraction. -/
+theorem endpointOrderSynthesis_ker_finrank {n r : ℕ} {K : Type*} [Field K]
+    (s : Fin n → K) (hs : Function.Injective s) :
+    Module.finrank K (LinearMap.ker (endpointOrderSynthesis s r)) = n - r := by
+  by_cases hr : r < n
+  · have hsurj := endpointOrderSynthesis_surjective s hs hr
+    have hrange : LinearMap.range (endpointOrderSynthesis s r) = ⊤ :=
+      LinearMap.range_eq_top.mpr hsurj
+    have hnull := LinearMap.finrank_range_add_finrank_ker
+      (endpointOrderSynthesis s r)
+    rw [hrange, finrank_top, Module.finrank_pi K, Module.finrank_pi K,
+      Fintype.card_fin, Fintype.card_fin] at hnull
+    omega
+  · have hinj := endpointOrderSynthesis_injective (r := r) s hs (by omega)
+    rw [LinearMap.ker_eq_bot.mpr hinj, finrank_bot]
+    omega
+
+end
+
+end Causalean.Mathlib.LinearAlgebra

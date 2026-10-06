@@ -1,0 +1,118 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Compound (two-stage) randomization designs
+
+A **compound design** models a two-stage randomization: a stage-1 design `D₁` on `Ω₁`
+(e.g. which groups receive which allocation strategy), and then, conditionally on the
+stage-1 outcome `s`, an independent within-coordinate design `D₂ s i` for each index `i`
+(e.g. the within-group treatment randomization, whose distribution may depend on the strategy
+group `i` was assigned).  The joint pmf is
+
+    (compound D₁ D₂).p (s, w) = D₁.p s · ∏ i, (D₂ s i).p (w i).
+
+The workhorse is `E_compound_factor`: the expectation of `h(s)·g(wⱼ)` — a stage-1 quantity
+times a function of a single group's within-assignment — collapses the inner (stage-2)
+randomization to the marginal expectation of group `j`'s conditional design,
+`E[h(s)·g(wⱼ)] = E_{s}[h(s)·E_{D₂ s j}[g]]`.  This is the substrate engine behind the
+Hudgens–Halloran unbiasedness theorems.
+-/
+
+module
+public import Causalean.Stat.FiniteDesign.Product
+
+/-! # Two-stage compound randomization designs
+
+Compound designs combine a stage-one design with conditionally independent stage-two designs.
+
+The definition `compound` builds the joint finite design on `(stage_one, stage_two_assignments)`
+from a first-stage design and conditionally independent coordinate designs.  Lemma
+`FiniteDesign.E_compound` expands expectations as an iterated finite sum, and
+`FiniteDesign.E_compound_factor` collapses the stage-two expectation of a statistic that depends on
+one coordinate to that coordinate's conditional marginal expectation.
+-/
+
+@[expose] public section
+
+open scoped BigOperators
+open Finset
+
+
+namespace Causalean
+namespace Experimentation
+namespace DesignBased
+
+variable {Ω₁ : Type*} [Fintype Ω₁]
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+variable {α : ι → Type*} [∀ i, Fintype (α i)]
+
+/-- For a finite [space of first-stage outcomes](hyp:Ω₁), a finite [space of second-stage
+outcomes](hyp:Ω₂), [a probability design for the first stage](hyp:D₁), and [a rule assigning a
+probability design for the second stage after each first-stage outcome](hyp:D₂), the [compound
+two-stage design](goal) assigns a pair of outcomes the product of its first-stage probability and
+its conditional second-stage probability. -/
+def compoundCore {Ω₂ : Type*} [Fintype Ω₂]
+    (D₁ : FiniteDesign Ω₁) (D₂ : Ω₁ → FiniteDesign Ω₂) : FiniteDesign (Ω₁ × Ω₂) where
+  p sw := D₁.p sw.1 * (D₂ sw.1).p sw.2
+  p_nonneg sw :=
+    mul_nonneg (D₁.p_nonneg sw.1) ((D₂ sw.1).p_nonneg sw.2)
+  p_sum := by
+    rw [Fintype.sum_prod_type]
+    have hs : ∀ s, (∑ w : Ω₂, D₁.p s * (D₂ s).p w) = D₁.p s := by
+      intro s
+      rw [← Finset.mul_sum, (D₂ s).p_sum, mul_one]
+    rw [Finset.sum_congr rfl (fun s _ => hs s), D₁.p_sum]
+
+/-- For a finite [space of first-stage outcomes](hyp:Ω₁), a finite [index set for second-stage
+coordinates](hyp:ι), a finite [outcome space for each coordinate](hyp:α), [a probability design
+for the first stage](hyp:D₁), and [a rule assigning, after each first-stage outcome, a design to
+each coordinate](hyp:D₂), the [compound two-stage design](goal) first draws the first-stage
+outcome and then independently draws every coordinate from its conditional design. -/
+def compound (D₁ : FiniteDesign Ω₁) (D₂ : Ω₁ → ∀ i, FiniteDesign (α i)) :
+    FiniteDesign (Ω₁ × ∀ i, α i) :=
+  compoundCore D₁ (fun s => prodDesign (D₂ s))
+
+namespace FiniteDesign
+
+/-- For [the stage-2 design map assigning each stage-1 outcome `s` a per-coordinate design
+`D₂ s`](hyp:D₂) and [any real-valued function `X` of the joint outcome](hyp:X), built on top of a
+stage-1 design `D₁`, [the expectation of `X` under the compound (two-stage) design equals the
+double sum over stage-1 outcomes `s` and stage-2 profiles `w` of the compound probability
+`D₁.p(s)·∏ᵢ(D₂ s i).p(wᵢ)` times `X(s,w)`](goal). -/
+lemma E_compound (D₁ : FiniteDesign Ω₁) (D₂ : Ω₁ → ∀ i, FiniteDesign (α i))
+    (X : (Ω₁ × ∀ i, α i) → ℝ) :
+    (compound D₁ D₂).E X
+      = ∑ s, ∑ w : ∀ i, α i, D₁.p s * (∏ i, (D₂ s i).p (w i)) * X (s, w) := by
+  simp only [FiniteDesign.E, compound, compoundCore, prodDesign_p]
+  rw [Fintype.sum_prod_type]
+
+/-- **Stage-2 collapse.** For [the stage-2 design map assigning each stage-1 outcome `s` a
+per-coordinate design `D₂ s`](hyp:D₂), the compound-design expectation of the product of a stage-1
+quantity `h(s)` and a function `g` of a single group `j`'s within-assignment `wⱼ` factors through
+the marginal expectation of group `j`'s conditional design: [`E[h(s)·g(wⱼ)] =
+E_s[h(s)·E_{D₂ s j}[g]]`](goal). -/
+lemma E_compound_factor (D₁ : FiniteDesign Ω₁) (D₂ : Ω₁ → ∀ i, FiniteDesign (α i))
+    (h : Ω₁ → ℝ) (j : ι) (g : α j → ℝ) :
+    (compound D₁ D₂).E (fun sw => h sw.1 * g (sw.2 j))
+      = D₁.E (fun s => h s * (D₂ s j).E g) := by
+  rw [E_compound]
+  conv_rhs => rw [FiniteDesign.E]
+  apply Finset.sum_congr rfl
+  intro s _
+  rw [show (∑ w : ∀ i, α i, D₁.p s * (∏ i, (D₂ s i).p (w i)) * (h s * g (w j)))
+        = D₁.p s * h s * ((prodDesign (D₂ s)).E (fun w => g (w j))) from by
+        rw [FiniteDesign.E, Finset.mul_sum]
+        apply Finset.sum_congr rfl
+        intro w _
+        simp only [prodDesign_p]
+        ring]
+  rw [FiniteDesign.E_prod_apply]
+  ring
+
+end FiniteDesign
+
+end DesignBased
+end Experimentation
+end Causalean

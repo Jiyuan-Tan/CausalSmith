@@ -1,0 +1,105 @@
+\section{Appendix C: Independent-prior converse}
+
+The converse combines a finite prior supported on the prognostic class with a lower bound for signing independent isotropic vectors. The prior in \cref{obj:def:cosine-prior} is drawn before the covariate sample, so its average loss provides a comparison with the worst-case loss over fixed functions in \cref{obj:def:criterion}.
+
+To specify the \leanref{S-5}{pair-cosine coefficient family}, let \leanref{sym:L}{\ensuremath{L}} be a positive integer frequency cutoff. Index the features by \leanref{sym:alpha}{\ensuremath{\alpha=(j,\ell,a,b)}}, where \(1\leq j<\ell\leq d\) and \(1\leq a,b\leq L\), and set
+\[
+\phi_\alpha(x)=2\cos(\pi a x_j)\cos(\pi b x_\ell).
+\]
+The full feature vector \leanref{sym:V}{\ensuremath{V(x)}} collects these coordinates and has dimension \leanref{sym:M}{\ensuremath{M=\binom{d}{2}L^2}}. Draw the coefficient array \leanref{sym:xi}{\ensuremath{\xi}} with independent fair sign entries, independently of the covariates and assignment randomization. The normalization constant \leanref{sym:C0}{\ensuremath{C_0=\sqrt{48+32\pi^2}}} scales the signed feature sum by \(C_0L^s\sqrt M\). The following statement gives the resulting function explicitly and records the class membership and second-moment identity needed for the converse.
+
+\begin{lemmav}{lem:cosine-prior}[Cosine prior legality and isotropy]
+Let the parameters satisfy:
+\begin{itemize}
+\item \textbf{(Dimension.)} \(d\) is an integer with \(d\geq2\).
+\item \textbf{(Frequency cutoff.)} \(L\) is an integer with \(L\geq1\).
+\item \textbf{(Smoothness.)} \(s\) is real with \(0<s\leq1\).
+\end{itemize}
+Set \(M=\binom{d}{2}L^2\), the number of pair-cosine features, and \(C_0=\sqrt{48+32\pi^2}\), the prior normalization constant. For every coefficient-sign array \(\xi\) with entries in \(\{-1,1\}\), the function
+\[
+m_\xi(x)=
+\frac{1}{C_0L^s\sqrt M}
+\sum_{1\leq j<\ell\leq d}\sum_{a=1}^{L}\sum_{b=1}^{L}
+\xi_{j\ell ab}\,2\cos(\pi a x_j)\cos(\pi b x_\ell),
+\qquad x\in[0,1]^d,
+\]
+is centered under the product uniform measure and belongs to \(\mathcal H_{d,s}\) as defined in \cref{obj:def:sobolev-class}.
+
+For every integer \(n\geq1\) and every covariate array \(X\) on a sampling space satisfying \cref{obj:ass:uniform-draw}, let \(X_1\) denote its first covariate vector and define the pair-cosine feature vector by
+\[
+V(x)=
+\bigl(2\cos(\pi a x_j)\cos(\pi b x_\ell)\bigr)_{
+1\leq j<\ell\leq d,\;1\leq a,b\leq L}.
+\]
+Then
+\[
+\mathbb E\!\left[V(X_1)V(X_1)^{\mathsf T}\right]=I_M,
+\]
+where \(I_M\) is the \(M\)-dimensional identity matrix. This identity includes distinct pair features sharing an original coordinate.
+\end{lemmav}
+
+Class membership holds for every coefficient array, making the entire finite prior admissible under the pooled budget in \cref{obj:def:sobolev-class}. The isotropy conclusion treats all coordinate pairs together, including overlapping pairs. It therefore supplies the full dimension \(M\) for the signing comparison.
+
+For that comparison, introduce an appendix-local random vector \(v\in\mathbb R^{r_0}\), where \(r_0\) is a positive integer, with identity second-moment matrix \(I_{r_0}\). Let \(v_1,\ldots,v_n\) be independent copies, and let \(z\in\{-1,1\}^n\) denote a candidate assignment sign vector. The expected minimum over these signs is controlled by the following bound.
+
+\begin{lemmav}{lem:isotropic-row-signing}[Isotropic row signing bound]*
+Let \(r_0\) be a positive integer and \(n\) a nonnegative integer. Let \(v_1,\ldots,v_n\) be independent copies of a random vector \(v\in\mathbb R^{r_0}\), under the usual measurability and square-integrability conditions, with
+\[
+\mathbb E[vv^{\mathsf T}]=I_{r_0},
+\]
+where \(I_{r_0}\) is the identity matrix. Then
+\[
+\mathbb E\min_{z\in\{-1,1\}^n}
+\left\|\sum_{i=1}^n z_i v_i\right\|_2^2
+\geq nr_0-n^2-16n\sqrt{nr_0}.
+\]
+In particular, if \(r_0\geq4096n\), then
+\[
+\mathbb E\min_{z\in\{-1,1\}^n}
+\left\|\sum_{i=1}^n z_i v_i\right\|_2^2
+\geq \frac{nr_0}{2}.
+\]
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:isotropic-row-signing
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:isotropic-row-signing
+
+The expected supremum estimate underlying \cref{obj:lem:isotropic-row-signing} uses the absolute-supremum contraction inequality of \citet[Theorem~12(4), with Rademacher complexity as in Definition~2]{BartlettMendelson2002Complexities}, applied to the absolute-value map. The classes used here are finite classes and the finite-dimensional Euclidean unit-ball linear class. For the latter, a countable dense subset approximates evaluations simultaneously on every finite sample, and the vector norm provides an integrable envelope under square integrability. These properties supply the measurability and integrability conditions for the cited inequality.
+
+The minimum in \cref{obj:lem:isotropic-row-signing} allows the sign vector to depend on all realized vectors. Consequently, its lower bound also controls the expected squared imbalance of any randomized assignment evaluated on those vectors. When the vector dimension is at least \(4096n\), the bound retains at least half of the total second-moment scale \(nr_0\).
+
+Apply this comparison with \(v_i=V(X_i)\) and \(r_0=M\). Independence of the covariate vectors follows from \cref{obj:ass:uniform-draw}, while their feature second moments are given by \cref{obj:lem:cosine-prior}. With \(B=\binom d2\), the coordinate-pair count, choose the cutoff specified in \cref{obj:def:cosine-prior},
+\[
+L=\max\left\{1,\left\lceil\sqrt{\frac{4096n}{B}}\right\rceil\right\}.
+\]
+Then \(M=BL^2\geq4096n\), and the sign-minimum comparison becomes
+\[
+\mathbb E_X\min_{z\in\{-1,1\}^n}
+\left\|\sum_{i=1}^n z_iV(X_i)\right\|_2^2
+\geq\frac{nM}{2}.
+\]
+
+For an admissible design \(\pi\) from \cref{obj:def:design-class}, averaging the squared prognostic imbalance over the independent coefficient signs gives
+\[
+\mathbb E_\xi\!\left[
+\frac4n\mathbb E_{X,Z}
+\left(\sum_{i=1}^n Z_i m_\xi(X_i)\right)^2
+\right]
+=
+\frac{4}{nC_0^2L^{2s}M}
+\mathbb E_{X,Z}
+\left\|\sum_{i=1}^n Z_iV(X_i)\right\|_2^2.
+\]
+The assignment law depends on the covariates as specified in \cref{obj:def:design-class}, and the coefficient draw is independent of that experiment. Together with the sign-minimum bound, this is the prior comparison used in \cref{obj:thm:full-design-lower}:
+\[
+\sup_{m\in\mathcal H_{d,s}}
+\frac4n\mathbb E_{X,Z}
+\left(\sum_{i=1}^n Z_i m(X_i)\right)^2
+\geq
+\mathbb E_\xi\!\left[
+\frac4n\mathbb E_{X,Z}
+\left(\sum_{i=1}^n Z_i m_\xi(X_i)\right)^2
+\right]
+\geq \frac{2}{C_0^2L^{2s}}.
+\]
+Each function in this finite average is fixed before sampling and belongs to the class by \cref{obj:lem:cosine-prior}. Thus the comparison preserves the fixed-function supremum outside the sample expectation. The chosen cutoff has order \(\max\{1,\sqrt{n/B}\}\), yielding the saturated scale \(\min\{1,(B/n)^s\}\). Taking the infimum over admissible designs gives the full-design lower comparison in \cref{obj:thm:full-design-lower}.

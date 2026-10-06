@@ -1,0 +1,215 @@
+\begin{proof}[Proof of \cref{obj:lem:full-record-two-prior-risk}]
+\begin{enumerate}
+\item Define the complete-record space and the uniform seed law by
+\[
+\mathcal O
+=
+\{0,1\}^{\{(i,j)\in V^2:i\ne j\}}
+\times\{0,1\}^{V}\times\mathbb R^{V},
+\qquad
+\nu_{\mathrm{seed}}(d\xi)
+=
+\mathbf1_{[0,1]}(\xi)\,d\xi.
+\]
+Since \(q\in[0,1]\), the assignment and audit laws are probability laws. Joint measurability of the record maps ensures that their pushforwards are probability laws, and mixing them under probability priors preserves unit mass. Thus
+\[
+\mathsf Q_+(\mathcal O)=\mathsf Q_-(\mathcal O)=1,
+\qquad
+\nu_{\mathrm{seed}}(\mathbb R)=1.
+\]
+The laws augmented by the independent estimator seed are
+\[
+\mathsf Q_\pm^{\mathrm{aug}}
+:=
+\mathsf Q_\pm\otimes\nu_{\mathrm{seed}}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.mixtureLaw_probability
+
+\item We first establish
+\begin{equation}\label{eq:full-record-two-prior-tv-seed}
+\operatorname{TV}
+\bigl(\mathsf Q_+^{\mathrm{aug}},\mathsf Q_-^{\mathrm{aug}}\bigr)
+=
+\operatorname{TV}(\mathsf Q_+,\mathsf Q_-).
+\end{equation}
+For any measurable event \(\mathcal A\subseteq\mathcal O\times\mathbb R\), define
+\[
+\psi_{\mathcal A}(o)
+:=
+\int_{\mathbb R}\mathbf1_{\mathcal A}(o,\xi)\,
+\nu_{\mathrm{seed}}(d\xi),
+\qquad o\in\mathcal O.
+\]
+This is measurable and takes values in \([0,1]\), and product integration gives
+\[
+\mathsf Q_\pm^{\mathrm{aug}}(\mathcal A)
+=
+\int_{\mathcal O}\psi_{\mathcal A}(o)\,\mathsf Q_\pm(do).
+\]
+The layer-cake identity gives, for each sign,
+\[
+\int_{\mathcal O}\psi_{\mathcal A}(o)\,\mathsf Q_\pm(do)
+=
+\int_{(0,1]}
+\mathsf Q_\pm\bigl(\{o\in\mathcal O:v\le\psi_{\mathcal A}(o)\}\bigr)\,dv.
+\]
+Consequently, the defining event bound for total variation yields
+\[
+\begin{aligned}
+\left|
+\mathsf Q_+^{\mathrm{aug}}(\mathcal A)
+-\mathsf Q_-^{\mathrm{aug}}(\mathcal A)
+\right|
+&\le
+\int_{(0,1]}
+\left|
+\mathsf Q_+\bigl(\{o:v\le\psi_{\mathcal A}(o)\}\bigr)
+-\mathsf Q_-\bigl(\{o:v\le\psi_{\mathcal A}(o)\}\bigr)
+\right|\,dv\\
+&\le \operatorname{TV}(\mathsf Q_+,\mathsf Q_-).
+\end{aligned}
+\]
+Taking the supremum over \(\mathcal A\) proves one inequality. For the reverse inequality, every measurable \(\mathcal C\subseteq\mathcal O\) satisfies
+\[
+\mathsf Q_\pm^{\mathrm{aug}}(\mathcal C\times\mathbb R)
+=
+\mathsf Q_\pm(\mathcal C).
+\]
+Taking the supremum over these cylinder events proves the asserted equality.
+% lean: Causalean.Stat.tvDist_compProd_eq
+
+\item Fix any measurable randomized estimator \(T\) allowed by
+\cref{obj:def:risk}, and define its worst-case risk and its two mixture risks by
+\[
+\mathcal R_T
+:=
+\sup_{\theta\in\mathcal M_{n,d}}\mathcal L(T;\theta,q),
+\qquad
+\mathcal L_{\mathrm{mix},\pm}(T)
+:=
+\int_{\mathcal O\times\mathbb R}
+\bigl(T(o,\xi)\mp\Delta\bigr)^2\,
+\mathsf Q_\pm^{\mathrm{aug}}(d(o,\xi)).
+\]
+These quantities take values in \([0,\infty]\).
+
+Write the two prior representations as
+\[
+\vartheta_\pm:\Xi_\pm\longrightarrow
+\{\text{fixed schedules on }V\},
+\qquad
+\pi_\pm(\Xi_\pm)=1,
+\]
+where \(\Xi_\pm\) are the measurable parameter spaces and \(\pi_\pm\) their probability measures. Their almost-sure support and target properties are
+\[
+\vartheta_\pm(\zeta)\in\mathcal M_{n,d},
+\qquad
+\tau(\vartheta_\pm(\zeta))=\pm\Delta
+\quad\text{for }\pi_\pm\text{-almost every }\zeta\in\Xi_\pm.
+\]
+Nonnegative product integration, followed by integration over the prior, therefore gives
+\[
+\begin{aligned}
+\mathcal L_{\mathrm{mix},\pm}(T)
+&=
+\int_{\Xi_\pm}
+\mathcal L(T;\vartheta_\pm(\zeta),q)\,\pi_\pm(d\zeta)\\
+&\le
+\int_{\Xi_\pm}\mathcal R_T\,\pi_\pm(d\zeta)
+=
+\mathcal R_T.
+\end{aligned}
+\]
+Indeed, conditional on the prior parameter, the record has the fixed-schedule experiment law and the seed remains independent and uniform. The constant-target property identifies the conditional squared loss, and membership in the class of \cref{obj:def:model} bounds that loss by its supremum. These identities and inequalities remain valid for infinite risks.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.mixture_seeded_risk_le_worst
+
+\item Define the measurable negative-decision event
+\[
+\mathcal E_T
+:=
+\{(o,\xi)\in\mathcal O\times\mathbb R:T(o,\xi)<0\}.
+\]
+By the definition of total variation,
+\[
+\mathsf Q_-^{\mathrm{aug}}(\mathcal E_T)
+-\mathsf Q_+^{\mathrm{aug}}(\mathcal E_T)
+\le
+\operatorname{TV}
+\bigl(\mathsf Q_+^{\mathrm{aug}},\mathsf Q_-^{\mathrm{aug}}\bigr).
+\]
+Since the augmented laws are probability laws, it follows that
+\[
+\begin{aligned}
+\mathsf Q_+^{\mathrm{aug}}(\mathcal E_T)
++\mathsf Q_-^{\mathrm{aug}}(\mathcal E_T^c)
+&=
+1+\mathsf Q_+^{\mathrm{aug}}(\mathcal E_T)
+-\mathsf Q_-^{\mathrm{aug}}(\mathcal E_T)\\
+&\ge
+1-\operatorname{TV}
+\bigl(\mathsf Q_+^{\mathrm{aug}},\mathsf Q_-^{\mathrm{aug}}\bigr).
+\end{aligned}
+\]
+% lean: Causalean.Stat.one_sub_tvDist_le_test
+
+On \(\mathcal E_T\), \(T(o,\xi)<0\) and \(\Delta>0\), so
+\((T(o,\xi)-\Delta)^2\ge\Delta^2\). On its complement,
+\(T(o,\xi)\ge0\), so \((T(o,\xi)+\Delta)^2\ge\Delta^2\).
+Together with nonnegativity off the respective events, these give the pointwise bounds
+\[
+\Delta^2\mathbf1_{\mathcal E_T}(o,\xi)
+\le (T(o,\xi)-\Delta)^2,
+\qquad
+\Delta^2\mathbf1_{\mathcal E_T^c}(o,\xi)
+\le (T(o,\xi)+\Delta)^2.
+\]
+Integrating under the corresponding augmented laws yields
+\[
+\Delta^2\mathsf Q_+^{\mathrm{aug}}(\mathcal E_T)
+\le\mathcal L_{\mathrm{mix},+}(T),
+\qquad
+\Delta^2\mathsf Q_-^{\mathrm{aug}}(\mathcal E_T^c)
+\le\mathcal L_{\mathrm{mix},-}(T).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.threshold_squared_error_le_risk
+
+Combining these bounds in order gives
+\[
+\begin{aligned}
+\Delta^2\left(
+1-\operatorname{TV}
+\bigl(\mathsf Q_+^{\mathrm{aug}},\mathsf Q_-^{\mathrm{aug}}\bigr)
+\right)
+&\le
+\Delta^2\left(
+\mathsf Q_+^{\mathrm{aug}}(\mathcal E_T)
++\mathsf Q_-^{\mathrm{aug}}(\mathcal E_T^c)
+\right)\\
+&\le
+\mathcal L_{\mathrm{mix},+}(T)
++\mathcal L_{\mathrm{mix},-}(T)\\
+&\le 2\mathcal R_T.
+\end{aligned}
+\]
+Cancelling the positive finite factor \(2\), which is valid also for extended nonnegative risks, proves
+\[
+\frac{\Delta^2}{2}\left(
+1-\operatorname{TV}
+\bigl(\mathsf Q_+^{\mathrm{aug}},\mathsf Q_-^{\mathrm{aug}}\bigr)
+\right)
+\le\mathcal R_T.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.two_prior_squared_testing
+
+\item Substitute the total-variation identity in \cref{eq:full-record-two-prior-tv-seed}. The resulting bound holds for every admissible \(T\), so \cref{obj:def:risk} gives
+\[
+\frac{\Delta^2}{2}
+\left(1-\operatorname{TV}(\mathsf Q_+,\mathsf Q_-)\right)
+\le
+\inf_T\mathcal R_T
+=
+R_{n,d}(q).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.full_record_two_prior_risk
+\end{enumerate}
+\end{proof}

@@ -1,0 +1,168 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.SCM.ID.Backdoor
+
+/-!
+# Total interventional query API
+
+This file contains the lightweight query-level API shared by ID soundness
+theorems.  It deliberately avoids importing the Tian/c-factor ID skeleton, so
+modules can state and prove base cases for `interventionalQuery` without
+depending on the full density recovery stack.
+-/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
+namespace Causalean.SCM.ID
+
+open scoped MeasureTheory ProbabilityTheory
+
+variable {N : Type*} [DecidableEq N] [Fintype N]
+variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
+
+/-- For [a population of variables](hyp:N) with [nonempty value spaces](hyp:Ω) and
+[a SWIG node](hyp:w), [a witness that that node's value space is nonempty](goal) is provided.
+
+Every random or fixed SWIG-node value space is nonempty when every base-node
+value space is nonempty. -/
+noncomputable def swigValueNonempty [∀ n, Nonempty (Ω n)]
+    (w : SWIGNode N) : Nonempty (swigΩ Ω w) := by
+  cases w <;> infer_instance
+
+/-- For [a population of variables](hyp:N) with [nonempty value spaces](hyp:Ω) and
+[a finite SWIG-node set](hyp:Y), [a witness that the corresponding joint value space
+is nonempty](goal) is provided.
+
+A finite coordinate product of SWIG-node value spaces is nonempty when all
+base-node value spaces are nonempty. -/
+noncomputable def valuesOnNonempty [∀ n, Nonempty (Ω n)]
+    (Y : Finset (SWIGNode N)) :
+    Nonempty (ValuesOn Y (swigΩ Ω)) :=
+  ⟨fun y => Classical.choice (swigValueNonempty (Ω := Ω) y.val)⟩
+
+/-- For [a population of variables](hyp:N) with [nonempty measurable value spaces](hyp:Ω),
+[an intervention set](hyp:X), and [an outcome-node set](hyp:Y), [the default
+interventional kernel](goal) is the constant kernel concentrated at an arbitrary
+outcome assignment.
+
+This fixed fallback kernel is used only outside the standard identification
+query domain. -/
+noncomputable def defaultInterventionalKernel [∀ n, Nonempty (Ω n)]
+    (X : Finset N) (Y : Finset (SWIGNode N)) :
+    ProbabilityTheory.Kernel
+      (ValuesOn (X.image SWIGNode.random) (swigΩ Ω))
+      (ValuesOn Y (swigΩ Ω)) := by
+  classical
+  letI : Nonempty (ValuesOn Y (swigΩ Ω)) :=
+    valuesOnNonempty (Ω := Ω) Y
+  exact ProbabilityTheory.Kernel.const _
+    (MeasureTheory.Measure.dirac (Classical.choice inferInstance))
+
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[a structural causal model](hyp:M) that [is standard](hyp:hM), [the canonical
+fixed-value assignment](goal) is the unique assignment on its empty fixed-node set.
+
+A standard structural causal model has a canonical fixed-value assignment.
+
+When `M.fixed = ∅`, the fixed-value product has no coordinates, so it has a
+unique canonical inhabitant. -/
+noncomputable def standardFixedValues (M : Causalean.SCM N Ω)
+    (hM : M.isStandard) : M.FixedValues :=
+  fun d => False.elim (by
+    have hempty : M.fixed = ∅ := hM
+    have hd : d.val ∈ (∅ : Finset (SWIGNode N)) := by
+      simpa [hempty] using d.property
+    exact Finset.notMem_empty d.val hd)
+
+/-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
+[an intervention set](hyp:X), [an outcome-node set](hyp:Y), and [a structural causal
+model](hyp:M), [interventional-query validity](goal) holds exactly when [all intervention
+random nodes are observed](step:1), [their fixed nodes are absent](step:2), [all outcomes
+are observed](step:3), and [the model is standard](step:4).
+
+This predicate states when the interventional query is in its meaningful
+standard-model branch. -/
+def interventionalQueryValid
+    (X : Finset N) (Y : Finset (SWIGNode N))
+    (M : Causalean.SCM N Ω) : Prop :=
+  (∀ D ∈ X, SWIGNode.random D ∈ M.observed) ∧
+    (∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed) ∧
+    (Y ⊆ M.observed) ∧ M.isStandard
+
+/-- For [a finite population of variables](hyp:N) with [nonempty measurable value spaces](hyp:Ω),
+[an intervention set](hyp:X), and [an outcome-node set](hyp:Y), [the interventional
+query](goal) maps each structural causal model to its post-intervention outcome kernel at a chosen default assignment of the model's fixed values when the query is valid, and otherwise to the default constant kernel.
+
+The interventional query returns the post-intervention outcome law as a
+kernel indexed by treatment values.
+
+For standard SCMs in which the treatment random nodes and outcome nodes are
+observed, this is exactly `M.doKernelY X ... Y ... s0`.  Outside that
+well-formed setting it returns a fixed dummy kernel so the query is a total
+functional with model-independent codomain. -/
+noncomputable def interventionalQuery [∀ n, Nonempty (Ω n)]
+    (X : Finset N) (Y : Finset (SWIGNode N)) :
+    CausalQuery N Ω
+      (ProbabilityTheory.Kernel
+        (ValuesOn (X.image SWIGNode.random) (swigΩ Ω))
+        (ValuesOn Y (swigΩ Ω))) := by
+  classical
+  exact fun M =>
+    if h : (∀ D ∈ X, SWIGNode.random D ∈ M.observed) ∧
+        (∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed) ∧
+        (Y ⊆ M.observed) ∧ M.isStandard then
+      M.doKernelY X h.1 h.2.1 Y h.2.2.1
+        (standardFixedValues M h.2.2.2)
+    else
+      defaultInterventionalKernel X Y
+
+/-- For [treatment nodes `X` and outcome nodes `Y` satisfying the well-formedness
+conditions for a valid interventional query in a model `M`](hyp:h), [the total
+interventional query evaluated at `M` equals the post-intervention
+outcome-marginal kernel `doKernelY` at the chosen default fixed-value assignment](goal). -/
+lemma interventionalQuery_eq_doKernelY_of_valid [∀ n, Nonempty (Ω n)]
+    (X : Finset N) (Y : Finset (SWIGNode N)) (M : Causalean.SCM N Ω)
+    (h : interventionalQueryValid X Y M) :
+    interventionalQuery (Ω := Ω) X Y M =
+      M.doKernelY X h.1 h.2.1 Y h.2.2.1
+        (standardFixedValues M h.2.2.2) := by
+  classical
+  rw [interventionalQuery]
+  exact dif_pos (by simpa [interventionalQueryValid] using h)
+
+/-- Outside the well-formed branch, the total interventional query is the fixed
+fallback kernel. -/
+lemma interventionalQuery_eq_default_of_not_valid [∀ n, Nonempty (Ω n)]
+    (X : Finset N) (Y : Finset (SWIGNode N)) (M : Causalean.SCM N Ω)
+    (h : ¬ interventionalQueryValid X Y M) :
+    interventionalQuery (Ω := Ω) X Y M =
+      defaultInterventionalKernel (Ω := Ω) X Y := by
+  classical
+  rw [interventionalQuery]
+  exact dif_neg (by simpa [interventionalQueryValid] using h)
+
+/-- **Well-formedness invariance under matching SWIG graphs.** For an intervention target set
+`X` and outcome set `Y`, if [two structural causal models `M₁`, `M₂` have the same SWIG
+graph](hyp:hsg), then [they agree on whether the total interventional query for `X`, `Y` is
+well formed](goal). -/
+theorem interventionalQueryValid_iff_of_toSWIGGraph_eq
+    (X : Finset N) (Y : Finset (SWIGNode N))
+    (M₁ M₂ : Causalean.SCM N Ω)
+    (hsg : M₁.toSWIGGraph = M₂.toSWIGGraph) :
+    interventionalQueryValid X Y M₁ ↔ interventionalQueryValid X Y M₂ := by
+  have ho : M₁.observed = M₂.observed := congrArg SWIGGraph.observed hsg
+  have hf : M₁.fixed = M₂.fixed := congrArg SWIGGraph.fixed hsg
+  unfold interventionalQueryValid Causalean.SCM.isStandard
+  rw [ho, hf, hsg]
+
+end Causalean.SCM.ID

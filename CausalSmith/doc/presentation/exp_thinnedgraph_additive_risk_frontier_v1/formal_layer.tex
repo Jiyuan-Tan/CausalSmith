@@ -1,0 +1,992 @@
+% DERIVED from formal_layer.json — read-only, do not edit.
+\begin{definitionv}{synth_1}[Additive potential outcomes]
+For a population \(V=\{1,\ldots,n\}\) and a fixed schedule \(\theta=(G,a,t,b)\), where \(G\subseteq\{(j,i)\in V^2:j\ne i\}\) is a simple directed off-diagonal graph, define the potential-outcome map \(Y:\{0,1\}^V\to\mathbb R^V\) by
+\[
+Y(z)=(Y_i(z))_{i\in V},
+\qquad
+Y_i(z)=a_i+t_i z_i+\sum_{j:(j,i)\in G}b_{ij}z_j,
+\qquad z\in\{0,1\}^V.
+\]
+Here \(a_i\) is the fixed baseline coefficient, \(t_i\) is the fixed own-treatment coefficient, and \(b_{ij}\) is the fixed spillover coefficient on the arrow from source \(j\) to recipient \(i\). For the realized assignment \(Z\), the realized outcome vector is \(Y(Z)\).
+\end{definitionv}
+
+\begin{assumptionv}{ass:in-degree}[In-degree bound]
+The interference graph \(G\) on the finite population \(V\) satisfies the in-degree bound \(d\):
+\[
+\max_{i\in V}\bigl|\{j:(j,i)\in G\}\bigr|\le d.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:out-degree}[Out-degree bound]
+The interference graph \(G\) on the finite population \(V\) satisfies the out-degree bound \(d\):
+\[
+\max_{j\in V}\bigl|\{i:(j,i)\in G\}\bigr|\le d.
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:coefficient-mass}[Unit coefficient-mass bound]
+The baseline coefficients \(a_i\), own-treatment coefficients \(t_i\), and spillover coefficients \(b_{ij}\) on the interference graph \(G\) satisfy
+\[
+\max_{i\in V}
+\left(
+|a_i|+|t_i|+\sum_{j:(j,i)\in G}|b_{ij}|
+\right)\le 1,
+\]
+where \(V\) is the finite population.
+\end{assumptionv}
+
+\begin{definitionv}{def:model}[Schedule class $\mathcal M_{n,d}$]
+\[
+\mathcal M_{n,d}
+=
+\left\{\theta=(G,a,t,b):
+\max_{i\in V}|\{j:(j,i)\in G\}|\le d,\quad
+\max_{j\in V}|\{i:(j,i)\in G\}|\le d,\quad
+\max_{i\in V}\left(|a_i|+|t_i|+\sum_{j:(j,i)\in G}|b_{ij}|\right)\le1
+\right\}.
+\]
+Here \(V\) is the fixed finite population, \(n\) is its size, and \(\theta=(G,a,t,b)\) is a fixed graph-and-coefficient schedule, with the following conventions:
+\begin{itemize}
+\item \textbf{(Parameters.)} \(n\ge4\) and \(1\le d\le n-1\).
+\item \textbf{(Graph.)} \(G\) is directed, simple, and off-diagonal; an arrow \((j,i)\) points from source \(j\) to recipient \(i\).
+\item \textbf{(Bounds.)} The degree and coefficient-mass requirements are those of \cref{obj:ass:in-degree,obj:ass:out-degree,obj:ass:coefficient-mass}.
+\end{itemize}
+The coordinates \(a_i\), \(t_i\), and \(b_{ij}\) are, respectively, baseline, own-treatment, and source-to-recipient spillover coefficients. This is the interaction-order-one coefficient-mass model of \citet{CortezRodriguezEichhornYu2023SNIPE}, with published interaction order \(\beta=1\), restricted to compulsory diagonal coordinates after graph augmentation. The corresponding published total in-degree and out-degree bound is \(d+1\), while \(d\) counts off-diagonal arrows. The own-treatment coordinate is always available and unthinned. Off-diagonal arrows are observed through the audit channel specified in the design assumptions.
+\end{definitionv}
+
+\begin{assumptionv}{ass:assignment}[Independent treatment assignment]
+The treatment-assignment vector \(Z\), indexed by the finite population \(V\), has law
+\[
+\operatorname{Law}(Z)
+=
+\bigotimes_{j\in V}\operatorname{Bernoulli}(1/2).
+\]
+\end{assumptionv}
+
+\begin{assumptionv}{ass:audit}[Independent edge audit]
+The audit-mark array \(W\), indexed by ordered pairs of distinct units in the finite population \(V\), has law
+\[
+\operatorname{Law}(W)
+=
+\bigotimes_{(j,i)\in V^2:j\ne i}\operatorname{Bernoulli}(q),
+\]
+where \(q\) is the known edge-retention probability.
+\end{assumptionv}
+
+\begin{assumptionv}{ass:design-independence}[Assignment and audit independence]
+The audit-mark array \(W\) and the treatment-assignment vector \(Z\) are independent:
+\[
+W\mathbin{\perp\!\!\!\perp}Z.
+\]
+\end{assumptionv}
+
+\begin{definitionv}{synth_3}[Fixed-schedule experiment law]
+Fix \(V=\{1,\ldots,n\}\), a schedule \(\theta=(G,a,t,b)\), and a known edge-retention probability \(q\in[0,1]\). Draw the treatment coordinates independently as
+\[
+Z_j\sim\operatorname{Bernoulli}(1/2),\qquad j\in V.
+\]
+Independently of \(Z\), draw mutually independent audit marks
+\[
+W_{ij}\sim\operatorname{Bernoulli}(q),
+\qquad (j,i)\in V^2,\ j\ne i.
+\]
+Define the retained graph and complete observed record by
+\[
+H=\{(j,i)\in G:W_{ij}=1\},
+\qquad
+O=(H,Z,Y(Z)),
+\]
+where
+\[
+Y_i(Z)=a_i+t_iZ_i+\sum_{j:(j,i)\in G}b_{ij}Z_j,
+\qquad i\in V.
+\]
+The record contains every retained-edge label, every treatment coordinate, and every noiseless realized outcome. Draw \(\xi\sim\operatorname{Uniform}[0,1]\) independently of \((Z,W)\) to represent optional estimator randomization. Define
+\[
+P_{\theta,q}=\operatorname{Law}(O,\xi)
+\]
+with \(\theta\) fixed. This law is taken on
+\[
+2^{\{(j,i)\in V^2:j\ne i\}}
+\times\{0,1\}^V\times\mathbb R^V\times[0,1],
+\]
+with discrete sigma-algebras on the finite graph and assignment coordinates and Borel sigma-algebras on the outcome and seed coordinates.
+\end{definitionv}
+
+\begin{definitionv}{def:risk}[Minimax squared risk $R_{n,d}(q)$]
+\[
+R_{n,d}(q)
+=
+\inf_T\sup_{\theta\in\mathcal M_{n,d}}\mathcal L(T;\theta,q),
+\qquad
+\mathcal L(T;\theta,q)
+=
+\mathbb E_{P_{\theta,q}}
+\left[(T(O,\xi)-\tau(\theta))^2\right].
+\]
+The infimum ranges over measurable randomized estimators \(T\). Here \(O\) is the complete observed graph, assignment, and realized-outcome record, \(\tau(\theta)\) is the population all-treated-versus-all-control contrast, and \(P_{\theta,q}\) is the experiment law for the fixed schedule \(\theta\) and known edge-retention probability \(q\). The estimator-randomization seed \(\xi\) is uniform on \([0,1]\) and independent of the experiment.
+\end{definitionv}
+
+\begin{definitionv}{synth_2}[Centered treatment signs]
+For a binary treatment-assignment vector \(Z\in\{0,1\}^V\), define its centered treatment-sign vector \(X\in\{-1,1\}^V\) by
+\[
+X_k=2Z_k-1,\qquad k\in V.
+\]
+Thus \(X_i=2Z_i-1\) is the own-treatment sign for recipient \(i\), and \(X_j=2Z_j-1\) is the treatment sign for source \(j\).
+\end{definitionv}
+
+\begin{definitionv}{def:audit-score}[Inverse-inclusion score $T_q$]
+\[
+T_q
+=
+\frac2n\sum_{i\in V}Y_i(Z)
+\left(X_i+q^{-1}\sum_{j:(j,i)\in H}X_j\right),
+\qquad q>0.
+\]
+Here \(V\) is the population, \(n\) is its size, \(Z\) is the treatment-assignment vector, \(Y_i(Z)\) is unit \(i\)'s realized outcome, and \(H\) is the recorded retained-edge graph. The quantities \(X_i\) and \(X_j\) are the centered own-treatment and source-treatment signs, respectively, and \(q\) is the known edge-retention probability.
+\end{definitionv}
+
+\begin{definitionv}{def:oracle-score}[Supplied-graph score $T_G$]
+\[
+T_G
+=
+\frac2n\sum_{i\in V}Y_i(Z)
+\left(X_i+\sum_{j:(j,i)\in G}X_j\right).
+\]
+Here \(V\) is the population, \(n\) is its size, \(G\) is the supplied true interference graph, \(Z\) is the treatment-assignment vector, and \(Y_i(Z)\) is unit \(i\)'s realized outcome. The quantities \(X_i\) and \(X_j\) are the centered own-treatment and source-treatment signs, respectively.
+\end{definitionv}
+
+\begin{definitionv}{def:upper-envelope}[Upper-risk envelope $u(n,d,q)$]
+\[
+u(n,d,q)
+=
+\begin{cases}
+5(d+1)^2/n+4d(1-q)/(nq),&q>0,\\
++\infty,&q=0.
+\end{cases}
+\]
+Here \(n\) is the population size, \(d\) is the common off-diagonal in-degree and out-degree bound, and \(q\) is the known edge-retention probability.
+\end{definitionv}
+
+\begin{definitionv}{def:upper-rule}[Observable upper rule $T^{\mathrm{up}}$]
+\[
+T^{\mathrm{up}}
+=
+\begin{cases}
+\max\{-1,\min\{1,T_q\}\},&q>0\text{ and }u(n,d,q)<1,\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+Here \(T_q\) is the observable inverse-inclusion score, \(u(n,d,q)\) is the upper-risk envelope, \(n\) is the population size, \(d\) is the common off-diagonal in-degree and out-degree bound, and \(q\) is the known edge-retention probability.
+\end{definitionv}
+
+\begin{definitionv}{def:frontier-scale}[Risk scale $F(n,d,q)$]
+Define the risk scale by
+\[
+F(n,d,q)=
+\begin{cases}
+\min\left\{1,\dfrac{d^2}{n[1-(1-q)^d]}\right\},&q>0,\\
+1,&q=0.
+\end{cases}
+\]
+Its domain is specified by
+\begin{itemize}
+\item \textbf{(Population size.)} \(n\ge4\).
+\item \textbf{(Degree bound.)} \(1\le d\le n-1\).
+\item \textbf{(Retention probability.)} \(q\in[0,1]\).
+\end{itemize}
+On this domain, \(F(n,d,q)\) is positive and finite.
+\end{definitionv}
+
+\begin{definitionv}{def:frontier-rule}[Attaining rule $T^\star_{n,d,q}$]
+For every admissible \(n,d,q\), define the attaining rule on the observed record \(O\) by
+\[
+T^\star_{n,d,q}(O)=T^{\mathrm{up}}(O)=
+\begin{cases}
+\max\{-1,\min\{1,T_q(O)\}\},&q>0,\ u(n,d,q)<1,\\
+0,&\text{otherwise},
+\end{cases}
+\]
+where \(T_q\) is the observable inverse-inclusion score and \(u(n,d,q)\) is the upper-risk envelope.
+\end{definitionv}
+
+\begin{theoremv}{thm:observable-upper}[Observable upper risk bound]
+Let \(V\) be a finite population with size \(n=|V|\). Suppose that:
+\begin{itemize}
+\item \textbf{(Population size.)} \(n\ge4\).
+\item \textbf{(Degree bound.)} The integer degree bound \(d\) satisfies \(1\le d\le n-1\).
+\item \textbf{(Retention probability.)} The known edge-retention probability \(q\) belongs to \([0,1]\).
+\end{itemize}
+Under the independent assignment--audit product design, the minimax risk \(R_{n,d}(q)\) and expected squared loss \(\mathcal L\) of \cref{obj:def:risk}, the observable rule \(T^{\mathrm{up}}\) of \cref{obj:def:upper-rule}, and the upper-risk envelope \(u(n,d,q)\) of \cref{obj:def:upper-envelope} satisfy
+\[
+R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+\le
+\min\{1,u(n,d,q)\},
+\]
+where \(\mathcal M_{n,d}\) is the fixed schedule class underlying the risk in \cref{obj:def:risk}. The rule \(T^{\mathrm{up}}\) is real-valued and measurable on the complete observed-record space.
+\end{theoremv}
+
+\begin{theoremv}{thm:observed-record-precision-frontier}[Observed-record precision frontier]
+Let \(F\) be the risk-scale function in \cref{obj:def:frontier-scale}, and let the attaining rule be
+\[
+T^\star_{n,d,q}=T^{\mathrm{up}},
+\]
+where \(T^{\mathrm{up}}\) is the total observable upper rule. There exist universal real constants \(c,C_0>0\) such that, simultaneously for all parameters satisfying
+\begin{itemize}
+\item \textbf{(Population.)} The population size \(n\) is an integer with \(n\ge4\).
+\item \textbf{(Degree.)} The degree bound \(d\) is an integer with \(1\le d\le n-1\).
+\item \textbf{(Retention.)} The known retention probability \(q\) belongs to \([0,1]\).
+\end{itemize}
+the canonical independent assignment--audit design satisfies
+\[
+cF(n,d,q)
+\le R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^\star_{n,d,q};\theta,q)
+\le C_0F(n,d,q).
+\]
+Here \(\mathcal M_{n,d}\) is the fixed schedule class, \(\mathcal L(T;\theta,q)\) is expected squared estimation loss, and \(R_{n,d}(q)\) is its infimum over all measurable real-valued randomized estimators \(T(O,\xi)\), where \(O\) is the complete observed record and \(\xi\) is the independent randomization seed.
+
+For every pair of degree and retention sequences \(d_n,q_n\) satisfying
+\[
+1\le d_n\le n-1,\qquad q_n\in[0,1]
+\qquad\text{for every integer }n\ge4,
+\]
+there exists a sequence of measurable real-valued randomized estimators \(T_n(O,\xi)\) such that
+\[
+\sup_{\theta\in\mathcal M_{n,d_n}}
+\mathcal L(T_n;\theta,q_n)\longrightarrow0
+\qquad\text{as }n\longrightarrow\infty
+\]
+if and only if
+\[
+\frac{d_n^2}{n}\longrightarrow0
+\qquad\text{and}\qquad
+\begin{cases}
++\infty,&q_n=0,\\[2pt]
+\dfrac{d_n}{nq_n},&q_n>0
+\end{cases}
+\longrightarrow0.
+\]
+The second convergence is in the extended nonnegative real numbers.
+
+For every integer \(n\ge4\) and \(1\le d\le n-1\), the endpoint scales are
+\[
+F(n,d,0)=1,
+\qquad
+F(n,d,1)=\min\left\{1,\frac{d^2}{n}\right\}.
+\]
+Moreover, there exist universal real constants \(c_1,C_1>0\) such that, simultaneously for every integer \(n\ge4\), every integer \(1\le d\le n-1\), and every \(0<q\le1\),
+\[
+c_1\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}
+\le F(n,d,q)
+\le
+C_1\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}.
+\]
+\end{theoremv}
+
+\begin{definitionv}{def:supplied-risk}[Supplied-graph risk $R^G_{n,d}(q)$]
+For fixed admissible \(n,d,q\), define the supplied-graph minimax squared risk by
+\[
+R^G_{n,d}(q)=
+\inf_{T^G}\sup_{\theta\in\mathcal M_{n,d}}
+\mathbb E_{P_{\theta,q}}
+\left[
+\bigl(T^G(O,G(\theta),\xi)-\tau(\theta)\bigr)^2
+\right].
+\]
+Here \(\mathcal M_{n,d}\) is the schedule class, \(P_{\theta,q}\) is the fixed-schedule experiment law, \(O\) is the original observed record, \(\tau(\theta)\) is the population all-treated-versus-all-control contrast, and \(\xi\) is an independent uniform seed on \([0,1]\). The additional observation \(G(\theta)\) is the true off-diagonal graph component of the fixed schedule \(\theta\).
+
+The infimum ranges over all Borel-measurable functions
+\[
+T^G:
+\operatorname{range}(O)\times
+2^{\{(j,i)\in V^2:j\ne i\}}\times[0,1]
+\longrightarrow\mathbb R,
+\]
+where \(V\) is the fixed finite population. The finite graph coordinate carries the discrete sigma-algebra. The original record carries the Borel sigma-algebra inherited from its finite graph and assignment coordinates and its real outcome coordinates. The estimator may use the known \(n,d,q\). Expectations of the nonnegative loss take values in \([0,+\infty]\), and the estimator class includes every such measurable rule.
+\end{definitionv}
+
+\begin{lemmav}{lem:score-audit}[Audit-score moments and oracle bound]
+Let \(V\) be a finite population with \(n=|V|\), and let \(\theta=(G,a,t,b)\) be a fixed schedule. Write \(Y_i(z)\) for unit \(i\)'s additive potential outcome under binary assignment \(z\). Suppose:
+\begin{itemize}
+\item \textbf{(Population and degree.)} \(n\ge4\), and \(d\) is an integer satisfying \(1\le d\le n-1\).
+\item \textbf{(Schedule class.)} \(\theta\in\mathcal M_{n,d}\) as in \cref{obj:def:model}.
+\item \textbf{(Assignment.)} The treatment-assignment vector \(Z\) satisfies \cref{obj:ass:assignment}.
+\item \textbf{(Audit.)} The off-diagonal audit-mark array \(W\) satisfies \cref{obj:ass:audit} with retention probability \(q>0\).
+\item \textbf{(Design independence.)} \(Z\) and \(W\) satisfy \cref{obj:ass:design-independence}.
+\end{itemize}
+Let \(P_{\theta,q}\) be the induced experiment law for this fixed schedule, with the observed record retaining precisely the audited arrows of \(G\), the assignment, and the realized outcomes. Let \(T_q\) and \(T_G\) be the scores in \cref{obj:def:audit-score,obj:def:oracle-score}, respectively, and define the all-treated-versus-all-control population contrast by
+\[
+\tau(\theta)
+=\frac1n\sum_{i\in V}
+\bigl(Y_i(\mathbf1)-Y_i(\mathbf0)\bigr),
+\]
+where \(\mathbf1\) and \(\mathbf0\) are the all-treated and all-control assignments. Then
+\[
+\mathbb E_{P_{\theta,q}}[T_q]=\tau(\theta),
+\]
+\[
+\operatorname{Var}_{P_{\theta,q}}(T_q)
+=
+\operatorname{Var}_{Z}(T_G)
++\frac{4(1-q)}{n^2q}
+\sum_{i\in V}
+\bigl|\{j\in V:(j,i)\in G\}\bigr|
+\,\mathbb E_Z\!\left[Y_i(Z)^2\right],
+\]
+and
+\[
+\operatorname{Var}_{Z}(T_G)\le\frac{5(d+1)^2}{n},
+\]
+where expectations and variances indexed by \(Z\) use the independent half-Bernoulli assignment law.
+\end{lemmav}
+
+\begin{lemmav}{lem:supplied-block-record-lower}[Complete-record minimax lower bounds]
+Let \(n\) be the population size, \(d\) the common off-diagonal in-degree and out-degree bound, and \(q\) the known edge-retention probability. Suppose that:
+\begin{itemize}
+\item \textbf{(Parameter range.)} \(n,d\) are integers with \(n\ge4\) and \(1\le d\le n-1\), and \(q\in[0,1]\).
+\item \textbf{(Assignment law.)} The joint law of the treatment assignment and audit marks satisfies \cref{obj:ass:assignment}.
+\item \textbf{(Audit law.)} The same joint law satisfies \cref{obj:ass:audit} at retention probability \(q\).
+\item \textbf{(Design independence.)} The same joint law satisfies \cref{obj:ass:design-independence}.
+\end{itemize}
+Then the complete-record minimax squared risk \(R_{n,d}(q)\) of \cref{obj:def:risk} and the supplied-graph minimax squared risk \(R^G_{n,d}(q)\) of \cref{obj:def:supplied-risk} satisfy
+\[
+R_{n,d}(q)\ge
+\frac{1}{160000\pi^2}
+\min\left\{1,\frac{(d+1)^2}{n}\right\},
+\qquad
+R^G_{n,d}(q)\ge
+\frac{1}{160000\pi^2}
+\min\left\{1,\frac{(d+1)^2}{n}\right\}.
+\]
+These bounds apply to every measurable randomized estimator in the respective definitions, with the true off-diagonal graph supplied in the second experiment.
+\end{lemmav}
+
+\begin{propositionv}{lem:published-model}[Published-model correspondence and risk transfer]*
+Let \(V\) be the fixed finite population. Use the published SNIPE model conventions of \citep[Sections 3.1--3.2, Assumptions 1--2, equations (3.2)--(3.3)]{CortezRodriguezEichhornYu2023SNIPE}. For every additive schedule \(\theta=(G,a,t,b)\), define its augmented graph \(\widetilde G\) and published polynomial coefficients by
+\[
+\widetilde G=G\cup\{(i,i):i\in V\},\qquad
+c^{\mathrm{pub}}_{i,\varnothing}=a_i,\qquad
+c^{\mathrm{pub}}_{i,\{i\}}=t_i,\qquad
+c^{\mathrm{pub}}_{i,\{j\}}=b_{ij}\quad ((j,i)\in G),
+\]
+with all remaining polynomial coefficients zero.
+
+For every nonnegative integer \(d\), if \(\theta\in\mathcal M_{n,d}\), the schedule class in \cref{obj:def:model}, its augmentation has every diagonal arrow and belongs to the published specialization with interaction order \(\beta=1\), coefficient-mass envelope
+\[
+Y_{\max}
+=\max_{i\in V}
+\left(
+|c^{\mathrm{pub}}_{i,\varnothing}|
++\sum_{j:(j,i)\in\widetilde G}
+|c^{\mathrm{pub}}_{i,\{j\}}|
+\right)
+\le 1,
+\]
+and total in-degree and out-degree at most \(d+1\). Conversely, every published schedule satisfying these order, envelope, and degree restrictions and containing every diagonal arrow yields a member of \(\mathcal M_{n,d}\) by deleting the diagonal arrows and reading its empty-set coefficient as \(a_i\), its own singleton coefficient as \(t_i\), and its singleton coefficient for source \(j\) as \(b_{ij}\). Augmenting this stripped schedule recovers the original graph and every polynomial coefficient indexed by a subset of a recipient's in-neighborhood. For every additive schedule, stripping its augmentation recovers its graph, baseline vector, own-treatment vector, and spillover coefficients on all graph arrows.
+
+For every additive schedule, every unit \(i\), and every binary assignment \(z\), augmentation preserves \(Y_i(z)\), the additive potential outcome, and preserves \(\tau(\theta)\), the population all-treated-versus-all-control contrast. For every assignment and audit-mark array, adjoining the known diagonal arrows to \(H\), the retained graph, gives the published record through the deterministic transformation
+\[
+O=(H,Z,Y(Z))
+\longmapsto
+\bigl(H\cup\{(i,i):i\in V\},\,Z,\,Y(Z)\bigr),
+\]
+where \(O\) is the complete observed record, \(Z\) is the assignment vector, and \(Y(Z)\) is the realized-outcome vector.
+
+For every joint assignment-and-audit law satisfying \cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence}, with \(q\) the edge-retention probability, and every nonnegative integer \(d\), consider any class of published schedules containing the augmentation of every member of \(\mathcal M_{n,d}\). Under the same assignment law and off-diagonal audit channel, \(R_{n,d}(q)\), the minimax squared risk defined in \cref{obj:def:risk}, is at most the minimax squared risk over that published class.
+\end{propositionv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:published-model
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{CortezRodriguezEichhornYu2023SNIPE} (Sections 3.1--3.2, Assumptions 1--2 and equations (3.2)--(3.3), arXiv version 4.). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:published-model
+
+\begin{theoremv}{thm:supported-boundaries}[Minimax bounds at supported boundaries]
+There exist universal constants \(c,C_0>0\) such that the following holds for every population size \(n\), degree bound \(d\), known retention probability \(q\), and joint law of the treatment-assignment vector \(Z\) and the off-diagonal audit-mark array \(W\) satisfying:
+\begin{itemize}
+\item \textbf{(Population.)} \(n\) is an integer with \(n\ge4\).
+\item \textbf{(Degree.)} \(d\) is an integer with \(1\le d\le n-1\).
+\item \textbf{(Retention.)} \(q\in[0,1]\).
+\item \textbf{(Assignment.)} The joint law satisfies \cref{obj:ass:assignment}.
+\item \textbf{(Audit.)} The joint law satisfies \cref{obj:ass:audit} at retention probability \(q\).
+\item \textbf{(Independence.)} The joint law satisfies \cref{obj:ass:design-independence}.
+\end{itemize}
+For each such law, the minimax squared risk \(R_{n,d}(q)\) of \cref{obj:def:risk}, with the infimum taken over all measurable randomized estimators of the complete observed record \(O\), satisfies
+\[
+R_{n,d}(q)\ge
+c\max\left\{
+\min\left\{1,\frac{(d+1)^2}{n}\right\},
+\frac{1}{1+nq}
+\right\}.
+\]
+The supported boundary cases satisfy
+\[
+\begin{aligned}
+c&\le R_{n,d}(0)\le1,\\
+c\min\left\{1,\frac{(d+1)^2}{n}\right\}
+&\le R_{n,d}(1)
+\le C_0\min\left\{1,\frac{(d+1)^2}{n}\right\},\\
+\frac{c}{1+nq}
+&\le R_{n,1}(q)\le\frac{C_0}{1+nq}.
+\end{aligned}
+\]
+\end{theoremv}
+
+\begin{definitionv}{synth_4}[Fixed recipient blocks]
+For integers \(n\ge4\) and \(B,d\ge1\) satisfying \(2Bd\le n\), set \(m=Bd\) and \(V=\{1,\ldots,n\}\). The source units are \(\{1,\ldots,m\}\). Define the fixed recipient blocks by
+\[
+C_\ell=\{m+(\ell-1)d+1,\ldots,m+\ell d\},
+\qquad \ell\in\{1,\ldots,B\}.
+\]
+Each \(C_\ell\) contains \(d\) units, and these pairwise disjoint blocks partition \(\{m+1,\ldots,2m\}\). The padding units are \(\{i\in V:i>2m\}\). Thus the sources, recipient blocks, and padding units partition \(V\). The recipient blocks remain fixed as the ordered source partition \(S=(S_1,\ldots,S_B)\) varies; \(S_\ell\) is the source group assigned to \(C_\ell\) in the block-prior construction.
+\end{definitionv}
+
+\begin{definitionv}{def:block-prior}[Block schedule prior]
+The block prior \(\Pi_{\sigma,h}\), indexed by the sign \(\sigma\in\{-1,1\}\) and amplitude \(h\in\mathbb R\), is the distribution over fixed schedules \(\theta=(G,a,t,b)\) induced by the following construction. With \(B\) blocks and \(m=Bd\) sources, draw an ordered partition \(S=(S_1,\ldots,S_B)\) uniformly over partitions of the sources satisfying \(|S_\ell|=d\). Independently of \(S\), draw independent block baselines \(U_1,\ldots,U_B\) with density
+\[
+f(w)=
+\begin{cases}
+4\cos^2(2\pi w),& |w|\le 1/4,\\
+0,& |w|>1/4.
+\end{cases}
+\]
+Using the recipient blocks \(C_\ell\) of the block construction, set
+\[
+G=\bigcup_{\ell=1}^{B}\{(j,i):j\in S_\ell,\ i\in C_\ell\},
+\qquad
+a_i=\sum_{\ell=1}^{B}\mathbf1\{i\in C_\ell\}
+       \left(U_\ell-\frac{\sigma h}{2}\right),
+\qquad
+t_i=0,
+\qquad
+b_{ij}=\frac{\sigma h}{d}.
+\]
+Spillover coefficients are read on graph arrows. Source and padding rows have zero outcomes. The baselines are drawn before treatment randomization and are fixed components of each schedule.
+
+The corresponding complete-record mixture law \(P_{\sigma,h}\) is obtained by drawing the partition and baselines, fixing the resulting schedule, and then independently drawing treatment assignments and audit marks from the canonical product design with retention parameter \(q\). For every measurable set \(A\) of complete observed records \(O=(H,Z,Y(Z))\),
+\[
+P_{\sigma,h}(A)
+=
+\int
+\Pr\!\left\{(H,Z,Y(Z))\in A\mid\theta\right\}
+\,\Pi_{\sigma,h}(d\theta),
+\]
+where the conditional probability uses that assignment-audit design.
+\end{definitionv}
+
+\begin{definitionv}{def:testing-handle}[Testing amplitude $h_\circ(B,d,q)$]
+The testing amplitude is
+\[
+h_\circ(B,d,q)=\frac{1}{100\pi}
+\begin{cases}
+\min\left\{1,\dfrac{d}{\sqrt{mp}}\right\},&p>0,\\
+1,&p=0,
+\end{cases}
+\]
+where the source count \(m\) and association-revelation probability \(p\) are
+\[
+m=Bd,
+\qquad
+p=1-(1-q)^d.
+\]
+The parameters satisfy
+\begin{itemize}
+\item \textbf{(Block count.)} \(B\) is an integer with \(B\ge1\).
+\item \textbf{(Degree.)} \(d\) is an integer with \(d\ge1\).
+\item \textbf{(Population capacity.)} \(2m\le n\).
+\end{itemize}
+The testing handle consists of the opposite-sign block priors and their complete original-record mixture laws:
+\[
+\bigl(\Pi_{+1,h_\circ(B,d,q)},\Pi_{-1,h_\circ(B,d,q)}\bigr),
+\qquad
+\bigl(P_{+1,h_\circ(B,d,q)},P_{-1,h_\circ(B,d,q)}\bigr).
+\]
+The record includes detailed retained arrows and source labels in the retained graph \(H\), every coordinate of the assignment vector \(Z\), all noiseless realized outcomes \(Y(Z)\), repeated-outcome recipient grouping, remaining block capacities \(u_\ell\), and the observed global hidden treated-source count \(K\). Its conditional response density \(\lambda_{\sigma,h}\) uses coefficient extraction constrained by \(K\), including the convention for zero total remaining capacity \(M=0\).
+
+Support, causal target separation, the uniform nonlocal testing bound at \(h_\circ\), and the all-degree Walsh contraction are proved properties of this construction. Together they yield the risk scale \(F\), its equivalent positive-retention elbow expression, the clipped-or-zero rule \(T^\star_{n,d,q}\), and the two consistency criteria
+\[
+\frac{d_n^2}{n}\longrightarrow0,
+\qquad
+\frac{d_n}{nq_n}\longrightarrow0,
+\]
+for admissible population sequences, with the second ratio assigned \(+\infty\) at zero retention.
+\end{definitionv}
+
+\begin{lemmav}{lem:block-law}[Block mixture and reconstruction]
+Let \(n,B,d\) be integers, let \(\sigma\in\{-1,1\}\) be the prior sign, let \(h\) be its amplitude, and let \(q\) be the edge-retention probability. Suppose:
+\begin{itemize}
+\item \textbf{(Population and blocks.)} \(n\ge4\), \(B\ge1\), \(d\ge1\), and \(2Bd\le n\).
+\item \textbf{(Parameter ranges.)} \(0\le h\le1/4\) and \(0\le q\le1\).
+\item \textbf{(Experimental design.)} The joint law of the assignment vector \(Z\) and audit-mark array \(W\) satisfies \cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence}.
+\end{itemize}
+
+Set \(m=Bd\), the number of sources. Partition the \(m\) labeled sources uniformly into ordered blocks \(S_1,\ldots,S_B\) of size \(d\), independently of block baselines \(U_1,\ldots,U_B\), which are independent with density
+\[
+f(u)=
+\begin{cases}
+4\cos^2(2\pi u),& |u|\le1/4,\\
+0,& |u|>1/4.
+\end{cases}
+\]
+For the fixed recipient blocks \(C_1,\ldots,C_B\), each of size \(d\), include every arrow from \(S_\ell\) to \(C_\ell\). Set
+\[
+a_i=U_\ell-\frac{\sigma h}{2}\quad(i\in C_\ell),
+\qquad t_i=0,
+\qquad b_{ij}=\frac{\sigma h}{d}
+\]
+on these arrows, and give source and padding units zero outcomes. Let \(\Pi_{\sigma,h}\) be the resulting schedule law and \(P_{\sigma,h}\) its complete-record mixture law. Then, for \(\Pi_{\sigma,h}\)-almost every schedule \(\theta\),
+\[
+\theta\in\mathcal M_{n,d},
+\qquad
+\tau(\theta)=\frac{\sigma mh}{n},
+\]
+where \(\mathcal M_{n,d}\) is the schedule class in \cref{obj:def:model} and \(\tau(\theta)\) is the population all-treated-versus-all-control contrast.
+
+Under the actual retained-graph marginal, the indicators that each labeled source has at least one retained outgoing arrow are independent Bernoulli variables with common probability
+\[
+p=1-(1-q)^d.
+\]
+
+Let \(H\) be the detailed labeled retained graph. For each block, define its remaining source capacity and revealed source-sign sum by
+\[
+u_\ell=d-\bigl|\{j\in S_\ell:j\text{ has a retained outgoing arrow}\}\bigr|,
+\qquad
+A_\ell=\sum_{\substack{j\in S_\ell\\j\text{ has a retained outgoing arrow}}}(2Z_j-1).
+\]
+Define the total remaining capacity and hidden treated-source count by
+\[
+M=\sum_{\ell=1}^B u_\ell,
+\qquad
+K=\sum_{\substack{j\text{ a source}\\j\text{ has no retained outgoing arrow}}}Z_j.
+\]
+For almost every \((H,Z)\) under its actual joint marginal, the conditional density of the distinct block-response vector \(y=(y_1,\ldots,y_B)\) is
+\[
+\lambda_{\sigma,h}(y\mid H,Z)
+=
+\frac{
+[x^K]\displaystyle\prod_{\ell=1}^B
+\left\{
+\sum_{k=0}^{u_\ell}
+\binom{u_\ell}{k}
+f\!\left(y_\ell-\frac{\sigma h(A_\ell+2k-u_\ell)}{2d}\right)x^k
+\right\}
+}{
+\binom{M}{K}
+},
+\]
+where \([x^K]\) extracts the coefficient of \(x^K\). The law \(P_{\sigma,h}\) equals the law obtained by drawing \((H,Z)\) from that actual joint marginal, drawing \(y\) from this conditional density, copying \(y_\ell\) to every recipient in \(C_\ell\), and assigning zero outcomes to source and padding units. Its \((H,Z)\) marginal equals the actual joint marginal, including detailed retained-edge subsets, full source labels, and every treatment coordinate. For almost every \((H,Z)\) under this marginal,
+\[
+M=0\ \Longrightarrow\ K=0\ \text{ and }\ \binom{M}{K}=1.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:baseline-translation-affinity}[Baseline translation and mixture bounds]
+Let \(f\) be the baseline density and \(\varphi\) its square root:
+\[
+f(w)=
+\begin{cases}
+4\cos^2(2\pi w),& |w|\le 1/4,\\
+0,& |w|>1/4,
+\end{cases}
+\qquad
+\varphi(w)=\sqrt{f(w)}.
+\]
+Then \(\varphi\) is globally \(4\pi\)-Lipschitz, and
+\[
+\int_{-1/4}^{1/4}\bigl(4\pi\sin(2\pi w)\bigr)^2\,dw
+=4\pi^2.
+\]
+For every \(s,t\in\mathbb R\),
+\[
+\int_{\mathbb R}
+\bigl(\sqrt{f(w-s)}-\sqrt{f(w-t)}\bigr)^2\,dw
+\le 4\pi^2(s-t)^2.
+\]
+For every nonnegative integer \(B\) and every pair of vectors
+\(s,t\in\mathbb R^B\),
+\[
+\int_{\mathbb R^B}
+\left(
+\sqrt{\prod_{\ell=1}^{B}f(y_\ell-s_\ell)}
+-
+\sqrt{\prod_{\ell=1}^{B}f(y_\ell-t_\ell)}
+\right)^2\,dy
+\le
+\sum_{\ell=1}^{B}4\pi^2(s_\ell-t_\ell)^2.
+\]
+Here real and Euclidean integrals use Lebesgue measure, including the usual empty-product convention when \(B=0\).
+
+For probability laws, let \(\operatorname{TV}\) denote total variation, defined as the supremum of the absolute difference of probabilities over measurable events. The unhalved squared Hellinger distance between laws with densities \(v_+\) and \(v_-\) relative to a common measure \(\mu\) is
+\[
+\int_\Omega
+\bigl(\sqrt{v_+(x)}-\sqrt{v_-(x)}\bigr)^2\,d\mu(x).
+\]
+For every measurable space \(\Omega\), every sigma-finite measure \(\mu\), and every pair of nonnegative measurable densities \(v_+,v_-\) satisfying
+\[
+\int_\Omega v_+(x)\,d\mu(x)
+=
+\int_\Omega v_-(x)\,d\mu(x)
+=1,
+\]
+one has
+\[
+\operatorname{TV}\bigl(v_+\,\mu,v_-\,\mu\bigr)
+\le
+\left[
+\int_\Omega
+\bigl(\sqrt{v_+(x)}-\sqrt{v_-(x)}\bigr)^2\,d\mu(x)
+\right]^{1/2}.
+\]
+
+For the common-marginal version, let \(\Xi,\Omega\) be measurable spaces and suppose:
+\begin{itemize}
+\item \textbf{(Reference measures.)} \(\nu\) is a probability measure on \(\Xi\), and \(\mu\) is a sigma-finite measure on \(\Omega\).
+\item \textbf{(Conditional densities.)} \(v_+,v_-:\Xi\times\Omega\to\mathbb R\) are jointly measurable and nonnegative.
+\item \textbf{(Normalization.)} For every \(\xi\in\Xi\),
+\[
+\int_\Omega v_+(\xi,x)\,d\mu(x)
+=
+\int_\Omega v_-(\xi,x)\,d\mu(x)
+=1.
+\]
+\end{itemize}
+The joint laws are
+\[
+\nu(d\xi)\,v_\pm(\xi,x)\,\mu(dx),
+\]
+and their response mixtures are
+\[
+\int_\Xi v_\pm(\xi,x)\,\mu(dx)\,\nu(d\xi).
+\]
+The unhalved squared Hellinger distance between these joint laws equals
+\[
+\int_\Xi
+\left[
+\int_\Omega
+\bigl(\sqrt{v_+(\xi,x)}-\sqrt{v_-(\xi,x)}\bigr)^2\,d\mu(x)
+\right]d\nu(\xi),
+\]
+and the response mixtures satisfy
+\[
+\operatorname{TV}\left(
+\int_\Xi v_+(\xi,x)\,\mu(dx)\,\nu(d\xi),
+\int_\Xi v_-(\xi,x)\,\mu(dx)\,\nu(d\xi)
+\right)
+\le
+\left[
+\int_\Xi
+\left[
+\int_\Omega
+\bigl(\sqrt{v_+(\xi,x)}-\sqrt{v_-(\xi,x)}\bigr)^2\,d\mu(x)
+\right]d\nu(\xi)
+\right]^{1/2}.
+\]
+
+Define the derivative representative, with value zero at the two support endpoints, by
+\[
+\varphi'(w)=
+\begin{cases}
+-4\pi\sin(2\pi w),& |w|<1/4,\\
+0,& |w|\ge 1/4.
+\end{cases}
+\]
+At every \(w\in\mathbb R\setminus\{-1/4,1/4\}\), \(\varphi\) is differentiable with derivative \(\varphi'(w)\), and
+\[
+\int_{\mathbb R}\varphi'(w)^2\,dw=4\pi^2.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:walsh-channel-energy}[Walsh channel energy bound]
+Let \(d\ge1\) be an integer and let \(0\le h\le1/4\). With \(f\) denoting the baseline density, define, for each sign vector \(\varepsilon\in\{-1,1\}^d\),
+\[
+F_\varepsilon(w)
+=f\!\left(w-\frac{h}{2d}\sum_{j=1}^d\varepsilon_j\right),
+\qquad
+g_d(w)=2^{-d}\sum_{\varepsilon\in\{-1,1\}^d}F_\varepsilon(w).
+\]
+For every integer \(s\ge0\), define the Walsh coefficient function by
+\[
+a_s(w)=
+\begin{cases}
+2^{-d}\displaystyle\sum_{\varepsilon\in\{-1,1\}^d}
+\frac{F_\varepsilon(w)}{g_d(w)}
+\displaystyle\prod_{j=1}^{\min\{s,d\}}\varepsilon_j,
+& g_d(w)\ne0,\\
+0,&g_d(w)=0.
+\end{cases}
+\]
+The empty product equals one. Define the integrated Walsh energies and their two aggregates by
+\[
+\gamma_s=\int_{\mathbb R}a_s(w)^2g_d(w)\,dw
+\quad(1\le s\le d),
+\qquad
+\eta=\sum_{s=1}^d\binom ds\gamma_s,
+\qquad
+\eta_1=\sum_{s=1}^d s\binom ds\gamma_s.
+\]
+For every \(w\) with \(g_d(w)>0\), \(a_0(w)=1\), and for every \(\varepsilon\in\{-1,1\}^d\),
+\[
+\frac{F_\varepsilon(w)}{g_d(w)}
+=
+\sum_{E\subseteq\{1,\ldots,d\}}
+a_{|E|}(w)\prod_{j\in E}\varepsilon_j.
+\]
+Moreover, for every integer \(s\ge1\),
+\[
+\int_{\mathbb R}a_s(w)g_d(w)\,dw=0,
+\]
+and the aggregate energies satisfy
+\[
+0\le\eta\le\eta_1\le\frac{12\pi^2h^2}{d}.
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:hidden-allocation-contraction}[Hidden allocation contraction bound]
+In the complete block experiment, let \(n\) be the population size, \(B\) the number of blocks, \(d\) the number of sources per block, and \(m=Bd\). Suppose:
+\begin{itemize}
+\item \textbf{(Block sizes.)} \(n,B,d\) are integers satisfying \(n\ge4\), \(B\ge1\), \(d\ge1\), and \(2Bd\le n\).
+\item \textbf{(Amplitude and audit.)} The amplitude satisfies \(0\le h\le1/4\). The retention probability satisfies \(0\le q\le1\); the audit marks on all ordered off-diagonal pairs are independent Bernoulli variables with success probability \(q\), independent of the assignment.
+\item \textbf{(Assignment.)} The assignment law satisfies \cref{obj:ass:assignment}.
+\item \textbf{(Channel smallness.)} Let \(\gamma_s\) be the integrated squared Walsh coefficient of order \(s\) for the block-response channel at amplitude \(h\), and define its total and order-weighted nonconstant energies by
+\[
+\eta=\sum_{s=1}^{d}\binom{d}{s}\gamma_s,
+\qquad
+\eta_1=\sum_{s=1}^{d}s\binom{d}{s}\gamma_s.
+\]
+These satisfy \(4e\eta<1\).
+\end{itemize}
+Let \(H\) be the complete labeled retained graph. For each block, let \(u_\ell\) be its remaining hidden-source capacity, and define the total remaining capacity and source-association revelation probability by
+\[
+M=\sum_{\ell=1}^{B}u_\ell,
+\qquad
+p=1-(1-q)^d.
+\]
+Conditional on \(H\), let \(Q_H\) have the actual assignment marginal and independent distinct block responses with the uniform sign-mixture response density \(g_d\). Let \(L_+\) be the density ratio of the positive-prior conditional law \(P_{+1,h}(Z,y\mid H)\) relative to \(Q_H\), and define
+\[
+\chi_H^2=\mathbb E_{Q_H}\!\left[(L_+-1)^2\right].
+\]
+Then
+\[
+\mathbb E_H\!\left[\mathbf1\{M\ge m/4\}\chi_H^2\right]
+\le
+\frac{\exp(eBp\eta_1)}{1-4e\eta}-1.
+\]
+The expectation is taken under the actual marginal law of the complete retained graph, including its labels and detailed retained-edge subsets.
+\end{lemmav}
+
+\begin{theoremv}{thm:block-testing-scale}[Block testing scale bounds]
+Suppose the block experiment satisfies the following conditions:
+\begin{itemize}
+\item \textbf{(Population and blocks.)} The population size \(n\), block count \(B\), and degree \(d\) are integers satisfying
+\[
+n\ge4,\qquad B\ge1,\qquad d\ge1,\qquad 2Bd\le n.
+\]
+\item \textbf{(Retention.)} The edge-retention probability satisfies \(q\in[0,1]\).
+\item \textbf{(Assignment.)} The experimental design satisfies \cref{obj:ass:assignment}.
+\item \textbf{(Audit.)} The experimental design satisfies \cref{obj:ass:audit} at retention probability \(q\).
+\item \textbf{(Independence.)} The experimental design satisfies \cref{obj:ass:design-independence}.
+\end{itemize}
+Put \(m=Bd\), the number of sources, and \(p=1-(1-q)^d\), the probability that a source association is revealed. Define the testing scale and universal constant by
+\[
+s(B,d,q)=
+\begin{cases}
+\min\{1,d/\sqrt{mp}\},&p>0,\\
+1,&p=0,
+\end{cases}
+\qquad
+\kappa=\frac{1}{100\pi}.
+\]
+Let \(P_{+1,h}\) and \(P_{-1,h}\) be the complete original-record mixture laws under the opposite-sign block priors, using this experimental design, and let \(\operatorname{TV}\) denote total-variation distance. For every real amplitude \(h\),
+\[
+0\le h\le\kappa s(B,d,q)
+\quad\Longrightarrow\quad
+\operatorname{TV}(P_{+1,h},P_{-1,h})\le\frac12.
+\]
+For every real amplitude \(h\) satisfying \(0<h\le1/4\) and \(p>0\),
+\[
+\operatorname{TV}(P_{+1,h},P_{-1,h})
+\ge 1-\frac{7d^2}{8h^2mp}.
+\]
+Finally, define the testing radius by
+\[
+\bar h(B,d,q)
+=
+\sup\left\{
+h\in[0,1/4]:
+\operatorname{TV}(P_{+1,h},P_{-1,h})\le\frac12
+\right\}.
+\]
+Then
+\[
+\kappa s(B,d,q)\le\bar h(B,d,q)\le2s(B,d,q).
+\]
+\end{theoremv}
+
+\begin{theoremv}{thm:nonlocal-testing-answer}[Nonlocal block testing bounds]
+Let the population size \(n\), block count \(B\), degree \(d\), and retention probability \(q\) satisfy:
+\begin{itemize}
+\item \textbf{(Population.)} \(n\) is an integer with \(n\ge4\).
+\item \textbf{(Blocks and degree.)} \(B,d\) are integers with \(B\ge1\) and \(d\ge1\).
+\item \textbf{(Capacity.)} \(2Bd\le n\).
+\item \textbf{(Retention.)} \(q\in[0,1]\).
+\end{itemize}
+Define the source count \(m\), association-revelation probability \(p\), and testing scale \(s\) by
+\[
+m=Bd,\qquad p=1-(1-q)^d,\qquad
+s=
+\begin{cases}
+\min\{1,d/\sqrt{mp}\},&p>0,\\
+1,&p=0.
+\end{cases}
+\]
+Let \(P_{+1,h}\) and \(P_{-1,h}\) be the complete original-record block mixture laws under the canonical assignment-audit product design with retention probability \(q\), at amplitude \(h\) and signs \(+1\) and \(-1\), respectively. With \(\operatorname{TV}\) denoting total-variation distance, define the testing radius
+\[
+\bar h
+=\sup\left\{h\in[0,1/4]:
+\operatorname{TV}(P_{+1,h},P_{-1,h})\le\tfrac12\right\}.
+\]
+Then
+\[
+(100\pi)^{-1}s\le\bar h\le2s.
+\]
+Moreover, for every real \(h\) satisfying \(0\le h\le(100\pi)^{-1}s\),
+\[
+\operatorname{TV}(P_{+1,h},P_{-1,h})\le\tfrac12.
+\]
+If \(d=2\), the scale satisfies
+\[
+s=
+\begin{cases}
+\min\left\{1,\sqrt{\dfrac{2}{B(2q-q^2)}}\right\},&q>0,\\
+1,&q=0.
+\end{cases}
+\]
+\end{theoremv}
+
+\begin{lemmav}{lem:full-record-two-prior-risk}[Full-record two-prior risk bound]
+Let \(n\) be the population size, \(d\) the degree bound, and \(q\) the audit-retention probability. Suppose:
+\begin{itemize}
+\item \textbf{(Parameters.)} \(n,d\) are integers satisfying \(n\ge4\) and \(1\le d\le n-1\), and \(q\in[0,1]\).
+\item \textbf{(Priors.)} Two probability priors, each represented by a map from a measurable parameter space to fixed schedules, assign probability one to \(\mathcal M_{n,d}\) as defined in \cref{obj:def:model}.
+\item \textbf{(Targets.)} For some \(\Delta>0\), the positive and negative priors respectively satisfy \(\tau(\theta)=\Delta\) and \(\tau(\theta)=-\Delta\) almost surely, where \(\tau(\theta)\), the population all-treated-versus-all-control contrast, is
+\[
+\tau(\theta)=\frac1n\sum_{i=1}^{n}
+\bigl(Y_i(1,\ldots,1)-Y_i(0,\ldots,0)\bigr),
+\]
+and \(Y_i(z)\) denotes unit \(i\)'s additive potential outcome under schedule \(\theta\) at binary assignment \(z\).
+\item \textbf{(Measurability.)} For each prior representation, the map from the parameter, assignment, and audit marks to the complete observed record is jointly measurable.
+\end{itemize}
+Under each prior, draw the schedule first, then independently draw \(Z\), the treatment-assignment vector, with independent Bernoulli-\(1/2\) coordinates, and \(W\), the array of audit marks on all ordered off-diagonal pairs, with independent Bernoulli-\(q\) coordinates, independently of \(Z\). The retained graph \(H\) and complete record \(O\) are
+\[
+H_{ij}=\mathbf1\{j\to i\text{ in }G\}\,W_{ij}\quad(i\ne j),
+\qquad
+O=(H,Z,Y(Z)),
+\]
+where \(G\) is the schedule's graph and \(Y(Z)\) is the vector of realized outcomes. Let \(\mathsf Q_+\) and \(\mathsf Q_-\) be the resulting complete-record mixture laws under the positive and negative priors. Then the minimax squared risk over measurable randomized estimators defined in \cref{obj:def:risk} satisfies
+\[
+R_{n,d}(q)\ge
+\frac{\Delta^2}{2}
+\left(1-\operatorname{TV}(\mathsf Q_+,\mathsf Q_-)\right),
+\]
+where \(\operatorname{TV}\) is the total-variation distance, defined as the supremum over measurable events of the absolute difference between their probabilities.
+\end{lemmav}
+
+\begin{definitionv}{def:frontier-handle}[Precision pair $(F,T^\star_{n,d,q})$]
+The precision handle is the scale–rule pair \((F,T^\star_{n,d,q})\), defined by
+\[
+F(n,d,q)=
+\begin{cases}
+\min\left\{1,\dfrac{d^2}{n[1-(1-q)^d]}\right\},&q>0,\\
+1,&q=0,
+\end{cases}
+\qquad
+T^\star_{n,d,q}(O)=
+\begin{cases}
+\max\{-1,\min\{1,T_q(O)\}\},&q>0,\ u(n,d,q)<1,\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+Here \(O\) is the complete observed record, \(T_q\) is the observable inverse-inclusion score, and \(u\) is the upper-risk envelope. The associated positive-retention elbow expression is
+\[
+\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}.
+\]
+For admissible population sequences \(d_n,q_n\), the associated consistency criteria are
+\[
+\frac{d_n^2}{n}\longrightarrow0,
+\qquad
+\frac{d_n}{nq_n}\longrightarrow0,
+\]
+with the second ratio assigned \(+\infty\) when \(q_n=0\). The uniform risk comparison, equivalence with the elbow expression, and necessity and sufficiency of these criteria are proved properties of this pair. The original-record converse uses the complete conditional likelihood and retains the retained graph \(H\), assignment vector \(Z\), realized outcomes \(Y(Z)\), and observed global hidden treated-source count \(K\).
+\end{definitionv}
+
+\begin{theoremv}{thm:frontier-answer}[Explicit risk and consistency frontier]
+Consider the canonical independent assignment--audit product design, with known edge-retention probability \(q\). Let \(\mathcal M_{n,d}\) be the fixed graph-and-coefficient schedules satisfying the common off-diagonal in-degree and out-degree bound \(d\) and the unit coefficient-mass bound. Write \(\mathcal L(T;\theta,q)\) for the expected squared error of \(T(O,\xi)\) in estimating \(\tau(\theta)\), the population all-treated-versus-all-control contrast, where \(O\) is the complete observed record and \(\xi\) is the independent uniform randomization seed. The minimax risk is
+\[
+R_{n,d}(q)
+=
+\inf_T\sup_{\theta\in\mathcal M_{n,d}}\mathcal L(T;\theta,q),
+\]
+where the infimum ranges over all measurable real-valued randomized estimators of the complete record.
+
+Suppose that:
+\begin{itemize}
+\item \textbf{(Population size.)} \(n\) is a natural number with \(n\ge4\).
+\item \textbf{(Degree bound.)} \(d\) is a natural number with \(1\le d\le n-1\).
+\item \textbf{(Retention.)} \(q\in[0,1]\).
+\end{itemize}
+Then the risk scale \(F(n,d,q)\) and attaining rule \(T^\star_{n,d,q}\) of \cref{obj:def:frontier-scale,obj:def:frontier-rule} satisfy
+\[
+\frac{F(n,d,q)}{2560000\pi^2}
+\le R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^\star_{n,d,q};\theta,q)
+\le 24F(n,d,q).
+\]
+
+For every pair of sequences \(d_n\in\mathbb N\) and \(q_n\in\mathbb R\) satisfying
+\[
+1\le d_n\le n-1,\qquad q_n\in[0,1]
+\qquad\text{for every }n\ge4,
+\]
+there exists a sequence of measurable randomized estimators \(T_n\) of the complete record such that
+\[
+\sup_{\theta\in\mathcal M_{n,d_n}}
+\mathcal L(T_n;\theta,q_n)\longrightarrow0
+\]
+if and only if
+\[
+\frac{d_n^2}{n}\longrightarrow0
+\qquad\text{and}\qquad
+\begin{cases}
++\infty,&q_n=0,\\[2pt]
+\dfrac{d_n}{nq_n},&q_n\ne0
+\end{cases}
+\longrightarrow0.
+\]
+All limits are as \(n\to\infty\).
+
+For every finite population \(V\), every \(n,d\in\mathbb N\), every \(q\in\mathbb R\), and every record \(O\) on \(V\), the total observable rules of \cref{obj:def:frontier-rule,obj:def:upper-rule} agree:
+\[
+T^\star_{n,d,q}(O)=T^{\mathrm{up}}(O).
+\]
+The estimator attaining the displayed risk bound is the seeded measurable representative of this upper rule.
+
+Finally, for every \(n\ge4\) and \(1\le d\le n-1\),
+\[
+F(n,d,0)=1,
+\qquad
+F(n,d,1)=\min\left\{1,\frac{d^2}{n}\right\}.
+\]
+For every \(q\in(0,1]\),
+\[
+\frac12\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}
+\le F(n,d,q)
+\le
+(1-e^{-1})^{-1}
+\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}.
+\]
+\end{theoremv}

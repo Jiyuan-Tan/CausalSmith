@@ -1,0 +1,95 @@
+\begin{proof}[Proof of \cref{obj:prop:dual-representation}]
+Write
+\[
+p_j=P(X=j),\qquad q_{(a,y)j}=P(X=j,A=a,Y=y),\qquad
+\mu_{aj}=E_P[Y(a)\mid X=j],\qquad
+\tau_j=\mu_{1j}-\mu_{0j},\qquad
+B(P)=\sum_{j=1}^d p_j\mu_{0j}.
+\]
+For a cell with \(p_j=0\), set \(\mu_{aj}=0\); its contributions below vanish. The cell masses are nonnegative, and the binary outcomes give \(\mu_{aj}\in[0,1]\), hence \(\tau_j\leq1\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.poRegression_unit_interval_budget
+
+For an occupied cell, \cref{obj:ass:consistency,obj:ass:conditional-exchangeability,obj:ass:overlap} give \(s_a(q_j)=P(X=j,A=a)\geq\epsilon p_j>0\) and
+\[
+g_a(q_j)
+=p_j\frac{P(X=j,A=a,Y=1)}{P(X=j,A=a)}
+=p_j\mu_{aj}.
+\]
+For a null cell, \(q_j=0\) and the same identity has both sides zero. Substituting these identities into \cref{obj:def:dual-process}, and using \(p_j\geq0\), yields, for \(0\leq\lambda\leq1\),
+\[
+f_\lambda(q_j)=p_j\mu_{0j}+p_j[\tau_j-\lambda]_+,
+\qquad
+F_P(\lambda)=B(P)+\sum_{j=1}^d p_j[\tau_j-\lambda]_+.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.budget_dualProcess_identified
+
+Fix \(b\in[0,1]\). If \(\pi\in\Pi_b(P)\), then \(0\leq\pi_j\leq1\) and \(\sum_jp_j\pi_j\leq b\) by \cref{obj:def:budget-policy-class}. For \(\lambda\in[0,1]\), the inequality
+\(p_j\pi_j(\tau_j-\lambda)\leq p_j[\tau_j-\lambda]_+\)
+holds whether \(\tau_j-\lambda\) is nonnegative or negative. Since \(\lambda\geq0\),
+\[
+\sum_{j=1}^d p_j\pi_j\tau_j
+=\lambda\sum_{j=1}^d p_j\pi_j
+ +\sum_{j=1}^d p_j\pi_j(\tau_j-\lambda)
+\leq b\lambda+\sum_{j=1}^d p_j[\tau_j-\lambda]_+.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.weighted_budget_weak_duality
+Taking the maximum over feasible policies and using \cref{obj:def:budget-value} gives
+\[
+V_b(P)\leq b\lambda+F_P(\lambda)
+\quad(0\leq\lambda\leq1),
+\qquad
+V_b(P)\leq\inf_{0\leq\lambda\leq1}\{b\lambda+F_P(\lambda)\}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.budget_dual_weak_bound
+
+For the reverse inequality, the feasible policy set is a compact subset of \([0,1]^d\), contains the zero policy, and has a continuous gain. Thus a feasible maximizer \(\pi^\star\) exists. Applied to the affine budget and box constraints, the polyhedral normal-cone formula gives nonnegative multipliers \(\lambda^\star,\eta_j^-,\eta_j^+\) satisfying
+\[
+\begin{gathered}
+\sum_jp_j\pi^\star_j\leq b,\qquad
+\lambda^\star\Bigl(b-\sum_jp_j\pi^\star_j\Bigr)=0,\\
+\eta_j^-\pi^\star_j=0,\qquad
+\eta_j^+(1-\pi^\star_j)=0,\qquad
+p_j(\lambda^\star-\tau_j)-\eta_j^-+\eta_j^+=0.
+\end{gathered}
+\] % lean: Causalean.Mathlib.Optimization.finite_knapsack_kkt
+These conditions give the hinge identity cell by cell. It is immediate when \(p_j=0\). When \(p_j>0\), a coordinate with \(\pi^\star_j=0\) has \(\eta_j^+=0\) and \(\tau_j\leq\lambda^\star\); one with \(\pi^\star_j=1\) has \(\eta_j^-=0\) and \(\tau_j\geq\lambda^\star\); an interior coordinate has both box multipliers zero and \(\tau_j=\lambda^\star\). Consequently,
+\[
+p_j\pi^\star_j\tau_j
+=\lambda^\star p_j\pi^\star_j
+ +p_j[\tau_j-\lambda^\star]_+,
+\qquad
+\sum_jp_j\pi^\star_j\tau_j
+=b\lambda^\star+\sum_jp_j[\tau_j-\lambda^\star]_+,
+\]
+where the second equality uses budget complementary slackness. % lean: Causalean.Mathlib.Optimization.finite_knapsack_dual_witness
+
+If \(\lambda^\star\leq1\), this is a witness with price in \([0,1]\). If \(\lambda^\star>1\), then \(\tau_j\leq1\) makes every hinge at \(\lambda^\star\) zero. Also,
+\[
+b\lambda^\star
+=\sum_jp_j\pi^\star_j\tau_j
+\leq\sum_jp_j\pi^\star_j
+\leq b.
+\]
+As \(b\geq0\), this forces \(b=0\). Every hinge at price \(1\) is then zero as well, and the displayed witness equality holds with price \(1\). Hence in every case there is \(\lambda_b\in[0,1]\) such that
+\[
+b\lambda_b+F_P(\lambda_b)
+=B(P)+\sum_jp_j\pi^\star_j\tau_j
+=V_b(P).
+\] % lean: Causalean.Mathlib.Optimization.finite_knapsack_dual_witness
+The process \(F_P\) is a finite sum of continuous hinge functions on \([0,1]\), so it is bounded there. Thus the dual infimum is well defined and is at most its value at \(\lambda_b\). Together with weak duality, this proves the representation. % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.dual_representation
+
+Finally, define
+\[
+\omega_{\widehat F,F_P}=\sup_{\lambda\in[0,1]}|\widehat F(\lambda)-F_P(\lambda)|.
+\]
+Both processes are bounded on \([0,1]\), so \(\omega_{\widehat F,F_P}\) is finite and both dual objectives are bounded below for \(b\in[0,1]\). For every such \(b\) and every \(\lambda\in[0,1]\), the two inequalities
+\[
+b\lambda+\widehat F(\lambda)\leq b\lambda+F_P(\lambda)+\omega_{\widehat F,F_P},
+\qquad
+b\lambda+F_P(\lambda)\leq b\lambda+\widehat F(\lambda)+\omega_{\widehat F,F_P}
+\]
+give, on taking infima,
+\[
+\left|
+\inf_{0\leq\lambda\leq1}\{b\lambda+\widehat F(\lambda)\}
+-\inf_{0\leq\lambda\leq1}\{b\lambda+F_P(\lambda)\}
+\right|\leq \omega_{\widehat F,F_P}.
+\] % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.dualMinimum_uniform_contraction
+Substitute the representation just proved and take the supremum over \(b\in[0,1]\). % lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.dual_representation
+\end{proof}

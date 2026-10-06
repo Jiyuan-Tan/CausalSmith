@@ -1,0 +1,687 @@
+\begin{proof}[Proof of \cref{obj:lem:finite-private-polynomial-calibration}]
+The resource assumptions give
+\[
+\delta=\frac{e^\varepsilon-1}{e^\varepsilon+1}>0,
+\qquad b>0,
+\qquad \sigma^2=\frac{b^2}{m}>0,
+\qquad \sigma>0,
+\qquad L\ge1.
+\]
+All statistics below are measurable and have finite moments, since their message spaces are finite.
+
+\begin{enumerate}
+\item \textit{Global polynomial bias.}
+Fix an even degree \(D\ge2\) satisfying the first set of degree conditions. In particular, \(D\le m\). By the moment unbiasedness in \cref{obj:lem:private-moment-and-dependence}, for every positive radius \(a\),
+\[
+\mathbb E\widehat p_{a,D,j}
+=\sum_{v=0}^D a_{Dv}a^{1-v}\tau_j(P)^v
+=a q_D\!\left(\frac{\tau_j(P)}a\right)
+=p_{a,D}(\tau_j(P)).
+\]
+The interior means in \cref{obj:ass:interior-means} imply
+\[
+-\frac12\le\tau_j(P)\le\frac12.
+\]
+Consequently, at \(a=1/2\), the assumed approximation bound gives
+\[
+\left|\mathbb E\widehat p_{1/2,D,j}-|\tau_j(P)|\right|
+=\frac12\left|q_D(2\tau_j(P))-|2\tau_j(P)|\right|
+\le\frac1{\pi(D+1)}
+\le\frac1{D+1}.
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.global_polynomial_bias_of_gate
+
+\item \textit{Global polynomial variance.}
+For \(1\le v\le D\), the moment second-moment bound in \cref{obj:lem:private-moment-and-dependence} applies because \(2v\le m\). It yields
+\[
+\begin{aligned}
+\mathbb E\left[\left((1/2)^{1-v}\mathsf U_{vj}\right)^2\right]
+&=\frac14\,4^v\mathbb E[\mathsf U_{vj}^2]\\
+&\le\frac14\left(4\tau_j(P)^2+8v\sigma^2\right)^v\\
+&\le\frac14(1+8D\sigma^2)^D.
+\end{aligned}
+\]
+For \(v=0\), the same final bound follows from \(\mathsf U_{0j}=1\). Here we used \(\tau_j(P)^2\le1/4\) and \(1+8D\sigma^2\ge1\).
+
+The assumed coefficient bound and \(\log2\le1\) give, for \(0\le v\le D\),
+\[
+|a_{Dv}|
+\le 2^{3D/2}
+=\exp\!\left(\frac{3D}{2}\log2\right)
+\le e^{3D/2},
+\qquad
+a_{Dv}^2\le e^{3D}.
+\]
+Finite Cauchy--Schwarz therefore gives
+\[
+\begin{aligned}
+\mathbb E[\widehat p_{1/2,D,j}^{\,2}]
+&\le(D+1)\sum_{v=0}^D
+ a_{Dv}^2
+ \mathbb E\left[\left((1/2)^{1-v}\mathsf U_{vj}\right)^2\right]\\
+&\le\frac14(D+1)^2e^{3D}(1+8D\sigma^2)^D\\
+&\le\frac14e^{5D}(1+8D\sigma^2)^D,
+\end{aligned}
+\]
+where the last inequality uses
+\[
+D+1\le e^D,
+\qquad (D+1)^2\le e^{2D}.
+\]
+
+For the stipulated \(H=\log(e+\sigma^2L)\), we have
+\[
+H\ge1,
+\qquad
+DH\le\frac L{1024},
+\qquad D\le L,
+\qquad e^H=e+\sigma^2L.
+\]
+Since \(8\le e^3\), these inequalities imply
+\[
+1+8D\sigma^2
+\le8(e+\sigma^2L)
+=8e^H
+\le e^{4H}.
+\]
+Thus
+\[
+e^{5D}(1+8D\sigma^2)^D
+\le e^{5D+4DH}
+\le e^{9DH},
+\]
+and hence
+\[
+\operatorname{Var}(\widehat p_{1/2,D,j})
+\le\mathbb E[\widehat p_{1/2,D,j}^{\,2}]
+\le\frac14e^{9DH}.
+\]
+Each polynomial estimate is a deterministic measurable statistic of its own column. Applying the average-variance conclusion of \cref{obj:lem:private-moment-and-dependence}, with \(0<m\le n\), proves
+\[
+\operatorname{Var}\left(\frac1d\sum_{j=1}^d\widehat p_{1/2,D,j}\right)
+\le\frac2d\max_{j\in[d]}
+       \operatorname{Var}(\widehat p_{1/2,D,j})
+\le\frac{e^{9DH}}{2d}.
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.global_polynomial_calibration_of_gate
+
+\item \textit{Hybrid bias inside the approximation window.}
+Now fix a degree satisfying the second set of hypotheses. The floor inequalities give
+\[
+D\ \text{is even},
+\qquad
+D>\frac L{1024}-2,
+\qquad
+2\le D,
+\qquad
+\frac L{2048}\le D\le\frac L{1024},
+\]
+where \(L\ge4096\) supplies the lower bounds. Also \(D\le m\), and
+\[
+T_*=4\sigma\sqrt L>0,
+\qquad
+a=2T_*=8\sigma\sqrt L>0,
+\qquad
+a^2=64\sigma^2L.
+\]
+
+The two release blocks are independent by \cref{obj:ass:iid-people} and the independent participant releases. Within either block, the rows of a fixed column are independent. The row moments in \cref{obj:lem:private-moment-and-dependence} therefore give
+\[
+\mathbb EM_j=\mathbb E\overline W_j=\tau_j(P),
+\]
+and
+\[
+\begin{aligned}
+\mathbb E[\overline W_j^{\,2}]
+&=\frac{mb^2+m(m-1)\tau_j(P)^2}{m^2}
+=\tau_j(P)^2+\frac{b^2-\tau_j(P)^2}{m},\\
+\operatorname{Var}(\overline W_j)
+&=\frac{b^2-\tau_j(P)^2}{m}
+\le\sigma^2.
+\end{aligned}
+\]
+
+First suppose that \(\tau_j(P)\ge0\). Define the pilot probabilities
+\[
+h_j=\Pr\{|M_j|\le T_*\},
+\qquad
+w_j=\Pr\{M_j<-T_*\}.
+\]
+They satisfy
+\[
+0\le h_j\le1,
+\qquad w_j\ge0,
+\qquad
+h_j+\Pr\{M_j>T_*\}+w_j=1.
+\]
+The bounded mean concentration assumption applies to the independent pilot messages, each bounded by \(b\) in absolute value. For every real \(u\ge0\), it gives
+\[
+\Pr\{M_j-\tau_j(P)\ge u\}
+\le e^{-u^2/(2\sigma^2)},
+\qquad
+\Pr\{M_j-\tau_j(P)\le-u\}
+\le e^{-u^2/(2\sigma^2)}.
+\]
+In particular,
+\[
+\begin{aligned}
+w_j
+&\le\exp\!\left(-\frac{(\tau_j(P)+T_*)^2}{2\sigma^2}\right)\\
+&\le\exp\!\left(-\frac{\tau_j(P)^2}{2\sigma^2}\right)e^{-8L},
+\end{aligned}
+\]
+because \(T_*^2=16\sigma^2L\) and \(\tau_j(P)T_*\ge0\).
+
+The elementary exponential envelopes give
+\[
+\tau_j(P)e^{-\tau_j(P)^2/(2\sigma^2)}\le\sigma,
+\qquad
+\tau_j(P)^2e^{-\tau_j(P)^2/(2\sigma^2)}\le\sigma^2.
+\]
+For the first inequality, multiply
+\[
+\frac{\tau_j(P)}{\sigma}
+\le1+\frac{\tau_j(P)^2}{2\sigma^2}
+\le e^{\tau_j(P)^2/(2\sigma^2)}
+\]
+by \(\sigma e^{-\tau_j(P)^2/(2\sigma^2)}\). For the second, use the elementary maximum
+\[
+u e^{-u}\le e^{-1}\qquad(u\ge0)
+\]
+at \(u=\tau_j(P)^2/(2\sigma^2)\), together with \(2/e\le1\). Consequently,
+\[
+\tau_j(P)w_j\le\sigma e^{-8L},
+\qquad
+\tau_j(P)^2w_j\le\sigma^2e^{-8L}\le\sigma^2.
+\]
+Moreover,
+\[
+\sqrt L\le L\le e^{8L},
+\qquad
+e^{-8L}\le\frac1{\sqrt L},
+\qquad
+\tau_j(P)w_j\le\frac{\sigma}{\sqrt L}.
+\]
+
+Suppose in addition that \(\tau_j(P)\le a\). Approximation and the degree lower bound imply
+\[
+\begin{aligned}
+|p_{a,D}(\tau_j(P))-\tau_j(P)|
+&\le\frac{2a}{\pi(D+1)}
+\le\frac a{D+1}\\
+&\le16384\,\frac{\sigma}{\sqrt L}.
+\end{aligned}
+\]
+To compute the hybrid mean, its three disjoint pilot branches give
+\[
+H_j
+=\widehat p_{a,D,j}\mathbf1_{\{|M_j|\le T_*\}}
++\overline W_j\mathbf1_{\{M_j>T_*\}}
+-\overline W_j\mathbf1_{\{M_j<-T_*\}}.
+\]
+Block independence, polynomial unbiasedness, and the probability partition yield
+\[
+\begin{aligned}
+\mathbb EH_j
+&=h_jp_{a,D}(\tau_j(P))
+ +(1-h_j-2w_j)\tau_j(P),\\
+\mathbb EH_j-\tau_j(P)
+&=h_j\bigl(p_{a,D}(\tau_j(P))-\tau_j(P)\bigr)
+ -2\tau_j(P)w_j.
+\end{aligned}
+\]
+Hence, throughout \(0\le\tau_j(P)\le a\),
+\[
+\begin{aligned}
+|\mathbb EH_j-\tau_j(P)|
+&\le h_j|p_{a,D}(\tau_j(P))-\tau_j(P)|
+       +2\tau_j(P)w_j\\
+&\le(16384+2)\frac{\sigma}{\sqrt L}
+\le20000\,\frac{\sigma}{\sqrt L}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.hybrid_inside_nonneg_bias
+
+\item \textit{Hybrid bias outside the approximation window.}
+Consider the complementary case \(\tau_j(P)>a\), and define
+\[
+y_j=\frac{\tau_j(P)}a>1.
+\]
+On the central pilot event,
+\[
+M_j-\tau_j(P)
+\le T_*-\tau_j(P)
+\le-\frac{\tau_j(P)}2.
+\]
+The pilot concentration bound therefore gives
+\[
+h_j
+\le\exp\!\left(-\frac{\tau_j(P)^2}{8\sigma^2}\right)
+=e^{-8Ly_j^2}.
+\]
+The coefficient bound gives the polynomial growth estimate
+\[
+\begin{aligned}
+|q_D(y_j)|
+&\le\sum_{v=0}^D|a_{Dv}|y_j^v\\
+&\le(D+1)e^{3D/2}y_j^D
+\le e^{3D}y_j^D.
+\end{aligned}
+\]
+
+For \(y_j\ge1\), the inequality \(\log y_j\le y_j-1\) and the nonnegativity of \((y_j-1)^2\) imply
+\[
+\log y_j\le\frac{y_j^2}{2}.
+\]
+For every nonnegative integer \(v\le L/1024\), it follows that
+\[
+3v+v\log y_j
+\le\frac72v y_j^2
+\le\frac7{2048}Ly_j^2
+\le Ly_j^2,
+\]
+so
+\[
+e^{-8Ly_j^2}e^{3v}y_j^v\le e^{-7Ly_j^2}.
+\]
+Applying this with \(v=D\) proves
+\[
+h_j|p_{a,D}(\tau_j(P))|
+\le a e^{-8Ly_j^2}e^{3D}y_j^D
+\le a e^{-7Ly_j^2}.
+\]
+Since \(1,2\le L/1024\), the same bound with \(v=1,2\) gives
+\[
+h_jy_j^v
+\le e^{-8Ly_j^2}y_j^v
+\le e^{-8Ly_j^2}e^{3v}y_j^v
+\le e^{-7Ly_j^2}
+\qquad(v=1,2).
+\]
+Thus
+\[
+h_j\tau_j(P)\le a e^{-7Ly_j^2},
+\qquad
+h_j\tau_j(P)^2\le a^2e^{-7Ly_j^2}.
+\]
+
+The exponential lower bound \(e^{7L}\ge1+7L\ge L\) implies
+\[
+e^{-7Ly_j^2}\le e^{-7L}\le\frac1L,
+\qquad
+\frac aL=\frac{8\sigma}{\sqrt L}.
+\]
+Using the hybrid mean identity and the wrong-sign bound consequently gives
+\[
+\begin{aligned}
+|\mathbb EH_j-\tau_j(P)|
+&\le h_j|p_{a,D}(\tau_j(P))|
+      +h_j\tau_j(P)+2\tau_j(P)w_j\\
+&\le(8+8+2)\frac{\sigma}{\sqrt L}
+\le20000\,\frac{\sigma}{\sqrt L}.
+\end{aligned}
+\]
+Together with the inside case, this proves the bias bound for every nonnegative contrast, including zero and the boundary \(\tau_j(P)=a\).
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.hybrid_nonneg_bias
+
+\item \textit{Reflection for the hybrid bias.}
+For a coordinate with \(\tau_j(P)<0\), define the reflected causal law
+\[
+P^{\mathrm{ref}}=G_{-\tau(P)},
+\]
+using \cref{obj:def:symmetric-law}. The parameter vector belongs to \([-1/2,1/2]^d\). The construction gives a probability law with uniform strata, fair assignment, and consistency, and
+\[
+\mu_{1j}(P^{\mathrm{ref}})=\frac{1-\tau_j(P)}2,
+\qquad
+\mu_{0j}(P^{\mathrm{ref}})=\frac{1+\tau_j(P)}2.
+\]
+Both means lie in \([1/4,3/4]\). Thus
+\[
+P^{\mathrm{ref}}\in\mathcal V_d,
+\qquad
+\tau_j(P^{\mathrm{ref}})=-\tau_j(P)
+\quad(j\in[d]).
+\]
+
+We establish the reflection identity for the hybrid mean. The Chebyshev polynomials appearing in the explicit approximation are characterized, for \(\zeta\in\mathbb R\), by
+\[
+\mathcal T_0(\zeta)=1,
+\qquad
+\mathcal T_1(\zeta)=\zeta,
+\qquad
+\mathcal T_{v+1}(\zeta)
+=2\zeta\mathcal T_v(\zeta)-\mathcal T_{v-1}(\zeta)
+\quad(v\ge1).
+\]
+Induction gives
+\[
+\mathcal T_v(-\zeta)=(-1)^v\mathcal T_v(\zeta).
+\]
+The explicit approximation has the expansion
+\[
+q_D(\zeta)
+=\frac2\pi+\frac4\pi
+ \sum_{v=1}^{\lfloor D/2\rfloor}
+ \frac{(-1)^{v+1}}{4v^2-1}\mathcal T_{2v}(\zeta).
+\]
+Consequently,
+\[
+q_D(-\zeta)=q_D(\zeta),
+\qquad
+(-1)^v a_{Dv}=a_{Dv}\quad(0\le v\le D),
+\]
+where the coefficient identity follows by comparing the two polynomials.
+
+Viewing moments and estimates as functions of their message arrays, negation gives
+\[
+\mathsf U_{vj}(-W)=(-1)^v\mathsf U_{vj}(W),
+\qquad
+\widehat p_{a,D,j}(-W^{\mathrm{ev}})
+=\widehat p_{a,D,j}(W^{\mathrm{ev}}).
+\]
+The pilot and evaluation means change sign, while
+\[
+|-M_j|=|M_j|,
+\qquad
+\operatorname{sign}(-M_j)(-\overline W_j)
+=\operatorname{sign}(M_j)\overline W_j.
+\]
+These identities include \(M_j=0\) under the stipulated sign convention. They prove
+\[
+H_j(-W^{\mathrm{pil}},-W^{\mathrm{ev}})
+=H_j(W^{\mathrm{pil}},W^{\mathrm{ev}}),
+\]
+with threshold ties preserved.
+
+It remains to identify the reflected message law. Fair assignment, consistency, and uniform strata, as specified in
+\cref{obj:ass:fair-randomization,obj:ass:consistency,obj:ass:uniform-covariates}, give
+\[
+\begin{aligned}
+\mathbb E_P[S\mathbf1_{\{X=j\}}]
+&=\frac12\left(2P(X=j,Y^1=1)-P(X=j)\right)\\
+&\quad-\frac12\left(2P(X=j,Y^0=1)-P(X=j)\right)\\
+&=\frac{\tau_j(P)}d.
+\end{aligned}
+\]
+Averaging the vector kernel over a participant record therefore gives, for every row \(i\) in either block and every \(z\in\{-1,1\}^d\),
+\[
+\begin{aligned}
+\Pr_P\!\left\{\left(\frac{W_{ij}}b\right)_{j=1}^d=z\right\}
+&=2^{-d}\left(1+\delta\sum_{j=1}^d
+ z_j\mathbb E_P[S\mathbf1_{\{X=j\}}]\right)\\
+&=2^{-d}\left(1+\frac\delta d\sum_{j=1}^d\tau_j(P)z_j\right).
+\end{aligned}
+\]
+Replacing \(z\) by \(-z\) gives precisely the row law under \(P^{\mathrm{ref}}\). Independence of participant rows and of the two blocks then yields
+\[
+\mathcal L_{P^{\mathrm{ref}}}(W^{\mathrm{pil}},W^{\mathrm{ev}})
+=\mathcal L_P(-W^{\mathrm{pil}},-W^{\mathrm{ev}}).
+\]
+Combining this law identity with the invariance of \(H_j\) proves
+\[
+\mathbb E_{P^{\mathrm{ref}}}H_j=\mathbb E_PH_j.
+\]
+The nonnegative-contrast bias bound applied under \(P^{\mathrm{ref}}\) now gives
+\[
+\begin{aligned}
+\left|\mathbb E_PH_j-|\tau_j(P)|\right|
+&=\left|\mathbb E_{P^{\mathrm{ref}}}H_j
+       -\tau_j(P^{\mathrm{ref}})\right|\\
+&\le20000\,\frac{\sigma}{\sqrt L}.
+\end{aligned}
+\]
+This proves the coordinate bias bound for every \(j\).
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.hybrid_bias_bound
+
+\item \textit{Polynomial second moments at the hybrid radius.}
+For \(1\le v\le D\), \cref{obj:lem:private-moment-and-dependence} and \(2D\le m\) give
+\[
+\begin{aligned}
+\mathbb E[(a^{1-v}\mathsf U_{vj})^2]
+&\le a^2
+ \left(\frac{\tau_j(P)^2+2v\sigma^2}{a^2}\right)^v\\
+&\le a^2
+ \left(\max\left\{1,\frac{\tau_j(P)^2+2D\sigma^2}{a^2}\right\}\right)^D.
+\end{aligned}
+\]
+For \(v=0\), the left side is \(a^2\), so the final bound also holds. Finite Cauchy--Schwarz, \(a_{Dv}^2\le e^{3D}\), and \((D+1)^2\le e^{2D}\) yield
+\[
+\begin{aligned}
+\mathbb E[\widehat p_{a,D,j}^{\,2}]
+&\le(D+1)\sum_{v=0}^D
+ a_{Dv}^2\mathbb E[(a^{1-v}\mathsf U_{vj})^2]\\
+&\le a^2(D+1)^2e^{3D}
+ \left(\max\left\{1,\frac{\tau_j(P)^2+2D\sigma^2}{a^2}\right\}\right)^D\\
+&\le a^2e^{5D}
+ \left(\max\left\{1,\frac{\tau_j(P)^2+2D\sigma^2}{a^2}\right\}\right)^D.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.radius_polynomial_second_bound
+
+\item \textit{Hybrid variance inside the approximation window.}
+First suppose \(0\le\tau_j(P)\le a\). Since
+\[
+2D\sigma^2\le64\sigma^2L=a^2,
+\]
+we have
+\[
+\max\left\{1,\frac{\tau_j(P)^2+2D\sigma^2}{a^2}\right\}\le2.
+\]
+Using \(2\le e\) and \(D\le L/1024\), the polynomial second-moment bound becomes
+\[
+\mathbb E[\widehat p_{a,D,j}^{\,2}]
+\le a^2e^{5D}2^D
+\le a^2e^{6D}
+\le a^2e^{L/100}.
+\]
+
+The three disjoint pilot branches give the pointwise identity
+\[
+\begin{aligned}
+(H_j-\tau_j(P))^2
+&=\mathbf1_{\{|M_j|\le T_*\}}
+       (\widehat p_{a,D,j}-\tau_j(P))^2\\
+&\quad+\mathbf1_{\{M_j>T_*\}}
+       (\overline W_j-\tau_j(P))^2\\
+&\quad+\mathbf1_{\{M_j<-T_*\}}
+       (-\overline W_j-\tau_j(P))^2.
+\end{aligned}
+\]
+Unbiasedness of the evaluation mean implies
+\[
+\begin{aligned}
+\mathbb E[(-\overline W_j-\tau_j(P))^2]
+&=\mathbb E[(\overline W_j-\tau_j(P))^2]
+   +4\tau_j(P)\mathbb E\overline W_j\\
+&=\operatorname{Var}(\overline W_j)+4\tau_j(P)^2.
+\end{aligned}
+\]
+Block independence and the pilot probability partition therefore yield
+\[
+\begin{aligned}
+\mathbb E[(H_j-\tau_j(P))^2]
+&=h_j\mathbb E[(\widehat p_{a,D,j}-\tau_j(P))^2]\\
+&\quad+(1-h_j)\operatorname{Var}(\overline W_j)
+       +4\tau_j(P)^2w_j.
+\end{aligned}
+\]
+The pointwise inequality
+\[
+(\widehat p_{a,D,j}-\tau_j(P))^2
+\le2\widehat p_{a,D,j}^{\,2}+2\tau_j(P)^2
+\]
+and \(\operatorname{Var}(\overline W_j)\le\sigma^2\) give
+\[
+\begin{aligned}
+\operatorname{Var}(H_j)
+&\le\mathbb E[(H_j-\tau_j(P))^2]\\
+&\le2h_j\mathbb E[\widehat p_{a,D,j}^{\,2}]
+     +2h_j\tau_j(P)^2+\sigma^2+4\tau_j(P)^2w_j.
+\end{aligned}
+\]
+This centered-error bound also applies to the outside case.
+
+Inside the window, \(h_j\le1\), \(\tau_j(P)^2\le a^2\), and the wrong-sign estimate gives \(\tau_j(P)^2w_j\le\sigma^2\). Hence
+\[
+\begin{aligned}
+\operatorname{Var}(H_j)
+&\le2a^2e^{L/100}+2a^2+5\sigma^2\\
+&=128\sigma^2Le^{L/100}+128\sigma^2L+5\sigma^2\\
+&\le400\sigma^2Le^{L/100},
+\end{aligned}
+\]
+using \(L\ge1\) and \(e^{L/100}\ge1\).
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.hybrid_inside_nonneg_variance
+
+\item \textit{Hybrid variance outside the approximation window.}
+Suppose \(\tau_j(P)>a\), and again use \(y_j=\tau_j(P)/a>1\). Then
+\[
+\frac{\tau_j(P)^2+2D\sigma^2}{a^2}
+=y_j^2+\frac{2D\sigma^2}{a^2}
+\le y_j^2+1
+\le2y_j^2,
+\]
+so
+\[
+\max\left\{1,\frac{\tau_j(P)^2+2D\sigma^2}{a^2}\right\}
+\le2y_j^2.
+\]
+Combining the pilot tail and polynomial second-moment bounds gives
+\[
+h_j\mathbb E[\widehat p_{a,D,j}^{\,2}]
+\le a^2e^{-8Ly_j^2}e^{5D}(2y_j^2)^D.
+\]
+Since \(2\le e\),
+\[
+(2y_j^2)^D\le e^D e^{2D\log y_j}.
+\]
+Moreover, \(\log y_j\le y_j^2/2\), \(y_j^2\ge1\), and \(D\le L/1024\) imply
+\[
+6D+2D\log y_j
+\le7Dy_j^2
+\le\frac7{1024}Ly_j^2
+\le Ly_j^2.
+\]
+It follows that
+\[
+h_j\mathbb E[\widehat p_{a,D,j}^{\,2}]
+\le a^2e^{-7Ly_j^2}\le a^2.
+\]
+The contrast-weighted pilot bound also gives
+\[
+h_j\tau_j(P)^2\le a^2e^{-7Ly_j^2}\le a^2.
+\]
+Using these inequalities and \(\tau_j(P)^2w_j\le\sigma^2\) in the centered-error bound yields
+\[
+\begin{aligned}
+\operatorname{Var}(H_j)
+&\le4a^2+5\sigma^2\\
+&=256\sigma^2L+5\sigma^2\\
+&\le400\sigma^2Le^{L/100}.
+\end{aligned}
+\]
+The inside and outside cases establish the variance bound for every nonnegative contrast.
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.hybrid_nonneg_variance
+
+\item \textit{Reflection for the hybrid variance.}
+If \(\tau_j(P)<0\), use the same law \(P^{\mathrm{ref}}=G_{-\tau(P)}\). The reflected message-law identity and invariance of \(H_j\), together with equality of its means, imply
+\[
+\begin{aligned}
+\operatorname{Var}_{P^{\mathrm{ref}}}(H_j)
+&=\mathbb E_{P^{\mathrm{ref}}}
+       [(H_j-\mathbb E_{P^{\mathrm{ref}}}H_j)^2]\\
+&=\mathbb E_P[(H_j-\mathbb E_PH_j)^2]
+=\operatorname{Var}_P(H_j).
+\end{aligned}
+\]
+Since \(\tau_j(P^{\mathrm{ref}})>0\), the nonnegative-contrast variance bound gives
+\[
+\operatorname{Var}_P(H_j)
+=\operatorname{Var}_{P^{\mathrm{ref}}}(H_j)
+\le400\sigma^2Le^{L/100}.
+\]
+Thus the asserted coordinate variance bound holds for every \(j\).
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.hybrid_variance_bound
+
+\item \textit{Variance of the hybrid average.}
+Stack the pilot rows followed by the evaluation rows. Their joint law is the \(2m\)-participant product release law, and each \(H_j\) is a deterministic measurable function of the combined column
+\[
+(W^{\mathrm{pil}}_{1j},\ldots,W^{\mathrm{pil}}_{mj},
+ W^{\mathrm{ev}}_{1j},\ldots,W^{\mathrm{ev}}_{mj})
+\in\mathbb R^{2m}.
+\]
+Because \(0<2m\le n\), \cref{obj:lem:private-moment-and-dependence} applies to this combined block. The coordinate variance bounds therefore give
+\[
+\operatorname{Var}\left(\frac1d\sum_{j=1}^dH_j\right)
+\le\frac2d\max_{j\in[d]}\operatorname{Var}(H_j)
+\le\frac{800\sigma^2Le^{L/100}}d.
+\]
+
+We absorb the dimension factor using \(L\ge4096\). The elementary exponential lower bound gives
+\[
+\frac L4\le e^{L/4},
+\qquad
+L^2\le16e^{L/2},
+\]
+and
+\[
+4\le\frac{49L}{100}
+=1+\left(\frac{49L}{100}-1\right)
+\le e^{49L/100-1}.
+\]
+Since \(e^{L-1}=d\), it follows that
+\[
+\begin{aligned}
+L^2e^{L/100}
+&\le16e^{L/2}e^{L/100}\\
+&=16e^{51L/100}\\
+&\le4e^{51L/100}e^{49L/100-1}
+=4d.
+\end{aligned}
+\]
+As \(d,L>0\), this proves
+\[
+\frac{800\sigma^2Le^{L/100}}d
+\le\frac{3200\sigma^2}{L},
+\qquad
+\operatorname{Var}\left(\frac1d\sum_{j=1}^dH_j\right)
+\le\frac{3200\sigma^2}{L}.
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.hybrid_average_variance_envelope_le
+
+\item \textit{Mean squared error of the hybrid average.}
+Linearity of expectation, the definition of \(F\), and the coordinate bias bounds give
+\[
+\begin{aligned}
+\left|\mathbb E\left[\frac1d\sum_{j=1}^dH_j\right]
+      -F(\tau(P))\right|
+&=\left|\frac1d\sum_{j=1}^d
+       \bigl(\mathbb EH_j-|\tau_j(P)|\bigr)\right|\\
+&\le\frac1d\sum_{j=1}^d
+       \left|\mathbb EH_j-|\tau_j(P)|\right|\\
+&\le20000\,\frac{\sigma}{\sqrt L}.
+\end{aligned}
+\]
+Squaring, with \(\sigma^2>0\) and \(L>0\), yields
+\[
+\left(\mathbb E\left[\frac1d\sum_{j=1}^dH_j\right]
+      -F(\tau(P))\right)^2
+\le400000000\,\frac{\sigma^2}{L}.
+\]
+Finally, expansion around the expectation gives the variance-plus-squared-bias identity
+\[
+\begin{aligned}
+\mathbb E\left[
+ \left(\frac1d\sum_{j=1}^dH_j-F(\tau(P))\right)^2\right]
+&=\operatorname{Var}\left(\frac1d\sum_{j=1}^dH_j\right)\\
+&\quad+\left(\mathbb E\left[\frac1d\sum_{j=1}^dH_j\right]
+             -F(\tau(P))\right)^2\\
+&\le(3200+400000000)\frac{\sigma^2}{L}\\
+&=400003200\,\frac{\sigma^2}{L}\\
+&\le500000000\,\frac{\sigma^2}{L}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.hybrid_average_mse_bound
+\end{enumerate}
+% lean: CausalSmith.Stat.LdpOptvalueUniformFrontier.finite_private_polynomial_calibration
+\end{proof}

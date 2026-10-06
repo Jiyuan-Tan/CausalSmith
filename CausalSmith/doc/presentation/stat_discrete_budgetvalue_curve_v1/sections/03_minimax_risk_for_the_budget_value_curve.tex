@@ -1,0 +1,106 @@
+\section{Minimax risk for the budget-value curve}
+
+The shadow-price representation in \cref{obj:prop:dual-representation} reduces estimation of the budget-value curve to estimation of one process. The resulting minimax risk is matched for every interval \(I=[b_0,1-b_0]\), including the full budget range and the single half-budget value.
+
+\begin{theoremv}{thm:matched-curve-frontier}[Matched curve minimax frontier]*
+Fix an overlap parameter \(\epsilon\in(0,1/2)\). There exist constants \(0<c_\epsilon\le C_\epsilon<\infty\) such that, for every \(n\ge1\), \(d\ge2\), and \(b_0\in[0,1/2]\), the curve minimax risk of \cref{obj:def:curve-risk} satisfies
+\[
+c_\epsilon\min\left\{1,\frac{d}{n\log(ed)}\right\}
+\le \mathfrak R_{n,d,\epsilon,b_0}^{\mathrm{curve}}
+\le C_\epsilon\min\left\{1,\frac{d}{n\log(ed)}\right\}.
+\]
+For every measurable scalar estimator \(\widehat V_{1/2}\) based on the \(n\) observed records, there is a full-data law \(P\) with the following properties:
+\begin{itemize}
+\item \textbf{(Causal model.)} \(P\in\mathcal M_{d,\epsilon}\), and each occupied cell has \(p_j>0\), \(\tau_j\in[1/8,3/8]\), and \(\tau_j>0\).
+\item \textbf{(Values and binding capacity.)} \(V_1(P)=1/2\), and there is a policy \(\pi\in[0,1]^d\) such that
+\[
+\sum_{j=1}^{d}p_j\pi_j=\frac12,
+\qquad
+V_{1/2}(P)=B(P)+\sum_{j=1}^{d}p_j\pi_j\tau_j.
+\]
+\item \textbf{(Scalar risk.)} Under \(n\) independent observations from the observed margin of \(P\),
+\[
+\mathbb E_P\!\left[\bigl(\widehat V_{1/2}-V_{1/2}(P)\bigr)^2\right]
+\ge c_\epsilon\min\left\{1,\frac{d}{n\log(ed)}\right\}.
+\]
+\end{itemize}
+When \(b_0=0\), every \(P\in\mathcal M_{d,\epsilon}\) also satisfies the full-budget identity
+\[
+V_1(P)=B(P)+\sum_{j=1}^{d}p_j\max\{\tau_j,0\},
+\]
+where \(V_b(P)\) is the budget value of \cref{obj:def:budget-value}.
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:matched-curve-frontier
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{JiaoHanWeissman2018} (Theorem 3 and the unknown-both-distributions reduction following Theorem 6). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:matched-curve-frontier
+
+The upper bound applies to all budgets in the chosen interval simultaneously. In the paired family, the half-budget coordinate attains the stated risk order with positive occupied-cell effects, binding capacity, and a full-capacity value fixed at \(1/2\). This family makes the allocation problem visible through the ranking of cell benefits. Simultaneous curve estimation therefore attains the unrestricted full-capacity scalar minimax order under the stated conditions. The reduction uses the bound for estimating the \(\ell_1\) distance between two unknown discrete distributions from \citet[Theorem~3 and the unknown-both-distributions reduction following Theorem~6]{JiaoHanWeissman2018}.
+
+The proof has three steps. First, the shadow-price identity reduces all budget values to one threshold process, and taking a minimum is a contraction in supremum norm. Second, the estimator below controls that process cell by cell: empirical masses suffice for a small alphabet, while pilot localization and factorial moments handle a growing alphabet. Third, the paired family converts the half-budget value into a discrete two-sample \(L_1\) functional, giving the matching lower bound. The appendix contains the polynomial and process estimates behind the second step.
+
+The exact estimator and its uniform upper-bound theorem are stated in the technical appendix, \cref{obj:def:jf-estimator,obj:thm:curve-upper}. Its statistical construction is summarized here.
+
+
+
+The estimator first estimates one threshold process across shadow prices, then takes a shadow-price minimum to obtain each budget value. For a small alphabet it inserts empirical cell masses into that process; with a larger alphabet and adequate sample size, pilot counts localize each mass and evaluation counts estimate a local Jackson polynomial by factorial moments. Clipping controls the cell estimates before they are summed, and the sparse-sample branch reports a constant curve. The displayed construction uses an exact conditional average over auxiliary permutations and markings. Its polynomial degree and pilot-width constants serve the risk proof: at ordinary alphabet sizes the degree remains two and the pilot intervals are broad. The rate is a theoretical benchmark for this exact estimator.
+
+In the Jackson--factorial branch, write \(L=\log(ed)\). Pilot counts set cell-specific localization widths; on each resulting rectangle, the Jackson approximation error is bounded by radius-dependent terms divided by the polynomial order \(K\) and \(K^2\) \cref{obj:lem:jackson-boundary-adaptive}. Independent evaluation counts turn the polynomial terms into factorial-moment estimates. The resulting cell bias is bounded by \(C_\epsilon\{\sqrt{p_j/(nL)}+1/(nL)\}\) uniformly over shadow prices, while the centered good-pilot process has expected squared supremum error of order \(d/(nL)\); the bad-pilot envelope has an exponentially small factor in \(L\) \cref{obj:thm:integrated-process-certificate}. Summing the bias over cells and combining it with these fluctuation bounds yields the same process-risk order. The empirical branch covers small alphabets, and the constant branch covers the sparse-sample regime.
+
+
+
+Conditional averaging makes the exact curve-valued estimator a function of the observed sample. By \cref{obj:prop:dual-representation}, the error in each budget value is bounded by the uniform error of the estimated threshold process. The same process estimate therefore controls the supremum over \(I\).
+
+
+
+The bound measures the squared largest error across the interval before taking expectation, so it also applies when a budget is selected after viewing the estimated curve. The process bound behind it is given in the appendix; the dual identity transfers that bound to budget values without an additional cost for considering several budgets.
+
+The matching converse can be stated directly for estimation at half capacity. It retains positive effects throughout the occupied cells and fixes the value under full provision.
+
+\begin{theoremv}{thm:capacity-active-lower}[Capacity-active risk lower bound]*
+Fix an overlap parameter \(0<\epsilon<1/2\). There exists \(c_\epsilon>0\) such that, for every \(n\geq1\), \(d\geq2\), every collection of observed-data laws satisfying \cref{obj:ass:iid-sampling} for each full-data law, and every measurable scalar estimator \(T\) based on the \(n\) observed records, there is a full-data law \(P\) satisfying:
+\begin{itemize}
+\item \textbf{(Model class.)} \(P\in\mathcal M_{d,\epsilon}\).
+\item \textbf{(Full-budget value.)} \(V_1(P)=1/2\), with \(V_b(P)\) as in \cref{obj:def:budget-value}.
+\item \textbf{(Effects in occupied cells.)} For every cell \(j\), \(p_j>0\) implies \(1/8\leq\tau_j\leq3/8\).
+\item \textbf{(Binding capacity.)} The half-budget constraint is binding for \(P\).
+\end{itemize}
+For this law,
+\[
+E_P\!\left[(T-V_{1/2}(P))^2\right]
+\geq c_\epsilon\min\left\{1,\frac{d}{n\log(ed)}\right\}.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:capacity-active-lower
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{JiaoHanWeissman2018} (Theorem 3 and the unknown-both-distributions reduction following Theorem 6). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:capacity-active-lower
+
+Positive treatment effects make the half-budget allocation use its available capacity, while differences across cells determine which recipients are most valuable. The theorem establishes the lower risk benchmark in this capacity-active setting even with the full-budget value fixed. Its reduction again invokes the discrete \(\ell_1\) bound of \citet[Theorem~3 and the unknown-both-distributions reduction following Theorem~6]{JiaoHanWeissman2018}.
+
+Two special cases put the general rate and the budget curve in familiar terms: a fixed covariate alphabet and a common positive effect across occupied cells.
+
+\begin{propositionv}{prop:fixed-alphabet-reduction}[Fixed alphabet rate and identity]*
+Fix the overlap parameter \(\epsilon\) and the known covariate alphabet size \(d\) under the following conditions:
+\begin{itemize}
+\item \textbf{(Overlap.)} \(0<\epsilon<1/2\).
+\item \textbf{(Alphabet.)} \(d\ge 2\).
+\end{itemize}
+For the curve minimax risk in \cref{obj:def:curve-risk}, there are constants \(c,C\) with \(0<c\le C\) such that, for every \(n\ge1\) and every \(b_0\in[0,1/2]\),
+\[
+\frac{c}{n}\le
+\mathfrak R_{n,d,\epsilon,b_0}^{\mathrm{curve}}
+\le\frac{C}{n}.
+\]
+
+Moreover, let \(P\) belong to the causal model class \(\mathcal M_{d,\epsilon}\) in \cref{obj:def:model-class}. Write \(p_j\) for the mass of cell \(j\), \(\mu_{aj}\) for its arm-\(a\) potential-outcome mean, and \(\tau_j=\mu_{1j}-\mu_{0j}\) for its treatment effect. If some \(c>0\) satisfies \(\tau_j=c\) in every cell with \(p_j>0\), then, for every \(b_0\in[0,1/2]\) and every \(b\in[b_0,1-b_0]\), the budget value in \cref{obj:def:budget-value} satisfies
+\[
+V_b(P)=B(P)+cb,
+\qquad
+B(P)=\sum_{j=1}^{d}p_j\mu_{0j}.
+\]
+\end{propositionv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN prop:fixed-alphabet-reduction
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{JiaoHanWeissman2018} (Theorem 3 and the unknown-both-distributions reduction following Theorem 6). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END prop:fixed-alphabet-reduction
+
+With the alphabet and overlap parameter fixed, the matched rate is \(1/n\). Under a common positive effect, every unit of treatment capacity adds the same population value, giving a linear budget-value curve.
+In the common-effect clause of \cref{obj:prop:fixed-alphabet-reduction}, the symbol \(c\) denotes an arbitrary positive treatment effect; it is independent of the lower comparison constant also written \(c\) in the risk bound.

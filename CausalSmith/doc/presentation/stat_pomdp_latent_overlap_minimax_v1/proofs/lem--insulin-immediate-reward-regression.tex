@@ -1,0 +1,84 @@
+\begin{proof}[Proof of \cref{obj:lem:insulin-immediate-reward-regression}]
+Fix \(s=(g,d_1,d_2,x_1,x_2,a_1)\) and write \(x=x(s)\).
+
+\begin{enumerate}
+\item Let \(\operatorname{cat}_{\mathrm{rew}}(s)\in\{0,1,2,3\}\) be the reward category selected by the current glucose coordinate, and let
+\[
+\operatorname{val}_{\mathrm{rew}}(0)=-1,\qquad
+\operatorname{val}_{\mathrm{rew}}(1)=-\frac23,\qquad
+\operatorname{val}_{\mathrm{rew}}(2)=-\frac13,\qquad
+\operatorname{val}_{\mathrm{rew}}(3)=0 .
+\]
+Thus \(\operatorname{val}_{\mathrm{rew}}(\operatorname{cat}_{\mathrm{rew}}(s))=r_{\mathrm{ins}}(s)\). In the finite insulin kernel of \cref{obj:def:insulin-grid}, for each action \(a\) the next-state mass may be written as \(\omega_{s,a}(\sigma)\), with
+\[
+\omega_{s,a}(\sigma)\ge 0,
+\qquad
+\sum_{\sigma\in\mathsf S_{\mathrm{grid}}}\omega_{s,a}(\sigma)=1,
+\]
+and the reward coordinate is deterministic at the current-state reward category:
+\[
+K_T\bigl(\{(\operatorname{val}_{\mathrm{rew}}(\operatorname{cat}_{\mathrm{rew}}(s)),\sigma):
+\sigma\in\mathsf S_{\mathrm{grid}}\}\mid s,a\bigr)=1 .
+\]
+Therefore finite-space integration gives
+\[
+\begin{aligned}
+\int p_1\,K_T(dp\mid s,a)
+&=
+\sum_{\sigma\in\mathsf S_{\mathrm{grid}}}
+\omega_{s,a}(\sigma)\,
+\operatorname{val}_{\mathrm{rew}}(\operatorname{cat}_{\mathrm{rew}}(s))  \\
+&=
+\operatorname{val}_{\mathrm{rew}}(\operatorname{cat}_{\mathrm{rew}}(s))
+\sum_{\sigma\in\mathsf S_{\mathrm{grid}}}\omega_{s,a}(\sigma)
+=
+r_{\mathrm{ins}}(s).
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinEmbeddedKernel_rewardMean
+
+\item The behavior policy in \cref{obj:def:insulin-grid} satisfies
+\[
+b(1\mid x)=\frac{3}{10},
+\qquad
+b(0\mid x)=\frac{7}{10},
+\]
+so \(b(a\mid x)>0\) for both \(a\in\{0,1\}\). By the zero-cell convention in the definition of \(\rho\), the positive-denominator branch applies and hence
+\[
+b(a\mid x)\rho(x,a)
+=
+b(a\mid x)\frac{e(a\mid x)}{b(a\mid x)}
+=
+e(a\mid x).
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinBehaviourRatioCancel
+
+\item Substituting the two preceding identities into the weighted regression gives
+\[
+\begin{aligned}
+\sum_{a\in\{0,1\}}b(a\mid x)\rho(x,a)
+   \int p_1\,K_T(dp\mid s,a)
+&=
+\sum_{a\in\{0,1\}}e(a\mid x)\,r_{\mathrm{ins}}(s)\\
+&=
+\left(\sum_{a\in\{0,1\}}e(a\mid x)\right)r_{\mathrm{ins}}(s).
+\end{aligned}
+\]
+The target policy in \cref{obj:def:insulin-grid} injects exactly when \(g\ge125\), so
+\[
+e(1\mid x)=\mathbf 1\{g\ge125\},
+\qquad
+e(0\mid x)=1-\mathbf 1\{g\ge125\},
+\qquad
+\sum_{a\in\{0,1\}}e(a\mid x)=1 .
+\]
+Consequently
+\[
+\sum_{a\in\{0,1\}}b(a\mid x)\rho(x,a)
+   \int p_1\,K_T(dp\mid s,a)
+=
+r_{\mathrm{ins}}(s),
+\]
+as claimed. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinImmediateRewardRegression
+\end{enumerate}
+\end{proof}

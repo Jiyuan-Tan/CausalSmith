@@ -1,0 +1,11 @@
+module
+public import CausalSmith.Stat.STAT_DensityeffectRoughnullFrontier_Research.TCausalCompletion
+public import CausalSmith.Stat.STAT_DensityeffectRoughnullFrontier_Research.TMultibandCovariance
+public import CausalSmith.Stat.STAT_DensityeffectRoughnullFrontier_Research.TNonFlatSanity
+public import CausalSmith.Stat.STAT_DensityeffectRoughnullFrontier_Research.TSharpFrontier
+
+/-!
+Paper interface for the rough density-equality frontier and its interpretive results.
+-/
+
+public section

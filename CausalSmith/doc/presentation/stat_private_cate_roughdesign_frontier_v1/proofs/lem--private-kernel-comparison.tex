@@ -1,0 +1,279 @@
+\begin{proof}[Proof of \cref{obj:lem:private-kernel-comparison}]
+\begin{enumerate}
+\item For adjacent datasets \(D,D'\) and a measurable output event \(E\), \cref{obj:def:private-kernels,obj:ass:pure-privacy} give
+\[
+M(D,E)\le e^\epsilon M(D',E),
+\qquad
+M(D',E)\le e^\epsilon M(D,E).
+\]
+Since the event probabilities belong to \([0,1]\),
+\[
+\begin{aligned}
+M(D,E)-M(D',E)
+&\le (e^\epsilon-1)M(D',E)\le e^\epsilon-1,\\
+M(D',E)-M(D,E)
+&\le (e^\epsilon-1)M(D,E)\le e^\epsilon-1.
+\end{aligned}
+\]
+Convexity of the exponential, together with \(0<\epsilon\le1\) and \(e<3\), yields
+\[
+e^\epsilon
+\le (1-\epsilon)e^0+\epsilon e^1,
+\qquad
+e^\epsilon-1\le (e-1)\epsilon\le2\epsilon.
+\]
+Consequently,
+\[
+|M(D,E)-M(D',E)|\le2\epsilon
+\qquad\text{if }d_{\mathrm H}(D,D')=1.
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.exp_privacy_increment_le
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.private_adjacent_event_bound
+
+\item Fix a measurable output event \(E\), and define
+\[
+\varphi_E:\mathcal O^n\longrightarrow[0,1],
+\qquad
+\varphi_E(D)=M(D,E).
+\]
+We prove by induction on a finite set of coordinate positions that
+\[
+\mathcal J\subseteq\{1,\ldots,n\},
+\quad
+D_i=D'_i\ \text{for all }i\notin\mathcal J
+\quad\Longrightarrow\quad
+|\varphi_E(D)-\varphi_E(D')|
+\le2\epsilon|\mathcal J|.
+\]
+For \(\mathcal J=\varnothing\), the datasets coincide and both sides of the inequality are zero.
+
+For the induction step, suppose \(D,D'\) agree outside
+\(\mathcal J\cup\{\iota\}\), where \(\iota\notin\mathcal J\). Define the intermediate dataset by
+\[
+(D_{\mathrm{mid}})_{\iota'}
+=
+\begin{cases}
+D'_\iota,&\iota'=\iota,\\
+D_{\iota'},&\iota'\ne\iota,
+\end{cases}
+\qquad \iota'\in\{1,\ldots,n\}.
+\]
+Then \(D_{\mathrm{mid}}\) and \(D'\) agree outside \(\mathcal J\), so the induction hypothesis gives
+\[
+|\varphi_E(D_{\mathrm{mid}})-\varphi_E(D')|
+\le2\epsilon|\mathcal J|.
+\]
+If \(D_\iota=D'_\iota\), then \(D_{\mathrm{mid}}=D\) and their event-probability difference is zero. Otherwise, their Hamming distance is one, and the adjacent bound applies. In either case,
+\[
+|\varphi_E(D)-\varphi_E(D_{\mathrm{mid}})|\le2\epsilon.
+\]
+The triangle inequality therefore gives
+\[
+\begin{aligned}
+|\varphi_E(D)-\varphi_E(D')|
+&\le
+|\varphi_E(D)-\varphi_E(D_{\mathrm{mid}})|
++
+|\varphi_E(D_{\mathrm{mid}})-\varphi_E(D')|\\
+&\le2\epsilon+2\epsilon|\mathcal J|
+=2\epsilon|\mathcal J\cup\{\iota\}|.
+\end{aligned}
+\]
+Apply this conclusion to
+\[
+\mathcal J=\{i\in\{1,\ldots,n\}:D_i\ne D'_i\}.
+\]
+It follows that, for every pair of datasets,
+\[
+|M(D,E)-M(D',E)|
+\le2\epsilon d_{\mathrm H}(D,D').
+\]
+The empty-set case also covers \(n=0\).
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.event_bound_of_hamming_path
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.private_hamming_event_bound
+
+\item Let \(\gamma\) be any coupling of \(Q,Q'\); explicitly,
+\[
+\gamma\in\operatorname{Prob}(\mathcal O^n\times\mathcal O^n),
+\qquad
+\gamma(F\times\mathcal O^n)=Q(F),
+\qquad
+\gamma(\mathcal O^n\times F)=Q'(F)
+\]
+for every measurable dataset event \(F\). Since Hamming distance is bounded by the dataset size,
+\[
+0\le
+\int d_{\mathrm H}(D,D')\,\gamma(dD,dD')
+\le
+\int n\,\gamma(dD,dD')
+=n.
+\]
+Thus the coupling cost is finite. The measurable function \(\varphi_E\) is bounded by one, so its integrals against the marginals and against \(\gamma\) are well defined. The marginal identities give
+\[
+(MQ)(E)-(MQ')(E)
+=
+\int\bigl(\varphi_E(D)-\varphi_E(D')\bigr)\,
+\gamma(dD,dD').
+\]
+Using the integral triangle inequality and the preceding event bound,
+\[
+\begin{aligned}
+|(MQ)(E)-(MQ')(E)|
+&\le
+\int|\varphi_E(D)-\varphi_E(D')|\,\gamma(dD,dD')\\
+&\le
+\int2\epsilon d_{\mathrm H}(D,D')\,\gamma(dD,dD')\\
+&=
+2\epsilon\int d_{\mathrm H}(D,D')\,\gamma(dD,dD').
+\end{aligned}
+\]
+Taking the supremum over measurable output events proves
+\[
+d_{\mathrm{TV}}(MQ,MQ')
+\le
+2\epsilon\int d_{\mathrm H}(D,D')\,\gamma(dD,dD').
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.private_TV_le_coupling_cost
+This holds for every coupling. Since \(2\epsilon\) is positive and finite, taking the infimum gives
+\[
+d_{\mathrm{TV}}(MQ,MQ')
+\le
+\inf_{\gamma\ \mathrm{couples}\ Q,Q'}
+2\epsilon\int d_{\mathrm H}(D,D')\,d\gamma
+=
+2\epsilon W_{\mathrm H}(Q,Q').
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.private_kernel_comparison
+
+\item Let
+\[
+K:\mathcal O^n\rightsquigarrow\mathcal B
+\]
+be an everywhere probability-valued Markov kernel. For a measurable output event \(E\), define
+\[
+\varphi_{K,E}:\mathcal O^n\longrightarrow[0,1],
+\qquad
+\varphi_{K,E}(D)=K(D,E).
+\]
+This function is measurable and bounded. Its layer representation under each of the probability laws is
+\[
+\begin{aligned}
+\int\varphi_{K,E}(D)\,Q(dD)
+&=\int_{(0,1]}Q\{D:\eta_{\mathrm{layer}}\le\varphi_{K,E}(D)\}\,d\eta_{\mathrm{layer}},\\
+\int\varphi_{K,E}(D)\,Q'(dD)
+&=\int_{(0,1]}Q'\{D:\eta_{\mathrm{layer}}\le\varphi_{K,E}(D)\}\,d\eta_{\mathrm{layer}}.
+\end{aligned}
+\]
+These identities follow by integrating
+\(\varphi_{K,E}(D)=\int_{(0,1]}\mathbf 1\{\eta_{\mathrm{layer}}\le\varphi_{K,E}(D)\}\,d\eta_{\mathrm{layer}}\).
+Every displayed level set is measurable, and hence
+\[
+\left|
+Q\{D:\eta_{\mathrm{layer}}\le\varphi_{K,E}(D)\}
+-
+Q'\{D:\eta_{\mathrm{layer}}\le\varphi_{K,E}(D)\}
+\right|
+\le d_{\mathrm{TV}}(Q,Q').
+\]
+Subtracting the layer representations and bounding the integral therefore yields
+\[
+\begin{aligned}
+|(KQ)(E)-(KQ')(E)|
+&=
+\left|
+\int_{(0,1]}
+\left[
+Q\{D:\eta_{\mathrm{layer}}\le\varphi_{K,E}(D)\}
+-
+Q'\{D:\eta_{\mathrm{layer}}\le\varphi_{K,E}(D)\}
+\right]d\eta_{\mathrm{layer}}
+\right|\\
+&\le \int_{(0,1]}d_{\mathrm{TV}}(Q,Q')\,d\eta_{\mathrm{layer}}
+=d_{\mathrm{TV}}(Q,Q').
+\end{aligned}
+\]
+Taking the supremum over \(E\) proves
+\[
+d_{\mathrm{TV}}(KQ,KQ')\le d_{\mathrm{TV}}(Q,Q').
+\]
+% lean: Causalean.Stat.tvDist_integral_range
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.kernel_TV_contraction
+
+\item Assume \(Q\ll Q'\) and the stated squared-deviation integral is finite. Choose an extended nonnegative Radon--Nikodym derivative and define, on all of \(\mathcal O^n\),
+\[
+p_{\mathrm{RN}}(D)=
+\begin{cases}
+\dfrac{dQ}{dQ'}(D),&\dfrac{dQ}{dQ'}(D)<\infty,\\
+0,&\dfrac{dQ}{dQ'}(D)=\infty,
+\end{cases}
+\qquad
+g_{\mathrm{RN}}(D)=p_{\mathrm{RN}}(D)-1.
+\]
+The infinite-density set is \(Q'\)-null, so this convention preserves the Radon--Nikodym integral identities. Finiteness of the nonnegative squared-deviation integral gives
+\[
+g_{\mathrm{RN}}\in L^2(Q'),
+\qquad
+\int g_{\mathrm{RN}}(D)^2\,Q'(dD)=\chi^2(Q,Q').
+\]
+Both \(|g_{\mathrm{RN}}|\) and the constant function one belong to \(L^2(Q')\). Hölder's inequality with exponents two and two gives
+\[
+\begin{aligned}
+\int|g_{\mathrm{RN}}(D)|\,Q'(dD)
+&=\int|g_{\mathrm{RN}}(D)|\cdot1\,Q'(dD)\\
+&\le
+\left(\int|g_{\mathrm{RN}}(D)|^2\,Q'(dD)\right)^{1/2}
+\left(\int1^2\,Q'(dD)\right)^{1/2}\\
+&=\sqrt{\chi^2(Q,Q')}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.TV_le_sqrt_chiSq_of_finite
+% lean: Causalean.Stat.tvDist_le_half_sqrt_chiSqDiv
+
+To relate this integral to total variation, the probability normalization and the Radon--Nikodym identity give
+\[
+\int g_{\mathrm{RN}}\,dQ'
+=
+\int p_{\mathrm{RN}}\,dQ'-1
+=Q(\mathcal O^n)-1=0.
+\]
+For every measurable dataset event \(F\),
+\[
+Q(F)-Q'(F)=\int_F g_{\mathrm{RN}}\,dQ',
+\qquad
+\int_{F^c}g_{\mathrm{RN}}\,dQ'
+=-\int_F g_{\mathrm{RN}}\,dQ'.
+\]
+The pointwise inequalities
+\(g_{\mathrm{RN}}\le|g_{\mathrm{RN}}|\) and
+\(-g_{\mathrm{RN}}\le|g_{\mathrm{RN}}|\), integrated over \(F\) and \(F^c\), imply
+\[
+\left|\int_F g_{\mathrm{RN}}\,dQ'\right|
+\le\int_F|g_{\mathrm{RN}}|\,dQ',
+\qquad
+\left|\int_F g_{\mathrm{RN}}\,dQ'\right|
+=
+\left|\int_{F^c}g_{\mathrm{RN}}\,dQ'\right|
+\le\int_{F^c}|g_{\mathrm{RN}}|\,dQ'.
+\]
+Adding these bounds yields
+\[
+2|Q(F)-Q'(F)|
+\le
+\int_F|g_{\mathrm{RN}}|\,dQ'
++\int_{F^c}|g_{\mathrm{RN}}|\,dQ'
+=
+\int|g_{\mathrm{RN}}|\,dQ'.
+\]
+Taking the supremum over \(F\) and using the square-integrability bound proves
+\[
+d_{\mathrm{TV}}(Q,Q')
+\le\frac12\int|g_{\mathrm{RN}}|\,dQ'
+\le\frac12\sqrt{\chi^2(Q,Q')}.
+\]
+% lean: Causalean.Stat.measureReal_sub_eq_setIntegral_rnDeriv_sub_one
+% lean: Causalean.Stat.abs_setIntegral_le_half_integral_abs_of_integral_eq_zero
+% lean: Causalean.Stat.tvDist_le_half_integral_abs_rnDeriv
+% lean: Causalean.Stat.tvDist_le_half_sqrt_chiSqDiv
+% lean: CausalSmith.Stat.PrivateCateRoughdesign.private_kernel_comparison
+\end{enumerate}
+\end{proof}

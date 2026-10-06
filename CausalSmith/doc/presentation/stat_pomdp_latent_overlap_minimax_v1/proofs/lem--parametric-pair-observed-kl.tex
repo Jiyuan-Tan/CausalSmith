@@ -1,0 +1,177 @@
+\begin{proof}[Proof of \cref{obj:lem:parametric-pair-observed-kl}]
+Write \(F_{-}\) and \(F_{+}\) for the two finite reward-code models with Boolean indices
+\(\mathrm{false}\) and \(\mathrm{true}\), so that the associated signs are \(-1\) and \(+1\).  Let
+\[
+        \eta_T=\frac{1}{4\sqrt T}.
+\]
+Since \(T\ge 1\), we have \(0<\sqrt T\) and \(0\le \eta_T\le 1/4\).
+
+\begin{enumerate}
+\item
+The two finite models use the same reward decoder \(r\mapsto 2r-1\).  Therefore applying the decoder
+and then projecting to the observed path is a common measurable map, and KL contracts under this map:
+\[
+\operatorname{KL}\!\left(
+\mathbb P^{\mathrm{obs}}_{M_T^-}
+\,\middle\|\,
+\mathbb P^{\mathrm{obs}}_{M_T^+}
+\right)
+\le
+\operatorname{KL}\!\left(
+(F_-)^{\mathrm{obs}}
+\,\middle\|\,
+(F_+)^{\mathrm{obs}}
+\right),
+\]
+where \((F_\sigma)^{\mathrm{obs}}\) denotes the finite observed-path law before decoding the reward
+code into \(\{-1,+1\}\). % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.embed_klDiv_le
+
+\item
+For one epoch define probability laws \(\mu_{-}\) and \(\mu_{+}\) on
+\(\{x_\star\}\times\{0,1\}\times\{0,1\}\) by
+\[
+\mu_\sigma(x_\star,a,r)
+=
+\frac12\,
+\frac{1+\sigma(2r-1)\eta_T}{2},
+\qquad
+\sigma\in\{-1,+1\},\quad a,r\in\{0,1\}.
+\]
+The first factor is the fair action law, and the second factor is the reward-code law.  Because
+\(0\le \eta_T\le 1/4\), every displayed cell mass is positive. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.parametricEpochPMF_toReal
+
+\item
+Multiplying the singleton initial mass, the fair action probabilities, and the displayed
+time-homogeneous reward-transition probabilities gives the product form
+\[
+(F_\sigma)^{\mathrm{obs}}
+=
+\bigotimes_{t=1}^{T}\mu_\sigma,
+\qquad \sigma\in\{-1,+1\}.
+\]
+The singleton observed state contributes unit mass at each time, so the only nontrivial coordinates in
+each factor are the fair action and the reward code. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.parametricPair_obsPMF_eq_pi
+
+\item
+The one-epoch divergence is bounded by
+\[
+\operatorname{KL}(\mu_{-}\|\mu_{+})
+\le
+4\eta_T^2.
+\]
+Let \(A\) be the fair law on \(\{0,1\}\), let \(\operatorname{Ber}_{\{0,1\}}(u)\) be the law on
+\(\{0,1\}\) assigning mass \(u\) to reward code \(1\), and set
+\[
+u_-:=\frac{1-\eta_T}{2},
+\qquad
+u_+:=\frac{1+\eta_T}{2}.
+\]
+Since \(0\le \eta_T\le 1/4\), both \(u_-\) and \(u_+\) lie in \([3/8,5/8]\).  The law
+\(\mu_\sigma\) is obtained from \(\operatorname{Ber}_{\{0,1\}}(u_\sigma)\otimes A\) by the bijective
+coordinate map \((r,a)\mapsto (x_\star,a,r)\).  Hence invariance under this reordering and the common
+action coordinate give
+\[
+\operatorname{KL}(\mu_{-}\|\mu_{+})
+=
+\operatorname{KL}\!\left(\operatorname{Ber}_{\{0,1\}}(u_- )\otimes A
+\,\middle\|\,
+\operatorname{Ber}_{\{0,1\}}(u_+ )\otimes A\right)
+=
+\operatorname{KL}\!\left(\operatorname{Ber}_{\{0,1\}}(u_- )
+\,\middle\|\,
+\operatorname{Ber}_{\{0,1\}}(u_+ )\right).
+\]
+The Boolean Bernoulli laws are images of the two-point real laws
+\((1-u)\delta_0+u\delta_1\) under the measurable map that records whether the point is \(1\), so data
+processing gives the upper bound by the corresponding real two-point divergence.  Evaluating that
+finite divergence yields
+\[
+\begin{aligned}
+\operatorname{KL}\!\left(\operatorname{Ber}_{\{0,1\}}(u_- )
+\,\middle\|\,
+\operatorname{Ber}_{\{0,1\}}(u_+ )\right)
+&\le
+u_-\log\frac{u_-}{u_+}+(1-u_- )\log\frac{1-u_-}{1-u_+} \\
+&=
+\eta_T\log\frac{1+\eta_T}{1-\eta_T}.
+\end{aligned}
+\]
+For \(0\le s\le 1/4\), the function
+\(4s-\log((1+s)/(1-s))\) has value \(0\) at \(s=0\) and derivative
+\[
+4-\frac{2}{1-s^2}
+\ge
+4-\frac{2}{1-(1/4)^2}
+>
+0.
+\]
+Thus \(\log((1+s)/(1-s))\le 4s\) on this interval, and substituting \(s=\eta_T\) gives the displayed
+one-epoch bound. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.parametricEpoch_klDiv_le
+
+\item
+Since every one-epoch cell under \(\mu_{+}\) has positive mass, \(\mu_{-}\ll\mu_{+}\); on this finite
+space the log-likelihood ratio is integrable.  Tensorization of KL for the \(T\)-fold product laws gives
+two finite-valued conclusions: the product divergence is finite, and after applying the usual real value
+map to the extended nonnegative divergence,
+\[
+\operatorname{KL}\!\left(
+\bigotimes_{t=1}^{T}\mu_{-}
+\,\middle\|\,
+\bigotimes_{t=1}^{T}\mu_{+}
+\right)_{\!\mathbb R}
+\le
+T\,\operatorname{KL}(\mu_{-}\|\mu_{+})_{\mathbb R}.
+\]
+The one-epoch bound from the previous step is finite, so the same real-value comparison gives
+\[
+\operatorname{KL}(\mu_{-}\|\mu_{+})_{\mathbb R}
+\le
+4\eta_T^2.
+\]
+The product representation of the finite observed-path law therefore yields
+\[
+\operatorname{KL}\!\left(
+(F_-)^{\mathrm{obs}}
+\,\middle\|\,
+(F_+)^{\mathrm{obs}}
+\right)_{\!\mathbb R}
+\le
+T\cdot 4\eta_T^2.
+\]
+Because the displayed product divergence is finite, comparison with any finite numerical bound is
+equivalent to comparison after taking this real value. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.parametricPair_finiteObs_klDiv_le
+
+\item
+Finally,
+\[
+T\cdot 4\eta_T^2
+=
+T\cdot 4\left(\frac{1}{4\sqrt T}\right)^2
+=
+\frac14,
+\]
+using \(0<\sqrt T\) and \((\sqrt T)^2=T\).  The finite-valued comparison from the preceding step gives
+\[
+\operatorname{KL}\!\left(
+(F_-)^{\mathrm{obs}}
+\,\middle\|\,
+(F_+)^{\mathrm{obs}}
+\right)
+\le
+\frac14.
+\] % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.parametricPair_finiteObs_klDiv_le
+\end{enumerate}
+
+The contraction inequality from the first step and the finite observed-path bound from the last step
+give
+\[
+\operatorname{KL}\!\left(
+\mathbb P^{\mathrm{obs}}_{M_T^-}
+\,\middle\|\,
+\mathbb P^{\mathrm{obs}}_{M_T^+}
+\right)
+\le
+\frac14,
+\]
+as claimed. % lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.parametricPair_observed_klDiv_le
+\end{proof}

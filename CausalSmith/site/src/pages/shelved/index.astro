@@ -1,0 +1,217 @@
+---
+import { loadRuns, PAPER_TYPES, STAGES, WHY } from "../../lib/runs.js";
+import { GITHUB_REF, GITHUB_URL, PAPER_CITE, PAPER_URL, SERIES_NAME, SERIES_TAGLINE } from "../../lib/config.js";
+import SeoHead from "../../components/SeoHead.astro";
+import "katex/dist/katex.min.css";
+import "../../styles/series.css";
+import "../../styles/runs.css";
+
+const { rows } = loadRuns();
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const clusters = [...new Set(rows.map((r) => r.cluster))].sort();
+const shapes = [...new Set(rows.map((r) => r.shape).filter((s): s is string => !!s))].sort();
+const whyKeys = (Object.keys(WHY) as (keyof typeof WHY)[]).filter((k) => rows.some((r) => r.why === k));
+const typeKeys = (Object.keys(PAPER_TYPES) as (keyof typeof PAPER_TYPES)[]).filter((k) => rows.some((r) => r.type === k));
+const tree = GITHUB_URL ? `${GITHUB_URL}/tree/${GITHUB_REF ?? "main"}` : null;
+---
+
+<html lang="en">
+  <head>
+    <SeoHead
+      title={`Shelved runs · ${SERIES_NAME}`}
+      description={`Research runs by ${SERIES_NAME} that did not become working papers: how far each got, why it stopped, and what it left behind.`}
+    />
+  </head>
+  <body>
+    <div class="series-wrap">
+      <header class="masthead">
+        <div class="series-kicker">{SERIES_NAME} · {SERIES_TAGLINE}</div>
+        <nav class="masthead-nav">
+          <a href={`${base}/`}>CausalSmith Working Papers</a>
+          <a href={`${base}/library/`}>Causalean Library</a>
+          <a href={`${base}/how-it-works/`}>How it works</a>
+          <a class="nav-external" href={PAPER_URL} title={PAPER_CITE} target="_blank" rel="noopener">
+            arXiv <span aria-hidden="true">↗</span>
+          </a>
+          {GITHUB_URL && (
+            <a class="nav-external" href={GITHUB_URL} target="_blank" rel="noopener">
+              GitHub <span aria-hidden="true">↗</span>
+            </a>
+          )}
+        </nav>
+        <h1>Shelved runs</h1>
+        <p class="lede">
+          Most questions <strong>{SERIES_NAME}</strong> takes on do not become a
+          <a href={`${base}/`}>working paper</a>. This is the record of the ones
+          that did not: how far each one got, the verdict that stopped it, and what it left
+          behind. Nothing here is a verified result unless its row says it was proved in Lean.
+        </p>
+      </header>
+
+      <div class="run-filters" role="group" aria-label="Filter runs">
+        <select id="f-stage" aria-label="How far it got">
+          <option value="">How far it got: any</option>
+          {STAGES.map((s, i) => <option value={i} title={s.blurb}>{s.label}</option>)}
+        </select>
+        <select id="f-why" aria-label="Why it stopped">
+          <option value="">Why it stopped: any</option>
+          {whyKeys.map((k) => <option value={k}>{WHY[k].label}</option>)}
+        </select>
+        <select id="f-type" aria-label="Paper type">
+          <option value="">Paper type: any</option>
+          {typeKeys.map((k) => <option value={k}>{PAPER_TYPES[k].label}</option>)}
+        </select>
+        <select id="f-cluster" aria-label="Area">
+          <option value="">Area: any</option>
+          {clusters.map((c) => <option value={c}>{c}</option>)}
+        </select>
+        <select id="f-shape" aria-label="Kind of result">
+          <option value="">Kind of result: any</option>
+          {shapes.map((s) => <option value={s}>{s}</option>)}
+        </select>
+        <input id="f-q" type="search" placeholder="Search topic or verdict…" aria-label="Search" />
+      </div>
+      <p class="run-count" id="run-count" aria-live="polite">Loading…</p>
+
+      <div
+        id="run-list"
+        data-base={base}
+        data-tree={tree ?? ""}
+        data-stages={JSON.stringify(STAGES.map((s) => s.label))}
+        data-why={JSON.stringify(WHY)}
+        data-types={JSON.stringify(PAPER_TYPES)}
+      >
+      </div>
+      <nav class="run-pager" id="run-pager" aria-label="Pages" hidden></nav>
+      <noscript><p class="empty-series">This list needs JavaScript; the same records are in the repository's result bank.</p></noscript>
+
+      <footer class="site-footer">
+        Verdicts are quoted from the pipeline's own banking record; categories are a coarse
+        reading of that record, not a referee's judgement.
+      </footer>
+    </div>
+
+    <script>
+      interface Row {
+        id: string; tier: string; cluster: string; title: string; date: string; stage: number;
+        why: string; type: string | null; shape: string | null; target: string | null; achieved: string | null;
+        proved: number; open: number; reason: string; text: string;
+      }
+      const list = document.getElementById("run-list")!;
+      const count = document.getElementById("run-count")!;
+      const pager = document.getElementById("run-pager")!;
+      const base = list.dataset.base ?? "";
+      const tree = list.dataset.tree ?? "";
+      const stages: string[] = JSON.parse(list.dataset.stages ?? "[]");
+      const why: Record<string, { label: string; blurb: string }> = JSON.parse(list.dataset.why ?? "{}");
+      const types: Record<string, { label: string; blurb: string }> = JSON.parse(list.dataset.types ?? "{}");
+      const sel = (id: string) => document.getElementById(id) as HTMLSelectElement;
+      const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+      const PAGE = 25;
+      let rows: Row[] = [];
+      // The page number lives in the address (#p3), so back and shared links keep the place.
+      const pageFromHash = () => Math.max(1, Number(/^#p(\d+)$/.exec(location.hash)?.[1] ?? 1));
+      let page = pageFromHash();
+
+      const rowHtml = (r: Row) => {
+        const pips = stages.map((_, i) => `<i class="${i <= r.stage ? "on" : ""}"></i>`).join("");
+        const tiers =
+          r.target && r.achieved && r.achieved !== "unknown" && r.achieved !== r.target
+            ? `<span title="Novelty tier aimed for, and the tier the referee assessed">aimed ${esc(r.target)} · reached ${esc(r.achieved)}</span>`
+            : "";
+        const stmts = r.proved + r.open > 0 ? `<span>${r.proved} proved${r.open ? ` · ${r.open} open` : ""}</span>` : "";
+        return `<section class="run-entry" data-id="${esc(r.id)}">
+          <h2>${esc(r.title)}</h2>
+          <div class="run-meta">
+            <span class="run-id">${esc(r.cluster)} · ${esc(r.date)}</span>
+            <span class="run-ladder" title="How far this run got">${pips}<span>${esc(stages[r.stage])}</span></span>
+            <span class="run-chip why-${esc(r.why)}" title="${esc(why[r.why]?.blurb ?? "")}">${esc(why[r.why]?.label ?? r.why)}</span>
+            ${r.type && types[r.type] ? `<span class="run-chip type" title="${esc(types[r.type].blurb)}">${esc(types[r.type].label)}</span>` : ""}
+            ${r.shape ? `<span class="run-chip shape" title="Kind of result the run aimed for">${esc(r.shape)}</span>` : ""}
+            ${stmts}${tiers}
+          </div>
+          ${r.reason ? `<p class="run-reason"><span class="lbl">Verdict</span>${r.reason}</p>` : ""}
+          <button type="button" class="run-more" aria-expanded="false">Details ▸</button>
+        </section>`;
+      };
+
+      const detailHtml = (d: any) => {
+        const part = (label: string, html: string | null) => (html ? `<p><span class="lbl">${label}</span>${html}</p>` : "");
+        const gaps = d.gapReasons?.length
+          ? `<span class="lbl">Referee findings</span><ul>${d.gapReasons.map((g: string) => `<li>${g}</li>`).join("")}</ul>`
+          : "";
+        const archive = d.archiveUrl
+          ? `<a href="${esc(d.archiveUrl)}" target="_blank" rel="noopener" title="Logs, derivation and reviews as one archive">Full record (archive) ↗</a>`
+          : "";
+        const lean = tree && d.leanDir ? `<a href="${tree}/CausalSmith/${d.leanDir}" target="_blank" rel="noopener">Lean code ↗</a>` : "";
+        const links = archive || lean ? `<p class="links">${archive}${lean}</p>` : "";
+        return (
+          part("What was attempted", d.tldr) + part("Gap in the literature", d.gap) + gaps +
+          part("What happened", d.epitaph) + part("Could it be revived?", d.status) + links
+        );
+      };
+
+      const render = () => {
+        const st = sel("f-stage").value, w = sel("f-why").value, c = sel("f-cluster").value, s = sel("f-shape").value, t = sel("f-type").value;
+        const q = (document.getElementById("f-q") as HTMLInputElement).value.trim().toLowerCase();
+        const hit = rows.filter(
+          (r) =>
+            (!st || r.stage === Number(st)) && (!w || r.why === w) && (!c || r.cluster === c) &&
+            (!s || r.shape === s) && (!t || r.type === t) && (!q || r.text.includes(q)),
+        );
+        const pages = Math.max(1, Math.ceil(hit.length / PAGE));
+        page = Math.min(page, pages);
+        list.innerHTML = hit.slice((page - 1) * PAGE, page * PAGE).map(rowHtml).join("");
+        count.textContent = hit.length === rows.length ? "Newest first" : `${hit.length.toLocaleString("en-US")} matching, newest first`;
+        pager.hidden = pages <= 1;
+        // First, last, and a window around the current page; gaps shown as an ellipsis.
+        const nums = [...new Set([1, 2, page - 1, page, page + 1, pages - 1, pages])].filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
+        const link = (n: number, label: string, off: boolean, cur = false) =>
+          off ? `<span class="off">${label}</span>` : cur ? `<span class="cur" aria-current="page">${label}</span>` : `<a href="#p${n}">${label}</a>`;
+        pager.innerHTML =
+          link(page - 1, "‹ Previous", page === 1) +
+          nums.map((n, i) => (i > 0 && n - nums[i - 1] > 1 ? `<span class="gap">…</span>` : "") + link(n, String(n), false, n === page)).join("") +
+          link(page + 1, "Next ›", page === pages);
+      };
+      // A changed filter starts again at page 1; replaceState so each keystroke is not a history entry.
+      const reset = () => { page = 1; history.replaceState(null, "", location.pathname + location.search); render(); };
+      window.addEventListener("hashchange", () => {
+        page = pageFromHash();
+        render();
+        document.getElementById("run-count")!.scrollIntoView({ block: "start" });
+      });
+
+      for (const id of ["f-stage", "f-why", "f-type", "f-cluster", "f-shape"]) sel(id).addEventListener("change", reset);
+      document.getElementById("f-q")!.addEventListener("input", reset);
+      list.addEventListener("click", async (ev) => {
+        const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>(".run-more");
+        if (!btn) return;
+        const entry = btn.closest<HTMLElement>(".run-entry")!;
+        const open = entry.querySelector(".run-detail");
+        if (open) {
+          open.remove();
+          btn.textContent = "Details ▸";
+          btn.setAttribute("aria-expanded", "false");
+          return;
+        }
+        btn.textContent = "Details ▾";
+        btn.setAttribute("aria-expanded", "true");
+        const box = document.createElement("div");
+        box.className = "run-detail";
+        box.textContent = "Loading…";
+        entry.appendChild(box);
+        try {
+          const d = await (await fetch(`${base}/shelved/d/${entry.dataset.id}.json`)).json();
+          box.innerHTML = detailHtml(d) || "No further record.";
+        } catch {
+          box.textContent = "Could not load this record.";
+        }
+      });
+
+      fetch(`${base}/shelved/index.json`)
+        .then((r) => r.json())
+        .then((d) => { rows = d.rows; render(); })
+        .catch(() => { count.textContent = "Could not load the run list."; });
+    </script>
+  </body>
+</html>

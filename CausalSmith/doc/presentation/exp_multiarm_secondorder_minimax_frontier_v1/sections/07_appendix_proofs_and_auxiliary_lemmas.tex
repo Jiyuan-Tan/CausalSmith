@@ -1,0 +1,169 @@
+\section{Appendix: Proofs and auxiliary lemmas}\label{sec:appendix-lemmas}
+
+This appendix collects the auxiliary statements used by the paper's reduction, first-order, finite-program, continuity, and two-arm lower-bound arguments. The organizing principle is the finite orbit representation from \cref{obj:def:finite-orbit-game}: permutation symmetry turns the original labeled experiment into a finite response-count game, while the two-arm lower bound uses a mixture over labeled binary schedules whose induced experiment depends on the assignment only through a one-dimensional score, so that the remaining assignment randomness can be averaged out without changing the Bayes risk. The scalar construction below supplies that interface before the Bayesian information inequality is applied to the resulting one-dimensional family.
+
+The first auxiliary object is the canonical schedule law for the two-arm reduced scalar experiment. It lifts a distribution on effect-class triples to a distribution on complete response schedules, while recording the scalar observation induced by any assignment vector.
+
+\begin{definitionv}{synth_13}[Canonical two-arm scalar schedule kernel]
+For a triple $\vartheta=(p_+,p_-,r_0)$ with $p_++p_-+r_0=n$, the canonical schedule kernel $K_\vartheta$ is the probability law on complete two-arm schedules obtained by choosing uniformly an ordered partition $(P,N,R)$ of $\{1,\ldots,n\}$ with sizes $(p_+,p_-,r_0)$, assigning response type $(1,0)$ on $P$ and $(0,1)$ on $N$, and, independently for $i\in R$, drawing $H_i\sim\operatorname{Bernoulli}(1/2)$ and assigning type $(H_i,H_i)$. Equivalently,
+\[
+K_\vartheta(z)=\mathbf 1\{m_{(1,0)}(z)=p_+,\ m_{(0,1)}(z)=p_-,\ m_{(0,0)}(z)+m_{(1,1)}(z)=r_0\}\frac{p_+!p_-!r_0!}{n!}2^{-r_0}.
+\]
+For a schedule $z$ and assignment vector $A\in\mathcal A_2^n$, define the transformed observed-score vector $S(z,A)\in\{0,1\}^n$ by $S_i(z,A)=Y_i^{\mathrm{obs}}$ when $A_i=1$ and $S_i(z,A)=1-Y_i^{\mathrm{obs}}$ when $A_i=2$, and define the scalar observation
+\[
+X(z,A)=\sum_{i=1}^n S_i(z,A).
+\]
+Under $K_\vartheta$, conditionally on $\vartheta$, $X(z,A)=p_++B$ with $B\sim\operatorname{Binomial}(r_0,1/2)$, whose probability mass is
+\[
+\operatorname{binom}_{1/2}(r_0,k)=\binom{r_0}{k}2^{-r_0},\qquad k=0,\ldots,r_0.
+\]
+\end{definitionv}
+
+The construction in \cref{obj:synth_13} is useful because it keeps the prior on complete schedules inside the original design problem while exposing a scalar sufficient statistic for the two-arm comparison. The next result states the exact mixture identity and the associated Rao--Blackwell comparison.
+
+\begin{lemmav}{lem:two-arm-scalar-prior-schedule-kernel}[Scalar two-arm lift]
+Fix \(n\ge 0\), and let \(\nu\) be any probability distribution on triples
+\(\vartheta=(p_+,p_-,r_0)\) of nonnegative integers with
+\(p_++p_-+r_0=n\).  There exists a probability distribution \(\widetilde\nu\)
+on complete two-arm schedules \(z\in\mathcal T_2^n\) such that:
+\begin{itemize}
+\item \textbf{(Canonical mixture.)} For every schedule \(z\),
+\[
+\widetilde\nu(z)
+=
+\sum_{\vartheta}\nu_\vartheta\,K_\vartheta(z),
+\]
+where \(K_\vartheta\) is the canonical schedule kernel for the triple
+\(\vartheta\).
+
+\item \textbf{(Scalar kernel.)} For every triple
+\(\vartheta=(p_+,p_-,r_0)\), every assignment vector
+\(A\in\mathcal A_2^n\), and every \(x\in\{0,\ldots,n\}\),
+\[
+\sum_{z\in\mathcal T_2^n}
+\mathbf 1\{X(z,A)=x\}K_\vartheta(z)
+=
+\sum_{k=0}^{r_0}
+\mathbf 1\{x=p_+ + k\}\operatorname{binom}_{1/2}(r_0,k).
+\]
+Moreover, for every \(A\in\mathcal A_2^n\),
+\[
+\sum_{z\in\mathcal T_2^n} K_\vartheta(z)=1,
+\]
+and, for every binary vector \(s\) with \(\sum_i s_i=x\),
+\[
+\sum_{z\in\mathcal T_2^n}
+\mathbf 1\{X(z,A)=x,\ S(z,A)=s\}K_\vartheta(z)
+=
+\frac{
+\sum_{z\in\mathcal T_2^n}\mathbf 1\{X(z,A)=x\}K_\vartheta(z)
+}{
+\binom{n}{x}
+}.
+\]
+
+\item \textbf{(Rao--Blackwell domination.)} For every assignment law
+\(\mathcal D\) on \(\mathcal A_2^n\) and every estimator
+\(\widehat\tau\), there is a function \(f:\mathbb N\to\mathbb R\) such that
+\[
+\sum_{\vartheta=(p_+,p_-,r_0)}
+\nu_\vartheta
+\sum_{k=0}^{r_0}
+\operatorname{binom}_{1/2}(r_0,k)
+\left\{
+f(p_+ + k)-\frac{p_+-p_-}{n}
+\right\}^2
+\le
+\mathbb E_{\widetilde\nu}
+\!\left[
+R_n(\mathcal D,\widehat\tau;z)
+\right].
+\]
+
+\item \textbf{(Bayes-risk identity.)} For every assignment law
+\(\mathcal D\) on \(\mathcal A_2^n\),
+\[
+\inf_{\widehat\tau}
+\mathbb E_{\widetilde\nu}
+\!\left[
+R_n(\mathcal D,\widehat\tau;z)
+\right]
+=
+\inf_{f:\mathbb N\to\mathbb R}
+\sum_{\vartheta=(p_+,p_-,r_0)}
+\nu_\vartheta
+\sum_{k=0}^{r_0}
+\operatorname{binom}_{1/2}(r_0,k)
+\left\{
+f(p_+ + k)-\frac{p_+-p_-}{n}
+\right\}^2 .
+\]
+\end{itemize}
+\end{lemmav}
+
+\Cref{obj:lem:two-arm-scalar-prior-schedule-kernel} provides the paper-local Rao--Blackwell step behind the coarse two-arm converse in \cref{obj:thm:coarse-two-arm-minimax-lower}. For every prior on effect-class triples, it constructs a complete-schedule prior, identifies the binomial scalar experiment, and equates the induced Bayes risk with the best scalar decision rule. In this form the lower-bound calculation can be carried out on \(X\) while remaining a lower bound for the original assignment problem.
+
+The final auxiliary ingredient is a Bayesian information inequality in the spirit of the van Trees bound \citep{van_trees_1968,gill_1995}. The statement is written for an observation-dependent target \(g(\theta,x)\), because the two-arm lower bound applies the inequality after conditioning and then evaluates the derivative of the induced conditional mean. The regularity clauses impose the smoothness, integrability, and boundary cancellation needed for the integration-by-parts argument underlying the information bound.
+
+\begin{lemmav}{lem:bayesian-information-inequality}[Bayesian information inequality]
+Let \(\Theta=(\ell,u)\) be a scalar parameter interval with \(\ell<u\), let \((\Omega,\mathcal F)\) be a measurable observation space, and let \(\mu\) be a \(\sigma\)-finite dominating measure.  Let \(w,dw:\mathbb R\to\mathbb R\), let \(p_\theta(x)\), \(dp_\theta(x)\), \(g(\theta,x)\), and \(dg(\theta,x)\) be real-valued measurable fields, and let \(T:\Omega\to\mathbb R\).  Define
+\[
+J(w)=\int_\ell^u
+\begin{cases}
+dw(\theta)^2/w(\theta),& w(\theta)>0,\\
+0,& w(\theta)\le 0,
+\end{cases}
+\,d\theta
+\]
+and
+\[
+I(\theta)=\int
+\begin{cases}
+dp_\theta(x)^2/p_\theta(x),& p_\theta(x)>0,\\
+0,& p_\theta(x)\le 0,
+\end{cases}
+\,d\mu(x).
+\]
+Assume the following regularity conditions.
+\begin{itemize}
+\item \textbf{(Prior.)}  The density \(w\) is nonnegative, satisfies \(\int_\ell^u w(\theta)\,d\theta=1\), is \(C^1\), has compact topological support contained in \((\ell,u)\), is positive on the interior of that support, and satisfies \(dw(\theta)=w'(\theta)\) for every \(\theta\).
+\item \textbf{(Likelihood.)}  For every \(\theta\in(\ell,u)\), \(p_\theta(x)\ge 0\) for \(\mu\)-almost every \(x\), \(\int p_\theta(x)\,d\mu(x)=1\), the fields \(p_\theta\) and \(dp_\theta\) are \(\mu\)-integrable, and
+\[
+\frac{d}{dt}\bigg|_{t=\theta}\int p_t(x)\,d\mu(x)
+=
+\int dp_\theta(x)\,d\mu(x)
+=
+0.
+\]
+For \(\mu\)-almost every \(x\), \(\theta\mapsto p_\theta(x)\) is absolutely continuous on every compact subinterval of \((\ell,u)\), and \(dp_\theta(x)=\partial_\theta p_\theta(x)\) for Lebesgue-almost every \(\theta\in(\ell,u)\).
+\item \textbf{(Target.)}  For \(\mu\)-almost every \(x\), \(\theta\mapsto g(\theta,x)\) is absolutely continuous on every compact subinterval of \((\ell,u)\), and \(dg(\theta,x)=\partial_\theta g(\theta,x)\) for Lebesgue-almost every \(\theta\in(\ell,u)\).
+\item \textbf{(Pointwise derivatives.)}  For \((\theta,x)\)-almost every point under Lebesgue measure on \((\ell,u)\) times \(\mu\), the derivatives \(\partial_\theta p_\theta(x)=dp_\theta(x)\) and \(\partial_\theta g(\theta,x)=dg(\theta,x)\) exist in the ordinary pointwise sense.
+\item \textbf{(Information and joint integrability.)}  The prior information \(J(w)\) is finite, \(I(\theta)\) is finite for every \(\theta\in(\ell,u)\), and
+\[
+0<J(w)+\int_\ell^u I(\theta)w(\theta)\,d\theta.
+\]
+Moreover, all joint fields entering the risk, target derivative, squared prior score, squared likelihood score, score cross-product, squared total score, derivative-balance identity, and error-score identity are integrable with respect to \(w(\theta)p_\theta(x)\,d\theta\,d\mu(x)\) on \([\ell,u]\times\Omega\).
+\item \textbf{(Boundary product.)}  For \(\mu\)-almost every \(x\), the map
+\[
+\theta\mapsto w(\theta)p_\theta(x)\{T(x)-g(\theta,x)\}
+\]
+is absolutely continuous on \([\ell,u]\), and its endpoint values vanish:
+\[
+w(\ell)p_\ell(x)\{T(x)-g(\ell,x)\}=0,
+\qquad
+w(u)p_u(x)\{T(x)-g(u,x)\}=0.
+\]
+\end{itemize}
+Then
+\[
+\int_\ell^u\int \{T(x)-g(\theta,x)\}^2 p_\theta(x)w(\theta)\,d\mu(x)\,d\theta
+\ge
+\frac{
+\left(\int_\ell^u\int dg(\theta,x)p_\theta(x)w(\theta)\,d\mu(x)\,d\theta\right)^2
+}{
+J(w)+\int_\ell^u I(\theta)w(\theta)\,d\theta
+}.
+\]
+\end{lemmav}
+
+\Cref{obj:lem:bayesian-information-inequality} is the reusable information step for the two-arm Bayes lower bound. The numerator measures the averaged derivative of the target, and the denominator combines the prior information with the likelihood information, matching the standard Bayesian Cramér--Rao structure associated with \citet{van_trees_1968}. In the application to \cref{obj:thm:coarse-two-arm-minimax-lower}, \cref{obj:lem:two-arm-scalar-prior-schedule-kernel} first reduces the complete-schedule prior to the scalar experiment, and \cref{obj:lem:bayesian-information-inequality} then lower-bounds the scalar Bayes risk used in the converse.

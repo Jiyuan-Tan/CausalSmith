@@ -1,0 +1,433 @@
+\section{Estimation and guarded inference}\label{sec:inference}
+
+The sharp interval in \cref{obj:def:identified-interval} is a finite-dimensional functional of the observed-data law.  Estimation therefore proceeds by replacing the observable probabilities in \cref{obj:def:observable-capacities} with empirical analogues, projecting the resulting capacities onto their nonnegative range, and evaluating the same threshold-cut formula cell by cell.  The inferential problem is the usual one for nonsmooth partially identified endpoints: max, min, screening, and quotient operations can all determine the local behavior of the endpoint map \citep{ImbensManski2004,ChernozhukovHongTamer2007,Tamer2010,Molinari2020,FangSantos2019}.  The construction below keeps these operations explicit.
+
+The finite-sample guard uses two sampling conditions.  The first keeps the target stratum uniformly away from zero in aggregate, so that the endpoint quotients remain stable.  The second fixes the sampling scheme for the empirical observed law.
+
+\begin{assumptionv}{ass:uniform-aggregate-survivor-bound}[Uniform aggregate survivor bound]
+The uniform aggregate lower bound \(m_{\star}\) is strictly positive and bounds the aggregate survivor-complier mass \(M\) in \cref{obj:def:identified-interval} from below:
+\[
+0<m_{\star}
+\quad\text{and}\quad
+m_{\star}\le M.
+\]
+\end{assumptionv}
+
+The requirement in \cref{obj:ass:uniform-aggregate-survivor-bound} is a uniform positive target-stratum probability condition: the aggregate survivor-complier mass entering the denominator of the identified endpoints is bounded below by \leanref{sym:m_{\star}}{\ensuremath{m_{\star}}}.  This is the standard positivity requirement for inference on survivor-type causal targets \citep{KennedyHarrisKeele2019}.
+
+\begin{assumptionv}{ass:iid-sampling}[I.i.d. sampling]
+The observations \(O_1,\ldots,O_n\) are independent draws from the observed-data law \(P_{\mathrm{obs}}\).
+\end{assumptionv}
+
+\Cref{obj:ass:iid-sampling} is the independent sampling condition.  It supplies the empirical-process input for the finite observed support and is the conventional baseline for the delta-method and multiplier arguments used below \citep{vanDerVaart1998}.
+
+\begin{definitionv}{def:uniform-law-class}[Uniform law class \(\mathcal P_n\)]
+The uniform law class at index \(n\) is
+\[
+\mathcal P_n
+=
+\left\{
+P\in\mathcal M:
+P \text{ satisfies the uniform aggregate-survivor condition and the independent-sampling condition at index } n
+\right\}.
+\]
+\end{definitionv}
+
+The class \cref{obj:def:uniform-law-class} collects the laws for which the structural restrictions in \cref{obj:def:structural-law-class}, the lower aggregate-mass condition, and independent sampling hold at the sample-size index.  The notation \leanref{sym:\mathcal P_n}{\ensuremath{\mathcal P_n}} will be used for uniform probability statements indexed by \(n\).
+
+\begin{definitionv}{synth_15}[Empirical cell probability]
+For observations \(O_0,O_1,\ldots\) taking values in observed-data records with covariate cell component \(X\), realization \(\omega\), sample size \(n\in\mathbb N\), and covariate cell \(x\), the empirical covariate-cell probability is
+\[
+\widehat p_x
+=
+\begin{cases}
+\dfrac{1}{n}\sum_{r=0}^{n-1}\mathbf 1\{X(O_r(\omega))=x\}, & n\ge 1,\\
+0, & n=0.
+\end{cases}
+\]
+\end{definitionv}
+
+The empirical covariate-cell probability \leanref{sym:\widehat p_x}{\ensuremath{\widehat p_x}} is the sample analogue of the cell weight \(p_x\) in \cref{obj:def:identified-interval}.  It is the outer weight in the plug-in sums and also enters the screening score.
+
+\begin{algorithmv}{def:plugin-endpoint-estimator}[Plug-in endpoint estimator \(\widehat\Psi_n\)]
+Given observations \(O_1,\ldots,O_n\), a finite covariate support \(\mathcal X\), outcome support \(\mathcal Y=\{0,\ldots,K-1\}\), and screening threshold \(\eta_n\), define the projected screened plug-in endpoint estimator \(\widehat\Psi_n\) by the following steps.
+\begin{enumerate}
+\item For each empirical conditional probability given \((X=x,Z=z)\), use the empirical ratio when the empirical denominator is positive and use the fixed value zero when that denominator is zero. These empirical conditional probabilities form the raw capacity vector
+\[
+\widetilde c_n=(\widetilde\ell,\widetilde h).
+\]
+
+\item Define the nonnegative capacity cone and the projected empirical capacity vector by
+\[
+\mathfrak C=\prod_{x\in\mathcal X}\mathbb R_+^{2K},
+\qquad
+\widehat c_n
+=\Pi_{\mathfrak C}(\widetilde c_n)
+=\arg\min_{c\in\mathfrak C}\|c-\widetilde c_n\|_2^2.
+\]
+With the fixed Euclidean metric, the minimizer is unique, and \(\Pi_{\mathfrak C}\) is the coordinatewise positive-part map. Write
+\[
+\widehat c_n=(\widehat\ell,\widehat h).
+\]
+
+\item For each \(x\in\mathcal X\), define the empirical capacity totals, capacity-total gap, and empirical exact mass by
+\[
+\widehat q_0(x)=\sum_i\widehat\ell_i(x),
+\qquad
+\widehat q_1(x)=\sum_j\widehat h_j(x),
+\]
+\[
+\widehat{\Delta q}(x)=\widehat q_1(x)-\widehat q_0(x),
+\qquad
+\widehat m(x)=\min\{\widehat q_0(x),\widehat q_1(x)\}.
+\]
+
+\item For each \(x\in\mathcal X\), define the empirical lower and upper threshold-cut values by
+\[
+\widehat B_L(x)=
+\max\left\{
+0,\ 
+\max_{t\in\mathcal Y}
+\left[
+\sum_{i\le t}\widehat\ell_i(x)
+-
+\sum_{j\le t}\widehat h_j(x)
+\right]
++
+\min\{\widehat{\Delta q}(x),0\}
+\right\}
+\]
+and
+\[
+\widehat B_U(x)=
+\min\left\{
+\widehat m(x),\ 
+\min_{t\in\mathcal Y}
+\left[
+\sum_{i<t}\widehat\ell_i(x)
++
+\sum_{j>t}\widehat h_j(x)
+\right]
+\right\}.
+\]
+
+\item Define the empirical retained-cell mass score and retained-cell indicator by
+\[
+\widehat r_x=\widehat p_x\widehat m(x),
+\qquad
+\widehat I_x=\mathbf 1\{\widehat r_x>\eta_n\}.
+\]
+
+\item Define the screened empirical aggregate mass and screened empirical endpoint numerators by
+\[
+\widehat M_n=\sum_x \widehat I_x\,\widehat p_x\widehat m(x),
+\]
+\[
+\widehat N_{L,n}=\sum_x \widehat I_x\,\widehat p_x\widehat B_L(x),
+\qquad
+\widehat N_{U,n}=\sum_x \widehat I_x\,\widehat p_x\widehat B_U(x).
+\]
+
+\item Output the projected screened plug-in endpoint estimator
+\[
+\widehat\Psi_n=
+\begin{cases}
+\left(\widehat N_{L,n}/\widehat M_n,\ \widehat N_{U,n}/\widehat M_n\right),
+& \widehat M_n>0,\\
+(0,1), & \widehat M_n=0.
+\end{cases}
+\]
+\end{enumerate}
+\end{algorithmv}
+
+\Cref{obj:def:plugin-endpoint-estimator} mirrors the population construction in \cref{obj:def:identified-interval}.  The raw empirical capacity vector \leanref{sym:\widetilde c_n}{\ensuremath{\widetilde c_n}} is projected to the nonnegative capacity cone, giving the projected empirical capacity vector \leanref{sym:\widehat c_n}{\ensuremath{\widehat c_n}}.  The retained-cell score \leanref{sym:\widehat r_x}{\ensuremath{\widehat r_x}} and screening threshold \leanref{sym:\eta_n}{\ensuremath{\eta_n}} restrict the quotient to cells with empirical survivor-complier mass large enough to enter stably.  The resulting estimator \leanref{sym:\widehat\Psi_n}{\ensuremath{\widehat\Psi_n}} is the sample analogue of the endpoint map.
+
+For diagnostics and finite-sample containment, the guard works with a finite collection of observable events and a multiplier process over observed cells.  The operational event collection consists of cell events \(\{X=x\}\), arm events \(\{X=x,Z=z\}\), and selected-outcome events \(\{X=x,Z=z,D=d,S=1,\widetilde Y=k\}\), indexed by \(x\in\mathcal X\), \(z,d\in\{0,1\}\), and \(k\in\{0,\ldots,K-1\}\).  Hence
+\[
+|\mathcal E|=|\mathcal X|+2|\mathcal X|+4K|\mathcal X|
+=|\mathcal X|(4K+3).
+\]
+
+\begin{definitionv}{synth_18}[Guard event collection]
+For a finite covariate-cell support \(\mathcal X\) and a nonnegative integer \(K\), define \(\mathcal E=\mathcal E(\mathcal X,K)\) to be the full finite collection of guard events:
+\[
+\mathcal E(\mathcal X,K)=\{\text{all guard-event indices for }(\mathcal X,K)\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_2}[Empirical event frequency]
+For observed-data records \(O_0,O_1,\ldots\), each containing a covariate cell, binary instrument, treatment, selection indicator, and optional observed outcome, the empirical frequency \(\widehat P_n\) of any observable event \(E\) at sample size \(n\) and state \(\omega\) is
+\[
+\widehat P_n(E;\omega)
+=
+\frac{1}{n}\sum_{r=0}^{n-1}\mathbf 1\{E(O_r(\omega))\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_3}[Multiplier process]
+For observations \(O_1,\ldots,O_n\), multiplier inputs \(\xi_1,\ldots,\xi_n\), sample point \(\omega\), and an observed-data cell \(o=(x,z,d,s,y)\), with \(x\in\mathcal X\), \(z,d,s\in\{0,1\}\), and \(y\in\{0,\ldots,K-1\}\) when selected and \(y=\varnothing\) when unobserved, the multiplier process \(\mathbb G_n^\xi\) is
+\[
+\mathbb G_n^\xi(o)
+=
+n^{-1/2}
+\sum_{r=1}^n
+\xi_r(\omega)
+\left\{
+\mathbf 1\{O_r(\omega)=o\}
+-
+\widehat P_n(o)
+\right\},
+\qquad
+\widehat P_n(o)
+=
+n^{-1}\sum_{r=1}^n \mathbf 1\{O_r(\omega)=o\}.
+\]
+The finite guard-event index collection consists exactly of the cell events indexed by \(x\in\mathcal X\), the arm events indexed by \((x,z)\in\mathcal X\times\{0,1\}\), and the selected-outcome events indexed by \((x,z,d,k)\in\mathcal X\times\{0,1\}\times\{0,1\}\times\{0,\ldots,K-1\}\).
+\end{definitionv}
+
+The event collection \leanref{sym:\mathcal E}{\ensuremath{\mathcal E}} is finite because both the covariate and outcome supports are finite.  Empirical frequencies \leanref{sym:\widehat P_n}{\ensuremath{\widehat P_n}} control every sample input to the capacity construction, while the multiplier process \leanref{sym:\mathbb G_n^{\xi}}{\ensuremath{\mathbb G_n^{\xi}}} records the local face diagnostics associated with simultaneous max, min, and projection operations.
+
+The construction below names three objects that play different roles, and it is worth separating them before reading it.  The first is the \emph{reported interval}: it is implementable from \(\widehat\Psi_n\), \(\eta_n\), \(\alpha\), \(\varepsilon_Z\), \(m_\star\), and the support dimensions \((|\mathcal X|,K)\), which between them determine \(|\mathcal E|\) and \(b_{n,\alpha}\).  Everything an analyst computes is in that list.  The second is \(\delta_n\), the maximal deviation of the empirical frequencies from \(P_{\mathrm{obs}}\) over \(\mathcal E\).  It depends on the unknown \(P_{\mathrm{obs}}\), so it belongs to the analysis rather than to the computation: it is the quantity the concentration argument bounds, while the padding radius actually applied is computed from \(b_{n,\alpha}\) alone.  The third is the multiplier face envelope, a \emph{diagnostic} for the local nonsmooth behaviour of the endpoint map: it reports which threshold cuts and projection faces are near-active, and it is read on its own, alongside the reported interval.  The coverage guarantee rests on the deterministic padding; uniform multiplier calibration under changing survivor support remains open, and is posed in \cref{obj:oeq:uniform-face-multiplier}.
+
+\begin{algorithmv}{def:face-aware-inference-handle}[Guarded confidence set \(\mathcal C_{1-\alpha,n}\)]
+Given \(\widehat\Psi_n\), \(\eta_n\), confidence level \(1-\alpha\), instrument-overlap constant \(\varepsilon_Z\), aggregate survivor-complier lower bound \(m_{\star}\), and the finite observable event collection \(\mathcal E\), define the guarded confidence set \(\mathcal C_{1-\alpha,n}\) by the following steps.
+\begin{enumerate}
+\item Use the retained-cell rule
+\[
+\widehat I_x=\mathbf 1\{\widehat r_x>\eta_n\}.
+\]
+
+\item Define the near-active-face localization tolerance by
+\[
+a_n=(n\eta_n)^{-1/4}.
+\]
+The near-active lower and upper threshold cuts, the active face of \(\min\{\widehat{\Delta q}(x),0\}\), the active face of \(\min\{\widehat q_0(x),\widehat q_1(x)\}\), and the coordinatewise nonnegativity faces generated by \(\Pi_{\mathfrak C}\) determine a computable finite diagnostic face envelope for the multiplier process \(\mathbb G_n^\xi\) at tolerance \(a_n\).
+
+\item Let \(\delta_n\) be the maximal empirical deviation over \(\mathcal E\):
+\[
+\delta_n=\max_{E\in\mathcal E}\left|\widehat P_n(E)-P_{\mathrm{obs}}(E)\right|.
+\]
+
+\item Define the union-bound empirical-deviation threshold by
+\[
+b_{n,\alpha}=\sqrt{\frac{|\mathcal E|}{4n\alpha}}.
+\]
+
+\item Define the capacity-and-screening deterministic error envelope and deterministic endpoint-padding guard by
+\[
+A_{n,\alpha}
+=
+\frac{64K|\mathcal X|}{\varepsilon_Z^2}b_{n,\alpha}
++
+|\mathcal X|\eta_n,
+\]
+\[
+g_{n,\alpha}
+=
+\min\left\{1,\frac{4A_{n,\alpha}}{m_{\star}}\right\}.
+\]
+
+\item Output the conservative guarded confidence set
+\[
+\mathcal C_{1-\alpha,n}
+=
+\left[
+\max\{0,\widehat\Psi_{n,L}-g_{n,\alpha}\},\
+\min\{1,\widehat\Psi_{n,U}+g_{n,\alpha}\}
+\right].
+\]
+\end{enumerate}
+\end{algorithmv}
+
+The confidence set in \cref{obj:def:face-aware-inference-handle} uses the deterministic deviation threshold \leanref{sym:b_{n,\alpha}}{\ensuremath{b_{n,\alpha}}} to form a capacity-and-screening envelope \leanref{sym:A_{n,\alpha}}{\ensuremath{A_{n,\alpha}}}.  Dividing by the aggregate-mass lower bound yields the endpoint guard \leanref{sym:g_{n,\alpha}}{\ensuremath{g_{n,\alpha}}}, and padding the plug-in endpoints gives the interval \leanref{sym:\mathcal C_{1-\alpha,n}}{\ensuremath{\mathcal C_{1-\alpha,n}}}.  The multiplier component supplies a face-aware diagnostic for nonsmooth local behavior; the stated confidence set is the deterministic guarded interval.
+
+The first large-sample result fixes one observed-data law and characterizes the local endpoint limit on the recovered positive-survivor support.
+
+\begin{theoremv}{thm:branch-free-pointwise-directional-limit}[Branch-free endpoint limit]
+Fix a slate potential-outcome system with finite covariate support and ordered outcome support of size \(K\ge 3\).  Let \(P_{\mathrm{obs}}\) be its observed-data law, let \(O_1,\ldots,O_n\) denote the observed cells, let \(d(x)\in\{-1,+1\}\) be the weak selection-monotonicity direction, let \(\varepsilon_Z\) be the instrument-overlap constant, and let \(\eta_n\) be the screening threshold from \cref{obj:def:plugin-endpoint-estimator}.  Suppose that:
+\begin{itemize}
+\item \textbf{(Sampling.)} For every \(n\), the first \(n\) observations satisfy \cref{obj:ass:iid-sampling} with common law \(P_{\mathrm{obs}}\).
+\item \textbf{(Overlap.)} The instrument propensity satisfies \cref{obj:ass:instrument-overlap} with constant \(\varepsilon_Z\).
+\item \textbf{(Structural restrictions.)} The latent law satisfies \cref{obj:ass:iv-independence,obj:ass:treatment-consistency,obj:ass:selection-exclusion-consistency,obj:ass:outcome-exclusion-consistency,obj:ass:no-defiers,obj:ass:weak-selection-monotonicity,obj:ass:positive-aggregate-survivors}, with weak selection monotonicity in direction \(d\).
+\item \textbf{(Screening rate.)} For every \(n\), \(\eta_n>0\), with \(\eta_n\to0\) and \(\sqrt n\,\eta_n\to\infty\).
+\item \textbf{(Limit inputs.)} The finite multinomial central limit theorem applies to the empirical observed-cell vector, and the Hadamard directional delta method applies to tangentially directionally differentiable maps.
+\end{itemize}
+Let \(c\) be the observable capacity vector from \cref{obj:def:observable-capacities}.  Let
+\[
+M=\sum_x p_x m(x),
+\]
+where \(m(x)\) is the exact survivor-complier mass in cell \(x\), and let \(\mathcal X_+(P)=\{x:p_xm(x)>0\}\).  Let \(\Psi(P_{\mathrm{obs}})=(\theta_L,\theta_U)\) be the endpoint map identified by \cref{obj:prop:capacity-identification}, and let \(\widehat\Psi_n\) be the projected screened plug-in estimator from \cref{obj:def:plugin-endpoint-estimator}.  Then
+\[
+P\!\left(\{x:\widehat r_x>\eta_n\}=\mathcal X_+(P)\right)\to 1
+\]
+and
+\[
+\widehat\Psi_n\to_P\Psi(P_{\mathrm{obs}}).
+\]
+Moreover, there exist a Gaussian law \(\mathbb Z_{P_{\mathrm{obs}}}\) on observed-cell score functions and a map \(D\Psi\) such that
+\[
+\int z\,d\mathbb Z_{P_{\mathrm{obs}}}(z)=0
+\]
+and, for observed cells \(a,b\),
+\[
+\int z(a)z(b)\,d\mathbb Z_{P_{\mathrm{obs}}}(z)
+=
+\begin{cases}
+P_{\mathrm{obs}}(a)\{1-P_{\mathrm{obs}}(a)\}, & a=b,\\
+-P_{\mathrm{obs}}(a)P_{\mathrm{obs}}(b), & a\ne b.
+\end{cases}
+\]
+The map \(D\Psi\) is the Hadamard directional derivative, at the observed-law mass vector and on the recovered support \(\mathcal X_+(P)\), of the reduced-support endpoint map.  With this derivative,
+\[
+\sqrt n\{\widehat\Psi_n-\Psi(P_{\mathrm{obs}})\}
+\rightsquigarrow
+D\Psi(\mathbb Z_{P_{\mathrm{obs}}}).
+\]
+\end{theoremv}
+
+\Cref{obj:thm:branch-free-pointwise-directional-limit} establishes consistency of the screened support and of the endpoint estimator, then identifies the fixed-law directional limit.  The Gaussian input \leanref{sym:\mathbb Z_{P_{\mathrm{obs}}}}{\ensuremath{\mathbb Z_{P_{\mathrm{obs}}}}} is the centered multinomial limit for the observed cells, and the derivative is taken after the positive-survivor support \leanref{sym:\mathcal X_+(P)}{\ensuremath{\mathcal X_+(P)}} has been recovered.  The branch-free threshold representation handles simultaneous max and min faces through a Hadamard directional derivative; this derivative is the econometric object governing nonsmooth endpoint asymptotics \citep{FangSantos2019,HongLi2018}.
+
+The next three algebraic facts record how the cellwise masses and threshold cuts scale with nonnegative cell weights.  They justify treating covariate-cell probabilities as outer weights in the aggregate endpoint formula and in the empirical analogue.
+
+\begin{lemmav}{lem:weighted-capacity-mass-homogeneity}[Weighted mass homogeneity]
+Let \(c=(\ell,h)\) be a capacity array as in \cref{obj:def:observable-capacities}, and let \(w=(w_x)\) be real cell weights satisfying \(w_x\ge 0\) for every covariate cell \(x\).  Define the weighted capacity array \(c^w\) cellwise by
+\[
+\ell_i^w(x)=w_x\ell_i(x),
+\qquad
+h_j^w(x)=w_xh_j(x).
+\]
+If \(m^w(x)\) denotes the exact survivor-complier mass computed from \(c^w\) by the formulas in \cref{obj:def:observable-capacities}, then, for every covariate cell \(x\),
+\[
+m^w(x)=w_x m(x).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:weighted-capacity-lower-cut-homogeneity}[Weighted lower cut homogeneity]
+Let \(c=(\ell,h)\) be a capacity array, and let \(w=(w_x)_x\) be a cell weight function satisfying \(w_x\ge 0\) for every cell \(x\).  Let \(c^w\) be the cellwise weighted capacity array with lower and upper coordinates
+\[
+\ell_i^w(x)=w_x\ell_i(x),
+\qquad
+h_j^w(x)=w_xh_j(x).
+\]
+If \(B_L^w(x)\) denotes the lower threshold-cut value of \cref{obj:def:threshold-cuts} computed from \(c^w\), and \(B_L(x)\) denotes the same lower threshold-cut value computed from \(c\), then, for every cell \(x\),
+\[
+B_L^w(x)=w_x B_L(x).
+\]
+\end{lemmav}
+
+\begin{lemmav}{lem:weighted-capacity-upper-cut-homogeneity}[Upper cut homogeneity]
+Let \(c=(\ell,h)\) be a capacity array, and let \(w:\mathcal X\to\mathbb R\) satisfy \(w_x\ge 0\) for every \(x\in\mathcal X\).  Form the cellwise weighted capacity array \(c^w\) by
+\[
+\ell_i^w(x)=w_x\ell_i(x),
+\qquad
+h_j^w(x)=w_xh_j(x).
+\]
+Writing \(B_U^w\) for the upper threshold cut of \cref{obj:def:threshold-cuts} computed from \(c^w\), and \(B_U\) for the same cut computed from \(c\), one has, for every \(x\in\mathcal X\),
+\[
+B_U^w(x)=w_x B_U(x).
+\]
+\end{lemmav}
+
+\Cref{obj:lem:weighted-capacity-mass-homogeneity,obj:lem:weighted-capacity-lower-cut-homogeneity,obj:lem:weighted-capacity-upper-cut-homogeneity} show that multiplying all capacities in a cell by the same nonnegative weight multiplies the exact mass and both benefit cut values by that weight.  Consequently, aggregation over cells preserves the threshold-cut form of the endpoint numerators and denominator.
+
+For the uniform statement, laws are indexed by \(\lambda\).  The empirical law and auxiliary multipliers are defined law by law, while the deterministic guard keeps the same finite-event form.
+
+\begin{definitionv}{synth_19}[Empirical observed-data law for the \(\lambda\)-indexed sample]
+For each law \(\lambda\in\Lambda\) and sample \((O_{\lambda,1},\ldots,O_{\lambda,n})\), the empirical observed-data law is \(\widehat P_{n,\lambda}=n^{-1}\sum_{r=1}^n\delta_{O_{\lambda,r}}\).
+\end{definitionv}
+
+\begin{definitionv}{synth_6}[Auxiliary multiplier process]
+For each law $\lambda\in\Lambda$, let $\xi_\lambda=(\xi_{\lambda,r})_{r\ge1}$ denote auxiliary multiplier variables, conditionally independent given the observed sample and satisfying conditional mean zero and conditional variance one. They generate the diagnostic multiplier process $\mathbb G_{n,\lambda}^{\xi}=n^{-1/2}\sum_{r=1}^n\xi_{\lambda,r}\{\delta_{O_{\lambda,r}}-\widehat P_{n,\lambda}\}$ used to form the finite face diagnostic. The guarded confidence interval itself is constructed from the screened endpoint estimator and the deterministic padding $g_{n,\alpha}$.
+\end{definitionv}
+
+The empirical law \(\widehat P_{n,\lambda}\) and auxiliary process in \cref{obj:synth_19,obj:synth_6} provide the indexed-sample notation for applying the same construction uniformly over \(\Lambda\).  The multiplier process is diagnostic for the finite face envelope, while containment is delivered by the deterministic padding rule in \cref{obj:def:face-aware-inference-handle}.
+
+\begin{theoremv}{thm:uniform-deterministic-guard}[Uniform deterministic guard]
+Fix a family of finite-slate potential-outcome systems indexed by \(\lambda\in\Lambda\), with nonempty finite covariate support \(\mathcal X\), ordered outcome support of size \(K\), and \(K\ge 3\).  For each \(\lambda\), let \(P_{\mathrm{obs},\lambda}\) be the observed-data law of \((X,Z,D,S,\widetilde Y)\), where \(\widetilde Y=Y\) on selected units and is missing off selection.  Let \(O_{\lambda,1},O_{\lambda,2},\ldots\) be observations taking values in the observed-data cells, let \(\xi_\lambda\) be the auxiliary process used by the guarded interval in \cref{obj:def:face-aware-inference-handle}, let \(d_\lambda(x)\) be the weak selection-monotonicity direction, and let \(\mu_\lambda\) be the sampling law.
+
+Assume:
+\begin{itemize}
+\item \textbf{(Nominal level.)} The nominal error level satisfies \(0<\alpha<1\).
+\item \textbf{(Overlap and mass constants.)} The instrument-overlap constant and aggregate survivor-complier mass lower bound satisfy
+\[
+0<\varepsilon_Z<\frac12,
+\qquad
+m_{\star}>0 .
+\]
+\item \textbf{(Screening sequence.)} The screening thresholds satisfy \(\eta_n>0\) for every \(n\),
+\[
+\eta_n\to 0,
+\qquad
+\sqrt n\,\eta_n\to\infty .
+\]
+\item \textbf{(Uniform law class.)} For every law \(\lambda\) and every \(n\ge 1\), the system belongs to the uniform finite-slate law class of \cref{obj:def:uniform-law-class} at index \(n\), with overlap constant \(\varepsilon_Z\), aggregate survivor-complier mass bound \(m_{\star}\), direction \(d_\lambda\), sampling law \(\mu_\lambda\), and observations \(O_{\lambda,1},\ldots,O_{\lambda,n}\).
+\end{itemize}
+
+Let \(\Theta_I(P_{\mathrm{obs},\lambda})\) be the sharp identified interval for the benefit probability from \cref{obj:def:identified-interval}, and let
+\[
+\Psi(P_{\mathrm{obs},\lambda})
+=
+(\theta_{L,\lambda},\theta_{U,\lambda})
+\]
+be its endpoint map.  Let \(\widehat\Psi_{n,\lambda}(\omega)\) be the projected screened plug-in endpoint estimator from \cref{obj:def:plugin-endpoint-estimator}.  Let \(\mathcal C_{1-\alpha,n,\lambda}(\omega)\) and \(g_{n,\alpha}\) be the guarded confidence interval and deterministic endpoint-padding guard from \cref{obj:def:face-aware-inference-handle}.
+
+Then, for every \(n\ge 1\),
+\[
+\inf_{\lambda\in\Lambda}
+\mu_\lambda\!\left\{
+\omega:
+\Theta_I(P_{\mathrm{obs},\lambda})
+\subseteq
+\mathcal C_{1-\alpha,n,\lambda}(\omega)
+\right\}
+\ge
+1-\alpha .
+\]
+Moreover,
+\[
+\sup_{\lambda\in\Lambda}
+\mu_\lambda\!\left\{
+\omega:
+g_{n,\alpha}
+<
+\max\left\{
+\left|\widehat\theta_{L,n,\lambda}(\omega)-\theta_{L,\lambda}\right|,
+\left|\widehat\theta_{U,n,\lambda}(\omega)-\theta_{U,\lambda}\right|
+\right\}
+\right\}
+\longrightarrow 0,
+\]
+where \(\widehat\Psi_{n,\lambda}=(\widehat\theta_{L,n,\lambda},\widehat\theta_{U,n,\lambda})\), and
+\[
+g_{n,\alpha}
+=
+O\!\left(n^{-1/2}+\eta_n\right).
+\]
+
+Finally, for every deterministic sequence \(L_n>0\) such that
+\[
+L_n\to\infty,
+\qquad
+L_n=o(\sqrt n),
+\]
+the screening choice
+\[
+\eta_n=n^{-1/2}L_n
+\]
+satisfies, for every \(n\ge 1\),
+\[
+\eta_n>0,
+\qquad
+\eta_n\to0,
+\qquad
+\sqrt n\,\eta_n\to\infty,
+\]
+and the corresponding deterministic guard radius obeys
+\[
+g_{n,\alpha}
+=
+O\!\left(n^{-1/2}L_n\right).
+\]
+\end{theoremv}
+
+\Cref{obj:thm:uniform-deterministic-guard} gives the advertised guarded inference guarantee.  For every sample size, the interval from \cref{obj:def:face-aware-inference-handle} contains the full sharp identified interval with probability at least \(1-\alpha\), uniformly over the indexed law family.  The same result establishes uniform endpoint consistency under the deterministic guard, with radius \(O(n^{-1/2}+\eta_n)\); choosing \(\eta_n=n^{-1/2}L_n\) for any \(L_n\to\infty\) and \(L_n=o(\sqrt n)\) yields a guard of order \(O(n^{-1/2}L_n)\).  The construction is conservative in the sense of finite-sample containment, and its rate statement shows that the extra screening term can vanish arbitrarily close to the root-\(n\) scale.

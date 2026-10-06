@@ -1,0 +1,334 @@
+\begin{proof}[Proof of \cref{obj:lem:block-law}]
+\begin{enumerate}
+\item By \cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence}, the joint design law is
+\[
+\operatorname{Law}(Z,W)
+=
+\left(\bigotimes_{j\in V}\operatorname{Bernoulli}(1/2)\right)
+\otimes
+\left(\bigotimes_{\substack{(j,i)\in V^2\\j\ne i}}
+\operatorname{Bernoulli}(q)\right).
+\]
+Indeed, independence identifies the joint law with the product of its stated marginals. Each factor is a probability law throughout \(0\le q\le1\), so the joint law has total mass one. We use this product representation below. % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.design_eq_thinnedDesign
+
+\item The baseline support in \cref{obj:def:block-prior} gives
+\[
+|U_\ell|\le\frac14
+\qquad(1\le\ell\le B)
+\]
+almost surely. The condition \(2Bd\le n\) makes the source and recipient sets disjoint. For every source partition, the incoming and outgoing degrees therefore satisfy
+\[
+|\{j:(j,i)\in G\}|
+=
+\begin{cases}
+d,&i\in\bigcup_{\ell=1}^{B}C_\ell,\\
+0,&\text{otherwise},
+\end{cases}
+\qquad
+|\{i:(j,i)\in G\}|
+=
+\begin{cases}
+d,&j\text{ is a source},\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+For \(i\in C_\ell\), positivity of \(d\) and nonnegativity of \(h\) give
+\[
+|a_i|+|t_i|+\sum_{j:(j,i)\in G}|b_{ij}|
+=
+\left|U_\ell-\frac{\sigma h}{2}\right|
++d\frac{h}{d}
+\le\frac14+\frac{3h}{2}
+\le1.
+\]
+Every other row has coefficient mass zero. These are precisely the requirements of \cref{obj:def:model}.
+
+For the target, cancel the baselines in the all-treated versus all-control difference and interchange the finite edge sums:
+\[
+\begin{aligned}
+\tau(\theta)
+&=\frac1n\sum_{i\in V}\sum_{j:(j,i)\in G}\frac{\sigma h}{d}\\
+&=\frac1n\sum_{j\in V}\sum_{i:(j,i)\in G}\frac{\sigma h}{d}
+=\frac1n\sum_{\substack{j\in V\\j\text{ a source}}}\sigma h
+=\frac{\sigma mh}{n}.
+\end{aligned}
+\]
+There are \(m=Bd\) sources, each with \(d\) outgoing arrows. Thus the support and target conclusions hold almost surely under the prior. % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.block_support
+
+\item Define the source-label set and its reveal indicators by
+\[
+\mathcal J:=\bigcup_{\ell=1}^{B}S_\ell,
+\qquad
+R_j:=\mathbf1\{\exists i:(j,i)\in H\}
+\quad(j\in\mathcal J).
+\]
+The set \(\mathcal J\) is fixed across partitions. Conditional on any partition \(S\), a source's indicator is the maximum of the \(d\) audit marks on its outgoing arrows. Hence
+\[
+\Pr(R_j=0\mid S)=(1-q)^d,
+\qquad
+\Pr(R_j=1\mid S)=p=1-(1-q)^d.
+\]
+The marks used by different sources are disjoint coordinates of the product audit law. Consequently,
+\[
+\operatorname{Law}\bigl((R_j)_{j\in\mathcal J}\mid S\bigr)
+=
+\bigotimes_{j\in\mathcal J}\operatorname{Bernoulli}(p).
+\]
+This law is independent of the chosen partition; averaging over its uniform probability law gives the same product law under the actual retained-graph marginal. The calculation includes \(q=0\) and \(q=1\). % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.block_reveal_law
+
+\item We next express the original mixture through its full graph-assignment marginal. Define the finite partition space, its associated graph, and the compatible partitions by
+\[
+\begin{aligned}
+\mathcal S
+&:=\left\{(S'_1,\ldots,S'_B):
+\mathcal J=\bigsqcup_{\ell=1}^{B}S'_\ell,\ 
+|S'_\ell|=d\right\},\\
+G(S')&:=\bigcup_{\ell=1}^{B}(S'_\ell\times C_\ell)
+\quad(S'\in\mathcal S),\\
+\mathcal S(H)&:=\{S'\in\mathcal S:H\subseteq G(S')\}.
+\end{aligned}
+\]
+Grouping an ordering of the \(m=Bd\) source labels into consecutive groups of size \(d\) exhibits an element of \(\mathcal S\); thus its uniform law has total mass one.
+
+For \(S'\in\mathcal S\) and \(z\in\{0,1\}^{V}\), define the response shifts and their product density by
+\[
+\delta_\ell(S',z)
+:=-\frac{\sigma h}{2}
++\frac{\sigma h}{d}\sum_{j\in S'_\ell}z_j,
+\qquad
+\rho_{S'}(y\mid z)
+:=\prod_{\ell=1}^{B}f\bigl(y_\ell-\delta_\ell(S',z)\bigr),
+\quad y\in\mathbb R^B.
+\]
+Substitution into the recipient response gives
+\[
+Y_i(z)=U_\ell+\delta_\ell(S',z)
+\qquad(i\in C_\ell).
+\]
+The independent baselines therefore give density \(\rho_{S'}(\,\cdot\mid z)\).
+
+For every detailed graph \(H\), assignment \(z\in\{0,1\}^{V}\), and response vector \(y\in\mathbb R^B\), define the copying map
+\[
+\mathcal C_{H,z}(y):=(H,z,\widetilde Y(y)),
+\qquad
+\widetilde Y_i(y):=
+\begin{cases}
+y_\ell,&i\in C_\ell,\\
+0,&i\notin\bigcup_{\ell=1}^{B}C_\ell.
+\end{cases}
+\]
+The recipient blocks are disjoint, so this definition is unambiguous. Define also the corresponding record measure
+\[
+\mathsf K_{S'}(H,z)
+:=
+(\mathcal C_{H,z})_{\#}
+\bigl(\rho_{S'}(y\mid z)\,dy\bigr),
+\qquad
+S'\in\mathcal S,
+\]
+where the subscript \(\#\) denotes pushforward.
+
+Every \(G(S')\) has \(md\) arrows. The product design yields
+\[
+\Pr(H,Z=z\mid S=S')
+=
+\begin{cases}
+2^{-n}q^{|H|}(1-q)^{md-|H|},
+&S'\in\mathcal S(H),\\
+0,&S'\notin\mathcal S(H).
+\end{cases}
+\]
+For a compatible partition, each retained true arrow contributes \(q\), each unretained true arrow contributes \(1-q\), and audit marks on all other pairs integrate to one. For an incompatible partition, an observed arrow outside \(G(S')\) has probability zero. We use the convention \(0^0=1\), so the displayed likelihood also applies at both audit endpoints.
+
+Define
+\[
+\mu:=\operatorname{Law}(H,Z)
+\]
+under the actual experiment, averaging over the uniform source partition. On every atom of positive \(\mu\)-mass, the preceding common likelihood and uniform prior give
+\[
+\Pr(S=S'\mid H,Z=z)
+=\frac1{|\mathcal S(H)|}
+\qquad(S'\in\mathcal S(H)).
+\]
+Thus the original conditional record law is the uniform average
+\[
+\frac1{|\mathcal S(H)|}
+\sum_{S'\in\mathcal S(H)}\mathsf K_{S'}(H,z).
+\]
+When \(\mathcal S(H)\) is empty, assign this expression the zero measure; the corresponding \(\mu\)-atom has mass zero. This convention makes the mixture representation valid over the whole observation space. % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.blockMixtureLawOf_uniform_completion_bind
+
+\item We now replace compatible partitions by completions of the original hidden labels. For a graph with \(\mathcal S(H)\ne\varnothing\), define
+\[
+\begin{aligned}
+\mathcal R_\ell(H)
+&:=\{j\in\mathcal J:\exists i\in C_\ell,\ (j,i)\in H\},\\
+\mathcal J_{\mathrm{hid}}(H)
+&:=\{j\in\mathcal J:\nexists i,\ (j,i)\in H\},\\
+u_\ell&:=d-|\mathcal R_\ell(H)|,
+&
+M&:=\sum_{\ell=1}^{B}u_\ell,\\
+A_\ell&:=\sum_{j\in\mathcal R_\ell(H)}(2z_j-1),
+&
+K&:=|\{j\in\mathcal J_{\mathrm{hid}}(H):z_j=1\}|.
+\end{aligned}
+\]
+These agree with the quantities in the statement. A compatible partition places every label in \(\mathcal R_\ell(H)\) in its \(\ell\)-th block. In particular, these revealed sets are disjoint and have cardinality at most \(d\). For any \(S'\in\mathcal S(H)\),
+\[
+|\mathcal J_{\mathrm{hid}}(H)\cap S'_\ell|
+=d-|\mathcal R_\ell(H)|=u_\ell,
+\qquad
+|\mathcal J_{\mathrm{hid}}(H)|=M.
+\]
+
+Define the hidden-label completion space by
+\[
+\mathcal G(H):=
+\left\{g:\mathcal J_{\mathrm{hid}}(H)\to\{1,\ldots,B\}:
+|g^{-1}(\ell)|=u_\ell\ \text{for every }\ell\right\}.
+\]
+Restriction to hidden labels and extension by the revealed labels give inverse maps
+\[
+\mathcal S(H)\longleftrightarrow\mathcal G(H),
+\qquad
+S'_\ell=\mathcal R_\ell(H)\cup g^{-1}(\ell).
+\]
+Count completions by ordering all \(M\) hidden labels and cutting the ordering into blocks of lengths \(u_1,\ldots,u_B\). Each completion arises from exactly \(\prod_\ell u_\ell!\) such orderings, because labels may be reordered within each block. Therefore
+\[
+|\mathcal G(H)|\prod_{\ell=1}^{B}u_\ell!=M!,
+\qquad
+\frac1{|\mathcal G(H)|}
+=\frac{\prod_{\ell=1}^{B}u_\ell!}{M!}.
+\]
+The uniform compatible-partition average is consequently the same as the uniform hidden-label completion average. This identity includes \(M=0\), with \(0!=1\). For graphs with \(\mathcal S(H)=\varnothing\), the completion record measure is defined to be zero, as in the preceding step. % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.blockMixtureLawOf_hidden_completion_bind
+
+\item Fix \(H,z\) with \(\mathcal S(H)\ne\varnothing\). For \(g\in\mathcal G(H)\), define its hidden treated-count vector by
+\[
+k_\ell(g):=|\{j\in g^{-1}(\ell):z_j=1\}|,
+\qquad
+k(g):=(k_1(g),\ldots,k_B(g)).
+\]
+Then
+\[
+0\le k_\ell(g)\le u_\ell,
+\qquad
+\sum_{\ell=1}^{B}k_\ell(g)=K.
+\]
+More generally, for any compatible partition,
+\[
+K
+=\sum_{\ell=1}^{B}
+|\{j\in\mathcal J_{\mathrm{hid}}(H)\cap S'_\ell:z_j=1\}|
+\le\sum_{\ell=1}^{B}u_\ell=M,
+\]
+so \(\binom{M}{K}>0\).
+
+For an integer vector \(k=(k_1,\ldots,k_B)\) with \(0\le k_\ell\le u_\ell\), define its completion fiber by
+\[
+\mathcal G_k(H,z):=\{g\in\mathcal G(H):k(g)=k\}.
+\]
+If \(\sum_\ell k_\ell\ne K\), this fiber is empty. If \(\sum_\ell k_\ell=K\), restrict a completion separately to the \(K\) treated and \(M-K\) control labels. The two restrictions have block sizes \(k_\ell\) and \(u_\ell-k_\ell\), respectively, and together determine the completion. Applying the preceding ordering count to these two label sets gives
+\[
+|\mathcal G_k(H,z)|
+\prod_{\ell=1}^{B}k_\ell!(u_\ell-k_\ell)!
+=K!(M-K)!.
+\]
+Combining this identity with the total completion count gives
+\[
+\frac{|\mathcal G_k(H,z)|}{|\mathcal G(H)|}
+=
+\frac{K!(M-K)!\prod_{\ell=1}^{B}u_\ell!}
+{M!\prod_{\ell=1}^{B}k_\ell!(u_\ell-k_\ell)!}
+=
+\frac{\prod_{\ell=1}^{B}\binom{u_\ell}{k_\ell}}
+{\binom{M}{K}}
+\quad\text{when }\sum_{\ell=1}^{B}k_\ell=K.
+\]
+All factorials are positive, including those of zero, so these identities also cover \(K=0\) and \(K=M\).
+
+For the partition associated with \(g\), split the source-sign sum into revealed and hidden labels:
+\[
+\sum_{j\in S'_\ell}(2z_j-1)
+=A_\ell+2k_\ell(g)-u_\ell.
+\]
+Since \(|S'_\ell|=d\), its response shift reduces to
+\[
+\delta_\ell(S',z)
+=\frac{\sigma h}{2d}
+\bigl(A_\ell+2k_\ell(g)-u_\ell\bigr).
+\]
+Thus its product response density depends on the completion through \(k(g)\). Regrouping the uniform completion average by these fibers gives
+\[
+\lambda_{\sigma,h}(y\mid H,z)
+=
+\frac1{\binom{M}{K}}
+\sum_{\substack{0\le k_\ell\le u_\ell\\
+\sum_{\ell=1}^{B}k_\ell=K}}
+\prod_{\ell=1}^{B}
+\binom{u_\ell}{k_\ell}
+f\!\left(
+y_\ell-\frac{\sigma h(A_\ell+2k_\ell-u_\ell)}{2d}
+\right).
+\]
+Each translated product density integrates to one, and the fiber weights sum to one because the fibers partition \(\mathcal G(H)\). Hence this is a probability density.
+
+Let \(x\) be a polynomial indeterminate, and let \([x^K]\) denote extraction of its degree-\(K\) coefficient. Expanding the finite product selects exactly the vectors whose coordinates sum to \(K\), so
+\[
+\lambda_{\sigma,h}(y\mid H,z)
+=
+\frac{
+[x^K]\displaystyle\prod_{\ell=1}^{B}
+\left\{
+\sum_{k=0}^{u_\ell}
+\binom{u_\ell}{k}
+f\!\left(y_\ell-\frac{\sigma h(A_\ell+2k-u_\ell)}{2d}\right)x^k
+\right\}
+}{
+\binom{M}{K}
+}.
+\]
+This proves the stated density by averaging the translated baseline densities over the original labeled completions. % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.hiddenCompletion_density_average
+
+\item Every graph generated by the experiment is a subset of the graph of its generating partition. Therefore
+\[
+\mu\{(H,z):\mathcal S(H)\ne\varnothing\}=1.
+\]
+On this full-mass set, the conditional completion record measure equals
+\[
+(\mathcal C_{H,z})_{\#}
+\bigl(\lambda_{\sigma,h}(y\mid H,z)\,dy\bigr),
+\]
+because a finite average of pushforward density measures is the pushforward of their averaged density. The preceding mixture representation consequently gives, for every measurable set \(\mathcal E_{\mathrm{rec}}\) of complete records,
+\[
+P_{\sigma,h}(\mathcal E_{\mathrm{rec}})
+=
+\sum_{H,z}\mu\{(H,z)\}
+\int_{\mathbb R^B}
+\mathbf1\{\mathcal C_{H,z}(y)\in\mathcal E_{\mathrm{rec}}\}
+\lambda_{\sigma,h}(y\mid H,z)\,dy.
+\]
+The sum ranges over all detailed labeled retained graphs and all assignments in \(\{0,1\}^{V}\); zero-mass atoms contribute zero. This is exactly the reconstruction asserted in the statement. % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.hiddenCompletionKernel_eq_blockDensity
+
+\item Projection of an original record onto \((H,Z)\) depends on the partition and design draw, and is constant as the baselines, sign, and amplitude vary. Integrating the independent baseline probability law therefore yields
+\[
+\operatorname{Law}_{P_{\sigma,h}}(H,Z)
+=
+\frac1{|\mathcal S|}
+\sum_{S'\in\mathcal S}
+\operatorname{Law}(H,Z\mid S=S')
+=\mu.
+\]
+Thus the marginal is the actual joint law of the detailed graph and every treatment coordinate. % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.block_mixture_graphAssignMarginal
+
+\item Finally, on the full-mass compatible-graph set, the bound already obtained gives
+\[
+0\le K\le M.
+\]
+Hence
+\[
+M=0\quad\Longrightarrow\quad K=0,
+\qquad
+\binom{M}{K}=\binom00=1.
+\]
+In this case every \(u_\ell\) is zero and the completion space consists of the unique map on the empty hidden-label set. The density formula therefore has a degree-zero numerator and the asserted denominator. % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.block_hidden_zero_endpoint
+\end{enumerate}
+\end{proof}

@@ -1,0 +1,102 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Experimentation.MatchedPairDesign.MatchedPair
+
+/-! # Matched-pair estimators
+
+For Bai's fixed matched-pair randomization design, a fair coin selects the treated position in each
+pair. The difference-in-means estimator averages the observed treated-minus-control contrast over
+pairs, while the sample average treatment effect averages both potential-outcome contrasts over
+all units.
+
+This file defines those two averages and proves that the estimator is unbiased for the sample
+average treatment effect. The proof reduces to the one-pair marginal of the product design: each
+pair's observed contrast has expectation equal to that pair's average treatment effect.
+-/
+
+@[expose] public section
+
+open scoped BigOperators
+open Finset
+
+namespace Causalean
+namespace Experimentation
+namespace MatchedPairDesign
+
+open DesignBased
+
+variable {P : Type*} [Fintype P] [DecidableEq P]
+
+/-- For [a finite collection of pairs](hyp:P) and [the treated and control potential outcomes
+of every position in every pair](hyp:y1,y0), the [sample average treatment effect](goal) is the
+sum, over both positions of all pairs, of the treated potential outcome minus the control potential
+outcome, divided by twice the number of pairs, with a zero denominator understood to yield zero. -/
+noncomputable def sate (y1 y0 : P → Bool → ℝ) : ℝ :=
+  (∑ p, ∑ b, (y1 p b - y0 p b)) / (2 * (Fintype.card P : ℝ))
+
+/-- For [the treated and control potential outcomes of every position in every pair](hyp:P,y1,y0),
+[a particular pair](hyp:p), and [an assignment selecting a treated position in every pair](hyp:z),
+the [observed treated-minus-control contribution of that pair](goal) is its treated potential
+outcome at the selected position minus its control potential outcome at the other position. -/
+noncomputable def pairContribution (y1 y0 : P → Bool → ℝ) (p : P) (z : P → Bool) : ℝ :=
+  y1 p (z p) - y0 p (!z p)
+
+/-- For [a finite collection of pairs](hyp:P), [the treated and control potential outcomes of
+every position in every pair](hyp:y1,y0), and [an assignment selecting a treated position in every
+pair](hyp:z), the [matched-pair difference-in-means estimator](goal) is the sum of the observed
+treated-minus-control contributions across pairs divided by the number of pairs, with a zero
+denominator understood to yield zero. -/
+noncomputable def matchedPairEstimator (y1 y0 : P → Bool → ℝ) (z : P → Bool) : ℝ :=
+  (∑ p, pairContribution y1 y0 p z) / (Fintype.card P : ℝ)
+
+/-- The expected per-pair contribution is pair `p`'s average treatment effect
+`½ ∑_b (y1 p b − y0 p b)` — the fair coin gives each position probability `½` of being treated. -/
+lemma E_pairContribution (y1 y0 : P → Bool → ℝ) (p : P) :
+    (matchedPairDesign (P := P)).E (pairContribution y1 y0 p)
+      = (∑ b, (y1 p b - y0 p b)) / 2 := by
+  change
+    (prodDesign
+      (fun k : P =>
+        coinDesign ((fun _ : P => (1 : ℝ) / 2) k) (by norm_num) (by norm_num))).E
+      (fun z => (fun c : Bool => y1 p c - y0 p (!c)) (z p))
+      = (∑ b, (y1 p b - y0 p b)) / 2
+  rw [FiniteDesign.E_prod_apply
+    (fun k : P =>
+      coinDesign ((fun _ : P => (1 : ℝ) / 2) k) (by norm_num) (by norm_num))
+    p (fun c : Bool => y1 p c - y0 p (!c)), coinDesign_E]
+  rw [Fintype.sum_bool]
+  norm_num
+  ring
+
+/-- **Unbiasedness of the matched-pair estimator.** Provided [there is at least one pair](hyp:hP),
+[under the matched-pair design the difference-in-means estimator is unbiased for the sample
+average treatment effect](goal). -/
+theorem E_matchedPairEstimator (y1 y0 : P → Bool → ℝ) (hP : 0 < Fintype.card P) :
+    (matchedPairDesign (P := P)).E (matchedPairEstimator y1 y0) = sate y1 y0 := by
+  unfold matchedPairEstimator sate
+  change (matchedPairDesign (P := P)).E
+      (fun z => (∑ p, pairContribution y1 y0 p z) * ((Fintype.card P : ℝ)⁻¹)) =
+    (∑ p, ∑ b, (y1 p b - y0 p b)) / (2 * (Fintype.card P : ℝ))
+  rw [FiniteDesign.E_mul_const]
+  rw [show (matchedPairDesign (P := P)).E (fun z => ∑ p, pairContribution y1 y0 p z) =
+      ∑ p, (matchedPairDesign (P := P)).E (pairContribution y1 y0 p) by
+    simpa using
+      (FiniteDesign.E_sum (matchedPairDesign (P := P)) (Finset.univ)
+        (fun p z => pairContribution y1 y0 p z))]
+  simp_rw [E_pairContribution]
+  have hN : (Fintype.card P : ℝ) ≠ 0 := by
+    exact_mod_cast Nat.ne_of_gt hP
+  field_simp [hN]
+  rw [Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro p hp
+  ring
+
+end MatchedPairDesign
+end Experimentation
+end Causalean

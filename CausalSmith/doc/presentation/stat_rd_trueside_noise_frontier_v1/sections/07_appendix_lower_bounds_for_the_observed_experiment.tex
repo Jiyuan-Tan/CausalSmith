@@ -1,0 +1,335 @@
+\section{Appendix: Lower bounds for the observed experiment}
+
+The \leanref{S-4}{lower-bound witnesses} combine full-interval regularity with separation of the cutoff treatment contrast. Their statistical comparison concerns the complete observed triple: the noisy score, recorded assignment, and binary outcome. The construction proceeds from polynomial cancellation to observed-law proximity and then to lower bounds for estimation risk and honest expected interval length.
+
+\subsection{Polynomial cancellation and legal alternatives}
+
+We first fix the polynomial normalization used throughout the construction. The normalized Legendre polynomials \leanref{sym:Legendre}{\ensuremath{P_j^{\mathrm{Leg}}}} and their shifts to the unit interval are defined as follows.
+
+
+
+The normalized Legendre polynomials \leanref{sym:Legendre}{\ensuremath{P_j^{\mathrm{Leg}}}} supply orthogonality, endpoint values, and uniform bounds on the reference interval. The following identities collect these properties.
+
+\begin{theoremv}{lem:classical-legendre-facts}[Classical Legendre polynomial identities]
+For the normalized Legendre polynomials \(P_j^{\mathrm{Leg}}\), every pair of nonnegative integers \(j,k\) satisfies
+\[
+\int_{-1}^{1} P_j^{\mathrm{Leg}}(t)P_k^{\mathrm{Leg}}(t)\,dt
+=
+\begin{cases}
+\dfrac{2}{2j+1}, & j=k,\\
+0, & j\ne k.
+\end{cases}
+\]
+For every nonnegative integer \(j\), reflection symmetry holds for every \(t\in\mathbb R\):
+\[
+P_j^{\mathrm{Leg}}(-t)=(-1)^jP_j^{\mathrm{Leg}}(t).
+\]
+The same polynomial satisfies
+\[
+|P_j^{\mathrm{Leg}}(t)|\le 1
+\quad\text{for every }t\in[-1,1],
+\qquad
+P_j^{\mathrm{Leg}}(-1)=(-1)^j.
+\]
+\end{theoremv}
+
+Orthogonality controls the integrated squared size of a polynomial block, while the endpoint identities align its components at the cutoff. The uniform bound controls its amplitude throughout the interval. Together, these properties support a perturbation with a prescribed cutoff value and small integrated squared mass.
+
+Full-interval smoothness also requires control of derivatives after shifting the polynomials to the unit interval. The relevant bound retains the quadratic dependence on polynomial degree.
+
+\begin{lemmav}{lem:shifted-legendre-derivative}[Shifted Legendre derivative bounds]
+Let \(P_k^{\mathrm{Leg}}\) denote the degree-\(k\) Legendre polynomial normalized by \(P_k^{\mathrm{Leg}}(1)=1\), and define
+\[
+R_k(t)=P_k^{\mathrm{Leg}}(2t-1),\qquad k\in\mathbb N,\quad t\in\mathbb R.
+\]
+For every integer \(j\ge1\),
+\[
+R_j'(t)=2\sum_{\substack{0\le k<j\\j-k\ \mathrm{odd}}}(2k+1)R_k(t)
+\qquad\text{for all }t\in\mathbb R,
+\]
+and
+\[
+|R_j'(t)|\le j(j+1)
+\qquad\text{for all }t\in[0,1].
+\]
+\end{lemmav}
+
+The derivative estimate in \cref{obj:lem:shifted-legendre-derivative} determines the spatial scale of the witness. We now define the polynomial block and its normalization together with its extension to the latent-score interval. Let \leanref{sym:m}{\ensuremath{m}} be the polynomial order, with \(m\ge2\), and let \leanref{sym:b}{\ensuremath{b}} be the support width, with \(0<b\le1\).
+
+\begin{definitionv}{def:legal-extension}[Cancellation block and full-interval extension $v_{b,m}$]
+For an integer \(m\ge2\), define the block normalizer, cancellation polynomial, and fixed amplitude by
+\[
+N_m=(2m+1)^2-m^2,
+\qquad
+g_m(t)=\frac{1-t}{N_m}
+\sum_{j=m}^{2m}(2j+1)(-1)^jP_j^{\mathrm{Leg}}(2t-1),
+\qquad
+\kappa=\frac1{100}.
+\]
+For \(0<b\le1\), the full-interval extension is
+\[
+v_{b,m}(x)
+=
+\begin{cases}
+1, & -1\le x<0,\\
+g_m(x/b), & 0\le x\le b,\\
+0, & b<x\le1.
+\end{cases}
+\]
+\end{definitionv}
+
+The block normalizer \leanref{sym:Blocknorm}{\ensuremath{N_m}}, cancellation polynomial \leanref{sym:Block}{\ensuremath{g_m}}, and fixed amplitude constant \leanref{sym:kappa}{\ensuremath{\kappa}} in \cref{obj:def:legal-extension} specify the perturbation on the unit interval. The extension \leanref{sym:Extension}{\ensuremath{v_{b,m}}} in the same definition specifies the treated potential-outcome mean on both sides of the cutoff. Its constant continuation to the left and zero continuation beyond the support allow full-interval regularity to be assessed under the benchmark conditions in \cref{obj:def:model}. The statistical witnesses embed this profile in uniform-score laws with Bernoulli potential outcomes.
+
+\begin{definitionv}{def:alternatives}[Alternative laws \(P^\pm_{b,m}\)]
+The latent laws \(P^\pm_{b,m}\) are specified by:
+\begin{itemize}
+\item \textbf{(Latent score.)}
+\[
+X\sim\operatorname{Uniform}[-1,1].
+\]
+\item \textbf{(Potential outcomes.)} Conditional on \(X=x\), the binary potential outcomes \(Y^0\) and \(Y^1\) are independent, with
+\[
+Y^0\mid X=x\sim\operatorname{Bernoulli}(1/2),
+\qquad
+Y^1\mid X=x\sim
+\operatorname{Bernoulli}\!\left(
+\frac12\pm\kappa(b/m^2)^\beta v_{b,m}(x)
+\right).
+\]
+\item \textbf{(Measurement error.)} The standardized measurement error \(\varepsilon\) is independent of \((X,Y^0,Y^1)\), with
+\[
+\varepsilon\sim N(0,1).
+\]
+\end{itemize}
+The induced observed law uses the benchmark observation map
+\[
+W=X+\sigma\varepsilon,\qquad
+D=\mathbf1\{X\ge0\},\qquad
+Y=(1-D)Y^0+DY^1.
+\]
+\end{definitionv}
+
+The alternative pair \leanref{sym:Alt}{\ensuremath{P^\pm_{b,m}}} in \cref{obj:def:alternatives} varies the treated conditional mean while retaining the same latent-score distribution, untreated mean, and independent Gaussian error. The next result establishes both membership in the benchmark class and separation of the causal target.
+
+\begin{lemmav}{lem:legal-cancellation}[Legal cancellation and separation]
+Let \(\sigma\in\mathbb R\), and suppose that:
+\begin{itemize}
+\item \textbf{(Smoothness.)} \(0<\beta\le1\).
+\item \textbf{(Support width.)} \(0<b\le1\).
+\item \textbf{(Polynomial order.)} \(m\in\mathbb N\) and \(m\ge2\).
+\end{itemize}
+For the normalizer \(N_m\), cancellation polynomial \(g_m\), amplitude \(\kappa\), and extension \(v_{b,m}\) defined in \cref{obj:def:legal-extension},
+\[
+g_m(0)=1,\qquad g_m(1)=0,\qquad
+\sup_{t\in[0,1]}|g_m(t)|\le1,\qquad
+\int_0^1g_m(t)^2\,dt\le\frac1{N_m},
+\]
+and, for every integer \(k\) with \(0\le k\le m-2\),
+\[
+\int_0^1t^kg_m(t)\,dt=0.
+\]
+Moreover,
+\[
+\sup_{t\in[0,1]}|g_m^{(1)}(t)|\le7m^2.
+\]
+For the extension \(v_{b,m}\) in \cref{obj:def:legal-extension}, its full-interval Hölder seminorm satisfies
+\[
+[v_{b,m}]_\beta
+=
+\sup_{\substack{x,t\in[-1,1]\\x\ne t}}
+\frac{|v_{b,m}(x)-v_{b,m}(t)|}{|x-t|^\beta}
+\le7\left(\frac{b}{m^2}\right)^{-\beta}.
+\]
+The two latent alternatives \(P^\pm_{b,m}\) of \cref{obj:def:alternatives} both belong to \(\mathcal M_\beta(\sigma)\). Their cutoff causal contrasts, where \(\theta(P)\) is the treated conditional potential-outcome mean at zero minus the untreated conditional potential-outcome mean at zero, satisfy
+\[
+\left|\theta(P^+_{b,m})-\theta(P^-_{b,m})\right|
+=
+2\kappa\left(\frac{b}{m^2}\right)^\beta.
+\]
+\end{lemmav}
+
+The endpoint value and moment cancellations in \cref{obj:lem:legal-cancellation} serve distinct purposes. The former preserves a cutoff contrast of the stated size; the latter supplies cancellation under Gaussian convolution. The derivative and extension bounds tie the perturbation amplitude to full-interval Hölder regularity. Thus the witnesses belong to the exact benchmark class in \cref{obj:def:model}, with effective endpoint scale \(b/m^2\).
+
+\subsection{Full observed-law comparison and decision transfer}
+
+The likelihood comparison uses the treated-score convolution and its signed perturbation. We define these quantities together with the probability-distance conventions before stating the observed-law bound.
+
+
+
+The reference convolution \leanref{sym:q}{\ensuremath{q_\sigma}} and signed convolution \leanref{sym:u}{\ensuremath{u_{b,m,\sigma}}}, defined in \cref{obj:lem:full-marked-likelihood}, describe the treated outcome cells across all real proxy values. The support-to-noise scalar \leanref{sym:lambda}{\ensuremath{\lambda_{b,\sigma}}} indexes the factorial tail in the comparison. Probability distances are taken between complete laws under the following conventions.
+
+
+
+The extended divergence \leanref{sym:Chisq}{\ensuremath{\chi^2}}, defined in \cref{obj:lem:full-marked-likelihood}, provides a likelihood-based measure of observed-law proximity. The next bound incorporates assignment and both outcome marks in that comparison.
+
+\begin{lemmav}{lem:full-marked-likelihood}[Full marked likelihood bound]
+Consider the alternative laws \(P^\pm_{b,m}\) of \cref{obj:def:alternatives}, with the cancellation polynomial \(g_m\) of \cref{obj:lem:legal-cancellation}, under the following parameter conditions:
+\begin{itemize}
+\item \textbf{(Smoothness.)} \(0<\beta\le1\).
+\item \textbf{(Support.)} \(0<b\le1\).
+\item \textbf{(Order.)} \(m\) is an integer with \(m\ge2\).
+\item \textbf{(Noise.)} \(0<\sigma\le1\).
+\end{itemize}
+Set
+\[
+\kappa=\frac1{100},
+\qquad
+N_m=(2m+1)^2-m^2,
+\qquad
+\lambda_{b,\sigma}=\frac{b^2}{4\sigma^2},
+\]
+and define the likelihood-comparison quantities by
+\[
+q_\sigma(w)
+=\int_0^1
+\frac{\exp\!\bigl(-(w-x)^2/(2\sigma^2)\bigr)}
+{\sqrt{2\pi}\,\sigma}\,dx,
+\qquad
+u_{b,m,\sigma}(w)
+=\int_0^b g_m(x/b)
+\frac{\exp\!\bigl(-(w-x)^2/(2\sigma^2)\bigr)}
+{\sqrt{2\pi}\,\sigma}\,dx.
+\]
+Here \(\chi^2\) denotes the extended chi-squared divergence: for probability laws, it is the integral of the squared Radon--Nikodym derivative minus one when the first law is absolutely continuous with respect to the second, and \(+\infty\) otherwise.
+
+The full observed laws satisfy
+\[
+\begin{aligned}
+&\chi^2\!\left(
+(P^+_{b,m})_{\mathrm{obs}},
+(P^-_{b,m})_{\mathrm{obs}}
+\right)\\
+&\quad\le
+16\kappa^2\left(\frac{b}{m^2}\right)^{2\beta}
+\int_{\mathbb R}
+\frac{u_{b,m,\sigma}(w)^2}{q_\sigma(w)}\,dw\\
+&\quad\le
+16\kappa^2\left(\frac{b}{m^2}\right)^{2\beta}
+\frac{b}{N_m}
+\exp\!\left(\frac{b^2}{24\sigma^2}\right)
+\sum_{j=m-1}^{\infty}\frac{\lambda_{b,\sigma}^{\,j}}{j!}.
+\end{aligned}
+\]
+Moreover,
+\[
+(P^+_{b,m})_{\mathrm{obs}}
+\ll
+(P^-_{b,m})_{\mathrm{obs}}.
+\]
+The squared likelihood-ratio deviation
+\[
+\left(
+\frac{d(P^+_{b,m})_{\mathrm{obs}}}
+{d(P^-_{b,m})_{\mathrm{obs}}}-1
+\right)^2
+\]
+is integrable under \((P^-_{b,m})_{\mathrm{obs}}\), the function
+\(w\mapsto u_{b,m,\sigma}(w)^2/q_\sigma(w)\) is Lebesgue integrable, and the displayed factorial series converges. The divergence compares the full observed triples, including both binary outcome cells and all real proxy values.
+\end{lemmav}
+
+The polynomial in \cref{obj:lem:full-marked-likelihood} is the block defined in \cref{obj:def:legal-extension}, with properties established in \cref{obj:lem:legal-cancellation}. The factorial tail records the role of polynomial order in the observed-law comparison. Absolute continuity and integrability make the displayed likelihood comparison valid over the entire proxy support, including extreme noisy scores.
+
+For the decision problem, the relevant proximity condition concerns the independent sample laws. Total variation \leanref{sym:TV}{\ensuremath{\operatorname{TV}}} expresses this condition directly in terms of measurable events. The following transfer gives separate conclusions for absolute estimation loss and honest interval length.
+
+\begin{lemmav}{lem:two-point-transfer}[Two-point minimax risk transfer]
+Let \(P^+_{b,m}\) and \(P^-_{b,m}\) be the alternative laws from \cref{obj:def:alternatives}, constructed using \cref{obj:lem:classical-legendre-facts}. Suppose:
+\begin{itemize}
+\item \textbf{(Parameter ranges.)} \(0<\beta\le1\), \(0<b\le1\), and \(0\le\sigma\le1\).
+\item \textbf{(Sample size and degree.)} \(n,m\in\mathbb N\) with \(n\ge2\) and \(m\ge2\).
+\item \textbf{(Sample-law proximity.)} The independent observed-sample laws satisfy
+\[
+\operatorname{TV}\!\left(
+(P^+_{b,m})_{\mathrm{obs}}^{\otimes n},
+(P^-_{b,m})_{\mathrm{obs}}^{\otimes n}
+\right)\le\frac15,
+\]
+where total variation is the supremum, over measurable events, of the absolute difference between their probabilities.
+\end{itemize}
+Set \(\kappa=1/100\). Write \(R_\beta(n,\sigma)\) for the benchmark minimax expected absolute error in the cutoff treatment contrast, and \(\mathcal L_\beta(n,\sigma)\) for the benchmark minimax worst expected length of measurable connected closed intervals with uniform \(0.9\) coverage. Both criteria minimize extended nonnegative losses before converting the resulting minimax values to real numbers; their decision classes allow independent procedure randomization. Then
+\[
+R_\beta(n,\sigma)\ge
+\frac45\,\kappa\left(\frac{b}{m^2}\right)^\beta
+\qquad\text{and}\qquad
+\mathcal L_\beta(n,\sigma)\ge
+\frac65\,\kappa\left(\frac{b}{m^2}\right)^\beta.
+\]
+\end{lemmav}
+
+\Cref{obj:lem:two-point-transfer} connects observed-sample proximity to the target separation in \cref{obj:lem:legal-cancellation}. Its expected-length conclusion applies to measurable connected closed intervals with uniform \(0.9\) coverage, the decision requirement in \cref{obj:def:honest-class}. Both lower bounds cover procedures with arbitrary independent randomization. Consequently, the transfer applies to the full declared decision classes, with the displayed constants distinguishing estimation risk from honest expected length.
+
+\subsection{Direct witnesses and noise-dependent support}
+
+The direct-experiment component of \cref{obj:thm:direct-reduction} uses a localized profile whose support width sets its Hölder scale. Let \leanref{sym:h}{\ensuremath{h}} denote that width, with \(0<h\le1\). The profile and the associated conditional means are specified next.
+
+\begin{definitionv}{synth_7}[Direct-experiment witness profile]
+For \(0<h\le1\), define the direct-experiment witness profile on the full latent-score interval by
+\[
+v_h^{\mathrm{dir}}(x)=
+\begin{cases}
+1,&-1\le x<0,\\
+\max\{1-x/h,0\},&0\le x\le1.
+\end{cases}
+\]
+This profile is continuous on \([-1,1]\), takes values in \([0,1]\), satisfies \(v_h^{\mathrm{dir}}(0)=1\), and vanishes for \(h\le x\le1\). Its full-interval regularity satisfies
+\[
+|v_h^{\mathrm{dir}}(x)-v_h^{\mathrm{dir}}(t)|
+\le\min\{1,|x-t|/h\},
+\qquad x,t\in[-1,1],
+\]
+and hence, for every \(0<\beta\le1\),
+\[
+[v_h^{\mathrm{dir}}]_\beta\le h^{-\beta}.
+\]
+The direct latent witnesses use this profile through the conditional means
+\[
+\mu_0(P_h^{\mathrm{dir},\pm},x)=\frac12,
+\qquad
+\mu_1(P_h^{\mathrm{dir},\pm},x)
+=\frac12\pm\kappa h^\beta v_h^{\mathrm{dir}}(x),
+\qquad \kappa=\frac1{100}.
+\]
+\end{definitionv}
+
+The direct profile \leanref{sym:Directbump}{\ensuremath{v_h^{\mathrm{dir}}}} in \cref{obj:synth_7} enters the following Bernoulli alternative laws.
+
+\begin{definitionv}{def:direct-alternatives}[Direct alternative laws \(P_h^{\mathrm{dir},\pm}\)]
+The latent laws \(P_h^{\mathrm{dir},\pm}\) are specified by:
+\begin{itemize}
+\item \textbf{(Latent score.)}
+\[
+X\sim\operatorname{Uniform}[-1,1].
+\]
+\item \textbf{(Potential outcomes.)} Conditional on \(X=x\), the binary potential outcomes are independent Bernoulli variables with conditional means
+\[
+\mu_0(P_h^{\mathrm{dir},\pm},x)=\frac12,
+\qquad
+\mu_1(P_h^{\mathrm{dir},\pm},x)
+=\frac12\pm\kappa h^\beta v_h^{\mathrm{dir}}(x),
+\]
+where \(v_h^{\mathrm{dir}}\) is the direct-experiment profile.
+\item \textbf{(Measurement error.)} The standardized measurement error \(\varepsilon\) is independent of the latent score and potential outcomes, with
+\[
+\varepsilon\sim N(0,1).
+\]
+\end{itemize}
+\end{definitionv}
+
+The direct alternatives \leanref{sym:DirectAlt}{\ensuremath{P_h^{\mathrm{dir},\pm}}} in \cref{obj:def:direct-alternatives} pair a common score distribution and untreated mean with a treated-mean perturbation of amplitude \(\kappa h^\beta\). Their role in \cref{obj:thm:direct-reduction} is to link the direct-experiment lower bound to full-interval Hölder regularity through the explicit profile in \cref{obj:synth_7}.
+
+For positive measurement-error scales, the cancellation witnesses instead use a support width that depends jointly on noise and polynomial order. The following rule fixes that width and the associated endpoint resolution before they enter the noisy lower bound.
+
+\begin{definitionv}{def:noise-support}[Support and resolution \(b_m(\sigma),h_m(\sigma)\)]
+The noise-dependent support scale \(b_m(\sigma)\) and endpoint resolution \(h_m(\sigma)\) are
+\[
+b_m(\sigma)=\min\{1,\sigma\sqrt m/8\},
+\qquad
+h_m(\sigma)=\frac{b_m(\sigma)}{m^2},
+\qquad \sigma>0.
+\]
+The corresponding alternative pair is
+\[
+P^\pm_{b_m(\sigma),m}.
+\]
+\end{definitionv}
+
+The support scale \leanref{sym:Support}{\ensuremath{b_m(\sigma)}} in \cref{obj:def:noise-support} stays within the latent interval, while the endpoint resolution \leanref{sym:Resolution}{\ensuremath{h_m(\sigma)}} retains the degree-squared scale established in \cref{obj:lem:legal-cancellation}. This rule specifies the noise-dependent witnesses used in the lower bound of \cref{obj:thm:uniform-frontier}. Their mathematical roles remain separate: \cref{obj:lem:legal-cancellation} supplies benchmark membership and target separation, \cref{obj:lem:full-marked-likelihood} controls the complete observed-law comparison for positive noise, and \cref{obj:lem:two-point-transfer} converts the stated sample-law proximity condition into estimation-risk and honest-length lower bounds for randomized procedures.

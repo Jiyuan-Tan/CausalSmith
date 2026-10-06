@@ -1,0 +1,283 @@
+\section{Setup and assumptions}\label{sec:setup}
+
+Throughout the paper, covariate support is finite and sums over covariate cells range over \(\mathcal X\). Outcome levels are ordered as \(0,\ldots,K-1\), and indices \(i,j,t\) range over this ordered support unless stated otherwise. Generic constants are positive and finite, Euclidean norms are used for finite-dimensional vectors, and asymptotic notation is always along the sampling sequence introduced in the inference section.
+
+We begin with the potential-outcome structure. The observed system has covariates \leanref{sym:X}{\ensuremath{X}}, a binary instrument \leanref{sym:Z}{\ensuremath{Z}}, treatment receipt \leanref{sym:D}{\ensuremath{D}}, selection \leanref{sym:S}{\ensuremath{S}}, and an ordered outcome \leanref{sym:Y}{\ensuremath{Y}} observed on selected units. The model also fixes the latent probability law \leanref{sym:P}{\ensuremath{P}}, the finite covariate carrier \leanref{sym:\mathcal X}{\ensuremath{\mathcal X}}, the outcome-support size \leanref{sym:K}{\ensuremath{K}}, and the ordered outcome set \leanref{sym:\mathcal Y}{\ensuremath{\mathcal Y}}.
+
+The section proceeds from variables to restrictions to capacities: the slate fixes the variables, the consistency and exclusion restrictions connect observed cells to potential outcomes, monotonicity identifies the complier and survivor-complier components, and the observable-capacity definition packages the two selected-complier submeasures used by the transport problem.
+
+\begin{definitionv}{synth_13}[POSlate system structure]
+A POSlate system over a potential-outcome system \(P\), a measurable covariate carrier \(\mathcal X\), and an outcome-support size \(K\) consists of:
+\begin{itemize}
+\item \textbf{(Latent space.)} The latent probability space \(\Omega\) of \(P\) is standard Borel.
+\item \textbf{(Outcome support.)} The integer \(K\) satisfies \(K\ge 3\), and the ordered outcome support is \(\{0,\ldots,K-1\}\).
+\item \textbf{(Selected nodes.)} Five pairwise distinct nodes of \(P\), written \(X,Z,D,S,Y\).
+\item \textbf{(Value spaces.)} The node \(X\) is measurably identified with \(\mathcal X\), while \(Z\), \(D\), and \(S\) are measurably identified with \(\{0,1\}\).
+\item \textbf{(Outcome node.)} The node \(Y\) is measurably identified with the finite ordered support \(\{0,\ldots,K-1\}\).
+\end{itemize}
+Here \(Z\) is the binary instrument, \(X\) is the covariate, \(D\) is treatment receipt, \(S\) is selection, and \(Y\) is the finite ordered outcome.
+\end{definitionv}
+
+Potential treatments, selections, and outcomes are indexed by the intervention that defines them. The treatment potentials \leanref{sym:D_a}{\ensuremath{D_0,D_1}} vary the instrument, while the selection potentials \leanref{sym:S_a}{\ensuremath{S_0,S_1}} and outcome potentials \leanref{sym:Y_a}{\ensuremath{Y_0,Y_1}} vary treatment receipt.
+
+\begin{definitionv}{synth_11}[Control potential outcome]
+The symbol \(Y_0\), the potential ordered outcome under treatment zero, is the map from the sample space to the \(K\) ordered outcome levels obtained by setting treatment to zero:
+\[
+Y_0(\omega)=Y^{D\leftarrow 0}(\omega)\in\{0,\ldots,K-1\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_10}[Selection under treatment one]
+The potential selection indicator under treatment one is the map \(S_1:\Omega\to\{0,1\}\) defined by
+\[
+S_1(\omega) := S(\omega; D\leftarrow 1).
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_9}[Treatment-zero selection]
+Define the potential selection indicator under treatment zero by
+\[
+S_0(\omega) := S^{D \leftarrow 0}(\omega).
+\]
+Equivalently, \(S_0\) is the selection variable evaluated counterfactually when the treatment variable is set to \(0\).
+\end{definitionv}
+
+\begin{definitionv}{synth_8}[Potential treatment under instrument one]
+Let \(D_1\), the potential treatment under instrument state one, be the Boolean unit-level variable on \(\Omega\) given by the treatment value that would be realized under the intervention \(Z=1\). Equivalently, for each unit \(\omega\in\Omega\),
+\[
+D_1(\omega)=D_{Z\leftarrow 1}(\omega).
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_7}[Potential treatment under zero]
+The potential treatment under instrument value zero is the binary variable \(D_0\) defined by
+\[
+D_0(\omega)=D(\omega; Z=0),\qquad \omega\in\Omega.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_12}[Treatment-one outcome]
+The potential ordered outcome under treatment one is the map
+\[
+Y_1:\Omega\to\{0,\ldots,K-1\}
+\]
+given by evaluating the ordered outcome counterfactual under the intervention that sets treatment receipt to \(1\).
+\end{definitionv}
+
+The first group of identifying restrictions is the standard IV structure with treatment-mediated selection and outcomes. It separates instrument assignment from latent response types within covariate cells, and it connects the observed variables to their potential-outcome counterparts.
+
+\begin{assumptionv}{ass:iv-independence}[Instrument independence]
+The potential treatments \(D_0,D_1\), potential selection indicators \(S_0,S_1\), and potential ordered outcomes \(Y_0,Y_1\) are conditionally independent of the binary instrument \(Z\) given the covariate cell \(X\):
+\[
+(D_0,D_1,S_0,S_1,Y_0,Y_1)\perp Z\mid X.
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:iv-independence} is the conditional instrument independence condition: after conditioning on \(X\), variation in \(Z\) is as good as randomly assigned for the potential treatments, selections, and ordered outcomes \citep{AngristImbensRubin1996}.
+
+\begin{assumptionv}{ass:treatment-consistency}[Treatment consistency]
+Observed treatment receipt equals the potential treatment under the realized instrument state:
+\[
+D=D_Z
+\]
+almost surely.
+\end{assumptionv}
+
+\Cref{obj:ass:treatment-consistency} is the treatment consistency condition, which links realized receipt to the potential treatment indexed by the realized instrument \citep{AngristImbensRubin1996}. Together with independence, it gives observed first-stage contrasts their usual complier interpretation.
+
+\begin{assumptionv}{ass:selection-exclusion-consistency}[Selection consistency]
+Observed selection equals the potential selection indicator under the realized treatment:
+\[
+S=S_D
+\]
+almost surely.
+\end{assumptionv}
+
+\Cref{obj:ass:selection-exclusion-consistency} is the selection exclusion through received treatment condition: instrument assignment affects selection through the treatment actually received \citep{KennedyHarrisKeele2019}.
+
+\begin{assumptionv}{ass:outcome-exclusion-consistency}[Outcome consistency]
+Among selected units, the observed outcome equals the potential ordered outcome under the realized treatment:
+\[
+Y=Y_D
+\]
+on \(\{S=1\}\) almost surely.
+\end{assumptionv}
+
+\Cref{obj:ass:outcome-exclusion-consistency} is the outcome exclusion through received treatment condition on selected units \citep{KennedyHarrisKeele2019}. Because outcomes are observed when \(S=1\), this condition fixes the outcome content of selected observed cells.
+
+The observed-data law records the variables available to the analyst, with the outcome marked missing outside the selected sample. We write the observed tuple as \leanref{sym:O}{\ensuremath{O}} and its law as \leanref{sym:P_{\mathrm{obs}}}{\ensuremath{P_{\mathrm{obs}}}}.
+
+\begin{definitionv}{synth_17}[Observed finite data law]
+The observed-data map sends each latent unit \(\omega\) to the finite observed cell
+\[
+O(\omega)
+=
+\bigl(X(\omega),Z(\omega),D(\omega),S(\omega),\widetilde Y(\omega)\bigr),
+\qquad
+\widetilde Y(\omega)
+=
+\begin{cases}
+Y(\omega), & S(\omega)=1,\\
+\varnothing, & S(\omega)=0.
+\end{cases}
+\]
+The observed-data law \(P_{\mathrm{obs}}\) is the pushforward of the latent law \(P\) through this observed-data map:
+\[
+P_{\mathrm{obs}}=P\circ O^{-1}.
+\]
+\end{definitionv}
+
+Cell weights enter every aggregate target below. The covariate-cell probability \leanref{sym:p_x}{\ensuremath{p_x}} is defined before the complier and survivor-complier quantities are formed.
+
+\begin{definitionv}{synth_14}[Covariate cell mass]
+For each covariate cell \(x\), the cell probability is
+\[
+p_x := P\{\omega : X(\omega)=x\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_1}[Complier event definition]
+The complier event \(C\) is the set of units whose potential treatment equals \(0\) when \(Z=0\) and equals \(1\) when \(Z=1\):
+\[
+C := \{\omega : D_0(\omega)=0 \land D_1(\omega)=1\}.
+\]
+\end{definitionv}
+
+The complier event \leanref{sym:C}{\ensuremath{C}} is the latent stratum whose treatment receipt is shifted by the instrument. The benefit parameter studied later is restricted further to compliers who would be selected under both treatment states.
+
+For compact reference, the following definition collects the finite slate, the observed law, the monotonicity structure, and the cellwise capacity objects used throughout the rest of the paper.
+
+\begin{definitionv}{synth_22}[Slate-benefit partial-transport system]
+A slate-benefit partial-transport system is a POSlate potential-outcome structure with finite discrete covariate support \(\mathcal X\), ordered outcome support \(\mathcal Y=\{0,1,\ldots,K-1\}\) for \(K\ge3\), binary instrument \(Z\), binary treatment \(D\), selection indicator \(S\), potential treatments \(D_0,D_1\), potential selections \(S_0,S_1\), and potential outcomes \(Y_0,Y_1\). The observed variables satisfy \(D=D_Z\), \(S=S_D\), and \(Y=Y_D\) on \(\{S=1\}\), with observed element \(O=(X,Z,D,S,SY)\) and observed law \(P_{\mathrm{obs}}=\mathcal L(O)\). The system carries a latent law \(P\) under which \((D_0,D_1,S_0,S_1,Y_0,Y_1)\perp Z\mid X\), \(D_1\ge D_0\) almost surely, and for each cell with \(P(C\mid X=x)>0\), where \(C=\{D_1>D_0\}\), a direction \(d(x)\in\{-1,+1\}\) satisfies \(P\{d(x)(S_1-S_0)\ge0\mid C,X=x\}=1\). Its cellwise observable capacities are \(\ell_i(x)\) and \(h_j(x)\), with \(m(x)=\min\{\sum_i\ell_i(x),\sum_jh_j(x)\}\), aggregate survivor-complier mass \(M=\sum_xp_xm(x)>0\), and survivor-complier outcome subcouplings constrained by the exact-mass partial-transport sets \(\Gamma_x^{\ast}\).
+\end{definitionv}
+
+The remaining assumptions impose overlap and monotonicity. The instrument propensity \leanref{sym:\pi}{\ensuremath{\pi(x)}} and the overlap constant \leanref{sym:\varepsilon_Z}{\ensuremath{\varepsilon_Z}} determine where conditional instrument contrasts are well defined.
+
+\begin{definitionv}{synth_16}[Instrument propensity by cell]
+For each covariate cell \(x\), the conditional instrument propensity \(\pi(x)\) is the real-valued conditional probability of \(Z=1\) in that cell:
+\[
+\pi(x)
+=
+\begin{cases}
+\dfrac{\mathbb P(Z=1,\,X=x)}{\mathbb P(X=x)}, & \text{if } \mathbb P(X=x)>0,\\
+0, & \text{if } \mathbb P(X=x)=0.
+\end{cases}
+\]
+\end{definitionv}
+
+\begin{assumptionv}{ass:instrument-overlap}[Instrument propensity overlap]
+For a slate-benefit partial-transport system, the instrument-overlap condition at the instrument-overlap constant \(\varepsilon_Z\) consists of:
+\begin{itemize}
+\item \textbf{(Positivity.)} \(0<\varepsilon_Z\).
+\item \textbf{(Half-overlap.)} \(\varepsilon_Z<1/2\).
+\item \textbf{(Cellwise overlap.)} For every covariate cell \(x\in\mathcal X\) with covariate-cell probability \(p_x>0\), the conditional instrument propensity \(\pi(x)\) satisfies
+\[
+\varepsilon_Z\le \pi(x)\le 1-\varepsilon_Z .
+\]
+\end{itemize}
+\end{assumptionv}
+
+\Cref{obj:ass:instrument-overlap} is the conditional instrument overlap condition \citep{KennedyHarrisKeele2019}. It keeps both instrument states present in every supported covariate cell, so the observed conditional contrasts used to form capacities are defined cell by cell.
+
+\begin{assumptionv}{ass:no-defiers}[Treatment monotonicity]
+Potential treatment receipt is monotone in the instrument:
+\[
+D_1\ge D_0
+\]
+almost surely.
+\end{assumptionv}
+
+\Cref{obj:ass:no-defiers} is the instrument monotonicity condition \citep{AngristImbensRubin1996}. It orients the first stage so that the shifted latent group is the complier stratum in \cref{obj:synth_1}.
+
+\begin{assumptionv}{ass:weak-selection-monotonicity}[Weak selection monotonicity]
+For every covariate cell \(x\) with \(P(C\mid X=x)>0\), the covariate-specific direction \(d(x)\in\{-1,+1\}\) satisfies
+\[
+P\{d(x)(S_1-S_0)\ge 0\mid C,X=x\}=1.
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:weak-selection-monotonicity} is the covariate-specific weak sample-selection monotonicity condition of \citet[Assumption~3.2]{DongHeiler2026}. The direction \leanref{sym:d(x)}{\ensuremath{d(x)}} is allowed to vary across covariate cells, and the condition makes the sign of the selected-complier selection contrast interpretable within cells that contain compliers.
+
+\begin{assumptionv}{ass:positive-aggregate-survivors}[Positive aggregate survivors]
+The aggregate survivor-complier mass satisfies
+\[
+M>0.
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:positive-aggregate-survivors} is the positive target-stratum probability condition \citep{KennedyHarrisKeele2019}. It ensures that the aggregate survivor-complier mass \leanref{sym:M}{\ensuremath{M}} can normalize the benefit probability studied in the next section.
+
+The maintained structural law class \leanref{sym:\mathcal M}{\ensuremath{\mathcal M}} is the collection of latent laws satisfying the restrictions just stated.
+
+\begin{definitionv}{def:structural-law-class}[Structural law class \(\mathcal M\)]
+The structural law class is
+\[
+\mathcal M
+=
+\{P:P\text{ satisfies }\cref{obj:ass:iv-independence,obj:ass:treatment-consistency,obj:ass:selection-exclusion-consistency,obj:ass:outcome-exclusion-consistency,obj:ass:instrument-overlap,obj:ass:no-defiers,obj:ass:weak-selection-monotonicity,obj:ass:positive-aggregate-survivors}\}.
+\]
+This is the finite-ordered, finite-covariate specialization of the corresponding Dong--Heiler cellwise restrictions on cells with \(P(C\mid X=x)>0\). Cells with \(P(C\mid X=x)=0\) have zero capacities and are inert for the target.
+\end{definitionv}
+
+The observable selected-complier capacities are the bridge from the observed law to the partial-transport problem. For each cell, \leanref{sym:\ell_i(x)}{\ensuremath{\ell_i(x)}} records lower-arm selected-complier mass at outcome level \(i\), while \leanref{sym:h_j(x)}{\ensuremath{h_j(x)}} records upper-arm selected-complier mass at level \(j\). Their totals \leanref{sym:q_0(x)}{\ensuremath{q_0(x)}} and \leanref{sym:q_1(x)}{\ensuremath{q_1(x)}}, their difference \leanref{sym:\Delta q(x)}{\ensuremath{\Delta q(x)}}, and their exact survivor-complier mass \leanref{sym:m(x)}{\ensuremath{m(x)}} determine the feasible cellwise coupling sets introduced in the next section.
+
+\begin{definitionv}{def:observable-capacities}[Observable capacities \(\ell_i(x),h_j(x)\)]
+For each \(x\in\mathcal X\) and \(i,j\in\mathcal Y\), let
+\[
+\ell_i(x)
+\]
+and
+\[
+h_j(x)
+\]
+be the lower-arm and upper-arm selected-complier outcome capacities obtained from the corresponding conditional instrument contrasts. Define the capacity totals, the capacity-total gap, and the exact survivor-complier mass by
+\[
+q_0(x)=\sum_{i\in\mathcal Y}\ell_i(x),
+\qquad
+q_1(x)=\sum_{j\in\mathcal Y}h_j(x),
+\]
+\[
+\Delta q(x)=q_1(x)-q_0(x),
+\qquad
+m(x)=\min\{q_0(x),q_1(x)\}.
+\]
+\end{definitionv}
+
+The section closes with the identification statement for these capacities. It converts the observed IV contrasts into latent selected-complier submeasures and identifies the exact survivor-complier mass cell by cell.
+
+\begin{theoremv}{prop:capacity-identification}[Capacity identification]
+Let \(S\) be a five-node potential-outcome slate with covariate \(X\), binary \(Z,D,S\), ordered outcome support \(\mathcal Y=\{0,\ldots,K-1\}\) with \(K\ge 3\), and standard-Borel latent probability space. Let \(\varepsilon_Z\) be the instrument-overlap constant, and let \(d:\mathcal X\to\{+1,-1\}\) be the covariate-specific weak selection-monotonicity direction. Suppose that:
+\begin{itemize}
+\item \textbf{(IV independence.)} \cref{obj:ass:iv-independence} holds.
+\item \textbf{(Treatment consistency.)} \cref{obj:ass:treatment-consistency} holds.
+\item \textbf{(Selection exclusion and consistency.)} \cref{obj:ass:selection-exclusion-consistency} holds.
+\item \textbf{(Outcome exclusion and consistency.)} \cref{obj:ass:outcome-exclusion-consistency} holds.
+\item \textbf{(Instrument overlap.)} \cref{obj:ass:instrument-overlap} holds with constant \(\varepsilon_Z\).
+\item \textbf{(No defiers.)} \cref{obj:ass:no-defiers} holds.
+\item \textbf{(Weak selection monotonicity.)} \cref{obj:ass:weak-selection-monotonicity} holds with direction \(d\).
+\end{itemize}
+Let \(\ell_i(x)\), \(h_j(x)\), \(\Delta q(x)\), and \(m(x)\) be the observable capacity contrasts formed from the observed-data law. Then the observable capacities are nonnegative in every covariate cell,
+\[
+\ell_i(x)\ge 0\quad\text{and}\quad h_j(x)\ge 0
+\qquad\text{for every }x\in\mathcal X\text{ and every }i,j\in\mathcal Y,
+\]
+all covariate-cell probabilities satisfy \(p_x\ge 0\), and, for every supported cell \(x\) with \(p_x>0\),
+\[
+\ell_i(x)=P(Y_0=i,S_0=1,C\mid X=x)
+\]
+for every \(i\in\mathcal Y\),
+\[
+h_j(x)=P(Y_1=j,S_1=1,C\mid X=x)
+\]
+for every \(j\in\mathcal Y\),
+\[
+\Delta q(x)=P(S_1=1,C\mid X=x)-P(S_0=1,C\mid X=x),
+\]
+and
+\[
+m(x)=P(S_0=1,S_1=1,C\mid X=x).
+\]
+Moreover, for every supported \(x\), \(\Delta q(x)>0\) implies \(d(x)=+1\), \(\Delta q(x)<0\) implies \(d(x)=-1\), and \(\Delta q(x)=0\) makes both directions observationally admissible under the observed-data law.
+\end{theoremv}
+
+The intuition is that the IV independence and consistency restrictions express selected outcome contrasts by latent complier components, while treatment monotonicity fixes which treatment response type contributes to the contrast. Weak selection monotonicity then aligns the selection contrast so that the smaller selected-complier total is exactly the always-selected complier mass in that cell. Consequently, \cref{obj:prop:capacity-identification} supplies the two nonnegative marginal submeasures that feed the exact-mass partial-transport construction below.

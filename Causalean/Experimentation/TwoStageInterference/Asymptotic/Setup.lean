@@ -1,0 +1,174 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Liu–Hudgens (2014): large-sample setup for the direct-effect contrast
+
+This file packages a single two-stage Hudgens–Halloran experiment into a self-contained
+bundle `LHExperiment`, so that a *sequence* of such experiments (groups → ∞) can be studied for
+large-sample inference following Liu & Hudgens (2014).  Each bundle carries the population of
+groups `ι`, the per-group size `gsize i`, the two-stage design (stage-1 strategy design `D₁` and
+the within-group strategy designs `ψ`/`φ`), the partial-interference potential outcomes `Y`, the
+control/treatment unit counts `m0`/`m1`, the number `C` of ψ-selected groups, and — crucially —
+the *known* design propensities (within-group control/treatment propensities `m0 i / nᵢ`,
+`m1 i / nᵢ`, the stage-1 first-order propensity `C/N`, and the stage-1 pair propensity
+`C(C−1)/(N(N−1))`) as carried regularity hypotheses.  These are exactly the hypotheses of the
+unbiasedness theorem `E_estDirect` and the variance theorem `Var_estDirect`, so the bundle exposes
+two reusable bridges, `E_estD` (the estimator is unbiased for the population average
+control-minus-treatment direct-effect contrast) and `var_estD` (its design variance equals the
+closed-form two-stage variance `directVar`), simply by feeding the carried hypotheses to those
+theorems. Throughout this layer the contrast retains the Hudgens–Halloran control-minus-treatment
+orientation, which is the negative of Liu–Hudgens' treatment-minus-control estimand.
+-/
+
+module
+public import Causalean.Experimentation.TwoStageInterference.BetweenGroupEffect
+
+/-! # Liu-Hudgens asymptotic setup
+
+`LHExperiment` packages one Hudgens–Halloran two-stage experiment for large-sample inference on the
+control-minus-treatment direct-effect contrast. This is the negative of the treatment-minus-control
+estimand used by Liu–Hudgens (2014).
+
+The structure carries the group population, group sizes, stage-1 strategy design, within-group
+strategies `ψ` and `φ`, partial-interference potential outcomes, fixed treated/control counts,
+the number `C` of `ψ`-selected groups, and the known design propensities needed by the finite-sample
+unbiasedness and variance theorems. Its namespace defines the joint two-stage design `jointD`, the
+Horvitz-Thompson direct-effect estimator `estD`, the estimand `DEbar`, and the closed-form variance
+`directVar`.
+
+The main theorems are the reusable bridges `E_estD` and `var_estD`: they specialize the
+finite-sample Hudgens-Halloran unbiasedness and variance results to each packaged experiment, so
+later consistency, CLT, and Wald arguments can reason through `LHExperiment` alone.
+-/
+
+@[expose] public section
+
+open scoped BigOperators
+open Finset
+
+namespace Causalean
+namespace Experimentation
+namespace TwoStageInterference
+
+open DesignBased
+
+/-- A single two-stage experiment in the Hudgens–Halloran orientation, packaged so that a sequence
+can be studied using Liu–Hudgens-style large-sample arguments. Its direct contrast is the negative
+of Liu–Hudgens' treatment-minus-control estimand. It carries [a finite population of groups](hyp:ι)
+with
+[per-group sizes](hyp:gsize), [a stage-1 design assigning each group a strategy](hyp:D₁), the
+per-group allocation strategies [ψ](hyp:ψ) and [φ](hyp:φ), [partial-interference potential
+outcomes](hyp:Y), and design-fixed [control](hyp:m0) and [treatment](hyp:m1) unit counts per
+group, together with the regularity conditions that [the number C of ψ-selected groups is
+nonzero](hyp:C,hC), [every group has nonzero control and treatment counts](hyp:hm0,hm1) and
+[nonzero size](hyp:hn), [the population has at least one group](hyp:hN) and [at least two
+groups](hyp:hN1), [every unit's within-group control propensity equals m0 i / nᵢ](hyp:hprop0)
+and [its treatment propensity equals m1 i / nᵢ](hyp:hprop1), [every group's stage-1 selection
+propensity equals C/N](hyp:hstage1), and [every pair's joint selection propensity equals
+C(C−1)/(N(N−1))](hyp:hstage1pair) — exactly the hypothesis lists of `E_estDirect` and
+`Var_estDirect`. -/
+structure LHExperiment where
+  /-- Finite population of groups. -/
+  ι : Type
+  [fι : Fintype ι]
+  [dι : DecidableEq ι]
+  /-- Size of each group. -/
+  gsize : ι → ℕ
+  /-- Stage-1 strategy-assignment design (which groups receive ψ vs. φ). -/
+  D₁ : FiniteDesign (StratAssign ι)
+  /-- Per-group treatment-allocation strategy ψ (the strategy of interest). -/
+  ψ : ∀ i, FiniteDesign (Fin (gsize i) → Bool)
+  /-- Per-group treatment-allocation strategy φ (the comparison strategy). -/
+  φ : ∀ i, FiniteDesign (Fin (gsize i) → Bool)
+  /-- Partial-interference potential outcomes: `Y i j w` is unit `(i,j)`'s outcome under the
+  within-group assignment `w` of group `i`. -/
+  Y : ∀ i, Fin (gsize i) → (Fin (gsize i) → Bool) → ℝ
+  /-- Design-fixed number of control units per group. -/
+  m0 : ι → ℝ
+  /-- Design-fixed number of treated units per group. -/
+  m1 : ι → ℝ
+  /-- Number of groups selected for strategy ψ at stage 1. -/
+  C : ℝ
+  -- Carried regularity (exactly the `E_estDirect` / `Var_estDirect` hypotheses):
+  /-- The ψ-selection count is nonzero. -/
+  hC : C ≠ 0
+  /-- Each group has a nonzero control count. -/
+  hm0 : ∀ i, m0 i ≠ 0
+  /-- Each group has a nonzero treated count. -/
+  hm1 : ∀ i, m1 i ≠ 0
+  /-- Each group is nonempty. -/
+  hn  : ∀ i, (gsize i : ℝ) ≠ 0
+  /-- There is at least one group. -/
+  hN  : (Fintype.card ι : ℝ) ≠ 0
+  /-- There are at least two groups (needed for the pair propensity). -/
+  hN1 : (Fintype.card ι : ℝ) - 1 ≠ 0
+  /-- Within-group control propensity of every unit is `m0 i / nᵢ`. -/
+  hprop0 : ∀ i, ∀ j : Fin (gsize i), (ψ i).Pr (fun w => w j = false) = m0 i / (gsize i)
+  /-- Within-group treatment propensity of every unit is `m1 i / nᵢ`. -/
+  hprop1 : ∀ i, ∀ j : Fin (gsize i), (ψ i).Pr (fun w => w j = true) = m1 i / (gsize i)
+  /-- Stage-1 first-order selection propensity of every group is `C/N`. -/
+  hstage1 : ∀ i, D₁.Pr (fun s => s i = true) = C / (Fintype.card ι : ℝ)
+  /-- Stage-1 second-order (pair) selection propensity is `C(C−1)/(N(N−1))`. -/
+  hstage1pair : ∀ i j, i ≠ j →
+    D₁.E (fun s => FiniteDesign.ind (fun s => s i = true) s
+        * FiniteDesign.ind (fun s => s j = true) s)
+      = (C * (C - 1)) / ((Fintype.card ι : ℝ) * ((Fintype.card ι : ℝ) - 1))
+
+attribute [instance] LHExperiment.fι LHExperiment.dι
+
+namespace LHExperiment
+
+variable (E : LHExperiment)
+
+/-- For [a two-stage experiment](hyp:E), the [joint two-stage randomization design](goal) first
+draws the group-level strategy assignment and then draws each group's within-group assignment from
+the design corresponding to its assigned strategy. -/
+noncomputable def jointD : FiniteDesign (StratAssign E.ι × ∀ i, Fin (E.gsize i) → Bool) :=
+  jointDesign E.D₁ E.ψ E.φ
+
+/-- For [a two-stage experiment](hyp:E), the [Horvitz--Thompson estimator of its
+control-minus-treatment direct effect](goal) assigns a real-valued estimate to every joint
+realization of the group-level strategy assignment and all within-group assignments. -/
+noncomputable def estD : (StratAssign E.ι × ∀ i, Fin (E.gsize i) → Bool) → ℝ :=
+  estDirect E.Y E.m0 E.m1 E.C
+
+/-- For [a two-stage experiment](hyp:E), the [population-average control-minus-treatment direct
+effect](goal) is the mean potential outcome under control minus the mean potential outcome under
+treatment, with both means evaluated under the experiment's treatment strategy. -/
+noncomputable def DEbar : ℝ := CE_direct E.ψ E.Y
+
+/-- For [a two-stage experiment](hyp:E), the [closed-form design variance of the
+control-minus-treatment direct-effect estimator](goal) equals
+`(1-C/N) S_μ²/C + (CN)⁻¹ ∑ᵢ Vᵢ`, where `N` is the number of groups, `C` is the number assigned
+the treatment strategy, `S_μ²` is the population sample variance of the group-level contrasts, and
+`Vᵢ` is group `i`'s within-group contrast-estimator variance under the treatment strategy. -/
+noncomputable def directVar : ℝ :=
+  (1 - E.C / (Fintype.card E.ι : ℝ)) / E.C
+      * SmuVar (fun i => groupMean E.ψ E.Y i false - groupMean E.ψ E.Y i true)
+    + (1 / (E.C * (Fintype.card E.ι : ℝ)))
+      * ∑ i, (E.ψ i).Var
+          (fun w => groupEst E.Y i false (E.m0 i) w - groupEst E.Y i true (E.m1 i) w)
+
+/-- **Unbiasedness bridge.** [The Horvitz–Thompson estimator is unbiased for the population average
+control-minus-treatment direct-effect contrast](goal).
+
+Immediate from `E_estDirect` and the carried propensity hypotheses. -/
+theorem E_estD : E.jointD.E E.estD = E.DEbar :=
+  E_estDirect E.D₁ E.ψ E.φ E.Y E.m0 E.m1 E.C
+    E.hC E.hm0 E.hm1 E.hn E.hprop0 E.hprop1 E.hstage1
+
+/-- **Variance bridge.** [The design variance of the control-minus-treatment direct-effect contrast
+estimator equals the closed-form two-stage variance `directVar`](goal).
+
+Immediate from `Var_estDirect` and the carried hypotheses. -/
+theorem var_estD : E.jointD.Var E.estD = E.directVar :=
+  Var_estDirect E.D₁ E.ψ E.φ E.Y E.m0 E.m1 E.C
+    E.hC E.hN E.hN1 E.hm0 E.hm1 E.hn E.hprop0 E.hprop1 E.hstage1 E.hstage1pair
+
+end LHExperiment
+
+end TwoStageInterference
+end Experimentation
+end Causalean

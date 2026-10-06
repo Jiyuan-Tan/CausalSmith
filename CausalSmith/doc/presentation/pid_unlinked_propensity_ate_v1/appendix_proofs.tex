@@ -1,0 +1,871 @@
+\begin{proof}[Proof of \cref{obj:prop:compatibility}]
+Suppose \(P\in\mathfrak M(H,g,P_{\mathrm{rel}})\). For each label \(r\), score-based assignment, deterministic release, and the score marginal give the treated-arm identity
+\[
+\begin{aligned}
+P_{\mathrm{rel}}(A=1,R=r)
+&=P(A=1,g(E)=r)\\
+&=\mathbb E_P\!\left[\mathbf 1\{g(E)=r\}p_1(E)\right]
+=\int_{C_r}e\,H(de)=q_{1r}.
+\end{aligned}
+\]
+This is the treated-arm instance of \cref{obj:lem:released-arm-cell-masses}; the arm-cell quantities are defined in \cref{obj:def:arm-cell-primitives}. The score marginal and deterministic release also give
+\[
+P_{\mathrm{rel}}(R=r)=P(g(E)=r)=H(C_r).
+\]
+Partitioning the label event by arm therefore yields the control-arm identity
+\[
+\begin{aligned}
+P_{\mathrm{rel}}(A=0,R=r)
+&=P_{\mathrm{rel}}(R=r)-P_{\mathrm{rel}}(A=1,R=r)\\
+&=H(C_r)-\int_{C_r}e\,H(de)
+=\int_{C_r}(1-e)\,H(de)=q_{0r}.
+\end{aligned}
+\]
+Thus \(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\) for both arms.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.compatibleCellMasses_of_compatibleCausalLaw
+Since \(p_0(e)+p_1(e)=1\), summing the arm masses gives
+\[
+P_{\mathrm{rel}}(R=r)
+=\sum_{a\in\mathcal A}P_{\mathrm{rel}}(A=a,R=r)
+=\sum_{a\in\mathcal A}q_{ar}
+=\int_{C_r}1\,H(de)
+=H(C_r).
+\]
+The treated-arm identity above is the second required equality.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.releasedLabelMass_sum_arms
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.compatibility_armCellMass_sum
+
+Conversely, suppose the two stated equalities hold for every \(r\). Partitioning each label event by arm and using \(p_0=1-p_1\) yields
+\[
+\begin{aligned}
+P_{\mathrm{rel}}(A=0,R=r)
+&=P_{\mathrm{rel}}(R=r)-P_{\mathrm{rel}}(A=1,R=r)\\
+&=H(C_r)-\int_{C_r}e\,H(de)
+=\int_{C_r}(1-e)\,H(de)=q_{0r}.
+\end{aligned}
+\]
+The assumed treated equality is \(P_{\mathrm{rel}}(A=1,R=r)=q_{1r}\). Thus \(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\) for both arms and every label.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.compatibleCellMasses_of_label_treated
+
+For every \((a,r)\in\mathcal A\times\mathcal R_J\), define a probability law on the outcome interval by
+\[
+F^\star_{ar}(\mathcal U):=
+\begin{cases}
+P_{\mathrm{rel}}(Y\in\mathcal U\mid A=a,R=r), & P_{\mathrm{rel}}(A=a,R=r)>0,\\
+\mathbf 1\{0\in\mathcal U\}, & P_{\mathrm{rel}}(A=a,R=r)=0,
+\end{cases}
+\qquad \mathcal U\subseteq[0,1]\text{ Borel}.
+\]
+On positive-mass pairs this is \(F_{ar}\) from \cref{obj:def:arm-cell-primitives}; on zero-mass pairs it is point mass at zero. In particular, for every Borel outcome set \(\mathcal U\),
+\[
+P_{\mathrm{rel}}(Y\in\mathcal U,A=a,R=r)
+=P_{\mathrm{rel}}(A=a,R=r)F^\star_{ar}(\mathcal U)
+=q_{ar}F^\star_{ar}(\mathcal U).
+\]
+Define a law for the latent variables by
+\[
+\Lambda(de,dy_0,dy_1)
+=H(de)\,F^\star_{0,g(e)}(dy_0)\,F^\star_{1,g(e)}(dy_1).
+\]
+Its score marginal is \(H\), and its two potential outcomes are conditionally independent given the score. The finite label alphabet and measurability of \(g\) make these kernels measurable.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedLatentLaw
+
+From \(\Lambda\), construct \(\widetilde P\) by drawing \(A\) conditionally on \((E,Y_0,Y_1)\) with probabilities \(p_a(E)\), then setting \(R=g(E)\) and \(Y=AY_1+(1-A)Y_0\). Equivalently, in the full-row coordinate order \((E,Y_0,Y_1,A,Y,R)\), its law is
+\[
+\widetilde P
+=\sum_{a\in\mathcal A}
+\bigl((e,y_0,y_1)\mapsto(e,y_0,y_1,a,ay_1+(1-a)y_0,g(e))\bigr)_{\#}
+\bigl(p_a(e)\,\Lambda(de,dy_0,dy_1)\bigr).
+\] Overlap gives \(0\leq p_a(e)\leq1\), and
+\[
+p_0(e)+p_1(e)=1,\qquad
+\widetilde P(E\in\mathcal S)
+=\int_{\mathcal S}\sum_{a\in\mathcal A}p_a(e)\,H(de)
+=H(\mathcal S)
+\]
+for every Borel score set \(\mathcal S\). Hence \(\widetilde P\) is a probability law with score marginal \(H\). Its conditional assignment probabilities are \(p_a(E)\), while consistency and deterministic release hold by construction.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_isProbabilityMeasure
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_scoreMarginal
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_randomizedAssignment
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_consistency
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_deterministicRelease
+
+Finally, for every \(a,r,\mathcal U\) as above,
+\[
+\begin{aligned}
+\widetilde P(R=r,A=a,Y\in\mathcal U)
+&=\int_{C_r}p_a(e)F^\star_{ar}(\mathcal U)\,H(de)\\
+&=q_{ar}F^\star_{ar}(\mathcal U)
+=P_{\mathrm{rel}}(R=r,A=a,Y\in\mathcal U).
+\end{aligned}
+\]
+These events determine the law of \((R,A,Y)\), including zero-mass cells. Thus its law under \(\widetilde P\) is \(P_{\mathrm{rel}}\), and \(\widetilde P\in\mathfrak M(H,g,P_{\mathrm{rel}})\).
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_releasedLaw
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_compatibleCausalLaw
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:all-label-ambiguity}]
+\textit{Step 1 (general upper bound).}
+For each arm and label, define
+\[
+\Gamma_{ar}
+:=\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+       \int_{C_r}|1-cp_a(e)|\,H(de),
+\qquad
+\Gamma_{\mathrm{all}}:=\sum_{r\in\mathcal R_J}
+       \bigl(\Gamma_{1r}+\Gamma_{0r}\bigr).
+\]
+Consider any causal law \(\widetilde P\) in the supremum defining \(D_H(g)\), and set
+\[
+\widetilde P_{\mathrm{rel}}
+:=\mathcal L_{\widetilde P}(R,A,Y).
+\]
+For a cell with \(q_{ar}>0\), let \(\widetilde F_{ar}\) be its observed outcome law under \(\widetilde P_{\mathrm{rel}}\), and define its contribution to the interval width by
+\[
+\Delta_{ar}(\widetilde P_{\mathrm{rel}})
+:=q_{ar}\int_0^1 Q_{\widetilde F_{ar}}(u)
+       \bigl\{Q_{W_{ar}}(u)-Q_{W_{ar}}(1-u)\bigr\}\,du.
+\]
+Set \(\Delta_{ar}(\widetilde P_{\mathrm{rel}})=0\) when \(q_{ar}=0\). By \cref{obj:lem:fixed-released-law-baseline} and the definitions of the mean endpoints,
+\[
+\operatorname{len}I(\widetilde P_{\mathrm{rel}};H,g)
+=\sum_{r\in\mathcal R_J}
+ \bigl\{\Delta_{1r}(\widetilde P_{\mathrm{rel}})
+       +\Delta_{0r}(\widetilde P_{\mathrm{rel}})\bigr\}.
+\]
+
+Fix a positive-mass cell and \(c\in[1/(1-\varepsilon),1/\varepsilon]\). Since \(0\le Q_{\widetilde F_{ar}}(u)\le1\) almost everywhere, the positive and negative parts give
+\[
+\begin{aligned}
+\int_0^1 Q_{\widetilde F_{ar}}(u)Q_{W_{ar}}(u)\,du
+&\le c\int_0^1Q_{\widetilde F_{ar}}(u)\,du
+   +\int_0^1\bigl(Q_{W_{ar}}(u)-c\bigr)_+\,du,\\
+\int_0^1 Q_{\widetilde F_{ar}}(u)Q_{W_{ar}}(1-u)\,du
+&\ge c\int_0^1Q_{\widetilde F_{ar}}(u)\,du
+   -\int_0^1\bigl(c-Q_{W_{ar}}(1-u)\bigr)_+\,du.
+\end{aligned}
+\]
+The quantiles at \(u\) and \(1-u\) each have law \(W_{ar}\) under uniform \(u\). Subtraction therefore yields
+\[
+\frac{\Delta_{ar}(\widetilde P_{\mathrm{rel}})}{q_{ar}}
+\le \mathbb E|W_{ar}-c|.
+\]
+The defining score law of \(E_{ar}\) and \(p_a(e)>0\) give the scaling identity
+\[
+q_{ar}\mathbb E|W_{ar}-c|
+=\int_{C_r}p_a(e)\left|\frac1{p_a(e)}-c\right|H(de)
+=\int_{C_r}|1-cp_a(e)|\,H(de).
+\]
+Taking the infimum shows \(\Delta_{ar}(\widetilde P_{\mathrm{rel}})\le\Gamma_{ar}\). If \(q_{ar}=0\), then \(H(C_r)=0\), since \(p_a(e)\ge\varepsilon>0\) on \(\mathcal E\); hence both sides are zero. Summing over all cells proves
+\[
+\operatorname{len}I(\widetilde P_{\mathrm{rel}};H,g)
+\le\Gamma_{\mathrm{all}},
+\qquad D_H(g)\le\Gamma_{\mathrm{all}}.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.worstCaseAmbiguity_le_sum_cellAbsoluteDeviation
+
+\textit{Step 2 (width of the half-outcome release).}
+For the \(P_{\mathrm{rel}}\) in the statement, every positive-mass cell has outcome law Bernoulli\((1/2)\), whose quantile is zero below \(1/2\) and one above \(1/2\), up to a null set. Put \(m_{ar}:=Q_{W_{ar}}(1/2)\) in such a cell. Monotonicity of the quantile and a change of variable give
+\[
+\begin{aligned}
+\frac{\Delta_{ar}(P_{\mathrm{rel}})}{q_{ar}}
+&=\int_{1/2}^1Q_{W_{ar}}(u)\,du
+  -\int_0^{1/2}Q_{W_{ar}}(u)\,du\\
+&=\int_0^1|Q_{W_{ar}}(u)-m_{ar}|\,du
+ =\mathbb E|W_{ar}-m_{ar}|.
+\end{aligned}
+\]
+Overlap places \(W_{ar}\), and thus its median \(m_{ar}\), in
+\([1/(1-\varepsilon),1/\varepsilon]\). The preceding cellwise bound applies to this fair outcome law for every admissible \(c\), while \(m_{ar}\) attains that bound. The scaling identity consequently gives
+\[
+\Delta_{ar}(P_{\mathrm{rel}})
+=q_{ar}\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+       \mathbb E|W_{ar}-c|
+=\Gamma_{ar}.
+\]
+The equality also holds in zero-mass cells by the zero-mass argument above. Summing the armwise contributions yields
+\[
+\operatorname{len}I(P_{\mathrm{rel}};H,g)
+=\Gamma_{\mathrm{all}}.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.halfOutcome_sharpATELength_eq_sum_cellAbsoluteDeviation
+
+\textit{Step 3 (compatible laws and endpoints).}
+The cell masses satisfy
+\[
+\sum_{r\in\mathcal R_J}\sum_{a\in\{0,1\}}q_{ar}
+=\int_{\mathcal E}\bigl(p_1(e)+p_0(e)\bigr)\,H(de)=1.
+\]
+Thus \(P_{\mathrm{rel}}\) is a probability law. For every label \(r\), its defining mixture gives
+\[
+P_{\mathrm{rel}}(R=r)=q_{1r}+q_{0r}=H(C_r),
+\qquad
+P_{\mathrm{rel}}(A=1,R=r)=q_{1r}
+=\int_{C_r}e\,H(de).
+\]
+By \cref{obj:prop:compatibility}, there is a compatible full law producing \(P_{\mathrm{rel}}\). Applying \cref{obj:lem:fixed-released-law-baseline} to this released law gives compatible probability laws \(P_-,P_+\) with
+\[
+\mathbb E_{P_-}[Y_1-Y_0]=\underline\mu_1-\overline\mu_0,
+\qquad
+\mathbb E_{P_+}[Y_1-Y_0]=\overline\mu_1-\underline\mu_0,
+\]
+and hence
+\[
+\mathbb E_{P_+}[Y_1-Y_0]-\mathbb E_{P_-}[Y_1-Y_0]
+=\operatorname{len}I(P_{\mathrm{rel}};H,g)
+=\Gamma_{\mathrm{all}}.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.halfOutcome_endpoint_attainment
+
+\textit{Step 4 (supremum and conclusion).}
+The set of widths in \cref{obj:def:worst-case-ambiguity} is bounded above by \(\Gamma_{\mathrm{all}}\), by the general upper bound. The compatible law constructed for \(P_{\mathrm{rel}}\) puts its width in that set, and the half-outcome calculation shows that this width equals \(\Gamma_{\mathrm{all}}\). Therefore
+\[
+D_H(g)=\Gamma_{\mathrm{all}}
+=\sum_{r\in\mathcal R_J}\left[
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+ \int_{C_r}|1-ce|\,H(de)
++
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+ \int_{C_r}|1-c(1-e)|\,H(de)
+\right].
+\]
+Substituting this equality into the attained endpoint gap above proves the asserted gap. The hypotheses also cover the index-set boundary: \(\mathcal E\) contains \(\varepsilon\), so the value \(g(\varepsilon)\) ensures \(\mathcal R_J\) is nonempty.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.worstCaseAmbiguity_eq
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:universal-point-identification}]
+\begin{enumerate}
+\item For \(a\in\{0,1\}\) and \(r\in\mathcal R_J\), set
+\[
+\delta_{ar}:=
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-cp_a(e)|\,H(de),
+\qquad p_1(e)=e,\quad p_0(e)=1-e.
+\]
+The coefficient interval is nonempty under overlap. Each defining integral is finite and nonnegative, so \(\delta_{ar}\geq0\). By \cref{obj:thm:all-label-ambiguity},
+\[
+D_H(g)=\sum_{r\in\mathcal R_J}(\delta_{1r}+\delta_{0r}).
+\]
+Thus \(D_H(g)=0\) implies \(\delta_{1r}=0\) for every \(r\): each term in this finite sum is nonnegative. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.worstCaseAmbiguity_eq
+
+\item Fix \(r\) with \(H(C_r)>0\), and define, for every real \(t\),
+\[
+\Phi_r(t):=\int_{C_r}|1-te|\,H(de).
+\]
+Since \(0\leq e\leq1\) on \(\mathcal E\), for all real \(t,t'\),
+\[
+|\Phi_r(t)-\Phi_r(t')|
+\leq \int_{C_r}|t-t'|e\,H(de)
+\leq |t-t'|H(C_r)
+\leq |t-t'|.
+\]
+Hence \(\Phi_r\) is continuous and attains its minimum on the compact coefficient interval. Let \(c_r\) attain it. The preceding step gives
+\[
+0=\delta_{1r}=\Phi_r(c_r)
+=\int_{C_r}|1-c_re|\,H(de),
+\]
+so \(1-c_re=0\) for \(H\)-almost every \(e\in C_r\). Because \(H(C_r)>0\), there is an \(x_r\in C_r\) with \(1-c_rx_r=0\). Also \(c_r\geq1/(1-\varepsilon)>0\). Consequently,
+\[
+c_r(e-x_r)=0
+\quad\text{for \(H\)-almost every \(e\in C_r\),}
+\]
+and therefore \(e=x_r\) there almost surely. This proves the cellwise condition. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.cellAbsoluteDeviation_minimizer
+
+\item Conversely, suppose the cellwise condition holds. Choose its value \(x_r\) on each positive-mass cell and define the map on the entire label set by
+\[
+h(r):=
+\begin{cases}
+x_r,&H(C_r)>0,\\
+\varepsilon,&H(C_r)=0,
+\end{cases}
+\qquad r\in\mathcal R_J.
+\]
+Here \(\varepsilon\in\mathcal E\) by overlap. The finite label set makes \(h\) measurable. On every positive-mass cell, \(e=h(r)\) almost surely; the same assertion is vacuous on a zero-mass cell. Taking the finite union of these cellwise assertions yields
+\[
+e=h(g(e))\qquad\text{for \(H\)-almost every \(e\)}.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.scoreRecovery_iff_cellwiseAE
+
+\item For every \(a\in\{0,1\}\) and \(r\in\mathcal R_J\), set
+\[
+c_{ar}:=\frac{1}{p_a(h(r))}.
+\]
+Overlap gives
+\[
+\varepsilon\leq p_a(h(r))\leq1-\varepsilon,
+\qquad
+\frac1{1-\varepsilon}\leq c_{ar}\leq\frac1\varepsilon.
+\]
+The cellwise equality established above gives \(p_a(e)=p_a(h(r))\) almost surely on \(C_r\), including when that cell has zero mass. Thus
+\[
+0\leq\delta_{ar}
+\leq\int_{C_r}|1-c_{ar}p_a(e)|\,H(de)=0.
+\]
+Every summand in the all-label formula is zero, and hence \(D_H(g)=0\). Finally, if a measurable \(h\) satisfies \(e=h(g(e))\) \(H\)-almost surely, then on each positive-mass \(C_r\) its value \(h(r)\) witnesses the cellwise condition. The two stated conditions are therefore each equivalent to \(D_H(g)=0\). % lean: CausalSmith.PartialID.UnlinkedPropensityAte.worstCaseAmbiguity_eq_zero_iff
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:k-label-rate}]
+The overlap condition gives \(\ell>0\). First fix \(H\in\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\) and an arbitrary measurable \(g\in\mathcal G_K\). For each label \(r\), set
+\[
+C_r=\{e\in\mathcal E:g(e)=r\},
+\qquad h_r=\operatorname{Leb}(C_r).
+\]
+The measurable cells partition \(\mathcal E\), including any empty cells, so \(h_r\geq0\) and \(\sum_r h_r=\ell\). % lean: realScoreCell_intervalPartition
+
+For every \(\zeta\in\mathbb R\) and \(t\geq0\), the points within distance \(t\) of \(\zeta\) occupy an interval of length \(2t\). Thus
+\[
+\operatorname{Leb}\{e\in C_r:|e-\zeta|>t\}\geq h_r-2t,
+\]
+and the layer-cake identity gives
+\[
+\int_{C_r}|e-\zeta|\,de
+\geq\int_0^{h_r/2}(h_r-2t)\,dt
+=\frac{h_r^2}{4}.
+\] % lean: boundedCell_absDeviation_integral_lower
+
+Since \(H(de)=f(e)\,de\) with \(f\geq m_f\) almost everywhere, it follows for every \(\zeta\in\mathbb R\) that
+\[
+\int_{C_r}|e-\zeta|\,H(de)
+\geq m_f\int_{C_r}|e-\zeta|\,de
+\geq \frac{m_fh_r^2}{4}.
+\] % lean: scoreCell_absDeviation_lower
+
+Write \(p_1(e)=e\) and \(p_0(e)=1-e\), as in \cref{obj:thm:all-label-ambiguity}. For any \(c\in[1/(1-\varepsilon),1/\varepsilon]\), define the two score centers by
+\[
+z_{1,c}=c^{-1},\qquad z_{0,c}=1-c^{-1}.
+\]
+Here \(c>0\), and direct algebra gives
+\[
+|1-cp_a(e)|=c|e-z_{a,c}|,
+\qquad a\in\{0,1\}.
+\] % lean: reciprocalDeviation_eq_scoreDistance
+
+Because \(c\geq1/(1-\varepsilon)\), the preceding cell bound yields, for either arm,
+\[
+\int_{C_r}|1-cp_a(e)|\,H(de)
+\geq \frac{m_fh_r^2}{4(1-\varepsilon)}.
+\] % lean: cellAbsoluteDeviation_lower_cellLengthSq
+
+By the exact cell formula in \cref{obj:thm:all-label-ambiguity},
+\[
+D_H(g)
+=\sum_r\sum_{a\in\{0,1\}}
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-cp_a(e)|\,H(de)
+\geq \frac{m_f}{2(1-\varepsilon)}\sum_r h_r^2.
+\] % lean: worstCaseAmbiguity_eq
+
+There are \(K\) labels, so Cauchy–Schwarz gives
+\[
+\sum_r h_r^2
+\geq \frac{(\sum_r h_r)^2}{K}
+=\frac{\ell^2}{K}.
+\] % lean: sum_cellMass_sq_lower
+Consequently every \(g\in\mathcal G_K\) satisfies
+\[
+D_H(g)\geq\frac{m_f\ell^2}{2(1-\varepsilon)K}.
+\] % lean: worstCaseAmbiguity_finiteLabel_lower
+The class \(\mathcal G_K\) is nonempty because \(K\geq1\) permits a constant measurable release. Taking the infimum as in \cref{obj:def:optimal-k-ambiguity} proves the lower bound for \(\Delta_K(H)\). % lean: optimalKAmbiguity_finiteLabel_lower
+
+Now let \(H\) be any probability law on \(\mathcal E\), and take the equal-width release \(g\) in the statement. It is measurable: the score transformation inside the floor is continuous, the floor is measurable, and clipping its value to the finite label set preserves measurability. % lean: equalWidthRelease_measurable
+
+Index its labels by \(r=1,\ldots,K\), write \(C_r=\{e\in\mathcal E:g(e)=r\}\), and define
+\[
+z_r=\varepsilon+\left(r-\frac12\right)\frac{\ell}{K}.
+\]
+For \(e\in C_r\), the floor rule places \(e\) between \(\varepsilon+(r-1)\ell/K\) and \(\varepsilon+r\ell/K\). At the right endpoint of \(\mathcal E\), clipping assigns the last label, for which the same closed bounds hold. Hence \(z_r\in\mathcal E\) and
+\[
+|e-z_r|\leq\frac{\ell}{2K}\qquad(e\in C_r).
+\] % lean: equalWidthRelease_cell_subset_closedBin
+
+The candidates \(z_r^{-1}\) and \((1-z_r)^{-1}\) lie in \([1/(1-\varepsilon),1/\varepsilon]\). Moreover,
+\[
+z_r(1-z_r)-\varepsilon(1-\varepsilon)
+=(z_r-\varepsilon)(1-\varepsilon-z_r)\geq0.
+\]
+Thus, for \(e\in C_r\),
+\[
+\left|1-\frac e{z_r}\right|
++\left|1-\frac{1-e}{1-z_r}\right|
+=\frac{|e-z_r|}{z_r(1-z_r)}
+\leq \frac{|e-z_r|}{\varepsilon(1-\varepsilon)}.
+\] % lean: sum_arm_reciprocalDeviation_le
+
+Using these candidates in the two cell infima, then applying the midpoint bound, gives
+\[
+\sum_{a\in\{0,1\}}
+\inf_{c\in[1/(1-\varepsilon),\,1/\varepsilon]}
+\int_{C_r}|1-cp_a(e)|\,H(de)
+\leq
+\frac{1}{\varepsilon(1-\varepsilon)}
+\int_{C_r}|e-z_r|\,H(de)
+\leq
+\frac{\ell}{2\varepsilon(1-\varepsilon)K}H(C_r).
+\] % lean: sum_cellAbsoluteDeviation_le_centeredScoreIntegral
+
+The cells partition \(\mathcal E\) and \(H(\mathcal E)=1\). Summing the cell bounds therefore yields
+\[
+D_H(g)\leq
+\frac{\ell}{2\varepsilon(1-\varepsilon)K}
+\sum_r H(C_r)
+=
+\frac{\ell}{2\varepsilon(1-\varepsilon)K}.
+\] % lean: equalWidthRelease_worstCaseAmbiguity_le_all
+
+Finally, the exact cell formula shows \(D_H(g')\geq0\) for every measurable release \(g'\), while the measurable \(g\) above belongs to \(\mathcal G_K\). Hence the defining infimum satisfies
+\[
+\Delta_K(H)\leq D_H(g)
+\leq\frac{\ell}{2\varepsilon(1-\varepsilon)K}.
+\] % lean: optimalKAmbiguity_bounds
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:sharp-high-resolution-constant}]
+By \cref{obj:ass:overlap}, \(\mathcal E\) is a nondegenerate compact interval and \(e,1-e\geq\varepsilon>0\) throughout \(\mathcal E\). Continuity and strict positivity give
+\[
+0<\min_{e\in\mathcal E}f(e)
+\leq\max_{e\in\mathcal E}f(e)<\infty.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.exists_boundedScoreDensity_of_continuous
+
+For \(x,z\in\mathcal E\), define the two distortion coefficients
+\[
+\beta_1(x,z)=\frac{f(x)}{z},
+\qquad
+\beta_0(x,z)=\frac{f(x)}{1-z}.
+\]
+Both are continuous and strictly positive on \(\mathcal E^2\). Their diagonal weight is
+\[
+w(x):=\beta_0(x,x)+\beta_1(x,x)
+=\frac{f(x)}{x(1-x)}.
+\]
+Thus \cref{obj:lem:paired-high-resolution-quantization} applies with two components. In particular, if \(V_K\) denotes its optimal paired cost for these coefficients, then
+\[
+K V_K\longrightarrow
+\frac14\left(\int_{\varepsilon}^{1-\varepsilon}
+\sqrt{\frac{f(x)}{x(1-x)}}\,dx\right)^2.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.pairedQuantization_tendsto
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.highResolutionBeta_diagonal
+
+We identify this paired cost with the release objective. Fix \(K>0\) and a measurable release \(g:\mathcal E\to\{0,\ldots,K-1\}\), and put \(C_r=\{x\in\mathcal E:g(x)=r\}\). For centers \(\mathbf z=(z_{r,a})_{r,a}\in\mathcal E^{\{0,\ldots,K-1\}\times\{0,1\}}\), define
+\[
+\Phi_K(g,\mathbf z)
+:=
+\sum_{r=0}^{K-1}\sum_{a=0}^{1}
+\int_{C_r}\beta_a(x,z_{r,a})|x-z_{r,a}|\,dx.
+\]
+The changes of variables \(z_{r,1}=c^{-1}\) and \(z_{r,0}=1-c^{-1}\) each map the coefficient range in \cref{obj:thm:all-label-ambiguity} bijectively onto \(\mathcal E\), and give
+\[
+f(x)|1-cx|
+=\beta_1(x,z_{r,1})|x-z_{r,1}|,
+\qquad
+f(x)|1-c(1-x)|
+=\beta_0(x,z_{r,0})|x-z_{r,0}|.
+\]
+The cellwise infima are independent. Each has a nonempty set of feasible values bounded below by zero, including when its cell is empty. Hence \cref{obj:thm:all-label-ambiguity} yields
+\[
+D_H(g)=\inf_{\mathbf z}\Phi_K(g,\mathbf z).
+\]
+Taking the infimum over releases flattens these independent choices. Their cells are measurable, pairwise disjoint, and cover \(\mathcal E\); conversely, every such \(K\)-cell partition defines a measurable release by assigning its cell indices as labels. Empty cells are allowed in both descriptions. Therefore \cref{obj:def:optimal-k-ambiguity} gives the exact identity
+\[
+\Delta_K(H)
+=\inf_{g\in\mathcal G_K}\inf_{\mathbf z}\Phi_K(g,\mathbf z)
+=V_K.
+\]
+It follows that
+\[
+K\Delta_K(H)\longrightarrow
+\frac14\left(\int_{\varepsilon}^{1-\varepsilon}
+\sqrt{\frac{f(x)}{x(1-x)}}\,dx\right)^2.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.optimalKAmbiguity_eq_optimalPairedCost
+
+To construct the releases, set
+\[
+A_H:=\int_{\varepsilon}^{1-\varepsilon}\sqrt{w(x)}\,dx.
+\]
+For each \(K>0\), choose boundaries \(t_{0,K},\ldots,t_{K,K}\) by
+\[
+t_{0,K}=\varepsilon,\qquad t_{K,K}=1-\varepsilon,\qquad
+\int_{\varepsilon}^{t_{j,K}}\sqrt{w(x)}\,dx=\frac{j}{K}A_H
+\quad(0\leq j\leq K).
+\]
+Positivity of \(w\) makes these boundaries strictly increasing. Let \(g_K\) assign label \(j\) to \([t_{j,K},t_{j+1,K})\) for \(j<K-1\), and label \(K-1\) to \([t_{K-1,K},t_{K,K}]\). Put
+\[
+\zeta_{j,K}:=\frac{t_{j,K}+t_{j+1,K}}2,
+\qquad
+U_K:=\Phi_K(g_K,\mathbf z)
+\quad\text{with }z_{j,0}=z_{j,1}=\zeta_{j,K}.
+\]
+The construction clause of \cref{obj:lem:paired-high-resolution-quantization} ensures that these cells form a measurable partition, that every midpoint lies in \(\mathcal E\), and that
+\[
+K U_K\longrightarrow
+\frac14 A_H^2.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.highResolutionOrderedRelease
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.pairedQuantization_tendsto
+
+For every \(K>0\), optimality over releases gives the lower bound, while the chosen centers give a feasible value for each cellwise infimum:
+\[
+\Delta_K(H)\leq D_H(g_K)
+=\inf_{\mathbf z}\Phi_K(g_K,\mathbf z)
+\leq U_K.
+\]
+Multiplication by \(K\geq0\) preserves both inequalities. At \(K=0\), assign zero to the two auxiliary scaled quantities; both bounds then read \(0\leq0\leq0\). The two established limits squeeze \(K D_H(g_K)\) to \(\frac14A_H^2\).
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.optimalKAmbiguity_le_highResolutionOrderedRelease
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.highResolutionOrderedRelease_worstCaseAmbiguity_le_compandingCost
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.tendsto_K_mul_optimalKAmbiguity
+
+Finally, each displayed cell of \(g_K\) is an interval and is measurable. If \(x,z\) carry the same label and \(x\leq y\leq z\), that interval also contains \(y\); thus the label cells have the asserted interval property.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.highResolutionOrderedRelease_measurable
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.highResolutionOrderedRelease_cell_ordConnected
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:minimax-honest-length}]
+Put
+\[
+\ell=1-2\varepsilon,\qquad \beta=1-2\alpha,\qquad
+B_\alpha=\frac{\beta\sqrt{\log(1+\beta^2)}}4,\qquad
+U_{\varepsilon,\alpha}
+=\frac{\ell}{\varepsilon(1-\varepsilon)}
++\frac8\varepsilon\sqrt{\log(4/\alpha)},\qquad
+C_{\varepsilon,\alpha}=\max\{B_\alpha,U_{\varepsilon,\alpha}\}.
+\]
+The overlap and miscoverage conditions give \(\ell>0\), \(\beta>0\), and \(B_\alpha>0\); hence \(C_{\varepsilon,\alpha}>0\). % lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_order
+
+First fix any probability score law \(H\), any \(n,K\geq1\), and any honest pair \((g,C_n)\). Set
+\[
+u_n=\frac12\sqrt{\frac{\log(1+\beta^2)}{n}}.
+\]
+Construct two causal laws \(P^{(0)},P^{(1)}\) as follows. Under both, \(E\sim H\), \(Y_0=0\), \(R=g(E)\), and, conditional on the latent variables, \(A\) is Bernoulli with parameter \(E\). Independently of \(E\), take \(Y_1\) to be Bernoulli with parameter \(1/2\) under \(P^{(0)}\) and \(1/2+u_n\) under \(P^{(1)}\); set \(Y=AY_1+(1-A)Y_0\). Since \(0<u_n<1/2\), both laws belong to \(\mathfrak P(H,g)\) of \cref{obj:def:causal-law-class}, and their average treatment effects are \(1/2\) and \(1/2+u_n\). % lean: CausalSmith.PartialID.UnlinkedPropensityAte.honestProcedure_sampling_baseline_expectedLength_lower
+
+Let \(Q_j\) be the released \(n\)-row law under \(P^{(j)}\), for \(j=0,1\). The released rows are measurable functions of Bernoulli potential outcomes and a common, independent score-and-assignment design. Total variation contracts under this readout. The chi-squared divergence of Bernoulli\((1/2+u_n)\) from Bernoulli\((1/2)\) is \(4u_n^2\); its product-law identity and Cauchy–Schwarz therefore give
+\[
+\operatorname{TV}(Q_0,Q_1)
+\leq \frac12\sqrt{(1+4u_n^2)^n-1}.
+\]
+Writing \(x=\log(1+\beta^2)\), we have \(4u_n^2=x/n\), so \((1+x/n)^n\leq e^x=1+\beta^2\). Consequently,
+\[
+\operatorname{TV}(Q_0,Q_1)\leq\frac{\beta}{2}.
+\]
+The two coverage events have probabilities at least \(1-\alpha\) under their respective laws. Transferring the second event to \(Q_0\) and intersecting the events shows that, with \(Q_0\)-probability at least
+\(1-2\alpha-\operatorname{TV}(Q_0,Q_1)\geq\beta/2\), the interval contains both treatment effects. Its length is then at least \(u_n\). Thus
+\[
+\sup_{P\in\mathfrak P(H,g)}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}|C_n|
+\geq \mathbb E_{Q_0}|C_n|
+\geq \frac{\beta u_n}{2}
+=B_\alpha n^{-1/2}.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.honestProcedure_sampling_worstCaseExpectedLength_lower
+
+This bound holds for every honest pair. The collection of such pairs is nonempty: a constant release paired with the interval \([-1,1]\) is honest. Their expected lengths lie in \([0,2]\). Taking the infimum as in \cref{obj:def:minimax-honest-length} yields
+\[
+B_\alpha n^{-1/2}\leq\mathcal L^\star_{n,K,\alpha}(H).
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_sampling_lower
+
+Now suppose \(H\in\mathcal H^{\mathrm{lb}}_{\varepsilon,m_f}\), where \(m_f>0\). By \cref{obj:def:score-lower-density-class}, \(H(de)=f(e)\,de\) with \(f\geq m_f\) almost everywhere. Fix an arbitrary \(g\in\mathcal G_K\), and write
+\[
+C_r=\{e\in\mathcal E:g(e)=r\},\qquad
+h_r=\operatorname{Leb}(C_r),\qquad r\in\mathcal R_K.
+\]
+These measurable cells partition \(\mathcal E\), including when some are empty or disconnected, so \(\sum_rh_r=\ell\). For \(c\in[1/(1-\varepsilon),1/\varepsilon]\), put
+\[
+z_{1,c}=c^{-1},\qquad z_{0,c}=1-c^{-1}.
+\]
+Both centers lie in \(\mathcal E\). With \(p_1(e)=e\) and \(p_0(e)=1-e\), as in \cref{obj:thm:all-label-ambiguity}, for either arm \(a\) we have
+\[
+\int_{C_r}|1-cp_a(e)|\,H(de)
+=c\int_{C_r}|e-z_{a,c}|\,H(de)
+\geq\frac{m_f}{1-\varepsilon}
+       \int_{C_r}|e-z_{a,c}|\,de.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.cellAbsoluteDeviation_lower_cellLengthSq
+
+Here is the geometric bound used for each cell. For any measurable set \(V\) of finite Lebesgue measure \(h\) and any real \(z\), the interval \(\{|e-z|\leq t\}\) has measure at most \(2t\). The layer-cake identity gives, also when \(h=0\),
+\[
+\int_V|e-z|\,de
+=\int_0^\infty\operatorname{Leb}\{e\in V:|e-z|>t\}\,dt
+\geq\int_0^{h/2}(h-2t)\,dt
+=\frac{h^2}{4}.
+\]
+Applying this with \(V=C_r\) bounds each arm’s infimum in the exact ambiguity formula of \cref{obj:thm:all-label-ambiguity}. Since \(\sum_rh_r^2\geq(\sum_rh_r)^2/K=\ell^2/K\), that formula yields
+\[
+D_H(g)\geq
+\frac{m_f}{2(1-\varepsilon)}\sum_r h_r^2
+\geq\frac{m_f\ell^2}{2(1-\varepsilon)K}.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.worstCaseAmbiguity_finiteLabel_lower
+
+For this same release, \cref{obj:thm:all-label-ambiguity} supplies two causal laws with a common released law and treatment effects separated by \(D_H(g)\). Under their common \(n\)-row law, honesty makes the two coverage events intersect with probability at least \(1-2\alpha\). On that intersection, the interval has length at least \(D_H(g)\). Hence every honest \((g,C_n)\) satisfies
+\[
+\sup_{P\in\mathfrak P(H,g)}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}|C_n|
+\geq(1-2\alpha)D_H(g)
+\geq A_{\varepsilon,m_f,\alpha}K^{-1},
+\qquad
+A_{\varepsilon,m_f,\alpha}
+:=\frac{(1-2\alpha)m_f\ell^2}{2(1-\varepsilon)}>0.
+\]
+Taking the infimum over honest pairs preserves this bound. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_finiteLabel_lower
+
+Define
+\[
+c_{\varepsilon,m_f,\alpha}
+=\frac12\min\{A_{\varepsilon,m_f,\alpha},B_\alpha\}>0.
+\]
+The label and sampling bounds give
+\[
+c_{\varepsilon,m_f,\alpha}
+\bigl(K^{-1}+n^{-1/2}\bigr)
+\leq
+\max\{A_{\varepsilon,m_f,\alpha}K^{-1},
+      B_\alpha n^{-1/2}\}
+\leq\mathcal L^\star_{n,K,\alpha}(H).
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_rate_assembly
+
+For the upper bound, use the equal-width release and midpoints in the statement. Its endpoint convention assigns every \(e\in\mathcal E\) a label and gives
+\[
+z_{g_K(e)}\in[\varepsilon,1-\varepsilon],
+\qquad |e-z_{g_K(e)}|\leq\frac{\ell}{2K}.
+\]
+Fix \(P\in\mathfrak P(H,g_K)\), and choose conditional means
+\[
+\eta_a(e)=\mathbb E_P[Y_a\mid E=e]\in[0,1],
+\qquad a\in\{0,1\}.
+\]
+The score-based assignment and consistency conditions in \cref{obj:def:causal-law-class} give
+\[
+\begin{aligned}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n
+&=\int_{\mathcal E}
+ \left\{\frac{e\eta_1(e)}{z_{g_K(e)}}
+ -\frac{(1-e)\eta_0(e)}{1-z_{g_K(e)}}\right\}H(de),\\
+\theta(P)&=\int_{\mathcal E}\{\eta_1(e)-\eta_0(e)\}\,H(de).
+\end{aligned}
+\]
+Subtracting and using \(z(1-z)\geq\varepsilon(1-\varepsilon)\) on the score interval gives
+\[
+\begin{aligned}
+\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n-\theta(P)
+&=\int_{\mathcal E}(e-z_{g_K(e)})
+ \left\{\frac{\eta_1(e)}{z_{g_K(e)}}
+       +\frac{\eta_0(e)}{1-z_{g_K(e)}}\right\}H(de),\\
+\left|\mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n-\theta(P)\right|
+&\leq\frac{\ell}{2K\varepsilon(1-\varepsilon)}.
+\end{aligned}
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.midpointWeightedRow_integral_sub_ate_abs_le
+
+Each summand of \(\widehat T_n\) lies in \([-\varepsilon^{-1},\varepsilon^{-1}]\). Hoeffding’s inequality for the independent released rows, with
+\[
+t_n=\frac4\varepsilon\sqrt{\frac{\log(4/\alpha)}n},
+\]
+therefore gives
+\[
+P_{\mathrm{rel}}^{\otimes n}
+ \left(\left|\widehat T_n-
+ \mathbb E_{P_{\mathrm{rel}}^{\otimes n}}\widehat T_n\right|\geq t_n\right)
+\leq 2\exp\!\left(-\frac{n\varepsilon^2t_n^2}{2}\right)
+=2(\alpha/4)^8\leq\alpha.
+\]
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.midpointWeightedCenter_deviation_probability_le
+
+The radius in the statement is \(R_{n,K}=t_n+\ell/[2K\varepsilon(1-\varepsilon)]\). Outside the displayed deviation event, the bias bound implies
+\(\lvert\widehat T_n-\theta(P)\rvert\leq R_{n,K}\). Also \(\theta(P)\in[-1,1]\), since \(Y_0,Y_1\in[0,1]\). Clamping the two endpoints to \([-1,1]\) therefore preserves containment of \(\theta(P)\). The radius is nonnegative, and the clamp is measurable and nondecreasing, so the stated endpoints form an interval for every sample. The release is measurable. As the argument holds for every \(P\in\mathfrak P(H,g_K)\), \((g_K,C_n)\in\mathcal J_{n,K,\alpha}(H)\) by \cref{obj:def:honest-procedures}. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.equalWidth_midpointInterval_honest
+
+Finally, the clamp is one-Lipschitz. Pointwise in the sample,
+\[
+|C_n|
+\leq 2R_{n,K}
+=\frac{\ell}{\varepsilon(1-\varepsilon)}K^{-1}
+ +\frac8\varepsilon\sqrt{\log(4/\alpha)}\,n^{-1/2}
+\leq U_{\varepsilon,\alpha}
+ \bigl(K^{-1}+n^{-1/2}\bigr).
+\]
+Integrating under every released \(n\)-row law gives the asserted expected-length bound with \(C_{\varepsilon,\alpha}\geq U_{\varepsilon,\alpha}\). Taking the supremum over causal laws and the infimum over honest pairs also gives
+\[
+\mathcal L^\star_{n,K,\alpha}(H)
+\leq C_{\varepsilon,\alpha}\bigl(K^{-1}+n^{-1/2}\bigr).
+\]
+Together with the two lower bounds, this proves the claims. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.minimaxHonestLength_order
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:external-score-root-order}]
+\emph{Step 1: Lower certificates.}
+\Cref{obj:lem:external-two-source-lower-certificate} gives \(0<S_g\leq1\), the trial and score-log lower bounds, and the stated lower bound on the normalized risk. It also gives \(c_{\mathrm{log}}(g,\alpha)>0\). We construct an interval attaining the upper bound. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.externalExcessRisk_lower_certificates
+
+\emph{Step 2: Empirical distances and endpoint stability.}
+Fix positive \(n,m\) and an admissible pair \((P,H)\). For each arm \(a\) and label \(r\), define the population finite measures
+\[
+\lambda_{ar}(B)=P(R=r,A=a,Y\in B),\quad B\subseteq[0,1],
+\qquad
+\sigma_{ar}(B)=\int_{B\cap C_r}p_a(e)\,H(de),\quad B\subseteq\mathcal E.
+\]
+Their total masses agree by the score-marginal, assignment, and release conditions. For finite measures \(\xi,\xi'\) on a compact interval \(\mathcal I\), write
+\[
+d_{\mathcal I}(\xi,\xi')
+=
+|\xi(\mathcal I)-\xi'(\mathcal I)|
++\int_{\mathcal I}|F_\xi(t)-F_{\xi'}(t)|\,dt,
+\qquad F_\xi(t)=\xi((-\infty,t]).
+\]
+For a joint sample \(\omega\), set
+\[
+D_Y(\omega)=\sum_{a,r}d_{[0,1]}(\widehat\lambda_{ar}(\omega),\lambda_{ar}),
+\qquad
+D_E(\omega)=\sum_{a,r}d_{\mathcal E}(\widehat\sigma_{ar}(\omega),\sigma_{ar}).
+\]
+The empirical measures are those of \cref{obj:def:external-projection-handle}. Each empirical cumulative mass, including its total mass, is an average of independent variables in \([0,1]\). Its expected absolute deviation is at most \(1/(2\sqrt n)\) for a trial cell and \(1/(2\sqrt m)\) for a score-log cell. Integrating over intervals of lengths \(1\) and \(1-2\varepsilon\), respectively, and summing the \(2J\) cells gives
+\[
+\mathbb E_{\mathbb Q_{P,H}^{n,m}}D_Y\leq\frac{2J}{\sqrt n},
+\qquad
+\mathbb E_{\mathbb Q_{P,H}^{n,m}}D_E
+\leq\frac{J(2-2\varepsilon)}{\sqrt m}. \label{eq:external-root-order-mean}
+\]
+
+Here is the stability estimate used below. For compatible finite measures \(\xi\) on \([0,1]\) and \(\zeta\) on \(\mathcal E\), let their common mass be \(\kappa\). When \(\kappa>0\), define
+\[
+\Psi_a^-(\xi,\zeta)
+=\kappa\int_0^1 Q_{\xi/\kappa}(u)
+ Q_{(p_a^{-1})_\#(\zeta/\kappa)}(1-u)\,du,
+\qquad
+\Psi_a^+(\xi,\zeta)
+=\kappa\int_0^1 Q_{\xi/\kappa}(u)
+ Q_{(p_a^{-1})_\#(\zeta/\kappa)}(u)\,du;
+\]
+when \(\kappa=0\), set both values to zero. For another compatible pair \((\xi',\zeta')\) of mass \(\kappa'\), put \(\kappa_\wedge=\min\{\kappa,\kappa'\}\). Suppose first that both masses are positive. The quantile transport identity on a compact interval \(\mathcal I\) identifies the integral of the absolute difference of normalized quantiles with the integral of the absolute difference of normalized CDFs. If \(\kappa\leq\kappa'\), then \(0\leq F_{\xi'}(t)\leq\kappa'\) gives, pointwise,
+\[
+\kappa\left|\frac{F_\xi(t)}{\kappa}-\frac{F_{\xi'}(t)}{\kappa'}\right|
+\leq |F_\xi(t)-F_{\xi'}(t)|+|\kappa-\kappa'|.
+\]
+The same inequality with the pairs exchanged covers \(\kappa'\leq\kappa\). Applying it to the outcome and score CDFs and integrating over supports of lengths \(1\) and \(1-2\varepsilon\), respectively, yields
+\[
+\begin{aligned}
+\kappa_\wedge\int_0^1
+ |Q_{\xi/\kappa}(u)-Q_{\xi'/\kappa'}(u)|\,du
+&\leq
+\int_0^1|F_\xi(t)-F_{\xi'}(t)|\,dt+|\kappa-\kappa'|,\\
+\kappa_\wedge\int_0^1
+ |Q_{\zeta/\kappa}(u)-Q_{\zeta'/\kappa'}(u)|\,du
+&\leq
+\int_{\mathcal E}|F_\zeta(t)-F_{\zeta'}(t)|\,dt
+ +(1-2\varepsilon)|\kappa-\kappa'|.
+\end{aligned} \label{eq:external-root-order-transport}
+\]
+Since \(0\leq y\leq1\), \(p_a(e)\geq\varepsilon\), and \(e\mapsto p_a(e)^{-1}\) is \(\varepsilon^{-2}\)-Lipschitz, the product difference in either definition of \(\Psi_a^\pm\), multiplied by \(\kappa_\wedge\), is bounded using \cref{eq:external-root-order-transport} by
+\[
+\varepsilon^{-1}
+ \left(\int_0^1|F_\xi-F_{\xi'}|+|\kappa-\kappa'|\right)
++\varepsilon^{-2}
+ \left(\int_{\mathcal E}|F_\zeta-F_{\zeta'}|
+       +|\kappa-\kappa'|\right). \label{eq:external-root-order-product}
+\]
+The remaining mass contributes at most \(\varepsilon^{-1}|\kappa-\kappa'|\). Because both distances contain that mass difference, \cref{eq:external-root-order-product} implies, with
+\(\Lambda_\varepsilon=\varepsilon^{-1}+\varepsilon^{-2}\),
+\[
+|\Psi_a^\pm(\xi,\zeta)-\Psi_a^\pm(\xi',\zeta')|
+\leq
+\Lambda_\varepsilon
+ \bigl(d_{[0,1]}(\xi,\xi')+d_{\mathcal E}(\zeta,\zeta')\bigr). \label{eq:external-root-order-stability}
+\]
+If either mass is zero, the bound \(0\leq\Psi_a^\pm(\xi,\zeta)\leq\varepsilon^{-1}\kappa\) and the mass term in the distance give \cref{eq:external-root-order-stability} directly. Summing \cref{eq:external-root-order-stability} over labels gives the same bound, with summed distances, for each arm endpoint. By \cref{obj:lem:fixed-released-law-baseline}, those endpoints at \((\lambda_{ar},\sigma_{ar})_{a,r}\) are \(\underline\mu_a,\overline\mu_a\). % lean: CausalSmith.PartialID.UnlinkedPropensityAte.externalJointTrial_meanDistance_le, CausalSmith.PartialID.UnlinkedPropensityAte.externalJointLog_meanDistance_le, CausalSmith.PartialID.UnlinkedPropensityAte.projectedCellSummand_abs_le, CausalSmith.PartialID.UnlinkedPropensityAte.projectedArmEndpoint_population_eq
+
+\emph{Step 3: Honesty and excess length.}
+Use the interval \(C_{n,m}\) of \cref{obj:def:external-projection-handle}. Its countable rational sieve and selected endpoints give measurable endpoints and a closed interval in \([-1,1]\). The release \(g:\mathcal E\to\mathcal R_J\), with nonempty \(\mathcal E\), also ensures \(J\geq1\). The radii in that construction are
+\[
+r_n=\frac{4J}{\alpha\sqrt n},
+\qquad
+r_m=\frac{2J(2-2\varepsilon)}{\alpha\sqrt m}.
+\]
+By \cref{eq:external-root-order-mean}, Markov's inequality applied to the nonnegative distances gives
+\[
+\mathbb Q_{P,H}^{n,m}\{D_Y<r_n,\ D_E<r_m\}\geq1-\alpha. \label{eq:external-root-order-coverage}
+\]
+On the strict-ball event in \cref{eq:external-root-order-coverage}, define the available slack
+\[
+\eta_* = \min\{r_n-D_Y(\omega),\,r_m-D_E(\omega)\}>0,
+\qquad \eta_k=\frac{\eta_*}{k+1}\quad(k\geq1).
+\]
+For each arm-label cell, its population outcome and score measures have the same finite mass. Given \(\eta>0\), choose a common nonnegative rational mass and a common positive atom count for two equal-weight atomic approximations, with outcome and score atoms on their respective dense rational grids. To see the quantitative bound, first approximate each normalized measure by equally weighted quantile atoms; increasing the common atom count makes the sum of their integrated CDF errors arbitrarily small. Moving those atoms to the rational grids preserves that convergence. If the common population mass is \(\kappa\) and the chosen rational mass is \(\kappa'\), changing the weight of each atom from \(\kappa/N\) to \(\kappa'/N\) adds at most \((1+|\mathcal I|)|\kappa-\kappa'|\) to the distance on support \(\mathcal I\). Thus the combined weight error for the two supports is at most \((4-2\varepsilon)|\kappa-\kappa'|\). Choosing \(\kappa'\) sufficiently close to \(\kappa\) gives combined cell error below any prescribed tolerance; this also covers zero mass by taking rational mass zero.
+
+Apply this construction in every cell with tolerance \(\eta_k/[2(J+1)]\). Since there are \(2J\) cells, it gives a compatible rational array \(b_k\) satisfying
+\[
+\sum_{a,r}\!\left(d_{[0,1]}(\lambda_{ar},\lambda_{ar}(b_k))
++d_{\mathcal E}(\sigma_{ar},\sigma_{ar}(b_k))\right)
+<\frac{2J}{2(J+1)}\eta_k<\eta_k.
+\]
+Here \(\lambda_{ar}(b_k)\) and \(\sigma_{ar}(b_k)\) denote the two measures encoded by \(b_k\). Each of the two separate distance sums is therefore below \(\eta_k\). The triangle inequality gives empirical distances below \(D_Y(\omega)+\eta_k<r_n\) and \(D_E(\omega)+\eta_k<r_m\), so \(b_k\) belongs to both closed empirical balls. As \(k\to\infty\), \cref{eq:external-root-order-stability} makes all four arm endpoints converge to their population values. Write
+\[
+I(b_k)=[\underline\theta_k,\overline\theta_k],
+\qquad
+I(P_{\mathrm{rel}};H,g)=[\underline\theta_\star,\overline\theta_\star].
+\]
+Both candidate endpoints converge to their corresponding population endpoints. Fix any \(v\in I(P_{\mathrm{rel}};H,g)\) and clamp it to the candidate interval:
+\[
+v_k=\min\{\max\{v,\underline\theta_k\},\overline\theta_k\}\in I(b_k).
+\]
+If \(v<\underline\theta_k\), the distance \(|v_k-v|\) is at most \(|\underline\theta_k-\underline\theta_\star|\); if \(\overline\theta_k<v\), it is at most \(|\overline\theta_k-\overline\theta_\star|\); otherwise it is zero. Thus \(v_k\to v\). Every point of the population interval therefore lies in the closure of the union of candidate intervals, and hence in their closed convex hull. Write \(\theta(P)=\mathbb E_P[Y_1-Y_0]\). By \cref{obj:lem:fixed-released-law-baseline}, \(\theta(P)\) belongs to that sharp interval; its potential-outcome support also places it in \([-1,1]\). Thus the clipped hull contains \(\theta(P)\) on the event in \cref{eq:external-root-order-coverage}, proving
+\[
+C_{n,m}\in\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g),
+\qquad
+C_{n,m}(\omega)=\text{the closed interval of \cref{obj:def:external-projection-handle} at }\omega
+\quad\text{for every }\omega. \label{eq:external-root-order-honesty}
+\]
+
+For any retained candidate, the two empirical-ball inequalities and the triangle inequality bound its summed distance from the population array by \(r_n+D_Y(\omega)+r_m+D_E(\omega)\). \Cref{eq:external-root-order-stability} therefore bounds each candidate arm endpoint's error by
+\(\Lambda_\varepsilon(r_n+D_Y(\omega)+r_m+D_E(\omega))\). Each average-treatment-effect endpoint combines two arm endpoints; taking the hull and clipping it to \([-1,1]\) yields
+\[
+\left(\operatorname{length}(C_{n,m}(\omega))
+-\operatorname{length}I(P_{\mathrm{rel}};H,g)\right)_+
+\leq
+4\Lambda_\varepsilon
+ \bigl(r_n+D_Y(\omega)+r_m+D_E(\omega)\bigr). \label{eq:external-root-order-excess}
+\]
+In either fallback branch of the construction the interval is \(\{0\}\), so its positive excess is zero and \cref{eq:external-root-order-excess} holds there as well. Taking expectations and using \cref{eq:external-root-order-mean} gives, uniformly over admissible \((P,H)\),
+\[
+\mathbb E_{\mathbb Q_{P,H}^{n,m}}
+ \left[\left(\operatorname{length}(C_{n,m})
+-\operatorname{length}I(P_{\mathrm{rel}};H,g)\right)_+\right]
+\leq
+4\Lambda_\varepsilon
+ \left(
+ \frac{4J/\alpha+2J}{\sqrt n}
+ +\frac{2J(2-2\varepsilon)/\alpha+J(2-2\varepsilon)}{\sqrt m}
+ \right). \label{eq:external-root-order-mean-excess}
+\]
+The joint marginal and independence assumptions identify \(\mathbb Q_{P,H}^{n,m}\) with the product experiment in \cref{obj:def:external-experiment}. Hence honesty and \cref{eq:external-root-order-mean-excess}, followed by the infimum and supremum in \cref{obj:def:external-excess-risk}, give the same upper bound for \(\mathcal R^\star_{n,m,\alpha}(g)\). Set
+\[
+C_{\varepsilon,J,\alpha,g}
+=
+4\Lambda_\varepsilon
+ \left(\frac{4J}{\alpha}+2J
+       +\frac{2J(2-2\varepsilon)}{\alpha}
+       +J(2-2\varepsilon)\right)+1>0.
+\]
+Both \cref{eq:external-root-order-mean-excess} and the minimax bound are then at most
+\(C_{\varepsilon,J,\alpha,g}(n^{-1/2}+m^{-1/2})\), as required. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionIntervalProcedure_honest, CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionIntervalProcedure_Icc, CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionIntervalProcedure_population_excessLength_le, CausalSmith.PartialID.UnlinkedPropensityAte.externalProjectionIntervalProcedure_population_meanExcessLength_le, CausalSmith.PartialID.UnlinkedPropensityAte.externalExcessRisk_le_of_honest_uniform_bound
+
+\emph{Step 4: Normalized bounds.}
+For positive \(n,m\), the upper bound just proved and \cref{obj:def:external-normalized-risk} imply
+\[
+0\leq T_{n,m,\alpha}(g)
+=b_{n,m}\mathcal R^\star_{n,m,\alpha}(g)
+\leq C_{\varepsilon,J,\alpha,g},
+\qquad
+b_{n,m}=(n^{-1/2}+m^{-1/2})^{-1}. \label{eq:external-root-order-normalized}
+\]
+The lower inequality follows from the positive trial certificate in \cref{obj:lem:external-two-source-lower-certificate}. Along the nonempty joint regime \(n,m\to\infty\), \(n/m\to\rho>0\), \cref{eq:external-root-order-normalized} bounds the limsup by \(C_{\varepsilon,J,\alpha,g}\) and ensures that the liminf is at most the limsup. The same cited lower certificate supplies
+\[
+\liminf T_{n,m,\alpha}(g)\geq
+\max\left\{
+\frac{c_{\mathrm{tr}}(\alpha)}{1+\sqrt\rho},
+\frac{c_{\mathrm{log}}(g,\alpha)\sqrt\rho}{1+\sqrt\rho}
+\right\}>0.
+\]
+Together with the score-log liminf bound in \cref{obj:lem:external-two-source-lower-certificate}, these are all the asserted inequalities. % lean: CausalSmith.PartialID.UnlinkedPropensityAte.externalExcessRisk_root_order
+\end{proof}

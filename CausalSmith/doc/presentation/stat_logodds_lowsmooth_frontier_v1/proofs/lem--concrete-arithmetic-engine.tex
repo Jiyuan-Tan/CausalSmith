@@ -1,0 +1,939 @@
+\begin{proof}[Proof of \cref{obj:lem:concrete-arithmetic-engine}]
+We verify the finite-computation certificate first, followed by the constant, exponential, logarithm, square-root, power, and cosine contracts. Rational quantities in real inequalities are identified with their real values.
+
+\begin{enumerate}
+\item \emph{Finite rational computation.}
+For \(q\in\mathbb N_0\), define
+\[
+\epsilon_q=2^{-q},
+\qquad
+p_{\mathrm{sc}}(q)=q+3,
+\qquad
+e_{\mathrm{sc}}(q)=2^{-p_{\mathrm{sc}}(q)}.
+\]
+For rational \(\xi_{\mathrm{rat}}\) and nonnegative integer \(n_{\mathrm{int}}\), put
+\[
+\lfloor\xi_{\mathrm{rat}}\rfloor_+
+ =\max\{0,\lfloor\xi_{\mathrm{rat}}\rfloor\},
+\qquad
+\lceil\xi_{\mathrm{rat}}\rceil_+
+ =\max\{0,\lceil\xi_{\mathrm{rat}}\rceil\},
+\qquad
+\kappa(n_{\mathrm{int}})
+ =\min\{\jmath\in\mathbb N_0:n_{\mathrm{int}}\le 2^\jmath\}.
+\]
+Thus \(\kappa(0)=0\). In the rational computation model, division by zero is assigned the value zero. This convention specifies the routines on their full input domains; the analytic contracts use the domains in \cref{obj:def:arithmetic-engine}.
+
+For rational endpoints define
+\[
+\operatorname{box}(\xi_{\mathrm{lo}},\xi_{\mathrm{hi}})
+ =
+ [\min\{\xi_{\mathrm{lo}},\xi_{\mathrm{hi}}\},
+  \max\{\xi_{\mathrm{lo}},\xi_{\mathrm{hi}}\}].
+\]
+For any rational interval \(\mathcal J\), write
+\[
+\mathcal J=[\underline{\mathcal J},\overline{\mathcal J}],
+\qquad
+\operatorname{wid}(\mathcal J)
+ =\overline{\mathcal J}-\underline{\mathcal J}.
+\]
+
+Here are the scalar routines implemented by the programs. For \(z\in\mathbb Q\), define
+\[
+B_{\mathrm{ser}}(z)=\max\{1,\lceil|z|\rceil_+\},
+\qquad
+m_{\mathrm{ser}}(q,z)
+ =\max\{2B_{\mathrm{ser}}(z)^2,q+6\},
+\]
+\[
+\Sigma_{\exp}(q,z)
+ =\sum_{\jmath=0}^{2m_{\mathrm{ser}}(q,z)-1}\frac{z^\jmath}{\jmath!},
+\qquad
+\Sigma_{\cos}(q,z)
+ =\sum_{\jmath=0}^{m_{\mathrm{ser}}(q,z)-1}
+   \frac{(-1)^\jmath z^{2\jmath}}{(2\jmath)!},
+\]
+and
+\[
+\mathcal B_{\exp}(q,z)
+ =\operatorname{box}\!\left(
+   \max\{3^{-B_{\mathrm{ser}}(z)},
+          \Sigma_{\exp}(q,z)-e_{\mathrm{sc}}(q)\},
+   \Sigma_{\exp}(q,z)+e_{\mathrm{sc}}(q)\right),
+\]
+\[
+\mathcal B_{\cos}(q,z)
+ =\operatorname{box}\!\left(
+   \max\{-1,\Sigma_{\cos}(q,z)-e_{\mathrm{sc}}(q)\},
+   \min\{1,\Sigma_{\cos}(q,z)+e_{\mathrm{sc}}(q)\}\right).
+\]
+For the logarithm, define on all rational inputs
+\[
+B_{\log}(z)=\max\{2,\lceil z\rceil_+,\lceil1/z\rceil_+\},
+\qquad
+\vartheta_{\log}(z)=\frac{z-1}{z+1},
+\]
+\[
+c_{\log}(q,z)=q+3+\kappa(8B_{\log}(z))+2,
+\qquad
+n_{\log}(q,z)=B_{\log}(z)c_{\log}(q,z),
+\]
+\[
+\Sigma_{\log}(q,z)
+ =2\sum_{\jmath=0}^{n_{\log}(q,z)-1}
+       \frac{\vartheta_{\log}(z)^{2\jmath+1}}{2\jmath+1},
+\qquad
+\mathcal B_{\log}(q,z)=
+\begin{cases}
+\operatorname{box}(\Sigma_{\log}(q,z)-e_{\mathrm{sc}}(q),
+                   \Sigma_{\log}(q,z)+e_{\mathrm{sc}}(q)),&z>0,\\
+[0,0],&z\le0.
+\end{cases}
+\]
+
+For the square-root routine, set
+\[
+n_{\sqrt{\ }}(q,z)=\lfloor 2^{2p_{\mathrm{sc}}(q)}z\rfloor_+.
+\]
+For any \(n_{\mathrm{int}}\in\mathbb N_0\), start a binary recurrence with
+\[
+l_0=0,\qquad u_0=n_{\mathrm{int}}+1.
+\]
+At each iteration retain the endpoints when \(u_\jmath-l_\jmath=1\).
+Otherwise, with
+\[
+h_\jmath=\left\lfloor\frac{l_\jmath+u_\jmath}{2}\right\rfloor,
+\]
+set
+\[
+(l_{\jmath+1},u_{\jmath+1})=
+\begin{cases}
+(h_\jmath,u_\jmath),&h_\jmath^2\le n_{\mathrm{int}},\\
+(l_\jmath,h_\jmath),&h_\jmath^2>n_{\mathrm{int}}.
+\end{cases}
+\]
+The invariant and width implication are
+\[
+l_\jmath^2\le n_{\mathrm{int}}<u_\jmath^2,\qquad l_\jmath<u_\jmath,
+\]
+\[
+u_\jmath-l_\jmath\le2^{s_{\mathrm{rem}}+1}
+\quad\Longrightarrow\quad
+u_{\jmath+1}-l_{\jmath+1}\le2^{s_{\mathrm{rem}}},
+\qquad s_{\mathrm{rem}}\in\mathbb N_0.
+\]
+Indeed, in a nonterminal iteration the midpoint lies strictly between the endpoints, and the comparison selects the endpoint preserving the squared bracket. Each possible new width is at most the old width divided by two and rounded upward. A terminal width of one also satisfies the displayed implication. Since
+\[
+n_{\mathrm{int}}+1\le2^{\kappa(n_{\mathrm{int}}+1)+1},
+\]
+induction on the remaining iterations shows that after
+\(\kappa(n_{\mathrm{int}}+1)+1\) iterations the endpoints are consecutive.
+Define \(a_{\mathrm{int}}(n_{\mathrm{int}})\) to be the resulting lower endpoint. Then
+\[
+a_{\mathrm{int}}(n_{\mathrm{int}})^2
+ \le n_{\mathrm{int}}
+ <(a_{\mathrm{int}}(n_{\mathrm{int}})+1)^2.
+\]
+These inequalities uniquely characterize the integer square root. When
+\(n_{\mathrm{int}}=0\), the initial bracket is already \([0,1]\) and remains fixed. Define
+\[
+\mathcal B_{\sqrt{\ }}(q,z)
+ =\operatorname{box}\!\left(
+ \frac{a_{\mathrm{int}}(n_{\sqrt{\ }}(q,z))}{2^{p_{\mathrm{sc}}(q)}},
+ \frac{a_{\mathrm{int}}(n_{\sqrt{\ }}(q,z))+1}{2^{p_{\mathrm{sc}}(q)}}\right).
+\]
+In particular, this formula returns
+\([0,2^{-p_{\mathrm{sc}}(q)}]\) when \(z<0\).
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.paperIntegerSqrt_spec
+
+For \(n_{\mathrm{atan}}\in\mathbb N_0\) and \(z\in\mathbb Q\), put
+\[
+A_{\mathrm{atan}}(n_{\mathrm{atan}},z)
+ =\sum_{\jmath=0}^{n_{\mathrm{atan}}-1}
+       \frac{(-1)^\jmath z^{2\jmath+1}}{2\jmath+1},
+\]
+\[
+\Sigma_\pi(q)
+ =16A_{\mathrm{atan}}(q+7,1/5)
+  -4A_{\mathrm{atan}}(q+7,1/239),
+\qquad
+\mathcal B_\pi(q)
+ =\operatorname{box}\!\left(
+   \max\{3,\Sigma_\pi(q)-e_{\mathrm{sc}}(q)\},
+   \min\{4,\Sigma_\pi(q)+e_{\mathrm{sc}}(q)\}\right).
+\]
+
+For the power routine, \(b\in\mathbb N_0\) denotes the primitive integer base and
+\(v_{\mathrm{pow}}\in\mathbb Q\) the scalar exponent. Define
+\[
+B_{\mathrm{pow}}(b)=\max\{2,b\},
+\qquad
+p_{\mathrm{pow}}(q,b)=q+12+3\kappa(B_{\mathrm{pow}}(b)),
+\qquad
+\tau_{\mathrm{pow}}(q,b)=2^{-p_{\mathrm{pow}}(q,b)},
+\]
+\[
+\mathcal L_{\mathrm{pow}}(q,b)
+ =\mathcal B_{\log}(p_{\mathrm{pow}}(q,b),b),
+\qquad
+\lambda_{\mathrm{pow}}(q,b)
+ =\frac{\underline{\mathcal L_{\mathrm{pow}}(q,b)}
+          +\overline{\mathcal L_{\mathrm{pow}}(q,b)}}2,
+\]
+\[
+\zeta_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})
+ =v_{\mathrm{pow}}\lambda_{\mathrm{pow}}(q,b),
+\qquad
+\mathcal J_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})
+ =\mathcal B_{\exp}(p_{\mathrm{pow}}(q,b),
+                   \zeta_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})),
+\]
+\[
+\delta_{\mathrm{pow}}(q,b)
+ =96B_{\mathrm{pow}}(b)^3\tau_{\mathrm{pow}}(q,b).
+\]
+The scalar output is
+\[
+\mathcal B_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})=
+\begin{cases}
+[1,1],&b=1,\\
+\operatorname{box}\!\left(
+ \max\{1/b^3,
+       \underline{\mathcal J_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})}
+          -\delta_{\mathrm{pow}}(q,b)\},
+ \min\{b^3,
+       \overline{\mathcal J_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})}
+          +\delta_{\mathrm{pow}}(q,b)\}\right),&b\ne1.
+\end{cases}
+\]
+The rational-division convention makes this formula total at \(b=0\).
+
+For a rational input interval
+\[
+I_{\mathrm{arg}}=[a_{\mathrm{in}},b_{\mathrm{in}}],
+\qquad a_{\mathrm{in}}\le b_{\mathrm{in}},
+\]
+the engine uses
+\[
+\mathsf E_0^\pi(q)=\mathcal B_\pi(q),
+\qquad
+\mathsf E_0^F(q,I_{\mathrm{arg}})
+ =\operatorname{box}\!\left(
+ \underline{\mathcal B_F(q,a_{\mathrm{in}})},
+ \overline{\mathcal B_F(q,b_{\mathrm{in}})}\right),
+\quad F\in\{\exp,\log,\sqrt{\ }\},
+\]
+\[
+\mathsf E_0^{\mathrm{pow}}(q,b,I_{\mathrm{arg}})
+ =\operatorname{box}\!\left(
+ \underline{\mathcal B_{\mathrm{pow}}(q,b,a_{\mathrm{in}})},
+ \overline{\mathcal B_{\mathrm{pow}}(q,b,b_{\mathrm{in}})}\right).
+\]
+For cosine, define the rational midpoint and half-width
+\[
+z_{\mathrm{mid}}=\frac{a_{\mathrm{in}}+b_{\mathrm{in}}}{2},
+\qquad
+w_{\mathrm{arg}}=\frac{b_{\mathrm{in}}-a_{\mathrm{in}}}{2},
+\]
+and use
+\[
+\mathsf E_0^{\cos}(q,I_{\mathrm{arg}})
+ =\operatorname{box}\!\left(
+ \max\{-1,\underline{\mathcal B_{\cos}(q,z_{\mathrm{mid}})}
+                    -w_{\mathrm{arg}}\},
+ \min\{1,\overline{\mathcal B_{\cos}(q,z_{\mathrm{mid}})}
+                   +w_{\mathrm{arg}}\}\right).
+\]
+
+To certify finite computation, use a finite instruction list acting on rational registers, together with a program counter and a halt flag. Instructions load or copy a rational value, perform rational arithmetic, minimum or maximum, perform integer floor, ceiling, factorial, integer square root, \(\kappa\), or nonnegative integer power, compare registers and branch, jump, or halt. Each instruction has unit cost in this model. Integer arguments are obtained by the nonnegative floor convention above. Input coordinates initialize the registers, missing coordinates are zero, and a halted state remains fixed.
+
+The term recurrences explain both the returned sums and the loop counts. Their current terms are
+\[
+t_{\exp,\jmath}(z)=\frac{z^\jmath}{\jmath!},
+\qquad
+t_{\cos,\jmath}(z)=\frac{(-1)^\jmath z^{2\jmath}}{(2\jmath)!},
+\]
+\[
+t_{\mathrm{atan},\jmath}(z)=(-1)^\jmath z^{2\jmath+1},
+\qquad
+t_{\log,\jmath}(z)=\vartheta_{\log}(z)^{2\jmath+1},
+\]
+with updates
+\[
+t_{\exp,\jmath+1}
+ =t_{\exp,\jmath}\frac{z}{\jmath+1},
+\qquad
+t_{\cos,\jmath+1}
+ =t_{\cos,\jmath}\frac{-z^2}{(2\jmath+1)(2\jmath+2)},
+\]
+\[
+t_{\mathrm{atan},\jmath+1}
+ =-z^2t_{\mathrm{atan},\jmath},
+\qquad
+t_{\log,\jmath+1}
+ =\vartheta_{\log}(z)^2t_{\log,\jmath}.
+\]
+Starting the exponential and cosine terms at one, and the arctangent and logarithm terms at \(z\) and \(\vartheta_{\log}(z)\), respectively, induction shows that the accumulated registers contain precisely the displayed partial sums.
+
+For example, one joint Machin iteration uses one branch, two divisions by the current odd integer, two additions to the partial sums, two term multiplications, one odd-index increment, one counter decrement, and one jump: ten instructions. Its initialization uses fourteen instructions, and its exit uses seventeen. Thus its public bound is
+\[
+14+10(q+7)+17.
+\]
+The corresponding accounting for the other endpoint programs is
+\[
+\begin{array}{c|l}
+\text{Primitive}&\text{Public instruction bound}\\ \hline
+\pi&14+10(q+7)+17\\
+\exp&
+23+(14m_{\mathrm{ser}}(q,a_{\mathrm{in}})+15)
+ +(3+20)+(14m_{\mathrm{ser}}(q,b_{\mathrm{in}})+15)+2\\
+\cos&26+9m_{\mathrm{ser}}(q,z_{\mathrm{mid}})+20\\
+\log&
+28+(7n_{\log}(q,a_{\mathrm{in}})+14)
+ +(3+25)+(7n_{\log}(q,b_{\mathrm{in}})+14)+2\\
+\sqrt{\ }&14 .
+\end{array}
+\]
+The exponential and logarithm iterations each use seven instructions; the cosine iteration uses nine. Their fixed blocks initialize the terms, preserve the left endpoint while evaluating the right endpoint, form and sort the scalar endpoints, and halt. Induction on the remaining loop count, using the term identities, proves the endpoint-output identities at these bounds. The logarithm exit returns zero on nonpositive scalar inputs.
+
+The square-root program increments the precision and forms its dyadic scale in four instructions, forms the scaled square and lower endpoint in four, forms the upper endpoint in five, and halts in one. Its integer-square-root instruction agrees with the binary recurrence by the uniqueness established above. Consequently its output registers contain
+\[
+\frac{a_{\mathrm{int}}(n_{\sqrt{\ }}(q,a_{\mathrm{in}}))}
+     {2^{p_{\mathrm{sc}}(q)}},
+\qquad
+\frac{a_{\mathrm{int}}(n_{\sqrt{\ }}(q,b_{\mathrm{in}}))+1}
+     {2^{p_{\mathrm{sc}}(q)}}.
+\]
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.concreteEngine_sqrt_register_certificate
+
+For power, the public bound must be computable from the original inputs. Define, for all \(q,b\in\mathbb N_0\),
+\[
+n_{\mathrm{pow},\log}(q,b)
+ =n_{\log}(p_{\mathrm{pow}}(q,b),b).
+\]
+The symmetric logarithm bracket gives the exact midpoint identity
+\[
+\lambda_{\mathrm{pow}}(q,b)=
+\begin{cases}
+\Sigma_{\log}(p_{\mathrm{pow}}(q,b),b),&b>0,\\
+0,&b=0.
+\end{cases}
+\]
+Since \(b\ge0\),
+\[
+\left|\frac{b-1}{b+1}\right|\le1,
+\qquad
+\left|
+ \frac{((b-1)/(b+1))^{2\jmath+1}}{2\jmath+1}
+\right|\le1.
+\]
+The triangle inequality for the finite sum therefore gives
+\[
+|\Sigma_{\log}(p_{\mathrm{pow}}(q,b),b)|
+ \le2n_{\mathrm{pow},\log}(q,b),
+\qquad
+|\zeta_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})|
+ \le2n_{\mathrm{pow},\log}(q,b)|v_{\mathrm{pow}}|.
+\]
+Define
+\[
+B_{\mathrm{pow},\mathrm{budget}}(q,b,v_{\mathrm{pow}})
+ =\max\{1,\lceil
+       2n_{\mathrm{pow},\log}(q,b)|v_{\mathrm{pow}}|
+       \rceil_+\}.
+\]
+Monotonicity of ceiling yields
+\[
+B_{\mathrm{ser}}(\zeta_{\mathrm{pow}}(q,b,v_{\mathrm{pow}}))
+ \le B_{\mathrm{pow},\mathrm{budget}}(q,b,v_{\mathrm{pow}}).
+\]
+The fused scalar program computes the logarithm midpoint, evaluates the exponential at the perturbed argument, and performs the displayed clipping. The logarithm stage is bounded by
+\(45+7n_{\mathrm{pow},\log}(q,b)\) instructions. Connecting to the exponential stage uses one instruction; preparing and evaluating the exponential at a repeated scalar argument uses
+\(6+78+28m_{\mathrm{ser}}(p_{\mathrm{pow}},\zeta_{\mathrm{pow}})\);
+the clipping continuation is bounded by thirty-one further instructions. Hence a public scalar bound is
+\[
+\begin{split}
+f_{\mathrm{pow},\mathrm{sc}}(q,b,v_{\mathrm{pow}})
+={}&161+7n_{\mathrm{pow},\log}(q,b)\\
+&+28\max\{
+  2B_{\mathrm{pow},\mathrm{budget}}(q,b,v_{\mathrm{pow}})^2,
+  p_{\mathrm{pow}}(q,b)+6\}.
+\end{split}
+\]
+This bounds the actual fused run because
+\[
+45+1+6+78+31=161
+\]
+and the displayed bound on \(B_{\mathrm{ser}}(\zeta_{\mathrm{pow}})\)
+bounds the exponential loop count.
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.powerScalarFuel_le_public
+
+For an exponent interval, put
+\[
+M_{\mathrm{pow},\mathrm{arg}}
+ =\max\{|a_{\mathrm{in}}|,|b_{\mathrm{in}}|\},
+\qquad
+f_{\mathrm{pow}}(q,b,I_{\mathrm{arg}})
+ =90+2f_{\mathrm{pow},\mathrm{sc}}
+       (q,b,M_{\mathrm{pow},\mathrm{arg}}).
+\]
+The scalar bound is monotone in the absolute exponent, so it bounds both endpoint calls. When \(b=1\), the endpoint program returns \([1,1]\) and halts after nine instructions. Otherwise its prelude uses at most forty-six instructions; it runs the two scalar calls, uses forty-one connecting instructions, restores the selected endpoints in two, and halts in one. Thus its count is at most
+\[
+\begin{split}
+&46+f_{\mathrm{pow},\mathrm{sc}}(q,b,a_{\mathrm{in}})
+ +41+f_{\mathrm{pow},\mathrm{sc}}(q,b,b_{\mathrm{in}})+2+1\\
+&\hspace{2cm}\le
+90+2f_{\mathrm{pow},\mathrm{sc}}
+       (q,b,M_{\mathrm{pow},\mathrm{arg}}).
+\end{split}
+\]
+The case \(b=0\) uses the forty-six-instruction prelude and the totalized scalar formulas. The returned endpoints are the lower endpoint of the left scalar call and the upper endpoint of the right scalar call; normalization therefore gives exactly
+\(\mathsf E_0^{\mathrm{pow}}(q,b,I_{\mathrm{arg}})\).
+Running to the public bound preserves this output because the halted state is fixed.
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.concreteEngine_power_register_certificate
+
+Every displayed bound is itself computable by a fixed finite register program from the precision, rational input endpoints, and base when present. On arbitrary rational input lists, precision and base are interpreted by nonnegative floor and missing coordinates by zero. Thus the bounds and output identities hold on the full register-input domain. The six programs together supply finite rational recurrences for all six primitive maps. Their definitions use precisely these primitive arguments, so the choice of \(\mathsf E_0\) is fixed independently of the statistical and naming inputs in \cref{obj:def:arithmetic-engine}.
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.concreteEngine_registers_of_other_primitives
+
+\item \emph{The constant enclosure.}
+For \(z\ge0\), the finite geometric identity
+\[
+(1+x_{\mathrm{arg}}^2)
+ \sum_{\jmath=0}^{n_{\mathrm{atan}}-1}
+       (-1)^\jmath x_{\mathrm{arg}}^{2\jmath}
+ =
+1-(-1)^{n_{\mathrm{atan}}}
+       x_{\mathrm{arg}}^{2n_{\mathrm{atan}}}
+\]
+follows by induction on \(n_{\mathrm{atan}}\), starting with the empty sum. Dividing by \(1+x_{\mathrm{arg}}^2\) and integrating gives
+\[
+\arctan z-A_{\mathrm{atan}}(n_{\mathrm{atan}},z)
+ =
+\int_0^z
+ \frac{(-1)^{n_{\mathrm{atan}}}
+        x_{\mathrm{arg}}^{2n_{\mathrm{atan}}}}
+      {1+x_{\mathrm{arg}}^2}\,dx_{\mathrm{arg}}.
+\]
+On \(0\le x_{\mathrm{arg}}\le z\), the integrand has absolute value at most
+\(z^{2n_{\mathrm{atan}}}\). Consequently
+\[
+|\arctan z-A_{\mathrm{atan}}(n_{\mathrm{atan}},z)|
+ \le z^{2n_{\mathrm{atan}}+1}.
+\]
+Machin's identity,
+\[
+\pi=16\arctan(1/5)-4\arctan(1/239),
+\]
+and the triangle inequality now imply
+\[
+|\pi-\Sigma_\pi(q)|
+ \le16(1/5)^{2(q+7)+1}
+    +4(1/239)^{2(q+7)+1}
+ \le20(1/5)^{2(q+7)+1}.
+\]
+The remaining calibration is
+\[
+20(1/5)^{2(q+7)+1}\le2^{-(q+3)}=e_{\mathrm{sc}}(q).
+\]
+For \(q=0\), this is \(20\,5^{-15}\le2^{-3}\). Increasing \(q\) by one multiplies its left side by \(1/25\) and its right side by \(1/2\), proving it for every \(q\in\mathbb N_0\).
+
+Together with \(3<\pi<4\), the approximation bound gives
+\[
+\max\{3,\Sigma_\pi(q)-e_{\mathrm{sc}}(q)\}
+ \le\pi\le
+\min\{4,\Sigma_\pi(q)+e_{\mathrm{sc}}(q)\}.
+\]
+Thus these endpoints are already ordered, their interval lies in \([3,4]\), and
+\[
+0\le\pi-\underline{\mathcal B_\pi(q)}
+ \le2e_{\mathrm{sc}}(q)\le\epsilon_q,
+\qquad
+0\le\overline{\mathcal B_\pi(q)}-\pi
+ \le2e_{\mathrm{sc}}(q)\le\epsilon_q.
+\]
+This proves the constant contract.
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.paperPi_contract
+
+\item \emph{The exponential contract.}
+For \(z\in\mathbb Q\), the definitions give
+\[
+|z|\le B_{\mathrm{ser}}(z),\qquad
+B_{\mathrm{ser}}(z)\ge1,\qquad
+m_{\mathrm{ser}}(q,z)\ge2B_{\mathrm{ser}}(z)^2.
+\]
+The factorial inequality
+\[
+m_{\mathrm{ser}}(q,z)!\,
+m_{\mathrm{ser}}(q,z)^{m_{\mathrm{ser}}(q,z)}
+ \le(2m_{\mathrm{ser}}(q,z))!
+\]
+follows by bounding each of the last
+\(m_{\mathrm{ser}}(q,z)\) factorial factors from below by
+\(m_{\mathrm{ser}}(q,z)\). Since the first factorial factor on the left is at least one,
+\[
+\frac{|z|^{2m_{\mathrm{ser}}(q,z)}}
+     {(2m_{\mathrm{ser}}(q,z))!}
+ \le
+ \left(\frac{B_{\mathrm{ser}}(z)^2}{m_{\mathrm{ser}}(q,z)}\right)^{
+       m_{\mathrm{ser}}(q,z)}
+ \le2^{-m_{\mathrm{ser}}(q,z)}.
+\]
+Also,
+\[
+\frac{|z|}{2m_{\mathrm{ser}}(q,z)+1}\le\frac12.
+\]
+The exponential-series remainder estimate states that, for
+\(\zeta_{\mathrm{cx}}\in\mathbb C\) and \(n_{\mathrm{cut}}\in\mathbb N_0\),
+\[
+\frac{|\zeta_{\mathrm{cx}}|}{n_{\mathrm{cut}}+1}\le\frac12
+\quad\Longrightarrow\quad
+\left|
+ \exp(\zeta_{\mathrm{cx}})
+ -\sum_{\jmath=0}^{n_{\mathrm{cut}}-1}
+       \frac{\zeta_{\mathrm{cx}}^\jmath}{\jmath!}
+\right|
+ \le2\frac{|\zeta_{\mathrm{cx}}|^{n_{\mathrm{cut}}}}
+               {n_{\mathrm{cut}}!}.
+\]
+Applying it to the real argument \(z\) and using
+\(m_{\mathrm{ser}}(q,z)\ge q+6\ge q+4\) gives
+\[
+|\exp z-\Sigma_{\exp}(q,z)|
+ \le2\,2^{-m_{\mathrm{ser}}(q,z)}
+ \le2\,2^{-(q+4)}
+ =e_{\mathrm{sc}}(q).
+\]
+
+The positive floor lies below the exact value: since
+\(-B_{\mathrm{ser}}(z)\le z\) and \(\exp(1)<3\),
+\[
+3^{-B_{\mathrm{ser}}(z)}
+ \le(\exp1)^{-B_{\mathrm{ser}}(z)}
+ =\exp(-B_{\mathrm{ser}}(z))
+ \le\exp z.
+\]
+It follows that the two raw scalar endpoints are ordered and that
+\[
+0<\underline{\mathcal B_{\exp}(q,z)}
+ \le\exp z\le\overline{\mathcal B_{\exp}(q,z)},
+\]
+\[
+0\le\exp z-\underline{\mathcal B_{\exp}(q,z)}
+ \le2e_{\mathrm{sc}}(q)\le\epsilon_q,
+\qquad
+0\le\overline{\mathcal B_{\exp}(q,z)}-\exp z
+ \le2e_{\mathrm{sc}}(q)\le\epsilon_q.
+\]
+
+For the endpoint extension, exponential monotonicity gives the ordering
+\[
+\underline{\mathcal B_{\exp}(q,a_{\mathrm{in}})}
+ \le\exp a_{\mathrm{in}}
+ \le\exp b_{\mathrm{in}}
+ \le\overline{\mathcal B_{\exp}(q,b_{\mathrm{in}})}.
+\]
+For every \(x_{\mathrm{arg}}\in I_{\mathrm{arg}}\),
+\[
+\underline{\mathcal B_{\exp}(q,a_{\mathrm{in}})}
+ \le\exp a_{\mathrm{in}}
+ \le\exp x_{\mathrm{arg}}
+ \le\exp b_{\mathrm{in}}
+ \le\overline{\mathcal B_{\exp}(q,b_{\mathrm{in}})}.
+\]
+The lower and upper endpoint excesses are therefore the scalar excesses at
+\(a_{\mathrm{in}}\) and \(b_{\mathrm{in}}\), respectively, and each is at most
+\(\epsilon_q\). The returned lower endpoint is positive by the scalar sign bound. This proves the exponential contract.
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.concreteEngine_exp_contract
+
+\item \emph{The logarithm contract.}
+Let \(z>0\) be rational. The ceiling bounds imply
+\[
+B_{\log}(z)\ge2,\qquad
+z\le B_{\log}(z),\qquad
+1/z\le B_{\log}(z).
+\]
+Using \(1\le B_{\log}(z)z\) and clearing the positive denominators in
+\(\vartheta_{\log}(z)\) yields
+\[
+|\vartheta_{\log}(z)|
+ \le\frac{B_{\log}(z)-1}{B_{\log}(z)+1}<1.
+\]
+Squaring this inequality gives
+\[
+1-\vartheta_{\log}(z)^2
+ \ge1-\left(\frac{B_{\log}(z)-1}{B_{\log}(z)+1}\right)^2
+ \ge\frac1{B_{\log}(z)},
+\]
+where the last inequality follows by clearing denominators and using
+\(B_{\log}(z)\ge2\).
+
+To bound the numerator of the remainder, observe that
+\[
+|\vartheta_{\log}(z)|
+ \le1-\frac1{B_{\log}(z)}
+ \le\exp(-1/B_{\log}(z)).
+\]
+Since
+\[
+-\frac{2B_{\log}(z)c_{\log}(q,z)+1}{B_{\log}(z)}
+ \le-c_{\log}(q,z),
+\]
+and \(\exp(1)\ge2\), we obtain
+\[
+\begin{split}
+|\vartheta_{\log}(z)|^{2n_{\log}(q,z)+1}
+&\le
+ \exp\!\left(-\frac{2B_{\log}(z)c_{\log}(q,z)+1}
+                  {B_{\log}(z)}\right)\\
+&\le\exp(-c_{\log}(q,z))
+ =\exp(-1)^{c_{\log}(q,z)}
+ \le2^{-c_{\log}(q,z)}.
+\end{split}
+\]
+The logarithm-series remainder estimate, applied using
+\[
+\frac{1+\vartheta_{\log}(z)}{1-\vartheta_{\log}(z)}=z,
+\]
+now gives
+\[
+\begin{split}
+|\log z-\Sigma_{\log}(q,z)|
+&\le
+ \frac{2|\vartheta_{\log}(z)|^{2n_{\log}(q,z)+1}}
+      {1-\vartheta_{\log}(z)^2}\\
+&\le2B_{\log}(z)\,2^{-c_{\log}(q,z)}
+ \le e_{\mathrm{sc}}(q).
+\end{split}
+\]
+For the last inequality,
+\(8B_{\log}(z)\le2^{\kappa(8B_{\log}(z))}\), so
+\[
+2B_{\log}(z)\,2^{-c_{\log}(q,z)}
+ =
+2^{-(q+3)}
+ \frac{2B_{\log}(z)}
+      {4\,2^{\kappa(8B_{\log}(z))}}
+ \le2^{-(q+3)}.
+\]
+Thus the symmetric scalar bracket satisfies
+\[
+\underline{\mathcal B_{\log}(q,z)}
+ \le\log z\le\overline{\mathcal B_{\log}(q,z)},
+\]
+\[
+0\le\log z-\underline{\mathcal B_{\log}(q,z)}
+ \le2e_{\mathrm{sc}}(q)\le\epsilon_q,
+\qquad
+0\le\overline{\mathcal B_{\log}(q,z)}-\log z
+ \le2e_{\mathrm{sc}}(q)\le\epsilon_q.
+\]
+
+Now suppose \(0<a_{\mathrm{in}}\le b_{\mathrm{in}}\). Both endpoint evaluations lie in the positive logarithm domain, and monotonicity gives
+\[
+\underline{\mathcal B_{\log}(q,a_{\mathrm{in}})}
+ \le\log a_{\mathrm{in}}
+ \le\log b_{\mathrm{in}}
+ \le\overline{\mathcal B_{\log}(q,b_{\mathrm{in}})}.
+\]
+Every \(x_{\mathrm{arg}}\in I_{\mathrm{arg}}\) is positive and satisfies
+\[
+\underline{\mathcal B_{\log}(q,a_{\mathrm{in}})}
+ \le\log a_{\mathrm{in}}
+ \le\log x_{\mathrm{arg}}
+ \le\log b_{\mathrm{in}}
+ \le\overline{\mathcal B_{\log}(q,b_{\mathrm{in}})}.
+\]
+The endpoint extension therefore contains the whole image and has outward endpoint excess at most \(\epsilon_q\).
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.concreteEngine_log_contract
+
+\item \emph{The square-root contract.}
+For rational \(z\ge0\), the floor and integer-square-root brackets give
+\[
+a_{\mathrm{int}}(n_{\sqrt{\ }}(q,z))^2
+ \le n_{\sqrt{\ }}(q,z)
+ \le2^{2p_{\mathrm{sc}}(q)}z
+ <n_{\sqrt{\ }}(q,z)+1
+ \le(a_{\mathrm{int}}(n_{\sqrt{\ }}(q,z))+1)^2.
+\]
+Division by \(2^{2p_{\mathrm{sc}}(q)}\), followed by taking nonnegative square roots, yields
+\[
+0\le
+\frac{a_{\mathrm{int}}(n_{\sqrt{\ }}(q,z))}
+     {2^{p_{\mathrm{sc}}(q)}}
+ \le\sqrt z\le
+\frac{a_{\mathrm{int}}(n_{\sqrt{\ }}(q,z))+1}
+     {2^{p_{\mathrm{sc}}(q)}}.
+\]
+The endpoints are ordered and their difference is exactly
+\[
+\operatorname{wid}(\mathcal B_{\sqrt{\ }}(q,z))
+ =2^{-p_{\mathrm{sc}}(q)}
+ =e_{\mathrm{sc}}(q)\le\epsilon_q.
+\]
+Containment consequently gives both scalar excess bounds:
+\[
+0\le\sqrt z-\underline{\mathcal B_{\sqrt{\ }}(q,z)}
+ \le e_{\mathrm{sc}}(q),
+\qquad
+0\le\overline{\mathcal B_{\sqrt{\ }}(q,z)}-\sqrt z
+ \le e_{\mathrm{sc}}(q).
+\]
+
+Suppose \(0\le a_{\mathrm{in}}\le b_{\mathrm{in}}\). The endpoint evaluations satisfy
+\[
+\underline{\mathcal B_{\sqrt{\ }}(q,a_{\mathrm{in}})}
+ \le\sqrt{a_{\mathrm{in}}}
+ \le\sqrt{b_{\mathrm{in}}}
+ \le\overline{\mathcal B_{\sqrt{\ }}(q,b_{\mathrm{in}})}.
+\]
+For \(x_{\mathrm{arg}}\in I_{\mathrm{arg}}\), square-root monotonicity gives
+\[
+\underline{\mathcal B_{\sqrt{\ }}(q,a_{\mathrm{in}})}
+ \le\sqrt{x_{\mathrm{arg}}}
+ \le\overline{\mathcal B_{\sqrt{\ }}(q,b_{\mathrm{in}})}.
+\]
+The two endpoint excesses are bounded by the corresponding scalar widths, hence by \(\epsilon_q\), and the returned lower endpoint is nonnegative. The argument includes \(a_{\mathrm{in}}=0\) and degenerate intervals.
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.concreteEngine_sqrt_contract
+
+\item \emph{The power contract.}
+Let \(b\ge1\) and \(-3\le v_{\mathrm{pow}}\le3\). If \(b=1\), the scalar interval
+\([1,1]\) has exact containment, zero excess, and positive lower endpoint.
+
+For \(b\ne1\), use the quantities defining the scalar routine above. The precision calibration is
+\[
+193B_{\mathrm{pow}}(b)^3\tau_{\mathrm{pow}}(q,b)
+ \le\epsilon_q,
+\qquad
+\tau_{\mathrm{pow}}(q,b)\le\frac1{4096}.
+\]
+Indeed,
+\[
+B_{\mathrm{pow}}(b)\le2^{\kappa(B_{\mathrm{pow}}(b))}
+\quad\Longrightarrow\quad
+B_{\mathrm{pow}}(b)^3
+ \le2^{3\kappa(B_{\mathrm{pow}}(b))},
+\]
+and therefore
+\[
+193B_{\mathrm{pow}}(b)^3\tau_{\mathrm{pow}}(q,b)
+ \le\frac{193}{4096}\,2^{-q}\le\epsilon_q.
+\]
+The second bound follows from \(q,\kappa(B_{\mathrm{pow}}(b))\ge0\).
+
+Exponent monotonicity for \(b\ge1\) gives the exact clip range
+\[
+\frac1{b^3}=b^{-3}\le b^{v_{\mathrm{pow}}}\le b^3.
+\]
+The scalar logarithm contract, applied at precision \(p_{\mathrm{pow}}(q,b)\), implies
+\[
+|\lambda_{\mathrm{pow}}(q,b)-\log b|
+ \le\tau_{\mathrm{pow}}(q,b),
+\]
+because each endpoint of \(\mathcal L_{\mathrm{pow}}(q,b)\) is within that tolerance of \(\log b\).
+
+Define the exact argument and the argument perturbation by
+\[
+\eta_{\mathrm{pow}}(b,v_{\mathrm{pow}})
+ =v_{\mathrm{pow}}\log b,
+\qquad
+t_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})
+ =\zeta_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})
+  -\eta_{\mathrm{pow}}(b,v_{\mathrm{pow}}).
+\]
+Then
+\[
+|t_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})|
+ \le3\tau_{\mathrm{pow}}(q,b)\le1.
+\]
+The local exponential inequality
+\[
+|\exp t-1|\le2|t|\qquad (t\in[-1,1])
+\]
+and the identities
+\[
+\exp(\eta_{\mathrm{pow}}(b,v_{\mathrm{pow}}))
+ =b^{v_{\mathrm{pow}}},
+\]
+\[
+\exp(\zeta_{\mathrm{pow}})
+ -\exp(\eta_{\mathrm{pow}})
+ =
+\exp(\eta_{\mathrm{pow}})\bigl(\exp(t_{\mathrm{pow}})-1\bigr)
+\]
+yield
+\[
+\begin{split}
+|\exp(\zeta_{\mathrm{pow}})-b^{v_{\mathrm{pow}}}|
+&\le B_{\mathrm{pow}}(b)^3\,2|t_{\mathrm{pow}}|\\
+&\le6B_{\mathrm{pow}}(b)^3\tau_{\mathrm{pow}}(q,b)\\
+&\le96B_{\mathrm{pow}}(b)^3\tau_{\mathrm{pow}}(q,b)
+ =\delta_{\mathrm{pow}}(q,b).
+\end{split}
+\]
+Here the bound on \(\exp(\eta_{\mathrm{pow}})\) follows from
+\(b^{v_{\mathrm{pow}}}\le b^3\le B_{\mathrm{pow}}(b)^3\).
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.power_midpoint_value_error
+
+The exponential bracket \(\mathcal J_{\mathrm{pow}}\) contains
+\(\exp(\zeta_{\mathrm{pow}})\), with each endpoint excess at most
+\(\tau_{\mathrm{pow}}\). Hence
+\[
+\underline{\mathcal J_{\mathrm{pow}}}-\delta_{\mathrm{pow}}
+ \le b^{v_{\mathrm{pow}}}
+ \le\overline{\mathcal J_{\mathrm{pow}}}+\delta_{\mathrm{pow}}.
+\]
+Combining this with the exact clip range proves that the raw endpoints of
+\(\mathcal B_{\mathrm{pow}}\) are ordered and contain \(b^{v_{\mathrm{pow}}}\).
+Its lower endpoint is at least \(1/b^3>0\). Since clipping increases the lower endpoint and decreases the upper endpoint, both outward excesses are at most
+\[
+\tau_{\mathrm{pow}}+2\delta_{\mathrm{pow}}
+ =(1+192B_{\mathrm{pow}}(b)^3)\tau_{\mathrm{pow}}
+ \le193B_{\mathrm{pow}}(b)^3\tau_{\mathrm{pow}}
+ \le\epsilon_q,
+\]
+where \(B_{\mathrm{pow}}(b)^3\ge1\). Thus
+\[
+0<\underline{\mathcal B_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})}
+ \le b^{v_{\mathrm{pow}}}
+ \le\overline{\mathcal B_{\mathrm{pow}}(q,b,v_{\mathrm{pow}})},
+\]
+with the required scalar endpoint excesses.
+
+Now let
+\[
+-3\le a_{\mathrm{in}}\le b_{\mathrm{in}}\le3.
+\]
+Both endpoint exponents satisfy the scalar hypotheses. Because
+\(v_{\mathrm{pow}}\mapsto b^{v_{\mathrm{pow}}}\) is monotone,
+\[
+\underline{\mathcal B_{\mathrm{pow}}(q,b,a_{\mathrm{in}})}
+ \le b^{a_{\mathrm{in}}}
+ \le b^{b_{\mathrm{in}}}
+ \le\overline{\mathcal B_{\mathrm{pow}}(q,b,b_{\mathrm{in}})}.
+\]
+For every \(x_{\mathrm{arg}}\in I_{\mathrm{arg}}\),
+\[
+\underline{\mathcal B_{\mathrm{pow}}(q,b,a_{\mathrm{in}})}
+ \le b^{x_{\mathrm{arg}}}
+ \le\overline{\mathcal B_{\mathrm{pow}}(q,b,b_{\mathrm{in}})}.
+\]
+The endpoint extension inherits the two scalar excess bounds and the positive lower endpoint. This includes \(b=1\), the exponent endpoints \(-3,3\), and degenerate intervals.
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.concreteEngine_power_contract
+
+\item \emph{The cosine contract.}
+Let \(\mathrm i\in\mathbb C\) be defined by
+\[
+\operatorname{Re}\mathrm i=0,\qquad
+\operatorname{Im}\mathrm i=1.
+\]
+Pairing the even and odd terms gives
+\[
+\operatorname{Re}\left(
+ \sum_{\jmath=0}^{2m_{\mathrm{ser}}(q,z)-1}
+       \frac{(z\mathrm i)^\jmath}{\jmath!}\right)
+ =\Sigma_{\cos}(q,z).
+\]
+To verify this identity, start with the empty sum and append successive pairs. In each pair,
+\[
+(z\mathrm i)^{2\jmath}=(-1)^\jmath z^{2\jmath},
+\qquad
+\operatorname{Re}(z\mathrm i)^{2\jmath+1}=0,
+\]
+so the real part increases by exactly the next cosine term.
+
+Since \(|z\mathrm i|=|z|\) and
+\(\operatorname{Re}\exp(z\mathrm i)=\cos z\), the complex exponential remainder estimate and the bounds on its first omitted term give
+\[
+\begin{split}
+|\cos z-\Sigma_{\cos}(q,z)|
+&\le
+ \left|\exp(z\mathrm i)
+  -\sum_{\jmath=0}^{2m_{\mathrm{ser}}(q,z)-1}
+       \frac{(z\mathrm i)^\jmath}{\jmath!}\right|\\
+&\le2\frac{|z|^{2m_{\mathrm{ser}}(q,z)}}
+               {(2m_{\mathrm{ser}}(q,z))!}
+ \le e_{\mathrm{sc}}(q).
+\end{split}
+\]
+Together with \(-1\le\cos z\le1\), this implies that the clipped scalar endpoints are ordered and satisfy
+\[
+-1\le\underline{\mathcal B_{\cos}(q,z)}
+ \le\cos z\le\overline{\mathcal B_{\cos}(q,z)}\le1,
+\]
+\[
+0\le\cos z-\underline{\mathcal B_{\cos}(q,z)}
+ \le2e_{\mathrm{sc}}(q)\le\epsilon_q,
+\qquad
+0\le\overline{\mathcal B_{\cos}(q,z)}-\cos z
+ \le2e_{\mathrm{sc}}(q)\le\epsilon_q.
+\]
+
+For the interval routine, define its midpoint enclosure endpoints
+\[
+a_{\cos,\mathrm{mid}}
+ =\underline{\mathcal B_{\cos}(q,z_{\mathrm{mid}})},
+\qquad
+b_{\cos,\mathrm{mid}}
+ =\overline{\mathcal B_{\cos}(q,z_{\mathrm{mid}})}.
+\]
+They obey
+\[
+a_{\cos,\mathrm{mid}}\le\cos z_{\mathrm{mid}}
+ \le b_{\cos,\mathrm{mid}},
+\qquad
+\cos z_{\mathrm{mid}}-a_{\cos,\mathrm{mid}}\le\epsilon_q,
+\qquad
+b_{\cos,\mathrm{mid}}-\cos z_{\mathrm{mid}}\le\epsilon_q,
+\]
+\[
+-1\le a_{\cos,\mathrm{mid}}\le b_{\cos,\mathrm{mid}}\le1.
+\]
+Because \(w_{\mathrm{arg}}\ge0\), these inequalities also give
+\[
+\max\{-1,a_{\cos,\mathrm{mid}}-w_{\mathrm{arg}}\}
+ \le
+\min\{1,b_{\cos,\mathrm{mid}}+w_{\mathrm{arg}}\}.
+\]
+Thus the interval routine has exactly the prescribed endpoints
+\[
+\underline{\mathsf E_0^{\cos}(q,I_{\mathrm{arg}})}
+ =\max\{-1,a_{\cos,\mathrm{mid}}-w_{\mathrm{arg}}\},
+\qquad
+\overline{\mathsf E_0^{\cos}(q,I_{\mathrm{arg}})}
+ =\min\{1,b_{\cos,\mathrm{mid}}+w_{\mathrm{arg}}\}.
+\]
+
+For every \(x_{\mathrm{arg}}\in I_{\mathrm{arg}}\),
+\[
+|x_{\mathrm{arg}}-z_{\mathrm{mid}}|\le w_{\mathrm{arg}}.
+\]
+The cosine Lipschitz inequality therefore yields
+\[
+|\cos x_{\mathrm{arg}}-\cos z_{\mathrm{mid}}|
+ \le|x_{\mathrm{arg}}-z_{\mathrm{mid}}|
+ \le w_{\mathrm{arg}}.
+\]
+Combining this with the midpoint enclosure and the global cosine range proves
+\[
+\max\{-1,a_{\cos,\mathrm{mid}}-w_{\mathrm{arg}}\}
+ \le\cos x_{\mathrm{arg}}
+ \le\min\{1,b_{\cos,\mathrm{mid}}+w_{\mathrm{arg}}\}.
+\]
+Finally, the endpoint formulas imply
+\[
+\begin{split}
+\operatorname{wid}(\mathsf E_0^{\cos}(q,I_{\mathrm{arg}}))
+&\le b_{\cos,\mathrm{mid}}-a_{\cos,\mathrm{mid}}
+       +2w_{\mathrm{arg}}\\
+&\le2\epsilon_q+2w_{\mathrm{arg}}
+ =(b_{\mathrm{in}}-a_{\mathrm{in}})+2\epsilon_q.
+\end{split}
+\]
+This establishes the midpoint excess, enlargement, clipping, image enclosure, and width requirements, including zero-width input intervals.
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.concreteEngine_cos_contract
+\end{enumerate}
+
+The finite rational recurrences and the six primitive contracts establish admissibility under \cref{obj:def:arithmetic-engine}.
+% lean: CausalSmith.Stat.LogoddsLowsmoothFrontier.concreteEngine_admissible
+\end{proof}

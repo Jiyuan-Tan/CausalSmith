@@ -1,0 +1,156 @@
+\section{Causal variance identities and class transfer}
+
+The connection between prognostic balance and causal precision begins with the realized full potential-outcome schedule. Conditional fairness and assignment independence, as specified in \cref{obj:ass:fair,obj:ass:assignment-independence}, make the Horvitz--Thompson estimator conditionally unbiased for the finite-population contrast \citep{Horvitz1952}. Its conditional variance is determined by the potential-outcome midpoints and the covariance of the assignment signs. The following statement also gives the sampling-law variance identity for the Gaussian completion in \cref{obj:def:causal-completion}.
+
+\begin{lemmav}{lem:ht-transfer}[Conditional HT variance transfer]*
+Let the following conditions hold:
+\begin{itemize}
+\item \textbf{(Dimensions and smoothness.)} \(n,d\) are integers with \(n\geq2\), \(d\geq2\), and \(0<s\leq1\).
+\item \textbf{(Prognosis.)} \(m\in\mathcal H_{d,s}\), as defined in \cref{obj:def:sobolev-class}.
+\item \textbf{(Assignment.)} \(\pi\) is a covariate-dependent Borel assignment probability kernel satisfying \cref{obj:ass:fair,obj:ass:assignment-independence}.
+\end{itemize}
+Let \(X\), the full covariate sample, consist of \(n\) independent uniform draws from \([0,1]^d\), and let \(Z\in\{-1,1\}^n\), the assignment sign vector, have conditional law \(\pi(X)\). For a real potential-outcome schedule \(Y=(Y_i(0),Y_i(1))_{i=1}^n\), define the HT estimator, finite-population contrast, midpoint vector, and conditional assignment covariance by
+\[
+\widehat\theta
+ =\frac2n\sum_{i=1}^n Z_iY_i\!\left(\frac{Z_i+1}{2}\right),
+\qquad
+\theta_n=\frac1n\sum_{i=1}^n\bigl(Y_i(1)-Y_i(0)\bigr),
+\qquad
+q_i=\frac{Y_i(1)+Y_i(0)}2,
+\qquad
+[C_\pi(X)]_{ij}=\operatorname{Cov}_\pi(Z_i,Z_j\mid X).
+\]
+For almost every \(X\), simultaneously for every such schedule \(Y\),
+\[
+\mathbb E_\pi[\widehat\theta\mid X,Y]=\theta_n,
+\qquad
+n\operatorname{Var}_\pi(\widehat\theta\mid X,Y)
+ =\frac4n q^{\mathsf T}C_\pi(X)q.
+\]
+Define the scaled expected squared prognostic imbalance by
+\[
+\mathcal L_{n,d,s}(\pi,m)
+ =\frac4n\,\mathbb E_{X,Z}
+   \left[\left(\sum_{i=1}^n Z_i m(X_i)\right)^2\right].
+\]
+Under the frozen Gaussian completion associated with \(m\), with assignment law \(\pi(X)\), the sampling-law causal target and scaled variance benchmark satisfy
+\[
+\theta=\mathbb E_{X,Y}[\theta_n]=0.2,
+\qquad
+V^*=4.01.
+\]
+Moreover,
+\[
+\mathcal L_{n,d,s}(\pi,m)<\infty,
+\qquad
+n\operatorname{Var}_{X,Y,Z}(\widehat\theta)-V^*
+ =\mathcal L_{n,d,s}(\pi,m).
+\]
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:ht-transfer
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:ht-transfer
+
+The midpoint vector \leanref{sym:q}{\ensuremath{q}} captures the schedule's contribution to assignment variance, while the conditional assignment covariance \leanref{sym:Cpi}{\ensuremath{C_\pi(X)}} records the dependence induced by the design. The simultaneous quantifier in \cref{obj:lem:ht-transfer} makes this relationship a fixed-schedule identity: a single probability-one set of covariate samples supports the conclusion for every real schedule. Conditional unbiasedness targets the realized contrast \(\theta_n\); under the specified Gaussian completion, the sampling-law calculation instead averages over covariates, potential outcomes, and assignment and has target \(\theta=0.2\).
+
+For this completion, \(V^*=4.01\) supplies a numerical illustration of the causal interpretation of signing loss. Thus the assignment guarantee in \cref{obj:thm:log-free-bivariate-capacity} controls the actual scaled HT variance above that benchmark. The corresponding transfer for arbitrary square-integrable outcome laws uses each law's own benchmark. The relevant published excess-variance identity is \citet[Proposition 2.3, equation (2.4), under Assumption 2.1 and Definition 2.2]{Cytrynbaum2026Limits}. The next statement specifies that benchmark, characterizes the attainable prognostic functions, and identifies the resulting minimax criterion.
+
+\begin{lemmav}{lem:published-prognostic-capacity}[Published prognostic image and capacity]*
+For a single-unit law \(P\), let \(U\in[0,1]^d\) be its covariate and \(O(0),O(1)\) its potential outcomes. Write
+\[
+m_P(u)=\mathbb E_P\!\left[\frac{O(1)+O(0)}2\mid U=u\right],
+\qquad
+\vartheta(P)=\mathbb E_P[O(1)-O(0)],
+\]
+using a finite-valued Borel version of the conditional mean. Let \(\mathcal Q_{d,s}\) consist of laws with uniform covariates, finite potential-outcome second moments, and \(m_P\) equal almost everywhere to a member of the centered prognostic class \(\mathcal H_{d,s}\) appearing in \cref{obj:def:criterion}. For independent copies across the original \(n\) units, define
+\[
+\widehat T_P=\frac2n\sum_{i=1}^n Z_iO_i((Z_i+1)/2),
+\]
+\[
+\mathsf V(P)=
+\operatorname{Var}_P\!\left(\mathbb E_P[O(1)-O(0)\mid U]\right)
++2\mathbb E_P\operatorname{Var}_P(O(1)\mid U)
++2\mathbb E_P\operatorname{Var}_P(O(0)\mid U),
+\qquad
+\mathcal V_n(\pi,P)=n\operatorname{Var}_{P,\pi}(\widehat T_P)-\mathsf V(P).
+\]
+The scaled signing loss is
+\[
+\mathcal L_{n,d,s}(\pi,m)
+=\frac4n\mathbb E_{\pi}\left(\sum_{i=1}^n Z_i m(X_i)\right)^2,
+\]
+where \(X_1,\ldots,X_n\) are independent uniform covariate vectors and \(Z\) is drawn from the original-sample assignment kernel \(\pi\).
+
+For every integer \(d\geq2\) and \(0<s\leq1\), the prognostic image is exactly the Sobolev image, with both images saturated under Lebesgue null representatives:
+\[
+\left\{f:\exists P\in\mathcal Q_{d,s},\ f=m_P\ \text{almost everywhere}\right\}
+=
+\left\{f:\exists m\in\mathcal H_{d,s},\ f=m\ \text{almost everywhere}\right\}.
+\]
+The stated Gaussian completions of members of \(\mathcal H_{d,s}\) form a proper subclass of \(\mathcal Q_{d,s}\): the specified two-point outcome law belongs to \(\mathcal Q_{d,s}\) and lies outside that Gaussian subclass.
+
+For every \(n,d\geq2\), a Borel probability assignment kernel satisfies published admissibility precisely when it belongs to the design class in \cref{obj:def:design-class}. Here published admissibility means conditional mean-zero assignment signs almost everywhere under the original uniform covariate law, together with conditional independence of the assignment signs and the potential-outcome array given the observed covariates, for every single-unit law with bounded strictly positive covariate density and finite potential-outcome second moments.
+
+For every \(n,d\geq2\), \(0<s\leq1\), and \(\pi\in\mathcal D_{n,d,s}\),
+\[
+0\leq\mathcal V_n(\pi,P)
+=\mathcal L_{n,d,s}(\pi,m_P),
+\qquad P\in\mathcal Q_{d,s},
+\]
+and
+\[
+\sup_{P\in\mathcal Q_{d,s}}\mathcal V_n(\pi,P)
+=
+\sup_{m\in\mathcal H_{d,s}}\mathcal L_{n,d,s}(\pi,m).
+\]
+Consequently, the full-design capacity agrees with \cref{obj:def:criterion}:
+\[
+\inf_{\pi\in\mathcal D_{n,d,s}}
+\sup_{P\in\mathcal Q_{d,s}}\mathcal V_n(\pi,P)
+=R_s(n,d).
+\]
+
+Fix comparison parameters satisfying
+\begin{itemize}
+\item \textbf{(Smoothness.)} \(0<s\leq1\).
+\item \textbf{(Lower density bound.)} \(0<\lambda\leq1\).
+\item \textbf{(Upper density bound.)} \(1\leq\Lambda<\infty\).
+\end{itemize}
+Let \(\mathcal A_{d,s}\) be the correctly specified, no-priority-block, order-two class of \citet[Theorem B.8(ii)]{Cytrynbaum2026Limits}. Its laws have finite potential-outcome second moments, covariate densities satisfying \(\lambda\leq f(u)\leq\Lambda\), and prognostic functions satisfying
+\[
+\int m_P(u)^2\,dP_U(u)\leq1,
+\qquad
+m_P(u)=\beta+m(u)\quad\text{for almost every }u,
+\]
+for a permitted intercept \(\beta\) and a centered \(m\in\mathcal H_{d,s}\) under the same component norm convention. The lower comparison constants and saturated lower comparison scale satisfy
+\[
+0<c_1\leq c_s,
+\qquad
+b_s(n,d)=\min\{1,(\tbinom d2/n)^s\}.
+\]
+and, for every \(n,d\geq2\),
+\[
+c_s b_s(n,d)
+\leq R_s(n,d)
+\leq
+\inf_{\pi\in\mathcal D_{n,d,s}}
+\sup_{P\in\mathcal A_{d,s}}\mathcal V_n(\pi,P).
+\]
+For every integer sequence \(d_n\geq2\), vanishing capacity on this bounded-density class implies
+\[
+\inf_{\pi\in\mathcal D_{n,d_n,s}}
+\sup_{P\in\mathcal A_{d_n,s}}\mathcal V_n(\pi,P)
+\longrightarrow0
+\quad\Longrightarrow\quad
+d_n=o(\sqrt n).
+\]
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:published-prognostic-capacity
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{Cytrynbaum2026Limits} (Proposition 2.3 (Excess Variance), equation (2.4), with Assumption 2.1 and Definition 2.2) and \citep{BartlettMendelson2002Complexities} (Theorem 12(4), with Rademacher complexity as in Definition 2). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:published-prognostic-capacity
+
+The benchmark \(\mathsf V(P)\) in \cref{obj:lem:published-prognostic-capacity} combines variation in the conditional mean treatment effect with the two conditional potential-outcome variances. It therefore adjusts to the outcome law before excess variance is compared across designs. With independent original units and admissible assignment, the remaining scaled variance depends on the law through its conditional mean midpoint \(m_P\). Finite second moments ensure that the estimator and benchmark are well defined.
+
+Equality of prognostic images gives the transfer its full uniform-law scope. Every member of \(\mathcal H_{d,s}\) is attained by a Gaussian completion, and every law in \(\mathcal Q_{d,s}\) has a prognosis in that same class, modulo null sets. The two-point witness establishes that this outcome-law class also accommodates discrete potential outcomes. Together with the excess-variance identity, the image equality yields equality of the worst-case criteria for each admissible design and hence equality of the minimax capacities. Consequently, the uniform-law upper and lower comparisons concern the actual HT excess variance throughout \(\mathcal Q_{d,s}\).
+
+The larger-class comparison uses the inclusion recorded in \cref{obj:prop:published-class-inclusion}. Under the common component norm convention, the uniform laws with centered prognosis satisfy the comparison class's prognostic restrictions with intercept zero; their density is one and satisfies the displayed density bounds. Thus \(\mathcal Q_{d,s}\subseteq\mathcal A_{d,s}\), and enlarging the outcome-law supremum preserves the uniform-class lower bound. For the class associated with \citet[Theorem B.8(ii)]{Cytrynbaum2026Limits}, \cref{obj:lem:published-prognostic-capacity} therefore supplies the saturated converse and the necessary dimension condition \(d_n=o(\sqrt n)\) for vanishing minimax scaled excess.

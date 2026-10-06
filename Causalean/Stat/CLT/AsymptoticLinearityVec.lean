@@ -1,0 +1,253 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Asymptotic linearity for vector-valued estimators
+
+Companion to `Causalean/Stat/CLT/AsymptoticLinearity.lean`.  Generalises the
+asymptotic-linearity predicate to a vector-valued parameter
+`θ : E := EuclideanSpace ℝ (Fin d)` and a vector-valued influence
+function `ψ : X → E`.  The scalar form (`IsAsymLinear`) is kept untouched
+so existing AIPW/PlugIn proofs continue to compile; the vector form
+(`IsAsymLinearVec`) is the input/output of the multivariate-DML theorems in
+`Estimation/OrthogonalMoments/DMLChernozhukov.lean` (Chernozhukov form, with
+Jacobian `J₀ : E →L[ℝ] E`).
+
+The transfer corollary `IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum` packages the
+multivariate CLT contact: the rescaled estimator converges in distribution
+to the pushforward of the target law `Q : ProbabilityMeasure E` (typically
+a multivariate Gaussian with covariance `J₀⁻¹ Σ J₀⁻ᵀ`).  Proved by
+absorbing the asymptotic-linearity remainder into the partial-sum CLT
+contact via `Tendsto_dist_vec.add_isLittleOp_one`.
+
+Bridge `IsAsymLinearVec.toScalar`: when `E = ℝ`, the vector predicate
+reduces to the existing scalar `IsAsymLinear`.
+-/
+
+module
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Tactic.Attr
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Limit.ConvergenceVec
+public import Causalean.Stat.Sample
+public import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+
+/-! # Vector Asymptotic Linearity
+
+This file extends scalar asymptotic linearity to finite-dimensional
+vector-valued estimators. `IsAsymLinearVec` records the vector influence
+function, finite second moment, and vector `o_p(1)` remainder along a finite
+index family, with `IsAsymLinearVec.normalizedSum` and
+`IsAsymLinearVec.rescaledEstimator` giving the associated partial sum and scaled
+estimator.
+
+The scalar bridge theorems `IsAsymLinearVec.toScalar` and `IsAsymLinear.toVec`
+identify the `E = ℝ` specialization with the scalar predicate. The headline
+result `IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum` absorbs the vector remainder into a
+caller-supplied multivariate CLT contact. -/
+
+@[expose] public section
+
+namespace Causalean.Stat
+
+open MeasureTheory ProbabilityTheory Filter Topology
+
+variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
+  {μ : Measure Ω} {P : Measure X}
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-! ## Vector-valued asymptotic linearity -/
+
+/-- A vector-valued estimator sequence is asymptotically linear at a target value when its
+scaled estimation error equals the normalized empirical average of an influence function
+that has [Bochner mean zero](hyp:mean_zero) and [finite second moment](hyp:finite_var)
+under the population law, up to
+[a remainder that is negligible in probability](hyp:remainder), along a chosen family of
+finite index sets selecting which observations enter each empirical average.
+
+Fields:
+
+* `mean_zero`  : `∫ ψ dP = 0`  (Bochner integral in `E`).
+* `finite_var` : `‖ψ‖² ∈ L¹(P)`.
+* `remainder`  : `‖√|I n| · (θn − θ₀) − (1/√|I n|) Σ_{i ∈ I n} ψ(Z_i)‖ = o_p(1)`.
+
+The scalar specialisation `E = ℝ` reduces to `IsAsymLinear` (see
+`IsAsymLinearVec.toScalar`).  The full-sample case is `I n = Finset.range n`;
+fold-B / fold-K cases are obtained by passing the corresponding fold index
+families.  Mirrors `def:est-asym-linear` in
+`doc/basic_concepts/po/estimation.tex` lifted to vector-valued targets. -/
+structure IsAsymLinearVec
+    (θn : ℕ → Ω → E) (θ₀ : E) (ψ : X → E)
+    (S : IIDSample Ω X μ P) (I : ℕ → Finset ℕ) : Prop where
+  /-- The influence function has Bochner mean zero under `P`. -/
+  mean_zero  : ∫ x, ψ x ∂P = 0
+  /-- `‖ψ‖² ∈ L¹(P)`: a finite second-moment witness. -/
+  finite_var : Integrable (fun x => ‖ψ x‖^2) P
+  /-- The vector remainder has norm `o_p(1)` under `μ`. -/
+  remainder  :
+    IsLittleOp
+      (fun n ω =>
+        ‖Real.sqrt ((I n).card : ℝ) • (θn n ω - θ₀)
+          - (Real.sqrt ((I n).card : ℝ))⁻¹ •
+            ∑ i ∈ I n, ψ (S.Z i ω)‖)
+      (fun _ => (1 : ℝ)) μ
+
+namespace IsAsymLinearVec
+
+variable {θn : ℕ → Ω → E} {θ₀ : E} {ψ : X → E} {S : IIDSample Ω X μ P}
+  {I : ℕ → Finset ℕ}
+
+/-- For [a measurable sample space carrying a measure](hyp:Ω,μ), [a measurable
+observation space carrying a population measure](hyp:X,P), [a normed real
+vector space](hyp:E), [an independent and identically distributed sample from
+that population](hyp:S), [a vector-valued influence function](hyp:ψ), [a finite
+index set selected for every nonnegative integer](hyp:I), and [a nonnegative
+integer index](hyp:n), the [vector normalized partial sum](goal) maps each
+sample-space outcome to $|I_n|^{-1/2}\sum_{i\in I_n}\psi(Z_i)$ in that vector
+space.
+
+The scalar reciprocal square root acts by scalar multiplication on the vector sum. -/
+noncomputable def normalizedSum (S : IIDSample Ω X μ P) (ψ : X → E)
+    (I : ℕ → Finset ℕ) (n : ℕ) : Ω → E :=
+  fun ω => (Real.sqrt ((I n).card : ℝ))⁻¹ • ∑ i ∈ I n, ψ (S.Z i ω)
+
+/-- The vector normalised partial sum at sample size index `n` sends a unit to the sum of the
+influence-function values over the index block, rescaled by the reciprocal square root of the
+block size. -/
+@[causal_defs_simps]
+lemma normalizedSum_def (S : IIDSample Ω X μ P) (ψ : X → E)
+    (I : ℕ → Finset ℕ) (n : ℕ) :
+    normalizedSum S ψ I n =
+      fun ω => (Real.sqrt ((I n).card : ℝ))⁻¹ • ∑ i ∈ I n, ψ (S.Z i ω) :=
+  rfl
+
+/-- For [a sample space](hyp:Ω), [a normed real vector space](hyp:E), [a
+sequence of vector-valued estimators on that space](hyp:θn), [a target
+vector](hyp:θ₀), [a finite index set selected for every nonnegative
+integer](hyp:I), and [a nonnegative integer index](hyp:n), the [rescaled
+estimator](goal) maps each sample-space outcome to
+$\sqrt{|I_n|}\,[\widehat\theta_n-\theta_0]$ in that vector space.
+
+The scale is the square root of the selected block's cardinality. -/
+noncomputable def rescaledEstimator (θn : ℕ → Ω → E) (θ₀ : E)
+    (I : ℕ → Finset ℕ) (n : ℕ) : Ω → E :=
+  fun ω => Real.sqrt ((I n).card : ℝ) • (θn n ω - θ₀)
+
+end IsAsymLinearVec
+
+/-! ## Scalar bridge: `E = ℝ` reduces to the existing `IsAsymLinear` -/
+
+/-- When the parameter space is `ℝ`, the vector predicate `IsAsymLinearVec`
+unfolds to the scalar `IsAsymLinear`.  The forward direction is a direct
+field-by-field rewrite using `‖x‖ = |x|` on `ℝ` and scalar `•` = `*`. -/
+theorem IsAsymLinearVec.toScalar
+    {θn : ℕ → Ω → ℝ} {θ₀ : ℝ} {ψ : X → ℝ} {S : IIDSample Ω X μ P}
+    {I : ℕ → Finset ℕ}
+    (h : IsAsymLinearVec θn θ₀ ψ S I) :
+    IsAsymLinear θn θ₀ ψ S I := by
+  refine ⟨h.mean_zero, ?_, ?_⟩
+  · simpa [Real.norm_eq_abs, sq_abs] using h.finite_var
+  · intro ε hε
+    have hrem := h.remainder ε hε
+    refine hrem.congr fun n => ?_
+    congr 1
+    ext ω
+    simp [Real.norm_eq_abs, smul_eq_mul, abs_abs]
+
+/-- Conversely, scalar asymptotic linearity lifts to the vector predicate. -/
+theorem IsAsymLinear.toVec
+    {θn : ℕ → Ω → ℝ} {θ₀ : ℝ} {ψ : X → ℝ} {S : IIDSample Ω X μ P}
+    {I : ℕ → Finset ℕ}
+    (h : IsAsymLinear θn θ₀ ψ S I) :
+    IsAsymLinearVec θn θ₀ ψ S I := by
+  refine ⟨h.mean_zero, ?_, ?_⟩
+  · simpa [Real.norm_eq_abs, sq_abs] using h.finite_var
+  · intro ε hε
+    have hrem := h.remainder ε hε
+    refine hrem.congr fun n => ?_
+    congr 1
+    ext ω
+    simp [Real.norm_eq_abs, smul_eq_mul, abs_abs]
+
+/-! ## Headline corollary (multivariate)
+
+Multivariate analogue of `IsAsymLinear.tendsto_normal`: combines the
+caller-supplied vector CLT contact (`_hCLT`) with vector Slutsky absorption
+(`Tendsto_dist_vec.add_isLittleOp_one`) to push the rescaled estimator's
+pushforward to the target law `Q : ProbabilityMeasure E`. -/
+
+variable [MeasurableSpace E] [OpensMeasurableSpace E]
+
+/-- **Vector Slutsky absorption given a caller-supplied CLT.** For a vector-valued estimator
+sequence `θn` targeting `θ₀`
+with influence function `ψ` along the i.i.d. sample `S`, suppose [the remainder between the
+rescaled estimator and the normalised partial sum is asymptotically negligible (little-o of 1
+in norm)](hyp:hRem), [the rescaled estimator is a.e. measurable at every sample
+size](hyp:_hθn_meas), [the normalised partial sum is a.e. measurable at every sample
+size](hyp:_hSum_meas), and [the pushforward laws of the normalised partial sum converge to a
+target probability measure `Q` on `E`](hyp:_hCLT). Then [the pushforward laws of the rescaled
+estimator likewise converge to `Q`](goal).
+
+This theorem does not establish the normalized-sum CLT: `_hCLT` supplies that limit law. It
+only absorbs the asymptotically negligible remainder. For the canonical case
+`Q = N(0, ∫ ψ ψᵀ dP)`, a separate multivariate CLT can provide `_hCLT`. -/
+theorem IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum
+    {θn : ℕ → Ω → E} {θ₀ : E} {ψ : X → E} {S : IIDSample Ω X μ P}
+    {I : ℕ → Finset ℕ}
+    (Q : ProbabilityMeasure E)
+    (hRem : IsLittleOp
+      (fun n ω =>
+        ‖Real.sqrt ((I n).card : ℝ) • (θn n ω - θ₀)
+          - (Real.sqrt ((I n).card : ℝ))⁻¹ •
+            ∑ i ∈ I n, ψ (S.Z i ω)‖)
+      (fun _ => (1 : ℝ)) μ)
+    (_hθn_meas : ∀ n : ℕ, AEMeasurable
+      (IsAsymLinearVec.rescaledEstimator θn θ₀ I n) μ)
+    (_hSum_meas : ∀ n : ℕ, AEMeasurable
+      (IsAsymLinearVec.normalizedSum S ψ I n) μ)
+    (_hCLT : Tendsto (β := ProbabilityMeasure E)
+      (fun n => ⟨μ.map (IsAsymLinearVec.normalizedSum S ψ I n),
+                  @Measure.isProbabilityMeasure_map Ω E _ _ μ
+                    S.indep.isProbabilityMeasure _ (_hSum_meas n)⟩)
+      atTop (𝓝 Q)) :
+    Tendsto (β := ProbabilityMeasure E)
+      (fun n => ⟨μ.map (IsAsymLinearVec.rescaledEstimator θn θ₀ I n),
+                  @Measure.isProbabilityMeasure_map Ω E _ _ μ
+                    S.indep.isProbabilityMeasure _ (_hθn_meas n)⟩)
+      atTop (𝓝 Q) := by
+  haveI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
+  haveI : IsProbabilityMeasure (Q.toMeasure) := Q.2
+  have hQid :
+      (⟨Q.toMeasure.map (id : E → E),
+        Measure.isProbabilityMeasure_map measurable_id.aemeasurable⟩ : ProbabilityMeasure E) =
+        Q := by
+    apply Subtype.ext
+    simp
+  have hSum : Tendsto_dist_vec (IsAsymLinearVec.normalizedSum S ψ I)
+      Q.toMeasure μ _hSum_meas := by
+    refine ⟨_hSum_meas, by fun_prop, ?_⟩
+    rw [hQid]
+    exact _hCLT
+  have hRes := Tendsto_dist_vec.add_isLittleOp_one
+    (Q := Q.toMeasure) (Xn := IsAsymLinearVec.normalizedSum S ψ I)
+    (Yn := IsAsymLinearVec.rescaledEstimator θn θ₀ I)
+    _hSum_meas _hθn_meas hSum (by
+      simpa [IsAsymLinearVec.normalizedSum, IsAsymLinearVec.rescaledEstimator] using hRem)
+  have ht := hRes.tendsto
+  rw [hQid] at ht
+  exact ht
+
+/-- If [the estimator has a negligible asymptotic-linear remainder](hyp:hRem), [its rescaled
+versions are almost-everywhere measurable](hyp:_hθn_meas), [the normalized influence-function
+sums are almost-everywhere measurable](hyp:_hSum_meas), and [those normalized sums converge in
+distribution to the stated law](hyp:_hCLT), then [the rescaled estimator converges in distribution
+to the same law](goal).
+
+Deprecated name for `IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum`. -/
+@[deprecated (since := "2026-09-17")]
+alias IsAsymLinearVec.tendsto_normal_vec :=
+  IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum
+
+end Causalean.Stat

@@ -1,0 +1,2838 @@
+{
+  "commit": "db544e5fa3f974dbfb320a2ecc9407c400aae9d2",
+  "groups": [
+    {
+      "kind": "setup",
+      "items": [
+        {
+          "obj_id": "S1",
+          "kind": "setup",
+          "label": "Setup S-1",
+          "nl": "A two-sample semi-supervised discrete causal experiment. A known covariate alphabet \\([d]=\\{1,\\ldots,d\\}\\) with \\(d\\ge2\\), binary treatment \\(A\\in\\{0,1\\}\\) and binary outcome \\(Y\\in\\{0,1\\}\\) give the complete record space \\([d]\\times\\{0,1\\}^2\\). A law \\(P\\in\\mathsf{Prob}([d]\\times\\{0,1\\}^2)\\) determines cell masses \\(p_x=P(X=x)\\), propensities \\(e_x=P(A=1\\mid X=x)\\) on occupied cells, outcome regressions \\(\\mu_{ax}=E_P[Y\\mid A=a,X=x]\\), treatment--covariate cell masses \\(s_{ax}=P(X=x,A=a)\\), outcome-marked masses \\(q_{ax}=s_{ax}\\mu_{ax}\\), and the target \\(\\tau(P)=\\sum_{x=1}^d p_x(\\mu_{1x}-\\mu_{0x})\\in[-1,1]\\). For a known overlap constant \\(0<\\epsilon<1/2\\), the unrestricted class \\(\\mathcal M_{d,\\epsilon}\\) collects the laws with \\(\\epsilon\\le e_x\\le1-\\epsilon\\) on every occupied cell; no minimum cell mass is imposed and null cells are permitted. The observation experiment \\(\\mathcal E_{n,m,d,\\epsilon}\\) supplies \\(n\\ge1\\) complete labeled records \\(\\mathcal L_n\\sim P^{\\otimes n}\\) together with \\(m\\ge0\\) outcome-unlabeled records \\(\\mathcal U_m\\sim P_{XA}^{\\otimes m}\\) from the same population, the two samples being independent, so that outcome-bearing information has size \\(n\\) while treatment--covariate information has size \\(N=n+m\\). Estimators \\(\\mathcal T_{n,m,d}\\) are the measurable real functions of \\((\\mathcal L_n,\\mathcal U_m)\\); the minimax risk is \\(R_\\epsilon(n,m,d)=\\inf_{T\\in\\mathcal T_{n,m,d}}\\sup_{P\\in\\mathcal M_{d,\\epsilon}}E[(T-\\tau(P))^2]\\), compared with the explicit annotation-frontier rate \\(r_\\epsilon(n,m,d)=\\min\\{1,n^{-1}+d^2/(N^2\\log^2(en))\\}\\) and attained by the mixed-information hybrid \\(\\widehat\\tau^{\\mathrm{mix}}_{n,m,d}\\). Asymptotic statements run along arbitrary sequences \\((m_n)_{n\\ge1}\\) and \\((d_n)_{n\\ge1}\\); the two-sided constants \\(c_\\epsilon,C_\\epsilon\\in(0,\\infty)\\) depend only on \\(\\epsilon\\). Lower bounds are indexed by fuzzy hypotheses \\(\\Pi_0,\\Pi_1\\) on \\(\\mathcal M_{d,\\epsilon}\\) whose full random table \\(P_{XA}\\) has identical distribution, together with the finite illustrative pair \\(\\Pi_0^{\\mathrm{small}},\\Pi_1^{\\mathrm{small}}\\) and the finite calculation \\(\\mathfrak C_{\\mathrm{small}}\\) at \\(d=2\\), \\(\\epsilon=1/4\\). — Encoding: `abbrev Obs (d : Nat) := Fin d x Bool x Bool`, `abbrev AuxObs (d : Nat) := Fin d x Bool`, `structure DiscreteLaw (d : Nat) where pmf : PMF (Obs d)`, `Sample n m d := (Fin n -> Obs d) x (Fin m -> AuxObs d)`, with `jointMass`, `cellMass`, `armMass`, `propensity`, `outcomeMean`, `markedMass`, `auxMarginal : DiscreteLaw d -> PMF (AuxObs d)`, `labeledProductLaw`, `auxProductLaw`, `annotationLaw = (labeledProductLaw P n).prod (auxProductLaw P m)`. All in Basic.lean, namespace `CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier`.\nSubstrate survey (bypass-justified, define-local): searched `../doc/API.md` sections `10z Reusable minimax and nonparametric reduction substrate`, `8h PO/`, `18 Experimentation/` and the cluster roots `Causalean/Stat/`, `Causalean/Estimation/`, `Causalean/Estimation/Efficiency/`, `Causalean/Estimation/MinimaxATE/`, `Causalean/PO/` for a two-sample labeled/unlabeled finite-alphabet discrete-ATE world; concept words grepped: `semisupervised`, `unlabeled`, `two-sample`, `annotation`, `auxiliary sample`, `discrete ATE`, `overlap cone`. Causalean carries the general measure-theoretic PO/ATE machinery and the experiment-level minimax tools but no finite-alphabet two-sample discrete-ATE world; every sibling Stat run (`CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean`, `CausalSmith/Stat/STAT_DiscreteAteHeterogeneityFrontier_Research/Basic.lean`) owns its own finite model layer over `Causalean.Stat.Sample` + Mathlib `PMF`, and `doc/API.md` `Workspace context` fixes the dependency direction `CausalSmith -> Causalean` only (no cross-run imports). BYPASS-JUSTIFIED: abstraction mismatch (measure-theoretic vs finite algebraic) plus the one-way package rule.\nAnalogous module F2 should mirror line-for-line: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean` (`DiscreteLaw`, `Obs`, `cellMass`, `propensity`, `outcomeMean`, `Overlap`, `ateFunctional`, `mse`, `worstCaseMSE`, `minimaxRisk`) - the one-sample (m = 0) version of this exact world; the gap to bridge is the second, outcome-free sample and the `n` vs `n+m` information split.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S2",
+          "kind": "setup",
+          "label": "Setup S-2",
+          "nl": "A finite potential-outcome overlay on the same discrete world. A full-data law on \\([d]\\times\\{0,1\\}^4\\) carries the record \\((X,A,Y,Y(0),Y(1))\\) with binary potential outcomes \\(Y(a)\\in\\{0,1\\}\\); consistency requires \\(Y=Y(A)\\) almost surely and conditional exchangeability requires \\((Y(0),Y(1))\\perp\\!\\!\\!\\perp A\\mid X\\). Together with occupied-cell overlap these identify the causal contrast \\(E[Y(1)-Y(0)]\\) as the observed-data functional \\(\\tau(P)\\) of the induced observed marginal. — Encoding: `abbrev FullObs (d) := Fin d x Bool x Bool x Bool x Bool`, `structure PotentialLaw (d) where pmf : PMF (FullObs d)`, `fullMass`, `poAtom`, `observedMarginal : PotentialLaw d -> DiscreteLaw d`; `Consistency` and `ConditionalExchangeability` are finite-sum Props on `PotentialLaw`.\nSearch trace: grepped `Causalean/PO/` and `../doc/API.md` section `8h PO/` for `Consistency`, `conditional exchangeability`, `ignorability`, `PODataFrame`, `POSystem` (Causalean does carry `PO` systems, `Backdoor`, `POManskiIVSystem`); Mathlib-side check `lean_leansearch \"conditional independence of potential outcomes given covariates\"` returns only generic `ProbabilityTheory.CondIndep`. BYPASS-JUSTIFIED: the Causalean PO analogue is a measure-theoretic PO system with abstract outcome spaces, whereas this note needs a purely finite `PMF` overlay used only to certify identification of `tau` once; the sibling `STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean` (`PotentialLaw`, `Consistency`, `ConditionalExchangeability`, `observedMarginal`) is the exact analogous encoding to copy.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S3",
+          "kind": "setup",
+          "label": "Setup S-3",
+          "nl": "The known-treatment--covariate-marginal benchmark experiment. An estimator observes \\(n\\ge1\\) complete labeled records \\(\\mathcal L_n\\sim P^{\\otimes n}\\) together with the exact \\(2d\\)-cell table \\(P_{XA}\\) supplied as deterministic side information, so that the decision class \\(\\mathcal T^{\\mathrm{known}}_{n,d}\\) consists of the measurable functions of \\((\\mathcal L_n,P_{XA})\\) and the benchmark risk is \\(R_\\epsilon^{\\mathrm{known}}(n,d)=\\inf_{T\\in\\mathcal T^{\\mathrm{known}}_{n,d}}\\sup_{P\\in\\mathcal M_{d,\\epsilon}}E_{P^{\\otimes n}}[(T(\\mathcal L_n,P_{XA})-\\tau(P))^2]\\). This is the \\(m\\to\\infty\\) limit of the annotation experiment: all treatment--covariate information is revealed and no outcome information is added. — Encoding: `AuxTable d := AuxObs d -> Real` (the exact 2d-cell table), `knownSample n d := (Fin n -> Obs d) x AuxTable d`, `knownMarginalExperiment`, `knownMarginalRisk` in Basic.lean.\nSearch trace: grepped `Causalean/Stat/Minimax/` + `Causalean/Estimation/MinimaxATE/` for `known marginal`, `side information`, `oracle nuisance`, `deterministic side information`, `ancillary` - the only relevant hit is `Causalean.Stat.chiSqDiv_prod_ancillary` (Causalean/Stat/Minimax/ChiSquared.lean:451), which is the information-theoretic tool for the converse, not the experiment object; Mathlib-side `lean_leansearch \"minimax risk with known nuisance side information\"` returns only `ProbabilityTheory.minimaxRisk` (Mathlib/Probability/Decision/Risk/Defs.lean), an abstract Bayes-risk shell over a kernel, which does not carry the finite table. BYPASS-JUSTIFIED for the experiment object; the abstract Mathlib/Causalean risk shells stay unused because this note's risk must be the same `inf-sup` shape as `minimaxRisk` for `thm:known-marginal-limit` to compare them.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "definition",
+      "items": [
+        {
+          "obj_id": "def:model-class",
+          "kind": "definition",
+          "label": "Definition P-1",
+          "nl": "\\(\\mathcal M_{d,\\epsilon}:=\\{P\\in\\mathsf{Prob}([d]\\times\\{0,1\\}^2): d\\ge2,\\ 0<\\epsilon<1/2,\\text{ and }P\\text{ satisfies }\\mathrm{ass:overlap}\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.ModelClass",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:ate-functional",
+          "kind": "definition",
+          "label": "Definition P-2",
+          "nl": "\\(\\tau(P):=\\sum_{x=1}^{d}p_x(\\mu_{1x}-\\mu_{0x})\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.ateFunctional",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:annotation-experiment",
+          "kind": "definition",
+          "label": "Definition P-3",
+          "nl": "\\(\\mathcal E_{n,m,d,\\epsilon}:=\\{P^{\\otimes n}\\otimes P_{XA}^{\\otimes m}:P\\in\\mathcal M_{d,\\epsilon},\\ n\\ge1,\\ m\\ge0,\\ d\\ge2\\}\\), with the product coupling specified by \\(\\mathrm{ass:labeled-iid}\\), \\(\\mathrm{ass:auxiliary-iid}\\), and \\(\\mathrm{ass:sample-independence}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.annotationExperiment",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:minimax-risk",
+          "kind": "definition",
+          "label": "Definition P-4",
+          "nl": "\\(R_\\epsilon(n,m,d):=\\inf_{T\\in\\mathcal T_{n,m,d}}\\sup_{P\\in\\mathcal M_{d,\\epsilon}}E_{P^{\\otimes n}\\otimes P_{XA}^{\\otimes m}}[(T-\\tau(P))^2]\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.minimaxRisk",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:frontier-rate-handle",
+          "kind": "definition",
+          "label": "Definition P-5",
+          "nl": "Put \\(N=n+m\\) and \\(\\ell_n=\\log(en)\\).  The unequal-information annotation-frontier rate is\n\\[\nr_\\epsilon(n,m,d):=\\min\\!\\left\\{1,\\frac1n+\\frac{d^2}{N^2\\ell_n^2}\\right\\}.\n\\]",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.frontierRate",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:mixed-estimator-handle",
+          "kind": "definition",
+          "label": "Definition P-6",
+          "nl": "Put \\(A_\\star=7056\\) and \\(c^\\circ=1/256\\).  Let \\(j_\\epsilon\\) be the least integer \\(j\\ge1\\) for which \\(2^{-j}\\le\\epsilon\\), and put \\(\\bar\\epsilon=2^{-j_\\epsilon}\\); thus \\(0<\\bar\\epsilon\\le\\epsilon<2\\bar\\epsilon\\).  Define \\(H_\\epsilon\\) to be the least positive integer \\(H\\) satisfying the finite list\n\\[\n H\\ge4,\\qquad \\frac H4\\ge15+\\frac{24}{c^\\circ},\\qquad\n Hc^\\circ\\bar\\epsilon\\ge672,\n \\qquad Hc^\\circ\\bar\\epsilon\\ge24.                                      \\tag{C1}\n\\]\nThe set in this minimum is nonempty because \\(c^\\circ\\bar\\epsilon>0\\), and all of its tests involve integers and dyadic rationals.\n\nFor given \\(n,m\\), partition the labeled indices, in their original order, into blocks of sizes\n\\[\n M_0=\\lfloor n/3\\rfloor,\\qquad\n n_p=\\left\\lfloor\\frac{n-M_0}{2}\\right\\rfloor,\n \\qquad n_f=n-M_0-n_p,\n\\]\nand partition the auxiliary indices into blocks of sizes\n\\(m_p=\\lfloor m/2\\rfloor\\) and \\(m_f=m-m_p\\).  The outcome block is the first labeled block; the pilot and factorial pools have sizes\n\\[\n M_p=n_p+m_p,\\qquad M_f=n_f+m_f,\\qquad\n u=M_0/8,\\quad t_p=M_p/8,\\quad t=M_f/8.                            \\tag{C2}\n\\]\nIf \\(n<24\\), declare the calibration predicate \\(\\mathsf C_\\epsilon(n,m)\\) false.  If \\(n\\ge24\\), put \\(N=n+m\\), \\(\\ell=\\log(en)\\), \\(h_n=1+\\lceil\\log_2 n\\rceil\\),\n\\[\n L=\\max\\{2,\\lfloor c^\\circ h_n\\rfloor\\},\\qquad\n B=\\frac{H_\\epsilon L}{\\min(t_p,t)},\\qquad\n k_0=\\lfloor t_pB/4\\rfloor,                                          \\tag{C3}\n\\]\nand let \\(\\mathsf C_\\epsilon(n,m)\\) be the conjunction of the following finite tests:\n\\[\n \\frac1{32}\\le\\frac un\\le\\frac1{24},\\qquad\n \\frac1{32}\\le\\frac{t_p}{N},\\frac tN\\le\\frac3{32},\\qquad\n \\frac13\\le\\frac t{t_p}\\le3,\\qquad L\\ge\\frac{c^\\circ h_n}{2},   \\tag{C4}\n\\]\n\\[\n t_pB\\ge8,\\qquad tB\\ge L,\\qquad\n L^4A_\\star^{2L}\\le n,\\qquad L^6A_\\star^{2L}\\le n,               \\tag{C5}\n\\]\n\\[\n \\frac{t_pB}{4}\\ge15L+12h_n,\\qquad\n \\left(1+\\bar\\epsilon\\frac t{t_p}\\right)^{k_0}\\ge n^{12},\n \\qquad \\bar\\epsilon tB\\ge12h_n.                                  \\tag{C6}\n\\]\nThese comparisons are a finite decidable computation from \\((n,m,\\epsilon)\\): \\(h_n\\) is the binary length of \\(n\\), \\(\\bar\\epsilon\\) is dyadic, and every remaining quantity and comparison is rational.\n\nIf \\(\\mathsf C_\\epsilon(n,m)\\) is false, set \\(\\widehat\\tau^{\\mathrm{mix}}_{n,m,d}=0\\).  If it is true, independently average over prefix lengths \\(D_0\\sim\\operatorname{Poi}(u)\\), \\(D_p\\sim\\operatorname{Poi}(t_p)\\), and \\(D_f\\sim\\operatorname{Poi}(t)\\), returning zero whenever a prefix exceeds its pool.  For a valid prefix, let \\(J_x\\) be the pilot count and call \\(x\\) light when \\(J_x\\le k_0\\).  Define, with polynomial continuation at zero,\n\\[\n H_L(z)=\\frac{1-T_L(1-2z)}{2L^2},\\qquad\n E_L(z)=\\frac{H_L(z)}z,\\qquad G_L(z)=\\frac{1-E_L(z)}z,\n\\]\nand expand\n\\[\n W_{a,L}(s_0,s_1)=\\frac{s_0+s_1}{B}G_L(s_a/B)\n =\\sum_{r_0,r_1}c_{a,r_0,r_1}s_0^{r_0}s_1^{r_1}.\n\\]\nFor factorial-pool counts \\(K_{ax}\\), outcome-block success counts \\(S_{ax}\\), and falling factorials \\((k)_r\\), put\n\\[\n \\widehat W_{a,L,x}=\\sum_{r_0,r_1}c_{a,r_0,r_1}\n \\frac{(K_{0x})_{r_0}(K_{1x})_{r_1}}{t^{r_0+r_1}},\n \\qquad\n \\widehat W^H_{a,x}=\\frac{K_{0x}+K_{1x}+1}{K_{ax}+1},\n\\]\n\\[\n Z_x=\\mathbf1\\{J_x\\le k_0\\}\n \\left(\\frac{S_{1x}}u\\widehat W_{1,L,x}-\\frac{S_{0x}}u\\widehat W_{0,L,x}\\right)\n +\\mathbf1\\{J_x>k_0\\}\n \\left(\\frac{S_{1x}}u\\widehat W^H_{1,x}-\\frac{S_{0x}}u\\widehat W^H_{0,x}\\right).\n\\]\nThe valid-prefix output is \\(\\operatorname{clip}_{[-1,1]}(\\sum_xZ_x)\\).  Finally \\(\\widehat\\tau^{\\mathrm{mix}}_{n,m,d}\\) is the conditional expectation of this output over the three prefix lengths given \\((\\mathcal L_n,\\mathcal U_m)\\).  It is a finite weighted sum of rationally generated polynomial coefficients, observed counts, and computable Poisson weights, and hence is a total computable measurable map.",
+          "lean": {
+            "file": "Helpers/Estimator.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.mixedEstimator",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:common-marginal-prior-handle",
+          "kind": "definition",
+          "label": "Definition P-7",
+          "nl": "Let \\(N=n+m\\) and \\(\\ell_n=\\log(en)\\).  In the regime \\(\\min\\{1,d^2/(N^2\\ell_n^2)\\}\\le C_\\epsilon/n\\), let \\(\\Pi_0,\\Pi_1\\) be point masses at the two laws concentrated on \\(X=1\\), with \\(e_1=1/2\\), \\(\\mu_{01}=0\\), and \\(\\mu_{11}=1/2\\mp h_n\\), where \\(h_n=c_\\epsilon/\\sqrt n\\le1/4\\).  In the complementary regime use the following approximation-dual construction.  Put \\(L=\\lceil C_\\epsilon^\\circ\\ell_n\\rceil\\), \\(B=b_\\epsilon L/N\\), \\(a=\\gamma_\\epsilon B/L^2\\), and \\(\\kappa=(1-2\\epsilon)/\\epsilon\\), with the constants calibrated in \\(\\mathrm{lem:common\\mbox{-}marginal\\mbox{-}poisson\\mbox{-}prior}\\).  On \\(I=[a/\\kappa,B]\\), let \\(\\sigma\\) be the finite signed measure of total variation one furnished by \\texttt{lem:finite-alternation-duality}, which annihilates \\(1,p,\\ldots,p^L\\) and satisfies \\(\\int p/(p+a)\\,d\\sigma(p)\\ge c_\\epsilon>0\\).  Write \\(h=d\\sigma/d|\\sigma|\\), and define\n\\[\n \\nu(dp)=\\frac{a}{p+a}|\\sigma|(dp)\\quad(p\\in I),\n \\qquad\n \\nu(\\{0\\})=1-\\int_I\\frac{a}{p+a}|\\sigma|(dp).\n\\]\nChoose \\(k=\\min\\{d-1,\\lfloor c_\\epsilon^\\circ NL\\rfloor\\}\\) rare cells.  Draw their raw masses independently from \\(\\nu\\), put \\(s_i=\\epsilon(p_i+a)\\) when \\(p_i>0\\), and set \\(e_i=s_i/p_i\\).  The reservoir raw mass is \\(p_*=1-kE_\\nu[p]\\), with propensity \\(1/2\\) and zero outcomes.  Divide every raw cell mass by \\(S=p_*+\\sum_{i=1}^kp_i\\).  Under \\(\\Pi_1\\), put \\(\\mu_{1i}=(1+h(p_i))/2\\); under \\(\\Pi_0\\), put \\(\\mu_{1i}=(1-h(p_i))/2\\); under both put \\(\\mu_{0i}=0\\), and assign identical legal values at raw mass zero.  Remaining alphabet cells have mass zero.  In either branch \\(\\Pi_0\\) and \\(\\Pi_1\\) are probability measures on \\(\\mathcal M_{d,\\epsilon}\\) and induce exactly the same random \\(P_{XA}\\).",
+          "lean": {
+            "file": "Helpers/CommonMarginalPrior.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalPriorOf",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:finite-small-instance",
+          "kind": "definition",
+          "label": "Definition P-8",
+          "nl": "Let \\(\\epsilon=1/4\\), \\(d=2\\), \\(p_1=p_2=1/2\\), \\(e_1=e_2=1/2\\), and \\(\\mu_{01}=\\mu_{02}=0\\). For \\(n=m=1\\), independence of the samples gives \\[E\\!\\left[2\\mathbf 1\\{\\mathcal L_1=((1,1,1))\\}\\left(\\mathbf 1\\{\\mathcal U_1=((1,0))\\}+\\mathbf 1\\{\\mathcal U_1=((1,1))\\}\\right)\\right]=2q_{11}p_1.\\] At \\(\\mu_{11}=1\\), this equals \\(1/4\\), while the treated cell target is \\(p_1\\mu_{11}=1/2\\). Define \\(\\Pi_0^{\\mathrm{small}}\\) to put unit mass on the law with \\(\\mu_{11}=\\mu_{12}=0\\), and define \\(\\Pi_1^{\\mathrm{small}}\\) to put unit mass on the law with \\(\\mu_{11}=1\\) and \\(\\mu_{12}=0\\). Under both priors, \\(P_{XA}(x,a)=1/4\\) for all \\((x,a)\\), whereas \\(\\tau(P)=0\\) under \\(\\Pi_0^{\\mathrm{small}}\\) and \\(\\tau(P)=1/2\\) under \\(\\Pi_1^{\\mathrm{small}}\\); consequently the auxiliary laws agree for every \\(m\\), and the total variation distance between the two labeled laws is \\(1-(3/4)^n\\). These identities constitute \\(\\mathfrak C_{\\mathrm{small}}\\).",
+          "lean": {
+            "file": "Helpers/FiniteSmallInstance.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.finiteSmallInstance",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:known-marginal-experiment",
+          "kind": "definition",
+          "label": "Definition P-9",
+          "nl": "\\(\\mathcal E^{\\mathrm{known}}_{n,d,\\epsilon}:=\\{(P^{\\otimes n},P_{XA}):P\\in\\mathcal M_{d,\\epsilon},\\ n\\ge1,\\ d\\ge2\\}\\), where the first coordinate generates \\(\\mathcal L_n\\) and the second coordinate is the exact \\(2d\\)-cell table observed as deterministic side information.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalExperiment",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:known-marginal-risk",
+          "kind": "definition",
+          "label": "Definition P-10",
+          "nl": "\\(R_\\epsilon^{\\mathrm{known}}(n,d):=\\inf_{T\\in\\mathcal T^{\\mathrm{known}}_{n,d}}\\sup_{P\\in\\mathcal M_{d,\\epsilon}}E_{P^{\\otimes n}}[(T(\\mathcal L_n,P_{XA})-\\tau(P))^2]\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalRisk",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "assumption",
+      "items": [
+        {
+          "obj_id": "ass:overlap",
+          "kind": "assumption",
+          "label": "Assumption A-1",
+          "nl": "\\(\\epsilon\\le e_x\\le1-\\epsilon\\) for every \\(x\\) with \\(p_x>0\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.Overlap",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:labeled-iid",
+          "kind": "assumption",
+          "label": "Assumption A-2",
+          "nl": "\\(\\mathcal L_n\\sim P^{\\otimes n}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.LabeledIid",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:auxiliary-iid",
+          "kind": "assumption",
+          "label": "Assumption A-3",
+          "nl": "\\(\\mathcal U_m\\sim P_{XA}^{\\otimes m}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.AuxiliaryIid",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:sample-independence",
+          "kind": "assumption",
+          "label": "Assumption A-4",
+          "nl": "\\(\\mathcal L_n\\perp\\!\\!\\!\\perp\\mathcal U_m\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.SampleIndependence",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:consistency",
+          "kind": "assumption",
+          "label": "Assumption A-5",
+          "nl": "\\(Y=Y(A)\\) almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.Consistency",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:conditional-exchangeability",
+          "kind": "assumption",
+          "label": "Assumption A-6",
+          "nl": "\\((Y(0),Y(1))\\perp\\!\\!\\!\\perp A\\mid X\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.ConditionalExchangeability",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "lemma",
+      "items": [
+        {
+          "obj_id": "lem:poisson-inverse-count-risk",
+          "kind": "lemma",
+          "label": "Lemma L-1",
+          "nl": "Let \\(u,t>0\\).  In the independent Poisson experiment with outcome-success counts \\(S_{ax}\\sim\\operatorname{Poi}(u q_{ax})\\) and marginal counts \\(K_{ax}\\sim\\operatorname{Poi}(t s_{ax})\\), define\n\\[\n Z^H=\\sum_{x=1}^d\\left\\{\\frac{S_{1x}}u\\frac{K_{0x}+K_{1x}+1}{K_{1x}+1}-\n \\frac{S_{0x}}u\\frac{K_{0x}+K_{1x}+1}{K_{0x}+1}\\right\\}.\n\\]\nUniformly over \\(P\\in\\mathcal M_{d,\\epsilon}\\),\n\\[\n |E_PZ^H-\\tau(P)|\\le C_\\epsilon\\min\\{1,d/t\\},\n \\qquad\n \\operatorname{Var}_P(Z^H)\\le C_\\epsilon(u^{-1}+t^{-1}).\n\\]",
+          "lean": {
+            "file": "Helpers/PoissonInverseCountMarginalEnergy.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_count_risk",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:chebyshev-factorial-certificate",
+          "kind": "lemma",
+          "label": "Lemma L-2",
+          "nl": "For every integer \\(L\\ge2\\), the displayed polynomials \\(H_L,E_L,G_L\\) are well defined, \\(G_L\\) has degree at most \\(L-2\\), and on \\(0\\le z\\le1\\),\n\\[\n 0\\le E_L(z)\\le\\min\\{1,(L^2z)^{-1}\\},\\qquad zG_L(z)+E_L(z)=1.\n\\]\nThere is a universal \\(A>1\\) such that the factorial lift \\(\\widehat W_{a,L}\\) of \\(W_{a,L}\\) satisfies, whenever \\(tB\\ge L\\),\n\\[\n E\\widehat W_{a,L}^{2}\\le A^L\\{1+p/B\\}^{2L},\n\\]\nand the right side can be replaced by \\(A^L\\) when \\(p\\le B\\).",
+          "lean": {
+            "file": "Helpers/FactorialCertificate.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.chebyshev_factorial_certificate",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:poisson-hybrid-risk",
+          "kind": "lemma",
+          "label": "Lemma L-3",
+          "nl": "Use the split sizes, intensities, constants \\(A_\\star=7056\\), \\(c^\\circ=1/256\\), dyadic certificate \\(\\bar\\epsilon\\), integer \\(H_\\epsilon\\), and finite predicate \\(\\mathsf C_\\epsilon(n,m)\\) in \\(\\mathrm{def:mixed\\mbox{-}estimator\\mbox{-}handle}\\).  In the independent Poisson experiment with outcome intensity \\(u\\), pilot intensity \\(t_p\\), and factorial intensity \\(t\\), apply the displayed hybrid statistic when \\(\\mathsf C_\\epsilon(n,m)\\) holds and output zero otherwise.  There is a finite \\(C_\\epsilon\\), depending only on \\(\\epsilon\\), such that, uniformly over \\(P\\in\\mathcal M_{d,\\epsilon}\\) and simultaneously for every \\(n\\ge1\\), \\(m\\ge0\\), and \\(d\\ge2\\), its clipped output \\(Z^{\\mathrm{mix}}\\) obeys\n\\[\n E_P[(Z^{\\mathrm{mix}}-\\tau(P))^2]\n \\le C_\\epsilon\\min\\!\\left\\{1,\\frac1n+\\frac{d^2}{(n+m)^2\\log^2(en)}\\right\\}. \\tag{C14}\n\\]\nThe calibration and the statistic are finite and computable; only the risk constant \\(C_\\epsilon\\) is existential.",
+          "lean": {
+            "file": "Helpers/PoissonHybridRisk.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_hybrid_risk",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:fixed-sample-hybrid-transfer",
+          "kind": "lemma",
+          "label": "Lemma L-4",
+          "nl": "The independent-Poisson hybrid statistic of \\(\\mathrm{lem:poisson\\mbox{-}hybrid\\mbox{-}risk}\\) has a total deterministic implementation from exactly \\(n\\) labeled and \\(m\\) auxiliary observations.  Its risk is at most twice the Poisson risk plus \\(C/n\\), uniformly over the observation experiment.",
+          "lean": {
+            "file": "Helpers/FixedSampleHybridTransfer.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.fixed_sample_hybrid_transfer",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:finite-alternation-duality",
+          "kind": "lemma",
+          "label": "Lemma L-5",
+          "nl": "Fix \\(0<\\epsilon<1/2\\) and put \\(\\kappa=(1-2\\epsilon)/\\epsilon\\).  There are positive constants \\(\\gamma_\\epsilon,c_\\epsilon\\) such that, for every integer \\(L\\ge2\\), every \\(B>0\\), and \\(a=\\gamma_\\epsilon B/L^2\\), the interval \\(I=[a/\\kappa,B]\\) is nonempty and there is a finite signed measure \\(\\sigma\\) on \\(I\\) satisfying\n\\[\n |\\sigma|(I)=1,\\qquad \\int_Ip^j\\,d\\sigma(p)=0\\quad(0\\le j\\le L),\n \\qquad \\int_I\\frac p{p+a}\\,d\\sigma(p)\\ge c_\\epsilon.\n\\]",
+          "lean": {
+            "file": "Helpers/AlternationDuality.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.finite_alternation_duality",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:fixed-sample-common-marginal-transfer",
+          "kind": "lemma",
+          "label": "Lemma L-7",
+          "nl": "There are fixed numerical constants \\(C_{\\mathrm{fixed}},c_{\\mathrm{risk}}>0\\) with the following property.  For every \\(0<\\epsilon<1/2\\) and every positive variance-bound constant \\(C_\\epsilon\\) in the uniform-intensity exact-witness interface, there is a concentration threshold \\(c_{\\epsilon,C_\\epsilon}>0\\).  For every \\(n\\ge1\\), \\(m\\ge0\\), and every recipe carrying that exact witness at intensities \\(u=C_{\\mathrm{fixed}}n\\) and \\(v=C_{\\mathrm{fixed}}(n+m)\\), let \\(\\Delta\\) be its actual raw-center separation.  If that recipe's raw mixture laws have total variation at most \\(1/8\\) and \\(kBa\\le c_{\\epsilon,C_\\epsilon}\\Delta^2\\), then\n\\[\n R_\\epsilon(n,m,d)\\ge c_{\\mathrm{risk}}\\Delta^2.\n\\]\nThis implication holds for every qualifying exact-witness recipe, including both the exact \\(b_\\epsilon L/(u+v)\\) specialization and the C55 bandwidth supplied through the uniform-intensity inequality; the transfer does not select a recipe.  It preserves the identical random \\(P_{XA}\\) law and holds for the fixed, unequal sample sizes.",
+          "lean": {
+            "file": "Helpers/CommonMarginalTransfer.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.fixed_sample_common_marginal_transfer",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:explicit-chebyshev-calibration",
+          "kind": "lemma",
+          "label": "Lemma L-8",
+          "nl": "Let \\(T_j\\) be the Chebyshev polynomials, put \\(Q_j(z)=T_j(1-2z)\\), and let \\(\\|\\cdot\\|_1\\) denote coefficient \\(\\ell^1\\)-norm.  For every integer \\(L\\ge2\\), the polynomials\n\\[\n H_L(z)=\\frac{1-Q_L(z)}{2L^2},\\qquad E_L(z)=H_L(z)/z,\n \\qquad G_L(z)=\\{1-E_L(z)\\}/z\n\\]\nare well defined by polynomial continuation and satisfy\n\\[\n \\|Q_L\\|_1\\le7^L,\\qquad\n \\|(z_0+z_1)G_L(z_a)\\|_1\\le14^L.                                   \\tag{C7}\n\\]\nMoreover, if \\(K_b\\sim\\operatorname{Poi}(ts_b)\\) independently, \\(p=s_0+s_1\\), and \\(\\widehat W_{a,L}\\) is the factorial lift of \\((z_0+z_1)G_L(z_a)\\) with \\(z_b=s_b/B\\), then, whenever \\(tB\\ge L\\), the explicit integer \\(A_\\star=7056\\) satisfies\n\\[\n E\\widehat W_{a,L}^{2}\\le A_\\star^L(1+p/B)^{2L},\n \\qquad\n p\\le B\\Longrightarrow E\\widehat W_{a,L}^{2}\\le A_\\star^L.       \\tag{C8}\n\\]\nOn \\(0\\le z\\le1\\), one also has\n\\[\n 0\\le E_L(z)\\le\\min\\{1,(L^2z)^{-1}\\},\\qquad zG_L(z)+E_L(z)=1.     \\tag{C9}\n\\]",
+          "lean": {
+            "file": "Helpers/ChebyshevCalibration.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.explicit_chebyshev_calibration",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:parametric-label-floor",
+          "kind": "lemma",
+          "label": "Lemma L-9",
+          "nl": "There is a positive numerical \\(c\\), independent of \\(m,d\\) and depending on \\(\\epsilon\\) only through the requirement \\(\\epsilon<1/2\\), such that for every \\(n\\ge1\\), \\(m\\ge0\\), and \\(d\\ge2\\),\n\\[\n R_\\epsilon(n,m,d)\\ge c/n.                                        \\tag{C39}\n\\]\nThe two hypotheses have the same treatment--covariate marginal, so the bound is entirely label-gated.",
+          "lean": {
+            "file": "Helpers/ParametricLabelFloor.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametric_label_floor",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:common-marginal-uniform-intensity",
+          "kind": "lemma",
+          "label": "Lemma L-10",
+          "nl": "There are positive constants \\(b_\\epsilon,\\gamma_\\epsilon,c_\\epsilon,C_\\epsilon\\) and \\(0<\\rho_\\epsilon<1\\) with the following property.  Let \\(L\\ge2\\), let \\(u,v\\ge0\\), put \\(M=u+v>0\\), and choose \\(B>0\\), \\(a=\\gamma_\\epsilon B/L^2\\), and an integer \\(k\\le d-1\\) such that\n\\[\n MB\\le b_\\epsilon L,\\qquad ka\\le c_\\epsilon.                    \\tag{C42}\n\\]\nApply the finite-atom recipe in \\(\\mathrm{def:common\\mbox{-}marginal\\mbox{-}prior\\mbox{-}handle}\\) to \\(k\\) rare cells at scale \\((a,B,L)\\).  The normalized laws lie in \\(\\mathcal M_{d,\\epsilon}\\), the two priors induce exactly the same distribution of the full random table \\(P_{XA}\\), their raw target centers are separated by at least \\(c_\\epsilon ka\\), and their raw total-mass and target variances are at most \\(C_\\epsilon kBa\\).  In the raw Poisson experiment of labeled intensity \\(u\\) and auxiliary intensity \\(v\\), the two mixture laws have total variation at most\n\\[\n C_\\epsilon uka\\rho_\\epsilon^L.                                   \\tag{C43}\n\\]",
+          "lean": {
+            "file": "Helpers/CommonMarginalPrior.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.common_marginal_uniform_intensity",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:poisson-inverse-marginal-energy-scalar",
+          "kind": "lemma",
+          "label": "Lemma lem:poisson-inverse-marginal-energy-scalar",
+          "nl": "Let \\(0<\\epsilon\\le1\\), \\(u>0\\), \\(p\\ge0\\), and \\(w\\ge0\\), and let \\(q_0,q_1\\in[0,p]\\).  For \\(a\\in\\{0,1\\}\\), let \\(\\lambda_a\\) satisfy \\(\\epsilon w\\le\\lambda_a\\le w\\), and let \\(r_{2,a},r_{4,a}\\ge0\\) satisfy \\((1+\\lambda_a)^2r_{2,a}\\le8\\) and \\((1+\\lambda_a)^4r_{4,a}\\le96\\).  Put \\(c_{\\mathrm{mar}}=8\\epsilon^{-2}+96(\\epsilon^{-2}+\\epsilon^{-3})\\).  Then\n\\[\n\\lambda_1\\bigl\\{(q_1u^{-1}+q_1^2)(\\lambda_0+\\lambda_0^2)r_{4,1}+(q_0u^{-1}+q_0^2)r_{2,0}\\bigr\\}\n+\\lambda_0\\bigl\\{(q_0u^{-1}+q_0^2)(\\lambda_1+\\lambda_1^2)r_{4,0}+(q_1u^{-1}+q_1^2)r_{2,1}\\bigr\\}\n\\le (pu^{-1}+p^2)\\,\\frac{2c_{\\mathrm{mar}}}{1+w}.\n\\]",
+          "lean": {
+            "file": "Helpers/PoissonInverseCountMarginalEnergy.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_marginal_energy_with_outcome_rates",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:poisson-prefix-count-law",
+          "kind": "lemma",
+          "label": "Lemma lem:poisson-prefix-count-law",
+          "nl": "Let \\(P\\) be a probability law on \\([d]\\times\\{0,1\\}^2\\), let \\(u,t\\ge0\\), and write \\(q_{ax}=P(x,a,1)\\) and \\(s_{ax}=P(x,a,0)+P(x,a,1)\\).  Under the prefix law \\(\\mathbb P^{\\mathrm{pref}}_{P,u,t}\\), draw independently an outcome-marked prefix consisting of \\(D_0\\sim\\operatorname{Poi}(u)\\) independent records from \\(P\\) and a treatment--covariate prefix consisting of \\(D_f\\sim\\operatorname{Poi}(t)\\) independent records from \\(P_{XA}\\); let \\(S_{ax}\\) be the number of outcome-marked prefix records equal to \\((x,a,1)\\) and \\(K_{ax}\\) the number of treatment--covariate prefix records equal to \\((x,a)\\).  Then the count array \\((S_{ax},K_{ax})_{x\\in[d],\\,a\\in\\{0,1\\}}\\) has independent coordinates with\n\\[\nS_{ax}\\sim\\operatorname{Poi}(u\\,q_{ax}),\\qquad K_{ax}\\sim\\operatorname{Poi}(t\\,s_{ax});\n\\]\nthat is, the pushforward of \\(\\mathbb P^{\\mathrm{pref}}_{P,u,t}\\) under the count map is the independent Poisson count law used for \\(Z^H\\).",
+          "lean": {
+            "file": "T_InverseCountBaseline.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.finitePrefixCounts_map_eq_poissonCountLaw",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:inverse-count-poisson-prefix-transfer",
+          "kind": "lemma",
+          "label": "Lemma lem:inverse-count-poisson-prefix-transfer",
+          "nl": "Let \\(n,m,d\\ge0\\) be integers and \\(P\\in\\mathcal M_{d,\\epsilon}\\).  Put \\(M_0=\\lfloor n/3\\rfloor\\), \\(n_p=\\lfloor(n-M_0)/2\\rfloor\\), \\(n_f=n-M_0-n_p\\), \\(m_f=m-\\lfloor m/2\\rfloor\\), \\(u=M_0/8\\), and \\(t=(n_f+m_f)/8\\), with the convention \\(S/u=0\\) when \\(u=0\\).  Let \\(\\widehat\\tau^{\\mathrm{IC}}_{n,m,d}\\) be the inverse-count estimator: the weighted sum, over prefix lengths \\(0\\le r_0\\le M_0\\) and \\(0\\le r_f\\le n_f+m_f\\) with weights \\(\\Pr\\{\\operatorname{Poi}(u)=r_0\\}\\Pr\\{\\operatorname{Poi}(t)=r_f\\}\\), of \\(\\operatorname{clip}_{[-1,1]}(Z^H)\\) computed from the first \\(r_0\\) records of the outcome block (the first \\(M_0\\) labeled records) and the first \\(r_f\\) records of the factorial pool (the treatment--covariate parts of the last \\(n_f\\) labeled records together with the last \\(m_f\\) auxiliary records), where\n\\[\nZ^H=\\sum_{x=1}^d\\left\\{\\frac{S_{1x}}u\\frac{K_{0x}+K_{1x}+1}{K_{1x}+1}-\\frac{S_{0x}}u\\frac{K_{0x}+K_{1x}+1}{K_{0x}+1}\\right\\},\n\\]\n\\(S_{ax}\\) counts outcome-block prefix records equal to \\((x,a,1)\\), and \\(K_{ax}\\) counts factorial-pool prefix records with \\((X,A)=(x,a)\\).  Under the prefix law \\(\\mathbb P^{\\mathrm{pref}}_{P,u,t}\\), draw independently an outcome-marked prefix consisting of \\(D_0\\sim\\operatorname{Poi}(u)\\) independent records from \\(P\\) and a treatment--covariate prefix consisting of \\(D_f\\sim\\operatorname{Poi}(t)\\) independent records from \\(P_{XA}\\); let \\(S_{ax}\\) be the number of outcome-marked prefix records equal to \\((x,a,1)\\) and \\(K_{ax}\\) the number of treatment--covariate prefix records equal to \\((x,a)\\).  Let \\(\\widehat\\tau^{\\mathrm{IC,pref}}_{u,t}=\\operatorname{clip}_{[-1,1]}(Z^H)\\) be computed from these prefix counts.  Then\n\\[\nE_{P^{\\otimes n}\\otimes P_{XA}^{\\otimes m}}\\!\\left[\\bigl(\\widehat\\tau^{\\mathrm{IC}}_{n,m,d}-\\tau(P)\\bigr)^2\\right]\n\\le\nE_{\\mathbb P^{\\mathrm{pref}}_{P,u,t}}\\!\\left[\\bigl(\\widehat\\tau^{\\mathrm{IC,pref}}_{u,t}-\\tau(P)\\bigr)^2\\right]\n+4\\Bigl[\\Pr\\{\\operatorname{Poi}(u)>M_0\\}+\\Pr\\{\\operatorname{Poi}(t)>n_f+m_f\\}\\Bigr].\n\\]",
+          "lean": {
+            "file": "T_InverseCountBaseline.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.inverseCountEstimator_risk_le_poissonPrefixes",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:shifted-chebyshev-quotient-coefficient-bound",
+          "kind": "lemma",
+          "label": "Lemma lem:shifted-chebyshev-quotient-coefficient-bound",
+          "nl": "Let \\(L\\ge1\\) be an integer, let \\(T_L\\) be the Chebyshev polynomial of degree \\(L\\), and let\n\\[\nH_L(z)=\\frac{1-T_L(1-2z)}{2L^2},\\qquad E_L(z)=\\frac{H_L(z)}z,\\qquad G_L(z)=\\frac{1-E_L(z)}z\n\\]\nbe the polynomials obtained by polynomial continuation at zero, as in \\(\\mathrm{def:mixed\\mbox{-}estimator\\mbox{-}handle}\\).  If \\(\\|\\cdot\\|_1\\) denotes the coefficient \\(\\ell^1\\)-norm of a real polynomial, then\n\\[\n\\|G_L\\|_1\\le 6^L .\n\\]",
+          "lean": {
+            "file": "Helpers/ChebyshevCalibration.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.coefficientL1_chebG_le",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:finite-side-information-convergence",
+          "kind": "lemma",
+          "label": "Lemma lem:finite-side-information-convergence",
+          "nl": "Let \\(0<\\epsilon<1/2\\), \\(n\\ge0\\), and \\(d\\ge2\\).  Let\n\\[\n\\Theta_{\\epsilon,d}=\\bigl\\{(\\pi,\\varrho,\\omega):\\pi\\in\\mathsf{Prob}([d]),\\ \\varrho_x\\in[\\epsilon,1-\\epsilon],\\ \\omega_{\\alpha x}\\in[0,1]\\ \\text{for }x\\in[d],\\ \\alpha\\in\\{0,1\\}\\bigr\\},\n\\]\nand for \\(\\theta=(\\pi,\\varrho,\\omega)\\in\\Theta_{\\epsilon,d}\\) put \\(P_\\theta(x,\\alpha,y)=\\pi_x\\varrho_x^{\\alpha}(1-\\varrho_x)^{1-\\alpha}\\omega_{\\alpha x}^{y}(1-\\omega_{\\alpha x})^{1-y}\\), let \\(\\lambda_\\theta=P_\\theta^{\\otimes n}\\) be the law of the labeled sample \\(Z\\in([d]\\times\\{0,1\\}^2)^n\\), let \\(\\xi_\\theta(x,\\alpha)=\\sum_{y\\in\\{0,1\\}}P_\\theta(x,\\alpha,y)\\), and let \\(\\upsilon_\\theta=\\sum_{x\\in[d]}\\pi_x(\\omega_{1x}-\\omega_{0x})\\).  For \\(m\\ge0\\) define\n\\[\n\\mathfrak R_m=\\inf_{\\varphi}\\sup_{\\theta\\in\\Theta_{\\epsilon,d}}\\int\\bigl(\\varphi(Z,U)-\\upsilon_\\theta\\bigr)^2\\,d\\bigl(\\lambda_\\theta\\otimes\\xi_\\theta^{\\otimes m}\\bigr)(Z,U),\n\\]\nwhere \\(\\varphi\\) ranges over all maps \\(([d]\\times\\{0,1\\}^2)^n\\times([d]\\times\\{0,1\\})^m\\to[-1,1]\\), and define\n\\[\n\\mathfrak R_\\star=\\inf_{\\psi}\\sup_{\\theta\\in\\Theta_{\\epsilon,d}}\\int\\bigl(\\psi(Z,\\xi_\\theta)-\\upsilon_\\theta\\bigr)^2\\,d\\lambda_\\theta(Z),\n\\]\nwhere \\(\\psi\\) ranges over all maps from \\(([d]\\times\\{0,1\\}^2)^n\\times\\mathsf{Prob}([d]\\times\\{0,1\\})\\) to \\([-1,1]\\).  Then\n\\[\n\\lim_{m\\to\\infty}\\mathfrak R_m=\\mathfrak R_\\star .\n\\]",
+          "lean": {
+            "file": "Helpers/KnownMarginalLimit.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalGeneric_tendsto",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:common-marginal-recipe-transfer",
+          "kind": "lemma",
+          "label": "Lemma lem:common-marginal-recipe-transfer",
+          "nl": "Let \\(0<\\epsilon<1/2\\), and fix a common-marginal calibration at overlap level \\(\\epsilon\\), a variance-bound constant \\(C_\\epsilon>0\\), and a real number \\(\\rho_\\epsilon\\).  Let \\(n\\ge1\\), \\(m\\ge0\\), \\(d\\ge2\\), integers \\(L,k\\ge0\\), and reals \\(B,a\\) be given, and let \\(\\mathcal R\\) be a common-marginal rare-cell recipe with \\(k\\) rare cells at scale \\((a,B,L)\\) carrying the exact Poisson-prior witness with constants \\((C_\\epsilon,\\rho_\\epsilon)\\) at labeled intensity \\(u=65536\\,n\\) and auxiliary intensity \\(v=65536\\,(n+m)\\).  Let \\(\\theta_1\\) and \\(\\theta_0\\) be the alternative and null raw prior centers of \\(\\mathcal R\\), and put \\(\\Delta=|\\theta_1-\\theta_0|\\).  If the two raw mixture laws of \\(\\mathcal R\\) have total variation distance at most \\(1/8\\) and\n\\[\nkBa\\le\\frac{\\Delta^2}{65536\\,C_\\epsilon},\n\\]\nthen\n\\[\nR_\\epsilon(n,m,d)\\ge\\frac{\\Delta^2}{65536}.\n\\]",
+          "lean": {
+            "file": "Helpers/CommonMarginalTransfer.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.fixed_sample_common_marginal_recipe_transfer_rule",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:annotation-frontier-strict-improvement",
+          "kind": "lemma",
+          "label": "Lemma lem:annotation-frontier-strict-improvement",
+          "nl": "Let \\((m_n)_{n\\ge1}\\) and \\((d_n)_{n\\ge1}\\) be sequences of nonnegative integers with \\(d_n\\ge2\\) for every \\(n\\ge1\\), and put \\(N_n=n+m_n\\) and \\(\\ell_n=\\log(en)\\).  Then, as \\(n\\to\\infty\\),\n\\[\nr_\\epsilon(n,m_n,d_n)=o\\!\\left(r_\\epsilon(n,0,d_n)\\right)\n\\]\nif and only if both\n\\[\n\\frac{d_n}{\\sqrt n\\,\\ell_n}\\to\\infty\n\\quad\\text{and}\\quad\n\\frac{d_n/(N_n\\ell_n)}{\\min\\{1,d_n/(n\\ell_n)\\}}\\to0.\n\\]",
+          "lean": {
+            "file": "Helpers/StrictImprovement.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.annotation_frontier_strict_improvement_iff",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:common-marginal-recipe-target-concentration",
+          "kind": "lemma",
+          "label": "Lemma lem:common-marginal-recipe-target-concentration",
+          "nl": "Fix \\(\\epsilon\\in\\mathbb R\\), a common-marginal calibration at overlap level \\(\\epsilon\\) with dual-gap constant \\(c_\\epsilon\\), reals \\(C_\\epsilon,\\rho_\\epsilon,u,v,B,a\\), and integers \\(n,m,d,L,k\\ge0\\).  Let \\(\\mathcal R\\) be a common-marginal rare-cell recipe with \\(k\\) rare cells at scale \\((a,B,L)\\), with atom-generator probability measure \\(\\Gamma\\) on \\(w\\in\\mathbb R^{k}\\), branch-\\(b\\) laws \\(P_b(w)\\), raw targets \\(r_b(w)\\), raw total mass \\(S(w)\\), and branch priors \\(\\Pi_b=\\Gamma\\circ P_b^{-1}\\) for \\(b\\in\\{0,1\\}\\); put \\(\\theta_b=\\int r_b\\,d\\Gamma\\).  Assume the recipe bounds hold at intensities \\((u,v)\\) with constants \\((C_\\epsilon,\\rho_\\epsilon)\\): \\(\\mathcal R\\) uses the finite-atom construction, both priors are supported in \\(\\mathcal M_{d,\\epsilon}\\) and induce the same distribution of the random table \\(P_{XA}\\), \\(c_\\epsilon ka\\le|\\theta_1-\\theta_0|\\), \\(\\int S\\,d\\Gamma=1\\), \\(S,r_0,r_1\\in L^2(\\Gamma)\\) with \\(\\operatorname{Var}_\\Gamma(S)\\le C_\\epsilon kBa\\) and \\(\\max_b\\operatorname{Var}_\\Gamma(r_b)\\le C_\\epsilon kBa\\), and the two raw mixture laws at labeled intensity \\(u\\) and auxiliary intensity \\(v\\) have total variation distance at most \\(C_\\epsilon uka\\rho_\\epsilon^L\\).  Then for each branch \\(b\\in\\{0,1\\}\\) and every \\(0<\\Delta\\le2\\),\n\\[\n\\Pi_b\\!\\left\\{P:\\ |\\tau(P)-\\theta_b|>\\frac{\\Delta}{4}\\right\\}\\le\\frac{512\\,C_\\epsilon kBa}{\\Delta^2}.\n\\]",
+          "lean": {
+            "file": "Helpers/CommonMarginalTransferConcentration.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_prior_target_concentration",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:common-marginal-recipe-scale-tail",
+          "kind": "lemma",
+          "label": "Lemma lem:common-marginal-recipe-scale-tail",
+          "nl": "Fix \\(\\epsilon\\in\\mathbb R\\), a common-marginal calibration at overlap level \\(\\epsilon\\) with dual-gap constant \\(c_\\epsilon\\), reals \\(C_\\epsilon,\\rho_\\epsilon,u,v,B,a\\), and integers \\(n,m,d,L,k\\ge0\\).  Let \\(\\mathcal R\\) be a common-marginal rare-cell recipe with \\(k\\) rare cells at scale \\((a,B,L)\\), with atom-generator probability measure \\(\\Gamma\\) on \\(w\\in\\mathbb R^{k}\\), branch-\\(b\\) laws \\(P_b(w)\\), raw targets \\(r_b(w)\\), raw total mass \\(S(w)\\), and branch priors \\(\\Pi_b=\\Gamma\\circ P_b^{-1}\\) for \\(b\\in\\{0,1\\}\\); put \\(\\theta_b=\\int r_b\\,d\\Gamma\\).  Assume the recipe bounds hold at intensities \\((u,v)\\) with constants \\((C_\\epsilon,\\rho_\\epsilon)\\): \\(\\mathcal R\\) uses the finite-atom construction, both priors are supported in \\(\\mathcal M_{d,\\epsilon}\\) and induce the same distribution of the random table \\(P_{XA}\\), \\(c_\\epsilon ka\\le|\\theta_1-\\theta_0|\\), \\(\\int S\\,d\\Gamma=1\\), \\(S,r_0,r_1\\in L^2(\\Gamma)\\) with \\(\\operatorname{Var}_\\Gamma(S)\\le C_\\epsilon kBa\\) and \\(\\max_b\\operatorname{Var}_\\Gamma(r_b)\\le C_\\epsilon kBa\\), and the two raw mixture laws at labeled intensity \\(u\\) and auxiliary intensity \\(v\\) have total variation distance at most \\(C_\\epsilon uka\\rho_\\epsilon^L\\).  Let \\(s_{\\mathcal R}\\) be the recipe raw scale, a measurable real function of the observed-data law with \\(s_{\\mathcal R}(P_b(w))=S(w)\\) for \\(\\Gamma\\)-almost every \\(w\\), and put \\(s_{\\mathcal R,+}=\\max\\{s_{\\mathcal R},0\\}\\).  Then for each branch \\(b\\in\\{0,1\\}\\),\n\\[\n\\Pi_b\\!\\left\\{P:\\ s_{\\mathcal R,+}(P)<\\frac12\\right\\}\\le 4\\,C_\\epsilon kBa.\n\\]",
+          "lean": {
+            "file": "Helpers/CommonMarginalTransferConcentration.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_prior_scale_tail",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:common-marginal-canonical-certificate-family",
+          "kind": "lemma",
+          "label": "Lemma lem:common-marginal-canonical-certificate-family",
+          "nl": "There are positive numerical constants \\(C_{\\mathrm{fixed}}\\) and \\(c_{\\mathrm{risk}}\\) with the following property.  For every \\(0<\\epsilon<1/2\\) there are a calibration in the sense of \\cref{obj:def:common-marginal-prior-handle}, with bandwidth constants \\(b_0,b_\\epsilon\\), dual-gap constant \\(c_\\epsilon\\), and dimension constant \\(C_d\\), together with real numbers \\(C_\\epsilon>0\\), \\(\\rho_\\epsilon\\in(0,1)\\), \\(c_{\\mathrm{small}}>0\\), and \\(c_{\\mathrm{floor}}\\) with \\(0<c_{\\mathrm{floor}}\\le c_{\\mathrm{risk}}\\), such that the following two assertions hold.  For a common-marginal prior handle \\(H\\) at \\((n,m,d)\\), write \\(L,k,B,a\\) for its integers and reals, \\(\\theta_0(H),\\theta_1(H)\\) for the null and alternative raw prior centers of its recipe, \\(\\Delta_H=c_\\epsilon ka\\), and \\(D(n,m,d)=\\min\\{1,d^2/((n+m)^2\\log(en)^2)\\}\\); say that the recipe of \\(H\\) carries the exact witness if it carries the exact common-marginal Poisson-prior witness with bandwidth \\(B=b_0L/(n+m)\\), constants \\((C_\\epsilon,\\rho_\\epsilon)\\), labeled intensity \\(u=C_{\\mathrm{fixed}}n\\), and auxiliary intensity \\(v=C_{\\mathrm{fixed}}(n+m)\\).  (i) Transfer at these constants: for all \\(n\\ge1\\), \\(m\\ge0\\), \\(d\\ge2\\) and every handle \\(H\\) at \\((n,m,d)\\) whose recipe carries the exact witness, whose two raw mixture laws have total variation distance at most \\(1/8\\), and which satisfies \\(kBa\\le c_{\\mathrm{small}}|\\theta_1(H)-\\theta_0(H)|^2\\), one has \\(c_{\\mathrm{risk}}|\\theta_1(H)-\\theta_0(H)|^2\\le R_\\epsilon(n,m,d)\\).  (ii) Certificate family: for all \\(n\\ge1\\), \\(m\\ge0\\), \\(d\\ge2\\) there is a handle \\(H\\) at \\((n,m,d)\\) such that \\(L\\ge2\\), \\(2C_{\\mathrm{fixed}}b_0\\le b_\\epsilon\\), \\((C_{\\mathrm{fixed}}n+C_{\\mathrm{fixed}}(n+m))B\\le b_\\epsilon L\\), the priors \\(\\Pi_0(H)\\) and \\(\\Pi_1(H)\\) induce the same distribution of the random table \\(P_{XA}\\), and \\(c_{\\mathrm{floor}}/n\\le R_\\epsilon(n,m,d)\\); if \\(H\\) uses the finite-atom construction, then moreover \\(ka\\le c_\\epsilon\\), the recipe carries the exact witness, its recipe bounds hold at intensities \\((u,v)\\) with constants \\((C_\\epsilon,\\rho_\\epsilon)\\) (both priors supported in \\(\\mathcal M_{d,\\epsilon}\\), identical random \\(P_{XA}\\) law, raw-center separation at least \\(c_\\epsilon ka\\), raw total mass of generator mean one, square-integrable raw total mass and raw targets with generator variances at most \\(C_\\epsilon kBa\\), and raw mixture total variation at most \\(C_\\epsilon uka\\rho_\\epsilon^L\\)), its two raw mixture laws have total variation distance at most \\(1/8\\), \\(\\Delta_H\\le|\\theta_1(H)-\\theta_0(H)|\\), \\(kBa\\le c_{\\mathrm{small}}\\Delta_H^2\\), \\(c_{\\mathrm{floor}}\\Delta_H^2\\le R_\\epsilon(n,m,d)\\), and \\(C_dD(n,m,d)\\le\\Delta_H^2\\); if \\(H\\) does not use the finite-atom construction, then \\(C_dD(n,m,d)\\le c_{\\mathrm{floor}}/n\\).",
+          "lean": {
+            "file": "Helpers/CommonMarginalTransfer.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.common_marginal_canonical_certificate_family",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:calibrated-envelope-absorption",
+          "kind": "lemma",
+          "label": "Lemma lem:calibrated-envelope-absorption",
+          "nl": "Let \\(\\epsilon>0\\) and \\(C_0>0\\). There is a constant \\(C>0\\), depending only on \\(\\epsilon\\) and \\(C_0\\), with the following property. Let \\(n\\ge1\\), \\(m\\ge0\\), and \\(d\\ge2\\) be integers for which the calibration predicate \\(\\mathsf C_\\epsilon(n,m)\\) of the hybrid estimator holds, and let \\(L=L(n)\\), \\(B=B(n,m,\\epsilon)\\), \\(u=M_0/8\\), \\(t=M_f/8\\), and \\(A_\\star=7056\\) be the calibrated polynomial degree, light-cell scale, outcome-block and factorial-pool Poisson intensities, and Chebyshev-factorial constant of that estimator. With \\(N=n+m\\) and \\(\\ell_n=\\log(en)\\) as in the frontier rate,\n\\[\n4A_\\star^L\\Bigl\\{\\frac{\\min\\{1,dB\\}}{u}+dB^2\\Bigr\\}+C_0\\bigl(u^{-1}+t^{-1}\\bigr)+\\frac{8dB^2}{\\epsilon^2L^4}+\\frac4{\\epsilon t}+414\\,n^{-12}+\\Bigl(\\frac{2dB}{\\epsilon L^2}+6n^{-12}\\Bigr)^2\\le C\\Bigl(\\frac1n+\\frac{d^2}{N^2\\ell_n^2}\\Bigr).\n\\]",
+          "lean": {
+            "file": "Helpers/HybridDeterministicAbsorption.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.calibrated_envelope_absorption_exists",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:finite-side-measurable-comparison",
+          "kind": "lemma",
+          "label": "Lemma lem:finite-side-measurable-comparison",
+          "nl": "Let \\(\\Theta\\) be a nonempty parameter set, let \\(\\mathcal Z\\) and \\(\\mathcal C\\) be nonempty finite sets, and let \\(\\beta_-\\le\\beta_+\\) be real numbers. For each \\(\\theta\\in\\Theta\\), let \\(\\lambda_\\theta\\) be a probability vector on \\(\\mathcal Z\\), let \\(\\xi_\\theta\\) be a probability vector on \\(\\mathcal C\\), and let \\(\\upsilon_\\theta\\in[\\beta_-,\\beta_+]\\). For each integer \\(m\\ge0\\) define the empirical-side value\n\\[\n\\mathfrak R_m=\\inf_{\\varphi:\\mathcal Z\\times\\mathcal C^m\\to[\\beta_-,\\beta_+]}\\ \\sup_{\\theta\\in\\Theta}\\ \\sum_{z\\in\\mathcal Z}\\lambda_\\theta(z)\\sum_{v\\in\\mathcal C^m}\\Bigl(\\prod_{j=1}^m\\xi_\\theta(v_j)\\Bigr)\\bigl(\\varphi(z,v)-\\upsilon_\\theta\\bigr)^2,\n\\]\nand define the measurable ambient exact-table value\n\\[\n\\widetilde{\\mathfrak R}_\\star=\\inf_{\\psi}\\ \\sup_{\\theta\\in\\Theta}\\ \\sum_{z\\in\\mathcal Z}\\lambda_\\theta(z)\\bigl(\\psi(z,\\xi_\\theta)-\\upsilon_\\theta\\bigr)^2,\n\\]\nwhere \\(\\psi\\) ranges over all maps \\(\\mathcal Z\\times\\mathbb R^{\\mathcal C}\\to[\\beta_-,\\beta_+]\\) whose section \\(w\\mapsto\\psi(z,w)\\) is Borel measurable for each \\(z\\in\\mathcal Z\\). Then \\(\\widetilde{\\mathfrak R}_\\star\\le\\mathfrak R_m\\) for every \\(m\\ge0\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "Causalean.Stat.Minimax.FiniteSideInformation.measurableExactTableMinimaxValue_le_empiricalSideMinimaxValue",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:hybrid-light-branch-mean-bound",
+          "kind": "lemma",
+          "label": "Lemma lem:hybrid-light-branch-mean-bound",
+          "nl": "Let \\(\\epsilon>0\\), let \\(P\\in\\mathcal M_{d,\\epsilon}\\), let \\(u,t,B>0\\) be reals, and let \\(L\\ge2\\) be an integer. For each covariate cell \\(x\\in[d]\\), let \\(S_{0x},S_{1x},K_{0x},K_{1x}\\) be independent Poisson counts with \\(S_{ax}\\sim\\operatorname{Poi}(u\\,q_{ax})\\) and \\(K_{ax}\\sim\\operatorname{Poi}(t\\,s_{ax})\\), and let \\(P_x=\\frac{S_{1x}}u\\widehat W_{1,L,x}-\\frac{S_{0x}}u\\widehat W_{0,L,x}\\) and \\(H_x=\\frac{S_{1x}}u\\widehat W^H_{1,x}-\\frac{S_{0x}}u\\widehat W^H_{0,x}\\) be the light polynomial and heavy inverse-count cell contributions of the hybrid estimator, with the factorial lift \\(\\widehat W_{a,L,x}\\) taken at degree \\(L\\), scale \\(B\\), and intensity \\(t\\). Then the light-cell branch means satisfy\n\\[\n\\sum_{x:\\,p_x\\le B}\\bigl(\\mathbb E_P P_x-\\mathbb E_P H_x\\bigr)^2\\le\\frac{8dB^2}{\\epsilon^2L^4}+\\frac4{\\epsilon t}.\n\\]",
+          "lean": {
+            "file": "Helpers/HybridBranchMeanAggregate.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.sum_light_branchMean_sq_le",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:poisson-inverse-arm-mean-formula",
+          "kind": "lemma",
+          "label": "Lemma lem:poisson-inverse-arm-mean-formula",
+          "nl": "Let \\(P\\) be an observed-data law on \\([d]\\times\\{0,1\\}^2\\), let \\(x\\in[d]\\) and \\(a\\in\\{0,1\\}\\), and let \\(u>0\\) and \\(t>0\\). Write \\(p_x\\), \\(s_{ax}\\), and \\(q_{ax}\\) for the cell mass, treatment-cell mass, and outcome-success mass of \\(P\\) at \\(x\\), and \\(\\mu_{ax}=q_{ax}/s_{ax}\\) for the outcome regression (set to \\(0\\) when \\(s_{ax}=0\\)). Let \\(K_{ax}\\sim\\operatorname{Poi}(t\\,s_{ax})\\) and \\(K_{1-a,x}\\sim\\operatorname{Poi}(t\\,s_{1-a,x})\\) be independent factorial-pool counts. Then the inverse-count arm mean, with outcome-block Poisson mean \\(u\\,q_{ax}\\) rescaled by \\(u\\), satisfies\n\\[\n\\frac{u\\,q_{ax}}{u}\\,\\mathbb E\\!\\left[1+\\frac{K_{1-a,x}}{K_{ax}+1}\\right]\n=p_x\\mu_{ax}-(p_x-s_{ax})\\,\\mu_{ax}\\,e^{-t s_{ax}}.\n\\]",
+          "lean": {
+            "file": "Helpers/PoissonInverseCountRiskAssembly.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_arm_mean_formula",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:heavy-light-second-moment-sum",
+          "kind": "lemma",
+          "label": "Lemma lem:heavy-light-second-moment-sum",
+          "nl": "Let \\(\\epsilon>0\\), let \\(P\\) be an observed-data law on \\([d]\\times\\{0,1\\}^2\\), and let \\(n\\ge1\\) and \\(m\\ge0\\) be integers for which the calibration predicate \\(\\mathsf C_\\epsilon(n,m)\\) of the hybrid estimator holds, with outcome, pilot, and factorial intensities \\(u=M_0/8\\), \\(t_p=M_p/8\\), \\(t=M_f/8\\), degree \\(L=L(n)\\), light-cell scale \\(B=B(n,m,\\epsilon)\\), and pilot threshold \\(k_0=k_0(n,m,\\epsilon)\\). For each cell \\(x\\in[d]\\), let \\(\\mu_x\\) be the product law under which \\(S_{ax}\\sim\\operatorname{Poi}(u\\,q_{ax})\\) and \\(K_{ax}\\sim\\operatorname{Poi}(t\\,s_{ax})\\), \\(a\\in\\{0,1\\}\\), are independent; let \\(P_x=\\frac{S_{1x}}u\\widehat W_{1,L,x}-\\frac{S_{0x}}u\\widehat W_{0,L,x}\\) be the light polynomial cell contribution of the hybrid estimator, with the factorial lift taken at degree \\(L\\), scale \\(B\\), and intensity \\(t\\); and let \\(\\pi_x=\\mathbb P\\{J_x\\le k_0\\}\\), where the pilot count \\(J_x=J_{0x}+J_{1x}\\) has independent components \\(J_{ax}\\sim\\operatorname{Poi}(t_p\\,s_{ax})\\). Then the light-branch second moments over heavy cells satisfy\n\\[\n\\sum_{x:\\,p_x>B}\\pi_x\\,\\mathbb E_{\\mu_x}\\!\\left[P_x^2\\right]\\le132\\,n^{-12}.\n\\]",
+          "lean": {
+            "file": "Helpers/HybridHeavyLightTail.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.sum_heavy_light_secondMoment_le",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:hybrid-heavy-branch-mean-bound",
+          "kind": "lemma",
+          "label": "Lemma lem:hybrid-heavy-branch-mean-bound",
+          "nl": "Let \\(\\epsilon>0\\), let \\(P\\in\\mathcal M_{d,\\epsilon}\\), and let \\(n\\ge1\\) and \\(m\\ge0\\) be integers for which the calibration predicate \\(\\mathsf C_\\epsilon(n,m)\\) of the hybrid estimator holds, with outcome, pilot, and factorial intensities \\(u=M_0/8\\), \\(t_p=M_p/8\\), \\(t=M_f/8\\), degree \\(L=L(n)\\), light-cell scale \\(B=B(n,m,\\epsilon)\\), and pilot threshold \\(k_0=k_0(n,m,\\epsilon)\\). For each cell \\(x\\in[d]\\), let \\(P_x\\) and \\(H_x\\) be the light polynomial and heavy inverse-count cell contributions of the hybrid estimator (factorial lift at degree \\(L\\), scale \\(B\\), intensity \\(t\\)) under independent counts \\(S_{ax}\\sim\\operatorname{Poi}(u\\,q_{ax})\\) and \\(K_{ax}\\sim\\operatorname{Poi}(t\\,s_{ax})\\), and let \\(\\pi_x=\\mathbb P\\{J_x\\le k_0\\}\\) and \\(\\eta_x=\\mathbb P\\{J_x>k_0\\}\\), where the pilot count \\(J_x=J_{0x}+J_{1x}\\) has independent components \\(J_{ax}\\sim\\operatorname{Poi}(t_p\\,s_{ax})\\). Then the heavy-cell branch-mean term satisfies\n\\[\n\\sum_{x:\\,p_x>B}\\pi_x\\eta_x\\bigl(\\mathbb E_P P_x-\\mathbb E_P H_x\\bigr)^2\\le282\\,n^{-12}.\n\\]",
+          "lean": {
+            "file": "Helpers/HybridVarianceAssembly.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.sum_heavy_branchMean_sq_le",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:calibrated-hybrid-variance-bound",
+          "kind": "lemma",
+          "label": "Lemma lem:calibrated-hybrid-variance-bound",
+          "nl": "Let \\(0<\\epsilon<1/2\\). There is a constant \\(C_{\\mathrm{var}}>0\\), depending only on \\(\\epsilon\\), with the following property. Let \\(d\\) be an alphabet size, let \\(P\\in\\mathcal M_{d,\\epsilon}\\), and let \\(n\\ge1\\) and \\(m\\ge0\\) be integers for which the calibration predicate \\(\\mathsf C_\\epsilon(n,m)\\) of the hybrid estimator holds, with outcome, pilot, and factorial intensities \\(u=M_0/8\\), \\(t_p=M_p/8\\), \\(t=M_f/8\\), degree \\(L=L(n)\\), light-cell scale \\(B=B(n,m,\\epsilon)\\), and pilot threshold \\(k_0=k_0(n,m,\\epsilon)\\). Under the independent Poisson count law in which, independently across cells \\(x\\in[d]\\) and arms \\(a\\in\\{0,1\\}\\), \\(S_{ax}\\sim\\operatorname{Poi}(u\\,q_{ax})\\), \\(J_{ax}\\sim\\operatorname{Poi}(t_p\\,s_{ax})\\), and \\(K_{ax}\\sim\\operatorname{Poi}(t\\,s_{ax})\\), let \\(P_x\\) and \\(H_x\\) be the light polynomial and heavy inverse-count cell contributions of the hybrid estimator (factorial lift at degree \\(L\\), scale \\(B\\), intensity \\(t\\)), let \\(J_x=J_{0x}+J_{1x}\\) be the pilot count, and let \\(\\widetilde Z=\\sum_{x\\in[d]}\\bigl(\\mathbf 1\\{J_x\\le k_0\\}P_x+\\mathbf 1\\{J_x>k_0\\}H_x\\bigr)\\) be the unclipped hybrid statistic. Then\n\\[\n\\operatorname{Var}_P(\\widetilde Z)\\le 4A_\\star^L\\left\\{\\frac{\\min\\{1,dB\\}}u+dB^2\\right\\}+C_{\\mathrm{var}}\\left(u^{-1}+t^{-1}\\right)+\\frac{8dB^2}{\\epsilon^2L^4}+\\frac4{\\epsilon t}+414\\,n^{-12}.\n\\]",
+          "lean": {
+            "file": "Helpers/HybridVarianceAssembly.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.calibrated_hybrid_variance_le",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:calibrated-hybrid-mean-bias",
+          "kind": "lemma",
+          "label": "Lemma lem:calibrated-hybrid-mean-bias",
+          "nl": "Let \\(0<\\epsilon<1/2\\), let \\(d\\) be an alphabet size, let \\(P\\in\\mathcal M_{d,\\epsilon}\\), and let \\(n\\ge1\\) and \\(m\\ge0\\) be integers for which the calibration predicate \\(\\mathsf C_\\epsilon(n,m)\\) of the hybrid estimator holds, with outcome, pilot, and factorial intensities \\(u=M_0/8\\), \\(t_p=M_p/8\\), \\(t=M_f/8\\), degree \\(L=L(n)\\), light-cell scale \\(B=B(n,m,\\epsilon)\\), and pilot threshold \\(k_0=k_0(n,m,\\epsilon)\\). Under the independent Poisson count law in which, independently across cells \\(x\\in[d]\\) and arms \\(a\\in\\{0,1\\}\\), \\(S_{ax}\\sim\\operatorname{Poi}(u\\,q_{ax})\\), \\(J_{ax}\\sim\\operatorname{Poi}(t_p\\,s_{ax})\\), and \\(K_{ax}\\sim\\operatorname{Poi}(t\\,s_{ax})\\), let \\(P_x\\) and \\(H_x\\) be the light polynomial and heavy inverse-count cell contributions of the hybrid estimator (factorial lift at degree \\(L\\), scale \\(B\\), intensity \\(t\\)), let \\(J_x=J_{0x}+J_{1x}\\) be the pilot count, and let \\(\\widetilde Z=\\sum_{x\\in[d]}\\bigl(\\mathbf 1\\{J_x\\le k_0\\}P_x+\\mathbf 1\\{J_x>k_0\\}H_x\\bigr)\\) be the unclipped hybrid statistic. Then\n\\[\n\\left|\\mathbb E_P\\widetilde Z-\\tau(P)\\right|\\le\\frac{2dB}{\\epsilon L^2}+6\\,n^{-12}.\n\\]",
+          "lean": {
+            "file": "Helpers/HybridMeanAssembly.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.calibrated_hybrid_mean_bias_le",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:finite-product-padding-identity",
+          "kind": "lemma",
+          "label": "Lemma lem:finite-product-padding-identity",
+          "nl": "Let \\(I\\) and \\(J\\) be finite index sets, let \\(\\mathsf Y\\) be a measurable space with measurable singletons, let \\(f:I\\to J\\) be injective, and let \\(r\\in J\\) satisfy \\(r\\ne f(i)\\) for every \\(i\\in I\\). Let \\(\\mu_i\\) (\\(i\\in I\\)) and \\(\\nu\\) be probability measures on \\(\\mathsf Y\\), and fix \\(y_0\\in\\mathsf Y\\). Define the padding map \\(\\mathsf A:\\mathsf Y^I\\times\\mathsf Y\\to\\mathsf Y^J\\) by \\(\\mathsf A(z,y)(r)=y\\), \\(\\mathsf A(z,y)(f(i))=z_i\\) for \\(i\\in I\\) (the index \\(i\\) being unique by injectivity), and \\(\\mathsf A(z,y)(j)=y_0\\) for \\(j\\notin\\{r\\}\\cup f(I)\\), and define coordinate laws \\(\\mathsf H_r=\\nu\\), \\(\\mathsf H_{f(i)}=\\mu_i\\) for \\(i\\in I\\), and \\(\\mathsf H_j=\\delta_{y_0}\\) for \\(j\\notin\\{r\\}\\cup f(I)\\). Then\n\\[\n\\mathsf A_\\#\\Bigl(\\Bigl(\\bigotimes_{i\\in I}\\mu_i\\Bigr)\\otimes\\nu\\Bigr)=\\bigotimes_{j\\in J}\\mathsf H_j .\n\\]",
+          "lean": {
+            "file": "Helpers/CommonMarginalPoissonTransport.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.pi_prod_map_finitePadding",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:finite-side-cover-approximate-decision",
+          "kind": "lemma",
+          "label": "Lemma lem:finite-side-cover-approximate-decision",
+          "nl": "Let \\(\\Theta\\) be a nonempty compact topological space, let \\(\\mathsf Z\\) be a finite set, let \\(\\mathsf C\\) be a finite nonempty set, and let \\(l\\le u\\). For each \\(\\theta\\in\\Theta\\) let \\(\\Lambda_\\theta\\) be a probability vector on \\(\\mathsf Z\\), let \\(\\Xi_\\theta\\) be a probability vector on \\(\\mathsf C\\), and let \\(\\upsilon_\\theta\\in[l,u]\\), where \\(\\theta\\mapsto\\Lambda_\\theta(z)\\), \\(\\theta\\mapsto\\Xi_\\theta(c)\\), and \\(\\theta\\mapsto\\upsilon_\\theta\\) are continuous for every \\(z\\in\\mathsf Z\\) and \\(c\\in\\mathsf C\\). For probability vectors \\(\\nu,\\nu'\\) on \\(\\mathsf C\\) put \\(D_\\infty(\\nu,\\nu')=\\max_{c\\in\\mathsf C}|\\nu(c)-\\nu'(c)|\\), and define the exact-side minimax value\n\\[\n\\mathfrak R_\\star=\\inf_{\\psi}\\sup_{\\theta\\in\\Theta}\\sum_{z\\in\\mathsf Z}\\Lambda_\\theta(z)\\bigl(\\psi(z,\\Xi_\\theta)-\\upsilon_\\theta\\bigr)^2,\n\\]\nwhere \\(\\psi\\) ranges over all maps \\(\\mathsf Z\\times\\mathsf{Prob}(\\mathsf C)\\to[l,u]\\). Then for every \\(\\delta>0\\) there are an integer \\(k\\ge1\\), centers \\(\\theta^\\circ_1,\\ldots,\\theta^\\circ_k\\in\\Theta\\), decisions \\(\\beta_1,\\ldots,\\beta_k:\\mathsf Z\\to[l,u]\\), radii \\(\\operatorname{rad}_1,\\ldots,\\operatorname{rad}_k\\), and a margin \\(\\eta>0\\) with \\(\\eta<\\operatorname{rad}_j\\) for every \\(j\\), such that every \\(\\theta\\in\\Theta\\) admits some \\(j\\) with \\(D_\\infty(\\Xi_\\theta,\\Xi_{\\theta^\\circ_j})<\\operatorname{rad}_j-\\eta\\), and, for every \\(j\\) and every \\(\\theta\\in\\Theta\\), \\(D_\\infty(\\Xi_\\theta,\\Xi_{\\theta^\\circ_j})<\\operatorname{rad}_j\\) implies\n\\[\n\\sum_{z\\in\\mathsf Z}\\Lambda_\\theta(z)\\bigl(\\beta_j(z)-\\upsilon_\\theta\\bigr)^2\\le\\mathfrak R_\\star+\\delta .\n\\]",
+          "lean": {
+            "file": "Helpers/KnownMarginalLimit.lean",
+            "decl": "Causalean.Stat.Minimax.FiniteSideInformation.finiteCover_approximateDecision",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "theorem",
+      "items": [
+        {
+          "obj_id": "thm:known-marginal-boundary",
+          "kind": "theorem",
+          "label": "Theorem T-1",
+          "nl": "There exist \\(0<c_\\epsilon\\le C_\\epsilon<\\infty\\) such that, uniformly for \\(n\\ge1\\) and \\(d\\ge2\\), \\[\\frac{c_\\epsilon}{n}\\le R_\\epsilon^{\\mathrm{known}}(n,d)\\le\\frac{C_\\epsilon}{n}.\\]",
+          "lean": {
+            "file": "T_KnownMarginalBoundary.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.known_marginal_boundary",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:uniform-mixed-upper",
+          "kind": "theorem",
+          "label": "Theorem T-2",
+          "nl": "With\n\\[\n r_\\epsilon(n,m,d)=\\min\\!\\left\\{1,\\frac1n+\\frac{d^2}{(n+m)^2\\log^2(en)}\\right\\},\n\\]\nthe total computable estimator \\(\\widehat\\tau^{\\mathrm{mix}}_{n,m,d}\\) in \\(\\mathrm{def:mixed\\mbox{-}estimator\\mbox{-}handle}\\) satisfies, for a constant depending only on \\(\\epsilon\\),\n\\[\n \\sup_{P\\in\\mathcal M_{d,\\epsilon}}\n E_{P^{\\otimes n}\\otimes P_{XA}^{\\otimes m}}\n [\\{\\widehat\\tau^{\\mathrm{mix}}_{n,m,d}-\\tau(P)\\}^2]\n \\le C_\\epsilon r_\\epsilon(n,m,d)\n\\]\nsimultaneously for every \\(n\\ge1\\), \\(m\\ge0\\), and \\(d\\ge2\\).",
+          "lean": {
+            "file": "T_UniformMixedUpper.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.uniform_mixed_upper",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:common-marginal-converse",
+          "kind": "theorem",
+          "label": "Theorem T-3",
+          "nl": "For the explicit rate\n\\[\n r_\\epsilon(n,m,d)=\\min\\!\\left\\{1,\\frac1n+\\frac{d^2}{(n+m)^2\\log^2(en)}\\right\\},\n\\]\nthe regime-dependent priors \\(\\Pi_0,\\Pi_1\\) in \\(\\mathrm{def:common\\mbox{-}marginal\\mbox{-}prior\\mbox{-}handle}\\) induce exactly the same distribution of the entire random table \\(P_{XA}\\) and imply, for a constant depending only on \\(\\epsilon\\),\n\\[\n R_\\epsilon(n,m,d)\\ge c_\\epsilon r_\\epsilon(n,m,d)\n\\]\nfor every \\(n\\ge1\\), \\(m\\ge0\\), and \\(d\\ge2\\), including the constant-risk regime.",
+          "lean": {
+            "file": "T_CommonMarginalConverse.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.common_marginal_converse",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:sharp-annotation-frontier",
+          "kind": "theorem",
+          "label": "Theorem T-4",
+          "nl": "Uniformly over every \\(n\\ge1\\), \\(m\\ge0\\), and \\(d\\ge2\\),\n\\[\n c_\\epsilon\\min\\!\\left\\{1,\\frac1n+\\frac{d^2}{(n+m)^2\\log^2(en)}\\right\\}\n \\le R_\\epsilon(n,m,d)\\le\n C_\\epsilon\\min\\!\\left\\{1,\\frac1n+\\frac{d^2}{(n+m)^2\\log^2(en)}\\right\\}.\n\\]\nAt \\(m=0\\) this is\n\\[\n r_\\epsilon(n,0,d)=\\min\\!\\left\\{1,\\frac1n+\\frac{d^2}{n^2\\log^2(en)}\\right\\},\n\\]\nthe endpoint recorded in \\(\\texttt{stat\\_discrete\\_ate\\_minimax\\_loggap}\\).  For every fixed \\(n,d\\),\n\\[\n \\lim_{m\\to\\infty}R_\\epsilon(n,m,d)=R_\\epsilon^{\\mathrm{known}}(n,d).\n\\]\nAlong arbitrary sequences \\(n\\to\\infty\\), with \\(N_n=n+m_n\\) and \\(\\ell_n=\\log(en)\\), the following are necessary and sufficient:\n\\[\n R_\\epsilon(n,m_n,d_n)\\to0\n \\quad\\Longleftrightarrow\\quad\n \\frac{d_n}{N_n\\ell_n}\\to0;\n\\]\n\\[\n R_\\epsilon(n,m_n,d_n)=O(n^{-1})\n \\quad\\Longleftrightarrow\\quad\n d_n=O\\!\\left(\\frac{N_n\\ell_n}{\\sqrt n}\\right);\n\\]\nand\n\\[\n R_\\epsilon(n,m_n,d_n)=o\\{R_\\epsilon(n,0,d_n)\\}\n\\]\nif and only if both\n\\[\n \\frac{d_n}{\\sqrt n\\,\\ell_n}\\to\\infty\n \\quad\\text{and}\\quad\n \\frac{d_n/(N_n\\ell_n)}{\\min\\{1,d_n/(n\\ell_n)\\}}\\to0.\n\\]",
+          "lean": {
+            "file": "T_SharpAnnotationFrontier.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.sharp_annotation_frontier",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:inverse-count-baseline",
+          "kind": "theorem",
+          "label": "Theorem T-5",
+          "nl": "There is a finite \\(C_\\epsilon\\), depending only on \\(\\epsilon\\), such that for all \\(n\\ge1\\), \\(m\\ge0\\), and \\(d\\ge2\\),\n\\[\n R_\\epsilon(n,m,d)\\le C_\\epsilon\\min\\!\\left\\{1,\\frac1n+\\frac{d^2}{(n+m)^2}\\right\\}.\n\\]\nThe witnessing estimator is the clipped and derandomized Poisson-prefix version of the all-heavy inverse-count statistic in \\(\\mathrm{lem:poisson\\mbox{-}inverse\\mbox{-}count\\mbox{-}risk}\\).",
+          "lean": {
+            "file": "T_InverseCountBaseline.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.inverse_count_baseline",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:binary-alphabet-parametric-rate",
+          "kind": "theorem",
+          "label": "Theorem T-6",
+          "nl": "For \\(d=2\\) there are constants \\(0<c_\\epsilon\\le C_\\epsilon<\\infty\\) such that, uniformly over \\(n\\ge1\\) and \\(m\\ge0\\),\n\\[\n \\frac{c_\\epsilon}{n}\\le R_\\epsilon(n,m,2)\\le\\frac{C_\\epsilon}{n}.\n\\]",
+          "lean": {
+            "file": "T_BinaryAlphabetParametricRate.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.binary_alphabet_parametric_rate",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:known-marginal-limit",
+          "kind": "theorem",
+          "label": "Theorem T-7",
+          "nl": "For every fixed \\(n\\ge1\\) and \\(d\\ge2\\),\n\\[\n \\lim_{m\\to\\infty}R_\\epsilon(n,m,d)=R_\\epsilon^{\\mathrm{known}}(n,d).\n\\]",
+          "lean": {
+            "file": "T_KnownMarginalLimit.lean",
+            "decl": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.known_marginal_limit",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "auxiliary",
+      "items": [
+        {
+          "obj_id": "aux_AnnotationFrontierConsequences",
+          "kind": "definition",
+          "label": "Definition AnnotationFrontierConsequences",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_BlockSizes",
+          "kind": "definition",
+          "label": "Definition BlockSizes",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_calibrationPredicate",
+          "kind": "definition",
+          "label": "Definition calibrationPredicate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ClassLaw",
+          "kind": "definition",
+          "label": "Definition ClassLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_DiscreteLaw",
+          "kind": "definition",
+          "label": "Definition DiscreteLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_randomAuxTableLaw",
+          "kind": "definition",
+          "label": "Definition randomAuxTableLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_twoSampleMSE",
+          "kind": "definition",
+          "label": "Definition twoSampleMSE",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_annotationLaw",
+          "kind": "definition",
+          "label": "Definition annotationLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_inverseCountEstimator",
+          "kind": "definition",
+          "label": "Definition inverseCountEstimator",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_CommonMarginalRecipe",
+          "kind": "definition",
+          "label": "Definition CommonMarginalRecipe",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "parametricFloorNullLaw",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametricFloorNullLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "parametricFloorPertLaw",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametricFloorPertLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "parametricFloorNullLaw_jointMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametricFloorNullLaw_jointMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "parametricFloorPertLaw_jointMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametricFloorPertLaw_jointMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "parametricFloorNullLaw_model",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametricFloorNullLaw_model",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "parametricFloorPertLaw_model",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametricFloorPertLaw_model",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "parametricFloorNullLaw_ate",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametricFloorNullLaw_ate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "parametricFloorPertLaw_ate",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametricFloorPertLaw_ate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "parametricFloor_auxMarginal_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.parametricFloor_auxMarginal_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "annotationMinimaxRisk_ge_two_model_tv",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.annotationMinimaxRisk_ge_two_model_tv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalScore",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalScore",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalEstimator",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalEstimator",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_auxTable_sample_eval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.measurable_auxTable_sample_eval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalScore_sample_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalScore_sample_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalEstimator_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalEstimator_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalEstimator_mem",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalEstimator_mem",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellMass_eq_armMass_add",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.cellMass_eq_armMass_add",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jointMass_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.jointMass_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armMass_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.armMass_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellMass_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.cellMass_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jointMass_le_armMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.jointMass_le_armMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellMass_sum_eq_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.cellMass_sum_eq_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginal_arm_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginal_arm_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalScore_mean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalScore_mean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalScore_sq_integral_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalScore_sq_integral_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalScore_variance_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalScore_variance_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalRawEstimator",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalRawEstimator",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalRawEstimator_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalRawEstimator_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalRawEstimator_mean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalRawEstimator_mean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalRawEstimator_variance_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalRawEstimator_variance_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_sq_error_eq_variance_of_mean_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.integral_sq_error_eq_variance_of_mean_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalRisk_upper",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalRisk_upper",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "knownMarginalRisk_ge_two_model_tv",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.knownMarginalRisk_ge_two_model_tv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "commonMarginalPriorOf_isProbabilityMeasure",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalPriorOf_isProbabilityMeasure",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "map_auxMarginal_commonMarginalPriorOf_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.map_auxMarginal_commonMarginalPriorOf_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_CommonMarginalCalibration",
+          "kind": "definition",
+          "label": "Definition CommonMarginalCalibration",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_commonMarginalParametricRegime",
+          "kind": "definition",
+          "label": "Definition commonMarginalParametricRegime",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_CommonMarginalPriorHandle",
+          "kind": "definition",
+          "label": "Definition CommonMarginalPriorHandle",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "poissonPrefixMass_le_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poissonPrefixMass_le_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jointMass_mem_unitInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.jointMass_mem_unitInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellMass_mem_unitInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.cellMass_mem_unitInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "outcomeMean_mem_unitInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.outcomeMean_mem_unitInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedMarginal_jointMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.observedMarginal_jointMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ateFunctional_observedMarginal_eq_po_contrast",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.ateFunctional_observedMarginal_eq_po_contrast",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_bias_envelope",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_bias_envelope",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_bias_sum_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_bias_sum_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_bias_sum_le_min",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_bias_sum_le_min",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_CommonMarginalBounds",
+          "kind": "definition",
+          "label": "Definition CommonMarginalBounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_CommonMarginalCanonicalCertificate",
+          "kind": "definition",
+          "label": "Definition CommonMarginalCanonicalCertificate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_CommonMarginalPoissonPriorWitness",
+          "kind": "definition",
+          "label": "Definition CommonMarginalPoissonPriorWitness",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_CommonMarginalExactPoissonPriorWitness",
+          "kind": "definition",
+          "label": "Definition CommonMarginalExactPoissonPriorWitness",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "markedMass_eq_armMass_mul_outcomeMean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.markedMass_eq_armMass_mul_outcomeMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellMass_sum_eq_one_annotation",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.cellMass_sum_eq_one_annotation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "overlap_armMass_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.overlap_armMass_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_natCast_memLp_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.PoissonReciprocal.poisson_natCast_memLp_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "shifted_reciprocal_memLp_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.PoissonReciprocal.shifted_reciprocal_memLp_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "shifted_reciprocal_pair_memLp_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.PoissonReciprocal.shifted_reciprocal_pair_memLp_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_weight_second_moment_scalar",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.PoissonReciprocal.poisson_inverse_weight_second_moment_scalar",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_weight_poincare_energy_scalar",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.PoissonReciprocal.poisson_inverse_weight_poincare_energy_scalar",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_bias_min_rescale",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_bias_min_rescale",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "inverse_count_bias_aggregate",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.inverse_count_bias_aggregate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_natCast_first_moment",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.PoissonReciprocal.poisson_natCast_first_moment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_weight_mean_mul_rate",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_weight_mean_mul_rate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_arm_expectation_scalar",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_arm_expectation_scalar",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_arm_bias_envelope",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_arm_bias_envelope",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_cell_variance_sum_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_cell_variance_sum_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "inverse_count_outcome_addOne",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.inverse_count_outcome_addOne",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "inverse_count_marginal_addOne",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.inverse_count_marginal_addOne",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "inverse_count_variance_aggregate",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.inverse_count_variance_aggregate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "inverseCountStatistic_memLp_and_addOne",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.inverseCountStatistic_memLp_and_addOne",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poissonCountLaw_eq_nestedPairedPoissonMeasure",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poissonCountLaw_eq_nestedPairedPoissonMeasure",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "varianceUnder_eq_variance",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.varianceUnder_eq_variance",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poissonCountLaw_integral_cell",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poissonCountLaw_integral_cell",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poissonCountLaw_integral_arm",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poissonCountLaw_integral_arm",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_cross_moment_true",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_cross_moment_true",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_cross_moment_false",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_cross_moment_false",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_cross_moment",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_cross_moment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_outcome_mean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_outcome_mean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_arm_mean_formula",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_arm_mean_formula",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_arm_mean_envelope",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_arm_mean_envelope",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_arm_means_bias_aggregate",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_arm_means_bias_aggregate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poissonInverseArmMean",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poissonInverseArmMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_count_bias_of_expectation_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_count_bias_of_expectation_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "nestedPaired_count_fst_le_total_annotation",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.nestedPaired_count_fst_le_total_annotation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "nestedPaired_count_snd_le_total_annotation",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.nestedPaired_count_snd_le_total_annotation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_weight_mean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_weight_mean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_count_expectation_eq_arm_means",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_count_expectation_eq_arm_means",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_natCast_second_moment_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_natCast_second_moment_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_weight_second_moment_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_weight_second_moment_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_weight_second_moment_cell",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_weight_second_moment_cell",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_outcome_coordinate_energy_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_outcome_coordinate_energy_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_marginal_cross_square_moment",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_marginal_cross_square_moment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_marginal_reciprocal_square_moment",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_marginal_reciprocal_square_moment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_bidirectional_poincare_energy_scalar",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_bidirectional_poincare_energy_scalar",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_marginal_energy_with_outcome_rates",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_marginal_energy_with_outcome_rates",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_marginal_cell_energy_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_marginal_cell_energy_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallNullAtomMass",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallNullAtomMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeAtomMass",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeAtomMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallNullLaw",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallNullLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeLaw",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_pi_fin_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.integral_pi_fin_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "tvDist_le_one_sub_common",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.tvDist_le_one_sub_common",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternative_auxMarginal",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternative_auxMarginal",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallCommonAtom",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallCommonAtom",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallCommonSample",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallCommonSample",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallCommonNullMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallCommonNullMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallCommonAlternativeMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallCommonAlternativeMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallCommonProductMassNull",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallCommonProductMassNull",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallCommonProductMassAlternative",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallCommonProductMassAlternative",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAtomEqOfCommon",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAtomEqOfCommon",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallCommonRestrictEq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallCommonRestrictEq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAvoidNullAtom",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAvoidNullAtom",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAvoidNullSample",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAvoidNullSample",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAvoidNullMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAvoidNullMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAvoidAlternativeMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAvoidAlternativeMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAvoidProductMassNull",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAvoidProductMassNull",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAvoidProductMassAlternative",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAvoidProductMassAlternative",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallLabeledTV",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallLabeledTV",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallNullCellMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallNullCellMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeCellMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeCellMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallNullPropensity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallNullPropensity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativePropensity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativePropensity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallNullControlMean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallNullControlMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeControlMean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeControlMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallNullTreatedMean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallNullTreatedMean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeTreatedMeanFirst",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeTreatedMeanFirst",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeTreatedMeanSecond",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeTreatedMeanSecond",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallNullAuxTable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallNullAuxTable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeAuxTable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeAuxTable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallNullTarget",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallNullTarget",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeTarget",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeTarget",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeAuxIntegral",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeAuxIntegral",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeLabelIntegral",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeLabelIntegral",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "smallAlternativeExpectationIdentity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.smallAlternativeExpectationIdentity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sqRisk_eq_varianceUnder_add_bias_sq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.sqRisk_eq_varianceUnder_add_bias_sq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_inverse_count_sqRisk_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.poisson_inverse_count_sqRisk_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "logEN_pos_of_one_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.logEN_pos_of_one_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "frontierRate_sequence_formula",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.frontierRate_sequence_formula",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "annotation_frontier_consistency_iff",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.annotation_frontier_consistency_iff",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "annotation_frontier_parametric_iff",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.annotation_frontier_parametric_iff",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "positive_two_sided_bounds_isTheta",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.positive_two_sided_bounds_isTheta",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "minimaxRisk_le_measurable_estimator",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.minimaxRisk_le_measurable_estimator",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "min_one_sq_nonnegative",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.min_one_sq_nonnegative",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "strict_min_rates_iff_ratios",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.strict_min_rates_iff_ratios",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "supervised_floor_ratio_iff",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.supervised_floor_ratio_iff",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "annotation_frontier_strict_improvement_iff",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.annotation_frontier_strict_improvement_iff",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-explicit-parametric-floor",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_explicit_parametric_floor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:fixed-sample-common-marginal-transfer-rule",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.fixed_sample_common_marginal_transfer_rule",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-mass-concentration",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_mass_concentration",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-target-concentration",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_target_concentration",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-mass-concentration-at",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_mass_concentration_at",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-prior-scale-tail",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_prior_scale_tail",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-raw-center-bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_rawPriorCenter_abs_le_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-normalized-target-event",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_normalizedTarget_event",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-prior-target-concentration",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_prior_target_concentration",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-raw-bayes-risk-identification",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_raw_bayesSquared_eq_bayesDecision",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-raw-fuzzy-lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_raw_fuzzy_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-poisson-lower-tail",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_poisson_lower_tail",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-labeled-mark-kernel",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalLabeledMarkKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-aux-mark-kernel",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalAuxMarkKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-ordered-raw-kernel",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalOrderedRawKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-ordered-raw-experiment",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_orderedRaw_isRandomScale",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-raw-count-reindex",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalRawCountEquiv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-predictive-reconstruction-contraction",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_predictive_reconstruction_contraction",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-transfer-clip",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalTransferClip",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-transfer-loss",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalTransferLoss",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-fixed-kernel",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalFixedKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-transfer-loss-measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalTransferLoss_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-transfer-loss-bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalTransferLoss_le_four",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-clipped-loss-lintegral",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_clippedLoss_lintegral",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-transfer-clip-risk",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginalTransferClip_sq_sub_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-clipping-mse",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_clipping_mse_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-class-gated-worst-case",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_classGated_worstCase_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-mse-bounded-above",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_mse_bddAbove",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-class-gated-minimax",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_classGated_minimax_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-class-gated-rulewise-reverse",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_ofReal_minimax_le_classGated_worstCase",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "helper:common-marginal-class-gated-minimax-reverse",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier.commonMarginal_ofReal_minimax_le_classGated",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "symbol",
+      "items": [
+        {
+          "obj_id": "sym:X",
+          "kind": "symbol",
+          "label": "X",
+          "nl": "realized by Obs, ConditionalExchangeability",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:A",
+          "kind": "symbol",
+          "label": "A",
+          "nl": "realized by Obs, Consistency, ConditionalExchangeability",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y",
+          "kind": "symbol",
+          "label": "Y",
+          "nl": "realized by Obs, Consistency",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P",
+          "kind": "symbol",
+          "label": "P",
+          "nl": "realized by DiscreteLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:p_x",
+          "kind": "symbol",
+          "label": "p_x",
+          "nl": "realized by cellMass, Overlap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:s_{ax}",
+          "kind": "symbol",
+          "label": "s_{ax}",
+          "nl": "realized by armMass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:e_x",
+          "kind": "symbol",
+          "label": "e_x",
+          "nl": "realized by propensity, Overlap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:mu_{ax}",
+          "kind": "symbol",
+          "label": "mu_{ax}",
+          "nl": "realized by outcomeMean",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q_{ax}",
+          "kind": "symbol",
+          "label": "q_{ax}",
+          "nl": "realized by markedMass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P_{XA}",
+          "kind": "symbol",
+          "label": "P_{XA}",
+          "nl": "realized by auxMarginal, AuxTable",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal L_n",
+          "kind": "symbol",
+          "label": "\\mathcal L_n",
+          "nl": "realized by labeledProductLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal U_m",
+          "kind": "symbol",
+          "label": "\\mathcal U_m",
+          "nl": "realized by auxProductLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal T_{n,m,d}",
+          "kind": "symbol",
+          "label": "\\mathcal T_{n,m,d}",
+          "nl": "realized by Sample",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:n",
+          "kind": "symbol",
+          "label": "n",
+          "nl": "realized by variable@148",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:m",
+          "kind": "symbol",
+          "label": "m",
+          "nl": "realized by variable@148",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:d",
+          "kind": "symbol",
+          "label": "d",
+          "nl": "realized by variable@148, ModelClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\epsilon",
+          "kind": "symbol",
+          "label": "\\epsilon",
+          "nl": "realized by variable@152, ModelClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:x",
+          "kind": "symbol",
+          "label": "x",
+          "nl": "realized by variable@154",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:a",
+          "kind": "symbol",
+          "label": "a",
+          "nl": "realized by variable@155",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y(a)",
+          "kind": "symbol",
+          "label": "Y(a)",
+          "nl": "realized by PotentialLaw, Consistency, ConditionalExchangeability",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal M_{d,\\epsilon}",
+          "kind": "symbol",
+          "label": "\\mathcal M_{d,\\epsilon}",
+          "nl": "realized by ModelClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\tau(P)",
+          "kind": "symbol",
+          "label": "\\tau(P)",
+          "nl": "realized by ateFunctional",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal E_{n,m,d,\\epsilon}",
+          "kind": "symbol",
+          "label": "\\mathcal E_{n,m,d,\\epsilon}",
+          "nl": "realized by annotationExperiment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:R_\\epsilon(n,m,d)",
+          "kind": "symbol",
+          "label": "R_\\epsilon(n,m,d)",
+          "nl": "realized by minimaxRisk",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:N",
+          "kind": "symbol",
+          "label": "N",
+          "nl": "realized by frontierRate",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:r_\\epsilon(n,m,d)",
+          "kind": "symbol",
+          "label": "r_\\epsilon(n,m,d)",
+          "nl": "realized by frontierRate",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal E^{\\mathrm{known}}_{n,d,\\epsilon}",
+          "kind": "symbol",
+          "label": "\\mathcal E^{\\mathrm{known}}_{n,d,\\epsilon}",
+          "nl": "realized by knownMarginalExperiment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal T^{\\mathrm{known}}_{n,d}",
+          "kind": "symbol",
+          "label": "\\mathcal T^{\\mathrm{known}}_{n,d}",
+          "nl": "realized by knownMarginalRisk",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:R_\\epsilon^{\\mathrm{known}}(n,d)",
+          "kind": "symbol",
+          "label": "R_\\epsilon^{\\mathrm{known}}(n,d)",
+          "nl": "realized by knownMarginalRisk",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Pi_0",
+          "kind": "symbol",
+          "label": "\\Pi_0",
+          "nl": "realized by commonMarginalPriorOf",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Pi_1",
+          "kind": "symbol",
+          "label": "\\Pi_1",
+          "nl": "realized by commonMarginalPriorOf",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat\\tau^{\\mathrm{mix}}_{n,m,d}",
+          "kind": "symbol",
+          "label": "\\widehat\\tau^{\\mathrm{mix}}_{n,m,d}",
+          "nl": "realized by mixedEstimator",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Pi_0^{\\mathrm{small}}",
+          "kind": "symbol",
+          "label": "\\Pi_0^{\\mathrm{small}}",
+          "nl": "realized by finiteSmallInstance",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Pi_1^{\\mathrm{small}}",
+          "kind": "symbol",
+          "label": "\\Pi_1^{\\mathrm{small}}",
+          "nl": "realized by finiteSmallInstance",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathfrak C_{\\mathrm{small}}",
+          "kind": "symbol",
+          "label": "\\mathfrak C_{\\mathrm{small}}",
+          "nl": "realized by finiteSmallInstance",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:c_\\epsilon",
+          "kind": "symbol",
+          "label": "c_\\epsilon",
+          "nl": "realized by common_marginal_converse, known_marginal_boundary, sharp_annotation_frontier",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:C_\\epsilon",
+          "kind": "symbol",
+          "label": "C_\\epsilon",
+          "nl": "realized by known_marginal_boundary, sharp_annotation_frontier",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:(m_n)_{n\\ge1}",
+          "kind": "symbol",
+          "label": "(m_n)_{n\\ge1}",
+          "nl": "realized by AnnotationFrontierConsequences",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:(d_n)_{n\\ge1}",
+          "kind": "symbol",
+          "label": "(d_n)_{n\\ge1}",
+          "nl": "realized by AnnotationFrontierConsequences",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Pi_a",
+          "kind": "symbol",
+          "label": "\\Pi_a",
+          "nl": "realized by commonMarginalPriorOf",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    }
+  ]
+}

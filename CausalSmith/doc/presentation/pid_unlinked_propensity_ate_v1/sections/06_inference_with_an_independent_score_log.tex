@@ -1,0 +1,265 @@
+\section{Inference with an independent score log}
+
+The known-score analysis in \cref{obj:thm:minimax-honest-length} takes the score law as given. The \leanref{S-3}{external score-log experiment} instead fixes a finite-label release and combines the trial rows with an independent log of \leanref{sym:m}{\ensuremath{m}} scores. The score-log array \leanref{sym:Elog}{\ensuremath{(E_j^{\mathrm{log}})_{j=1}^m}} supplies information about the score law while retaining the trial’s released-row data structure. Two sampling conditions specify this combination.
+
+\begin{assumptionv}{ass:external-log-iid}[Independent score-log sampling]
+The external score-log observations are independent and identically distributed with law \(H\):
+\[
+(E_j^{\mathrm{log}})_{j=1}^m\stackrel{\mathrm{iid}}{\sim}H.
+\]
+\end{assumptionv}
+
+Independent and identically distributed auxiliary-sample observations are a standard data-combination condition \citep{MarellaPfeffermann2019}. Here they make the empirical score distribution informative about the population score law.
+
+\begin{assumptionv}{ass:external-log-independent}[Independent trial and score log]
+The external score log is independent of the trial observations:
+\[
+(E_j^{\mathrm{log}})_{j=1}^m
+\mathrel{\perp\!\!\!\perp}
+(R_i,A_i,Y_i)_{i=1}^n.
+\]
+\end{assumptionv}
+
+Independence across the two samples is the standard independent two-sample data-combination condition \citep{MarellaPfeffermann2019}. It gives the trial and score-log empirical measures separate sampling scales. The admissible law pairs and their joint sampling law can now be stated.
+
+\begin{definitionv}{def:external-law-class}[External law class $\mathfrak X(g)$]
+\[
+\mathfrak X(g)
+=
+\left\{
+(P,H):
+H\in\mathcal P(\mathcal E),\quad
+P\in\mathfrak P(H,g)
+\right\}.
+\]
+The class uses the conditions in \cref{obj:ass:overlap,obj:ass:score-marginal,obj:ass:randomized-assignment,obj:ass:consistency,obj:ass:deterministic-release}.
+\end{definitionv}
+
+The external law class \leanref{sym:Xext}{\ensuremath{\mathfrak X(g)}} lets the score law vary over probability measures on the score interval, including atomic laws, while maintaining the causal and release conditions of \cref{obj:def:causal-law-class}.
+
+\begin{definitionv}{def:external-experiment}[External experiment $\mathbb Q_{P,H}^{n,m}$]
+For \((P,H)\in\mathfrak X(g)\), the joint law of \(n\) released trial observations \((R_i,A_i,Y_i)\) and \(m\) independent score-log observations \(E_j^{\mathrm{log}}\) is
+\[
+\mathbb Q_{P,H}^{n,m}
+=
+\mathcal L_P(R,A,Y)^{\otimes n}\otimes H^{\otimes m}.
+\]
+\end{definitionv}
+
+The product law \leanref{sym:Qext}{\ensuremath{\mathbb Q_{P,H}^{n,m}}} makes coverage a joint-sample requirement. For a fixed release, honest intervals must cover the population average treatment effect uniformly over the external law class.
+
+\begin{definitionv}{def:external-honest-procedures}[External honest procedures $\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)$]
+\[
+\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)
+=
+\left\{
+C_{n,m}:
+\inf_{(P,H)\in\mathfrak X(g)}
+\mathbb Q_{P,H}^{n,m}\!\left[
+\theta(P)\in C_{n,m}
+\right]
+\ge 1-\alpha
+\right\}.
+\]
+\end{definitionv}
+
+Membership in \leanref{sym:Jext}{\ensuremath{\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)}} requires coverage for every admissible score law and causal law. Interval length is evaluated relative to the sharp identified interval in \cref{obj:def:sharp-ate-set} at the same released and score laws.
+
+\begin{definitionv}{def:external-excess-risk}[Minimax external excess risk $\mathcal R^{\star}_{n,m,\alpha}(g)$]
+\[
+\mathcal R^{\star}_{n,m,\alpha}(g)
+=
+\inf_{C_{n,m}\in\mathcal J^{\mathrm{ext}}_{n,m,\alpha}(g)}
+\sup_{(P,H)\in\mathfrak X(g)}
+\mathbb E_{\mathbb Q_{P,H}^{n,m}}
+\!\left[
+\left(
+\operatorname{len}(C_{n,m})
+-
+\operatorname{len}I(\mathcal L_P(R,A,Y);H,g)
+\right)_+
+\right].
+\]
+\end{definitionv}
+
+The risk \leanref{sym:Rext}{\ensuremath{\mathcal R^{\star}_{n,m,\alpha}(g)}} measures expected positive excess length beyond the identified interval, then takes the worst case over admissible law pairs and the best honest procedure. To compare experiments with different trial and log sizes, the following normalization uses the sum of their square-root sampling scales.
+
+\begin{definitionv}{def:external-normalized-risk}[Normalized external risk $T_{n,m,\alpha}(g)$]
+\[
+b_{n,m}=\left(n^{-1/2}+m^{-1/2}\right)^{-1},
+\qquad
+T_{n,m,\alpha}(g)=b_{n,m}\mathcal R^{\star}_{n,m,\alpha}(g).
+\]
+\end{definitionv}
+
+The normalizer \leanref{sym:bext}{\ensuremath{b_{n,m}}} puts the excess risk on the two-sample root scale; \leanref{sym:Text}{\ensuremath{T_{n,m,\alpha}(g)}} records the resulting normalized risk. Constructing an interval on this scale uses distances between finite measures that account for both cell mass and distribution within a cell.
+
+\begin{definitionv}{synth_5}[Finite-measure distances]
+For finite nonnegative measures \(\mu,\nu\) on a compact interval \(S\), define their total-mass-plus-integrated-CDF distance by
+\[
+d_S(\mu,\nu)
+=
+|\mu(S)-\nu(S)|
++
+\int_S
+\bigl|\mu(S\cap(-\infty,t])-\nu(S\cap(-\infty,t])\bigr|\,dt.
+\]
+The outcome-measure distance \(d_{[0,1]}\) uses \(S=[0,1]\), with integration over \([0,1]\); the score-measure distance \(d_{\mathcal E}\) uses \(S=\mathcal E=[\varepsilon,1-\varepsilon]\), with integration over \([\varepsilon,1-\varepsilon]\).
+\end{definitionv}
+
+The total-mass term records arm-label frequencies, while the integrated distribution-function term records variation in outcome or score values. The projection below uses the trial and score-log empirical measures to select nearby candidate laws. Their compatible ATE ranges are collected into one confidence interval. The countable rational sieve makes this mathematical construction measurable.
+
+\begin{definitionv}{def:external-projection-handle}[External projection confidence interval]
+The external projection confidence interval \(C_{n,m}\) is defined for \(\varepsilon,\alpha\in\mathbb R\), \(J,n,m\in\mathbb N\), a release map \(g:[\varepsilon,1-\varepsilon]\to\mathcal R_J\), and a sample of \(n\) trial rows and \(m\) score-log values. Here \(\mathcal R_J\) is the set of \(J\) labels. For each arm \(a\) and label \(r\), form the empirical finite measures
+\[
+\widehat\lambda_{ar}(B)
+=\frac1n\sum_{i=1}^{n}\mathbf 1\{R_i=r,A_i=a,Y_i\in B\},
+\qquad
+\widehat\sigma_{ar}(B)
+=\frac1m\sum_{j=1}^{m}p_a(E_j^{\mathrm{log}})
+\mathbf 1\{g(E_j^{\mathrm{log}})=r,E_j^{\mathrm{log}}\in B\}.
+\]
+Equip finite measures on each compact support with total-mass plus integrated-CDF distance, and set
+\[
+r_n=\frac{4J}{\alpha\sqrt n},
+\qquad
+r_m=\frac{2J(2-2\varepsilon)}{\alpha\sqrt m}.
+\]
+
+For \(q\in\mathbb Q\), define the clamped outcome and score support codes
+\[
+x(q)=\max\{0,\min\{1,q\}\},
+\qquad
+e_\varepsilon(q)=\varepsilon+(1-2\varepsilon)x(q).
+\]
+For a finite sequence \(L=((q_s,w_s))_{s=1}^{N}\) of rational support-weight pairs, define the finitely supported measures
+\[
+\nu_Y(L)=\sum_{s=1}^{N}\max\{w_s,0\}\,\delta_{x(q_s)},
+\qquad
+\nu_E(L)=\sum_{s=1}^{N}\max\{w_s,0\}\,\delta_{e_\varepsilon(q_s)},
+\]
+where the nonnegative weights are viewed as extended-real weights.
+
+When \(0<\varepsilon<1/2\), let \(\mathcal D_{\varepsilon,J}\) consist of all pairs of arrays
+\[
+\left(
+(\nu_Y(L^Y_{ar}))_{a,r},
+(\nu_E(L^E_{ar}))_{a,r}
+\right)
+\]
+formed from separate, arbitrary finite sequences \(L^Y_{ar}\) and \(L^E_{ar}\) for every arm-label cell, subject to equality of the outcome and score measures' total masses in each cell. For all other \(\varepsilon\), set \(\mathcal D_{\varepsilon,J}=\varnothing\). Define the candidate set by the two closed empirical-ball conditions
+\[
+\mathcal B_{n,m}
+=
+\left\{
+(\lambda',\sigma')\in\mathcal D_{\varepsilon,J}:
+\sum_{a,r}d_{[0,1]}(\lambda'_{ar},\widehat\lambda_{ar})\le r_n,\quad
+\sum_{a,r}d_{\mathcal E}(\sigma'_{ar},\widehat\sigma_{ar})\le r_m
+\right\},
+\]
+where \(\mathcal E=[\varepsilon,1-\varepsilon]\) is the score interval.
+
+For any sieve array \(b=(\lambda^b,\sigma^b)\), put \(q^b_{ar}=\lambda^b_{ar}([0,1])=\sigma^b_{ar}(\mathcal E)\). In a cell with \(q^b_{ar}>0\), let \(F^b_{ar}=\lambda^b_{ar}/q^b_{ar}\) be the normalized outcome law and let \(W^b_{ar}\) be the pushforward of \(\sigma^b_{ar}/q^b_{ar}\) under \(e\mapsto 1/p_a(e)\). Define the lower and upper arm endpoints by
+\[
+\underline M_a(b)=\sum_{r:q^b_{ar}>0}q^b_{ar}\int_0^1 Q_{F^b_{ar}}(u)Q_{W^b_{ar}}(1-u)\,du,
+\qquad
+\overline M_a(b)=\sum_{r:q^b_{ar}>0}q^b_{ar}\int_0^1 Q_{F^b_{ar}}(u)Q_{W^b_{ar}}(u)\,du.
+\]
+Each zero-mass cell contributes \(0\) to both sums; no normalized law is needed for that cell. For each \(b\in\mathcal B_{n,m}\), set
+\[
+I(b)=[\underline M_1(b)-\overline M_0(b),\,\overline M_1(b)-\underline M_0(b)].
+\]
+When \(\mathcal B_{n,m}\ne\varnothing\), form
+\[
+J_{n,m}
+=
+[-1,1]\cap
+\operatorname{cl}\operatorname{conv}
+\left(\bigcup_{b\in\mathcal B_{n,m}}I(b)\right).
+\]
+The totalized interval is
+\[
+C_{n,m}
+=
+\begin{cases}
+J_{n,m},&
+\mathcal B_{n,m}\ne\varnothing\ \text{and}\ J_{n,m}\ne\varnothing,\\
+\{0\},&
+\mathcal B_{n,m}=\varnothing\ \text{or}\
+\bigl(\mathcal B_{n,m}\ne\varnothing\ \text{and}\ J_{n,m}=\varnothing\bigr).
+\end{cases}
+\]
+\end{definitionv}
+
+In \cref{obj:def:external-projection-handle}, trial observations determine empirical outcome measures and the log determines assignment-weighted empirical score measures. The sieve combines finitely supported rationally coded measures with matched outcome and score masses in each arm-label cell, including arrays assembled independently across cells, and retains candidates in the two displayed empirical balls. This conservative projection contains the population sharp interval on the coverage event; closing and convexifying the candidate intervals produces the interval \leanref{sym:Cext}{\ensuremath{C_{n,m}}} used in the rate result.
+
+\begin{theoremv}{thm:external-score-root-order}[External-score root order]
+Let \(\mathcal E=[\varepsilon,1-\varepsilon]\), and let \(g:\mathcal E\to\mathcal R_J\) be a measurable finite-label release. Suppose:
+
+\begin{itemize}
+\item \textbf{(Overlap.)} The overlap condition in \cref{obj:ass:overlap} holds.
+\item \textbf{(Miscoverage.)} \(0<\alpha<1/2\).
+\item \textbf{(Joint sampling.)} For every \(n,m\), a joint sampling law \(\mathbb Q_{P,H}^{n,m}\) is specified for each admissible causal law \(P\) and score law \(H\). Its trial marginal consists of \(n\) independent draws from the released law. Its score-log marginal and independence from the trial sample satisfy \cref{obj:ass:external-log-iid,obj:ass:external-log-independent}.
+\end{itemize}
+
+Set
+\[
+L_\alpha=1+(1-2\alpha)^2,\qquad
+S_g=
+\sup_{\substack{r\in\mathcal R_J,\ e_1<e_2<e_3\\
+e_1,e_2,e_3\in C_r}}
+\frac{(e_3-e_2)(1-e_1/e_2)}
+{\sqrt{(e_3-e_2)^2+(e_3-e_1)^2+(e_2-e_1)^2}},
+\]
+and
+\[
+c_{\mathrm{tr}}(\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{4},
+\qquad
+c_{\mathrm{log}}(g,\alpha)
+=\frac{(1-2\alpha)\sqrt{\log L_\alpha}}{2\sqrt3}\,S_g.
+\]
+Then \(0<S_g\le 1\). There is a constant \(C_{\varepsilon,J,\alpha,g}>0\) such that, for every positive \(n,m\), the minimax excess risk of \cref{obj:def:external-excess-risk} satisfies
+\[
+c_{\mathrm{tr}}(\alpha)n^{-1/2}
+\le \mathcal R^\star_{n,m,\alpha}(g)
+\le C_{\varepsilon,J,\alpha,g}
+\bigl(n^{-1/2}+m^{-1/2}\bigr).
+\]
+For each such \(n,m\), an interval procedure \(C_{n,m}\) belongs to the honest class of \cref{obj:def:external-honest-procedures}, agrees pointwise as a closed interval with the projection interval of \cref{obj:def:external-projection-handle}, and, for every admissible pair \((P,H)\), satisfies
+\[
+\mathbb E_{\mathbb Q_{P,H}^{n,m}}
+\!\left[
+\max\!\left\{0,\,
+\operatorname{length}(C_{n,m})
+-\operatorname{length}\bigl(I(P_{\mathrm{rel}};H,g)\bigr)
+\right\}
+\right]
+\le C_{\varepsilon,J,\alpha,g}
+\bigl(n^{-1/2}+m^{-1/2}\bigr).
+\]
+
+In the external-score direction,
+\[
+\liminf_{m\to\infty}\inf_{n\ge1}
+\sqrt m\,\mathcal R^\star_{n,m,\alpha}(g)
+\ge c_{\mathrm{log}}(g,\alpha)>0.
+\]
+For every \(\rho>0\), the normalized risk \(T_{n,m,\alpha}(g)\) of \cref{obj:def:external-normalized-risk} obeys
+\[
+0<
+\max\left\{
+\frac{c_{\mathrm{tr}}(\alpha)}{1+\sqrt\rho},
+\frac{c_{\mathrm{log}}(g,\alpha)\sqrt\rho}{1+\sqrt\rho}
+\right\}
+\le
+\liminf_{\substack{n,m\to\infty\\ n/m\to\rho}}
+T_{n,m,\alpha}(g)
+\le
+\limsup_{\substack{n,m\to\infty\\ n/m\to\rho}}
+T_{n,m,\alpha}(g)
+\le C_{\varepsilon,J,\alpha,g}.
+\]
+\end{theoremv}
+
+The upper bound in \cref{obj:thm:external-score-root-order} follows the two sources of empirical variation in the projection: released trial rows contribute the \(n^{-1/2}\) scale, and assignment-weighted score-log measures contribute the \(m^{-1/2}\) scale. The theorem also gives separate lower bounds. The trial-sample lower bound applies at every positive pair of sample sizes, and the score-log lower bound remains positive asymptotically uniformly over trial sizes. For a positive limiting trial-to-log ratio \leanref{sym:rho}{\ensuremath{\rho}}, these lower bounds and the projection interval establish the joint order \(n^{-1/2}+m^{-1/2}\). The law class includes atomic score distributions and quantile functions with flat pieces.

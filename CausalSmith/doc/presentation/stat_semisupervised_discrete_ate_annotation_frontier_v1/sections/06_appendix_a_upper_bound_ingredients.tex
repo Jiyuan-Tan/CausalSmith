@@ -1,0 +1,735 @@
+\section{Upper-bound ingredients}\label{sec:appendix-upper}
+
+This appendix collects the analytic ingredients used by the upper bounds in \cref{obj:thm:uniform-mixed-upper} and by the inverse-count comparison in \cref{obj:thm:inverse-count-baseline}. The statements are organized around the two treatment--covariate masses that enter the estimators, the all-heavy inverse-count calculation, the polynomial certificate for light cells, and the fixed-sample transfer that connects the Poissonized construction to the annotation experiment.
+
+The proof dependency map is as follows. The inverse-count moment lemmas feed the heavy-cell analysis; \cref{obj:synth_4,obj:lem:chebyshev-factorial-certificate,obj:lem:explicit-chebyshev-calibration} feed the light-cell analysis; the calibrated mean and second-moment bounds combine in \cref{obj:lem:poisson-hybrid-risk}; and \cref{obj:lem:fixed-sample-hybrid-transfer} converts that Poissonized bound into \cref{obj:thm:uniform-mixed-upper}. \Cref{sec:appendix-lower} independently supplies the common-marginal converse, after which the upper and lower bounds meet in \cref{obj:thm:sharp-annotation-frontier}. This map is the shortest reading path through the detailed certificates below.
+
+The inverse-count analysis uses one scalar inequality to insert the marginal treatment--covariate intensity into the variance calculation. It is stated first because the later cellwise bounds apply it separately to each covariate cell and treatment arm.
+
+\begin{lemmav}{lem:poisson-inverse-marginal-energy-scalar}[Marginal energy insertion]
+Let \(u,p,w,\epsilon,\lambda_0,\lambda_1,q_0,q_1,r_{2,0},r_{2,1},r_{4,0},r_{4,1}\in\mathbb R\).  Suppose that
+\begin{itemize}
+\item \textbf{(Basic scales.)} \(u>0\), \(p\ge0\), \(0<\epsilon\le1\), and \(w\ge0\).
+\item \textbf{(Outcome masses.)} \(0\le q_0\le p\) and \(0\le q_1\le p\).
+\item \textbf{(Marginal intensities.)} For each \(a\in\{0,1\}\), \(\epsilon w\le\lambda_a\le w\).
+\item \textbf{(Second-moment rates.)} \(r_{2,0},r_{2,1}\ge0\), \((1+\lambda_0)^2r_{2,0}\le8\), and \((1+\lambda_1)^2r_{2,1}\le8\).
+\item \textbf{(Fourth-moment rates.)} \(r_{4,0},r_{4,1}\ge0\), \((1+\lambda_0)^4r_{4,0}\le96\), and \((1+\lambda_1)^4r_{4,1}\le96\).
+\end{itemize}
+Put
+\[
+c_{\mathrm{mar}}=8\epsilon^{-2}+96(\epsilon^{-2}+\epsilon^{-3}).
+\]
+Then
+\[
+\lambda_1\bigl\{(q_1u^{-1}+q_1^2)(\lambda_0+\lambda_0^2)r_{4,1}
+ +(q_0u^{-1}+q_0^2)r_{2,0}\bigr\}
++\lambda_0\bigl\{(q_0u^{-1}+q_0^2)(\lambda_1+\lambda_1^2)r_{4,0}
+ +(q_1u^{-1}+q_1^2)r_{2,1}\bigr\}
+\le
+(pu^{-1}+p^2)\frac{2c_{\mathrm{mar}}}{1+w}.
+\]
+\end{lemmav}
+
+\Cref{obj:lem:poisson-inverse-marginal-energy-scalar} converts arm-level inverse-count moment bounds into a covariate-cell contribution controlled by the total marginal scale \(w\). The overlap inequalities in the statement match the occupied-cell overlap structure of \(\mathcal M_{d,\epsilon}\), while the final display has the form needed to sum over cells.
+
+We next isolate the cell-level notation used throughout the appendix. The treatment--covariate mass records how often an arm appears in a covariate cell, while the outcome-marked mass records the same cell together with a successful binary outcome.
+
+\begin{definitionv}{synth_2}[Cell arm mass]
+For a law \(P\) on \([d]\times\{0,1\}^2\), a covariate cell \(x\in[d]\), and a treatment arm \(a\in\{0,1\}\), define the treatment-covariate cell mass
+\[
+s_{ax}
+=
+\sum_{y\in\{0,1\}} P(X=x,A=a,Y=y).
+\]
+\end{definitionv}
+
+The mass \leanref{sym:s_{ax}}{\ensuremath{s_{ax}}} is the denominator scale for inverse treatment-cell weights. Under the overlap model in \cref{obj:def:model-class}, occupied covariate cells have both arm masses controlled by the same covariate mass, so inverse-count weights can be calibrated uniformly over the model class.
+
+\begin{definitionv}{synth_1}[Outcome-marked cell mass]
+For an observed-data law \(P\) on the finite record space \([d]\times\{0,1\}\times\{0,1\}\), define the outcome-marked cell mass \(q_{ax}\) for \(x\in[d]\) and \(a\in\{0,1\}\) by
+\[
+q_{ax}
+=
+P(X=x,A=a,Y=1).
+\]
+Equivalently, \(q_{ax}\) is the probability mass assigned by \(P\) to the complete atom \((x,a,1)\).
+\end{definitionv}
+
+The outcome-marked mass \leanref{sym:q_{ax}}{\ensuremath{q_{ax}}} supplies the numerator scale. Combining \(q_{ax}\) with an inverse estimate of \(s_{ax}\) gives a cellwise contribution to the average treatment effect functional in \cref{obj:def:ate-functional}.
+
+The simplest upper-bound component treats every cell as sufficiently observed and uses inverse counts throughout. This statistic is useful both as a baseline and as the heavy-cell part of the hybrid estimator.
+
+\begin{lemmav}{lem:poisson-inverse-count-risk}[Poisson inverse-count risk]
+Fix an overlap constant \(\epsilon\) with \(0<\epsilon<1/2\).  There is a constant \(C=C_\epsilon>0\) such that, for every \(d\), every \(u,t>0\), and every observed-data law \(P\in\mathcal M_{d,\epsilon}\) as in \cref{obj:def:model-class}, the following holds.
+
+In the independent Poisson count experiment with independent counts
+\[
+S_{ax}\sim \operatorname{Poi}(u q_{ax}),
+\qquad
+K_{ax}\sim \operatorname{Poi}(t s_{ax}),
+\qquad a\in\{0,1\},\ x\in[d],
+\]
+define
+\[
+Z^H
+=
+\sum_{x=1}^d
+\left\{
+\frac{S_{1x}}{u}\frac{K_{0x}+K_{1x}+1}{K_{1x}+1}
+-
+\frac{S_{0x}}{u}\frac{K_{0x}+K_{1x}+1}{K_{0x}+1}
+\right\}.
+\]
+Writing \(\tau(P)\) for the average treatment effect functional in \cref{obj:def:ate-functional},
+\[
+\left|E_P Z^H-\tau(P)\right|
+\le
+C\min\{1,d/t\},
+\qquad
+\operatorname{Var}_P(Z^H)
+\le
+C\left(u^{-1}+t^{-1}\right).
+\]
+\end{lemmav}
+
+\Cref{obj:lem:poisson-inverse-count-risk} separates the two costs of the all-heavy construction: the bias is governed by the number of cells relative to the treatment--covariate intensity, and the variance is governed by the outcome and count intensities. This is the parametric inverse-count behavior that becomes effective once the pilot stage classifies a cell as heavy.
+
+To use this calculation with sampled prefixes, the Poisson record experiment is identified with the independent count experiment. The next two statements record the count law for two independent prefixes and then name the prefix distribution used by the inverse-count transfer.
+
+\begin{lemmav}{lem:poisson-prefix-count-law}[Poisson prefix count law]
+Let \(P\) be a probability law on \([d]\times\{0,1\}^2\), and let \(u,t\ge 0\).  Write
+\[
+q_{ax}=P(x,a,1),
+\qquad
+s_{ax}=P(x,a,0)+P(x,a,1).
+\]
+Under the prefix law that independently draws an outcome-marked prefix with \(\operatorname{Poi}(u)\) records from \(P\) and a treatment--covariate prefix with \(\operatorname{Poi}(t)\) records from the marginal \(P_{XA}\), define
+\[
+S_{ax}=\#\{\text{outcome-marked prefix records equal to }(x,a,1)\},
+\qquad
+K_{ax}=\#\{\text{treatment--covariate prefix records equal to }(x,a)\}.
+\]
+Then the pushforward of the prefix law under the map sending the two prefixes to the array \((S_{ax},K_{ax})_{x\in[d],\,a\in\{0,1\}}\) is the product measure
+\[
+\bigotimes_{x\in[d]}\bigotimes_{a\in\{0,1\}}
+\left\{\operatorname{Poi}(u q_{ax})\otimes \operatorname{Poi}(t s_{ax})\right\}.
+\]
+Equivalently, the coordinates are mutually independent, with
+\[
+S_{ax}\sim \operatorname{Poi}(u q_{ax}),
+\qquad
+K_{ax}\sim \operatorname{Poi}(t s_{ax})
+\]
+for every \(x\in[d]\) and \(a\in\{0,1\}\).
+\end{lemmav}
+
+\begin{definitionv}{synth_19}[Poisson-prefix law]
+For \(P\in\mathcal M_{d,\epsilon}\) and intensities \(u,t\ge0\), let \(\mathbb P^{\mathrm{pref}}_{P,u,t}\) denote the following probability law. Draw two prefix lengths independently,
+\[
+R_0\sim \operatorname{Poi}(u),\qquad R_f\sim \operatorname{Poi}(t).
+\]
+Conditional on \((R_0,R_f)=(r_0,r_f)\), draw an outcome prefix
+\[
+((X_i,A_i,Y_i))_{i=1}^{r_0}\sim P^{\otimes r_0}
+\]
+and, independently, a factorial treatment--covariate prefix
+\[
+((\widetilde X_j,\widetilde A_j))_{j=1}^{r_f}\sim P_{XA}^{\otimes r_f}.
+\]
+Thus the two prefixes are independent, the outcome prefix has complete-record sampling law \(P\), and the factorial prefix has treatment--covariate sampling law \(P_{XA}\). Under \(\mathbb P^{\mathrm{pref}}_{P,u,t}\), the associated counts
+\[
+S_{ax}=\sum_{i=1}^{R_0}\mathbf 1\{X_i=x,A_i=a,Y_i=1\},
+\qquad
+K_{ax}=\sum_{j=1}^{R_f}\mathbf 1\{\widetilde X_j=x,\widetilde A_j=a\}
+\]
+are independent across the two prefixes, with
+\[
+S_{ax}\sim\operatorname{Poi}(u q_{ax}),\qquad
+K_{ax}\sim\operatorname{Poi}(t s_{ax}).
+\]
+\end{definitionv}
+
+\Cref{obj:lem:poisson-prefix-count-law} and \cref{obj:synth_19} justify applying the count-risk calculation directly to Poisson prefixes of the original records. The prefix representation is convenient for derandomization because every admissible prefix length is a finite statistic of the fixed sample pools.
+
+\begin{lemmav}{lem:inverse-count-poisson-prefix-transfer}[Poisson prefix transfer]
+Let \(n,m,d\) be nonnegative integers, let \(\epsilon\in\mathbb R\), and let \(P\in\mathcal M_{d,\epsilon}\) as in \cref{obj:def:model-class}.  Define
+\[
+M_0=\bigl\lfloor n/3\bigr\rfloor,\qquad
+n_p=\bigl\lfloor (n-M_0)/2\bigr\rfloor,\qquad
+n_f=n-M_0-n_p,\qquad
+m_f=m-\bigl\lfloor m/2\bigr\rfloor,
+\]
+and set \(u=M_0/8\) and \(t=(n_f+m_f)/8\).  Let \(\widehat\tau^{\mathrm{IC}}_{n,m,d}\) be the clipped derandomized inverse-count estimator obtained by averaging, over \(0\le r_0\le M_0\) and \(0\le r_f\le n_f+m_f\), the finite-prefix inverse-count output with weights
+\[
+\Pr\{\operatorname{Poi}(u)=r_0\}\Pr\{\operatorname{Poi}(t)=r_f\}.
+\]
+Let \(\widehat\tau^{\mathrm{IC,pref}}_{u,t}\) be the clipped inverse-count statistic computed from two independent Poisson prefixes: an outcome-marked prefix with law induced by \(P\) and length \(\operatorname{Poi}(u)\), and a treatment--covariate prefix with law \(P_{XA}\) and length \(\operatorname{Poi}(t)\).  Then, for the annotation experiment in \cref{obj:def:annotation-experiment} and the ATE functional \(\tau(P)\) in \cref{obj:def:ate-functional},
+\[
+E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}}
+\!\left[
+  \bigl(\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)\bigr)^2
+\right]
+\le
+E_{\mathbb P^{\mathrm{pref}}_{P,u,t}}
+\!\left[
+  \bigl(\widehat\tau^{\mathrm{IC,pref}}_{u,t}-\tau(P)\bigr)^2
+\right]
++4\Bigl[
+  \Pr\{\operatorname{Poi}(u)>M_0\}
+  +\Pr\{\operatorname{Poi}(t)>n_f+m_f\}
+\Bigr].
+\]
+\end{lemmav}
+
+\Cref{obj:lem:inverse-count-poisson-prefix-transfer} converts the Poisson-prefix risk into a fixed-sample inverse-count estimator, with the excess risk controlled by the two prefix-overflow probabilities. This is the transfer step behind the inverse-count comparison in \cref{obj:thm:inverse-count-baseline}.
+
+For light cells, the hybrid estimator replaces reciprocal weights by polynomial weights. The next definition records the factorial-moment lift used to turn the polynomial into an unbiased Poisson statistic, following the same polynomial-estimation principle used in discrete functional estimation \citep{JiaoVenkatHanWeissman2015,WuYang2016,ValiantValiant2017,OrlitskySureshWu2016}.
+
+\begin{definitionv}{synth_4}[Factorial lift of the light-cell polynomial]
+Fix \(a\in\{0,1\}\), an integer \(L\ge2\), and constants \(B,t>0\). Let
+\[
+W_{a,L}(s_0,s_1)
+=
+\frac{s_0+s_1}{B}G_L(s_a/B)
+=
+\sum_{r_0,r_1\ge0}c_{a,r_0,r_1}s_0^{r_0}s_1^{r_1},
+\]
+where \(G_L\) is the Chebyshev correction polynomial and only finitely many coefficients \(c_{a,r_0,r_1}\) are nonzero. For integer counts \(K_0,K_1\ge0\), define the factorial lift
+\[
+\widehat W_{a,L}(K_0,K_1)
+=
+\sum_{r_0,r_1\ge0}
+c_{a,r_0,r_1}
+\frac{(K_0)_{r_0}(K_1)_{r_1}}{t^{r_0+r_1}},
+\]
+with \((k)_r=k(k-1)\cdots(k-r+1)\) and \((k)_0=1\). Thus each monomial of \(W_{a,L}\) is replaced by the corresponding unbiased Poisson factorial-moment statistic.
+\end{definitionv}
+
+The lift in \cref{obj:synth_4} is tailored to independent Poisson counts: each falling factorial has expectation equal to the corresponding power of the intensity. The remaining task is to control the polynomial and the second moment of its lift uniformly over the light-cell range.
+
+\begin{lemmav}{lem:chebyshev-factorial-certificate}[Chebyshev factorial certificate]
+There is a universal constant \(A>1\) such that, for every integer \(L\ge2\), the polynomial continuations
+\[
+E_L(z)=H_L(z)/z,
+\qquad
+G_L(z)=\{1-E_L(z)\}/z
+\]
+satisfy the following properties:
+\begin{itemize}
+\item \textbf{(Degree.)} The polynomial \(G_L\) has degree at most \(L-2\).
+\item \textbf{(Chebyshev certificate.)} For every \(z\in[0,1]\),
+\[
+0\le E_L(z)\le 1,
+\qquad
+zG_L(z)+E_L(z)=1,
+\]
+and, whenever \(z>0\),
+\[
+E_L(z)\le (L^2z)^{-1}.
+\]
+\item \textbf{(Factorial-lift moment.)} For every \(a\in\{0,1\}\) and every \(t,B,s_0,s_1\in\mathbb R\) with
+\[
+t>0,\qquad B>0,\qquad s_0\ge0,\qquad s_1\ge0,\qquad L\le tB,
+\]
+if \(K_0\sim\operatorname{Poi}(ts_0)\) and \(K_1\sim\operatorname{Poi}(ts_1)\) are independent, then the factorial lift \(\widehat W_{a,L}\) satisfies
+\[
+\mathbb E\!\left[\widehat W_{a,L}(K_0,K_1)^2\right]
+\le
+A^L\left(1+\frac{s_0+s_1}{B}\right)^{2L}.
+\]
+Moreover, if \(s_0+s_1\le B\), then
+\[
+\mathbb E\!\left[\widehat W_{a,L}(K_0,K_1)^2\right]\le A^L.
+\]
+\end{itemize}
+\end{lemmav}
+
+\Cref{obj:lem:chebyshev-factorial-certificate} provides the approximation identity and moment growth bound needed for the light-cell part of the hybrid statistic. The identity \(zG_L(z)+E_L(z)=1\) expresses the reciprocal-weight correction, and the displayed decay of \(E_L\) quantifies the approximation error at positive mass. The factorial-lift moment bound then keeps the variance compatible with the polynomial degree used in \cref{obj:def:mixed-estimator-handle}.
+
+The hybrid mean analysis separates the deterministic light-cell approximation error from the pilot-classification error on heavy cells. The next statements give the corresponding cell-summed bounds and the envelope calculation that puts them on the target rate scale.
+
+\begin{lemmav}{lem:calibrated-envelope-absorption}[Calibrated envelope absorption]
+Let \(\epsilon>0\) and \(C_0>0\). There is a constant \(C>0\), depending on \(\epsilon\) and \(C_0\), such that the following holds.
+
+\begin{itemize}
+\item \textbf{(Sample sizes.)} \(n,m,d\) are integers with \(n\ge 1\), \(m\ge 0\), and \(d\ge 2\).
+\item \textbf{(Calibration.)} The finite calibration predicate \(\mathsf C_\epsilon(n,m)\) from \cref{obj:def:mixed-estimator-handle} holds.
+\item \textbf{(Estimator scales.)} With the block sizes and scales from \cref{obj:def:mixed-estimator-handle},
+\[
+M_0=\lfloor n/3\rfloor,\qquad
+n_p=\lfloor (n-M_0)/2\rfloor,\qquad
+n_f=n-M_0-n_p,\qquad
+m_f=m-\lfloor m/2\rfloor,
+\]
+and
+\[
+u=M_0/8,\qquad
+t=(n_f+m_f)/8,\qquad
+L=L(n),\qquad
+B=B(n,m,\epsilon),\qquad
+A_\star=7056.
+\]
+Let \(N=n+m\) and \(\ell_n=\log(en)\), as in \cref{obj:def:frontier-rate-handle}.
+\end{itemize}
+
+Then
+\[
+4A_\star^L
+\left\{
+\frac{\min\{1,dB\}}{u}+dB^2
+\right\}
++C_0\left(u^{-1}+t^{-1}\right)
++\frac{8dB^2}{\epsilon^2L^4}
++\frac{4}{\epsilon t}
++414\,n^{-12}
++\left(
+\frac{2dB}{\epsilon L^2}
++6n^{-12}
+\right)^2
+\le
+C\left(
+\frac{1}{n}
++\frac{d^2}{N^2\ell_n^2}
+\right).
+\]
+\end{lemmav}
+
+\Cref{obj:lem:hybrid-light-branch-mean-bound} compares the light polynomial contribution with the inverse-count contribution on cells whose covariate mass is at most \(B\). The bound has a Chebyshev approximation term and a factorial-pool intensity term, matching the light-branch mean terms that later enter the calibrated envelope.
+
+\begin{lemmav}{lem:hybrid-light-branch-mean-bound}[Light branch mean bound]
+Let \(P\in\mathcal M_{d,\epsilon}\) be a law in the finite model class of \cref{obj:def:model-class}.  Let \(u,t,B>0\) and let \(L\ge 2\) be an integer.  For each \(x\in[d]\), write
+\[
+p_x=P(X=x),\qquad
+q_{ax}=P(X=x,A=a,Y=1),\qquad
+s_{ax}=P(X=x,A=a).
+\]
+For each \(x\in[d]\), let \(S_{0x},S_{1x},K_{0x},K_{1x}\) be independent Poisson counts with
+\[
+S_{ax}\sim \operatorname{Poi}(u q_{ax}),
+\qquad
+K_{ax}\sim \operatorname{Poi}(t s_{ax}),
+\qquad a\in\{0,1\}.
+\]
+Using the light factorial-lift weights and heavy inverse-count weights from \cref{obj:def:mixed-estimator-handle}, set
+\[
+P_x
+=
+\frac{S_{1x}}{u}\widehat W_{1,L,x}
+-
+\frac{S_{0x}}{u}\widehat W_{0,L,x},
+\qquad
+H_x
+=
+\frac{S_{1x}}{u}\widehat W^H_{1,x}
+-
+\frac{S_{0x}}{u}\widehat W^H_{0,x},
+\]
+where the light weights use degree \(L\), scale \(B\), and intensity \(t\).  Then
+\[
+\sum_{x:\,p_x\le B}
+\left(\mathbb E P_x-\mathbb E H_x\right)^2
+\le
+\frac{8dB^2}{\epsilon^2 L^4}
++
+\frac{4}{\epsilon t}.
+\]
+\end{lemmav}
+
+The comparison in \cref{obj:lem:hybrid-light-branch-mean-bound} is anchored by an exact arm-level identity for the heavy inverse-count mean. The identity expresses the inverse-count arm contribution as the desired cell term plus an exponentially damped residual.
+
+\begin{lemmav}{lem:poisson-inverse-arm-mean-formula}[Inverse-count arm mean]
+Let \(P\) be an observed-data law on \([d]\times\{0,1\}^2\), let \(x\in[d]\), and let \(a\in\{0,1\}\). Write \(p_x\) for the covariate-cell mass, \(s_{ax}\) for the treatment-covariate cell mass, \(q_{ax}\) for the outcome-marked mass, and \(\mu_{ax}:=q_{ax}/s_{ax}\) for the totalized outcome regression. If \(u>0\) and \(t>0\), and if \(K_{ax}\sim\operatorname{Poi}(t s_{ax})\) and \(K_{1-a,x}\sim\operatorname{Poi}(t s_{1-a,x})\) are independent, then
+\[
+\frac{q_{ax}}{u/u}\,
+\mathbb E\!\left[1+\frac{K_{1-a,x}}{K_{ax}+1}\right]
+=
+p_x\mu_{ax}-(p_x-s_{ax})\mu_{ax}\exp(-t s_{ax}).
+\]
+\end{lemmav}
+
+\Cref{obj:lem:poisson-inverse-arm-mean-formula} supplies the cellwise bias formula used when the heavy branch is compared with the target ATE contribution. The exponential factor is controlled by the treatment--covariate intensity, so the identity connects the heavy branch to the same marginal scale that appears in \cref{obj:lem:poisson-inverse-count-risk}.
+
+A second auxiliary bound controls the event that a truly heavy cell is nevertheless routed to the light polynomial branch. It combines the pilot probability of such a routing event with the polynomial second moment under the factorial-pool law.
+
+\begin{lemmav}{lem:heavy-light-second-moment-sum}[Heavy light second moment]
+Let \(d\) be a finite alphabet size, let \(P\) be an observed-data law on \([d]\times\{0,1\}^2\), and let \(n,m\) be integers. Suppose that:
+\begin{itemize}
+\item \textbf{(Positive overlap parameter.)} The overlap parameter satisfies \(\epsilon>0\).
+\item \textbf{(Sample size.)} The labeled sample size satisfies \(n\ge1\).
+\item \textbf{(Calibration.)} The finite calibration predicate \(\mathsf C_\epsilon(n,m)\) from \cref{obj:def:mixed-estimator-handle} holds.
+\end{itemize}
+Set
+\[
+u=\frac{M_0}{8},\qquad
+t_p=\frac{M_p}{8},\qquad
+t=\frac{M_f}{8},\qquad
+L=L(n),\qquad
+B=B(n,m,\epsilon),\qquad
+k_0=k_0(n,m,\epsilon),
+\]
+with these quantities defined as in \cref{obj:def:mixed-estimator-handle}. For each \(x\in[d]\), let
+\[
+\pi_x
+=
+\mathbb P\{J_x\le k_0\},
+\]
+where, conditionally on \(P\), the pilot counts have independent components
+\(J_{ax}\sim\operatorname{Poi}(t_p s_{ax})\), \(a\in\{0,1\}\). Let \(\mu_x\) be the product law under which the outcome and factorial counts are independent with
+\[
+S_{ax}\sim\operatorname{Poi}(u q_{ax}),
+\qquad
+K_{ax}\sim\operatorname{Poi}(t s_{ax}),
+\qquad a\in\{0,1\},
+\]
+and define the light polynomial cell contribution
+\[
+P_x
+=
+\frac{S_{1x}}{u}\widehat W_{1,L,x}
+-
+\frac{S_{0x}}{u}\widehat W_{0,L,x},
+\]
+where the factorial lift is taken at degree \(L\), scale \(B\), and intensity \(t\). Then
+\[
+\sum_{x:\,p_x>B}\pi_x\,\mathbb E_{\mu_x}\!\left[P_x^2\right]
+\le
+132\,n^{-12}.
+\]
+\end{lemmav}
+
+\Cref{obj:lem:heavy-light-second-moment-sum} makes the heavy-cell misclassification contribution negligible on the calibrated scale. Its summand contains both the pilot routing probability and the light-branch second moment, so it is the variance-side counterpart of the heavy-branch mean control.
+
+\Cref{obj:lem:hybrid-heavy-branch-mean-bound} controls the contribution from heavy cells near the pilot decision boundary. The product factor \(\pi_x\eta_x\) records that only disagreement between the light and heavy branches matters, and the calibrated split in \cref{obj:def:mixed-estimator-handle} makes the summed contribution polynomially small in the labeled sample size.
+
+\begin{lemmav}{lem:hybrid-heavy-branch-mean-bound}[Heavy branch mean bound]
+Let \(d\) be a finite alphabet size, let \(\epsilon>0\), and let \(P\in\mathcal M_{d,\epsilon}\) as in \cref{obj:def:model-class}.  Let \(n\ge1\) and \(m\ge0\) be integers.  Assume:
+\begin{itemize}
+\item \textbf{(Calibration.)} The hybrid-estimator calibration predicate \(\mathsf C_\epsilon(n,m)\) in \cref{obj:def:mixed-estimator-handle} holds.
+\item \textbf{(Block intensities.)} With \(M_0,n_p,n_f,m_p,m_f\) as in \cref{obj:def:mixed-estimator-handle}, set
+\[
+u=\frac{M_0}{8},\qquad
+t_p=\frac{n_p+m_p}{8},\qquad
+t=\frac{n_f+m_f}{8}.
+\]
+\item \textbf{(Cell laws.)} For each \(x\in[d]\), let \(\mu_x\) be the product law under which the outcome-block success counts \(S_{ax}\) are independent \(\operatorname{Poi}(u q_{ax})\) variables and the factorial-pool counts \(K_{ax}\) are independent \(\operatorname{Poi}(t s_{ax})\) variables, for \(a\in\{0,1\}\).
+\end{itemize}
+Let \(L=L(n)\), \(B=B(n,m,\epsilon)\), and \(k_0=k_0(n,m,\epsilon)\) be the degree, light-cell scale, and pilot threshold from \cref{obj:def:mixed-estimator-handle}.  For each \(x\in[d]\), let
+\[
+\pi_x=\mathbb P\{J_x\le k_0\},
+\qquad
+\eta_x=\mathbb P\{J_x>k_0\},
+\]
+where \(J_x=J_{0x}+J_{1x}\) has independent components \(J_{ax}\sim\operatorname{Poi}(t_p s_{ax})\).  Let \(P_x\) be the light polynomial cell contribution and \(H_x\) the heavy inverse-count cell contribution from \cref{obj:def:mixed-estimator-handle}, evaluated under \(\mu_x\).  Then
+\[
+\sum_{x\in[d]:\,p_x>B}
+\pi_x\eta_x
+\left(\mathbb E_{\mu_x}P_x-\mathbb E_{\mu_x}H_x\right)^2
+\le 282\,n^{-12}.
+\]
+\end{lemmav}
+
+The preceding local estimates are assembled into separate variance and mean-bias bounds for the full Poisson hybrid statistic. These two summaries expose exactly which terms enter the final rate calculation.
+
+\begin{lemmav}{lem:calibrated-hybrid-variance-bound}[Hybrid variance bound]
+Let \(\epsilon\), the overlap parameter, satisfy \(0<\epsilon<1/2\). There is a constant \(C_{\mathrm{var}}>0\), depending only on \(\epsilon\), such that the following holds. Let \(n,m,d\) be integers and let \(P\) be an observed-data law on \([d]\times\{0,1\}^2\). Assume:
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\ge 1\).
+\item \textbf{(Model class.)} \(P\in\mathcal M_{d,\epsilon}\), as in \cref{obj:def:model-class}.
+\item \textbf{(Calibration.)} The finite calibration predicate \(\mathsf C_\epsilon(n,m)\) in \cref{obj:def:mixed-estimator-handle} holds.
+\end{itemize}
+Let
+\[
+M_0=\lfloor n/3\rfloor,\qquad
+n_p=\bigl\lfloor (n-M_0)/2\bigr\rfloor,\qquad
+n_f=n-M_0-n_p,\qquad
+m_p=\lfloor m/2\rfloor,\qquad
+m_f=m-m_p,
+\]
+and set
+\[
+u=M_0/8,\qquad
+t_p=(n_p+m_p)/8,\qquad
+t=(n_f+m_f)/8.
+\]
+Let \(L=L(n)\), \(B=B(n,m,\epsilon)\), \(k_0=k_0(n,m,\epsilon)\), and \(A_\star=7056\) be the degree, scale, pilot threshold, and factorial-moment constant from \cref{obj:def:mixed-estimator-handle}. Under the independent Poisson count law in which, independently over \(x\in[d]\) and \(a\in\{0,1\}\),
+\[
+S_{ax}\sim\operatorname{Poi}(u q_{ax}),\qquad
+J_{ax}\sim\operatorname{Poi}(t_p s_{ax}),\qquad
+K_{ax}\sim\operatorname{Poi}(t s_{ax}),
+\]
+let
+\[
+\widetilde Z
+=
+\sum_{x\in[d]}
+\left(
+\mathbf 1\{J_{0x}+J_{1x}\le k_0\}P_x
++
+\mathbf 1\{J_{0x}+J_{1x}>k_0\}H_x
+\right),
+\]
+where \(P_x\) and \(H_x\) are the light-cell polynomial and heavy inverse-count cell contributions specified in \cref{obj:def:mixed-estimator-handle}. Then
+\[
+\operatorname{Var}(\widetilde Z)
+\le
+4A_\star^L
+\left\{
+\frac{\min\{1,dB\}}{u}+dB^2
+\right\}
++
+C_{\mathrm{var}}\left(u^{-1}+t^{-1}\right)
++
+\frac{8dB^2}{\epsilon^2L^4}
++
+\frac{4}{\epsilon t}
++
+414\,n^{-12}.
+\]
+\end{lemmav}
+
+\Cref{obj:lem:calibrated-hybrid-variance-bound} combines the light-cell factorial moment bound, the inverse-count variance contribution, and the pilot-routing error into a single variance inequality. Its display is arranged to match the envelope calculation in \cref{obj:lem:calibrated-envelope-absorption} term by term.
+
+\begin{lemmav}{lem:calibrated-hybrid-mean-bias}[Calibrated hybrid mean bias]
+Fix an overlap constant \(0<\epsilon<1/2\).  For every \(n,m,d\in\mathbb N\) and every observed-data law \(P\) on \([d]\times\{0,1\}^2\), suppose that:
+\begin{itemize}
+\item \textbf{(Sample size.)} \(1\le n\).
+\item \textbf{(Model class.)} \(P\in\mathcal M_{d,\epsilon}\), as in \cref{obj:def:model-class}.
+\item \textbf{(Calibration.)} The finite calibration predicate \(\mathsf C_\epsilon(n,m)\) in \cref{obj:def:mixed-estimator-handle} holds.
+\end{itemize}
+Let \(M_0,n_p,n_f,m_p,m_f\) be the block sizes from \cref{obj:def:mixed-estimator-handle}, and set
+\[
+u=\frac{M_0}{8},\qquad
+t_p=\frac{n_p+m_p}{8},\qquad
+t=\frac{n_f+m_f}{8}.
+\]
+Let \(L=L(n)\), \(B=B(n,m,\epsilon)\), and \(k_0=k_0(n,m,\epsilon)\) be the degree, light-cell scale, and pilot threshold from \cref{obj:def:mixed-estimator-handle}.  For each \(x\in[d]\), let the hybrid selected cell mean be the expectation of the cell contribution selected at threshold \(k_0\), degree \(L\), scale \(B\), and intensities \((u,t_p,t)\) under the independent Poisson count law in \cref{obj:def:mixed-estimator-handle}.  Then
+\[
+\left|
+\sum_{x\in[d]}
+\mathbb E_P[Z_x]
+-\tau(P)
+\right|
+\le
+\frac{2dB}{\epsilon L^2}+6n^{-12},
+\]
+where \(\tau(P)\) is the average treatment effect functional in \cref{obj:def:ate-functional}.
+\end{lemmav}
+
+\Cref{obj:lem:calibrated-hybrid-mean-bias} gives the matching aggregate bias control for the selected cell means. The bound contains the light-cell Chebyshev approximation term and a polynomially small pilot-boundary residual, which together form the squared bias term in \cref{obj:lem:calibrated-envelope-absorption}.
+
+\Cref{obj:lem:calibrated-envelope-absorption} is the bookkeeping step that turns the local hybrid analysis into the global rate scale. Its left-hand side collects the light-cell factorial moment contribution, the heavy-cell inverse-count contribution, the Chebyshev approximation residual, the pilot-boundary term, and the finite prefix terms, while the right-hand side matches the two summands in \cref{obj:def:frontier-rate-handle}.
+
+The calibrated hybrid statistic combines the light-cell polynomial with the all-heavy inverse-count weight. The construction below is the Poissonized counterpart of the finite-sample mixed estimator introduced in \cref{obj:def:mixed-estimator-handle}.
+
+\begin{definitionv}{synth_9}[Calibrated Poisson hybrid statistic]
+Use the split sizes, intensities, constants, dyadic overlap certificate, and calibration predicate \(\mathsf C_\epsilon(n,m)\) from \(\cref{obj:def:mixed-estimator-handle}\). In the independent Poisson experiment with outcome-prefix length \(D_0\sim\operatorname{Poi}(u)\), pilot-prefix length \(D_p\sim\operatorname{Poi}(t_p)\), and factorial-prefix length \(D_f\sim\operatorname{Poi}(t)\), define \(Z^{\mathrm{mix}}\) as follows. If \(\mathsf C_\epsilon(n,m)\) is false, set
+\[
+Z^{\mathrm{mix}}:=0 .
+\]
+If \(\mathsf C_\epsilon(n,m)\) is true, return zero on the event that any Poisson prefix exceeds its corresponding pool. On the complementary valid-prefix event, let \(J_x\) be the pilot count in cell \(x\), let \(K_{ax}\) be the factorial-pool count in arm \(a\) and cell \(x\), and let \(S_{ax}\) be the outcome-block success count in arm \(a\) and cell \(x\). With
+\[
+H_L(z)=\frac{1-T_L(1-2z)}{2L^2},\qquad
+E_L(z)=\frac{H_L(z)}{z},\qquad
+G_L(z)=\frac{1-E_L(z)}{z},
+\]
+under polynomial continuation at zero, expand
+\[
+W_{a,L}(s_0,s_1)=\frac{s_0+s_1}{B}G_L(s_a/B)
+=\sum_{r_0,r_1}c_{a,r_0,r_1}s_0^{r_0}s_1^{r_1}.
+\]
+For falling factorials \((k)_r\), put
+\[
+\widehat W_{a,L,x}
+=\sum_{r_0,r_1}c_{a,r_0,r_1}
+\frac{(K_{0x})_{r_0}(K_{1x})_{r_1}}{t^{r_0+r_1}},
+\qquad
+\widehat W^H_{a,x}
+=\frac{K_{0x}+K_{1x}+1}{K_{ax}+1},
+\]
+and define the cell contribution
+\[
+Z_x=
+\mathbf1\{J_x\le k_0\}
+\left(\frac{S_{1x}}u\widehat W_{1,L,x}
+-\frac{S_{0x}}u\widehat W_{0,L,x}\right)
++\mathbf1\{J_x>k_0\}
+\left(\frac{S_{1x}}u\widehat W^H_{1,x}
+-\frac{S_{0x}}u\widehat W^H_{0,x}\right).
+\]
+The calibrated Poisson hybrid statistic is the clipped aggregate
+\[
+Z^{\mathrm{mix}}
+:=
+\operatorname{clip}_{[-1,1]}\!\left(\sum_{x=1}^d Z_x\right)
+\]
+on the valid-prefix event, together with the preceding zero values on invalid prefixes or failed calibration.
+\end{definitionv}
+
+The pilot threshold in \cref{obj:synth_9} chooses between two weight regimes at the cell level. Cells with small pilot counts use the bounded-degree Chebyshev lift, while cells with larger pilot counts use the inverse-count weight from \cref{obj:lem:poisson-inverse-count-risk}; clipping keeps the aggregate on the natural scale of the treatment effect.
+
+\begin{lemmav}{lem:poisson-hybrid-risk}[Hybrid Poisson risk]
+Fix an overlap constant \(\epsilon\) with \(0<\epsilon<1/2\).  There is a constant \(C_\epsilon\in(0,\infty)\), depending only on \(\epsilon\), such that the following holds for every \(n,m,d\) and every observed-data law \(P\):
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\ge 1\).
+\item \textbf{(Alphabet size.)} \(d\ge 2\).
+\item \textbf{(Model class.)} \(P\in\mathcal M_{d,\epsilon}\), as in \cref{obj:def:model-class}.
+\end{itemize}
+Let \(M_0=\lfloor n/3\rfloor\), \(n_p=\lfloor(n-M_0)/2\rfloor\), \(n_f=n-M_0-n_p\), \(m_p=\lfloor m/2\rfloor\), and \(m_f=m-m_p\), and set
+\[
+u=\frac{M_0}{8},
+\qquad
+t_p=\frac{n_p+m_p}{8},
+\qquad
+t=\frac{n_f+m_f}{8}.
+\]
+In the independent Poisson count experiment with these intensities, let \(Z^{\mathrm{mix}}\) be the calibrated hybrid statistic when the finite calibration predicate \(\mathsf C_\epsilon(n,m)\) holds and the constant \(0\) otherwise.  Then its mean-squared error satisfies
+\[
+\mathbb E_P\!\left[\bigl(Z^{\mathrm{mix}}-\tau(P)\bigr)^2\right]
+\le
+C_\epsilon\, r_\epsilon(n,m,d),
+\]
+where \(r_\epsilon(n,m,d)\) is the frontier rate in \cref{obj:def:frontier-rate-handle}, equivalently
+\[
+r_\epsilon(n,m,d)
+=
+\min\!\left\{
+1,\,
+\frac1n+
+\frac{d^2}{(n+m)^2\log^2(en)}
+\right\}.
+\]
+\end{lemmav}
+
+\Cref{obj:lem:poisson-hybrid-risk} establishes the Poisson risk bound at exactly the split sizes and intensities used by the finite estimator. The bound has the same two components as the rate in \cref{obj:def:frontier-rate-handle}: labeled outcomes contribute the \(1/n\) term, and treatment--covariate information contributes the alphabet-dependent term through the pilot and factorial pools.
+
+\paragraph{Uniform finite-calibration input.}
+The uncalibrated branch uses the formally checked helper
+\(\texttt{calibrationPredicate\_failure\_bounded}\): for fixed \(0<\epsilon<1/2\), there is \(n_\epsilon^\dagger\ge1\) such that
+\[
+\neg\mathsf C_\epsilon(n,m)\quad\Longrightarrow\quad n<n_\epsilon^\dagger
+\qquad\text{for every }m.
+\]
+This is the contrapositive of eventual validity of all finitely many calibration inequalities, uniformly over the auxiliary sample size. It reduces calibration failure to finitely many labeled sizes, where clipping gives risk at most \(4\) and \(r_\epsilon(n,m,d)\ge1/n\), so \(4\le4n_\epsilon^\dagger r_\epsilon(n,m,d)\).
+
+It remains to connect the independent Poisson count analysis to the fixed sample sizes in the annotation experiment. The next definition packages the three independent Poisson pools used in that transfer.
+
+\begin{definitionv}{synth_6}[Three-pool Poisson count law]
+Fix an observed-data law \(P\), intensities \(u,t_p,t\ge0\), and write
+\[
+q_{ax}=P(X=x,A=a,Y=1),
+\qquad
+s_{ax}=P(X=x,A=a).
+\]
+The law \(\mathbb P^{\mathrm{Pois}}_{P,u,t_p,t}\) is the joint distribution of independent count triples
+\[
+(S_{ax},J_{ax},K_{ax})_{a\in\{0,1\},\,x\in[d]},
+\]
+where
+\[
+S_{ax}\sim\operatorname{Poi}(u q_{ax}),\qquad
+J_{ax}\sim\operatorname{Poi}(t_p s_{ax}),\qquad
+K_{ax}\sim\operatorname{Poi}(t s_{ax}).
+\]
+Here \(S_{ax}\) is the outcome-success count from the outcome pool, \(J_{ax}\) is the pilot count, and \(K_{ax}\) is the factorial-pool treatment-covariate count. The product law makes all these counts independent across cells, arms, and pools.
+\end{definitionv}
+
+The three-pool law in \cref{obj:synth_6} mirrors the deterministic sample split in \cref{obj:def:mixed-estimator-handle}. Each pool has its own intensity, so the Poisson calculation can track outcome information, pilot classification, and polynomial weight estimation separately.
+
+\begin{lemmav}{lem:fixed-sample-hybrid-transfer}[Fixed-sample hybrid transfer]
+There is a universal constant \(C>0\) such that the following holds.  Let
+\begin{itemize}
+\item \textbf{(Overlap level.)} The overlap level \(\epsilon\) satisfies \(0<\epsilon<1/2\).
+\item \textbf{(Sample sizes and alphabet.)} \(n\ge 1\), \(m\ge 0\), and \(d\ge 2\).
+\item \textbf{(Model class.)} \(P\in\mathcal M_{d,\epsilon}\), with \(\mathcal M_{d,\epsilon}\) as in \cref{obj:def:model-class}.
+\end{itemize}
+For the mixed estimator \(\widehat\tau^{\mathrm{mix}}_{n,m,d}\) in \cref{obj:def:mixed-estimator-handle}, the estimator is measurable as a function of the annotation sample and
+\[
+\mathbb E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}}
+\left[
+  \left\{\widehat\tau^{\mathrm{mix}}_{n,m,d}-\tau(P)\right\}^2
+\right]
+\le
+2\,\mathcal R^{\mathrm{Pois}}_{\mathrm{hyb}}(P;n,m,\epsilon)
++\frac{C}{n}.
+\]
+Here \(\tau(P)\) is the average treatment effect functional in \cref{obj:def:ate-functional}.  Writing
+\(M_0=\lfloor n/3\rfloor\), \(n_p=\lfloor(n-M_0)/2\rfloor\),
+\(n_f=n-M_0-n_p\), \(m_p=\lfloor m/2\rfloor\), \(m_f=m-m_p\),
+\(M_p=n_p+m_p\), \(M_f=n_f+m_f\), \(u=M_0/8\), \(t_p=M_p/8\), and
+\(t=M_f/8\), the Poisson hybrid risk is
+\[
+\mathcal R^{\mathrm{Pois}}_{\mathrm{hyb}}(P;n,m,\epsilon)
+=
+\begin{cases}
+\displaystyle
+\int
+\left\{
+  Z^{\mathrm{mix}}(K)-\tau(P)
+\right\}^2
+\,d\mathbb P^{\mathrm{Pois}}_{P,u,t_p,t}(K),
+&
+\mathsf C_\epsilon(n,m),\\[1.2em]
+\displaystyle
+\tau(P)^2,
+&
+\text{otherwise,}
+\end{cases}
+\]
+where \(Z^{\mathrm{mix}}\) is the calibrated hybrid statistic of \cref{obj:synth_9}.
+\end{lemmav}
+
+\Cref{obj:lem:fixed-sample-hybrid-transfer} converts the Poisson risk calculation into the fixed-\(n,m\) annotation experiment of \cref{obj:def:annotation-experiment}. The additional \(C/n\) term is on the labeled-outcome scale already present in the rate, so combining \cref{obj:lem:poisson-hybrid-risk,obj:lem:fixed-sample-hybrid-transfer} yields the finite-sample upper-bound ingredient used in \cref{obj:thm:uniform-mixed-upper}.
+
+The final calibration statements make the Chebyshev constants explicit. The first controls the coefficient norm of the shifted quotient, and the second records the numerical bounds used in the finite calibration predicate of \cref{obj:def:mixed-estimator-handle}.
+
+\begin{lemmav}{lem:shifted-chebyshev-quotient-coefficient-bound}[Shifted quotient coefficient bound]
+Let \(L\) be a positive integer, and let \(G_L\) be the polynomial continuation at zero of \((1-E_L(z))/z\) from \cref{obj:def:mixed-estimator-handle}.  For a real polynomial \(p(z)=\sum_i a_i z^i\), write
+\[
+\|p\|_1=\sum_i |a_i|
+\]
+for its coefficient \(\ell^1\)-norm.  Then
+\[
+\|G_L\|_1\le 6^L .
+\]
+\end{lemmav}
+
+\Cref{obj:lem:shifted-chebyshev-quotient-coefficient-bound} gives a direct coefficient bound for the quotient polynomial \(G_L\). This estimate is the coefficient-growth input behind the explicit factorial second-moment calibration.
+
+\begin{lemmav}{lem:explicit-chebyshev-calibration}[Explicit Chebyshev calibration]
+Let \(T_j\) be the Chebyshev polynomial of degree \(j\), set \(Q_j(z)=T_j(1-2z)\), and let \(\|\cdot\|_1\) denote coefficient \(\ell^1\)-norm.  For every integer \(L\ge2\), the polynomial continuations \(E_L\) and \(G_L\) satisfy the following calibration.
+
+\begin{itemize}
+\item \textbf{(Coefficient bounds.)}
+\[
+\|Q_L\|_1\le 7^L,
+\qquad
+2\|G_L\|_1\le 14^L .
+\]
+\item \textbf{(Factorial-lift second moment.)}
+For every \(a\in\{0,1\}\), every \(t>0\), \(B>0\), and every \(s_0,s_1\ge0\) with \(L\le tB\), set \(p=s_0+s_1\).  If \(K_b\sim\operatorname{Poi}(ts_b)\) independently and \(\widehat W_{a,L}\) denotes the factorial lift of the light-cell polynomial based on \(G_L\), then
+\[
+E\widehat W_{a,L}^{2}
+\le
+7056^L\left(1+\frac{p}{B}\right)^{2L},
+\]
+and, whenever \(p\le B\),
+\[
+E\widehat W_{a,L}^{2}\le 7056^L .
+\]
+\item \textbf{(Interval identities.)}
+For every \(z\in[0,1]\),
+\[
+0\le E_L(z),
+\qquad
+E_L(z)\le 1,
+\qquad
+zG_L(z)+E_L(z)=1 .
+\]
+Moreover, for every \(z\in(0,1]\),
+\[
+E_L(z)\le \frac{1}{L^2z}.
+\]
+\end{itemize}
+\end{lemmav}
+
+\Cref{obj:lem:explicit-chebyshev-calibration} supplies the numerical coefficient bounds used to instantiate \cref{obj:lem:chebyshev-factorial-certificate} in the calibrated estimator. In particular, the constant \(7056\) gives the explicit factorial-lift second-moment scale that appears in the finite calibration of \cref{obj:def:mixed-estimator-handle}.

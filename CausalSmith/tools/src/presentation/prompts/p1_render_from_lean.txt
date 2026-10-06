@@ -1,0 +1,49 @@
+Render ONE formal statement (theorem, lemma, definition, or assumption) of an econometrics working paper as readable prose that EXACTLY matches its machine-verified Lean counterpart in mathematical content. Lean is GROUND TRUTH: the printed statement must carry every LOAD-BEARING hypothesis the Lean signature requires, plus the conclusion as the Lean states it. A natural-language headline is supplied for style and notation only — it may be INCOMPLETE (a "headline" that omits side conditions); never let it override the Lean.
+
+Object: {{obj_id}}  (kind: {{kind}})
+
+Lean counterpart (GROUND TRUTH — for a theorem/lemma the complete signature: its binders are the hypotheses, its goal is the conclusion; for a definition its body; for an assumption the hypothesis binders or structure fields that carry it):
+{{lean_statement}}
+
+Definitions the Lean statement references (their ACTUAL bodies — the exact formula/condition often lives here; judge against THESE, never trust a name):
+{{referenced_defs}}
+
+Natural-language headline (STYLE + the paper's notation ONLY; may be incomplete — defer to the Lean for content):
+{{nl_statement}}
+
+Dependencies you may \cref (the Assumption/Definition/Lemma envs already in the paper that state some of these hypotheses):
+{{ref_set}}
+
+Published conclusions used as cited Lean premises (these are source-matched external dependencies,
+not paper assumptions; the pipeline attaches a verification-scope footnote mechanically):
+{{cited_dependencies}}
+
+Notation table (use these symbols; do not introduce new notation):
+{{notation_table}}
+
+Prior body + defects from a re-render (empty on the first render — when present, fix the named defects while keeping the statement complete + faithful; a defect prefixed `Lean fidelity:` is the judge's verdict that the prior body disagrees with the Lean — tighten toward the Lean exactly as it names: add the omitted load-bearing hypothesis, trim the over-claim to what is proved, delete an over-assumption the Lean does not require — never the reverse):
+{{prior_and_defects}}
+
+Rules:
+- COMPLETE + FAITHFUL: state EVERY load-bearing hypothesis the Lean carries — side conditions on constants (e.g. `8 c_B < \log 5`, `c_B \le C_m`), calibration/smallness inequalities, rate/quantifier scope ("for all sufficiently large n"), restriction to `\pi \in \Pi` / policy-compatible objects, the explicit envelope/integral conditions — and the conclusion (bound/identity/rate) with its constants and quantifiers as the Lean states them. NEVER weaken, broaden, drop, or generalize past the Lean; NEVER add a hypothesis the Lean does not have. The sole exception is CITATION ERASURE below.
+- CITATION ERASURE: when, and only when, the list of source-matched cited dependencies above is nonempty, omit the Lean binder that merely assumes exactly that listed published proposition. Do not print “assume <paper's theorem>,” do not cross-reference it, and do not weaken the conclusion to an implication. State the mathematical theorem in ordinary journal form. A mandatory generated footnote will disclose that machine verification is conditional on the cited conclusion. Every non-cited/modeling/calibration hypothesis remains visible under the rule above.
+- NO DANGLING NAMED OBJECT: when the conclusion (or a hypothesis) turns on a named Lean definition that has NO env in the ref_set to \cref, state its defining content inline, per its body in the referenced definitions (the NL headline's expansion of it is the intended style); when an env in the ref_set DOES display that content, \cref it. Never assert a named conclusion by bare name ("the <name> conclusion holds") — a reader must reach the actual content through a display, an unfolding, or a cross-reference in the same sentence. A theorem must never equate to, or hinge on, a symbol the printed statement leaves undefined — dropping the defining member of an equality chain (`A = θ` instead of `A = θ = E[…]`) turns an identification result into an unreadable naming convention.
+- NAME ⇒ DISPLAY: when a hypothesis or conclusion inlines a defined quantity (a count, a threshold, a selected index, a statistic), display its defining formula where it is introduced — a procedural sentence naming it is not a definition. A procedure the paper presents as an `algorithmv` is referenced by `\cref`, never re-narrated step by step inside the statement.
+- NO PACKAGING CLAUSES AS CONTENT: a conclusion conjunct that is pure logical glue with no model-specific content (e.g. combining two proved bounds into their min/max envelope) is stated as a clause of prose ("the two guarantees combine into the envelope …") or omitted, never displayed as if it were a substantive assertion.
+- CURATE THE BOOKKEEPING: do NOT transcribe pure regularity binders — measurability, `MemLp`/L² membership, Bochner integrability, coercions, "is a probability measure" technicalities. Bundle them in a brief clause ("under the usual measurability and integrability conditions") or omit them when a referenced assumption already carries them. The reader sees a clean econometrics statement, not a transliteration of every Lean binder.
+- DEFINITIONS AND ASSUMPTIONS (kind definition/assumption): the body states the defining property or the condition itself — the defined object first, then its parameters — with no hypotheses/conclusion split; a display that merely introduces a paper symbol used later is presentation content and is kept.
+- DISCHARGE BY \cref WHEN POSSIBLE: when a hypothesis is exactly the content of a dependency env in the ref_set, REFERENCE it with `\cref{obj:...}` rather than restating it inline. State inline only the conditions NOT carried by a referenced env — typically the construction-specific calibration inequalities that live in the proof, not in a standing assumption.
+- STANDARD MATH ONLY, NO LEAN OPERATORS: render Lean's type-specific operators in the notation a reader already knows, and use only commands the paper's macro set defines. Truncated subtraction on naturals (`a - b`, printed by Lean as `a ∸ b`) is `\max\{a-b,0\}`; integer division, `Nat.pred`, and similar total-function conveniences get the same treatment. Never emit a LaTeX command the preamble does not define — a later stage will otherwise invent a definition for it and guess wrong.
+- READABLE PROSE, NO LEAN SYNTAX: never write a camelCase Lean identifier (`policySet`, `qSched`, `muHat0`), a field projection (`P.mu0` — say "the outcome regression under control"), or Lean notation (`∀ᶠ`, `Filter.atTop`, `MemLp`, `Set.Icc`). Use the paper's mathematical notation and the notation table.
+- ITEMIZE when the statement carries more than two hypotheses/conditions: set them as a `\begin{itemize}` list, one `\item \textbf{(Name.)}` per condition, before the conclusion.
+- MATH DELIMITERS: a `\[...\]` display contains mathematical notation only. Never put ordinary prose or nested `\(...\)`/`\[...\]` delimiters inside a display; put descriptive text outside it with adjacent inline math instead.
+- STATEMENT ONLY: assert what holds (hypotheses + conclusion). Omit rationale, intuition, proof method, "we do not assume…". Do not restate a dependency's full content inline when a `\cref` suffices.
+
+CROSS-REFERENCES: reference a dependency ONLY as `\cref{obj:<exact-lowercase-id>}` (or `\Cref` at sentence start), and ONLY for ids listed in the ref_set above. Cleveref supplies the kind; never prefix one manually and never use legacy `\ref{...}` for any target. NEVER write `\label` yourself or put a bare obj_id in prose.
+
+REQUIRED OUTPUT FORMAT — emit EXACTLY this and nothing else (no code fences, no commentary):
+@@@ENV {{obj_id}}@@@
+TITLE: <a short 3–6 word descriptor of the result>
+@@@BODY@@@
+<the complete statement body — the LaTeX that goes between \begin{...v} and \end{...v}, no wrapper, no \label, no title>
+@@@END@@@

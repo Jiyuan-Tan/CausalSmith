@@ -1,0 +1,58 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Mathlib.Optimization.FiniteKnapsack
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Basic
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.BVLipschitz
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.BVMaximal
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.BadPilotAggregate
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.BadPilotEnvelope
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.BadPilotMoment
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.CapCoupling
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.CapTransfer
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.CapacityAlphabetPadding
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.CapacityLowerTransport
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.CitedGates
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.CoefficientEnvelope
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.DenseLower
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.Estimator
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.FactorialMoments
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.GoodPilotAggregate
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.GoodPilotCellMoment
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.GoodPilotCellOuterMoment
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.IdealCountTransport
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.JacksonBias
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.JacksonCoefficientEnvelope
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.JacksonPolynomial
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.LowerSplice
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.MomentMatchingPriors
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.PairedKernel
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.PairedObservedAtom
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.PilotEvents
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.PilotRadiusMoment
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.PoissonSplit
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.ScalarBias
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.ScalarBiasOuter
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.ScalarBiasSharp
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.SmallCapacityLower
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.TwoSampleL1
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.TwoSampleL1Splice
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.TCapacityActiveLower
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.TCurveUpper
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.TDualRepresentation
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.TFixedAlphabetReduction
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.TIntegratedProcessCertificate
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.TMatchedCurveFrontier
+public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.TPairedCapacityIdentity
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

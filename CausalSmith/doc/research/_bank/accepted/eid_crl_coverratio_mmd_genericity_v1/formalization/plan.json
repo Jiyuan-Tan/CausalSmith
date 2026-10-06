@@ -1,0 +1,1215 @@
+{
+  "qid": "eid_crl_coverratio_mmd_genericity",
+  "specialization": "v1",
+  "cluster": "exactid",
+  "lean_target_subdir": "CausalSmith/ExactID/EID_CrlCoverratioMmdGenericity_Research",
+  "lean_namespace": "CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity",
+  "feasibility": "needs-new-infrastructure",
+  "design_decisions": {},
+  "decisions": [
+    {
+      "id": "P-D1",
+      "decision": "The Gaussian-kernel MMD is realized through the paper's own explicit square-summable feature map \\(\\Phi(r)=(\\sqrt{2^m/m!}\\,e^{-r^2}r^m)_{m\\ge0}\\) into `lp (fun _ : ℕ => ℝ) 2`, with `D` defined as the norm of the difference of the two Bochner mean embeddings, rather than through an abstract characteristic-kernel RKHS existence theorem.",
+      "why": "Both `prop:sparse-witness-certificate` and `thm:generic-cover-separation` already argue coordinatewise through exactly this feature expansion and the note's `technical_internal_limitation` explicitly refuses to invoke an unrecorded characteristic-kernel theorem. The explicit map makes `k(a,a)=1`, the unit-norm feature bound, and the coordinatewise moment inequalities available by computation instead of by a deferred external theorem.",
+      "impact": "No node becomes a gate. SUPERSEDED IN PART by round-4 decision P-D9: the abstract interface that `lem:bounded-rkhs-empirical-mean` is stated against is the LOCAL `UnitNormFeatureMap` of `Helpers/Kernel.lean`, not `Causalean.ML.IsRKHS`. The lemma still applies to any real inner-product space with a unit-norm feature map, including the concrete `lp 2` instance; only the claimed realizer changes."
+    },
+    {
+      "id": "P-D2",
+      "decision": "`def:generated-rank-handle` and `oeq:generated-rank-frontier` are both encoded as closed descriptive non-`Prop` `_root_.String` payloads.",
+      "why": "The core declares \\(\\mathfrak H_{\\mathrm{rank}}\\) a proof-technique handle and \\(\\widehat U_i\\) an `open statistical construction`; the frozen OEQ proof text states outright that the `weakest sufficient first-stage remainder bound` clause `requires a precisely stated influence representation and second-stage weight convention, which the frozen handle does not yet provide`. That is OEQ case (B): a truth-condition the node itself declares undefined.",
+      "impact": "Neither node is a `theorem`, neither carries `defer_tier`, no delivered theorem depends on either, and neither appears in a theorems manifest. The payloads record every stated regime, rate target, alternative, and nonassertion disclaimer, and contain no selector, procedure, rate, confidence, or lower-bound witness field."
+    },
+    {
+      "id": "P-D3",
+      "decision": "Redirect correction: the comparison clauses inside `thm:exact-ratio-decoder` are formal theorem conjuncts, grouped by `VonKugelgenTwoVersusOneComparison`, `FullRnC1NoncoverageClause`, and `WendongYaoSuppliedStructureComparison` inside `ExactRatioDecoderComparisonClauses`.",
+      "why": "The frozen theorem statement itself asserts the faithful-overlap two-versus-one intervention comparison, the compact-cube/C2 noncoverage of the comparator's full R^n/C1 class, and recovery of the graph/order/alignment supplied by the Wendong and Yao comparators. Leaving those only in metadata made the Lean theorem strictly weaker than the note. The cited String carriers remain unchanged and are not proof premises.",
+      "impact": "The main decoder proof is preserved. Its already-proved target bijection, graph recovery, selected topological ordering, pointwise rank alignment, competitor uniqueness, positive compact-cube/C2 scope, and bivariate MMD witness now assemble the three explicit comparison conjuncts; no hypothesis or gate is added."
+    },
+    {
+      "id": "P-D4",
+      "decision": "`ass:faithfulness` is threaded only into a faithful-overlap corollary declaration living in the same file as `thm:exact-ratio-decoder`, not into the main theorem.",
+      "why": "The frozen proof states `\\texttt{ass:faithfulness} is used only for the faithful-overlap corollary at the end, whereas the primary decoder and uniqueness argument use (1)` (causal minimality). Adding faithfulness to the main theorem's binders would silently over-strengthen the note's headline claim.",
+      "impact": "`ass:faithfulness` is still listed in the node's `hyps` (it is a real dependency and the gate requires coverage), with `hyp_scope` recording that F2 binds it on the corollary only."
+    },
+    {
+      "id": "P-D5",
+      "decision": "`prop:sparse-witness-certificate` lists `ass:positive-normalized-smooth-mechanisms` and `ass:fixed-own-derivative-sign` in `hyps` for dependency coverage, but F2 realizes them on the conclusion side.",
+      "why": "The proposition's own statement is that the explicit witnesses \\(\\theta^{\\mathrm{sp}}\\) and \\(\\theta^{\\mathrm{can}}\\) SATISFY those two atoms; assuming them at the witnesses would make the sentence circular.",
+      "impact": "Recorded in `hyps_as_conclusion` on that node. The named atom `def`s are reused verbatim, so no property is restated in a second form."
+    },
+    {
+      "id": "P-D6",
+      "decision": "The latent DAG is realized by Causalean's `Causalean.DAG` on `Fin n`; the mechanism stratum, mixing map, environment laws, ratios, and decoder are built locally over Mathlib.",
+      "why": "`Causalean.DAG` supplies exactly the parent/ancestor/topological-order primitives the note uses (`pa_G(i)`, ancestrality, topological orderings of \\(H_D\\)). Nothing in the exactid substrate models a latent-to-observed mixing map or a family of environment laws indexed by unknown intervention targets — see the substrate survey below.",
+      "impact": "S1 reuses the DAG primitive; S2-S6 are bypass-justified over Mathlib."
+    },
+    {
+      "id": "P-D7",
+      "decision": "Round-2 schema correction: each cited node's `source` is the STRING id of its minted `citations[]` entry (`cite:wendong-2023-cauca`, `cite:von-kugelgen-2023-unknown-interventions`, `cite:yao-2025-invariance-principle`); the frozen `{cite, locator, carrier, url, arxiv, verbatim_statement, attestation}` object is preserved verbatim under `source_record` on the node and mirrored into the corresponding `citations[]` entry, which now also carries the required `title`, `authors`, and `year`.",
+      "why": "The deterministic gate requires `nodes.*.source` to be a string and `citations[*]` to carry `title`/`authors`/`year`. The prior draft inlined the whole frozen source object at `nodes.*.source` and left the bibliographic fields only in a free-text `bibliography` line.",
+      "impact": "Shape-only. No frozen field is dropped: every locator, carrier, URL, verbatim statement, and attestation is retained byte-for-byte (on the node under `source_record` and in the citation entry). No disposition, `defer_tier`, `gate`, `gate_class`, `hyps`, `members`, `env` binding, or file-plan entry moves; the three nodes stay `gate:true, gate_class:\"cited\", lean_kind:\"def\"` with closed direct-literal `_root_.String` payloads, never threaded into any consumer's `hyps`. The dependency closure of the edit is empty beyond these three nodes and the citations block: `thm:exact-ratio-decoder` references them only through `depends_on` and the presentation-only clauses of decision P-D3, never as premises."
+    },
+    {
+      "id": "P-D8",
+      "decision": "Round-3 schema correction: `oeq:generated-rank-frontier` carries NO `hyps` key. Its four core assumption dependencies (`ass:shared-diffeomorphic-mixing`, `ass:one-perfect-intervention-per-node`, `ass:fixed-own-derivative-sign`, `ass:independent-environment-sampling`) are recorded under `stated_regime_assumptions` for provenance and are realized as prose regime clauses inside the closed `_root_.String` payload.",
+      "why": "The node's `lean_kind` is `def` under the OEQ case-(B) rule of decision P-D2, and a `def` has no hypothesis binders, so a `hyps` array on it was structurally inapplicable — exactly the deterministic-gate P4 violation reported. The prior draft's own `hyps_encoding` field already said the four ids were payload prose rather than binders; the fix makes the JSON agree with that reading instead of asserting binders the Lean object cannot have.",
+      "impact": "Shape-only, and the dependency closure of the edit is empty. No assumption loses coverage: each of the four atoms is threaded as a genuine hypothesis by its real logical consumers (`lem:analytic-edge-perturbation`, `thm:exact-ratio-decoder`, `thm:simultaneous-confidence-edges`, `lem:bounded-rkhs-empirical-mean`), whose `hyps` are unchanged. No disposition, `defer_tier`, `gate`, `members`, `env` binding, reuse decision, `infrastructure_needed` entry, or `target_file` moves; the node stays `lean_kind:\"def\"`, `defer_tier:false`, `gate:false`, excluded from the theorems manifest, with no delivered theorem depending on it. `def:generated-rank-handle`, the sibling case-(B) payload, already used `inputs` rather than `hyps` and is untouched; the three cited-metadata `def`s keep their empty `hyps: []` and their `carrier:\"bibliographic-metadata\"` encoding, unthreaded as before."
+    },
+    {
+      "id": "P-D9",
+      "decision": "Round-4 reuse correction (S3 / `lem:bounded-rkhs-empirical-mean`): the `Causalean.ML.IsRKHS` reuse claim is DROPPED as the realizer of the Gaussian-MMD empirical-mean bound. The ℓ² feature-map / kernel-mean-embedding machinery is declared LOCAL — a `UnitNormFeatureMap` interface (`Φ : ℝ → H` into a real inner-product space with `‖Φ r‖ = 1` and `⟪Φ a, Φ b⟫ = k a b`), `meanEmbedding` as the Bochner integral of `Φ`, `D_{ji}` and `\\widehat D_{ji}` as norms of embedding differences, and the empirical-mean deviation bound stated over that interface — all in `Helpers/Kernel.lean` (S3), instantiated by the explicit `lp (fun _ : ℕ => ℝ) 2` map of P-D1. `Causalean/ML/Kernel/RKHS.lean` is recorded as `bypass-justified`.",
+      "why": "Re-read of Causalean/ML/Kernel/RKHS.lean on 2026-09-06: `IsRKHS` (line 22) is a one-field `structure` whose sole field is `reproducing : ∀ (f : H) (x : X), feval f x = inner ℝ f (representer x)`. IsRKHS supplies only the reproducing identity `f x = ⟪f, representer x⟫`; no mean-embedding or bounded-feature concentration interface. Nothing in this lemma's statement (unit-norm feature bound, Bochner mean, `1/√N` deviation) or in the MMD definitions can be discharged through it, so the round-3 claim was a partial fit that would have forced F2/F3 to build an un-built bridge and then escalate a false `needs-substrate` on it.",
+      "impact": "Scoped to the S3 kernel layer and its dependency closure. `Causalean.ML.Kernel.RKHS` is removed from `modules` on S3, S5, `lem:bounded-rkhs-empirical-mean`, `def:sample-split-confidence-graph`, and `thm:simultaneous-confidence-edges`, and from the `Helpers/Kernel.lean`, `Helpers/Inference.lean`, and `Helpers/RkhsEmpiricalMean.lean` substrate records; `Mathlib.Analysis.InnerProductSpace.Basic` is added where the local interface is defined or consumed. NOTHING ELSE MOVES: no disposition, `defer_tier`, `gate`, `lean_kind`, `hyps`, `members`, `env` binding, `target_file`, or manifest entry changes; `lem:bounded-rkhs-empirical-mean` was and remains `define-local`, `defer_tier:false`, `gate:false`, build-inline, with `ass:independent-environment-sampling` as its single hypothesis. The `mcdiarmid_inequality_pos` reuse (FoML/McDiarmid.lean:937) is untouched and is still the engine of the proof. `upstream:mmd-in-causalean` in `non_blocking_upstream_debt` is updated accordingly and stays non-blocking."
+    },
+    {
+      "id": "P-D10",
+      "decision": "Round-4 reuse correction (S4 / `thm:exact-ratio-decoder`): the claimed semi-graphoid INTERSECTION reuse is replaced by a NEW local lemma `condIndep_intersection_of_pos` (`Helpers/CondIndepIntersection.lean`), proving the conditional-independence intersection property from the model's strict positive-density assumption `ass:positive-normalized-smooth-mechanisms` already present in the .tex. SUPERSEDED IN PART by round-5 decision P-D11: the weak-union half of this decision (which kept `Causalean.SCM.Do.obsCondIndep_weak_union` for step (15)) is withdrawn — the whole of `Causalean/SCM/Do/SemiGraphoid.lean` is now `bypass-justified` and step (15) reuses the generic `Causalean.condIndepFun_weak_union_of_prodMk` instead. The intersection half of this decision stands unchanged.",
+      "why": "Re-read of Causalean/SCM/Do/SemiGraphoid.lean on 2026-09-06: its declarations are `ObsCondIndep` (61), `obsCondIndep_symm` (79), `condIndep_valuesProjection_symm` (90), `…_subset_right` (112), `…_decomposition` (136), `…_weak_union_axiom` (159), `…_contraction_axiom` (185), `obsCondIndep_subset_right` (215), `obsCondIndep_decomposition` (232), `obsCondIndep_weak_union` (249), `obsCondIndep_contraction` (267). There is no intersection lemma, and correctly so: intersection is not a semi-graphoid axiom — it needs strict positivity. The prior plan pointed F2 at a declaration that does not exist.",
+      "impact": "Scoped to S4 and `thm:exact-ratio-decoder`. The new lemma is a LOCAL HELPER recorded under `local_helper_lemmas` on that node plus a `file_plan` entry, NOT a new `nodes` key: the plan stays one-to-one with the core (the core atomizes this as a single statement, and REVISE MODE requires every core node mapped exactly once). It introduces NO new assumption — its hypothesis is the theorem's existing `ass:positive-normalized-smooth-mechanisms` — so `hyps` on `thm:exact-ratio-decoder` is unchanged, and its proof is the frozen proof's own equation-(17) argument. Dependency closure: only `def:population-decoder`'s and `thm:exact-ratio-decoder`'s substrate records mention the graphoid layer; `thm:simultaneous-confidence-edges` imports from this theorem only the non-ancestor lemma (equations 2-4), which is untouched by the intersection step. No disposition, `defer_tier`, `gate`, `lean_kind`, `members`, `env` binding, or manifest entry moves; a future promotion of the lemma into Causalean is logged as non-blocking upstream debt. (The round-4 sentence adding `Causalean.SCM.Do.SemiGraphoid` to that node's `modules` is withdrawn by P-D11.)"
+    },
+    {
+      "id": "P-D11",
+      "decision": "Round-5 reuse correction (S4 / `thm:exact-ratio-decoder`): `Causalean.SCM.Do.obsCondIndep_weak_union` is DROPPED as the realizer of step (15). The weak-union step instead reuses the GENERIC measure-theoretic lemma `Causalean.condIndepFun_weak_union_of_prodMk` (Causalean/Mathlib/CondIndep/CondExp.lean:545, exported by `Causalean.Mathlib.CondIndep`), supplied with a small LOCAL measurable coordinate-pair bridge `condIndep_coordSplit_prodMk` that presents \\(V_{B_i\\setminus A}\\) as the measurable pair \\((V_b, V_{(B_i\\setminus A)\\setminus\\{b\\}})\\) and identifies \\(\\sigma(V_A)\\sqcup\\sigma(V_{(B_i\\setminus A)\\setminus\\{b\\}})\\) with \\(\\sigma(V_{B_i\\setminus\\{b\\}})\\). `Causalean/SCM/Do/SemiGraphoid.lean` becomes wholly `bypass-justified`; `Causalean.SCM.Do.SemiGraphoid` is removed from every `modules` list and substrate record in the plan.",
+      "why": "`Causalean.SCM.Do.obsCondIndep_weak_union` (SemiGraphoid.lean:249) is stated for a `Causalean.SCM N Ω` model: it quantifies over `Finset (SWIGNode N)` node sets constrained by `X ⊆ M.observed`, `(Y ∪ W) ⊆ M.observed`, `Z ⊆ M.observed`, and its `ObsCondIndep` predicate is phrased through `M`'s observed-variable projections. S4 has NO SCM and no SWIG graph: its coordinates \\(U_i\\), \\(V_i\\), \\(L_i\\) are locally defined rank/log-ratio functions on \\(\\mathcal X\\) under a generic continuous-density law, and the DAG being reasoned about is the latent \\(G\\) recovered by the decoder, not a known SWIG diagram over observed variables. The theorem is therefore not instantiable at this abstraction — the same wrong-abstraction defect that decision P-D9 corrected on the RKHS side. The generic lemma is the right level: `condIndepFun_weak_union_of_prodMk` needs only `[StandardBorelSpace Ω]`, a finite measure, three measurable maps `W V A`, and `CondIndepFun m hm W (fun ω => (V ω, A ω)) μ`, and concludes `CondIndepFun (m ⊔ comap A) … W V μ` — which is exactly the note's step (15) with `W = U_i`, `V = U_b`, `A = U_{(B_i∖A)∖{b}}`, `m = σ(U_A)`, all of which are already `Causalean.Mathlib.CondIndep`/`ProbabilityTheory.CondIndepFun` objects in this plan.",
+      "impact": "Scoped to S4, `thm:exact-ratio-decoder`, and their substrate records. `Causalean.SCM.Do.SemiGraphoid` is removed from `thm:exact-ratio-decoder`'s `modules` and from the S4 notes, the `Causalean.SCM.Do.SemiGraphoid` substrate-survey entry flips from `partial-reuse` to `bypass-justified`, a `Causalean.Mathlib.CondIndep` survey entry is added recording the genuine reuse, and the `Helpers/Decoder.lean`, `Helpers/CondIndepIntersection.lean`, and `TExactRatioDecoder.lean` substrate records are rewritten accordingly. The new bridge `condIndep_coordSplit_prodMk` is a LOCAL HELPER on `thm:exact-ratio-decoder` (recorded in `local_helper_lemmas`, filed alongside `condIndep_intersection_of_pos` in `Helpers/CondIndepIntersection.lean`), NOT a new `nodes` key — the plan stays one-to-one with the core. NOTHING ELSE MOVES: no disposition, `defer_tier`, `gate`, `gate_class`, `lean_kind`, `hyps`, `hyps_as_conclusion`, `members`, `env` binding, `target_file`, `citations` entry, `infrastructure_needed` item, or theorems-manifest entry changes; `thm:exact-ratio-decoder` was and remains `define-local`, `defer_tier:false`, `gate:false`, build-inline, with the same six `hyps` and the same `hyp_scope` for `ass:faithfulness`. `def:population-decoder` keeps `Causalean.Mathlib.CondIndep` in `modules` (it never imported the semi-graphoid layer); `thm:simultaneous-confidence-edges` consumes only the non-ancestor lemma (equations 2-4) from this theorem and is untouched. The intersection half of P-D10 and its local lemma stand unchanged, and no assumption is added or discharged."
+    }
+  ],
+  "substrate_survey": [
+    {
+      "module": "Causalean.Graph.DAG",
+      "verdict": "reuse",
+      "reason": "`Causalean.DAG` (Causalean/Graph/DAG.lean:57) with `DAG.parents`, `DAG.ancestors`, `DAG.isAncestor`, `DAG.isAncestor_trans`, `DAG.topoOrder`, `DAG.isAncestor_topoOrder_lt`, `DAG.ancestralSet` is exactly the finite labeled-DAG primitive the note needs for \\(G\\), \\(\\operatorname{pa}_G(i)\\), ancestrality, and topological orderings."
+    },
+    {
+      "module": "Causalean.SCM.ID.Identifiable",
+      "verdict": "bypass-justified",
+      "reason": "`Causalean.SCM.ID.Identifiable` (SCM/ID/Identifiable.lean:114) quantifies over `Causalean.SCM N Ω` models sharing one KNOWN `SWIGGraph` and asks whether an interventional functional of OBSERVED variables is a functional of `P_obs`. Here the DAG is over UNOBSERVED scalar latents, the graph is the thing being recovered, and the data are a FAMILY of environment laws on a mixed observed space. Different abstraction; no fit."
+    },
+    {
+      "module": "Causalean.SCM.ID.Backdoor / BackdoorCriterion / Adjustment / Overlap",
+      "verdict": "bypass-justified",
+      "reason": "Backdoor/frontdoor/adjustment identification computes an interventional functional from an observational law under a known observed-variable diagram. The note computes no adjustment functional and has no observed confounder set; its identification target is \\((f^{-1},G,\\pi)\\) modulo componentwise \\(C^2\\) diffeomorphisms."
+    },
+    {
+      "module": "Causalean.PO.* / Causalean.SCM.Do.* / Causalean.Graph.SWIG",
+      "verdict": "bypass-justified",
+      "reason": "The PO/SWIG/do-calculus layer models potential outcomes and split-node interventions on observed variables. The note's interventions are density replacements \\(p_i \\mapsto q_i\\) on latent mechanisms with UNKNOWN targets, indexed by an unknown permutation \\(\\pi\\); nothing in the SWIG layer expresses an unknown-target environment family or a shared mixing diffeomorphism."
+    },
+    {
+      "module": "Causalean.ML.Kernel.RKHS",
+      "verdict": "bypass-justified",
+      "reason": "IsRKHS supplies only the reproducing identity f x = ⟪f, representer x⟫; no mean-embedding or bounded-feature concentration interface. Re-read 2026-09-06: `Causalean.ML.IsRKHS` (Causalean/ML/Kernel/RKHS.lean:22) is a one-field `structure … : Prop` whose sole field is `reproducing : ∀ (f : H) (x : X), feval f x = inner ℝ f (representer x)`. Nothing in the Gaussian-MMD layer (unit-norm feature map `‖Φ r‖ = 1`, Bochner kernel mean embedding, empirical-mean deviation) can be discharged through it, so the round-3 reuse claim on `lem:bounded-rkhs-empirical-mean` was a partial fit and is withdrawn (round-4, decision P-D9). The whole feature-map/embedding/MMD machinery is LOCAL in `Helpers/Kernel.lean` over Mathlib's `lp (fun _ : ℕ => ℝ) 2`."
+    },
+    {
+      "module": "Causalean.SCM.Do.SemiGraphoid",
+      "verdict": "bypass-justified",
+      "reason": "Round-5 (decision P-D11): WHOLLY bypassed, weak union included. Every declaration in the file is stated for a `Causalean.SCM N Ω` model — `obsCondIndep_weak_union` (line 249) binds `(M : Causalean.SCM N Ω)`, quantifies over `Finset (SWIGNode N)` node sets constrained by `X ⊆ M.observed`, `(Y ∪ W) ⊆ M.observed`, `Z ⊆ M.observed`, and phrases independence through `M`'s observed-variable projections (`ObsCondIndep` at 61, over `condIndep_valuesProjection_*` at 90/112/136/159/185). S4 has no SCM, no SWIG graph, and no observed-variable projection layer: its coordinates \\(U_i\\), \\(V_i\\), \\(L_i\\) are locally defined rank and log-ratio functions on \\(\\mathcal X\\) under a generic continuous-density law, and the DAG in play is the latent \\(G\\) being RECOVERED rather than a known diagram. The theorem cannot be instantiated here, so the round-4 partial-reuse claim is withdrawn. Weak union is instead taken from the generic `Causalean.condIndepFun_weak_union_of_prodMk` (see the `Causalean.Mathlib.CondIndep` entry). The INTERSECTION property is absent from this file in any case (grep `intersection` → 0 matches), correctly so — intersection is not a semi-graphoid axiom and requires strict positivity; steps (16)-(18) come from the local `condIndep_intersection_of_pos` (Helpers/CondIndepIntersection.lean) per decision P-D10."
+    },
+    {
+      "module": "Causalean.Mathlib.CondIndep",
+      "verdict": "reuse",
+      "reason": "Round-5 (decision P-D11). `Causalean.condIndepFun_weak_union_of_prodMk` (Causalean/Mathlib/CondIndep/CondExp.lean:545, in `namespace Causalean`, re-exported by `Causalean.Mathlib.CondIndep`; signature read 2026-09-06: `{Ω α β γ} [MeasurableSpace α] [MeasurableSpace β] [MeasurableSpace γ] {m mΩ : MeasurableSpace Ω} (hm : m ≤ mΩ) [StandardBorelSpace Ω] {μ} [IsFiniteMeasure μ] {W : Ω → α} {V : Ω → β} {A : Ω → γ} (hW : Measurable W) (hV : Measurable V) (hA : Measurable A) (hCI : CondIndepFun m hm W (fun ω => (V ω, A ω)) μ) : CondIndepFun (m ⊔ MeasurableSpace.comap A inferInstance) (sup_le hm hA.comap_le) W V μ`) is weak union at exactly the abstraction S4 lives at: a generic measure with measurable coordinate maps, no SCM and no graph. Instantiated at `W = U_i`, `V = U_b`, `A = U_{(B_i∖A)∖{b}}`, `m = σ(U_A)` it is step (15) of `thm:exact-ratio-decoder`'s frozen proof. The module also supplies the `ProbabilityTheory.CondIndepFun` plumbing already reused across this plan (`ass:causal-minimality`, `ass:faithfulness`, `def:population-decoder`). Gap to bridge (local, small): the note writes \\(V_{B_i\\setminus A}\\) as one Finset-indexed coordinate projection, while the lemma wants a literal `prodMk`; the local helper `condIndep_coordSplit_prodMk` supplies the measurable pair splitting and the σ-algebra identification `σ(U_A) ⊔ σ(U_{(B_i∖A)∖{b}}) = σ(U_{B_i∖{b}})`."
+    },
+    {
+      "module": "Causalean.Stat.Concentration.TailBounds.McDiarmid / FoML.McDiarmid",
+      "verdict": "reuse",
+      "reason": "`mcdiarmid_inequality_pos` (third_party/lean-rademacher/FoML/McDiarmid.lean:937) is exactly the bounded-differences engine for the \\(Z-\\mathbb EZ\\) tail in `lem:bounded-rkhs-empirical-mean`; its hypotheses (`iIndepFun X μ`, `|f x - f (Function.update x i x')| ≤ c i`) match the note's one-observation-replacement bound \\(2/m\\)."
+    },
+    {
+      "module": "Causalean.Discovery.LinearDisentanglement.*, Causalean.Discovery.LiNGAM.*",
+      "verdict": "analogous-reference",
+      "reason": "Nearest causal-representation-learning modules in the library (latent identification from interventions). Both are LINEAR (mixing matrix, precision-matrix / cumulant algebra); the note is nonparametric with a \\(C^2\\) diffeomorphic mixing map and density ratios. Retained as the technique reference for the generic-stratum/exceptional-set argument shape, not as a reuse target."
+    },
+    {
+      "module": "Causalean (whole tree) — latent mixing search",
+      "verdict": "absent",
+      "reason": "Grep for `Diffeomorph|diffeomorph|mixing map|unmixing|latent representation` over `../Causalean` returned 0 files. There is no diffeomorphic-mixing, unmixing, or latent-representation primitive anywhere in the library."
+    },
+    {
+      "module": "Mathlib.Analysis.Analytic.IsolatedZeros / Mathlib.Topology.Baire.Lemmas / Mathlib.Topology.GDelta.Basic / Mathlib.Order.Cover",
+      "verdict": "reuse",
+      "reason": "`AnalyticAt.eventually_eq_zero_or_eventually_ne_zero`, `Set.Finite.dense_sInter`, `Dense.inter_of_isOpen_left`, `IsNowhereDense`, `isNowhereDense_iff_disjoint`, and `CovBy` supply the isolated-zero, finite-open-dense-intersection, nowhere-dense, and cover-relation machinery verbatim."
+    }
+  ],
+  "citations": [
+    {
+      "id": "cite:wendong-2023-cauca",
+      "cite": "WendongEtAl2023CauCA",
+      "bibkey": "WendongEtAl2023CauCA",
+      "title": "Causal Component Analysis",
+      "authors": "Wendong, L., Keki\\'c, A., von Kugelgen, J., Buchholz, S., Besserve, M., Gresele, L., and Scholkopf, B.",
+      "year": 2023,
+      "locator": "Definition 3.2, Theorem 4.2, and Appendix E.2",
+      "bibliography": "L. Wendong, A. Keki\\'c, J. von Kugelgen, S. Buchholz, M. Besserve, L. Gresele, and B. Scholkopf (2023), ``Causal Component Analysis,'' Advances in Neural Information Processing Systems 36.",
+      "citation": "L. Wendong, A. Keki\\'c, J. von Kugelgen, S. Buchholz, M. Besserve, L. Gresele, and B. Scholkopf. Causal Component Analysis. Advances in Neural Information Processing Systems 36, 2023.",
+      "url": "https://papers.nips.cc/paper_files/paper/2023/file/67089958e98b243d5cc1881ad60418b8-Paper-Conference.pdf",
+      "carrier": "bibliographic-metadata",
+      "verbatim_statement": "The graph G is assumed to be known. Further, we assume that the intervention targets τ_k are observed. We say (G, F, P_G) has known intervention targets if all its elements share the same G and (τ_k)_{k∈⟦0,K⟧}. Theorem 4.2(ii): Suppose for each node i in [d], there is one perfect stochastic intervention that satisfies Asm. 4.1. Then CauCA in (G, F, P_G) is identifiable up to S_scaling.",
+      "attestation": {
+        "by": "main",
+        "note": "Main verified the primary NeurIPS 2023 PDF at Definition 3.2, Theorem 4.2(ii), and Appendix E.2 on 2026-09-06; transcription combines the exact scope and theorem sentences with notation normalized from PDF extraction.",
+        "at": "2026-09-06T17:13:02.275Z"
+      },
+      "node": "lem:cauca-comparator-scope",
+      "used_by": [
+        "lem:cauca-comparator-scope"
+      ]
+    },
+    {
+      "id": "cite:von-kugelgen-2023-unknown-interventions",
+      "cite": "vonKugelgenEtAl2023UnknownInterventions",
+      "bibkey": "vonKugelgenEtAl2023UnknownInterventions",
+      "title": "Nonparametric Identifiability of Causal Representations from Unknown Interventions",
+      "authors": "von Kugelgen, J., Besserve, M., Wendong, L., Gresele, L., Keki\\'c, A., Bareinboim, E., Blei, D. M., and Scholkopf, B.",
+      "year": 2023,
+      "locator": "Theorems 3.2 and 3.4; Section 7, paragraph entitled `Identifiability From One Intervention per Node for Any n'",
+      "bibliography": "J. von Kugelgen, M. Besserve, L. Wendong, L. Gresele, A. Keki\\'c, E. Bareinboim, D. M. Blei, and B. Scholkopf (2023), ``Nonparametric Identifiability of Causal Representations from Unknown Interventions,'' Advances in Neural Information Processing Systems 36.",
+      "citation": "J. von Kugelgen, M. Besserve, L. Wendong, L. Gresele, A. Keki\\'c, E. Bareinboim, D. M. Blei, and B. Scholkopf. Nonparametric Identifiability of Causal Representations from Unknown Interventions. Advances in Neural Information Processing Systems 36, 2023.",
+      "url": "https://papers.nips.cc/paper_files/paper/2023/file/97fe251c25b6f99a2a23b330a75b11d4-Paper-Conference.pdf",
+      "carrier": "bibliographic-metadata",
+      "verbatim_statement": "Theorem 3.2 (Bivariate identifiability up to ∼CRL from one perfect stochastic intervention per node). (A2) we have access to a known observational environment e₀ and one single node perfect intervention for each node, with unknown targets. (A4) (“genericity”) the base and intervened mechanisms are not fine-tuned to each other, in the sense that there exists a continuous function φ. Theorem 3.4 (Identifiability up to ∼CRL from two paired perfect stochastic interventions per node). Identifiability From One Intervention per Node for Any n. We conjecture that Thm. 3.2 can be generalized to n > 2, subject to a suitably adjusted set of genericity conditions.",
+      "attestation": {
+        "by": "main",
+        "note": "Main verified the primary NeurIPS 2023 PDF at Theorems 3.2 and 3.4 and the Section 7 discussion on 2026-09-06; transcription combines the exact headings and scope sentences with notation normalized from PDF extraction.",
+        "at": "2026-09-06T17:13:14.667Z"
+      },
+      "node": "lem:von-kugelgen-comparator-scope",
+      "used_by": [
+        "lem:von-kugelgen-comparator-scope"
+      ]
+    },
+    {
+      "id": "cite:yao-2025-invariance-principle",
+      "cite": "YaoEtAl2025InvariancePrinciple",
+      "bibkey": "YaoEtAl2025InvariancePrinciple",
+      "title": "Unifying Causal Representation Learning with the Invariance Principle",
+      "authors": "Yao, D., Rancati, D., Cadei, R., Fumero, M., and Locatello, F.",
+      "year": 2025,
+      "locator": "Assumption D.1, Corollary D.1, and the immediately following remark",
+      "bibliography": "D. Yao, D. Rancati, R. Cadei, M. Fumero, and F. Locatello (2025), ``Unifying Causal Representation Learning with the Invariance Principle,'' International Conference on Learning Representations.",
+      "citation": "D. Yao, D. Rancati, R. Cadei, M. Fumero, and F. Locatello. Unifying Causal Representation Learning with the Invariance Principle. International Conference on Learning Representations, 2025. arXiv:2409.02772v2.",
+      "url": "https://arxiv.org/abs/2409.02772v2",
+      "arxiv": "2409.02772v2",
+      "carrier": "bibliographic-metadata",
+      "verbatim_statement": "Assumption D.1 (Topologically ordered interventional targets). We assume there are exactly N environments {k₁, …, k_N} where each node j ∈ [N] undergoes one imperfect intervention in environment k_j. The interventional targets 1 ⪯ · · · ⪯ N preserve the topological order. We believe that identifying the topological order is another subproblem orthogonal to identifying the latent variables. Corollary D.1 (Identifiability from single node imperfect intervention per node). Given N environments satisfying Asm. D.1, the ground truth latent variables z can be identified up to element-wise diffeomorphism by combining both marginal and score invariances under our framework.",
+      "attestation": {
+        "by": "main",
+        "note": "Main verified arXiv 2409.02772v2 at Assumption D.1, its immediately following remark, and Corollary D.1 on 2026-09-06; transcription combines the exact scope and conclusion sentences with notation normalized from PDF extraction.",
+        "at": "2026-09-06T17:13:26.566Z"
+      },
+      "node": "lem:yao-comparator-scope",
+      "used_by": [
+        "lem:yao-comparator-scope"
+      ]
+    }
+  ],
+  "env": [
+    {
+      "id": "S1",
+      "world": "A latent causal model on \\(n\\) scalar variables. Fix \\(n\\in\\mathbb N\\), the labeled vertex set \\([n]=\\{1,\\ldots,n\\}\\), a finite labeled directed acyclic graph \\(G\\) on \\([n]\\) with parent sets \\(\\operatorname{pa}_G(i)\\), and a sign vector \\(s\\in\\{-1,+1\\}^n\\). The latent state is \\(V=(V_1,\\ldots,V_n)\\in[0,1]^n\\). A mechanism is a pair of families \\(((p_i,q_i))_{i=1}^n\\) in which \\(p_i:[0,1]^{1+|\\operatorname{pa}_G(i)|}\\to(0,\\infty)\\) is the observational conditional density of \\(V_i\\) given \\(V_{\\operatorname{pa}_G(i)}\\) and \\(q_i:[0,1]\\to(0,\\infty)\\) is the parent-independent perfect-intervention density at target \\(i\\), with distribution function \\(Q_i(v)=\\int_0^v q_i(u)\\,du\\). The observational latent law is \\(p^0(v)=\\prod_{i=1}^n p_i(v_i\\mid v_{\\operatorname{pa}_G(i)})\\) and the target-\\(i\\) interventional latent law is \\(p^i(v)=q_i(v_i)\\prod_{\\ell\\ne i}p_\\ell(v_\\ell\\mid v_{\\operatorname{pa}_G(\\ell)})\\). Write \\(j\\lessdot_G i\\) when \\(j\\) is a strict ancestor of \\(i\\) in \\(G\\) with no vertex strictly between them in the ancestral order. The model stratum \\(\\Theta_{G,s}\\) is the set of mechanisms that are positive, normalized, \\(C^3\\), causally minimal for \\(G\\), and of prescribed own-coordinate log-ratio derivative signs \\(s\\), carrying the relative product \\(C^2\\) topology. Three distinguished points of this world are the sparse witness \\(\\theta^{\\mathrm{sp}}\\), the cancellation witness \\(\\theta^{\\mathrm{can}}\\), and the nodewise normalized affine path \\(\\theta^t\\), \\(t\\in[0,1]\\), interpolating a mechanism toward \\(\\theta^{\\mathrm{sp}}\\).",
+      "binds_symbols": [
+        "n",
+        "\\([n]\\)",
+        "G",
+        "\\(\\operatorname{pa}_G(i)\\)",
+        "s",
+        "V",
+        "\\(p_i\\)",
+        "\\(q_i\\)",
+        "\\(Q_i\\)",
+        "\\(p^0\\)",
+        "\\(p^i\\)",
+        "\\(j\\lessdot_G i\\)",
+        "\\(\\Theta_{G,s}\\)",
+        "\\(\\theta^{\\mathrm{sp}}\\)",
+        "\\(\\theta^{\\mathrm{can}}\\)",
+        "\\(\\theta^t\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Mathlib.Analysis.Calculus.ContDiff.Defs",
+        "Mathlib.Order.Cover",
+        "Mathlib.Order.Defs.PartialOrder"
+      ],
+      "notes": "Reused graph primitive: `Causalean.DAG` on `Fin n` (Causalean/Graph/DAG.lean:57), with `Causalean.DAG.parents`, `Causalean.DAG.isAncestor`, `Causalean.DAG.isAncestor_trans`, `Causalean.DAG.ancestors`, `Causalean.DAG.topoOrder`, `Causalean.DAG.isAncestor_topoOrder_lt`. The ancestral cover relation \\(j\\lessdot_G i\\) is `CovBy` (Mathlib.Order.Defs.PartialOrder / Mathlib.Order.Cover) for the strict order induced by `DAG.isAncestor`; the note's `an ancestral cover in a DAG is a directed edge` step is then `CovBy` unfolded against `DAG.isAncestor_child`. Mechanisms are `ContDiffOn ℝ 3` positive normalized densities on closed cubes; the relative product \\(C^2\\) topology is the sup-norm-through-order-two topology on the finite product of mechanism slots, defined locally. Search trace: grep `Diffeomorph|diffeomorph|mixing map|unmixing|latent representation` over ../Causalean → 0 files; API.md §1 (Graph/DAG), §6 (SCM/Model/SCM), §9 (SCM/ID/Identifiable), §8h (PO/) read — no mechanism-stratum or density-family primitive; Mathlib side lean_leansearch `continuously differentiable function ContDiff definition` → `ContDiff`/`ContDiffOn` in Mathlib.Analysis.Calculus.ContDiff.Defs (reused), no causal-mechanism stratum. Bypass-justified over Mathlib for everything except the DAG."
+    },
+    {
+      "id": "S2",
+      "world": "The observed environment family generated by a shared mixing map. Let \\(f:[0,1]^n\\to\\mathcal X\\) be a \\(C^2\\) diffeomorphism onto the observed support \\(\\mathcal X\\), the same map in every environment, and let \\(X=f(V)\\) be the observation. For \\(e=0\\) the observed law \\(P^e\\) is the pushforward of \\(p^0\\) under \\(f\\); for \\(e\\in[n]\\) it is the pushforward of \\(p^{\\pi(e)}\\), where \\(\\pi\\) is an unknown bijection from interventional environment labels to latent intervention targets. The environment-label DAG \\(G^\\pi\\) is the pullback of \\(G\\) by \\(\\pi\\): \\(j\\to i\\) in \\(G^\\pi\\) exactly when \\(\\pi(j)\\to\\pi(i)\\) in \\(G\\). The observable invariants are the density ratios \\(R_i=dP^i/dP^0:\\mathcal X\\to(0,\\infty)\\), which after unmixing equal \\(q_{\\pi(i)}(v_{\\pi(i)})/p_{\\pi(i)}(v_{\\pi(i)}\\mid v_{\\operatorname{pa}_G(\\pi(i))})\\), together with their logarithms \\(L_i=\\log R_i\\).",
+      "binds_symbols": [
+        "\\(\\mathcal X\\)",
+        "f",
+        "X",
+        "\\(P^e\\)",
+        "\\(\\pi\\)",
+        "\\(G^\\pi\\)",
+        "\\(R_i\\)",
+        "\\(L_i\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Map",
+        "Mathlib.Analysis.Calculus.ContDiff.Defs",
+        "Causalean.Graph.DAG"
+      ],
+      "notes": "bypass-justified: no Causalean module models a latent-to-observed mixing map or an environment family indexed by unknown intervention targets (grep `Diffeomorph|mixing map|unmixing` over ../Causalean → 0 files; API.md §8h PO/, §6b SCM/Model/Kernel, §9 SCM/ID all condition on observed variables with a known diagram). Built over `MeasureTheory.Measure.map` (Mathlib.MeasureTheory.Measure.Map, verified) for \\(P^e\\) and `ContDiffOn ℝ 2` plus an explicit two-sided inverse for the diffeomorphism; \\(\\pi\\) is an `Equiv.Perm (Fin n)`; \\(G^\\pi\\) is `Causalean.DAG` transported along that permutation. The proofs use \\(R_i\\) only through its unmixed latent form \\(r_i(v)=q_i(v_i)/p_i(v_i\\mid v_{\\operatorname{pa}_G(i)})\\), so the Jacobian cancellation is a single change-of-variables lemma in this S-block."
+    },
+    {
+      "id": "S3",
+      "world": "The Gaussian-kernel discrepancy layer on ratio laws. Let \\(k(a,b)=\\exp(-(a-b)^2)\\) on \\(\\mathbb R\\times\\mathbb R\\), with values in \\((0,1]\\) and \\(k(a,a)=1\\). For \\(j\\ne i\\) the population discrepancy is \\(D_{ji}=\\operatorname{MMD}_k(\\operatorname{Law}_{P^0}(R_i),\\operatorname{Law}_{P^j}(R_i))\\), the distance between the two kernel mean embeddings, and the second-moment contrast is \\(F_{ji}=\\mathbb E_{P^j}[R_i^2]-\\mathbb E_{P^0}[R_i^2]\\). Inside the model stratum, \\(\\mathcal V_{G,s,\\pi}\\) is the set of mechanisms with \\(F_{\\pi^{-1}(j)\\pi^{-1}(i)}\\ne0\\) on every edge \\(j\\to i\\) of \\(G\\), and \\(\\mathcal U_{G,s,\\pi}\\) is the set with \\(D_{ji}>0\\) whenever \\(\\pi(j)\\lessdot_G\\pi(i)\\). The observable directed graph \\(H_D\\) on interventional environment labels has arrow \\(j\\to i\\) exactly when \\(D_{ji}>0\\).",
+      "binds_symbols": [
+        "k",
+        "\\(D_{ji}\\)",
+        "\\(F_{ji}\\)",
+        "\\(\\mathcal V_{G,s,\\pi}\\)",
+        "\\(\\mathcal U_{G,s,\\pi}\\)",
+        "\\(H_D\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.InnerProductSpace.l2Space",
+        "Mathlib.Analysis.InnerProductSpace.Basic",
+        "Mathlib.MeasureTheory.Measure.Map"
+      ],
+      "notes": "Round-4 correction (decision P-D9): the ENTIRE kernel layer of this S-block is LOCAL. Per decision P-D1 the mean embedding uses the note's own explicit feature map \\(\\Phi(r)=(\\sqrt{2^m/m!}e^{-r^2}r^m)_{m\\ge0}\\) into `lp (fun _ : ℕ => ℝ) 2` (Mathlib.Analysis.InnerProductSpace.l2Space, verified via lean_leansearch `Hilbert space of square summable sequences lp 2` → `lp.instInnerProductSpace`), giving \\(\\langle\\Phi(a),\\Phi(b)\\rangle=k(a,b)\\) and \\(\\|\\Phi(r)\\|=1\\) by the exponential series. F2 defines locally, in `Helpers/Kernel.lean`: (i) a `UnitNormFeatureMap` interface (a map into a real inner-product space with `‖Φ r‖ = 1` and `⟪Φ a, Φ b⟫ = k a b`), (ii) `meanEmbedding` as the Bochner integral of \\(\\Phi\\) against a law, and (iii) \\(D_{ji}\\) as the norm of the difference of two mean embeddings. `Causalean.ML.Kernel.RKHS` is NOT reused and is NOT imported: `bypass-justified` — `Causalean.ML.IsRKHS` (ML/Kernel/RKHS.lean:22, re-read 2026-09-06: a one-field `structure` whose sole field is `reproducing : ∀ f x, feval f x = inner ℝ f (representer x)`) supplies only the reproducing identity `f x = ⟪f, representer x⟫`; it carries no mean-embedding, no unit-norm feature bound, and no bounded-feature concentration interface, so it cannot realize the Gaussian-MMD empirical-mean bound and stating the concentration lemma `against` it would be a partial fit masquerading as reuse. Search trace: grep `IsRKHS|meanEmbedding|MMD|mmd|representer` over ../Causalean/ML/Kernel/RKHS.lean → only `IsRKHS.reproducing`; grep `IsRKHS|meanEmbedding|MMD` over ../Causalean and ../doc/API.md → `Causalean.ML.IsRKHS`, `rkhs_ball_empiricalRademacher_le`, `rademacherComplexity_l2_ball_le` (Rademacher-complexity bounds over an RKHS ball, not embeddings or two-sample discrepancies); Mathlib side lean_leansearch `Hilbert space of square summable sequences lp 2` → `lp.instInnerProductSpace` (reused), and lean_leansearch `kernel mean embedding maximum mean discrepancy of two measures` (run 2026-09-06) → only `ProbabilityTheory.Kernel.density`/`comapRight`/`withDensity` plumbing, i.e. no mean-embedding or MMD declaration exists in Mathlib. So the feature map, the embedding, and \\(D_{ji}\\) are define-local, build-inline, over verified Mathlib Hilbert substrate only. \\(H_D\\) is a plain `Fin n → Fin n → Prop`; its acyclicity is a CONCLUSION of `thm:exact-ratio-decoder`, so it is not packaged as a `Causalean.DAG` until that theorem supplies the witness."
+    },
+    {
+      "id": "S4",
+      "world": "The population decoder. Fix a topological ordering of \\(H_D\\) and let \\(B_i\\subseteq[n]\\) be the environment labels preceding \\(i\\) in it. Let \\(C_i(t\\mid\\ell_{B_i})=P^i(L_i\\le t\\mid L_{B_i}=\\ell_{B_i})\\), taken in its continuous version on the model support, and let \\(U_i(x)=C_i(L_i(x)\\mid L_{B_i}(x))\\) be the identified rank coordinate. The population recovery map \\(\\mathscr D\\) sends \\((P^0,\\ldots,P^n)\\) to \\((H_D,(U_i)_{i=1}^n,G^\\pi)\\): it forms every \\(R_i\\) and \\(D_{ji}\\), builds \\(H_D\\), selects a topological ordering, constructs every \\(U_i\\), aligns environment \\(i\\) with \\(U_i\\), and at each \\(i\\) returns as parent set the unique inclusion-minimal \\(A\\subseteq B_i\\) with \\(U_i\\mathbin{\\perp\\!\\!\\!\\perp}_{P^0}U_{B_i\\setminus A}\\mid U_A\\).",
+      "binds_symbols": [
+        "\\(B_i\\)",
+        "\\(C_i\\)",
+        "\\(U_i\\)",
+        "\\(\\mathscr D\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.Support",
+        "Causalean.Mathlib.CondIndep",
+        "Causalean.Graph.DAG"
+      ],
+      "notes": "bypass-justified: Causalean's decoding layer (`SCM.ID.Identifiable`, `GraphicalThms.*`, `Graph.MarkovEquiv.*`) decides identifiability of a functional under a KNOWN diagram or Markov-equivalence of two GIVEN DAGs; none of them constructs a graph from a family of environment laws. Search trace: grep `populationDecoder|decoder|rank coordinate|parent pruning` over ../Causalean → no match; API.md §4b (MarkovEquiv), §9 (SCM/ID), §8d (Global Markov) read — recovery direction absent. Mathlib side lean_leansearch `conditional distribution condDistrib regular conditional probability` → `ProbabilityTheory.condDistrib` (Mathlib.Probability.Kernel.CondDistrib, verified) supplies \\(C_i\\); the note's own equation (11) gives the explicit continuous version \\(C_i(t\\mid\\ell_{B_i})=\\int_0^1\\mathbf 1\\{\\lambda_i(w,v_{\\operatorname{pa}}) \\le t\\}q_i(w)\\,dw\\), so F2 should DEFINE \\(C_i\\) by that integral and prove it agrees with `condDistrib`, rather than fight a.e.-versions. Conditional independence reuses `Causalean.Mathlib.CondIndep` (Causalean/Mathlib/CondIndep.lean) re-exports of `ProbabilityTheory.CondIndepFun`. Round-5 correction (decision P-D11) on the weak-union step (15): the round-4 `Causalean.SCM.Do.obsCondIndep_weak_union` claim is WITHDRAWN and `Causalean.SCM.Do.SemiGraphoid` is wholly `bypass-justified`. That declaration (SemiGraphoid.lean:249, signature re-read 2026-09-06: `(M : Causalean.SCM N Ω) [StandardBorelSpace M.ObservedValues] {X Y W Z : Finset (SWIGNode N)} (hX : X ⊆ M.observed) (hYW : (Y ∪ W) ⊆ M.observed) (hZ : Z ⊆ M.observed) {μ} [IsFiniteMeasure μ] (h : ObsCondIndep M X (Y ∪ W) Z …) : ObsCondIndep M X Y (Z ∪ W) …`) requires a `Causalean.SCM N Ω`, SWIG-node `Finset`s, and observed-variable projections, none of which exist in S4: here the coordinates \\(U_i\\), \\(V_i\\), \\(L_i\\) are locally defined rank and log-ratio functions on \\(\\mathcal X\\) under a generic continuous-density law, and the DAG is the latent \\(G\\) being recovered rather than a known diagram, so the SCM/SWIG theorem is not instantiable. Step (15) instead reuses the GENERIC `Causalean.condIndepFun_weak_union_of_prodMk` (Causalean/Mathlib/CondIndep/CondExp.lean:545, `namespace Causalean`, exported by `Causalean.Mathlib.CondIndep`; signature read 2026-09-06: `(hm : m ≤ mΩ) [StandardBorelSpace Ω] {μ} [IsFiniteMeasure μ] {W : Ω → α} {V : Ω → β} {A : Ω → γ} (hW : Measurable W) (hV : Measurable V) (hA : Measurable A) (hCI : CondIndepFun m hm W (fun ω => (V ω, A ω)) μ) : CondIndepFun (m ⊔ MeasurableSpace.comap A inferInstance) (sup_le hm hA.comap_le) W V μ`), instantiated at `W = U_i`, `V = U_b`, `A = U_{(B_i∖A)∖{b}}`, `m = σ(U_A)`. The required measurable coordinate-pair bridge — presenting \\(U_{B_i\\setminus A}\\) as the measurable pair \\((U_b, U_{(B_i\\setminus A)\\setminus\\{b\\}})\\) and identifying `σ(U_A) ⊔ σ(U_{(B_i∖A)∖{b}}) = σ(U_{B_i∖{b}})` — is the small local helper `condIndep_coordSplit_prodMk` (`Helpers/CondIndepIntersection.lean`), which needs only measurability of the finitely many coordinate maps and `MeasurableSpace.comap` algebra. Search trace (round 5): grep `weak_union|weak union` over ../Causalean → `SCM/Do/SemiGraphoid.lean` (SCM/SWIG-typed, not instantiable here) and `Mathlib/CondIndep/CondExp.lean:545` `condIndepFun_weak_union_of_prodMk` (generic, reused); Mathlib side lean_leansearch `conditional independence weak union graphoid property` → `ProbabilityTheory.CondIndepFun` with no graphoid-axiom layer, so the Causalean generic lemma is strictly the better fit. Round-4 correction (decision P-D10) on the INTERSECTION property, which stands: `Causalean/SCM/Do/SemiGraphoid.lean` provides decomposition/weak-union/contraction only — its full declaration list is `ObsCondIndep` (61), `obsCondIndep_symm` (79), `condIndep_valuesProjection_symm` (90), `condIndep_valuesProjection_subset_right` (112), `condIndep_valuesProjection_decomposition` (136), `condIndep_valuesProjection_weak_union_axiom` (159), `condIndep_valuesProjection_contraction_axiom` (185), `obsCondIndep_subset_right` (215), `obsCondIndep_decomposition` (232), `obsCondIndep_weak_union` (249), `obsCondIndep_contraction` (267) — there is no intersection lemma anywhere in it, which is correct, since intersection is the one semi-graphoid property that is NOT an axiom of a general semi-graphoid and needs strict positivity. The proof's steps (16)-(18) are therefore realized by a NEW LOCAL lemma `condIndep_intersection_of_pos` (`Helpers/CondIndepIntersection.lean`), derived from the model's own strict positive-density assumption `ass:positive-normalized-smooth-mechanisms` already in the .tex: the frozen proof of `thm:exact-ratio-decoder` supplies the argument verbatim at equation (17) — the two conditional-density identities, extended from a.e. to everywhere by positivity and continuity, force `p^0(v_i ∣ v_W, v_Z) = p^0(v_i ∣ v_b, v_Z)` to be constant in both \\(v_b\\) and \\(v_W\\) on the full positive product support. Search trace: grep `intersection|Intersection` over ../Causalean/SCM/Do/SemiGraphoid.lean → 0 matches; grep `condIndep.*intersection|semiGraphoid|semi_graphoid` over ../Causalean → no intersection declaration; Mathlib side lean_leansearch `conditional independence intersection property strictly positive density` (run 2026-09-06) → `ProbabilityTheory.CondIndepSets.inter`, `.iInter`, `.bInter`, `condIndepSet_iff`, `cond_iInter` (Mathlib.Probability.Independence.Conditional / .Basic). `CondIndepSets.inter` is a NEAR MISS, not a fit: it intersects two set FAMILIES on one side of a fixed conditional independence, whereas the graphoid intersection property splices two independences with different conditioning sets and is false without positivity. Mathlib has `ProbabilityTheory.CondIndepFun` but no graphoid-axiom layer and no positivity-based intersection lemma."
+    },
+    {
+      "id": "S5",
+      "world": "Independent multi-sample sampling with sample splitting. Within each environment \\(e\\in\\{0,\\ldots,n\\}\\) the \\(N_e\\) observations are independent draws from \\(P^e\\), and the training and evaluation folds are independent; \\(\\underline N=\\min_{0\\le e\\le n}N_e\\). On the training folds a density-ratio estimate \\(\\widehat R_i:\\mathcal X\\to(0,\\infty)\\) is fitted without the evaluation observations; \\(a_N\\in[0,\\infty)\\) is a deterministic radius for the joint evaluation-law \\(L^1\\) error of those fitted ratios, holding with probability at least \\(1-\\eta\\). On the independent evaluation folds \\(\\widehat D_{ji}\\) is the norm of the difference of the empirical Gaussian-kernel mean embeddings of \\(\\widehat R_i(X)\\) under environments \\(0\\) and \\(j\\). With familywise level \\(\\alpha\\in(0,1)\\) and first-stage failure level \\(\\eta\\in(0,1)\\), the simultaneous confidence radius is \\(\\varepsilon_N(\\alpha,\\eta)=2\\sqrt2\\,a_N+2[1+\\sqrt{2\\log(n(n+1)/\\alpha)}]/\\sqrt{\\min_e N_e}\\), and the sample-split confidence graph \\(\\widehat H\\) has arrow \\(j\\to i\\) exactly when \\(\\widehat D_{ji}-\\varepsilon_N(\\alpha,\\eta)>0\\).",
+      "binds_symbols": [
+        "\\(N_e\\)",
+        "\\(\\widehat R_i\\)",
+        "\\(\\widehat D_{ji}\\)",
+        "\\(a_N\\)",
+        "\\(\\alpha\\)",
+        "\\(\\eta\\)",
+        "\\(\\varepsilon_N(\\alpha,\\eta)\\)",
+        "\\(\\widehat H\\)",
+        "\\(\\underline N\\)"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Concentration.TailBounds.McDiarmid",
+        "FoML.McDiarmid",
+        "Mathlib.Analysis.InnerProductSpace.l2Space",
+        "Mathlib.Analysis.InnerProductSpace.Basic"
+      ],
+      "notes": "Round-4 correction (decision P-D9): `Causalean.ML.Kernel.RKHS` is dropped from this S-block too — the empirical mean embedding \\(\\widehat\\mu_{ie}\\) and \\(\\widehat D_{ji}\\) are built from the LOCAL `UnitNormFeatureMap`/`meanEmbedding` layer of S3 (`Helpers/Kernel.lean`), not from `Causalean.ML.IsRKHS`, which supplies only the reproducing identity and no bounded-feature concentration interface. The i.i.d.-within-environment product law is `MeasureTheory.Measure.pi` over `Fin N_e`; the training/evaluation split is expressed by conditioning on the training σ-algebra, exactly as the note does. Reused concentration engine: `mcdiarmid_inequality_pos` (third_party/lean-rademacher/FoML/McDiarmid.lean:937), re-exported by `Causalean.Stat.Concentration.TailBounds.McDiarmid`; its hypotheses `iIndepFun X μ` and `|f x - f (Function.update x i x')| ≤ c i` match the note's `replacing one observation changes Z by at most 2/m` step, so the plan does NOT rebuild the Doob/Hoeffding chain of the frozen proof. Search trace: grep `mcdiarmid|BoundedDifference` over ../Causalean → Stat/Concentration/TailBounds/McDiarmid.lean and Stat/Concentration/UniformDeviation/BoundedDifference.lean, both thin FoML re-exports; lean_local_search `mcdiarmid` → four FoML theorems. \\(\\varepsilon_N\\) is a closed real expression; the note itself records that its well-typed domain forces \\(n\\ge1\\) and \\(\\min_e N_e\\ge1\\), so F2 carries those as side conditions rather than as `Real.log` junk-value reasoning."
+    },
+    {
+      "id": "S6",
+      "world": "The bounded statistical subclass and the generated-rank frontier. Fix a smoothness index \\(\\beta\\in(2,\\infty)\\), a lower-envelope constant \\(c\\in(0,1)\\), a uniform regularity constant \\(M\\in(1,\\infty)\\), an interior margin \\(\\rho\\in(0,1/2)\\), and a compact evaluation domain \\(K\\subseteq\\operatorname{int}(\\mathcal X)\\). Write \\(\\mathcal Z_i(K)=\\{L_{B_i}(x):x\\in K\\}\\) and let \\(g_i\\) be the density of \\(L_{B_i}(X)\\) under \\(P^i\\), with \\(g_i\\equiv1\\) when \\(B_i=\\varnothing\\). The bounded Holder subclass \\(\\Theta^\\beta_{G,s}(c,M,K,\\rho)\\subseteq\\Theta_{G,s}\\) collects the mechanisms obeying a bounded Holder radius, a density lower envelope, an own-derivative margin, a common interior domain, bounded shared mixing geometry, observed log-ratio regularity, and a conditional design envelope. With \\(d_\\star=\\max_{i\\in[n]}|B_i|\\), a first-stage rate \\(b_N\\downarrow0\\) and failure sequence \\(\\eta_N\\downarrow0\\), and a bandwidth \\(h_N\\downarrow0\\), the simultaneous first-stage event is \\(\\mathcal E_N^\\infty(b_N)=\\{\\max_{i\\in[n]}\\|\\log\\widehat R_i-\\log R_i\\|_{C^1(\\mathcal X)}\\le b_N\\}\\) and the target coordinate rate is \\(r_N=h_N^2+\\sqrt{\\log(\\underline N)/(\\underline N h_N^{d_\\star})}+b_N/h_N\\). In this world \\(\\widehat U_i\\) denotes a second-stage cross-fitted conditional-CDF estimator of \\(U_i\\) and \\(\\mathfrak H_{\\mathrm{rank}}\\) the local-linear conditional-CDF and generated-covariate linearization handle; neither is given a determinate construction here.",
+      "binds_symbols": [
+        "\\(\\beta\\)",
+        "c",
+        "M",
+        "\\(\\rho\\)",
+        "\\(K\\)",
+        "\\(\\mathcal Z_i(K)\\)",
+        "\\(g_i\\)",
+        "\\(d_\\star\\)",
+        "\\(b_N\\)",
+        "\\(\\eta_N\\)",
+        "\\(h_N\\)",
+        "\\(\\mathcal E_N^{\\infty}(b_N)\\)",
+        "\\(\\Theta^{\\beta}_{G,s}(c,M,K,\\rho)\\)",
+        "\\(r_N\\)",
+        "\\(\\mathfrak H_{\\mathrm{rank}}\\)",
+        "\\(\\widehat U_i\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs",
+        "Mathlib.MeasureTheory.Measure.Map",
+        "Mathlib.Probability.Kernel.CondDistrib"
+      ],
+      "notes": "All of \\(\\beta,c,M,\\rho,K,\\mathcal Z_i(K),g_i,d_\\star,b_N,\\eta_N,h_N,\\mathcal E_N^\\infty,\\Theta^\\beta,r_N\\) are determinate and are defined formally. Per decision P-D2, \\(\\mathfrak H_{\\mathrm{rank}}\\) and \\(\\widehat U_i\\) are NOT given Lean constructions: the core marks \\(\\widehat U_i\\) an `open statistical construction` and \\(\\mathfrak H_{\\mathrm{rank}}\\) an `open-question handle`, and the frozen OEQ text says the handle does not yet provide a second-stage weight convention. They are bound here as named narrative symbols recorded inside the descriptive `String` payloads of `def:generated-rank-handle` and `oeq:generated-rank-frontier`. Search trace: grep `local linear|localLinear|conditional CDF|conditionalCdf|generated covariate|generatedRegressor` over ../Causalean → no local-linear conditional-CDF estimator; API.md §12ep (Glivenko-Cantelli), §12' (concentration), §13'''' (OrthogonalLearning) read — uniform-deviation and critical-radius machinery exists but no local-polynomial conditional-distribution estimator; Mathlib side lean_leansearch `local linear regression conditional distribution estimator` → nothing. This is why the note leaves the construction open rather than why the plan defers it."
+    }
+  ],
+  "nodes": {
+    "ass:positive-normalized-smooth-mechanisms": {
+      "lean_kind": "assumption",
+      "lean_name": "PositiveNormalizedSmoothMechanisms",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "classification": "modeling-assumption",
+      "statement": "For every \\(i\\in[n]\\), \\(p_i\\) and \\(q_i\\) are strictly positive normalized \\(C^3\\) densities on their closed cubes.",
+      "notes": "Threaded hypothesis (regularity restriction on the mechanism class, declared as an `ass:` node by the author). One named `def … : Prop` over the S1 mechanism record; used inline by four statements and bundled as a member of the `ModelStratum` class. Search trace: grep `positive normalized|normalized density|ContDiffOn.*density` over ../Causalean → no mechanism-regularity predicate; Mathlib side lean_leansearch `continuously differentiable function ContDiff definition` → `ContDiffOn ℝ 3` (Mathlib.Analysis.Calculus.ContDiff.Defs) is the only reusable piece and it is used inside the definition, not as the definition. Build-inline."
+    },
+    "ass:faithfulness": {
+      "lean_kind": "assumption",
+      "lean_name": "Faithfulness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.CondIndep",
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "classification": "modeling-assumption",
+      "statement": "The observational density \\(p^0\\) is faithful to \\(G\\): every conditional independence holding in \\(p^0\\) is entailed by d-separation in \\(G\\).",
+      "notes": "Threaded hypothesis, and per decision P-D4 bound only on the faithful-overlap corollary of `thm:exact-ratio-decoder`. Causalean has a d-separation layer (`Causalean.Graph.DSep.*`, API.md §2) and the global Markov property (§8d), which give the ENTAILMENT direction on `SWIGGraph`s over observed variables; faithfulness is the converse and is not stated anywhere in the library. Search trace: grep `Faithful|faithfulness` over ../Causalean → no declaration; API.md grep `## ` index scanned, §2 DSep and §8d GlobalMarkov are entailment-only; Mathlib side lean_leansearch `causal faithfulness d-separation` → nothing. Build-inline as a Prop over the latent d-separation relation defined in S1 from `Causalean.DAG`."
+    },
+    "ass:shared-diffeomorphic-mixing": {
+      "lean_kind": "assumption",
+      "lean_name": "SharedDiffeomorphicMixing",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Basic.lean",
+      "classification": "modeling-assumption",
+      "statement": "The same map \\(f\\) is a \\(C^2\\) diffeomorphism of \\([0,1]^n\\) onto \\(\\mathcal X\\) in every environment.",
+      "notes": "Threaded hypothesis. Search trace: grep `Diffeomorph|diffeomorph|mixing map|unmixing|latent representation` over ../Causalean → 0 files (nothing in the library models a mixing map); Mathlib side lean_leansearch `ContDiff` → `ContDiffOn` (Mathlib.Analysis.Calculus.ContDiff.Defs); Mathlib's `Diffeomorph` is a manifold-level bundled type that does not fit a closed-cube-to-image map with one-sided boundary derivatives, so the atom is a `ContDiffOn ℝ 2` bijection with a `ContDiffOn ℝ 2` two-sided inverse. Build-inline."
+    },
+    "ass:one-perfect-intervention-per-node": {
+      "lean_kind": "assumption",
+      "lean_name": "OnePerfectInterventionPerNode",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.MeasureTheory.Measure.Map"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S2",
+      "target_file": "Basic.lean",
+      "classification": "modeling-assumption",
+      "statement": "Besides the known observational law \\(P^0\\), the laws \\(P^1,\\ldots,P^n\\) arise from distinct unknown targets and replace exactly one \\(p_i\\) by the corresponding parent-independent \\(q_i\\).",
+      "notes": "Threaded hypothesis; this is the intervention-design restriction that the whole note is about, so it is never discharged. Search trace: grep `perfect intervention|hard intervention|unknown target` over ../Causalean → only `Causalean.Discovery.LinearDisentanglement` (linear latent SCM, single-node interventions with a matrix mixing) and `SCM.Model.InterventionSet` (`fixSet` on OBSERVED variables of a known SWIG); neither expresses `unknown target permutation over a latent DAG with density replacement`. Mathlib side lean_leansearch `pushforward measure Measure.map` → `MeasureTheory.Measure.map` (verified, used inside the definition). Build-inline. Analogous-module reference for the technique: Causalean/Discovery/LinearDisentanglement/Model.lean + Identifiability.lean (unknown-target intervention indexing under an ambiguity group) — the gap to bridge is linear-matrix mixing vs. \\(C^2\\) diffeomorphic mixing and precision-matrix algebra vs. density ratios."
+    },
+    "ass:fixed-own-derivative-sign": {
+      "lean_kind": "assumption",
+      "lean_name": "FixedOwnDerivativeSign",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "classification": "modeling-assumption",
+      "statement": "For every \\(i\\in[n]\\), \\(s_i\\,\\partial_{v_i}\\log\\{q_i(v_i)/p_i(v_i\\mid v_{\\operatorname{pa}_G(i)})\\}>0\\) throughout the closed cube.",
+      "notes": "Threaded hypothesis (monotonicity restriction); also a member of the `ModelStratum` class. Derivatives at the boundary are the one-sided restrictions of the continuous derivatives on the closed cube, as the frozen proof of `lem:analytic-edge-perturbation` states. Search trace: grep `own derivative|monotone likelihood ratio|derivative sign` over ../Causalean → no match; Mathlib side lean_leansearch `strictly monotone from positive derivative on an interval` → `StrictMonoOn` / `strictMonoOn_of_hasDerivWithinAt_pos` family exists and is reused INSIDE the proofs (the atom itself is the sign condition, not a monotonicity conclusion). Build-inline."
+    },
+    "ass:independent-environment-sampling": {
+      "lean_kind": "assumption",
+      "lean_name": "IndependentEnvironmentSampling",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.Indep"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S5",
+      "target_file": "Helpers/Inference.lean",
+      "classification": "modeling-assumption",
+      "statement": "Within each environment \\(e\\), the \\(N_e\\) observations are independent draws from \\(P^e\\), and the training and evaluation folds are independent.",
+      "notes": "Threaded hypothesis (sampling design). Realized with `ProbabilityTheory.iIndepFun` plus the identical-distribution clause, matching the `iIndepFun X μ` hypothesis shape of `mcdiarmid_inequality_pos`. Search trace: grep `iIndepFun|IndepFun` over ../Causalean → `Causalean/Mathlib/Indep.lean` (IndepFun/CondIndepFun plumbing re-exports, API.md §10c) reused; Mathlib side the primitive is `ProbabilityTheory.iIndepFun`. Build-inline (the atom is a design restriction, not a theorem)."
+    },
+    "ass:bounded-holder-radius": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundedHolderRadius",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "classification": "modeling-assumption",
+      "statement": "Every \\(p_i\\), \\(q_i\\), and latent-coordinate log-ratio \\(L_i\\circ f\\) has Holder norm of order \\(\\beta\\) at most \\(M\\).",
+      "notes": "Threaded hypothesis; member of the `BoundedHolderSubclass` class. Search trace: grep `Holder|holderNorm|HolderWith` over ../Causalean → `HolderWith` used inside Stat/Concentration covering arguments but no Holder-ball-of-order-\\(\\beta>2\\) predicate; Mathlib side lean_leansearch `Holder continuous function with exponent` → `HolderWith` / `MemHolder` exist for exponent in (0,1]; for \\(\\beta\\in(2,\\infty)\\) the standard encoding is `ContDiffOn ℝ ⌊β⌋` with a `HolderWith` bound on the top derivative, which F2 defines locally. Build-inline."
+    },
+    "ass:density-lower-envelope": {
+      "lean_kind": "assumption",
+      "lean_name": "DensityLowerEnvelope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "classification": "modeling-assumption",
+      "statement": "Every \\(p_i\\) and \\(q_i\\) is bounded below by \\(c\\) on its closed cube.",
+      "notes": "Threaded hypothesis; member of `BoundedHolderSubclass`. A one-line pointwise inequality over the S1 mechanism record. Search trace: grep `lower envelope|bounded below.*density|positivity margin` over ../Causalean → `Causalean.SCM.ID.Overlap` is a Rule-2 overlap predicate on OBSERVED treatment propensities, not a latent density envelope; Mathlib side no candidate (a bare `∀ v, c ≤ p i v`). Build-inline."
+    },
+    "ass:own-derivative-margin": {
+      "lean_kind": "assumption",
+      "lean_name": "OwnDerivativeMargin",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "classification": "modeling-assumption",
+      "statement": "For every \\(i\\in[n]\\), \\(s_i\\,\\partial_{v_i}L_i(f(v))\\ge c\\) throughout the closed cube.",
+      "notes": "Threaded hypothesis; member of `BoundedHolderSubclass`. Flagged `novel` in the core (author-imposed quantitative strengthening of `ass:fixed-own-derivative-sign`), confined to the bounded subclass and the open question — it must NOT leak into the population genericity or exact-decoding statements. Search trace: grep `derivative margin|uniform.*score.*bounded away` over ../Causalean → no match; Mathlib side no candidate (a bare derivative lower bound). Build-inline."
+    },
+    "ass:common-interior-domain": {
+      "lean_kind": "assumption",
+      "lean_name": "CommonInteriorDomain",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "classification": "modeling-assumption",
+      "statement": "The evaluation domain satisfies \\(\\operatorname{dist}(f^{-1}(K),\\partial[0,1]^n)\\ge\\rho\\).",
+      "notes": "Threaded hypothesis; member of `BoundedHolderSubclass`. Realized with `Metric.infDist` against the cube's frontier. Search trace: grep `interior domain|infDist.*frontier` over ../Causalean → no evaluation-domain predicate; Mathlib side `Metric.infDist` and `frontier` are the primitives, used inside the definition. Build-inline."
+    },
+    "ass:bounded-shared-mixing-geometry": {
+      "lean_kind": "assumption",
+      "lean_name": "BoundedSharedMixingGeometry",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "classification": "modeling-assumption",
+      "statement": "\\(\\max\\{\\|f\\|_{C^2},\\|f^{-1}\\|_{C^2},\\sup_v|\\det Df(v)|,\\sup_x|\\det Df^{-1}(x)|\\}\\le M\\).",
+      "notes": "Threaded hypothesis; member of `BoundedHolderSubclass`. Flagged `novel` in the core; confined to the bounded subclass. Search trace: grep `Diffeomorph|det Df|Jacobian` over ../Causalean → no mixing-geometry envelope (grep for `Diffeomorph|mixing map|unmixing` returned 0 files); Mathlib side `ContinuousLinearMap.det` / `fderiv` supply the Jacobian, used inside the definition. Build-inline."
+    },
+    "ass:observed-log-ratio-regularity": {
+      "lean_kind": "assumption",
+      "lean_name": "ObservedLogRatioRegularity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "classification": "modeling-assumption",
+      "statement": "\\(\\max_{i\\in[n]}\\|L_i\\|_{C^2(K)}\\le M\\).",
+      "notes": "Threaded hypothesis; member of `BoundedHolderSubclass`. Search trace: grep `generated regressor|generatedCovariate|C\\^2 norm` over ../Causalean → the generated-covariate literature is cited nowhere in the library; Mathlib side `iteratedFDerivWithin` supplies the \\(C^2(K)\\) norm, used inside the definition. Build-inline."
+    },
+    "ass:conditional-design-envelope": {
+      "lean_kind": "assumption",
+      "lean_name": "ConditionalDesignEnvelope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "classification": "modeling-assumption",
+      "statement": "For every \\(i\\in[n]\\), \\(c\\le g_i(z)\\le M\\) for all \\(z\\in\\mathcal Z_i(K)\\).",
+      "revision_notes": "Redirect attempt 4: realize g_i existentially as a density version of the law of the conditioning-coordinate projection, with g_i identically one for an empty predecessor set, and require the stated pointwise envelope of that version on Z_i(K). This removes dependence on null-set values of the auxiliary regime.designDensity representative without weakening the pointwise envelope.",
+      "notes": "Threaded hypothesis; member of `BoundedHolderSubclass`. Search trace: grep `design density|designEnvelope|local polynomial` over ../Causalean → `Stat/Concentration/Matrix/DesignInverse.lean` and `LocalizedGram.lean` bound EMPIRICAL Gram matrices for linear designs, not a local-polynomial design-density envelope; Mathlib side no candidate. Build-inline."
+    },
+    "ass:causal-minimality": {
+      "lean_kind": "assumption",
+      "lean_name": "CausalMinimality",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.CondIndep",
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "classification": "modeling-assumption",
+      "statement": "For every edge \\(j\\to i\\) of \\(G\\), \\(p^0\\) does not satisfy \\(V_i\\mathbin{\\perp\\!\\!\\!\\perp}V_j\\mid V_{\\operatorname{pa}_G(i)\\setminus\\{j\\}}\\).",
+      "notes": "Threaded hypothesis and member of the `ModelStratum` class; this is the note's primary structural condition (it replaces faithfulness), so it is never discharged. Realized with `ProbabilityTheory.CondIndepFun` via `Causalean.Mathlib.CondIndep`. Search trace: grep `CausalMinimal|causal minimality|minimality` over ../Causalean → no declaration (API.md §9b `Structural Assumption Ownership` records that concrete structural assumptions are supplied by the consuming theorem); Mathlib side `ProbabilityTheory.CondIndepFun` is the primitive, used inside the definition. Build-inline. NOTE for F3: the frozen proof of `lem:analytic-edge-perturbation` supplies the equivalent squared-integral form \\(J_{ab}(\\vartheta)\\) valid under strict positivity — F2 should also emit that characterization in `Basic.lean`, since both the perturbation lemma and step (18) of `thm:exact-ratio-decoder` use it."
+    },
+    "def:model-stratum": {
+      "lean_kind": "structure",
+      "lean_name": "ModelStratum",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Basic.lean",
+      "members": [
+        "ass:positive-normalized-smooth-mechanisms",
+        "ass:causal-minimality",
+        "ass:fixed-own-derivative-sign"
+      ],
+      "notes": "One field per member, each typed by that member's named Prop `def` — no property is restated. `\\(\\Theta_{G,s}\\)` is then `{θ : Mechanism G // ModelStratum G s θ}` as a set carrying the relative product \\(C^2\\) topology (defined in S1 as the subspace topology of the finite product of sup-norm-through-order-two mechanism slots). Search trace: grep `structure .*Stratum|MechanismClass|Assumptions` over ../Causalean → the `*.Assumptions` bundles in the reuse list (e.g. `Causalean.PO.ID.Exact.ATE.Assumptions`) bundle POTENTIAL-OUTCOME conditions (unconfoundedness, overlap, consistency) on observed variables; no mechanism-space stratum exists. Build-inline."
+    },
+    "def:edge-separated-set": {
+      "lean_kind": "def",
+      "lean_name": "edgeSeparatedSet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S3",
+      "target_file": "Helpers/Kernel.lean",
+      "inputs": [
+        "def:model-stratum"
+      ],
+      "notes": "\\(\\mathcal V_{G,s,\\pi}=\\{\\theta\\in\\Theta_{G,s}: F_{\\pi^{-1}(j)\\pi^{-1}(i)}(\\theta)\\ne0\\text{ for every edge }j\\to i\\text{ of }G\\}\\); a `Set` comprehension over the finite edge set of `Causalean.DAG`. Search trace: grep `edgeSeparated|separating set|genericSet` over ../Causalean → no match; Mathlib side no candidate (a plain set-builder). Build-inline. F2 must keep the empty-graph case (`⋂` over an empty edge index) definitionally equal to \\(\\Theta_{G,s}\\), which the theorem's last clause needs."
+    },
+    "def:cover-separated-set": {
+      "lean_kind": "def",
+      "lean_name": "coverSeparatedSet",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Mathlib.Order.Cover"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S3",
+      "target_file": "Helpers/Kernel.lean",
+      "inputs": [
+        "def:model-stratum"
+      ],
+      "notes": "\\(\\mathcal U_{G,s,\\pi}=\\{\\theta\\in\\Theta_{G,s}: D_{ji}(\\theta)>0\\text{ whenever }\\pi(j)\\lessdot_G\\pi(i)\\}\\). The cover relation is `CovBy` for the strict ancestral order of `Causalean.DAG` (verified: `CovBy` in Mathlib.Order.Defs.PartialOrder, lemmas in Mathlib.Order.Cover). Search trace: grep `coverSeparated|CovBy|cover relation` over ../Causalean → no causal use of `CovBy`; Mathlib side lean_leansearch `covering relation in a partial order` → `CovBy`, `WCovBy`, `CovBy.of_lt_of_le` (reused). Build-inline; same empty-graph convention as `edgeSeparatedSet`."
+    },
+    "def:sparse-witness": {
+      "lean_kind": "def",
+      "lean_name": "sparseWitness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Helpers/Witnesses.lean",
+      "inputs": [
+        "ass:positive-normalized-smooth-mechanisms",
+        "ass:fixed-own-derivative-sign"
+      ],
+      "notes": "Fully explicit three-node construction: \\(h(z)=2z-1\\), \\(q_i(z)=4e^{4z}/(e^4-1)\\), \\(p_2(y\\mid x)=1+0.1h(x)h(y)\\), \\(p_1=p_3=1\\), with coordinate reflection \\(z\\mapsto1-z\\) applied wherever the prescribed sign is negative. F2 should factor the reflection as a reusable unit-Jacobian coordinate bijection `reflect : Sign → ℝ → ℝ`, since the frozen proofs of `prop:sparse-witness-certificate` AND `lem:analytic-edge-perturbation` both invoke `reflections preserve normalization, positivity, smoothness, faithfulness, ratio laws, and MMD values`. Search trace: grep `witness.*mechanism|exp.*4.*z|sparse witness` over ../Causalean → no match; Mathlib side `Real.exp`, `intervalIntegral` are the only pieces and they are used inside. Build-inline."
+    },
+    "def:affine-path": {
+      "lean_kind": "def",
+      "lean_name": "affinePath",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Helpers/Witnesses.lean",
+      "inputs": [
+        "def:sparse-witness"
+      ],
+      "notes": "\\(p_\\ell^t=(1-t)p_\\ell+tp_\\ell^{\\mathrm{sp}}\\), \\(q_\\ell^t=(1-t)q_\\ell+tq_\\ell^{\\mathrm{sp}}\\), with the reflected edge-specific sparse mechanism embedded in \\(G\\) for a chosen edge \\(j\\to i\\). Normalization is preserved as the affine identity \\((1-t)+t=1\\), which is why the path is the right perturbation device. Search trace: grep `affine path|interpolation.*kernel|convex combination.*density` over ../Causalean → `Stat/Minimax/MomentMatchedMixture/*` mixes measures for two-point lower bounds, a different construction; Mathlib side `AffineMap.lineMap` exists but adds nothing over a two-term convex combination. Build-inline."
+    },
+    "def:cancellation-witness": {
+      "lean_kind": "def",
+      "lean_name": "cancellationWitness",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Helpers/Witnesses.lean",
+      "inputs": [
+        "ass:positive-normalized-smooth-mechanisms",
+        "ass:fixed-own-derivative-sign"
+      ],
+      "notes": "Fully explicit: \\(q_i(z)=4e^{4z}/(e^4-1)\\), \\(p_1=p_3=1\\), \\(h(y)=2y-1\\), \\(H(x)=(e^{4x}-1)/(e^4-1)-x\\), \\(p_2(y\\mid x)=1+0.1H(x)h(y)\\), with the same coordinate reflections. The key structural identities \\(H(0)=H(1)=0\\) and \\(H'(x)=q(x)-1\\) drive the exact cancellation. Search trace: same as `def:sparse-witness` — no library candidate. Build-inline."
+    },
+    "def:population-decoder": {
+      "lean_kind": "def",
+      "lean_name": "populationDecoder",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Causalean.Mathlib.CondIndep",
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S4",
+      "target_file": "Helpers/Decoder.lean",
+      "inputs": [
+        "def:cover-separated-set"
+      ],
+      "revision_notes": "Redirect attempt 2: `populationDecoder` now accepts only an `ObservedProbabilityLawFamily`, has no external order, order certificate, feature map, candidate CDF, or parent-minimum certificate, internally selects a topological order from the Gaussian-MMD ratio graph, and returns the total triple `(H_D, (U_i), pruned DAG)` with `U_i : X → Set.Icc 0 1`. The law-only conditional-CDF selector chooses a `[0,1]`-valued continuous condDistrib version on law-derived support when one exists and otherwise retains the raw condDistrib value with the existing zero fallback (plus zero only if the raw representative unexpectedly fails its unit-interval range check). The exact-decoder conclusion now proves that the internally selected order is topological, that equation (11) is a qualifying continuous version, and uniqueness on full model support.",
+      "notes": "Returns \\((H_D,(U_i)_{i=1}^n,G^\\pi)\\) as a law-only function on observed probability-law families. The decoder selects its topological ordering internally from \\(H_D\\); every rank coordinate has codomain \\([0,1]\\). Parent pruning ranges over `Finset` subsets \\(A\\subseteq B_i\\) and selects the unique inclusion-minimal admissible set on the model domain, with a deterministic empty relation fallback outside that domain. Search trace: grep `decoder|parent pruning|Markov boundary|minimal.*conditioning set` over ../Causalean → no recovery-direction construction (API.md §4b MarkovEquiv compares two GIVEN DAGs); Mathlib side lean_leansearch `conditional distribution condDistrib` → `ProbabilityTheory.condDistrib` (reused for \\(C_i\\)). Build-inline."
+    },
+    "def:sample-split-confidence-graph": {
+      "lean_kind": "def",
+      "lean_name": "sampleSplitConfidenceGraph",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.InnerProductSpace.l2Space",
+        "Mathlib.Analysis.InnerProductSpace.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S5",
+      "target_file": "Helpers/Inference.lean",
+      "inputs": [
+        "ass:independent-environment-sampling"
+      ],
+      "notes": "Round-4 correction (decision P-D9): built on the LOCAL `UnitNormFeatureMap`/`meanEmbedding` layer of `Helpers/Kernel.lean`; `Causalean.ML.Kernel.RKHS` dropped (its `IsRKHS` gives only the reproducing identity, no mean embedding). \\(\\widehat H=\\{j\\to i:\\widehat D_{ji}-\\varepsilon_N(\\alpha,\\eta)>0\\}\\), with \\(\\widehat D_{ji}\\) the norm of the difference of the two empirical mean embeddings of \\(\\widehat R_i(X)\\) on the evaluation folds. `\\(\\widehat R_i\\)` is an ARBITRARY training-fold-measurable function (the theorem says `for arbitrary training-fold estimates`), so no estimator is constructed. Search trace: grep `confidence graph|selected graph|lower confidence bound.*edge` over ../Causalean → `PO/ID/Partial/Inference/IntervalCI.lean` builds scalar interval CIs, not a selected graph; Mathlib side no candidate. Build-inline."
+    },
+    "def:bounded-holder-subclass": {
+      "lean_kind": "structure",
+      "lean_name": "BoundedHolderSubclass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "members": [
+        "ass:bounded-holder-radius",
+        "ass:density-lower-envelope",
+        "ass:own-derivative-margin",
+        "ass:common-interior-domain",
+        "ass:bounded-shared-mixing-geometry",
+        "ass:observed-log-ratio-regularity",
+        "ass:conditional-design-envelope"
+      ],
+      "inputs": [
+        "def:model-stratum",
+        "ass:bounded-holder-radius",
+        "ass:density-lower-envelope",
+        "ass:own-derivative-margin",
+        "ass:common-interior-domain",
+        "ass:bounded-shared-mixing-geometry",
+        "ass:observed-log-ratio-regularity",
+        "ass:conditional-design-envelope"
+      ],
+      "revision_notes": "Redirect attempt 4: the canonical primary remains the exact seven-field Prop structure indexed by StratumPoint, with boundedSubclassSet as its extension. Its world parameter ranges over ModelGeneratedObservedWorld, which carries the stated shared C2 diffeomorphism and generated observational/permuted perfect-intervention laws, and its regime parameter ranges over DecoderSelectedBoundedRegime, which pins regime.order to selectedTopologicalOrder of those observed laws before any B_i-dependent member is evaluated. HolderOrderBound bounds every derivative through floor(beta), the C2 predicates include ContDiffOn C2 membership, and ConditionalDesignEnvelope existentially selects, for each law, a density version satisfying the empty-predecessor convention and the pointwise c-to-M envelope. Thus bounded-subclass membership is invariant under null-set changes to the auxiliary regime.designDensity representative.",
+      "notes": "Represent the bounded class by the exact seven-field Prop structure `BoundedHolderSubclass`, indexed by a `StratumPoint G s`; its extension is the separate untagged `boundedSubclassSet`. This preserves the core definition-class/member contract while making membership include the full model stratum. Per the note's `honest_scope`, this class must NOT appear in `thm:generic-cover-separation` or `thm:exact-ratio-decoder`; it is used only by `def:first-stage-ratio-contract`, `def:generated-rank-handle`, and `oeq:generated-rank-frontier`. Search trace: grep `Holder subclass|bounded class|smoothness class` over ../Causalean → `Stat/Concentration/Covering/*` parameterizes function classes by covering numbers, not by a Holder-plus-design-envelope bundle; Mathlib side no candidate. Build-inline."
+    },
+    "def:first-stage-ratio-contract": {
+      "lean_kind": "def",
+      "lean_name": "firstStageRatioContract",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "inputs": [
+        "def:bounded-holder-subclass",
+        "ass:independent-environment-sampling"
+      ],
+      "revision_notes": "Redirect attempt 3 forced ripple: the event includes C1 membership of fitted and true log-ratios. The contract consumes the same ModelGeneratedObservedWorld and DecoderSelectedBoundedRegime families as boundedSubclassSet, so neither unconstrained observed carriers nor arbitrary predecessor orderings enter its infimum. It takes common external N-indexed sample-size, b_N, and eta_N sequences, pins every bounded-class regime and SampleSplitWorld to those same sequences, records positivity and convergence to zero of b_N and eta_N, and requires event measurability.",
+      "notes": "Two declarations: the event \\(\\mathcal E_N^\\infty(b_N)=\\{\\max_{i\\in[n]}\\|\\log\\widehat R_i-\\log R_i\\|_{C^1(\\mathcal X)}\\le b_N\\}\\) as a `Set` of sample points, and the contract \\(\\inf_{\\theta\\in\\Theta^\\beta}\\Pr_\\theta\\{\\mathcal E_N^\\infty(b_N)\\}\\ge1-\\eta_N\\) as a `Prop`. Both are determinate; only the ESTIMATOR achieving the contract is left open, and the contract is stated as a hypothesis, never as an existence claim. Search trace: grep `first stage|nuisance rate|rate contract` over ../Causalean → `Estimation/OrthogonalMoments/*` and `Estimation/ATE/*` carry nuisance-rate hypotheses in \\(L^2\\), not a uniform \\(C^1\\) log-ratio event; Mathlib side `iteratedFDerivWithin` supplies the \\(C^1\\) norm. Build-inline."
+    },
+    "def:generated-rank-handle": {
+      "lean_kind": "def",
+      "lean_name": "generatedRankHandle",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/BoundedSubclass.lean",
+      "inputs": [
+        "def:bounded-holder-subclass",
+        "def:first-stage-ratio-contract",
+        "ass:independent-environment-sampling"
+      ],
+      "payload_kind": "descriptive-string",
+      "payload_type": "_root_.String",
+      "notes": "Per decision P-D2 this is a closed descriptive `_root_.String` payload, NOT a formal object. Rationale: the core assigns \\(\\mathfrak H_{\\mathrm{rank}}\\) the role `open-question handle` and its construction text is a proof-strategy recipe (`Adapt Xie's local-linear conditional-CDF estimator to cross-fitted log-ratio responses and covariates; decompose the second stage into the oracle conditional-CDF process, indicator boundary crossings from the generated threshold, and local-design perturbations from generated conditioning arguments, then linearize the last component with the generated-covariate expansion of Mammen, Rothe, and Schienle`), and the frozen OEQ proof states the handle `does not yet provide` a second-stage weight convention. Formalizing it as an estimator would invent the very object the note leaves undefined. The payload must record all four decomposition components and the two adapted sources verbatim, and must contain NO weight, bandwidth-selector, or influence-representation field. Search trace: grep `local linear|localLinear|conditional CDF|conditionalCdf|generated covariate|generatedRegressor` over ../Causalean → no local-polynomial conditional-distribution estimator anywhere; Mathlib side lean_leansearch `local linear regression conditional distribution estimator` → no result. Build-inline as the descriptive record."
+    },
+    "prop:sparse-witness-certificate": {
+      "lean_kind": "theorem",
+      "lean_name": "sparse_witness_certificate",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.InnerProductSpace.l2Space"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S3",
+      "target_file": "TSparseWitnessCertificate.lean",
+      "hyps": [
+        "ass:positive-normalized-smooth-mechanisms",
+        "ass:fixed-own-derivative-sign"
+      ],
+      "hyps_as_conclusion": [
+        "ass:positive-normalized-smooth-mechanisms",
+        "ass:fixed-own-derivative-sign"
+      ],
+      "notes": "Per decision P-D5 the two listed atoms are the proposition's CONCLUSIONS at the explicit witnesses (the same named Prop `def`s), not premises; the only genuine binder is the sign vector \\(s\\). Content: positivity/normalization/smoothness/faithfulness/derivative-signs of \\(\\theta^{\\mathrm{sp}}\\) and \\(\\theta^{\\mathrm{can}}\\); the certified gap \\(\\mathbb E_{P^0}[R_2^2]-\\mathbb E_{P^1}[R_2^2]>3\\times10^{-4}\\); \\(D_{12}>5\\times10^{-8}\\); and exact equality of the direct-edge ratio laws under \\(\\theta^{\\mathrm{can}}\\), hence \\(D_{12}=0\\). Every quantitative step in the frozen proof reduces to an integer comparison (`19720·10000 - 3·64304361 = 4286917`, \\(e^4>13\\), \\(e^4<55\\) via the rational tail bound \\(86203/1575\\), \\(\\binom{2m}{m}\\le4^m\\), \\(\\sum_{\\ell\\le100}(\\ell+1)=5151\\), tail \\(<10^{-15}\\)), so F3 should close them with `norm_num` on rationals and never with a floating decision procedure. Difficulty is real but entirely ungated: paper-owned, `defer_tier:false`, in scope for F2-F4. Search trace: grep `Chebyshev.*rearrangement|FKG|correlation inequality` over ../Causalean → `Stat/Coupling/ProductLossMonotoneCoupling/Hoeffding.lean` has `Stat.hoeffding_cov_identity_prod`, an analogous-module reference for the proof's step \\(\\int h(y)g(y)\\,dy=\\tfrac12\\iint(h(y)-h(z))(g(y)-g(z))\\ge0\\); gap to bridge: that decl is stated for a coupling of two \\(L^2\\) laws on \\(\\mathbb R^2\\) while the proof needs the one-dimensional monotone-rearrangement form on \\([0,1]\\) with Lebesgue measure — a short adaptation, still build-inline. Mathlib side lean_leansearch `Chebyshev sum inequality for monotone functions` → `MeasureTheory.integral_mul_le_...`/`inner_mul_le_norm_mul_norm` family; F3 may also use `Finset.inner_mul_le_norm_mul_norm`'s integral analogue."
+    },
+    "lem:analytic-edge-perturbation": {
+      "lean_kind": "lemma",
+      "lean_name": "analytic_edge_perturbation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.Analytic.IsolatedZeros",
+        "Mathlib.Analysis.Calculus.ContDiff.Defs",
+        "Causalean.Mathlib.CondIndep"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S1",
+      "target_file": "Helpers/AnalyticEdgePerturbation.lean",
+      "hyps": [
+        "def:model-stratum",
+        "ass:one-perfect-intervention-per-node"
+      ],
+      "notes": "`def:model-stratum` bundles `ass:positive-normalized-smooth-mechanisms`, `ass:causal-minimality`, and `ass:fixed-own-derivative-sign`, so all four assumption dependencies are covered. Content: the contrast identity \\(F_{ji}(\\theta^t)=\\int (q_i^t)^2(q_j^t-p_j^t)\\prod_{\\ell\\ne i,j}p_\\ell^t/p_i^t\\,dv\\), real analyticity on an open interval containing \\([0,1]\\), nonvanishing at \\(t=1\\), isolated zeros, and stratum-preserving smallness of \\(t\\). Reused engine: `AnalyticAt.eventually_eq_zero_or_eventually_ne_zero` (Mathlib.Analysis.Analytic.IsolatedZeros, verified by lean_loogle) discharges the isolated-zeros paragraph, so F3 need not reproduce the connectedness/clopen argument by hand; the geometric-series expansion of \\(1/p_i^t\\) with a uniform positive denominator bound gives the `AnalyticAt` witness. Search trace: grep `analytic|AnalyticOn|real analytic` over ../Causalean → `Stat/Minimax/MomentMatchedMixture/Analytic.lean` (analytic moment-matched mixtures) is the closest analogous module, but it works with entire generating functions on the line, not with an integral of a rational expression in an affine path parameter; gap to bridge: the uniform-denominator termwise-integration step. Mathlib side lean_loogle `AnalyticAt.eventually_eq_zero_or_eventually_ne_zero` → found, plus `AnalyticOnNhd` identity-theorem lemmas in the same module. Paper-owned, in scope, `defer_tier:false`. F2 should also expose the local-openness of causal minimality via the squared-integral functional \\(J_{ab}\\) from `Basic.lean`, since the lemma's stratum-preservation paragraph needs exactly that."
+    },
+    "thm:generic-cover-separation": {
+      "lean_kind": "theorem",
+      "lean_name": "generic_cover_separation",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Topology.Baire.Lemmas",
+        "Mathlib.Topology.Neighborhoods",
+        "Mathlib.Topology.GDelta.Basic",
+        "Mathlib.Order.Cover"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S3",
+      "target_file": "TGenericCoverSeparation.lean",
+      "hyps": [
+        "def:model-stratum"
+      ],
+      "notes": "`def:model-stratum` covers `ass:causal-minimality`. Content: \\(\\mathcal V_{G,s,\\pi}\\) is open dense in \\(\\Theta_{G,s}\\); \\(\\mathcal V\\subseteq\\mathcal U\\); \\(\\mathcal U_{G,s,\\pi}\\) is open dense and residual with closed nowhere-dense complement; both equal \\(\\Theta_{G,s}\\) for the empty graph. Reused: `Set.Finite.dense_sInter` and `Dense.inter_of_isOpen_left` (Mathlib.Topology.Baire.Lemmas / Mathlib.Topology.Neighborhoods, verified by lean_leansearch `finite intersection of dense open sets is dense open`) for the finite-edge intersection — NOTE this needs no `BaireSpace` instance on \\(\\Theta_{G,s}\\), which matters because the mechanism stratum is not obviously completely metrizable; `IsNowhereDense`, `isNowhereDense_iff_disjoint`, `IsNowhereDense.closure` (Mathlib.Topology.GDelta.Basic, verified) for the complement clause; `CovBy` (Mathlib.Order.Cover) for `an ancestral cover in a DAG is a directed edge`. The \\(\\mathcal V\\subseteq\\mathcal U\\) step uses the explicit \\(\\ell^2\\) feature expansion of S3 rather than a characteristic-kernel theorem, per decision P-D1. Paper-owned, in scope, `defer_tier:false`; the only genuinely new work is continuity of \\(\\theta\\mapsto F_{ji}\\) and \\(\\theta\\mapsto D_{ji}^2\\) under product \\(C^2\\), which is uniform convergence of explicit integrands on a fixed compact cube."
+    },
+    "thm:exact-ratio-decoder": {
+      "lean_kind": "theorem",
+      "lean_name": "exact_ratio_decoder",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Graph.DAG",
+        "Causalean.Mathlib.CondIndep",
+        "Causalean.Mathlib.CondIndep.CondExp",
+        "Mathlib.Probability.Kernel.CondDistrib",
+        "Mathlib.MeasureTheory.Measure.Map",
+        "Mathlib.Analysis.Calculus.ContDiff.Defs"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S4",
+      "target_file": "TExactRatioDecoder.lean",
+      "hyps": [
+        "ass:positive-normalized-smooth-mechanisms",
+        "ass:causal-minimality",
+        "ass:shared-diffeomorphic-mixing",
+        "ass:one-perfect-intervention-per-node",
+        "ass:fixed-own-derivative-sign",
+        "ass:faithfulness"
+      ],
+      "hyp_scope": {
+        "ass:faithfulness": "Bound ONLY on the faithful-overlap corollary `exact_ratio_decoder_faithful` in the same file (decision P-D4); the main theorem `exact_ratio_decoder` uses causal minimality alone, exactly as the frozen proof states."
+      },
+      "revision_notes": "Redirect attempt 2: preserves the attempt-1 continuous-version, support-uniqueness, pointwise equation-(11), rank, and Option-valued decoder clauses. ExactRatioDecoderComparisonClauses now also states the frozen faithful-overlap von-Kügelgen two-versus-one intervention comparison, the compact-cube/C2 versus full-R^n/C1 scope boundary, and the Wendong/Yao supplied-structure comparison via law-only graph, order, and alignment recovery. The existing proof is reused to close all added conjuncts.",
+      "local_helper_lemmas": [
+        {
+          "lean_name": "condIndep_intersection_of_pos",
+          "lean_kind": "lemma",
+          "target_file": "Helpers/CondIndepIntersection.lean",
+          "statement": "For the decoder's rank coordinates under the paper's positive smooth mechanism, shared diffeomorphic mixing, one-perfect-intervention, and fixed-own-derivative-sign hypotheses: if \\(U_i\\perp\\!\\!\\!\\perp U_b\\mid(U_Z,U_W)\\) and \\(U_i\\perp\\!\\!\\!\\perp U_W\\mid(U_Z,U_b)\\), then \\(U_i\\perp\\!\\!\\!\\perp U_b\\mid U_Z\\) and \\(U_i\\perp\\!\\!\\!\\perp(U_b,U_W)\\mid U_Z\\).",
+          "why": "Round-4 correction (decision P-D10), synchronized by F2 after type-level fidelity review. The prior plan cited a semi-graphoid INTERSECTION lemma in `Causalean.SCM.Do.SemiGraphoid` that does not exist. Intersection is not a semi-graphoid axiom; it needs strict positivity. The helper is specialized to the decoder's rank-coordinate family and threads `ass:positive-normalized-smooth-mechanisms`, `ass:shared-diffeomorphic-mixing`, `ass:one-perfect-intervention-per-node`, and `ass:fixed-own-derivative-sign`, all already present on the consuming T-block. This avoids the false over-generalization to arbitrary functions under an arbitrary observed law while adding no theorem assumption.",
+          "proof_source": "The frozen proof of this theorem gives the argument verbatim at equation (17): conditional independence yields `p⁰(vᵢ ∣ v_b, v_W, v_Z) = p⁰(vᵢ ∣ v_W, v_Z)` and `p⁰(vᵢ ∣ v_b, v_W, v_Z) = p⁰(vᵢ ∣ v_b, v_Z)` a.e.; positivity and continuity of the marginal and conditional densities extend both to every point of the product support; then for each fixed \\((v_i,v_Z)\\) the left member of `p⁰(vᵢ ∣ v_W, v_Z) = p⁰(vᵢ ∣ v_b, v_Z)` depends only on \\(v_W\\) and the right only on \\(v_b\\), and full positive product support makes both constant in those arguments.",
+          "modules": [
+            "Causalean.Mathlib.CondIndep",
+            "Mathlib.Probability.Kernel.CondDistrib"
+          ],
+          "defer_tier": false,
+          "gate": false,
+          "notes": "Local build-inline helper, NOT a core node (the plan stays one-to-one with the core: this lemma is an internal proof step of `thm:exact-ratio-decoder`, which the core atomizes as a single statement). F2 specialized it to `rankCoordinate` and threaded the consuming theorem's existing mixing/intervention/sign assumptions because positivity of the latent density alone does not imply graphoid intersection for arbitrary transformed functions under an unconstrained observed law. This is premise-threading only; the T-block signature is unchanged. A future promotion of an appropriately parameterized positivity-based lemma into `Causalean/Mathlib/CondIndep/CondExp.lean` remains non-blocking upstream debt."
+        },
+        {
+          "lean_name": "condIndep_coordSplit_prodMk",
+          "lean_kind": "lemma",
+          "target_file": "Helpers/CondIndepIntersection.lean",
+          "statement": "Measurable coordinate-pair bridge for weak union: for a finite coordinate family \\((U_c)_{c\\in[n]}\\) of measurable maps, a subset \\(S\\subseteq[n]\\), and \\(b\\in S\\), the projection \\(U_S\\) is measurably identified with the pair \\((U_b,U_{S\\setminus\\{b\\}})\\), and `MeasurableSpace.comap U_A ⊔ MeasurableSpace.comap U_{S∖{b}} = MeasurableSpace.comap U_{A ∪ (S∖{b})}`; consequently \\(U_i\\perp\\!\\!\\!\\perp U_{B_i\\setminus A}\\mid U_A\\) yields \\(U_i\\perp\\!\\!\\!\\perp U_b\\mid U_{B_i\\setminus\\{b\\}}\\).",
+          "why": "Round-5 correction (decision P-D11). Step (15) of the frozen proof is weak union, and the realizer is now the GENERIC `Causalean.condIndepFun_weak_union_of_prodMk` (Causalean/Mathlib/CondIndep/CondExp.lean:545) rather than the SCM/SWIG-typed `Causalean.SCM.Do.obsCondIndep_weak_union`, which S4 cannot instantiate. The generic lemma wants its right-hand variable as a literal `prodMk` `fun ω => (V ω, A ω)` and returns the conditioning σ-algebra as `m ⊔ MeasurableSpace.comap A`; the note writes both sides as Finset-indexed coordinate projections. This bridge is the whole gap: measurability of the finitely many coordinate maps plus `MeasurableSpace.comap` algebra. It introduces NO new assumption and NO new mathematics.",
+          "proof_source": "Purely structural: `Measurable.prodMk` / `measurable_pi_apply` for the pair, `MeasurableSpace.comap_comp` and `MeasurableSpace.generateFrom` monotonicity for the σ-algebra identification, then a direct application of `Causalean.condIndepFun_weak_union_of_prodMk` with `hm` the coordinate-comap-le witness. The `[StandardBorelSpace Ω]` and `[IsFiniteMeasure μ]` side conditions hold: the sample space is the compact cube / \\(\\mathcal X\\) with its Borel σ-algebra and \\(P^0\\) is a probability measure.",
+          "modules": [
+            "Causalean.Mathlib.CondIndep",
+            "Causalean.Mathlib.CondIndep.CondExp"
+          ],
+          "defer_tier": false,
+          "gate": false,
+          "notes": "Local build-inline helper, NOT a core node — an internal proof step of `thm:exact-ratio-decoder`, which the core atomizes as a single statement, so the plan stays one-to-one with the core. `small` and routine. Search trace: grep `weak_union|weak union` over ../Causalean → `SCM/Do/SemiGraphoid.lean` (SCM/SWIG-typed, not instantiable at S4's abstraction) and `Mathlib/CondIndep/CondExp.lean:545` `condIndepFun_weak_union_of_prodMk` (generic — REUSED); grep `coordSplit|prodMk.*comap|comap.*sup` over ../Causalean → `condIndepFun_prodMk_of_measurable_left` and `condIndepFun_contraction_of_prodMk` in the same file, useful neighbours but not this splitting; Mathlib side lean_leansearch `comap of pair measurable space equals sup of comaps` → `MeasurableSpace.comap_comp`, `Measurable.prodMk`, `measurable_pi_apply` (all reused inside the proof), no packaged coordinate-split lemma."
+        }
+      ],
+      "presentation_only": [
+        "improves the arbitrary-dimensional intervention count of von Kugelgen et al. (2023, Theorem 3.4) from two perfect interventions per node to one",
+        "does not settle the anchor's full \\(\\mathbb R^n\\), \\(C^1\\) class",
+        "recovers rather than takes as given the graph or topological order and intervention alignment (Wendong et al. 2023, Yao et al. 2025)"
+      ],
+      "notes": "Per decision P-D3 the comparison clauses above are NOT theorem conjuncts: their substance rests on the three cited comparator-scope records whose frozen carrier is `bibliographic-metadata` and which are therefore never proof premises. They stay narrative in the write-up. The formalized content is: \\(\\operatorname{TC}(H_D)=\\operatorname{TC}(G^\\pi)\\); \\(U_i=Q_{\\pi(i)}(V_{\\pi(i)})\\) or \\(1-Q_{\\pi(i)}(V_{\\pi(i)})\\) by \\(s_{\\pi(i)}\\), with the induced environment/coordinate alignment; \\(\\pi^{-1}(\\operatorname{pa}_G(\\pi(i)))\\subseteq B_i\\) for EVERY topological ordering of \\(H_D\\); the equivalence \\(U_i\\perp\\!\\!\\!\\perp_{P^0}U_{B_i\\setminus A}\\mid U_A\\iff\\pi^{-1}(\\operatorname{pa}_G(\\pi(i)))\\subseteq A\\); exact recovery of \\(G^\\pi\\) by parent pruning, ordering-independently; and uniqueness of any compatible causal-minimal representation up to simultaneous relabeling and componentwise \\(C^2\\) diffeomorphisms. The bivariate Gaussian-MMD witness clause (equations 29-30) IS a genuine mathematical conjunct and is formalized. Reused: `Causalean.DAG.isAncestor`, `DAG.isAncestor_trans`, `DAG.ancestralSet`, `DAG.topoOrder`, `DAG.isAncestor_topoOrder_lt` for the ancestral-set marginalization and the common topological order; `Causalean.Mathlib.CondIndep` for `ProbabilityTheory.CondIndepFun`; `ProbabilityTheory.condDistrib` for \\(C_i\\); `MeasureTheory.Measure.map` for the change of variables. Round-5 correction (decision P-D11) on the graphoid layer: `Causalean/SCM/Do/SemiGraphoid.lean` is now WHOLLY `bypass-justified` and `Causalean.SCM.Do.SemiGraphoid` is removed from this node's `modules`. The round-4 claim that step (15) reuses `Causalean.SCM.Do.obsCondIndep_weak_union` (SemiGraphoid.lean:249) is withdrawn: that declaration requires a `Causalean.SCM N Ω`, `Finset (SWIGNode N)` node sets constrained by `⊆ M.observed`, and `M`'s observed-variable projections, whereas this theorem's coordinates \\(U_i\\), \\(V_i\\), \\(L_i\\) are locally defined rank and log-ratio functions on \\(\\mathcal X\\) under a generic continuous-density law and the DAG is the latent \\(G\\) being recovered, so the SCM/SWIG theorem cannot be instantiated at this abstraction. Step (15) instead reuses the GENERIC `Causalean.condIndepFun_weak_union_of_prodMk` (Causalean/Mathlib/CondIndep/CondExp.lean:545, `namespace Causalean`, exported by `Causalean.Mathlib.CondIndep`; signature read 2026-09-06: `(hm : m ≤ mΩ) [StandardBorelSpace Ω] {μ} [IsFiniteMeasure μ] {W V A} (hW hV hA : Measurable …) (hCI : CondIndepFun m hm W (fun ω => (V ω, A ω)) μ) : CondIndepFun (m ⊔ MeasurableSpace.comap A inferInstance) (sup_le hm hA.comap_le) W V μ`) at `W = U_i`, `V = U_b`, `A = U_{(B_i∖A)∖{b}}`, `m = σ(U_A)`, with the small local measurable coordinate-pair bridge `condIndep_coordSplit_prodMk` recorded in `local_helper_lemmas` above. Round-4 correction (decision P-D10) on the INTERSECTION step (16)-(18), which stands: the prior plan's claimed semi-graphoid intersection lemma does not exist — the file provides decomposition/weak-union/contraction only (full declaration list re-read 2026-09-06: `ObsCondIndep` 61, `obsCondIndep_symm` 79, `condIndep_valuesProjection_symm` 90, `…_subset_right` 112, `…_decomposition` 136, `…_weak_union_axiom` 159, `…_contraction_axiom` 185, `obsCondIndep_subset_right` 215, `obsCondIndep_decomposition` 232, `obsCondIndep_weak_union` 249, `obsCondIndep_contraction` 267; grep `intersection|Intersection` over that file → 0 matches). This is expected: intersection is the one graphoid property that is not a semi-graphoid axiom and requires strict positivity. It is therefore supplied by the local lemma `condIndep_intersection_of_pos` recorded in `local_helper_lemmas` above, proved from this theorem's own `ass:positive-normalized-smooth-mechanisms` hypothesis (already in the .tex) by the frozen proof's equation-(17) argument. Neither correction adds a hypothesis and no `hyps` entry moves. Search trace: grep `Diffeomorph|unmixing|triangular transport|Knothe` over ../Causalean → 0 files, so the triangular-transport uniqueness argument (equations 21-28) is entirely new local work; Mathlib side lean_leansearch `triangular measure preserving map Knothe Rosenblatt` → no Knothe-Rosenblatt transport in Mathlib, and the note's argument is anyway self-contained (chain rule plus the nonvanishing \\(\\partial_{v_i}r_i\\)). Paper-owned, in scope, `defer_tier:false` — this is the note's headline theorem and it is NOT deferred despite its length."
+    },
+    "thm:simultaneous-confidence-edges": {
+      "lean_kind": "theorem",
+      "lean_name": "simultaneous_confidence_edges",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Analysis.InnerProductSpace.l2Space",
+        "Mathlib.Analysis.InnerProductSpace.Basic",
+        "Causalean.Graph.DAG"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S5",
+      "target_file": "TSimultaneousConfidenceEdges.lean",
+      "hyps": [
+        "ass:positive-normalized-smooth-mechanisms",
+        "ass:shared-diffeomorphic-mixing",
+        "ass:one-perfect-intervention-per-node",
+        "ass:independent-environment-sampling"
+      ],
+      "revision_notes": "Redirect attempt 7: the theorem and its statistical helpers use the canonical law-derived ratio observedLawRatio W.law i, defined from Measure.rnDeriv and ENNReal.toReal, throughout the population ratio laws, firstStageL1Event, and mean-embedding bridge. Its global measurability is proved from Measure.measurable_rnDeriv and ENNReal.measurable_toReal, so no Measurable (W.ratio i) premise is present. The finite ancestry-to-ancestralCover TransGen factorization is derived internally from the reachability partial order, so no hcoverChain premise is present. The theorem conclusion and every other premise are unchanged.",
+      "notes": "Content: the conditional simultaneous bound \\(\\Pr_{\\mathrm{eval}}\\{\\max_{j\\ne i}|\\widehat D_{ji}-D_{ji}|\\le\\varepsilon_N(\\alpha,\\eta)\\}\\ge1-\\alpha\\), the unconditional \\(1-\\alpha-\\eta\\) version by the tower property, soundness of every selected edge as a true ancestral relation in \\(G^\\pi\\), and \\(\\operatorname{TC}(\\widehat H)=\\operatorname{TC}(G^\\pi)\\) under the cover margin \\(\\min D_{ji}>2\\varepsilon_N\\). Round-4 correction (decision P-D9): the RKHS \\(\\mathcal H_k\\) of the frozen proof text is realized by the LOCAL `UnitNormFeatureMap` layer of `Helpers/Kernel.lean` (`Causalean.ML.Kernel.RKHS` dropped: `IsRKHS` supplies only `f x = ⟪f, representer x⟫`, no mean embedding and no bounded-feature concentration). The only nontrivial analytic inputs are the feature-map Lipschitz bound \\(\\|\\phi(a)-\\phi(b)\\|^2=2(1-e^{-(a-b)^2})\\le2(a-b)^2\\) (immediate from `Real.add_one_le_exp`) and Jensen for the Bochner integral. The two-sided \\(|\\widehat D-D|\\) step is the reverse triangle inequality `abs_norm_sub_norm_le`. The non-ancestor calculation is imported from `thm:exact-ratio-decoder` equations (2)-(4), so F2 should factor that step as its own named lemma in `TExactRatioDecoder.lean` and reuse it here. Paper-owned, in scope, `defer_tier:false`. Search trace: grep `MMD|two-sample|mean embedding` over ../Causalean → nothing beyond `Causalean.ML.IsRKHS`; Mathlib side lean_leansearch `maximum mean discrepancy kernel two sample` → no result. Build-inline."
+    },
+    "lem:bounded-rkhs-empirical-mean": {
+      "lean_kind": "lemma",
+      "lean_name": "bounded_rkhs_empirical_mean",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Concentration.TailBounds.McDiarmid",
+        "FoML.McDiarmid",
+        "Mathlib.Analysis.InnerProductSpace.l2Space",
+        "Mathlib.Analysis.InnerProductSpace.Basic",
+        "Causalean.Mathlib.Indep"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S5",
+      "target_file": "Helpers/RkhsEmpiricalMean.lean",
+      "hyps": [
+        "ass:independent-environment-sampling"
+      ],
+      "local_kernel_interface": "UnitNormFeatureMap (Helpers/Kernel.lean, S3): a map `Φ : ℝ → H` into a real inner-product space with `‖Φ r‖ = 1` and `⟪Φ a, Φ b⟫ = k a b`, together with `meanEmbedding` (Bochner integral of `Φ`). Defined locally; NOT `Causalean.ML.IsRKHS`.",
+      "notes": "Round-4 correction (decision P-D9): the `Causalean.ML.IsRKHS` reuse claim is DROPPED — it is not the realizer of this bound. `Causalean.ML.IsRKHS` (../Causalean/ML/Kernel/RKHS.lean:22, re-read 2026-09-06) is a one-field `structure` whose only field is `reproducing : ∀ (f : H) (x : X), feval f x = inner ℝ f (representer x)`; it exposes no mean embedding, no unit-norm feature bound `‖Φ r‖ = 1`, and no bounded-feature concentration interface, so nothing in this lemma's statement or proof can be discharged through it and `stating the lemma against it` would be a partial fit dressed as reuse. The lemma is instead stated over the LOCAL `UnitNormFeatureMap` interface defined in `Helpers/Kernel.lean` (S3) — an arbitrary real inner-product space `H` with a feature map `Φ : ℝ → H` satisfying `‖Φ r‖ = 1` and `⟪Φ a, Φ b⟫ = k a b` — which the concrete `lp (fun _ : ℕ => ℝ) 2` map of decision P-D1 instantiates. Content unchanged: simultaneous bound \\(\\max_{i,e}\\|\\widehat\\mu_{ie}-\\widetilde\\mu_{ie}\\|\\le(1+\\sqrt{2\\log(n(n+1)/\\alpha)})/\\sqrt{\\min_a N_a}\\) with conditional probability at least \\(1-\\alpha\\). Reused engine: `mcdiarmid_inequality_pos` (third_party/lean-rademacher/FoML/McDiarmid.lean:937; signature `(X : ι → Ω → 𝓧) (hX : ∀ i, Measurable (X i)) (hX' : iIndepFun X μ) {f : (ι → 𝓧) → ℝ} {c : ι → ℝ} (hf : ∀ i x x', |f x - f (Function.update x i x')| ≤ c i)`), re-exported by `Causalean.Stat.Concentration.TailBounds.McDiarmid`; it replaces the frozen proof's hand-rolled Doob-martingale Hoeffding chain (equations 24-25) verbatim. Remaining new work: \\(\\mathbb EZ\\le m^{-1/2}\\) by orthogonality of centered independent Hilbert-valued summands, and a `Finset` union bound over the \\(n(n+1)\\) pairs. Search trace: lean_local_search `mcdiarmid` → `mcdiarmid_inequality_pos/neg/pos'/aux` (FoML); glob ../Causalean/Stat/Concentration/*.lean → `TailBounds/McDiarmid.lean`, `UniformDeviation/BoundedDifference.lean` (thin re-exports); grep `Hilbert.*empirical mean|Bochner.*concentration` over ../Causalean → no Hilbert-valued empirical-mean deviation bound; grep `IsRKHS|meanEmbedding|MMD|mmd|representer` over ../Causalean/ML/Kernel/RKHS.lean → only the single `IsRKHS.reproducing` field (this is the round-4 bypass justification, re-verified by reading the file); Mathlib side lean_leansearch `concentration of Hilbert space valued empirical mean` and `kernel mean embedding maximum mean discrepancy` → no result. `small` and routine, so build-inline, `defer_tier:false`."
+    },
+    "oeq:generated-rank-frontier": {
+      "lean_kind": "def",
+      "lean_name": "generatedRankFrontierQuestion",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": false,
+      "gate": false,
+      "env": "S6",
+      "target_file": "Helpers/OpenQuestions.lean",
+      "oeq_case": "B",
+      "payload_kind": "descriptive-string",
+      "payload_type": "_root_.String",
+      "stated_regime_assumptions": [
+        "ass:shared-diffeomorphic-mixing",
+        "ass:one-perfect-intervention-per-node",
+        "ass:fixed-own-derivative-sign",
+        "ass:independent-environment-sampling"
+      ],
+      "stated_regime_encoding": "Round-3 correction: this node carries NO `hyps` key. Its `lean_kind` is `def` (OEQ case B), and a `def` has no hypothesis binders, so `hyps` was structurally inapplicable here. The four core `depends_on` assumption ids above are recorded in `stated_regime_assumptions` for provenance ONLY and are realized as prose clauses INSIDE the closed `_root_.String` payload — the question's stated regime — never as Lean binders and never as proof premises. Nothing downstream is weakened: each of these four atoms is threaded as a real hypothesis by its genuine logical consumers (`thm:exact-ratio-decoder`, `thm:simultaneous-confidence-edges`, `lem:analytic-edge-perturbation`, `lem:bounded-rkhs-empirical-mean`), so every assumption dependency remains covered where it is actually used. The remaining `depends_on` entries of this node (`def:bounded-holder-subclass`, `def:first-stage-ratio-contract`, `def:generated-rank-handle`, `thm:exact-ratio-decoder`) are definitions/statements, which are USED not assumed, and are likewise named only inside the payload prose.",
+      "notes": "OEQ case (B) per decision P-D2, read from the frozen node text: the second clause asks to `characterize the weakest sufficient first-stage remainder bound`, and the frozen proof text says outright `A claim that this condition is weakest requires a precisely stated influence representation and second-stage weight convention, which the frozen handle does not yet provide`; moreover \\(\\widehat U_i\\) is typed in the core as an `open statistical construction` and \\(\\mathfrak H_{\\mathrm{rank}}\\) as an `open-question handle`. The truth-condition is therefore undefined and a nonassertive carrier is prescribed. The `String` payload must record: the first-stage contract \\(\\inf_\\theta\\Pr_\\theta\\{\\mathcal E_N^\\infty(b_N)\\}\\ge1-\\eta_N\\); the bandwidth regime \\(h_N\\to0\\), \\(b_N=o(h_N)\\), \\(\\underline Nh_N^{d_\\star}/\\log\\underline N\\to\\infty\\); the rate target \\(r_N=h_N^2+\\sqrt{\\log(\\underline N)/(\\underline Nh_N^{d_\\star})}+b_N/h_N\\); the four requested expansion components (threshold crossings, generated-conditioning perturbations, oracle conditional-CDF variance, smoothing bias); and the explicit disclaimers that neither attainment nor sharpness of the rate nor the required first-stage remainder is asserted. It must contain NO selector, procedure, rate-witness, confidence, or lower-bound field, and must NOT be `PUnit`/`Unit`/`True` or an empty tag: the payload changes when the question changes. `defer_tier:false`, excluded from any theorems manifest, and no delivered theorem depends on it. Round-3 correction: the node no longer carries a `hyps` key — see `stated_regime_encoding` above; the four assumption ids moved to `stated_regime_assumptions` (provenance only) and live as prose regime clauses inside the payload, which is what a binder-free descriptive `def` supports. Search trace: grep `local linear|conditional CDF|generated covariate` over ../Causalean → nothing; Mathlib side lean_leansearch `uniform rate local linear conditional distribution function estimator` → no result. This absence is context, not the reason for the encoding — the encoding follows the node's own nonassertion."
+    },
+    "lem:cauca-comparator-scope": {
+      "lean_kind": "def",
+      "lean_name": "caucaComparatorScope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "citation": "cite:wendong-2023-cauca",
+      "env": "S2",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "payload_kind": "bibliographic-metadata",
+      "payload_type": "_root_.String",
+      "source": "cite:wendong-2023-cauca",
+      "source_record": {
+        "cite": "WendongEtAl2023CauCA",
+        "locator": "Definition 3.2, Theorem 4.2, and Appendix E.2",
+        "carrier": "bibliographic-metadata",
+        "url": "https://papers.nips.cc/paper_files/paper/2023/file/67089958e98b243d5cc1881ad60418b8-Paper-Conference.pdf",
+        "verbatim_statement": "The graph G is assumed to be known. Further, we assume that the intervention targets τ_k are observed. We say (G, F, P_G) has known intervention targets if all its elements share the same G and (τ_k)_{k∈⟦0,K⟧}. Theorem 4.2(ii): Suppose for each node i in [d], there is one perfect stochastic intervention that satisfies Asm. 4.1. Then CauCA in (G, F, P_G) is identifiable up to S_scaling.",
+        "attestation": {
+          "by": "main",
+          "note": "Main verified the primary NeurIPS 2023 PDF at Definition 3.2, Theorem 4.2(ii), and Appendix E.2 on 2026-09-06; transcription combines the exact scope and theorem sentences with notation normalized from PDF extraction.",
+          "at": "2026-09-06T17:13:02.275Z"
+        }
+      },
+      "notes": "Frozen `status:\"cited\"` node with frozen `source.carrier:\"bibliographic-metadata\"`. Encoded as a direct literal `_root_.String` payload recording the source-supported scope clauses exactly (graph known, intervention targets observed, one perfect stochastic intervention per node, identifiability up to S_scaling) plus the locator and URL. NEVER threaded into any consumer's `hyps`, never used as a proof premise, never supplemented with a `Prop`. `thm:exact-ratio-decoder` lists it in `depends_on` only because its narrative comparison clause quotes it; per decision P-D3 that clause is presentation-only. F2 must use the fully qualified `_root_.String`, not an unqualified carrier name, `Sort`, `Prop`, a type alias, or a helper-defined payload. Search trace (gate justification): this is a published third-party scope fact about another paper's assumptions, not a mathematical claim of this note; nothing to build. grep `CauCA|Wendong` over ../Causalean → no match."
+    },
+    "lem:von-kugelgen-comparator-scope": {
+      "lean_kind": "def",
+      "lean_name": "vonKugelgenComparatorScope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "citation": "cite:von-kugelgen-2023-unknown-interventions",
+      "env": "S2",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "payload_kind": "bibliographic-metadata",
+      "payload_type": "_root_.String",
+      "source": "cite:von-kugelgen-2023-unknown-interventions",
+      "source_record": {
+        "cite": "vonKugelgenEtAl2023UnknownInterventions",
+        "locator": "Theorems 3.2 and 3.4; Section 7, paragraph entitled `Identifiability From One Intervention per Node for Any n'",
+        "carrier": "bibliographic-metadata",
+        "url": "https://papers.nips.cc/paper_files/paper/2023/file/97fe251c25b6f99a2a23b330a75b11d4-Paper-Conference.pdf",
+        "verbatim_statement": "Theorem 3.2 (Bivariate identifiability up to ∼CRL from one perfect stochastic intervention per node). (A2) we have access to a known observational environment e₀ and one single node perfect intervention for each node, with unknown targets. (A4) (“genericity”) the base and intervened mechanisms are not fine-tuned to each other, in the sense that there exists a continuous function φ. Theorem 3.4 (Identifiability up to ∼CRL from two paired perfect stochastic interventions per node). Identifiability From One Intervention per Node for Any n. We conjecture that Thm. 3.2 can be generalized to n > 2, subject to a suitably adjusted set of genericity conditions.",
+        "attestation": {
+          "by": "main",
+          "note": "Main verified the primary NeurIPS 2023 PDF at Theorems 3.2 and 3.4 and the Section 7 discussion on 2026-09-06; transcription combines the exact headings and scope sentences with notation normalized from PDF extraction.",
+          "at": "2026-09-06T17:13:14.667Z"
+        }
+      },
+      "notes": "Frozen cited node with frozen `bibliographic-metadata` carrier. Direct literal `_root_.String` payload recording the anchor's bivariate one-intervention theorem, its arbitrary-dimensional paired-intervention theorem, and its Section 7 CONJECTURE that the one-intervention extension holds for \\(n>2\\). This is a genuinely published, exactly source-matched scope record about another paper and stays cited even though this note's headline invokes it in a comparison clause. Never threaded into `hyps`, never a proof premise, never supplemented with a `Prop`. Search trace (gate justification): a scope statement about a third-party paper's hypotheses and open conjecture is not a truth-valued claim this note proves; grep `Kugelgen` over ../Causalean → no match."
+    },
+    "lem:yao-comparator-scope": {
+      "lean_kind": "def",
+      "lean_name": "yaoComparatorScope",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [],
+      "defer_tier": true,
+      "gate": true,
+      "gate_class": "cited",
+      "citation": "cite:yao-2025-invariance-principle",
+      "env": "S2",
+      "target_file": "Helpers/CitedGates.lean",
+      "hyps": [],
+      "payload_kind": "bibliographic-metadata",
+      "payload_type": "_root_.String",
+      "source": "cite:yao-2025-invariance-principle",
+      "source_record": {
+        "cite": "YaoEtAl2025InvariancePrinciple",
+        "locator": "Assumption D.1, Corollary D.1, and the immediately following remark",
+        "carrier": "bibliographic-metadata",
+        "arxiv": "2409.02772v2",
+        "url": "https://arxiv.org/abs/2409.02772v2",
+        "verbatim_statement": "Assumption D.1 (Topologically ordered interventional targets). We assume there are exactly N environments {k₁, …, k_N} where each node j ∈ [N] undergoes one imperfect intervention in environment k_j. The interventional targets 1 ⪯ · · · ⪯ N preserve the topological order. We believe that identifying the topological order is another subproblem orthogonal to identifying the latent variables. Corollary D.1 (Identifiability from single node imperfect intervention per node). Given N environments satisfying Asm. D.1, the ground truth latent variables z can be identified up to element-wise diffeomorphism by combining both marginal and score invariances under our framework.",
+        "attestation": {
+          "by": "main",
+          "note": "Main verified arXiv 2409.02772v2 at Assumption D.1, its immediately following remark, and Corollary D.1 on 2026-09-06; transcription combines the exact scope and conclusion sentences with notation normalized from PDF extraction.",
+          "at": "2026-09-06T17:13:26.566Z"
+        }
+      },
+      "notes": "Frozen cited node with frozen `bibliographic-metadata` carrier. Direct literal `_root_.String` payload recording that the comparator SUPPLIES a topologically ordered target assignment and explicitly treats recovery of that order as a separate subproblem. Never threaded into `hyps`, never a proof premise, never supplemented with a `Prop`. Search trace (gate justification): a third-party scope record, not a mathematical claim; grep `Yao|invariance principle` over ../Causalean → no match."
+    }
+  },
+  "file_plan": [
+    {
+      "file": "Basic.lean",
+      "contents": "S1 + S2 worlds: `Fin n` vertex type with `Causalean.DAG`, the mechanism record and its product \\(C^2\\) topology, \\(p^0\\), \\(p^i\\), the mixing map interface, \\(P^e\\), \\(\\pi\\), \\(G^\\pi\\), \\(R_i\\), \\(L_i\\), the latent d-separation relation; the six population-layer assumption Props (`PositiveNormalizedSmoothMechanisms`, `CausalMinimality`, `FixedOwnDerivativeSign`, `Faithfulness`, `SharedDiffeomorphicMixing`, `OnePerfectInterventionPerNode`), the `J_{ab}` squared-integral characterization of causal minimality, and the `ModelStratum` structure.",
+      "projected_lines": 520,
+      "substrate_record": "reuse: Causalean.Graph.DAG. bypass-justified vs Causalean.SCM.ID.*, Causalean.PO.*, Causalean.SCM.Do.*, Causalean.Graph.SWIG — all model observed-variable interventions under a known diagram; the latent DAG plus shared diffeomorphic mixing has no analogue in the library (grep over ../Causalean returned 0 files for `Diffeomorph|mixing map|unmixing|latent representation`)."
+    },
+    {
+      "file": "Helpers/Kernel.lean",
+      "contents": "S3: the Gaussian kernel \\(k\\), the LOCAL `UnitNormFeatureMap` interface (real inner-product space `H`, `Φ : ℝ → H`, `‖Φ r‖ = 1`, `⟪Φ a, Φ b⟫ = k a b`), the explicit \\(\\ell^2\\) instance \\(\\Phi(r)=(\\sqrt{2^m/m!}e^{-r^2}r^m)_{m\\ge0}\\) into `lp (fun _ : ℕ => ℝ) 2`, `meanEmbedding` as the Bochner integral of \\(\\Phi\\), \\(D_{ji}\\), \\(F_{ji}\\), \\(H_D\\), `edgeSeparatedSet`, `coverSeparatedSet`, and the ancestral cover relation via `CovBy`.",
+      "projected_lines": 470,
+      "substrate_record": "reuse: Mathlib.Analysis.InnerProductSpace.l2Space, Mathlib.Analysis.InnerProductSpace.Basic, Mathlib.Order.Cover. bypass-justified vs Causalean.ML.Kernel.RKHS (round-4, decision P-D9): IsRKHS supplies only the reproducing identity f x = ⟪f, representer x⟫; no mean-embedding or bounded-feature concentration interface — so the feature map, the mean embedding, and the MMD are all defined here. bypass-justified vs any MMD module: none exists in Causalean or Mathlib."
+    },
+    {
+      "file": "Helpers/Witnesses.lean",
+      "contents": "`sparseWitness`, `cancellationWitness`, `affinePath`, the reflection bijection, and the shared elementary facts \\(\\int_0^1q=1\\), \\(\\int_0^1h=0\\), \\(9/10\\le p_2\\le11/10\\), \\(H(0)=H(1)=0\\), \\(H'=q-1\\), \\(e^4>13\\), \\(e^4<55\\).",
+      "projected_lines": 460,
+      "substrate_record": "bypass-justified: fully explicit elementary constructions; no library analogue (grep `witness.*mechanism|sparse witness` over ../Causalean → no match)."
+    },
+    {
+      "file": "Helpers/Decoder.lean",
+      "contents": "S4: the law-only probability-family decoder, its internally selected topological order and predecessor sets \\(B_i\\), the continuous conditional-CDF version selector \\(C_i\\) with raw `ProbabilityTheory.condDistrib` fallback, `[0,1]`-valued ranks \\(U_i\\), and parent-pruned `populationDecoder` output.",
+      "projected_lines": 430,
+      "substrate_record": "reuse: Mathlib.Probability.Kernel.CondDistrib, Causalean.Mathlib.CondIndep (including `Causalean.condIndepFun_weak_union_of_prodMk`, CondIndep/CondExp.lean:545), Causalean.Graph.DAG. bypass-justified vs Causalean.SCM.Do.SemiGraphoid ENTIRELY (round-5, decision P-D11): every declaration there is SCM/SWIG-typed (`Causalean.SCM N Ω`, `Finset (SWIGNode N)`, observed-variable projections) and cannot be instantiated by this file's locally defined rank/log-ratio coordinates under a generic density law — weak union comes from the generic `Causalean.Mathlib.CondIndep` lemma plus the local `condIndep_coordSplit_prodMk` bridge, and the intersection step from the local `condIndep_intersection_of_pos` (round-4, decision P-D10). bypass-justified vs Causalean.Graph.MarkovEquiv.* — compares two GIVEN DAGs rather than recovering one."
+    },
+    {
+      "file": "Helpers/CondIndepIntersection.lean",
+      "contents": "The two local graphoid helpers of `thm:exact-ratio-decoder`. (i) `condIndep_intersection_of_pos` (round-4, decision P-D10): the conditional-independence INTERSECTION property specialized to the decoder's rank-coordinate family. It threads the consuming theorem's existing positive-smooth-mechanism, shared-mixing, one-perfect-intervention, and fixed-sign hypotheses, avoiding the invalid stronger claim for arbitrary functions under an arbitrary observed law; no T-block assumption is added. (ii) `condIndep_coordSplit_prodMk` (round-5, decision P-D11): the measurable coordinate-pair bridge that lets step (15) apply the generic `Causalean.condIndepFun_weak_union_of_prodMk` — it presents the Finset-indexed projection \\(U_{B_i\\setminus A}\\) as the pair \\((U_b,U_{(B_i\\setminus A)\\setminus\\{b\\}})\\) and identifies `MeasurableSpace.comap U_A ⊔ MeasurableSpace.comap U_{(B_i∖A)∖{b}}` with `MeasurableSpace.comap U_{B_i∖{b}}`. Purely structural (`Measurable.prodMk`, `measurable_pi_apply`, `MeasurableSpace.comap_comp`); no new assumption and no new mathematics.",
+      "projected_lines": 340,
+      "substrate_record": "reuse: `Causalean.condIndepFun_weak_union_of_prodMk` (Causalean/Mathlib/CondIndep/CondExp.lean:545) as the weak-union engine, plus Causalean.Mathlib.CondIndep and Mathlib.Probability.Kernel.CondDistrib inside the proofs. bypass-justified vs Causalean.SCM.Do.SemiGraphoid ENTIRELY (round-5, decision P-D11): its weak-union theorem is SCM/SWIG-typed (`Causalean.SCM N Ω`, `Finset (SWIGNode N)`, `⊆ M.observed`, observed-variable projections) and cannot be instantiated by locally defined rank coordinates under a generic density law; and the file has no INTERSECTION lemma at all (declarations re-read 2026-09-06; grep `intersection` → 0 matches), correctly so, since intersection is not a semi-graphoid axiom — it needs strict positivity. Mathlib side lean_leansearch `conditional independence intersection property strictly positive density` (run 2026-09-06) → only `ProbabilityTheory.CondIndepSets.inter`/`.iInter`/`.bInter`/`condIndepSet_iff`/`cond_iInter`; `CondIndepSets.inter` intersects set FAMILIES on one side of a fixed conditional independence and is not the graphoid intersection property, so `ProbabilityTheory.CondIndepFun` exists but there is no graphoid-axiom layer and no positivity-based intersection lemma; lean_leansearch `comap of pair measurable space equals sup of comaps` → `MeasurableSpace.comap_comp`, `Measurable.prodMk`, `measurable_pi_apply`, all reused inside the bridge."
+    },
+    {
+      "file": "Helpers/Inference.lean",
+      "contents": "S5: \\(N_e\\), \\(\\underline N\\), the evaluation/training fold split, `IndependentEnvironmentSampling`, \\(\\widehat R_i\\) as an arbitrary training-measurable function, \\(\\widehat D_{ji}\\), \\(\\varepsilon_N(\\alpha,\\eta)\\), and `sampleSplitConfidenceGraph`.",
+      "projected_lines": 330,
+      "substrate_record": "reuse: Causalean.Mathlib.Indep, Mathlib.Analysis.InnerProductSpace.l2Space; the local `UnitNormFeatureMap`/`meanEmbedding` layer of Helpers/Kernel.lean. bypass-justified vs Causalean.ML.Kernel.RKHS (round-4, decision P-D9): IsRKHS supplies only the reproducing identity, no mean embedding."
+    },
+    {
+      "file": "Helpers/RkhsEmpiricalMean.lean",
+      "contents": "`bounded_rkhs_empirical_mean` stated over the LOCAL `UnitNormFeatureMap` interface of Helpers/Kernel.lean (an arbitrary real inner-product space with a unit-norm feature map), instantiated at the `lp 2` Gaussian map.",
+      "projected_lines": 260,
+      "substrate_record": "reuse: `mcdiarmid_inequality_pos` via Causalean.Stat.Concentration.TailBounds.McDiarmid / FoML.McDiarmid; Causalean.Mathlib.Indep. bypass-justified vs Causalean.ML.Kernel.RKHS (round-4, decision P-D9): IsRKHS supplies only the reproducing identity f x = ⟪f, representer x⟫; no mean-embedding or bounded-feature concentration interface, so it cannot realize this bound."
+    },
+    {
+      "file": "Helpers/BoundedSubclass.lean",
+      "contents": "S6: \\(\\beta,c,M,\\rho,K,\\mathcal Z_i(K),g_i,d_\\star,b_N,\\eta_N,h_N,r_N\\); the seven bounded-subclass assumption Props; `BoundedHolderSubclass`; \\(\\mathcal E_N^\\infty(b_N)\\) and `firstStageRatioContract`; and the descriptive `generatedRankHandle` payload.",
+      "projected_lines": 480,
+      "substrate_record": "bypass-justified: no Holder-plus-design-envelope class and no local-polynomial conditional-distribution estimator exist in Causalean or Mathlib."
+    },
+    {
+      "file": "Helpers/OpenQuestions.lean",
+      "contents": "`generatedRankFrontierQuestion`, the closed descriptive `_root_.String` payload for the OEQ.",
+      "projected_lines": 90,
+      "substrate_record": "n/a — nonassertive record."
+    },
+    {
+      "file": "Helpers/CitedGates.lean",
+      "contents": "`caucaComparatorScope`, `vonKugelgenComparatorScope`, `yaoComparatorScope`: three direct-literal `_root_.String` bibliographic-metadata payloads.",
+      "projected_lines": 120,
+      "substrate_record": "n/a — frozen cited records, never proof premises."
+    },
+    {
+      "file": "Helpers/AnalyticEdgePerturbation.lean",
+      "contents": "`analytic_edge_perturbation`: the contrast identity, real analyticity on an open interval containing \\([0,1]\\), the endpoint value from `sparse_witness_certificate`, isolated zeros, and stratum preservation for small \\(t\\) (normalization, positivity, smoothness, sign margins, local openness of causal minimality).",
+      "projected_lines": 700,
+      "substrate_record": "reuse: Mathlib.Analysis.Analytic.IsolatedZeros (`AnalyticAt.eventually_eq_zero_or_eventually_ne_zero`). analogous-module reference: Causalean/Stat/Minimax/MomentMatchedMixture/Analytic.lean."
+    },
+    {
+      "file": "TSparseWitnessCertificate.lean",
+      "contents": "`sparse_witness_certificate`.",
+      "projected_lines": 620,
+      "substrate_record": "analogous-module reference: Causalean/Stat/Coupling/ProductLossMonotoneCoupling/Hoeffding.lean (`Stat.hoeffding_cov_identity_prod`) for the monotone-rearrangement step; gap: coupling form on \\(\\mathbb R^2\\) vs. one-dimensional Lebesgue form."
+    },
+    {
+      "file": "TGenericCoverSeparation.lean",
+      "contents": "`generic_cover_separation`.",
+      "projected_lines": 480,
+      "substrate_record": "reuse: Mathlib.Topology.Baire.Lemmas (`Set.Finite.dense_sInter`), Mathlib.Topology.Neighborhoods (`Dense.inter_of_isOpen_left`), Mathlib.Topology.GDelta.Basic (`IsNowhereDense`)."
+    },
+    {
+      "file": "TExactRatioDecoder.lean",
+      "contents": "`exact_ratio_decoder` (causal-minimal), the reusable non-ancestor lemma (equations 2-4), the bivariate Gaussian-MMD witness clause, and `exact_ratio_decoder_faithful` (the faithfulness corollary of decision P-D4). Both graphoid steps are imported from `Helpers/CondIndepIntersection.lean`: the weak-union step (15) via `condIndep_coordSplit_prodMk` over the generic `Causalean.condIndepFun_weak_union_of_prodMk`, and the intersection step (16)-(18) via `condIndep_intersection_of_pos`.",
+      "projected_lines": 860,
+      "substrate_record": "reuse: Causalean.Graph.DAG, Causalean.Mathlib.CondIndep (including `Causalean.condIndepFun_weak_union_of_prodMk`, CondIndep/CondExp.lean:545, as the weak-union engine for step (15)), Mathlib.Probability.Kernel.CondDistrib, Mathlib.MeasureTheory.Measure.Map. bypass-justified vs Causalean.SCM.Do.SemiGraphoid ENTIRELY (round-5, decision P-D11): `obsCondIndep_weak_union` (SemiGraphoid.lean:249) requires a `Causalean.SCM N Ω`, SWIG-node `Finset`s, and observed-variable projections, none of which this theorem has — its rank coordinates are locally defined under a generic continuous density law and its DAG is the latent one being recovered — so the round-4 partial-reuse claim is withdrawn; the intersection property is absent from that file in any case and comes from the local `condIndep_intersection_of_pos` (round-4, decision P-D10). F2 may split the uniqueness half (equations 20-28) into `Helpers/TriangularTransport.lean` if the file exceeds ~900 lines; it is an independent proof chain."
+    },
+    {
+      "file": "TSimultaneousConfidenceEdges.lean",
+      "contents": "`simultaneous_confidence_edges`.",
+      "projected_lines": 400,
+      "substrate_record": "reuse: `bounded_rkhs_empirical_mean` from Helpers/RkhsEmpiricalMean.lean and the non-ancestor lemma from TExactRatioDecoder.lean."
+    }
+  ],
+  "infrastructure_needed": [
+    {
+      "id": "lem:cauca-comparator-scope",
+      "kind": "causalsmith-helper",
+      "description": "Frozen cited bibliographic-metadata record of Wendong et al. (2023) CauCA scope (Definition 3.2, Theorem 4.2, Appendix E.2); realized as a closed `_root_.String` payload with no proof obligation and never threaded into any consumer.",
+      "effort": "small"
+    },
+    {
+      "id": "lem:von-kugelgen-comparator-scope",
+      "kind": "causalsmith-helper",
+      "description": "Frozen cited bibliographic-metadata record of von Kugelgen et al. (2023) Theorems 3.2/3.4 and the Section 7 one-intervention conjecture; realized as a closed `_root_.String` payload with no proof obligation and never threaded into any consumer.",
+      "effort": "small"
+    },
+    {
+      "id": "lem:yao-comparator-scope",
+      "kind": "causalsmith-helper",
+      "description": "Frozen cited bibliographic-metadata record of Yao et al. (2025) Assumption D.1 / Corollary D.1 and the ordering remark; realized as a closed `_root_.String` payload with no proof obligation and never threaded into any consumer.",
+      "effort": "small"
+    }
+  ],
+  "non_blocking_upstream_debt": [
+    {
+      "id": "upstream:mmd-in-causalean",
+      "description": "Causalean/ML/Kernel/RKHS.lean contains only `Causalean.ML.IsRKHS`, a one-field structure carrying the reproducing identity `f x = ⟪f, representer x⟫` — no unit-norm feature-map interface, no kernel mean embedding, no MMD, no characteristic-kernel theorem, and no bounded-feature concentration. That is why round-4 decision P-D9 makes the whole kernel layer local here: this note builds `UnitNormFeatureMap`, `meanEmbedding`, the explicit \\(\\ell^2\\) Gaussian feature map, and MMD in `Helpers/Kernel.lean`. A future promotion of that layer into `Causalean/ML/Kernel/` would be reused by any later kernel two-sample work. Not blocking: nothing here is deferred on it.",
+      "effort": "medium"
+    },
+    {
+      "id": "upstream:condindep-intersection-in-semigraphoid",
+      "description": "The generic measure-level graphoid layer in `Causalean/Mathlib/CondIndep/CondExp.lean` has weak union (`condIndepFun_weak_union_of_prodMk`, line 545), left extension, and contraction, but no INTERSECTION property — correctly, since intersection is not a semi-graphoid axiom and requires strict positivity. It also has no packaged coordinate-pair splitting lemma for Finset-indexed coordinate families. This note proves `condIndep_intersection_of_pos` (round-4, decision P-D10) and the bridge `condIndep_coordSplit_prodMk` (round-5, decision P-D11) locally, the first from its own positive-density assumption and the second from `MeasurableSpace.comap` algebra. Promoting both into `Causalean/Mathlib/CondIndep/CondExp.lean` would complete the generic graphoid layer for later work; note that the SCM/SWIG-typed `Causalean/SCM/Do/SemiGraphoid.lean` is NOT the right home, since it is not instantiable outside a `Causalean.SCM`. Not blocking: both lemmas are proved in scope here and add no assumption.",
+      "effort": "small"
+    },
+    {
+      "id": "upstream:hilbert-empirical-mean-deviation",
+      "description": "`lem:bounded-rkhs-empirical-mean` is a general fact (unit-norm Hilbert-valued i.i.d. empirical mean deviation via McDiarmid) with no causal content; it is a natural promotion target for `Causalean/Stat/Concentration/`. Not blocking: it is proved in scope here.",
+      "effort": "small"
+    }
+  ],
+  "feasibility_notes": "Round-5 revision (decision P-D11) corrects ONE reuse claim — the weak-union realizer in S4 / `thm:exact-ratio-decoder` — and nothing else; every other node's disposition, kind, members, hyps, defer_tier, gate, and target_file are unchanged, as are the round-4 corrections below. The flagged claim was `Causalean.SCM.Do.obsCondIndep_weak_union` (Causalean/SCM/Do/SemiGraphoid.lean:249), which requires a `Causalean.SCM N Ω`, `Finset (SWIGNode N)` node sets constrained by `⊆ M.observed`, and `M`'s observed-variable projections; S4 has none of these — its coordinates \\(U_i\\), \\(V_i\\), \\(L_i\\) are locally defined rank and log-ratio functions on \\(\\mathcal X\\) under a generic continuous-density law, and the DAG is the latent \\(G\\) being recovered rather than a known SWIG diagram — so that theorem is not instantiable and the claim is withdrawn. `Causalean/SCM/Do/SemiGraphoid.lean` is now WHOLLY `bypass-justified`, and step (15) reuses the GENERIC `Causalean.condIndepFun_weak_union_of_prodMk` (Causalean/Mathlib/CondIndep/CondExp.lean:545, `namespace Causalean`, exported by `Causalean.Mathlib.CondIndep`; signature read 2026-09-06: `(hm : m ≤ mΩ) [StandardBorelSpace Ω] {μ} [IsFiniteMeasure μ] {W : Ω → α} {V : Ω → β} {A : Ω → γ} (hW : Measurable W) (hV : Measurable V) (hA : Measurable A) (hCI : CondIndepFun m hm W (fun ω => (V ω, A ω)) μ) : CondIndepFun (m ⊔ MeasurableSpace.comap A inferInstance) (sup_le hm hA.comap_le) W V μ`), instantiated at `W = U_i`, `V = U_b`, `A = U_{(B_i∖A)∖{b}}`, `m = σ(U_A)`. The one gap it leaves — the note writes both sides as Finset-indexed coordinate projections while the lemma wants a literal `prodMk` and returns `m ⊔ MeasurableSpace.comap A` — is closed by a small local measurable coordinate-pair bridge `condIndep_coordSplit_prodMk`, filed with `condIndep_intersection_of_pos` in `Helpers/CondIndepIntersection.lean`. Both are LOCAL HELPERS on `thm:exact-ratio-decoder`, not new `nodes` keys, so the plan stays one-to-one with the core; neither adds an assumption, and the theorem keeps its six `hyps`, its `hyp_scope` for `ass:faithfulness`, and `defer_tier:false, gate:false`. The dependency closure of this edit is S4, `thm:exact-ratio-decoder`, the `Causalean.SCM.Do.SemiGraphoid` and `Causalean.Mathlib.CondIndep` substrate entries, and the `Helpers/Decoder.lean` / `Helpers/CondIndepIntersection.lean` / `TExactRatioDecoder.lean` file records: `def:population-decoder` never imported the semi-graphoid layer and keeps `Causalean.Mathlib.CondIndep`, and `thm:simultaneous-confidence-edges` consumes only this theorem's non-ancestor lemma (equations 2-4), which the graphoid steps do not touch. Round-4 revision (decisions P-D9, P-D10) corrected two further reuse claims and nothing else. Confirmed reusable: `Causalean.DAG` with `parents`/`ancestors`/`isAncestor`/`isAncestor_trans`/`ancestralSet`/`topoOrder`/`isAncestor_topoOrder_lt` (Causalean/Graph/DAG.lean:57) for \\(G\\), \\(G^\\pi\\), \\(\\operatorname{pa}_G\\), and every topological-ordering argument; `mcdiarmid_inequality_pos` (third_party/lean-rademacher/FoML/McDiarmid.lean:937, re-exported by Causalean.Stat.Concentration.TailBounds.McDiarmid) as the bounded-differences engine for the concentration lemma; `Causalean.Mathlib.CondIndep` for `CondIndepFun` and, per round-5 decision P-D11, `Causalean.condIndepFun_weak_union_of_prodMk` (Causalean/Mathlib/CondIndep/CondExp.lean:545) for the weak-union step of parent pruning; and from Mathlib `AnalyticAt.eventually_eq_zero_or_eventually_ne_zero`, `Set.Finite.dense_sInter`, `Dense.inter_of_isOpen_left`, `IsNowhereDense`/`isNowhereDense_iff_disjoint`, `CovBy`, `ContDiffOn`, `MeasureTheory.Measure.map`, `ProbabilityTheory.condDistrib`, and `lp (fun _ : ℕ => ℝ) 2`. Build-inline (all `defer_tier:false`, all paper-owned): every one of the fourteen assumption atoms as a named threaded Prop; both class structures (`ModelStratum`, `BoundedHolderSubclass`) with members matching the core's `by_member_properties` exactly; all nine construction definitions; and all six delivered mathematical statements — `prop:sparse-witness-certificate`, `lem:analytic-edge-perturbation`, `thm:generic-cover-separation`, `thm:exact-ratio-decoder`, `thm:simultaneous-confidence-edges`, `lem:bounded-rkhs-empirical-mean`. Two of these are long (the witness certificate's rational-arithmetic chain and the decoder's triangular-transport uniqueness half), but length is not deferability: both are original contributions and stay fully in scope for F2-F4. Two bypasses were re-surveyed and corrected in round 4, and both leave the feasibility verdict where it was. (i) `Causalean/ML/Kernel/RKHS.lean` is now `bypass-justified` rather than reused: IsRKHS supplies only the reproducing identity `f x = ⟪f, representer x⟫`, with no mean-embedding and no bounded-feature concentration interface (re-read 2026-09-06 — a single `reproducing` field at line 22), so the unit-norm feature map, the Bochner kernel mean embedding, \\(D_{ji}\\)/\\(\\widehat D_{ji}\\), and the empirical-mean deviation bound of `lem:bounded-rkhs-empirical-mean` are all LOCAL in `Helpers/Kernel.lean` over Mathlib's `lp (fun _ : ℕ => ℝ) 2`; the lemma stays `define-local`, build-inline, `defer_tier:false`, still discharged by the reused McDiarmid engine. (ii) `Causalean/SCM/Do/SemiGraphoid.lean` was recorded as partially reused in round 4 (weak union kept, intersection bypassed); round 5 makes it `bypass-justified` in full, as described at the top of this note, and the weak-union step moves to the generic `Causalean.condIndepFun_weak_union_of_prodMk`. The round-4 finding about the INTERSECTION property is unaffected and stands: the file provides decomposition/weak-union/contraction only (declarations re-read 2026-09-06; grep `intersection` → 0 matches), which is expected because intersection is not a semi-graphoid axiom and needs strict positivity. The intersection step (16)-(18) is supplied by a LOCAL helper lemma `condIndep_intersection_of_pos` (`Helpers/CondIndepIntersection.lean`) proved from the theorem's existing `ass:positive-normalized-smooth-mechanisms` by the frozen proof's equation-(17) argument; it is a helper inside the core's single decoder statement, so the plan remains one-to-one with the core, and `thm:exact-ratio-decoder` keeps its `hyps` unchanged and stays `defer_tier:false`, `gate:false`. No `ass:` node is escalated and none is discharged, since no Causalean declaration type-matches any atom's conclusion in full. Defer: only the three frozen `status:\"cited\"` comparator-scope nodes, whose frozen `source.carrier` is `bibliographic-metadata`; each is realized as a direct-literal `_root_.String` record of the third-party scope sentences, is never threaded into any consumer's `hyps`, is never a proof premise, and carries no build obligation — the associated comparison clauses in `thm:exact-ratio-decoder` are therefore presentation-only narrative rather than theorem conjuncts. The one open-ended node, `oeq:generated-rank-frontier`, is mapped to a never-proved descriptive `String` under case (B), because the node's own frozen proof text declares its `weakest sufficient remainder bound` clause undefined and its estimator an open construction; it is excluded from any theorems manifest and no delivered theorem depends on it. Nothing in the artifact requires machinery outside Lean/Mathlib reach."
+}

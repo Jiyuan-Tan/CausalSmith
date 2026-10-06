@@ -1,0 +1,556 @@
+/* Working-paper series (chosen landing visual A): serif, white space, quiet badges. */
+@import "./tokens.css";
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  line-height: 1.55;
+}
+
+.series-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem 6rem;
+}
+
+.masthead .series-kicker {
+  letter-spacing: 0.22em;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: var(--sp-6);
+  margin-bottom: var(--sp-8);
+}
+
+.masthead h1 {
+  font-weight: normal;
+  font-size: var(--fs-hero);
+  margin: 0.35rem 0 0.4rem;
+}
+
+.masthead-nav {
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+  display: flex;
+  /* Wraps: with the external project links (arXiv, GitHub) the row no longer
+     fits a phone, and an unwrapped flex row would overflow the viewport. */
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+}
+.masthead-nav a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dotted #C58A8A;
+}
+.masthead-nav a:hover { border-bottom-style: solid; }
+.masthead-nav .masthead-nav-current { color: var(--ink); font-weight: 600; }
+
+.masthead p.lede a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dotted #C58A8A;
+}
+.masthead p.lede a:hover { border-bottom-style: solid; }
+
+.masthead p.lede {
+  color: var(--ink-soft);
+  margin: 0 0 var(--sp-6);
+}
+
+
+.wp-entry {
+  border-top: 1px solid var(--rule);
+  padding: 1.75rem 0;
+}
+
+.wp-entry h2 {
+  font-weight: normal;
+  font-size: var(--fs-lg);
+  margin: 0 0 0.35rem;
+}
+
+.wp-entry h2 a { color: inherit; text-decoration: none; }
+.wp-entry h2 a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
+
+/* Identity register: paper number + area, quiet and letterspaced, so the red
+   below it reads as "verified" not "link". */
+.wp-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-2xs);
+}
+.wp-meta .wp-id {
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+/* One "verified" identity site-wide: a quiet green pill (matches the library
+   badge-reviewed), full theorem/lemma counts on the title tooltip. */
+.badge-verified {
+  background: var(--verified-wash);
+  color: var(--verified);
+  padding: 0.08rem 0.45rem;
+  border-radius: var(--r-badge);
+  cursor: help;
+  white-space: nowrap;
+}
+/* AI reviewer score (P5) — used on both the landing list (.wp-meta) and the paper byline. */
+.score-badge {
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-weight: 700;
+  padding: 0.08rem 0.45rem;
+  border-radius: var(--r-badge);
+  cursor: help;
+  white-space: nowrap;
+}
+
+/* Reader rating — average of signed-in readers' 1–5 stars, filled client-side
+   from the ratings worker; the badge stays hidden until (and unless) it answers. */
+.rating-badge {
+  background: var(--axiom-wash);
+  color: var(--axiom);
+  font-weight: 700;
+  padding: 0.08rem 0.45rem;
+  border-radius: var(--r-badge);
+  white-space: nowrap;
+}
+/* Explicit empty state once the worker has answered: muted, never a fake 0/5. */
+.rating-badge-empty {
+  background: transparent;
+  font-weight: 400;
+  color: var(--ink-ghost);
+}
+/* Label naming the star strip (shown once the viewer has rated). */
+.rate-label {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+/* Call to action shown until the viewer rates: a real button that pulses the
+   stars and hands them focus — the storefront "Rate this app" idiom. */
+.rate-cta {
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  padding: 0.14rem 0.65rem;
+  border: 1px solid var(--axiom);
+  background: var(--axiom-wash);
+  color: var(--axiom);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rate-cta:hover { background: var(--axiom); color: var(--paper); }
+.rate-stars.rate-pulse { animation: rate-pulse 0.7s ease-in-out 2; }
+@keyframes rate-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+.rate-star.is-preview { color: var(--axiom); }
+
+/* The interactive 1–5 star strip (paper byline, Proof map preview). */
+.rate-stars {
+  display: inline-flex;
+  gap: 0.05rem;
+  vertical-align: baseline;
+}
+.rate-star {
+  font: inherit;
+  font-size: 0.95em;
+  line-height: 1;
+  padding: 0 0.06rem;
+  border: none;
+  background: transparent;
+  color: var(--warning);
+  cursor: pointer;
+}
+.rate-star:hover { transform: scale(1.15); }
+.rate-star.is-mine { color: var(--accent); }
+.rate-star[disabled] { opacity: 0.5; cursor: default; }
+.rate-caption {
+  margin-left: 0.3rem;
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.rate-status {
+  margin-left: 0.3rem;
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+/* The paper page's rating row — its own line directly under the title, so the
+   one interactive control near the top is unmissable without shouting. */
+.paper-rating {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0.15rem 0 1.1rem;
+}
+.paper-rating[hidden] { display: none; }
+.paper-rating .rate-star {
+  font-size: 1.15rem;
+  padding: 0 0.1rem;
+}
+.paper-rating .rate-caption { font-size: var(--fs-sm); }
+
+/* Action register: the three links kept together, clearly the interactive row. */
+.wp-actions {
+  margin: 0.5rem 0 0;
+  font-size: var(--fs-sm);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
+.wp-actions a {
+  color: var(--accent-deep);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--accent-muted);
+}
+.wp-actions a:hover { border-bottom-style: solid; }
+
+/* Flagship: the top-scored paper as a distinguished parchment panel — the one
+   focal point that breaks the monotone list. Same accent-bar idiom as the inner
+   decl cards, promoted to the landing. */
+.wp-flagship {
+  background: var(--parchment);
+  border-left: 3px solid var(--accent-bright);
+  border-radius: var(--r-card);
+  padding: 1.25rem 1.5rem;
+  margin: 0 0 var(--sp-8);
+}
+.wp-featured-kicker {
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+.wp-flagship h2 {
+  font-weight: normal;
+  font-size: 1.5rem;
+  margin: 0 0 0.4rem;
+}
+.wp-flagship h2 a { color: inherit; text-decoration: none; }
+.wp-flagship h2 a:hover { text-decoration: underline; text-decoration-color: var(--accent); }
+.wp-flagship .wp-abstract-fold { margin-top: 0.6rem; }
+
+/* Landing-page sort control (Score | Cluster) + cluster group headings. */
+.wp-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1.2rem;
+  font-size: 0.82rem;
+}
+.wp-controls-label { color: var(--ink); opacity: 0.6; }
+.wp-sort-btn {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.15rem 0.7rem;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.wp-sort-btn.is-active { background: var(--accent); color: var(--paper); }
+.wp-score-note {
+  margin: -0.6rem 0 1.4rem;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--ink);
+  opacity: 0.55;
+}
+.cluster-head {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin: 1.6rem 0 0.4rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.wp-tldr {
+  font-size: var(--fs-body);
+  color: var(--ink-soft);
+  margin: 0.5rem 0 0;
+  line-height: 1.5;
+}
+
+.wp-abstract-fold {
+  margin: 0.4rem 0 0;
+}
+.wp-abstract-fold > summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  list-style: none;
+  user-select: none;
+}
+.wp-abstract-fold > summary::-webkit-details-marker { display: none; }
+.wp-abstract-fold > summary::before {
+  content: "▸ ";
+  color: var(--accent);
+}
+.wp-abstract-fold[open] > summary::before { content: "▾ "; }
+.wp-abstract-fold > summary:hover { color: var(--accent); }
+
+.wp-abstract {
+  font-size: 0.95rem;
+  color: #444;
+  margin: 0.5rem 0 0;
+}
+/* Wide display equations scroll inside the abstract instead of spilling past the
+   container edge (KaTeX renders display math wider than the text column). */
+.wp-abstract .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.15rem 0; }
+.wp-tldr .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.15rem 0; }
+
+.empty-series {
+  border-top: 1px solid var(--rule);
+  padding: 2rem 0;
+  color: #777;
+  font-style: italic;
+}
+
+.site-footer {
+  margin-top: 4rem;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+}
+.site-footer a { color: var(--accent); }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Cite panel + AI-score fold.
+
+   Shared by the landing list, the flagship panel and the paper page, so they
+   live here (series.css is imported by all three). No new hues: the panel is
+   the same parchment/rule/cardinal system as everything else; the severity
+   chips reuse the existing sorry/axiom washes.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Pushes Cite to the right end of the link row (layout B: Cite is a utility
+   that acts on the paper, not a fifth place to go). */
+.wp-actions-spacer { flex: 1 1 auto; min-width: 0; }
+
+/* Cite: a small outlined button, deliberately not styled like the four links
+   beside it — it opens a panel rather than navigating. */
+.cite-btn {
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  color: var(--accent-deep);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-badge);
+  padding: 0.1rem 0.55rem;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+.cite-btn:hover,
+.cite-btn[aria-expanded="true"] { border-color: var(--accent-muted); background: var(--accent-wash); }
+.cite-btn .cite-q { font-size: 1.05em; line-height: 1; transform: translateY(1px); }
+
+.cite-panel {
+  margin-top: var(--sp-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-card);
+  background: var(--paper);
+  overflow: hidden;
+}
+/* A disclosure is COLLAPSED, not hidden, and only where a script can open it
+   again: `.js` is set in the document head. With JavaScript off the Cite panel
+   and the score fold render open, so both citations and the referee's
+   criticisms are still readable (audit r2). */
+.js .cite-panel[data-collapsed],
+.js .cite-body[data-collapsed],
+.js .ai-fold[data-collapsed] { display: none; }
+
+.cite-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--rule);
+  background: var(--parchment-deep);
+  font-size: var(--fs-xs);
+}
+/* Copy is a sibling of the tablist, not a tab inside it — see CitePanel. */
+.cite-tablist { display: flex; }
+.cite-tabs button {
+  font: inherit;
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  color: var(--ink-faint);
+}
+.cite-tabs button[aria-selected="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.cite-tabs .cite-copy { margin-left: auto; color: var(--accent-deep); font-weight: 600; }
+.cite-tabs button:focus-visible { outline-offset: -2px; }
+
+.cite-body {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  font-family: "JuliaMono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--ink);
+}
+.cite-body-text {
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  font-size: var(--fs-body-s);
+  white-space: normal;
+}
+.cite-foot {
+  border-top: 1px solid var(--rule-soft);
+  padding: 0.45rem 0.9rem;
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+}
+.cite-foot code {
+  font-family: "JuliaMono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.95em;
+  color: var(--ink);
+}
+
+/* The score badge as a disclosure. Same pill, now clickable — the number keeps
+   its place in the meta row and the argument behind it opens underneath. */
+button.score-badge {
+  font: inherit;
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  font-size: inherit;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+button.score-badge:hover,
+button.score-badge[aria-expanded="true"] { border-color: var(--accent-muted); }
+.score-badge .fold-mark { font-weight: 400; opacity: 0.85; }
+
+/* The paper page's one-line variant, under the reader-rating row. */
+.paper-ai-row { margin: 0.15rem 0 1.1rem; font-size: var(--fs-sm); }
+.ai-line {
+  font: inherit;
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+.ai-line b { color: var(--accent); }
+.ai-line .fold-mark { color: var(--accent); display: inline-block; width: 1em; }
+.ai-line:hover { color: var(--ink); }
+/* A paper with a score but no report: the same line, not clickable. */
+.ai-line-static { cursor: default; }
+.ai-line-static:hover { color: var(--ink-soft); }
+/* …and the sentence that explains it, with no fold to sit inside. */
+.ai-rationale-bare { margin: 0.3rem 0 0; color: var(--ink-soft); }
+
+/* What unfolds: rationale, main criticisms, counts, staleness. */
+.ai-fold {
+  background: var(--parchment);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-card);
+  padding: 1rem 1.15rem;
+  margin: 0.7rem 0 1rem;
+}
+.ai-fold p { margin: 0; font-size: var(--fs-body-s); }
+.ai-crit-k,
+.review-verdict-k {
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.ai-crit-k { margin-top: 0.85rem; }
+.ai-crit { margin: 0.3rem 0 0; padding-left: 1.1rem; font-size: 0.9rem; }
+.ai-crit li { margin: 0.35rem 0; }
+.f-sec {
+  font-size: var(--fs-2xs);
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-right: 0.25rem;
+}
+/* Scoped rather than !important: `.ai-fold p` is more specific than a bare
+   class, and an !important here would have to be matched by every later or
+   responsive override. */
+.ai-fold .ai-counts { margin-top: 0.7rem; font-size: var(--fs-xs); color: var(--ink-soft); }
+.ai-counts a { color: var(--accent-deep); text-decoration: none; border-bottom: 1px dotted var(--accent-muted); }
+.ai-counts a:hover { border-bottom-style: solid; }
+.ai-stale {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  border-top: 1px solid var(--rule-soft);
+  margin-top: 0.7rem;
+  padding-top: 0.55rem;
+}
+
+/* arXiv-style identity block on the paper page. */
+.paper-ident {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 0.7rem 0;
+  margin: 1.1rem 0 1.4rem;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+}
+.paper-ident dt {
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  padding-top: 0.18rem;
+}
+.paper-ident dd { margin: 0; }
+.paper-ident code {
+  font-family: "JuliaMono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.95em;
+  color: var(--ink);
+}
+/* A phone cannot hold "label | value" side by side once the value is a DOI. */
+@media (max-width: 480px) {
+  .paper-ident { grid-template-columns: 1fr; }
+  .paper-ident dt { padding-top: 0.5rem; }
+  .cite-body { font-size: 0.72rem; }
+}
+
+/* Off-site links in a header row (arXiv, GitHub): the ↗ marks the jump without
+   competing with the label, and is decorative so screen readers skip it. */
+.nav-external span[aria-hidden] {
+  opacity: 0.55;
+  font-size: 0.9em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rate-stars.rate-pulse { animation: none; }
+}

@@ -1,0 +1,426 @@
+\section{Main results}
+
+The setup in \cref{obj:def:observed-model-class,obj:def:observed-optimal-value,obj:def:minimax-risk} turns the value problem into uniform estimation of the observed-law optimal-regression value over the fixed-overlap observed model. This section gives estimators and finite-sample risk bounds for that problem. The final statements then transfer the same rate to the causal completion class through the identification result in \cref{obj:prop:causal-optimal-value-corollary}.
+
+For a fixed alphabet, the natural benchmark is the empirical cell-ratio estimator \leanref{sym:\widehat V_{n,d}^{\mathrm{ER}}}{\ensuremath{\widehat V_{n,d}^{\mathrm{ER}}}}. It estimates each covariate-cell mass and each arm-specific success probability by its sample analogue, then maximizes over treatment arms cell by cell.
+
+\begin{definitionv}{def:empirical-ratio-estimator}[Empirical-ratio estimator \(\widehat V_{n,d}^{\mathrm{ER}}\)]
+For \(x\in[d]\) and \(a\in\{0,1\}\), define the empirical counts
+\[
+\overline N_x
+=
+\sum_{i=1}^n \mathbf 1\{X_i=x\},
+\qquad
+\overline N_{ax}
+=
+\sum_{i=1}^n \mathbf 1\{X_i=x,A_i=a\},
+\]
+and
+\[
+\overline S_{ax}
+=
+\sum_{i=1}^n \mathbf 1\{X_i=x,A_i=a,Y_i=1\}.
+\]
+Set
+\[
+\widehat p_x=\frac{\overline N_x}{n},
+\qquad
+\widehat\mu_{ax}=\frac{\overline S_{ax}}{\overline N_{ax}},
+\]
+with the convention \(0/0=0\). The empirical-ratio optimal-value estimator is
+\[
+\widehat V_{n,d}^{\mathrm{ER}}
+=
+\sum_{x=1}^d \widehat p_x \max_{a\in\{0,1\}}\widehat\mu_{ax}.
+\]
+\end{definitionv}
+
+This plug-in form is useful at bounded alphabet sizes. The high-dimensional construction below instead estimates the cell contribution through a polynomial approximation to the Lipschitz extension \(\bar f_\epsilon\) from \cref{obj:def:global-extension}. The construction follows the standard use of polynomial approximation for nonsmooth functionals \citep{DeVore1993,JiaoVenkatHanWeissman2015Functionals}.
+
+\begin{definitionv}{synth_18}[Treatment-outcome coordinate set]
+The treatment-outcome coordinate set \(\mathcal J\) is
+\[
+\mathcal J:=\{0,1\}\times\{0,1\}.
+\]
+A coordinate index is denoted by \(\jmath\in\mathcal J\).
+\end{definitionv}
+
+The set \leanref{sym:\mathcal J}{\ensuremath{\mathcal J}} indexes the four treatment-outcome atom coordinates in each covariate cell. Given a pilot rectangle in these four coordinates, the next definition records the Jackson polynomial used to approximate the cellwise contribution.
+
+\begin{definitionv}{def:jackson-kernel}[Jackson polynomial \(P_{x,K_d}\)]
+For an integer \(K_d\ge 2\), define the order-four Jackson kernel on \([-\pi,\pi]\) by
+\[
+J_{K_d}(t)
+=
+c_{K_d}
+\left\{
+\frac{\sin(K_dt/2)}{\sin(t/2)}
+\right\}^{4},
+\]
+with removable values filled continuously and normalizing constant \(c_{K_d}\) chosen so that
+\[
+\int_{-\pi}^{\pi} J_{K_d}(t)\,dt=1.
+\]
+For a rectangle
+\[
+Q_x
+=
+\prod_{\jmath\in\mathcal J}
+[\ell_{\jmath,x},u_{\jmath,x}],
+\]
+define its coordinate centers and radii by
+\[
+b_{\jmath,x}
+=
+\frac{\ell_{\jmath,x}+u_{\jmath,x}}{2},
+\qquad
+r_{\jmath,x}
+=
+\frac{u_{\jmath,x}-\ell_{\jmath,x}}{2}.
+\]
+The associated tensor polynomial \(P_{x,K_d}\) is defined by the even product convolution
+\[
+P_{x,K_d}(b_x+r_x\odot\cos\theta)
+=
+\int_{[-\pi,\pi]^4}
+\bar f_\epsilon\{b_x+r_x\odot\cos(\theta+t)\}
+\prod_{\jmath\in\mathcal J}J_{K_d}(t_{\jmath})\,dt.
+\]
+\end{definitionv}
+
+The order \leanref{sym:K_d}{\ensuremath{K_d}} grows on the logarithmic alphabet scale, so the approximation error and coefficient growth can be balanced against sampling noise. In the algorithm, \(\Pi_{[a,b]}\) denotes projection onto the interval \([a,b]\), and the constants \leanref{sym:H_0}{\ensuremath{H_0}}, \leanref{sym:\kappa}{\ensuremath{\kappa}}, and \leanref{sym:D_0}{\ensuremath{D_0}} are fixed tuning constants chosen in the risk theorem.
+
+\begin{algorithmv}{def:jackson-factorial-estimator}[Jackson-factorial estimator \(\widehat V_{n,d}^{\mathrm{JF}}\)]
+The inputs are \(O_1,\ldots,O_n\), the alphabet size \(d\), and tuning constants \(D_0\), \(\kappa\), and \(H_0\).
+
+\begin{enumerate}
+\item Define the logarithmic scale, Poissonized scale, and polynomial degree by
+\[
+L_d=\log(ed),
+\qquad
+m=\frac n8,
+\qquad
+K_d=\max\{2,\lfloor \kappa L_d\rfloor\}.
+\]
+
+\item If \(d<D_0\), output
+\[
+\widehat V_{n,d}^{\mathrm{JF}}
+=
+\widehat V_{n,d}^{\mathrm{ER}}.
+\]
+If \(d\ge D_0\) and \(n<d/L_d\), output
+\[
+\widehat V_{n,d}^{\mathrm{JF}}
+=
+\frac12.
+\]
+
+\item In the remaining case, draw
+\[
+M\sim\operatorname{Pois}(n/4).
+\]
+On the event \(M>n\), set
+\[
+\widetilde V=0.
+\]
+
+\item On the event \(M\le n\), draw independent marks
+\[
+B_i\sim\operatorname{Bernoulli}(1/2),
+\qquad i=1,\ldots,M.
+\]
+For each \(x\in[d]\) and coordinate \(\jmath\in\mathcal J\), define pilot and evaluation counts
+\[
+N'_{\jmath,x}
+=
+\sum_{i=1}^M B_i\,\mathbf 1\{O_i\text{ belongs to coordinate }\jmath\text{ in cell }x\},
+\]
+and
+\[
+N_{\jmath,x}
+=
+\sum_{i=1}^M (1-B_i)\,\mathbf 1\{O_i\text{ belongs to coordinate }\jmath\text{ in cell }x\}.
+\]
+
+\item Define pilot frequencies and rectangle half-widths by
+\[
+c_{\jmath,x}
+=
+\frac{N'_{\jmath,x}}{m},
+\qquad
+h_{\jmath,x}
+=
+H_0
+\left\{
+\sqrt{\frac{c_{\jmath,x}L_d}{m}}
++
+\frac{L_d}{m}
+\right\}.
+\]
+Set
+\[
+\ell_{\jmath,x}
+=
+\max\{0,c_{\jmath,x}-h_{\jmath,x}\},
+\qquad
+u_{\jmath,x}
+=
+c_{\jmath,x}+h_{\jmath,x},
+\]
+and
+\[
+Q_x
+=
+\prod_{\jmath\in\mathcal J}
+[\ell_{\jmath,x},u_{\jmath,x}].
+\]
+Let \(b_x\) and \(r_x\) denote the vector of coordinate centers and coordinate radii of \(Q_x\).
+
+\item Expand the local polynomial as
+\[
+P_{x,K_d}(v)-\bar f_\epsilon(b_x)
+=
+\sum_\alpha
+b_{x,\alpha}
+\left(\frac{v-b_x}{r_x}\right)^\alpha .
+\]
+For \(h\ge 0\), define the centered factorial lift
+\[
+U_h(N;z)
+=
+\sum_{t=0}^h
+\binom ht
+(-z)^{h-t}
+\frac{(N)_t}{m^t}.
+\]
+
+\item Define the clipping scale
+\[
+S_x
+=
+(1+\epsilon^{-1})
+\sum_{\jmath\in\mathcal J} r_{\jmath,x},
+\]
+the unprojected cell estimate
+\[
+Z_x
+=
+\bar f_\epsilon(b_x)
++
+\sum_\alpha
+b_{x,\alpha}
+\prod_{\jmath\in\mathcal J}
+\frac{
+U_{\alpha_{\jmath}}(N_{\jmath,x};b_{\jmath,x})
+}{
+r_{\jmath,x}^{\alpha_{\jmath}}
+},
+\]
+and the clipped cell estimate
+\[
+T_x^{\mathrm{JF}}
+=
+\Pi_{
+[\bar f_\epsilon(b_x)-d^{1/4}S_x,\,
+ \bar f_\epsilon(b_x)+d^{1/4}S_x]
+}
+(Z_x).
+\]
+
+\item Define the randomized projected aggregate by
+\[
+\widetilde V
+=
+\Pi_{[0,1]}
+\left(
+\sum_{x=1}^d T_x^{\mathrm{JF}}
+\right).
+\]
+The all-data Rao--Blackwellized estimator is
+\[
+\widehat V_{n,d}^{\mathrm{JF}}
+=
+E\!\left[
+\widetilde V
+\mid
+O_1,\ldots,O_n
+\right],
+\]
+where the conditional expectation integrates only the auxiliary Poisson count \(M\) and marks \(B_1,\ldots,B_M\).
+\end{enumerate}
+\end{algorithmv}
+
+The all-data estimator \leanref{sym:\widehat V_{n,d}^{\mathrm{JF}}}{\ensuremath{\widehat V_{n,d}^{\mathrm{JF}}}} uses the auxiliary Poisson count \leanref{sym:M}{\ensuremath{M}} and random split only inside a Rao--Blackwellization. Conditional on the observed sample, the final object is a deterministic measurable estimator. The centered factorial lift in the construction gives unbiased polynomial terms under the Poissonized evaluation counts, while clipping and final projection keep the aggregate on the value scale.
+
+\begin{definitionv}{synth_3}[Fixed-law squared risk]
+For an estimator \(\widehat V\) based on \(O_1,\ldots,O_n\) and an observed law \(\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}\), define \[ \operatorname{Risk}_{\mathbb P}(\widehat V,\Psi):=E_{\mathbb P^{\otimes n}}\left[\left\{\widehat V(O_1,\ldots,O_n)-\Psi(\mathbb P)\right\}^2\right], \] where \(\mathbb P^{\otimes n}\) denotes the law of \(n\) independent observations each distributed as \(\mathbb P\).
+\end{definitionv}
+
+The first risk statement is uniform over the observed model class with fixed overlap. It uses the i.i.d. sampling condition from \cref{obj:ass:iid-sampling} and the observed-law value from \cref{obj:def:observed-optimal-value}.
+
+\begin{theoremv}{thm:jackson-factorial-upper}[Jackson factorial risk bound]
+Assume the sampling condition in \cref{obj:ass:iid-sampling}: for every alphabet size \(d\), sample size \(n\), and observed finite law \(\mathbb P\), the sample law is the canonical i.i.d. product law generated by \(\mathbb P\).
+
+Then there exist tuning constants \(H_0>0\), \(\kappa\in(0,1)\), and an integer cutoff \(D_0>2\) such that the Jackson factorial estimator \(\widehat V_{n,d}^{\mathrm{JF}}\) of \cref{obj:def:jackson-factorial-estimator} satisfies the following guarantee whenever:
+\begin{itemize}
+\item \textbf{(Overlap.)} The overlap constant \(\epsilon\) satisfies \(0<\epsilon<1/2\).
+\item \textbf{(Sample size.)} The sample size satisfies \(n\ge 1\).
+\item \textbf{(Alphabet size.)} The alphabet size satisfies \(d\ge 2\).
+\item \textbf{(Observed model.)} The observed law \(\mathbb P\) belongs to \(\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) as in \cref{obj:def:observed-model-class}.
+\end{itemize}
+For every such \(\epsilon\), there is a constant \(C_\epsilon>0\) such that, for every such \(n,d\), and \(\mathbb P\),
+\[
+\operatorname{Risk}_{\mathbb P}
+\left(\widehat V_{n,d}^{\mathrm{JF}},\Psi\right)
+\le
+C_\epsilon \min\left\{1,\frac{d}{n\log(ed)}\right\}.
+\]
+Here \(\Psi(\mathbb P)\) is the observed-law optimal-regression value of \cref{obj:def:observed-optimal-value}.
+\end{theoremv}
+
+\Cref{obj:thm:jackson-factorial-upper} gives the estimator side of the minimax rate. For each fixed overlap constant, the constant \leanref{sym:C_\epsilon}{\ensuremath{C_\epsilon}} controls the entire model class and all finite \(n,d\). The logarithmic denominator comes from approximating the cellwise maximum by a logarithmic-degree polynomial and then estimating the resulting polynomial coefficients through factorial moments.
+
+The converse starts from a normalized two-sample \(L_1\) problem. Let \leanref{sym:\Delta_d}{\ensuremath{\Delta_d}} denote the \(d\)-point probability simplex, and let \leanref{sym:\mathbf P}{\ensuremath{\mathbf P}} and \leanref{sym:\mathbf Q}{\ensuremath{\mathbf Q}} be two simplex points. The following embedding places this distance problem inside the equal-propensity slice of the observed model.
+
+\begin{definitionv}{def:l1-embedding}[\(L_1\) embedding \((\mathbf P,\mathbf Q)\)]
+For \((\mathbf P,\mathbf Q)\in\Delta_d^2\), define the observed atom masses
+\[
+q_{11,x}=q_{00,x}=\frac{P_x}{4},
+\qquad
+q_{10,x}=q_{01,x}=\frac{Q_x}{4},
+\qquad x\in[d].
+\]
+Complete the observed law by taking the potential outcomes to be conditionally independent Bernoulli variables, setting the treatment propensity equal to \(1/2\), and imposing consistency.
+\end{definitionv}
+
+\begin{definitionv}{synth_7}[Fixed-sample two-sample \(L_1\) minimax risk]
+Let \((Z_i,W_i)_{i=1}^n\) be independent paired observations with \(Z_i\sim\mathbf P\), \(W_i\sim\mathbf Q\), and \((\mathbf P,\mathbf Q)\in\Delta_d^2\). The normalized two-sample \(L_1\) minimax mean-squared error is \[ \mathfrak R^{L_1}_{n,d}:=\inf_{\widehat D}\sup_{(\mathbf P,\mathbf Q)\in\Delta_d^2}E_{\mathbf P,\mathbf Q}\left[\left\{\widehat D((Z_i,W_i)_{i=1}^n)-\|\mathbf P-\mathbf Q\|_1\right\}^2\right], \] where the infimum is over all measurable real-valued functions of the paired sample.
+\end{definitionv}
+
+\begin{definitionv}{synth_6}[Equal-propensity normalized \(L_1\) embedding]
+For \((\mathbf P,\mathbf Q)\in\Delta_d^2\), \(\mathrm{L1Emb}(\mathbf P,\mathbf Q)\) is the full-data law on \((X,A,Y,Y(0),Y(1))\) with covariate mass \(p_x=(P_x+Q_x)/2\), treatment propensity \(\pi_x=1/2\), outcome regressions \(\mu_{1x}=P_x/(P_x+Q_x)\) and \(\mu_{0x}=Q_x/(P_x+Q_x)\) on cells with \(P_x+Q_x>0\), conditionally independent Bernoulli potential outcomes with these means, treatment drawn independently of the potential outcomes given \(X\), and observed outcome \(Y=Y(A)\). Equivalently, its observed margin has cell masses \(q_{11,x}=q_{00,x}=P_x/4\) and \(q_{10,x}=q_{01,x}=Q_x/4\), with a consistency-compatible completion.
+\end{definitionv}
+
+Under this embedding, the observed optimal value is an affine transform of the \(L_1\) distance. The reduction is stated as an exact product-kernel comparison, in the standard experiment-comparison sense of \citet{LeCam1986} and \citet{Tsybakov2009}.
+
+\begin{propositionv}{prop:equal-propensity-l1-reduction}[Equal-propensity L1 reduction]
+Let \(n,d\in\mathbb N\), let \(\epsilon\in\mathbb R\), let \(\mathbb P_0\) be an observed law on \([d]\times\{0,1\}^2\), and let \(\mu_n\) be a law on \(n\) observed triples. Suppose that:
+\begin{itemize}
+\item \textbf{(Sampling.)} The law \(\mu_n\) is the \(n\)-fold product law generated by \(\mathbb P_0\), as in \cref{obj:ass:iid-sampling}.
+\item \textbf{(Alphabet size.)} \(2\le d\).
+\item \textbf{(Overlap range.)} \(0<\epsilon<1/2\).
+\end{itemize}
+Then, for every pair \((\mathbf P,\mathbf Q)\in\Delta_d^2\), let
+\[
+\mathbb P=\operatorname{Obs}\{\mathrm{L1Emb}(\mathbf P,\mathbf Q)\},
+\]
+where \(\operatorname{Obs}\) is the observed margin from \cref{obj:def:observed-margin} and \(\mathrm{L1Emb}\) is the \(L_1\) embedding from \cref{obj:synth_6}. The law \(\mathbb P\) belongs to \(\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) in the sense of \cref{obj:def:observed-model-class}, and, for every \(x\in[d]\),
+\[
+p_x=\frac{P_x+Q_x}{2}.
+\]
+Moreover, whenever \(p_x>0\),
+\[
+\pi_x=\frac12,
+\]
+and the observed-law optimal-regression value from \cref{obj:def:observed-optimal-value} satisfies
+\[
+\Psi(\mathbb P)=\frac12+\frac14\sum_{x\in[d]} |P_x-Q_x|.
+\]
+Finally, the explicit fixed-\(n\) product Markov kernel obtained by applying the single-observation \(L_1\) embedding kernel independently across the \(n\) coordinates transforms the fixed paired-sample law generated by \((\mathbf P,\mathbf Q)\) exactly into the product law \(\mathbb P^{\otimes n}\). Consequently, for the fixed-sample minimax squared risk in \cref{obj:def:minimax-risk},
+\[
+\frac{1}{16}\,\mathfrak R^{L_1}_{n,d}\le \mathfrak R_{n,d,\epsilon},
+\]
+where \(\mathfrak R^{L_1}_{n,d}\) is the normalized two-sample \(L_1\) minimax mean-squared risk.
+\end{propositionv}
+
+\Cref{obj:prop:equal-propensity-l1-reduction} gives a concrete subexperiment inside the causal-value problem. On this subexperiment, estimating \(\Psi\) is exactly as hard as estimating a normalized \(L_1\) distance up to the displayed factor. The Markov-kernel clause makes the comparison fixed-sample and preserves the product sampling structure.
+
+The all-regime lower bound combines this reduction with the moment-matching lower-bound machinery for absolute-value and \(L_1\) functionals in \citet[Lemma 1 and Section 3.1]{CaiLow2011L1} and \citet[Theorem 3 and equation (24)]{JiaoHanWeissman2018L1}.
+
+\begin{theoremv}{thm:all-estimator-lower}[Global minimax lower bound]*
+Suppose the observed samples satisfy the independent product sampling law in \cref{obj:ass:iid-sampling}. For every overlap constant \(0<\epsilon<1/2\), there exists a constant \(c_\epsilon>0\) such that, for every \(n\geq 1\) and \(d\geq 2\), the fixed-sample minimax squared risk \(\mathfrak R_{n,d,\epsilon}\) in \cref{obj:def:minimax-risk} satisfies
+\[
+c_\epsilon \min\left\{1,\frac{d}{n\log(ed)}\right\}
+\leq
+\mathfrak R_{n,d,\epsilon}.
+\]
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:all-estimator-lower
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{CaiLow2011L1} (Lemma 1 and Section 3.1) and \citep{JiaoHanWeissman2018L1} (Theorem 3, equation (24), and its Poissonized lower-bound proof). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:all-estimator-lower
+
+The constant \leanref{sym:c_\epsilon}{\ensuremath{c_\epsilon}} depends only on the overlap level. \Cref{obj:thm:all-estimator-lower} supplies the information-theoretic scale matched by the Jackson factorial construction: the same expression \(d/\{n\log(ed)\}\), truncated at one, governs the worst-case squared risk over the observed model.
+
+Putting the upper and lower inequalities together gives the finite-sample minimax rate. The statement also records the causal-completion equivalence supplied by the observed-margin bridge in \cref{obj:prop:identification-and-extension,obj:prop:causal-optimal-value-corollary}.
+
+\begin{theoremv}{thm:matched-minimax-frontier}[Matched minimax frontier]*
+There are universal tuning constants \(H_0>0\), \(0<\kappa<1\), and an integer cutoff \(D_0>2\) for the Jackson factorial estimator such that the following holds.  For every fixed overlap constant \(\epsilon\in(0,1/2)\), there are real constants \(c_\epsilon\) and \(C_\epsilon\) with
+\[
+0<c_\epsilon\leq C_\epsilon .
+\]
+For every \(n\geq 1\) and \(d\geq 2\), with \(L_d=\log(ed)\) and with \(\mathfrak R_{n,d,\epsilon}\) denoting the fixed-sample observed minimax squared risk in \cref{obj:def:minimax-risk},
+\[
+c_\epsilon \min\left\{1,\frac{d}{nL_d}\right\}
+\leq
+\mathfrak R_{n,d,\epsilon}
+\leq
+\sup_{\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}}
+E_{\mathbb P^{\otimes n}}\!\left[
+  \left(\widehat V_{n,d}^{\mathrm{JF}}-\Psi(\mathbb P)\right)^2
+\right]
+\leq
+C_\epsilon \min\left\{1,\frac{d}{nL_d}\right\}.
+\]
+Moreover, the fixed-sample minimax squared risk over the full-data causal completion class \(\mathcal P_{d,\epsilon}\) is exactly \(\mathfrak R_{n,d,\epsilon}\) for the same \(n\), \(d\), and \(\epsilon\).
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:matched-minimax-frontier
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{CaiLow2011L1} (Lemma 1 and Section 3.1) and \citep{JiaoHanWeissman2018L1} (Theorem 3, equation (24), and its Poissonized lower-bound proof). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:matched-minimax-frontier
+
+\Cref{obj:thm:matched-minimax-frontier} characterizes the finite-sample minimax order for the observed-law and causal-completion formulations. The upper inequality is attained by the explicit estimator in \cref{obj:def:jackson-factorial-estimator}; the lower inequality inherits the \(L_1\) approximation and moment-matching ingredients of \citet{CaiLow2011L1} and \citet{JiaoHanWeissman2018L1}. The equality for the causal completion class means that the observed-data risk law is also the risk law for the causal optimal-treatment value.
+
+For asymptotic interpretation, it is useful to name the causal minimax risk directly.
+
+\begin{definitionv}{synth_4}[Causal minimax risk]
+For \(n\ge1\), \(d\ge2\), and \(0<\epsilon<1/2\), write \(\operatorname{Obs}(P)^{\otimes n}\) for the law of \(n\) independent observations each distributed as the observed margin \(\operatorname{Obs}(P)\), and define the observed-sample causal minimax squared risk by \[ \mathfrak R^{\mathrm{causal}}_{n,d,\epsilon}:=\inf_{\widehat V}\sup_{P\in\mathcal P_{d,\epsilon}} E_{\operatorname{Obs}(P)^{\otimes n}}\left[\left\{\widehat V(O_1,\ldots,O_n)-V^\star(P)\right\}^2\right], \] where the infimum is over all measurable maps from \(([d]\times\{0,1\}^2)^n\) to \(\mathbb R\).
+\end{definitionv}
+
+The final result translates the finite-sample rate into growth conditions for a sequence of alphabet sizes. Its lower side uses the same published \(L_1\) lower-bound ingredients cited above, and its upper side uses the Jackson factorial estimator with the universal tuning constants from \cref{obj:thm:matched-minimax-frontier}.
+
+\begin{theoremv}{thm:consistency-and-parametric-boundaries}[Consistency and parametric boundaries]*
+For every overlap constant \(\epsilon\) with \(0<\epsilon<1/2\), and for every alphabet-size sequence \(d_\bullet=(d_n)_{n\ge 1}\) satisfying \(d_n\ge 2\) for all \(n\), the following equivalences hold:
+\begin{itemize}
+\item \textbf{(Observed consistency.)} The fixed-sample minimax squared risk \(\mathfrak R_{n,d_n,\epsilon}\) of \cref{obj:def:minimax-risk} satisfies
+\[
+\mathfrak R_{n,d_n,\epsilon}\longrightarrow 0
+\]
+if and only if
+\[
+d_n=o\{n\log(en)\}.
+\]
+\item \textbf{(Causal consistency.)} The causal minimax squared risk over \(\mathcal P_{d_n,\epsilon}\) satisfies
+\[
+\mathfrak R^{\mathrm{causal}}_{n,d_n,\epsilon}\longrightarrow 0
+\]
+if and only if
+\[
+d_n=o\{n\log(en)\}.
+\]
+\item \textbf{(Observed parametric boundary.)} The observed minimax risk sequence has the parametric \(n^{-1}\) rate, meaning that there exist constants \(c,C\) with \(0<c\le C\) such that, for all sufficiently large \(n\),
+\[
+\frac{c}{n}\le \mathfrak R_{n,d_n,\epsilon}\le \frac{C}{n},
+\]
+if and only if the alphabet-size sequence is uniformly bounded asymptotically, meaning \(d_n=O(1)\).
+\item \textbf{(Causal parametric boundary.)} The causal minimax risk sequence has the parametric \(n^{-1}\) rate, meaning that there exist constants \(c,C\) with \(0<c\le C\) such that, for all sufficiently large \(n\),
+\[
+\frac{c}{n}\le \mathfrak R^{\mathrm{causal}}_{n,d_n,\epsilon}\le \frac{C}{n},
+\]
+if and only if \(d_n=O(1)\).
+\end{itemize}
+\end{theoremv}
+% CAUSALSMITH-CITED-SCOPE-BEGIN thm:consistency-and-parametric-boundaries
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the published conclusion \citep{CaiLow2011L1} (Lemma 1 and Section 3.1) and \citep{JiaoHanWeissman2018L1} (Theorem 3, equation (24), and its Poissonized lower-bound proof). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END thm:consistency-and-parametric-boundaries
+
+\Cref{obj:thm:consistency-and-parametric-boundaries} gives the operational phase diagram. Uniform consistency corresponds exactly to alphabet growth below \(n\log(en)\). The parametric \(n^{-1}\) risk scale corresponds exactly to asymptotically bounded alphabet size, for both the observed-law target and the causal optimal-treatment value.

@@ -1,0 +1,7 @@
+module
+public import CausalSmith.Stat.STAT_PrivateCateRoughdesignFrontier_Research.Helpers
+public import CausalSmith.Stat.STAT_PrivateCateRoughdesignFrontier_Research.TMatchedRiskFrontier
+public import CausalSmith.Stat.STAT_PrivateCateRoughdesignFrontier_Research.TRegimeAndSanity
+public import CausalSmith.Stat.STAT_PrivateCateRoughdesignFrontier_Research.TSharpIntervalFrontier
+public import CausalSmith.Stat.STAT_PrivateCateRoughdesignFrontier_Research.TUniformPrivateUpper
+/-! Complete scaffold interface for the private point-CATE and honest interval frontiers. -/

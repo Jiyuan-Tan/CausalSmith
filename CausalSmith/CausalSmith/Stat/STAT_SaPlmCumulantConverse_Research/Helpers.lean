@@ -1,0 +1,22 @@
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ComplexAnalysisLocal
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Cumulant
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.CertifiedComplex
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.CertifiedTranscendental
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ContourBank
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransform
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransformSeries
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.UniformDiskSeries
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SpectralEstimator
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SelectorSoundness
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.HardSubmodel
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ClassRelations
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JmsComparator
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SineScore
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.LuxemburgMGF
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JensenBlaschke
+
+/-!
+# Shared helper barrel for the spectral-annihilation paper
+-/

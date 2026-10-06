@@ -1,0 +1,219 @@
+\section{An attaining estimator}
+
+The armwise factorial estimator \leanref{sym:\widehat V_{n,d,\epsilon}^{\mathrm{AF}}}{\ensuremath{\widehat V_{n,d,\epsilon}^{\mathrm{AF}}}} attains the rate in \cref{obj:thm:matched-frontier} using the observed sample and the public overlap floor. Its construction separates three regimes. The bounded-alphabet branch uses empirical cell frequencies and arm-specific outcome means. For larger alphabets, the saturated branch returns the midpoint of the value range when \(n\epsilon<d/L_d\), where \(L_d\) is the logarithmic alphabet scale. The active branch, used when \(n\epsilon\ge d/L_d\), combines pilot localization with polynomial approximation and factorial estimation of the cell contributions. The following algorithm specifies all three branches and the averaging that produces a deterministic statistic.
+
+\begin{algorithmv}{def:armwise-estimator}[Armwise factorial estimator]
+The estimator \(\widehat V_{n,d,\epsilon}^{\mathrm{AF}}\) is a deterministic function of the observed sample \(O_i=(X_i,A_i,Y_i)\in[d]\times\{0,1\}\times\{0,1\}\), \(i=1,\ldots,n\), using the zero-based alphabet \([d]=\{0,\ldots,d-1\}\) of \cref{obj:synth_1}. Its parameters satisfy:
+\begin{itemize}
+\item \textbf{(Tuning.)} The pilot-radius constant \(H_0\) and degree constant \(\kappa\) satisfy \(H_0>0\) and \(\kappa>0\); the integer alphabet cutoff \(D_0\) satisfies \(D_0\ge2\).
+\item \textbf{(Sample and alphabet.)} The integers \(n\) and \(d\) satisfy \(n\ge1\) and \(d\ge2\).
+\item \textbf{(Overlap parameter.)} The parameter \(\epsilon\) satisfies \(0<\epsilon\le1/2\).
+\end{itemize}
+Define the logarithmic scale, evaluation intensity, and approximation degree by
+\[
+L=L_d=\log(ed),\qquad
+m=\frac n8,\qquad
+K_n=\max\{2,\lfloor\kappa L\rfloor\}.
+\]
+Write \(\Pi_{[l,u]}(z)=\min\{u,\max\{l,z\}\}\) for projection onto an interval \([l,u]\).
+
+For \(d<D_0\), define the full-sample counts
+\[
+N_x=\sum_{i=1}^{n}\mathbf 1\{X_i=x\},\qquad
+N_{ax}=\sum_{i=1}^{n}\mathbf 1\{X_i=x,A_i=a\},\qquad
+S_{ax}=\sum_{i=1}^{n}Y_i\mathbf 1\{X_i=x,A_i=a\},
+\qquad x\in[d],\quad a\in\{0,1\},
+\]
+and set
+\[
+\widehat V_{n,d,\epsilon}^{\mathrm{AF}}
+=
+\Pi_{[0,1]}
+\left(
+\sum_{x\in[d]}\frac{N_x}{n}
+\max_{a\in\{0,1\}}
+\left\{\frac{S_{ax}}{N_{ax}}\right\}
+\right),
+\]
+where each ratio \(S_{ax}/N_{ax}\) is defined to be zero when \(N_{ax}=0\).
+
+For \(d\ge D_0\) and \(n\epsilon<d/L\), set
+\[
+\widehat V_{n,d,\epsilon}^{\mathrm{AF}}=\frac12.
+\]
+
+For \(d\ge D_0\) and \(n\epsilon\ge d/L\), define the estimator by the following auxiliary construction. Independently of the observations, draw
+\[
+\mathsf M\sim\operatorname{Pois}(n/4).
+\]
+On \(\{\mathsf M\le n\}\), draw independent fair marks, independently of the observations and of \(\mathsf M\),
+\[
+\mathsf B_i\sim\operatorname{Bernoulli}(1/2),
+\qquad i=1,\ldots,\mathsf M.
+\]
+Define the pilot and evaluation atom counts by
+\[
+N'_{ay,x}
+=
+\sum_{i=1}^{\mathsf M}
+\mathbf 1\{X_i=x,A_i=a,Y_i=y,\mathsf B_i=1\},
+\]
+\[
+N_{ay,x}
+=
+\sum_{i=1}^{\mathsf M}
+\mathbf 1\{X_i=x,A_i=a,Y_i=y,\mathsf B_i=0\},
+\qquad a,y\in\{0,1\},\quad x\in[d].
+\]
+All subsequent cellwise quantities are defined on \(\{\mathsf M\le n\}\). Set
+\[
+c_{ay,x}=\frac{N'_{ay,x}}m,\qquad
+h_{ay,x}
+=
+H_0\left\{\sqrt{\frac{c_{ay,x}L}{m}}+\frac Lm\right\},
+\]
+\[
+\ell_{ay,x}=\max\{c_{ay,x}-h_{ay,x},0\},\qquad
+u_{ay,x}=c_{ay,x}+h_{ay,x},
+\]
+\[
+b_{ay,x}=\frac{\ell_{ay,x}+u_{ay,x}}2,\qquad
+r_{ay,x}=\frac{u_{ay,x}-\ell_{ay,x}}2,
+\]
+\[
+b_x=(b_{ay,x})_{a,y\in\{0,1\}},\qquad
+r_x=(r_{ay,x})_{a,y\in\{0,1\}},\qquad
+Q_x=\prod_{a,y\in\{0,1\}}[\ell_{ay,x},u_{ay,x}].
+\]
+Use \(F_\epsilon\), \(s\), and \(D_a\) from \cref{obj:def:armwise-extension}. Define the normalized Jackson kernel by
+\[
+J_{K_n}(t)
+=
+c_{K_n}^{\mathrm J}
+\left\{\frac{\sin(K_nt/2)}{\sin(t/2)}\right\}^{4},
+\qquad
+\int_{-\pi}^{\pi}J_{K_n}(t)\,dt=1,
+\]
+where removable values are filled continuously and \(c_{K_n}^{\mathrm J}>0\) is the unique normalizing constant. With \(\odot\) denoting componentwise multiplication and cosine applied componentwise, define the algebraic polynomial \(P_{x,K_n}\) on \(Q_x\) by
+\[
+P_{x,K_n}(b_x+r_x\odot\cos\theta)
+=
+\int_{[-\pi,\pi]^4}
+F_\epsilon\!\left(b_x+r_x\odot\cos(\theta+\tau)\right)
+\prod_{a,y\in\{0,1\}}J_{K_n}(\tau_{ay})\,d\tau,
+\qquad \theta\in\mathbb R^4.
+\]
+Its degree in each coordinate is at most
+\[
+D=2(K_n-1).
+\]
+Define the coefficients \(\beta_{x,\boldsymbol\alpha}\) by the unique expansion
+\[
+P_{x,K_n}(v)-F_\epsilon(b_x)
+=
+\sum_{\boldsymbol\alpha\in\{0,\ldots,D\}^4}
+\beta_{x,\boldsymbol\alpha}
+\prod_{a,y\in\{0,1\}}
+\left(\frac{v_{ay}-b_{ay,x}}{r_{ay,x}}\right)^{\alpha_{ay}},
+\qquad v\in Q_x.
+\]
+For nonnegative integers \(N\) and \(t\), define the falling factorial by
+\[
+(N)_t=\prod_{j=0}^{t-1}(N-j),\qquad (N)_0=1.
+\]
+For an integer \(k\ge0\) and a real center \(\zeta\), define
+\[
+U_k(N;\zeta)
+=
+\sum_{t=0}^{k}\binom kt(-\zeta)^{k-t}\frac{(N)_t}{m^t},
+\]
+and set
+\[
+Z_x
+=
+F_\epsilon(b_x)
++
+\sum_{\boldsymbol\alpha\in\{0,\ldots,D\}^4}
+\beta_{x,\boldsymbol\alpha}
+\prod_{a,y\in\{0,1\}}
+\frac{U_{\alpha_{ay}}(N_{ay,x};b_{ay,x})}
+{r_{ay,x}^{\alpha_{ay}}}.
+\]
+Define the armwise clipping scales and clipped cell contributions by
+\[
+R_{a,x}=r_{a0,x}+r_{a1,x},\qquad
+w_{a,x}=1+\frac{s(b_x)}{D_a(b_x)},\qquad
+S_x^{\mathrm{aw}}=2\sum_{a=0}^{1}w_{a,x}R_{a,x},
+\]
+\[
+T_x
+=
+\Pi_{[F_\epsilon(b_x)-d^{1/4}S_x^{\mathrm{aw}},\,
+       F_\epsilon(b_x)+d^{1/4}S_x^{\mathrm{aw}}]}(Z_x).
+\]
+Finally, set
+\[
+\widetilde V
+=
+\begin{cases}
+\displaystyle\Pi_{[0,1]}\left(\sum_{x\in[d]}T_x\right),
+&\mathsf M\le n,\\[4pt]
+0,&\mathsf M>n,
+\end{cases}
+\qquad
+\widehat V_{n,d,\epsilon}^{\mathrm{AF}}
+=
+E[\widetilde V\mid O_1,\ldots,O_n].
+\]
+The conditional expectation integrates the auxiliary count and marks. Equivalently, on this branch,
+\[
+\widehat V_{n,d,\epsilon}^{\mathrm{AF}}
+=
+\sum_{k=0}^{n}
+e^{-n/4}\frac{(n/4)^k}{k!}
+\sum_{(\mathsf B_1,\ldots,\mathsf B_k)\in\{0,1\}^k}
+2^{-k}\,
+\Pi_{[0,1]}\left(\sum_{x\in[d]}T_x\right),
+\]
+where each summand uses the counts and cell contributions constructed from the first \(k\) observations and the displayed mark vector. This defines a deterministic measurable real-valued function of the observed sample.
+\end{algorithmv}
+
+The calibration proved in \cref{sec:deferred-proofs} takes
+\[
+H_0=1025,
+\qquad
+\kappa=\frac1{17952},
+\qquad
+D_0=2.
+\]
+With this choice, the admissible range \(d\ge2\) uses the saturated and active branches. The parameterized definition in \cref{obj:def:armwise-estimator} also records an empirical branch for a general cutoff.
+
+In the bounded-alphabet branch, the full-sample cell count \leanref{sym:N_x}{\ensuremath{N_x}} supplies the empirical cell weight, while the arm count \leanref{sym:N_{ax}}{\ensuremath{N_{ax}}} and success count \leanref{sym:S_{ax}}{\ensuremath{S_{ax}}} supply the empirical outcome mean. The zero-count convention completes the definition for empty arms. In the saturated branch, the midpoint \(1/2\) has squared error at most \(1/4\) because the observed value lies in the unit interval. These branches address the regimes in which a fixed alphabet or a constant risk bound suffices.
+
+The active branch first localizes each cell's four observed atom masses. The auxiliary count \leanref{sym:\mathsf M}{\ensuremath{\mathsf M}} selects an initial portion of the sample, and the fair marks \leanref{sym:\mathsf B_i}{\ensuremath{\mathsf B_i}} allocate its observations to pilot and evaluation counts. The pilot counts \leanref{sym:N'_{ay,x}}{\ensuremath{N'_{ay,x}}} determine a localization rectangle \leanref{sym:Q_x}{\ensuremath{Q_x}} with center \leanref{sym:b_x}{\ensuremath{b_x}}. Its radii combine a term that varies with the estimated atom mass and an additive term that remains positive when the pilot count is zero. Thus the polynomial construction has positive coordinate radii even in cells with empty pilot atoms.
+
+Within this rectangle, the tensor Jackson polynomial \leanref{sym:P_{x,K_n}}{\ensuremath{P_{x,K_n}}} approximates the extension \(F_\epsilon\) defined in \cref{obj:def:armwise-extension}. The approximation degree \leanref{sym:K_n}{\ensuremath{K_n}} grows with the logarithmic alphabet scale. The evaluation counts \leanref{sym:N_{ay,x}}{\ensuremath{N_{ay,x}}} then enter through the centered factorial statistic \leanref{sym:U_k(N;\zeta)}{\ensuremath{U_k(N;\zeta)}}, which replaces centered powers in the polynomial expansion by falling-factorial count terms. This produces the cell statistic \leanref{sym:Z_x}{\ensuremath{Z_x}}. The separation of localization and evaluation is motivated by Poisson splitting: in the auxiliary uncapped Poisson experiment, pilot and evaluation atom counts are independent, and falling factorials estimate powers of atom masses. The displayed cap incorporates this construction into a sample of fixed size.
+
+Clipping adapts to the sensitivity of the cell contribution in each treatment arm. The armwise weights \leanref{sym:w_{a,x}}{\ensuremath{w_{a,x}}} compare total cell mass with the overlap-truncated arm mass at the pilot center. They enter the clipping scale \leanref{sym:S_x^{\mathrm{aw}}}{\ensuremath{S_x^{\mathrm{aw}}}} together with the arm-specific localization widths. Each clipped contribution \leanref{sym:T_x}{\ensuremath{T_x}} consequently remains within a prescribed interval around the center's contribution, and projection of their sum yields the bounded auxiliary statistic \leanref{sym:\widetilde V}{\ensuremath{\widetilde V}}.
+
+Finally, conditional averaging integrates the auxiliary count and every mark allocation with their specified probabilities. The finite sum in \cref{obj:def:armwise-estimator} makes the resulting dependence explicit: for every \(k\le n\), it enumerates \(2^k\) mark vectors, and each summand also requires the four-dimensional Jackson integrals or their polynomial coefficients. The formula defines a deterministic theoretical statistic through finite averaging over auxiliary counts and mark allocations. For any fixed target value, conditional averaging cannot increase squared-error risk, by conditional Jensen's inequality. The uniform guarantee for this statistic is as follows.
+
+\begin{theoremv}{thm:observable-upper}[Uniform observable risk bound]
+There exist universal constants \(H_0>0\), \(\kappa>0\), \(0<C_\star<\infty\), and an integer \(D_0\ge2\) such that, for every choice of:
+\begin{itemize}
+\item \textbf{(Sample size.)} An integer \(n\ge1\).
+\item \textbf{(Alphabet size.)} An integer \(d\ge2\).
+\item \textbf{(Overlap.)} A public overlap parameter \(0<\epsilon\le1/2\).
+\end{itemize}
+the estimator \(\widehat V_{n,d,\epsilon}^{\mathrm{AF}}\) specified in \cref{obj:def:armwise-estimator}, with these tuning constants, is a measurable, deterministic function of the observed sample. For every family of sampling laws satisfying \cref{obj:ass:iid-sampling} for each \(\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}\), the class of admissible observed laws with public overlap floor \(\epsilon\), its squared-error risk for the observed value \(\Psi(\mathbb P)\) defined in \cref{obj:def:observed-value} satisfies
+\[
+\sup_{\mathbb P\in\mathcal D_{d,\epsilon}^{\mathrm{obs}}}
+E_{\mathbb P}\!\left[
+\left\{\widehat V_{n,d,\epsilon}^{\mathrm{AF}}-\Psi(\mathbb P)\right\}^{2}
+\right]
+\le C_\star\min\left\{1,\frac{d}{n\epsilon L_d}\right\},
+\qquad L_d=\log(ed).
+\]
+\end{theoremv}
+
+The armwise sensitivity bound in \cref{obj:lem:armwise-modulus} explains the scaling of this guarantee. Changes in the four atom masses affect the cell contribution through the mass available in each arm, so localization and clipping retain separate armwise sensitivity weights. Polynomial approximation addresses the maximum over arm-specific means within the pilot rectangle, and factorial estimation translates that approximation into observed count statistics. Together, these ingredients yield the logarithmic improvement in the risk bound while accounting for the public overlap floor. \Cref{sec:appendix-upper} organizes the analytic ingredients, and \cref{sec:deferred-proofs} gives the detailed proof and calibration. Combined with \cref{obj:thm:matched-frontier}, the guarantee establishes attainment of the minimax rate by the deterministic statistic in \cref{obj:def:armwise-estimator}.

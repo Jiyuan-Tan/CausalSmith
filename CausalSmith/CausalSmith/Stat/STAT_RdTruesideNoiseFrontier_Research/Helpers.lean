@@ -1,0 +1,18 @@
+module
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.CitedGates
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Covariance
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.DongInference
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.FrontierComparison
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.FrontierRoot
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.FrontierSequences
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Handle
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Kernel
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.LowerWitness
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Procedure
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Rate
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.TwoPoint
+public import CausalSmith.Stat.STAT_RdTruesideNoiseFrontier_Research.Helpers.Witness
+
+/-! Shared construction and lemma interfaces for the endpoint frontier. -/
+
+public section

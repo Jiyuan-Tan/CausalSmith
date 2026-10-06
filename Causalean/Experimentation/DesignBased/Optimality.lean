@@ -1,0 +1,118 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Design families, domination, and optimal designs
+
+This file promotes the randomization design from a fixed object to a *parameter* that the
+experimenter chooses.  A **design family** is a set of candidate designs on a common
+assignment space; a **risk** `R` assigns each design an ordered value (such as its mean squared
+error for a chosen estimator and target — see `mseRisk` — or any other criterion). One design
+**dominates** another when it carries no larger risk, and a design is **optimal** in a
+family when it dominates every member.  The main result is that over a nonempty *finite*
+family an optimal design exists.  Keeping the optimality layer generic in `R` isolates the
+order-theoretic content from the particular estimation problem being optimized.
+-/
+
+module
+public import Causalean.Experimentation.DesignBased.Risk
+
+/-!
+# Design-family optimality criteria
+
+This file treats a randomization design as the object being chosen from a finite family under an
+ordered risk criterion.
+
+The declarations `DesignFamily`, `Dominates`, and `IsOptimalOn` formalize candidate sets,
+weak domination, and least-risk designs. The theorem `exists_isOptimalOn` shows that every
+nonempty finite design family has an optimal member. The risk functional `mseRisk` packages the
+mean squared error of a design-indexed estimator, with `mseRisk_nonneg` and
+`mseRisk_eq_var_of_unbiased` connecting it to nonnegativity and variance for unbiased estimators.
+-/
+
+@[expose] public section
+
+open scoped BigOperators
+
+namespace Causalean
+namespace Experimentation
+namespace DesignBased
+
+variable {Ω : Type*} [Fintype Ω]
+
+/-- For [a finite assignment space](hyp:Ω), the [design family](goal) is a set of candidate
+randomization designs defined on that common assignment space. -/
+abbrev DesignFamily (Ω : Type*) [Fintype Ω] : Type _ := Set (FiniteDesign Ω)
+
+/-- For [a finite assignment space](hyp:Ω), [an ordered risk scale](hyp:α), [a risk criterion for
+randomization designs](hyp:R), and [two randomization designs](hyp:D₁,D₂), the [assertion that
+the first design weakly dominates the second](goal) means that its risk is no greater than the
+second design's risk. -/
+def Dominates {α : Type*} [Preorder α] (R : FiniteDesign Ω → α) (D₁ D₂ : FiniteDesign Ω) : Prop :=
+  R D₁ ≤ R D₂
+
+/-- Domination is reflexive: every design dominates itself. -/
+lemma Dominates.refl {α : Type*} [Preorder α] (R : FiniteDesign Ω → α) (D : FiniteDesign Ω) :
+    Dominates R D D :=
+  le_refl _
+
+/-- Domination is transitive. -/
+lemma Dominates.trans {α : Type*} [Preorder α] {R : FiniteDesign Ω → α} {D₁ D₂ D₃ : FiniteDesign Ω}
+    (h₁ : Dominates R D₁ D₂) (h₂ : Dominates R D₂ D₃) : Dominates R D₁ D₃ :=
+  le_trans h₁ h₂
+
+/-- For [a finite assignment space](hyp:Ω), [an ordered risk scale](hyp:α), [a family of candidate
+randomization designs](hyp:𝒟), [a risk criterion](hyp:R), and [a randomization design](hyp:D₀),
+the [assertion that the design is optimal in the family](goal) means both that it belongs to the
+family and that its risk is no greater than the risk of every design in the family. -/
+def IsOptimalOn {α : Type*} [Preorder α] (𝒟 : DesignFamily Ω) (R : FiniteDesign Ω → α)
+    (D₀ : FiniteDesign Ω) : Prop :=
+  D₀ ∈ 𝒟 ∧ ∀ D ∈ 𝒟, R D₀ ≤ R D
+
+/-- An optimal design dominates every member of its family. -/
+lemma IsOptimalOn.dominates {α : Type*} [Preorder α] {𝒟 : DesignFamily Ω}
+    {R : FiniteDesign Ω → α} {D₀ : FiniteDesign Ω}
+    (h : IsOptimalOn 𝒟 R D₀) {D : FiniteDesign Ω} (hD : D ∈ 𝒟) : Dominates R D₀ D :=
+  h.2 D hD
+
+/-- **Existence of an optimal design.** For a design family `𝒟` and a risk criterion `R` valued in
+a linear order, if [`𝒟` is finite](hyp:hfin) and [`𝒟` is nonempty](hyp:hne), then [there exists a
+design in `𝒟` that is optimal — it dominates every other member of the family under `R`](goal). -/
+theorem exists_isOptimalOn {α : Type*} [LinearOrder α] (𝒟 : DesignFamily Ω) (R : FiniteDesign Ω → α)
+    (hfin : 𝒟.Finite) (hne : 𝒟.Nonempty) : ∃ D₀, IsOptimalOn 𝒟 R D₀ := by
+  let s := hfin.toFinset
+  have hs : s.Nonempty := by
+    simpa [s] using hfin.toFinset_nonempty.mpr hne
+  rcases Finset.exists_min_image s R hs with ⟨D₀, hD₀, hmin⟩
+  refine ⟨D₀, hfin.mem_toFinset.mp hD₀, ?_⟩
+  intro D hD
+  exact hmin D (hfin.mem_toFinset.mpr hD)
+
+/-! ### Mean-squared-error risk of a design-indexed estimator
+
+The canonical risk: fix an estimator that may use each design's known probabilities
+(`est D : Ω → ℝ`, e.g. Horvitz–Thompson) and a design-independent target `μ`; the risk of a
+design is the estimator's mean squared error under it. -/
+
+/-- For [a finite assignment space](hyp:Ω), [an estimator specified separately for each
+randomization design](hyp:est), and [a real-valued target](hyp:μ), the [mean-squared-error risk
+function](goal) assigns to each design the mean squared error of that design's estimator about the
+target, evaluated under that design. -/
+def mseRisk (est : FiniteDesign Ω → Ω → ℝ) (μ : ℝ) : FiniteDesign Ω → ℝ :=
+  fun D => D.mse (est D) μ
+
+/-- Mean-squared-error risk is nonnegative. -/
+lemma mseRisk_nonneg (est : FiniteDesign Ω → Ω → ℝ) (μ : ℝ) (D : FiniteDesign Ω) :
+    0 ≤ mseRisk est μ D :=
+  D.mse_nonneg _ _
+
+/-- For an estimator that is unbiased under every design in the family, the
+mean-squared-error risk coincides with the variance there. -/
+lemma mseRisk_eq_var_of_unbiased {est : FiniteDesign Ω → Ω → ℝ} {μ : ℝ} {D : FiniteDesign Ω}
+    (h : D.Unbiased (est D) μ) : mseRisk est μ D = D.Var (est D) :=
+  D.mse_eq_var_of_unbiased h
+
+end DesignBased
+end Experimentation
+end Causalean

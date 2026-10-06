@@ -1,0 +1,2729 @@
+{
+  "commit": "96e526d2af264e63a1ace1820aac7f8843203708",
+  "groups": [
+    {
+      "kind": "setup",
+      "items": [
+        {
+          "obj_id": "S1",
+          "kind": "setup",
+          "label": "Setup S-1",
+          "nl": "A single stationary trajectory of length \\(T\\) from a time-homogeneous partially observed Markov decision process with binary observed state \\(X_t\\in\\mathcal X=\\{0,1\\}\\), binary hidden state \\(H_t\\in\\mathcal H=\\{0,1\\}\\), joint state \\(S_t=(X_t,H_t)\\in\\mathcal S\\), binary action \\(A_t\\in\\mathcal A=\\{0,1\\}\\), and reward \\(Y_t\\in\\mathcal Y=[0,1]\\). A joint reward--next-state kernel \\(K(dy,s'\\mid s,a)\\) generates \\((Y_t,S_{t+1})\\) given the full pre-action history \\(\\mathcal F_t^-\\) and \\(A_t\\); the known memoryless behavior policy \\(b\\) draws \\(A_t\\) given \\(X_t\\), and \\(e\\) is the known memoryless target policy. Each policy \\(p\\in\\{b,e\\}\\) induces a joint-state transition matrix \\(P_p\\) with stationary law \\(d_p\\); \\(r_e\\) is the target-policy mean reward and \\(\\theta=d_er_e\\). Only \\(\\mathsf O_T=((X_t,A_t,Y_t))_{t=1}^T\\) is observed. Regime constants are \\(t_0>0\\), \\(\\zeta\\geq0\\), \\(\\alpha=e^{-1/t_0}\\), \\(L=e^{\\zeta}\\); observable scores are \\(\\rho_t\\), \\(Z_t(k)\\), with population moments \\(m_k\\) and empirical moments \\(\\widehat m_k\\), and \\(\\mathcal M_T^{(2)}(t_0,\\zeta)\\) is the class of such experiments satisfying the six law conditions.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S2",
+          "kind": "setup",
+          "label": "Setup S-2",
+          "nl": "Auxiliary finite linear algebra on the four-point joint-state space: row-stochastic \\(4\\times4\\) matrices \\(P,P'\\) with initial laws \\(\\nu,\\nu'\\), reward vectors \\(r,r'\\in[0,1]^4\\), stationary laws \\(\\pi,\\pi'\\), transient characteristic polynomials \\(q_P(z)=\\det(zI-P)/(z-1)\\), \\(q_{P'}\\), pair polynomial \\(Q_{P,P'}=q_Pq_{P'}=\\sum_{k=0}^6Q_kz^k\\), Dobrushin coefficient \\(\\delta(R)=\\max_{i,j}\\|R(i,\\cdot)-R(j,\\cdot)\\|_{\\mathrm{TV}}\\), and stability constant \\(B_\\alpha=((1+\\alpha)/(1-\\alpha))^6\\).",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S4",
+          "kind": "setup",
+          "label": "Setup S-4",
+          "nl": "The cardinality-uniform bounded-stationary-overlap comparator: stationary-overlap bound \\(C>1\\), radius \\(q_C=(C-1)/C\\), exponent \\(\\beta=2/(2+t_0\\zeta)\\), and reset-chain depth \\(Q\\) with hidden alphabet of size \\(2(Q+1)\\).",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "definition",
+      "items": [
+        {
+          "obj_id": "def:binary-pomdp-class",
+          "kind": "definition",
+          "label": "Definition P-1",
+          "nl": "\\(\\mathcal M_T^{(2)}(t_0,\\zeta):=\\{(K,b,e,\\mathcal L(\\mathsf O_T)):T\\in\\mathbb N,\\ \\mathcal X=\\mathcal H=\\mathcal A=\\{0,1\\},\\ \\mathcal Y=[0,1],\\ \\mathrm A_{\\mathrm{kernel}},\\mathrm A_{\\mathrm{ign}},\\mathrm A_{\\mathrm{start}},\\mathrm A_{\\mathrm{overlap}},\\mathrm A_{b\\text{-}\\mathrm{mix}},\\mathrm A_{e\\text{-}\\mathrm{mix}}\\text{ hold}\\}\\), where the six predicates are exactly \\(\\mathrm{ass{:}pomdp\\text{-}kernel}\\), \\(\\mathrm{ass{:}sequential\\text{-}ignorability}\\), \\(\\mathrm{ass{:}stationary\\text{-}start}\\), \\(\\mathrm{ass{:}policy\\text{-}overlap}\\), \\(\\mathrm{ass{:}behavior\\text{-}contraction}\\), and \\(\\mathrm{ass{:}target\\text{-}contraction}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.BinaryPomdpClass",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:target-value",
+          "kind": "definition",
+          "label": "Definition P-2",
+          "nl": "\\(\\theta(K,e):=d_er_e=\\sum_{s=(x,h)\\in\\mathcal S}d_e(s)\\sum_{a\\in\\mathcal A}e(a\\mid x)\\sum_{s'\\in\\mathcal S}\\int_{\\mathcal Y}yK(dy,s'\\mid s,a)\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.targetValue",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:observable-moments",
+          "kind": "definition",
+          "label": "Definition P-3",
+          "nl": "For \\(k=0,\\ldots,6\\), set \\(Z_t(k):=Y_t\\prod_{j=t-k}^{t}\\rho_j\\), \\(m_k:=\\mathbb E_b[Z_t(k)]\\), and \\(\\widehat m_k:=(T-6)^{-1}\\sum_{t=7}^{T}Z_t(k)\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:stable-grid-estimator",
+          "kind": "definition",
+          "label": "Definition P-4",
+          "nl": "Let \\(M:=\\lceil(22+36/\\alpha)T\\rceil\\), let \\(\\mathcal G_M\\) be the four-simplex grid with coordinates in \\(M^{-1}\\mathbb Z\\), let \\(U:=\\mathbf1\\mathbf1^{\\mathsf T}/4\\), and let \\(\\lambda:=\\alpha/(\\alpha+6/M)\\). Enumerate every \\((\\nu,R,r)\\) with \\(\\nu\\in\\mathcal G_M\\), every row of \\(R\\) in \\(\\mathcal G_M\\), \\(\\delta(R)\\le\\alpha+6/M\\), and \\(r\\in\\{0,1/M,\\ldots,1\\}^4\\); form \\(P=\\lambda R+(1-\\lambda)U\\), select lexicographically among minimizers of \\(\\max_{0\\le k\\le6}|\\widehat m_k-\\nu P^kr|\\), and output \\(\\widehat\\theta_T:=\\pi(P)r\\), where \\(\\pi(P)P=\\pi(P)\\).",
+          "lean": {
+            "file": "Constructions.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.stableGridEstimator",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:minimax-risk",
+          "kind": "definition",
+          "label": "Definition P-5",
+          "nl": "\\(R_T^{(2)}(t_0,\\zeta):=\\inf_{\\widetilde\\theta\\in\\sigma(\\mathsf O_T,b,e,t_0,\\zeta)}\\sup_{M\\in\\mathcal M_T^{(2)}(t_0,\\zeta)}\\mathbb E_M[(\\widetilde\\theta-\\theta)^2]\\), where the infimum ranges over measurable observed-data procedures taking values in \\( [0,1] \\).",
+          "lean": {
+            "file": "Constructions.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.minimaxRisk",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:four-state-testing-family",
+          "kind": "definition",
+          "label": "Definition P-6",
+          "nl": "For \\(v\\in\\{-v_T,+v_T\\}\\), put \\(b(1\\mid x)=e(1\\mid x)=1/2\\), let \\(E(x\\mid h)=3/5\\) if \\(x=h\\) and \\(E(x\\mid h)=2/5\\) otherwise, set \\(q_v(h)=1/2+(2h-1)/8+v\\), and set \\(p(a)=1/4+a/2\\).  Define\n\\[\n K_v^{(T)}(y,x',h'\\mid x,h,a)\n :=\\operatorname{Ber}_{q_v(h)}(y)\\operatorname{Ber}_{p(a)}(h')E(x'\\mid h').\n\\]",
+          "lean": {
+            "file": "Constructions.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:polynomial-time-handle",
+          "kind": "definition",
+          "label": "Definition P-7",
+          "nl": "The handle \\(\\mathfrak H_{\\mathrm{poly}}\\) is the problem of constructing, in an explicit arithmetic or bit-complexity and precision model, a cost-certified algorithm that starts from the \\(3\\times3\\) Hankel matrix of differences \\(\\widehat m_{i+j+1}-\\widehat m_{i+j}\\), adapts over recurrence ranks zero through three, enforces transient roots in \\(\\{z:|z|\\leq\\alpha\\}\\), and returns a stable four-state scalar realization whose seven-moment objective is globally certified to within \\(T^{-1}\\) of the optimum, uniformly over rank-deficient strata and without a positive singular-value margin.  The exhaustive estimator is defined over a finite candidate list of size \\(O(T^{19})\\) for fixed \\(t_0\\), but no runtime or arithmetic-operation bound for fitting and selection is asserted.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.polynomialTimeHandle",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "oeq:polynomial-time-attainment",
+          "kind": "definition",
+          "label": "Definition P-8",
+          "nl": "Can the handle \\(\\mathfrak H_{\\mathrm{poly}}\\) implement fitting and lexicographic selection over, or replace, the \\(O(T^{19})\\)-sized stable-grid candidate list by a rank-adaptive algorithm with explicit runtime, bit-complexity, and precision semantics that returns over \\(\\mathcal M_T^{(2)}(t_0,\\zeta)\\) a globally certified seven-moment stable fit within objective gap \\(T^{-1}\\), uniformly over every rank-deficient Hankel stratum and without a positive singular-value margin?",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.polynomialTimeAttainmentQuestion",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "assumption",
+      "items": [
+        {
+          "obj_id": "ass:pomdp-kernel",
+          "kind": "assumption",
+          "label": "Assumption A-1",
+          "nl": "\\(\\mathcal L(Y_t,S_{t+1}\\mid\\mathcal F_t^-,A_t)=K(\\cdot\\mid S_t,A_t)\\) for \\(t=1,\\ldots,T\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.PomdpKernelLaw",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:sequential-ignorability",
+          "kind": "assumption",
+          "label": "Assumption A-2",
+          "nl": "\\(\\Pr(A_t=a\\mid\\mathcal F_t^-)=b(a\\mid X_t)\\) for \\(a\\in\\mathcal A\\) and \\(t=1,\\ldots,T\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.SequentialIgnorability",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:stationary-start",
+          "kind": "assumption",
+          "label": "Assumption A-3",
+          "nl": "\\(S_1\\sim d_b\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.StationaryStart",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:policy-overlap",
+          "kind": "assumption",
+          "label": "Assumption A-4",
+          "nl": "\\(e(a\\mid x)\\le Lb(a\\mid x)\\) for every \\((a,x)\\in\\mathcal A\\times\\mathcal X\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.PolicyOverlap",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:behavior-contraction",
+          "kind": "assumption",
+          "label": "Assumption A-5",
+          "nl": "\\(\\|\\mu P_b-\\mu'P_b\\|_{\\mathrm{TV}}\\le\\alpha\\|\\mu-\\mu'\\|_{\\mathrm{TV}}\\) for every \\(\\mu,\\mu'\\in\\Delta(\\mathcal S)\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.BehaviorContraction",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:target-contraction",
+          "kind": "assumption",
+          "label": "Assumption A-6",
+          "nl": "\\(\\|\\mu P_e-\\mu'P_e\\|_{\\mathrm{TV}}\\le\\alpha\\|\\mu-\\mu'\\|_{\\mathrm{TV}}\\) for every \\(\\mu,\\mu'\\in\\Delta(\\mathcal S)\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.TargetContraction",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "lemma",
+      "items": [
+        {
+          "obj_id": "lem:pair-polynomial-modulus",
+          "kind": "lemma",
+          "label": "Lemma L-1",
+          "nl": "If \\(\\delta(P)\\le\\alpha\\) and \\(\\delta(P')\\le\\alpha\\), then eigenvalue one is algebraically simple for both matrices and \\(Q_{P,P'}(1)(\\pi r-\\pi'r')=\\sum_{k=0}^{6}Q_k(\\nu P^kr-\\nu'P'^kr')\\). Consequently, \\( |\\pi r-\\pi'r'|\\le B_\\alpha\\max_{0\\le k\\le6}|\\nu P^kr-\\nu'P'^kr'|\\). The identity holds without diagonalizability and therefore includes repeated, defective, and complex transient modes.",
+          "lean": {
+            "file": "Helpers/PairPolynomial.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.pairPolynomial_value_modulus",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:observable-intervention-moments",
+          "kind": "lemma",
+          "label": "Lemma L-2",
+          "nl": "For every member of \\(\\mathcal M_T^{(2)}(t_0,\\zeta)\\) and every \\(k=0,\\ldots,6\\), the \\(k+1\\)-action score with \\(k\\) state transitions satisfies \\(m_k=\\mathbb E_b[Z_t(k)]=d_bP_e^kr_e\\).  Moreover, \\(\\mathbb E_b[Z_t(k)^2]\\leq L^{k+1}\\), and, for \\(h\\geq k+1\\), \\(\\lvert\\operatorname{Cov}(Z_t(k),Z_{t+h}(k))\\rvert\\leq\\alpha^{h-k-1}\\).",
+          "lean": {
+            "file": "Helpers/InterventionMoments.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.observable_intervention_moments",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:testing-family-membership",
+          "kind": "lemma",
+          "label": "Lemma L-3",
+          "nl": "For both \\(v\\in\\{-v_T,+v_T\\}\\), the kernel \\(K_v^{(T)}\\) and the displayed coincident policies define members of \\(\\mathcal M_T^{(2)}(t_0,\\zeta)\\) for every \\(t_0>0\\), \\(\\zeta\\geq0\\), and \\(T\\geq12\\).  Their target values differ by \\(1/(8\\sqrt T)\\), and their observed trajectory laws satisfy \\(\\operatorname{KL}(\\mathbb P_{+}^{\\mathsf O_T}\\Vert\\mathbb P_{-}^{\\mathsf O_T})\\leq1/12\\).  Moreover, \\(e=b\\) and \\(d_e=d_b\\), so this pair obeys every stationary occupancy-ratio bound \\(d_e\\leq Cd_b\\) with \\(C>1\\).",
+          "lean": {
+            "file": "Helpers/TestingFamily.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.testingFamily_membership",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "theorem",
+      "items": [
+        {
+          "obj_id": "thm:stable-grid-upper",
+          "kind": "theorem",
+          "label": "Theorem T-1",
+          "nl": "For every fixed \\(t_0>0\\), \\(\\zeta\\geq0\\), and \\(T\\geq12\\), the fully observed-data estimator \\(\\widehat\\theta_T\\) satisfies\n\\[\n \\sup_{M\\in\\mathcal M_T^{(2)}(t_0,\\zeta)}\n \\mathbb E_M[(\\widehat\\theta_T-\\theta)^2]\n \\leq \\frac{B_\\alpha^2(112V_{\\alpha,L}+2)}{T}.\n\\]\nThis bound is uniform over zero behavior cells, singular emissions, arbitrarily small stationary cells, and every dependence between reward and next state allowed by \\(K\\); it requires no stationary occupancy-ratio bound.",
+          "lean": {
+            "file": "TStableGridUpper.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.stableGrid_upper",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:fixed-binary-minimax",
+          "kind": "theorem",
+          "label": "Theorem T-2",
+          "nl": "For every fixed \\(t_0>0\\), \\(\\zeta\\geq0\\), and \\(T\\geq12\\),\n\\[\n \\frac1{1024T}\n \\leq R_T^{(2)}(t_0,\\zeta)\n \\leq\\frac{B_\\alpha^2(112V_{\\alpha,L}+2)}T.\n\\]\nThus the exact fixed-binary mean-squared-error rate is \\(T^{-1}\\), without a stationary occupancy-ratio assumption and hence without a \\(C\\)-elbow.  The positive hard pair has \\(e=b\\) and \\(d_e=d_b\\), so the converse transfers to every larger Hu--Wager or cardinality-uniform stationary-overlap class containing this binary subclass.  For \\(\\zeta>0\\) and \\(C>1\\), by contrast, the cited cardinality-uniform rate is \\(T^{-1}+T^{-\\beta}q_C^{2(1-\\beta)}\\), with \\(\\beta=2/(2+t_0\\zeta)\\), and its lower construction has \\(2(Q+1)\\) hidden states with \\(Q\\asymp\\log T\\), so that construction is not representable in the binary-hidden class for large \\(T\\).",
+          "lean": {
+            "file": "TFixedBinaryMinimax.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.fixedBinary_minimax",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:coincident-policy-reduction",
+          "kind": "theorem",
+          "label": "Theorem T-3",
+          "nl": "Under the stationary-start, POMDP-kernel, sequential-assignment, and behavior-contraction assumptions, if \\(e=b\\), then \\(P_e=P_b\\), \\(d_e=d_b\\), and \\(m_0=\\theta\\).  Moreover, the sample mean is unbiased and satisfies\n\\[\n \\mathbb E\\!\\left[\\left\\{T^{-1}\\sum_{t=1}^{T}Y_t-\\theta\\right\\}^2\\right]\n \\leq \\frac{1+2/(1-\\alpha)}{T}.\n\\]\nConsequently its mean-squared error is \\(O(T^{-1})\\).  This is the standard on-policy reduction of the fixed-binary frontier; no law-by-law \\(\\Omega(T^{-1})\\) assertion is made.",
+          "lean": {
+            "file": "TCoincidentPolicyReduction.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.coincidentPolicy_reduction",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:exhaustive-grid-arithmetic-complexity",
+          "kind": "theorem",
+          "label": "Theorem T-4",
+          "nl": "Let \\(M:=\\lceil(22+36/\\alpha)T\\rceil\\) as in \\(\\mathrm{def{:}stable\\text{-}grid\\text{-}estimator}\\). Before the Dobrushin filter is applied, its finite candidate list has exactly\n\\[\n \\binom{M+3}{3}^{5}(M+1)^4\n\\]\nelements, and filtering can only reduce this number. Hence, for fixed \\(t_0>0\\), the candidate-list cardinality is \\(O(M^{19})=O(T^{19})\\).",
+          "lean": {
+            "file": "TExhaustiveGridComplexity.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.exhaustiveGrid_candidate_count",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "cited",
+      "items": [
+        {
+          "obj_id": "lem:cardinality-uniform-comparator",
+          "kind": "cited",
+          "label": "Cited result lem:cardinality-uniform-comparator",
+          "nl": "For fixed \\(t_0>0\\) and \\(\\zeta>0\\), the cardinality-uniform stationary-overlap POMDP result cited as \\texttt{CausalSmithLatentOverlap2026} has minimax mean-squared-error rate \\(T^{-1}+T^{-\\beta}q_C^{2(1-\\beta)}\\), where \\(\\beta=2/(2+t_0\\zeta)\\) and \\(q_C=(C-1)/C\\).  Its lower-bound reset construction has \\(2(Q+1)\\) hidden states with \\(Q\\asymp\\log T\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.PomdpBinaryhiddenRate.CardinalityUniformComparator",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "auxiliary",
+      "items": [
+        {
+          "obj_id": "aux_ComparatorHiddenAlphabet",
+          "kind": "definition",
+          "label": "Definition ComparatorHiddenAlphabet",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_IsGridRow",
+          "kind": "definition",
+          "label": "Definition IsGridRow",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_IsStationary",
+          "kind": "definition",
+          "label": "Definition IsStationary",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_mixingAlpha",
+          "kind": "definition",
+          "label": "Definition mixingAlpha",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ModelIndex",
+          "kind": "definition",
+          "label": "Definition ModelIndex",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_obsLaw",
+          "kind": "definition",
+          "label": "Definition obsLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_overlapRadius",
+          "kind": "definition",
+          "label": "Definition overlapRadius",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_policyFactor",
+          "kind": "definition",
+          "label": "Definition policyFactor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_policyKernel",
+          "kind": "definition",
+          "label": "Definition policyKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_PolicyVector",
+          "kind": "definition",
+          "label": "Definition PolicyVector",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_rateExponent",
+          "kind": "definition",
+          "label": "Definition rateExponent",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_RawPomdpExperiment",
+          "kind": "definition",
+          "label": "Definition RawPomdpExperiment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_stabilityFactor",
+          "kind": "definition",
+          "label": "Definition stabilityFactor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_stationaryLaw",
+          "kind": "definition",
+          "label": "Definition stationaryLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_varianceFactor",
+          "kind": "definition",
+          "label": "Definition varianceFactor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_vT",
+          "kind": "definition",
+          "label": "Definition vT",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "simplexGrid_card",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.simplexGrid_card",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridMatrixRows_card",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridMatrixRows_card",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridCandidateUniverse_card",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridCandidateUniverse_card",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridCandidateUniverse_growth",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridCandidateUniverse_growth",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridSize_linear_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridSize_linear_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "coincidentPolicy_kernel_stationary",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.coincidentPolicy_kernel_stationary",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fourMatrixPower",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.fourMatrixPower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fourMatrixPower_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.fourMatrixPower_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observable_intervention_moment_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.observable_intervention_moment_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingRewardProb_mem_Icc",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingRewardProb_mem_Icc",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_policyOverlap",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_policyOverlap",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingStepMass_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingStepMass_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingInitialMass_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingInitialMass_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingRewardMass_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingRewardMass_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingOneStepMass_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingOneStepMass_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingStateMass_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingStateMass_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingNextStateMass",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.testingNextStateMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingNextStateMass_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingNextStateMass_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingStepMarginal_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingStepMarginal_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingPathWeight_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingPathWeight_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingPathWeight_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingPathWeight_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "coincidentPolicy_occupancy_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.coincidentPolicy_occupancy_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_policyKernel_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_policyKernel_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_stationaryLaw_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_stationaryLaw_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_contraction",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_contraction",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingKernel_reward_integral",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingKernel_reward_integral",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_rewardRegression_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_rewardRegression_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_targetValue_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_targetValue_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingKernel_probability",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingKernel_probability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingKernel_rewardSupport",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingKernel_rewardSupport",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_stationary",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_stationary",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "comparator_reset_depth_growth",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.comparator_reset_depth_growth",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingPathWeight_initial_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingPathWeight_initial_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_historyConditions",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_historyConditions",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_class_of_history",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_class_of_history",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sqRisk_ge_error_probability",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.sqRisk_ge_error_probability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bounded_estimator_sqError_integrable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.bounded_estimator_sqError_integrable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingPair_observedRisk_lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingPair_observedRisk_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "targetValue_mem_unitInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.targetValue_mem_unitInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "policyKernel_stochastic_of_kernelLaw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.policyKernel_stochastic_of_kernelLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "targetStationary_of_class",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.targetStationary_of_class",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedRisk_unit_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.observedRisk_unit_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sequentialIgnorability_supported_action",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.sequentialIgnorability_supported_action",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pomdp_reward_mem_Icc_ae",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.pomdp_reward_mem_Icc_ae",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pomdp_reward_integrable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.pomdp_reward_integrable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "coincidentPolicy_score_zero_ae",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.coincidentPolicy_score_zero_ae",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "coincidentPolicy_reward_mean",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.coincidentPolicy_reward_mean",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "coincidentPolicy_sampleMean_unbiased",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.coincidentPolicy_sampleMean_unbiased",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "coincidentPolicy_binaryClass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.coincidentPolicy_binaryClass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "coincidentPolicy_reward_covariance",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.coincidentPolicy_reward_covariance",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finiteGeometric_sum_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.finiteGeometric_sum_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finiteGeometric_sum_image_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.finiteGeometric_sum_image_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "geometricCovariance_row_sum_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.geometricCovariance_row_sum_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "coincidentPolicy_sampleMean_mse",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.coincidentPolicy_sampleMean_mse",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingPathWeight_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingPathWeight_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingTrajectoryLaw_absolutelyContinuous",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingTrajectoryLaw_absolutelyContinuous",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingObservedLaw_klDiv_ne_top",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingObservedLaw_klDiv_ne_top",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridCandidates_row",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridCandidates_row",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridCandidates_nonempty",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridCandidates_nonempty",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectGridCode_mem",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.selectGridCode_mem",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridR_stochastic",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridR_stochastic",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stabilizedGridMatrix_stationary",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stabilizedGridMatrix_stationary",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stableGridEstimator_range",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stableGridEstimator_range",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "score_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.score_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalMoment_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridObjective_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridObjective_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "grid_min_choose_congr",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.grid_min_choose_congr",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectGridCode_order_congr",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.selectGridCode_order_congr",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectGridCode_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.selectGridCode_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stableGridEstimator_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stableGridEstimator_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stableGridEstimator_admissible",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stableGridEstimator_admissible",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testing_product_entropy_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testing_product_entropy_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingKLStep",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.testingKLStep",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingKLStep_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingKLStep_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingKLStep_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingKLStep_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingKLStep_entropy_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingKLStep_entropy_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingPath_entropy_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingPath_entropy_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFinitePathLaw",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.testingFinitePathLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFinitePathLaw_mass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFinitePathLaw_mass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFinitePathLaw_probability",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFinitePathLaw_probability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFinitePathLaw_ac",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFinitePathLaw_ac",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFinitePathLaw_map",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFinitePathLaw_map",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingObservedLaw_klDiv_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingObservedLaw_klDiv_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteWeight",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteWeight",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteWeight_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteWeight_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteWeight_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteWeight_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteKernel",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteKernel_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteKernel_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteInit",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteInit",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteInit_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteInit_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFairPMF",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.testingFairPMF",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFairPMF_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFairPMF_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteModel",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteModel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFinitePathEquiv",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.testingFinitePathEquiv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFinitePathWeight_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFinitePathWeight_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteModel_law_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteModel_law_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteModel_kernel_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteModel_kernel_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteModel_law_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteModel_law_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingFiniteModel_policy_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingFiniteModel_policy_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_kernelHistory",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_kernelHistory",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "testingExperiment_actionHistory",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.testingExperiment_actionHistory",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "grid_candidate_moment_approximation",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.grid_candidate_moment_approximation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "matrix_moment_relabel",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.matrix_moment_relabel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "contractsL1_relabel",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.contractsL1_relabel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "grid_approximation",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.grid_approximation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "probability_mean_unit",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.probability_mean_unit",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "probability_mean_tv",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.probability_mean_tv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "probability_mean_error",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.probability_mean_error",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stochastic_power_reward_unit",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stochastic_power_reward_unit",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stochastic_power_reward_error",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stochastic_power_reward_error",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stochastic_moment_error",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stochastic_moment_error",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "reward_grid_rounding",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.reward_grid_rounding",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "simplex_grid_rounding",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.simplex_grid_rounding",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "contractsL1_gridDobrushin",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.contractsL1_gridDobrushin",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "row_tv_triangle",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.row_tv_triangle",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridDobrushin_perturbation",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridDobrushin_perturbation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stabilizedGridMatrix_row_error",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stabilizedGridMatrix_row_error",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "rewardRegression_unit",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.rewardRegression_unit",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finitePomdpView",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.finitePomdpView",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finitePomdpView_laws",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.finitePomdpView_laws",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "score_eq_phiwScore",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.score_eq_phiwScore",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "score_abs_first_moment_le_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.score_abs_first_moment_le_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "score_second_moment_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.score_second_moment_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scoreCovariance_le_separated",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.scoreCovariance_le_separated",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_binary_curState_eq_stationary",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.integral_binary_curState_eq_stationary",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "binary_markovOperatorIter_eq_mulVec",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.binary_markovOperatorIter_eq_mulVec",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "binary_obsProj_measurable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.binary_obsProj_measurable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "binary_obsLaw_isProbability",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.binary_obsLaw_isProbability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "binary_score_memLp_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.binary_score_memLp_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_observable_score_eq_matrixMoment",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.integral_observable_score_eq_matrixMoment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalMoment_unbiased",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_unbiased",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridCodeMoment",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.PomdpBinaryhiddenRate.gridCodeMoment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selectGridCode_objective_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.selectGridCode_objective_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selected_grid_moment_error",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.selected_grid_moment_error",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "selected_grid_intervention_moment_error",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.selected_grid_intervention_moment_error",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observable_score_variance_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.observable_score_variance_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observable_score_covariance_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.observable_score_covariance_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observable_score_covariance_le_separated",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.observable_score_covariance_le_separated",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalMoment_memLp_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_memLp_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalMoment_mse_eq_covariance_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_mse_eq_covariance_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "seven_error_max_sq_le_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.seven_error_max_sq_le_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalMoment_max_mse_le_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_max_mse_le_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "binary_sum_pow_image_le_range",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.binary_sum_pow_image_le_range",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "binary_geom_partial_le_inv",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.binary_geom_partial_le_inv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "binary_sum_abs_symmetric_eq_diag_add_two_upper",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.binary_sum_abs_symmetric_eq_diag_add_two_upper",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "binary_sum_abs_covariance_future_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.binary_sum_abs_covariance_future_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalMoment_mse_le_varianceFactor",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_mse_le_varianceFactor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalMoment_max_mse_le_varianceFactor",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.empiricalMoment_max_mse_le_varianceFactor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "gridNu_probability",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.gridNu_probability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stabilizedGridMatrix_dobrushin_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stabilizedGridMatrix_dobrushin_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "grid_value_modulus",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.grid_value_modulus",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stableGridEstimator_value_error",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stableGridEstimator_value_error",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stationary_vecMul_pow",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stationary_vecMul_pow",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stationary_vecMul_aeval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stationary_vecMul_aeval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stochastic_charpoly_isRoot_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stochastic_charpoly_isRoot_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stochastic_charpoly_factor",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stochastic_charpoly_factor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "transientPoly_aeval_annihilated",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.transientPoly_aeval_annihilated",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "matrixMoment_polynomial_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.matrixMoment_polynomial_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "probability_mean_tv_interval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.probability_mean_tv_interval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "dobrushin_fixedVector_constant",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.dobrushin_fixedVector_constant",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "transientPoly_aeval_projection",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.transientPoly_aeval_projection",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairPoly_natDegree_lt_seven",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.pairPoly_natDegree_lt_seven",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "transientPoly_mul_aeval_projection",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.transientPoly_mul_aeval_projection",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "polynomial_projection_value",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.polynomial_projection_value",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairPolynomial_value_identity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.pairPolynomial_value_identity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stationary_shift_constant_eq_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stationary_shift_constant_eq_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "dobrushin_shift_sq_kernel",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.dobrushin_shift_sq_kernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "dobrushin_shift_pow_kernel",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.dobrushin_shift_pow_kernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "dobrushin_maxGenEigenspace_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.dobrushin_maxGenEigenspace_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "dobrushin_charpoly_rootMultiplicity_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.dobrushin_charpoly_rootMultiplicity_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "transientPoly_eval_one_ne_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.transientPoly_eval_one_ne_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairPoly_eval_one_ne_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.pairPoly_eval_one_ne_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairPolynomial_value_coefficient_modulus",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.pairPolynomial_value_coefficient_modulus",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "transientPoly_monic",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.transientPoly_monic",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "transientPoly_natDegree_three",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.transientPoly_natDegree_three",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairPoly_monic",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.pairPoly_monic",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairPoly_natDegree_six",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.pairPoly_natDegree_six",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "degreeSix_coeff_sum_le_of_roots_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.degreeSix_coeff_sum_le_of_roots_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "roots_distance_prod_lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.roots_distance_prod_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "degreeSix_eval_one_lower_of_roots_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.degreeSix_eval_one_lower_of_roots_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "degreeSix_coefficient_ratio_le_of_roots_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.degreeSix_coefficient_ratio_le_of_roots_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "probability_complex_mean_tv_diameter",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.probability_complex_mean_tv_diameter",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "row_tv_le_dobrushin",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.row_tv_le_dobrushin",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "dobrushin_complex_diameter_contraction",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.dobrushin_complex_diameter_contraction",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stochastic_complex_constant",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stochastic_complex_constant",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "stochastic_complex_eigenvector_nonconstant",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.stochastic_complex_eigenvector_nonconstant",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "dobrushin_complex_eigenvector_norm_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.dobrushin_complex_eigenvector_norm_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "dobrushin_complex_charpoly_root_norm_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.dobrushin_complex_charpoly_root_norm_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "transientPoly_complex_root_norm_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.transientPoly_complex_root_norm_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairPoly_complex_roots_norm_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.PomdpBinaryhiddenRate.pairPoly_complex_roots_norm_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_ComparatorResetLowerWitness",
+          "kind": "definition",
+          "label": "Definition ComparatorResetLowerWitness",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ObservableEstimator",
+          "kind": "definition",
+          "label": "Definition ObservableEstimator",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_observedRisk",
+          "kind": "definition",
+          "label": "Definition observedRisk",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "symbol",
+      "items": [
+        {
+          "obj_id": "sym:\\mathcal A",
+          "kind": "symbol",
+          "label": "\\mathcal A",
+          "nl": "realized by Policy",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal X",
+          "kind": "symbol",
+          "label": "\\mathcal X",
+          "nl": "realized by BinaryObservedState, BinaryJointState, BinaryPolicy, BinaryPomdpExperiment, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal H",
+          "kind": "symbol",
+          "label": "\\mathcal H",
+          "nl": "realized by BinaryHiddenState, BinaryJointState, BinaryPomdpExperiment, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal S",
+          "kind": "symbol",
+          "label": "\\mathcal S",
+          "nl": "realized by BinaryJointState",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:T",
+          "kind": "symbol",
+          "label": "T",
+          "nl": "realized by FullTrajectory, variable@85",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:S_t",
+          "kind": "symbol",
+          "label": "S_t",
+          "nl": "realized by FullTrajectory, curState, StationaryStart",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:A_t",
+          "kind": "symbol",
+          "label": "A_t",
+          "nl": "realized by FullTrajectory, actionAt",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y_t",
+          "kind": "symbol",
+          "label": "Y_t",
+          "nl": "realized by FullTrajectory, rewardAt, PomdpKernelLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathsf O_T",
+          "kind": "symbol",
+          "label": "\\mathsf O_T",
+          "nl": "realized by ObsView, obsLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:K",
+          "kind": "symbol",
+          "label": "K",
+          "nl": "realized by RawPomdpExperiment, PomdpKernelLaw, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:b",
+          "kind": "symbol",
+          "label": "b",
+          "nl": "realized by RawPomdpExperiment, SequentialIgnorability, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:e",
+          "kind": "symbol",
+          "label": "e",
+          "nl": "realized by RawPomdpExperiment, PolicyOverlap, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:t_0",
+          "kind": "symbol",
+          "label": "t_0",
+          "nl": "realized by variable@85, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\zeta",
+          "kind": "symbol",
+          "label": "\\zeta",
+          "nl": "realized by variable@85, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:X_t",
+          "kind": "symbol",
+          "label": "X_t",
+          "nl": "realized by curState, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:H_t",
+          "kind": "symbol",
+          "label": "H_t",
+          "nl": "realized by curState, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P_p",
+          "kind": "symbol",
+          "label": "P_p",
+          "nl": "realized by policyKernel, BehaviorContraction, TargetContraction, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:d_p",
+          "kind": "symbol",
+          "label": "d_p",
+          "nl": "realized by stationaryLaw, StationaryStart, BinaryPomdpClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:r_e",
+          "kind": "symbol",
+          "label": "r_e",
+          "nl": "realized by rewardRegression, targetValue",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\alpha",
+          "kind": "symbol",
+          "label": "\\alpha",
+          "nl": "realized by mixingAlpha, BehaviorContraction, TargetContraction",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:L",
+          "kind": "symbol",
+          "label": "L",
+          "nl": "realized by policyFactor, PolicyOverlap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal Y",
+          "kind": "symbol",
+          "label": "\\mathcal Y",
+          "nl": "realized by PomdpKernelLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal F_t^-",
+          "kind": "symbol",
+          "label": "\\mathcal F_t^-",
+          "nl": "realized by PomdpKernelLaw, SequentialIgnorability",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal M_T^{(2)}(t_0,\\zeta)",
+          "kind": "symbol",
+          "label": "\\mathcal M_T^{(2)}(t_0,\\zeta)",
+          "nl": "realized by BinaryPomdpClass, ModelIndex",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\theta",
+          "kind": "symbol",
+          "label": "\\theta",
+          "nl": "realized by targetValue",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\rho_t",
+          "kind": "symbol",
+          "label": "\\rho_t",
+          "nl": "realized by ratio",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Z_t(k)",
+          "kind": "symbol",
+          "label": "Z_t(k)",
+          "nl": "realized by score",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:m_k",
+          "kind": "symbol",
+          "label": "m_k",
+          "nl": "realized by populationMoment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat m_k",
+          "kind": "symbol",
+          "label": "\\widehat m_k",
+          "nl": "realized by empiricalMoment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q_P",
+          "kind": "symbol",
+          "label": "q_P",
+          "nl": "realized by transientPoly",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q_{P'}",
+          "kind": "symbol",
+          "label": "q_{P'}",
+          "nl": "realized by transientPoly",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Q_{P,P'}",
+          "kind": "symbol",
+          "label": "Q_{P,P'}",
+          "nl": "realized by pairPoly",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:B_\\alpha",
+          "kind": "symbol",
+          "label": "B_\\alpha",
+          "nl": "realized by stabilityFactor",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:V_{\\alpha,L}",
+          "kind": "symbol",
+          "label": "V_{\\alpha,L}",
+          "nl": "realized by varianceFactor",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P",
+          "kind": "symbol",
+          "label": "P",
+          "nl": "realized by variable@362, pairPolynomial_value_modulus",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P'",
+          "kind": "symbol",
+          "label": "P'",
+          "nl": "realized by variable@362, pairPolynomial_value_modulus",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\nu",
+          "kind": "symbol",
+          "label": "\\nu",
+          "nl": "realized by variable@362, pairPolynomial_value_modulus",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\nu'",
+          "kind": "symbol",
+          "label": "\\nu'",
+          "nl": "realized by variable@362, pairPolynomial_value_modulus",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:r",
+          "kind": "symbol",
+          "label": "r",
+          "nl": "realized by variable@362, pairPolynomial_value_modulus",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:r'",
+          "kind": "symbol",
+          "label": "r'",
+          "nl": "realized by variable@362, pairPolynomial_value_modulus",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\pi",
+          "kind": "symbol",
+          "label": "\\pi",
+          "nl": "realized by variable@362, pairPolynomial_value_modulus",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\pi'",
+          "kind": "symbol",
+          "label": "\\pi'",
+          "nl": "realized by variable@362, pairPolynomial_value_modulus",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q_C",
+          "kind": "symbol",
+          "label": "q_C",
+          "nl": "realized by overlapRadius",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\beta",
+          "kind": "symbol",
+          "label": "\\beta",
+          "nl": "realized by rateExponent",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:C",
+          "kind": "symbol",
+          "label": "C",
+          "nl": "realized by variable@377, CardinalityUniformComparator, fixedBinary_minimax",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Q",
+          "kind": "symbol",
+          "label": "Q",
+          "nl": "realized by variable@377, ComparatorHiddenAlphabet, CardinalityUniformComparator, fixedBinary_minimax",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathfrak H_{\\mathrm{poly}}",
+          "kind": "symbol",
+          "label": "\\mathfrak H_{\\mathrm{poly}}",
+          "nl": "realized by polynomialTimeHandle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:M",
+          "kind": "symbol",
+          "label": "M",
+          "nl": "realized by gridSize",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat\\theta_T",
+          "kind": "symbol",
+          "label": "\\widehat\\theta_T",
+          "nl": "realized by stableGridEstimator",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:R_T^{(2)}(t_0,\\zeta)",
+          "kind": "symbol",
+          "label": "R_T^{(2)}(t_0,\\zeta)",
+          "nl": "realized by minimaxRisk",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:v_T",
+          "kind": "symbol",
+          "label": "v_T",
+          "nl": "realized by vT_mem_Ioc",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:K_v^{(T)}",
+          "kind": "symbol",
+          "label": "K_v^{(T)}",
+          "nl": "realized by testingKernel, testingExperiment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    }
+  ]
+}

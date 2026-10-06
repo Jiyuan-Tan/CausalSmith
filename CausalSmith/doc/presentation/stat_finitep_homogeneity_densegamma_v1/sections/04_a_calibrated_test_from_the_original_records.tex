@@ -1,0 +1,330 @@
+\section{A calibrated test from the original records}
+
+The upper separation guarantee in \cref{obj:thm:heavy-tail-comparison} is attained by a procedure whose inputs are the original records and the public moment and smoothness tuple. The construction combines histogram projection, clipped outcomes, and ordered-pair corrections within two independent evaluation blocks. Minimization over the candidate constant then accommodates the composite null of a homogeneous mean effect. We first specify the projection geometry and score ingredients, and then give the complete calculation.
+
+At a positive integer rank \leanref{sym:J}{\ensuremath{J}}, the histogram projection averages functions over equal-width cells. Its endpoint convention is part of the procedure.
+
+\begin{definitionv}{def:projection}[Histogram projection \(\Pi_J\)]
+For a positive integer \(J\), define the histogram cells, feature vector, and projection kernel by
+\[
+I_{j,J}=
+\begin{cases}
+[(j-1)/J,j/J),&1\le j<J,\\
+[(J-1)/J,1],&j=J,
+\end{cases}
+\qquad
+F_J(x)=\bigl(\sqrt J\,\mathbf 1_{I_{j,J}}(x)\bigr)_{j=1}^J,
+\]
+\[
+\Pi_J(x,z)=\langle F_J(x),F_J(z)\rangle.
+\]
+The corresponding projection of an integrable function \(f\) is
+\[
+(\Pi_J f)(x)=\int_0^1\Pi_J(x,z)f(z)\,dz.
+\]
+\end{definitionv}
+
+The normalized feature vector \leanref{sym:F}{\ensuremath{F_J(x)}} represents cellwise constant functions in Euclidean coordinates, and the projection kernel \leanref{sym:Pi}{\ensuremath{\Pi_J(x,z)}} selects pairs in the same cell. An internal bin endpoint belongs to the cell on its right, while the final cell contains \(1\). These conventions assign a value to every record, including records at cell boundaries.
+
+To obtain independent score vectors, partition the independent sample into two deterministic blocks of equal size.
+
+\begin{definitionv}{def:blocks}[Evaluation blocks \(\mathcal I_1,\mathcal I_2\)]
+The two evaluation blocks and their common size are
+\[
+s_n=\lfloor n/2\rfloor,
+\qquad
+\mathcal I_1=\{1,\ldots,s_n\},
+\qquad
+\mathcal I_2=\{s_n+1,\ldots,2s_n\}.
+\]
+\end{definitionv}
+
+The evaluation blocks \leanref{sym:blocks}{\ensuremath{\mathcal I_1,\mathcal I_2}} each contain \leanref{sym:bsize}{\ensuremath{s_n}} records. When the sample size is odd, the last record is left outside these blocks. Independence between the blocks permits their score inner product to estimate a squared population mean.
+
+Within each block, a single-record score is paired with an ordered-pair correction. Both depend affinely on the candidate constant \(c\in[-1/2,1/2]\). The following ingredients use a coarse histogram rank \leanref{sym:Jcoarse}{\ensuremath{J_{\mathrm c}}}, whose public selection is specified in \cref{obj:def:explicit-score-ledger}.
+
+\begin{definitionv}{def:score-family}[Score families \(H_{b,T}\) and \(U_{b,G,T}\)]
+For \(n\ge4\), the single-record and ordered-pair score vectors are
+\[
+H_{b,T}(c)=
+\frac{1}{s_n}\sum_{i\in\mathcal I_b}
+F_{J_{\mathrm c}}(X_i)A_i\{\ell_T(Y_i)-c\},
+\]
+\[
+U_{b,G,T}(c)=
+\frac{1}{s_n(s_n-1)}
+\sum_{\substack{i,j\in\mathcal I_b\\i\ne j}}
+F_{J_{\mathrm c}}(X_i)A_iG(X_i,X_j)
+\{\ell_T(Y_j)-cA_j\}.
+\]
+Here \(b\in\{1,2\}\), \(G:[0,1]^2\to\mathbb R\) is the pair-score kernel, and the clipping function is
+\[
+\ell_T(y)=\max\{-T,\min\{y,T\}\}.
+\]
+For \(n=2,3\), set
+\[
+H_{b,T}(c)=U_{b,G,T}(c)=0.
+\]
+\end{definitionv}
+
+The clipping function \leanref{sym:clip}{\ensuremath{\ell_T(y)}} bounds each outcome contribution before averaging. The single-record score \leanref{sym:Hscore}{\ensuremath{H_{b,T}(c)}} uses treated records, while the ordered-pair score \leanref{sym:Uscore}{\ensuremath{U_{b,G,T}(c)}} combines the treatment indicator of one record with the clipped outcome and treatment indicator of a distinct record. The correction kernel \leanref{sym:G}{\ensuremath{G}} supplies the projection used in this pairing. The explicit dependence on \(c\) makes profiling a finite quadratic calculation.
+
+The construction uses two resolutions for different tasks. The coarse rank \(M\) retains the effect signal tested by the cross-block inner product, while the fine rank \(K\) controls the product of propensity and baseline approximation errors left after the ordered-pair correction. A single correction suffices when \(S\ge\gamma\) or \(\alpha\ge q\). Otherwise the dyadic increments between \(M\) and \(K\) receive separate cutoffs \(T_j\): coarse increments can tolerate more clipping variability, while fine increments use smaller cutoffs to keep their covariance contribution summable. This representation condition determines how the same statistic is assembled; it is separate from the phase condition \(F(p)=1\), which determines which separation exponent is smaller.
+
+The complete procedure now selects these ranks and clipping thresholds, subtracts the pair corrections, and computes the bias and covariance bounds used for calibration. The fine histogram rank \leanref{sym:Jfine}{\ensuremath{J_{\mathrm f}}} governs the correction resolution. Each selection depends on the sample size and public tuple.
+
+\begin{algorithmv}{def:explicit-score-ledger}[Explicit score and ledgers \(Z_b(c),\mathfrak b_{n,v},\Lambda_{n,v}\)]
+Inputs are the original records and the public tuple \(v=(p,\alpha,\beta,\gamma)\); \(H_{b,T}(c)\) and \(U_{b,G,T}(c)\) denote the blockwise single-record histogram score and ordered-pair correction score, respectively.
+\begin{enumerate}
+\item Define the public exponents
+\[
+q=\frac{p-1}{p},
+\qquad
+S=\alpha+\beta,
+\qquad
+t=\frac{2-p}{p-1},
+\]
+\[
+E_0=\frac{2\gamma q}{2\gamma+q},
+\qquad
+E_4=\frac{2S}{1+2\alpha+\beta/q+S/(2\gamma)},
+\qquad
+E=\min\{E_0,E_4\}.
+\]
+For \(n=2,3\), set
+\[
+J_{\mathrm c}=J_{\mathrm f}=1,
+\qquad
+T_j=1\quad\text{for every cutoff},
+\qquad
+Z_b(c)=0,
+\]
+\[
+\mathfrak b_{n,v}=\Lambda_{n,v}=h_{n,v}=0,
+\qquad
+\phi^*_{n,v}=0.
+\]
+The remaining steps apply for \(n\ge4\).
+\item Let \(s_n\) be the evaluation-block size. Set
+\[
+s=s_n,
+\qquad
+a=s^{-E},
+\qquad
+M=J_{\mathrm c}
+=
+2^{\left\lceil\log_2(a^{-1/\gamma})\right\rceil},
+\]
+\[
+K=J_{\mathrm f}
+=
+2^{\left\lceil\log_2\!\left(\max\{M,a^{-1/S}\}\right)\right\rceil}.
+\]
+Define upper dyadic rounding and the main clipping quantities by
+\[
+\mathcal R(x)=2^{\lceil\log_2x\rceil},
+\quad x>0,
+\qquad
+T_0=\mathcal R(a^{-1/(p-1)}),
+\qquad
+V_0=32T_0^{2-p}.
+\]
+\item If \(S\ge\gamma\) or \(\alpha\ge q\), set
+\[
+Z_b(c)=H_{b,T_0}(c)-U_{b,\Pi_K,T_0}(c),
+\]
+\[
+B=400K^{-S}+20T_0^{1-p},
+\qquad
+L_1=16\sqrt{V_0},
+\qquad
+L_2=4\sqrt{KV_0}.
+\]
+\item Otherwise, set
+\[
+\lambda_0=\frac{(p-1)^2}{4p},
+\qquad
+L=\log_2(K/M),
+\qquad
+R_j=2^jM\quad(0\le j\le L),
+\]
+\[
+D_j=\Pi_{R_j}-\Pi_{R_{j-1}},
+\qquad 1\le j\le L.
+\]
+For each increment define
+\[
+T_j=
+\mathcal R\!\left(
+\max\!\left\{
+1,\,
+\min\!\left\{
+a^{-1/(p-1)},
+\left[
+\frac{R_j^{-\alpha}}{a(R_j/K)^{\lambda_0}}
+\right]^{1/(p-1)}
+\right\}
+\right\}
+\right),
+\qquad
+V_j=32T_j^{2-p},
+\]
+\[
+a_j=40R_{j-1}^{-\alpha},
+\qquad
+d_j=
+110R_{j-1}^{-\min\{\alpha,\beta,\gamma\}}
++20T_j^{1-p}.
+\]
+Here \(L\) is an integer, and empty sums equal zero. Set
+\[
+Z_b(c)=
+H_{b,T_0}(c)-U_{b,\Pi_M,T_0}(c)
+-\sum_{j=1}^{L}U_{b,D_j,T_j}(c),
+\]
+\[
+B=
+400K^{-S}+20T_0^{1-p}
++10\sum_{j=1}^{L}a_jT_j^{1-p},
+\]
+\[
+L_1=
+16\sqrt{V_0}
++8\sum_{j=1}^{L}\bigl(d_j+a_j\sqrt{V_j}\bigr),
+\]
+\[
+L_2=
+4\left(
+\sqrt{MV_0}+\sum_{j=1}^{L}\sqrt{R_jV_j}
+\right).
+\]
+\item In either branch, define the public bias ledger, covariance ledger, and rejection cutoff
+\[
+\mathfrak b_{n,v}=B,
+\qquad
+\Lambda_{n,v}
+=
+\frac{L_1^2}{s}
++\frac{2L_2^2}{s(s-1)},
+\]
+\[
+h_{n,v}
+=
+\mathcal R\!\left(
+2B^2+2^{16}\sqrt M\,\Lambda_{n,v}
+\right).
+\]
+Use the public rank and outcome grids
+\[
+\left\{2^j:0\le j\le\left\lceil\log_2(2s^2)\right\rceil\right\},
+\qquad
+\left\{2^j:0\le j\le\left\lceil\log_2(2s)\right\rceil\right\},
+\]
+respectively. The cutoff is the upper endpoint of the two-point dyadic grid bracketing its unrounded formula.
+\item Form the quadratic statistic
+\[
+W(c)=\langle Z_1(c),Z_2(c)\rangle.
+\]
+Evaluate its minimum over \([-1/2,1/2]\) at the two endpoints and, when the quadratic coefficient is positive and the vertex is interior, at the vertex. Output
+\[
+\phi^*_{n,v}
+=
+\mathbf 1\!\left\{
+\min_{|c|\le1/2}W(c)>h_{n,v}
+\right\}.
+\]
+Every sum is finite. Histogram and ordered-pair scores take their stipulated values at bin endpoints and are evaluated directly from the original records, without division by observed cell counts.
+\end{enumerate}
+\end{algorithmv}
+
+The corrected block score \leanref{sym:Zscore}{\ensuremath{Z_b(c)}} uses either a single fine-rank correction or a sum of dyadic projection increments. In the latter construction, each increment receives its own clipping threshold; the main clipping threshold is \leanref{sym:T}{\ensuremath{T_0}}. This allocation enters both the public bias ledger \leanref{sym:Bias}{\ensuremath{\mathfrak b_{n,v}}} and the public covariance ledger \leanref{sym:Covbound}{\ensuremath{\Lambda_{n,v}}}. The rejection cutoff \leanref{sym:Cutoff}{\ensuremath{h_{n,v}}} combines their contributions and is rounded upward.
+
+The statistical comparison and the computational selection have distinct roles. The comparison of \(E_0\) and \(E_4\), as defined in \cref{obj:def:sharp-frontier-scales,obj:def:explicit-score-ledger}, determines the exponent used for tuning. The condition \(S\ge\gamma\) or \(\alpha\ge q\) selects the single-correction representation; when \(S<\gamma\) and \(\alpha<q\), the procedure uses the multiresolution representation. Both representations use the same minimum exponent \(E\).
+
+All calculations in \cref{obj:def:explicit-score-ledger} are finite. The public dyadic grids specify the rank and outcome selections, and the upper-dyadic rule specifies the rejection cutoff. Scores are normalized by the block size and number of ordered pairs. Consequently, empty histogram cells and observations at bin endpoints have stipulated values throughout the calculation. For \(n=2,3\), the zero-score convention and zero rejection rule complete the procedure.
+
+The cross-block statistic \leanref{sym:Wscore}{\ensuremath{W(c)}} is quadratic because each block score is affine in \(c\). Its minimum is therefore obtained by comparing the endpoints and, when applicable, the interior vertex. Rejection requires the statistic to exceed its cutoff for every admissible constant, which gives the profiling step its role in testing the whole null.
+
+For the calibration statement, write \(\psi_{n,v}:=\phi^*_{n,v}\) for the rule in \cref{obj:def:explicit-score-ledger}, and define the population score mean \leanref{sym:theta}{\ensuremath{\theta_P(c)}} by
+\[
+\theta_P(c):=\mathbb E_{P^{\otimes n}}[Z_b(c)].
+\]
+Let \(\lambda\) be Lebesgue probability measure on \([0,1]\), and use
+\[
+d(P):=
+\left\{\int_0^1
+\left(\tau_P(x)-\int_0^1\tau_P(t)\,d\lambda(t)\right)^2
+\,d\lambda(x)\right\}^{1/2},
+\qquad
+D_v:=\sup_{P\in\mathcal M_v}d(P),
+\]
+for the heterogeneity distance and its model supremum. Set \(C:=128\) for the simultaneous profiling multiplier, and define the calibrated separation by
+\[
+R_{\mathrm{att}}(n,v):=\frac{16}{3}
+\left\{
+16J_{\mathrm c}^{-\gamma}
++5\mathfrak b_{n,v}
++1024J_{\mathrm c}^{1/4}\sqrt{\Lambda_{n,v}}
+\right\}.
+\]
+The following result connects these public quantities to uniform size control and power.
+
+\begin{theoremv}{thm:whole-null-calibration-resolved}[Whole-null calibration and power]
+Let \(v=(p,\alpha,\beta,\gamma)\) be an admissible public tuple as in \cref{obj:def:model}, and let \(n\ge2\) be an integer. Use the ranks, cutoffs, scores, bias ledger \(\mathfrak b_{n,v}\), and covariance ledger \(\Lambda_{n,v}\) of \cref{obj:def:explicit-score-ledger}. Write \(\psi_{n,v}\) for the original-record test constructed there, and define its rejection expectation by
+\[
+\mathsf R_n(P,\psi_{n,v})
+:=\mathbb E\!\left[\psi_{n,v}(\text{sample},\text{seed})\right],
+\]
+where the sample consists of \(n\) independent records with law \(P\), and the seed is independent and uniform on the unit interval. Define the population score mean by
+\[
+\theta_P(c):=\mathbb E_{P^{\otimes n}}[Z_b(c)].
+\]
+Let \(\lambda\) denote Lebesgue probability measure on \([0,1]\), and define the heterogeneity distance and its model supremum by
+\[
+d(P):=
+\left\{\int_0^1
+\left(\tau_P(x)-\int_0^1\tau_P(t)\,d\lambda(t)\right)^2
+\,d\lambda(x)\right\}^{1/2},
+\qquad
+D_v:=\sup_{P\in\mathcal M_v}d(P).
+\]
+
+For every \(P\in\mathcal M_v\), each affine coefficient of each block score is square-integrable, and its scalar projection in any direction \(u\in\mathbb R^{J_{\mathrm c}}\) has variance at most
+\[
+\Lambda_{n,v}\|u\|_2^2.
+\]
+For each block, the absolute covariance between projections of its two affine coefficients in directions \(u,z\in\mathbb R^{J_{\mathrm c}}\) is at most
+\[
+\Lambda_{n,v}\|u\|_2\|z\|_2.
+\]
+The simultaneous profiling event for \(W(c)\) specified in \cref{obj:def:explicit-score-ledger}, with profiling multiplier \(C:=128\), is measurable and has probability at least \(0.9925\) under \(P^{\otimes n}\). If \(\Lambda_{n,v}=0\), then, almost surely, simultaneously for every \(|c|\le1/2\),
+\[
+W(c)=\|\theta_P(c)\|_2^2.
+\]
+
+For every \(P\in H_0(v)\), with the null class defined in \cref{obj:def:null},
+\[
+\inf_{|c|\le1/2}\|\theta_P(c)\|_2\le\mathfrak b_{n,v},
+\qquad
+\mathsf R_n(P,\psi_{n,v})\le0.0075.
+\]
+Define the calibrated separation by
+\[
+R_{\mathrm{att}}(n,v)
+:=\frac{16}{3}
+\left\{
+16J_{\mathrm c}^{-\gamma}
++5\mathfrak b_{n,v}
++1024J_{\mathrm c}^{1/4}\sqrt{\Lambda_{n,v}}
+\right\}.
+\]
+If \(n\ge4\) and \(R_{\mathrm{att}}(n,v)<D_v\), then every \(P\in\mathcal M_v\) satisfying \(d(P)\ge R_{\mathrm{att}}(n,v)\) obeys
+\[
+1-\mathsf R_n(P,\psi_{n,v})\le0.0075.
+\]
+For \(n=2\) or \(n=3\), \(\psi_{n,v}\) equals zero at every sample and seed.
+\end{theoremv}
+
+Under a homogeneous mean effect, an admissible constant makes the population score norm at most the bias ledger. Profiling retains this comparison while the covariance bounds control fluctuations simultaneously over the candidate constants. Independence between the evaluation blocks gives the population identity \(\mathbb E[W(c)]=\|\theta_P(c)\|_2^2\). The calibrated separation combines coarse-projection approximation, original-mean bias, and stochastic fluctuation. For \(n\ge4\) with \(R_{\mathrm{att}}(n,v)<D_v\), effects at or above that separation are detected with type-II error at most \(0.0075\); the size bound applies throughout the null for every \(n\ge2\).
+
+The appendix develops the three parts of this calibration. The original-mean analysis in \cref{obj:lem:original-score-mean-ledger} controls the bias introduced by projection and clipping. The coefficient covariance bounds are supplied by \cref{obj:lem:original-score-covariance-ledger}, and \cref{obj:lem:uniform-affine-profile-bound} controls the simultaneous profiling operation. Their combination yields the attainable separation result in \cref{obj:thm:original-record-attainable-rate}, connecting the explicit procedure to the power scale \(\rho_n(v)\) in \cref{obj:def:sharp-frontier-scales} and the upper separation bound in \cref{obj:thm:heavy-tail-comparison}.

@@ -1,0 +1,337 @@
+\section{Fixed Geometry and Feasible Cell Weight Learning}
+
+The oracle comparison in \cref{obj:thm:oracle-converse,obj:thm:oracle-score-inversion-attainment} treats the transport weight and source propensity as inputs to the procedure.  This section separates two questions that are useful for interpreting that benchmark.  First, it holds the transport geometry fixed and records the local least-favorable family that delivers the same inverse-square-root dependence on effective strength.  Second, it shows how the weight-dispersion scale can be learned from target covariates in finite-cell experiments while preserving the expected-length order.
+
+A fixed geometry records the source covariate law, the target-to-source weight, and the source propensity as a deterministic triangular array.  The following definition isolates the admissible arrays used throughout the section.
+
+\begin{definitionv}{def:admissible-geometry-class}[Admissible geometry class \(\mathcal G\)]
+\(\mathcal G\) is the class of deterministic arrays \(\mathfrak g=(P_S^X,w,e)_{n\ge1}\) satisfying the following conditions:
+\begin{itemize}
+\item \textbf{(Source law.)} \(P_S^X\) is a probability law on \(\mathcal X\).
+\item \textbf{(Instrument overlap.)} \(e:\mathcal X\to[\varepsilon,1-\varepsilon]\).
+\item \textbf{(Transport weights.)} \(w:\mathcal X\to[0,2k_n]\), \(\mathbb E_S[w(X)]=1\), and
+\[
+\kappa_n=\mathbb E_S[w(X)^2]\le k_n .
+\]
+\item \textbf{(Target law.)} For every measurable \(A\subseteq\mathcal X\),
+\[
+P_T(A)=\mathbb E_S\!\left[w(X)\mathbf 1\{X\in A\}\right].
+\]
+\end{itemize}
+\end{definitionv}
+
+The class \(\mathcal G\) fixes the \(\mathfrak g\) component of the transported experiment while retaining the same overlap, envelope, normalization, and second-moment controls used in the oracle frontier.  The target law is generated from the source covariate law by the density ratio, so the geometry keeps the covariate-shift component explicit and leaves the causal response law to vary within the model.
+
+\begin{definitionv}{def:fixed-geometry-slice}[Fixed-geometry slice \(\mathcal P_n(\mathfrak g)\)]
+For \(\mathfrak g\in\mathcal G\),
+\[
+\mathcal P_n(\mathfrak g)
+=
+\left\{
+P\in\mathcal P_n:
+(P_S^X,w,e)\text{ equals the index-}n\text{ component of }\mathfrak g
+\right\}.
+\]
+\end{definitionv}
+
+The slice \(\mathcal P_n(\mathfrak g)\) is the subproblem in which the causal and outcome laws vary subject to the transported LATE restrictions, while the source covariate marginal, target density ratio, and propensity are held fixed.
+
+\begin{definitionv}{def:fixed-geometry-honesty}[Fixed-geometry oracle honesty \(\mathfrak C^{\mathrm{or}}(\mathfrak g)\)]
+For \(\mathfrak g\in\mathcal G\) as in \cref{obj:def:admissible-geometry-class}, \(\mathfrak C^{\mathrm{or}}(\mathfrak g)\) is the class of sequences \((C_n)_{n\ge1}\) such that
+\[
+C_n
+=
+C_n\!\left((O_i^S)_{i=1}^n,(X_j^T)_{j=1}^{N_n},w,e\right)
+\subseteq \Theta
+\]
+and
+\[
+\liminf_{n\to\infty}
+\inf_{P\in\mathcal P_n(\mathfrak g)}
+P(\theta_T\in C_n)
+\ge 1-\alpha .
+\]
+\end{definitionv}
+
+The class \(\mathfrak C^{\mathrm{or}}(\mathfrak g)\) imposes honesty over the fixed-geometry slice.  Procedures may use the fixed oracle inputs, and the coverage requirement remains uniform over the causal response laws compatible with that geometry.
+
+\begin{definitionv}{def:fixed-geometry-value}[Fixed-geometry value \(V_{\mathfrak g}^\star(t_0)\)]
+For \(\mathfrak g\in\mathcal G\) as in \cref{obj:def:admissible-geometry-class}, the fixed-geometry minimax expected-length value at threshold \(t_0\) is
+\[
+V_{\mathfrak g}^\star(t_0)
+=
+\inf_{(C_n)\in\mathfrak C^{\mathrm{or}}(\mathfrak g)}
+\limsup_{n\to\infty}
+\sup_{P\in\mathcal P_n(\mathfrak g):\,t_n\ge t_0}
+\mathbb E_P[\lambda(C_n)] .
+\]
+\end{definitionv}
+
+The value \(V_{\mathfrak g}^\star(t_0)\) measures the same expected-length criterion as \cref{obj:def:oracle-value}, now conditional on a fixed admissible geometry.  This formulation makes clear that the effective-strength comparison is a statement about the response-law variation remaining after the covariate-shift array has been fixed.
+
+The lower-bound construction varies a single complier-outcome tilt while preserving the fixed geometry.  It uses the same target-first-stage calibration as the oracle converse, with a local radius chosen so that the observed-data laws remain close in total variation.
+
+\begin{definitionv}{def:least-favorable-witness}[Least-favorable witness \(Q_{n,h}^{\mathfrak g}\)]
+Fix \(\mathfrak g=(P_S^X,w,e)_{n\ge1}\in\mathcal G\) and \(t_0>0\). Set
+\[
+\mu_n=\left(\frac{t_0\kappa_n}{n}\right)^{1/2},
+\qquad
+p_n(x)=\frac{\mu_n w(x)}{\kappa_n},
+\qquad
+\rho=\frac{1-\alpha}{8},
+\qquad
+H(t_0)=\min\{1/4,\rho t_0^{-1/2}\}.
+\]
+For each \(|h|\le H(t_0)\), conditional on \(X=x\), assign compliance types by
+\[
+\Pr\{(D(0),D(1))=(0,1)\mid X=x\}=p_n(x),
+\]
+\[
+\Pr\{(D(0),D(1))=(1,1)\mid X=x\}
+=
+\Pr\{(D(0),D(1))=(0,0)\mid X=x\}
+=
+\frac{1-p_n(x)}{2}.
+\]
+Set \(Y(0)=0\). For compliers, let \(Y(1)\) be Bernoulli with mean \(1/2+h\); for always-takers and never-takers, let \(Y(1)\) be Bernoulli with mean \(1/2\). Use this same conditional full-data law in both populations, draw source encouragement with propensity \(e(X)\), and write \(Q_{n,h}^{\mathfrak g}\) for the resulting joint observed-data law together with the fixed oracle inputs.
+\end{definitionv}
+
+In \cref{obj:def:least-favorable-witness}, the complier probability \(p_n(x)\) is proportional to the transport weight, so the transported first stage is exactly calibrated to the threshold \(t_0\).  The parameter \(\rho\) fixes the Le Cam separation scale, and the tilt \(h\) moves the target complier contrast while preserving the same source and target covariate geometry.
+
+The notation for the centered law and the two distances is fixed in \cref{obj:synth_5,obj:synth_3,obj:synth_4}.  The fixed-geometry lower bound also uses the separation calculation recorded in \cref{obj:def:geometry-handle}: a tilt of order \(t_0^{-1/2}\) moves the transported complier contrast while the observed-data laws remain close in chi-square and total variation.
+
+The next theorem gives the fixed-geometry frontier for arbitrary admissible deterministic geometries.  It combines the lower-bound calibration in \cref{obj:def:least-favorable-witness,obj:def:geometry-handle} with the oracle score construction from \cref{obj:thm:oracle-score-inversion-attainment}.
+
+\begin{theoremv}{thm:fixed-geometry-frontier}[Fixed-geometry frontier]
+Let \(c>0\), \(0<\varepsilon<1/2\), and \(0<\alpha<1\). Assume the following conditions hold:
+\begin{itemize}
+\item \textbf{(Target-sample ratio.)} The target sample sizes satisfy \(N_n/n\to c\).
+\item \textbf{(Envelope scale.)} The sequence \(k_n\) is positive for every \(n\), satisfies \(k_n\to\infty\), and obeys \(k_n/\sqrt n\to0\).
+\item \textbf{(Geometry.)} The deterministic geometry array \(\mathfrak g\) satisfies \cref{obj:def:admissible-geometry-class} with scale \(k_n\) and overlap constant \(\varepsilon\).
+\item \textbf{(Fixed-geometry slices.)} For every \(n\) and every transported array whose \(n\)th law lies in the fixed-geometry slice \(\mathcal P_n(\mathfrak g)\) of \cref{obj:def:fixed-geometry-slice}, the conditions in
+\cref{obj:ass:two-sample-array,obj:ass:instrument-overlap,obj:ass:weight-envelope,obj:ass:weight-second-moment,obj:ass:degrading-array}
+hold.
+\end{itemize}
+
+For every \(t_0>0\), define
+\[
+L_\alpha=\left(\frac{8}{\alpha\varepsilon^2}\right)^{1/2},
+\qquad
+c_\alpha=\frac{3(1-\alpha)^2}{16},
+\qquad
+C_\alpha=\max\left\{2,\,4L_\alpha+\frac{8}{\varepsilon^2}\right\}.
+\]
+Then the fixed-geometry minimax value of \cref{obj:def:fixed-geometry-value} satisfies
+\[
+c_\alpha\min\{1,t_0^{-1/2}\}
+\le
+V_{\mathfrak g}^{\star}(t_0)
+\le
+C_\alpha\min\{1,t_0^{-1/2}\}.
+\]
+The constants \(c_\alpha\) and \(C_\alpha\) are uniform over admissible deterministic geometries \(\mathfrak g\).
+\end{theoremv}
+
+\Cref{obj:thm:fixed-geometry-frontier} establishes that fixing the covariate-shift geometry leaves the same expected-length order as the full oracle comparison: \(\min\{1,t_0^{-1/2}\}\).  The constants are uniform over the admissible geometry class, so the effective-strength index absorbs both first-stage weakness and weight dispersion across the fixed-geometry slices.
+
+A useful specialization arises when the target and source covariate laws coincide.  In that case the dispersion term collapses to one, and the transported effective strength reduces to the familiar sample-size-scaled first-stage square.
+
+\begin{theoremv}{prop:no-shift-reduction}[Single-population frontier reduction]
+On a measurable covariate space \(\mathcal X\), let \(\mathfrak g\) be a deterministic geometry array satisfying \cref{obj:def:admissible-geometry-class} with scale \(k_n\) and overlap constant \(\varepsilon\). Suppose that
+\begin{itemize}
+\item \textbf{(Sampling ratio.)} \(c>0\) and \(N_n/n \to c\).
+\item \textbf{(Overlap and noncoverage.)} \(0<\varepsilon<1/2\) and \(0<\alpha<1\).
+\item \textbf{(Cell scale.)} \(k_n>0\) for every \(n\), \(k_n\to\infty\), and \(k_n/\sqrt n\to 0\).
+\item \textbf{(Unit transport weight.)} For every \(n\), \(w_n(X)=1\) \(P_{S,n}^X\)-almost surely under \(\mathfrak g\).
+\end{itemize}
+Then, for every \(n\),
+\[
+\kappa_n=1
+\qquad\text{and}\qquad
+P_{T,n}=P_{S,n}^X .
+\]
+Moreover, for every transported array \(P\) and every \(n\), if \(P\in\mathcal P_n(\mathfrak g)\) in the sense of \cref{obj:def:fixed-geometry-slice}, then its effective strength satisfies
+\[
+t_n
+=
+n\mu_n^2 .
+\]
+Finally, for every \(t_0>0\), let
+\[
+L_\alpha=\sqrt{\frac{8}{\alpha\varepsilon^2}},
+\qquad
+c_\alpha=\frac{3(1-\alpha)^2}{16},
+\qquad
+C_\alpha=\max\left\{2,\;4L_\alpha+\frac{8}{\varepsilon^2}\right\}.
+\]
+The fixed-geometry minimax value \(V_{\mathfrak g}^\star(t_0)\) from \cref{obj:def:fixed-geometry-value} obeys
+\[
+c_\alpha \min\{1,t_0^{-1/2}\}
+\le
+V_{\mathfrak g}^\star(t_0)
+\le
+C_\alpha \min\{1,t_0^{-1/2}\}.
+\]
+\end{theoremv}
+
+\Cref{obj:prop:no-shift-reduction} records the unit-weight specialization of \cref{obj:thm:fixed-geometry-frontier}.  With unit transport weight, the target law equals the source covariate law, \(\kappa_n=1\), and the rate is indexed by \(n\mu_n^2\).  The same compact-parameter expected-length order therefore recovers the usual weak-first-stage scaling within the transported notation.
+
+We now turn from oracle-known weights to sample-only finite-cell score inversion. In the uniform finite-cell model of \cref{obj:def:finite-cell-class}, the target sample identifies the target cell frequencies, while the source sample estimates the cellwise outcome and receipt contrasts. This is the finite-cell analogue of inverse-probability weighting in semiparametric transport and missing-data problems \citep{HiranoImbensRidder2003,RobinsRotnitzkyZhao1994,VanDerLaanRubin2006,Chernozhukov2018}.
+
+\begin{theoremv}{thm:finite-cell-unknown-weight-attainment}[Finite-cell sample-only score-inversion attainment]
+Let \(N_n\) and \(k_n\) be positive integer sequences, let \(c,\varepsilon,\alpha\in\mathbb R\), and suppose the following conditions hold.
+\begin{itemize}
+\item \textbf{(Sampling ratio.)} \(c>0\) and \(N_n/n\to c\).
+\item \textbf{(Overlap and coverage levels.)} \(0<\varepsilon<1/2\) and \(0<\alpha<1\).
+\item \textbf{(Cell growth.)} \(k_n>0\) for every \(n\), \(k_n\to\infty\), and \(k_n/\sqrt n\to0\).
+\item \textbf{(Ambient carrier.)} For every \(n\), the measurable covariate space contains \(k_n\) distinct measurable singleton cells.
+\item \textbf{(Finite-cell rows.)} For every row \(n\) and every transported array \(P\in\mathcal N_n\), the row satisfies the two-sample condition in \cref{obj:ass:two-sample-array}, the uniform finite-cell source condition in \cref{obj:ass:finite-cell-source}, and the degrading-array condition in \cref{obj:ass:degrading-array}, with \(\mathcal N_n\) as in \cref{obj:def:finite-cell-class}.
+\end{itemize}
+Put
+\[
+B_c=32(1+c^{-1}),\qquad
+L_{\alpha,c}=\left(\frac{2B_c}{\alpha}\right)^{1/2},\qquad
+C_0=\max\{2,4\sqrt2\,L_{\alpha,c}+8B_c\}.
+\]
+Then \(C_0>0\), and there exists a sample-only finite-cell confidence-set sequence \(C=(C_n)\) in the feasible class \(\mathfrak C^{\mathrm{cell}}\) of \cref{obj:def:finite-cell-feasible-honesty} such that, for every \(n\) and every \(P\in\mathcal N_n\), \(C_n\) agrees \(P\)-almost surely with the finite-cell score-inversion rule using critical constant \(L_{\alpha,c}\). Equivalently, on the finite-cell experiment, this rule is given by
+\[
+H_i=2(2Z_i-1),\qquad
+\widehat p_{x,n}=\frac1{N_n}\sum_{j=1}^{N_n}\mathbf 1\{X_j^T=x\},
+\]
+and, for \(G\in\{Y,D\}\),
+\[
+\widehat m_{G,n}(x)=\frac{k_n}{n}\sum_{i=1}^n
+\mathbf 1\{X_i=x\}H_iG_i,\qquad
+\widehat M_{G,n}=\sum_{x=1}^{k_n}\widehat p_{x,n}\widehat m_{G,n}(x).
+\]
+For \(N_n\ge2\), define
+\[
+\widehat\kappa_{U,n}
+=\frac{k_n}{N_n(N_n-1)}
+\sum_{j\ne\ell}\mathbf 1\{X_j^T=X_\ell^T\},\qquad
+\widehat K_n=1+\widehat\kappa_{U,n},
+\]
+and set
+\[
+C_n=\left\{\vartheta\in\Theta:
+|\widehat M_{Y,n}-\vartheta\widehat M_{D,n}|
+\le L_{\alpha,c}\sqrt{\widehat K_n/n}\right\},
+\]
+with \(C_n=\Theta\) at indices for which \(N_n<2\). For every \(t_0>0\),
+\[
+\limsup_{n\to\infty}\sup_{P\in\mathcal N_n:\,t_n\ge t_0}
+\mathbb E_P[\lambda(C_n)]
+\le
+C_0\min\{1,t_0^{-1/2}\}.
+\]
+Moreover, for every \(t_0>0\), the feasible finite-cell honest minimax risk satisfies
+\[
+\frac{3(1-\alpha)^2}{16}\min\{1,t_0^{-1/2}\}
+\le
+\inf_{\widetilde C\in\mathfrak C^{\mathrm{cell}}}
+\limsup_{n\to\infty}\sup_{P\in\mathcal N_n:\,t_n\ge t_0}
+\mathbb E_P[\lambda(\widetilde C_n)].
+\]
+\end{theoremv}
+
+\Cref{obj:thm:finite-cell-unknown-weight-attainment} constructs a feasible confidence set from the source observations and target covariates.  The empirical target frequencies \(\widehat p_{x,n}\) estimate the transported mixing weights, the cellwise contrasts \(\widehat m_{G,n}(x)\) estimate the source reduced-form and first-stage contrasts, and \(\widehat\kappa_{U,n}\) is a target-sample U-statistic for the weight-dispersion scale.  The resulting inversion set has the same \(\min\{1,t_0^{-1/2}\}\) expected-length order as the oracle benchmark on the uniform finite-cell class, with the lower bound showing that this order is minimax sharp within \(\mathfrak C^{\mathrm{cell}}\).
+
+For the uniform-cell benchmark, the inputs are the source records \((X,Z,D,Y)\), the target covariates \(X^T\), the known cell partition, and the known propensity \(1/2\). Tabulate target frequencies, compute \(H_i=2(2Z_i-1)\) and the source cell contrasts, aggregate the two transported moments, estimate dispersion with the target collision statistic, and invert the displayed affine score over \(\Theta\). The regular-cell version follows the same steps while taking the known \(q_{x,n}\) and \(e_{x,n}\) as additional inputs. These constructions are minimax attainability benchmarks under the stated growth conditions; their declared inputs fix the cell structure and propensities used by the rules.
+
+The uniform-cell construction uses known equal source cell masses and the propensity \(e(X)=1/2\).  A regular finite-cell variant allows unequal but controlled source cell probabilities and a known cell-varying propensity.  The source-cell probabilities \(q_{x,n}\) are bounded between constants \(c_-\) and \(c_+\) times \(1/k_n\), which preserves the same dispersion order while accommodating regular discrete designs.
+
+\begin{definitionv}{def:regular-finite-cell-class}[Regular finite-cell class $\mathcal N_n^{\mathrm{reg}}$]
+For fixed constants \(0<c_-\le 1\le c_+<\infty\), define
+\[
+\mathcal N_n^{\mathrm{reg}}
+=
+\left\{
+P\in\mathcal P_n:
+\begin{array}{l}
+P_S^X \text{ is supported on exactly } k_n \text{ measurable cells},\\
+q_{x,n}=P_S^X(X \text{ lies in cell } x),\\
+c_-/k_n\le q_{x,n}\le c_+/k_n \text{ for every } x
+\end{array}
+\right\}.
+\]
+\end{definitionv}
+
+The regular class \(\mathcal N_n^{\mathrm{reg}}\) keeps the finite support structure while allowing cell masses to vary within fixed multiplicative bounds.  This is the discrete counterpart of overlap and bounded-density conditions commonly used in transport and weighting analyses \citep{ChenHuang2025,RudolphVanderLaan2017,ZengKennedyBodnarNaimi2024}.
+
+\begin{definitionv}{def:regular-cell-feasible-honesty}[Regular-cell feasible class $\mathfrak C^{\mathrm{reg}}$]
+For a noncoverage level \(0<\alpha<1\), define \(\mathfrak C^{\mathrm{reg}}\) as the class of regular-cell procedures \((C_n)_{n\ge 1}\) with the following properties. For each \(n\), \(C_n\) is a \(\Theta\)-valued random set whose inputs are \((O_i^S)_{i=1}^n\), \((X_j^T)_{j=1}^{N_n}\), the realized regular-cell support, and the known cell-indexed vectors \((q_{x,n})_{x=1}^{k_n}\) and \((e_{x,n})_{x=1}^{k_n}\). For every realized regular-cell support and every pair of real \(k_n\)-vectors \((q_{x,n})_{x=1}^{k_n}\) and \((e_{x,n})_{x=1}^{k_n}\), the sample-by-\(\theta\) graph of \(C_n\), restricted to source and target samples on that support, is measurable. These procedures satisfy
+\[
+1-\alpha\le
+\liminf_{n\to\infty}
+\inf_{P\in\mathcal N_n^{\mathrm{reg}}}
+P(\theta_T\in C_n),
+\]
+with the rowwise infimum evaluated as \(1\) when \(\mathcal N_n^{\mathrm{reg}}\) is empty.
+\end{definitionv}
+
+The feasible class \(\mathfrak C^{\mathrm{reg}}\) formalizes procedures that know the regular source-cell probabilities and the cell-indexed propensity, but learn the target cell frequencies from the target sample.  The measurability clause ensures that the inversion rule is a well-defined random set on each realized finite carrier.
+
+\begin{theoremv}{thm:regular-cell-unknown-weight-attainment}[Regular-cell weight attainment]
+Fix \(c,\varepsilon,\alpha,c_-,c_+\in\mathbb R\) and sequences \(N_n\) and \(k_n\).  Suppose that
+\begin{itemize}
+\item \textbf{(Sample-size ratio.)} \(0<c\) and \(N_n/n\to c\).
+\item \textbf{(Overlap and coverage levels.)} \(0<\varepsilon<1/2\) and \(0<\alpha<1\).
+\item \textbf{(Regular cell constants.)} \(0<c_-\le 1\) and \(1\le c_+\).
+\item \textbf{(Cell growth.)} \(k_n>0\) for every \(n\), \(k_n\to\infty\), and \(k_n/\sqrt n\to0\).
+\item \textbf{(Measurable carrier.)} For every \(n\), the covariate carrier contains \(k_n\) injected measurable singleton cells.
+\item \textbf{(Model restrictions.)} Every array \(P\in\mathcal N_n^{\mathrm{reg}}\) from \cref{obj:def:regular-finite-cell-class} with constants \(c,\varepsilon,c_-,c_+\) satisfies \cref{obj:ass:two-sample-array}, \cref{obj:ass:instrument-overlap}, and \cref{obj:ass:degrading-array}.
+\end{itemize}
+On \(\mathcal N_n^{\mathrm{reg}}\), let \(q_{x,n}=P_S^X(X=x)\) and define
+\[
+H_i=\frac{Z_i}{e(X_i)}-\frac{1-Z_i}{1-e(X_i)}.
+\]
+For \(G\in\{Y,D\}\), set
+\[
+\widehat p_{x,n}=\frac1{N_n}\sum_{j=1}^{N_n}\mathbf 1\{X_j^T=x\},
+\qquad
+\widehat m_{G,n}(x)=\frac1{nq_{x,n}}\sum_{i=1}^n
+\mathbf 1\{X_i=x\}H_iG_i,
+\]
+and
+\[
+\widehat M_{G,n}=\sum_{x=1}^{k_n}\widehat p_{x,n}\widehat m_{G,n}(x).
+\]
+For \(N_n\ge2\), set
+\[
+\widehat\kappa_{U,n}
+=
+\frac1{N_n(N_n-1)}\sum_{j\ne\ell}
+\frac{\mathbf 1\{X_j^T=X_\ell^T\}}{q_{X_j^T,n}},
+\qquad
+\widehat K_n=1+\widehat\kappa_{U,n},
+\]
+and put \(C_n^{\mathrm{reg}}=\Theta\) when \(N_n<2\).  Let
+\[
+B_{\varepsilon,c}=8(\varepsilon^{-2}+c^{-1}).
+\]
+For every fixed \(L\ge\{2B_{\varepsilon,c}/\alpha\}^{1/2}\), the sequence
+\[
+C_n^{\mathrm{reg}}
+=
+\left\{\vartheta\in\Theta:
+|\widehat M_{Y,n}-\vartheta\widehat M_{D,n}|
+\le L\sqrt{\widehat K_n/n}\right\}
+\]
+for \(N_n\ge2\), together with the preceding convention for \(N_n<2\), belongs to \(\mathfrak C^{\mathrm{reg}}\) from \cref{obj:def:regular-cell-feasible-honesty} and is constructed from the known regular source-cell probabilities, the known propensity, and the source and target samples.  Moreover, for every fixed \(t_0>0\),
+\[
+\limsup_{n\to\infty}\sup_{P\in\mathcal N_n^{\mathrm{reg}}:\,t_n\ge t_0}
+\mathbb E_P[\lambda(C_n^{\mathrm{reg}})]
+\le
+\max\{2,4\sqrt2L+8B_{\varepsilon,c}\}
+\min\{1,t_0^{-1/2}\}.
+\]
+The corresponding minimax risk over \(\mathfrak C^{\mathrm{reg}}\) is bounded below by
+\[
+\frac{3(1-\alpha)^2}{16}\min\{1,t_0^{-1/2}\}.
+\]
+Thus, with known regular source-cell probabilities and a known cell-varying propensity satisfying the stated overlap, the feasible regular-cell construction attains the oracle frontier order on \(\mathcal N_n^{\mathrm{reg}}\).
+\end{theoremv}
+
+\Cref{obj:thm:regular-cell-unknown-weight-attainment} extends finite-cell score inversion to regular source-cell masses and known cell-varying propensities.  The statistic uses inverse-propensity source contrasts, target empirical cell frequencies, and a regular-cell U-statistic dispersion proxy.  Under the stated sampling, overlap, and cell-growth conditions, the construction is honest over \(\mathfrak C^{\mathrm{reg}}\) and attains the same expected-length order as the fixed-geometry and uniform finite-cell procedures.
+
+Together, \cref{obj:thm:fixed-geometry-frontier,obj:thm:finite-cell-unknown-weight-attainment,obj:thm:regular-cell-unknown-weight-attainment} show how the oracle frontier carries over from fixed weights to sample-learned finite-cell weights.  The common rate \(\min\{1,t_0^{-1/2}\}\) is indexed by the effective strength \(n\mu_n^2/\kappa_n\), with \(\kappa_n\) interpreted either as an oracle dispersion measure or as a target-sample-estimated finite-cell collision scale.

@@ -1,0 +1,37 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Basic
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Capacities
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CitedGates
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CondIndepBridge
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.EndpointDirectional
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Estimator
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.FullLawPasting
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.SharpDefinitions
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Transport
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.UniformGuardBounds
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.WeakConvergenceTools
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.OpenQuestions
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TBranchFreePointwiseDirectionalLimit
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TCapacityIdentification
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TFullLawEndpointAttainment
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TLinearSparseThresholdFlow
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TNoSelectionReduction
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TSharpExactMassThresholdInterval
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TThreeLevelWitness
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TTieFaceCollapse
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TUniformDeterministicGuard
+public import Causalean.PO.Conditioning.CondExpTooling
+public import Causalean.Stat.Inference.HadamardDeriv
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

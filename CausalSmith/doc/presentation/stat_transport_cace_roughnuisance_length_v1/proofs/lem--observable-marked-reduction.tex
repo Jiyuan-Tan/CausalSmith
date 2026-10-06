@@ -1,0 +1,448 @@
+\begin{proof}[Proof of \cref{obj:lem:observable-marked-reduction}]
+We establish the observable identities, the lower bounds, the functional representation, and then the derivative bounds.
+
+\begin{enumerate}
+\item For the target coordinate, \cref{obj:def:marked-density-vector} gives \(F_0=f_{\mathrm T}\). By \cref{obj:ass:target-density-holder}, this density is continuous on \([0,1]\), hence measurable there. For every measurable \(B\subseteq[0,1]\), \cref{obj:ass:target-density-bounds} therefore yields
+\[
+P_{\mathrm T}(B)
+=\int_B\max\{f_{\mathrm T}(x),0\}\,dx
+=\int_B f_{\mathrm T}(x)\,dx
+=\int_B F_0(x)\,dx.
+\]
+The second equality uses \(f_{\mathrm T}(x)\ge c_f>0\) on \(B\).
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.observable_marked_reduction
+
+\item For the source coordinates, define the encouragement-arm probabilities by
+\[
+\pi_z(x)=
+\begin{cases}
+1-e(x),&z=0,\\
+e(x),&z=1,
+\end{cases}
+\qquad x\in[0,1],\quad z\in\{0,1\}.
+\]
+By the definition of the source propensity,
+\[
+P_{\mathrm S}(Z=z\mid X)=\pi_z(X)
+\qquad P_{\mathrm S}\text{-almost surely}.
+\]
+Conditioning on \(X\) under the observed source law therefore gives
+\[
+P_{\mathrm S}(X\in B,Z=z)
+=
+\mathbb E_{P_{\mathrm S}}\!\left[
+\mathbf 1_{\{X\in B\}}\pi_z(X)
+\right]
+=
+\int_B f_{\mathrm S}(x)\pi_z(x)\,dx.
+\]
+Here the last equality uses the source covariate density identity in
+\cref{obj:ass:source-density-bounds}; measurability follows from the stated regularity assumptions. Integrating an arm indicator also gives
+\[
+\int_{\{X\in B\}}\mathbf 1_{\{Z=z\}}\,dP_{\mathrm S}
+=P_{\mathrm S}(X\in B,Z=z).
+\]
+Since \(Z\) is binary, \(\mathbf 1_{\{Z=0\}}=1-Z\) and
+\(\mathbf 1_{\{Z=1\}}=Z\). Thus the two assignment coordinates satisfy
+\[
+\int_B F_1(x)\,dx
+=\int_B f_{\mathrm S}(x)(1-e(x))\,dx
+=\int_{\{X\in B\}}(1-Z)\,dP_{\mathrm S},
+\]
+\[
+\int_B F_2(x)\,dx
+=\int_B f_{\mathrm S}(x)e(x)\,dx
+=\int_{\{X\in B\}}Z\,dP_{\mathrm S}.
+\]
+
+For either response \(A\in\{Y,D\}\), restriction by the same indicator and the source arm-moment identity in \cref{obj:ass:arm-means-holder} give
+\[
+\begin{aligned}
+\int_{\{X\in B\}}\mathbf 1_{\{Z=z\}}A\,dP_{\mathrm S}
+&=\int_{\{X\in B,\;Z=z\}}A\,dP_{\mathrm S}\\
+&=\int_B f_{\mathrm S}(x)\pi_z(x)m_{Az}(x)\,dx
+=\int_B r_{Az}(x)\,dx.
+\end{aligned}
+\]
+Applying this identity first to \(Y\) in arms \(0,1\), and then to \(D\) in arms \(0,1\), yields respectively
+\[
+\begin{aligned}
+\int_B F_3(x)\,dx&=\int_{\{X\in B\}}(1-Z)Y\,dP_{\mathrm S},&
+\int_B F_4(x)\,dx&=\int_{\{X\in B\}}ZY\,dP_{\mathrm S},\\
+\int_B F_5(x)\,dx&=\int_{\{X\in B\}}(1-Z)D\,dP_{\mathrm S},&
+\int_B F_6(x)\,dx&=\int_{\{X\in B\}}ZD\,dP_{\mathrm S}.
+\end{aligned}
+\]
+These arguments apply also when \(B\) is empty.
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.source_assignment_density
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.source_assignment_mark_integral
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.source_marked_arm_density
+
+\item Fix \(x\in[0,1]\). By
+\cref{obj:ass:source-density-bounds,obj:ass:propensity-overlap},
+\(f_{\mathrm S}(x)\ge c_f>0\) and both \(e(x)\) and \(1-e(x)\) are at least \(1/4\). Consequently,
+\[
+\frac{c_f}{4}
+=c_f\frac14
+\le f_{\mathrm S}(x)\frac14
+\le f_{\mathrm S}(x)(1-e(x))
+=q_0(x)=F_1(x),
+\]
+\[
+\frac{c_f}{4}
+=c_f\frac14
+\le f_{\mathrm S}(x)\frac14
+\le f_{\mathrm S}(x)e(x)
+=q_1(x)=F_2(x).
+\]
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.markedDensityVector_assignment_lower_bounds
+
+\item The preceding bounds make both arm densities strictly positive. The identities in \cref{obj:def:marked-density-vector} therefore permit cancellation:
+\[
+\frac{r_{Az}(x)}{q_z(x)}=m_{Az}(x),
+\qquad A\in\{Y,D\},\quad z\in\{0,1\},\quad x\in[0,1].
+\]
+Substituting into the integrand of \cref{obj:def:smooth-functional} gives, for each response,
+\[
+\Phi_A(F(x))
+=f_{\mathrm T}(x)\bigl(m_{A1}(x)-m_{A0}(x)\bigr).
+\]
+Integrating this pointwise equality proves
+\[
+T_A
+=\int_{[0,1]}f_{\mathrm T}(x)
+       \bigl(m_{A1}(x)-m_{A0}(x)\bigr)\,dx
+=\int_0^1\Phi_A(F(x))\,dx.
+\]
+The closed-interval set integral and the displayed interval integral agree because their endpoint difference has Lebesgue measure zero.
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.Phi_markedDensityVector_eq_transport_integrand
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.transportedForm_eq_integral_Phi_markedDensityVector
+
+\item Fix \(A\in\{Y,D\}\) and a vector \(v\) in the clipping rectangle. Define the reciprocal scale and the desired envelope by
+\[
+R_{\mathrm{inv}}=\frac4{c_f},
+\qquad
+M_{\mathrm{der}}=48(1+C_f)^2R_{\mathrm{inv}}^5.
+\]
+The hypotheses imply \(R_{\mathrm{inv}}>1\) and \(1+C_f>0\). To identify the response coordinates, set
+\[
+j_{Az}=
+\begin{cases}
+3+z,&A=Y,\\
+5+z,&A=D,
+\end{cases}
+\qquad A\in\{Y,D\},\quad z\in\{0,1\}.
+\]
+On the open set \(\{v\in\mathbb R^7:v_1>0,\ v_2>0\}\), define the two arm contributions by
+\[
+H_{Az}(v)=\frac{v_0v_{j_{Az}}}{v_{1+z}},
+\qquad
+\Phi_A(v)=H_{A1}(v)-H_{A0}(v).
+\]
+The clipping rectangle lies in this open set.
+
+For order zero, the rectangle supplies
+\[
+0\le v_0\le C_f,\qquad
+0\le v_{j_{Az}}\le\frac{3C_f}{4},\qquad
+v_{1+z}\ge\frac{c_f}{4}>0.
+\]
+In particular,
+\[
+v_0v_{j_{Az}}\le(1+C_f)^2,
+\qquad
+1=\frac{c_f}{4}R_{\mathrm{inv}}
+\le v_{1+z}R_{\mathrm{inv}},
+\]
+and hence
+\[
+0\le H_{Az}(v)\le(1+C_f)^2R_{\mathrm{inv}}.
+\]
+Since
+\[
+R_{\mathrm{inv}}
+=R_{\mathrm{inv}}\cdot1
+\le R_{\mathrm{inv}}R_{\mathrm{inv}}^4
+=R_{\mathrm{inv}}^5,
+\]
+we obtain
+\[
+|\Phi_A(v)|
+\le 2(1+C_f)^2R_{\mathrm{inv}}
+\le48(1+C_f)^2R_{\mathrm{inv}}^5
+=M_{\mathrm{der}}.
+\]
+This treats the empty list of coordinate indices at order zero.
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.Phi_value_abs_le_fourthDerivativeEnvelope
+
+\item For the positive orders, fix arbitrary coordinate indices
+\(i_1,\ldots,i_4\in\{0,\ldots,6\}\), allowing repetitions. Every shorter list can be extended to such a list. Define its coordinate directions by
+\[
+\eta^{(\ell)}_j=
+\begin{cases}
+1,&j=i_\ell,\\
+0,&j\ne i_\ell,
+\end{cases}
+\qquad 1\le\ell\le4,\quad 0\le j\le6.
+\]
+Thus \(|\eta^{(\ell)}_j|\le1\). For a fixed arm \(A,z\), define
+\[
+\mathsf U_\ell
+=\eta^{(\ell)}_0v_{j_{Az}}
+ +v_0\eta^{(\ell)}_{j_{Az}},
+\qquad 1\le\ell\le4.
+\]
+The rectangle gives
+\[
+|v_0|\le C_f,\qquad |v_{j_{Az}}|\le C_f,\qquad
+0<v_{1+z},\qquad
+|v_{1+z}^{-1}|
+=v_{1+z}^{-1}
+\le\left(\frac{c_f}{4}\right)^{-1}
+=R_{\mathrm{inv}}.
+\]
+The product and reciprocal rules yield
+\[
+\partial_{i_1}H_{Az}(v)
+=\mathsf U_1v_{1+z}^{-1}
+-v_0v_{j_{Az}}\eta^{(1)}_{1+z}v_{1+z}^{-2}.
+\]
+Moreover,
+\[
+|\mathsf U_1|
+\le|\eta^{(1)}_0|\,|v_{j_{Az}}|
+   +|v_0|\,|\eta^{(1)}_{j_{Az}}|
+\le2C_f.
+\]
+The two terms therefore obey
+\[
+|\mathsf U_1v_{1+z}^{-1}|\le2C_fR_{\mathrm{inv}},
+\qquad
+|v_0v_{j_{Az}}\eta^{(1)}_{1+z}v_{1+z}^{-2}|
+\le C_f^2R_{\mathrm{inv}}^2.
+\]
+Using
+\[
+R_{\mathrm{inv}}\le R_{\mathrm{inv}}^2,\qquad
+C_f\le(1+C_f)^2,\qquad
+C_f^2\le(1+C_f)^2,
+\]
+we obtain the one-arm bound
+\[
+|\partial_{i_1}H_{Az}(v)|
+\le2C_fR_{\mathrm{inv}}+C_f^2R_{\mathrm{inv}}^2
+\le3(1+C_f)^2R_{\mathrm{inv}}^2.
+\]
+Both arm functions are smooth on the stated open set, so differentiation of their difference and \(R_{\mathrm{inv}}^2\le R_{\mathrm{inv}}^5\) give
+\[
+|\partial_{i_1}\Phi_A(v)|
+\le|\partial_{i_1}H_{A1}(v)|
+  +|\partial_{i_1}H_{A0}(v)|
+\le6(1+C_f)^2R_{\mathrm{inv}}^2
+\le M_{\mathrm{der}}.
+\]
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.iteratedFDeriv_one_Phi_apply
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.marked_arm_first_derivative_abs_le
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.Phi_first_derivative_abs_le_fourthDerivativeEnvelope
+
+\item For order two, define the paired direction coefficients by
+\[
+\mathsf V_{\ell,\ell'}
+=\eta^{(\ell)}_0\eta^{(\ell')}_{j_{Az}}
+ +\eta^{(\ell')}_0\eta^{(\ell)}_{j_{Az}},
+\qquad 1\le\ell,\ell'\le4.
+\]
+Their bounds, and those of the linear coefficients, are
+\[
+|\mathsf V_{\ell,\ell'}|
+\le1\cdot1+1\cdot1=2,
+\qquad
+|\mathsf U_\ell|\le2C_f.
+\]
+As functions of \(v\), these coefficients satisfy
+\[
+\partial_{i_{\ell'}}\mathsf U_\ell
+=\mathsf V_{\ell,\ell'},
+\qquad
+\partial_{i_{\ell'}}\mathsf V_{\ell,\nu}=0,
+\qquad
+\partial_{i_\ell}v_{1+z}^{-p}
+=-p\,\eta^{(\ell)}_{1+z}v_{1+z}^{-(p+1)}
+\quad(p\ge1).
+\]
+Differentiating the first-order expression thus gives
+\[
+\begin{aligned}
+\partial_{i_1}\partial_{i_2}H_{Az}(v)
+={}&\mathsf V_{1,2}v_{1+z}^{-1}
+-\mathsf U_1\eta^{(2)}_{1+z}v_{1+z}^{-2}
+-\mathsf U_2\eta^{(1)}_{1+z}v_{1+z}^{-2}\\
+&+2v_0v_{j_{Az}}\eta^{(1)}_{1+z}
+                      \eta^{(2)}_{1+z}v_{1+z}^{-3}.
+\end{aligned}
+\]
+The four terms have absolute values bounded respectively by
+\[
+2R_{\mathrm{inv}},\qquad
+2C_fR_{\mathrm{inv}}^2,\qquad
+2C_fR_{\mathrm{inv}}^2,\qquad
+2C_f^2R_{\mathrm{inv}}^3.
+\]
+Consequently,
+\[
+\begin{aligned}
+|\partial_{i_1}\partial_{i_2}H_{Az}(v)|
+&\le2R_{\mathrm{inv}}
+    +4C_fR_{\mathrm{inv}}^2
+    +2C_f^2R_{\mathrm{inv}}^3\\
+&\le(2+4+2)(1+C_f)^2R_{\mathrm{inv}}^5\\
+&\le24(1+C_f)^2R_{\mathrm{inv}}^5.
+\end{aligned}
+\]
+Here each reciprocal power is at most \(R_{\mathrm{inv}}^5\), and each of
+\(1,C_f,C_f^2\) is at most \((1+C_f)^2\). Subtracting the two arm derivatives gives
+\[
+|\partial_{i_1}\partial_{i_2}\Phi_A(v)|
+\le|\partial_{i_1}\partial_{i_2}H_{A1}(v)|
+  +|\partial_{i_1}\partial_{i_2}H_{A0}(v)|
+\le M_{\mathrm{der}}.
+\]
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.cubicRatioD2_basis_abs_le
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.dPhi2_abs_le
+
+\item For order three, the rectangle also supplies the nonnegative numerator bounds
+\[
+0\le v_0\le C_f,\qquad
+0\le v_{j_{Az}}\le C_f,
+\qquad
+0<v_{1+z},\qquad
+0<v_{1+z}^{-1}\le R_{\mathrm{inv}}.
+\]
+Differentiating the second-order expression by the same product and reciprocal rules yields
+\[
+\begin{aligned}
+\partial_{i_1}\partial_{i_2}\partial_{i_3}H_{Az}(v)
+={}&-\mathsf V_{1,2}\eta^{(3)}_{1+z}v_{1+z}^{-2}\\
+&-\bigl(\mathsf V_{1,3}\eta^{(2)}_{1+z}
+       +\mathsf V_{2,3}\eta^{(1)}_{1+z}\bigr)v_{1+z}^{-2}\\
+&+2\mathsf U_1\eta^{(2)}_{1+z}\eta^{(3)}_{1+z}v_{1+z}^{-3}\\
+&+2\mathsf U_2\eta^{(1)}_{1+z}\eta^{(3)}_{1+z}v_{1+z}^{-3}\\
+&+2\mathsf U_3\eta^{(1)}_{1+z}\eta^{(2)}_{1+z}v_{1+z}^{-3}\\
+&-6v_0v_{j_{Az}}\eta^{(1)}_{1+z}
+                    \eta^{(2)}_{1+z}\eta^{(3)}_{1+z}v_{1+z}^{-4}.
+\end{aligned}
+\]
+The first paired coefficient has absolute value at most \(2\), and the grouped coefficient satisfies
+\[
+\left|\mathsf V_{1,3}\eta^{(2)}_{1+z}
+       +\mathsf V_{2,3}\eta^{(1)}_{1+z}\right|
+\le2\cdot1+2\cdot1=4.
+\]
+Thus the six displayed terms have absolute values bounded respectively by
+\[
+2R_{\mathrm{inv}}^2,\qquad
+4R_{\mathrm{inv}}^2,\qquad
+4C_fR_{\mathrm{inv}}^3,\qquad
+4C_fR_{\mathrm{inv}}^3,\qquad
+4C_fR_{\mathrm{inv}}^3,\qquad
+6C_f^2R_{\mathrm{inv}}^4.
+\]
+Adding these bounds gives
+\[
+\begin{aligned}
+|\partial_{i_1}\partial_{i_2}\partial_{i_3}H_{Az}(v)|
+&\le6R_{\mathrm{inv}}^2
+    +12C_fR_{\mathrm{inv}}^3
+    +6C_f^2R_{\mathrm{inv}}^4\\
+&\le(6+12+6)(1+C_f)^2R_{\mathrm{inv}}^5\\
+&=24(1+C_f)^2R_{\mathrm{inv}}^5.
+\end{aligned}
+\]
+The second inequality uses \(R_{\mathrm{inv}}^2,R_{\mathrm{inv}}^3,
+R_{\mathrm{inv}}^4\le R_{\mathrm{inv}}^5\) and the same numerator bounds as before. For \(A=D\), the two arm terms use the coordinate triples \((0,6,2)\) and \((0,5,1)\); for \(A=Y\), they use \((0,4,2)\) and \((0,3,1)\). In either case,
+\[
+|\partial_{i_1}\partial_{i_2}\partial_{i_3}\Phi_A(v)|
+\le|\partial_{i_1}\partial_{i_2}\partial_{i_3}H_{A1}(v)|
+  +|\partial_{i_1}\partial_{i_2}\partial_{i_3}H_{A0}(v)|
+\le M_{\mathrm{der}}.
+\]
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.cubicRatioD3_basis_abs_le
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.dPhi3_abs_le
+
+\item The remaining order is four. Differentiating the third-order expression gives
+\[
+\begin{aligned}
+\partial_{i_1}\partial_{i_2}\partial_{i_3}\partial_{i_4}H_{Az}(v)
+={}&
+2v_{1+z}^{-3}
+\sum_{1\le\ell<\ell'\le4}
+\mathsf V_{\ell,\ell'}
+\prod_{\substack{1\le\nu\le4\\\nu\ne\ell,\ell'}}
+\eta^{(\nu)}_{1+z}\\
+&-6v_{1+z}^{-4}
+\sum_{\ell=1}^4
+\mathsf U_\ell
+\prod_{\substack{1\le\nu\le4\\\nu\ne\ell}}
+\eta^{(\nu)}_{1+z}\\
+&+24v_0v_{j_{Az}}v_{1+z}^{-5}
+\prod_{\nu=1}^4\eta^{(\nu)}_{1+z}.
+\end{aligned}
+\]
+There are six pairs in the first sum. Each corresponding term satisfies
+\[
+\left|
+2\mathsf V_{\ell,\ell'}
+\prod_{\substack{1\le\nu\le4\\\nu\ne\ell,\ell'}}
+\eta^{(\nu)}_{1+z}v_{1+z}^{-3}
+\right|
+\le2\cdot2\cdot R_{\mathrm{inv}}^3
+=4R_{\mathrm{inv}}^3.
+\]
+Each of the four terms in the second sum satisfies
+\[
+\left|
+6\mathsf U_\ell
+\prod_{\substack{1\le\nu\le4\\\nu\ne\ell}}
+\eta^{(\nu)}_{1+z}v_{1+z}^{-4}
+\right|
+\le6\cdot2C_fR_{\mathrm{inv}}^4
+=12C_fR_{\mathrm{inv}}^4.
+\]
+The final term is bounded by
+\[
+\left|
+24v_0v_{j_{Az}}v_{1+z}^{-5}
+\prod_{\nu=1}^4\eta^{(\nu)}_{1+z}
+\right|
+\le24C_f^2R_{\mathrm{inv}}^5.
+\]
+Therefore,
+\[
+\begin{aligned}
+|\partial_{i_1}\partial_{i_2}\partial_{i_3}\partial_{i_4}H_{Az}(v)|
+&\le24R_{\mathrm{inv}}^3
+    +48C_fR_{\mathrm{inv}}^4
+    +24C_f^2R_{\mathrm{inv}}^5\\
+&\le24R_{\mathrm{inv}}^5
+    +48C_fR_{\mathrm{inv}}^5
+    +24C_f^2R_{\mathrm{inv}}^5\\
+&=24(1+C_f)^2R_{\mathrm{inv}}^5.
+\end{aligned}
+\]
+The middle inequality uses \(R_{\mathrm{inv}}>1\). Subtracting the two arm derivatives finally gives
+\[
+\begin{aligned}
+|\partial_{i_1}\partial_{i_2}\partial_{i_3}\partial_{i_4}\Phi_A(v)|
+&\le
+|\partial_{i_1}\partial_{i_2}\partial_{i_3}\partial_{i_4}H_{A1}(v)|
++
+|\partial_{i_1}\partial_{i_2}\partial_{i_3}\partial_{i_4}H_{A0}(v)|\\
+&\le48(1+C_f)^2R_{\mathrm{inv}}^5
+=48(1+C_f)^2\left(\frac4{c_f}\right)^5.
+\end{aligned}
+\]
+Together with the preceding cases, this proves the asserted bound for every order \(k\in\{0,\ldots,4\}\) and every choice of coordinate indices.
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.cubicRatioD4_basis_abs_le
+% lean: CausalSmith.Stat.TransportCaceRoughnuisanceLength.dPhi4_abs_le
+\end{enumerate}
+\end{proof}

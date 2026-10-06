@@ -1,0 +1,2534 @@
+\begin{proof}[Proof of \cref{obj:thm:observable-upper}]
+\begin{enumerate}
+\item
+The assignment--audit product design is a probability measure because its factors are products of Bernoulli probability laws with parameters \(1/2\) and \(q\in[0,1]\). For fixed \(n,d,q\), the branch condition in \cref{obj:def:upper-rule} is constant on the record space. On its positive-retention branch, the score is a finite sum of outcome coordinates multiplied by functions of the finite graph and assignment coordinates; clipping is continuous. The other branch is constant. Thus \(T^{\mathrm{up}}\) is real-valued and measurable on the complete record space.
+
+Its deterministic extension to the randomized-estimator domain is
+\[
+(O,\xi)\longmapsto T^{\mathrm{up}}(O).
+\]
+This is an admissible estimator in \cref{obj:def:risk}, so
+\[
+R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^{\mathrm{up}};\theta,q).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.thinnedDesign_probabilityDesign
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.upperRule_measurable
+% lean: Causalean.Stat.minimaxValueENNReal_le_worstCaseRisk
+
+\item
+Fix a schedule
+\[
+\theta=(G,a,t,b)\in\mathcal M_{n,d}.
+\]
+Because the estimator ignores the independent uniform seed, integration over that seed gives
+\[
+\begin{aligned}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+&=
+\mathbb E_{P_{\theta,q}}
+\left[
+\int_0^1
+\bigl(T^{\mathrm{up}}(O)-\tau(\theta)\bigr)^2\,d\xi
+\right]\\
+&=
+\mathbb E_{P_{\theta,q}}
+\left[
+\bigl(T^{\mathrm{up}}(O)-\tau(\theta)\bigr)^2
+\right].
+\end{aligned}
+\]
+We bound this loss separately on the two branches of \cref{obj:def:upper-rule}.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.sqLoss_seedless
+
+\item
+First suppose
+\[
+q>0
+\qquad\text{and}\qquad
+u(n,d,q)<1.
+\]
+The product design satisfies \cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence}. Together with the population, degree, and schedule hypotheses, these conditions permit application of \cref{obj:lem:score-audit}. It supplies
+\[
+\mathbb E_{P_{\theta,q}}[T_q]=\tau(\theta)
+\]
+and hence
+\[
+\begin{aligned}
+\mathbb E_{P_{\theta,q}}
+\left[(T_q-\tau(\theta))^2\right]
+&=\operatorname{Var}_{P_{\theta,q}}(T_q)\\
+&=\operatorname{Var}_{Z}(T_G)
++\frac{4(1-q)}{n^2q}
+\sum_{i\in V}
+\bigl|\{j:(j,i)\in G\}\bigr|
+\,\mathbb E_Z[Y_i(Z)^2],
+\end{aligned}
+\]
+as well as
+\[
+\operatorname{Var}_{Z}(T_G)\le\frac{5(d+1)^2}{n}.
+\]
+
+For each \(i\in V\) and binary assignment \(z\in\{0,1\}^V\), the additive outcome formula and coefficient-mass bound give
+\[
+\begin{aligned}
+|Y_i(z)|
+&=
+\left|a_i+t_i z_i+\sum_{j:(j,i)\in G}b_{ij}z_j\right|\\
+&\le
+|a_i|+|t_i z_i|
++\sum_{j:(j,i)\in G}|b_{ij}z_j|\\
+&\le
+|a_i|+|t_i|
++\sum_{j:(j,i)\in G}|b_{ij}|\\
+&\le1,
+\end{aligned}
+\]
+where the penultimate inequality uses \(z_j\in\{0,1\}\), and the last uses \cref{obj:ass:coefficient-mass}. Consequently,
+\[
+\mathbb E_Z[Y_i(Z)^2]\le\mathbb E_Z[1]=1.
+\]
+The in-degree bound therefore yields
+\[
+\begin{aligned}
+\sum_{i\in V}
+\bigl|\{j:(j,i)\in G\}\bigr|
+\,\mathbb E_Z[Y_i(Z)^2]
+&\le
+\sum_{i\in V}\bigl|\{j:(j,i)\in G\}\bigr|\\
+&\le\sum_{i\in V}d
+=nd.
+\end{aligned}
+\]
+Since \(n>0\), \(q>0\), and \(q\le1\),
+\[
+\frac{4(1-q)}{n^2q}\ge0.
+\]
+Combining the preceding bounds gives
+\[
+\begin{aligned}
+\mathbb E_{P_{\theta,q}}
+\left[(T_q-\tau(\theta))^2\right]
+&\le
+\frac{5(d+1)^2}{n}
++\frac{4(1-q)}{n^2q}\,nd\\
+&=
+\frac{5(d+1)^2}{n}
++\frac{4d(1-q)}{nq}
+=u(n,d,q).
+\end{aligned}
+\]
+All expectations here are integrable because the assignment--audit space is finite.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.abs_potentialOutcome_le_one
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.auditScore_squared_error_le
+
+\item
+To control clipping, first bound the target. Define the constant assignments by
+\[
+\mathbf1=(1)_{i\in V},
+\qquad
+\mathbf0=(0)_{i\in V}.
+\]
+For every \(i\in V\),
+\[
+Y_i(\mathbf1)-Y_i(\mathbf0)
+=t_i+\sum_{j:(j,i)\in G}b_{ij},
+\]
+so
+\[
+\begin{aligned}
+|Y_i(\mathbf1)-Y_i(\mathbf0)|
+&\le |t_i|+
+\left|\sum_{j:(j,i)\in G}b_{ij}\right|\\
+&\le |t_i|+\sum_{j:(j,i)\in G}|b_{ij}|\\
+&\le1.
+\end{aligned}
+\]
+The last inequality follows from \cref{obj:ass:coefficient-mass} and \(|a_i|\ge0\). Averaging these contrasts gives
+\[
+\begin{aligned}
+|\tau(\theta)|
+&=
+\frac1n
+\left|\sum_{i\in V}
+\bigl(Y_i(\mathbf1)-Y_i(\mathbf0)\bigr)\right|\\
+&\le
+\frac1n\sum_{i\in V}
+|Y_i(\mathbf1)-Y_i(\mathbf0)|\\
+&\le\frac1n\sum_{i\in V}1
+=1.
+\end{aligned}
+\]
+Here \(n\ge4\) ensures \(n>0\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.abs_tte_le_one
+
+\item
+For arbitrary real values with domains
+\[
+v_{\mathrm{clip}}\in\mathbb R,
+\qquad
+s_{\mathrm{target}}\in[-1,1],
+\]
+clipping satisfies
+\[
+\left|\max\{-1,\min\{1,v_{\mathrm{clip}}\}\}
+-s_{\mathrm{target}}\right|
+=
+\begin{cases}
+s_{\mathrm{target}}+1,
+&v_{\mathrm{clip}}<-1,\\
+1-s_{\mathrm{target}},
+&v_{\mathrm{clip}}>1,\\
+|v_{\mathrm{clip}}-s_{\mathrm{target}}|,
+&-1\le v_{\mathrm{clip}}\le1.
+\end{cases}
+\]
+In the first case,
+\[
+s_{\mathrm{target}}+1
+\le s_{\mathrm{target}}-v_{\mathrm{clip}}
+=|v_{\mathrm{clip}}-s_{\mathrm{target}}|,
+\]
+and in the second,
+\[
+1-s_{\mathrm{target}}
+\le v_{\mathrm{clip}}-s_{\mathrm{target}}
+=|v_{\mathrm{clip}}-s_{\mathrm{target}}|.
+\]
+The third case gives equality. Squaring therefore proves
+\[
+\bigl(\max\{-1,\min\{1,v_{\mathrm{clip}}\}\}
+-s_{\mathrm{target}}\bigr)^2
+\le
+(v_{\mathrm{clip}}-s_{\mathrm{target}})^2.
+\]
+Apply this inequality pointwise with \(v_{\mathrm{clip}}=T_q(O)\) and \(s_{\mathrm{target}}=\tau(\theta)\). By the selected branch of \cref{obj:def:upper-rule},
+\[
+\begin{aligned}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+&\le
+\mathbb E_{P_{\theta,q}}
+\left[(T_q-\tau(\theta))^2\right]\\
+&\le u(n,d,q)
+=\min\{1,u(n,d,q)\}.
+\end{aligned}
+\]
+The nonnegative real expectation agrees with the extended nonnegative loss used in the risk definition.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.clipped_sq_error_le
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.observable_upper
+
+\item
+Now suppose the branch condition fails:
+\[
+\neg\bigl(q>0\ \text{and}\ u(n,d,q)<1\bigr).
+\]
+If \(q>0\), this implies \(u(n,d,q)\ge1\). If \(q\) is not positive, the hypothesis \(q\in[0,1]\) gives \(q=0\), and \cref{obj:def:upper-envelope} gives
+\[
+u(n,d,0)=+\infty\ge1.
+\]
+Thus in either case
+\[
+\min\{1,u(n,d,q)\}=1,
+\qquad
+T^{\mathrm{up}}(O)=0.
+\]
+The target bound derived above then yields
+\[
+\begin{aligned}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+&=\mathbb E_{P_{\theta,q}}[\tau(\theta)^2]\\
+&\le\mathbb E_{P_{\theta,q}}[1]
+=1
+=\min\{1,u(n,d,q)\}.
+\end{aligned}
+\]
+The equality \(\mathbb E_{P_{\theta,q}}[1]=1\) uses the probability normalization of the product design.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.observable_upper
+
+\item
+Both branches establish the same bound for every \(\theta\in\mathcal M_{n,d}\). Taking the supremum gives
+\[
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+\le\min\{1,u(n,d,q)\}.
+\]
+Together with the admissibility inequality established at the outset, this proves
+\[
+R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^{\mathrm{up}};\theta,q)
+\le
+\min\{1,u(n,d,q)\}.
+\]
+% lean: Causalean.Stat.worstCaseRiskENNReal_le
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:observed-record-precision-frontier}]
+\begin{enumerate}
+\item \textit{Upper risk bound.}
+Fix admissible \(n,d,q\). Define the association-revelation probability and a numerical constant by
+\[
+p=1-(1-q)^d,
+\qquad
+\alpha_{\mathrm{ret}}=1-e^{-1}\in(0,1).
+\]
+We first establish
+\[
+\alpha_{\mathrm{ret}}\min\{1,dq\}\le p\le\min\{1,dq\}.
+\]
+For the upper bound, induction on the nonnegative integer degree starts with
+\(1-(1-q)^0=0\). The induction step is
+\[
+\begin{aligned}
+1-(1-q)^{d+1}
+&=q+(1-q)\bigl[1-(1-q)^d\bigr]\\
+&\le q+(1-q)dq
+=(d+1)q-dq^2
+\le(d+1)q.
+\end{aligned}
+\]
+Also \(p\le1\), since \(1-q\ge0\).
+
+For the lower bound, the exponential inequality \(1-q\le e^{-q}\) gives
+\[
+(1-q)^d\le e^{-dq},
+\qquad
+p\ge1-e^{-dq}.
+\]
+If \(dq\le1\), convexity of the exponential yields
+\[
+e^{-dq}\le(1-dq)e^0+dq\,e^{-1},
+\qquad
+1-e^{-dq}\ge\alpha_{\mathrm{ret}}dq.
+\]
+If \(dq>1\), monotonicity gives
+\[
+e^{-dq}\le e^{-1},
+\qquad
+1-e^{-dq}\ge\alpha_{\mathrm{ret}}.
+\]
+In particular, \(p>0\) whenever \(q>0\).
+
+By \cref{obj:thm:observable-upper,obj:def:frontier-rule},
+\[
+R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^\star_{n,d,q};\theta,q)
+\le\min\{1,u(n,d,q)\},
+\]
+and the attaining rule is measurable and real-valued. For \(q>0\), all denominators below are positive, and the probability bounds imply
+\[
+\frac{d^2}{n}\le\frac{d^2}{np},
+\qquad
+\frac{d}{nq}\le\frac{d^2}{np}.
+\]
+Using \(d+1\le2d\) and \(1-q\le1\) in
+\cref{obj:def:upper-envelope}, we obtain
+\[
+\begin{aligned}
+u(n,d,q)
+&=\frac{5(d+1)^2}{n}+\frac{4d(1-q)}{nq}\\
+&\le20\frac{d^2}{n}+4\frac{d}{nq}
+\le24\frac{d^2}{np}.
+\end{aligned}
+\]
+If \(d^2/(np)\le1\), then
+\[
+\min\{1,u(n,d,q)\}
+\le u(n,d,q)
+\le24\frac{d^2}{np}
+=24F(n,d,q).
+\]
+If \(d^2/(np)>1\), then
+\[
+\min\{1,u(n,d,q)\}\le1\le24=24F(n,d,q).
+\]
+At \(q=0\), the envelope is \(+\infty\) and the scale is \(1\), so
+\[
+\min\{1,u(n,d,0)\}=1\le24F(n,d,0).
+\]
+Consequently, throughout the admissible range,
+\[
+R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(T^\star_{n,d,q};\theta,q)
+\le24F(n,d,q).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontierEstimator_risk_upper
+
+\item \textit{Lower risk bound.}
+The definition gives \(F(n,d,q)\le1\). First suppose that
+\(d^2/n\ge1/16\). The canonical product design satisfies
+\cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence}, so
+\cref{obj:lem:supplied-block-record-lower} supplies
+\[
+\begin{aligned}
+R_{n,d}(q)
+&\ge\frac{1}{160000\pi^2}
+       \min\left\{1,\frac{(d+1)^2}{n}\right\}\\
+&\ge\frac{1}{2560000\pi^2}
+\ge\frac{F(n,d,q)}{2560000\pi^2}.
+\end{aligned}
+\]
+Here the second inequality follows from
+\[
+\frac{(d+1)^2}{n}\ge\frac{d^2}{n}\ge\frac1{16}.
+\]
+
+Now suppose that \(d^2/n<1/16\). Since \(d\ge1\),
+\[
+4d\le16d^2<n.
+\]
+Define the block count and source count by
+\[
+B=\left\lfloor\frac{n}{2d}\right\rfloor,
+\qquad
+m=Bd.
+\]
+The floor inequalities give
+\[
+2m\le n<2m+2d.
+\]
+Together with \(4d<n\), these imply
+\[
+B\ge1,
+\qquad
+\frac n4\le m\le\frac n2,
+\qquad
+2Bd\le n.
+\]
+Use the fixed source and recipient construction of \cref{obj:synth_4}.
+
+Define the testing scale, numerical constant, and chosen amplitude by
+\[
+s=
+\begin{cases}
+\min\{1,d/\sqrt{mp}\},&p>0,\\
+1,&p=0,
+\end{cases}
+\qquad
+\kappa=\frac1{100\pi},
+\qquad
+h=\kappa s.
+\]
+Since \(m,d>0\), the definition gives \(0<s\le1\). Moreover,
+\[
+0<h\le\kappa<\frac14,
+\]
+where the last inequality follows from \(\pi>3\).
+
+We next compare the risk and testing scales:
+\[
+F(n,d,q)\le s^2.
+\]
+For \(q>0\), we have \(p>0\) and
+\[
+\left(\frac d{\sqrt{mp}}\right)^2=\frac{d^2}{mp},
+\qquad
+\frac{d^2}{np}\le\frac{d^2}{mp}.
+\]
+If \(d/\sqrt{mp}\le1\), then
+\[
+F(n,d,q)\le\frac{d^2}{np}\le\frac{d^2}{mp}=s^2.
+\]
+If \(d/\sqrt{mp}>1\), then \(s^2=1\ge F(n,d,q)\).
+For \(q=0\), \(p=0\) and \(F(n,d,0)=s^2=1\).
+Thus the comparison covers the entire retention range.
+
+Take the opposite-sign priors of \cref{obj:def:block-prior} at amplitude \(h\).
+By \cref{obj:lem:block-law}, they are supported almost surely in
+\(\mathcal M_{n,d}\), with constant targets \(\pm\Delta\), where
+\[
+\Delta=\frac{mh}{n}>0.
+\]
+The record maps are jointly measurable: the partition and binary coordinates
+are finite, and the outcomes depend affinely on the real baseline coordinates.
+The block and amplitude conditions established above allow
+\cref{obj:thm:block-testing-scale} to give
+\[
+\operatorname{TV}(P_{+1,h},P_{-1,h})\le\frac12.
+\]
+Applying \cref{obj:lem:full-record-two-prior-risk} therefore yields
+\[
+R_{n,d}(q)
+\ge\frac{\Delta^2}{2}
+       \bigl(1-\operatorname{TV}(P_{+1,h},P_{-1,h})\bigr)
+\ge\frac{\Delta^2}{4}.
+\]
+Finally, \(m/n\ge1/4\) implies
+\[
+\frac{\kappa s}{4}
+\le\frac{m\kappa s}{n}
+=\Delta.
+\]
+Hence
+\[
+\begin{aligned}
+\frac{F(n,d,q)}{2560000\pi^2}
+&\le\frac{s^2}{2560000\pi^2}
+\le\frac{s^2}{640000\pi^2}\\
+&=\frac14\left(\frac{\kappa s}{4}\right)^2
+\le\frac{\Delta^2}{4}
+\le R_{n,d}(q).
+\end{aligned}
+\]
+This proves the lower bound in both degree regimes, including \(q=0\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_minimax_lower
+
+\item \textit{Necessity of the sequence conditions.}
+Fix admissible sequences \(d_n,q_n\), and suppose that measurable randomized
+estimators \(T_n\) satisfy
+\[
+\rho_{\mathrm{risk},n}
+:=
+\sup_{\theta\in\mathcal M_{n,d_n}}
+\mathcal L(T_n;\theta,q_n)
+\longrightarrow0,
+\qquad n\ge4.
+\]
+The preceding lower bound and the definition of minimax risk give
+\[
+0\le
+\frac{F(n,d_n,q_n)}{2560000\pi^2}
+\le R_{n,d_n}(q_n)
+\le\rho_{\mathrm{risk},n}.
+\]
+Squeezing to zero and multiplying by the positive constant
+\(2560000\pi^2\), we obtain
+\[
+F(n,d_n,q_n)\longrightarrow0.
+\]
+
+To extract the sequence conditions, we establish the endpoint and
+positive-retention comparisons used here. Directly from
+\cref{obj:def:frontier-scale}, since \(d\ge1\),
+\[
+F(n,d,0)=1,
+\qquad
+F(n,d,1)=\min\left\{1,\frac{d^2}{n}\right\}.
+\]
+For \(0<q\le1\), the established bounds on \(p\) give
+\[
+\frac{d^2}{n}\le\frac{d^2}{np},
+\qquad
+\frac{d}{nq}\le\frac{d^2}{np}.
+\]
+The lower probability estimate also gives, by splitting at \(dq=1\),
+\[
+\alpha_{\mathrm{ret}}\frac{d^2}{np}
+\le
+\begin{cases}
+\dfrac{d}{nq},&dq\le1,\\[4pt]
+\dfrac{d^2}{n},&dq>1.
+\end{cases}
+\]
+Consequently,
+\[
+\frac{d^2}{n}+\frac{d}{nq}\le2\frac{d^2}{np},
+\qquad
+\alpha_{\mathrm{ret}}\frac{d^2}{np}
+\le\frac{d^2}{n}+\frac{d}{nq}.
+\]
+
+For the lower truncated comparison, if \(d^2/(np)\ge1\), then
+\[
+\frac12\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}
+\le1=F(n,d,q).
+\]
+If \(d^2/(np)<1\), then
+\[
+\frac12\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}
+\le\frac12\left(\frac{d^2}{n}+\frac{d}{nq}\right)
+\le\frac{d^2}{np}
+=F(n,d,q).
+\]
+For the upper comparison, \(0<\alpha_{\mathrm{ret}}<1\) gives both
+\[
+\alpha_{\mathrm{ret}}F(n,d,q)\le1,
+\qquad
+\alpha_{\mathrm{ret}}F(n,d,q)
+\le\alpha_{\mathrm{ret}}\frac{d^2}{np}
+\le\frac{d^2}{n}+\frac{d}{nq}.
+\]
+Combining these inequalities proves
+\[
+\frac12\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}
+\le F(n,d,q)
+\le
+\alpha_{\mathrm{ret}}^{-1}
+\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_elbow
+
+Since \(F(n,d_n,q_n)\to0\), eventually
+\[
+F(n,d_n,q_n)<\frac12.
+\]
+The zero-retention identity then forces \(q_n>0\) eventually. On that tail,
+the lower comparison implies
+\[
+\frac{d_n^2}{n}+\frac{d_n}{nq_n}<1:
+\]
+otherwise its truncated value would be \(1\), forcing
+\(F(n,d_n,q_n)\ge1/2\). Removing the truncation now yields
+\[
+0\le\frac{d_n^2}{n}
+\le\frac{d_n^2}{n}+\frac{d_n}{nq_n}
+\le2F(n,d_n,q_n),
+\]
+and
+\[
+0\le\frac{d_n}{nq_n}
+\le\frac{d_n^2}{n}+\frac{d_n}{nq_n}
+\le2F(n,d_n,q_n).
+\]
+Both real ratios therefore tend to zero.
+
+Define the extended audit ratio for every \(n\ge4\) by
+\[
+\rho_{\mathrm{audit},n}
+=
+\begin{cases}
++\infty,&q_n=0,\\[2pt]
+\dfrac{d_n}{nq_n},&q_n>0.
+\end{cases}
+\]
+It agrees eventually with the second real ratio, so
+\[
+\frac{d_n^2}{n}\longrightarrow0,
+\qquad
+\rho_{\mathrm{audit},n}\longrightarrow0.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontierScale_tendsto_iff
+
+\item \textit{Sufficiency of the sequence conditions.}
+Conversely, suppose
+\[
+\frac{d_n^2}{n}\longrightarrow0,
+\qquad
+\rho_{\mathrm{audit},n}\longrightarrow0.
+\]
+Convergence of the extended ratio gives
+\(\rho_{\mathrm{audit},n}<1\) eventually. Thus \(q_n>0\) eventually,
+and on that tail its finite real value satisfies
+\[
+\frac{d_n}{nq_n}\longrightarrow0.
+\]
+It follows that
+\[
+\frac{d_n^2}{n}+\frac{d_n}{nq_n}\longrightarrow0.
+\]
+The upper scale comparison proved above gives, eventually,
+\[
+0\le F(n,d_n,q_n)
+\le\alpha_{\mathrm{ret}}^{-1}
+\left(\frac{d_n^2}{n}+\frac{d_n}{nq_n}\right),
+\]
+and hence \(F(n,d_n,q_n)\to0\).
+
+Choose the measurable rule sequence
+\[
+T_n(O,\xi)=T^\star_{n,d_n,q_n}(O),
+\qquad n\ge4.
+\]
+The upper risk bound then supplies
+\[
+0\le
+\sup_{\theta\in\mathcal M_{n,d_n}}
+\mathcal L(T_n;\theta,q_n)
+\le24F(n,d_n,q_n)
+\longrightarrow0.
+\]
+Together with necessity, this proves the asserted equivalence.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.precision_frontier_explicit
+
+\item \textit{Universal constants and endpoint scales.}
+Set
+\[
+c=\frac1{2560000\pi^2},
+\qquad
+C_0=24,
+\qquad
+c_1=\frac12,
+\qquad
+C_1=(1-e^{-1})^{-1}.
+\]
+These constants are positive because \(\pi>0\) and \(e^{-1}<1\).
+The upper and lower risk bounds establish the risk chain with \(c,C_0\);
+the sequence argument establishes consistency in both directions.
+The endpoint identities and positive-retention comparison established above
+give the remaining assertions with \(c_1,C_1\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.observed_record_precision_frontier
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:lem:published-model}]
+\begin{enumerate}
+\item For a directed graph \(G'\) on \(V\), write
+\[
+\mathcal N^{\mathrm{in}}_i(G')
+:=\{j\in V:(j,i)\in G'\},
+\qquad
+\mathcal N^{\mathrm{out}}_j(G')
+:=\{i\in V:(j,i)\in G'\}.
+\]
+For a published schedule \(\vartheta=(G^\vartheta,c^\vartheta)\) and a binary assignment \(z\in\{0,1\}^V\), its polynomial outcome is
+\[
+Y_i^{\mathrm{pub}}(\vartheta,z)
+:=
+\sum_{J\subseteq\mathcal N^{\mathrm{in}}_i(G^\vartheta)}
+c^\vartheta_{i,J}\prod_{j\in J}z_j.
+\]
+The published conventions of
+\citep[Sections 3.1--3.2, Assumptions 1--2, equations (3.2)--(3.3)]{CortezRodriguezEichhornYu2023SNIPE}
+give, for an interaction-order-one schedule,
+\[
+Y_i^{\mathrm{pub}}(\vartheta,z)
+=
+c^\vartheta_{i,\varnothing}
++\sum_{j\in\mathcal N^{\mathrm{in}}_i(G^\vartheta)}
+c^\vartheta_{i,\{j\}}z_j,
+\qquad
+Y_{\max}(\vartheta)
+=
+\max_{i\in V}
+\left(
+|c^\vartheta_{i,\varnothing}|
++\sum_{j\in\mathcal N^{\mathrm{in}}_i(G^\vartheta)}
+|c^\vartheta_{i,\{j\}}|
+\right).
+\]
+These conventions permit a zero singleton coefficient on a graph arrow.
+
+Let \(\theta^+\) denote the augmentation of an additive schedule \(\theta=(G,a,t,b)\):
+\[
+\theta^+:=(\widetilde G,c^{\mathrm{pub}}),
+\qquad
+\widetilde G:=G\cup\{(i,i):i\in V\}.
+\]
+Its singleton coefficients satisfy
+\[
+c^{\mathrm{pub}}_{i,\{j\}}
+=
+\begin{cases}
+t_i,&j=i,\\
+b_{ij},&j\ne i\text{ and }(j,i)\in G,\\
+0,&j\ne i\text{ and }(j,i)\notin G.
+\end{cases}
+\]
+The empty-set coefficient is \(a_i\). If
+\(J\not\subseteq\mathcal N^{\mathrm{in}}_i(\widetilde G)\), then \(J\ne\varnothing\).
+When \(J=\{j\}\), membership outside this neighborhood forces both
+\(j\ne i\) and \((j,i)\notin G\), so its coefficient is zero.
+When \(J\) is not a singleton, all singleton contributions in the coefficient construction vanish. Likewise, \(|J|>1\) forces \(J\) to be neither empty nor a singleton. Thus
+\[
+c^{\mathrm{pub}}_{i,J}=0
+\quad\text{if}\quad
+J\not\subseteq\mathcal N^{\mathrm{in}}_i(\widetilde G)
+\ \text{or}\ |J|>1.
+\]
+This proves the interaction-order-one restriction.
+
+Since \(G\) is off-diagonal,
+\[
+\mathcal N^{\mathrm{in}}_i(\widetilde G)
+=\{i\}\,\dot\cup\,\mathcal N^{\mathrm{in}}_i(G),
+\qquad
+\mathcal N^{\mathrm{out}}_j(\widetilde G)
+=\{j\}\,\dot\cup\,\mathcal N^{\mathrm{out}}_j(G).
+\]
+Splitting the coefficient sum at the own coordinate therefore gives
+\[
+|c^{\mathrm{pub}}_{i,\varnothing}|
++\sum_{j\in\mathcal N^{\mathrm{in}}_i(\widetilde G)}
+|c^{\mathrm{pub}}_{i,\{j\}}|
+=
+|a_i|+|t_i|
++\sum_{j\in\mathcal N^{\mathrm{in}}_i(G)}|b_{ij}|.
+\]
+For \(\theta\in\mathcal M_{n,d}\), the coefficient-mass requirement in
+\cref{obj:def:model} bounds each right-hand side by one. Taking the maximum proves
+\[
+Y_{\max}(\theta^+)\le1.
+\]
+The same disjoint neighborhood decompositions and the two degree bounds in
+\cref{obj:def:model} give
+\[
+|\mathcal N^{\mathrm{in}}_i(\widetilde G)|
+=1+|\mathcal N^{\mathrm{in}}_i(G)|\le d+1,
+\qquad
+|\mathcal N^{\mathrm{out}}_j(\widetilde G)|
+=1+|\mathcal N^{\mathrm{out}}_j(G)|\le d+1.
+\]
+Every diagonal arrow belongs to \(\widetilde G\) by construction. These identities also cover \(d=0\), with empty off-diagonal neighborhoods and zero neighborhood sums.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.augment_publishedClass
+
+\item Conversely, let \(\vartheta=(G^\vartheta,c^\vartheta)\) satisfy the stated published restrictions and contain every diagonal arrow. Define its stripped schedule by
+\[
+\vartheta^-:=(G^-,a^-,t^-,b^-),
+\qquad
+G^-:=\{(j,i)\in G^\vartheta:j\ne i\},
+\]
+\[
+a_i^-:=c^\vartheta_{i,\varnothing},
+\qquad
+t_i^-:=c^\vartheta_{i,\{i\}},
+\qquad
+b_{ij}^-:=c^\vartheta_{i,\{j\}}
+\quad(i,j\in V).
+\]
+The graph \(G^-\) is off-diagonal. A source in a published in-neighborhood is either the recipient itself or a distinct source retained in \(G^-\). The analogous partition holds for recipients in an out-neighborhood. Consequently,
+\[
+\mathcal N^{\mathrm{in}}_i(G^\vartheta)
+=\{i\}\,\dot\cup\,\mathcal N^{\mathrm{in}}_i(G^-),
+\qquad
+\mathcal N^{\mathrm{out}}_j(G^\vartheta)
+=\{j\}\,\dot\cup\,\mathcal N^{\mathrm{out}}_j(G^-).
+\]
+Hence
+\[
+1+|\mathcal N^{\mathrm{in}}_i(G^-)|\le d+1,
+\qquad
+1+|\mathcal N^{\mathrm{out}}_j(G^-)|\le d+1.
+\]
+Cancelling one gives both degree bounds by \(d\). The published envelope bounds each recipient's coefficient mass, and splitting off the diagonal term yields
+\[
+\begin{aligned}
+|a_i^-|+|t_i^-|
++\sum_{j\in\mathcal N^{\mathrm{in}}_i(G^-)}|b_{ij}^-|
+&=
+|c^\vartheta_{i,\varnothing}|
++\sum_{j\in\mathcal N^{\mathrm{in}}_i(G^\vartheta)}
+|c^\vartheta_{i,\{j\}}|\\
+&\le Y_{\max}(\vartheta)\le1.
+\end{aligned}
+\]
+These are precisely the membership requirements in \cref{obj:def:model}, so
+\[
+\vartheta^-\in\mathcal M_{n,d}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.strip_scheduleClass
+
+\item Re-augmenting \(\vartheta^-\) recovers the published graph:
+\[
+G^-\cup\{(i,i):i\in V\}=G^\vartheta.
+\]
+Indeed, for \(j=i\), both graphs contain the arrow by the diagonal hypothesis; for \(j\ne i\), both contain it exactly when \((j,i)\in G^\vartheta\).
+
+Write \(c^{(\vartheta^-)^+}\) for the coefficients of the re-augmented schedule. For every recipient \(i\) and every
+\(J\subseteq\mathcal N^{\mathrm{in}}_i(G^\vartheta)\), we claim
+\[
+c^{(\vartheta^-)^+}_{i,J}=c^\vartheta_{i,J}.
+\]
+If \(J=\varnothing\), both coefficients equal \(a_i^-\).
+If \(|J|>1\), both vanish by their order-one restrictions.
+In the remaining case, \(J\ne\varnothing\) and \(|J|\le1\), so \(J=\{j\}\) for some \(j\). If \(j=i\), the re-augmented coefficient is
+\(t_i^-=c^\vartheta_{i,\{i\}}\). If \(j\ne i\), the neighborhood condition gives
+\((j,i)\in G^\vartheta\), hence \((j,i)\in G^-\), and the re-augmented coefficient is
+\(b_{ij}^-=c^\vartheta_{i,\{j\}}\).
+This proves recovery of every coefficient on a subset of the recipient's in-neighborhood.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.augment_strip_equivalent
+
+\item For any additive schedule, stripping its augmentation recovers its graph because
+\[
+(j,i)\in G\cup\{(k,k):k\in V\},\quad j\ne i
+\quad\Longleftrightarrow\quad
+(j,i)\in G,
+\]
+using the off-diagonal property of \(G\). The empty and own-singleton coefficient identities, followed by the off-diagonal singleton identity on graph arrows, give
+\[
+a^{(\theta^+)^-}=a,\qquad
+t^{(\theta^+)^-}=t,\qquad
+b^{(\theta^+)^-}_{ij}=b_{ij}
+\quad\text{for every }(j,i)\in G.
+\]
+Together with graph recovery, these are the asserted additive-schedule correspondence.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.strip_augment_equivalent
+
+\item For any additive schedule, the order-one outcome formula and the disjoint augmented in-neighborhood give, for every \(i\in V\) and \(z\in\{0,1\}^V\),
+\[
+\begin{aligned}
+Y_i^{\mathrm{pub}}(\theta^+,z)
+&=
+c^{\mathrm{pub}}_{i,\varnothing}
++\sum_{j\in\mathcal N^{\mathrm{in}}_i(\widetilde G)}
+c^{\mathrm{pub}}_{i,\{j\}}z_j\\
+&=
+a_i+t_i z_i
++\sum_{j\in\mathcal N^{\mathrm{in}}_i(G)}b_{ij}z_j\\
+&=Y_i(z).
+\end{aligned}
+\]
+The second equality separates the own coordinate; every remaining source is distinct from \(i\) and lies on an arrow of \(G\), so its singleton coefficient is \(b_{ij}\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.pubOutcome_augment
+
+\item Define the published population contrast by
+\[
+\tau^{\mathrm{pub}}(\vartheta)
+:=
+\frac1n\sum_{i\in V}
+\left(
+Y_i^{\mathrm{pub}}(\vartheta,\mathbf1)
+-Y_i^{\mathrm{pub}}(\vartheta,\mathbf0)
+\right),
+\qquad
+\mathbf1_j:=1,\quad \mathbf0_j:=0
+\quad(j\in V).
+\]
+Applying the outcome identity at these two assignments gives
+\[
+\tau^{\mathrm{pub}}(\theta^+)
+=
+\frac1n\sum_{i\in V}\bigl(Y_i(\mathbf1)-Y_i(\mathbf0)\bigr)
+=\tau(\theta).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.pubTte_augment
+
+\item Let
+\[
+\operatorname{diag}(V):=\{(i,i):i\in V\},
+\qquad
+W_{ij}:=W(j,i)\quad(j\ne i),
+\]
+where \(W_{ij}\) is the audit mark for the arrow from \(j\) to \(i\).
+For each assignment and audit realization, the retained graph and complete record are
+\[
+H:=\{(j,i)\in G:W_{ij}=1\},
+\qquad
+O:=\bigl(H,Z,(Y_i(Z))_{i\in V}\bigr).
+\]
+Define the record transformation
+\[
+\mathcal A(O)
+:=
+\bigl(H\cup\operatorname{diag}(V),Z,(Y_i(Z))_{i\in V}\bigr).
+\]
+On every off-diagonal pair,
+\[
+\mathbf1\{(j,i)\in\widetilde G\}\,W_{ij}
+=
+\mathbf1\{(j,i)\in G\}\,W_{ij}.
+\]
+Thus the retained off-diagonal graphs agree. The assignment coordinate agrees identically, and the outcome coordinates agree by the outcome identity already proved. Therefore, writing \(\widetilde O_{\theta^+}\) for the published record,
+\[
+\widetilde O_{\theta^+}=\mathcal A(O).
+\]
+On the space of records whose graph contains every diagonal arrow, the inverse transformation is
+\[
+\mathcal A^{-1}
+\bigl(\widetilde H,Z,(Y_i(Z))_{i\in V}\bigr)
+=
+\bigl(\widetilde H\setminus\operatorname{diag}(V),
+Z,(Y_i(Z))_{i\in V}\bigr).
+\]
+Adding and removing these known coordinates are measurable operations and are inverse to one another.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.pubRecordOf_augment
+
+\item Fix the common assignment-and-audit law satisfying
+\cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence},
+and let \(\mathfrak C\) be a published schedule class such that
+\[
+\theta\in\mathcal M_{n,d}\quad\Longrightarrow\quad
+\theta^+\in\mathfrak C.
+\]
+For any published schedule \(\vartheta\), its record under this channel is
+\[
+\widetilde O_\vartheta
+:=
+\left(
+\{(j,i)\in G^\vartheta:j\ne i,\ W_{ij}=1\}
+\cup\operatorname{diag}(V),
+\ Z,\
+(Y_i^{\mathrm{pub}}(\vartheta,Z))_{i\in V}
+\right).
+\]
+As in \cref{obj:def:risk}, use an independent randomization seed with
+\[
+\xi\sim\operatorname{Unif}[0,1],
+\qquad
+\xi\mathbin{\perp\!\!\!\perp}(Z,W).
+\]
+For a measurable published estimator \(T^{\mathrm{pub}}\), define its squared risk and the corresponding additive-record estimator by
+\[
+\mathcal L^{\mathrm{pub}}(T^{\mathrm{pub}};\vartheta,q)
+:=
+\mathbb E\!\left[
+\bigl(T^{\mathrm{pub}}(\widetilde O_\vartheta,\xi)
+-\tau^{\mathrm{pub}}(\vartheta)\bigr)^2
+\right],
+\qquad
+T(O,\xi):=T^{\mathrm{pub}}(\mathcal A(O),\xi).
+\]
+The latter estimator is measurable because \(\mathcal A\) is measurable. For every additive schedule, the record and target identities give the pointwise equality
+\[
+\bigl(T(O,\xi)-\tau(\theta)\bigr)^2
+=
+\bigl(T^{\mathrm{pub}}(\widetilde O_{\theta^+},\xi)
+-\tau^{\mathrm{pub}}(\theta^+)\bigr)^2.
+\]
+Taking expectations under the same assignment, audit, and seed law therefore gives
+\[
+\mathcal L(T;\theta,q)
+=
+\mathcal L^{\mathrm{pub}}(T^{\mathrm{pub}};\theta^+,q).
+\]
+These expectations are understood as nonnegative extended integrals, so the identity also covers infinite risks.
+
+For each \(\theta\in\mathcal M_{n,d}\), class inclusion now yields
+\[
+\mathcal L(T;\theta,q)
+\le
+\sup_{\vartheta\in\mathfrak C}
+\mathcal L^{\mathrm{pub}}(T^{\mathrm{pub}};\vartheta,q).
+\]
+Taking the supremum over \(\theta\), and then using the infimum in
+\cref{obj:def:risk}, gives
+\[
+R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}\mathcal L(T;\theta,q)
+\le
+\sup_{\vartheta\in\mathfrak C}
+\mathcal L^{\mathrm{pub}}(T^{\mathrm{pub}};\vartheta,q).
+\]
+This holds for every measurable published estimator. Taking their infimum proves
+\[
+R_{n,d}(q)
+\le
+\inf_{T^{\mathrm{pub}}}
+\sup_{\vartheta\in\mathfrak C}
+\mathcal L^{\mathrm{pub}}(T^{\mathrm{pub}};\vartheta,q),
+\]
+which is the claimed minimax risk transfer under the common observation channel.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.minimaxRisk_le_pubMinimaxRisk
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:supported-boundaries}]
+\begin{enumerate}
+\item Choose the universal constants
+\[
+c:=\frac{1}{2560000\pi^2},
+\qquad
+C_0:=21.
+\]
+Both are positive. Fix admissible \(n,d,q\) and a joint assignment--audit law satisfying the stated assumptions. Independence and the prescribed marginals give
+\[
+\operatorname{Law}(Z,W)
+=
+\left(\bigotimes_{j\in V}\operatorname{Bernoulli}(1/2)\right)
+\otimes
+\left(\bigotimes_{(j,i)\in V^2:j\ne i}
+\operatorname{Bernoulli}(q)\right).
+\]
+Thus the experiment has the independent assignment--audit product design. % lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.design_eq_thinnedDesign
+Applying \cref{obj:thm:observable-upper}, with the envelope defined in \cref{obj:def:upper-envelope}, yields
+\[
+R_{n,d}(q)\le \min\{1,u(n,d,q)\}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.observable_upper
+
+\item By \cref{obj:lem:supplied-block-record-lower},
+\[
+R_{n,d}(q)\ge
+\frac{1}{160000\pi^2}
+\min\left\{1,\frac{(d+1)^2}{n}\right\}.
+\]
+Since
+\[
+0<c=\frac{1}{2560000\pi^2}
+\le \frac{1}{160000\pi^2},
+\qquad
+\min\left\{1,\frac{(d+1)^2}{n}\right\}\ge0,
+\]
+we obtain
+\[
+R_{n,d}(q)\ge
+c\min\left\{1,\frac{(d+1)^2}{n}\right\}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.supported_boundaries
+
+\item We next establish the degree-one frontier bound
+\[
+R_{n,1}(q)\ge cF(n,1,q),
+\]
+where the risk scale of \cref{obj:def:frontier-scale} specializes to
+\[
+F(n,1,q)=
+\begin{cases}
+\min\{1,1/(nq)\},&q>0,\\
+1,&q=0.
+\end{cases}
+\qquad
+0<F(n,1,q)\le1.
+\]
+The auxiliary degree \(1\) is admissible because \(n\ge4\).
+
+First suppose \(1/n\ge1/16\). Then
+\[
+\frac4n\ge\frac1{16},
+\qquad
+\min\left\{1,\frac4n\right\}\ge\frac1{16}.
+\]
+Using \cref{obj:lem:supplied-block-record-lower} at degree one and
+\(2560000=16\cdot160000\), we conclude
+\[
+cF(n,1,q)
+\le c
+\le
+\frac{1}{160000\pi^2}\min\left\{1,\frac4n\right\}
+\le R_{n,1}(q).
+\]
+
+Now suppose \(1/n<1/16\). Then \(n>16\), and in particular \(4<n\). Define the integer block count and source count by
+\[
+B:=\left\lfloor\frac n2\right\rfloor,
+\qquad
+m:=B.
+\]
+The division remainder satisfies
+\[
+0\le n-2B<2,
+\qquad
+2m\le n<2m+2.
+\]
+Consequently \(B\ge1\), and, since \(2<n/2\),
+\[
+n<2m+2<2m+\frac n2
+\quad\Longrightarrow\quad
+\frac n4\le m.
+\]
+Thus
+\[
+B\ge1,\qquad 2m\le n,\qquad \frac n4\le m\le n.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_block_rounding
+
+Define the degree-one testing scale and testing constant by
+\[
+s:=s(B,1,q)=
+\begin{cases}
+\min\{1,1/\sqrt{mq}\},&q>0,\\
+1,&q=0,
+\end{cases}
+\qquad
+\kappa:=\frac1{100\pi}.
+\]
+These are the quantities in \cref{obj:thm:block-testing-scale}, since the association-revelation probability at degree one is
+\[
+p:=1-(1-q)^1=q.
+\]
+For \(q>0\), both entries in the minimum defining \(s\) are positive; for \(q=0\), \(s=1\). Hence
+\[
+0<s\le1,\qquad \kappa>0.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testingScale_pos_le_one
+
+We claim that
+\[
+F(n,1,q)\le s^2.
+\]
+For \(q>0\), the positive denominators and \(m\le n\) imply
+\[
+\left(\frac1{\sqrt{mq}}\right)^2=\frac1{mq},
+\qquad
+\frac1{nq}\le\frac1{mq}.
+\]
+If \(1/\sqrt{mq}\le1\), then
+\[
+F(n,1,q)\le\frac1{nq}
+\le\frac1{mq}=s^2.
+\]
+If \(1/\sqrt{mq}>1\), then
+\[
+F(n,1,q)\le1=s^2.
+\]
+At \(q=0\), the definitions give
+\[
+F(n,1,0)=1=s^2.
+\]
+This proves the claim over the entire retention range.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontierScale_le_testingScale_sq
+
+Set the testing amplitude and target magnitude to
+\[
+h:=\kappa s,
+\qquad
+\Delta:=\frac{mh}{n}.
+\]
+Since \(\pi>3\),
+\[
+0<h\le\kappa=\frac1{100\pi}<\frac14,
+\qquad
+\Delta>0.
+\]
+Take the opposite-sign block priors of \cref{obj:def:block-prior} with \(B\) blocks, degree one, and amplitude \(h\). The conditions \(B\ge1\), \(2B\le n\), and \(0<h\le1/4\) allow us to apply \cref{obj:lem:block-law}. It gives, under the respective priors,
+\[
+\theta\in\mathcal M_{n,1},
+\qquad
+\tau(\theta)=\Delta
+\quad\text{and}\quad
+\tau(\theta)=-\Delta
+\quad\text{almost surely}.
+\]
+The block record maps are jointly measurable: their graph and assignment coordinates are finite, and their outcome coordinates are affine functions of the baselines for each fixed partition and assignment. Since \(h=\kappa s\), \cref{obj:thm:block-testing-scale} gives
+\[
+\operatorname{TV}(P_{+1,h},P_{-1,h})\le\frac12.
+\]
+Therefore \cref{obj:lem:full-record-two-prior-risk} yields
+\[
+R_{n,1}(q)
+\ge
+\frac{\Delta^2}{2}
+\left(1-\operatorname{TV}(P_{+1,h},P_{-1,h})\right)
+\ge
+\frac{\Delta^2}{4}
+=
+\frac14\left(\frac{m\kappa s}{n}\right)^2.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.block_testing_minimax_lower
+
+Finally, the rounding bound gives
+\[
+\frac mn\ge\frac14,
+\qquad
+\frac{\kappa s}{4}
+\le\frac{m\kappa s}{n}.
+\]
+Both sides of the latter inequality are positive, so
+\[
+\left(\frac{\kappa s}{4}\right)^2
+\le
+\left(\frac{m\kappa s}{n}\right)^2,
+\qquad
+\frac14\left(\frac{\kappa s}{4}\right)^2
+=
+\frac{s^2}{640000\pi^2}.
+\]
+Combining these estimates with \(F(n,1,q)\le s^2\) gives
+\[
+\begin{aligned}
+cF(n,1,q)
+&\le \frac{s^2}{2560000\pi^2}\\
+&\le \frac{s^2}{640000\pi^2}\\
+&=\frac14\left(\frac{\kappa s}{4}\right)^2\\
+&\le\frac14\left(\frac{m\kappa s}{n}\right)^2\\
+&\le R_{n,1}(q).
+\end{aligned}
+\]
+Together with the first case, this proves the degree-one frontier bound.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_minimax_lower
+
+\item The model class of \cref{obj:def:model} is increasing in its degree bound:
+\[
+\mathcal M_{n,1}\subseteq\mathcal M_{n,d}
+\qquad(d\ge1).
+\]
+Indeed, the coefficient-mass condition is the same, and each degree bound at most one is also at most \(d\). For every measurable randomized estimator \(T\),
+\[
+\sup_{\theta\in\mathcal M_{n,1}}\mathcal L(T;\theta,q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}\mathcal L(T;\theta,q).
+\]
+Taking infima over the common estimator class gives
+\[
+R_{n,1}(q)\le R_{n,d}(q).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.minimaxRisk_mono_degree
+
+We also have
+\[
+\frac1{1+nq}\le F(n,1,q).
+\]
+For \(q>0\), \(nq>0\), and
+\[
+\frac1{1+nq}\le1,
+\qquad
+\frac1{1+nq}\le\frac1{nq}.
+\]
+These two inequalities imply the claim by the degree-one formula for \(F\). At \(q=0\), both sides equal one. Multiplication by \(c>0\), followed by the bounds just proved, therefore gives
+\[
+\frac{c}{1+nq}
+\le cF(n,1,q)
+\le R_{n,1}(q)
+\le R_{n,d}(q).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.degree_one_frontier_reciprocal
+
+\item Combining the two lower bounds and using \(c>0\), we obtain
+\[
+\begin{aligned}
+R_{n,d}(q)
+&\ge
+\max\left\{
+c\min\left\{1,\frac{(d+1)^2}{n}\right\},
+\frac{c}{1+nq}
+\right\}\\
+&=
+c\max\left\{
+\min\left\{1,\frac{(d+1)^2}{n}\right\},
+\frac1{1+nq}
+\right\}.
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.supported_boundaries
+
+\item At \(q=0\), the retention lower bound and the upper bound from \cref{obj:thm:observable-upper} give
+\[
+c\le R_{n,d}(0)\le1.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.supported_boundaries
+
+\item At \(q=1\), the audit contribution in \cref{obj:def:upper-envelope} vanishes:
+\[
+u(n,d,1)=\frac{5(d+1)^2}{n}.
+\]
+Thus
+\[
+R_{n,d}(1)\le
+\min\left\{1,\frac{5(d+1)^2}{n}\right\}.
+\]
+If \((d+1)^2/n\le1\), then
+\[
+\min\left\{1,\frac{5(d+1)^2}{n}\right\}
+\le\frac{5(d+1)^2}{n}
+\le
+21\min\left\{1,\frac{(d+1)^2}{n}\right\}.
+\]
+If \((d+1)^2/n>1\), then
+\[
+\min\left\{1,\frac{5(d+1)^2}{n}\right\}
+\le1\le21
+=
+21\min\left\{1,\frac{(d+1)^2}{n}\right\}.
+\]
+Together with the degree lower bound, these estimates prove
+\[
+c\min\left\{1,\frac{(d+1)^2}{n}\right\}
+\le R_{n,d}(1)
+\le
+C_0\min\left\{1,\frac{(d+1)^2}{n}\right\}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.supported_boundaries
+
+\item It remains to bound the degree-one upper envelope. Suppose first that \(q>0\). Since \(q\le1\),
+\[
+u(n,1,q)
+=
+\frac{20}{n}+\frac{4(1-q)}{nq}
+=
+\frac{4+16q}{nq}
+\le\frac{20}{nq}.
+\]
+Consequently,
+\[
+\min\{1,u(n,1,q)\}
+\le
+\min\left\{1,\frac{20}{nq}\right\}.
+\]
+If \(nq\le20\), then
+\[
+\min\left\{1,\frac{20}{nq}\right\}
+\le1\le\frac{21}{1+nq}.
+\]
+If \(nq>20\), then the positive denominators and
+\[
+20(1+nq)\le21nq
+\]
+give
+\[
+\min\left\{1,\frac{20}{nq}\right\}
+\le\frac{20}{nq}
+\le\frac{21}{1+nq}.
+\]
+At \(q=0\), the envelope is \(+\infty\), so
+\[
+\min\{1,u(n,1,0)\}=1\le21=\frac{21}{1+nq}.
+\]
+Hence, throughout \(q\in[0,1]\),
+\[
+\min\{1,u(n,1,q)\}\le\frac{21}{1+nq}.
+\]
+Applying the upper bound from \cref{obj:thm:observable-upper} and the retention lower bound already obtained proves
+\[
+\frac{c}{1+nq}
+\le R_{n,1}(q)
+\le\frac{C_0}{1+nq}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.degree_one_envelope_upper
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:block-testing-scale}]
+Write
+\[
+m:=Bd,\qquad s:=s(B,d,q),\qquad
+\kappa:=\frac1{100\pi},\qquad
+\mathcal D(h):=\operatorname{TV}(P_{+1,h},P_{-1,h}).
+\]
+The design assumptions identify the joint assignment--audit law with the product of its specified marginals.
+
+\begin{enumerate}
+\item \textit{The small-amplitude domain.}
+Since \(m,d>0\), the definition of the scale gives
+\[
+0<s\le1.
+\]
+Indeed, when \(p>0\), both entries in its defining minimum are positive; when \(p=0\), \(s=1\). Also, \(\pi>3\) gives
+\[
+0<\kappa<\frac14.
+\]
+Consequently, every amplitude satisfying \(0\le h\le\kappa s\) satisfies
+\[
+0\le h\le\kappa\le\frac14.
+\]
+Fix such an amplitude while proving the small-amplitude bound.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_small_amplitude_mem
+
+\item \textit{High retention.}
+First suppose \(p\ge1/2\). We obtain a comparison bound by conditioning on the source partition \(S\) from \cref{obj:def:block-prior}. For each source \(j\) and block \(\ell\), define
+\[
+X_j:=2Z_j-1\in\{-1,1\},
+\qquad
+X_{\ell,\mathrm{sum}}:=\sum_{j\in S_\ell}X_j,
+\qquad
+\mathcal J:=\bigcup_{\ell=1}^{B}S_\ell,
+\quad |\mathcal J|=m.
+\]
+Here \(\mathcal J\) is the fixed set of labeled sources. Under prior sign \(\sigma\in\{-1,1\}\), the distinct response of block \(\ell\) is
+\[
+y_\ell=U_\ell+\frac{\sigma h}{2d}X_{\ell,\mathrm{sum}}.
+\]
+Thus, conditional on \(S,Z,W\), its response density is
+\[
+\lambda^S_{\sigma,h}(y\mid Z,W)
+:=
+\prod_{\ell=1}^{B}
+f\!\left(y_\ell-\frac{\sigma h}{2d}X_{\ell,\mathrm{sum}}\right),
+\qquad y\in\mathbb R^B.
+\]
+The law of \((Z,W)\) is common to both signs. The product-translation bound in
+\cref{obj:lem:baseline-translation-affinity} gives
+\[
+\int_{\mathbb R^B}
+\left(
+\sqrt{\lambda^S_{+1,h}(y\mid Z,W)}
+-\sqrt{\lambda^S_{-1,h}(y\mid Z,W)}
+\right)^2\,dy
+\le
+\frac{4\pi^2h^2}{d^2}
+\sum_{\ell=1}^{B}X_{\ell,\mathrm{sum}}^2.
+\]
+For every fixed partition, independent centered treatment signs satisfy
+\[
+\mathbb E_Z X_{\ell,\mathrm{sum}}^2
+=
+\sum_{j\in S_\ell}\mathbb E_Z X_j^2
++
+\sum_{\substack{j,j'\in S_\ell\\j\ne j'}}
+\mathbb E_Z[X_jX_{j'}]
+=d.
+\]
+Averaging the preceding translation bound therefore yields
+\[
+\mathbb E_{Z,W}\!
+\int_{\mathbb R^B}
+\left(
+\sqrt{\lambda^S_{+1,h}}
+-\sqrt{\lambda^S_{-1,h}}
+\right)^2\,dy
+\le 4\pi^2h^2\frac Bd.
+\]
+Define the conditional complete-record laws by
+\[
+P^S_{\sigma,h}:=\operatorname{Law}_{\sigma,h}(H,Z,Y(Z)\mid S).
+\]
+The common-marginal Hellinger bound in
+\cref{obj:lem:baseline-translation-affinity}, followed by the record-copying map supplied by
+\cref{obj:lem:block-law}, gives
+\[
+\operatorname{TV}(P^S_{+1,h},P^S_{-1,h})
+\le 2\pi h\sqrt{B/d}.
+\]
+The copying map preserves the retained graph, the complete assignment, and all response coordinates. For any measurable record event, its probability difference under the two mixtures is bounded by the mean of the conditional total variations. Hence
+\[
+\mathcal D(h)
+\le
+\mathbb E_S\operatorname{TV}(P^S_{+1,h},P^S_{-1,h})
+\le 2\pi h\sqrt{B/d}.
+\]
+
+Since \(p>0\), the definition of \(s\) also gives
+\[
+h\sqrt{mp}\le\kappa d,
+\qquad
+h^2mp\le\kappa^2d^2.
+\]
+Using \(p\ge1/2\) and \(m=Bd\), we obtain
+\[
+h^2\frac Bd
+=\frac{h^2m}{d^2}
+\le2\kappa^2.
+\]
+The required constant calibration is
+\[
+\left(2\pi h\sqrt{B/d}\right)^2
+\le8\pi^2\kappa^2
+=\frac8{10000}
+\le\frac14.
+\]
+The quantity being squared is nonnegative, so \(\mathcal D(h)\le1/2\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_small_high_retention
+
+\item \textit{Few sources.}
+Suppose now \(p<1/2\) and \(m<32\). The conditional-partition comparison just derived applies throughout the small-amplitude domain. Since \(d\ge1\) and \(h\le\kappa\),
+\[
+\frac Bd=\frac{m}{d^2}\le32,
+\qquad
+h^2\frac Bd\le32\kappa^2.
+\]
+Therefore
+\[
+\left(2\pi h\sqrt{B/d}\right)^2
+\le128\pi^2\kappa^2
+=\frac{128}{10000}
+\le\frac14,
+\]
+and again \(\mathcal D(h)\le1/2\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_small_few_sources
+
+\item \textit{Remaining capacity at low retention.}
+It remains to consider \(p<1/2\) and \(m\ge32\). For the retained graph \(H\), define
+\[
+\rho_j(H):=\mathbf1\{\exists i:(j,i)\in H\},
+\qquad j\in\mathcal J,
+\]
+and, on the support of its actual marginal, define
+\[
+\begin{aligned}
+r_\ell(H)&:=
+\bigl|\{j\in\mathcal J:\exists i\in C_\ell,\ (j,i)\in H\}\bigr|,\\
+u_\ell(H)&:=d-r_\ell(H),\\
+M(H)&:=\sum_{\ell=1}^{B}u_\ell(H),\\
+M_{\mathrm{unrev}}(H)&:=\sum_{j\in\mathcal J}(1-\rho_j(H)).
+\end{aligned}
+\]
+Every unrevealed source occupies a remaining source slot in its true block. Thus, for almost every retained graph,
+\[
+M_{\mathrm{unrev}}(H)\le M(H).
+\]
+By \cref{obj:lem:block-law}, the variables \(\rho_j\) are independent Bernoulli variables with success probability \(p\). Define the capacity event
+\[
+\mathcal E_{\mathrm{cap}}:=\{H:M(H)\ge m/4\}.
+\]
+Its complement satisfies
+\[
+\Pr(\mathcal E_{\mathrm{cap}}^c)
+\le\Pr(M_{\mathrm{unrev}}<m/4).
+\]
+Independence gives the inverse-third moment identity
+\[
+\mathbb E_H[3^{-M_{\mathrm{unrev}}}]
+=
+\prod_{j\in\mathcal J}\mathbb E_H[3^{-(1-\rho_j)}]
+=
+\left(p+\frac{1-p}{3}\right)^m
+\le\left(\frac23\right)^m.
+\]
+Since \(M_{\mathrm{unrev}}<m/4\) implies
+\(3^{-M_{\mathrm{unrev}}}\ge3^{-m/4}\), Markov's inequality yields
+\[
+\Pr(\mathcal E_{\mathrm{cap}}^c)
+\le
+3^{m/4}\left(\frac23\right)^m.
+\]
+The fourth power of this nonnegative upper bound satisfies
+\[
+\left(3^{m/4}\left(\frac23\right)^m\right)^4
+=
+\left(\frac{16}{27}\right)^m
+\le
+\left(\frac{16}{27}\right)^{32}
+\le
+\left(\frac1{16}\right)^4.
+\]
+The last comparison is equivalent to
+\(16^{36}\le27^{32}\), which follows from \(8^{48}\le9^{48}\). Taking fourth roots proves
+\[
+\Pr(\mathcal E_{\mathrm{cap}}^c)\le\frac1{16}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.hidden_count_good_event_of_retention_half
+
+\item \textit{The good-event chi-squared bound.}
+Use the Walsh coefficients and energies of
+\cref{obj:lem:walsh-channel-energy}. Explicitly, for \(w\in\mathbb R\) and integers \(1\le k\le d\), these are
+\[
+g_d(w):=
+2^{-d}\sum_{\varepsilon\in\{-1,1\}^d}
+f\!\left(w-\frac h{2d}\sum_{j=1}^{d}\varepsilon_j\right),
+\]
+\[
+a_k(w):=
+\begin{cases}
+\displaystyle
+\frac{2^{-d}}{g_d(w)}
+\sum_{\varepsilon\in\{-1,1\}^d}
+f\!\left(w-\frac h{2d}\sum_{j=1}^{d}\varepsilon_j\right)
+\prod_{j=1}^{k}\varepsilon_j,
+&g_d(w)>0,\\
+0,&g_d(w)=0,
+\end{cases}
+\]
+and
+\[
+\gamma_k:=\int_{\mathbb R}a_k(w)^2g_d(w)\,dw,
+\qquad
+\eta:=\sum_{k=1}^{d}\binom dk\gamma_k,
+\qquad
+\eta_1:=\sum_{k=1}^{d}k\binom dk\gamma_k.
+\]
+The cited energy bound asserts
+\[
+0\le\eta\le\eta_1\le\frac{12\pi^2h^2}{d}.
+\]
+In the present amplitude range,
+\[
+h^2mp\le\kappa^2d^2.
+\]
+For \(p=0\), this follows because its left side is zero. For \(p>0\), it follows by squaring
+\(h\sqrt{mp}\le\kappa d\), as above. Consequently,
+\[
+\eta
+\le\eta_1
+\le\frac{12\pi^2\kappa^2}{d}
+\le\frac3{2500},
+\]
+and
+\[
+0\le Bp\eta_1
+\le
+\frac{12\pi^2h^2Bp}{d}
+=
+\frac{12\pi^2h^2mp}{d^2}
+\le\frac3{2500}.
+\]
+
+All conditional quantities in this step and the next are used on the finite support of the retained-graph marginal, where \(\Pr\{H\}>0\). Define the reference law and conditional likelihood ratios by
+\[
+Q_H(dZ,dy):=
+\operatorname{Law}(Z)(dZ)\prod_{\ell=1}^{B}g_d(y_\ell)\,dy,
+\]
+\[
+L_{\sigma,H}(Z,y):=
+\begin{cases}
+\displaystyle
+\frac{\lambda_{\sigma,h}(y\mid H,Z)}
+{\prod_{\ell=1}^{B}g_d(y_\ell)},
+&\prod_{\ell=1}^{B}g_d(y_\ell)>0,\\
+0,&\prod_{\ell=1}^{B}g_d(y_\ell)=0,
+\end{cases}
+\qquad
+\chi_H^2:=\mathbb E_{Q_H}[(L_{+1,H}-1)^2].
+\]
+Here \(\lambda_{\sigma,h}\) is the conditional density supplied by
+\cref{obj:lem:block-law}. Independence makes the conditional assignment marginal equal to \(\operatorname{Law}(Z)\).
+
+Put \(e:=\exp(1)\). The standard exponential bounds give
+\[
+e<3,\qquad
+4e\eta<\frac1{50},\qquad
+eBp\eta_1\le\frac1{100}.
+\]
+In particular, \(4e\eta<1\), as required by
+\cref{obj:lem:hidden-allocation-contraction}. The exponential series and the geometric series give
+\[
+\exp(eBp\eta_1)
+\le\exp(1/100)
+\le\sum_{k=0}^{\infty}(1/100)^k
+=\frac{100}{99}
+\le\frac{51}{50}.
+\]
+The contraction bound therefore yields
+\[
+\begin{aligned}
+\mathbb E_H[\mathbf1_{\mathcal E_{\mathrm{cap}}}\chi_H^2]
+&\le
+\frac{\exp(eBp\eta_1)}{1-4e\eta}-1\\
+&\le
+\frac{51/50}{49/50}-1
+=\frac2{49}
+\le\frac1{16}.
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_small_good_chiSq_bound
+
+\item \textit{From conditional chi-squared divergence to the complete record.}
+The baseline density is even. The conditional-density formula in
+\cref{obj:lem:block-law} and the definition of \(g_d\) consequently give
+\[
+\lambda_{-1,h}(y\mid H,Z)
+=
+\lambda_{+1,h}(-y\mid H,Z),
+\qquad
+g_d(-w)=g_d(w).
+\]
+Thus response reflection \((Z,y)\mapsto(Z,-y)\) preserves \(Q_H\) and exchanges the two conditional laws. In particular,
+\[
+\mathbb E_{Q_H}[(L_{-1,H}-1)^2]=\chi_H^2.
+\]
+Each component translation in a block satisfies
+\[
+f\!\left(w-\frac h{2d}\sum_{j=1}^{d}\varepsilon_j\right)
+\le2^d g_d(w).
+\]
+Averaging over the finite partition mixture and conditioning on \(H\) therefore gives
+\[
+0\le L_{\sigma,H}\le\frac{2^{Bd}}{\Pr\{H\}}
+\qquad Q_H\text{-almost everywhere}.
+\]
+This also ensures that both squared likelihood deviations are integrable.
+
+For either conditional sign law, the density formula for total variation and Cauchy--Schwarz give
+\[
+\operatorname{TV}\!\left(
+\operatorname{Law}_{\sigma,h}(Z,y\mid H),Q_H
+\right)
+=
+\frac12\mathbb E_{Q_H}|L_{\sigma,H}-1|
+\le\frac12\sqrt{\chi_H^2}.
+\]
+The triangle inequality hence implies
+\[
+\operatorname{TV}\!\left(
+\operatorname{Law}_{+1,h}(Z,y\mid H),
+\operatorname{Law}_{-1,h}(Z,y\mid H)
+\right)
+\le\sqrt{\chi_H^2}.
+\]
+Both signs have the same retained-graph marginal. Averaging conditional event differences, using the reconstruction in
+\cref{obj:lem:block-law}, bounding conditional total variation by one on the complement of the capacity event, and applying Cauchy--Schwarz on that event yield
+\[
+\begin{aligned}
+\mathcal D(h)
+&\le
+\Pr(\mathcal E_{\mathrm{cap}}^c)
++
+\mathbb E_H[
+\mathbf1_{\mathcal E_{\mathrm{cap}}}\sqrt{\chi_H^2}]\\
+&\le
+\Pr(\mathcal E_{\mathrm{cap}}^c)
++
+\sqrt{\mathbb E_H[
+\mathbf1_{\mathcal E_{\mathrm{cap}}}\chi_H^2]}\\
+&\le\frac1{16}+\frac14
+\le\frac12.
+\end{aligned}
+\]
+This completes the small-amplitude bound in all three cases, including \(p=0\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.blockMixture_tvDist_good_event_chiSq_le
+
+\item \textit{An observable reverse statistic.}
+Now fix \(0<h\le1/4\) and \(p>0\). Choose the first labeled recipient in each block,
+\[
+i_\ell:=\min C_\ell\in C_\ell,
+\]
+which exists because \(d\ge1\). Define the revealed source-sign sum and the scalar statistic by
+\[
+A_\ell(H,Z):=
+\sum_{\substack{j\in\mathcal J\\
+\exists i\in C_\ell,\ (j,i)\in H}}X_j,
+\qquad
+V_{\mathrm{test}}(O):=
+\sum_{\ell=1}^{B}A_\ell(H,Z)Y_{i_\ell}(Z).
+\]
+The response-copying property gives \(Y_{i_\ell}(Z)=y_\ell\). Thus this statistic is measurable from the complete record, and projection gives
+\[
+\mathcal D(h)\ge
+\operatorname{TV}\!\left(
+\operatorname{Law}_{P_{+1,h}}(V_{\mathrm{test}}),
+\operatorname{Law}_{P_{-1,h}}(V_{\mathrm{test}})
+\right).
+\]
+
+For a fixed true partition, the reveal indicator of each source depends on its \(d\) outgoing audit marks. These edge sets are disjoint across sources, so the reveal indicators have independent Bernoulli\((p)\) laws. They are independent of treatment signs and baselines. The statistic consequently has the law obtained by drawing the genuine partition, independent treatment signs, independent reveal indicators, and independent baselines, and then forming
+\[
+A_\ell=\sum_{j\in S_\ell}\rho_jX_j,
+\qquad
+V_{\mathrm{test}}
+=
+\sum_{\ell=1}^{B}
+A_\ell\left(
+U_\ell+\frac{\sigma h}{2d}X_{\ell,\mathrm{sum}}
+\right).
+\]
+Mixing this identity over the partition and baselines gives the scalar law in the preceding projection inequality.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverseTestStatistic_mixture_law
+
+\item \textit{Integrating the baselines.}
+Define the positive test center, variance budget, and finite signal sum by
+\[
+a_{\mathrm{test}}:=\frac{hmp}{2d}>0,
+\qquad
+v_{\mathrm{test}}:=\frac{7mp}{64},
+\qquad
+V_{\mathrm{sig}}:=\sum_{\ell=1}^{B}A_\ell X_{\ell,\mathrm{sum}}.
+\]
+The baseline density is even and supported on \([-1/4,1/4]\), so
+\[
+\mathbb E U_\ell=0,
+\qquad
+\mathbb E U_\ell^2\le\frac1{16}.
+\]
+For fixed partition, signs, and reveals, independence of the baselines gives
+\[
+\mathbb E_U\!\left[\left(\sum_{\ell=1}^{B}A_\ell U_\ell\right)^2\right]
+=
+\sum_{\ell=1}^{B}A_\ell^2\mathbb E U_\ell^2
+\le\frac1{16}\sum_{\ell=1}^{B}A_\ell^2.
+\]
+Moreover,
+\[
+V_{\mathrm{test}}-\sigma a_{\mathrm{test}}
+=
+\sum_{\ell=1}^{B}A_\ell U_\ell
++\frac{\sigma h}{2d}(V_{\mathrm{sig}}-mp).
+\]
+The mixed term has zero baseline expectation. Hence
+\[
+\mathbb E_U[
+(V_{\mathrm{test}}-\sigma a_{\mathrm{test}})^2
+\mid S,Z,\rho]
+\le
+\frac1{16}\sum_{\ell=1}^{B}A_\ell^2
++\frac{h^2}{4d^2}(V_{\mathrm{sig}}-mp)^2.
+\]
+All required second moments exist because the sums are finite and the baselines have bounded support.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverseLatentLaw_baseline_energy_le
+
+\item \textit{The finite source-row moments.}
+Fix a partition and a reveal pattern. For each block define
+\[
+\mathcal J_{\ell,\mathrm{rev}}
+:=\{j\in S_\ell:\rho_j=1\},
+\qquad
+r_\ell:=|\mathcal J_{\ell,\mathrm{rev}}|\in\{0,\ldots,d\}.
+\]
+This agrees with the retained-graph count already defined. Independence and centering of the signs give
+\[
+\mathbb E_Z[A_\ell^2\mid\rho,S]=r_\ell,
+\qquad
+\mathbb E_Z[A_\ell X_{\ell,\mathrm{sum}}\mid\rho,S]=r_\ell:
+\]
+in each product expansion, terms with distinct source indices have zero expectation, and each surviving diagonal term equals one.
+
+For deterministic real weights \((\alpha_j)_{j\in S_\ell}\in\mathbb R^d\), expansion of the fourth power leaves precisely the terms in which every sign index occurs an even number of times. Therefore
+\[
+\begin{aligned}
+\mathbb E_Z\left(\sum_{j\in S_\ell}\alpha_jX_j\right)^4
+&=
+\sum_{j\in S_\ell}\alpha_j^4
++
+6\sum_{\substack{j,j'\in S_\ell\\j<j'}}
+\alpha_j^2\alpha_{j'}^2\\
+&=
+3\left(\sum_{j\in S_\ell}\alpha_j^2\right)^2
+-2\sum_{j\in S_\ell}\alpha_j^4.
+\end{aligned}
+\]
+Applying this identity to the revealed sum, the full sum, and their sum and difference gives
+\[
+\begin{aligned}
+\mathbb E_Z[A_\ell^4\mid\rho,S]
+&=3r_\ell^2-2r_\ell,\\
+\mathbb E_Z[X_{\ell,\mathrm{sum}}^4\mid\rho,S]
+&=3d^2-2d,\\
+\mathbb E_Z[(A_\ell+X_{\ell,\mathrm{sum}})^4\mid\rho,S]
+&=3(d+3r_\ell)^2-2(d+15r_\ell),\\
+\mathbb E_Z[(A_\ell-X_{\ell,\mathrm{sum}})^4\mid\rho,S]
+&=3(d-r_\ell)^2-2(d-r_\ell).
+\end{aligned}
+\]
+For the last two formulas, the weights are respectively \(2,1\) and \(0,-1\) on the revealed and unrevealed coordinates. Using the polynomial identity
+\[
+(A_\ell+X_{\ell,\mathrm{sum}})^4
++(A_\ell-X_{\ell,\mathrm{sum}})^4
+=
+2A_\ell^4+12A_\ell^2X_{\ell,\mathrm{sum}}^2
++2X_{\ell,\mathrm{sum}}^4
+\]
+and substituting the four expectations yields
+\[
+\mathbb E_Z[
+A_\ell^2X_{\ell,\mathrm{sum}}^2\mid\rho,S]
+=
+r_\ell d+2r_\ell(r_\ell-1)
+\le3r_\ell d.
+\]
+These formulas include \(r_\ell=0\), with empty sums equal to zero.
+
+Since the reveal indicators have mean \(p\),
+\[
+\mathbb E_\rho[r_\ell\mid S]=dp.
+\]
+Averaging the row identities and inequality over reveals consequently gives
+\[
+\mathbb E[A_\ell^2\mid S]=dp,
+\qquad
+\mathbb E[A_\ell X_{\ell,\mathrm{sum}}\mid S]=dp,
+\qquad
+\mathbb E[A_\ell^2X_{\ell,\mathrm{sum}}^2\mid S]
+\le3d^2p.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverse_revealed_total_mixed_moment
+
+\item \textit{The squared-deviation budget.}
+For a fixed partition, different row signals depend on disjoint collections of independent sign--reveal pairs. Their variances therefore add, and the preceding row moments give
+\[
+\mathbb E[V_{\mathrm{sig}}\mid S]=Bdp=mp,
+\]
+\[
+\begin{aligned}
+\mathbb E[(V_{\mathrm{sig}}-mp)^2\mid S]
+&=
+\sum_{\ell=1}^{B}
+\operatorname{Var}(A_\ell X_{\ell,\mathrm{sum}}\mid S)\\
+&\le
+\sum_{\ell=1}^{B}
+\mathbb E[A_\ell^2X_{\ell,\mathrm{sum}}^2\mid S]
+\le3Bd^2p.
+\end{aligned}
+\]
+The baseline contribution satisfies
+\[
+\mathbb E\!\left[\frac1{16}\sum_{\ell=1}^{B}A_\ell^2
+\ \middle|\ S\right]
+=\frac{Bdp}{16}.
+\]
+Substitution into the baseline-integrated bound gives, for every partition,
+\[
+\begin{aligned}
+\mathbb E_\sigma[
+(V_{\mathrm{test}}-\sigma a_{\mathrm{test}})^2\mid S]
+&\le
+\frac{Bdp}{16}
++\frac{h^2}{4d^2}(3Bd^2p)\\
+&=
+\frac{mp}{16}+\frac{3h^2Bp}{4}\\
+&\le
+\frac{mp}{16}+\frac{3mp}{64}
+=\frac{7mp}{64}.
+\end{aligned}
+\]
+The last inequality uses \(h^2\le1/16\) and \(B\le Bd=m\). Averaging over the genuine partition proves, for both signs,
+\[
+\mathbb E_\sigma[
+(V_{\mathrm{test}}-\sigma a_{\mathrm{test}})^2]
+\le v_{\mathrm{test}}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverseSignalEnergy_average_le
+
+\item \textit{The scalar sign test.}
+Assign nonnegative values of \(V_{\mathrm{test}}\) to the positive sign. Since \(a_{\mathrm{test}}>0\), the pointwise inequalities
+\[
+a_{\mathrm{test}}^2\mathbf1\{V_{\mathrm{test}}<0\}
+\le(V_{\mathrm{test}}-a_{\mathrm{test}})^2,
+\]
+\[
+a_{\mathrm{test}}^2\mathbf1\{V_{\mathrm{test}}\ge0\}
+\le(V_{\mathrm{test}}+a_{\mathrm{test}})^2
+\]
+bound the two error probabilities by
+\[
+P_{+1,h}(V_{\mathrm{test}}<0)
+\le\frac{v_{\mathrm{test}}}{a_{\mathrm{test}}^2},
+\qquad
+P_{-1,h}(V_{\mathrm{test}}\ge0)
+\le\frac{v_{\mathrm{test}}}{a_{\mathrm{test}}^2}.
+\]
+For the event \(\{V_{\mathrm{test}}<0\}\), the definition of total variation gives
+\[
+1-\operatorname{TV}\!\left(
+\operatorname{Law}_{P_{+1,h}}(V_{\mathrm{test}}),
+\operatorname{Law}_{P_{-1,h}}(V_{\mathrm{test}})
+\right)
+\le
+P_{+1,h}(V_{\mathrm{test}}<0)
++
+P_{-1,h}(V_{\mathrm{test}}\ge0).
+\]
+Combining this with the projection inequality and simplifying the positive denominators yields
+\[
+\begin{aligned}
+\mathcal D(h)
+&\ge1-\frac{2v_{\mathrm{test}}}{a_{\mathrm{test}}^2}\\
+&=
+1-\frac{7d^2}{8h^2mp}.
+\end{aligned}
+\]
+This is the asserted reverse bound.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reverse_test_tv_bound
+
+\item \textit{The testing radius.}
+Define its admissible set by
+\[
+\mathcal A_{\mathrm{test}}
+:=
+\{h\in[0,1/4]:\mathcal D(h)\le1/2\},
+\qquad
+\bar h:=\sup\mathcal A_{\mathrm{test}}.
+\]
+The inequalities \(0<s\le1\) and \(0<\kappa<1/4\), together with the small-amplitude bound, show
+\[
+0\le\kappa s\le\frac14,
+\qquad
+\mathcal D(\kappa s)\le\frac12.
+\]
+Thus \(\kappa s\in\mathcal A_{\mathrm{test}}\). This set is nonempty and bounded above by \(1/4\), so
+\[
+\kappa s\le\bar h.
+\]
+
+To prove the upper bound, take any \(h\in\mathcal A_{\mathrm{test}}\). If \(s=1\), then
+\[
+h\le\frac14\le2s.
+\]
+If \(s\ne1\), its definition implies
+\[
+p>0,\qquad s=\frac d{\sqrt{mp}}.
+\]
+Suppose, for a contradiction, that \(h>2s\). Positivity permits multiplication and squaring, giving
+\[
+2d<h\sqrt{mp},
+\qquad
+4d^2<h^2mp.
+\]
+In particular \(h>0\), and
+\[
+7d^2<4h^2mp,
+\qquad
+\frac{7d^2}{8h^2mp}<\frac12.
+\]
+The reverse bound then gives
+\[
+\mathcal D(h)
+\ge1-\frac{7d^2}{8h^2mp}
+>\frac12,
+\]
+contradicting membership in \(\mathcal A_{\mathrm{test}}\). Every member of that set is therefore at most \(2s\), and taking its supremum proves
+\[
+\bar h\le2s.
+\]
+Together with the lower bound, this establishes the final assertion.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.testing_radius_of_bounds
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:nonlocal-testing-answer}]
+\begin{enumerate}
+\item The canonical design is the product of the treatment-assignment and audit-mark laws. On the finite population \(V\), with \(|V|=n\), its marginals therefore satisfy
+\[
+\operatorname{Law}(Z)
+=\bigotimes_{j\in V}\operatorname{Bernoulli}(1/2),
+\qquad
+\operatorname{Law}(W)
+=\bigotimes_{\substack{(j,i)\in V^2\\j\ne i}}
+\operatorname{Bernoulli}(q).
+\]
+Indeed, \(q\in[0,1]\) ensures that both factors are probability laws, and projecting their product onto either coordinate gives the corresponding factor. Thus the design satisfies \cref{obj:ass:assignment,obj:ass:audit}.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.thinnedDesign_assignment
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.thinnedDesign_audit
+The two coordinate projections of a product probability law are independent, so
+\[
+W\mathbin{\perp\!\!\!\perp}Z.
+\]
+This verifies \cref{obj:ass:design-independence}.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.thinnedDesign_independent
+
+\item Apply \cref{obj:thm:block-testing-scale} to this design. Its population, block, degree, capacity, and retention hypotheses are precisely the hypotheses here, and the preceding step verifies its three design hypotheses. Its complete-record mixture laws, testing scale, and testing radius coincide with \(P_{+1,h},P_{-1,h},s,\bar h\) in the present statement. Consequently, it supplies
+\[
+(100\pi)^{-1}s\le\bar h,
+\qquad
+\bar h\le2s,
+\]
+as well as
+\[
+\forall h\in\mathbb R,\qquad
+0\le h\le(100\pi)^{-1}s
+\ \Longrightarrow\
+\operatorname{TV}(P_{+1,h},P_{-1,h})\le\frac12.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.block_testing_scale
+
+\item Suppose \(d=2\). Expanding the definition of the association-revelation probability gives
+\[
+m=2B,
+\qquad
+p=1-(1-q)^2=2q-q^2.
+\]
+First suppose \(q>0\). Since \(q\le1\) and \(B\ge1\),
+\[
+p=q(2-q)>0,
+\qquad
+2Bp>0,
+\qquad
+\sqrt{2Bp}>0.
+\]
+The definition of the testing scale therefore gives
+\[
+s=\min\left\{1,\frac{2}{\sqrt{2Bp}}\right\}.
+\]
+To simplify the second entry, square it:
+\[
+\left(\frac{2}{\sqrt{2Bp}}\right)^2
+=\frac{4}{2Bp}
+=\frac{2}{Bp}.
+\]
+Both the quotient and the square root below are nonnegative, so
+\[
+\frac{2}{\sqrt{2Bp}}
+=\sqrt{\frac{2}{Bp}},
+\qquad
+s=\min\left\{1,\sqrt{\frac{2}{B(2q-q^2)}}\right\}.
+\]
+In the remaining case \(q\le0\), the hypothesis \(q\ge0\) gives
+\[
+q=0,\qquad p=0,\qquad s=1.
+\]
+These two cases establish the stated degree-two formula.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.nonlocal_testing_answer
+\end{enumerate}
+\end{proof}
+
+\begin{proof}[Proof of \cref{obj:thm:frontier-answer}]
+\begin{enumerate}
+\item Fix admissible \(n,d,q\). We first establish the upper bound. Define
+\[
+p_k(q):=1-(1-q)^k
+\quad(k\in\mathbb N,\ q\in[0,1]),
+\qquad
+p:=p_d(q),
+\qquad
+c_{\mathrm{exp}}:=1-e^{-1}\in(0,1).
+\]
+The reveal-probability bounds are
+\[
+c_{\mathrm{exp}}\min\{1,dq\}\le p\le\min\{1,dq\}.
+\]
+For the upper bound, \(p\le1\), and induction gives \(p_k(q)\le kq\): the initial value is \(p_0(q)=0\), and
+\[
+p_{k+1}(q)
+=q+(1-q)p_k(q)
+\le q+(1-q)kq
+\le(k+1)q.
+\]
+For the lower bound, the exponential inequality \(1-q\le e^{-q}\) yields
+\[
+(1-q)^d\le e^{-dq}.
+\]
+When \(dq\le1\), convexity of the exponential gives
+\[
+e^{-dq}\le(1-dq)+dq\,e^{-1},
+\qquad
+p\ge c_{\mathrm{exp}}dq.
+\]
+When \(dq>1\), monotonicity gives
+\[
+e^{-dq}\le e^{-1},
+\qquad
+p\ge c_{\mathrm{exp}}.
+\]
+These prove the claimed reveal-probability bounds; in particular, \(p>0\) when \(q>0\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.reveal_probability_ge_chord
+
+For admissible parameters with \(q>0\), define
+\[
+v_{\mathrm{F}}(n,d,q):=\frac{d^2}{np}.
+\]
+Since \(p\le1\) and \(p\le dq\),
+\[
+\frac{d^2}{n}\le v_{\mathrm{F}}(n,d,q),
+\qquad
+\frac{d}{nq}\le v_{\mathrm{F}}(n,d,q).
+\]
+Using \(d+1\le2d\) and \(1-q\le1\), the envelope in
+\cref{obj:def:upper-envelope} therefore satisfies
+\[
+u(n,d,q)
+=\frac{5(d+1)^2}{n}+\frac{4d(1-q)}{nq}
+\le20\frac{d^2}{n}+4\frac{d}{nq}
+\le24v_{\mathrm{F}}(n,d,q).
+\]
+If \(v_{\mathrm{F}}(n,d,q)\le1\), this implies
+\[
+\min\{1,u(n,d,q)\}\le24v_{\mathrm{F}}(n,d,q)=24F(n,d,q).
+\]
+If \(v_{\mathrm{F}}(n,d,q)>1\), then
+\[
+\min\{1,u(n,d,q)\}\le1\le24=24F(n,d,q).
+\]
+At \(q=0\), the same comparison follows from
+\[
+u(n,d,0)=+\infty,
+\qquad
+F(n,d,0)=1.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.upperEnvelope_le_frontierScale
+
+Use the seeded representative
+\[
+\widehat T^\star_{n,d,q}(O,\xi):=T^\star_{n,d,q}(O)
+\qquad
+(O\text{ a complete record},\ \xi\in\mathbb R).
+\]
+It is measurable by \cref{obj:thm:observable-upper} and
+\cref{obj:def:frontier-rule,obj:def:upper-rule}. Those results and the envelope comparison give
+\[
+R_{n,d}(q)
+\le
+\sup_{\theta\in\mathcal M_{n,d}}
+\mathcal L(\widehat T^\star_{n,d,q};\theta,q)
+\le
+\min\{1,u(n,d,q)\}
+\le24F(n,d,q).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontierEstimator_risk_upper
+
+\item For the lower bound, first suppose that
+\[
+\frac{d^2}{n}\ge\frac1{16}.
+\]
+The canonical product design satisfies the assignment, audit, and independence hypotheses of \cref{obj:lem:supplied-block-record-lower}, which supplies
+\[
+R_{n,d}(q)\ge
+\frac1{160000\pi^2}
+\min\left\{1,\frac{(d+1)^2}{n}\right\}.
+\]
+Here
+\[
+\min\left\{1,\frac{(d+1)^2}{n}\right\}\ge\frac1{16},
+\qquad
+F(n,d,q)\le1.
+\]
+Consequently,
+\[
+R_{n,d}(q)
+\ge\frac1{2560000\pi^2}
+\ge\frac{F(n,d,q)}{2560000\pi^2}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_minimax_lower
+
+\item Now suppose that
+\[
+\frac{d^2}{n}<\frac1{16}.
+\]
+Since \(d\ge1\), we have \(4d\le16d^2<n\). Define the block count and source count by
+\[
+B:=\left\lfloor\frac{n}{2d}\right\rfloor,
+\qquad
+m:=Bd.
+\]
+Floor rounding gives
+\[
+B\ge1,
+\qquad
+2m\le n<2m+2d,
+\qquad
+\frac n4\le m\le\frac n2.
+\]
+Indeed, \(n>4d\) ensures \(B\ge1\), and \(2d<n/2\) together with
+\(n<2m+2d\) gives \(m>n/4\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_block_rounding
+
+Define the testing scale on this parameter range by
+\[
+s:=s(B,d,q)=
+\begin{cases}
+\min\{1,d/\sqrt{mp}\},&p>0,\\
+1,&p=0.
+\end{cases}
+\]
+Thus \(0<s\le1\). When \(q>0\), we have \(p>0\), and
+\[
+\left(\frac d{\sqrt{mp}}\right)^2=\frac{d^2}{mp},
+\qquad
+\frac{d^2}{np}\le\frac{d^2}{mp}.
+\]
+If \(d/\sqrt{mp}\le1\), these identities imply
+\[
+F(n,d,q)\le\frac{d^2}{np}\le\frac{d^2}{mp}=s^2.
+\]
+If \(d/\sqrt{mp}>1\), then \(s=1\) and \(F(n,d,q)\le s^2\).
+At \(q=0\), \(p=0\) and \(F(n,d,0)=s^2=1\). Hence, throughout the retention range,
+\[
+F(n,d,q)\le s^2.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontierScale_le_testingScale_sq
+
+Set
+\[
+\kappa:=\frac1{100\pi},
+\qquad
+h:=\kappa s=h_\circ(B,d,q),
+\qquad
+\Delta:=\frac{mh}{n}.
+\]
+The positivity of \(m,s,\kappa\), and \(\pi>3\), give
+\[
+0<h\le\kappa<\frac14,
+\qquad
+\Delta>0.
+\]
+Consider the opposite-sign priors of \cref{obj:def:block-prior} at this amplitude. To specify their placement, take the sources to be
+\[
+\{1,\ldots,m\},
+\qquad
+C_\ell:=\{m+(\ell-1)d+1,\ldots,m+\ell d\}
+\quad(1\le\ell\le B).
+\]
+The capacity bound \(2m\le n\) places these disjoint recipient blocks within the population. Each recipient has \(d\) incoming arrows, each source has \(d\) outgoing arrows, and the remaining degrees are zero.
+
+The baseline density in \cref{obj:def:block-prior} vanishes outside
+\([-1/4,1/4]\), so \(|U_\ell|\le1/4\) almost surely for every block. For either
+\(\sigma\in\{-1,1\}\), each recipient \(i\in C_\ell\) consequently satisfies
+\[
+|a_i|+|t_i|+\sum_{j:(j,i)\in G}|b_{ij}|
+=
+\left|U_\ell-\frac{\sigma h}{2}\right|
++d\frac hd
+\le\frac14+\frac{3h}{2}
+\le1.
+\]
+Source and padding rows have coefficient mass zero. Thus both priors are supported on \(\mathcal M_{n,d}\). Summing the spillover contributions by source gives their constant targets:
+\[
+\tau(\theta)
+=\frac1n\sum_{j=1}^{m}\sum_{i:(j,i)\in G}\frac{\sigma h}{d}
+=\frac1n\sum_{j=1}^{m}\sigma h
+=\frac{\sigma mh}{n}
+=\sigma\Delta.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.block_support
+
+The record maps are jointly measurable: their graph and assignment coordinates are finite, and their outcome coordinates are affine in the baselines. The canonical product design and \(2Bd\le n\) satisfy the hypotheses of \cref{obj:thm:block-testing-scale}, which supplies
+\[
+\operatorname{TV}(P_{+1,h},P_{-1,h})\le\frac12.
+\]
+Applying \cref{obj:lem:full-record-two-prior-risk} to these supported priors yields
+\[
+R_{n,d}(q)
+\ge
+\frac{\Delta^2}{2}
+\left(1-\operatorname{TV}(P_{+1,h},P_{-1,h})\right)
+\ge
+\frac{\Delta^2}{4}
+=
+\frac14\left(\frac{m\kappa s}{n}\right)^2.
+\]
+This bound applies to the full class of measurable randomized estimators in
+\cref{obj:def:risk}.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.block_testing_minimax_lower
+
+Finally, \(m/n\ge1/4\) gives
+\[
+\frac{\kappa s}{4}\le\frac{m\kappa s}{n},
+\qquad
+\frac14\left(\frac{\kappa s}{4}\right)^2
+=\frac{s^2}{640000\pi^2}.
+\]
+Combining the preceding inequalities,
+\[
+\frac{F(n,d,q)}{2560000\pi^2}
+\le
+\frac{s^2}{2560000\pi^2}
+\le
+\frac{s^2}{640000\pi^2}
+\le
+\frac14\left(\frac{m\kappa s}{n}\right)^2
+\le R_{n,d}(q).
+\]
+Together with the large-degree case and the upper bound, this proves the displayed risk chain.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_minimax_lower
+
+\item We next prove necessity in the consistency criterion. Let \(d_n,q_n\) be admissible sequences and suppose that measurable randomized estimators \(T_n\) satisfy
+\[
+\sup_{\theta\in\mathcal M_{n,d_n}}
+\mathcal L(T_n;\theta,q_n)\longrightarrow0.
+\]
+Define the positive constant
+\[
+C_{\mathrm{low}}:=2560000\pi^2>0.
+\]
+For every \(n\ge4\), the lower bound and the definition of minimax risk give
+\[
+0\le
+\frac{F(n,d_n,q_n)}{C_{\mathrm{low}}}
+\le R_{n,d_n}(q_n)
+\le
+\sup_{\theta\in\mathcal M_{n,d_n}}
+\mathcal L(T_n;\theta,q_n).
+\]
+Squeezing in the extended nonnegative reals and passing to real values at zero yields
+\[
+\frac{F(n,d_n,q_n)}{C_{\mathrm{low}}}\longrightarrow0,
+\qquad
+F(n,d_n,q_n)\longrightarrow0.
+\]
+
+To extract the two ratio limits, we establish the explicit positive-retention comparison. Fix admissible \(n,d\) and \(0<q\le1\). The reveal-probability bounds from the first part imply
+\[
+c_{\mathrm{exp}}v_{\mathrm{F}}(n,d,q)
+\le
+\begin{cases}
+\dfrac{d}{nq},&dq\le1,\\[4pt]
+\dfrac{d^2}{n},&dq>1.
+\end{cases}
+\]
+Indeed, in the first case \(p\ge c_{\mathrm{exp}}dq\), and in the second
+\(p\ge c_{\mathrm{exp}}\). Along with the two lower comparisons for
+\(v_{\mathrm{F}}\), this gives
+\[
+\frac{d^2}{n}+\frac{d}{nq}\le2v_{\mathrm{F}}(n,d,q),
+\qquad
+c_{\mathrm{exp}}v_{\mathrm{F}}(n,d,q)
+\le\frac{d^2}{n}+\frac{d}{nq}.
+\]
+If \(v_{\mathrm{F}}(n,d,q)\ge1\), then
+\[
+\frac12\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}
+\le1=F(n,d,q).
+\]
+If \(v_{\mathrm{F}}(n,d,q)<1\), then
+\[
+\frac12\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}
+\le\frac12\left(\frac{d^2}{n}+\frac{d}{nq}\right)
+\le v_{\mathrm{F}}(n,d,q)=F(n,d,q).
+\]
+For the other direction, \(0<c_{\mathrm{exp}}<1\) and
+\(F(n,d,q)=\min\{1,v_{\mathrm{F}}(n,d,q)\}\) imply
+\[
+c_{\mathrm{exp}}F(n,d,q)\le1,
+\qquad
+c_{\mathrm{exp}}F(n,d,q)
+\le\frac{d^2}{n}+\frac{d}{nq}.
+\]
+Therefore
+\[
+\frac12\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}
+\le F(n,d,q)
+\le
+c_{\mathrm{exp}}^{-1}
+\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_elbow
+
+For the sequence argument, define on the tail \(n\ge4\)
+\[
+\rho_{\mathrm{deg}}(n):=\frac{d_n^2}{n}\in[0,\infty),
+\qquad
+\rho_{\mathrm{audit}}(n):=
+\begin{cases}
++\infty,&q_n=0,\\[2pt]
+\dfrac{d_n}{nq_n},&q_n\ne0,
+\end{cases}
+\quad\in[0,+\infty].
+\]
+All subsequent sequence bounds concern this tail. Since \(F(n,d_n,q_n)\to0\), eventually
+\[
+F(n,d_n,q_n)<\frac12.
+\]
+The identity \(F(n,d_n,0)=1\) forces \(q_n>0\) eventually. The lower comparison then gives
+\[
+\frac12\min\{1,\rho_{\mathrm{deg}}(n)+\rho_{\mathrm{audit}}(n)\}
+\le F(n,d_n,q_n)<\frac12.
+\]
+Thus the sum is eventually less than one, and
+\[
+0\le\rho_{\mathrm{deg}}(n)
+\le\rho_{\mathrm{deg}}(n)+\rho_{\mathrm{audit}}(n)
+\le2F(n,d_n,q_n),
+\]
+\[
+0\le\rho_{\mathrm{audit}}(n)
+\le\rho_{\mathrm{deg}}(n)+\rho_{\mathrm{audit}}(n)
+\le2F(n,d_n,q_n).
+\]
+Both ratios converge to zero by squeezing. The audit ratio is eventually finite, so its real convergence also gives convergence in the extended nonnegative reals.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.precision_frontier_explicit
+
+\item Conversely, suppose that
+\[
+\rho_{\mathrm{deg}}(n)\longrightarrow0,
+\qquad
+\rho_{\mathrm{audit}}(n)\longrightarrow0,
+\]
+with the second limit taken in the extended nonnegative reals. Eventually
+\(\rho_{\mathrm{audit}}(n)<1\), which excludes \(q_n=0\); admissibility then gives
+\(q_n>0\). Passing to real values at zero yields
+\[
+\frac{d_n}{nq_n}\longrightarrow0,
+\qquad
+\rho_{\mathrm{deg}}(n)+\rho_{\mathrm{audit}}(n)\longrightarrow0.
+\]
+The positive-retention comparison gives, eventually,
+\[
+0\le F(n,d_n,q_n)
+\le c_{\mathrm{exp}}^{-1}
+\bigl(\rho_{\mathrm{deg}}(n)+\rho_{\mathrm{audit}}(n)\bigr),
+\]
+so \(F(n,d_n,q_n)\to0\).
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontierScale_tendsto_iff
+
+Choose the measurable seeded attaining estimator for every \(n\):
+\[
+T_n(O,\xi):=\widehat T^\star_{n,d_n,q_n}(O,\xi).
+\]
+Its risk satisfies, for every \(n\ge4\),
+\[
+0\le
+\sup_{\theta\in\mathcal M_{n,d_n}}\mathcal L(T_n;\theta,q_n)
+\le24F(n,d_n,q_n)\longrightarrow0.
+\]
+The finitely many indices below four have no effect on the limit. This proves sufficiency and completes the equivalence.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.precision_frontier_explicit
+
+\item The equality of the total observable rules follows directly from their construction:
+\[
+T^\star_{n,d,q}(O)=T^{\mathrm{up}}(O)
+\qquad
+\left(
+\begin{array}{l}
+V\text{ any finite population},\quad n,d\in\mathbb N,\\
+q\in\mathbb R,\quad O\text{ any record on }V
+\end{array}
+\right).
+\]
+On the admissible parameter range these are the rules of
+\cref{obj:def:frontier-rule,obj:def:upper-rule}, and the measurable seeded representative used above is precisely the representative of the upper rule.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_answer
+
+\item Finally, \cref{obj:def:frontier-scale} gives the endpoint identities. At zero retention it gives \(F(n,d,0)=1\); at full retention, \(d\ge1\) gives \(1-(1-1)^d=1\). Hence
+\[
+F(n,d,0)=1,
+\qquad
+F(n,d,1)=\min\left\{1,\frac{d^2}{n}\right\}.
+\]
+The positive-retention comparison established above, with
+\(c_{\mathrm{exp}}=1-e^{-1}\), is
+\[
+\frac12\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\}
+\le F(n,d,q)
+\le
+(1-e^{-1})^{-1}
+\min\left\{1,\frac{d^2}{n}+\frac{d}{nq}\right\},
+\qquad 0<q\le1.
+\]
+These are the remaining assertions.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.frontier_elbow
+\end{enumerate}
+\end{proof}

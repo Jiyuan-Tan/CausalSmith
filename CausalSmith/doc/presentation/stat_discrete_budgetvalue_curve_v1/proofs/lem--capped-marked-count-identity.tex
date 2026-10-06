@@ -1,0 +1,80 @@
+\begin{proof}[Proof of \cref{obj:lem:capped-marked-count-identity}]
+\begin{enumerate}
+\item Let \(\mathcal O_d=\{1,\ldots,d\}\times\{0,1\}^2\), and let \(\mathcal S_d\) be the space of finite sequences of records in \(\mathcal O_d\), each carrying a pilot or evaluation mark. Write
+\[
+\mathbf S=(M,((O_i^\circ,\chi_i))_{i=1}^M)\in\mathcal S_d
+\]
+for a sequence with law \(\mathsf Q\): \(M\sim\operatorname{Pois}(n/4)\), the \(O_i^\circ\) are independent with law \(P\), and the independent marks \(\chi_i\) are pilot or evaluation with probability \(1/2\) each. Define \(\Phi:\mathcal S_d\to(\mathbb N^{\mathcal Z\times\{1,\ldots,d\}})^2\) by \(\Phi(\mathbf S)=(N'(\mathbf S),N(\mathbf S))\), where
+\[
+N'_{\zeta j}(\mathbf S)
+=\sum_{i=1}^M\mathbf1\{O_i^\circ=(j,\zeta),\ \chi_i=\mathrm{pilot}\},
+\qquad
+N_{\zeta j}(\mathbf S)
+=\sum_{i=1}^M\mathbf1\{O_i^\circ=(j,\zeta),\ \chi_i=\mathrm{evaluation}\}.
+\]
+These are the count tables used in \cref{obj:def:jf-estimator}. Partition the marked observation space into the singleton types \((j,\zeta,\chi)\), where \(\chi\in\{\mathrm{pilot},\mathrm{evaluation}\}\). Each type has probability \(q_{\zeta j}/2\). For any array \(\boldsymbol\nu=(\nu_{\zeta j,\chi})\in\mathbb N^{\mathcal Z\times\{1,\ldots,d\}\times\{\mathrm{pilot},\mathrm{evaluation}\}}\), the Poisson probability of the total count and the conditional multinomial probability of the singleton counts give
+\[
+\begin{aligned}
+&\Pr_{\mathsf Q}\!\left\{
+\#\{i\leq M:O_i^\circ=(j,\zeta),\ \chi_i=\chi\}
+=\nu_{\zeta j,\chi}\ \text{for all }(\zeta,j,\chi)\right\}\\
+&\quad=e^{-n/4}
+\frac{(n/4)^{\sum_{\zeta,j,\chi}\nu_{\zeta j,\chi}}}
+{\left(\sum_{\zeta,j,\chi}\nu_{\zeta j,\chi}\right)!}
+\frac{\left(\sum_{\zeta,j,\chi}\nu_{\zeta j,\chi}\right)!}
+{\prod_{\zeta,j,\chi}\nu_{\zeta j,\chi}!}
+\prod_{\zeta,j,\chi}\left(\frac{q_{\zeta j}}2\right)^{\nu_{\zeta j,\chi}}\\
+&\quad=\prod_{\zeta,j,\chi}
+ e^{-(n/8)q_{\zeta j}}
+ \frac{\bigl((n/8)q_{\zeta j}\bigr)^{\nu_{\zeta j,\chi}}}
+ {\nu_{\zeta j,\chi}!}.
+\end{aligned}
+\]
+Here \(\sum_{\zeta,j}q_{\zeta j}=1\), and zero powers use the usual convention \(0^0=1\). Grouping the singleton counts by mark gives \(\Phi(\mathbf S)\); the factorization shows that its pilot and evaluation coordinates are independent Poisson variables, each with mean \((n/8)q_{\zeta j}\). Its law is the ideal count law specified in \cref{obj:def:process-handle}; the identity also covers zero cell masses and \(n=0\).
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.uncappedMarkedCountLaw_table_eq_idealCountLaw
+
+\item Set \(\varphi:\mathcal S_d\to\mathbb R\) by \(\varphi(\mathbf S)=g(\Phi(\mathbf S))\). The preceding identification and the assumed integrability of \(g\) give
+\[
+\mathbb E_{\mathsf Q}|\varphi(\mathbf S)|
+=\mathbb E_{\mathrm{ideal}}|g(N',N)|<\infty.
+\]
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.CappedMarkedCountIntegralIdentity
+
+\item For \(0\leq M\leq n\), define the marked prefix
+\[
+\mathbf S_M(O^{(n)},\sigma,\omega)
+=\bigl(M,((O_{\sigma(i)},\omega_i))_{i=1}^M\bigr).
+\]
+A permutation of an independent \(P\)-sample remains an independent \(P\)-sample, while a uniform mark vector gives each mark probability \(1/2\). Consequently, at every \(M\) whose Poisson probability is positive,
+\[
+\mathbb E_{O^{(n)}}\!\left[
+ \frac1{n!\,2^n}\sum_{\sigma}\sum_{\omega}
+ \varphi\bigl(\mathbf S_M(O^{(n)},\sigma,\omega)\bigr)
+ \right]
+=
+\mathbb E\!\left[
+ \varphi\bigl(M,((O_i^\circ,\chi_i))_{i=1}^M\bigr)\right].
+\]
+Integrability under \(\mathsf Q\) supplies integrability on each such count fibre; fibres with zero Poisson probability contribute zero. Multiplying by the respective Poisson probabilities and summing over \(M\leq n\) therefore yields
+\[
+\mathbb E_{O^{(n)}}\!\left[
+ \sum_{M=0}^n\sum_{\sigma}\sum_{\omega}
+ \frac{\Pr\{\operatorname{Pois}(n/4)=M\}}{n!\,2^n}\,
+ \varphi\bigl(\mathbf S_M(O^{(n)},\sigma,\omega)\bigr)
+ \right]
+=
+\mathbb E_{\mathsf Q}\!\left[
+ \mathbf1\{M\leq n\}\varphi(\mathbf S)\right].
+\]
+This is the finite count-fibre decomposition of the marked-Poisson expectation.
+% lean: Causalean.Mathlib.Probability.Poisson.FinitePartition.CappedPrefix.capped_marked_prefix_integral
+
+\item For every admissible prefix, the indicator sums defining \(\Phi\) agree coordinatewise with the permuted pilot and evaluation counts:
+\[
+\Phi\bigl(\mathbf S_M(O^{(n)},\sigma,\omega)\bigr)
+=(N',N)(O^{(n)},\sigma,M,\omega).
+\]
+Substitute this identity and \(\varphi=g\circ\Phi\) into the preceding equality. Its left side has weight \(w_n(M)\), and its right side is the stated nonoverflow expectation under the uncapped marked-Poisson experiment. When \(d=0\), there is no probability law on the empty observed alphabet, so the assertion quantified over \(P\) is vacuous.
+% lean: CausalSmith.Stat.DiscreteBudgetvalueCurve.permutedMarkedCountTable_eq_uncapped_prefix
+\end{enumerate}
+\end{proof}

@@ -1,0 +1,4222 @@
+{
+  "commit": "d4751b9727a39ec9ea32afb27b07829db20c658b",
+  "groups": [
+    {
+      "kind": "setup",
+      "items": [
+        {
+          "obj_id": "S1",
+          "kind": "setup",
+          "label": "Setup S-1",
+          "nl": "A finite observational experiment with a categorical confounder. One unit is the triple \\(O=(X,A,Y)\\) taking values in \\([d]\\times\\{0,1\\}^2\\), where \\([d]=\\{1,\\ldots,d\\}\\) with \\(d\\ge 2\\), \\(A\\) is a binary treatment and \\(Y\\) a binary outcome. An observed law \\(\\mathbb P\\) is described by its atom masses \\(q_{ay,x}=\\mathbb P(X=x,A=a,Y=y)\\), collected into the four-vector \\(q_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x})\\) and the table \\(\\mathbf q=(q_x)_{x=1}^d\\); these determine the cell mass \\(p_x=\\mathbb P(X=x)\\), the propensity \\(\\pi_x=\\mathbb P(A=1\\mid X=x)\\) and the outcome regressions \\(\\mu_{ax}=E_{\\mathbb P}[Y\\mid A=a,X=x]\\) on occupied cells. For a fixed overlap constant \\(0<\\epsilon<1/2\\), \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) is the class of such laws whose occupied cells satisfy \\(\\epsilon\\le\\pi_x\\le 1-\\epsilon\\); the cell masses are otherwise unrestricted and null cells are allowed. The sampling model is \\(n\\) independent observations \\(O_1,\\ldots,O_n\\) with common law \\(\\mathbb P\\), indexed by \\(i\\in\\{1,\\ldots,n\\}\\). The estimation target is \\(\\Psi(\\mathbb P)=\\sum_{x=1}^d p_x\\max_{a}\\mu_{ax}\\), the loss is squared error, and \\(\\mathfrak R_{n,d,\\epsilon}\\) is the infimum over all measurable estimators of the worst-case risk over \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\). The rate scale is \\(L_d=\\log(ed)\\), and \\(c_\\epsilon,C_\\epsilon\\) denote the two constants of the frontier. — Encoding: `Obs d := Fin d × Bool × Bool`, `structure DiscreteLaw (d) where pmf : PMF (Obs d)`, `obsLaw P := P.pmf.toMeasure`, `productLaw P n := Measure.pi (fun _ : Fin n => obsLaw P)`. Risk uses `Causalean.Stat.sqRisk` (Causalean/Stat/Minimax/MinimaxRisk.lean:180) and the minimax value uses `Causalean.Stat.minimaxValue` (Causalean/Stat/Minimax/MinimaxValue.lean:59) at `E = {f : (Fin n → Obs d) → ℝ // Measurable f}`, `Θ = the class subtype`. WORLD-CHOICE SEARCH TRACE: surveyed `Causalean/Estimation/MinimaxATE/Model.lean` (`ValidDGP`, `obsLaw`, `minimaxMiss`) — bypass-justified: that world fixes a uniform covariate marginal and indexes the class by nuisance-estimator quality `(mhat, ghat, εg, εm)`, whereas this note needs arbitrary/null cell masses and a class indexed only by overlap; surveyed `Causalean/Estimation/Efficiency/`, `Causalean/Stat/Nonparametric/` — different (semiparametric/smooth) abstraction. ANALOGOUS MODULE (same world, same four-cell overlap cone, different estimand): `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:26-198` (`Obs`, `DiscreteLaw`, `jointMass`, `cellVector`, `cellMass`, `armMass`, `propensity`, `outcomeMean`, `Overlap`, `productLaw`, `mse`, `minimaxRisk`) — F2 should mirror that encoding verbatim; it is a sibling CausalSmith run, not an importable curated dependency (no CausalSmith run imports another run's modules), so the definitions are re-declared locally in this run's `Basic.lean`.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S2",
+          "kind": "setup",
+          "label": "Setup S-2",
+          "nl": "A finite binary potential-outcome overlay on the same alphabet. A full-data law \\(P\\) is a law of \\((X,A,Y,Y(0),Y(1))\\) with \\(X\\in[d]\\) and \\(A,Y,Y(0),Y(1)\\in\\{0,1\\}\\). Its observed margin \\(\\operatorname{Obs}(P)\\) is the law of \\((X,A,Y)\\). Under consistency \\(Y=Y(A)\\) and armwise conditional exchangeability \\(Y(a)\\perp A\\mid X\\), \\(P\\) carries the causal optimal-treatment value \\(V^\\star(P)=E_P[\\max_{a}E_P\\{Y(a)\\mid X\\}]\\). The causal completion class \\(\\mathcal P_{d,\\epsilon}\\) collects the full-data laws satisfying both causal conditions whose observed margin lies in the overlap class of \\(\\mathrm{S1}\\). — Encoding: `FullObs d := Fin d × Bool × Bool × Bool × Bool`, `structure PotentialLaw (d) where pmf : PMF (FullObs d)`, `observedMarginal Q := ⟨Q.pmf.map (fun z => (z.1, z.2.1, z.2.2.1))⟩`. SEARCH TRACE: grepped `Causalean/PO/` for `Consistency`, `CondIndepCF`, `POSystem`, `POVar` — found `Causalean.PO.Consistency` (Causalean/PO/Assumptions/Consistency.lean:53), `Causalean.PO.POSystem.CondIndepCF` (Causalean/PO/Assumptions/IndepCF.lean:105), `Causalean.PO.Assumptions.ConsistencyLemmas.*`. BYPASS-JUSTIFIED: those are regime-indexed measure-theoretic potential-outcome systems over an abstract `P.Ω` with counterfactual variables and `EventCondExp` conditioning; here every variable is a coordinate of a five-fold finite Bool/Fin product and the whole identification argument is finite summation over atoms, so the regime-indexed API is a strictly different abstraction level and would add a measure-theoretic layer with no mathematical content. The same bypass was taken and accepted in the sibling four-cell run (`CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:1-10, 204-241`), which is the ANALOGOUS MODULE for `PotentialLaw`, `Consistency`, `ConditionalExchangeability`, `poAtom`, `observedMarginal`.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S3",
+          "kind": "setup",
+          "label": "Setup S-3",
+          "nl": "The four-cell analytic cone and the Poissonized pilot/evaluation construction. Write \\(\\mathcal J=\\{(0,0),(0,1),(1,0),(1,1)\\}\\) with generic coordinate \\(\\jmath\\), and for \\(u\\in\\mathbb R_+^4\\) put \\(s_a(u)=u_{a0}+u_{a1}\\) and \\(s(u)=s_0(u)+s_1(u)\\). The overlap cone is \\(\\mathcal C_\\epsilon=\\{u\\in\\mathbb R_+^4:\\epsilon s(u)\\le s_1(u)\\le(1-\\epsilon)s(u)\\}\\), and \\(\\bar f_\\epsilon\\) is a globally Lipschitz extension to all of \\(\\mathbb R_+^4\\) of the cell contribution to the target. Fixed universal numerical constants \\(H_0>0\\), \\(0<\\kappa<1\\) and a cutoff \\(D_0\\in\\mathbb N\\) calibrate the Jackson degree \\(K_d=\\max\\{2,\\lfloor\\kappa L_d\\rfloor\\}\\) and the one-dimensional order-four Jackson kernel \\(J_{K_d}\\). An auxiliary count \\(M\\sim\\operatorname{Pois}(n/4)\\) and independent fair marks \\(B_i\\in\\{0,1\\}\\) split the included observations into pilot counts \\(N'_{\\jmath,x}\\) and evaluation counts \\(N_{\\jmath,x}\\). The pilot builds a random rectangle \\(Q_x\\subseteq\\mathbb R_+^4\\), the kernel builds the tensor polynomial \\(P_{x,K_d}\\) on \\(Q_x\\), the centered factorial operator \\(U_h(N;z)\\) lifts monomials to unbiased statistics of the evaluation counts, and clipping produces the cell estimator \\(T_x^{\\mathrm{JF}}\\). Summing, projecting to \\([0,1]\\) and Rao--Blackwellizing gives \\(\\widehat V_{n,d}^{\\mathrm{JF}}\\), which falls back to the empirical-ratio statistic \\(\\widehat V_{n,d}^{\\mathrm{ER}}\\) on bounded alphabets. \\(\\mathscr H_\\epsilon^{\\mathrm{const}}\\) names the (open) sharp-constant derivation route attached to this construction. — Encoding: `Cell := Fin 2 × Fin 2` (so \\(\\mathcal J\\) is `Cell` and \\(\\jmath\\) ranges over it), \\(u\\) is `Cell → ℝ`, \\(Q_x\\) is a pair of endpoint functions `Cell → ℝ`, \\(P_{x,K_d}\\) is `MvPolynomial Cell ℝ`, \\(U_h(N;z)\\) is a `ℕ → ℝ → ℝ` built from `Nat.descFactorial`. SEARCH TRACE (Causalean CLI concept words: `Jackson kernel`, `Fejer kernel`, `trigonometric polynomial approximation`, `positive kernel convolution`, `factorial moment unbiased estimator`, `Poisson splitting marks pilot`): Causalean HAS the marked-Poisson layer — `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.finiteMarkedPoissonSampleLaw`, `.map_restrictPartition_finiteMarkedPoissonSampleLaw`, `.finitePoissonSampleLaw_map_count` — which supplies the Poisson-splitting independence of \\((N'_{\\jmath,x},N_{\\jmath,x})\\) across cells; and the even-trig-polynomial layer — `Causalean.Mathlib.Analysis.BernsteinSzegoTrig.IsTrigPolyLE`, `.cosComp_isTrigPolyLE`, `.cos_nat_mul_isTrigPolyLE` — which supplies the `even trigonometric polynomial of degree D ↔ polynomial of degree D in cos` bridge that `def:jackson-kernel` needs. Causalean does NOT contain a Jackson/Fejér kernel: `Causalean/Stat/Nonparametric/SeriesSieve/Jackson.lean` despite its filename contains only `piecewiseTaylorApprox` / `piecewiseTaylor_sup_approx_rate` (piecewise Taylor sieve, not the Jackson convolution kernel) — that is a filename false positive, confirmed by reading its declarations. MATHLIB-SIDE CHECK: `lean_leansearch \"Jackson kernel trigonometric polynomial approximation modulus of continuity\"` returned only `ContinuousMap.modulus`, `bernsteinApproximation`, `exists_polynomial_near_of_continuousOn` — no Jackson/Fejér kernel and no quantitative degree-\\(K\\) rate; `lean_loogle \"Polynomial.Chebyshev.T\"` confirms the Chebyshev basis (`Polynomial.Chebyshev.T`, `T_mul`, `T_real_cos`) is available for the coefficient-envelope half. So the kernel itself is new local construction over reused trig-polynomial and Poisson substrate.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S4",
+          "kind": "setup",
+          "label": "Setup S-4",
+          "nl": "The Poissonized moment-matching lower-bound experiment. \\(\\Delta_d=\\{R\\in\\mathbb R_+^d:\\sum_x R_x=1\\}\\) is the probability simplex, and \\(\\mathbf P,\\mathbf Q\\in\\Delta_d\\) are the two multinomial laws of the normalized two-sample distance experiment. The dense hard submodel is indexed by a contrast vector \\(\\theta\\in[-1/2,1/2]^d\\) through the equal-mass law \\(P_\\theta^{\\mathrm{dense}}\\) with \\(p_x=1/d\\), \\(\\pi_x=1/2\\) and \\(\\mu_{1x}=(1+\\theta_x)/2\\), \\(\\mu_{0x}=(1-\\theta_x)/2\\). For an even degree \\(K\\), \\(E_K=\\inf_{\\deg p\\le K}\\sup_{|t|\\le1}\\bigl||t|-p(t)\\bigr|\\) is the best even-polynomial approximation error of the absolute value, and \\(\\nu_{0,K},\\nu_{1,K}\\) are symmetric probability measures on \\([-1,1]\\) whose moments agree through degree \\(K\\) with absolute-moment gap \\(2E_K\\). Setting \\(K_d^{\\mathrm{lb}}=2\\lceil 4L_d\\rceil\\), \\(\\lambda_{n,d}=2n/d\\) and \\(a_{n,d}=\\sqrt{K_d^{\\mathrm{lb}}/(64\\lambda_{n,d})}\\), the scaled product priors \\(\\Pi_{0,n,d},\\Pi_{1,n,d}\\) on \\([-a_{n,d},a_{n,d}]^d\\) induce the two observation mixtures \\(\\mathbb M_{0,n,d},\\mathbb M_{1,n,d}\\) when the total sample size is an independent \\(\\operatorname{Pois}(2n)\\). Here \\(r\\) indexes the exponential likelihood expansion, \\(L_{\\theta_x}\\) is the one-cell Poisson likelihood ratio against \\(\\theta_x=0\\), \\(\\Delta_{n,d}^{\\mathrm{dense}}\\) is the separation of the two prior means of the target, and \\(\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}\\) is the minimax squared risk in that Poissonized experiment. — SEARCH TRACE (concept words: `two point lower bound squared loss`, `total variation testing error`, `chi square tensorization product`, `Poisson depoissonization fixed sample transfer`, `fuzzy hypotheses mixture prior`): Causalean HAS the whole lower-bound plumbing — `Causalean.Stat.tvDist` and `Causalean.Stat.one_sub_tvDist_le_test` (Minimax/TotalVariation.lean:49,107), `Causalean.Stat.half_one_sub_tvDist_le_max_error` (Minimax/LeCam.lean:76), `Causalean.Stat.two_point_lower_bound_of_tvDist_le` / `two_point_lower_bound_of_chiSqDiv_le` / `iid_two_point_lower_bound` (Minimax/MinimaxRisk.lean:74,105,88), `Causalean.Stat.chiSqDiv_prod` and `one_add_chiSqDiv_pi_iid_general` (Minimax/ChiSquared.lean:184,419), and `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.poisson_two_n_lower_tail` + `map_canonicalPrefixObservations_restrict_count_ge` (Depoissonization.lean:198,163), which is exactly the `apply a fixed-n estimator to the first n observations of a Pois(2n) sample` transfer used at the end of `lem:dense-moment-matching-lower` and in `thm:all-estimator-lower`. Causalean does NOT contain the moment-matched pair \\((\\nu_{0,K},\\nu_{1,K})\\) for \\(|t|\\) nor the value of \\(E_K\\): grepped `Chebyshev|bestApprox|moment matching prior|Bernstein constant` across `Causalean/` — the closest hits are `Causalean/Mathlib/Analysis/BernsteinSzegoTrig/*` (Bernstein--Szegő derivative inequalities, not best approximation of \\(|t|\\)) and `Causalean/Stat/Nonparametric/MomentProblems/*` (score/residual moment programs). MATHLIB-SIDE CHECK: `lean_loogle \"Polynomial.Chebyshev.T\"` and `lean_leansearch` for best uniform approximation of the absolute value return nothing quantitative. That absence is precisely the frozen cited gate `lem:cai-low-absolute-moment-priors`.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "definition",
+      "items": [
+        {
+          "obj_id": "def:model-class",
+          "kind": "definition",
+          "label": "Definition P-1",
+          "nl": "\\(\\mathcal P_{d,\\epsilon}:=\\{P:P\\text{ is a law of }(X,A,Y,Y(0),Y(1))\\text{ with }X\\in[d],\\ A,Y,Y(0),Y(1)\\in\\{0,1\\},\\ P\\text{ satisfies }\\mathrm{ass:consistency}\\text{ and }\\mathrm{ass:conditional-exchangeability},\\text{ and }\\operatorname{Obs}(P)\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\}\\) for every \\(d\\geq2\\) and \\(0<\\epsilon<1/2\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.CausalCompletionClass",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:overlap-cone",
+          "kind": "definition",
+          "label": "Definition P-2",
+          "nl": "\\(\\mathcal C_\\epsilon:=\\{u\\in\\mathbb R_+^4:\\epsilon s(u)\\leq s_1(u)\\leq(1-\\epsilon)s(u)\\}\\), where \\(s_a(u)=u_{a0}+u_{a1}\\) and \\(s(u)=s_0(u)+s_1(u)\\).",
+          "lean": {
+            "file": "Helpers/ConeExtension.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.overlapCone",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:global-extension",
+          "kind": "definition",
+          "label": "Definition P-3",
+          "nl": "For \\(u\\in\\mathbb R_+^4\\) with \\(s(u)>0\\), define \\(g_{a,\\epsilon}(u):=s(u)u_{a1}/\\max\\{s_a(u),\\epsilon s(u)\\}\\) and \\(\\bar f_\\epsilon(u):=\\max_{a\\in\\{0,1\\}}g_{a,\\epsilon}(u)\\); set \\(g_{a,\\epsilon}(0)=\\bar f_\\epsilon(0)=0\\).",
+          "lean": {
+            "file": "Helpers/ConeExtension.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.globalCellValueNonnegative",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:oracle-value",
+          "kind": "definition",
+          "label": "Definition P-4",
+          "nl": "\\(V^\\star(P):=E_P[\\max_{a\\in\\{0,1\\}}E_P\\{Y(a)\\mid X\\}]\\).  This is a full-data causal functional; its equality to an observed-law functional is asserted only by \\(\\mathrm{prop:causal-optimal-value-corollary}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.oracleValue",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:empirical-ratio-estimator",
+          "kind": "definition",
+          "label": "Definition P-5",
+          "nl": "Let \\(\\overline N_x=\\sum_{i=1}^n\\mathbf 1\\{X_i=x\\}\\), \\(\\overline N_{ax}=\\sum_{i=1}^n\\mathbf 1\\{X_i=x,A_i=a\\}\\), and \\(\\overline S_{ax}=\\sum_{i=1}^n\\mathbf 1\\{X_i=x,A_i=a,Y_i=1\\}\\). Put \\(\\widehat p_x=\\overline N_x/n\\), \\(\\widehat\\mu_{ax}=\\overline S_{ax}/\\overline N_{ax}\\) with \\(0/0=0\\), and \\(\\widehat V_{n,d}^{\\mathrm{ER}}=\\sum_{x=1}^d\\widehat p_x\\max_a\\widehat\\mu_{ax}\\).",
+          "lean": {
+            "file": "Helpers/Estimator.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.empiricalRatioEstimator",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:jackson-kernel",
+          "kind": "definition",
+          "label": "Definition P-6",
+          "nl": "For integer \\(K_d\\geq2\\), let \\(J_{K_d}(t)=c_{K_d}[\\sin(K_dt/2)/\\sin(t/2)]^4\\) on \\([-\\pi,\\pi]\\), with removable values filled continuously and \\(c_{K_d}\\) chosen so that \\(\\int_{-\\pi}^{\\pi}J_{K_d}(t)\\,dt=1\\). For a rectangle \\(Q_x=\\prod_{\\jmath\\in\\mathcal J}[\\ell_{\\jmath,x},u_{\\jmath,x}]\\) with center \\(b_{\\jmath,x}=(\\ell_{\\jmath,x}+u_{\\jmath,x})/2\\) and radius \\(r_{\\jmath,x}=(u_{\\jmath,x}-\\ell_{\\jmath,x})/2\\), define \\(P_{x,K_d}\\) by the even product convolution \\(P_{x,K_d}(b_x+r_x\\odot\\cos\\theta)=\\int_{[-\\pi,\\pi]^4}\\bar f_\\epsilon(b_x+r_x\\odot\\cos(\\theta+t))\\prod_{\\jmath\\in\\mathcal J}J_{K_d}(t_{\\jmath})\\,dt\\).",
+          "lean": {
+            "file": "Helpers/JacksonKernel.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonTensorPolynomial",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:jackson-factorial-estimator",
+          "kind": "definition",
+          "label": "Definition P-7",
+          "nl": "Put \\(L_d=\\log(ed)\\), \\(m=n/8\\), and \\(K_d=\\max\\{2,\\lfloor\\kappa L_d\\rfloor\\}\\). If \\(d<D_0\\), return \\(\\widehat V_{n,d}^{\\mathrm{ER}}\\); if \\(d\\geq D_0\\) and \\(n<d/L_d\\), return \\(1/2\\). Otherwise draw \\(M\\sim\\operatorname{Pois}(n/4)\\), and on \\(M\\leq n\\) mark the first \\(M\\) observations independently by \\(B_i\\sim\\operatorname{Bernoulli}(1/2)\\), producing independent pilot and evaluation counts \\(N'_{\\jmath,x}\\) and \\(N_{\\jmath,x}\\); on \\(M>n\\), set the randomized output to zero. For \\(M\\leq n\\), let \\(c_{\\jmath,x}=N'_{\\jmath,x}/m\\), \\(h_{\\jmath,x}=H_0\\{\\sqrt{c_{\\jmath,x}L_d/m}+L_d/m\\}\\), \\(\\ell_{\\jmath,x}=\\max\\{0,c_{\\jmath,x}-h_{\\jmath,x}\\}\\), \\(u_{\\jmath,x}=c_{\\jmath,x}+h_{\\jmath,x}\\), and \\(Q_x=\\prod_{\\jmath\\in\\mathcal J}[\\ell_{\\jmath,x},u_{\\jmath,x}]\\), with center \\(b_x\\) and coordinate radii \\(r_x\\). Expand \\(P_{x,K_d}(v)-\\bar f_\\epsilon(b_x)=\\sum_\\alpha b_{x,\\alpha}((v-b_x)/r_x)^\\alpha\\). Define \\(U_h(N;z)=\\sum_{t=0}^h\\binom ht(-z)^{h-t}(N)_t/m^t\\), \\(S_x=(1+\\epsilon^{-1})\\sum_{\\jmath}r_{\\jmath,x}\\), \\(Z_x=\\bar f_\\epsilon(b_x)+\\sum_\\alpha b_{x,\\alpha}\\prod_{\\jmath}U_{\\alpha_{\\jmath}}(N_{\\jmath,x};b_{\\jmath,x})/r_{\\jmath,x}^{\\alpha_{\\jmath}}\\), and \\(T_x^{\\mathrm{JF}}=\\Pi_{[\\bar f_\\epsilon(b_x)-d^{1/4}S_x,\\,\\bar f_\\epsilon(b_x)+d^{1/4}S_x]}(Z_x)\\). The randomized statistic is \\(\\widetilde V=\\Pi_{[0,1]}(\\sum_xT_x^{\\mathrm{JF}})\\). In the Jackson branch define the all-data estimator \\(\\widehat V_{n,d}^{\\mathrm{JF}}:=E[\\widetilde V\\mid O_1,\\ldots,O_n]\\), where the conditional expectation integrates only the displayed auxiliary Poisson count and marks.",
+          "lean": {
+            "file": "Helpers/Estimator.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonFactorialEstimator",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:l1-embedding",
+          "kind": "definition",
+          "label": "Definition P-8",
+          "nl": "For \\((\\mathbf P,\\mathbf Q)\\in\\Delta_d^2\\), set \\(q_{11,x}=q_{00,x}=P_x/4\\) and \\(q_{10,x}=q_{01,x}=Q_x/4\\), and complete the observed law with conditionally independent Bernoulli potential outcomes, treatment propensity \\(1/2\\), and consistency.",
+          "lean": {
+            "file": "Helpers/L1Embedding.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1Embedding",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:observed-margin",
+          "kind": "definition",
+          "label": "Definition P-9",
+          "nl": "For a full-data law \\(P\\), define its observed margin \\(\\operatorname{Obs}(P)\\) by \\(\\operatorname{Obs}(P)\\{(x,a,y)\\}=P(X=x,A=a,Y=y)\\) for \\((x,a,y)\\in[d]\\times\\{0,1\\}^2\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedMarginal",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:observed-model-class",
+          "kind": "definition",
+          "label": "Definition P-10",
+          "nl": "Let \\(\\Delta_d:=\\{p\\in[0,1]^d:\\sum_{x=1}^d p_x=1\\}\\) be the probability simplex.  Then \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) is the set of all laws \\(\\mathbb P\\) on \\([d]\\times\\{0,1\\}^2\\) for which there are \\(p=(p_1,\\ldots,p_d)\\in\\Delta_d\\), \\(\\pi_x\\in[\\epsilon,1-\\epsilon]\\), and \\(\\mu_{ax}\\in[0,1]\\) satisfying, for every \\(x\\in[d]\\) and \\(a\\in\\{0,1\\}\\),\n\\[\n q_{a1,x}=p_x\\pi_x^a(1-\\pi_x)^{1-a}\\mu_{ax},\\qquad\n q_{a0,x}=p_x\\pi_x^a(1-\\pi_x)^{1-a}(1-\\mu_{ax}),\n\\]\nwhere \\(q_{ay,x}=\\mathbb P(X=x,A=a,Y=y)\\), and write \\(q_x=(q_{00,x},q_{01,x},q_{10,x},q_{11,x})\\) for the resulting four-vector in cell \\(x\\).  Thus the support contains at most \\(d\\) covariate cells; the parameters on a null cell may be chosen arbitrarily within their displayed ranges.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.ObservedModelClass",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:observed-optimal-value",
+          "kind": "definition",
+          "label": "Definition P-11",
+          "nl": "For \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) with table \\(\\mathbf q=(q_x)_{x=1}^d\\), define the observed-law optimal-regression functional by \\(\\Psi(\\mathbb P)=\\Psi(\\mathbf q):=\\sum_{x=1}^d p_x\\max_{a\\in\\{0,1\\}}\\mu_{ax}\\).  This value is independent of the permitted choice of \\(\\mu_{ax}\\) on cells with \\(p_x=0\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedOptimalValue",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:dense-moment-matching-construction",
+          "kind": "definition",
+          "label": "Definition P-13",
+          "nl": "For \\(\\theta\\in[-1/2,1/2]^d\\), define \\(P_\\theta^{\\mathrm{dense}}\\) by \\(p_x=1/d\\), \\(\\pi_x=1/2\\), \\(\\mu_{1x}=(1+\\theta_x)/2\\), and \\(\\mu_{0x}=(1-\\theta_x)/2\\). Complete the observed law by drawing \\(Y(0)\\) and \\(Y(1)\\) conditionally independent Bernoulli variables with these means, drawing \\(A\\mid X=x\\sim\\operatorname{Bernoulli}(1/2)\\) independently of the potential outcomes, and setting \\(Y=Y(A)\\). For even \\(K\\), let \\(E_K=\\inf_{p:\\deg(p)\\leq K}\\sup_{t\\in[-1,1]}\\lvert\\lvert t\\rvert-p(t)\\rvert\\), and obtain symmetric probability measures \\(\\nu_{0,K}\\) and \\(\\nu_{1,K}\\) by taking the negative and positive parts of twice a symmetrized norm-one Hahn--Banach measure that annihilates every polynomial of degree at most \\(K\\) and integrates \\(\\lvert t\\rvert\\) to \\(E_K\\). Thus their moments agree through degree \\(K\\) and \\(\\int\\lvert t\\rvert\\,d\\nu_{1,K}-\\int\\lvert t\\rvert\\,d\\nu_{0,K}=2E_K\\). Put \\(K_d^{\\mathrm{lb}}=2\\lceil4L_d\\rceil\\), \\(\\lambda_{n,d}=2n/d\\), and \\(a_{n,d}=\\sqrt{K_d^{\\mathrm{lb}}/(64\\lambda_{n,d})}\\). Let \\(\\Pi_{0,n,d}\\) be the pushforward of \\(\\nu_{0,K_d^{\\mathrm{lb}}}^{\\otimes d}\\) under the coordinatewise scaling map \\(t\\mapsto a_{n,d}t\\), and define \\(\\Pi_{1,n,d}\\) analogously from \\(\\nu_{1,K_d^{\\mathrm{lb}}}^{\\otimes d}\\). Let \\(\\mathbb M_{0,n,d}\\) and \\(\\mathbb M_{1,n,d}\\) be the respective observation mixtures when the total sample size is independent \\(\\operatorname{Pois}(2n)\\). Finally, define \\(\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}:=\\inf_{\\widehat V}\\sup_{\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}}E_{\\mathbb P}[(\\widehat V-\\Psi(\\mathbb P))^2]\\) in that Poissonized experiment and \\(\\Delta_{n,d}^{\\mathrm{dense}}:=E_{\\Pi_{1,n,d}}\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}-E_{\\Pi_{0,n,d}}\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}\\).",
+          "lean": {
+            "file": "Helpers/DenseConstruction.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSubmodel",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:constant-handle",
+          "kind": "definition",
+          "label": "Definition P-14",
+          "nl": "\\(\\mathscr H_\\epsilon^{\\mathrm{const}}\\) is the route that rescales the pilot-local four-cell rectangles by their Poisson noise geometry, optimizes the tensor-polynomial bias--variance functional for \\(\\bar f_\\epsilon\\), and dualizes the approximation constraint into moment-matched observed laws in \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) for the target \\(\\Psi(\\mathbb P)\\).",
+          "lean": {
+            "file": "OpenQuestions.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sharpConstantHandle",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "oeq:sharp-overlap-constant",
+          "kind": "definition",
+          "label": "Definition P-15",
+          "nl": "Along each nonsaturated sequence with \\(d\\to\\infty\\) and \\(d/[n\\log(ed)]\\to0\\), does the normalized risk \\((n\\log(ed)/d)\\mathfrak R_{n,d,\\epsilon}\\) converge to a finite positive limit, and can an estimator attaining that limit be derived through \\(\\mathscr H_\\epsilon^{\\mathrm{const}}\\)?",
+          "lean": {
+            "file": "OpenQuestions.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sharpOverlapConstantQuestion",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "assumption",
+      "items": [
+        {
+          "obj_id": "ass:iid-sampling",
+          "kind": "assumption",
+          "label": "Assumption A-1",
+          "nl": "For each \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\), write \\(O_i=(X_i,A_i,Y_i)\\) for the observed triple of unit \\(i\\).  Then \\(O_1,\\ldots,O_n\\) are independent and have common law \\(\\mathbb P\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.IidSampling",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:consistency",
+          "kind": "assumption",
+          "label": "Assumption A-2",
+          "nl": "\\(Y=Y(A)\\) almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.Consistency",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:conditional-exchangeability",
+          "kind": "assumption",
+          "label": "Assumption A-3",
+          "nl": "For each \\(a\\in\\{0,1\\}\\), \\(Y(a)\\perp A\\mid X\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.ConditionalExchangeability",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:fixed-overlap",
+          "kind": "assumption",
+          "label": "Assumption A-4",
+          "nl": "Write \\([d]:=\\{1,\\ldots,d\\}\\).  For every \\(\\mathbb P\\) under consideration and every \\(x\\in[d]\\) with \\(p_x=\\mathbb P(X=x)>0\\), the conditional probability \\(\\pi_x=\\mathbb P(A=1\\mid X=x)\\) satisfies \\(\\epsilon\\leq\\pi_x\\leq1-\\epsilon\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.Overlap",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "lemma",
+      "items": [
+        {
+          "obj_id": "lem:tensor-jackson-coefficient-envelope",
+          "kind": "lemma",
+          "label": "Lemma lem:tensor-jackson-coefficient-envelope",
+          "nl": "Let \\(K\\ge1\\) be an integer, let \\(f\\) be continuous on the normalized cube \\([-1,1]^{\\mathcal J}\\) indexed by the four coordinates \\(\\jmath\\in\\mathcal J\\), and let \\(B\\ge0\\) satisfy \\(|f(z)|\\le B\\) for every \\(z\\in[-1,1]^{\\mathcal J}\\). Then there is a polynomial \\(\\mathcal R\\) in the four normalized coordinates such that, with cosine applied coordinatewise, \\(\\mathcal R(\\cos\\varphi)=\\int_{[-\\pi,\\pi]^{\\mathcal J}}f\\{\\cos(\\varphi-\\tau)\\}\\prod_{\\jmath\\in\\mathcal J}J_K(\\tau_\\jmath)\\,d\\tau\\) for every angle vector \\(\\varphi:\\mathcal J\\to\\mathbb R\\), where \\(J_K\\) is the order-four Jackson kernel; every multi-index \\(\\beta\\in\\operatorname{supp}(\\mathcal R)\\) satisfies \\(\\beta_\\omega\\le2(K-1)\\) for every coordinate \\(\\omega\\in\\mathcal J\\); the total degree of \\(\\mathcal R\\) is at most \\(8(K-1)\\); and the coefficient one-norm obeys \\(\\sum_{\\beta\\in\\operatorname{supp}(\\mathcal R)}|\\mathcal R_\\beta|\\le2^{40K+20}B\\).",
+          "lean": {
+            "file": "Helpers/JacksonKernel.lean",
+            "decl": "Causalean.Mathlib.Analysis.JacksonApproximation.tensorConvolution_exists_mvPolynomial_four_coeffBound",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:jackson-tensor-extraction",
+          "kind": "lemma",
+          "label": "Lemma lem:jackson-tensor-extraction",
+          "nl": "Let \\(\\epsilon>0\\), let \\(K\\ge2\\) be an integer, and let \\(Q_x=\\prod_{\\jmath\\in\\mathcal J}[\\ell_{\\jmath,x},u_{\\jmath,x}]\\) be a four-coordinate rectangle with nonnegative lower endpoints \\(\\ell_{\\jmath,x}\\ge0\\), center coordinates \\(b_{\\jmath,x}\\), and strictly positive radii \\(r_{\\jmath,x}>0\\). Then there exist a polynomial \\(P_{x,K}\\) in the four physical coordinates and a polynomial \\(\\mathcal R_{x,K}\\) in the four normalized coordinates such that every coordinate degree of \\(P_{x,K}\\) is at most \\(2(K-1)\\); every multi-index \\(\\beta\\in\\operatorname{supp}(\\mathcal R_{x,K})\\) satisfies \\(\\beta_\\omega\\le2(K-1)\\) in each coordinate \\(\\omega\\); the centered evaluation identity \\(P_{x,K}(v)-\\bar f_\\epsilon(b_x)=\\mathcal R_{x,K}(\\{(v_\\jmath-b_{\\jmath,x})/r_{\\jmath,x}\\}_{\\jmath\\in\\mathcal J})\\) holds for every \\(v\\); for every angle vector \\(\\vartheta:\\mathcal J\\to\\mathbb R\\) the value \\(P_{x,K}(b_x+r_x\\odot\\cos\\vartheta)\\) equals the order-\\(K\\) tensor Jackson convolution of \\(\\bar f_\\epsilon\\) precomposed with the affine parametrization of \\(Q_x\\), evaluated at \\(\\vartheta\\); and the normalized coefficient one-norm obeys \\(\\sum_{\\beta\\in\\operatorname{supp}(\\mathcal R_{x,K})}|(\\mathcal R_{x,K})_\\beta|\\le2^{40K+20}(1+\\epsilon^{-1})\\sum_{\\jmath\\in\\mathcal J}r_{\\jmath,x}\\).",
+          "lean": {
+            "file": "Helpers/JacksonKernel.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonTensorPolynomialData_exists",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:jackson-convolution-modulus",
+          "kind": "lemma",
+          "label": "Lemma lem:jackson-convolution-modulus",
+          "nl": "Let \\(K\\ge1\\) be an integer, let \\(f\\) be continuous on the normalized cube \\([-1,1]^{D}\\), let \\(L\\ge0\\), and let \\(a_i\\ge0\\) and \\(b_i\\ge0\\) for \\(i=1,\\ldots,D\\). Fix an angle vector \\(\\varphi\\in\\mathbb R^{D}\\) and suppose that, with cosine applied coordinatewise, \\(|f\\{\\cos(\\varphi-\\tau)\\}-f(\\cos\\varphi)|\\le L\\sum_{i=1}^{D}\\{a_i|\\tau_i|+b_i\\tau_i^2\\}\\) for every shift \\(\\tau\\in\\mathbb R^{D}\\). Then the order-\\(K\\) tensor Jackson convolution \\((\\mathcal J_Kf)(\\varphi)=\\int_{[-\\pi,\\pi]^{D}}f\\{\\cos(\\varphi-\\tau)\\}J_K^{\\otimes D}(\\tau)\\,d\\tau\\), formed from the order-four Jackson kernel \\(J_K\\), satisfies \\(|(\\mathcal J_Kf)(\\varphi)-f(\\cos\\varphi)|\\le L\\sum_{i=1}^{D}\\{32a_i/K+64b_i/K^2\\}\\). The constants \\(32/K\\) and \\(64/K^2\\) are the first absolute moment and the second moment of \\(J_K\\) on \\([-\\pi,\\pi]\\), transported to the tensor kernel by its unit mass in the remaining coordinates.",
+          "lean": {
+            "file": "Helpers/JacksonCertificate.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.tensorConvolution_approx_weighted",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:simultaneous-jackson-certificate",
+          "kind": "lemma",
+          "label": "Lemma L-1",
+          "nl": "Let \\(Q_x=\\prod_{\\jmath\\in\\mathcal J}[\\ell_{\\jmath,x},u_{\\jmath,x}]\\) have center \\(b_x\\) and positive radii \\(r_{\\jmath,x}\\). The single polynomial \\(P_{x,K_d}\\) in \\(\\mathrm{def:jackson-kernel}\\) has coordinate degree \\(2(K_d-1)\\) and satisfies, for every \\(v\\in Q_x\\), \\(\\lvert P_{x,K_d}(v)-\\bar f_\\epsilon(v)\\rvert\\leq C_\\epsilon\\sum_{\\jmath\\in\\mathcal J}\\{\\sqrt{(v_{\\jmath}-\\ell_{\\jmath,x})(u_{\\jmath,x}-v_{\\jmath})}/K_d+r_{\\jmath,x}/K_d^2\\}\\). If \\(P_{x,K_d}(v)-\\bar f_\\epsilon(b_x)=\\sum_\\alpha b_{x,\\alpha}((v-b_x)/r_x)^\\alpha\\), then \\(\\sum_\\alpha\\lvert b_{x,\\alpha}\\rvert\\leq A^{K_d}(1+\\epsilon^{-1})\\sum_{\\jmath}r_{\\jmath,x}\\) for a universal \\(A<\\infty\\). Both bounds hold for the same polynomial when \\(Q_x\\) touches the origin, a coordinate face, or a treatment-effect tie surface.",
+          "lean": {
+            "file": "Helpers/JacksonCertificate.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.simultaneous_jackson_certificate",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:canonical-pilot-bad-moment",
+          "kind": "lemma",
+          "label": "Lemma lem:canonical-pilot-bad-moment",
+          "nl": "Fix a Poissonized scale \\(m>0\\), a logarithmic level \\(L\\ge1\\), and nonnegative coordinate intensities \\(q_\\jmath\\), \\(\\jmath\\in\\mathcal J\\). Let the four pilot counts be independent with \\(N'_{\\jmath,x}\\sim\\operatorname{Pois}(mq_\\jmath)\\), let \\(\\Gamma_x(N')=\\sum_{\\jmath\\in\\mathcal J}[\\lvert N'_{\\jmath,x}/m-q_\\jmath\\rvert+H_0\\{\\sqrt{(N'_{\\jmath,x}/m)L/m}+L/m\\}]\\) be the normalized aggregate pilot score with \\(H_0=1024\\), and let \\(\\mathsf G_x^c=\\{\\exists\\jmath\\in\\mathcal J:\\lvert N'_{\\jmath,x}/m-q_\\jmath\\rvert>(H_0/4)\\{\\sqrt{(N'_{\\jmath,x}/m)L/m}+L/m\\}\\}\\) be the self-normalized bad-pilot event. Then for each power \\(t\\in\\{1,2,4\\}\\), with the explicit universal constant \\(C_t=10^{80(t+1)}\\), \\(E[\\Gamma_x(N')^t\\mathbf 1_{\\mathsf G_x^c}]\\le C_te^{-20L}\\{\\sqrt{(\\sum_{\\jmath\\in\\mathcal J}q_\\jmath)L/m}+L/m\\}^t\\).",
+          "lean": {
+            "file": "Helpers/PilotControl.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotBadMoment",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:good-pilot-radius-sum",
+          "kind": "lemma",
+          "label": "Lemma lem:good-pilot-radius-sum",
+          "nl": "Fix a Poissonized scale \\(m>0\\), an alphabet size \\(d\\ge1\\) with \\(L_d=\\log(ed)\\), and nonnegative coordinate intensities \\(q_\\jmath\\ge0\\) for \\(\\jmath\\in\\mathcal J\\) with total mass \\(p_x=\\sum_{\\jmath\\in\\mathcal J}q_\\jmath\\). Let \\(N'_{\\jmath,x}\\) be a pilot count vector, let \\(c_{\\jmath,x}=N'_{\\jmath,x}/m\\), let \\(h_{\\jmath,x}=H_0\\{\\sqrt{c_{\\jmath,x}L_d/m}+L_d/m\\}\\) with \\(H_0=1024\\), and let \\(Q_x\\) be the canonical pilot rectangle with endpoints \\(\\ell_{\\jmath,x}=\\max\\{0,c_{\\jmath,x}-h_{\\jmath,x}\\}\\) and \\(u_{\\jmath,x}=c_{\\jmath,x}+h_{\\jmath,x}\\) and radii \\(r_{\\jmath,x}=(u_{\\jmath,x}-\\ell_{\\jmath,x})/2\\). If the good-pilot event \\(\\mathsf G_x=\\bigcap_{\\jmath\\in\\mathcal J}\\{|c_{\\jmath,x}-q_\\jmath|\\le h_{\\jmath,x}/4\\}\\) holds, then the aggregate radius satisfies \\(\\sum_{\\jmath\\in\\mathcal J}r_{\\jmath,x}\\le2\\cdot10^{6}\\{\\sqrt{p_xL_d/m}+L_d/m\\}\\), uniformly in the pilot counts and down to zero coordinate intensities.",
+          "lean": {
+            "file": "Helpers/PilotControlPointwise.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotGoodRadiusSum_le",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:jackson-normalized-coefficient-envelope",
+          "kind": "lemma",
+          "label": "Lemma lem:jackson-normalized-coefficient-envelope",
+          "nl": "Let \\(\\epsilon>0\\), let \\(K\\ge2\\) be an integer, and let \\(Q_x=\\prod_{\\jmath\\in\\mathcal J}[\\ell_{\\jmath,x},u_{\\jmath,x}]\\) be a four-coordinate rectangle with \\(\\ell_{\\jmath,x}\\le u_{\\jmath,x}\\), \\(\\ell_{\\jmath,x}\\ge0\\), and radii \\(r_{\\jmath,x}>0\\), with center \\(b_x\\). Let \\(P_{x,K}\\) be the Jackson tensor polynomial attached to \\(Q_x\\) and let \\(\\{b_{x,\\alpha}\\}_{\\alpha\\in\\mathcal A_x}\\) be the coefficients of its centered normalized expansion \\(P_{x,K}(v)-\\bar f_\\epsilon(b_x)=\\sum_{\\alpha\\in\\mathcal A_x}b_{x,\\alpha}\\prod_{\\jmath\\in\\mathcal J}\\{(v_\\jmath-b_{\\jmath,x})/r_{\\jmath,x}\\}^{\\alpha_\\jmath}\\). Then the normalized coefficient envelope \\(\\sum_{\\alpha\\in\\mathcal A_x}|b_{x,\\alpha}|\\le(2^{60})^{K}(1+\\epsilon^{-1})\\sum_{\\jmath\\in\\mathcal J}r_{\\jmath,x}\\) holds, and every \\(\\alpha\\in\\mathcal A_x\\) satisfies \\(\\alpha_\\jmath\\le2(K-1)\\) for every \\(\\jmath\\in\\mathcal J\\).",
+          "lean": {
+            "file": "Helpers/FactorialProductRisk.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonCenteredNormalizedPolynomial_coeffL1_le",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:centered-factorial-pilot-control",
+          "kind": "lemma",
+          "label": "Lemma L-2",
+          "nl": "In the uncapped Poisson comparison experiment induced by \\(M\\) and \\(B_i\\), conditional on the pilot counts the statistics \\(U_h(N;z)\\) satisfy \\(E[U_h(N;z)]=(q-z)^h\\) and \\(E[U_h(N;z)U_t(N;z)]=\\sum_{\\ell=0}^{h\\wedge t}\\binom h\\ell\\binom t\\ell\\ell!(q/m)^\\ell(q-z)^{h+t-2\\ell}\\). With the pilot rectangles and clipping in \\(\\mathrm{def:jackson-factorial-estimator}\\), uniformly over \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\), \\(\\lvert E[T_x^{\\mathrm{JF}}]-\\bar f_\\epsilon(q_x)\\rvert\\leq C_\\epsilon\\{\\sqrt{p_x/(mL_d)}+1/(mL_d)\\}\\) and \\(\\operatorname{Var}(T_x^{\\mathrm{JF}})\\leq C_\\epsilon d^{1/16}\\{p_xL_d/m+L_d^2/m^2\\}\\). The contribution of pilot failure obeys these same local \\(p_x\\)-dependent scales.",
+          "lean": {
+            "file": "Helpers/PilotControlTheorem.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.centered_factorial_pilot_control",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:dense-amplitude-range",
+          "kind": "lemma",
+          "label": "Lemma lem:dense-amplitude-range",
+          "nl": "Let \\(n\\) and \\(d\\) satisfy the dense regime \\(d\\ge2\\) and \\(d^2<n\\). With \\(L_d=\\log(ed)\\), \\(K_d^{\\mathrm{lb}}=2\\lceil4L_d\\rceil\\), \\(\\lambda_{n,d}=2n/d\\), and \\(a_{n,d}=\\sqrt{K_d^{\\mathrm{lb}}/(64\\lambda_{n,d})}\\) as in \\(\\mathrm{def:dense-moment-matching-construction}\\), the dense contrast amplitude satisfies \\(0<a_{n,d}\\) and \\(a_{n,d}\\le1/2\\).",
+          "lean": {
+            "file": "Helpers/DenseConstruction.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseAmplitude_range",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:dense-moment-matching-lower",
+          "kind": "lemma",
+          "label": "Lemma L-3",
+          "nl": "Choose the universal cutoff \\(D_0\\) sufficiently large.  For every \\(d\\geq D_0\\) and \\(n>d^2\\), the construction in \\(\\mathrm{def:dense-moment-matching-construction}\\) has even degree \\(8L_d\\leq K_d^{\\mathrm{lb}}<8L_d+2\\), amplitude \\(a_{n,d}^2=K_d^{\\mathrm{lb}}d/(128n)\\leq1/4\\), and, for every \\(\\theta\\in[-a_{n,d},a_{n,d}]^d\\), an observed margin \\(\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) satisfying \\(p_x=1/d\\), \\(\\pi_x=1/2\\), \\(\\mu_{1x}=(1+\\theta_x)/2\\), \\(\\mu_{0x}=(1-\\theta_x)/2\\), and \\(\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}=1/2+(2d)^{-1}\\sum_{x=1}^d\\lvert\\theta_x\\rvert\\).  The symmetric measures \\(\\nu_{0,K}\\) and \\(\\nu_{1,K}\\) exist for every even \\(K\\), match moments through degree \\(K\\), and have absolute-moment gap \\(2E_K\\) with \\(E_K\\asymp K^{-1}\\).  Consequently \\(\\Delta_{n,d}^{\\mathrm{dense}}=a_{n,d}E_{K_d^{\\mathrm{lb}}}\\asymp a_{n,d}/K_d^{\\mathrm{lb}}\\).  Writing \\(\\lambda_{n,d}=2n/d\\), let \\(L_{\\theta_x}\\) denote the one-cell likelihood ratio at contrast \\(\\theta_x\\) relative to the baseline contrast \\(0\\), and let \\(E_0\\) denote expectation under that baseline one-cell law.  Then \\(E_0[L_{\\theta_x}L_{\\theta_x'}]=\\exp(\\lambda_{n,d}\\theta_x\\theta_x')\\); hence moment matching and tensorization give\n\\[\n\\operatorname{TV}(\\mathbb M_{0,n,d},\\mathbb M_{1,n,d})\n\\leq d\\left\\{\\sum_{r=K_d^{\\mathrm{lb}}+1}^{\\infty}\\frac{(\\lambda_{n,d}a_{n,d}^2)^r}{r!}\\right\\}^{1/2}\n\\leq d\\left\\{\\frac{(e/64)^{K_d^{\\mathrm{lb}}+1}}{1-e/64}\\right\\}^{1/2}\\leq\\frac1{16}.\n\\]\nUnder either product prior, \\(\\operatorname{Var}[\\Psi\\{\\operatorname{Obs}(P_\\theta^{\\mathrm{dense}})\\}]\\leq a_{n,d}^2/(4d)\\), and \\(D_0\\) can be chosen so that each prior assigns probability at most \\(1/8\\) to a deviation of the target from its prior mean exceeding \\(\\Delta_{n,d}^{\\mathrm{dense}}/4\\).  The two fuzzy hypotheses therefore imply \\(\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}\\geq c_\\epsilon(\\Delta_{n,d}^{\\mathrm{dense}})^2\\geq c_\\epsilon d/[nK_d^{\\mathrm{lb}}]\\).  Finally, applying any fixed-sample estimator to the first \\(n\\) observations whenever an independent \\(\\operatorname{Pois}(2n)\\) total count is at least \\(n\\) yields \\(\\mathfrak R_{n,d,\\epsilon}\\geq\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}-P\\{\\operatorname{Pois}(2n)<n\\}\\geq c_\\epsilon d/[n\\log(ed)]\\), after decreasing \\(c_\\epsilon\\).",
+          "lean": {
+            "file": "Helpers/DenseLowerAssembly.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.dense_moment_matching_lower",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "theorem",
+      "items": [
+        {
+          "obj_id": "prop:identification-and-extension",
+          "kind": "theorem",
+          "label": "Theorem T-1",
+          "nl": "For every \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\), one has \\(q_x\\in\\mathcal C_\\epsilon\\) and \\(\\Psi(\\mathbb P)=\\sum_{x=1}^d\\bar f_\\epsilon(q_x)\\).  Moreover, \\(0\\leq\\bar f_\\epsilon(u)\\leq s(u)\\) and \\(\\lvert\\bar f_\\epsilon(u)-\\bar f_\\epsilon(v)\\rvert\\leq(1+\\epsilon^{-1})\\lVert u-v\\rVert_1\\) for all \\(u,v\\in\\mathbb R_+^4\\).  Every \\(\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) has a completion \\(P\\in\\mathcal P_{d,\\epsilon}\\) with \\(\\operatorname{Obs}(P)=\\mathbb P\\), obtained by drawing conditionally independent Bernoulli potential outcomes with means \\(\\mu_{0x},\\mu_{1x}\\), then drawing \\(A\\) independently of their joint vector given \\(X\\), and setting \\(Y=Y(A)\\); conversely, \\(\\operatorname{Obs}(P)\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) for every \\(P\\in\\mathcal P_{d,\\epsilon}\\).",
+          "lean": {
+            "file": "TIdentificationAndExtension.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.identification_and_extension",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:jackson-factorial-upper",
+          "kind": "theorem",
+          "label": "Theorem T-2",
+          "nl": "For every fixed \\(0<\\epsilon<1/2\\), there is \\(C_\\epsilon<\\infty\\) such that the explicit all-data estimator \\(\\widehat V_{n,d}^{\\mathrm{JF}}\\) satisfies \\(\\sup_{\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}}E_{\\mathbb P}[(\\widehat V_{n,d}^{\\mathrm{JF}}-\\Psi(\\mathbb P))^2]\\leq C_\\epsilon\\min\\{1,d/[n\\log(ed)]\\}\\) for every \\(n\\geq1\\) and \\(d\\geq2\\).  The bound permits unknown unequal propensities, arbitrary occupied-cell masses, null cells, outcome means at zero or one, and exact treatment-effect ties.",
+          "lean": {
+            "file": "TJacksonFactorialUpper.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jackson_factorial_upper",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:equal-propensity-l1-reduction",
+          "kind": "theorem",
+          "label": "Theorem T-3",
+          "nl": "Every \\((\\mathbf P,\\mathbf Q)\\in\\Delta_d^2\\) mapped by \\(\\mathrm{def:l1-embedding}\\) has an observed margin in \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) with \\(p_x=(P_x+Q_x)/2\\), \\(\\pi_x=1/2\\), and \\(\\Psi=1/2+\\lVert\\mathbf P-\\mathbf Q\\rVert_1/4\\).  From \\(n\\) draws from each of \\(\\mathbf P\\) and \\(\\mathbf Q\\), an explicit Markov kernel produces exactly \\(n\\) independent observations from that margin, so \\(\\mathfrak R_{n,d,\\epsilon}\\) is at least one sixteenth of the corresponding normalized two-sample \\(L_1\\) minimax mean-squared error.",
+          "lean": {
+            "file": "TEqualPropensityL1Reduction.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.equal_propensity_l1_reduction",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:all-estimator-lower",
+          "kind": "theorem",
+          "label": "Theorem T-4",
+          "nl": "For every fixed \\(0<\\epsilon<1/2\\), there is \\(c_\\epsilon>0\\) such that the observed-law minimax risk satisfies \\(\\mathfrak R_{n,d,\\epsilon}\\geq c_\\epsilon\\min\\{1,d/[n\\log(ed)]\\}\\) for every \\(n\\geq1\\) and \\(d\\geq2\\).  This covers all measurable estimators over \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) by splicing the dense Poisson moment-matching subclass when \\(n>d^2\\), the exact normalized \\(L_1\\) subclass when \\(d/\\log(ed)\\leq n\\leq d^2\\), and null-cell padding plus a regular two-point subclass in the saturated and bounded-alphabet regimes.",
+          "lean": {
+            "file": "TAllEstimatorLower.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.all_estimator_lower",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:matched-minimax-frontier",
+          "kind": "theorem",
+          "label": "Theorem T-5",
+          "nl": "For every fixed \\(0<\\epsilon<1/2\\), there are constants \\(0<c_\\epsilon\\leq C_\\epsilon<\\infty\\) such that, for every \\(n\\geq1\\) and \\(d\\geq2\\),\n\\[\nc_\\epsilon\\min\\{1,d/[n\\log(ed)]\\}\\leq\\mathfrak R_{n,d,\\epsilon}\n\\leq\\sup_{\\mathbb P\\in\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}}E_{\\mathbb P}[(\\widehat V_{n,d}^{\\mathrm{JF}}-\\Psi(\\mathbb P))^2]\n\\leq C_\\epsilon\\min\\{1,d/[n\\log(ed)]\\}.\n\\]\nThrough \\(\\mathrm{prop:causal-optimal-value-corollary}\\), the same risk frontier applies to the causal optimal-treatment value over all causal completions whose observed margins range over \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\).",
+          "lean": {
+            "file": "TMatchedMinimaxFrontier.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.matched_minimax_frontier",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:parent-reduction",
+          "kind": "theorem",
+          "label": "Theorem T-6",
+          "nl": "The matched frontier recovers the archived downgraded predecessor as a corollary on the identical class: uniformly over \\(n\\geq1\\) and \\(d\\geq2\\), the new upper rate is at most a constant multiple of \\(d/n\\), while its lower rate is at least a constant multiple of \\(\\min\\{1,\\sqrt d/n+d/[n\\log(en)]\\}\\). For every \\(2\\leq d<D_0\\), \\(\\widehat V_{n,d}^{\\mathrm{JF}}=\\widehat V_{n,d}^{\\mathrm{ER}}\\). Separately, for every bounded sequence of alphabets, \\(\\mathfrak R_{n,d,\\epsilon}=\\Theta_\\epsilon(n^{-1})\\).",
+          "lean": {
+            "file": "TParentReduction.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.parent_reduction",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:consistency-and-parametric-boundaries",
+          "kind": "theorem",
+          "label": "Theorem T-7",
+          "nl": "Along arbitrary sequences \\(n\\to\\infty\\) with \\(d=d_n\\geq2\\), uniform consistency for estimating \\(\\Psi(\\mathbb P)\\) over \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\) is possible if and only if \\(d=o(n\\log(en))\\).  Moreover, \\(\\mathfrak R_{n,d,\\epsilon}=\\Theta_\\epsilon(n^{-1})\\) if and only if \\(d=O(1)\\).  By \\(\\mathrm{prop:causal-optimal-value-corollary}\\) and observed-margin surjectivity, the same two equivalences hold for estimating \\(V^\\star(P)\\) over \\(\\mathcal P_{d,\\epsilon}\\).",
+          "lean": {
+            "file": "TConsistencyParametricBoundaries.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.consistency_and_parametric_boundaries",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:causal-optimal-value-corollary",
+          "kind": "theorem",
+          "label": "Theorem T-8",
+          "nl": "For every \\(P\\in\\mathcal P_{d,\\epsilon}\\), consistency and armwise conditional exchangeability imply\n\\[\n V^\\star(P)=\\Psi\\{\\operatorname{Obs}(P)\\}\n =\\sum_{x=1}^d p_x\\max_{a\\in\\{0,1\\}}\\mu_{ax}.\n\\]\nThus the observed-law target is the unrestricted optimal-treatment value for every causal completion in \\(\\mathcal P_{d,\\epsilon}\\), while the minimax theorems themselves require only the observed law to lie in \\(\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}\\).",
+          "lean": {
+            "file": "TCausalOptimalValueCorollary.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.causal_optimal_value_corollary",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "cited",
+      "items": [
+        {
+          "obj_id": "lem:cai-low-absolute-moment-priors",
+          "kind": "cited",
+          "label": "Cited result lem:cai-low-absolute-moment-priors",
+          "nl": "For every even integer \\(K\\), let \\(E_K=\\inf_{p:\\deg(p)\\leq K}\\sup_{t\\in[-1,1]}\\lvert\\lvert t\\rvert-p(t)\\rvert\\).  There exist symmetric probability measures \\(\\nu_{0,K}\\) and \\(\\nu_{1,K}\\) on \\([-1,1]\\) whose moments agree through degree \\(K\\) and such that \\(\\int\\lvert t\\rvert\\,d\\nu_{1,K}-\\int\\lvert t\\rvert\\,d\\nu_{0,K}=2E_K\\).  Moreover, there are universal constants \\(0<c<C<\\infty\\) such that \\(c/K\\leq E_K\\leq C/K\\).",
+          "lean": {
+            "file": "Helpers/CitedGates.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.CaiLowAbsoluteMomentPriors",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:jhw-poisson-l1-lower",
+          "kind": "cited",
+          "label": "Cited result lem:jhw-poisson-l1-lower",
+          "nl": "There are positive universal constants such that, whenever \\(d\\geq2\\), \\(n\\) is at least a constant multiple of \\(d/\\log(ed)\\), and \\(\\log(en)\\) is at most a constant multiple of \\(\\log(ed)\\), the minimax mean-squared error for estimating \\(\\lVert\\mathbf P-\\mathbf Q\\rVert_1\\) from two independent samples of respective sizes \\(\\operatorname{Pois}(2n)\\), one from each of \\(\\mathbf P,\\mathbf Q\\in\\Delta_d\\), is bounded below by a positive constant multiple of \\(\\min\\{1,d/[n\\log(en)]\\}\\).",
+          "lean": {
+            "file": "Helpers/CitedGates.lean",
+            "decl": "CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.JhwPoissonL1Lower",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "auxiliary",
+      "items": [
+        {
+          "obj_id": "aux_DiscreteLaw",
+          "kind": "definition",
+          "label": "Definition DiscreteLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_logAlphabet",
+          "kind": "definition",
+          "label": "Definition logAlphabet",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_productLaw",
+          "kind": "definition",
+          "label": "Definition productLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_BoundedAlphabetSequence",
+          "kind": "definition",
+          "label": "Definition BoundedAlphabetSequence",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_causalMinimaxRisk",
+          "kind": "definition",
+          "label": "Definition causalMinimaxRisk",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_jacksonWorstCaseRisk",
+          "kind": "definition",
+          "label": "Definition jacksonWorstCaseRisk",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ParametricRate",
+          "kind": "definition",
+          "label": "Definition ParametricRate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_PotentialLaw",
+          "kind": "definition",
+          "label": "Definition PotentialLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_JacksonTuning",
+          "kind": "definition",
+          "label": "Definition JacksonTuning",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ParametricRateWith",
+          "kind": "definition",
+          "label": "Definition ParametricRateWith",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "observedMarginal_jointMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedMarginal_jointMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedMarginal_cellMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedMarginal_cellMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "consistent_observed_selected_atom",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.consistent_observed_selected_atom",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poRegression_eq_poArmAtom_ratio",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.poRegression_eq_poArmAtom_ratio",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "consistent_observed_armMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.consistent_observed_armMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poArmAtom_total_eq_cellMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.poArmAtom_total_eq_cellMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poRegression_eq_outcomeMean_of_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.poRegression_eq_outcomeMean_of_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePriorTargetMean_formula",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePriorTargetMean_formula",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1_source_singleton",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1_source_singleton",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1_kernel_singleton",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1_kernel_singleton",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1_kernel_atoms",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1_kernel_atoms",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1_kernel_atom_formula",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1_kernel_atom_formula",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1SingleKernel_comp_pair",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1SingleKernel_comp_pair",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedOptimalValue_mem_unitInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedOptimalValue_mem_unitInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uniformlyBounded_of_fintype",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uniformlyBounded_of_fintype",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedRisk_bddAbove",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedRisk_bddAbove",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1Embedding_observed_reduction",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1Embedding_observed_reduction",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1_minimax_transfer",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1_minimax_transfer",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "phaseScale",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.phaseScale",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "rawPhaseScale",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.rawPhaseScale",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "littleOScale",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.littleOScale",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "phase_scale_tendsto_iff_littleO",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.phase_scale_tendsto_iff_littleO",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "risk_zero_iff_phase_scale",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.risk_zero_iff_phase_scale",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "parametric_implies_bounded_alphabet",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.parametric_implies_bounded_alphabet",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bounded_alphabet_sequence_global_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bounded_alphabet_sequence_global_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "completionBernoulliMass",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.completionBernoulliMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "completionFullMass",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.completionFullMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jointMass_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jointMass_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellMass_nonneg",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.cellMass_nonneg",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "outcomeMean_mem_unitInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.outcomeMean_mem_unitInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "completionFullMass_nonneg_sum",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.completionFullMass_nonneg_sum",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "vectorMass_cellVector_optimal",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.vectorMass_cellVector_optimal",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "vectorArmMass_cellVector_optimal",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.vectorArmMass_cellVector_optimal",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellVector_mem_overlapCone_optimal",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.cellVector_mem_overlapCone_optimal",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellValue_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.armCellValue_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "globalCellValue_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.globalCellValue_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellValue_cellVector",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.armCellValue_cellVector",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "globalCellValue_cellVector",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.globalCellValue_cellVector",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_fullMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_fullMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_pmf_toReal",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_pmf_toReal",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "completionFullMass_ofReal_toReal",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.completionFullMass_ofReal_toReal",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_consistency",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_consistency",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_poAtom",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_poAtom",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_poAtom_factorization",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_poAtom_factorization",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_exchangeability",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_exchangeability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_joint_independence",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_joint_independence",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_potential_independence",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_potential_independence",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_observedMarginal",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_observedMarginal",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_construction",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_construction",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bernoulliCompletion_mem_class",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bernoulliCompletion_mem_class",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1CellDistance",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1CellDistance",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "unitRatio_diff_bound",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.unitRatio_diff_bound",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scalarArmValue",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.scalarArmValue",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scalarArmValue_of_low",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.scalarArmValue_of_low",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scalarArmValue_of_high",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.scalarArmValue_of_high",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scalarArmValue_lipschitz_of_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.scalarArmValue_lipschitz_of_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cell_eq_zero_of_vectorMass_eq_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.cell_eq_zero_of_vectorMass_eq_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1CellDistance_zero_left",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1CellDistance_zero_left",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCellValue_lipschitz",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.armCellValue_lipschitz",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "globalCellValue_lipschitz",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.globalCellValue_lipschitz",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellFinFourEquiv",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.cellFinFourEquiv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonAffineFunction",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonAffineFunction",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonSubstrateConvolution",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonSubstrateConvolution",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonTensorPolynomial_exists",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonTensorPolynomial_exists",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "JacksonTensorPolynomialData",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.JacksonTensorPolynomialData",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonTensorPolynomialData_exists",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonTensorPolynomialData_exists",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "tensorConvolution_approx_weighted",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.tensorConvolution_approx_weighted",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "abs_cos_sub_shift_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.abs_cos_sub_shift_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pilotRectangle_radius_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.pilotRectangle_radius_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalJacksonTuning",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalJacksonTuning",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalJacksonTuning_cutoff",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalJacksonTuning_cutoff",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pilotGoodEvent_compl_eq_normalizedBadAny",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.pilotGoodEvent_compl_eq_normalizedBadAny",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalPilotBadMoment",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotBadMoment",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_uncappedMarkedCountMap",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_uncappedMarkedCountMap",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedMarkedCountLaw_count",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedMarkedCountLaw_count",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pilotEvaluationTableLaw_cell",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.pilotEvaluationTableLaw_cell",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fallingFactorial_eq_descFactorial",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fallingFactorial_eq_descFactorial",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_descFactorial_shift",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.poisson_descFactorial_shift",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "summable_poisson_descFactorial",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.summable_poisson_descFactorial",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_fallingFactorial_poisson",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_fallingFactorial_poisson",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integrable_fallingFactorial_poisson",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integrable_fallingFactorial_poisson",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_centeredFactorial_poisson",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_centeredFactorial_poisson",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "conditionalEvaluationExpectation_centeredFactorial",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.conditionalEvaluationExpectation_centeredFactorial",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "descPochhammer_mul_linearization",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.descPochhammer_mul_linearization",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "descFactorial_mul_identity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.descFactorial_mul_identity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integrable_fallingFactorial_mul_poisson",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integrable_fallingFactorial_mul_poisson",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_fallingFactorial_mul_poisson",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_fallingFactorial_mul_poisson",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integrable_centeredFactorial_mul_poisson",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integrable_centeredFactorial_mul_poisson",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_centeredFactorial_mul_poisson_expanded",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_centeredFactorial_mul_poisson_expanded",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "conditionalEvaluationExpectation_centeredFactorial_mul_expanded",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.conditionalEvaluationExpectation_centeredFactorial_mul_expanded",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedAtomicPartition",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedAtomicPartition",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedMarkedHistogram",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedMarkedHistogram",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedMarkedSingletonCounts",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedMarkedSingletonCounts",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_uncappedMarkedHistogram",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_uncappedMarkedHistogram",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "map_finitePoissonSampleLaw_finiteSampleMap_local",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.map_finitePoissonSampleLaw_finiteSampleMap_local",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedMarkedSingletonCounts_eq_histogram_erase",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedMarkedSingletonCounts_eq_histogram_erase",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedMarkedHistogram_law",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedMarkedHistogram_law",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedHistogramToTable",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedHistogramToTable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedTableToHistogram",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedTableToHistogram",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedHistogramTableEquiv",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedHistogramTableEquiv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_uncappedHistogramToTable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_uncappedHistogramToTable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedMarkedCountMap_snd",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedMarkedCountMap_snd",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedMarkedCountLaw_table",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedMarkedCountLaw_table",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseLaw_jointMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseLaw_jointMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseLaw_observed_spec",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseLaw_observed_spec",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poisson_power_mgf",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.poisson_power_mgf",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "oneCellLikelihood_inner",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.oneCellLikelihood_inner",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lowerDegree_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.lowerDegree_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lowerDegree_log_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.lowerDegree_log_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseAmplitude_sq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseAmplitude_sq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseConstructionDomain_of_regime",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseConstructionDomain_of_regime",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseBox_observed_spec",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseBox_observed_spec",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePriorPair_exists",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePriorPair_exists",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "bestEvenApproxError_lowerDegree_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.bestEvenApproxError_lowerDegree_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePriorFamily_of_caiLow",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePriorFamily_of_caiLow",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseScaledProductPrior_isProbability",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseScaledProductPrior_isProbability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseLikelihoodTail_eq_exponentialSeriesTail",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseLikelihoodTail_eq_exponentialSeriesTail",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poissonCellIntensity_mul_denseAmplitude_sq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.poissonCellIntensity_mul_denseAmplitude_sq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePriorPair_support_mass_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePriorPair_support_mass_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_oneCellLikelihood",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_oneCellLikelihood",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "oneCellLikelihood_nonnegative_of_abs_le_one",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.oneCellLikelihood_nonnegative_of_abs_le_one",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_oneCellLikelihood_denseSignBaseline",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_oneCellLikelihood_denseSignBaseline",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scaledDenseLikelihood",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.scaledDenseLikelihood",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_scaledDenseLikelihood",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_scaledDenseLikelihood",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scaledDenseLikelihood_nonnegative_of_supported",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.scaledDenseLikelihood_nonnegative_of_supported",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scaledDenseLikelihood_exponentialGram",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.scaledDenseLikelihood_exponentialGram",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseConstructionCertificate",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseConstructionCertificate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSignLaw",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSignLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSignLaw_eq_withDensity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSignLaw_eq_withDensity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "scaledDenseSignLaw_eq_withDensity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.scaledDenseSignLaw_eq_withDensity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSupportedSignKernel",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSupportedSignKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseMomentMatchedSignProduct_tv",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseMomentMatchedSignProduct_tv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_denseTargetAt",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_denseTargetAt",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePriorTarget_variance_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePriorTarget_variance_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePriorTarget_tail_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePriorTarget_tail_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "centeredFactorialPilotExperimentCore",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.centeredFactorialPilotExperimentCore",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePriorPair_variance_and_concentration",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePriorPair_variance_and_concentration",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePriorSetup",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePriorSetup",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pilotGoodEvent_mem_pilotRectangle",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.pilotGoodEvent_mem_pilotRectangle",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pilotRectangle_radius_bounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.pilotRectangle_radius_bounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseZeroContrast",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseZeroContrast",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseLaw_atom_likelihood",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseLaw_atom_likelihood",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseConstructionAndPriorCertificate",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseConstructionAndPriorCertificate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonCellStatistic_eq_clipAround",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonCellStatistic_eq_clipAround",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cast_choose_mul_choose",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.cast_choose_mul_choose",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "rawTerm",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.rawTerm",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "rawTerm_eq_zero_of_min_lt",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.rawTerm_eq_zero_of_min_lt",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "raw_inner_extend",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.raw_inner_extend",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "shiftedTerm",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.shiftedTerm",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "shiftedTerm0",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.shiftedTerm0",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "rawTerm_factor",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.rawTerm_factor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "rawTerm_factor0",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.rawTerm_factor0",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_shiftedTerm0",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sum_shiftedTerm0",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "rawMoment_collapse",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.rawMoment_collapse",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_centeredFactorial_mul_poisson",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_centeredFactorial_mul_poisson",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "chooseSqFactorialSum_le_exp",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.chooseSqFactorialSum_le_exp",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_sq_normalizedCenteredFactorial_le_exp",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_sq_normalizedCenteredFactorial_le_exp",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "abs_clipAround_sub_center_le_radius",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.abs_clipAround_sub_center_le_radius",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalNormalizedAggregateScore_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalNormalizedAggregateScore_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalPilotGeometry_le_normalizedAggregateScore",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotGeometry_le_normalizedAggregateScore",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "centeredNormalizedPolynomial",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.centeredNormalizedPolynomial",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "factorialPolynomialLift",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.factorialPolynomialLift",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "factorialPolynomialLift_expectation",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.factorialPolynomialLift_expectation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "centeredNormalizedPolynomial_eq_of_expansion",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.centeredNormalizedPolynomial_eq_of_expansion",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "centeredNormalizedPolynomial_coeffL1_le_of_expansion",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.centeredNormalizedPolynomial_coeffL1_le_of_expansion",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "normalizedCenteredFactorialMonomial",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.normalizedCenteredFactorialMonomial",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "normalizedCenteredFactorialMonomial_memLp_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.normalizedCenteredFactorialMonomial_memLp_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_sq_normalizedCenteredFactorialMonomial_le_exp",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_sq_normalizedCenteredFactorialMonomial_le_exp",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_sq_normalizedCenteredFactorialMonomial_le_exp_degree",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_sq_normalizedCenteredFactorialMonomial_le_exp_degree",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "factorialPolynomialLift_sq_le_coeffL1",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.factorialPolynomialLift_sq_le_coeffL1",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalPilot_noiseToRadius_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilot_noiseToRadius_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalJacksonCellError_le_normalizedAggregateScore",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalJacksonCellError_le_normalizedAggregateScore",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalPilotFailureIntegrand_le_badScore",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotFailureIntegrand_le_badScore",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalPilotFailureSqIntegrand_le_badScoreSq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotFailureSqIntegrand_le_badScoreSq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalJacksonDegree_log_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalJacksonDegree_log_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalPilotGoodRadiusSum_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotGoodRadiusSum_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalJacksonCoefficientGrowth",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalJacksonCoefficientGrowth",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonCenteredNormalizedPolynomial_coeffL1_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonCenteredNormalizedPolynomial_coeffL1_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalGoodPilotFactorialLift_sq_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalGoodPilotFactorialLift_sq_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalGoodPilotConditionalBias",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalGoodPilotConditionalBias",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalGoodPilotConditionalMSE",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalGoodPilotConditionalMSE",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalNormalizedAggregateScore_memLp_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalNormalizedAggregateScore_memLp_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalPilotFailureBounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotFailureBounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalLogPowerBounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalLogPowerBounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalPilotGoodSqrtWidth_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalPilotGoodSqrtWidth_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalLogSquaredPowerBounds",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalLogSquaredPowerBounds",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_cell_sqrt_mul_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sum_cell_sqrt_mul_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseObservationKernel_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseObservationKernel_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseObservationMixture_eq_priorPredictive",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseObservationMixture_eq_priorPredictive",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonUncappedStatistic",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonUncappedStatistic",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_jacksonUncappedStatistic",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_jacksonUncappedStatistic",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonUncappedStatistic_mem_unitInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonUncappedStatistic_mem_unitInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_fin_prefix_indicator",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sum_fin_prefix_indicator",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "uncappedMarkedCountMap_prefix_table",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.uncappedMarkedCountMap_prefix_table",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonUncappedStatistic_prefix",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonUncappedStatistic_prefix",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "raoBlackwell_jacksonUncappedStatistic_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.raoBlackwell_jacksonUncappedStatistic_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonRandomizedStatistic_mem_unitInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonRandomizedStatistic_mem_unitInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonFactorialEstimator_eq_marked_raoBlackwell",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonFactorialEstimator_eq_marked_raoBlackwell",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sqRisk_marked_raoBlackwell_jackson_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sqRisk_marked_raoBlackwell_jackson_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fairMarkLaw_eq_pi_uncappedFairMarkLaw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fairMarkLaw_eq_pi_uncappedFairMarkLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fairObservationMarkKernel",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fairObservationMarkKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fairObservationMarkKernel.isMarkovKernel",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fairObservationMarkKernel.isMarkovKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fairObservationMarkKernel_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fairObservationMarkKernel_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finProductFairObservationMarkKernel_apply",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.finProductFairObservationMarkKernel_apply",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "kernelMean_finProductFairObservationMarkKernel",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.kernelMean_finProductFairObservationMarkKernel",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fairObservationMarkKernel_comp_obsLaw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fairObservationMarkKernel_comp_obsLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finProductFairObservationMarkKernel_comp_productLaw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.finProductFairObservationMarkKernel_comp_productLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sqRisk_jacksonFactorialEstimator_le_marked",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sqRisk_jacksonFactorialEstimator_le_marked",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedBinaryMark",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedBinaryMark",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "categoryMass_obsLaw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.categoryMass_obsLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armCategoryMass_obsLaw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.armCategoryMass_obsLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "categoryCount_eq_sampleCellCount",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.categoryCount_eq_sampleCellCount",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "categoryArmCount_eq_sampleArmCount",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.categoryArmCount_eq_sampleArmCount",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "armMarkSum_eq_sampleSuccessCount",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.armMarkSum_eq_sampleSuccessCount",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "totalizedArmMean_eq_sampleRatio",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.totalizedArmMean_eq_sampleRatio",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fixedStratumArmScore_singleton_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fixedStratumArmScore_singleton_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_observedBinaryMark_armCategory",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_observedBinaryMark_armCategory",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "outcomeMean_mem_unitInterval_empirical",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.outcomeMean_mem_unitInterval_empirical",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_observedBinaryResidual_eq_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_observedBinaryResidual_eq_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedArmResidual_memLp_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedArmResidual_memLp_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "integral_observedBinaryResidual_sq_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.integral_observedBinaryResidual_sq_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedOverlap_armMass_lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedOverlap_armMass_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fixedStratumArmTarget_singleton_eq",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fixedStratumArmTarget_singleton_eq",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "nonneg_mul_exp_neg_le_inv",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.nonneg_mul_exp_neg_le_inv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "missingArmEnvelope_singleton_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.missingArmEnvelope_singleton_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "cellMass_le_one_empirical",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.cellMass_le_one_empirical",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fixedStratumArmScore_singleton_mse_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fixedStratumArmScore_singleton_mse_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalRatio_eq_max_armScores",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.empiricalRatio_eq_max_armScores",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedOptimalValue_eq_max_armTargets",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedOptimalValue_eq_max_armTargets",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalRatio_pointwise_sq_le_armScores",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.empiricalRatio_pointwise_sq_le_armScores",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalRatio_sqRisk_two_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.empiricalRatio_sqRisk_two_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sampleSuccessCount_le_sampleArmCount",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sampleSuccessCount_le_sampleArmCount",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sum_sampleCellCount",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sum_sampleCellCount",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "empiricalRatioEstimator_mem_unitInterval",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.empiricalRatioEstimator_mem_unitInterval",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sumCellBias_sq_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sumCellBias_sq_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalJacksonCellStatistic_memLp_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalJacksonCellStatistic_memLp_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sumIndependentCellRisk_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sumIndependentCellRisk_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pilotEvaluationTableLaw_pairing",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.pilotEvaluationTableLaw_pairing",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sqRisk_jacksonUncapped_eq_pairTable",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sqRisk_jacksonUncapped_eq_pairTable",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sq_clip_unitInterval_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sq_clip_unitInterval_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sqRisk_jacksonUncapped_le_cellRisk",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sqRisk_jacksonUncapped_le_cellRisk",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "canonicalVarianceLogAbsorption",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.canonicalVarianceLogAbsorption",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sqRisk_jacksonUncapped_le_rate",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sqRisk_jacksonUncapped_le_rate",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseFuzzyMinimax_lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseFuzzyMinimax_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "observedOptimalValue_mem_unitInterval_denseAssembly",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.observedOptimalValue_mem_unitInterval_denseAssembly",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseFuzzyMinimax_to_poissonRisk",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseFuzzyMinimax_to_poissonRisk",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fuzzyMinimaxSquaredRisk_ne_top_of_unitTarget",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fuzzyMinimaxSquaredRisk_ne_top_of_unitTarget",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseFuzzyLower_to_poissonRisk",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseFuzzyLower_to_poissonRisk",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fixedPrefixObservations",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fixedPrefixObservations",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_fixedPrefixObservations",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_fixedPrefixObservations",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "map_fixedPrefixObservations_restrict_count_ge",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.map_fixedPrefixObservations_restrict_count_ge",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePrefixPoissonEstimator",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePrefixPoissonEstimator",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sq_clip_unitInterval_le_denseDepoissonization",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.sq_clip_unitInterval_le_denseDepoissonization",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poissonObservedRisk_densePrefix_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.poissonObservedRisk_densePrefix_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "minimaxRisk_ge_poissonOptimalValueRisk_sub_lowerTail",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.minimaxRisk_ge_poissonOptimalValueRisk_sub_lowerTail",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "eventually_densePrior_concentration_scale",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.eventually_densePrior_concentration_scale",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePriorSeparation_sq_lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePriorSeparation_sq_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "tvDist_bind_le_denseRegrouping",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.tvDist_bind_le_denseRegrouping",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseLikelihoodTail_le_geometric",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseLikelihoodTail_le_geometric",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "eventually_denseGeometric_tv_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.eventually_denseGeometric_tv_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "eventually_densePoissonTail_absorbed",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.eventually_densePoissonTail_absorbed",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseObservedAtomMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseObservedAtomMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finitePoissonSampleLaw_singleton_denseSufficiency",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.finitePoissonSampleLaw_singleton_denseSufficiency",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseObservedAtomMeasure_likelihood",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseObservedAtomMeasure_likelihood",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSampleLikelihoodENN",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSampleLikelihoodENN",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePoissonSample_singleton_likelihood",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePoissonSample_singleton_likelihood",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSignStatistic",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSignStatistic",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_denseSignStatistic",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_denseSignStatistic",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSampleLikelihoodENN_factors",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSampleLikelihoodENN_factors",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_denseSampleLikelihoodENN",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_denseSampleLikelihoodENN",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePoissonSampleLaw_eq_withDensity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePoissonSampleLaw_eq_withDensity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "map_withDensity_comp_singleton",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.map_withDensity_comp_singleton",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "condDistrib_tilt_eq_of_factor",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.condDistrib_tilt_eq_of_factor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ae_singleton_measure_ne_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.ae_singleton_measure_ne_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "condDistrib_reconstruct_withDensity_factor",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.condDistrib_reconstruct_withDensity_factor",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSignCell",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSignCell",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_denseSignCell",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_denseSignCell",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSignCell_mass_zero",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSignCell_mass_zero",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseRegroupCounts",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseRegroupCounts",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_denseRegroupCounts",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_denseRegroupCounts",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSignStatistic_eq_regroupHistogram",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSignStatistic_eq_regroupHistogram",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "map_denseRegroupCounts_pi_poisson",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.map_denseRegroupCounts_pi_poisson",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "map_denseSignStatistic_baseline",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.map_denseSignStatistic_baseline",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "map_denseSignStatistic_denseLaw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.map_denseSignStatistic_denseLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finitePoissonHistogram",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.finitePoissonHistogram",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measurable_finitePoissonHistogram",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.measurable_finitePoissonHistogram",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "map_finitePoissonSampleLaw_finiteSampleMap_dense",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.map_finitePoissonSampleLaw_finiteSampleMap_dense",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "finitePoissonHistogram_law",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.finitePoissonHistogram_law",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "densePoissonSampleLaw_reconstruct",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.densePoissonSampleLaw_reconstruct",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSupportedSignKernel_apply_of_abs_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSupportedSignKernel_apply_of_abs_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseSupportedSignKernel_isProbability",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseSupportedSignKernel_isProbability",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "map_denseObservationMixture_eq_productPriorPredictive",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.map_denseObservationMixture_eq_productPriorPredictive",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseObservationMixture_reconstruct_from_product",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseObservationMixture_reconstruct_from_product",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "denseObservationMixtures_tv_le_product",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.denseObservationMixtures_tv_le_product",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "l1Distance_nonneg_le_two",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.l1Distance_nonneg_le_two",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fixedL1Risk_bddAbove",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fixedL1Risk_bddAbove",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "poissonL1Risk_pairedHistogram_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.poissonL1Risk_pairedHistogram_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "fixedL1MinimaxRisk_ge_poisson_sub_expTail",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.fixedL1MinimaxRisk_ge_poisson_sub_expTail",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jhw_fixedL1_lower_sub_expTail",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jhw_fixedL1_lower_sub_expTail",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "minimaxRisk_ge_two_model_tv",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.minimaxRisk_ge_two_model_tv",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "logAlphabet_pos",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.logAlphabet_pos",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "logAlphabet_one_le",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.logAlphabet_one_le",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "eventually_logAlphabet_le_half",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.eventually_logAlphabet_le_half",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "pairedTail_cutoff",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.pairedTail_cutoff",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "saturatedAlphabet",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.saturatedAlphabet",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "saturatedAlphabet_properties",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.saturatedAlphabet_properties",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "regularNullLaw",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.regularNullLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "regularPerturbedLaw",
+          "kind": "definition",
+          "label": "Definition CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.regularPerturbedLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "regularNullLaw_jointMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.regularNullLaw_jointMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "regularPerturbedLaw_jointMass",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.regularPerturbedLaw_jointMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "regularNullLaw_model",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.regularNullLaw_model",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "regularPerturbedLaw_model",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.regularPerturbedLaw_model",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "regularNullLaw_value",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.regularNullLaw_value",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "regularPerturbedLaw_value",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.regularPerturbedLaw_value",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "regular_parametric_lower",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.regular_parametric_lower",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_JacksonTensorPolynomialData",
+          "kind": "definition",
+          "label": "Definition JacksonTensorPolynomialData",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "identification_and_extension_raw",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.identification_and_extension_raw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "jacksonTensorPolynomial_degenerate_exists",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched.jacksonTensorPolynomial_degenerate_exists",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "symbol",
+      "items": [
+        {
+          "obj_id": "sym:\\mathcal J",
+          "kind": "symbol",
+          "label": "\\mathcal J",
+          "nl": "realized by Cell",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\jmath",
+          "kind": "symbol",
+          "label": "\\jmath",
+          "nl": "realized by Cell",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:[d]",
+          "kind": "symbol",
+          "label": "[d]",
+          "nl": "realized by Obs",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:X",
+          "kind": "symbol",
+          "label": "X",
+          "nl": "realized by Obs, ConditionalExchangeability",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:A",
+          "kind": "symbol",
+          "label": "A",
+          "nl": "realized by Obs, Consistency, ConditionalExchangeability",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y",
+          "kind": "symbol",
+          "label": "Y",
+          "nl": "realized by Obs, Consistency",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:O_i",
+          "kind": "symbol",
+          "label": "O_i",
+          "nl": "realized by Obs, productLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbb P",
+          "kind": "symbol",
+          "label": "\\mathbb P",
+          "nl": "realized by DiscreteLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbf q",
+          "kind": "symbol",
+          "label": "\\mathbf q",
+          "nl": "realized by DiscreteLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q_{ay,x}",
+          "kind": "symbol",
+          "label": "q_{ay,x}",
+          "nl": "realized by jointMass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q_x",
+          "kind": "symbol",
+          "label": "q_x",
+          "nl": "realized by cellVector",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:u",
+          "kind": "symbol",
+          "label": "u",
+          "nl": "realized by cellVector, variable@10",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:p_x",
+          "kind": "symbol",
+          "label": "p_x",
+          "nl": "realized by cellMass, Overlap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\pi_x",
+          "kind": "symbol",
+          "label": "\\pi_x",
+          "nl": "realized by propensity, Overlap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mu_{ax}",
+          "kind": "symbol",
+          "label": "\\mu_{ax}",
+          "nl": "realized by outcomeMean",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:i",
+          "kind": "symbol",
+          "label": "i",
+          "nl": "realized by productLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:n",
+          "kind": "symbol",
+          "label": "n",
+          "nl": "realized by variable@82, variable@17, DenseRegime",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:d",
+          "kind": "symbol",
+          "label": "d",
+          "nl": "realized by variable@82, ObservedModelClass, CausalCompletionClass, variable@17, DenseRegime",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\epsilon",
+          "kind": "symbol",
+          "label": "\\epsilon",
+          "nl": "realized by variable@83, ObservedModelClass, CausalCompletionClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:x",
+          "kind": "symbol",
+          "label": "x",
+          "nl": "realized by variable@84",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:a",
+          "kind": "symbol",
+          "label": "a",
+          "nl": "realized by variable@84",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:y",
+          "kind": "symbol",
+          "label": "y",
+          "nl": "realized by variable@84",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y(a)",
+          "kind": "symbol",
+          "label": "Y(a)",
+          "nl": "realized by FullObs, Consistency, ConditionalExchangeability",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P",
+          "kind": "symbol",
+          "label": "P",
+          "nl": "realized by PotentialLaw, variable@111",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\operatorname{Obs}(P)",
+          "kind": "symbol",
+          "label": "\\operatorname{Obs}(P)",
+          "nl": "realized by observedMarginal",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}",
+          "kind": "symbol",
+          "label": "\\mathcal D_{d,\\epsilon}^{\\mathrm{obs}}",
+          "nl": "realized by ObservedModelClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal P_{d,\\epsilon}",
+          "kind": "symbol",
+          "label": "\\mathcal P_{d,\\epsilon}",
+          "nl": "realized by CausalCompletionClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Psi(\\mathbb P)",
+          "kind": "symbol",
+          "label": "\\Psi(\\mathbb P)",
+          "nl": "realized by observedOptimalValue",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:V^\\star(P)",
+          "kind": "symbol",
+          "label": "V^\\star(P)",
+          "nl": "realized by oracleValue",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathfrak R_{n,d,\\epsilon}",
+          "kind": "symbol",
+          "label": "\\mathfrak R_{n,d,\\epsilon}",
+          "nl": "realized by minimaxRisk",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:L_d",
+          "kind": "symbol",
+          "label": "L_d",
+          "nl": "realized by logAlphabet",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\nu_{0,K}",
+          "kind": "symbol",
+          "label": "\\nu_{0,K}",
+          "nl": "realized by CaiLowAbsoluteMomentPriors",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\nu_{1,K}",
+          "kind": "symbol",
+          "label": "\\nu_{1,K}",
+          "nl": "realized by CaiLowAbsoluteMomentPriors",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:s_a(u)",
+          "kind": "symbol",
+          "label": "s_a(u)",
+          "nl": "realized by vectorArmMass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:s(u)",
+          "kind": "symbol",
+          "label": "s(u)",
+          "nl": "realized by vectorMass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal C_\\epsilon",
+          "kind": "symbol",
+          "label": "\\mathcal C_\\epsilon",
+          "nl": "realized by overlapCone",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\bar f_\\epsilon",
+          "kind": "symbol",
+          "label": "\\bar f_\\epsilon",
+          "nl": "realized by globalCellValueNonnegative",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\theta",
+          "kind": "symbol",
+          "label": "\\theta",
+          "nl": "realized by DenseContrast",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P_\\theta^{\\mathrm{dense}}",
+          "kind": "symbol",
+          "label": "P_\\theta^{\\mathrm{dense}}",
+          "nl": "realized by denseLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:K",
+          "kind": "symbol",
+          "label": "K",
+          "nl": "realized by EvenDegree",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:E_K",
+          "kind": "symbol",
+          "label": "E_K",
+          "nl": "realized by bestEvenApproxError",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:K_d^{\\mathrm{lb}}",
+          "kind": "symbol",
+          "label": "K_d^{\\mathrm{lb}}",
+          "nl": "realized by lowerDegree",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\lambda_{n,d}",
+          "kind": "symbol",
+          "label": "\\lambda_{n,d}",
+          "nl": "realized by poissonCellIntensity",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:a_{n,d}",
+          "kind": "symbol",
+          "label": "a_{n,d}",
+          "nl": "realized by denseAmplitude, denseAmplitude_range",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:r",
+          "kind": "symbol",
+          "label": "r",
+          "nl": "realized by oneCellLikelihood",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:L_{\\theta_x}",
+          "kind": "symbol",
+          "label": "L_{\\theta_x}",
+          "nl": "realized by oneCellLikelihood",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Delta_{n,d}^{\\mathrm{dense}}",
+          "kind": "symbol",
+          "label": "\\Delta_{n,d}^{\\mathrm{dense}}",
+          "nl": "realized by densePriorSeparation, densePriorSeparation_range, densePriorMeanSeparation",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Pi_{0,n,d}",
+          "kind": "symbol",
+          "label": "\\Pi_{0,n,d}",
+          "nl": "realized by denseScaledProductPrior",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Pi_{1,n,d}",
+          "kind": "symbol",
+          "label": "\\Pi_{1,n,d}",
+          "nl": "realized by denseScaledProductPrior",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}",
+          "kind": "symbol",
+          "label": "\\mathfrak R^{\\mathrm{Pois}}_{2n,d,\\epsilon}",
+          "nl": "realized by poissonOptimalValueRisk",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbb M_{0,n,d}",
+          "kind": "symbol",
+          "label": "\\mathbb M_{0,n,d}",
+          "nl": "realized by denseObservationMixture",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbb M_{1,n,d}",
+          "kind": "symbol",
+          "label": "\\mathbb M_{1,n,d}",
+          "nl": "realized by denseObservationMixture",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat V_{n,d}^{\\mathrm{ER}}",
+          "kind": "symbol",
+          "label": "\\widehat V_{n,d}^{\\mathrm{ER}}",
+          "nl": "realized by empiricalRatioEstimator",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:H_0",
+          "kind": "symbol",
+          "label": "H_0",
+          "nl": "realized by JacksonTuning",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\kappa",
+          "kind": "symbol",
+          "label": "\\kappa",
+          "nl": "realized by JacksonTuning",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:D_0",
+          "kind": "symbol",
+          "label": "D_0",
+          "nl": "realized by JacksonTuning",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:K_d",
+          "kind": "symbol",
+          "label": "K_d",
+          "nl": "realized by jacksonDegree",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:B_i",
+          "kind": "symbol",
+          "label": "B_i",
+          "nl": "realized by markedCellCount, fairMarkLaw, jacksonRandomizedStatistic, jacksonFactorialEstimator",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Q_x",
+          "kind": "symbol",
+          "label": "Q_x",
+          "nl": "realized by pilotRectangle, jacksonCellStatistic, Rectangle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:N'_{\\jmath,x}",
+          "kind": "symbol",
+          "label": "N'_{\\jmath,x}",
+          "nl": "realized by jacksonCellStatistic",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:N_{\\jmath,x}",
+          "kind": "symbol",
+          "label": "N_{\\jmath,x}",
+          "nl": "realized by jacksonCellStatistic",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:T_x^{\\mathrm{JF}}",
+          "kind": "symbol",
+          "label": "T_x^{\\mathrm{JF}}",
+          "nl": "realized by jacksonCellStatistic",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:M",
+          "kind": "symbol",
+          "label": "M",
+          "nl": "realized by jacksonRandomizedStatistic, jacksonFactorialEstimator",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\widehat V_{n,d}^{\\mathrm{JF}}",
+          "kind": "symbol",
+          "label": "\\widehat V_{n,d}^{\\mathrm{JF}}",
+          "nl": "realized by jacksonFactorialEstimator",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:U_h(N;z)",
+          "kind": "symbol",
+          "label": "U_h(N;z)",
+          "nl": "realized by centeredFactorial",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P_{x,K_d}",
+          "kind": "symbol",
+          "label": "P_{x,K_d}",
+          "nl": "realized by jacksonTensorPolynomial",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Delta_d",
+          "kind": "symbol",
+          "label": "\\Delta_d",
+          "nl": "realized by ProbabilitySimplex",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbf P",
+          "kind": "symbol",
+          "label": "\\mathbf P",
+          "nl": "realized by l1Embedding",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathbf Q",
+          "kind": "symbol",
+          "label": "\\mathbf Q",
+          "nl": "realized by l1Embedding",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathscr H_\\epsilon^{\\mathrm{const}}",
+          "kind": "symbol",
+          "label": "\\mathscr H_\\epsilon^{\\mathrm{const}}",
+          "nl": "realized by sharpConstantHandle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:c_\\epsilon",
+          "kind": "symbol",
+          "label": "c_\\epsilon",
+          "nl": "realized by matched_minimax_frontier",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:C_\\epsilon",
+          "kind": "symbol",
+          "label": "C_\\epsilon",
+          "nl": "realized by matched_minimax_frontier",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    }
+  ]
+}

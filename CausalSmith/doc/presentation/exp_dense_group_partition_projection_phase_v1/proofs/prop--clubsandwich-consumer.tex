@@ -1,0 +1,263 @@
+\begin{proof}[Proof of \cref{obj:prop:clubsandwich-consumer}]
+\begin{enumerate}
+\item
+Write \(T_n\subseteq\{1,\ldots,G_n\}\) for the realized treated-group set, so
+\(|T_n|=G_{1n}\), and write \(C_n=T_n^{c}\), so
+\(|C_n|=G_{0n}=G_n-G_{1n}\).  For a group \(g\), define
+\[
+G_{g,n}:=
+\begin{cases}
+G_{1n},& g\in T_n,\\
+G_{0n},& g\in C_n.
+\end{cases}
+\]
+The assumptions \(G_{1n}\ge2\) and \(G_{0n}\ge2\) imply \(G_{1n}\le G_n\),
+\(G_n>0\), \(M>0\), \(G_{0n}>0\), and the real denominators
+\(G_{1n}\) and \(G_{0n}\) are nonzero.  The two versioned source identities give
+\[
+{\tt sandwich::bread}({\tt fit})
+=
+G_nM\,(X^{\mathsf T}X)^{-1}
+\]
+for the unweighted full-rank least-squares fit
+\citep[R/bread.R, lines 10--15]{Sandwich2026}, and
+\[
+\Sigma
+=
+\widetilde B
+\left\{
+\sum_{g=1}^{G_n}X_g^{\mathsf T}A_ge_ge_g^{\mathsf T}A_g^{\mathsf T}X_g
+\right\}
+\widetilde B
+\]
+for the CR2 call with omitted \({\tt target}\), \({\tt inverse\_var}\), and
+\({\tt form}\)
+\citep[R/lm.R, lines 47--52 and 70--72; R/S3-methods.R, lines 21--33 and
+63--65; R/clubSandwich.R, lines 167--175, 216--225, and 237--287;
+R/CR-adjustments.R, lines 5--7 and 22--42]{ClubSandwich2026}.  The stated bread
+scaling therefore yields
+\[
+\widetilde B=(X^{\mathsf T}X)^{-1}.
+\]
+% lean: clubsandwich_cr2_consumer_identity
+
+\item
+The fitted design has group block
+\[
+X_g=\mathbf 1_M x_g^{\mathsf T},
+\qquad
+x_g=
+\begin{cases}
+(1,1)^{\mathsf T},& g\in T_n,\\
+(1,0)^{\mathsf T},& g\in C_n,
+\end{cases}
+\]
+where \(\mathbf 1_M\) is the \(M\)-vector of ones.  Summing the block
+cross-products gives
+\[
+X^{\mathsf T}X
+=
+\sum_{g=1}^{G_n}X_g^{\mathsf T}X_g
+=
+M
+\begin{pmatrix}
+G_n&G_{1n}\\
+G_{1n}&G_{1n}
+\end{pmatrix}.
+\]
+Since the determinant is \(M^2G_{1n}G_{0n}>0\), inversion gives the entries used
+below:
+\[
+\widetilde B_{10}=\widetilde B_{01}
+=-\frac{1}{MG_{0n}},
+\qquad
+\widetilde B_{11}
+=
+\frac{1}{MG_{0n}}+\frac{1}{MG_{1n}},
+\qquad
+\widetilde B_{00}
+=
+\frac{1}{MG_{0n}}.
+\]
+% lean: clubsandwich_cr2_consumer_identity
+
+\item
+For every group \(g\), the leverage block is
+\[
+H_g=X_g\widetilde B X_g^{\mathsf T}.
+\]
+Using the preceding inverse entries and the two possible values of \(x_g\),
+\[
+(H_g)_{ij}
+=
+\frac{1}{M G_{g,n}},
+\qquad
+1\le i,j\le M.
+\]
+Thus
+\[
+I_M-H_g
+=
+I_M-\frac{1}{G_{g,n}}P_M,
+\qquad
+P_M:=\frac{1}{M}\mathbf 1_M\mathbf 1_M^{\mathsf T}.
+\]
+Let \(q=G_{g,n}\).  Since \(q\ge2\), the symmetric positive-definite matrix
+\(A_g\) satisfying \(A_gA_g(I_M-H_g)=I_M\) is determined by its action on the
+span of \(\mathbf 1_M\) and on its orthogonal complement.  For
+\[
+u:=\mathbf 1_M,
+\qquad
+v_j:=e_j-\frac1M u,
+\]
+one has
+\[
+(I_M-H_g)v_j=v_j,
+\qquad
+(I_M-H_g)u=\frac{q-1}{q}u.
+\]
+The identity \(A_gA_g(I_M-H_g)=I_M\), together with positive definiteness,
+therefore gives
+\[
+A_gv_j=v_j,
+\qquad
+A_gu=\sqrt{\frac{q}{q-1}}\,u.
+\]
+Combining these two relations column by column,
+\[
+(A_g)_{ij}
+=
+\mathbf 1\{i=j\}
++
+\frac{\sqrt{G_{g,n}/(G_{g,n}-1)}-1}{M}.
+\]
+% lean: posDef_rankOne_inverse_sqrt
+
+\item
+Summing the displayed entries down any column gives
+\[
+\sum_{i=1}^{M}(A_g)_{ij}
+=
+\sqrt{\frac{G_{g,n}}{G_{g,n}-1}}.
+\]
+Consequently
+\[
+\mathbf 1_M^{\mathsf T}A_ge_g
+=
+\sum_{i=1}^{M}(A_ge_g)_i
+=
+\sqrt{\frac{G_{g,n}}{G_{g,n}-1}}
+\sum_{j=1}^{M}e_{gj}.
+\]
+The residual-mean condition in the statement says
+\[
+\frac1M\sum_{j=1}^{M}e_{gj}
+=
+H_{g,n}^{\mathrm{obs}}-\bar H_{z_g,n},
+\]
+where
+\[
+H_{g,n}^{\mathrm{obs}}:=\operatorname{obsGroupMean}(Y,\mathbf A_n,\mathbf Z_n;g),
+\qquad
+\bar H_{z,n}:=\operatorname{armObsMean}(Y,\mathbf A_n,\mathbf Z_n;z),
+\]
+and \(z_g=1\) on \(T_n\), \(z_g=0\) on \(C_n\).  Hence
+\[
+\sum_{j=1}^{M}e_{gj}
+=
+M\{H_{g,n}^{\mathrm{obs}}-\bar H_{z_g,n}\}.
+\]
+% lean: clubsandwich_cr2_consumer_identity
+
+\item
+Define the treatment-coordinate adjusted cluster score by
+\[
+q_{g,n}
+:=
+\left[
+\widetilde B\,X_g^{\mathsf T}A_ge_g
+\right]_1 .
+\]
+Using \(X_g=\mathbf 1_Mx_g^{\mathsf T}\), the inverse entries in Step 2, and the
+residual sum from Step 4 gives the two cases
+\[
+q_{g,n}
+=
+\begin{cases}
+\displaystyle
+\sqrt{\frac{G_{1n}}{G_{1n}-1}}\,
+\frac{H_{g,n}^{\mathrm{obs}}-\bar H_{1,n}}{G_{1n}},
+& g\in T_n,\\[1.2em]
+\displaystyle
+-\sqrt{\frac{G_{0n}}{G_{0n}-1}}\,
+\frac{H_{g,n}^{\mathrm{obs}}-\bar H_{0,n}}{G_{0n}},
+& g\in C_n.
+\end{cases}
+\]
+% lean: clubsandwich_cr2_consumer_identity
+
+\item
+Because \(\widetilde B\) is symmetric, each summand in the CR2 sandwich is a
+rank-one outer product after premultiplication and postmultiplication by
+\(\widetilde B\).  Indeed, with
+\[
+P_g:=\widetilde B X_g^{\mathsf T}A_g,
+\]
+\[
+\widetilde B X_g^{\mathsf T}A_ge_ge_g^{\mathsf T}A_g^{\mathsf T}X_g\widetilde B
+=
+P_ge_ge_g^{\mathsf T}P_g^{\mathsf T}
+=
+(P_ge_g)(P_ge_g)^{\mathsf T}.
+\]
+Therefore
+\[
+\Sigma
+=
+\sum_{g=1}^{G_n}
+\left(\widetilde B X_g^{\mathsf T}A_ge_g\right)
+\left(\widetilde B X_g^{\mathsf T}A_ge_g\right)^{\mathsf T},
+\]
+and its treatment-coordinate entry is
+\[
+\Sigma_{11}
+=
+\sum_{g=1}^{G_n}q_{g,n}^{\,2}.
+\]
+% lean: matrix_sandwich_rank_one
+
+\item
+Squaring the two cases in Step 5 and using \(G_{1n},G_{0n}\ge2\) gives
+\[
+\Sigma_{11}
+=
+\sum_{g\in T_n}
+\frac{(H_{g,n}^{\mathrm{obs}}-\bar H_{1,n})^2}{(G_{1n}-1)G_{1n}}
++
+\sum_{g\in C_n}
+\frac{(H_{g,n}^{\mathrm{obs}}-\bar H_{0,n})^2}{(G_{0n}-1)G_{0n}}.
+\]
+Equivalently,
+\[
+\Sigma_{11}
+=
+\frac{1}{G_{1n}}
+\frac{\sum_{g\in T_n}(H_{g,n}^{\mathrm{obs}}-\bar H_{1,n})^2}{G_{1n}-1}
++
+\frac{1}{G_{0n}}
+\frac{\sum_{g\in C_n}(H_{g,n}^{\mathrm{obs}}-\bar H_{0,n})^2}{G_{0n}-1}.
+\]
+By \cref{obj:def:cr2-statistic}, the two displayed fractions are
+\(s_{1,n}^2\) and \(s_{0,n}^2\), respectively, and hence
+\[
+\Sigma_{11}
+=
+\frac{s_{1,n}^2}{G_{1n}}
++
+\frac{s_{0,n}^2}{G_{0n}}
+=
+\widehat V_{\mathrm{CR2},n}.
+\]
+% lean: clubsandwich_cr2_consumer_identity
+\end{enumerate}
+\end{proof}

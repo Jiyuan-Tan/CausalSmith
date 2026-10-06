@@ -1,0 +1,79 @@
+name: site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "CausalSmith/doc/presentation/**"
+      - "CausalSmith/site/**"
+      # The site bundles presentation/shared helpers straight from the tools source
+      # (e.g. lean_decl_name.ts); a change there can break the build (2026-09-10).
+      - "CausalSmith/tools/src/presentation/**"
+      - "CausalSmith/tools/src/shared/**"
+      # The site's /library section renders from the library index and its sidecars,
+      # and its CI representation test compares the index against the Causalean tree —
+      # a commit touching either must rebuild (and re-gate) the site. The narrower
+      # filter let a stale-index fix land without retriggering the failed deploy
+      # (2026-08-26).
+      - "doc/library_index.json"
+      - "doc/library_review/**"
+      - "Causalean/**"
+      - ".github/workflows/site.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: CausalSmith/site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: CausalSmith/site/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npx astro build
+        env:
+          # Served at the custom domain (repo Settings → Pages); GitHub redirects the
+          # old https://jiyuan-tan.github.io/CausalSmith/ URLs here.
+          SITE_URL: https://causalsmith.org
+          SITE_BASE: /
+          SITE_GITHUB_REPO: ${{ github.repository }}
+          # Artifacts stamp the commit of the repo they were generated in, which need not
+          # exist here (this repo's history is a re-commit of it) — resolve source links
+          # against the commit actually being published instead, or they all 404.
+          SITE_GITHUB_REF: ${{ github.sha }}
+          # Enables the paper-page commenting feature. Points at the Cloudflare
+          # Worker that runs the GitHub sign-in handshake and read proxy. Not a
+          # secret — it is fetched from the browser and appears in every built
+          # page. Unset would ship the pages with commenting inert.
+          PUBLIC_COMMENTS_WORKER: https://causalsmith-comments.comments-worker.workers.dev
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: CausalSmith/site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

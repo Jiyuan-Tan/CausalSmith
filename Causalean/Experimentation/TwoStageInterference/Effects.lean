@@ -1,0 +1,231 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Hudgens–Halloran (2008): unbiasedness of the effect estimators
+
+This file proves exact unbiasedness for the two-stage contrast estimators formalized in this
+folder.  The direct contrast uses Hudgens-Halloran's control-minus-treatment sign convention, while
+the indirect and total contrasts retain their control-strategy-minus-ψ orientation. The key step is
+strategy-agnostic version of population unbiasedness: whichever allocation strategy a group of
+groups is selected by (the ones flagged ψ, or the ones flagged
+φ), the population estimator built on that selection is unbiased for the population average
+potential outcome computed under that same strategy.  The three effect estimators are then
+differences of two such selection-specific population estimators, so unbiasedness follows by
+linearity of expectation.
+
+Concretely this generalizes the population-unbiasedness theorem of `Unbiased.lean` from the
+fixed ψ-selection to an arbitrary selection flag, and applies it twice — once for each
+estimator in the contrast — discharging the design propensities required for each selection.
+-/
+
+module
+public import Causalean.Experimentation.TwoStageInterference.Unbiased
+
+/-!
+# Two-stage effect estimators and unbiasedness
+
+This file proves unbiasedness for the Hudgens-Halloran direct, indirect, and total effect
+estimators. The main reusable step is population unbiasedness for either stage-one selection flag,
+which specializes to the ψ-selected and φ-selected groups used in the three causal-effect
+contrasts.
+
+The theorem `E_popEst_pick` generalizes `E_popEst` to either stage-one flag.  The definitions
+`estIndirect` and `estTotal` are the Horvitz-Thompson effect estimators built from the selected
+population estimators, and `E_estDirect`, `E_estIndirect`, and `E_estTotal` prove their exact
+finite-sample unbiasedness for `CE_direct`, `CE_indirect`, and `CE_total`.
+-/
+
+@[expose] public section
+
+open scoped BigOperators
+open Finset
+
+namespace Causalean
+namespace Experimentation
+namespace TwoStageInterference
+
+open DesignBased
+
+variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+variable {n : ι → ℕ}
+
+omit [Fintype ι] [DecidableEq ι] in
+/-- The `pick`-parameterized summand of the population estimator: on the groups selected by the
+flag `pick`, the summand equals the stage-1 selection indicator times the within-group
+estimator, packaging it for the `E_compound_factor` stage-2 collapse. -/
+private lemma popEst_summand_pick (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
+    (z : Bool) (m : ι → ℝ) (pick : Bool) (i : ι)
+    (sw : StratAssign ι × ∀ i, WAssign n i) :
+    (if sw.1 i = pick then groupEst Y i z (m i) (sw.2 i) else 0)
+      = FiniteDesign.ind (fun s : StratAssign ι => s i = pick) sw.1
+          * groupEst Y i z (m i) (sw.2 i) := by
+  unfold FiniteDesign.ind
+  by_cases h : sw.1 i = pick <;> simp [h]
+
+/-- **Population unbiasedness, either selection (generalizing Theorem 2).** For the two-stage
+design that allocates groups to [strategy ψ or strategy φ](hyp:ψ,φ) and records outcomes via [the
+potential-outcome function Y](hyp:Y), fix an arbitrary selection flag `pick` together with
+[a within-group design ρ](hyp:ρ) meant to govern every group whose stage-1 flag equals `pick`,
+where [on the event that a group's stage-1 flag equals `pick`, its conditional within-group design
+(ψ if flagged true, φ if flagged false) actually equals ρ](hyp:hcond). Assume [the normalizing
+group count denom is nonzero](hyp:hdenom), [every group's unit count m at treatment level z is
+nonzero](hyp:hm), and [every group's size n is nonzero](hyp:hn). Suppose that within each group
+governed by ρ [each unit's propensity of being assigned treatment level z is m/n](hyp:hprop), and
+that [the stage-1 design selects each group flagged `pick` with probability denom/N](hyp:hstage1).
+Then [the population estimator on the groups selected by `pick` is unbiased for the population
+average potential outcome at level z computed under design ρ](goal).
+
+Recovering `E_popEst` is the case `pick = true, ρ = ψ`. -/
+theorem E_popEst_pick (D₁ : FiniteDesign (StratAssign ι))
+    (ψ φ : ∀ i, FiniteDesign (WAssign n i))
+    (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) (z : Bool) (m : ι → ℝ)
+    (pick : Bool) (denom : ℝ) (ρ : ∀ i, FiniteDesign (WAssign n i))
+    (hdenom : denom ≠ 0) (hm : ∀ i, m i ≠ 0) (hn : ∀ i, (n i : ℝ) ≠ 0)
+    (hcond : ∀ (s : StratAssign ι) (i : ι), s i = pick → (if s i then ψ i else φ i) = ρ i)
+    (hprop : ∀ i, ∀ j : Fin (n i), (ρ i).Pr (fun w => w j = z) = m i / (n i))
+    (hstage1 : ∀ i, D₁.Pr (fun s => s i = pick) = denom / (Fintype.card ι : ℝ)) :
+    (jointDesign D₁ ψ φ).E (popEst Y z pick m denom) = popMean ρ Y z := by
+  unfold popEst popMean jointDesign
+  have hEsum : (compound D₁ (fun s i => if s i then ψ i else φ i)).E
+        (fun sw => (∑ i, if sw.1 i = pick then groupEst Y i z (m i) (sw.2 i) else 0) / denom)
+      = (∑ i, groupMean ρ Y i z * (denom / (Fintype.card ι : ℝ))) / denom := by
+    rw [show (fun sw : StratAssign ι × ∀ i, WAssign n i =>
+            (∑ i, if sw.1 i = pick then groupEst Y i z (m i) (sw.2 i) else 0) / denom)
+          = (fun sw => denom⁻¹ * ∑ i, if sw.1 i = pick then groupEst Y i z (m i) (sw.2 i) else 0)
+          from funext fun sw => by rw [div_eq_inv_mul]]
+    rw [FiniteDesign.E_const_mul, FiniteDesign.E_sum, ← div_eq_inv_mul]
+    congr 1
+    refine Finset.sum_congr rfl (fun i _ => ?_)
+    -- per-group: E[1(S_i=pick)·Ŷ_i] = ȳ_i(z;ρ) · (denom/N)
+    rw [(compound D₁ (fun s i => if s i then ψ i else φ i)).E_congr
+        (popEst_summand_pick Y z m pick i)]
+    rw [FiniteDesign.E_compound_factor D₁ (fun s i => if s i then ψ i else φ i)
+        (FiniteDesign.ind (fun s : StratAssign ι => s i = pick)) i (groupEst Y i z (m i))]
+    rw [show (fun s : StratAssign ι =>
+            FiniteDesign.ind (fun s => s i = pick) s
+              * (if s i then ψ i else φ i).E (groupEst Y i z (m i)))
+          = (fun s => FiniteDesign.ind (fun s => s i = pick) s * groupMean ρ Y i z)
+          from ?_]
+    · rw [FiniteDesign.E_mul_const, FiniteDesign.E_ind, hstage1 i]; ring
+    · funext s
+      unfold FiniteDesign.ind
+      by_cases h : s i = pick
+      · rw [if_pos h, one_mul, hcond s i h,
+          E_groupEst ρ Y i z (m i) (hm i) (hn i) (hprop i), one_mul]
+      · rw [if_neg h, zero_mul, zero_mul]
+  have hcN : (denom / (Fintype.card ι : ℝ)) / denom = 1 / (Fintype.card ι : ℝ) := by
+    rw [div_div, mul_comm (Fintype.card ι : ℝ) denom, ← div_div, div_self hdenom]
+  rw [hEsum, ← Finset.sum_mul, mul_div_assoc, hcN, mul_one_div]
+
+/-! ### Effect estimators -/
+
+/-- For [a finite collection of groups](hyp:ι) with [their respective unit counts](hyp:n), [a
+potential-outcome schedule](hyp:Y), [the control-arm counts for the $\phi$ and $\psi$
+strategies](hyp:m0φ,m0ψ), [the corresponding stage-one normalizing counts](hyp:dφ,dψ), and [a
+realized two-stage assignment](hyp:sw), the [Horvitz--Thompson estimator of the indirect
+(spillover) effect](goal) is the control-outcome population estimator among $\phi$-assigned groups
+minus that among $\psi$-assigned groups. -/
+noncomputable def estIndirect (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
+    (m0φ m0ψ : ι → ℝ) (dφ dψ : ℝ) (sw : StratAssign ι × ∀ i, WAssign n i) : ℝ :=
+  popEst Y false false m0φ dφ sw - popEst Y false true m0ψ dψ sw
+
+/-- For [a finite collection of groups](hyp:ι) with [their respective unit counts](hyp:n), [a
+potential-outcome schedule](hyp:Y), [the φ-control and ψ-treatment arm counts](hyp:m0φ,m1ψ),
+[the corresponding stage-one normalizing counts](hyp:dφ,dψ), and [a realized two-stage
+assignment](hyp:sw), the [Horvitz--Thompson estimator of the total effect](goal) is the
+control-outcome population estimator among $\phi$-assigned groups minus the treatment-outcome
+population estimator among $\psi$-assigned groups. -/
+noncomputable def estTotal (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
+    (m0φ m1ψ : ι → ℝ) (dφ dψ : ℝ) (sw : StratAssign ι × ∀ i, WAssign n i) : ℝ :=
+  popEst Y false false m0φ dφ sw - popEst Y true true m1ψ dψ sw
+
+/-! ### Unbiasedness of the effect estimators -/
+
+/-- **Direct-effect unbiasedness (Theorem 2 corollary).** For the two-stage design that allocates
+groups to [strategy ψ or strategy φ](hyp:ψ,φ) and records outcomes via [the potential-outcome
+function Y](hyp:Y), assume [the target sample size C of ψ-selected groups is nonzero](hyp:hC),
+[every group's control-arm unit count m0 is nonzero](hyp:hm0), [every group's treatment-arm unit
+count m1 is nonzero](hyp:hm1), and [every group's size n is nonzero](hyp:hn). Suppose that within
+each group randomized by ψ [each unit's control propensity is m0/n](hyp:hprop0) and [each unit's
+treatment propensity is m1/n](hyp:hprop1), and that [the stage-1 design selects each group into
+the ψ arm with probability C/N](hyp:hstage1ψ). Then [the Horvitz–Thompson estimator built from the
+ψ-selected groups is unbiased for the direct-effect contrast — the population average outcome
+under control minus under treatment, both evaluated under strategy ψ](goal). -/
+theorem E_estDirect (D₁ : FiniteDesign (StratAssign ι))
+    (ψ φ : ∀ i, FiniteDesign (WAssign n i))
+    (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) (m0 m1 : ι → ℝ) (C : ℝ)
+    (hC : C ≠ 0) (hm0 : ∀ i, m0 i ≠ 0) (hm1 : ∀ i, m1 i ≠ 0) (hn : ∀ i, (n i : ℝ) ≠ 0)
+    (hprop0 : ∀ i, ∀ j : Fin (n i), (ψ i).Pr (fun w => w j = false) = m0 i / (n i))
+    (hprop1 : ∀ i, ∀ j : Fin (n i), (ψ i).Pr (fun w => w j = true) = m1 i / (n i))
+    (hstage1ψ : ∀ i, D₁.Pr (fun s => s i = true) = C / (Fintype.card ι : ℝ)) :
+    (jointDesign D₁ ψ φ).E (estDirect Y m0 m1 C) = CE_direct ψ Y := by
+  unfold estDirect CE_direct
+  rw [FiniteDesign.E_sub]
+  rw [E_popEst_pick D₁ ψ φ Y true m1 true C ψ hC hm1 hn
+      (fun s i hs => by simp [hs]) hprop1 hstage1ψ]
+  rw [E_popEst_pick D₁ ψ φ Y false m0 true C ψ hC hm0 hn
+      (fun s i hs => by simp [hs]) hprop0 hstage1ψ]
+
+/-- **Indirect-effect unbiasedness (Theorem 2 corollary).** For the two-stage design that allocates
+groups to [strategy ψ or strategy φ](hyp:ψ,φ) and records outcomes via [the potential-outcome
+function Y](hyp:Y), assume [the target sample size dφ of φ-selected groups is nonzero](hyp:hdφ),
+[the target sample size dψ of ψ-selected groups is nonzero](hyp:hdψ), [every group's φ-arm control
+unit count m0φ is nonzero](hyp:hm0φ), [every group's ψ-arm control unit count m0ψ is
+nonzero](hyp:hm0ψ), and [every group's size n is nonzero](hyp:hn). Suppose that within each group
+randomized by φ [each unit's control propensity is m0φ/n](hyp:hpropφ), that within each group
+randomized by ψ [each unit's control propensity is m0ψ/n](hyp:hpropψ), that [the stage-1 design
+selects each group into the φ arm with probability dφ/N](hyp:hstage1φ), and that [it selects each
+group into the ψ arm with probability dψ/N](hyp:hstage1ψ). Then [the indirect-effect estimator is
+unbiased for the spillover contrast: the population average control outcome under φ minus the
+population average control outcome under ψ](goal). -/
+theorem E_estIndirect (D₁ : FiniteDesign (StratAssign ι))
+    (ψ φ : ∀ i, FiniteDesign (WAssign n i))
+    (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) (m0φ m0ψ : ι → ℝ) (dφ dψ : ℝ)
+    (hdφ : dφ ≠ 0) (hdψ : dψ ≠ 0)
+    (hm0φ : ∀ i, m0φ i ≠ 0) (hm0ψ : ∀ i, m0ψ i ≠ 0) (hn : ∀ i, (n i : ℝ) ≠ 0)
+    (hpropφ : ∀ i, ∀ j : Fin (n i), (φ i).Pr (fun w => w j = false) = m0φ i / (n i))
+    (hpropψ : ∀ i, ∀ j : Fin (n i), (ψ i).Pr (fun w => w j = false) = m0ψ i / (n i))
+    (hstage1φ : ∀ i, D₁.Pr (fun s => s i = false) = dφ / (Fintype.card ι : ℝ))
+    (hstage1ψ : ∀ i, D₁.Pr (fun s => s i = true) = dψ / (Fintype.card ι : ℝ)) :
+    (jointDesign D₁ ψ φ).E (estIndirect Y m0φ m0ψ dφ dψ) = CE_indirect ψ φ Y := by
+  unfold estIndirect CE_indirect
+  rw [FiniteDesign.E_sub]
+  rw [E_popEst_pick D₁ ψ φ Y false m0φ false dφ φ hdφ hm0φ hn
+      (fun s i hs => by simp [hs]) hpropφ hstage1φ]
+  rw [E_popEst_pick D₁ ψ φ Y false m0ψ true dψ ψ hdψ hm0ψ hn
+      (fun s i hs => by simp [hs]) hpropψ hstage1ψ]
+
+/-- **Total-effect unbiasedness (Theorem 2 corollary).** For the two-stage design that allocates
+groups to [strategy ψ or strategy φ](hyp:ψ,φ) and records outcomes via [the potential-outcome
+function Y](hyp:Y), assume [the target sample size dφ of φ-selected groups is nonzero](hyp:hdφ),
+[the target sample size dψ of ψ-selected groups is nonzero](hyp:hdψ), [every group's φ-arm control
+unit count m0φ is nonzero](hyp:hm0φ), [every group's ψ-arm treatment unit count m1ψ is
+nonzero](hyp:hm1ψ), and [every group's size n is nonzero](hyp:hn). Suppose that within each group
+randomized by φ [each unit's control propensity is m0φ/n](hyp:hpropφ), that within each group
+randomized by ψ [each unit's treatment propensity is m1ψ/n](hyp:hpropψ), that [the stage-1 design
+selects each group into the φ arm with probability dφ/N](hyp:hstage1φ), and that [it selects each
+group into the ψ arm with probability dψ/N](hyp:hstage1ψ). Then [the total-effect estimator is
+unbiased for the contrast between the population average control outcome under φ and the
+population average treatment outcome under ψ](goal). -/
+theorem E_estTotal (D₁ : FiniteDesign (StratAssign ι))
+    (ψ φ : ∀ i, FiniteDesign (WAssign n i))
+    (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) (m0φ m1ψ : ι → ℝ) (dφ dψ : ℝ)
+    (hdφ : dφ ≠ 0) (hdψ : dψ ≠ 0)
+    (hm0φ : ∀ i, m0φ i ≠ 0) (hm1ψ : ∀ i, m1ψ i ≠ 0) (hn : ∀ i, (n i : ℝ) ≠ 0)
+    (hpropφ : ∀ i, ∀ j : Fin (n i), (φ i).Pr (fun w => w j = false) = m0φ i / (n i))
+    (hpropψ : ∀ i, ∀ j : Fin (n i), (ψ i).Pr (fun w => w j = true) = m1ψ i / (n i))
+    (hstage1φ : ∀ i, D₁.Pr (fun s => s i = false) = dφ / (Fintype.card ι : ℝ))
+    (hstage1ψ : ∀ i, D₁.Pr (fun s => s i = true) = dψ / (Fintype.card ι : ℝ)) :
+    (jointDesign D₁ ψ φ).E (estTotal Y m0φ m1ψ dφ dψ) = CE_total ψ φ Y := by
+  unfold estTotal CE_total
+  rw [FiniteDesign.E_sub]
+  rw [E_popEst_pick D₁ ψ φ Y false m0φ false dφ φ hdφ hm0φ hn
+      (fun s i hs => by simp [hs]) hpropφ hstage1φ]
+  rw [E_popEst_pick D₁ ψ φ Y true m1ψ true dψ ψ hdψ hm1ψ hn
+      (fun s i hs => by simp [hs]) hpropψ hstage1ψ]
+
+end TwoStageInterference
+end Experimentation
+end Causalean

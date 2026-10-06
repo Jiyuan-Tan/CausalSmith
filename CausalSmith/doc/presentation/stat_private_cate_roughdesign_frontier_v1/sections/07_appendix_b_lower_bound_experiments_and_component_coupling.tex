@@ -1,0 +1,363 @@
+\section{Lower-bound experiments and component coupling}
+
+The lower-bound experiments localize a treatment-effect separation while varying the nuisance functions within the model class of \cref{obj:def:complete-model}. Their internal coordinates serve two comparisons: a chi-square bound for the observed-sample mixture and, under sparse occupancy, a coupling bound for private output laws. These constructions support the testing arguments underlying \cref{obj:thm:matched-risk-frontier,obj:thm:sharp-interval-frontier}.
+
+The geometry uses the target location \(x_0=1/2\), a macro localization radius \leanref{sym:hL}{\ensuremath{h_{\mathrm L}}} in \((0,1/4]\), and a micro localization radius \leanref{sym:deltaL}{\ensuremath{\delta_{\mathrm L}}} calibrated as \(\delta_{\mathrm L}=h_{\mathrm L}^{5}\). The sign vector \leanref{sym:lambda}{\ensuremath{\lambda}} indexes perturbations whose micro supports intersect the macro window. Binary coordinates encode the signed coefficients, and the target-separation amplitude \leanref{sym:t}{\ensuremath{t}} scales with the macro radius. The following definitions specify the indexing and amplitude.
+
+\begin{definitionv}{synth_6}[Binary sign vector encoding]
+The sign vector \(\lambda\) is a binary encoding of signs in \(\{-1,1\}\), with one coordinate for each active integer index determined by the location \(x_0\), macro radius \(h_{\mathrm L}\), and micro radius \(\delta_{\mathrm L}\). Specifically, \(\lambda\) is any function
+\[
+\lambda:
+\left\{
+j\in\mathbb Z:
+\begin{gathered}
+\left\lfloor\frac{x_0-h_{\mathrm L}}{\delta_{\mathrm L}}\right\rfloor-1
+\le j\le
+\left\lceil\frac{x_0+h_{\mathrm L}}{\delta_{\mathrm L}}\right\rceil+1,\\
+j\delta_{\mathrm L}-\delta_{\mathrm L}<x_0+h_{\mathrm L},
+\qquad
+x_0-h_{\mathrm L}<j\delta_{\mathrm L}+\delta_{\mathrm L}
+\end{gathered}
+\right\}
+\longrightarrow \{0,1\}.
+\]
+\end{definitionv}
+
+The active indices in \cref{obj:synth_6} retain every micro support that meets the interior of the localization window. With this finite indexing fixed, the separation is specified by the macro scale.
+
+\begin{definitionv}{synth_5}[Target separation amplitude]
+The target-separation amplitude \(t\) is defined by
+\[
+t := 2^{-12}h_{\mathrm L},
+\]
+where \(h_{\mathrm L}\) is the macro localization radius for the lower-bound experiments.
+\end{definitionv}
+
+The localized contrast profile \leanref{sym:q}{\ensuremath{q(x)}} is a fourth-power cosine on the macro window. The nuisance perturbation \leanref{sym:S}{\ensuremath{S_\lambda(x)}} combines a squared-cosine envelope with overlapping micro cosine profiles carrying the coefficients \(2\lambda_j-1\). Both profiles vanish outside the macro window. Uniform averaging over the sign vectors assigns independent fair binary coordinates to the active indices; a single draw of this vector is shared across the records in each alternative sample.
+
+For comparison, the causal null \leanref{sym:P0}{\ensuremath{P_0}} has a uniform covariate and, conditional on that covariate, mutually independent fair binary treatment and potential outcomes, with \(Y=Y(A)\). Its observed treatment--outcome cells each have conditional probability \(1/4\). The treatment mark \leanref{sym:U}{\ensuremath{U}} and outcome mark \(V_Y\) encode the observed binary values as
+\[
+U=2A-1,\qquad V_Y=2Y-1.
+\]
+These marks express the conditional likelihood relative to the fair null. The profiles and sign distribution now determine the causal alternative \leanref{sym:Plambda}{\ensuremath{P_\lambda}} and the observed-sample mixture \leanref{sym:Qn}{\ensuremath{Q_n}} in the following construction.
+
+\begin{definitionv}{def:cosine-family}[Shared-sign causal alternative family]
+The causal alternatives \(P_\lambda\) and their observed-sample mixture \(Q_n\) are defined with localization center \(x_0=1/2\), macro localization radius \(0<h_{\mathrm L}\le 1/4\), micro localization radius \(\delta_{\mathrm L}\), and target-separation amplitude \(t\), where
+\[
+\delta_{\mathrm L}=h_{\mathrm L}^{5},
+\qquad
+t=2^{-12}h_{\mathrm L}.
+\]
+Each sign vector \(\lambda\) assigns a binary value \(\lambda_j\in\{0,1\}\) to every active integer index in
+\[
+\left\{
+j\in\mathbb Z:
+\left\lfloor\frac{x_0-h_{\mathrm L}}{\delta_{\mathrm L}}\right\rfloor-1
+\le j\le
+\left\lceil\frac{x_0+h_{\mathrm L}}{\delta_{\mathrm L}}\right\rceil+1,\quad
+j\delta_{\mathrm L}-\delta_{\mathrm L}<x_0+h_{\mathrm L},\quad
+x_0-h_{\mathrm L}<j\delta_{\mathrm L}+\delta_{\mathrm L}
+\right\}.
+\]
+The corresponding signed coefficient is \(2\lambda_j-1\in\{-1,1\}\). The localized contrast profile \(q(x)\) and shared-sign perturbation \(S_\lambda(x)\) are
+\[
+q(x)=
+\begin{cases}
+\displaystyle
+\cos^{4}\!\left(\frac{\pi(x-x_0)}{2h_{\mathrm L}}\right),
+& |x-x_0|\le h_{\mathrm L},\\
+0,& |x-x_0|>h_{\mathrm L},
+\end{cases}
+\]
+and
+\[
+S_\lambda(x)=
+\begin{cases}
+\displaystyle
+\cos^{2}\!\left(\frac{\pi(x-x_0)}{2h_{\mathrm L}}\right)
+\sum_j(2\lambda_j-1)
+\begin{cases}
+\displaystyle
+\cos\!\left(\frac{\pi(x-j\delta_{\mathrm L})}{2\delta_{\mathrm L}}\right),
+& |x-j\delta_{\mathrm L}|\le\delta_{\mathrm L},\\
+0,& |x-j\delta_{\mathrm L}|>\delta_{\mathrm L},
+\end{cases}
+& |x-x_0|\le h_{\mathrm L},\\
+0,& |x-x_0|>h_{\mathrm L},
+\end{cases}
+\]
+where the sum runs over the active indices above.
+
+For each \(\lambda\), the causal law \(P_\lambda\) has covariate \(X\sim\operatorname{Unif}[0,1]\). Conditional on \(X=x\), the binary treatment indicator \(A\) and binary potential outcomes \(Y(0),Y(1)\) are mutually independent, with
+\[
+\begin{aligned}
+A\mid X=x
+&\sim\operatorname{Bernoulli}
+\left(\frac{1+\sqrt t\,S_\lambda(x)}{2}\right),\\
+Y(0)\mid X=x
+&\sim\operatorname{Bernoulli}
+\left(\frac{1-\sqrt t\,S_\lambda(x)-tq(x)}{2}\right),\\
+Y(1)\mid X=x
+&\sim\operatorname{Bernoulli}
+\left(\frac{1-\sqrt t\,S_\lambda(x)+tq(x)}{2}\right).
+\end{aligned}
+\]
+The observed outcome is \(Y=Y(A)\). The selected covariate density is \(f_{P_\lambda}(x)=1\), and the displayed Bernoulli parameters specify the selected propensity and arm-mean versions.
+
+For every nonnegative integer \(n\), let \(P_\lambda^{\mathrm{obs}}\) be the marginal law of \((X,A,Y)\). Define
+\[
+Q_n=E_\lambda\!\left[(P_\lambda^{\mathrm{obs}})^{\otimes n}\right],
+\]
+where \(E_\lambda\) is uniform averaging over all binary sign vectors on the active index set, equivalently assigning independent fair binary values to its indices.
+\end{definitionv}
+
+The common nuisance perturbation in \cref{obj:def:cosine-family} enters both the propensity and the potential-outcome means, while their difference equals \(tq(x)\). Consequently, the sign vector changes the nuisance functions while preserving the target separation. The conditional likelihood \leanref{sym:likelihood}{\ensuremath{L_\lambda(x,U,V_Y)}} is four times the alternative conditional cell probability, using the fair-null cell probability as its denominator. The next result certifies model membership, the common target value, and the mixture comparison for this explicit family.
+
+\begin{lemmav}{lem:positive-family-certificate}[Positive family and mixture certificate]*
+For every \(h_{\mathrm L}\in(0,1/4]\), the macro localization radius, and every integer \(n\ge0\), set the target-separation amplitude \(t\) and micro localization radius \(\delta_{\mathrm L}\) to
+\[
+t=2^{-12}h_{\mathrm L},
+\qquad
+\delta_{\mathrm L}=h_{\mathrm L}^{5}.
+\]
+Let \(P_0\) be the causal null with a uniform covariate and conditionally independent fair binary treatment and potential outcomes, with the observed outcome determined by consistency. Use the alternatives \(P_\lambda\), localized profile \(q(x)\), nuisance perturbation \(S_\lambda(x)\), uniform sign average \(E_\lambda\), and mixture \(Q_n\) from \cref{obj:def:cosine-family}. Throughout, \(\lambda\) is the binary encoding on the active frame indices:
+\[
+\lambda_j\in\{0,1\},
+\qquad
+2\lambda_j-1\in\{-1,1\}.
+\]
+Thus the coefficients of the cosine-frame sum defining \(S_\lambda(x)\) are \(2\lambda_j-1\).
+
+For the model class \(\mathcal P\) in \cref{obj:def:complete-model} and the point target \(\theta(P)=\tau_P(1/2)\),
+\[
+P_0\in\mathcal P,\qquad
+\theta(P_0)=0,\qquad
+P_\lambda\in\mathcal P,\qquad
+\theta(P_\lambda)=t
+\quad\text{for every }\lambda.
+\]
+For every sign vector \(\lambda\), covariate value \(x\), and binary treatment and outcome values \(A,Y\), define the likelihood marks
+\[
+U=2A-1,\qquad V_Y=2Y-1.
+\]
+The conditional likelihood \(L_\lambda(x,U,V_Y)\), equal to four times the alternative conditional probability of the cell \((A,Y)\) given \(x\), satisfies
+\[
+\begin{aligned}
+L_\lambda(x,U,V_Y)
+={}&1+U\sqrt t\,S_\lambda(x)
+ +V_Y\sqrt t\,\bigl(tq(x)-1\bigr)S_\lambda(x)\\
+&+UV_Yt\bigl(q(x)-S_\lambda(x)^2\bigr).
+\end{aligned}
+\]
+The one-record mixture equals the observed null law:
+\[
+E_\lambda P_\lambda^{\mathrm{obs}}=P_0^{\mathrm{obs}}.
+\]
+Moreover,
+\[
+\chi^2\!\left(Q_n,(P_0^{\mathrm{obs}})^{\otimes n}\right)
+\le
+\exp\!\left(160n^2t^2h_{\mathrm L}\delta_{\mathrm L}\right)-1,
+\qquad
+Q_n\ll(P_0^{\mathrm{obs}})^{\otimes n},
+\]
+and the centered likelihood ratio is square-integrable:
+\[
+\int_{\mathcal O^n}
+\left(
+\frac{dQ_n}{d(P_0^{\mathrm{obs}})^{\otimes n}}-1
+\right)^2
+\,d(P_0^{\mathrm{obs}})^{\otimes n}
+<\infty.
+\]
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:positive-family-certificate
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{BoucheronLugosiMassart2013} (Theorem 6.2, displayed log-mgf conclusion in its proof, printed page 167). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:positive-family-certificate
+
+\Cref{obj:lem:positive-family-certificate} supplies separated targets within the same causal model and with a uniform covariate density. Its one-record identity explains the role of the shared signs: after averaging, each individual observed record has exactly the null distribution, whereas joint records can retain dependence through their common latent signs. The chi-square bound quantifies the resulting sample comparison through \(n^2t^2h_{\mathrm L}\delta_{\mathrm L}\).
+
+The exponential comparison uses the bounded-differences log-moment inequality. For a bounded measurable function of independent random elements whose coordinate sensitivities are \(c_i\), this inequality bounds its centered exponential moment at \(u\ge0\) by \(\exp\{u^2\sum_i c_i^2/8\}\) \citep[Theorem 6.2, displayed log-mgf conclusion in its proof, p.~167]{BoucheronLugosiMassart2013}. This published concentration result supplies the exponential-moment control used in \cref{obj:lem:positive-family-certificate}.
+
+To compare private output laws, we organize the same sign dependence conditional on the covariates. The macro envelope \leanref{sym:g}{\ensuremath{g(x)}}, micro frame functions \leanref{sym:phi}{\ensuremath{\phi_j(x)}}, and active-sign set \leanref{sym:Jsign}{\ensuremath{\mathcal J}} specify which records share a nonzero sign contribution. The shared-sign graph \leanref{sym:graph}{\ensuremath{G_X}} records these links.
+
+\begin{definitionv}{synth_14}[Conditional shared-sign graph]
+Let \(x_0=1/2\), \(0<h_{\mathrm L}\le1/4\), and \(\delta_{\mathrm L}=h_{\mathrm L}^5\). Define the macro envelope and cosine frame by
+\[
+g(x)=\cos^2\!\left\{\frac{\pi(x-x_0)}{2h_{\mathrm L}}\right\}
+\mathbf1\{|x-x_0|\le h_{\mathrm L}\},
+\qquad
+\phi_j(x)=\cos\!\left\{\frac{\pi(x-j\delta_{\mathrm L})}{2\delta_{\mathrm L}}\right\}
+\mathbf1\{|x-j\delta_{\mathrm L}|\le\delta_{\mathrm L}\},
+\]
+and define the finite active-sign index set
+\[
+\mathcal J=
+\left\{j\in\mathbb Z:
+(j\delta_{\mathrm L}-\delta_{\mathrm L},j\delta_{\mathrm L}+\delta_{\mathrm L})
+\cap(x_0-h_{\mathrm L},x_0+h_{\mathrm L})\ne\varnothing
+\right\}.
+\]
+For a covariate vector \(X=(X_1,\ldots,X_n)\), with \(n\ge0\), the conditional shared-sign graph \(G_X\) is the simple undirected graph with vertex set \(\{1,\ldots,n\}\). Distinct vertices \(i,l\) are adjacent precisely when
+\[
+\exists j\in\mathcal J:\quad
+g(X_i)\phi_j(X_i)\ne0
+\quad\text{and}\quad
+g(X_l)\phi_j(X_l)\ne0.
+\]
+Its connected components are selected in lexicographic vertex order.
+\end{definitionv}
+
+A connected component \leanref{sym:component}{\ensuremath{C}} of the graph in \cref{obj:synth_14} groups records linked through shared signs; its size is \leanref{sym:m}{\ensuremath{m=|C|}}. Conditional on fixed covariates, let \leanref{sym:QC}{\ensuremath{Q_C}} denote the treatment--outcome mark law on that component under the mixture in \cref{obj:def:cosine-family}, and let \leanref{sym:PC}{\ensuremath{P_{0,C}}} denote the corresponding fair-null law. The latter is uniform over all component mark configurations. Their total common mass \leanref{sym:alpha}{\ensuremath{\alpha}} measures the probability mass that can be placed on identical configurations in both coordinates of a coupling.
+
+\begin{definitionv}{synth_7}[Total common component mass]
+The total common mass \(\alpha\), for fixed covariate values in \([0,1]\) and a finite vertex set \(C\), is defined by
+\[
+\alpha
+=
+\sum_{z:C\to\{0,1\}^2}
+\min\bigl\{Q_C(\{z\}),\,P_{0,C}(\{z\})\bigr\},
+\]
+where \(z\) assigns a binary treatment–outcome pair to each vertex in \(C\), and \(Q_C\) and \(P_{0,C}\) are the alternative and null component mark laws conditional on the fixed covariate values.
+\end{definitionv}
+
+For the finite coupling formula, configurations are encoded by increasing vertex order. The alternative masses \leanref{sym:amass}{\ensuremath{a_v}}, null masses \leanref{sym:bmass}{\ensuremath{b_v}}, and common masses \leanref{sym:cmass}{\ensuremath{c_v}} then express the overlap in \cref{obj:synth_7} as arrays on a common finite space.
+
+\begin{definitionv}{synth_15}[Component mark masses and common overlap]
+Fix the covariates and a connected component \(C\) of \(G_X\), and write \(m=|C|\). Order its vertices increasingly and encode their treatment–outcome marks \((A_i,Y_i)_{i\in C}\) as elements of \(\{0,1\}^{2m}\). Let \(Q_C\) be their conditional law under the alternative dataset mixture
+\[
+Q_n=E_\lambda[(P_\lambda^{\mathrm{obs}})^{\otimes n}]
+\]
+from \(\cref{obj:def:cosine-family}\). Let \(P_{0,C}\) be their conditional law under \((P_0^{\mathrm{obs}})^{\otimes n}\), where the null observed law has \(X\sim\operatorname{Unif}[0,1]\) and, conditional on \(X\), independent fair Bernoulli treatment and outcome marks. Thus \(P_{0,C}\) is uniform on \(\{0,1\}^{2m}\). For every configuration \(v\in\{0,1\}^{2m}\), define
+\[
+a_v=Q_C(\{v\}),\qquad
+b_v=P_{0,C}(\{v\}),\qquad
+c_v=\min\{Q_C(\{v\}),P_{0,C}(\{v\})\}.
+\]
+In particular, \(a_z=Q_C(\{z\})\), \(b_w=P_{0,C}(\{w\})\), and \(c_z\) is the common diagonal mass at \(z\). Define the total common mass by
+\[
+\alpha=\sum_{v\in\{0,1\}^{2m}}c_v.
+\]
+\end{definitionv}
+
+The component coupling \leanref{sym:Gamma}{\ensuremath{\Gamma_C}} assigns the common masses from \cref{obj:synth_15} to the diagonal and couples the remaining masses by a normalized product. Keeping the covariates identical in both datasets allows this construction to be combined across the ordered graph components.
+
+\begin{definitionv}{def:common-mass-coupling}[Component coupling \(\Gamma_C\)]
+For component mark configurations \(z,w\in\{0,1\}^{2m}\), define
+\[
+\Gamma_C(z,w)
+=
+\begin{cases}
+\displaystyle
+c_z\mathbf 1\{z=w\}
++\frac{(a_z-c_z)(b_w-c_w)}{1-\alpha},
+&\alpha<1,\\[6pt]
+c_z\mathbf 1\{z=w\},
+&\alpha=1.
+\end{cases}
+\]
+The dataset coupling uses the same covariates in both coordinates and the product of these kernels across the lexicographically selected graph components.
+\end{definitionv}
+
+The comparison below establishes that \cref{obj:def:common-mass-coupling} defines a measurable dataset coupling with the required marginals. It also bounds the component total variation distance \leanref{sym:TV}{\ensuremath{d_{\mathrm{TV}}(Q_C,P_{0,C})}}. Under the sparse-occupancy condition \(n\delta_{\mathrm L}\le1/128\), the resulting Hamming transportation cost \leanref{sym:WH}{\ensuremath{W_{\mathrm H}}}, the infimum of expected dataset Hamming distance over couplings, yields a comparison of output laws for every private release covered by \cref{obj:def:private-kernels}.
+
+\begin{lemmav}{lem:measurable-component-contraction}[Measurable component coupling and contraction]*
+Let \(n\) be a nonnegative integer. Impose the following conditions:
+\begin{itemize}
+\item \textbf{(Lower-family calibration.)} The macro localization radius \(h_{\mathrm L}\), micro localization radius \(\delta_{\mathrm L}\), and target-separation amplitude \(t\) satisfy
+\[
+0<h_{\mathrm L}\le\frac14,
+\qquad
+\delta_{\mathrm L}=h_{\mathrm L}^{5},
+\qquad
+t=2^{-12}h_{\mathrm L}.
+\]
+\item \textbf{(Output space.)} Let \(\mathcal B\) be a standard Borel output space.
+\item \textbf{(Private release.)} Let \(0<\epsilon\le1\) and let \(M\in\mathfrak M_{n,\epsilon}(\mathcal B)\), as defined in \cref{obj:def:private-kernels}.
+\end{itemize}
+Let \(Q_n\) be the uniform sign mixture of the alternative observed product laws in \cref{obj:def:cosine-family}, and let \((P_0^{\mathrm{obs}})^{\otimes n}\) be the fair-null dataset law.
+
+For every covariate vector \(X=x\), let \(G_X\) be the shared-sign graph, whose connected components group records linked by shared latent signs. For each connected component \(C\), set \(m=|C|\). Its conditional alternative and null mark laws \(Q_C\) and \(P_{0,C}\) have masses
+\[
+Q_C(\{z\})
+ = E_\lambda\prod_{i\in C}
+   \frac{L_\lambda(x_i,U_i,V_{Y,i})}{4},
+\qquad
+P_{0,C}(\{z\})=4^{-m},
+\]
+where \(z=((U_i,V_{Y,i}))_{i\in C}\) is a configuration of the binary treatment and outcome marks, \(L_\lambda\) is their conditional likelihood relative to the fair null, and \(E_\lambda\) averages uniformly over the latent sign vectors.
+
+For every \(x\) and every full mark configuration \(z=((U_i,V_{Y,i}))_{i=1}^n\), the conditional masses factor over the components of \(G_X\):
+\[
+E_\lambda\prod_{i=1}^n
+  \frac{L_\lambda(x_i,U_i,V_{Y,i})}{4}
+ = \prod_{C\text{ component of }G_X} Q_C(\{z|_C\}),
+\qquad
+4^{-n}
+ = \prod_{C\text{ component of }G_X} P_{0,C}(\{z|_C\}).
+\]
+For every such component,
+\[
+m=1\ \Longrightarrow\ Q_C=P_{0,C},
+\qquad
+d_{\mathrm{TV}}(Q_C,P_{0,C})\le4tm^2,
+\]
+where \(d_{\mathrm{TV}}\) denotes total variation distance. The common-mass measure \(\Gamma_C\) of \cref{obj:def:common-mass-coupling} is a coupling of \(Q_C\) and \(P_{0,C}\). The product of these component couplings, with components ordered by increasing least record index, defines a measurable conditional dataset coupling. Integrating it over the shared covariate law, the product of \(n\) uniform laws on \([0,1]\), gives a dataset coupling with marginals \(Q_n\) and \((P_0^{\mathrm{obs}})^{\otimes n}\).
+
+If \(n\delta_{\mathrm L}\le1/128\), then
+\[
+W_{\mathrm H}\!\left(Q_n,(P_0^{\mathrm{obs}})^{\otimes n}\right)
+ \le1024tn^2h_{\mathrm L}\delta_{\mathrm L},
+\qquad
+d_{\mathrm{TV}}\!\left(MQ_n,M(P_0^{\mathrm{obs}})^{\otimes n}\right)
+ \le2048\epsilon tn^2h_{\mathrm L}\delta_{\mathrm L},
+\]
+where \(W_{\mathrm H}\) is the infimum of expected dataset Hamming distance over couplings, Hamming distance counts the record positions at which two datasets differ, and \(MQ\) denotes the output law obtained by applying \(M\) to a dataset with law \(Q\).
+\end{lemmav}
+% CAUSALSMITH-CITED-SCOPE-BEGIN lem:measurable-component-contraction
+\verificationfootnotetext{\textbf{Formalization scope.} This result uses the cited conclusion \citep{KellerTrotterAppliedCombinatorics} (Section 5.6, Theorem 5.40) and \citep{BoucheronLugosiMassart2013} (Theorem 6.2, displayed log-mgf conclusion in its proof, printed page 167). The cited source proof is not formalized here: Lean verifies its use and all remaining steps. If that cited conclusion is false, the portions of this result that depend on it are not certified.}
+% CAUSALSMITH-CITED-SCOPE-END lem:measurable-component-contraction
+
+The factorization in \cref{obj:lem:measurable-component-contraction} makes the graph components the units of the conditional comparison. Singleton components have identical alternative and null mark laws, and the common-mass construction couples those marks identically. For larger components, the stated total variation bound controls their discrepancy. The measurable product construction turns these finite comparisons into a coupling of the full dataset laws.
+
+The component-size control uses the labelled-tree enumeration: on a specified set of \(s\ge2\) vertex labels, there are exactly \(s^{s-2}\) undirected trees \citep[Section 5.6, Theorem 5.40]{KellerTrotterAppliedCombinatorics}. The bounded-differences exponential-moment inequality stated above also enters this comparison \citep[Theorem 6.2, displayed log-mgf conclusion in its proof, p.~167]{BoucheronLugosiMassart2013}. These published tools support the quantitative component analysis in \cref{obj:lem:measurable-component-contraction}.
+
+Under \(n\delta_{\mathrm L}\le1/128\), and with the calibration and privacy conditions of \cref{obj:lem:measurable-component-contraction}, the private output comparison is controlled by \(\epsilon tn^2h_{\mathrm L}\delta_{\mathrm L}\). Its quantification over standard Borel output spaces accommodates both scalar releases and the interval-valued releases of \cref{obj:def:interval-criterion}. Thus the same sparse-occupancy comparison supplies a testing ingredient for estimation and honest interval length.
+
+A complementary experiment for regime selection perturbs the treatment-arm mean directly while keeping the propensity and control regression constant. The direct localized alternative \leanref{sym:P1}{\ensuremath{P_1}} uses the same amplitude and contrast profile, as specified next.
+
+\begin{definitionv}{def:direct-family}[Direct localized causal alternative]
+The causal law \(P_1\), the direct localized alternative, is defined for the macro localization radius \(0<h_{\mathrm L}\le 1/4\), with target-separation amplitude and localized contrast profile
+\[
+t=2^{-12}h_{\mathrm L},
+\qquad
+q(x)=
+\begin{cases}
+\cos^4\!\left(\dfrac{\pi(x-x_0)}{2h_{\mathrm L}}\right),
+& |x-x_0|\le h_{\mathrm L},\\
+0,& |x-x_0|>h_{\mathrm L},
+\end{cases}
+\quad x\in[0,1],
+\]
+where \(x_0\) is the target covariate location. Under \(P_1\), draw the covariate \(X\sim\operatorname{Unif}[0,1]\). Conditional on \(X\), draw the treatment indicator \(A\) and the potential outcomes \(Y(0)\) and \(Y(1)\) independently according to
+\[
+A\sim\operatorname{Bernoulli}(1/2),
+\qquad
+Y(0)\sim\operatorname{Bernoulli}(1/2),
+\qquad
+Y(1)\sim\operatorname{Bernoulli}\bigl(1/2+tq(X)\bigr).
+\]
+Set the observed outcome \(Y\) to
+\[
+Y=Y(A).
+\]
+The selected covariate density, propensity, control regression, and treatment-effect contrast are
+\[
+f_{P_1}(x)=1,\qquad
+e_{P_1}(x)=\frac12,\qquad
+\mu_{0,P_1}(x)=\frac12,\qquad
+\tau_{P_1}(x)=tq(x).
+\]
+\end{definitionv}
+
+At the target location, the profile in \cref{obj:def:direct-family} equals one, so the direct alternative has target value \(t\). Its constant propensity and control regression isolate a localized change in the treatment-arm mean. Together with the shared-sign family in \cref{obj:def:cosine-family}, it supplies the complementary experiment used in selecting the testing comparison across regimes.

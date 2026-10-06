@@ -1,0 +1,170 @@
+\section{Comparator definitions and verification scope}
+\label{sec:verification-appendix}
+
+\subsection{Auxiliary comparators}
+
+The \leanref{S-5}{comparison apparatus} supplements the model in \cref{obj:def:model-class} with supplied geometry, a finite partition, and an explicit continuous construction. These embedded objects provide geometry and calibration comparisons. The supplied-geometry score displays the familiar \(n^{-1/2}\) calibration when the weighting geometry is known, while the continuous witness confirms that the rough ambient geometry is nonempty. We begin by fixing the source and target covariate densities and the source encouragement propensity while retaining the ambient sampling and model restrictions.
+
+\begin{definitionv}{def:fixed-geometry-subclass}[Fixed-geometry subclass $\mathcal M_n^{\mathrm{fix}}(\mathcal G)$]
+The fixed-geometry subclass is
+\[
+\mathcal M_n^{\mathrm{fix}}(\mathcal G)
+=
+\bigl\{P\in\mathcal M_n:(f_{\mathrm S},f_{\mathrm T},e)=\mathcal G\bigr\},
+\]
+with equality at sample-size index \(n\). Here \(\mathcal G\) is the supplied triple of source covariate density \(f_{\mathrm S}\), target covariate density \(f_{\mathrm T}\), and source encouragement propensity \(e\). Membership in \(\mathcal M_n\) requires all of the following restrictions at that index:
+\begin{itemize}
+\item \textbf{(Sampling.)} \cref{obj:ass:source-iid,obj:ass:target-iid,obj:ass:sample-independence}.
+\item \textbf{(Covariate densities.)} \cref{obj:ass:source-density-bounds,obj:ass:target-density-bounds,obj:ass:source-density-holder,obj:ass:target-density-holder}.
+\item \textbf{(Propensity and arm means.)} \cref{obj:ass:propensity-overlap,obj:ass:propensity-holder,obj:ass:arm-means-holder}.
+\item \textbf{(Causal restrictions.)} \cref{obj:ass:receipt-consistency,obj:ass:outcome-consistency,obj:ass:instrument-randomization,obj:ass:exclusion,obj:ass:monotonicity}.
+\item \textbf{(Transport and strength.)} \cref{obj:ass:transport-complier-outcome,obj:ass:transport-complier-share,obj:ass:positive-strength}.
+\end{itemize}
+\end{definitionv}
+
+The supplied geometry \leanref{sym:\mathcal G}{\ensuremath{\mathcal G}} in \cref{obj:def:fixed-geometry-subclass} fixes the three functions entering the transport and encouragement weights. The remaining components of each law continue to satisfy the restrictions defining the ambient model. With this triple available, the following score uses the observed source records directly.
+
+\begin{definitionv}{def:known-geometry-score}[Supplied-geometry score $\widetilde T_A^{\mathcal G}$]
+For \(A\in\{Y,D\}\) and every positive integer \(n\), the supplied-geometry score is
+\[
+\widetilde T_A^{\mathcal G}
+=
+\frac1n\sum_{i=1}^n
+\frac{f_{\mathrm T}^0(X_i)}{f_{\mathrm S}^0(X_i)}
+\left\{
+\frac{Z_iA_i}{e^0(X_i)}
+-
+\frac{(1-Z_i)A_i}{1-e^0(X_i)}
+\right\}.
+\]
+Here \((X_i,Z_i,D_i,Y_i)\) are the observed source records, comprising covariates, encouragement, receipt, and outcome, and the supplied geometry is
+\[
+\mathcal G=(f_{\mathrm S}^0,f_{\mathrm T}^0,e^0),
+\]
+where \(f_{\mathrm S}^0\) and \(f_{\mathrm T}^0\) are the supplied source and target covariate densities and \(e^0\) is the supplied source encouragement propensity. The statistic is a function of the observed source sample and \(\mathcal G\) alone.
+\end{definitionv}
+
+The score \leanref{sym:\widetilde T_A^{\mathcal G}}{\ensuremath{\widetilde T_A^{\mathcal G}}} in \cref{obj:def:known-geometry-score} combines the supplied density ratio with inverse encouragement probabilities. Its outcome and receipt versions enter an affine-score inversion, whose calibration radius is defined next.
+
+\begin{definitionv}{synth_11}[Known geometry calibration radius]
+The supplied-geometry calibration radius is defined by
+\[
+\rho_n^{\mathcal G}
+=
+\frac{4C_f}{c_f}
+\sqrt{\frac{2\log(4/\alpha)}{n}},
+\]
+for real parameters \(\alpha\), the prescribed noncoverage probability, \(C_f\), the upper density envelope, and \(c_f\), the lower density envelope, and a natural-number sample size \(n\), satisfying:
+\begin{itemize}
+\item \textbf{(Noncoverage probability.)} \(0<\alpha<1\).
+\item \textbf{(Upper envelope.)} \(1<C_f\).
+\item \textbf{(Lower envelope.)} \(0<c_f<1\).
+\item \textbf{(Sample size.)} \(0<n\).
+\end{itemize}
+\end{definitionv}
+
+For fixed density envelopes and noncoverage probability, the radius \leanref{sym:\rho_n^{\mathcal G}}{\ensuremath{\rho_n^{\mathcal G}}} in \cref{obj:synth_11} is proportional to \(n^{-1/2}\). The interval definition uses twice this radius as the tolerance for the outcome score minus a candidate effect times the receipt score.
+
+\begin{definitionv}{def:known-geometry-interval}[Supplied-geometry interval $I_n^{\mathcal G}$]
+The supplied-geometry interval is
+\[
+I_n^{\mathcal G}
+=
+\begin{cases}
+\mathcal A_n^{\mathcal G},&\mathcal A_n^{\mathcal G}\ne\varnothing,\\
+\{0\},&\mathcal A_n^{\mathcal G}=\varnothing,
+\end{cases}
+\]
+where the affine-score acceptance set is
+\[
+\mathcal A_n^{\mathcal G}
+=
+\left\{
+v\in\Theta:
+\left|\widetilde T_Y^{\mathcal G}
+-v\widetilde T_D^{\mathcal G}\right|
+\le 2\rho_n^{\mathcal G}
+\right\}.
+\]
+Here \(\Theta\) is the bounded domain of the complier effect, \(\rho_n^{\mathcal G}\) is the calibration radius, and \(\widetilde T_Y^{\mathcal G}\) and \(\widetilde T_D^{\mathcal G}\) are the supplied-geometry outcome and receipt scores.
+\end{definitionv}
+
+The supplied-geometry interval \leanref{sym:I_n^{\mathcal G}}{\ensuremath{I_n^{\mathcal G}}} in \cref{obj:def:known-geometry-interval} specifies both score inversion and the singleton convention for an empty acceptance set. Together, \cref{obj:def:known-geometry-score,obj:synth_11,obj:def:known-geometry-interval} define a comparator statistic and its calibration.
+
+A second comparison setting restricts the geometry to a fixed finite interval partition \leanref{sym:\Pi}{\ensuremath{\Pi}}. The following subclass imposes that restriction within the ambient model.
+
+\begin{definitionv}{def:finite-cell-subclass}[Finite-cell subclass $\mathcal M_n^{\mathrm{cell}}(\Pi)$]
+The finite-cell subclass \(\mathcal M_n^{\mathrm{cell}}(\Pi)\) consists of the laws \(P\in\mathcal M_n\) whose source covariate density \(f_{\mathrm S}\), target covariate density \(f_{\mathrm T}\), and source encouragement propensity \(e\) are constant on every cell of the fixed finite interval partition \(\Pi\), at sample-size index \(n\). Membership in \(\mathcal M_n\) requires all of the following restrictions at that index:
+\begin{itemize}
+\item \textbf{(Sampling.)} \cref{obj:ass:source-iid,obj:ass:target-iid,obj:ass:sample-independence}.
+\item \textbf{(Covariate densities.)} \cref{obj:ass:source-density-bounds,obj:ass:target-density-bounds,obj:ass:source-density-holder,obj:ass:target-density-holder}.
+\item \textbf{(Propensity and arm means.)} \cref{obj:ass:propensity-overlap,obj:ass:propensity-holder,obj:ass:arm-means-holder}.
+\item \textbf{(Causal restrictions.)} \cref{obj:ass:receipt-consistency,obj:ass:outcome-consistency,obj:ass:instrument-randomization,obj:ass:exclusion,obj:ass:monotonicity}.
+\item \textbf{(Transport and strength.)} \cref{obj:ass:transport-complier-outcome,obj:ass:transport-complier-share,obj:ass:positive-strength}.
+\end{itemize}
+\end{definitionv}
+
+Membership in \cref{obj:def:finite-cell-subclass} requires cellwise constancy together with the density, smoothness, causal, and transport restrictions listed there. Because the ambient Hölder restrictions impose continuity on the connected interval \([0,1]\), constancy on the cells of an ordinary adjacent interval partition forces the constants to agree at every shared boundary. This continuous finite-cell subclass therefore reduces the three geometry functions to globally constant functions. It is therefore a globally constant geometry specialization embedded in the present continuous model. Its role here is to provide a syntax-level comparison object; the delivered rate conclusions are the frontier results stated in \cref{obj:thm:sharp-length-frontier-full-elbow}.
+
+For a continuous comparison construction, we first define the centered direction that enters the source density, target density, and encouragement propensity.
+
+\begin{definitionv}{synth_13}[Centered covariate witness direction]
+The witness direction \(g_{\dagger}\) is defined, for every \(x\in\mathbb R\), by
+\[
+g_{\dagger}(x)
+=
+\left|x-\frac12\right|^{1/8}
+-
+\int_0^1 \left|u-\frac12\right|^{1/8}\,du.
+\]
+\end{definitionv}
+
+The direction \leanref{sym:g_{\dagger}}{\ensuremath{g_{\dagger}}} in \cref{obj:synth_13} subtracts the average of the fractional-power profile on the covariate domain. The full-data construction below uses this same direction in all three geometry functions and specifies the principal strata, potential variables, and sampling scheme.
+
+\begin{definitionv}{def:continuous-geometry-witness}[Continuous-geometry laws $P_{\sigma}^{\dagger}$]
+For each \(\sigma\in\{-1,1\}\), the full-data law \(P_{\sigma}^{\dagger}\) is specified by the following covariate densities, principal-stratum distribution, potential variables, and sampling scheme. Define the perturbation amplitude by
+\[
+\varepsilon_{\dagger}
+=
+\frac14\min\{1-c_f,C_f-1,1/4,L-1\},
+\]
+where \(c_f\) and \(C_f\) are the fixed lower and upper density envelopes and \(L\) is the common Hölder radius. With \(g_{\dagger}\) denoting the covariate perturbation, set
+\[
+f_{\mathrm S}(x)=1+\sigma\varepsilon_{\dagger}g_{\dagger}(x),
+\qquad
+f_{\mathrm T}(x)=1-\sigma\varepsilon_{\dagger}g_{\dagger}(x),
+\qquad
+e(x)=\frac12+\sigma\varepsilon_{\dagger}g_{\dagger}(x).
+\]
+The law is completed as follows:
+\begin{itemize}
+\item \textbf{(Principal strata.)} Conditional on \(X\) in each population, the complier, always-taker, and never-taker probabilities are, respectively,
+\[
+\frac18,\qquad \frac7{16},\qquad \frac7{16}.
+\]
+\item \textbf{(Potential variables.)} The potential receipts \(D(0)\) and \(D(1)\) are the receipts corresponding to the assigned principal stratum, and the potential outcomes satisfy
+\[
+Y(0)=Y(1)=\frac12.
+\]
+\item \textbf{(Source observations.)} Draw encouragement \(Z\) conditionally independently of the potential variables given \(X\), with propensity \(e(X)\), and observe
+\[
+D=D(Z),\qquad Y=Y(D).
+\]
+\item \textbf{(Samples.)} Generate independent source and target samples with covariate densities \(f_{\mathrm S}\) and \(f_{\mathrm T}\), respectively.
+\end{itemize}
+For the combined full-data representation of these two conditional population laws, the population indicator \(S\) has probabilities
+\[
+P_{\sigma}^{\dagger}(S=\mathrm{source})
+=
+P_{\sigma}^{\dagger}(S=\mathrm{target})
+=
+\frac12.
+\]
+These probabilities specify the representation convention for \(P_{\sigma}^{\dagger}\); the ambient model class retains its stated assumptions.
+\end{definitionv}
+
+The continuous-geometry laws \leanref{sym:P_{\sigma}^{\dagger}}{\ensuremath{P_{\sigma}^{\dagger}}} in \cref{obj:def:continuous-geometry-witness} combine opposite source and target density perturbations with fixed principal-stratum probabilities and constant potential outcomes. Their amplitude \leanref{sym:\varepsilon_{\dagger}}{\ensuremath{\varepsilon_{\dagger}}} is specified from the density envelopes, the overlap margin, and the Hölder radius. The equal population probabilities serve the stated full-data representation convention. These definitions establish the availability of explicit comparison objects; the paper's proved conclusions remain the identification, estimation, and expected-length results stated elsewhere.
+
+\subsection{Verification scope}
+
+The supplied theorem statements and proofs are machine-checked in Lean 4 under their stated hypotheses. The verification metadata identifies the sampling and model restrictions referenced in \cref{obj:def:model-class} as assumed inputs and distinguishes the comparator definitions above from proved conclusions. Each checked result retains its own conditions; accompanying theorem-local cited-dependency disclosures, where applicable, identify published conclusions whose source proofs lie outside the formalized proof.

@@ -1,0 +1,151 @@
+\section{Statistical lower bound and verification scope}\label{sec:appendix-lower-bound}
+
+This appendix specifies the experiments used to pass from the constrained priors to \cref{obj:thm:all-estimator-lower}. The detailed sparse and dense comparisons, fixed-sample transfer, and final consequences appear in \cref{sec:deferred-proofs}.
+
+The constrained priors of \cref{obj:def:constrained-prior-separation} connect the scalar separation in \cref{obj:thm:weighted-separation-and-frontier} to a comparison between observed-data experiments. The statistical construction has three components: normalization into admissible observed laws, comparison of their full armwise likelihoods, and transfer from an auxiliary count experiment to the fixed-sample risk in \cref{obj:def:minimax-risk}. We first specify the family on which these components operate.
+
+\begin{definitionv}{def:sparse-family}[Sparse observed law]
+The sparse observed law \(\mathbb P_{\mathbf z}^{\mathrm{sp}}\) is defined for a covariate alphabet size \(d\in\mathbb N\), an overlap parameter \(\epsilon\in\mathbb R\), an intensity support endpoint \(M\in\mathbb R\), and a vector of cell intensities \(\mathbf z\), with
+\begin{itemize}
+\item \textbf{(Alphabet.)} \(d>0\).
+\item \textbf{(Overlap.)} \(0<\epsilon\le 1/2\).
+\item \textbf{(Intensities.)} \(\mathbf z\in[0,M]^d\).
+\end{itemize}
+For each covariate cell \(x\in[d]\), define the unnormalized atom masses by
+\[
+\widetilde q_{11,x}=\frac{\epsilon(1-\epsilon)z_x}{d},
+\qquad
+\widetilde q_{10,x}=\frac{\epsilon(1-\epsilon)}{d},
+\qquad
+\widetilde q_{00,x}=\widetilde q_{01,x}
+=\frac{(1-\epsilon)^2+\epsilon^2z_x}{2d}.
+\]
+Their total mass is
+\[
+S(\mathbf z)
+=\sum_{x\in[d]}\sum_{a=0}^1\sum_{y=0}^1\widetilde q_{ay,x}.
+\]
+The normalized probability law of the categorical covariate \(X\), binary treatment \(A\), and binary observed outcome \(Y\) is
+\[
+\mathbb P_{\mathbf z}^{\mathrm{sp}}(X=x,A=a,Y=y)
+=\frac{\widetilde q_{ay,x}}{S(\mathbf z)},
+\qquad x\in[d],\quad a,y\in\{0,1\}.
+\]
+\end{definitionv}
+
+The normalizing mass \leanref{sym:S(\mathbf z)}{\ensuremath{S(\mathbf z)}} in \cref{obj:def:sparse-family} equals
+\[
+S(\mathbf z)=1-\epsilon+\frac{\epsilon}{d}\sum_{x\in[d]}z_x.
+\]
+Consequently, the common-mean-one restriction on the constrained priors centers this mass at one when intensities are drawn independently across cells. The deterministic bound \(S(\mathbf z)\ge 1-\epsilon\ge 1/2\) also holds throughout the parameter range used below. These two properties give normalization a distinct role: it produces a probability law for every intensity vector while preserving a controlled connection between the scalar contrast and the observed value.
+
+For the auxiliary experiment, fix \leanref{sym:B}{\ensuremath{B}}, the Poisson inflation parameter, with \(B>2\). Conditional on an intensity vector, observe independent counts in every cell and arm-outcome category, with
+\[
+N_{ay,x}\sim\operatorname{Poisson}
+\bigl(Bn\widetilde q_{ay,x}(z_x)\bigr).
+\]
+The total count, denoted \(N_{\mathrm{tot}}=\sum_{x,a,y}N_{ay,x}\), has mean \(BnS(\mathbf z)\). Conditional on that total, the atom counts have the multinomial law associated with \cref{obj:def:sparse-family}. Thus the auxiliary experiment retains both treatment arms and all outcome categories. Its one-cell comparison uses the reference intensity \leanref{sym:z_\star}{\ensuremath{z_\star}}, equal to \(M/2\), and the likelihood ratio \leanref{sym:L_z}{\ensuremath{L_z}}, defined explicitly in the following statement.
+
+\begin{lemmav}{lem:sparse-likelihood}[Sparse law and likelihood identities]
+Let the parameters satisfy:
+\begin{itemize}
+\item \textbf{(Sample and alphabet sizes.)} \(n,d\in\mathbb N\), \(n\ge1\), and \(d\ge2\), with the zero-based cell alphabet \([d]\) of \cref{obj:synth_1}.
+\item \textbf{(Overlap.)} \(0<\epsilon\le1/2\).
+\item \textbf{(Intensity support.)} \(M\ge2\) and \(\mathbf z\in[0,M]^d\).
+\item \textbf{(Poisson inflation.)} \(B>2\).
+\end{itemize}
+The normalized sparse law \(\mathbb P_{\mathbf z}^{\mathrm{sp}}\) of \cref{obj:def:sparse-family} belongs to \(\mathcal D_{d,\epsilon}^{\mathrm{obs}}\) of \cref{obj:def:observed-class}. For every cell \(x\in[d]\), its cell probability, treatment propensity, and conditional outcome means satisfy
+\[
+p_x=\frac{1-\epsilon+\epsilon z_x}{dS(\mathbf z)},
+\qquad
+\pi_x=\frac{\epsilon(1-\epsilon)(1+z_x)}
+{1-\epsilon+\epsilon z_x},
+\qquad
+\mu_{0x}=\frac12,
+\qquad
+\mu_{1x}=\frac{z_x}{1+z_x}.
+\]
+Define the scalar functional
+\[
+\phi_\epsilon(z)
+=\frac{(1-\epsilon+\epsilon z)\max\{z-1,0\}}{1+z}.
+\]
+The observed value of \cref{obj:def:observed-value} is
+\[
+\Psi(\mathbb P_{\mathbf z}^{\mathrm{sp}})
+=\frac12+\frac{1}{2dS(\mathbf z)}
+\sum_{x\in[d]}\phi_\epsilon(z_x).
+\]
+
+For the one-cell Poisson experiment, write
+\(\widetilde q_{ay,x}(z)\) for the unnormalized atom mass in
+\cref{obj:def:sparse-family} with cell intensity \(z\), and set the reference intensity \(z_\star=M/2\). Under intensity \(z\), the four counts \(N_{ay,x}\), \(a,y\in\{0,1\}\), are independent Poisson variables with means \(Bn\widetilde q_{ay,x}(z)\). Define their likelihood ratio relative to intensity \(z_\star\) by
+\[
+L_z(N)
+=
+\prod_{a,y\in\{0,1\}}
+\exp\!\left\{
+Bn\bigl(\widetilde q_{ay,x}(z_\star)
+-\widetilde q_{ay,x}(z)\bigr)
+\right\}
+\left(
+\frac{\widetilde q_{ay,x}(z)}
+{\widetilde q_{ay,x}(z_\star)}
+\right)^{N_{ay,x}}.
+\]
+Writing \(E_{z_\star}\) for expectation under these independent Poisson counts at reference intensity \(z_\star\), for every \(z,w\in[0,M]\),
+\[
+E_{z_\star}[L_zL_w]
+=\exp\!\left\{\alpha(z-z_\star)(w-z_\star)\right\},
+\]
+where the Gram coefficient is
+\[
+\alpha
+=\frac{Bn}{d}
+\left\{
+\frac{\epsilon(1-\epsilon)}{z_\star}
++\frac{\epsilon^4}{(1-\epsilon)^2+\epsilon^2z_\star}
+\right\}
+\le \frac{2Bn\epsilon}{dM}.
+\]
+\end{lemmav}
+
+The Gram coefficient \leanref{sym:\alpha}{\ensuremath{\alpha}} in \cref{obj:lem:sparse-likelihood} records the information carried by the complete one-cell experiment. Its first term comes from treated successes, and its second term includes the intensity dependence of both control counts. The bound therefore supports a comparison using the full observed likelihood. The same statement places every normalized alternative within the public overlap class, including intensities at the support endpoints.
+
+The constrained-prior construction in \cref{obj:def:weighted-handle,obj:thm:weighted-separation-and-frontier} supplies probability priors with common mean one and matching moments through the prescribed degree. Drawing cell intensities independently under each prior gives two product mixtures of the auxiliary experiment. Their statistical role is to combine a scalar target contrast with likelihood agreement governed by \cref{obj:lem:sparse-likelihood}. Because the observed value divides the scalar sum by the random normalizing mass, target separation is assessed for that normalized value. The common first moment and the bounded support are the conditions controlling this additional source of variation.
+
+The many-cell comparison uses the constrained priors over their admissible support range. In the dense regime, where rare-arm observations per cell support local comparisons, the boundary-propensity construction places treatment probabilities at the overlap floor and outcome means near the point at which the preferred arm changes. This supplies the corresponding local comparison for the maximum of the two conditional means. For bounded alphabets, a rare-arm two-point comparison supplies the risk scale governed by the total rare-arm information \(n\epsilon\); its bounded-separation branch also covers small \(n\epsilon\). These comparisons serve complementary parameter ranges in the universal bound below.
+
+The fixed-sample transfer concerns bounded squared loss. An estimator may be projected onto \([0,1]\), since the observed value lies in that interval. In the auxiliary experiment, randomly ordering the recorded atoms gives independent observations from the normalized sparse law conditional on the total count. Applying the fixed-sample estimator to the first \(n\) records on \(N_{\mathrm{tot}}\ge n\), and assigning a value in \([0,1]\) otherwise, charges at most one unit of squared loss on the insufficient-count event. Its probability is uniformly bounded by
+\[
+\Pr\!\left\{\operatorname{Poisson}(Bn/2)<n\right\},
+\]
+using the deterministic normalization bound. The inflation parameter controls this explicit transfer cost. Accordingly, the auxiliary comparison yields a statement about exactly \(n\) observations and the full estimator class in \cref{obj:def:minimax-risk}.
+
+The resulting lower bound combines the normalized many-cell comparison with the dense and two-point regimes.
+
+\begin{theoremv}{thm:all-estimator-lower}[Universal minimax risk lower bound]
+There exists a universal constant \(c_\star>0\) such that, for every sample size \(n\in\mathbb N\), alphabet size \(d\in\mathbb N\), and overlap parameter \(\epsilon\in\mathbb R\) satisfying
+\begin{itemize}
+\item \textbf{(Sample size.)} \(n\ge1\).
+\item \textbf{(Alphabet size.)} \(d\ge2\).
+\item \textbf{(Overlap.)} \(0<\epsilon\le1/2\).
+\end{itemize}
+the minimax squared-error risk \(\mathfrak R_{n,d,\epsilon}\) satisfies
+\[
+\mathfrak R_{n,d,\epsilon}
+\ge c_\star\min\left\{1,\frac{d}{n\epsilon L_d}\right\},
+\qquad L_d=\log(ed).
+\]
+\end{theoremv}
+
+The lower bound expresses the joint effect of dividing observations among covariate cells and observing the informative treatment arm with probability near the overlap floor. Matching low-order moments makes the scalar contrast difficult to distinguish across many cells, while the full likelihood identity accounts for the information available in both arms. The truncation at one describes the bounded-risk scale when the combined information is small. Because the risk in \cref{obj:def:minimax-risk} ranges over all measurable estimators, the comparison applies throughout that estimator class.
+
+Combining \cref{obj:thm:all-estimator-lower,obj:thm:observable-upper} gives the two-sided observed-risk comparison in \cref{obj:thm:matched-frontier}. The identification and completion statement in \cref{obj:prop:identification} supplies its causal interpretation under the stated causal assumptions. Along the admissible sequences of \cref{obj:thm:consistency-threshold}, the two-sided comparison makes vanishing risk equivalent to
+\[
+\frac{d_n}{n\epsilon_n\log(ed_n)}\longrightarrow0.
+\]
+Here \(d_n\) is the sequence of alphabet sizes and \(\epsilon_n\) is the sequence of public overlap floors. The attaining estimator supplies sufficiency, and the universal lower bound supplies necessity.
+
+\paragraph{Verification scope.}
+The formal theorem statements and their supplied proofs are machine-checked in Lean 4. The sampling, overlap, and causal assumptions specify the models to which those statements apply. The theorem-local verification disclosures separately identify any cited dependency inputs and their trust boundaries.

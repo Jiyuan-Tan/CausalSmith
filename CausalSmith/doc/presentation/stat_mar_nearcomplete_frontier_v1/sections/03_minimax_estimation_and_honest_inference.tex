@@ -1,0 +1,255 @@
+\section{Minimax estimation and honest inference}
+
+The benchmark in \cref{obj:def:rate} is attained by splitting each cell's treatment-effect contribution into information from arrived outcomes and a correction for its missing-outcome mass. Arrival reveals the outcome needed for the first piece; a missing record still reveals \((X,A,S)\), which supplies the weight for the second. Under \cref{obj:ass:mar}, the arrived-outcome mean identifies the mean used in both pieces. The moment estimator \leanref{sym:tauhat_MM}{\ensuremath{\widehat\tau_{\mathrm{MM}}}} uses separate streams to estimate them and to choose between polynomial and ratio corrections. Its final conditional average produces a procedure determined by the observed sample.
+
+We first fix the operator and polynomial conventions used in the construction. Projection onto the treatment-effect range is
+\(\Pi_{[-1,1]}(t)=\max\{-1,\min\{1,t\}\}\).
+The degree-\(k\) Chebyshev polynomial \leanref{sym:Cheb}{\ensuremath{T_k}} has convention
+\(T_k(\cos\theta)=\cos(k\theta)\).
+For a cell count \(C_j\) and a positive integer \(v\), the falling factorial
+\((C_j-1)_{v-1}\) denotes \(\prod_{t=1}^{v-1}(C_j-t)\), with an empty product equal to one. These conventions specify the projection and polynomial correction in the following construction.
+
+\begin{algorithmv}{def:mm-estimator}[Moment estimator $\widehat\tau_{\mathrm{MM}}$]
+Given observed records \(O_1,\ldots,O_n\), sample size \(n\), support bound \(d\), and arrival floor \(q\), define \(\widehat\tau_{\mathrm{MM}}\) using the tuning parameters \(m,k,B\) as follows.
+\begin{enumerate}
+\item Set
+\[
+\ell_n=\log(e+n),\qquad
+m=\frac n8,\qquad
+k=\max\{1,\lfloor\ell_n/64\rfloor\},\qquad
+B=256\ell_n.
+\]
+Write the supplied fifth coordinate of each observed record as
+\[
+Y_i^{\mathrm{obs}}=(RY)_i.
+\]
+On the support of the observation map, this coordinate equals \(R_iY_i\) and is zero when the outcome is missing.
+
+\item Draw
+\[
+N\sim\operatorname{Poisson}(n/2).
+\]
+If \(N>n\), set \(\widetilde\tau=0\). If \(N\le n\), independently assign each of the first \(N\) records a uniform stream indicator and define the stream index sets by
+\[
+Z_i\in\{1,2,3,4\},\qquad
+\Pr(Z_i=t)=\frac14,\qquad
+\mathcal I_t=\{i\in\{1,\ldots,N\}:Z_i=t\}.
+\]
+For this branch, perform the following three steps.
+
+\item For each cell \(j=(x,a,s)\), write \(a_j=a\) and define
+\[
+M_j^{(2)}
+=\sum_{i\in\mathcal I_2}
+\mathbf 1\{(X_i,A_i,S_i)=j,\ R_i=0\},
+\qquad
+V_j=\frac{M_j^{(2)}}m,
+\]
+\[
+C'_j
+=\sum_{i\in\mathcal I_3}
+\mathbf 1\{(X_i,A_i,S_i)=j,\ R_i=1\},
+\qquad
+C_j
+=\sum_{i\in\mathcal I_4}
+\mathbf 1\{(X_i,A_i,S_i)=j,\ R_i=1\},
+\]
+\[
+U_j
+=\sum_{i\in\mathcal I_4}
+\mathbf 1\{(X_i,A_i,S_i)=j,\ Y_i^{\mathrm{obs}}=1\}.
+\]
+Thus \(U_j\) is the arrived-success count on the support of the observation map.
+
+\item Let \(T_k\) be the degree-\(k\) Chebyshev polynomial, with convention
+\[
+T_k(\cos\theta)=\cos(k\theta).
+\]
+Define
+\[
+Q_k(z)=
+\begin{cases}
+\dfrac{1-T_k(1-2z/B)}{2k^2z/B},&z\ne0,\\[6pt]
+1,&z=0,
+\end{cases}
+\qquad
+1-Q_k(z)=\sum_{v=1}^{k-1}a_vz^v.
+\]
+Using the falling-factorial convention
+\[
+(C_j-1)_{v-1}=\prod_{t=1}^{v-1}(C_j-t),
+\]
+where an empty product equals one, set
+\[
+H_j=\sum_{v=1}^{k-1}a_v(U_j-C_j/2)(C_j-1)_{v-1},
+\qquad
+D_j=
+\begin{cases}
+U_j/C_j-1/2,&C_j>0,\\
+0,&C_j=0,
+\end{cases}
+\]
+\[
+G_j
+=H_j\mathbf 1\{C'_j\le B/4\}
++D_j\mathbf 1\{C'_j>B/4\}.
+\]
+
+\item Define the interval projection and randomized estimate by
+\[
+\Pi_{[-1,1]}(t)=\max\{-1,\min\{1,t\}\},
+\]
+\[
+\widetilde\tau
+=\Pi_{[-1,1]}\!\left[
+\frac2m\sum_{i\in\mathcal I_1}(2A_i-1)R_i
+\left(Y_i^{\mathrm{obs}}-\frac12\right)
++2\sum_j(2a_j-1)V_jG_j
+\right].
+\]
+
+\item Output
+\[
+\widehat\tau_{\mathrm{MM}}
+=
+\begin{cases}
+\displaystyle
+\Pi_{[-1,1]}\!\left[
+\frac2n\sum_{i=1}^n(2A_i-1)Y_i^{\mathrm{obs}}
+\right],
+&q=1,\\[8pt]
+\displaystyle
+\Pi_{[-1,1]}\!\left[
+\frac2n\sum_{i=1}^n(2A_i-1)R_i
+\left(Y_i^{\mathrm{obs}}-\frac12\right)
+\right],
+&q\ne1\ \text{and}\ (\ell_n<128\ \text{or}\ d\ge n\ell_n),\\[8pt]
+\displaystyle
+\mathbb E[\widetilde\tau\mid O_1,\ldots,O_n],
+&q\ne1,\ \ell_n\ge128,\ d<n\ell_n.
+\end{cases}
+\]
+The conditional expectation averages over the auxiliary Poisson draw and stream assignments.
+\end{enumerate}
+\end{algorithmv}
+
+The polynomial-and-ratio branch is used when \(\ell_n=\log(e+n)\ge128\), equivalently \(n\ge e^{128}-e\), together with \(d<n\ell_n\) and \(q\ne1\); the displayed fallback branch covers the complementary regime. These are the exhibited finite-sample tuning choices supporting the order guarantee.
+
+Centering arrived outcomes at one half aligns the first-stream contribution with the centered cell means used in the correction. The arrival indicator ensures that the centered contribution is drawn from observed outcomes. Missing records supply their cell membership through the second-stream statistic \(V_j\), which weights the correction by missing-outcome mass. Under the missing-at-random condition in \cref{obj:ass:mar}, the arrived-outcome mean identifies the outcome mean needed for this missing component.
+
+The third-stream count selects how the fourth-stream data enter the correction. Lightly populated cells use the polynomial statistic \(H_j\), whose coefficients and falling-factorial terms implement the moment correction. Heavily populated cells use the centered empirical ratio \(D_j\). Separating the selection count from the correction data supports the risk analysis in \cref{obj:lem:upper-risk}. Conditional averaging then integrates out the auxiliary Poisson draw and stream assignments; convexity of squared loss preserves the risk bound under this averaging. The complete-arrival and fallback branches specify the estimator across all sample sizes and support bounds.
+
+The uniform squared-risk bound also supplies a finite-sample confidence radius. Let \leanref{sym:C_U}{\ensuremath{C_U}} be a universal upper-risk constant, so that the worst-law squared risk of the estimator is at most \(C_Ur_{n,d,q}\), as established in \cref{obj:lem:upper-risk}. The confidence interval \leanref{sym:Ihat_MM}{\ensuremath{\widehat I_{\mathrm{MM},\alpha}}} uses the clipped radius \leanref{sym:h_alpha}{\ensuremath{h_{n,d,q,\alpha}}} defined below. The construction attains the minimax expected-length order for fixed \(\alpha\); with the exhibited fallback contribution \(C_{\mathrm{fall}}=4e^{128}\) and resulting choice of \(C_U\), its interval equals \([-1,1]\) whenever \(\ell_n<128\).
+
+\begin{definitionv}{def:mm-interval}[Confidence interval $\widehat I_{\mathrm{MM},\alpha}$]
+Define
+\[
+\widehat I_{\mathrm{MM},\alpha}(O^n)
+=
+\left[
+\max\{-1,\widehat\tau_{\mathrm{MM}}-h_{n,d,q,\alpha}\},
+\min\{1,\widehat\tau_{\mathrm{MM}}+h_{n,d,q,\alpha}\}
+\right],
+\]
+where the clipped confidence radius is
+\[
+h_{n,d,q,\alpha}
+=\min\left\{2,\sqrt{\frac{C_Ur_{n,d,q}}{\alpha}}\right\},
+\]
+and \(C_U\) is any universal constant for which the upper squared-risk bound for \(\widehat\tau_{\mathrm{MM}}\) holds.
+\end{definitionv}
+
+For a radius below two, Markov's inequality bounds the probability that the estimation error exceeds the radius by \(\alpha\), uniformly over \(\mathcal M(d,q)\). A radius of two yields the entire treatment-effect range. Clipping the endpoints preserves coverage because the target belongs to \([-1,1]\). Consequently, the interval belongs to the honest class in \cref{obj:def:interval-class}, and its length is at most \(2h_{n,d,q,\alpha}\). The coverage and length conclusions are recorded in \cref{obj:lem:honest-interval-construction}.
+
+The attainable risk and interval length match lower bounds over the same experiment and law class. The following two results characterize the point-estimation and honest-inference criteria together.
+
+\begin{theoremv}{thm:point-frontier}[Finite-sample minimax risk frontier]
+There exist universal numerical constants \(0<c<C<\infty\) such that, for every pair of positive integers \(n,d\) and every known arrival floor \(q\in[1/2,1]\),
+\[
+c\,r_{n,d,q}\le \mathfrak R^*_{n,d,q}\le C\,r_{n,d,q},
+\]
+where \(r_{n,d,q}\) is the squared-error benchmark defined in \cref{obj:def:rate} and \(\mathfrak R^*_{n,d,q}\) is the minimax squared-error risk defined in \cref{obj:def:point-risk}.
+\end{theoremv}
+
+The comparison separates ordinary sampling error from the cost of recovering outcome means across many cells. The sampling contribution is \(n^{-1}\); the additional squared-error contribution is
+\((1-q)^2\min\{1,[d/(n\log(e+n))]^2\}\).
+Its dependence on missingness reflects the estimator's use of cell corrections weighted by missing-outcome mass. The matching lower bound makes this dependence a property of the minimax criterion over \(\mathcal M(d,q)\). In particular, the comparison identifies the precision scale uniformly as the arrival floor approaches one.
+
+Honest inference is governed by the square root of the same benchmark, with comparison constants allowed to depend on the fixed coverage requirement.
+
+\begin{theoremv}{thm:interval-frontier}[Fixed coverage length frontier]
+For each fixed noncoverage level \(\alpha\in(0,1/2)\), there exist constants \(0<c_\alpha<C_\alpha<\infty\), depending only on \(\alpha\), such that, for every pair of positive integers \(n,d\) and every \(q\in[1/2,1]\), the minimax expected interval length \(\mathfrak L^*_{n,d,q,\alpha}\) from \cref{obj:def:length-risk} and the squared-error benchmark \(r_{n,d,q}\) from \cref{obj:def:rate} satisfy
+\[
+c_\alpha\sqrt{r_{n,d,q}}
+\le \mathfrak L^*_{n,d,q,\alpha}
+\le C_\alpha\sqrt{r_{n,d,q}}.
+\]
+\end{theoremv}
+
+The risk-based interval construction explains the attainable square-root scale. The lower bound establishes its necessity for worst-law expected length among connected intervals satisfying uniform finite-sample coverage. Thus, for each fixed \(\alpha\), the same sampling and missingness-weighted dimension terms determine both squared-error precision and honest interval precision under the respective criteria in \cref{obj:def:point-risk,obj:def:length-risk}.
+
+The upper-bound arguments are supplied by \cref{obj:lem:upper-risk,obj:lem:honest-interval-construction}. For the converse, \cref{obj:lem:parametric-floor-infrastructure} supplies the sampling lower bounds, while \cref{obj:thm:normalized-converse,obj:lem:prior-reduction} supplies the dimension lower bounds through normalized priors and testing reductions. Together, these arguments give the matching comparisons in \cref{obj:thm:point-frontier,obj:thm:interval-frontier}.
+
+At complete arrival, the construction has a direct randomized-trial interpretation. It becomes the projected difference formed with the known treatment-allocation weights, and both minimax criteria have dimension-free parametric rates. The following result also quantifies the effect of projection on each sample and on worst-law squared risk.
+
+\begin{propositionv}{prop:complete-arrival-reduction}[Complete arrival and parametric frontiers]
+There exist universal constants \(0<c<C\) such that, for every noncoverage level \(\alpha\in(0,1/2)\), there exist constants \(0<c_\alpha<C_\alpha\), depending only on \(\alpha\), for which the following statements hold for every positive integer sample size \(n\) and positive integer baseline-support bound \(d\) at arrival floor \(q=1\).
+
+The error scale and squared-error benchmark satisfy
+\[
+g_{n,d,1}
+=(1-1)\min\left\{1,\frac{d}{n\log(e+n)}\right\}=0,
+\qquad
+r_{n,d,1}=\frac1n,
+\]
+where the benchmark is defined in \cref{obj:def:rate}.
+For every sample \(O^n=(O_1,\ldots,O_n)\) in the Cartesian observed-record space, the estimator of \cref{obj:def:mm-estimator} satisfies
+\[
+\widehat\tau_{\mathrm{MM}}(O^n)
+=
+\Pi_{[-1,1]}
+\left[
+\frac{2}{n}\sum_{i=1}^{n}(2A_i-1)Y_i^{\mathrm{obs}}
+\right],
+\]
+where \(A_i\) is the binary treatment coordinate, \(Y_i^{\mathrm{obs}}=(RY)_i\) is the supplied fifth coordinate of record \(i\), and
+\(\Pi_{[-1,1]}(z)=\max\{-1,\min\{1,z\}\}\) is interval projection.
+
+For every full-data law \(P\in\mathcal M(d,1)\) and every such sample, with population average treatment effect
+\(\tau(P)=\mathbb E_P[Y(1)-Y(0)]\), where \(Y(1)\) and \(Y(0)\) are the binary potential outcomes,
+\[
+\left|\widehat\tau_{\mathrm{MM}}(O^n)-\tau(P)\right|
+\le
+\left|
+\frac{2}{n}\sum_{i=1}^{n}(2A_i-1)Y_i^{\mathrm{obs}}-\tau(P)
+\right|.
+\]
+Under the iid observed-sample law induced by \(P\),
+\[
+\sup_{P\in\mathcal M(d,1)}
+\mathbb E_P\!\left[
+\bigl(\widehat\tau_{\mathrm{MM}}(O^n)-\tau(P)\bigr)^2
+\right]
+\le
+\sup_{P\in\mathcal M(d,1)}
+\mathbb E_P\!\left[
+\left(
+\frac{2}{n}\sum_{i=1}^{n}(2A_i-1)Y_i^{\mathrm{obs}}-\tau(P)
+\right)^2
+\right]
+\le \frac4n.
+\]
+The minimax squared-error risk and minimax worst-law expected honest interval length of
+\cref{obj:def:point-risk,obj:def:length-risk} satisfy, uniformly over \(n,d\ge1\),
+\[
+\frac{c}{n}
+\le \mathfrak R^*_{n,d,1}
+\le \frac{C}{n},
+\qquad
+\frac{c_\alpha}{\sqrt n}
+\le \mathfrak L^*_{n,d,1,\alpha}
+\le \frac{C_\alpha}{\sqrt n}.
+\]
+\end{propositionv}
+
+Under balanced randomization, the unprojected expression is the standard allocation-weighted difference between treated and control outcomes, using the known allocation probability of one half. Projection weakly reduces its absolute error for every target in the treatment-effect range, and the displayed risk bound is uniform in the baseline-support bound. Complete arrival therefore yields squared-error precision of order \(n^{-1}\) and honest expected length of order \(n^{-1/2}\) across all \(d\ge1\). The endpoint follows from the complete-arrival branch of \cref{obj:def:mm-estimator}, projection contraction, and the sampling lower bounds in \cref{obj:lem:parametric-floor-infrastructure}.

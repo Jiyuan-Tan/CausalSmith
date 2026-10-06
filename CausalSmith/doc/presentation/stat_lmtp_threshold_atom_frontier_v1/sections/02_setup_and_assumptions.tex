@@ -1,0 +1,202 @@
+\section{Setup and assumptions}
+\label{sec:setup-assumptions}
+
+We work with deterministic sequences and fixed constants throughout. Generic finite constants may change from line to line and depend only on the displayed model parameters. All asymptotic notation is along the sample size \leanref{sym:n}{\ensuremath{n}}; indices \(x\) range over the finite stratum space \leanref{sym:mathcal_X}{\ensuremath{\mathcal X}}, and all probabilities and expectations are taken under the observed law \leanref{sym:P}{\ensuremath{P}} unless a different law is displayed. The observed unit is \leanref{sym:O}{\ensuremath{O=(X,A,Y)}}, with baseline stratum \leanref{sym:X}{\ensuremath{X}}, treatment \leanref{sym:A}{\ensuremath{A}}, and outcome \leanref{sym:Y}{\ensuremath{Y}}. The deterministic \leanref{S-2}{regime constants} include the smoothness exponent \leanref{sym:beta}{\ensuremath{\beta}}, Hölder radius \leanref{sym:L}{\ensuremath{L}}, thinning exponent \leanref{sym:kappa}{\ensuremath{\kappa}}, density constants \leanref{sym:c_minus}{\ensuremath{c_-}} and \leanref{sym:c_plus}{\ensuremath{c_+}}, stratum-mass floor \leanref{sym:p_min}{\ensuremath{p_{\min}}}, threshold envelope \leanref{sym:delta_bar}{\ensuremath{\bar\delta}}, noncoverage level \leanref{sym:alpha}{\ensuremath{\alpha}}, and deterministic threshold sequence \leanref{sym:delta_n}{\ensuremath{\delta_n}}.
+
+The procedures below use fixed sample splitting and product sampling notation. The split is deterministic, so the probability statements condition on no random partitioning device.
+
+\begin{definitionv}{synth_8}[Admissible three-way split]
+At sample size \(n\), an admissible three-way split is a deterministic triple \(B_n=(I_0,I_1,I_2)\) of pairwise-disjoint subsets of \(\{1,\ldots,n\}\) such that \(|I_j|\geq\lfloor n/4\rfloor\) for \(j=0,1,2\). The blocks are fixed before observing the sample.
+\end{definitionv}
+
+\Cref{obj:synth_8} fixes the block structure used by the estimator and interval. The lower bounds on the block sizes keep each empirical component on the same sample-size scale while leaving the blocks independent under product sampling.
+
+\begin{definitionv}{synth_16}[Independent product sample laws]
+For an observed-data law \(P\) on \(\mathcal X\times[0,1]\times[0,1]\), write \(P^{\otimes n}\) for the \(n\)-fold product law governing the observed sample \((O_1,\ldots,O_n)\), under which the coordinates are independent with common law \(P\). For a full-data law package \(P^{\mathrm F}\), write \((P^{\mathrm F})^{\otimes n}\) for the \(n\)-fold product law governing \(n\) independent full-data draws from \(P^{\mathrm F}\); estimators and intervals indexed by this law are measurable functions of the induced observed coordinates \((O_1,\ldots,O_n)\).
+\end{definitionv}
+
+The notation in \cref{obj:synth_16} is used for risk and coverage statements in the observed and causal formulations. It records that full-data sampling still feeds estimators through the observed coordinates.
+
+The sampling statement fixes the i.i.d. observed-data experiment used by the estimators and risk criteria.
+
+\begin{assumptionv}{ass:iid-sampling}[I.i.d. sampling]
+The observed units \(O_1,\ldots,O_n\) are independent and identically distributed according to \(P\).
+\end{assumptionv}
+
+The independent random-design sampling condition in \cref{obj:ass:iid-sampling} is the standard sampling structure for the boundary-regression experiment \citep{Gaiffas2005DegenerateDesign}. It lets the mass above the threshold, the empirical lower-threshold atom, and the local regression fit be analyzed with product-law concentration under the same observed law.
+
+The next conditions describe the treatment distribution within strata and the regression function at the boundary created by the lower-threshold clamp.
+
+\begin{assumptionv}{ass:conditional-density-law}[Conditional treatment density]
+For each \(x\in\mathcal X\), the map \(a\mapsto \pi_x(a)\) is Borel measurable on \([0,1]\), and \(\pi_x(a)\ge 0\) for Lebesgue-a.e. \(a\in[0,1]\). Moreover, \(p_x=P(X=x)\), and for every Borel set \(B\subseteq[0,1]\),
+\[
+P(X=x,\ A\in B)=p_x\int_B \pi_x(a)\,\mathrm da .
+\]
+\end{assumptionv}
+
+The conditional absolute-continuity requirement in \cref{obj:ass:conditional-density-law} is standard for continuous-treatment modified policies \citep{DiazWilliamsHoffmanSchenck2023}. It introduces the stratum density \leanref{sym:pi_x}{\ensuremath{\pi_x}} and the stratum mass \leanref{sym:p_x}{\ensuremath{p_x}}, so the probability collapsed by a threshold can be expressed as an ordinary integral.
+
+\begin{assumptionv}{ass:stratum-mass}[Stratum mass lower bound]
+For every \(x\in\mathcal X\),
+\[
+p_x\geq p_{\min}.
+\]
+\end{assumptionv}
+
+The finite-stratum overlap condition in \cref{obj:ass:stratum-mass} is standard in stratified continuous-treatment analyses \citep{DiazWilliamsHoffmanSchenck2023}. It ensures that every stratum contributes a nonvanishing share of the sample, which keeps the local design problem from being driven by empty baseline cells.
+
+\begin{assumptionv}{ass:polynomial-thinning}[Polynomial overlap thinning]
+For every \(x\in\mathcal X\) and for Lebesgue-almost every \(a\in[0,1]\),
+\[
+c_- a^\kappa \leq \pi_x(a) \leq c_+ a^\kappa .
+\]
+\end{assumptionv}
+
+\Cref{obj:ass:polynomial-thinning} is specific to this analysis. It states that treatment support near the lower boundary thins at a polynomial order, so the amount of information available to learn the boundary regression value is governed by the same exponent in every stratum. The two sides of the envelope do different work, and it helps to keep them apart. The lower bound \(c_-a^\kappa\le\pi_x(a)\) guarantees local information: it lower bounds the expected count and the local Gram eigenvalue in the threshold window, and it lower bounds the collapsed atom mass \(q_x(\delta)\). It is therefore the side used for Gram coercivity and for atom-mass lower bounds. The upper bound \(\pi_x(a)\le c_+a^\kappa\) controls upper-risk quantities: the same window mass, the local Gram entries, and the collapsed atom mass entering the bias and length calculations. The lower-bound experiments use the canonical density \(\pi_x(a)=(\kappa+1)a^\kappa\), which the regime constraint \(c_-\le\kappa+1\le c_+\) admits, and the likelihood divergences are computed for that canonical density and its localized perturbations. Densities proportional to \(a^\kappa\), and bounded multiplicative perturbations \(a^\kappa r_x(a)\) with \(0<c_-\le r_x(a)\le c_+\), are representative members.
+
+\begin{definitionv}{synth_19}[Local-polynomial degree]
+For each smoothness exponent \(\beta\in\mathbb R\), the local-polynomial degree is
+\[
+\ell(\beta):=\max\{\lceil\beta\rceil_{\mathbb N}-1,0\},
+\]
+where \(\lceil\beta\rceil_{\mathbb N}\) denotes the least natural number greater than or equal to \(\beta\).
+\end{definitionv}
+
+The degree \leanref{sym:ell}{\ensuremath{\ell}} in \cref{obj:synth_19} is the order used by the local polynomial at the threshold. It matches the Taylor-remainder smoothness imposed next.
+
+\begin{assumptionv}{ass:holder-regression}[Hölder regression regularity]
+The regression function \(\mu_x^P\) satisfies the following condition with parameters \(\beta\) and \(L\). For every \(x\in\mathcal X\):
+\begin{itemize}
+\item \textbf{(Continuity.)} The map \(a\mapsto \mu_x^P(a)\) is continuous on \([0,1]\).
+\item \textbf{(Range.)} For every \(a\in[0,1]\), \(\mu_x^P(a)\in[0,1]\).
+\item \textbf{(Regression version.)} The function \(\mu_X^P(A)\) realizes the conditional outcome regression given the complete design:
+\[
+\mathbb E_P[Y\mid X,A]=\mu_X^P(A)
+\quad P\text{-almost surely}.
+\]
+\item \textbf{(Hölder Taylor remainder.)} Let \(\ell=\ell(\beta)\) be the local-polynomial order defined in \cref{obj:synth_19}. For all \(s,t\in[0,1]\), with derivatives taken intrinsically on \([0,1]\),
+\[
+\left|
+\mu_x^P(t)
+-
+\sum_{j=0}^{\ell}
+\frac{(\mu_x^P)^{(j)}(s)}{j!}(t-s)^j
+\right|
+\le
+L|t-s|^\beta .
+\]
+\end{itemize}
+\end{assumptionv}
+
+The Taylor-remainder formulation in \cref{obj:ass:holder-regression} is a standard Hölder outcome-regression smoothness condition for bias-aware nonparametric inference \citep{ArmstrongKolesar2020}. In this model, the boundary value of the regression \leanref{sym:mu_x_P}{\ensuremath{\mu_x^P}} is multiplied by the threshold mass, so the condition supplies the deterministic approximation control used by the local-polynomial estimator.
+
+These ingredients define the observed model class and the lower-threshold clamp target.
+
+\begin{definitionv}{synth_18}[Observed continuity class $\mathcal M_{\mathrm{cont}}$]
+Let \(\mathcal X=\{1,\ldots,J\}\), let \(O=(X,A,Y)\in\mathcal X\times[0,1]\times[0,1]\), and let \(P\in\mathcal P(\mathcal X\times[0,1]\times[0,1])\). Write
+\[
+p_x=P(X=x).
+\]
+The law \(P\) belongs to the continuity-only class \(\mathcal M_{\mathrm{cont}}\) when, for every \(x\in\mathcal X\), the conditional-density condition of \cref{obj:ass:conditional-density-law}, the stratum-mass condition of \cref{obj:ass:stratum-mass}, and the polynomial-thinning condition of \cref{obj:ass:polynomial-thinning} hold, and an almost-everywhere version of \(a\mapsto\mathbb E_P[Y\mid A=a,X=x]\) has a unique continuous extension
+\[
+\mu_{x,\mathrm{cont}}^P:[0,\bar\delta]\to[0,1].
+\]
+The Hölder class \(\mathcal M\) imposes the same three design conditions together with the Hölder regression condition of \cref{obj:ass:holder-regression}; its canonical definition is \cref{obj:def:model-class}, and the canonical continuity-only definition is \cref{obj:def:continuity-model-class}.
+\end{definitionv}
+
+\Cref{obj:synth_18} records the continuity-only class \leanref{sym:mathcal_M_cont}{\ensuremath{\mathcal M_{\mathrm{cont}}}} alongside the Hölder class. The later continuity-only section uses the selected continuous regression extension \leanref{sym:mu_x_cont_P}{\ensuremath{\mu_{x,\mathrm{cont}}^P}} when smoothness is replaced by qualitative continuity on the threshold envelope.
+
+\begin{definitionv}{def:model-class}[Observed law class \(\mathcal M\)]
+For \(P\in\mathcal P(\mathcal X\times[0,1]\times[0,1])\), let
+\[
+p_x=P(X=x),
+\qquad x\in\mathcal X .
+\]
+The observed-data law class \(\mathcal M\) is
+\[
+\mathcal M
+=
+\left\{
+P\in\mathcal P(\mathcal X\times[0,1]\times[0,1])
+:
+P\text{ satisfies the conditions listed below}
+\right\}.
+\]
+Membership means that \(P\) satisfies:
+\begin{itemize}
+\item \textbf{(Conditional density.)} The conditional-density condition in \cref{obj:ass:conditional-density-law}.
+\item \textbf{(Stratum mass.)} The stratum-mass condition in \cref{obj:ass:stratum-mass}.
+\item \textbf{(Polynomial thinning.)} The polynomial-thinning condition in \cref{obj:ass:polynomial-thinning}.
+\item \textbf{(Hölder regression.)} The Hölder member condition in \cref{obj:ass:holder-regression}.
+\end{itemize}
+\end{definitionv}
+
+The observed class \leanref{sym:mathcal_M}{\ensuremath{\mathcal M}} in \cref{obj:def:model-class} collects the design and regression restrictions under one membership statement. This compact notation is the domain for the estimator, honest interval, and minimax criteria in the next two sections.
+
+\begin{definitionv}{def:clamp-policy}[Clamp policy \(d_\delta\) and \(A^\delta\)]
+For \(0\leq\delta\leq\bar\delta\), the lower-threshold clamp map \(d_\delta\) and the clamped treatment \(A^\delta\) are
+\[
+d_\delta(a)=\max\{a,\delta\},
+\qquad
+A^\delta=d_\delta(A).
+\]
+\end{definitionv}
+
+The map \leanref{sym:d_delta}{\ensuremath{d_\delta}} in \cref{obj:def:clamp-policy} leaves treatments above the threshold unchanged and moves lower treatments to the threshold. The resulting target therefore combines a natural-course component above \(\delta\) with a boundary-regression component at \(\delta\).
+
+\begin{definitionv}{def:clamp-functional}[Clamp functionals \(q_x(\delta)\), \(\nu_\delta(P)\), and \(\theta_\delta(P)\)]
+For \(P\in\mathcal M\) as in \cref{obj:def:model-class}, \(x\in\mathcal X\), and \(0\leq\delta\leq\bar\delta\), define
+\[
+q_x(\delta)=\int_{[0,\delta]}\pi_x(a)\,\mathrm da,
+\qquad
+\nu_\delta(P)=\mathbb E_P\!\left[Y\mathbf 1\{A>\delta\}\right].
+\]
+The unsmoothed observed-data clamp target is
+\[
+\theta_\delta(P)
+=
+\nu_\delta(P)
++
+\sum_{x\in\mathcal X}p_xq_x(\delta)\mu_x^P(\delta).
+\]
+\end{definitionv}
+
+In \cref{obj:def:clamp-functional}, \leanref{sym:q_x}{\ensuremath{q_x(\delta)}} is the conditional probability mass collapsed by the clamp in stratum \(x\), \leanref{sym:nu_delta}{\ensuremath{\nu_\delta(P)}} is the retained mean above the threshold, and \leanref{sym:theta_delta}{\ensuremath{\theta_\delta(P)}} is the observed-data clamp target. The expression isolates the atom-regression product that drives the boundary inference problem.
+
+At sample size \(n\) the target is written \(\theta_{\delta_n}(P)\): it is the functional of \cref{obj:def:clamp-functional} evaluated at the deterministic threshold \(\delta=\delta_n\).
+
+The remaining definitions set the bandwidth, rate scale, and range projection used by the estimation and interval statements.
+
+\begin{definitionv}{def:bandwidth}[Information-balance bandwidth \(h_n\)]
+The information-balance bandwidth \(h_n\) for the threshold sequence \(\delta_n\) is
+\[
+h_n
+=
+\inf\left\{
+h\in(0,1-\bar\delta]:
+n h^{2\beta+1}(\delta_n+h)^\kappa\geq 1
+\right\},
+\]
+with \(h_n=1-\bar\delta\) when the displayed set is empty.
+\end{definitionv}
+
+The bandwidth \leanref{sym:h_n}{\ensuremath{h_n}} in \cref{obj:def:bandwidth} is chosen by the local information available in a window to the right of the threshold. The factor \((\delta_n+h)^\kappa\) carries the polynomial thinning from \cref{obj:ass:polynomial-thinning} into the window-mass calculation.
+
+\begin{definitionv}{def:frontier}[Frontier rate \(r_n\)]
+The Hölder minimax rate \(r_n\) is
+\[
+r_n=n^{-1/2}+\delta_n^{\kappa+1}h_n^\beta .
+\]
+\end{definitionv}
+
+The rate \leanref{sym:r_n}{\ensuremath{r_n}} in \cref{obj:def:frontier} combines the regular root-\(n\) contribution from the retained mean and threshold mass with the atom-weighted Hölder approximation scale. This is the benchmark used for the minimax risk and honest expected-length results.
+
+\begin{definitionv}{synth_6}[Projection onto the outcome range]
+For a real number \(t\), define \(\Pi_{[0,1]}(t)=\min\{1,\max\{0,t\}\}\). Applied to an estimator or interval endpoint, \(\Pi_{[0,1]}\) denotes this pointwise projection onto the outcome range \([0,1]\).
+\end{definitionv}
+
+\begin{definitionv}{synth_2}[Continuity-only regression extension]
+For \(P\in\mathcal M_{\mathrm{cont}}\) and \(x\in\mathcal X\), \(\mu_{x,\mathrm{cont}}^P\) denotes the unique continuous function on \([0,\bar\delta]\) that agrees, almost everywhere on that interval under the conditional treatment law given \(X=x\), with a version of the conditional mean \(a\mapsto\mathbb E_P[Y\mid A=a,X=x]\).
+\end{definitionv}
+
+\Cref{obj:synth_6} records the range projection used later for estimators and confidence endpoints. Because the target is built from an outcome regression taking values in \([0,1]\), the projection keeps the reported numerical object on the same outcome scale.

@@ -1,0 +1,179 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Mathlib.Probability.Martingale.OptionalStopping
+public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
+
+/-! # Ville inequality
+
+Ville's inequality bounds, under a probability law, the probability that a nonnegative
+supermartingale ever crosses a positive level by its initial expected value divided by that level.
+Because the bound holds simultaneously over time, it supports inference at data-dependent stopping
+times.
+
+This file packages test supermartingales as nonnegative supermartingales with initial expected
+wealth at most one. It proves the finite-horizon maximal inequality under a finite measure by
+optional stopping at a hitting time, passes to the time-uniform probability bound, and specializes
+the crossing level to `1/α` for anytime-valid testing.
+-/
+
+@[expose] public section
+
+open MeasureTheory Filter
+open scoped NNReal ENNReal MeasureTheory ProbabilityTheory BigOperators
+
+namespace Causalean
+namespace Experimentation
+namespace Sequential
+
+variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} {ℱ : Filtration ℕ m0}
+
+/-- Given [a sample space](hyp:Ω), [a σ-algebra on that space](hyp:m0),
+[a real-valued process indexed by time](hyp:M), [a filtration on that σ-algebra](hyp:ℱ), and
+[a measure on that measurable space](hyp:μ), a [test supermartingale](goal) is a
+supermartingale adapted to that filtration whose value is nonnegative at every time and sample
+point and whose expected initial value is at most one.
+
+It is the wealth process of a bet against the null that cannot grow in expectation under it.
+
+  The whole sequential stack is stated at finite-measure generality: nothing here uses total mass
+  one. These are measure bounds, and they become statements about probability, type-I error and
+  coverage exactly when a caller instantiates at a probability measure — which is what the
+  inference-facing callers do. The names are read in that setting; the theorems are not restricted
+  to it. -/
+def IsTestSupermartingale (M : ℕ → Ω → ℝ) (ℱ : Filtration ℕ m0) (μ : Measure Ω) : Prop :=
+  Supermartingale M ℱ μ ∧ (∀ n, 0 ≤ M n) ∧ μ[M 0] ≤ 1
+
+/-- **Finite-horizon supermartingale maximal inequality.** If
+[`M` is a supermartingale under a finite measure](hyp:hM),
+[`M` is everywhere nonnegative](hyp:hnonneg), [the level `λ` is positive](hyp:lam,hlam), and
+[the horizon is `n`](hyp:n), then
+[the crossing event has measure at most `E[M₀] / λ`](goal).
+
+This is the supermartingale analogue of `MeasureTheory.maximal_ineq` (for nonnegative
+submartingales); it is proved by optional stopping of the supermartingale at the hitting time of
+`[λ,∞)`. -/
+theorem supermartingale_maximal_ineq [IsFiniteMeasure μ] {M : ℕ → Ω → ℝ}
+    (hM : Supermartingale M ℱ μ) (hnonneg : ∀ n, 0 ≤ M n) {lam : ℝ} (hlam : 0 < lam) (n : ℕ) :
+    μ {ω | lam ≤ (Finset.range (n + 1)).sup' Finset.nonempty_range_add_one (fun k => M k ω)}
+      ≤ ENNReal.ofReal (μ[M 0] / lam) := by
+  classical
+  let τ : Ω → ℕ∞ := fun ω => (hittingBtwn M {y : ℝ | lam ≤ y} (0 : ℕ) n ω : ℕ)
+  let A : Set Ω :=
+    {ω | lam ≤ (Finset.range (n + 1)).sup' Finset.nonempty_range_add_one (fun k => M k ω)}
+  have hAmeas : MeasurableSet A := by
+    exact measurableSet_le measurable_const
+      (Finset.measurable_range_sup'' fun k _ => (hM.1.stronglyMeasurable (i := k)).measurable)
+  have hτstop : IsStoppingTime ℱ τ := by
+    exact hM.stronglyAdapted.adapted.isStoppingTime_hittingBtwn measurableSet_Ici
+  have hτbdd : ∀ ω, τ ω ≤ n := by
+    intro ω
+    simpa [τ] using
+      (show (((hittingBtwn M {y : ℝ | lam ≤ y} (0 : ℕ) n ω : ℕ) : ℕ∞) ≤ (n : ℕ∞)) from by
+        exact WithTop.coe_le_coe.2
+          (hittingBtwn_le (u := M) (s := {y : ℝ | lam ≤ y}) (n := (0 : ℕ))
+            (m := n) (ω := ω)))
+  have hτint : Integrable (stoppedValue M τ) μ :=
+    integrable_stoppedValue ℕ hτstop hM.2.2 hτbdd
+  have hhit : ∀ ω ∈ A, lam ≤ stoppedValue M τ ω := by
+    intro ω hω
+    simp_rw [A, Set.mem_setOf_eq, Finset.le_sup'_iff, Finset.mem_range, Nat.lt_succ_iff] at hω
+    refine stoppedValue_hittingBtwn_mem ?_
+    simpa only [Set.mem_setOf_eq, Set.mem_Icc, zero_le, true_and] using hω
+  have hsetLower :
+      lam * (μ A).toReal ≤ ∫ ω in A, stoppedValue M τ ω ∂μ :=
+    setIntegral_ge_of_const_le_real hAmeas (measure_ne_top _ _) hhit hτint.integrableOn
+  have hstopped_nonneg : 0 ≤ stoppedValue M τ := by
+    intro ω
+    exact hnonneg _ ω
+  have hset_le_total : ∫ ω in A, stoppedValue M τ ω ∂μ ≤ μ[stoppedValue M τ] := by
+    have hcompl_nonneg : 0 ≤ ∫ ω in Aᶜ, stoppedValue M τ ω ∂μ :=
+      setIntegral_nonneg hAmeas.compl fun ω _ => hstopped_nonneg ω
+    have hadd := integral_add_compl hAmeas hτint
+    linarith
+  have hτ_le_M0 : μ[stoppedValue M τ] ≤ μ[M 0] := by
+    have hneg : Submartingale (fun k ω => -M k ω) ℱ μ := hM.neg
+    have hopt :
+        μ[stoppedValue (fun k ω => -M k ω) (fun _ : Ω => ((0 : ℕ) : ℕ∞))]
+          ≤ μ[stoppedValue (fun k ω => -M k ω) τ] := by
+      refine hneg.expected_stoppedValue_mono (isStoppingTime_const ℱ 0) hτstop ?_ hτbdd
+      intro ω
+      simp [τ]
+    have hleft :
+        μ[stoppedValue (fun k ω => -M k ω) (fun _ : Ω => ((0 : ℕ) : ℕ∞))] =
+          - μ[M 0] := by
+      rw [show stoppedValue (fun k ω => -M k ω) (fun _ : Ω => ((0 : ℕ) : ℕ∞)) =
+          fun ω => -M 0 ω by
+        funext ω
+        simp only [stoppedValue]
+        rfl]
+      exact integral_neg (M 0)
+    have hright :
+        μ[stoppedValue (fun k ω => -M k ω) τ] = - μ[stoppedValue M τ] := by
+      rw [show stoppedValue (fun k ω => -M k ω) τ = fun ω => - stoppedValue M τ ω by
+        funext ω
+        simp [stoppedValue]]
+      exact integral_neg (stoppedValue M τ)
+    rw [hleft, hright] at hopt
+    linarith
+  have hmul : lam * (μ A).toReal ≤ μ[M 0] :=
+    hsetLower.trans (hset_le_total.trans hτ_le_M0)
+  have hM0_nonneg : 0 ≤ μ[M 0] := integral_nonneg (hnonneg 0)
+  have hdiv_nonneg : 0 ≤ μ[M 0] / lam := div_nonneg hM0_nonneg hlam.le
+  change μ A ≤ ENNReal.ofReal (μ[M 0] / lam)
+  rw [ENNReal.le_ofReal_iff_toReal_le (measure_ne_top _ _) hdiv_nonneg]
+  exact (le_div_iff₀ hlam).2 (by simpa [mul_comm] using hmul)
+
+/-- **Ville's inequality (time-uniform maximal inequality).** If
+[`M` is a supermartingale under the measure](hyp:hM),
+[`M` is everywhere nonnegative](hyp:hnonneg), and
+[the level `λ` is positive](hyp:lam,hlam), then
+[the measure of the event that `M` ever reaches `λ` is at most `E[M₀] / λ`](goal). -/
+theorem ville_inequality [IsFiniteMeasure μ] {M : ℕ → Ω → ℝ}
+    (hM : Supermartingale M ℱ μ) (hnonneg : ∀ n, 0 ≤ M n) {lam : ℝ} (hlam : 0 < lam) :
+    μ {ω | ∃ n, lam ≤ M n ω} ≤ ENNReal.ofReal (μ[M 0] / lam) := by
+  -- The "ever reaches lam" event is the increasing union of the finite-horizon events; apply the
+  -- finite-horizon maximal inequality termwise.
+  set A : ℕ → Set Ω :=
+    fun N => {ω | lam ≤ (Finset.range (N + 1)).sup' Finset.nonempty_range_add_one (fun k => M k ω)}
+    with hA
+  have hUnion : {ω | ∃ n, lam ≤ M n ω} = ⋃ N, A N := by
+    ext ω
+    simp only [hA, Set.mem_setOf_eq, Set.mem_iUnion]
+    constructor
+    · rintro ⟨n, hn⟩
+      exact ⟨n, Finset.le_sup'_of_le (f := fun k => M k ω) (Finset.self_mem_range_succ n) hn⟩
+    · rintro ⟨N, hN⟩
+      obtain ⟨k, _, hk⟩ := Finset.exists_mem_eq_sup' Finset.nonempty_range_add_one (fun k => M k ω)
+      exact ⟨k, hN.trans hk.le⟩
+  have hmono : Monotone A := by
+    intro a b hab ω hω
+    simp only [hA, Set.mem_setOf_eq] at hω ⊢
+    have hsub : Finset.range (a + 1) ⊆ Finset.range (b + 1) :=
+      Finset.range_mono (Nat.succ_le_succ hab)
+    exact le_trans hω (Finset.sup'_mono (fun k => M k ω) hsub Finset.nonempty_range_add_one)
+  rw [hUnion, hmono.measure_iUnion]
+  exact iSup_le (fun N => supermartingale_maximal_ineq hM hnonneg hlam N)
+
+/-- If [`M` is a test supermartingale](hyp:hM) and
+[the level `α` is positive](hyp:α,hα), then
+[the event that `M` ever reaches `1/α` has measure at most `α`](goal). -/
+theorem ville_test [IsFiniteMeasure μ] {M : ℕ → Ω → ℝ}
+    (hM : IsTestSupermartingale M ℱ μ)
+    {α : ℝ} (hα : 0 < α) :
+    μ {ω | ∃ n, 1 / α ≤ M n ω} ≤ ENNReal.ofReal α := by
+  obtain ⟨hsuper, hnn, hM0⟩ := hM
+  have hlam : (0 : ℝ) < 1 / α := by positivity
+  refine le_trans (ville_inequality hsuper hnn hlam) ?_
+  apply ENNReal.ofReal_le_ofReal
+  rw [div_div_eq_mul_div, div_one]
+  calc μ[M 0] * α ≤ 1 * α := mul_le_mul_of_nonneg_right hM0 hα.le
+    _ = α := one_mul α
+
+end Sequential
+end Experimentation
+end Causalean

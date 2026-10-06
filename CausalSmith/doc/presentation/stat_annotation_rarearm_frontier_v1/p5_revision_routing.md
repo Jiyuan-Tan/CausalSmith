@@ -1,0 +1,10 @@
+# Revision routing plan (major_revision)
+
+## fix by hand in the authored sources (prose/structure rewrite)
+- [major·structure·rewrite] (Minimax precision with two information budgets; An attaining estimator; appendices) The presentation hierarchy obscures the central contribution. A lengthy six-step estimator construction precedes the main risk theorem, the following estimator section repeatedly describes that same construction, and extensive presentations of standard tools occupy substantial space before the distinctive lower-bound argument. Repeated definitions, condition lists, and post-result paraphrases make the paper considerably harder to navigate.
+- [minor·prose·rewrite] (Consistency and the value of auxiliary records — Three illustrative sequences) The sentence “Let \(t=k+2\), so every displayed public index is legal” is false for the stated zero-based sequence domain. At the first two coordinates, \(\epsilon_k=t^{-1}\) equals \(1/2\) and \(1/3\), exceeding the public upper bound \(1/4\).
+- [minor·prose·rewrite] (abstract; Introduction; An attaining estimator) The abstract and introduction emphasize explicit attainment, while the construction's zero-output threshold \(n\epsilon<\exp(4096)\) receives its practical interpretation much later. Attainment is faithful to the verified theorem, but readers need an earlier distinction between this uniform order guarantee and the numerical performance of the displayed tuning.
+- [minor·prose·rewrite] (Minimax precision with two information budgets — closing paragraph) “The next section gives the estimator that attains the uniform upper comparison” points to a section that explains an estimator already fully specified earlier. The directional section reference also bypasses the required cleveref convention.
+- [nit·prose·rewrite] (Minimax precision with two information budgets — opening paragraph) The symbol \(r(n,m,d,\epsilon)\) appears in running prose before its defining environment without an attached first-use gloss.
+
+→ revise by hand at the level that owns each finding; formal statements remain frozen; then rescore once

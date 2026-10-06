@@ -1,0 +1,193 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Structure-agnostic ATE lower bound: the cell-varying-center construction
+
+`ConstCenterGeneral/Construction.lean` perturbs around an arbitrary **constant** nuisance center
+`(m₀, g₀, g₁) ∈ (0,1)³`.  This file generalizes the center to a **cell-varying
+(piecewise-constant) function**: the nuisance estimates are arbitrary functions of
+the *pair index* `j : Fin K`, bounded away from `{0,1}`, with the two positions of a
+pair sharing the pair's value.  This is the finite-model analogue of the paper's
+**functional center** `(m̂, ĝ)` (Jin–Syrgkanis 2024, Assumption 2, general case),
+restricted to centers that are constant within each Rademacher pair — the residual
+within-pair variation is the only piece not covered here.
+
+Around the cell-varying center `(m₀ j, g₀ j, g₁ j)` the perturbed DGP is the same
+asymmetric/non-linear construction as `ConstCenterGeneral/Construction.lean`, applied per pair:
+
+  `mλ x   = m₀ x.1 · (1 − (β/g₁ x.1)·Δ)`,
+  `gλ(1,x) = (g₁ x.1 + α·Δ) / (1 − (β/g₁ x.1)·Δ)`,
+  `gλ(0,x) = g₀ x.1`.
+
+Because the center is constant *within* each pair, the per-pair ATE gap is exactly
+`λ`-independent (no Taylor remainder), and the χ²-overlap keeps the clean form
+`1 + Σⱼ (Γⱼ/K)·signOf(λ j)signOf(λ' j)` with a **per-pair** coefficient `Γⱼ` —
+exactly what the non-uniform `ingster_bound_general` consumes.
+
+This file defines the construction and proves it is a `ValidDGP`; the ATE gap,
+class membership, and the χ² indistinguishability live in the sibling `VaryingCenterCase1` files.
+-/
+
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
+
+/-! # Cell-Varying Construction
+
+This file defines the cell-varying-center Rademacher construction for the
+structure-agnostic ATE lower bound.  The nuisance center may vary by paired cell while remaining
+constant within each pair, preserving the exact cancellation used by the gap and overlap
+calculations.
+
+The structure `VarConstr` stores the bump magnitudes `α`, `β`, the pair-indexed nuisance center
+`m₀`, `g₀`, `g₁`, and the inequalities that keep all perturbed nuisances in `[0, 1]`.  Its namespace
+defines the center functions `mhatV` and `ghatV`, the sign-dependent perturbations `mPertV` and
+`gPertV`, the denominator positivity lemma `denomV_pos`, and the validity proofs
+`validDGP_hatV` and `validDGP_pertV`. -/
+
+@[expose] public section
+
+namespace Causalean.Estimation.MinimaxATE
+
+open scoped BigOperators
+
+variable {K : ℕ}
+
+/-- **Cell-varying-center construction data** for a Rademacher perturbation whose nuisance
+center may vary by paired cell (Jin–Syrgkanis 2024, Assumption 2, restricted to centers
+constant within a pair). It packages [two bump-magnitude scalars, one on the treated outcome
+arm and one on the propensity](hyp:α,β), together with [a nuisance center given by the
+pair-indexed functions m₀, g₀ and g₁ for the propensity and the two potential-outcome
+regressions](hyp:m₀,g₀,g₁), plus the inequalities certifying that [both bump magnitudes are
+nonnegative](hyp:hα,hβ), [the center is pointwise strictly inside `(0,1)` for m₀, g₀ and
+g₁](hyp:hm₀0,hm₀1,hg₀0,hg₀1,hg₁0,hg₁1), [the propensity bump is smaller than the treated-arm
+center, keeping the perturbation denominator positive](hyp:hβg₁), [the treated-arm bump does
+not exceed the treated center, keeping the perturbed outcome regression
+nonnegative](hyp:hαg₁), and worst-case bounds forcing [the perturbed outcome regression to
+stay at most one](hyp:hgU) and [the perturbed propensity to stay at most one](hyp:hmU). -/
+structure VarConstr (K : ℕ) where
+  /-- Bump magnitude on the treated outcome arm. -/
+  α : ℝ
+  /-- Bump magnitude on the propensity. -/
+  β : ℝ
+  /-- Cell-varying propensity center `m̂`. -/
+  m₀ : Fin K → ℝ
+  /-- Cell-varying control-arm center `ĝ(0,·)`. -/
+  g₀ : Fin K → ℝ
+  /-- Cell-varying treated-arm center `ĝ(1,·)`. -/
+  g₁ : Fin K → ℝ
+  hα : 0 ≤ α
+  hβ : 0 ≤ β
+  hm₀0 : ∀ j, 0 < m₀ j
+  hm₀1 : ∀ j, m₀ j < 1
+  hg₀0 : ∀ j, 0 < g₀ j
+  hg₀1 : ∀ j, g₀ j < 1
+  hg₁0 : ∀ j, 0 < g₁ j
+  hg₁1 : ∀ j, g₁ j < 1
+  /-- The propensity bump is smaller than the treated center (keeps the denominator
+  `1 − (β/g₁)·Δ` positive). -/
+  hβg₁ : ∀ j, β < g₁ j
+  /-- The treated-arm bump does not exceed the treated center (keeps `gλ(1) ≥ 0`). -/
+  hαg₁ : ∀ j, α ≤ g₁ j
+  /-- Worst-case upper bound keeping `gλ(1) ≤ 1`. -/
+  hgU : ∀ j, g₁ j + α + β / g₁ j ≤ 1
+  /-- Worst-case upper bound keeping `mλ ≤ 1`. -/
+  hmU : ∀ j, m₀ j * (1 + β / g₁ j) ≤ 1
+
+namespace VarConstr
+
+variable (P : VarConstr K)
+
+/-- `0 ≤ β/g₁ j` always. -/
+theorem ratio_nonneg (j : Fin K) : 0 ≤ P.β / P.g₁ j := div_nonneg P.hβ (P.hg₁0 j).le
+
+/-- `β/g₁ j < 1` since `β < g₁ j`. -/
+theorem ratio_lt_one (j : Fin K) : P.β / P.g₁ j < 1 := (div_lt_one (P.hg₁0 j)).mpr (P.hβg₁ j)
+
+/-- For every [number $K$ of paired cells](hyp:K) and [cell-varying construction
+data](hyp:P), the [cell-varying propensity center](goal) assigns to each covariate cell the
+propensity-center value of that cell's pair. -/
+noncomputable def mhatV : (Fin K × Bool) → ℝ := fun x => P.m₀ x.1
+
+/-- For every [number $K$ of paired cells](hyp:K) and [cell-varying construction
+data](hyp:P), the [cell-varying outcome-regression center](goal) assigns the treated-arm
+center for a cell's pair under treatment and the control-arm center for that pair under control. -/
+noncomputable def ghatV : Bool → (Fin K × Bool) → ℝ :=
+  fun d x => if d then P.g₁ x.1 else P.g₀ x.1
+
+/-- For every [number $K$ of paired cells](hyp:K), [cell-varying construction data](hyp:P), and
+[binary sign vector over the pairs](hyp:lam), the [perturbed propensity function](goal) assigns
+to each cell its pair's propensity center multiplied by one minus the propensity-to-treated-mean
+ratio times that cell's signed perturbation. -/
+noncomputable def mPertV (lam : Fin K → Bool) : (Fin K × Bool) → ℝ :=
+  fun x => P.m₀ x.1 * (1 - (P.β / P.g₁ x.1) * Δ lam x)
+
+/-- For every [number $K$ of paired cells](hyp:K), [cell-varying construction data](hyp:P), and
+[binary sign vector over the pairs](hyp:lam), the [perturbed outcome-regression function](goal)
+assigns the control-arm center of the cell's pair under control and, under treatment, the
+sign-perturbed treated-arm center divided by one minus the signed propensity-to-treated-mean
+ratio. -/
+noncomputable def gPertV (lam : Fin K → Bool) : Bool → (Fin K × Bool) → ℝ :=
+  fun d x => if d then (P.g₁ x.1 + P.α * Δ lam x) / (1 - (P.β / P.g₁ x.1) * Δ lam x) else P.g₀ x.1
+
+/-- The denominator `1 − (β/g₁ j)·Δ` is positive. -/
+theorem denomV_pos (lam : Fin K → Bool) (x : Fin K × Bool) :
+    0 < 1 - (P.β / P.g₁ x.1) * Δ lam x := by
+  have hr := P.ratio_nonneg x.1
+  have hr1 := P.ratio_lt_one x.1
+  rcases Δ_mem lam x with h | h
+  · rw [h]; nlinarith
+  · rw [h]; nlinarith
+
+/-- [The null cell-varying-center data-generating process, with propensity `mhatV` and outcome
+regressions `ghatV`, is a valid finite observed-data model, i.e. all its component
+probabilities lie in `[0,1]`](goal). -/
+theorem validDGP_hatV : ValidDGP (C := Fin K × Bool) P.mhatV P.ghatV := by
+  refine ⟨fun x => ?_, fun d x => ?_⟩
+  · simp only [mhatV]; exact ⟨(P.hm₀0 x.1).le, (P.hm₀1 x.1).le⟩
+  · simp only [ghatV]; cases d
+    · exact ⟨(P.hg₀0 x.1).le, (P.hg₀1 x.1).le⟩
+    · exact ⟨(P.hg₁0 x.1).le, (P.hg₁1 x.1).le⟩
+
+/-- [For any Rademacher sign vector `lam` indexing the perturbation](hyp:lam), [the perturbed
+propensity and outcome-regression functions define a valid finite observed-data model, i.e.
+take values in `[0,1]`](goal). -/
+theorem validDGP_pertV (lam : Fin K → Bool) :
+    ValidDGP (P.mPertV lam) (P.gPertV lam) := by
+  refine ⟨fun x => ?_, fun d x => ?_⟩
+  · -- propensity `m₀·(1 − (β/g₁)·Δ) ∈ [0,1]`
+    have hr := P.ratio_nonneg x.1
+    have hr1 := P.ratio_lt_one x.1
+    have hmU := P.hmU x.1
+    have hm0 := P.hm₀0 x.1
+    simp only [mPertV]
+    rcases Δ_mem lam x with h | h
+    · rw [h]; constructor
+      · nlinarith
+      · nlinarith
+    · rw [h]; constructor
+      · nlinarith
+      · nlinarith
+  · -- outcome `gλ(d,·) ∈ [0,1]`
+    have hd := P.denomV_pos lam x
+    rcases d with _ | _
+    · simp only [gPertV, Bool.false_eq_true, if_false]; exact ⟨(P.hg₀0 x.1).le, (P.hg₀1 x.1).le⟩
+    · simp only [gPertV, if_true]
+      have hr := P.ratio_nonneg x.1
+      have hgU := P.hgU x.1
+      have hαg₁ := P.hαg₁ x.1
+      have hg₁0 := P.hg₁0 x.1
+      have hg₁1 := P.hg₁1 x.1
+      have hα := P.hα
+      rcases Δ_mem lam x with h | h
+      · rw [h] at hd ⊢
+        refine ⟨div_nonneg (by nlinarith) hd.le, ?_⟩
+        rw [div_le_one hd]; nlinarith
+      · rw [h] at hd ⊢
+        refine ⟨div_nonneg (by nlinarith) hd.le, ?_⟩
+        rw [div_le_one hd]; nlinarith
+
+end VarConstr
+
+end Causalean.Estimation.MinimaxATE

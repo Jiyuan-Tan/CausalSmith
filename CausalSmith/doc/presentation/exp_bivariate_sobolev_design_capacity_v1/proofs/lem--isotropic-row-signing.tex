@@ -1,0 +1,577 @@
+\begin{proof}[Proof of \cref{obj:lem:isotropic-row-signing}]
+For a deterministic row tuple \(\boldsymbol v=(v_1,\ldots,v_n)\in(\mathbb R^{r_0})^n\), define
+\[
+\begin{aligned}
+\mathsf D_{\rm row}(\boldsymbol v)
+&:=\sum_{i=1}^n\|v_i\|_2^2,\\
+\mathsf O_{\rm row}(\boldsymbol v,z)
+&:=\sum_{\substack{1\leq i,i'\leq n\\i\ne i'}}
+z_i z_{i'}\langle v_i,v_{i'}\rangle,
+\qquad z\in\{-1,1\}^n,\\
+\mathsf M_{\rm off}(\boldsymbol v)
+&:=\max_{z\in\{-1,1\}^n}
+|\mathsf O_{\rm row}(\boldsymbol v,z)|,\\
+\mathsf M_{\rm sign}(\boldsymbol v)
+&:=\min_{z\in\{-1,1\}^n}
+\left\|\sum_{i=1}^n z_i v_i\right\|_2^2.
+\end{aligned}
+\]
+For \(n=0\), the sign space consists of the empty tuple, and all four quantities are zero. Square-integrability ensures integrability of the finite extrema used below.
+
+\begin{enumerate}
+\item Suppose first that \(n\leq256\).
+Expanding the squared norm gives, for every signing,
+\[
+\left\|\sum_{i=1}^n z_i v_i\right\|_2^2
+=\mathsf D_{\rm row}(\boldsymbol v)
++\mathsf O_{\rm row}(\boldsymbol v,z).
+\]
+Consequently,
+\[
+\mathsf M_{\rm sign}(\boldsymbol v)
+\geq\mathsf D_{\rm row}(\boldsymbol v)
+-\mathsf M_{\rm off}(\boldsymbol v).
+\]
+Isotropy gives
+\[
+\mathbb E\|v\|_2^2
+=\sum_{\alpha=1}^{r_0}\mathbb E(v_\alpha^2)=r_0,
+\qquad
+\mathbb E\mathsf D_{\rm row}(\boldsymbol v)=nr_0,
+\]
+and hence
+\[
+\mathbb E\mathsf M_{\rm sign}(\boldsymbol v)
+\geq nr_0-\mathbb E\mathsf M_{\rm off}(\boldsymbol v).
+\]
+These identities and the diagonal-subtraction inequality hold for every \(n\).
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.isotropic_signing_lower_of_offDiagonal
+
+For distinct rows, independence and isotropy yield
+\[
+\begin{aligned}
+\mathbb E\langle v_i,v_{i'}\rangle^2
+&=\sum_{\alpha,\beta=1}^{r_0}
+\mathbb E[(v_i)_\alpha(v_i)_\beta]\,
+\mathbb E[(v_{i'})_\alpha(v_{i'})_\beta]\\
+&=\sum_{\alpha,\beta=1}^{r_0}\mathbf 1_{\{\alpha=\beta\}}
+=r_0.
+\end{aligned}
+\]
+Thus Cauchy--Schwarz implies
+\[
+\mathbb E|\langle v_i,v_{i'}\rangle|
+\leq\sqrt{r_0}.
+\]
+The triangle inequality, followed by the loose count of at most \(n^2\) ordered pairs, gives
+\[
+\mathsf M_{\rm off}(\boldsymbol v)
+\leq\sum_{\substack{1\leq i,i'\leq n\\i\ne i'}}
+|\langle v_i,v_{i'}\rangle|,
+\qquad
+\mathbb E\mathsf M_{\rm off}(\boldsymbol v)
+\leq n^2\sqrt{r_0}.
+\]
+Therefore,
+\[
+\mathbb E\mathsf M_{\rm sign}(\boldsymbol v)
+\geq nr_0-n^2\sqrt{r_0}.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.isotropic_signing_lower_pair_count
+
+Since \(n\leq256\),
+\[
+\sqrt n\leq16,\qquad
+n=(\sqrt n)^2\leq16\sqrt n,
+\qquad
+n^2\sqrt{r_0}\leq16n\sqrt{nr_0}.
+\]
+It follows that
+\[
+\mathbb E\mathsf M_{\rm sign}(\boldsymbol v)
+\geq nr_0-16n\sqrt{nr_0}
+\geq nr_0-n^2-16n\sqrt{nr_0}.
+\]
+The same calculation covers \(n=0\).
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.isotropic_small_sample_signing_lower
+
+\item Suppose now that \(n>256\). We first establish the finite-class estimate needed for the partition argument.
+Let
+\[
+n_{\rm loc}\in\mathbb N_0,\qquad
+\boldsymbol v_{\rm loc}
+=(v^{\rm loc}_1,\ldots,v^{\rm loc}_{n_{\rm loc}})
+\in(\mathbb R^{r_0})^{n_{\rm loc}},
+\]
+where the local rows are independent copies of \(v\). Let
+\[
+\varnothing\ne\mathcal U_{\rm fin}\subset\mathbb R^{r_0}
+\quad\text{be finite},\qquad
+R_{\rm dir}:=\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+\|u_{\rm dir}\|_2.
+\]
+For \(u_{\rm dir}\in\mathcal U_{\rm fin}\), define
+\[
+\mathsf f_{u_{\rm dir}}:\mathbb R^{r_0}\to\mathbb R,
+\qquad
+\mathsf f_{u_{\rm dir}}(v):=|\langle u_{\rm dir},v\rangle|,
+\]
+and
+\[
+\mathsf C_{\rm fin}(\boldsymbol v_{\rm loc})
+:=
+\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+\left|
+\sum_{i=1}^{n_{\rm loc}}
+\bigl(\mathsf f_{u_{\rm dir}}(v_i^{\rm loc})
+-\mathbb E\mathsf f_{u_{\rm dir}}(v)\bigr)
+\right|.
+\]
+Isotropy and Cauchy--Schwarz give
+\[
+\mathbb E\langle u_{\rm dir},v\rangle^2
+=u_{\rm dir}^{\mathsf T}\mathbb E[vv^{\mathsf T}]u_{\rm dir}
+=\|u_{\rm dir}\|_2^2,
+\qquad
+\mathbb E\mathsf f_{u_{\rm dir}}(v)
+\leq\|u_{\rm dir}\|_2.
+\]
+Adding and subtracting the means therefore yields the pointwise bound
+\[
+\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+\sum_{i=1}^{n_{\rm loc}}
+\mathsf f_{u_{\rm dir}}(v_i^{\rm loc})
+\leq n_{\rm loc}R_{\rm dir}
++\mathsf C_{\rm fin}(\boldsymbol v_{\rm loc}).
+\]
+
+Introduce an independent copy
+\[
+\boldsymbol v_{\rm ghost}
+=(v^{\rm ghost}_1,\ldots,v^{\rm ghost}_{n_{\rm loc}})
+\]
+of the local sample, and independent fair signs
+\[
+\rho=(\rho_1,\ldots,\rho_{n_{\rm loc}})
+\in\{-1,1\}^{n_{\rm loc}},
+\qquad
+\mathbb P(\rho_i=1)=\mathbb P(\rho_i=-1)=\tfrac12.
+\]
+Define
+\[
+\mathsf S_\rho(\boldsymbol v_{\rm loc})
+:=\sum_{i=1}^{n_{\rm loc}}\rho_i v_i^{\rm loc}.
+\]
+Jensen's inequality, exchanging the two entries of each independent sample pair according to \(\rho_i\), and the triangle inequality give
+\[
+\begin{aligned}
+\mathbb E\mathsf C_{\rm fin}(\boldsymbol v_{\rm loc})
+&\leq
+\mathbb E\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+\left|\sum_{i=1}^{n_{\rm loc}}
+\bigl(\mathsf f_{u_{\rm dir}}(v_i^{\rm loc})
+-\mathsf f_{u_{\rm dir}}(v_i^{\rm ghost})\bigr)\right|\\
+&=
+\mathbb E\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+\left|\sum_{i=1}^{n_{\rm loc}}\rho_i
+\bigl(\mathsf f_{u_{\rm dir}}(v_i^{\rm loc})
+-\mathsf f_{u_{\rm dir}}(v_i^{\rm ghost})\bigr)\right|\\
+&\leq
+2\mathbb E\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+\left|\sum_{i=1}^{n_{\rm loc}}\rho_i
+\mathsf f_{u_{\rm dir}}(v_i^{\rm loc})\right|.
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.finite_first_moment_symmetrization
+
+Apply the contraction inequality of
+\citep[Theorem~12(4), with Rademacher complexity as in Definition~2]{BartlettMendelson2002Complexities}
+to the finite class of linear projections and the map
+\[
+\varphi_{\rm abs}:\mathbb R\to\mathbb R,
+\qquad
+\varphi_{\rm abs}(t_{\rm abs}):=|t_{\rm abs}|.
+\]
+This map is \(1\)-Lipschitz and vanishes at zero. The class is its own countable dense subclass, and a common integrable envelope is
+\[
+\mathsf E_{\rm fin}(v)
+:=\sum_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+|\langle u_{\rm dir},v\rangle|
+\leq|\mathcal U_{\rm fin}|R_{\rm dir}\|v\|_2,
+\qquad
+\mathbb E\|v\|_2\leq\sqrt{r_0}.
+\]
+The envelope bound holds at every \(v\). Contraction supplies
+\[
+\mathbb E\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+\left|\sum_{i=1}^{n_{\rm loc}}\rho_i
+|\langle u_{\rm dir},v_i^{\rm loc}\rangle|\right|
+\leq
+2\mathbb E\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+|\langle \mathsf S_\rho(\boldsymbol v_{\rm loc}),u_{\rm dir}\rangle|.
+\]
+Combining the preceding bounds proves
+\[
+\mathbb E\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+\sum_{i=1}^{n_{\rm loc}}|\langle u_{\rm dir},v_i^{\rm loc}\rangle|
+\leq n_{\rm loc}R_{\rm dir}
++4\mathbb E\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+|\langle \mathsf S_\rho(\boldsymbol v_{\rm loc}),u_{\rm dir}\rangle|.
+\]
+All sums vanish when \(n_{\rm loc}=0\).
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.finite_projection_sum_integral_le_exact_rad
+
+\item Consider two independent groups of rows,
+\[
+\begin{gathered}
+n_{\rm left},n_{\rm right}\in\mathbb N_0,\\
+\boldsymbol v_{\rm left}
+=(v^{\rm left}_1,\ldots,v^{\rm left}_{n_{\rm left}}),
+\qquad
+\boldsymbol v_{\rm right}
+=(v^{\rm right}_1,\ldots,v^{\rm right}_{n_{\rm right}}),
+\end{gathered}
+\]
+each consisting of independent copies of \(v\). For any local row tuple, define
+\[
+\mathsf K_{\rm row}(\boldsymbol v_{\rm loc})
+:=
+\max_{z_{\rm loc}\in\{-1,1\}^{n_{\rm loc}}}
+\left\|\sum_{i=1}^{n_{\rm loc}}
+(z_{\rm loc})_i v_i^{\rm loc}\right\|_2.
+\]
+Also define the finite direction set and cross-group quantity
+\[
+\begin{aligned}
+\mathcal U_{\rm right}(\boldsymbol v_{\rm right})
+&:=
+\left\{\sum_{i'=1}^{n_{\rm right}}
+(z_{\rm right})_{i'}v_{i'}^{\rm right}:
+z_{\rm right}\in\{-1,1\}^{n_{\rm right}}\right\},\\
+\mathsf H_{\rm cross}(\boldsymbol v_{\rm left},\boldsymbol v_{\rm right})
+&:=
+\max_{u_{\rm dir}\in\mathcal U_{\rm right}(\boldsymbol v_{\rm right})}
+\sum_{i=1}^{n_{\rm left}}
+|\langle u_{\rm dir},v_i^{\rm left}\rangle|.
+\end{aligned}
+\]
+For an empty tuple, \(\mathsf K_{\rm row}=0\); if the right group is empty, \(\mathcal U_{\rm right}=\{0\}\). Thus \(\mathsf H_{\rm cross}=0\) whenever either group is empty.
+
+Conditional on the right group, the finite-class estimate applies with maximal direction norm \(\mathsf K_{\rm row}(\boldsymbol v_{\rm right})\). Choosing each right-group sign to agree with its projection gives
+\[
+\max_{u_{\rm dir}\in\mathcal U_{\rm right}(\boldsymbol v_{\rm right})}
+|\langle\mathsf S_\rho(\boldsymbol v_{\rm left}),u_{\rm dir}\rangle|
+=
+\sum_{i'=1}^{n_{\rm right}}
+|\langle\mathsf S_\rho(\boldsymbol v_{\rm left}),v_{i'}^{\rm right}\rangle|.
+\]
+Consequently,
+\[
+\begin{aligned}
+\mathbb E_{\rm left}\,
+\mathsf H_{\rm cross}(\boldsymbol v_{\rm left},\boldsymbol v_{\rm right})
+\leq{}&
+n_{\rm left}\mathsf K_{\rm row}(\boldsymbol v_{\rm right})\\
+&+4\mathbb E_{{\rm left},\rho}
+\sum_{i'=1}^{n_{\rm right}}
+|\langle\mathsf S_\rho(\boldsymbol v_{\rm left}),v_{i'}^{\rm right}\rangle|.
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.fixed_group_cross_integral_le_exact_rad
+
+For any local sample, averaging over the fair signs cancels the off-diagonal terms:
+\[
+\mathbb E_\rho\|\mathsf S_\rho(\boldsymbol v_{\rm loc})\|_2^2
+=\sum_{i=1}^{n_{\rm loc}}\|v_i^{\rm loc}\|_2^2.
+\]
+Thus
+\[
+\mathbb E\|\mathsf S_\rho(\boldsymbol v_{\rm loc})\|_2^2
+=n_{\rm loc}r_0,
+\qquad
+\mathbb E\|\mathsf S_\rho(\boldsymbol v_{\rm loc})\|_2
+\leq\sqrt{n_{\rm loc}r_0}.
+\]
+For every fixed \(u_{\rm dir}\in\mathbb R^{r_0}\), the projection estimate gives
+\[
+\mathbb E_{\rm right}
+\sum_{i'=1}^{n_{\rm right}}
+|\langle u_{\rm dir},v_{i'}^{\rm right}\rangle|
+\leq n_{\rm right}\|u_{\rm dir}\|_2.
+\]
+Independence allows this estimate to be applied conditional on the left sample and its signs. Interchanging the integrable expectations yields
+\[
+\mathbb E
+\sum_{i'=1}^{n_{\rm right}}
+|\langle\mathsf S_\rho(\boldsymbol v_{\rm left}),v_{i'}^{\rm right}\rangle|
+\leq
+n_{\rm right}\sqrt{n_{\rm left}r_0}.
+\]
+After integrating the conditional cross-group bound, we obtain
+\[
+\mathbb E\mathsf H_{\rm cross}(\boldsymbol v_{\rm left},\boldsymbol v_{\rm right})
+\leq
+n_{\rm left}\mathbb E\mathsf K_{\rm row}(\boldsymbol v_{\rm right})
++4n_{\rm right}\sqrt{n_{\rm left}r_0}.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.independent_group_cross_integral_le
+
+\item We next bound the expected maximum signed norm.
+Define the Euclidean unit ball
+\[
+\mathcal B_{\rm dir}
+:=\{u_{\rm dir}\in\mathbb R^{r_0}:\|u_{\rm dir}\|_2\leq1\}.
+\]
+Norm duality and choosing the signs of the projections imply
+\[
+\mathsf K_{\rm row}(\boldsymbol v_{\rm loc})
+=
+\sup_{u_{\rm dir}\in\mathcal B_{\rm dir}}
+\sum_{i=1}^{n_{\rm loc}}|\langle u_{\rm dir},v_i^{\rm loc}\rangle|.
+\]
+Indeed, for a fixed direction, the maximum absolute projection of a signed sum is the sum of the absolute projections; taking the supremum over unit directions gives its Euclidean norm.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.signingNormMax_eq_unit_projection_sum
+
+For every nonempty finite \(\mathcal U_{\rm fin}\subset\mathcal B_{\rm dir}\),
+\[
+\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+|\langle\mathsf S_\rho(\boldsymbol v_{\rm loc}),u_{\rm dir}\rangle|
+\leq\|\mathsf S_\rho(\boldsymbol v_{\rm loc})\|_2.
+\]
+The finite-class bound and the signed-norm first moment therefore give
+\[
+\mathbb E\max_{u_{\rm dir}\in\mathcal U_{\rm fin}}
+\sum_{i=1}^{n_{\rm loc}}|\langle u_{\rm dir},v_i^{\rm loc}\rangle|
+\leq n_{\rm loc}+4\sqrt{n_{\rm loc}r_0}.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.finite_unit_projection_sum_integral_le
+
+To pass to the whole unit ball, put
+\[
+\mathsf A_{\rm norm}
+:=\mathbb E\sum_{i=1}^{n_{\rm loc}}\|v_i^{\rm loc}\|_2,
+\qquad
+0\leq\mathsf A_{\rm norm}<\infty.
+\]
+For an arbitrary \(\delta_{\rm net}>0\), set
+\[
+\varepsilon_{\rm net}
+:=\frac{\delta_{\rm net}}{\mathsf A_{\rm norm}+1}>0.
+\]
+Compactness provides a nonempty finite set
+\[
+\mathcal U_{\rm net}\subset\mathcal B_{\rm dir},
+\qquad
+\forall u_{\rm dir}\in\mathcal B_{\rm dir}\ 
+\exists u_{\rm net}\in\mathcal U_{\rm net}:
+\|u_{\rm dir}-u_{\rm net}\|_2\leq\varepsilon_{\rm net}.
+\]
+For such a pair of directions,
+\[
+|\langle u_{\rm dir},v_i^{\rm loc}\rangle|
+\leq
+|\langle u_{\rm net},v_i^{\rm loc}\rangle|
++\varepsilon_{\rm net}\|v_i^{\rm loc}\|_2.
+\]
+Summing and taking the supremum gives
+\[
+\mathsf K_{\rm row}(\boldsymbol v_{\rm loc})
+\leq
+\max_{u_{\rm net}\in\mathcal U_{\rm net}}
+\sum_{i=1}^{n_{\rm loc}}|\langle u_{\rm net},v_i^{\rm loc}\rangle|
++\varepsilon_{\rm net}\sum_{i=1}^{n_{\rm loc}}\|v_i^{\rm loc}\|_2.
+\]
+Hence
+\[
+\begin{aligned}
+\mathbb E\mathsf K_{\rm row}(\boldsymbol v_{\rm loc})
+&\leq n_{\rm loc}+4\sqrt{n_{\rm loc}r_0}
++\varepsilon_{\rm net}\mathsf A_{\rm norm}\\
+&=n_{\rm loc}+4\sqrt{n_{\rm loc}r_0}
++\delta_{\rm net}\frac{\mathsf A_{\rm norm}}{\mathsf A_{\rm norm}+1}\\
+&\leq n_{\rm loc}+4\sqrt{n_{\rm loc}r_0}+\delta_{\rm net}.
+\end{aligned}
+\]
+Letting \(\delta_{\rm net}\) tend to zero proves
+\[
+\mathbb E\mathsf K_{\rm row}(\boldsymbol v_{\rm loc})
+\leq n_{\rm loc}+4\sqrt{n_{\rm loc}r_0}.
+\]
+This also covers the empty sample.
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.isotropic_signingNormMax_integral_le
+
+Substitution into the preceding cross-group estimate now yields
+\[
+\begin{aligned}
+\mathbb E\mathsf H_{\rm cross}(\boldsymbol v_{\rm left},\boldsymbol v_{\rm right})
+\leq{}&
+n_{\rm left}n_{\rm right}
++4n_{\rm left}\sqrt{n_{\rm right}r_0}\\
+&+4n_{\rm right}\sqrt{n_{\rm left}r_0}.
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.independent_group_cross_integral_le_explicit
+
+\item Introduce fair selectors, independent of the rows,
+\[
+\eta=(\eta_1,\ldots,\eta_n)\in\{0,1\}^n,
+\qquad
+\mathbb P(\eta_i=1)=\mathbb P(\eta_i=0)=\tfrac12,
+\]
+with independent coordinates. Define
+\[
+\begin{aligned}
+\mathcal I_\eta&:=\{i\in\{1,\ldots,n\}:\eta_i=1\},&
+\mathcal J_\eta&:=\{i\in\{1,\ldots,n\}:\eta_i=0\},\\
+\mathsf N_{\rm sel}(\eta)&:=|\mathcal I_\eta|,&
+\mathsf N_{\rm comp}(\eta)&:=|\mathcal J_\eta|,\\
+\boldsymbol v_{\rm sel}&:=(v_i)_{i\in\mathcal I_\eta},&
+\boldsymbol v_{\rm comp}&:=(v_i)_{i\in\mathcal J_\eta},
+\end{aligned}
+\]
+where the subsequences are listed in increasing index order. For \(z\in\{-1,1\}^n\), define
+\[
+\begin{aligned}
+\mathsf C_{\rm cross}(\boldsymbol v,z,\eta)
+&:=\sum_{i\in\mathcal I_\eta}\sum_{i'\in\mathcal J_\eta}
+z_i z_{i'}\langle v_i,v_{i'}\rangle\\
+&=\left\langle
+\sum_{i\in\mathcal I_\eta}z_i v_i,\,
+\sum_{i'\in\mathcal J_\eta}z_{i'}v_{i'}
+\right\rangle,\\
+\mathsf M_{\rm cross}(\boldsymbol v,\eta)
+&:=\max_{z\in\{-1,1\}^n}
+|\mathsf C_{\rm cross}(\boldsymbol v,z,\eta)|.
+\end{aligned}
+\]
+For fixed rows and selectors, the triangle inequality gives
+\[
+\begin{aligned}
+|\mathsf C_{\rm cross}(\boldsymbol v,z,\eta)|
+&\leq
+\sum_{i\in\mathcal I_\eta}
+\left|\left\langle
+v_i,\sum_{i'\in\mathcal J_\eta}z_{i'}v_{i'}
+\right\rangle\right|\\
+&\leq\mathsf H_{\rm cross}(\boldsymbol v_{\rm sel},\boldsymbol v_{\rm comp}).
+\end{aligned}
+\]
+For each fixed \(\eta\), the two subsequences are independent samples from the row law. The cross-group estimate thus implies
+\[
+\begin{aligned}
+\mathbb E_{\boldsymbol v}\mathsf M_{\rm cross}(\boldsymbol v,\eta)
+\leq{}&
+\mathsf N_{\rm sel}(\eta)\mathsf N_{\rm comp}(\eta)\\
+&+4\mathsf N_{\rm sel}(\eta)
+\sqrt{\mathsf N_{\rm comp}(\eta)r_0}\\
+&+4\mathsf N_{\rm comp}(\eta)
+\sqrt{\mathsf N_{\rm sel}(\eta)r_0}.
+\end{aligned}
+\]
+Since
+\[
+\mathsf N_{\rm sel}(\eta)+\mathsf N_{\rm comp}(\eta)=n,
+\]
+the square of their difference gives
+\[
+\mathsf N_{\rm sel}(\eta)\mathsf N_{\rm comp}(\eta)
+\leq\frac{n^2}{4}.
+\]
+Both group sizes are at most \(n\), so
+\[
+\begin{aligned}
+&4\mathsf N_{\rm sel}(\eta)
+\sqrt{\mathsf N_{\rm comp}(\eta)r_0}
++4\mathsf N_{\rm comp}(\eta)
+\sqrt{\mathsf N_{\rm sel}(\eta)r_0}\\
+&\hspace{2em}\leq
+4\bigl(\mathsf N_{\rm sel}(\eta)+\mathsf N_{\rm comp}(\eta)\bigr)
+\sqrt{nr_0}
+=4n\sqrt{nr_0}.
+\end{aligned}
+\]
+Therefore every selector satisfies
+\[
+\mathbb E_{\boldsymbol v}\mathsf M_{\rm cross}(\boldsymbol v,\eta)
+\leq\frac{n^2}{4}+4n\sqrt{nr_0}.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.signingPartitionCrossMax_integral_le
+
+Averaging this bound over the finite selector space and interchanging the integrable expectations gives
+\[
+\begin{aligned}
+4\mathbb E_{\boldsymbol v}\mathbb E_\eta
+\mathsf M_{\rm cross}(\boldsymbol v,\eta)
+&=4\mathbb E_\eta\mathbb E_{\boldsymbol v}
+\mathsf M_{\rm cross}(\boldsymbol v,\eta)\\
+&\leq n^2+16n\sqrt{nr_0}.
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.signingPartitionCross_average_le
+
+\item For distinct indices, independence of the selectors gives
+\[
+\mathbb P(i\in\mathcal I_\eta,\ i'\in\mathcal J_\eta)=\frac14,
+\]
+whereas an index cannot belong to both groups. Consequently, for every deterministic row tuple and signing,
+\[
+\mathsf O_{\rm row}(\boldsymbol v,z)
+=4\mathbb E_\eta\mathsf C_{\rm cross}(\boldsymbol v,z,\eta).
+\]
+Taking absolute values and then maximizing yields
+\[
+\begin{aligned}
+\mathsf M_{\rm off}(\boldsymbol v)
+&=4\max_z
+\left|\mathbb E_\eta\mathsf C_{\rm cross}(\boldsymbol v,z,\eta)\right|\\
+&\leq4\max_z
+\mathbb E_\eta|\mathsf C_{\rm cross}(\boldsymbol v,z,\eta)|\\
+&\leq4\mathbb E_\eta\mathsf M_{\rm cross}(\boldsymbol v,\eta).
+\end{aligned}
+\]
+Integrating and applying the partition-average estimate gives
+\[
+\mathbb E\mathsf M_{\rm off}(\boldsymbol v)
+\leq4\mathbb E_{\boldsymbol v}\mathbb E_\eta
+\mathsf M_{\rm cross}(\boldsymbol v,\eta)
+\leq n^2+16n\sqrt{nr_0}.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.signingOffDiagonal_integral_le_partition_average
+
+The diagonal-subtraction inequality and its expected diagonal energy now give
+\[
+\begin{aligned}
+\mathbb E\mathsf M_{\rm sign}(\boldsymbol v)
+&\geq nr_0-\mathbb E\mathsf M_{\rm off}(\boldsymbol v)\\
+&\geq nr_0-n^2-16n\sqrt{nr_0}.
+\end{aligned}
+\]
+Together with the small-sample case, this proves the first assertion for every \(n\).
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.isotropic_row_signing
+
+\item Finally, assume \(r_0\geq4096n\). Multiplying this inequality by the nonnegative number \(r_0/4096\) gives
+\[
+nr_0\leq\frac{r_0^2}{4096}
+=\left(\frac{r_0}{64}\right)^2,
+\qquad
+\sqrt{nr_0}\leq\frac{r_0}{64}.
+\]
+Multiplying by nonnegative factors also gives
+\[
+16n\sqrt{nr_0}\leq\frac{nr_0}{4},
+\qquad
+n^2\leq\frac{nr_0}{4096}.
+\]
+Hence
+\[
+n^2+16n\sqrt{nr_0}
+\leq\left(\frac1{4096}+\frac14\right)nr_0
+\leq\frac{nr_0}{2}.
+\]
+These inequalities include \(n=0\). Subtracting this error bound from the first assertion proves
+\[
+\mathbb E\mathsf M_{\rm sign}(\boldsymbol v)\geq\frac{nr_0}{2}.
+\]
+% lean: CausalSmith.Experimentation.BivariateSobolevDesignCapacity.isotropic_signing_error_le_half
+\end{enumerate}
+\end{proof}

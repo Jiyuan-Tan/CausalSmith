@@ -1,0 +1,269 @@
+\begin{proof}[Proof of \cref{obj:lem:honest-interval-construction}]
+Fix the parameters in the statement. For every observed sample \(o\in O^n\), write the endpoints from \cref{obj:def:mm-interval} as
+\[
+L(o)=\max\{-1,\widehat\tau_{\mathrm{MM}}(o)-h_{n,d,q,\alpha}\},
+\qquad
+U(o)=\min\{1,\widehat\tau_{\mathrm{MM}}(o)+h_{n,d,q,\alpha}\}.
+\]
+The radius satisfies
+\[
+0\le h_{n,d,q,\alpha}
+=\min\left\{2,\sqrt{\frac{C_Ur_{n,d,q}}{\alpha}}\right\}
+\le2.
+\]
+
+\begin{enumerate}
+\item The endpoint formulas give
+\[
+L(o)\ge-1,\qquad U(o)\le1,
+\]
+and
+\[
+L(o)\ge\widehat\tau_{\mathrm{MM}}(o)-h_{n,d,q,\alpha},
+\qquad
+U(o)\le\widehat\tau_{\mathrm{MM}}(o)+h_{n,d,q,\alpha}.
+\]
+Subtracting yields both bounds
+\[
+U(o)-L(o)\le2,
+\qquad
+U(o)-L(o)\le2h_{n,d,q,\alpha}.
+\]
+Consequently,
+\[
+U(o)-L(o)\le\min\{2,2h_{n,d,q,\alpha}\}.
+\]
+If \(2\le\sqrt{C_Ur_{n,d,q}/\alpha}\), then the radius equals \(2\), and both sides of
+\[
+\min\{2,2h_{n,d,q,\alpha}\}
+=
+\min\left\{2,2\sqrt{\frac{C_Ur_{n,d,q}}{\alpha}}\right\}
+\]
+equal \(2\). If \(\sqrt{C_Ur_{n,d,q}/\alpha}\le2\), the identity follows by substituting that square root for the radius. This proves the pointwise length bound and its displayed equality.
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.honest_interval_construction
+
+\item We establish the target range used in the coverage argument. For a fixed \(P\in\mathcal M(d,q)\), define
+\[
+\mathcal W_P=\operatorname{supp}(P),
+\qquad
+p_w=P(\{w\}),
+\qquad
+\Delta_w=Y(1)(w)-Y(0)(w)
+\quad(w\in\mathcal W_P).
+\]
+The support is finite, and the binary potential outcomes give
+\[
+p_w\ge0,\qquad
+\sum_{w\in\mathcal W_P}p_w=1,
+\qquad
+-1\le\Delta_w\le1.
+\]
+Thus
+\[
+-p_w\le p_w\Delta_w\le p_w.
+\]
+Summing these inequalities proves
+\[
+-1
+=-\sum_{w\in\mathcal W_P}p_w
+\le
+\tau(P)=\sum_{w\in\mathcal W_P}p_w\Delta_w
+\le
+\sum_{w\in\mathcal W_P}p_w
+=1.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.tau_range
+
+\item The estimator also satisfies
+\[
+-1\le\widehat\tau_{\mathrm{MM}}(o)\le1
+\qquad(o\in O^n).
+\]
+To derive this from \cref{obj:def:mm-estimator}, first observe that, for every real \(t\),
+\[
+-1\le\Pi_{[-1,1]}(t)=\max\{-1,\min\{1,t\}\}\le1:
+\]
+the lower inequality follows from the maximum, and the upper inequality follows because both arguments of that maximum are at most \(1\). This establishes the range when \(q=1\). When \(q\ne1\) and
+\(\ell_n<128\) or \(d\ge n\ell_n\), the fallback branch is likewise a projection and has the same range.
+
+For the remaining branch, define the Poisson weights and conditional stream averages by
+\[
+\omega_N=e^{-n/2}\frac{(n/2)^N}{N!}
+\quad(N\in\mathbb N_0),
+\]
+\[
+\overline\tau_N(o)
+=
+\frac{1}{4^N}
+\sum_{\boldsymbol\zeta\in\{1,2,3,4\}^N}
+\widetilde\tau(o;N,\boldsymbol\zeta)
+\quad(0\le N\le n,\ o\in O^n),
+\]
+where \(\widetilde\tau(o;N,\boldsymbol\zeta)\) is the projected randomized estimate in \cref{obj:def:mm-estimator} with count \(N\) and stream assignment \(\boldsymbol\zeta\). There are \(4^N\) assignments, including one empty assignment when \(N=0\), and each estimate lies in \([-1,1]\). Therefore
+\[
+-4^N
+\le
+\sum_{\boldsymbol\zeta\in\{1,2,3,4\}^N}
+\widetilde\tau(o;N,\boldsymbol\zeta)
+\le4^N,
+\qquad
+-1\le\overline\tau_N(o)\le1.
+\]
+Moreover,
+\[
+\omega_N\ge0,\qquad
+\sum_{N=0}^{\infty}\omega_N
+=e^{-n/2}e^{n/2}=1,
+\qquad
+\sum_{N=0}^{n}\omega_N\le1.
+\]
+Since the randomized estimate equals zero when \(N>n\), this branch satisfies
+\[
+\widehat\tau_{\mathrm{MM}}(o)
+=\sum_{N=0}^{n}\omega_N\overline\tau_N(o).
+\]
+Multiplying the stream-average bounds by the nonnegative weights and summing gives
+\[
+-1
+\le-\sum_{N=0}^{n}\omega_N
+\le\widehat\tau_{\mathrm{MM}}(o)
+\le\sum_{N=0}^{n}\omega_N
+\le1.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.tauhatMM_range
+
+In particular, if \(h_{n,d,q,\alpha}=2\), the target and estimator ranges imply
+\[
+\widehat\tau_{\mathrm{MM}}(o)-2\le-1\le\tau(P),
+\qquad
+\tau(P)\le1\le\widehat\tau_{\mathrm{MM}}(o)+2.
+\]
+Taking the maximum in the lower endpoint and the minimum in the upper endpoint yields
+\[
+L(o)\le\tau(P)\le U(o)
+\qquad(P\in\mathcal M(d,q),\ o\in O^n).
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.honest_interval_construction
+
+\item Suppose now that \(h_{n,d,q,\alpha}<2\), and fix \(P\in\mathcal M(d,q)\). Define the sample probability measure and squared-error function by
+\[
+\mu_{\mathrm{obs}}=P_O^{\otimes n},
+\qquad
+\mathcal E_P(o)
+=\bigl(\widehat\tau_{\mathrm{MM}}(o)-\tau(P)\bigr)^2
+\quad(o\in O^n).
+\]
+If \(\sqrt{C_Ur_{n,d,q}/\alpha}\le2\), the radius definition gives
+\(h_{n,d,q,\alpha}=\sqrt{C_Ur_{n,d,q}/\alpha}\).
+If that square root exceeds \(2\), the radius equals \(2\), contradicting the present case. Hence
+\[
+h_{n,d,q,\alpha}
+=\sqrt{\frac{C_Ur_{n,d,q}}{\alpha}},
+\qquad
+h_{n,d,q,\alpha}^2=\frac{C_Ur_{n,d,q}}{\alpha}.
+\]
+By \cref{obj:def:rate} and \(n\ge1\),
+\[
+r_{n,d,q}\ge\frac1n>0.
+\]
+Together with \(C_U>0\) and \(\alpha>0\), this proves
+\[
+h_{n,d,q,\alpha}>0,
+\qquad
+h_{n,d,q,\alpha}^2>0,
+\qquad
+C_Ur_{n,d,q}=\alpha h_{n,d,q,\alpha}^2.
+\]
+
+Define the noncoverage and squared-error tail events by
+\[
+\mathcal B_P=\{o\in O^n:\tau(P)\notin[L(o),U(o)]\},
+\qquad
+\mathcal T_P=\{o\in O^n:h_{n,d,q,\alpha}^2\le\mathcal E_P(o)\}.
+\]
+We claim that
+\[
+\mathcal B_P\subseteq\mathcal T_P.
+\]
+Indeed, noncoverage gives either \(\tau(P)<L(o)\) or \(U(o)<\tau(P)\). In the first case, if
+\(-1\le\widehat\tau_{\mathrm{MM}}(o)-h_{n,d,q,\alpha}\), then
+\[
+L(o)=\widehat\tau_{\mathrm{MM}}(o)-h_{n,d,q,\alpha},
+\qquad
+h_{n,d,q,\alpha}
+<\widehat\tau_{\mathrm{MM}}(o)-\tau(P).
+\]
+Otherwise \(L(o)=-1\), contradicting \(\tau(P)\ge-1\). In the second case, if
+\(\widehat\tau_{\mathrm{MM}}(o)+h_{n,d,q,\alpha}\le1\), then
+\[
+U(o)=\widehat\tau_{\mathrm{MM}}(o)+h_{n,d,q,\alpha},
+\qquad
+h_{n,d,q,\alpha}
+<\tau(P)-\widehat\tau_{\mathrm{MM}}(o).
+\]
+Otherwise \(U(o)=1\), contradicting \(\tau(P)\le1\). Squaring the positive inequalities in the two possible cases gives
+\[
+h_{n,d,q,\alpha}^2
+\le\bigl(\widehat\tau_{\mathrm{MM}}(o)-\tau(P)\bigr)^2,
+\]
+as claimed.
+
+The sample space is finite, so the squared-error function is integrable. Its nonnegativity and Markov's inequality give
+\[
+h_{n,d,q,\alpha}^2\,\mu_{\mathrm{obs}}(\mathcal T_P)
+\le
+\int\mathcal E_P(o)\,d\mu_{\mathrm{obs}}(o).
+\]
+Applying the assumed uniform risk certificate to this iid sample law, and using event inclusion, yields
+\[
+h_{n,d,q,\alpha}^2\,\mu_{\mathrm{obs}}(\mathcal B_P)
+\le
+h_{n,d,q,\alpha}^2\,\mu_{\mathrm{obs}}(\mathcal T_P)
+\le
+\int\mathcal E_P(o)\,d\mu_{\mathrm{obs}}(o)
+\le
+C_Ur_{n,d,q}
+=\alpha h_{n,d,q,\alpha}^2.
+\]
+Dividing by the strictly positive squared radius proves
+\[
+P_O^{\otimes n}\{\tau(P)\notin\widehat I_{\mathrm{MM},\alpha}(O^n)\}
+\le\alpha.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.honest_interval_construction
+
+\item To obtain honesty, fix any \(P\in\mathcal M(d,q)\) and split according to whether \(h_{n,d,q,\alpha}=2\). In that case, the pointwise inclusion proved above gives
+\[
+P_O^{\otimes n}\{\tau(P)\in\widehat I_{\mathrm{MM},\alpha}(O^n)\}
+=1\ge1-\alpha.
+\]
+In the other case, \(h_{n,d,q,\alpha}\le2\) implies \(h_{n,d,q,\alpha}<2\). The coverage event is measurable, and the preceding noncoverage bound therefore gives
+\[
+P_O^{\otimes n}\{\tau(P)\in\widehat I_{\mathrm{MM},\alpha}(O^n)\}
+=
+1-P_O^{\otimes n}\{\tau(P)\notin\widehat I_{\mathrm{MM},\alpha}(O^n)\}
+\ge1-\alpha.
+\]
+Since \(P\) was arbitrary, the interval has the asserted uniform coverage.
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.honest_interval_construction
+
+\item Finally, the estimator range and nonnegative radius ensure that the endpoints form a nonempty interval, so
+\[
+0\le\operatorname{length}\{\widehat I_{\mathrm{MM},\alpha}(o)\}
+=U(o)-L(o).
+\]
+These functions are integrable on the finite sample space. Integrating the pointwise bound from the first step under the probability measure \(P_O^{\otimes n}\) gives
+\[
+\begin{aligned}
+\mathbb E_{P_O^{\otimes n}}
+\!\left[\operatorname{length}\{\widehat I_{\mathrm{MM},\alpha}(O^n)\}\right]
+&\le
+\int\min\{2,2h_{n,d,q,\alpha}\}\,dP_O^{\otimes n}\\
+&=\min\{2,2h_{n,d,q,\alpha}\}\\
+&=\min\left\{2,2\sqrt{\frac{C_Ur_{n,d,q}}{\alpha}}\right\}.
+\end{aligned}
+\]
+This holds for every \(P\in\mathcal M(d,q)\).
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.honest_interval_construction
+\end{enumerate}
+\end{proof}

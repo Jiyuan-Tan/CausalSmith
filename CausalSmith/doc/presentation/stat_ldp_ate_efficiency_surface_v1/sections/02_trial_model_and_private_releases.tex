@@ -1,0 +1,197 @@
+\section{Trial model and private releases}
+
+Throughout, \leanref{sym:n}{\ensuremath{n}} denotes the positive sample size, subjects are indexed by \(i=1,\ldots,n\), record categories by \(j\in\{0,1,2,3\}\), and treatment arms by \(a\in\{0,1\}\). Thus subject indices are one-based while the four-record alphabet is zero-based. Vectors are columns, \({}^{\top}\) denotes transpose, and \(\|\cdot\|\) is the Euclidean norm. Generic positive constants are denoted by \(C\); \(O_p\) and \(o_p\) denote stochastic order, and \(\Rightarrow\) denotes convergence in distribution.
+
+\subsection{Data generation}
+
+For subject \(i\), let \leanref{sym:Y_i(0)}{\ensuremath{Y_i(0)}} be the control potential outcome and \leanref{sym:Y_i(1)}{\ensuremath{Y_i(1)}} the treatment potential outcome. The binary assignment \leanref{sym:W_i}{\ensuremath{W_i}} indicates treatment, and \leanref{sym:Y_i}{\ensuremath{Y_i}} denotes the observed outcome. The subject's private record is the ordered assignment--outcome pair \leanref{sym:X_i}{\ensuremath{X_i}}, written \(X_i=(W_i,Y_i)\).
+
+Write \leanref{sym:p}{\ensuremath{p}} for the treatment-assignment probability and \leanref{sym:q}{\ensuremath{q}} for the control-assignment probability, with \(q=1-p\). For arm \(a\), the population mean \leanref{sym:\mu_a}{\ensuremath{\mu_a}} is \(\mu_a=E[Y_i(a)]\); thus \(\mu_0\) and \(\mu_1\) are the control-arm and treatment-arm means. Collect these means in the parameter vector \leanref{sym:\theta}{\ensuremath{\theta}}, with \(\theta=(\mu_0,\mu_1)^\top\). The average treatment effect \leanref{sym:\tau}{\ensuremath{\tau}} and its contrast vector \leanref{sym:c}{\ensuremath{c}} satisfy
+\[
+c=(-1,1)^\top,
+\qquad
+\tau=E[Y_i(1)-Y_i(0)]=\mu_1-\mu_0=c^\top\theta.
+\]
+The following data-generation conditions connect this causal target to the distribution of the observed records.
+
+\begin{assumptionv}{ass:iid-subjects}[Independent identically distributed subjects]
+The subject sequence \(\{(Y_i(0),Y_i(1),W_i):i\ge1\}\), comprising control potential outcomes, treatment potential outcomes, and treatment assignments, is independent and identically distributed. Equivalently, for every \(n\ge1\), the first \(n\) subject triples are jointly independent and have a common law. Zero-based indexing \(i\in\mathbb N\) corresponds to subject indexing by the relabeling \(i\leftrightarrow i+1\).
+\end{assumptionv}
+
+Independent superpopulation sampling makes each subject a draw from the same population and gives the sample a product structure \citep{OhnishiAwan2025}. Within each subject, the joint distribution of the two potential outcomes may accommodate dependence. Treatment assignment is governed by the next two conditions.
+
+\begin{assumptionv}{ass:random-assignment}[Independence of treatment assignment]
+For every subject \(i\ge1\), the treatment assignment \(W_i\) is independent of the potential outcomes \(Y_i(0)\) and \(Y_i(1)\):
+\[
+W_i\mathrel{\perp}(Y_i(0),Y_i(1)).
+\]
+\end{assumptionv}
+
+Random assignment makes the potential-outcome distribution in each assigned arm representative of the corresponding population distribution \citep{OhnishiAwan2025}. Its probability is a known feature of the trial design.
+
+\begin{assumptionv}{ass:known-assignment}[Known treatment assignment probability]
+For every subject \(i\ge1\), the treatment assignment \(W_i\) has known treatment probability \(p\):
+\[
+P(W_i=1)=p.
+\]
+\end{assumptionv}
+
+The known Bernoulli assignment probability condition treats \(p\) as a design quantity when estimating the arm means \citep{OhnishiAwan2025}. To specify the record that enters the privacy mechanism, we next connect assignment to the observed outcome.
+
+\begin{assumptionv}{ass:consistency}[Consistency of observed outcomes]
+For every subject \(i\ge1\), the observed outcome \(Y_i\) is determined by the treatment assignment \(W_i\) and the treatment and control potential outcomes \(Y_i(1)\) and \(Y_i(0)\):
+\[
+Y_i=W_iY_i(1)+(1-W_i)Y_i(0).
+\]
+\end{assumptionv}
+
+Potential-outcome consistency identifies the observed response with the potential outcome under the assigned treatment \citep{OhnishiAwan2025}. The outcome restriction then gives the record a finite alphabet.
+
+\begin{assumptionv}{ass:binary-outcomes}[Binary potential outcome support]
+For every subject \(i\ge1\), the control and treatment potential outcomes \(Y_i(0)\) and \(Y_i(1)\) satisfy
+\[
+(Y_i(0),Y_i(1))\in\{0,1\}^2
+\]
+almost surely.
+\end{assumptionv}
+
+The binary potential outcomes condition describes trials with a dichotomous response, such as whether a specified event occurs \citep{OhnishiAwan2025}. Under \cref{obj:ass:consistency,obj:ass:binary-outcomes}, the private record takes values in the ordered four-point alphabet \leanref{sym:\mathcal X}{\ensuremath{\mathcal X}}:
+\[
+\mathcal X=\{x_0,x_1,x_2,x_3\},
+\qquad
+x_0=(0,0),\quad x_1=(0,1),\quad
+x_2=(1,0),\quad x_3=(1,1).
+\]
+Let the record law \leanref{sym:P_\theta}{\ensuremath{P_\theta}} have probability vector \leanref{sym:\pi_\theta}{\ensuremath{\pi_\theta}}, whose coordinates are \(\pi_{\theta,j}=P_\theta(X_i=x_j)\). Random assignment and consistency give
+\[
+\pi_\theta=
+\begin{pmatrix}
+q(1-\mu_0)\\
+q\mu_0\\
+p(1-\mu_1)\\
+p\mu_1
+\end{pmatrix}.
+\]
+Thus the distribution of the observed record is determined by the two arm means and the known assignment probability.
+
+\subsection{Interiority}
+
+The analysis uses an interior parameter domain. The next two conditions ensure positive assignment probabilities and positive record probabilities throughout that domain.
+
+\begin{assumptionv}{ass:interior-assignment}[Interior treatment assignment probability]
+The treatment assignment probability \(p\) satisfies
+\[
+0<p<1.
+\]
+\end{assumptionv}
+
+Strict treatment overlap assigns positive probability to each arm, so both arm means enter the observed-record distribution \citep{OhnishiAwan2025}. We also impose interiority on those means.
+
+\begin{assumptionv}{ass:interior-means}[Interior arm means]
+The arm-mean parameter \(\theta\) satisfies
+\[
+\theta\in(0,1)^2.
+\]
+\end{assumptionv}
+
+The interior Bernoulli parameter condition gives each outcome category positive probability within its arm and provides an open parameter domain for information calculations \citep{Steinberger2024}. Together with strict overlap, it makes all four coordinates of \(\pi_\theta\) positive. We collect the resulting product experiments in the following model.
+
+\begin{assumptionv}{ass:fixed-privacy}[Fixed positive privacy budget]
+The privacy budget is a fixed real number \(\varepsilon>0\), and the privacy parameter at every sample size \(n\in\mathbb{N}\) equals \(\varepsilon\).
+\end{assumptionv}
+
+In \cref{obj:def:binary-trial-model}, the assignment probability remains fixed as the arm means vary. This separates the known trial design from the two-dimensional outcome parameter whose contrast is the treatment effect.
+
+\subsection{Private releases}
+
+A \leanref{S-2}{stationary locally private channel}, denoted by \leanref{sym:Q}{\ensuremath{Q}}, maps each private record to a randomized output on a measurable space \((\mathcal Z,\mathcal G)\). Stationarity means that the same release rule is used for each subject, with fresh randomization. For every measurable event \(A\) and every pair of records \(x,x'\in\mathcal X\), its local privacy requirement is
+\[
+Q(A\mid x)\le e^\varepsilon Q(A\mid x').
+\]
+Here \leanref{sym:\varepsilon}{\ensuremath{\varepsilon}} is the privacy budget. Because the inputs are assignment--outcome pairs, the comparison protects assignment and outcome jointly: \(x\) and \(x'\) may differ in either or both coordinates.
+
+The privacy budget is held fixed across the sequence of experiments.
+
+\begin{assumptionv}{ass:sequential-ldp}[Sequential local privacy]
+The release rules \(Q_i\) satisfy
+\[
+Q_i(A\mid x,h)\le \exp(\varepsilon)Q_i(A\mid x',h)
+\]
+for every stage \(i\), every measurable output event \(A\in\mathcal G_i\), every pair of private records \(x,x'\in\mathcal X\), and every history tuple \(h\in\prod_{j<i}\mathcal Z_j\), including null or otherwise unattainable histories in the full history product.
+\end{assumptionv}
+
+The fixed local privacy budget condition keeps the per-subject protection level constant as sample size grows \citep{Steinberger2024}. It therefore supplies a common privacy constraint for comparing release rules.
+
+Sequential releases allow the rule for a new subject to depend on earlier private outputs. Let \leanref{sym:Z_i}{\ensuremath{Z_i}} denote subject \(i\)'s released observation, taking values in the measurable output space \leanref{sym:(\mathcal Z_i,\mathcal G_i)}{\ensuremath{(\mathcal Z_i,\mathcal G_i)}}. The preceding-release history \leanref{sym:H_{i-1}}{\ensuremath{H_{i-1}}} is
+\[
+H_{i-1}=(Z_1,\ldots,Z_{i-1}),
+\]
+with the empty history at \(i=1\). Conditional on the current record and this history, the release rule \leanref{sym:Q_i}{\ensuremath{Q_i}} generates \(Z_i\) according to \(Q_i(\cdot\mid X_i,H_{i-1})\). Each subject contributes one release; adaptation proceeds through the outputs of preceding subjects. The privacy requirement applies uniformly over the full history space.
+
+\begin{definitionv}{def:binary-trial-model}[Binary-trial model \(\mathcal M\)]
+The model is
+\[
+\mathcal M
+=
+\left\{
+(P_\theta^{\otimes n})_{n\ge1}:
+\theta=(\mu_0,\mu_1)^{\top}\in(0,1)^2,\;
+P_\theta(X_i=x_j)=\pi_{\theta,j}
+\right\},
+\]
+under \cref{obj:ass:interior-means,obj:ass:interior-assignment}.
+Here \(\mu_0\) and \(\mu_1\) are the control-arm and treatment-arm means, \(X_i\) is subject \(i\)'s private record, \(x_j\) is an enumerated record value, and \(\pi_{\theta,j}\) is its probability under the record law \(P_\theta\). The law \(P_\theta^{\otimes n}\) is the product law of \(n\) subject records.
+\end{definitionv}
+
+Sequentially interactive local differential privacy permits history-dependent release rules while retaining the same recordwise protection at each stage \citep{Steinberger2024}. The quantification over every history makes the privacy guarantee a property of the release rule throughout its domain, including histories with zero probability under a particular parameter. The protocol class \leanref{sym:\mathfrak Q^{\mathrm{seq}}_{n,\varepsilon}}{\ensuremath{\mathfrak Q^{\mathrm{seq}}_{n,\varepsilon}}} combines this guarantee with measurability and nonanticipation.
+
+\begin{definitionv}{def:sequential-channels}[Sequential private protocols $\mathfrak Q^{\mathrm{seq}}_{n,\varepsilon}$]
+The class \(\mathfrak Q^{\mathrm{seq}}_{n,\varepsilon}\) consists of \(n\)-stage protocols
+\[
+Q^{(n)}=(Q_i)_{i=1}^n
+\]
+on arbitrary measurable output spaces \((\mathcal Z_i,\mathcal G_i)\), subject to \cref{obj:ass:fixed-privacy,obj:ass:sequential-ldp}, with the following properties:
+\begin{itemize}
+\item \textbf{(Kernels.)} Each \(Q_i(\cdot\mid x,h)\) is a Markov kernel from \(\mathcal X\times\prod_{j<i}\mathcal Z_j\) to \((\mathcal Z_i,\mathcal G_i)\).
+\item \textbf{(Nonanticipation.)} Each release rule is nonanticipating.
+\item \textbf{(Privacy.)} For every stage \(i\), measurable set \(A\in\mathcal G_i\), inputs \(x,x'\in\mathcal X\), and history \(h\in\prod_{j<i}\mathcal Z_j\),
+\[
+Q_i(A\mid x,h)\le e^\varepsilon Q_i(A\mid x',h).
+\]
+\end{itemize}
+\end{definitionv}
+
+Nonanticipation in \cref{obj:def:sequential-channels} restricts each rule to the current subject's record and preceding releases. A stationary channel yields a member of this class by taking \(Q_i(\cdot\mid x,h)=Q(\cdot\mid x)\). More generally, earlier private releases may determine the channel used for later subjects.
+
+\subsection{Output information and cardinality}
+
+Efficiency comparisons use the output Fisher-information matrix \leanref{sym:I_\theta(Q)}{\ensuremath{I_\theta(Q)}} of a stationary channel and the active-output cardinality \leanref{sym:\kappa(Q)}{\ensuremath{\kappa(Q)}}. The following definition fixes these quantities for measurable output spaces and specifies how singular information is treated when evaluating the treatment-effect contrast.
+
+For a stationary channel \(Q\) on \((\mathcal Z,\mathcal G)\), let
+\[
+\nu=\sum_{j=0}^3 Q(\mathord\cdot\mid x_j),
+\qquad
+k_j=\frac{dQ(\mathord\cdot\mid x_j)}{d\nu},
+\qquad
+f_\theta=\sum_{j=0}^3\pi_{\theta,j}k_j.
+\]
+Holding \(Q\) and \(p\) fixed, define
+\[
+I_\theta(Q)
+=
+\int_{\{f_\theta>0\}}
+\frac{(\nabla_\theta f_\theta)(\nabla_\theta f_\theta)^\top}{f_\theta}\,d\nu.
+\]
+The contrast variance is \(c^\top I_\theta(Q)^+c\) when
+\(c\in\operatorname{range}(I_\theta(Q))\), and \(+\infty\) otherwise. Let \(P_\theta Q\) be the output law and \((P_\theta Q)^*\) its induced outer measure. For every finite underlying output space, write
+\[
+\kappa(Q)
+=
+\#\left\{z\in\mathcal Z:
+ (P_\theta Q)^*(\{z\})>0\right\};
+\]
+for every infinite underlying output space, set \(\kappa(Q)=+\infty\). On a finite power-set alphabet each singleton is measurable, so \((P_\theta Q)^*(\{z\})=(P_\theta Q)(\{z\})\), recovering the ordinary count of positive-probability output labels. The outer-measure form also gives the stated convention when a finite carrier has a coarser sigma-field.
+
+This density formulation expresses information directly in terms of the released observation. The range condition accommodates channels that retain information about the treatment-effect contrast while their information matrix is singular in the full arm-mean parameter. Its extended-value convention makes estimability part of the channel comparison.
+
+For finite power-set alphabets, \(\kappa(Q)\) counts output labels with positive probability. Since every input record has positive probability under \cref{obj:def:binary-trial-model}, an output label is active exactly when at least one of the four conditional release probabilities is positive. The count is therefore independent of the interior arm means and measures the number of active labels used by a fixed finite release rule.

@@ -1,0 +1,405 @@
+---
+import { crosswalkLabels, loadBundles, type Bundle } from "../../lib/bundles.js";
+import { bundleRoots, GITHUB_REPO, GITHUB_URL, PAPER_CITE, PAPER_URL, SERIES_NAME, SERIES_TAGLINE, sourceRef } from "../../lib/config.js";
+import SeoHead from "../../components/SeoHead.astro";
+import AiScoreFold from "../../components/AiScoreFold.astro";
+import CiteButton from "../../components/CiteButton.astro";
+import CitePanel from "../../components/CitePanel.astro";
+import PaperComments from "../../components/PaperComments.astro";
+import ProofMap from "../../components/ProofMap.astro";
+import { citationAuthor, conceptDoi, doiUrl, formatDate, paperUrl, type CitationMeta } from "../../lib/citation.js";
+import { renderTexCompact, renderLabel, renderTexLine, TEX_SOURCED as TEX, titleCase } from "../../lib/docmd.js";
+import { renderMath } from "../../lib/paperMath.js";
+import { renderReviewText, texToReadable } from "../../lib/reviewText.js";
+import { latestPaperSha256 } from "../../lib/review.js";
+import "../../styles/series.css";
+import "../../styles/paper.css";
+import "../../styles/comments.css";
+import "../../styles/proofmap.css";
+import "katex/dist/katex.min.css";
+
+export async function getStaticPaths() {
+  const bundles = await loadBundles(bundleRoots());
+  return bundles.map((b) => ({ params: { id: b.id }, props: { bundle: b } }));
+}
+
+const { bundle } = Astro.props as { bundle: Bundle };
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const renderedBody = renderMath(bundle.bodyHtml);
+
+// Build-time table of contents from the rendered body's headings
+// (h1 = sections, h2 = subsections; the id-less abstract heading is skipped).
+const toc: { id: string; text: string; level: number }[] = [];
+for (const m of bundle.bodyHtml.matchAll(/<h([12])[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)) {
+  const text = m[3].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  if (text) toc.push({ id: m[2], text, level: Number(m[1]) });
+}
+
+// objId → anchor on the per-paper Lean page (the decl card's id: fully
+// qualified when the decl is in the paper index, the short name for the
+// private snippet-only cards). Powers the drawer's "view in Lean development".
+const leanAnchors: Record<string, string> = {};
+if (bundle.paperLib) {
+  const names = (bundle.paperLib.entries as { name: string }[]).map((e) => e.name);
+  for (const e of bundle.entries) {
+    if (!e.lean) continue;
+    leanAnchors[e.obj_id] =
+      names.find((n) => n === e.lean!.decl || n.endsWith(`.${e.lean!.decl}`)) ?? e.lean.decl;
+  }
+}
+
+const paperData = {
+  github: GITHUB_REPO,
+  commit: bundle.commit,
+  ref: sourceRef(bundle.commit),
+  leanSubdir: bundle.leanSubdir,
+  // entries + Lean snippets are multi-MB: they live in a sibling static JSON
+  // (paper-data.json.ts) that drawer.ts fetches lazily, keeping this page light.
+  dataUrl: `${base}/papers/${bundle.id}/paper-data.json`,
+  leanPage: bundle.paperLib ? `${base}/papers/${bundle.id}/formalization` : null,
+  leanAnchors,
+  // Reader-commentary config. `commentsWorker` is the feature flag: unset (the
+  // CI/dev default) means the controller returns before touching the DOM or the
+  // network, and the page is exactly what it was before commenting existed.
+  paperId: bundle.id,
+  revision: bundle.commit,
+  commentsWorker: import.meta.env.PUBLIC_COMMENTS_WORKER ?? "",
+};
+
+// Formal-layer panel: objects already presented in the paper (a formal block or an inline
+// \leanref) are drawer-openable; the rest get a GitHub source link. Both are complete from
+// the graph, so every object is reachable.
+const entryIds = new Set(bundle.entries.map((e) => e.obj_id));
+const ghBase = GITHUB_REPO ? `https://github.com/${GITHUB_REPO}/blob/${sourceRef(bundle.commit)}/${bundle.leanSubdir}` : null;
+// `matched` is the ONLY status that earns the verified badge. The retired legacy `derived` meant
+// the Lean encodes a strictly WEAKER consequence than the paper claims — a faithfulness FAIL — so
+// an artifact still carrying it renders as drift, never as verified.
+const statusLabel: Record<string, string> = {
+  matched: "verified",
+  derived: "drift",
+  drift: "drift",
+  unreviewed: "—",
+};
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// ── citable identity (arXiv-style block under the title) ──────────────────
+// Every field here is optional in the bundle contract, so each line is drawn
+// only when there is something to draw; a bundle with no number, version or
+// DOI still gets a "Cite as" row (the URL) and a working Cite panel.
+const meta = bundle.meta;
+const citation: CitationMeta = {
+  id: bundle.id,
+  // As authored, not Title Cased — see PaperEntry.astro.
+  title: meta.title,
+  wpNumber: meta.wp_number,
+  created: meta.created,
+  version: meta.version,
+  revised: meta.revised,
+  // See PaperEntry.astro: `meta.authorship` is what the citation credits.
+  authorship: meta.authorship,
+  doi: meta.doi,
+  commit: bundle.commit,
+};
+const citeCtx = { site: Astro.site ? Astro.site.href : null, base };
+const selfUrl = paperUrl(citation, citeCtx);
+// One gate for every DOI the page prints — the identity block, the Cite panel
+// and the `citation_doi` tag. A sandbox or malformed DOI is treated as absent.
+// `meta.version_doi` is deliberately never rendered or linked: between reserve
+// and publish it does not resolve, and the series cites the concept DOI only.
+const doiId = conceptDoi(meta.doi);
+const doiHref = doiUrl(meta.doi);
+const hasRevision = typeof meta.version === "number" && meta.version > 1 && Boolean(meta.revised);
+const reviewHref = `${base}/papers/${bundle.id}/review`;
+const aiScore = bundle.score; // normalised at load — see Bundle.score
+// A paper with a score but NO report still has the one sentence that explains
+// the score. Printing the number alone gives the reader a verdict with no
+// critique, which is the single thing this page refuses to do (see
+// AiScoreFold). The sentence is referee prose, so it goes through the referee
+// renderer; the tooltip carries the same words as plain text.
+const scoreWhy = meta.score_rationale
+  ? renderReviewText(meta.score_rationale, crosswalkLabels(bundle))
+  : null;
+const scoreWhyPlain = meta.score_rationale ? texToReadable(meta.score_rationale) : null;
+---
+
+<html lang="en">
+  <head>
+    <SeoHead
+      title={`${titleCase(bundle.meta.title)} · ${SERIES_NAME}`}
+      description={bundle.meta.tldr ?? `${titleCase(bundle.meta.title)} — a ${SERIES_NAME} working paper in ${bundle.meta.area}, with every theorem, assumption, and lemma machine-verified in Lean 4.`}
+      ogType="article"
+      citation={{
+        title: bundle.meta.title,
+        // Whoever the BibTeX credits — the same resolution, so Scholar and the
+        // Cite panel can never name different authors for the same paper.
+        authors: [citationAuthor(citation, citeCtx)],
+        // Scholar should record the version a reader would cite today; the
+        // first-online date is carried separately.
+        publicationDate: meta.revised ?? meta.created,
+        onlineDate: meta.created,
+        institution: "CausalSmith Working Papers",
+        number: meta.wp_number,
+        pdfUrl: bundle.hasPdf && Astro.site ? new URL(`${base}/papers/${bundle.id}/paper.pdf`, Astro.site).href : null,
+        doi: doiId,
+      }}
+    />
+  </head>
+  <body>
+    {(toc.length > 0 || bundle.paperGraph) && (
+      <div class="paper-side" id="paper-side">
+        {toc.length > 0 && (
+          <nav class="paper-toc" id="paper-toc" aria-label="Contents">
+            <div class="toc-head">Contents</div>
+            <ul>
+              {toc.map((t) => (
+                <li class={`toc-l${t.level}`}>
+                  <a href={`#${t.id}`}>{t.text}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+        {bundle.paperGraph && (
+          <ProofMap
+            graph={bundle.paperGraph}
+            paperId={bundle.id}
+            worker={import.meta.env.PUBLIC_COMMENTS_WORKER ?? ""}
+          />
+        )}
+      </div>
+    )}
+    <article class="paper">
+      <div class="paper-byline">
+        <a href={`${base}/`}>{SERIES_NAME} · {SERIES_TAGLINE}</a>
+        {/* The score badge used to live here; it is now the fold under the
+            rating line, where it can show the critique instead of a number. */}
+        — {bundle.meta.wp_number ?? bundle.id} · {bundle.meta.area} ·
+        pinned commit
+        <code>{bundle.commit.slice(0, 7)}</code>
+        {bundle.hasPdf && <> · <a href={`${base}/papers/${bundle.id}/paper.pdf`} data-astro-prefetch="false">PDF</a></>}
+        {bundle.paperLib && <> · <a href={`${base}/papers/${bundle.id}/formalization`} data-astro-prefetch="false">Lean code</a></>}
+        {bundle.slidesMd && <> · <a href={`${base}/papers/${bundle.id}/slides`}>Slides</a></>}
+        {bundle.review && <> · <a href={reviewHref}>AI review</a></>}
+        {" · "}
+        <a class="nav-external" href={PAPER_URL} title={PAPER_CITE} target="_blank" rel="noopener">arXiv <span aria-hidden="true">↗</span></a>
+        {GITHUB_URL && <> · <a class="nav-external" href={GITHUB_URL} target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></>}
+      </div>
+      <h1 set:html={renderTexLine(titleCase(bundle.meta.title), TEX)} />
+      <div class="paper-rating" id="paper-rating" hidden></div>
+      {/* With a report the score is a disclosure; without one it is still the
+          paper's score and still belongs on the page (audit r4). */}
+      {!bundle.review && typeof aiScore === "number" && (
+        <div class="paper-ai-row">
+          <span class="ai-line ai-line-static" title={scoreWhyPlain ?? undefined}>AI score <b>{aiScore.toFixed(1)}/10</b></span>
+          {scoreWhy && <p class="ai-rationale ai-rationale-bare" set:html={scoreWhy} />}
+        </div>
+      )}
+      {bundle.review && typeof aiScore === "number" && (
+        <div class="paper-ai-row">
+          <button
+            type="button"
+            class="ai-line"
+            data-fold-toggle
+            aria-expanded="false"
+            aria-controls={`ai-${bundle.id}`}
+          ><span class="fold-mark" aria-hidden="true" data-fold-mark>&#9656;</span> AI score <b>{aiScore.toFixed(1)}/10</b></button>
+        </div>
+      )}
+      {bundle.review && typeof aiScore === "number" && (
+        <AiScoreFold
+          review={bundle.review}
+          revised={bundle.meta.revised}
+          paperSha256={latestPaperSha256(bundle.meta.versions)}
+          reviewHref={reviewHref}
+          id={`ai-${bundle.id}`}
+          labels={crosswalkLabels(bundle)}
+        />
+      )}
+
+      {/* arXiv-style identity block: what this paper is and how to cite it. */}
+      <dl class="paper-ident">
+        <dt>Submitted</dt>
+        <dd>
+          {formatDate(meta.created)}{typeof meta.version === "number" && <> (v1)</>}
+          {hasRevision && <> · last revised {formatDate(meta.revised)} (v{meta.version})</>}
+        </dd>
+        <dt>Cite as</dt>
+        <dd>
+          {meta.wp_number && <code>{meta.wp_number}</code>}
+          {meta.wp_number && (doiHref || selfUrl) && <> · </>}
+          {doiHref ? (
+            <a href={doiHref}>{doiHref}</a>
+          ) : (
+            selfUrl && <a href={selfUrl}>{selfUrl}</a>
+          )}
+          {" "}
+          <CiteButton panel={`cite-${bundle.id}`} />
+        </dd>
+      </dl>
+      <CitePanel meta={citation} id={`cite-${bundle.id}`} />
+
+      <div id="paper-body" set:html={renderedBody} />
+
+      {bundle.formalLayer && bundle.formalLayer.groups.length > 0 && (
+        <aside class="formal-layer" aria-label="Formal layer">
+          <details open>
+            <summary>Formal layer — Lean correspondence</summary>
+            <p class="fl-note">
+              Every object below is formalized in Lean 4. Click a verified row to view its
+              statement; the rest link to the Lean source.
+            </p>
+            {bundle.formalLayer.groups.map((g) => (
+              <details class="fl-group" open={g.kind !== "auxiliary"}>
+                <summary>
+                  {g.kind === "auxiliary"
+                    ? "Auxiliary Lean lemmas (machine-checked)"
+                    : g.kind === "symbol"
+                      ? "Symbol realizations (Lean @realizes)"
+                      : `${cap(g.kind)}s`}{" "}
+                  ({g.items.length})
+                </summary>
+                <ul>
+                  {g.items.map((it) => (
+                    <li
+                      class={`fl-row${entryIds.has(it.obj_id) ? " fl-open" : ""}`}
+                      data-objid={entryIds.has(it.obj_id) ? it.obj_id : undefined}
+                      tabindex={entryIds.has(it.obj_id) ? 0 : undefined}
+                    >
+                      <span class="fl-label" set:html={renderLabel(it.label)} />
+                      <span class={`fl-badge fl-${it.status}`}>{statusLabel[it.status] ?? it.status}</span>
+                      {it.lean && <code class="fl-decl">{it.lean.decl}</code>}
+                      <span class="fl-nl" set:html={renderTexCompact(it.nl)} />
+                      {it.lean && ghBase && !entryIds.has(it.obj_id) && (
+                        <a class="fl-gh" href={`${ghBase}/${it.lean.file}`} target="_blank" rel="noopener">↗ Lean</a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ))}
+          </details>
+        </aside>
+      )}
+
+      <PaperComments />
+    </article>
+
+    {/* Docked, NON-MODAL Lean panel — no scrim: the paper stays lit, scrollable
+        and clickable while it is open (the column shifts left to make room). */}
+    <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Lean statement">
+      <div class="drawer-head">
+        <button class="close" id="drawer-close" aria-label="Close">✕</button>
+        <span class="drawer-title" id="drawer-title"></span>
+        <span id="drawer-sub"></span>
+      </div>
+      <div class="drawer-body" id="drawer-body"></div>
+    </aside>
+
+    <script type="application/json" id="paper-data" set:html={JSON.stringify(paperData).replace(/</g, "\\u003c")} />
+    <script>
+      import { initDrawer } from "../../scripts/drawer.js";
+      import { initComments } from "../../scripts/comments.js";
+      import { initProofMap } from "../../scripts/proofMap.js";
+      import { initPaperRating } from "../../scripts/ratings.js";
+      import { initDisclosures } from "../../scripts/disclosures.js";
+      import { katexOptions } from "../../lib/katexConfig.js";
+      // Wire the drawer FIRST, and never behind a top-level `import katex` — a
+      // failed katex load (e.g. a stale Vite optimize-deps chunk 504ing in dev)
+      // would otherwise abort this whole module before initDrawer() runs, leaving
+      // every formal block un-clickable. katex is loaded lazily below instead.
+      initDrawer();
+      // Proof map — inert on a paper whose bundle carries no paper_graph.json,
+      // and read-only (graph + statements, no verify control) when no comments
+      // worker is configured. Runs after the drawer for the same reason as the
+      // comments layer: neither may cost the Lean drawer if it throws.
+      initProofMap();
+      // Byline star rating — same no-worker no-op contract as the other widgets.
+      initPaperRating();
+      // Cite panel + AI-score fold (delegated; see scripts/disclosures.ts).
+      initDisclosures();
+      // Reader commentary — no-ops unless PUBLIC_COMMENTS_WORKER is set. Runs
+      // after the drawer so a comments failure can never cost the Lean layer,
+      // and after parsing so the sentence segmenter sees the whole body.
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => initComments());
+      } else {
+        initComments();
+      }
+      // #<objId> deep link (e.g. from the Lean page's "in the paper" badge):
+      // scroll to and flash the matching formal block
+      {
+        // Guarded: a malformed hash (%zz → decodeURIComponent throws; trailing
+        // backslash → invalid selector) must not abort the rest of this script.
+        let hash = "";
+        try {
+          hash = decodeURIComponent(location.hash.slice(1));
+        } catch {
+          /* malformed percent-encoding: ignore the hash */
+        }
+        const t = hash && document.querySelector(`[data-objid="${hash.replace(/[\\"]/g, "")}"]`);
+        if (t) {
+          t.scrollIntoView({ block: "center" });
+          t.classList.add("flash");
+          setTimeout(() => t.classList.remove("flash"), 1600);
+        }
+      }
+      // TOC: highlight the section currently in view
+      {
+        const links = new Map(
+          [...document.querySelectorAll("#paper-toc a")].map((a) => [
+            decodeURIComponent((a as HTMLAnchorElement).hash.slice(1)),
+            a,
+          ]),
+        );
+        let active: Element | null = null;
+        const obs = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (!e.isIntersecting) continue;
+              const link = links.get(e.target.id);
+              if (!link) continue;
+              active?.classList.remove("active");
+              link.classList.add("active");
+              link.scrollIntoView({ block: "nearest" }); // keep highlight visible in a long TOC
+              active = link;
+            }
+          },
+          { rootMargin: "0px 0px -75% 0px" },
+        );
+        for (const id of links.keys()) {
+          const h = document.getElementById(id);
+          if (h) obs.observe(h);
+        }
+      }
+      // Fallback render for any \( … \) math spans pandoc left raw (most math is
+      // already baked in by build-time KaTeX). Load katex lazily and only when
+      // such spans exist, so its failure can't break the page's other scripts;
+      // on failure the raw TeX simply stays visible.
+      {
+        const rawMath = [...document.querySelectorAll("span.math")];
+        if (rawMath.length) {
+          void import("katex")
+            .then(({ default: katex }) => {
+              for (const el of rawMath) {
+                const tex = (el.textContent ?? "").replace(/^\\[([]|\\[)\]]$/g, "");
+                const clean = tex.replace(/^\\\(|\\\)$/g, "").replace(/^\\\[|\\\]$/g, "");
+                try {
+                  katex.render(
+                    clean,
+                    el as HTMLElement,
+                    katexOptions(el.classList.contains("display")),
+                  );
+                } catch {
+                  /* leave raw TeX visible */
+                }
+              }
+            })
+            .catch(() => {
+              /* katex unavailable — leave raw TeX visible */
+            });
+        }
+      }
+    </script>
+  </body>
+</html>

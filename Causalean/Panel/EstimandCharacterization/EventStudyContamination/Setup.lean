@@ -1,0 +1,343 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Sun-Abraham (2021): finite event-study setup
+
+Finite-cell formalization of the staggered-adoption event-study objects used by
+the listed-cohort cell-grid contamination theorem and the interaction-weighted
+event-study characterization.
+
+NL artifact:
+`doc/basic_concepts/po/estimand_characterization/sun_abraham_event_study.md`.
+-/
+
+module
+public import Causalean.Stat.Weighted.AdditiveSpan
+public import Causalean.Panel.AdoptionPath
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Data.Fintype.Prod
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Order.WithBot
+
+/-! # Sun-Abraham Event-Study Setup
+
+This file provides the finite staggered-adoption event-study system used by the
+Sun-Abraham characterization modules. It defines the cohort, period,
+relative-time, potential-outcome, and comparison-path primitives on which the
+conventional and interaction-weighted estimands are built. -/
+
+@[expose] public section
+
+namespace Causalean
+namespace Panel.EstimandCharacterization
+namespace EventStudyContamination
+
+open Finset
+
+/-- A finite-cell record of a staggered-adoption event-study design over `T` periods, where
+adoption paths are finite periods or the never-treated path. It bundles
+[a numeric encoding used to form relative event time](hyp:time),
+[the finite set of supported adoption cohorts](hyp:cohorts),
+[each adoption path's population share](hyp:cohortShare),
+[the cohort-period cell mass](hyp:cellMass),
+[the factual observed outcome means](hyp:observedPathMean,observedMean),
+[the own-treatment-path mean potential outcome](hyp:treatedMean), and
+[the never-treated mean potential outcomes](hyp:untreatedMean,untreatedPathMean). -/
+structure EventStudySystem (T : ℕ) where
+  /-- Integer-valued period map used to form relative event times. -/
+  time : Fin T → ℤ
+  /-- Finite adoption cohorts included in the event-study support. -/
+  cohorts : Finset (Fin T)
+  /-- Population share of each adoption path, including `⊤` for never treated. -/
+  cohortShare : WithTop (Fin T) → ℝ
+  /-- Balanced cohort-period cell mass. -/
+  cellMass : Fin T → Fin T → ℝ
+  /-- Factual observed outcome mean by adoption path and period. -/
+  observedPathMean : WithTop (Fin T) → Fin T → ℝ
+  /-- Factual observed outcome mean by finite cohort and period. -/
+  observedMean : Fin T → Fin T → ℝ
+  /-- Mean potential outcome under the cohort's own treatment path. -/
+  treatedMean : Fin T → Fin T → ℝ
+  /-- Mean never-treated potential outcome for each finite cohort. -/
+  untreatedMean : Fin T → Fin T → ℝ
+  /-- Mean never-treated potential outcome for any comparison adoption path. -/
+  untreatedPathMean : WithTop (Fin T) → Fin T → ℝ
+
+namespace EventStudySystem
+
+variable {T : ℕ}
+
+/-- For [an event study with $T$ periods](hyp:T) and [a finite adoption cohort](hyp:g),
+[the finite adoption path](goal) has that cohort's adoption date. -/
+def finitePath (g : Fin T) : WithTop (Fin T) := AdoptionPath.finite g
+
+/-- For [an event study with $T$ periods](hyp:T) and [an adoption path](hyp:h),
+[the never-treated predicate](goal) holds exactly when the path is never treated. -/
+def isNeverTreated (h : WithTop (Fin T)) : Prop := AdoptionPath.isNeverTreated h
+
+/-- For [an event study with $T$ periods](hyp:T) and [an adoption path](hyp:h),
+[the eventually-treated predicate](goal) holds exactly when the path has a finite adoption date.
+-/
+def isEventuallyTreated (h : WithTop (Fin T)) : Prop := AdoptionPath.isEventuallyTreated h
+
+/-- For [an event-study system](hyp:P), [an adoption cohort](hyp:g), and [a period](hyp:t),
+[relative event time](goal) is the period's calendar time minus the cohort's calendar time. -/
+def relTime (P : EventStudySystem T) (g t : Fin T) : ℤ :=
+  P.time t - P.time g
+
+open Classical in
+/-- For [an event study with $T$ periods](hyp:T), [an adoption path](hyp:h), and
+[a period](hyp:t), [the absorbing treatment indicator](goal) equals one exactly when the path
+has adopted by the period, and equals zero otherwise.
+
+The never-treated path is untreated in every finite period. -/
+noncomputable def absorbingTreatment (h : WithTop (Fin T)) (t : Fin T) : ℝ :=
+  AdoptionPath.absorbingTreatment h t
+
+open Classical in
+/-- For [an event-study system](hyp:P), [a finite cohort](hyp:g), and
+[an integer relative time](hyp:e), [the target-period set](goal) consists of the finite periods
+with that relative event time for the cohort. -/
+noncomputable def targetPeriods (P : EventStudySystem T) (g : Fin T) (e : ℤ) :
+    Finset (Fin T) :=
+  Finset.univ.filter (fun t => P.relTime g t = e)
+
+open Classical in
+/-- For [an event-study system](hyp:P) and [a finite cohort](hyp:g),
+[the baseline-period set](goal) is the target-period set at relative event time minus one. -/
+noncomputable def baselinePeriods (P : EventStudySystem T) (g : Fin T) :
+    Finset (Fin T) :=
+  P.targetPeriods g (-1)
+
+/-- For [an event-study system](hyp:P), [a finite cohort](hyp:g), and
+[an integer relative time](hyp:e), [the admissible-cell predicate](goal) holds exactly when
+[the cohort belongs to the event-study support](step:1) and
+[some finite period has that relative event time for the cohort](step:2). -/
+def AdmissibleCell (P : EventStudySystem T) (g : Fin T) (e : ℤ) : Prop :=
+  g ∈ P.cohorts ∧ (P.targetPeriods g e).Nonempty
+
+open Classical in
+/-- For [an event-study system](hyp:P) and [a finite set of relative times](hyp:E),
+[the admissible-cell support](goal) consists of the supported cohort-relative-time pairs that
+satisfy the admissible-cell predicate. -/
+noncomputable def admissibleCells (P : EventStudySystem T) (E : Finset ℤ) :
+    Finset (Fin T × ℤ) :=
+  (P.cohorts.product E).filter (fun ge => P.AdmissibleCell ge.1 ge.2)
+
+open Classical in
+/-- For [an event-study system](hyp:P), [a finite set of relative times](hyp:E), and
+[a relative time](hyp:e), [the cohorts at that event time](goal) are the supported cohorts for
+which the relative time belongs to the set and the corresponding cell is admissible. -/
+noncomputable def cohortsAtEvent (P : EventStudySystem T) (E : Finset ℤ)
+    (e : ℤ) : Finset (Fin T) :=
+  P.cohorts.filter (fun g => e ∈ E ∧ P.AdmissibleCell g e)
+
+/-- For [an event-study system](hyp:P), [a cohort](hyp:g), and [a relative time](hyp:e),
+[the cohort-relative-time cell mass](goal) is the sum of the cohort-period cell masses over the
+corresponding target periods. -/
+noncomputable def cellMassAtEvent (P : EventStudySystem T) (g : Fin T)
+    (e : ℤ) : ℝ :=
+  ∑ t ∈ P.targetPeriods g e, P.cellMass g t
+
+/-- For [an event-study system](hyp:P), [a cohort](hyp:g), and [a relative time](hyp:e),
+[the observed cell mean](goal) is the average of the cohort's factual observed means over the
+target periods, with value zero when that set is empty. -/
+noncomputable def observedCellMean (P : EventStudySystem T) (g : Fin T)
+    (e : ℤ) : ℝ :=
+  ((P.targetPeriods g e).card : ℝ)⁻¹ *
+    ∑ t ∈ P.targetPeriods g e, P.observedMean g t
+
+/-- For [an event-study system](hyp:P), [a cohort](hyp:g), and [a relative time](hyp:e),
+[the mean cell contrast](goal) is the target-period average of the treated-path mean minus the
+never-treated mean, with value zero when there are no target periods. -/
+noncomputable def meanCellContrast (P : EventStudySystem T) (g : Fin T)
+    (e : ℤ) : ℝ :=
+  ((P.targetPeriods g e).card : ℝ)⁻¹ *
+    ∑ t ∈ P.targetPeriods g e, (P.treatedMean g t - P.untreatedMean g t)
+
+/-- For [an event-study system](hyp:P), [a cohort](hyp:g), and [a relative time](hyp:e),
+[the cohort average treatment effect on the treated](goal) is the corresponding mean cell
+contrast.
+
+This definition averages the treated-minus-never potential-outcome contrast over
+all finite periods in `targetPeriods g e`. It therefore matches the source
+point-period `CATT_{g,e}` at period `g+e` when that target-period set is a
+singleton, as in the usual injective calendar-time encoding. -/
+noncomputable def CATT (P : EventStudySystem T) (g : Fin T) (e : ℤ) : ℝ :=
+  P.meanCellContrast g e
+
+/-- For [an event-study system](hyp:P), [an adoption path](hyp:h),
+[a treated cohort](hyp:g), and [a relative time](hyp:e), [the path target mean](goal) is the
+average factual path mean over the target periods, with value zero when that set is empty. -/
+noncomputable def pathTargetMean (P : EventStudySystem T)
+    (h : WithTop (Fin T)) (g : Fin T) (e : ℤ) : ℝ :=
+  ((P.targetPeriods g e).card : ℝ)⁻¹ *
+    ∑ t ∈ P.targetPeriods g e, P.observedPathMean h t
+
+/-- For [an event-study system](hyp:P), [an adoption path](hyp:h), and
+[a treated cohort](hyp:g), [the path baseline mean](goal) is the average factual path mean over
+the cohort's baseline periods, with value zero when that set is empty. -/
+noncomputable def pathBaselineMean (P : EventStudySystem T)
+    (h : WithTop (Fin T)) (g : Fin T) : ℝ :=
+  ((P.baselinePeriods g).card : ℝ)⁻¹ *
+    ∑ t ∈ P.baselinePeriods g, P.observedPathMean h t
+
+/-- For [an event-study system](hyp:P), [the consistency condition](goal) states that every
+supported cohort's factual observed mean equals its own-treatment-path mean in every period. -/
+def Consistency (P : EventStudySystem T) : Prop :=
+  ∀ g ∈ P.cohorts, ∀ t, P.observedMean g t = P.treatedMean g t
+
+/-- For [an event-study system](hyp:P), [the path-consistency condition](goal) states that the
+factual path mean equals the never-treated path mean whenever the path is untreated.
+
+This is the path-level analogue of `Consistency` for arbitrary adoption
+paths `h : WithTop (Fin T)`: in any finite period `t` where path `h` is
+untreated (`absorbingTreatment h t = 0`), the factual observed path mean equals
+the never-treated potential-outcome path mean. It is the honest causal primitive
+the source uses to convert a comparison group's *observed* trend into an
+*untreated potential-outcome* trend. -/
+def PathConsistency (P : EventStudySystem T) : Prop :=
+  ∀ (h : WithTop (Fin T)) (t : Fin T),
+    absorbingTreatment h t = 0 → P.observedPathMean h t = P.untreatedPathMean h t
+
+/-- Path-consistency, applied to an untreated comparison period, yields the
+observed-equals-untreated path-mean bridge used by the IW comparison-group
+argument. -/
+theorem pathConsistency_observed_eq_untreated (P : EventStudySystem T)
+    (hPathConsistency : P.PathConsistency) {h : WithTop (Fin T)} {t : Fin T}
+    (hUntreated : absorbingTreatment h t = 0) :
+    P.observedPathMean h t = P.untreatedPathMean h t :=
+  hPathConsistency h t hUntreated
+
+/-- For [an event-study system](hyp:P), [the no-anticipation condition](goal) states that every
+supported cohort's own-path and never-treated means agree before adoption. -/
+def NoAnticipation (P : EventStudySystem T) : Prop :=
+  ∀ g ∈ P.cohorts, ∀ t, P.time t < P.time g →
+    P.treatedMean g t = P.untreatedMean g t
+
+/-- For [an event-study system](hyp:P), [the mean-parallel-untreated condition](goal) states
+that there exist cohort and period components whose
+[sum gives an additive cohort-period function](step:1), equal to every supported cohort's
+never-treated mean in every period. -/
+def MeanParallelUntreated (P : EventStudySystem T) : Prop :=
+  ∃ h : Fin T → Fin T → ℝ, Causalean.Stat.Weighted.IsUnitTimeAdditive h ∧
+    ∀ g ∈ P.cohorts, ∀ t, P.untreatedMean g t = h g t
+
+/-- Sun-Abraham event-study causal restrictions. Field names mirror the NL
+artifact's assumption names. -/
+structure EventStudyCausalRestrictions (P : EventStudySystem T) : Prop where
+  hConsistency : P.Consistency
+  hNoAnticipation : P.NoAnticipation
+  hMeanParallelUntreated : P.MeanParallelUntreated
+
+/-- **No anticipation implies zero pre-treatment CATT.** If [the mean treated and
+never-treated potential outcomes for every adopting cohort coincide in every period
+strictly preceding that cohort's own adoption period (no anticipation)](hyp:hNoAnticipation),
+then for [a cohort `g` in the finite adoption-cohort support](hyp:hg) and [a relative
+event time `e` strictly before adoption ($e < 0$)](hyp:he), [the cohort-average
+treatment effect on the treated at cell `(g, e)` is zero](goal). -/
+theorem CATT_eq_zero_of_noAnticipation (P : EventStudySystem T)
+    (hNoAnticipation : P.NoAnticipation) {g : Fin T} {e : ℤ}
+    (hg : g ∈ P.cohorts) (he : e < 0) :
+    P.CATT g e = 0 := by
+  unfold CATT meanCellContrast
+  rw [Finset.sum_eq_zero]
+  · simp
+  · intro t ht
+    have hrel : P.relTime g t = e := by
+      simpa [targetPeriods] using ht
+    have hpre : P.time t < P.time g := by
+      have hneg : P.relTime g t < 0 := by
+        simpa [hrel] using he
+      simpa [relTime] using (sub_neg.mp hneg)
+    have hmean := hNoAnticipation g hg t hpre
+    simp [hmean]
+
+/-- **Cell-mean decomposition into additive untreated fixed effects and CATT.** If [the
+factual observed outcome mean on a cohort's own periods equals its mean treated
+potential outcome (consistency)](hyp:hConsistency) and [the mean never-treated potential
+outcome admits an additive cohort/period fixed-effects representation (mean-parallel
+untreated paths)](hyp:hMeanParallelUntreated), then for [any cohort `g` in the finite
+adoption-cohort support](hyp:hg), [the average observed outcome mean over the target
+periods of cell `(g, e)` decomposes as the average, over those periods, of the additive
+fixed effects `alpha g + lambda t` plus the cohort-average treatment effect on the
+treated `CATT g e`](goal). -/
+theorem observedCellMean_eq_fixedEffects_add_CATT (P : EventStudySystem T)
+    (hConsistency : P.Consistency) (hMeanParallelUntreated : P.MeanParallelUntreated)
+    {g : Fin T} {e : ℤ}
+    (hg : g ∈ P.cohorts) :
+    ∃ alpha : Fin T → ℝ, ∃ lambda : Fin T → ℝ,
+      P.observedCellMean g e =
+        ((P.targetPeriods g e).card : ℝ)⁻¹ *
+          ∑ t ∈ P.targetPeriods g e, (alpha g + lambda t) +
+        P.CATT g e := by
+  rcases hMeanParallelUntreated with ⟨hFE, ⟨alpha, lambda, hFE_add⟩, hUntreated⟩
+  refine ⟨alpha, lambda, ?_⟩
+  unfold observedCellMean CATT meanCellContrast
+  have hsum :
+      (∑ t ∈ P.targetPeriods g e, P.observedMean g t) =
+        (∑ t ∈ P.targetPeriods g e, (alpha g + lambda t)) +
+          ∑ t ∈ P.targetPeriods g e, (P.treatedMean g t - P.untreatedMean g t) := by
+    calc
+      (∑ t ∈ P.targetPeriods g e, P.observedMean g t) =
+          ∑ t ∈ P.targetPeriods g e,
+            ((alpha g + lambda t) + (P.treatedMean g t - P.untreatedMean g t)) := by
+        apply Finset.sum_congr rfl
+        intro t ht
+        rw [hConsistency g hg t, hUntreated g hg t, hFE_add g t]
+        calc
+          P.treatedMean g t =
+              P.treatedMean g t - (alpha g + lambda t) + (alpha g + lambda t) := by
+            exact (sub_add_cancel (P.treatedMean g t) (alpha g + lambda t)).symm
+          _ = alpha g + lambda t + (P.treatedMean g t - (alpha g + lambda t)) := by
+            rw [add_comm]
+      _ = (∑ t ∈ P.targetPeriods g e, (alpha g + lambda t)) +
+          ∑ t ∈ P.targetPeriods g e, (P.treatedMean g t - P.untreatedMean g t) := by
+        rw [Finset.sum_add_distrib]
+  rw [hsum, mul_add]
+
+/-- Under an injective calendar-time encoding, at most one finite period can
+realize a given relative time, so the target-period set of any cell is a
+subsingleton. -/
+theorem targetPeriods_subsingleton_of_injective (P : EventStudySystem T)
+    (hInj : Function.Injective P.time) (g : Fin T) (e : ℤ) :
+    (P.targetPeriods g e : Set (Fin T)).Subsingleton := by
+  intro a ha b hb
+  simp only [Finset.mem_coe, targetPeriods, Finset.mem_filter, Finset.mem_univ,
+    true_and] at ha hb
+  simp only [relTime] at ha hb
+  have hab : P.time a = P.time b := by
+    have := ha.trans hb.symm
+    linarith [this]
+  exact hInj hab
+
+/-- **G1 faithfulness corollary.** When the calendar-time map `time` is
+injective (the usual one-period-per-relative-time encoding), the cell-averaged
+`CATT g e` collapses to the source's *point* `CATT_{g,e}` at the unique period
+`t` realizing relative time `e`, i.e. `treatedMean g t - untreatedMean g t`.
+
+This certifies that the cell-averaged `CATT` equals the source's
+point-period object exactly in the injective setting the paper assumes; the
+main theorems hold for the (wider) cell-averaged class and specialize here. -/
+theorem CATT_eq_sourceCATT_of_injective (P : EventStudySystem T)
+    (hInj : Function.Injective P.time) {g : Fin T} {e : ℤ} {t : Fin T}
+    (ht : t ∈ P.targetPeriods g e) :
+    P.CATT g e = P.treatedMean g t - P.untreatedMean g t := by
+  have hsub := P.targetPeriods_subsingleton_of_injective hInj g e
+  have hsingleton : P.targetPeriods g e = {t} := by
+    apply Finset.eq_singleton_iff_unique_mem.mpr
+    refine ⟨ht, ?_⟩
+    intro x hx
+    exact hsub (by simpa using hx) (by simpa using ht)
+  unfold CATT meanCellContrast
+  rw [hsingleton]
+  simp
+
+end EventStudySystem
+
+end EventStudyContamination
+end Panel.EstimandCharacterization
+end Causalean

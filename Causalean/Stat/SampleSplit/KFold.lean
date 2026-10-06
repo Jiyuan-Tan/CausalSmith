@@ -1,0 +1,93 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# K-fold sample split
+
+Generalises `OneShotSplit` (in `OneShot.lean`) to K disjoint folds.  Used by
+the cross-fitted DML estimator interfaces in
+`Causalean/Estimation/OrthogonalMoments/DMLCrossFit.lean`.
+
+Following Chernozhukov et al. (2018), at each sample size `n` the index
+set `{0, …, n-1}` is partitioned into `K` folds `fold(n, k)` of roughly
+equal size (`fold(n, k).card / n → 1/K`).  Fold k is the *evaluation* fold;
+its complement `trainComplement(n, k) := {0,…,n-1} \ fold(n, k)` is used
+to estimate the nuisance.
+
+`folds_indep`: the evaluation fold `fold(n, k)` is independent of its
+training complement under `μ`.
+-/
+
+module
+public import Causalean.Stat.Sample
+public import Causalean.Stat.SampleSplit.OneShot
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Order.Filter.AtTopBot.Basic
+public import Mathlib.Topology.Instances.Real.Lemmas
+
+/-! # K-Fold Sample Splits
+
+This file defines \(K\)-fold sample-splitting schedules for an i.i.d. sample,
+including disjointness, coverage, fold growth, and limiting fold proportions.
+It also proves that each evaluation fold is independent of its training
+complement, supporting cross-fitted estimation procedures. -/
+
+@[expose] public section
+
+namespace Causalean.Stat
+
+open MeasureTheory ProbabilityTheory Filter Topology
+
+variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
+  {μ : Measure Ω} {P : Measure X}
+
+/-- **K-fold sample split.** For an i.i.d. sample `S`, [a schedule assigning each sample size `n`
+and fold index `k` a finite index set `fold n k`](hyp:fold), forming a K-fold cross-fitting
+scheme in which [distinct folds are pairwise disjoint at every sample size](hyp:partition),
+[the K folds together cover the full index set $\{0,\dots,n-1\}$](hyp:cover), [every fold
+grows without bound as $n \to \infty$](hyp:grow), and [each fold's share of the sample
+converges to $1/K$](hyp:ratio). -/
+structure KFoldSplit {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
+    {μ : Measure Ω} {P : Measure X}
+    (_S : IIDSample Ω X μ P) (K : ℕ) where
+  fold : ℕ → Fin K → Finset ℕ
+  partition : ∀ n (k₁ k₂ : Fin K), k₁ ≠ k₂ → Disjoint (fold n k₁) (fold n k₂)
+  cover     : ∀ n,
+    (Finset.univ : Finset (Fin K)).biUnion (fold n) = Finset.range n
+  grow      : ∀ k, Tendsto (fun n => (fold n k).card) atTop atTop
+  ratio     : ∀ k,
+    Tendsto (fun n => ((fold n k).card : ℝ) / n) atTop (𝓝 ((K : ℝ)⁻¹))
+
+namespace KFoldSplit
+
+variable {S : IIDSample Ω X μ P} {K : ℕ} (split : KFoldSplit S K)
+
+/-- Given [a K-fold splitting schedule](hyp:split), [a sample size](hyp:n), and [a fold index](hyp:k),
+[the training complement](goal) is the set of all indices from $0$ through $n-1$ excluding those
+assigned to that fold. -/
+def trainComplement (n : ℕ) (k : Fin K) : Finset ℕ :=
+  (Finset.range n) \ split.fold n k
+
+/-- The evaluation fold is disjoint from its training complement. -/
+lemma fold_disjoint_trainComplement (n : ℕ) (k : Fin K) :
+    Disjoint (split.fold n k) (split.trainComplement n k) := by
+  rw [trainComplement]
+  refine Finset.disjoint_left.mpr ?_
+  intro i hi hi'
+  exact (Finset.mem_sdiff.mp hi').2 hi
+
+/-- **Independence of evaluation fold and training complement.** For [a fixed sample size
+`n`](hyp:n) and [fold index `k`](hyp:k), [the sample sub-tuple indexed by the evaluation fold is
+independent, under `μ`, of the sub-tuple indexed by the training complement](goal). -/
+theorem folds_indep (n : ℕ) (k : Fin K) :
+    IndepFun
+      (fun ω (i : split.fold n k) => S.Z i ω)
+      (fun ω (i : split.trainComplement n k) => S.Z i ω)
+      μ := by
+  exact S.indep.indepFun_finset (split.fold n k) (split.trainComplement n k)
+    (split.fold_disjoint_trainComplement n k) S.meas
+
+end KFoldSplit
+
+end Causalean.Stat

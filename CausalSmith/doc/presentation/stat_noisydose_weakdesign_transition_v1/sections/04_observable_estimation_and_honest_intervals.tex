@@ -1,0 +1,408 @@
+\section{Observable estimation and honest intervals}
+
+The \leanref{S-3}{observable estimation layer} uses the public class constants, smoothness and design-decay indices, and Gaussian error scale to choose a localization weight before evaluating the sample. Exact Gaussian inversion turns that latent weight into an observable function of the contaminated dose. A finite dictionary then supplies a single procedure whose expected absolute error attains the rate in \cref{obj:def:frontier-rate}, uniformly over the stated error scales.
+
+\subsection{Inverse weights and public scores}
+
+Let \leanref{sym:q}{\ensuremath{q}} be a public nonnegative weight on the centered latent-dose interval, and let \leanref{sym:ellq}{\ensuremath{\ell_q}} be its observable Gaussian inverse. The inverse identity requires that averaging the observable inverse over the measurement error recover the latent weight at every dose in the support. The following definition groups this identity with the integrability conditions and the public quantities used to evaluate a candidate.
+
+\begin{definitionv}{synth_4}[Public expected-error score \(A_q(K)\)]
+The public expected-error score of a weight and inverse-weight pair \((q,\ell_q)\) is
+\[
+A_q(K)
+=
+B_q(K)
++\frac{12}{b_q(K)}\sqrt{\frac{V_q(K)}{n}}
++2\sqrt{\frac3n}.
+\]
+Fix the public class constants \(K=(p_{\min},c_{\mathrm{lo}},c_{\mathrm{hi}})\), the mean-smoothness index \(\beta\), the design-decay index \(\kappa\), the Gaussian scale \(\sigma\), and the sample size \(n\). The pair satisfies the following conditions.
+\begin{itemize}
+\item \textbf{(Public constants.)}
+\[
+0<p_{\min}\le\frac12,
+\qquad
+0<c_{\mathrm{lo}}\le c_{\mathrm{hi}},
+\qquad n\ge1.
+\]
+The score is defined for every \(n\ge1\). The estimator and interval use it only when all three modulo-three sample blocks are nonempty, that is, when \(n\ge3\); for \(n\le2\) they return their fallback outputs, which do not depend on the scores.
+\item \textbf{(Inverse identity.)}
+The weight \(q:[-1/2,1/2]\to[0,\infty)\) and its inverse \(\ell_q:\mathbb R\to\mathbb R\) are public Borel functions, and
+\[
+E_Z[\ell_q(t+\sigma Z)]=q(t),
+\qquad -1/2\le t\le1/2,
+\qquad Z\sim N(0,1),
+\]
+with every expectation absolutely finite.
+\item \textbf{(Weighted integrability.)}
+With weighted moments
+\[
+I_s(q)=\int_{-1/2}^{1/2}|t|^s q(t)\,dt,
+\]
+one has
+\[
+0<I_\kappa(q)<\infty,
+\qquad
+I_{\kappa+\beta}(q)<\infty.
+\]
+Moreover, \(\ell_q(V)\) is absolutely integrable under every law in \(\mathcal P_{K,\beta,\kappa,\sigma}\).
+\item \textbf{(Second moment.)}
+The public inverse-weight second-moment quantity is
+\[
+V_q(K)
+=
+c_{\mathrm{hi}}\int_{-1/2}^{1/2}
+|t|^\kappa E_Z[\ell_q(t+\sigma Z)^2]\,dt
+<\infty.
+\]
+The integral is a nonnegative extended integral.
+\end{itemize}
+The public denominator and localization-bias quantities are
+\[
+b_q(K)=p_{\min}c_{\mathrm{lo}}I_\kappa(q),
+\qquad
+B_q(K)=\frac{c_{\mathrm{hi}}}{c_{\mathrm{lo}}}
+\frac{I_{\kappa+\beta}(q)}{I_\kappa(q)}.
+\]
+For a second-moment quantity expressed with factor \(16\), use the distinct notation
+\[
+V_q^{(16)}
+=
+16\int_{-1/2}^{1/2}|t|^\kappa
+E_Z[\ell_q(t+\sigma Z)^2]\,dt
+=
+\frac{16}{c_{\mathrm{hi}}}V_q(K).
+\]
+Thus the second-moment term in the score has the equivalent expression
+\[
+\frac{12}{b_q(K)}\sqrt{\frac{V_q(K)}n}
+=
+\frac{12}{b_q(K)}
+\sqrt{\frac{c_{\mathrm{hi}}V_q^{(16)}}{16n}}.
+\]
+The two second-moment quantities differ by the factor \(c_{\mathrm{hi}}/16\) and are not interchangeable: \cref{obj:lem:public-error-certificate,obj:thm:observable-upper} write \(V_q\), without the argument \(K\), for the factor-\(16\) quantity \(V_q^{(16)}\), whereas the score uses \(V_q(K)\).
+Dependence on the fixed quantities \(\beta,\kappa,n,\sigma\) is suppressed in the notation.
+\end{definitionv}
+
+The design-weighted moment \leanref{sym:Iq}{\ensuremath{I_\kappa(q)}} determines the public denominator bound \leanref{sym:bq}{\ensuremath{b_q(K)}}. Localization is measured by the bias quantity \leanref{sym:Bq}{\ensuremath{B_q(K)}}, while the inverse-weight second-moment quantity \(V_q(K)\), equal to \(c_{\mathrm{hi}}/16\) times the factor-\(16\) reference moment \leanref{sym:Vq}{\ensuremath{V_q^{(16)}}}, measures the sampling cost of Gaussian inversion. Their combination, the public expected-error score \leanref{sym:Aq}{\ensuremath{A_q(K)}}, also accounts for estimation of the stratum probabilities. All these quantities depend on the candidate and public parameters. The factor-\(16\) convention is related to the class-dependent second moment by the explicit conversion in \cref{obj:synth_4}.
+
+For interpretation, define the localized population ratio \leanref{sym:mxq}{\ensuremath{m_{x,q}}} by
+\[
+m_{x,q}
+=
+\frac{\displaystyle\int_{-1/2}^{1/2}
+\mu_x(a_0+t)q(t)g_x(t)\,dt}
+{\displaystyle\int_{-1/2}^{1/2}q(t)g_x(t)\,dt},
+\qquad x\in\mathcal X.
+\]
+This ratio averages the conditional causal mean over doses emphasized by the weight. The positive weighted moment and lower design envelope give a positive denominator. Exact inversion supplies observable weighted moments for estimating this ratio; \cref{obj:lem:public-error-certificate} connects the resulting estimator to the public score.
+
+Two explicit families furnish the dictionary comparisons. The polynomial localization weight \leanref{sym:qM}{\ensuremath{q_m^{\mathrm M}}}, indexed by a positive odd integer \(m\), has the inverse-heat companion \leanref{sym:ellM}{\ensuremath{\ell_m^{\mathrm M}}}. Its polynomial form makes the inverse a finite derivative sum.
+
+\begin{definitionv}{synth_2}[Polynomial localization weights and inverse-heat weights]
+For a positive odd integer \(m\), define on \([-1/2,1/2]\)
+\[
+q_m^{\mathrm M}(t)=
+\begin{cases}
+\displaystyle
+\left[\frac{\sin(m\arcsin(2t))}{2mt}\right]^6,
+&t\ne0,\\[6pt]
+1,&t=0.
+\end{cases}
+\]
+For odd \(m\), this expression is a polynomial of degree \(6(m-1)\); use its polynomial extension to define \(q_m^{\mathrm M}\) on \(\mathbb R\). For known Gaussian error scale \(\sigma\in[0,1/4]\), define its companion observable inverse weight by
+\[
+\ell_m^{\mathrm M}(v)
+=\sum_{j=0}^{3(m-1)}
+\frac{(-\sigma^2/2)^j}{j!}
+(q_m^{\mathrm M})^{(2j)}(v),
+\qquad v\in\mathbb R,
+\]
+where the superscript \((2j)\) denotes the derivative of order \(2j\). For \(Z\sim N(0,1)\), this pair satisfies the exact Gaussian inversion identity
+\[
+E_Z\!\left[\ell_m^{\mathrm M}(t+\sigma Z)\right]
+=q_m^{\mathrm M}(t),\qquad t\in\mathbb R.
+\]
+At sample size \(n\), the polynomial entries of the public dictionary use the odd indices
+\[
+m=2^j+1\le n^2,\qquad j\in\mathbb Z,\quad j\ge1.
+\]
+\end{definitionv}
+
+The Fourier family instead uses the localization function \leanref{sym:Qkernel}{\ensuremath{Q}} and a bandwidth \leanref{sym:h}{\ensuremath{h}}. Its latent weight \leanref{sym:qF}{\ensuremath{q_h^{\mathrm F}}} is paired with the Gaussian inverse \leanref{sym:ellF}{\ensuremath{\ell_h^{\mathrm F}}} through a Fourier multiplier. Both families satisfy the same exact inversion requirement.
+
+\begin{definitionv}{synth_1}[Fourier localization weights and Gaussian inverses]
+For \(0<h\le1/4\) and known Gaussian error scale \(\sigma\in[0,1/4]\), define
+\[
+Q(u)=
+\begin{cases}
+(\sin u/u)^6,&u\ne0,\\
+1,&u=0,
+\end{cases}
+\qquad
+q_h^{\mathrm F}(t)=Q(t/h),\quad t\in\mathbb R.
+\]
+Use the Fourier-transform convention
+\[
+\widehat f(\omega)=\int_{\mathbb R}e^{-i\omega t}f(t)\,dt,
+\qquad
+\mathcal F^{-1}[g](v)=\frac1{2\pi}
+\int_{\mathbb R}e^{i\omega v}g(\omega)\,d\omega.
+\]
+The companion observable inverse weight is
+\[
+\ell_h^{\mathrm F}(v)
+=\mathcal F^{-1}\!\left[
+\widehat q_h^{\mathrm F}(\omega)e^{\sigma^2\omega^2/2}
+\right](v),\qquad v\in\mathbb R.
+\]
+For \(Z\sim N(0,1)\), this pair satisfies the exact Gaussian inversion identity
+\[
+E_Z\!\left[\ell_h^{\mathrm F}(t+\sigma Z)\right]
+=q_h^{\mathrm F}(t),\qquad t\in\mathbb R.
+\]
+At sample size \(n\), the Fourier entries of the public dictionary use the dyadic bandwidths
+\[
+h=2^{-j},\qquad j\in\mathbb Z,\quad j\ge2,
+\qquad n^{-2}\le2^{-j}\le1/4.
+\]
+\end{definitionv}
+
+\subsection{Public selection and the observable procedure}
+
+The finite public dictionary \leanref{sym:Ddict}{\ensuremath{\mathcal D_{n,\sigma}}} combines these two families with a constant entry. Each entry carries its inverse and its score, so selection compares the same public criterion across localization methods.
+
+\begin{definitionv}{def:weight-dictionary}[Inverse-weight dictionary \(\mathcal D_{n,\sigma}\)]
+The finite public dictionary \(\mathcal D_{n,\sigma}\) contains the following weights, each paired with its exact inverse and assigned the public expected-error score \(A_q\):
+\begin{itemize}
+\item \textbf{(Fourier weights.)} The weights \(q_h^{\mathrm F}\), paired with \(\ell_h^{\mathrm F}\), for dyadic bandwidths \(h\in[n^{-2},1/4]\).
+\item \textbf{(Polynomial weights.)} The weights \(q_m^{\mathrm M}\), paired with \(\ell_m^{\mathrm M}\), for odd indices \(m=2^j+1\le n^2\).
+\item \textbf{(Constant weight.)} The constant weight \(1\), paired with the inverse \(1\).
+\end{itemize}
+\end{definitionv}
+
+The constant entry ensures that the dictionary is nonempty. A fixed order resolves ties and defines the selected entry \leanref{sym:qhat}{\ensuremath{\widehat q}} uniquely, including when differently tagged entries have the same latent weight.
+
+\begin{definitionv}{synth_6}[Public dictionary order]
+The fixed dictionary order on \(\mathcal D_{n,\sigma}\) in \cref{obj:def:weight-dictionary} is the following order of tagged entries: the constant entry first, then the Fourier entries \(q_{2^{-j}}^{\mathrm F}\) in increasing integer index \(j\), then the polynomial entries \(q_{2^j+1}^{\mathrm M}\) in increasing integer index \(j\). The Fourier indices are those integers \(j\ge2\) satisfying \(n^{-2}\le2^{-j}\le1/4\); the polynomial indices are those integers \(j\ge1\) satisfying \(2^j+1\le n^2\). Each entry carries its paired inverse weight and public score \(A_q(K)\). Entries retain their tags even when their latent weight functions coincide. The first minimizer \(\widehat q\) is the earliest entry in this order attaining \(\min_{q\in\mathcal D_{n,\sigma}}A_q(K)\).
+\end{definitionv}
+
+Because the scores and order use public inputs, the selected entry is determined by the sample size and declared parameters. The sample supplies the weighted moments used after selection. To state those formulas, partition the records into deterministic modulo-three blocks \leanref{sym:Iblocks}{\ensuremath{\mathcal I_r}}. The three blocks separately estimate the stratum frequency \leanref{sym:phatx}{\ensuremath{\widehat p_x}}, the weighted denominator \leanref{sym:Dhatx}{\ensuremath{\widehat D_x(q)}}, and the weighted outcome numerator \leanref{sym:Mhatx}{\ensuremath{\widehat M_x(q)}}.
+
+The stratum-specific ratio estimate \leanref{sym:muhatx}{\ensuremath{\widehat\mu_x(q)}} uses a public denominator floor and projection onto the outcome range. Combining these ratios with estimated stratum frequencies gives the weight-specific causal-mean estimate \leanref{sym:thetahatq}{\ensuremath{\widehat\theta_q}}. The following definition supplies the intermediate formulas and the empty-block branch.
+
+\begin{definitionv}{synth_3}[Split-sample ratios]
+Index the observed records \(O_i=(X_i,W_i,Y_i)\) by \(i=0,\ldots,n-1\), put \(V_i=W_i-a_0\) with target dose \(a_0=1/2\), and define
+\[
+\mathcal I_r=\{i\in\{0,\ldots,n-1\}:i\bmod3=r\},
+\qquad r\in\{0,1,2\}.
+\]
+For a public latent weight \(q\) with observable inverse \(\ell_q\), let
+\[
+I_\kappa(q)=\int_{-1/2}^{1/2}|t|^\kappa q(t)\,dt,
+\qquad
+b_q(K)=p_{\min}c_{\mathrm{lo}}I_\kappa(q)>0,
+\qquad K=(p_{\min},c_{\mathrm{lo}},c_{\mathrm{hi}}).
+\]
+When all three blocks are nonempty, define, for each \(x\in\mathcal X=\{0,1\}\),
+\[
+\widehat p_x
+=\frac1{|\mathcal I_0|}\sum_{i\in\mathcal I_0}\mathbf1\{X_i=x\},
+\]
+\[
+\widehat D_x(q)
+=\frac1{|\mathcal I_1|}\sum_{i\in\mathcal I_1}\mathbf1\{X_i=x\}\ell_q(V_i),
+\qquad
+\widehat M_x(q)
+=\frac1{|\mathcal I_2|}\sum_{i\in\mathcal I_2}\mathbf1\{X_i=x\}Y_i\ell_q(V_i).
+\]
+Floor the denominator at \(b_q(K)/2\) and project the ratio onto the public outcome range:
+\[
+\widehat\mu_x(q)
+=\Pi_{[0,1]}\!\left(
+\frac{\widehat M_x(q)}{\max\{\widehat D_x(q),b_q(K)/2\}}
+\right),
+\qquad
+\Pi_{[0,1]}(u)=\min\{1,\max\{0,u\}\}.
+\]
+The corresponding total estimator is
+\[
+\widehat\theta_q
+=
+\begin{cases}
+\displaystyle\sum_{x\in\mathcal X}\widehat p_x\widehat\mu_x(q),
+&\min_{r\in\{0,1,2\}}|\mathcal I_r|>0,\\
+1/2,&\min_{r\in\{0,1,2\}}|\mathcal I_r|=0.
+\end{cases}
+\]
+This is the ratio construction used by \cref{obj:def:total-estimator}. The floor uses the public constants \(p_{\min}\) and \(c_{\mathrm{lo}}\) of \(K\), which are arbitrary subject to \(0<p_{\min}\le1/2\) and \(0<c_{\mathrm{lo}}\le c_{\mathrm{hi}}\).
+\end{definitionv}
+
+The floor makes every computed ratio well defined, and projection keeps each stratum estimate within \([0,1]\). The full selected estimator \leanref{sym:thetahat}{\ensuremath{\widehat\theta}} combines these operations with public score minimization. Its numbered procedure also declares the midpoint output whenever a sample block is empty.
+
+\begin{algorithmv}{def:total-estimator}[Total estimator $\widehat\theta$]
+The inputs are the observed records \(O_i=(X_i,W_i,Y_i)\), indexed by \(i=0,\ldots,n-1\), the public class constants \(K=(p_{\min},c_{\mathrm{lo}},c_{\mathrm{hi}})\), and the ordered dictionary \(\mathcal D_{n,\sigma}\) with scores \(A_q(K)\) from \cref{obj:synth_4}.
+\begin{enumerate}
+\item Form the sample blocks, their sizes, and the centered observed doses:
+\[
+\mathcal I_r
+=\{i\in\{0,\ldots,n-1\}:i\bmod3=r\},
+\qquad
+N_r=|\mathcal I_r|,
+\qquad r\in\{0,1,2\},
+\]
+\[
+V_i=W_i-a_0,\qquad i=0,\ldots,n-1.
+\]
+\item If \(\min\{N_0,N_1,N_2\}=0\), output \(1/2\) and stop. The remaining steps apply when all three blocks are nonempty.
+\item For each dictionary weight \(q\), use the public denominator bound
+\[
+I_\kappa(q)=\int_{-1/2}^{1/2}|t|^\kappa q(t)\,dt,
+\qquad
+b_q(K)=p_{\min}c_{\mathrm{lo}}I_\kappa(q).
+\]
+Compute, for each stratum \(x\in\mathcal X=\{0,1\}\),
+\[
+\widehat p_x
+=\frac1{N_0}\sum_{i\in\mathcal I_0}\mathbf1\{X_i=x\},
+\]
+\[
+\widehat D_x(q)
+=\frac1{N_1}\sum_{i\in\mathcal I_1}
+\mathbf1\{X_i=x\}\ell_q(V_i),
+\qquad
+\widehat M_x(q)
+=\frac1{N_2}\sum_{i\in\mathcal I_2}
+\mathbf1\{X_i=x\}Y_i\ell_q(V_i).
+\]
+\item Floor each denominator, project the ratio onto \([0,1]\) as in \cref{obj:synth_3}, and combine strata:
+\[
+\widehat\mu_x(q)
+=\min\left\{1,\max\left\{0,
+\frac{\widehat M_x(q)}
+{\max\{\widehat D_x(q),b_q(K)/2\}}
+\right\}\right\},
+\qquad
+\widehat\theta_q
+=\sum_{x\in\mathcal X}\widehat p_x\widehat\mu_x(q).
+\]
+\item Select the first public-score minimizer in the fixed dictionary order:
+\[
+\widehat q
+=\operatorname*{arg\,min}_{q\in\mathcal D_{n,\sigma}}A_q(K),
+\]
+with ties resolved by that order.
+\item Output \(\widehat\theta=\widehat\theta_{\widehat q}\).
+\end{enumerate}
+\end{algorithmv}
+
+For \(n\ge3\), every modulo-three block is nonempty, and the estimator uses the selected inverse-weight ratios. At smaller sample sizes, the midpoint branch supplies the declared output. The rate guarantee below concerns uniformly sufficiently large samples and identifies the dictionary family supplying the comparison in each error-scale range.
+
+\begin{theoremv}{thm:observable-upper}[Observable estimator and comparison bounds]
+Fix the following public parameters:
+\begin{itemize}
+\item \textbf{(Class constants.)} \(K\) specifies a minimum stratum mass in \((0,1/2]\) and positive lower and upper weak-design envelope constants, with the lower constant at most the upper constant.
+\item \textbf{(Smoothness.)} The smoothness exponent satisfies \(\beta\in(0,1]\).
+\item \textbf{(Design decay.)} The design-decay exponent satisfies \(\kappa\in[0,2]\).
+\end{itemize}
+There exist \(C>0\) and \(n_0\in\mathbb N\), depending on \(K,\beta,\kappa\), such that the following conclusions hold uniformly over every measurable schedule space and potential-path structure in \cref{obj:def:potential-path-space}, every \(n\ge n_0\), and every public error scale \(\sigma\in[0,1/4]\). Let \(L_n=\log(en)\) be the logarithmic sample scale and let \(\rho_{n,\sigma}\) be the absolute-risk frontier in \cref{obj:def:frontier-rate}.
+
+For every structural probability law \(P\) in the model class of \cref{obj:def:model-class} with parameters \(K,\beta,\kappa,\sigma\), under the sampling condition in \cref{obj:ass:iid}, the observed experiment \(Q_P^n\) in \cref{obj:def:observed-experiment} and the selected estimator \(\widehat\theta\) in \cref{obj:def:total-estimator} satisfy
+\[
+\mathbb E_{Q_P^n}\!\left[
+  \left|\widehat\theta-\theta(P)\right|
+\right]
+\le C\rho_{n,\sigma},
+\qquad
+\theta(P)=\mathbb E_P[Y(a_0)].
+\]
+Here \(\theta(P)\) is the population causal mean, \(a_0\) is the prespecified evaluation dose, and \(Y(a_0)\) is the potential outcome obtained by evaluating the random schedule there.
+
+The public dictionary \(\mathcal D_{n,\sigma}\) in \cref{obj:def:weight-dictionary} contains comparison witnesses as follows:
+\begin{itemize}
+\item \textbf{(Fourier range.)} If \(\sigma\le L_n^{-1/2}\), there is a Fourier entry indexed by a nonnegative integer whose associated inverse pair \((q,\ell_q)\) has public expected-error score \(A_q\) satisfying
+\[
+A_q\le C\rho_{n,\sigma}.
+\]
+\item \textbf{(Polynomial range.)} If \(L_n^{-1/2}<\sigma\), there is a polynomial entry indexed by a nonnegative integer whose associated inverse pair \((q,\ell_q)\) has public expected-error score \(A_q\) satisfying
+\[
+A_q\le C\rho_{n,\sigma}.
+\]
+\end{itemize}
+The pairs and scores are those associated with the entries in \cref{obj:def:weight-dictionary}. For each witness, under the usual measurability and integrability conditions, the latent weight \(q\) and its Gaussian inverse weight \(\ell_q\) satisfy
+\[
+q(t)\ge0
+\quad\text{for every }t\in[-1/2,1/2],
+\qquad
+0<I_\kappa(q)
+:=\int_{-1/2}^{1/2}|t|^\kappa q(t)\,dt<\infty,
+\qquad
+V_q<\infty,
+\]
+where \(V_q\) denotes the separately normalized factor-\(16\) second-moment certificate of \cref{obj:lem:public-error-certificate}. Their Gaussian inversion identity holds pointwise:
+\[
+\int_{\mathbb R}\ell_q(t+\sigma z)
+       \frac{e^{-z^2/2}}{\sqrt{2\pi}}\,dz
+=q(t)
+\quad\text{for every }t\in[-1/2,1/2].
+\]
+\end{theoremv}
+
+The admissibility properties listed for each witness, namely measurability of \(q\) and \(\ell_q\), nonnegativity of \(q\), integrability of \(|t|^\kappa q(t)\) on \([-1/2,1/2]\) with \(0<I_\kappa(q)\), Gaussian integrability with exact inversion, and \(V_q<\infty\), are conclusions of \cref{obj:thm:observable-upper}, not additional hypotheses. The phrase ``under the usual measurability and integrability conditions'' in its statement refers to these proved properties.
+
+The score expresses the tradeoff between localization bias and the sampling cost of the inverse weight. \Cref{obj:thm:observable-upper} supplies a Fourier comparison when \(\sigma\le L_n^{-1/2}\) and a polynomial comparison when \(\sigma>L_n^{-1/2}\). Public minimization gives the selected entry a score at most that of the relevant comparison. Together with the certificate in \cref{obj:lem:public-error-certificate}, these comparisons explain how one observable procedure attains the stated rate as the known error scale varies from zero to a fixed positive value. The constants and sample-size threshold are common to all error scales and path spaces covered by the theorem.
+
+\subsection{Score-based honest intervals}
+
+Fix a noncoverage probability \(0<\alpha<1\). The connected interval \leanref{sym:Cn}{\ensuremath{C_{n,\sigma}}} uses the selected public score as its radius after division by \(\alpha\), and intersects the resulting interval with the causal target range. The empty-block branch assigns the full target range.
+
+\begin{definitionv}{def:honest-interval}[Score-based interval \(C_{n,\sigma}\)]
+The connected interval is
+\[
+C_{n,\sigma}
+=
+\begin{cases}
+\bigl[\widehat\theta-A_{\widehat q}(K)/\alpha,\,
+      \widehat\theta+A_{\widehat q}(K)/\alpha\bigr]\cap[0,1],
+      &\min_{r\in\{0,1,2\}}|\mathcal I_r|>0,\\
+[0,1],&\min_{r\in\{0,1,2\}}|\mathcal I_r|=0.
+\end{cases}
+\]
+Here \(K\) is public, \(\alpha>0\) is the noncoverage level, and \(\widehat\theta\) is the selected-weight estimator using the blocks
+\[
+\mathcal I_r
+=\{i\in\{0,\ldots,n-1\}:i\bmod 3=r\},
+\qquad r\in\{0,1,2\},
+\]
+and the first minimizer \(\widehat q\) of \(A_q(K)\) in the fixed dictionary order.
+\end{definitionv}
+
+The expected-error certificate calibrates the radius through Markov's inequality. Since the causal mean lies in \([0,1]\), intersection with that range preserves coverage. The following result separates honesty at every sample size from the expected-length rate for uniformly sufficiently large samples.
+
+\begin{theoremv}{thm:finite-honesty}[Finite-sample coverage and large-sample length]
+Fix public constants \(K=(p_{\min},c_{\mathrm{lo}},c_{\mathrm{hi}})\) and parameters satisfying:
+\begin{itemize}
+\item \textbf{(Class constants.)} \(0<p_{\min}\le 1/2\) and \(0<c_{\mathrm{lo}}\le c_{\mathrm{hi}}\).
+\item \textbf{(Smoothness.)} \(0<\beta\le 1\).
+\item \textbf{(Design decay.)} \(0\le\kappa\le 2\).
+\item \textbf{(Honesty level.)} \(0<\alpha<1\), where \(\alpha\) is the noncoverage probability.
+\end{itemize}
+For any public potential-outcome path space as in \cref{obj:def:potential-path-space}, let \(P\) range over the structural laws in \(\mathcal P_{K,\beta,\kappa,\sigma}\) of \cref{obj:def:model-class}. Write
+\[
+\theta(P)=\mathbb E_P[Y(a_0)],
+\qquad
+\rho_{n,\sigma}=b_{n,\sigma}^{\beta},
+\]
+where \(a_0\) is the prespecified latent evaluation dose and \(b_{n,\sigma}\) is the localization scale in \cref{obj:def:frontier-rate}. Let \(Q_P^n\) be the observed sample law in \cref{obj:def:observed-experiment}, and let \(C_{n,\sigma}\) be the interval in \cref{obj:def:honest-interval}, constructed with \(K,\beta,\kappa,\alpha\).
+
+For every such path space, every sample size \(n\ge 0\), every \(\sigma\in[0,1/4]\), and every \(P\in\mathcal P_{K,\beta,\kappa,\sigma}\),
+\[
+Q_P^n\!\left\{\theta(P)\in C_{n,\sigma}\right\}\ge 1-\alpha.
+\]
+Moreover, there exist \(C=C(K,\beta,\kappa,\alpha)>0\) and an integer \(n_0=n_0(K,\beta,\kappa,\alpha)\ge 0\) such that, simultaneously for every such path space, every \(n\ge n_0\), every \(\sigma\in[0,1/4]\), and every \(P\in\mathcal P_{K,\beta,\kappa,\sigma}\),
+\[
+\mathbb E_{Q_P^n}\!\left[\operatorname{length}(C_{n,\sigma})\right]
+\le C\,\rho_{n,\sigma}.
+\]
+\end{theoremv}
+
+The interval converts an expected absolute-error bound into a coverage guarantee using the public score. Its length is bounded by twice the score divided by \(\alpha\), with intersection at the target range providing further truncation. Thus the same dictionary comparisons that control estimation error also control expected interval length. \Cref{obj:thm:finite-honesty} guarantees coverage at each positive sample size, and also at \(n=0\) through the full-range fallback. For \(n=0,1,2\), an empty block triggers that fallback; for \(n\ge3\), the score-based branch applies. The expected-length bound and the estimation bound in \cref{obj:thm:observable-upper} apply once their respective public sample-size thresholds are reached, uniformly over the specified structural laws, error scales, and potential-outcome path spaces. At moderate sample sizes the interval can be uninformative: every dictionary score satisfies \(A_q(K)\ge2\sqrt{3/n}\), because its bias and second-moment terms are nonnegative, so the radius \(A_{\widehat q}(K)/\alpha\) is at least \(1\) whenever \(n\le12/\alpha^2\). Since \(\widehat\theta\in[0,1]\), the interval is then the whole range \([0,1]\); at \(\alpha=0.05\) this happens for every \(n\le4800\).

@@ -1,0 +1,372 @@
+\begin{proof}[Proof of \cref{obj:lem:observable-intervention-moments}]
+Fix an experiment in the stated class and integers
+\[
+k\in\{0,\ldots,6\},\qquad k\le t<T.
+\]
+The parameter conditions in \cref{obj:def:binary-pomdp-class} give
+\[
+L=\exp(\zeta)\ge1.
+\]
+
+\begin{enumerate}
+\item \emph{The population moment.}
+By \cref{obj:ass:policy-overlap}, the likelihood ratios satisfy
+\[
+b(a\mid x)=0\ \Longrightarrow\ e(a\mid x)=0,
+\qquad
+0\le\rho_j\le L.
+\]
+For each epoch \(j\), define the class of bounded history variables by
+\[
+\mathcal D_j
+:=
+\left\{
+D:\ D\text{ is a bounded real }
+\mathcal F_j^-\text{-measurable random variable}
+\right\}.
+\]
+Regard any function
+\[
+f:\mathcal S\longrightarrow\mathbb R
+\]
+as a column vector. For \(D\in\mathcal D_j\),
+\cref{obj:ass:pomdp-kernel,obj:ass:sequential-ignorability,obj:ass:policy-overlap}
+give the weighted one-step identity
+\[
+\begin{aligned}
+\mathbb E_b[D\rho_j f(S_{j+1})]
+&=
+\mathbb E_b\!\left[
+D\sum_{a:b(a\mid X_j)>0}
+b(a\mid X_j)\frac{e(a\mid X_j)}{b(a\mid X_j)}
+\sum_{s'\in\mathcal S}\int_{\mathcal Y}
+f(s')\,K(dy,s'\mid S_j,a)
+\right]\\
+&=
+\mathbb E_b[D(P_ef)(S_j)].
+\end{aligned}
+\]
+The zero-behavior cells contribute zero target probability, which justifies completing the action sum. Integrating the terminal reward instead, and integrating an unweighted successor state, respectively, gives
+\[
+\begin{aligned}
+\mathbb E_b[D\rho_jY_j]
+&=
+\mathbb E_b\!\left[
+D\sum_a e(a\mid X_j)
+\sum_{s'}\int_{\mathcal Y}y\,K(dy,s'\mid S_j,a)
+\right]
+=\mathbb E_b[Dr_e(S_j)],\\
+\mathbb E_b[Df(S_{j+1})]
+&=
+\mathbb E_b\!\left[
+D\sum_a b(a\mid X_j)
+\sum_{s'}\int_{\mathcal Y}f(s')\,K(dy,s'\mid S_j,a)
+\right]
+=\mathbb E_b[D(P_bf)(S_j)].
+\end{aligned}
+\]
+All these integrations use the joint reward and successor-state law.
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_history_mul_ratio_nextState
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_history_mul_ratio_reward
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_history_mul_behavior_nextState
+
+Define the successive backward reward functions by
+\[
+f_{e,0}:=r_e,\qquad
+f_{e,\ell+1}(s):=\sum_{s'\in\mathcal S}P_e(s,s')f_{e,\ell}(s'),
+\qquad \ell\in\mathbb N_0.
+\]
+Starting with the terminal reward identity and removing the preceding \(k\) ratios backward yields
+\[
+\mathbb E_b[Z_t(k)]
+=
+\mathbb E_b\!\left[
+\left(\prod_{j=t-k}^{t-1}\rho_j\right)r_e(S_t)
+\right]
+=
+\mathbb E_b[f_{e,k}(S_{t-k})].
+\]
+At each removal, the remaining earlier ratios form a bounded pre-action-history variable. When \(k=0\), the displayed product is empty and equals one.
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_phiwScore_eq_futureFunction_from_state
+
+In the zero-based convention, \cref{obj:ass:stationary-start} gives
+\[
+\mathbb E_b[f(S_0)]
+=
+\sum_{s\in\mathcal S}d_b(s)f(s),
+\qquad d_bP_b=d_b.
+\]
+The unweighted one-step identity propagates this equality. Indeed, if it holds at epoch \(j\), then
+\[
+\begin{aligned}
+\mathbb E_b[f(S_{j+1})]
+&=\mathbb E_b[(P_bf)(S_j)]\\
+&=\sum_s d_b(s)\sum_{s'}P_b(s,s')f(s')\\
+&=\sum_{s'}(d_bP_b)(s')f(s')
+=\sum_{s'}d_b(s')f(s').
+\end{aligned}
+\]
+Thus, by induction,
+\[
+\mathbb E_b[f(S_j)]=\sum_s d_b(s)f(s),
+\qquad 0\le j<T.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.integral_binary_curState_eq_stationary
+
+Finally, the backward recursion agrees with matrix powers:
+\[
+f_{e,0}=P_e^0r_e,\qquad
+f_{e,\ell+1}
+=P_ef_{e,\ell}
+=P_e(P_e^\ell r_e)
+=P_e^{\ell+1}r_e.
+\]
+Consequently,
+\[
+\begin{aligned}
+\mathbb E_b[Z_t(k)]
+&=\sum_s d_b(s)(P_e^kr_e)(s)\\
+&=\sum_{s'}\left(\sum_s d_b(s)P_e^k(s,s')\right)r_e(s')\\
+&=\sum_{s'}(d_bP_e^k)(s')r_e(s')
+=d_bP_e^kr_e.
+\end{aligned}
+\]
+This expression is independent of \(t\), so it gives the stated common moment \(m_k\).
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.binary_markovOperatorIter_eq_mulVec
+
+\item \emph{The second moment.}
+Define the window likelihood-ratio product by
+\[
+W_{t,k}:=\prod_{j=t-k}^{t}\rho_j.
+\]
+Sequential assignment and overlap imply
+\[
+\mathbb E_b[\rho_j\mid\mathcal F_j^-]
+=
+\sum_{a:b(a\mid X_j)>0}
+b(a\mid X_j)\frac{e(a\mid X_j)}{b(a\mid X_j)}
+=
+\sum_a e(a\mid X_j)
+=1.
+\]
+The ratios at earlier epochs are pre-action-history measurable. Removing the last ratio repeatedly therefore gives
+\[
+\mathbb E_b[W_{t,k}]
+=
+\mathbb E_b\!\left[\prod_{j=t-k}^{t-1}\rho_j\right]
+=\cdots=
+\mathbb E_b[1]
+=1.
+\]
+The last expression is the expectation of the empty product; this also covers \(k=0\).
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_phiwWindowProduct_eq_one
+
+There are \(k+1\) factors, so
+\[
+0\le W_{t,k}\le L^{k+1}.
+\]
+The reward support supplied by \cref{obj:def:binary-pomdp-class} gives, almost surely,
+\[
+Z_t(k)^2
+=Y_t^2W_{t,k}^2
+\le W_{t,k}^2
+\le L^{k+1}W_{t,k}.
+\]
+Taking expectations and using the normalization above proves
+\[
+\mathbb E_b[Z_t(k)^2]
+\le L^{k+1}\mathbb E_b[W_{t,k}]
+=L^{k+1}.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.score_second_moment_le
+
+\item \emph{Reduction of the separated future score.}
+Fix an integer \(h\ge k+1\) with \(t+h<T\), and define
+\[
+u:=t+h,\qquad
+g_{\mathrm{gap}}:=h-k-1\in\mathbb N_0,
+\qquad
+u-k=t+1+g_{\mathrm{gap}}.
+\]
+Define the future state function on all of \(\mathcal S\) by
+\[
+f_{\mathrm{future}}:\mathcal S\longrightarrow\mathbb R,
+\qquad
+f_{\mathrm{future}}(s)
+:=
+(P_b^{g_{\mathrm{gap}}}P_e^kr_e)(s).
+\]
+Both \(1\) and \(Z_t(k)\) belong to \(\mathcal D_{t+1}\). For either choice \(D\in\{1,Z_t(k)\}\), integrate the terminal weighted reward at \(u\), then the \(k\) weighted transitions, and finally the \(g_{\mathrm{gap}}\) unweighted transitions. The one-step identities from the first part give
+\[
+\begin{aligned}
+\mathbb E_b[DZ_u(k)]
+&=
+\mathbb E_b\!\left[
+D\left(\prod_{j=u-k}^{u-1}\rho_j\right)r_e(S_u)
+\right]\\
+&=
+\mathbb E_b[D(P_e^kr_e)(S_{u-k})]\\
+&=
+\mathbb E_b[D f_{\mathrm{future}}(S_{t+1})].
+\end{aligned}
+\]
+The variable \(D\) remains measurable with respect to every intervening pre-action history. For \(k=0\), the ratio product is empty; for \(g_{\mathrm{gap}}=0\), the unweighted iteration is the identity. In particular,
+\[
+\begin{aligned}
+\mathbb E_b[Z_t(k)Z_u(k)]
+&=\mathbb E_b[Z_t(k)f_{\mathrm{future}}(S_{t+1})],\\
+\mathbb E_b[Z_u(k)]
+&=\mathbb E_b[f_{\mathrm{future}}(S_{t+1})].
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_phiwScore_mul_eq_futureFunction_full
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_phiwScore_eq_futureFunction_full
+
+\item \emph{Oscillation of the future function.}
+The kernel is a probability law supported on rewards in \([0,1]\), and the target action probabilities sum to one. Hence, for every \(s\in\mathcal S\),
+\[
+0
+\le r_e(s)
+=\sum_a e(a\mid x)\sum_{s'}\int_{\mathcal Y}y\,K(dy,s'\mid s,a)
+\le\sum_a e(a\mid x)
+=1,
+\qquad s=(x,h_{\mathrm{hid}})\in\mathcal X\times\mathcal H.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.rewardRegression_unit
+
+For a real function on \(\mathcal S\), define its oscillation by
+\[
+\operatorname{osc}(f):=\max_{s\in\mathcal S}f(s)-\min_{s\in\mathcal S}f(s).
+\]
+Thus
+\[
+\operatorname{osc}(r_e)\le1,
+\qquad
+0<\alpha=\exp(-1/t_0)\le1.
+\]
+Both transition matrices are stochastic:
+\[
+P_b(s,s'),P_e(s,s')\ge0,\qquad
+\sum_{s'}P_b(s,s')=\sum_{s'}P_e(s,s')=1.
+\]
+These identities follow by summing the probability kernel over successor states and then averaging over the corresponding action probabilities.
+
+For \(\mu,\mu'\in\Delta(\mathcal S)\), subtracting the midpoint of the range of \(f\) gives
+\[
+\begin{aligned}
+\left|\sum_s(\mu(s)-\mu'(s))f(s)\right|
+&=
+\left|\sum_s(\mu(s)-\mu'(s))
+\left(f(s)-\frac{\max f+\min f}{2}\right)\right|\\
+&\le
+\frac{\operatorname{osc}(f)}2
+\sum_s|\mu(s)-\mu'(s)|\\
+&=
+\operatorname{osc}(f)\|\mu-\mu'\|_{\mathrm{TV}}.
+\end{aligned}
+\]
+Applying
+\cref{obj:ass:target-contraction,obj:ass:behavior-contraction}
+to point masses shows that the total variation distance between any two rows of either matrix is at most \(\alpha\). Therefore,
+\[
+\begin{aligned}
+|(P_ef)(s)-(P_ef)(s')|
+&\le
+\operatorname{osc}(f)
+\|P_e(s,\cdot)-P_e(s',\cdot)\|_{\mathrm{TV}}
+\le\alpha\operatorname{osc}(f),\\
+|(P_bf)(s)-(P_bf)(s')|
+&\le
+\operatorname{osc}(f)
+\|P_b(s,\cdot)-P_b(s',\cdot)\|_{\mathrm{TV}}
+\le\alpha\operatorname{osc}(f).
+\end{aligned}
+\]
+Taking the maximum over the two states and iterating, with the identity operator as the zero-step case, gives
+\[
+\operatorname{osc}(P_e^kr_e)
+\le\alpha^k\operatorname{osc}(r_e)
+\le\alpha^k
+\le1.
+\]
+Applying the behavior iteration to this bound yields
+\[
+\operatorname{osc}(f_{\mathrm{future}})
+=
+\operatorname{osc}(P_b^{g_{\mathrm{gap}}}P_e^kr_e)
+\le
+\alpha^{g_{\mathrm{gap}}}\operatorname{osc}(P_e^kr_e)
+\le\alpha^{g_{\mathrm{gap}}}.
+\]
+% lean: Causalean.Mathlib.Probability.FiniteMarkovOscillation.oscillationBound_markovOperatorIter
+
+\item \emph{Centering and the covariance bound.}
+The scores are bounded, hence square integrable, and the future function is bounded on the finite state space. The preceding product normalization also gives the absolute first-moment bound
+\[
+|Z_t(k)|=|Y_t|W_{t,k}\le W_{t,k},
+\qquad
+\mathbb E_b[|Z_t(k)|]\le\mathbb E_b[W_{t,k}]=1.
+\]
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.score_abs_first_moment_le_one
+
+Define the centering constant by
+\[
+c_{\mathrm{future}}
+:=
+\mathbb E_b[f_{\mathrm{future}}(S_{t+1})].
+\]
+For every \(s\in\mathcal S\), the oscillation bound implies
+\[
+\begin{aligned}
+|f_{\mathrm{future}}(s)-c_{\mathrm{future}}|
+&=
+\left|\mathbb E_b[
+f_{\mathrm{future}}(s)-f_{\mathrm{future}}(S_{t+1})]\right|\\
+&\le
+\mathbb E_b\!\left[
+|f_{\mathrm{future}}(s)-f_{\mathrm{future}}(S_{t+1})|
+\right]
+\le\alpha^{g_{\mathrm{gap}}}.
+\end{aligned}
+\]
+Consequently,
+\[
+\begin{aligned}
+&\left|
+\mathbb E_b[Z_t(k)f_{\mathrm{future}}(S_{t+1})]
+-\mathbb E_b[Z_t(k)]c_{\mathrm{future}}
+\right|\\
+&\qquad=
+\left|\mathbb E_b\!\left[
+Z_t(k)\{f_{\mathrm{future}}(S_{t+1})-c_{\mathrm{future}}\}
+\right]\right|\\
+&\qquad\le
+\alpha^{g_{\mathrm{gap}}}\mathbb E_b[|Z_t(k)|]
+\le\alpha^{g_{\mathrm{gap}}}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.PomdpLatentOverlapMinimax.abs_integral_mul_sub_mul_integral_le_oscillation
+
+Expanding the centered product and substituting the two future-score identities gives
+\[
+\begin{aligned}
+&\mathbb E_b\!\left[
+\{Z_t(k)-\mathbb E_b[Z_t(k)]\}
+\{Z_u(k)-\mathbb E_b[Z_u(k)]\}
+\right]\\
+&\qquad=
+\mathbb E_b[Z_t(k)Z_u(k)]
+-\mathbb E_b[Z_t(k)]\mathbb E_b[Z_u(k)]\\
+&\qquad=
+\mathbb E_b[Z_t(k)f_{\mathrm{future}}(S_{t+1})]
+-\mathbb E_b[Z_t(k)]c_{\mathrm{future}}.
+\end{aligned}
+\]
+Its absolute value is therefore bounded by
+\[
+\alpha^{g_{\mathrm{gap}}}=\alpha^{h-k-1},
+\]
+as required.
+% lean: CausalSmith.Stat.PomdpBinaryhiddenRate.scoreCovariance_le_separated
+\end{enumerate}
+\end{proof}

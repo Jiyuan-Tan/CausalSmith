@@ -1,0 +1,1568 @@
+{
+  "commit": "8d3b4653a6377ecdc27cdad1c1ee16324b14464b",
+  "groups": [
+    {
+      "kind": "setup",
+      "items": [
+        {
+          "obj_id": "S1",
+          "kind": "setup",
+          "label": "Setup S-1",
+          "nl": "Two-population full-data potential-outcome world at index n: P_n^F is a probability Measure on the explicit coordinate space FullData := Bool x X x Bool x Bool x R x R carrying (S, X, D(0), D(1), Y(0), Y(1)); the assignment potential outcome is the derived map Y^Z(z) = Y(D(z)); the forced parameter space is Theta = Set.Icc (-1 : R) 1 and the causal target theta_T is the complier-conditional contrast under S = 0. — Bypass-justified (see decisions.full_data_coordinate_space): Causalean.PO's POSystem/POIVSystem is a regime- and variable-indexed skeleton with no population indicator and no transport layer, and the least-favourable witness must be built explicitly and checked against every causal assumption, which is only tractable on an explicit coordinate law. Causalean.PO.ID.Exact.LATE.POIVSystem (late_wald and its four-step chain) is the ANALOGOUS module F3 should adapt for prop:compact-causal-range; gap to bridge = two populations + the transport change of measure. Search trace: read ../doc/API.md sections '8h. PO/' and '9f. PO/ID/Exact/LATE.lean'; grepped ../Causalean for 'transport', 'population indicator', 'S = 0', 'POIVSystem'; scanned ../Causalean/PO/{Core,Assumptions,ID/Exact} -- no two-population transported potential-outcome world: not found.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S2",
+          "kind": "setup",
+          "label": "Setup S-2",
+          "nl": "Observed two-sample triangular-array sampling world: n i.i.d. source observations O_i^S = (X_i, Z_i, D_i, Y_i) ~ P_S on X x Bool x Bool x R, independently N_n i.i.d. target covariate draws X_j^T ~ P_T on X, with N_n / n -> c; the joint sample law at index n is Measure.pi (fun _ : Fin n => P_S) .prod (Measure.pi (fun _ : Fin N_n => P_T)). P_S is the observed-data law induced by P_n^F given S = 1 with source assignment propensity e, P_S^X its X-marginal, P_T the S = 0 X-marginal, and e : X -> R the source propensity taking values in [eps, 1 - eps]. — The i.i.d. primitives are reused (Causalean.Stat.IIDSample, Causalean.Stat.iidSample_infinitePi, Causalean.Stat.iidSample_finN_pushforward give the coordinate-projection sample and its Measure.pi pushforward), but the world itself is a PRODUCT of two independent samples with DIFFERENT laws (source observations vs covariate-only target draws) and an index-linked size N_n, which IIDSample does not package -- so the two-sample world is define-local over Mathlib Measure.pi/Measure.prod on top of the reused primitives. Search trace: grepped ../Causalean for 'two-sample', 'twoSample', 'target sample', 'N_n', 'covariate-only'; scanned ../Causalean/Stat/{Sample.lean,Sample/PiTransport.lean,SampleSplit} and ../doc/API.md sections 12a/12a'/12e -- no two-sample independent-product sampling world: not found.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S3",
+          "kind": "setup",
+          "label": "Setup S-3",
+          "nl": "Transport / overlap geometry world: the deterministic array g = (P_S^X, w, e)_{n>=1} with w : X -> R the density ratio dP_T/dP_S^X normalized by E_S[w(X)] = 1 and capped by 0 <= w <= 2 k_n, the Kish dispersion kappa_n = E_S[w(X)^2] <= k_n, the known envelope sequence k_n, and (in the cell submodels) the known source-cell probability array q_{x,n} = P_S^X{x} with c_- / k_n <= q_{x,n} <= c_+ / k_n. — Plain measurable-function / real-scalar geometry layer over Mathlib (Measure.rnDeriv for w = dP_T/dP_S^X plus the P_T(A) = E_S[w 1_A] change-of-measure identity). Search trace: grepped ../Causalean for 'densityRatio', 'density ratio', 'covariate shift', 'Kish', 'importance weight', 'rnDeriv' in Stat/ and Estimation/; scanned ../doc/API.md sections 12/13sa/13eff -- Causalean carries Measure.rnDeriv plumbing (Stat/Minimax/ChiSquared.rnDeriv_prod_eq, Mathlib/CondDistrib) but no transport-weight / Kish-dispersion geometry object: not found.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S4",
+          "kind": "setup",
+          "label": "Setup S-4",
+          "nl": "Identification and effective-strength scalar world: the two identified source conditional contrasts Delta_Y, Delta_D : X -> R, their transported means mu_{Y,n} = E_S[w Delta_Y] and mu_n = E_S[w Delta_D] > 0, the effective identification strength t_n = n mu_n^2 / kappa_n, the frontier argument t_0 > 0, the noncoverage level alpha in (0,1), the Le Cam calibration rho = (1 - alpha) / 8, and the frontier constants c_0, C_0, t_c. — Real-valued functionals of (P_S, w) plus plain real scalars; realized as named defs over Mathlib integrals. Search trace: grepped ../Causalean for 'effective sample size', 'firstStage', 'first stage', 'Wald ratio', 'complier share', 'identification strength'; scanned ../Causalean/PO/ID/Exact/LATE.lean and ../Causalean/Estimation/NPIV -- LATE.lean has condExpDZ/condExpYZ (single-population, no covariate conditioning, no transport weight), no transported-contrast or effective-strength index: not found.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "S5",
+          "kind": "setup",
+          "label": "Setup S-5",
+          "nl": "Procedure and minimax-risk world: a confidence-set sequence is a bundled random subset C_n of Theta -- a map from the index-n sample (plus the declared oracle/known inputs) to Set R with a jointly measurable graph and C_n subset Theta -- with lambda = MeasureTheory.volume restricted to Theta as the length; on top of it the four honest procedure classes (oracle, fixed-geometry oracle, finite-cell feasible, regular-cell feasible), the four model classes / slices (P_n, N_n, N_n^reg, P_n(g)), the worst-case limiting risk R, and the three value functions V*, V*_N, V*_g. — Analogous modules, not exact fits. Causalean.Estimation.MinimaxATE.Model gives the inf-sup packaging shape (minimaxMiss = iSup over a subtype of in-class DGPs, bddAbove_nMiss_range, nMiss_le_minimaxMiss) which is copied verbatim in shape, but its risk is a finite-PMF quantile MISS probability, not honest expected SET LENGTH, and its class is a finite-X ATE nuisance ball. Causalean.PO.ID.Partial.Inference.Basic gives coverage vocabulary (RandomCoversPoint, honest_ci_set_cover) for a fixed interval-identified parameter with plug-in half-widths, not an inf over honest procedure SEQUENCES with a limsup-of-sup risk. Search trace: grepped ../Causalean for 'expectedLength', 'expected_length', 'setLength', 'ConfidenceSet', 'confidenceSet', 'Coverage', 'honest' (20 files, all coverage-of-a-fixed-interval or DR-learner 'honest sample splitting'); scanned ../Causalean/PO/ID/Partial/{Inference,RandomSet}, ../Causalean/Stat/Minimax, ../Causalean/Experimentation/UnknownInterference/Confidence.lean, and doc/API.md sections 3.1-3.10 of CausalSmith -- no honest-expected-length minimax frontier world anywhere: not found.",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "definition",
+      "items": [
+        {
+          "obj_id": "def:model-class",
+          "kind": "definition",
+          "label": "Definition P-1",
+          "nl": "\\(\\mathcal P_n=\\{P=(P_n^F,e):P\\text{ satisfies ass:full-data-support, ass:population-presence, ass:two-sample-array, ass:instrument-overlap, ass:source-observation, ass:iv-randomization, ass:iv-exclusion, ass:iv-monotonicity, ass:outcome-transport, ass:receipt-transport, ass:target-complier-positivity, ass:transport-domination, ass:weight-envelope, ass:weight-second-moment, and ass:degrading-array at index }n\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.TransportedIVClass",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:finite-cell-class",
+          "kind": "definition",
+          "label": "Definition P-2",
+          "nl": "\\(\\mathcal N_n=\\{P\\in\\mathcal P_n:P\\text{ satisfies ass:finite-cell-source at index }n\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.FiniteCellClass",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:oracle-honesty",
+          "kind": "definition",
+          "label": "Definition P-3",
+          "nl": "\\(\\mathfrak C^{\\mathrm{or}}=\\{(C_n)_{n\\ge1}:C_n=C_n((O_i^S)_{i=1}^n,(X_j^T)_{j=1}^{N_n},w,e)\\subseteq\\Theta,\\;\\liminf_{n\\to\\infty}\\inf_{P\\in\\mathcal P_n}P(\\theta_T\\in C_n)\\ge1-\\alpha\\}\\).",
+          "lean": {
+            "file": "Frontier.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.OracleHonest",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:frontier-risk",
+          "kind": "definition",
+          "label": "Definition P-4",
+          "nl": "\\(R((C_n),t_0)=\\limsup_{n\\to\\infty}\\sup_{P\\in\\mathcal P_n:\\,t_n\\ge t_0}\\mathbb E_P[\\lambda(C_n)]\\).",
+          "lean": {
+            "file": "Frontier.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.frontierRisk",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:oracle-value",
+          "kind": "definition",
+          "label": "Definition P-5",
+          "nl": "\\(V^\\star(t_0)=\\inf_{(C_n)\\in\\mathfrak C^{\\mathrm{or}}}R((C_n),t_0)\\).",
+          "lean": {
+            "file": "Frontier.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.oracleValue",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:finite-cell-oracle-value",
+          "kind": "definition",
+          "label": "Definition P-6",
+          "nl": "\\(V_{\\mathcal N}^\\star(t_0)=\\inf_{(C_n)\\in\\mathfrak C^{\\mathrm{or}}}\\limsup_{n\\to\\infty}\\sup_{P\\in\\mathcal N_n:\\,t_n\\ge t_0}\\mathbb E_P[\\lambda(C_n)]\\).",
+          "lean": {
+            "file": "Frontier.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.finiteCellOracleValue",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:finite-cell-feasible-honesty",
+          "kind": "definition",
+          "label": "Definition P-7",
+          "nl": "\\(\\mathfrak C^{\\mathrm{cell}}=\\{(C_n)_{n\\ge1}:C_n=C_n((O_i^S)_{i=1}^n,(X_j^T)_{j=1}^{N_n})\\subseteq\\Theta,\\;\\liminf_{n\\to\\infty}\\inf_{P\\in\\mathcal N_n}P(\\theta_T\\in C_n)\\ge1-\\alpha\\}\\).",
+          "lean": {
+            "file": "Frontier.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.FiniteCellHonest",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:inversion-handle",
+          "kind": "definition",
+          "label": "Definition P-8",
+          "nl": "For every \\(\\vartheta\\in\\Theta\\), form the source inverse-propensity score \\(w(X)\\{Z/e(X)-(1-Z)/(1-e(X))\\}(Y-\\vartheta D)\\), compare its empirical mean with \\(L_\\alpha\\{n^{-1}\\sum_{i=1}^nw(X_i)^2/n\\}^{1/2}\\), and invert the resulting acceptance inequality over \\(\\Theta\\).  Once \\(w\\) and \\(e\\) are oracle-known, the target sample does not enter this score.",
+          "lean": {
+            "file": "Helpers/ScoreInversion.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.inversionHandle",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:admissible-geometry-class",
+          "kind": "definition",
+          "label": "Definition P-11",
+          "nl": "\\(\\mathcal G\\) is the class of deterministic arrays \\(\\mathfrak g=(P_S^X,w,e)_{n\\ge1}\\) such that \\(P_S^X\\) is a probability law on \\(\\mathcal X\\), \\(e:\\mathcal X\\to[\\varepsilon,1-\\varepsilon]\\), \\(w:\\mathcal X\\to[0,2k_n]\\), \\(\\mathbb E_S[w(X)]=1\\), \\(\\kappa_n=\\mathbb E_S[w(X)^2]\\le k_n\\), and \\(P_T(A)=\\mathbb E_S[w(X)\\mathbf 1\\{X\\in A\\}]\\) for every measurable \\(A\\subseteq\\mathcal X\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.AdmissibleGeometry",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:least-favorable-witness",
+          "kind": "definition",
+          "label": "Definition P-10",
+          "nl": "Fix \\(\\mathfrak g=(P_S^X,w,e)_{n\\ge1}\\in\\mathcal G\\) and \\(t_0>0\\).  Set \\(\\mu_n=(t_0\\kappa_n/n)^{1/2}\\), \\(p_n(x)=\\mu_nw(x)/\\kappa_n\\), \\(\\rho=(1-\\alpha)/8\\), and \\(H(t_0)=\\min\\{1/4,\\rho t_0^{-1/2}\\}\\).  Conditional on \\(X=x\\), assign compliance types \\((D(0),D(1))=(0,1),(1,1),(0,0)\\) probabilities \\(p_n(x),(1-p_n(x))/2,(1-p_n(x))/2\\).  Set \\(Y(0)=0\\); for compliers let \\(Y(1)\\) be Bernoulli \\((1/2+h)\\), and for both always-takers and never-takers let \\(Y(1)\\) be Bernoulli \\((1/2)\\), for \\(|h|\\le H(t_0)\\).  Use this same conditional full-data law in both populations, draw source encouragement with propensity \\(e(X)\\), and denote the resulting joint observed-data law and fixed oracle inputs by \\(Q_{n,h}^{\\mathfrak g}\\).",
+          "lean": {
+            "file": "Helpers/Witness.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.leastFavorableWitness",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:geometry-handle",
+          "kind": "definition",
+          "label": "Definition P-9",
+          "nl": "Hold an arbitrary admissible deterministic array \\((P_S^X,w,e)\\) fixed, set \\(\\mu_n=(t_0\\kappa_n/n)^{1/2}\\) and the conditional complier probability \\(p_n(x)=\\mu_nw(x)/\\kappa_n\\).  For \\(0<\\alpha<1\\), set \\(\\rho=(1-\\alpha)/8\\), vary only the complier outcome mean over the continuum \\(h\\in\\mathbb R\\) satisfying \\(|h|\\le\\min\\{1/4,\\rho t_0^{-1/2}\\}\\), and compare every member with its center according to\n\\[\n 1+\\chi^2(Q_{n,h}^{\\mathfrak g}\\Vert Q_{n,0}^{\\mathfrak g})\\le\\exp(8t_0h^2),\n \\qquad\n \\|Q_{n,h}^{\\mathfrak g}-Q_{n,0}^{\\mathfrak g}\\|_{\\mathrm{TV}}\\le2\\rho.\n\\]",
+          "lean": {
+            "file": "Helpers/Witness.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.geometryHandle",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:fixed-geometry-slice",
+          "kind": "definition",
+          "label": "Definition P-12",
+          "nl": "For \\(\\mathfrak g\\in\\mathcal G\\), \\(\\mathcal P_n(\\mathfrak g)=\\{P\\in\\mathcal P_n:(P_S^X,w,e)\\text{ equals the index-}n\\text{ component of }\\mathfrak g\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.fixedGeometrySlice",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:fixed-geometry-honesty",
+          "kind": "definition",
+          "label": "Definition P-13",
+          "nl": "\\(\\mathfrak C^{\\mathrm{or}}(\\mathfrak g)=\\{(C_n)_{n\\ge1}:C_n=C_n((O_i^S)_{i=1}^n,(X_j^T)_{j=1}^{N_n},w,e)\\subseteq\\Theta,\\;\\liminf_{n\\to\\infty}\\inf_{P\\in\\mathcal P_n(\\mathfrak g)}P(\\theta_T\\in C_n)\\ge1-\\alpha\\}\\).",
+          "lean": {
+            "file": "Frontier.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.FixedGeometryOracleHonest",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:fixed-geometry-value",
+          "kind": "definition",
+          "label": "Definition P-14",
+          "nl": "\\(V_{\\mathfrak g}^\\star(t_0)=\\inf_{(C_n)\\in\\mathfrak C^{\\mathrm{or}}(\\mathfrak g)}\\limsup_{n\\to\\infty}\\sup_{P\\in\\mathcal P_n(\\mathfrak g):\\,t_n\\ge t_0}\\mathbb E_P[\\lambda(C_n)]\\).",
+          "lean": {
+            "file": "Frontier.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.fixedGeometryValue",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:regular-finite-cell-class",
+          "kind": "definition",
+          "label": "Definition P-15",
+          "nl": "\\(\\mathcal N_n^{\\mathrm{reg}}=\\{P\\in\\mathcal P_n:P_S^X\\text{ is supported on exactly }k_n\\text{ measurable cells},\\;q_{x,n}=P_S^X(X\\text{ lies in cell }x),\\;c_-/k_n\\le q_{x,n}\\le c_+/k_n\\text{ for every }x\\}\\), where \\(0<c_-\\le1\\le c_+<\\infty\\) are fixed.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.RegularFiniteCellClass",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "def:regular-cell-feasible-honesty",
+          "kind": "definition",
+          "label": "Definition P-16",
+          "nl": "\\(\\mathfrak C^{\\mathrm{reg}}=\\{(C_n)_{n\\ge1}:C_n=C_n((O_i^S)_{i=1}^n,(X_j^T)_{j=1}^{N_n},(q_{x,n})_{x=1}^{k_n},e)\\subseteq\\Theta,\\;\\liminf_{n\\to\\infty}\\inf_{P\\in\\mathcal N_n^{\\mathrm{reg}}}P(\\theta_T\\in C_n)\\ge1-\\alpha\\}\\).",
+          "lean": {
+            "file": "Frontier.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.RegularCellHonest",
+            "decl_kind": "def",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "assumption",
+      "items": [
+        {
+          "obj_id": "ass:full-data-support",
+          "kind": "assumption",
+          "label": "Assumption A-1",
+          "nl": "\\(P_n^F\\{S\\in\\{0,1\\},D(0),D(1)\\in\\{0,1\\},Y(0),Y(1)\\in[0,1]\\}=1\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.FullDataSupport",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:population-presence",
+          "kind": "assumption",
+          "label": "Assumption A-2",
+          "nl": "\\(P_n^F(S=s)>0\\) for \\(s\\in\\{0,1\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.PopulationPresence",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:two-sample-array",
+          "kind": "assumption",
+          "label": "Assumption A-3",
+          "nl": "\\((O_i^S)_{i=1}^n\\sim P_S^{\\otimes n}\\), \\((X_j^T)_{j=1}^{N_n}\\sim P_T^{\\otimes N_n}\\), \\((O_i^S)_{i=1}^n\\perp(X_j^T)_{j=1}^{N_n}\\), and \\(N_n/n\\to c\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.TwoSampleArray",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:instrument-overlap",
+          "kind": "assumption",
+          "label": "Assumption A-4",
+          "nl": "\\(\\varepsilon\\le e(X)\\le1-\\varepsilon\\) \\(P_S\\)-almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.InstrumentOverlap",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:source-observation",
+          "kind": "assumption",
+          "label": "Assumption A-5",
+          "nl": "\\(P(Z=1\\mid X,S=1)=e(X)\\), \\(D=D(Z)\\), and \\(Y=Y(D)\\) conditional on \\(S=1\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.SourceAssignmentConsistency",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:iv-randomization",
+          "kind": "assumption",
+          "label": "Assumption A-6",
+          "nl": "\\(Z\\perp(Y(0),Y(1),D(0),D(1))\\mid(X,S=1)\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.IVRandomization",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:iv-exclusion",
+          "kind": "assumption",
+          "label": "Assumption A-7",
+          "nl": "\\(Y^Z(z)=Y(D(z))\\) \\(P_n^F\\)-almost surely conditional on \\(S=s\\), for \\(z,s\\in\\{0,1\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.IVExclusion",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:iv-monotonicity",
+          "kind": "assumption",
+          "label": "Assumption A-8",
+          "nl": "\\(D(1)\\ge D(0)\\) \\(P_n^F\\)-almost surely conditional on \\(S=s\\), for \\(s\\in\\{0,1\\}\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.IVMonotonicity",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:outcome-transport",
+          "kind": "assumption",
+          "label": "Assumption A-9",
+          "nl": "\\(\\mathbb E_{P_n^F}[Y^Z(1)-Y^Z(0)\\mid X=x,S=0]=\\mathbb E_{P_n^F}[Y^Z(1)-Y^Z(0)\\mid X=x,S=1]\\) for \\(P_T\\)-almost every \\(x\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.OutcomeTransport",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:receipt-transport",
+          "kind": "assumption",
+          "label": "Assumption A-10",
+          "nl": "\\(\\mathbb E_{X\\mid S=0}[\\mathbb E_{P_n^F}[D(1)-D(0)\\mid X,S=0]]=\\mathbb E_{X\\mid S=0}[\\mathbb E_{P_n^F}[D(1)-D(0)\\mid X,S=1]]\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.ReceiptTransport",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:target-complier-positivity",
+          "kind": "assumption",
+          "label": "Assumption A-11",
+          "nl": "\\(P_n^F(D(1)>D(0)\\mid S=0)>0\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.TargetComplierPositivity",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:transport-domination",
+          "kind": "assumption",
+          "label": "Assumption A-12",
+          "nl": "\\(P_T\\ll P_S^X\\) on \\(\\mathcal X\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.TransportDomination",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:weight-envelope",
+          "kind": "assumption",
+          "label": "Assumption A-13",
+          "nl": "\\(0\\le w(X)\\le2k_n\\) \\(P_S\\)-almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.WeightEnvelope",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:weight-second-moment",
+          "kind": "assumption",
+          "label": "Assumption A-14",
+          "nl": "\\(\\kappa_n\\le k_n\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.WeightSecondMoment",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:degrading-array",
+          "kind": "assumption",
+          "label": "Assumption A-15",
+          "nl": "\\(k_n\\to\\infty\\), \\(k_n=o(n^{1/2})\\), and \\(\\mu_n\\to0\\).",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.DegradingArray",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ass:finite-cell-source",
+          "kind": "assumption",
+          "label": "Assumption A-16",
+          "nl": "\\(P_S^X\\) is supported on exactly \\(k_n\\) measurable cells, assigns mass \\(1/k_n\\) to each cell, and \\(e(X)=1/2\\) \\(P_S\\)-almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.FiniteCellSource",
+            "decl_kind": "structure",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "lemma",
+      "items": [
+        {
+          "obj_id": "lem:source-observation-facts",
+          "kind": "lemma",
+          "label": "Lemma L-1",
+          "nl": "Let \\(P\\in\\mathcal P_n\\) as in \\cref{obj:def:model-class}, so that \\cref{obj:ass:full-data-support,obj:ass:two-sample-array,obj:ass:instrument-overlap,obj:ass:source-observation,obj:ass:iv-exclusion,obj:ass:iv-monotonicity,obj:ass:outcome-transport,obj:ass:receipt-transport,obj:ass:transport-domination} hold at index \\(n\\). Write \\(F=(S,X,D(0),D(1),Y(0),Y(1))\\) for the full-data record, let \\(P_{\\mathrm{assign},S}\\) be the assigned-source overlay on \\((F,Z)\\) whose image under \\((F,Z)\\mapsto(X,Z,D(Z),Y(D(Z)))\\) is the observed source law \\(P_S\\), and put \\(H(O^S)=\\mathbf 1\\{Z=1\\}/e(X)-\\mathbf 1\\{Z=0\\}/\\{1-e(X)\\}\\). Then \\(P_{\\mathrm{assign},S}\\) and \\(P_S\\) are probability measures; the full-data marginal of \\(P_{\\mathrm{assign},S}\\) is \\(P_n^F(\\cdot\\mid S=1)\\); the observed outcome satisfies \\(Y\\in[0,1]\\) \\(P_S\\)-almost surely; for every measurable \\(A\\subseteq\\mathcal X\\), \\[ P_S\\{X\\in A,\\ Z=1\\}=\\int_A e(x)\\,dP_S^X(x), \\qquad \\int_{\\{X\\in A\\}}H(O^S)\\,Y\\,dP_S=\\int_A\\Delta_Y(x)\\,dP_S^X(x), \\qquad \\int_{\\{X\\in A\\}}H(O^S)\\,D\\,dP_S=\\int_A\\Delta_D(x)\\,dP_S^X(x); \\] and \\(\\Delta_Y(X)\\in[-1,1]\\), \\(\\Delta_D(X)\\in[0,1]\\) hold \\(P_S^X\\)-almost surely.",
+          "lean": {
+            "file": "Basic.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.sourceObservationFacts_of_class",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:transported-contrast-integrable",
+          "kind": "lemma",
+          "label": "Lemma L-2",
+          "nl": "Let \\(P\\in\\mathcal P_n\\) as in \\cref{obj:def:model-class}, so that \\cref{obj:ass:full-data-support,obj:ass:instrument-overlap,obj:ass:iv-exclusion,obj:ass:iv-monotonicity,obj:ass:outcome-transport,obj:ass:receipt-transport,obj:ass:transport-domination} hold at index \\(n\\). Then the source conditional outcome contrast \\(\\Delta_Y\\) and the source conditional receipt contrast \\(\\Delta_D\\) are integrable with respect to the source covariate marginal \\(P_S^X\\). Consequently \\(\\int_A\\Delta_Y\\,dP_S^X\\) and \\(\\int_A\\Delta_D\\,dP_S^X\\) are finite for every measurable \\(A\\subseteq\\mathcal X\\), so the two contrast-integrability side conditions of \\cref{obj:prop:compact-causal-range} hold automatically on the whole class \\(\\mathcal P_n\\) and need not be carried as extra hypotheses.",
+          "lean": {
+            "file": "Helpers/ScoreRisk.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.transportedIVClass_contrast_integrable",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:finite-cell-class-inhabited",
+          "kind": "lemma",
+          "label": "Lemma L-3",
+          "nl": "Assume \\(0<c\\) and \\(N_n/n\\to c\\) as in \\cref{obj:ass:two-sample-array}, \\(0<\\varepsilon<1/2\\) as in \\cref{obj:ass:instrument-overlap}, \\(k_n>0\\) for every \\(n\\) with \\(k_n\\to\\infty\\) and \\(k_n=o(n^{1/2})\\) as in \\cref{obj:ass:degrading-array,obj:ass:weight-envelope}, and that for every \\(n\\) the covariate space \\(\\mathcal X\\) of \\cref{obj:ass:transport-domination} contains \\(k_n\\) distinct points whose singletons are measurable. Then the finite-cell submodel \\(\\mathcal N_n\\) of \\cref{obj:def:finite-cell-class} is nonempty for every \\(n\\): a transported law \\(P\\in\\mathcal N_n\\) is exhibited by an explicit construction whose source covariate marginal \\(P_S^X\\) is uniform on the \\(k_n\\) injected cells and whose source assignment propensity is \\(e(X)=1/2\\), as required by \\cref{obj:ass:finite-cell-source}, and which satisfies every clause of \\cref{obj:def:model-class}. In particular \\(\\mathcal P_n\\) is nonempty as well.",
+          "lean": {
+            "file": "Helpers/Witness.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.finiteCellClass_inhabited",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:fixed-geometry-slice-inhabited",
+          "kind": "lemma",
+          "label": "Lemma L-4",
+          "nl": "Fix an admissible geometry \\(\\mathfrak g\\in\\mathcal G\\) as in \\cref{obj:def:admissible-geometry-class}, a threshold \\(t_0>0\\), a constant \\(0<c\\) with \\(N_n/n\\to c\\) as in \\cref{obj:ass:two-sample-array}, a constant \\(0<\\varepsilon<1/2\\) as in \\cref{obj:ass:instrument-overlap}, and an array with \\(k_n>0\\), \\(k_n\\to\\infty\\), and \\(k_n=o(n^{1/2})\\) as in \\cref{obj:ass:degrading-array,obj:ass:weight-envelope}. Then for all sufficiently large \\(n\\) there exists a law \\(P\\) in the fixed-geometry slice \\(\\mathcal P_n(\\mathfrak g)\\) of \\cref{obj:def:fixed-geometry-slice} whose effective identification strength \\(t_n\\) of \\cref{obj:def:frontier-risk} satisfies \\(t_n\\ge t_0\\); equivalently, the strength-restricted slice \\(\\{P\\in\\mathcal P_n(\\mathfrak g):t_n\\ge t_0\\}\\) is nonempty for every sufficiently large \\(n\\). The witness is exhibited by an explicit construction from the components \\((P_S^X,w,e)\\) of \\(\\mathfrak g\\); hence the coverage rows of \\cref{obj:def:fixed-geometry-honesty} and the strength-restricted expected-length rows of \\cref{obj:def:fixed-geometry-value} are eventually indexed by a nonempty set of laws, and no nonemptiness hypothesis on \\(\\mathcal P_n\\) of \\cref{obj:def:model-class} is used.",
+          "lean": {
+            "file": "Helpers/Witness.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.fixedGeometrySlice_eventually_inhabited",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:regular-finite-cell-class-inhabited",
+          "kind": "lemma",
+          "label": "Lemma L-5",
+          "nl": "Assume \\(0<c\\) with \\(N_n/n\\to c\\) as in \\cref{obj:ass:two-sample-array}, \\(0<\\varepsilon<1/2\\) as in \\cref{obj:ass:instrument-overlap}, \\(k_n>0\\) with \\(k_n\\to\\infty\\) and \\(k_n=o(n^{1/2})\\) as in \\cref{obj:ass:degrading-array,obj:ass:weight-envelope}, fixed constants \\(0<c_-\\le 1\\le c_+\\), and that for every \\(n\\) the covariate space \\(\\mathcal X\\) of \\cref{obj:ass:transport-domination} contains \\(k_n\\) distinct points whose singletons are measurable. Then the regular finite-cell class \\(\\mathcal N_n^{\\mathrm{reg}}\\) of \\cref{obj:def:regular-finite-cell-class} is nonempty for every \\(n\\): the same uniform witness that inhabits \\(\\mathcal N_n\\) of \\cref{obj:def:finite-cell-class} also lies in \\(\\mathcal N_n^{\\mathrm{reg}}\\), its source cell probabilities being \\(q_{x,n}=1/k_n\\), which lies in \\([c_-/k_n,c_+/k_n]\\) because \\(c_-\\le 1\\le c_+\\).",
+          "lean": {
+            "file": "Helpers/Witness.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.regularFiniteCellClass_inhabited",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:setwise-domination-unit-bound",
+          "kind": "lemma",
+          "label": "Lemma L-6",
+          "nl": "Let \\(\\mu\\) be a finite measure on a measurable space and let \\(f\\) be a measurable real-valued function such that \\(\\left|\\int_A f\\,d\\mu\\right|\\le\\mu(A)\\) for every measurable set \\(A\\). Then \\(|f|\\le1\\) holds \\(\\mu\\)-almost everywhere. No integrability hypothesis on \\(f\\) is needed: the argument works on the truncated measurable slices \\(\\{q<f\\le m\\}\\) and \\(\\{-m\\le f<-q\\}\\) for \\(q>1\\) and \\(m\\in\\mathbb N\\), on which \\(f\\) is bounded and therefore genuinely integrable, and then exhausts the regions where \\(|f|>1\\) by letting \\(m\\to\\infty\\) and \\(q\\downarrow1\\). Applied with \\(\\mu=P_S^X\\), the source covariate marginal of \\cref{obj:ass:transport-domination}, the lemma converts a setwise domination \\(\\left|\\int_A f\\,dP_S^X\\right|\\le P_S^X(A)\\) into the almost-sure unit bound \\(|f|\\le1\\).",
+          "lean": {
+            "file": "Helpers/ScoreRisk.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.abs_le_one_ae_of_setIntegral_le",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:class-compact-causal-range",
+          "kind": "lemma",
+          "label": "Lemma L-7",
+          "nl": "Let \\(\\mathcal C\\) be any family of transported arrays all of whose members satisfy every clause of the transported complier-effect model class \\(\\mathcal P_n\\) of \\cref{obj:def:model-class} at index \\(n\\); the class \\(\\mathcal P_n\\) itself and, for an admissible geometry \\(\\mathfrak g\\in\\mathcal G\\) of \\cref{obj:def:admissible-geometry-class}, the fixed-geometry slice \\(\\mathcal P_n(\\mathfrak g)\\) of \\cref{obj:def:fixed-geometry-slice} are two such families. Then every member \\(P\\) of \\(\\mathcal C\\) satisfies the conclusions of \\cref{obj:prop:compact-causal-range} with no further hypothesis: \\(\\Delta_Y\\) and \\(\\Delta_D\\) agree \\(P_S^X\\)-almost everywhere with the source conditional outcome and receipt contrasts, the transported reduced-form mean \\(\\mu_{Y,n}\\) is the target complier-weighted outcome contrast, the transported first stage \\(\\mu_n\\) is the target complier share, \\(\\theta_T=\\mu_{Y,n}/\\mu_n\\), and \\(\\theta_T\\in\\Theta=[-1,1]\\). The measurability and integrability side conditions that \\cref{obj:prop:compact-causal-range} carries as hypotheses are discharged from class membership alone by \\cref{obj:lem:transported-contrast-integrable}, so a consumer may invoke the transported-mean identities and the range \\(\\theta_T\\in\\Theta\\) at any \\(P\\in\\mathcal P_n\\) or \\(P\\in\\mathcal P_n(\\mathfrak g)\\) without verifying them separately.",
+          "lean": {
+            "file": "Helpers/ScoreRisk.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.scoreRiskClass_compact_causal_range",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:fixed-geometry-value-le-frontier-risk",
+          "kind": "lemma",
+          "label": "Lemma L-8",
+          "nl": "Assume \\(0<c\\) with \\(N_n/n\\to c\\) as in \\cref{obj:ass:two-sample-array}, \\(0<\\varepsilon<1/2\\) as in \\cref{obj:ass:instrument-overlap}, and \\(k_n>0\\) with \\(k_n\\to\\infty\\) and \\(k_n=o(n^{1/2})\\) as in \\cref{obj:ass:degrading-array,obj:ass:weight-envelope}. Fix an admissible deterministic geometry \\(\\mathfrak g\\in\\mathcal G\\) as in \\cref{obj:def:admissible-geometry-class} and a threshold \\(t_0>0\\). Then for every oracle-honest sequence \\((C_n)\\in\\mathfrak C^{\\mathrm{or}}\\) of \\cref{obj:def:oracle-honesty}, the fixed-geometry minimax value \\(V_{\\mathfrak g}^\\star(t_0)\\) of \\cref{obj:def:fixed-geometry-value} is bounded by the frontier risk \\(R((C_n),t_0)\\) of \\cref{obj:def:frontier-risk}:\n\\[\nV_{\\mathfrak g}^\\star(t_0)\\le R((C_n),t_0).\n\\]\nThe comparison is obtained by restricting the globally honest sequence to a fixed-geometry honest one in \\(\\mathfrak C^{\\mathrm{or}}(\\mathfrak g)\\) of \\cref{obj:def:fixed-geometry-honesty} over the eventually nonempty strength-restricted slice \\(\\mathcal P_n(\\mathfrak g)\\) of \\cref{obj:def:fixed-geometry-slice}, and it does not require identifying almost-everywhere equal versions of the transport weight pointwise. Taking the infimum over \\((C_n)\\in\\mathfrak C^{\\mathrm{or}}\\) gives \\(V_{\\mathfrak g}^\\star(t_0)\\le V^\\star(t_0)\\) for the oracle minimax value of \\cref{obj:def:oracle-value}.",
+          "lean": {
+            "file": "Helpers/FrontierOrder.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.fixedGeometryValue_le_frontierRisk",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:geometry-handle-eventually-inhabited",
+          "kind": "lemma",
+          "label": "Lemma L-9",
+          "nl": "Assume \\(0<c\\) with \\(N_n/n\\to c\\) as in \\cref{obj:ass:two-sample-array}, \\(0<\\varepsilon<1/2\\) as in \\cref{obj:ass:instrument-overlap}, the coverage level \\(0<\\alpha<1\\) of \\cref{obj:def:oracle-honesty}, a threshold \\(t_0>0\\) for the effective identification strength \\(t_n\\) of \\cref{obj:def:frontier-risk}, and \\(k_n>0\\) with \\(k_n\\to\\infty\\) and \\(k_n=o(n^{1/2})\\) as in \\cref{obj:ass:weight-envelope,obj:ass:degrading-array}. Fix an admissible deterministic geometry \\(\\mathfrak g=(P_S^X,w,e)_{n\\ge1}\\in\\mathcal G\\) as in \\cref{obj:def:admissible-geometry-class} and set \\(\\rho=(1-\\alpha)/8\\). Then, for all sufficiently large \\(n\\), the geometry handle of \\cref{obj:def:geometry-handle} exists at \\(\\mathfrak g\\). Concretely, with \\(\\mu_n=(t_0\\kappa_n/n)^{1/2}\\) and \\(p_n(x)=\\mu_n w_n(x)/\\kappa_n\\), the conditional complier probability is valid, \\(0\\le p_n(x)\\le1\\), it reproduces the transported first-stage mean, \\(\\int w_n(x)p_n(x)\\,dP_{S,n}^X(x)=\\mu_n\\), and the effective strength is exactly \\(n\\mu_n^2/\\kappa_n=t_0\\); moreover the least-favorable family \\(h\\mapsto Q_{n,h}^{\\mathfrak g}\\) of \\cref{obj:def:least-favorable-witness} is defined for every \\(|h|\\le H(t_0)=\\min\\{1/4,\\rho\\,t_0^{-1/2}\\}\\), lies in the fixed-geometry slice \\(\\mathcal P_n(\\mathfrak g)\\) of \\cref{obj:def:fixed-geometry-slice}, and its joint two-sample laws obey the Le Cam calibration \\(1+\\chi^2(Q_{n,h}^{\\mathfrak g,N}\\Vert Q_{n,0}^{\\mathfrak g,N})\\le\\exp(8t_0h^2)\\) and \\(\\|Q_{n,h}^{\\mathfrak g,N}-Q_{n,0}^{\\mathfrak g,N}\\|_{\\mathrm{TV}}\\le2\\rho\\). Admissibility, \\(N_n/n\\to c\\), and the growth conditions on \\(k_n\\) are used to make the compliance function valid and the calibration hold from some index onwards; they do not give the handle at every \\(n\\).",
+          "lean": {
+            "file": "Helpers/Witness.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.geometryHandle_eventually_inhabited",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:regular-cell-conditional-moment-bound",
+          "kind": "lemma",
+          "label": "Lemma L-10",
+          "nl": "Fix \\(n\\ge1\\), a law \\(P\\in\\mathcal N_n^{\\mathrm{reg}}\\) in the regular finite-cell class of \\cref{obj:def:regular-finite-cell-class} with known source cell probabilities \\(q_{x,n}\\) and propensity \\(e(\\cdot)\\), a candidate \\(\\vartheta\\in\\Theta=[-1,1]\\) as in \\cref{obj:def:inversion-handle}, and a realized target sample \\((X_j^T)_{j=1}^{N_n}\\) with empirical cell frequencies \\(\\widehat p_{x,n}\\). Let \\(\\widehat M_{Y,n}\\) and \\(\\widehat M_{D,n}\\) be the transported plug-in contrast estimators built from the inverse-propensity source scores \\(H(O^S)\\) of \\cref{obj:lem:source-observation-facts} with cell weights \\(\\widehat p_{x,n}/q_{x,n}\\), and let the source observations be i.i.d. from the source law. Then, conditionally on the target sample,\n\\[\n\\mathbb E_P\\!\\left[\\widehat M_{Y,n}-\\vartheta\\widehat M_{D,n}\\mid(X_j^T)_{j=1}^{N_n}\\right]=\\sum_x\\widehat p_{x,n}\\left(\\Delta_Y(x)-\\vartheta\\Delta_D(x)\\right),\n\\qquad\n\\operatorname{Var}_P\\!\\left(\\widehat M_{Y,n}-\\vartheta\\widehat M_{D,n}\\mid(X_j^T)_{j=1}^{N_n}\\right)\\le\\frac{4}{\\varepsilon^2n}\\sum_x\\frac{\\widehat p_{x,n}^2}{q_{x,n}},\n\\]\nwith \\(\\Delta_Y,\\Delta_D\\) the source conditional contrasts of \\cref{obj:prop:compact-causal-range}. The variance bound rests on the pointwise envelope \\(|H(O^S)(Y-\\vartheta D)|\\le2/\\varepsilon\\), which combines the instrument overlap \\(\\varepsilon\\le e(X)\\le1-\\varepsilon\\) of \\cref{obj:ass:instrument-overlap} with the bounded source outcome \\(Y\\in[0,1]\\) and the Boolean receipt \\(D\\in\\{0,1\\}\\) of \\cref{obj:ass:source-observation}, which give \\(|Y-\\vartheta D|\\le2\\) for every \\(\\vartheta\\in\\Theta\\); overlap and \\(\\Theta=[-1,1]\\) alone do not entail it.",
+          "lean": {
+            "file": "Helpers/RegularCellRisk_Part2.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.regularCell_source_conditional_mean_variance",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "lem:score-receipt-bad-slope-probability",
+          "kind": "lemma",
+          "label": "Lemma L-11",
+          "nl": "Fix \\(n\\ge1\\), the overlap constant \\(\\varepsilon>0\\) of \\cref{obj:ass:instrument-overlap}, and a law \\(P\\in\\mathcal P_n\\) of \\cref{obj:def:model-class} whose transported first-stage mean \\(\\mu_n(P)\\) of \\cref{obj:ass:degrading-array} is positive and whose transport-weight second moment \\(\\kappa_n(P)\\) of \\cref{obj:ass:weight-second-moment} is positive. Let \\(\\widehat B\\) be any square-integrable statistic of the source sample with \\(\\mathbb E_P[\\widehat B]=\\mu_n(P)\\) and \\(\\operatorname{Var}_P(\\widehat B)\\le\\kappa_n(P)/(\\varepsilon^2n)\\). Then, with \\(t_n(P)=n\\mu_n(P)^2/\\kappa_n(P)\\) the effective identification strength of \\cref{obj:def:frontier-risk}, Chebyshev's inequality gives the bad-slope bound\n\\[\nP\\!\\left(\\frac{\\mu_n(P)}2<\\left|\\widehat B-\\mu_n(P)\\right|\\right)\\le\\frac{4}{\\varepsilon^2t_n(P)}.\n\\]\nThe statement is law-agnostic: it consumes only the two displayed moment facts, so it applies verbatim to the weighted first-stage sample mean \\(\\widehat B_n=n^{-1}\\sum_{i=1}^nw(X_i)H(O_i^S)D_i\\) of \\cref{obj:lem:source-observation-facts,obj:ass:weight-envelope} once that estimator has been shown to be unbiased for \\(\\mu_n(P)\\) with variance at most \\(\\kappa_n(P)/(\\varepsilon^2n)\\), and equally to the fixed-geometry version of the same construction.",
+          "lean": {
+            "file": "Helpers/ScoreRisk.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.scoreReceiptMean_bad_probability",
+            "decl_kind": "lemma",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "theorem",
+      "items": [
+        {
+          "obj_id": "prop:compact-causal-range",
+          "kind": "theorem",
+          "label": "Theorem T-1",
+          "nl": "For every \\(P\\in\\mathcal P_n\\), source randomization identifies \\(\\Delta_Y(x)=\\mathbb E_{P_n^F}[Y^Z(1)-Y^Z(0)\\mid X=x,S=1]\\) and \\(\\Delta_D(x)=\\mathbb E_{P_n^F}[D(1)-D(0)\\mid X=x,S=1]\\). Outcome-contrast transport and integrated first-stage transport imply \\(\\mu_{Y,n}=\\mathbb E_{P_n^F}[(Y(1)-Y(0))\\mathbf 1\\{D(1)>D(0)\\}\\mid S=0]\\) and \\(\\mu_n=P_n^F(D(1)>D(0)\\mid S=0)\\). Hence \\(\\mu_{Y,n}/\\mu_n=\\theta_T=\\mathbb E_{P_n^F}[Y(1)-Y(0)\\mid D(1)>D(0),S=0]\\in\\Theta=[-1,1]\\).",
+          "lean": {
+            "file": "T_CompactCausalRange.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.compact_causal_range",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:oracle-converse",
+          "kind": "theorem",
+          "label": "Theorem T-2",
+          "nl": "There exist constants \\(c_0>0\\) and \\(t_c>0\\), depending only on \\(\\alpha\\), \\(\\varepsilon\\), and the fixed class constants, such that for every \\(t_0>0\\), \\(V^\\star(t_0)\\ge c_0\\min\\{1,t_0^{-1/2}\\}\\) and \\(V_{\\mathcal N}^\\star(t_0)\\ge c_0\\min\\{1,t_0^{-1/2}\\}\\). In particular, \\(V^\\star(t_0)\\ge c_0\\) whenever \\(0<t_0\\le t_c\\). The constants do not depend on the decomposition of \\(t_0\\) into \\(\\mu_n\\) and \\(\\kappa_n\\).",
+          "lean": {
+            "file": "T_OracleConverse.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.oracle_converse",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "prop:no-shift-reduction",
+          "kind": "theorem",
+          "label": "Theorem T-3",
+          "nl": "If \\(w(X)=1\\) \\(P_S\\)-almost surely, then \\(\\kappa_n=1\\) and \\(t_n=n\\mu_n^2\\); hence the frontier specializes to compact single-population weak-ratio inference.",
+          "lean": {
+            "file": "T_NoShiftReduction.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.no_shift_reduction",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:oracle-score-inversion-attainment",
+          "kind": "theorem",
+          "label": "Theorem T-4",
+          "nl": "Let\n\\[\n H_i=\\frac{Z_i}{e(X_i)}-\\frac{1-Z_i}{1-e(X_i)},\\quad\n \\widehat A_n=\\frac1n\\sum_{i=1}^nw(X_i)H_iY_i,\\quad\n \\widehat B_n=\\frac1n\\sum_{i=1}^nw(X_i)H_iD_i,\n\\]\nand \\(\\widehat\\kappa_n=n^{-1}\\sum_{i=1}^nw(X_i)^2\\).  With \\(L_\\alpha=\\{8/(\\alpha\\varepsilon^2)\\}^{1/2}\\), define the single score-inversion sequence\n\\[\n C_n=\\left\\{\\vartheta\\in\\Theta:\n |\\widehat A_n-\\vartheta\\widehat B_n|\n \\le L_\\alpha\\sqrt{\\widehat\\kappa_n/n}\\right\\}.\n\\]\nThen \\((C_n)\\in\\mathfrak C^{\\mathrm{or}}\\), and, simultaneously for every \\(t_0>0\\),\n\\[\n R((C_n),t_0)\\le C_0\\min\\{1,t_0^{-1/2}\\},\n \\qquad\n C_0=\\max\\left\\{2,4L_\\alpha+\\frac8{\\varepsilon^2}\\right\\}.\n\\]\nConsequently \\(V^\\star(t_0)\\) has order \\(\\min\\{1,t_0^{-1/2}\\}\\).  The displayed upper bound holds for every admissible weight geometry and depends on a member law through \\(t_n=n\\mu_n^2/\\kappa_n\\) only, apart from the fixed constants.  Combined with the fixed-geometry frontier theorem, the achievability bound and the conditional converse match in order uniformly over admissible geometries, so any two admissible geometries with the same effective strength are equally difficult up to universal constants.",
+          "lean": {
+            "file": "T_OracleScoreInversionAttainment.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.oracle_score_inversion_attainment",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:finite-cell-unknown-weight-attainment",
+          "kind": "theorem",
+          "label": "Theorem T-5",
+          "nl": "On \\(\\mathcal N_n\\), write\n\\[\n H_i=2(2Z_i-1),\\qquad\n \\widehat p_{x,n}=\\frac1{N_n}\\sum_{j=1}^{N_n}\\mathbf 1\\{X_j^T=x\\},\n\\]\nand, for \\(G\\in\\{Y,D\\}\\), define\n\\[\n \\widehat m_{G,n}(x)=\\frac{k_n}{n}\\sum_{i=1}^n\n \\mathbf 1\\{X_i=x\\}H_iG_i,\\qquad\n \\widehat M_{G,n}=\\sum_{x=1}^{k_n}\\widehat p_{x,n}\\widehat m_{G,n}(x).\n\\]\nFor \\(N_n\\ge2\\), let\n\\[\n \\widehat\\kappa_{U,n}=\n \\frac{k_n}{N_n(N_n-1)}\n \\sum_{j\\ne\\ell}\\mathbf 1\\{X_j^T=X_\\ell^T\\},\\qquad\n \\widehat K_n=1+\\widehat\\kappa_{U,n}.\n\\]\nPut \\(B_c=32(1+c^{-1})\\), \\(L_{\\alpha,c}=\\{2B_c/\\alpha\\}^{1/2}\\), and\n\\[\n C_n=\\left\\{\\vartheta\\in\\Theta:\n |\\widehat M_{Y,n}-\\vartheta\\widehat M_{D,n}|\n \\le L_{\\alpha,c}\\sqrt{\\widehat K_n/n}\\right\\},\n\\]\nwith \\(C_n=\\Theta\\) at the finitely many indices for which \\(N_n<2\\).  This sequence belongs to \\(\\mathfrak C^{\\mathrm{cell}}\\), does not use \\(w\\), and satisfies, simultaneously for all \\(t_0>0\\),\n\\[\n \\limsup_{n\\to\\infty}\\sup_{P\\in\\mathcal N_n:\\,t_n\\ge t_0}\n \\mathbb E_P[\\lambda(C_n)]\n \\le C_0\\min\\{1,t_0^{-1/2}\\},\n\\]\nwhere\n\\[\n C_0=\\max\\{2,4\\sqrt2L_{\\alpha,c}+8B_c\\}.\n\\]\nMoreover, the finite-cell change-of-measure family used for the oracle converse applies to every sequence in \\(\\mathfrak C^{\\mathrm{cell}}\\); hence the corresponding infimum of the displayed worst-case risk is at least \\(c_0\\min\\{1,t_0^{-1/2}\\}\\).  Thus estimating the target cell probabilities creates no additional minimax-order loss on \\(\\mathcal N_n\\).",
+          "lean": {
+            "file": "T_FiniteCellUnknownWeightAttainment.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.finite_cell_unknown_weight_attainment",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:fixed-geometry-frontier",
+          "kind": "theorem",
+          "label": "Theorem T-6",
+          "nl": "Let \\(\\mathfrak g\\in\\mathcal G\\) be any admissible deterministic geometry array.  Put \\(L_\\alpha=\\{8/(\\alpha\\varepsilon^2)\\}^{1/2}\\), \\(c_\\alpha=3(1-\\alpha)^2/16\\), and \\(C_\\alpha=\\max\\{2,4L_\\alpha+8\\varepsilon^{-2}\\}\\).  Then, for every fixed \\(t_0>0\\),\n\\[\n c_\\alpha\\min\\{1,t_0^{-1/2}\\}\n \\le V_{\\mathfrak g}^\\star(t_0)\n \\le C_\\alpha\\min\\{1,t_0^{-1/2}\\}.\n\\]\nBoth constants are uniform in \\(\\mathfrak g\\).  In particular, after conditioning on any admissible source-covariate law, transport-weight array, and propensity array, geometries having the same effective strength are equally difficult up to the displayed universal constants.",
+          "lean": {
+            "file": "T_FixedGeometryFrontier.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.fixed_geometry_frontier",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "thm:regular-cell-unknown-weight-attainment",
+          "kind": "theorem",
+          "label": "Theorem T-7",
+          "nl": "On \\(\\mathcal N_n^{\\mathrm{reg}}\\), let \\(q_{x,n}=P_S^X(X=x)\\), let\n\\[\n H_i=\\frac{Z_i}{e(X_i)}-\\frac{1-Z_i}{1-e(X_i)},\n \\qquad \\widehat p_{x,n}=\\frac1{N_n}\\sum_{j=1}^{N_n}\\mathbf 1\\{X_j^T=x\\},\n\\]\nand, for \\(G\\in\\{Y,D\\}\\), define\n\\[\n \\widehat m_{G,n}(x)=\\frac1{nq_{x,n}}\\sum_{i=1}^n\n \\mathbf 1\\{X_i=x\\}H_iG_i,\n \\qquad\n \\widehat M_{G,n}=\\sum_{x=1}^{k_n}\\widehat p_{x,n}\\widehat m_{G,n}(x).\n\\]\nFor \\(N_n\\ge2\\), set\n\\[\n \\widehat\\kappa_{U,n}=\n \\frac1{N_n(N_n-1)}\\sum_{j\\ne\\ell}\n \\frac{\\mathbf 1\\{X_j^T=X_\\ell^T\\}}{q_{X_j^T,n}},\n \\qquad \\widehat K_n=1+\\widehat\\kappa_{U,n}.\n\\]\nPut \\(B_{\\varepsilon,c}=8(\\varepsilon^{-2}+c^{-1})\\).  For every fixed \\(L\\ge\\{2B_{\\varepsilon,c}/\\alpha\\}^{1/2}\\), the sequence\n\\[\n C_n^{\\mathrm{reg}}=\\left\\{\\vartheta\\in\\Theta:\n |\\widehat M_{Y,n}-\\vartheta\\widehat M_{D,n}|\n \\le L\\sqrt{\\widehat K_n/n}\\right\\},\n\\]\nwith \\(C_n^{\\mathrm{reg}}=\\Theta\\) when \\(N_n<2\\), belongs to \\(\\mathfrak C^{\\mathrm{reg}}\\), does not use \\(w\\), and satisfies, for every fixed \\(t_0>0\\),\n\\[\n \\limsup_{n\\to\\infty}\\sup_{P\\in\\mathcal N_n^{\\mathrm{reg}}:\\,t_n\\ge t_0}\n \\mathbb E_P[\\lambda(C_n^{\\mathrm{reg}})]\n \\le \\max\\{2,4\\sqrt2L+8B_{\\varepsilon,c}\\}\n \\min\\{1,t_0^{-1/2}\\}.\n\\]\nThe infimum of this risk over \\(\\mathfrak C^{\\mathrm{reg}}\\) is at least \\(3(1-\\alpha)^2\\min\\{1,t_0^{-1/2}\\}/16\\).  Thus unknown target cell probabilities cause no minimax-order loss for known regular source-cell probabilities and a known cell-varying propensity bounded by \\(\\varepsilon\\).",
+          "lean": {
+            "file": "T_RegularCellUnknownWeightAttainment.lean",
+            "decl": "CausalSmith.Stat.TransportedLateStrengthFrontier.regular_cell_unknown_weight_attainment",
+            "decl_kind": "theorem",
+            "line": 0
+          },
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    },
+    {
+      "kind": "auxiliary",
+      "items": [
+        {
+          "obj_id": "aux_feasibleFiniteCellRisk",
+          "kind": "definition",
+          "label": "Definition feasibleFiniteCellRisk",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_finiteCellInversion",
+          "kind": "definition",
+          "label": "Definition finiteCellInversion",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_FiniteCellProcedure",
+          "kind": "definition",
+          "label": "Definition FiniteCellProcedure",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_Geometry",
+          "kind": "definition",
+          "label": "Definition Geometry",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_OracleProcedure",
+          "kind": "definition",
+          "label": "Definition OracleProcedure",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_regularCellInversion",
+          "kind": "definition",
+          "label": "Definition regularCellInversion",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_RegularCellProcedure",
+          "kind": "definition",
+          "label": "Definition RegularCellProcedure",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_regularCellRisk",
+          "kind": "definition",
+          "label": "Definition regularCellRisk",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_TransportedArray",
+          "kind": "definition",
+          "label": "Definition TransportedArray",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_FiniteCellOracleHonest",
+          "kind": "definition",
+          "label": "Definition FiniteCellOracleHonest",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_FiniteCellOracleProcedure",
+          "kind": "definition",
+          "label": "Definition FiniteCellOracleProcedure",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "inverse_strength_to_frontier",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.TransportedLateStrengthFrontier.inverse_strength_to_frontier",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_sourceCellMass",
+          "kind": "definition",
+          "label": "Definition sourceCellMass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_twoSampleLaw",
+          "kind": "definition",
+          "label": "Definition twoSampleLaw",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "measurable_observeSource",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.TransportedLateStrengthFrontier.measurable_observeSource",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sourceXLaw_eq_populationXLaw_source",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.TransportedLateStrengthFrontier.sourceXLaw_eq_populationXLaw_source",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "measure_eq_withDensity_of_toReal_setIntegral",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.TransportedLateStrengthFrontier.measure_eq_withDensity_of_toReal_setIntegral",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ivRandomization_slice_eq_withDensity",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.TransportedLateStrengthFrontier.ivRandomization_slice_eq_withDensity",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "ivRandomization_ipw_contrast",
+          "kind": "lemma",
+          "label": "Lemma CausalSmith.Stat.TransportedLateStrengthFrontier.ivRandomization_ipw_contrast",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "aux_TransportedFunctionalRanges",
+          "kind": "definition",
+          "label": "Definition TransportedFunctionalRanges",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_SourceObservation",
+          "kind": "definition",
+          "label": "Definition SourceObservation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_ReceiptContrastRepresentation",
+          "kind": "definition",
+          "label": "Definition ReceiptContrastRepresentation",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_RegularCellDesign",
+          "kind": "definition",
+          "label": "Definition RegularCellDesign",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_RegularCellInput",
+          "kind": "definition",
+          "label": "Definition RegularCellInput",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        },
+        {
+          "obj_id": "aux_regularCellInputOfClass",
+          "kind": "definition",
+          "label": "Definition regularCellInputOfClass",
+          "nl": "",
+          "lean": null,
+          "status": "unreviewed",
+          "sorry_free": false
+        }
+      ]
+    },
+    {
+      "kind": "symbol",
+      "items": [
+        {
+          "obj_id": "sym:P_n^F",
+          "kind": "symbol",
+          "label": "P_n^F",
+          "nl": "realized by TransportedArray, FullDataSupport",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P",
+          "kind": "symbol",
+          "label": "P",
+          "nl": "realized by TransportedArray, variable@97, SourceObservation",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P_S",
+          "kind": "symbol",
+          "label": "P_S",
+          "nl": "realized by TransportedArray, sourceObsLaw, SourceAssignmentConsistency, SourceObservation, SourceObservationFacts",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:e",
+          "kind": "symbol",
+          "label": "e",
+          "nl": "realized by TransportedArray, InstrumentOverlap, SourceAssignmentConsistency, SourceObservation, FiniteCellSource, Geometry, AdmissibleGeometry, OracleInput, RegularCellInput",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y^Z(z)",
+          "kind": "symbol",
+          "label": "Y^Z(z)",
+          "nl": "realized by TransportedArray, derivedAssignmentOutcome, FullDataSupport, PopulationPresence, IVExclusion",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal X",
+          "kind": "symbol",
+          "label": "\\mathcal X",
+          "nl": "realized by variable@93, RegularFiniteCellClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:n",
+          "kind": "symbol",
+          "label": "n",
+          "nl": "realized by variable@95",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:S",
+          "kind": "symbol",
+          "label": "S",
+          "nl": "realized by populationLaw, PopulationPresence",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:X",
+          "kind": "symbol",
+          "label": "X",
+          "nl": "realized by populationXLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P_T",
+          "kind": "symbol",
+          "label": "P_T",
+          "nl": "realized by targetXLaw, Geometry",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:O_i^S",
+          "kind": "symbol",
+          "label": "O_i^S",
+          "nl": "realized by observeSource, twoSampleLaw, SourceObservation, SourceObservationFacts",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Z",
+          "kind": "symbol",
+          "label": "Z",
+          "nl": "realized by observeSource, IVRandomization",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:D",
+          "kind": "symbol",
+          "label": "D",
+          "nl": "realized by observeSource",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y",
+          "kind": "symbol",
+          "label": "Y",
+          "nl": "realized by observeSource, SourceObservation, SourceObservationFacts",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:P_S^X",
+          "kind": "symbol",
+          "label": "P_S^X",
+          "nl": "realized by sourceXLaw, FiniteCellSource, Geometry",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Delta_Y",
+          "kind": "symbol",
+          "label": "\\Delta_Y",
+          "nl": "realized by TransportedArray.deltaY, SourceObservation, SourceObservationFacts",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Delta_D",
+          "kind": "symbol",
+          "label": "\\Delta_D",
+          "nl": "realized by TransportedArray.deltaD, SourceObservation, SourceObservationFacts",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:w(dP_T/dP_S^X; carrier 𝒳→[0,∞))",
+          "kind": "symbol",
+          "label": "w(dP_T/dP_S^X; carrier 𝒳→[0,∞))",
+          "nl": "realized by transportWeight",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\kappa_n",
+          "kind": "symbol",
+          "label": "\\kappa_n",
+          "nl": "realized by kishDispersion, WeightSecondMoment, transportedFunctionalRanges_of_class, AdmissibleGeometry",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mu_{Y,n}",
+          "kind": "symbol",
+          "label": "\\mu_{Y,n}",
+          "nl": "realized by transportedOutcomeITT, TransportedFunctionalRanges, transportedFunctionalRanges_of_class",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mu_n",
+          "kind": "symbol",
+          "label": "\\mu_n",
+          "nl": "realized by transportedFirstStage, TargetComplierPositivity, DegradingArray, transportedFunctionalRanges_of_class, leastFavorableWitness",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:t_n",
+          "kind": "symbol",
+          "label": "t_n",
+          "nl": "realized by effectiveStrength, TransportedFunctionalRanges, transportedFunctionalRanges_of_class",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\Theta",
+          "kind": "symbol",
+          "label": "\\Theta",
+          "nl": "realized by parameterSpace, inversionHandle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\theta_T",
+          "kind": "symbol",
+          "label": "\\theta_T",
+          "nl": "realized by targetCACE, leastFavorableWitness",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:N_n",
+          "kind": "symbol",
+          "label": "N_n",
+          "nl": "realized by variable@246, TwoSampleArray, finite_cell_unknown_weight_attainment, fixed_geometry_frontier, no_shift_reduction, oracle_converse, oracle_score_inversion_attainment, regular_cell_unknown_weight_attainment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:c",
+          "kind": "symbol",
+          "label": "c",
+          "nl": "realized by variable@248, TwoSampleArray, finite_cell_unknown_weight_attainment, fixed_geometry_frontier, regular_cell_unknown_weight_attainment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\varepsilon",
+          "kind": "symbol",
+          "label": "\\varepsilon",
+          "nl": "realized by variable@248, InstrumentOverlap",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:X_j^T",
+          "kind": "symbol",
+          "label": "X_j^T",
+          "nl": "realized by TwoSample, twoSampleLaw",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:Y(d)",
+          "kind": "symbol",
+          "label": "Y(d)",
+          "nl": "realized by FullDataSupport",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:D(z)",
+          "kind": "symbol",
+          "label": "D(z)",
+          "nl": "realized by IVMonotonicity",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:w",
+          "kind": "symbol",
+          "label": "w",
+          "nl": "realized by WeightEnvelope, Geometry, AdmissibleGeometry, OracleInput",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:k_n",
+          "kind": "symbol",
+          "label": "k_n",
+          "nl": "realized by WeightEnvelope, DegradingArray, finite_cell_unknown_weight_attainment, fixed_geometry_frontier, no_shift_reduction, oracle_converse, oracle_score_inversion_attainment, regular_cell_unknown_weight_attainment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal X(row law is exactly the uniform pushforward of",
+          "kind": "symbol",
+          "label": "\\mathcal X(row law is exactly the uniform pushforward of",
+          "nl": "realized by FiniteCellSource",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal P_n",
+          "kind": "symbol",
+          "label": "\\mathcal P_n",
+          "nl": "realized by TransportedIVClass, variable@348",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mu_n(transported first stage lies in (0,1])",
+          "kind": "symbol",
+          "label": "\\mu_n(transported first stage lies in (0,1])",
+          "nl": "realized by TransportedFunctionalRanges",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\kappa_n(Kish dispersion lies in [1,∞))",
+          "kind": "symbol",
+          "label": "\\kappa_n(Kish dispersion lies in [1,∞))",
+          "nl": "realized by TransportedFunctionalRanges",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal N_n",
+          "kind": "symbol",
+          "label": "\\mathcal N_n",
+          "nl": "realized by FiniteCellClass, variable@348",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal G",
+          "kind": "symbol",
+          "label": "\\mathcal G",
+          "nl": "realized by AdmissibleGeometry",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathfrak g",
+          "kind": "symbol",
+          "label": "\\mathfrak g",
+          "nl": "realized by AdmissibleGeometry, leastFavorableWitness",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal P_n(\\mathfrak g)",
+          "kind": "symbol",
+          "label": "\\mathcal P_n(\\mathfrak g)",
+          "nl": "realized by fixedGeometrySlice",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal X(the source's discrete cell space: the cells are",
+          "kind": "symbol",
+          "label": "\\mathcal X(the source's discrete cell space: the cells are",
+          "nl": "realized by RegularFiniteCellClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:q_{x,n}",
+          "kind": "symbol",
+          "label": "q_{x,n}",
+          "nl": "realized by RegularFiniteCellClass, RegularCellInput, sourceCellMass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:c_-",
+          "kind": "symbol",
+          "label": "c_-",
+          "nl": "realized by RegularFiniteCellClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:c_+",
+          "kind": "symbol",
+          "label": "c_+",
+          "nl": "realized by RegularFiniteCellClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathcal N_n^{\\mathrm{reg}}",
+          "kind": "symbol",
+          "label": "\\mathcal N_n^{\\mathrm{reg}}",
+          "nl": "realized by RegularFiniteCellClass",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\rho",
+          "kind": "symbol",
+          "label": "\\rho",
+          "nl": "realized by variable@2195, leastFavorableWitness",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:w(oracle-input carrier 𝒳→[0,∞))",
+          "kind": "symbol",
+          "label": "w(oracle-input carrier 𝒳→[0,∞))",
+          "nl": "realized by NonnegativeWeight",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:C_n",
+          "kind": "symbol",
+          "label": "C_n",
+          "nl": "realized by OracleProcedure, FiniteCellProcedure, FiniteCellOracleProcedure, RegularCellProcedure, inversionHandle",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\lambda",
+          "kind": "symbol",
+          "label": "\\lambda",
+          "nl": "realized by paperSetLength",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\alpha",
+          "kind": "symbol",
+          "label": "\\alpha",
+          "nl": "realized by variable@348, OracleHonest, FiniteCellHonest, FixedGeometryOracleHonest, RegularCellHonest, leastFavorableWitness, finite_cell_unknown_weight_attainment, fixed_geometry_frontier, no_shift_reduction, oracle_converse, oracle_score_inversion_attainment, regular_cell_unknown_weight_attainment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathfrak C^{\\mathrm{or}}",
+          "kind": "symbol",
+          "label": "\\mathfrak C^{\\mathrm{or}}",
+          "nl": "realized by OracleHonest",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathfrak C^{\\mathrm{cell}}",
+          "kind": "symbol",
+          "label": "\\mathfrak C^{\\mathrm{cell}}",
+          "nl": "realized by FiniteCellHonest",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathfrak C^{\\mathrm{or}}(\\mathfrak g)",
+          "kind": "symbol",
+          "label": "\\mathfrak C^{\\mathrm{or}}(\\mathfrak g)",
+          "nl": "realized by FixedGeometryOracleHonest",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:\\mathfrak C^{\\mathrm{reg}}",
+          "kind": "symbol",
+          "label": "\\mathfrak C^{\\mathrm{reg}}",
+          "nl": "realized by RegularCellHonest",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:R",
+          "kind": "symbol",
+          "label": "R",
+          "nl": "realized by frontierRisk",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:V^\\star",
+          "kind": "symbol",
+          "label": "V^\\star",
+          "nl": "realized by oracleValue",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:V_{\\mathcal N}^\\star",
+          "kind": "symbol",
+          "label": "V_{\\mathcal N}^\\star",
+          "nl": "realized by finiteCellOracleValue",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:V_{\\mathfrak g}^\\star",
+          "kind": "symbol",
+          "label": "V_{\\mathfrak g}^\\star",
+          "nl": "realized by fixedGeometryValue",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:t_0",
+          "kind": "symbol",
+          "label": "t_0",
+          "nl": "realized by leastFavorableWitness, geometryHandle, finite_cell_unknown_weight_attainment, fixed_geometry_frontier, no_shift_reduction, oracle_converse, oracle_score_inversion_attainment, regular_cell_unknown_weight_attainment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:C_0",
+          "kind": "symbol",
+          "label": "C_0",
+          "nl": "realized by finite_cell_unknown_weight_attainment, oracle_score_inversion_attainment, regular_cell_unknown_weight_attainment",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:c_0",
+          "kind": "symbol",
+          "label": "c_0",
+          "nl": "realized by oracle_converse",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        },
+        {
+          "obj_id": "sym:t_c",
+          "kind": "symbol",
+          "label": "t_c",
+          "nl": "realized by oracle_converse",
+          "lean": null,
+          "status": "matched",
+          "sorry_free": true
+        }
+      ]
+    }
+  ]
+}

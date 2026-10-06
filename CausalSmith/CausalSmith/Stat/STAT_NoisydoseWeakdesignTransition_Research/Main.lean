@@ -1,0 +1,12 @@
+module
+public import CausalSmith.Stat.STAT_NoisydoseWeakdesignTransition_Research.Helpers
+public import CausalSmith.Stat.STAT_NoisydoseWeakdesignTransition_Research.TErrorFreeReduction
+public import CausalSmith.Stat.STAT_NoisydoseWeakdesignTransition_Research.TFiniteHonesty
+public import CausalSmith.Stat.STAT_NoisydoseWeakdesignTransition_Research.TIdentification
+public import CausalSmith.Stat.STAT_NoisydoseWeakdesignTransition_Research.TObservableUpper
+public import CausalSmith.Stat.STAT_NoisydoseWeakdesignTransition_Research.TObservedLower
+public import CausalSmith.Stat.STAT_NoisydoseWeakdesignTransition_Research.TUniformFrontier
+public import CausalSmith.Stat.STAT_NoisydoseWeakdesignTransition_Research.TWeightedPacketConstruction
+
+/-! Paper interface: seven statements, conditional on the disclosed classical gates. -/
+public section

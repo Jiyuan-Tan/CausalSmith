@@ -1,0 +1,194 @@
+\section{Appendix C. Lower bounds with full observed memberships}
+
+The lower comparisons concern the observed experiment in \cref{obj:def:observed-experiment}, which retains baseline category, assignment, surrogate, arrival status, and arrived outcome for every sampled individual. Two constructions account for the two components of the rate in \cref{obj:def:frontier-rate}: a one-category family isolates the effective sample-size contribution, while an activated many-category experiment supplies the category-complexity comparison. We first introduce the \leanref{S-3}{activated moment-matching construction}, then state its approximation inputs and the one-category bounds. A separate comparison addresses the ascertainment deficit in the unrestricted large-alphabet regime.
+
+\subsection{The activated comparison experiment}
+
+The construction in \cref{obj:def:activation-lower-handle} augments each observed record with an activation flag whose distribution is common to the two hypotheses. Conditional on a latent vector drawn once for the sample, it generates exactly \(n\) independent records with balanced treatment assignment. The following algorithm specifies both augmented laws and the conditions on their finite priors.
+
+\begin{algorithmv}{def:activation-lower-handle}[Activated fuzzy-hypothesis experiment]
+The activated handle \(\mathfrak H_{\mathrm{act}}\) is the ordered pair of augmented \(n\)-record laws constructed below, with the following inputs:
+\begin{itemize}
+\item \textbf{(Parameters.)} A constant \(\eta>0\), fixed before integers \(n,d\ge1\) and an arrival floor \(0<q\le1\), satisfying \cref{obj:ass:rare-arrival-slice}. Define the effective sample size, logarithmic scale, moment-matching degree, support endpoint, nominal rare-cell mass, and rare-cell count by
+\[
+N=nq,\qquad
+\ell=\log(e+N),\qquad
+K=\lceil\ell\rceil,\qquad
+H=K^2,\qquad
+b_0=\frac{\eta}{N\ell},\qquad
+J=\min\left\{d-1,\left\lfloor\frac{1}{2b_0}\right\rfloor\right\}.
+\]
+\item \textbf{(Finite priors.)} An ordered pair \((\Pi_0,\Pi_1)\) of probability laws, each assigning probability one to a finite subset of \([1,H]\).
+\item \textbf{(Moment matching and separation.)} The priors satisfy
+\[
+\int z^v\,d\Pi_0(z)=\int z^v\,d\Pi_1(z)
+\qquad\text{for every integer }0\le v\le K,
+\]
+and
+\[
+\left|\int z^{-1}\,d\Pi_1(z)-\int z^{-1}\,d\Pi_0(z)\right|
+\ge\frac1{12}.
+\]
+\end{itemize}
+
+For each \(i\in\{0,1\}\), independently draw a latent coordinate \(Z_x\sim\Pi_i\) for every baseline index \(x\in\{0,\ldots,d-1\}\). Conditional on this single latent vector, generate \(n\) independent records using the following common rule. Draw the baseline index with probabilities
+\[
+P(X=x)=
+\begin{cases}
+b_0,&0\le x<J,\\
+1-Jb_0,&x=J,\\
+0,&J<x<d.
+\end{cases}
+\]
+The first \(J\) indices are the rare cells, and index \(J\) is the reservoir. Draw treatment independently with
+\[
+A\sim\operatorname{Bernoulli}(1/2),
+\qquad S=0.
+\]
+Independently of the latent vector, baseline index, and treatment, draw and reveal the activation flag
+\[
+\mathsf B_{\mathrm{act}}\sim\operatorname{Bernoulli}(qH).
+\]
+For a rare cell \(x\), the same coordinate \(Z_x\) governs both treatment arms and all records in that cell.
+
+If \(\mathsf B_{\mathrm{act}}=0\), set \((R,RY)=(0,0)\). Conditional on \(\mathsf B_{\mathrm{act}}=1\), draw \((R,RY)\) according to
+\[
+\begin{array}{c|ccc}
+ & (R,RY)=(1,1) & (R,RY)=(1,0) & (R,RY)=(0,0)\\ \hline
+ A=1,\ X=x<J & 1/H & (Z_x-1)/H & 1-Z_x/H\\
+ A=0,\ X=x<J & 0 & Z_x/H & 1-Z_x/H\\
+ X\ge J,\ \text{either arm} & 0 & 1 & 0
+\end{array}
+\]
+Each augmented record is
+\[
+\bigl(\mathsf B_{\mathrm{act}},(X,A,S,R,RY)\bigr).
+\]
+The \(i\)-th component of \(\mathfrak H_{\mathrm{act}}\) is the law of these \(n\) augmented records after integrating over the product prior \(\Pi_i^{\otimes d}\). Thus the latent vector is drawn once for the entire sample, and the records are independent conditional on that vector. The handle is defined for every prior pair satisfying the stated conditions.
+\end{algorithmv}
+
+The augmented pair \leanref{sym:\mathfrak H_{\mathrm{act}}}{\ensuremath{\mathfrak H_{\mathrm{act}}}} in \cref{obj:def:activation-lower-handle} preserves all original observations. Its revealed activation flag \leanref{sym:\mathsf B_{\mathrm{act}}}{\ensuremath{\mathsf B_{\mathrm{act}}}} has a distribution depending on the experiment's parameters and independent of the latent coordinates and prior index. Projection onto the original record coordinates is therefore a common, parameter-independent observation map. The total-variation comparison in \cref{obj:lem:randomized-kernel-tv-comparison} supplies the decision-theoretic connection between an observed-law comparison and any common randomized procedure.
+
+The tuning constant \leanref{sym:\eta}{\ensuremath{\eta}}, moment-matching degree \leanref{sym:K}{\ensuremath{K}}, support endpoint \leanref{sym:H}{\ensuremath{H}}, nominal rare-cell mass \leanref{sym:b_0}{\ensuremath{b_0}}, and rare-cell count \leanref{sym:J}{\ensuremath{J}} are specified in \cref{obj:def:activation-lower-handle}. The mass cap reserves at least half of the baseline probability for the reservoir. Each rare cell has a single latent coordinate \leanref{sym:Z}{\ensuremath{Z_x}}, shared by its two treatment arms and all its sampled records. In the table, this coordinate governs arrival, while its reciprocal governs the treated arrived-outcome mean; the control outcome is zero. This arrangement places reciprocal separation and polynomial moment matching in the same experiment.
+
+\subsection{Reciprocal approximation and finite priors}
+
+The approximation inputs concern the interval and degree used by \cref{obj:def:activation-lower-handle}. Best uniform approximation quantifies the discrepancy between the reciprocal function and polynomials of the matching degree. The first input gives that discrepancy exactly.
+
+\begin{lemmav}{lem:reciprocal-best-approximation}[Reciprocal best uniform approximation]
+For every integer \(K\ge 2\), set \(H=K^2\). Then
+\[
+\inf_{\substack{p\ \mathrm{real\ polynomial}\\ \deg(p)\le K}}
+\sup_{z\in[1,H]}\left|z^{-1}-p(z)\right|
+=
+\frac{H-1}{2H}
+\left(\frac{K-1}{K+1}\right)^K.
+\]
+\end{lemmav}
+
+\Cref{obj:lem:reciprocal-best-approximation} identifies the approximation scale underlying the prior construction. Its mathematical role is to distinguish the reciprocal functional from the polynomial moments used to compare the two experiments. The next input supplies finite probability laws with exactly matching moments and a fixed reciprocal-mean separation.
+
+\begin{lemmav}{lem:moment-matched-reciprocal-priors}[Moment-matched reciprocal priors]
+For every integer \(K\ge 2\), set \(H=K^2\). There exist finitely supported probability laws \(\Pi_0\) and \(\Pi_1\) on \([1,H]\) such that
+\[
+\int z^v\,d\Pi_0(z)=\int z^v\,d\Pi_1(z)
+\qquad\text{for every integer }v\in\{0,\ldots,K\},
+\]
+and
+\[
+\left|\int z^{-1}\,d\Pi_1(z)-\int z^{-1}\,d\Pi_0(z)\right|
+\ge \frac{1}{12}.
+\]
+\end{lemmav}
+
+The finite priors \leanref{sym:\Pi_a}{\ensuremath{\Pi_0,\Pi_1}} supplied by \cref{obj:lem:moment-matched-reciprocal-priors} satisfy the prior requirements of \cref{obj:def:activation-lower-handle}. Matching includes the zeroth moment, and reciprocal separation remains bounded below by an absolute constant. Finite support makes the augmented laws finite mixtures of experiments generated conditional on a fixed latent vector.
+
+\subsection{A one-category family}
+
+For the effective sample-size component, the local family in \cref{obj:lem:one-cell-testing-family} places the entire baseline mass on category zero. Both potential surrogates and the control potential outcome are zero; the treated potential outcome is Bernoulli with mean \(u\in[1/4,3/4]\). Treatment is an independent fair coin, and arrival is an independent Bernoulli variable with probability \(q\). Thus \(P_u\), the full-data law indexed by the treated outcome mean and defined through \cref{obj:lem:one-cell-testing-family}, has average treatment effect \(u\). The following statement records both squared-error and honest-interval comparisons for this family.
+
+\begin{lemmav}{lem:one-cell-testing-family}[One-cell testing family bounds]
+There exist a universal constant \(\underline c>0\) and constants \(\underline c_\alpha>0\) for every \(\alpha\in(0,1)\), independent of \(n,d,q\), such that the following holds whenever:
+\begin{itemize}
+\item \textbf{(Sample and alphabet sizes.)} \(n,d\) are integers with \(n\ge1\) and \(d\ge1\).
+\item \textbf{(Arrival probability.)} \(0<q\le1\).
+\item \textbf{(Rare-arrival slice.)} The restriction in \cref{obj:ass:rare-arrival-slice} holds.
+\end{itemize}
+Write \(N=nq\) for the effective sample size. There exists a family of full-data laws \(\{P_u:u\in[1/4,3/4]\}\), chosen independently of \(\alpha\), such that, for every \(u\in[1/4,3/4]\),
+\[
+P_u\in\mathcal M_{n,d,q},\qquad
+P_u\!\left(X=0,\ S(0)=S(1)=0,\ Y(0)=0\right)=1,
+\qquad
+P_u(R=1)=q,\qquad
+\tau(P_u)=u.
+\]
+Here \(X=0\) denotes the first baseline category in the alphabet \(\{0,\ldots,d-1\}\); the model class \(\mathcal M_{n,d,q}\) and average treatment effect \(\tau(P)\) are defined in \cref{obj:def:model-class,obj:def:ate-functional}.
+
+There exist distinct \(u_0,u_1\in[1/4,3/4]\) such that every possibly randomized estimator \(\mathsf T\in\mathcal T_n\), as defined in \cref{obj:def:minimax-risk}, satisfies
+\[
+\underline c\min\{1,N^{-1}\}
+\le
+\max\left\{
+\mathbb E_{P_{u_0}}\!\left[(\mathsf T-u_0)^2\right],
+\mathbb E_{P_{u_1}}\!\left[(\mathsf T-u_1)^2\right]
+\right\}.
+\]
+Moreover, the minimax squared-error risk in \cref{obj:def:minimax-risk} satisfies
+\[
+\mathfrak R_{n,d,q}\ge
+\underline c\min\{1,N^{-1}\}.
+\]
+
+For every \(\alpha\in(0,1)\), there exist an integer \(M\ge1\) and pairwise distinct grid points \(u_0,\ldots,u_M\in[1/4,3/4]\) from this same family such that every uniformly honest connected-interval procedure \(\mathsf I\in\mathcal C_{n,d,q,\alpha}\), as defined in \cref{obj:def:interval-length-risk}, satisfies
+\[
+\underline c_\alpha\min\{1,N^{-1/2}\}
+\le
+\max_{i=0,\ldots,M}\mathbb E_{P_{u_i}}[u-l],
+\]
+where \((l,u)\) are the random endpoints returned by \(\mathsf I\). Moreover, the minimax expected interval length in \cref{obj:def:interval-length-risk} satisfies
+\[
+\mathfrak L_{n,d,q,\alpha}\ge
+\underline c_\alpha\min\{1,N^{-1/2}\}.
+\]
+All expectations include the observed sample and the procedure's randomization.
+\end{lemmav}
+
+The squared-error comparison already applies when all individuals share a baseline category and both potential surrogates are constant. It isolates the information supplied by arrived treated outcomes, whose frequency is governed by balanced assignment and the arrival probability. The same family supports the interval comparison: the family is common across coverage levels, while the finite grid and interval lower constant may depend on the chosen coverage level. Both conclusions retain the randomized decision classes of \cref{obj:def:minimax-risk,obj:def:interval-length-risk}.
+
+\subsection{The many-category comparison in the full experiment}
+
+The many-category component uses the augmented laws of \cref{obj:def:activation-lower-handle}, with the finite priors supplied by \cref{obj:lem:moment-matched-reciprocal-priors}. Their membership distribution, treatment allocation, and activation distribution are common to the two hypotheses. The comparison therefore concerns the full fixed-sample experiment, including the information in repeated memberships and in both randomized arms.
+
+Two mathematical inputs have distinct roles in this comparison. Moment matching governs comparison of the integrated observation laws, while reciprocal-mean separation governs separation of the treatment-effect functional across the prior constructions. The common activation mechanism connects these roles while preserving the original record coordinates. Together with the one-category component in \cref{obj:lem:one-cell-testing-family}, these inputs support the following lower bound for the entire decision class.
+
+\begin{theoremv}{thm:full-experiment-lower}[Full-experiment minimax lower bound]
+There exists a universal lower constant \(\underline c>0\) such that, for every \(n,d\in\mathbb N\) and \(q\in\mathbb R\) satisfying
+\begin{itemize}
+\item \textbf{(Sample size and dimension.)} \(n\ge1\) and \(d\ge1\).
+\item \textbf{(Arrival parameter.)} \(0<q\le1\).
+\item \textbf{(Rare-arrival slice.)} The restriction in \cref{obj:ass:rare-arrival-slice} holds.
+\end{itemize}
+the minimax squared-error risk \(\mathfrak R_{n,d,q}\) defined in \cref{obj:def:minimax-risk} obeys
+\[
+\mathfrak R_{n,d,q}\ge \underline c\,r_{n,d,q},
+\]
+where \(r_{n,d,q}\) is the frontier rate defined in \cref{obj:def:frontier-rate}.
+\end{theoremv}
+
+The bound combines effective sample-size uncertainty with uncertainty across many categories. The one-category family accounts for the reciprocal effective sample-size term, and the activated comparison accounts for the squared category term in \cref{obj:def:frontier-rate}. Full membership observations remain available throughout the experiment. Consequently, the lower bound describes the difficulty of estimating the treatment contrast with all recorded baseline, assignment, surrogate, and arrival information under the stated rare-arrival conditions.
+
+\subsection{Large alphabets and the ascertainment deficit}
+
+The separate unrestricted comparison is \cref{obj:thm:unrestricted-large-alphabet-deficit-lower}. Its domain is \(n\ge1\), \(d\ge1024n^2\), and \(0<q\le1\), with the model and risk defined in \cref{obj:def:unrestricted-arrival-model-class,obj:def:unrestricted-minimax-risk}. The observed-law comparison concerns all \(n\) original records, including their category memberships. Target separation supplies the ascertainment-deficit component, quantified by the lower bound \((1-q)^2/1024\); the sampling component is bounded below by \(1/(256n)\).
+
+These components have complementary interpretations. The sampling term remains present at complete ascertainment. The squared deficit measures the additional difficulty captured by the large-alphabet comparison when the arrival floor is below one. The matching upper bound \(4/n+(1-q)^2\) in \cref{obj:thm:unrestricted-large-alphabet-deficit-lower} comes from the observed-outcome envelope of \cref{obj:thm:unrestricted-near-complete-arrival-envelope}. Thus the large-alphabet result supplies a comparison with universal constants for the joint sampling-and-deficit scale.
+
+\subsection{Squared-error comparisons and their consequences}
+
+The lower bound in \cref{obj:thm:full-experiment-lower} and the constructive upper comparison in \cref{obj:thm:unrestricted-mixed-count-upper} provide the two sides of \cref{obj:thm:matched-minimax-frontier}. Under \cref{obj:ass:rare-arrival-slice}, the minimax squared-error risk is therefore comparable, with universal constants, to the rate in \cref{obj:def:frontier-rate}. Conditional averaging preserves the upper guarantee by \cref{obj:lem:randomized-kernel-barycenter}, while the lower comparison covers the full class of possibly randomized estimators.
+
+For a fixed alphabet and growing effective sample size, \cref{obj:prop:fixed-d-effective-sample-reduction} records risk of order \(N^{-1}\), including within the constant-surrogate submodel. Along growing-alphabet sequences satisfying the rare-arrival restriction and \(N\to\infty\), \cref{obj:prop:phase-boundaries} gives consistency exactly when \(d=o\{N\log(e+N)\}\), and risk of order \(N^{-1}\) exactly when \(d=O\{\sqrt N\log(e+N)\}\). These consequences distinguish the category-growth range permitting consistency from the range preserving effective sample-size precision.
+
+For the unrestricted model, \cref{obj:prop:unrestricted-uniform-near-complete-elbow} combines the large-alphabet lower comparison with the dimension-free upper envelope. An eventual risk bound of order \(n^{-1}\), simultaneous over every alphabet size, is equivalent to an ascertainment deficit \(1-q_n=O(n^{-1/2})\). The numerical comparison along arbitrary alphabet-size sequences is given by \cref{obj:prop:unrestricted-near-complete-phase-boundary}. At complete arrival, \cref{obj:thm:unrestricted-complete-arrival-frontier,obj:prop:unrestricted-complete-arrival-phase-boundary} establish the same sampling order uniformly over category growth.
+
+Finally, the fixed-floor comparison in \cref{obj:thm:unrestricted-fixed-q-minimax-frontier} concerns each fixed \(q\in(0,1/2)\), with constants depending on that floor. Its lower comparison invokes the discrete observational result of \citet[Theorem~2, Section~3.2, p.~9, and its proof in Section~C.5, pp.~39--44]{ZengBalakrishnanHanKennedy2026}, including the submodel with zero control regression. The resulting category-growth consequences are stated in \cref{obj:prop:unrestricted-fixed-q-phase-boundaries}: consistency corresponds to \(d=o\{n\log(e+n)\}\), and parametric squared-error order corresponds to \(d=O\{\sqrt n\log(e+n)\}\). These comparisons preserve the distinct parameter domains and constant dependencies of the rare-arrival, fixed-floor, and near-complete ascertainment results.

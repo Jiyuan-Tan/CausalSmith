@@ -1,0 +1,257 @@
+\section{Setup and the finite orbit game}\label{sec:setup}
+
+Throughout the paper, \(n\) denotes the fixed number of labeled units, \(K\) the fixed number of treatment arms, and asymptotic notation is taken with \(K\) and the contrast fixed. Sums over arms run over the treatment-arm set and sums over response types run over the corresponding binary type space. Generic constants may depend on the fixed contrast and on \(K\), but not on \(n\).
+
+The finite-population model starts with a labeled binary potential-outcome schedule. The treatment-arm set \leanref{sym:\mathcal A_K}{\ensuremath{\mathcal A_K}} indexes the arms, and the response-type space records the vector of binary potential outcomes attached to each unit.
+
+\begin{definitionv}{synth_1}[Treatment-arm label set]
+For each natural number \(K\), the treatment-arm set is the finite set of its \(K\) arm labels:
+\[
+\mathcal A_K:=\{1,\ldots,K\}.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_2}[Binary response types]
+For a fixed number \(K\) of treatment arms, let \(\mathcal A_K\) be the treatment-arm label set. The binary response-type space is
+\[
+\mathcal T_K := \{0,1\}^{\mathcal A_K}.
+\]
+Thus each \(t\in\mathcal T_K\) assigns one binary potential-outcome value \(t_a\in\{0,1\}\) to every arm \(a\in\mathcal A_K\).
+\end{definitionv}
+
+This notation is the multi-arm version of the binary potential-outcome framework used in design-based causal inference \citep{neyman_1990,rubin_1974,holland_1986,imbens_rubin_2015}. A complete schedule assigns one response type to each labeled unit; an assignment design then randomizes only the observed arm, while the schedule itself remains fixed.
+
+Three objects enter the next definition and are fixed here once. The contrast \(c\) is a nonzero zero-sum vector, that is \(c\in\mathbb R^K\setminus\{0\}\) with \(\sum_{a\in\mathcal A_K}c_a=0\) (restated as \cref{obj:synth_20} below, where the rational case is also named); we write
+\[
+L_c=\sum_{a\in\mathcal A_K}|c_a|,
+\qquad
+I_c=\left[-\frac{L_c}{2},\frac{L_c}{2}\right],
+\qquad
+\tau_c(z)=\frac1n\sum_{i=1}^n\sum_{a\in\mathcal A_K}c_a\,t_{i,a}
+\]
+for its \(\ell_1\) norm, the interval it generates, and the finite-population estimand at the complete schedule \(z=(t_1,\ldots,t_n)\). Because \(c\) sums to zero and each \(t_{i,a}\) is \(0\) or \(1\), the estimand always lies in \(I_c\). The infimum in the definition below runs over assignment laws \(\mathcal D\in\Delta(\mathcal A_K^n)\) and over estimators
+\[
+\widehat\tau\colon(\mathcal A_K\times\{0,1\})^n\to I_c .
+\]
+Confining the estimator to \(I_c\) costs nothing: projecting a real-valued rule onto \(I_c\) never increases squared error at a target that lies in \(I_c\), so the value of the game is the same as it would be with arbitrary real-valued estimators. Finally, \(\mathcal M_{n,K}\) denotes the set of nonnegative integer vectors \((m_t)_{t\in\mathcal T_K}\) with \(\sum_t m_t=n\), and \(\mathcal R_{n,K}\) the set of nonnegative integer vectors \((r_a)_{a\in\mathcal A_K}\) with \(\sum_a r_a=n\); these are finite sets of lattice points, and the shorter word ``simplex'' is occasionally used for them below.
+
+\begin{definitionv}{def:labeled-schedule-game}[Labeled-schedule risk $\rho_n(c)$]
+The unrestricted labeled-schedule minimax risk for contrast \(c\) is
+\[
+\rho_n(c)=\inf_{\mathcal D\in\Delta(\mathcal A_K^n),\,\widehat\tau}\max_{z\in\mathcal T_K^n}\mathbb E_{\mathcal D}\left[\left\{\widehat\tau((A_i,Y_i^{\mathrm{obs}})_{i=1}^n)-\tau_c(z)\right\}^2\right].
+\]
+\end{definitionv}
+
+The risk \leanref{sym:\rho_n(c)}{\ensuremath{\rho_n(c)}} is the benchmark for joint design and estimation; by the previous paragraph nothing is lost by the clipping, so we drop the qualifier ``unrestricted'' from here on. It optimizes over an assignment law \leanref{sym:\mathcal D}{\ensuremath{\mathcal D}} and a clipped estimator \leanref{sym:\widehat\tau}{\ensuremath{\widehat\tau}}, then evaluates the largest design-based squared error over complete binary schedules. The contrast \leanref{sym:c}{\ensuremath{c}} is zero-sum, so the estimand is a treatment comparison rather than a level.
+
+The next definitions pass from labeled schedules to response-type counts. This is the statistic that remains after averaging over relabelings of the units.
+
+\begin{definitionv}{synth_4}[Response-type count vector]
+For a complete labeled schedule \(z=(t_1,\ldots,t_n)\in\mathcal T_K^n\), define
+\[
+\operatorname{counts}(z)=\bigl(\operatorname{counts}(z)_t\bigr)_{t\in\mathcal T_K}\in\mathcal M_{n,K},
+\qquad
+\operatorname{counts}(z)_t=\#\{i\in\{1,\ldots,n\}:t_i=t\}.
+\]
+Thus \(\operatorname{counts}(z)\) is the unit-permutation orbit of \(z\).
+\end{definitionv}
+
+\begin{definitionv}{synth_19}[Notation for response-type counts]
+For a complete labeled response schedule \(z=(t_1,\ldots,t_n)\in\mathcal T_K^n\) we write \(m(z)=\operatorname{counts}(z)\) for the response-type count vector of \cref{obj:synth_4}, with coordinates
+\[
+m_t(z)=\#\{i\in\{1,\ldots,n\}:t_i=t\},\qquad t\in\mathcal T_K,
+\]
+so that \(\sum_{t\in\mathcal T_K}m_t(z)=n\). A generic element of \(\mathcal M_{n,K}\) is written \(m\), and \(m_t\) is its coordinate at \(t\).
+\end{definitionv}
+
+The count vector \leanref{sym:m}{\ensuremath{m}} belongs to the response-count simplex \leanref{sym:\mathcal M_{n,K}}{\ensuremath{\mathcal M_{n,K}}}. It preserves the finite-population target because the contrast averages unit-level potential outcomes symmetrically across labels.
+
+Given a response-count vector and an allocation-count vector, the observable data reduce to arm-specific success counts. The likelihood below counts all response-type-by-arm contingency tables compatible with those margins.
+
+\begin{definitionv}{def:orbit-likelihood}[Orbit likelihood $P_m(x\mid r)$]
+The orbit likelihood of arm-success counts \(x\) given allocation counts \(r\) and response-type counts \(m\) is
+\[
+P_m(x\mid r)=\frac{\prod_{a\in\mathcal A_K}r_a!}{n!}\sum_{h\in\mathcal H(m,r,x)}\prod_{t\in\mathcal T_K}\frac{m_t!}{\prod_{a\in\mathcal A_K}h_{t,a}!}.
+\]
+Here \(\mathcal H(m,r,x)\) is the set of nonnegative integer tables \(h=(h_{t,a})\) with response-type margins \(m\), allocation margins \(r\), and arm-success totals \(x\).
+\end{definitionv}
+
+The orbit likelihood \leanref{sym:P_m(x\mid r)}{\ensuremath{P_m(x\mid r)}} is purely finite-population: it is induced by random assignment among labeled units with fixed response types. The allocation-count vector \leanref{sym:r}{\ensuremath{r}} lies in the allocation-count simplex \leanref{sym:\mathcal R_{n,K}}{\ensuremath{\mathcal R_{n,K}}}, and the observed-success vector \leanref{sym:x}{\ensuremath{x}} records one count for each arm.
+
+\begin{definitionv}{def:finite-orbit-game}[Finite orbit game $G_n(c)$]
+The finite response-type orbit minimax value is
+\[
+G_n(c)=\inf_{\pi\in\Delta(\mathcal R_{n,K}),\,\delta}\max_{m\in\mathcal M_{n,K}}\sum_{r\in\mathcal R_{n,K}}\pi_r\sum_{x\in\prod_{a\in\mathcal A_K}\{0,\ldots,r_a\}}P_m(x\mid r)\{\delta(r,x)-\tau_c(m)\}^2.
+\]
+Here \(\mathcal M_{n,K}\) is the simplex of response-type count vectors and \(\mathcal R_{n,K}\) is the simplex of allocation-count vectors.
+\end{definitionv}
+
+The finite value \leanref{sym:G_n(c)}{\ensuremath{G_n(c)}} optimizes over an invariant design distribution \leanref{sym:\pi}{\ensuremath{\pi}} on allocation-count orbits and an orbit estimator \leanref{sym:\delta}{\ensuremath{\delta}}. Its target \leanref{sym:\tau_c(m)}{\ensuremath{\tau_c(m)}} is the count-level version of the labeled finite-population contrast.
+
+For later reference, it is useful to name both the labeled and orbit risks explicitly.
+
+\begin{definitionv}{synth_3}[Design-based squared-error risk]
+For a complete labeled response schedule \(z\in\mathcal T_K^n\), an assignment design \(\mathcal D\in\Delta(\mathcal A_K^n)\), and an estimator \(\widehat\tau:(\mathcal A_K\times\{0,1\})^n\to[-L_c/2,L_c/2]\), define
+\[
+R_n(\mathcal D,\widehat\tau;z)
+=\mathbb E_{\mathcal D}\left[\left\{\widehat\tau((A_i,Y_i^{\mathrm{obs}})_{i=1}^n)-\tau_c(z)\right\}^2\right],
+\]
+where \(A\sim\mathcal D\), \(Y_i^{\mathrm{obs}}=t_{i,A_i}\), and the expectation is only over the assignment randomization. If \(p=(\mathcal D,\widehat\tau)\) is a labeled procedure, write \(R_n(p;z)\) for the same quantity.
+\end{definitionv}
+
+\begin{definitionv}{synth_10}[Orbit-procedure risk]
+For a contrast $c$, an orbit procedure is a pair $q=(\pi,\delta)$ with $\pi\in\Delta(\mathcal R_{n,K})$ and $\delta(r,x)\in[-L_c/2,L_c/2]$. Its risk at response-type count vector $m\in\mathcal M_{n,K}$ is
+\[
+R_n(q;m)=\sum_{r\in\mathcal R_{n,K}}\pi_r\sum_{x\in\prod_{a\in\mathcal A_K}\{0,\ldots,r_a\}}P_m(x\mid r)\{\delta(r,x)-\tau_c(m)\}^2.
+\]
+In the two-arm contrast $c=(1,-1)$, write
+\[
+R^{\mathrm{orb}}_{(1,-1)}(q;m)=\sum_{r\in\mathcal R_{n,2}}\pi_r\sum_{x\in\prod_{a\in\mathcal A_2}\{0,\ldots,r_a\}}P_m(x\mid r)\{\delta(r,x)-\tau_{(1,-1)}(m)\}^2.
+\]
+\end{definitionv}
+
+\begin{definitionv}{synth_20}[Nonzero zero-sum contrast]
+For \(K\ge 2\), a zero-sum contrast is a vector \(c=(c_a)_{a\in\mathcal A_K}\in\mathbb R^K\) satisfying \(\sum_{a\in\mathcal A_K}c_a=0\). It is nonzero when \(c\neq 0\). A rational nonzero zero-sum contrast is such a vector with \(c\in\mathbb Q^K\).
+\end{definitionv}
+
+\begin{definitionv}{synth_15}[Compatible observation-success counts]
+For an allocation-count vector \(r\in\mathcal R_{n,K}\), an observed-success vector \(x=(x_a)_{a\in\mathcal A_K}\) is compatible with \(r\) when \(x_a\in\{0,\ldots,r_a\}\) for every arm \(a\). For \(m\in\mathcal M_{n,K}\), the vector \(x\) is compatible with \((m,r)\) when there exists a contingency table \(h=(h_{t,a})_{t\in\mathcal T_K,a\in\mathcal A_K}\in\mathbb Z_+^{\mathcal T_K\times\mathcal A_K}\) such that \(\sum_a h_{t,a}=m_t\) for every \(t\), \(\sum_t h_{t,a}=r_a\) for every \(a\), and \(\sum_{t:t_a=1}h_{t,a}=x_a\) for every \(a\); equivalently, \(\mathcal H(m,r,x)\) is nonempty.
+\end{definitionv}
+
+The compatibility condition spells out the feasible fibers in \cref{obj:def:orbit-likelihood}. A table \leanref{sym:h}{\ensuremath{h}} records how many units of each response type are assigned to each arm; its margins determine the allocation counts and the observed successes.
+
+The exact reduction uses the unit-permutation orbit representation of the experiment. Invariance requires the design and estimator to ignore the arbitrary labels of the units.
+
+\begin{definitionv}{synth_14}[Invariant labeled procedure]
+A labeled procedure is a pair \(p=(\mathcal D,\widehat\tau)\), where \(\mathcal D\in\Delta(\mathcal A_K^n)\) is an assignment law and \(\widehat\tau:(\mathcal A_K\times\{0,1\})^n\to[-L_c/2,L_c/2]\) is an estimator. For \(\sigma\in\mathfrak S_n\), define \((\sigma A)_i=A_{\sigma^{-1}(i)}\), \((\sigma z)_i=z_{\sigma^{-1}(i)}\), and \(\sigma((A_i,Y_i^{\mathrm{obs}})_{i=1}^n)=((A_{\sigma^{-1}(i)},Y_{\sigma^{-1}(i)}^{\mathrm{obs}}))_{i=1}^n\). The procedure \(p\) is invariant when, for every \(\sigma\in\mathfrak S_n\), the law of \(\sigma A\) under \(\mathcal D\) equals \(\mathcal D\) and \(\widehat\tau(\sigma o)=\widehat\tau(o)\) for every observed-data vector \(o\in(\mathcal A_K\times\{0,1\})^n\).
+\end{definitionv}
+
+The following theorem is the main reduction in this section. It establishes that symmetrizing over unit labels preserves the minimax value and identifies the resulting finite game exactly.
+
+\begin{theoremv}{thm:exact-response-type-game}[Exact orbit game reduction]
+Fix \(n\in\mathbb N\), \(K\ge 2\), and a nonzero zero-sum contrast \(c\) in the labeled-schedule and finite-orbit games of \cref{obj:def:labeled-schedule-game,obj:def:finite-orbit-game}. Then:
+\begin{itemize}
+\item \textbf{(Lossless symmetrization.)} For every labeled procedure \(p\), there are an invariant labeled procedure \(\bar p\) and an orbit procedure \(q\) such that \(\bar p\) is the common-unit-permutation average of \(p\), and for every complete labeled schedule \(z\in\mathcal T_K^n\),
+\[
+R_n(\bar p;z)
+\le
+\frac{1}{|\mathfrak S_n|}
+\sum_{\sigma\in\mathfrak S_n} R_n(p;\sigma z).
+\]
+The orbit procedure \(q\) is dominated by this averaged invariant representative in the corresponding orbit risk.
+\item \textbf{(Exact invariant correspondence.)} Invariant labeled procedures are in bijection with orbit procedures \((\pi,\delta)\). Under this bijection, each invariant labeled procedure and its orbit representative realize the same allocation-count and observation-count rule, and for every \(z\in\mathcal T_K^n\),
+\[
+R_n(q;\operatorname{counts}(z))=R_n(\bar p;z).
+\]
+\item \textbf{(Target preservation.)} If \(m=\operatorname{counts}(z)\), with \(m_t=\#\{i:t_i=t\}\), then
+\[
+\tau_c(z)
+=
+\frac{1}{n}\sum_i\sum_{a\in\mathcal A_K} c_a\,t_{i,a}
+=
+\frac{1}{n}\sum_t m_t\sum_{a\in\mathcal A_K} c_a\,t_a
+=
+\tau_c(m).
+\]
+\item \textbf{(Value equality.)} The unrestricted labeled-schedule minimax risk equals the finite response-type orbit minimax value:
+\[
+\rho_n(c)=G_n(c).
+\]
+\item \textbf{(Orbit saddle point.)} There exist an orbit procedure \(q^\star\) and a prior \(\nu\) on \(\mathcal M_{n,K}\) such that, for every response-count vector \(m\) and every orbit procedure \(q\),
+\[
+R_n(q^\star;m)\le G_n(c)
+\qquad\text{and}\qquad
+G_n(c)\le \mathbb E_{\nu}\!\left[R_n(q;m)\right].
+\]
+\end{itemize}
+\end{theoremv}
+
+The intuition is that the labels of units carry no information about the contrast target once the complete schedule is fixed. Averaging a procedure over common relabelings cannot increase worst-case risk, and the averaged procedure depends on the assignment and outcomes only through allocation counts and observed-success counts. \Cref{obj:thm:exact-response-type-game} therefore turns the unrestricted labeled problem into a finite decision problem over response-count vectors, while preserving both the target and the minimax value.
+
+The final part of the setup records the two-arm benchmark and the fixed-\(K\) extension. The two-arm bounded schedule domain is included because recent two-arm results provide an important comparison point for binary minimax analysis \citep{sudijono_dobriban_tchetgen_2026_sharp,hull_2026_bounded}.
+
+\begin{definitionv}{synth_9}[Hull bounded-schedule domain and risk]
+For bounds \(L<U\), let \(\mathcal Y^{\mathrm{Hull}}_{n,L,U}\) be the set of two-arm bounded potential-outcome schedules
+\[
+Y=\bigl(Y_i(1),Y_i(2)\bigr)_{i=1}^n
+\qquad\text{with}\qquad
+Y_i(a)\in[L,U]
+\]
+for every unit \(i\) and arm \(a\in\{1,2\}\). For a design \(\mathcal D\), estimator \(\widehat\tau\), and schedule \(Y\in\mathcal Y^{\mathrm{Hull}}_{n,L,U}\), define the Hull squared-error risk
+\[
+R_{\mathrm{Hull}}(\mathcal D,\widehat\tau;Y)
+=\mathbb E_{\mathcal D}\left[\left\{\widehat\tau((A_i,Y_i^{\mathrm{obs}})_{i=1}^n)-\frac1n\sum_{i=1}^n\bigl(Y_i(1)-Y_i(2)\bigr)\right\}^2\right],
+\]
+where \(Y_i^{\mathrm{obs}}=Y_i(A_i)\) and the expectation is over assignment from \(\mathcal D\).
+\end{definitionv}
+
+\begin{theoremv}{thm:multiarm-strict-extension}[Two-arm specialization and the fixed-$K$ orbit game]
+Throughout, \(\rho_n(c)\) is the labeled-schedule minimax risk of \cref{obj:def:labeled-schedule-game} and \(G_n(c)\) the finite orbit-game value of \cref{obj:def:finite-orbit-game}.
+The following statements hold.
+\begin{itemize}
+\item \textbf{(Two-arm orbit value.)} For every \(n>0\), with \(c=(1,-1)\),
+\[
+\rho_n(c)=G_n(c)
+\qquad\text{and}\qquad
+C_0(c)=1 .
+\]
+\item \textbf{(Two-arm target.)} For every \(n>0\) and every \(m\in\mathcal M_{n,2}\), with \(p_+(m)=m_{(1,0)}\) and \(p_-(m)=m_{(0,1)}\),
+\[
+\tau_c(m)=\frac{p_+(m)-p_-(m)}{n}.
+\]
+\item \textbf{(Four two-arm response types and likelihood.)} For every \(n\), every \(m\in\mathcal M_{n,2}\), every \(r\in\mathcal R_{n,2}\), and every compatible observed-success vector \(x\), let
+\[
+t_{00}(a)=0,\qquad
+t_{01}= (0,1),\qquad
+t_{10}= (1,0),\qquad
+t_{11}(a)=1 .
+\]
+These four response types are pairwise distinct and exhaust \(\mathcal T_2\). Moreover, with the likelihood notation of \cref{obj:def:orbit-likelihood},
+\[
+P_m(x\mid r)
+=
+\frac{\prod_{a\in\mathcal A_2} r_a!}{n!}
+\sum_{h\in\mathcal H(m,r,x)}
+\prod_{t\in\mathcal T_2}
+\frac{m_t!}{\prod_{a\in\mathcal A_2} h_{t,a}!}.
+\]
+\item \textbf{(Two-arm second-order scale.)} For every \(n\ge 8\),
+\[
+d_n(c)\le 43\, n^{-4/3}.
+\]
+There are constants \(\kappa>0\) and \(N\) such that, for every \(n\ge N\),
+\[
+\kappa n^{-4/3}\le d_n(c).
+\]
+\item \textbf{(Exact multiarm orbit game.)} For every \(K\ge 3\), every \(n\), and every contrast \(c\),
+\[
+\rho_n(c)=G_n(c)
+\qquad\text{and}\qquad
+|\mathcal T_K|=2^K .
+\]
+\item \textbf{(Hull risk-value inclusion.)} For every \(N,L,U\), every finite design \(\mathcal D\) on two-arm assignments, and every measurable Hull estimator \(\widehat\tau\),
+\[
+\sup_{Y} R_{\mathrm{Hull}}(\mathcal D,\widehat\tau;Y)
+\in
+\left\{
+v:\exists\,\mathcal D',\widehat\tau'\ \text{with \(\widehat\tau'\) measurable and }\
+v=\sup_Y R_{\mathrm{Hull}}(\mathcal D',\widehat\tau';Y)
+\right\},
+\]
+where the suprema range over Hull schedules with parameters \(N,L,U\).
+\item \textbf{(Strict treatment-domain separation.)} For every \(K\ge 3\), every \(n>0\), and every \(L<U\), the Hull bounded-schedule domain with parameters \(n,L,U\) is not a subset of the binary \(K\)-arm schedule domain:
+\[
+\mathcal Y^{\mathrm{Hull}}_{n,L,U}\nsubseteq \mathcal T_K^n .
+\]
+\end{itemize}
+\end{theoremv}
+
+Write
+\[
+d_n(c)=\frac{C_0(c)}{n}-\rho_n(c),
+\qquad
+C_0(c)=\frac{L_c^2}{4},
+\]
+for the improvement of the minimax risk on the first-order envelope; \cref{sec:rates} is devoted to it. For \(K=2\), \cref{obj:thm:multiarm-strict-extension} identifies the orbit value for \(c=(1,-1)\), expresses the estimand through the effect-class counts \leanref{sym:p_+}{\ensuremath{p_+}} and \leanref{sym:p_-}{\ensuremath{p_-}}, reproduces the four-type likelihood, and places \(d_n(c)\) on the \(n^{-4/3}\) scale. For every fixed \(K\ge3\), it gives the exact multi-arm orbit equality and the binary type count \(2^K\), which supplies the finite state space used by the linear programs of \cref{sec:programs}.
+
+Two clauses of that theorem fix the scope of the bounded-outcome comparison. They record that the worst-case Hull risk of a design--estimator pair is itself an attainable Hull risk value, and that the bounded real-valued two-arm schedule domain and the binary \(K\)-arm schedule domain are distinct as sets. Both are elementary, and their role here is bookkeeping: they make precise that the two problems are posed over different schedule domains, so the route between them is an explicit construction. That is the route this paper takes, through the sign-pair embedding used in the converse of \cref{sec:rates}.

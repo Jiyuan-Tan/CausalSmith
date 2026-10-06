@@ -1,0 +1,259 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Back-door estimation system: structure, data law, value-space ATE estimand
+
+The `BackdoorEstimationSystem` extends `POBackdoorSystem` with the value-space
+factorization of the σ(X)-measurable representatives (Doob–Dynkin lift).  This
+file collects:
+
+* the structure itself with the observable compatibility fields `μ_reg_compat`,
+  `e_compat`, plus the derived counterfactual lemma `μ_compat`;
+* the strict-overlap predicate;
+* the covariate marginal `P_X`, factual data triple `factualZ`, joint law `P_Z`;
+* the value-space estimand `θ₀` and its agreement with the PO-level ATE;
+* `POBackdoorSystem.toBackdoorEstimationSystem`, showing that the estimation
+  layer's value-space representatives can be constructed from observable
+  regression and propensity lifts under overlap and integrability.
+-/
+
+module
+public import Causalean.PO.ID.Exact.ATE
+public import Causalean.Tactic.Attr
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+/-!
+Defines the estimation-layer structure used by back-door ATE estimators.
+
+The file introduces `BackdoorEstimationSystem`, its strict-overlap predicate
+`StrictOverlap`, the covariate and observed-data laws `P_X` and `P_Z`, and the
+value-space estimand `θ₀`.  It proves that `θ₀` agrees with the PO-level ATE
+under the back-door assumptions, derives counterfactual compatibility as
+`μ_compat`, and provides `POBackdoorSystem.toBackdoorEstimationSystem` to show
+that the added value-space compatibility and positivity fields are obtainable
+from observable lifts rather than extra causal assumptions.
+-/
+
+@[expose] public section
+
+namespace Causalean
+namespace Estimation
+namespace ATE
+
+open MeasureTheory ProbabilityTheory Filter Topology Causalean.PO
+
+/-! ## Back-door estimation system
+
+A `BackdoorEstimationSystem` extends `POBackdoorSystem` with the value-space
+factorization of the σ(X)-measurable representatives.  The compatibility
+fields encode the Doob–Dynkin lift; existence of such fields is the
+estimation-layer assumption added on top of identification. -/
+
+/-- **A back-door estimation system** extends a potential-outcome back-door system with
+value-space representatives of the nuisance parameters used by AIPW-style estimators: [an
+outcome regression `μ(a,x)`](hyp:μ_val,μ_meas) and [a propensity score
+`e(x)`](hyp:e_val,e_meas) that is [bounded away from `0`](hyp:e_pos) and [away from
+`1`](hyp:e_lt_one), together with [the outcome regression's agreement, almost everywhere,
+with the σ(X)-measurable observable regression `adjustedCE`, composed with the factual
+covariate](hyp:μ_reg_compat) and [the analogous agreement of the propensity score with the
+observable propensity `propScore`](hyp:e_compat).
+
+Field summary:
+* `μ_val a x`     — value-space outcome regression  `μ(a, x)`.
+* `e_val x`       — value-space propensity           `e(x) ∈ (0, 1)`.
+* `μ_reg_compat`  — `μ_val d ∘ factualX =ᵐ adjustedCE d` (observable; ML target).
+* `e_compat`      — `propScore true =ᵐ e_val ∘ factualX`. -/
+structure BackdoorEstimationSystem (P : POSystem) (γ : Type*)
+    [MeasurableSpace γ] [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+    extends POBackdoorSystem P γ where
+  /-- Value-space outcome regression `μ(a, x)`. -/
+  μ_val : Bool → γ → ℝ
+  μ_meas : ∀ b, Measurable (μ_val b)
+  /-- Value-space propensity `e(x) ∈ (0, 1)`. -/
+  e_val : γ → ℝ
+  e_meas : Measurable e_val
+  e_pos : ∀ x, 0 < e_val x
+  e_lt_one : ∀ x, e_val x < 1
+  /-- The value-space outcome regression `μ_val` represents the **observable**
+  adjustment functional `adjustedCE d = E[Y·1_{D=d}|σX] / P[D=d|σX]`, with NO
+  identification assumptions: `μ_val d (factualX ·) =ᵐ adjustedCE d`. This is the
+  ML/regression target (`adjustedCE` is the regression `E[Y|D=d,X]`, see
+  `regression_adjustment`). The counterfactual reading
+  `μ[Y(d)|σX] =ᵐ μ_val d ∘ factualX` is NOT assumed here — it is the *derived*
+  lemma `μ_compat` below, which additionally requires `Assumptions` via
+  back-door identification (`conditionalMeanOutcome_backdoor`). -/
+  μ_reg_compat : ∀ d : Bool,
+    (fun ω => μ_val d (toPOBackdoorSystem.factualX ω))
+      =ᵐ[P.μ] toPOBackdoorSystem.adjustedCE d
+  /-- Propensity factors through `factualX`:
+  `propScore true =ᵐ e_val (factualX ·)`. -/
+  e_compat :
+    toPOBackdoorSystem.propScore true
+      =ᵐ[P.μ] (fun ω => e_val (toPOBackdoorSystem.factualX ω))
+
+attribute [fun_prop] BackdoorEstimationSystem.μ_meas BackdoorEstimationSystem.e_meas
+
+namespace BackdoorEstimationSystem
+
+variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
+  [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+
+/-- **Counterfactual compatibility (derived, under identification).** Recovers the
+former `μ_compat` field — the *counterfactual* reading
+`μ[Y(d) | σ(X)] =ᵐ μ_val d ∘ factualX` — now as a theorem rather than an
+assumption. It is the observable `μ_reg_compat` (`μ_val d ∘ factualX =ᵐ adjustedCE d`)
+composed with back-door identification
+(`conditionalMeanOutcome_backdoor : μ[Y(d)|σX] =ᵐ adjustedCE d`),
+so the counterfactual binding is NOT part of the estimation system's data: it holds
+only under `Assumptions`. Every downstream proof that used the old field calls this
+with the ambient `hA`. -/
+lemma μ_compat (S : BackdoorEstimationSystem P γ)
+    (hA : S.toPOBackdoorSystem.Assumptions) (d : Bool) :
+    P.μ[S.toPOBackdoorSystem.YofD d | S.toPOBackdoorSystem.sigmaX]
+      =ᵐ[P.μ] (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) :=
+  (S.toPOBackdoorSystem.conditionalMeanOutcome_backdoor hA d).trans (S.μ_reg_compat d).symm
+
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door estimation system](hyp:S), and [a real overlap level](hyp:ε), the [strict-overlap condition](goal) holds precisely when [$ε>0$](step:1), [$ε\leq 1/2$](step:2), and [almost surely under the population measure, the probability of treatment is between $ε$ and $1-ε$](step:3).
+
+Restated to the value-space propensity via `e_compat`. -/
+def StrictOverlap (S : BackdoorEstimationSystem P γ) (ε : ℝ) : Prop :=
+  0 < ε ∧ ε ≤ 1 / 2 ∧
+    (∀ᵐ ω ∂P.μ, ε ≤ S.toPOBackdoorSystem.propScore true ω ∧
+      S.toPOBackdoorSystem.propScore true ω ≤ 1 - ε)
+
+/-! ## Marginal of the covariate and joint data law -/
+
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [covariate marginal law](goal) is the image of the population measure under the factual covariate. -/
+noncomputable def P_X (S : BackdoorEstimationSystem P γ) : Measure γ :=
+  P.μ.map S.toPOBackdoorSystem.factualX
+
+/-- The covariate marginal is the image of the population measure under the factual covariate
+map. -/
+@[causal_defs_simps]
+lemma P_X_eq (S : BackdoorEstimationSystem P γ) :
+    S.P_X = P.μ.map S.toPOBackdoorSystem.factualX :=
+  rfl
+
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [factual data map](goal) sends every sample point to its observed covariate, binary treatment, and outcome triple. -/
+noncomputable def factualZ (S : BackdoorEstimationSystem P γ) :
+    P.Ω → γ × Bool × ℝ :=
+  fun ω => (S.toPOBackdoorSystem.factualX ω,
+            S.toPOBackdoorSystem.factualD ω,
+            S.toPOBackdoorSystem.factualY ω)
+
+/-- The observed covariate, treatment, and outcome triple is measurable. -/
+@[fun_prop]
+lemma measurable_factualZ (S : BackdoorEstimationSystem P γ) :
+    Measurable S.factualZ :=
+  (S.toPOBackdoorSystem.measurable_factualX).prodMk
+    ((S.toPOBackdoorSystem.measurable_factualD).prodMk
+      S.toPOBackdoorSystem.measurable_factualY)
+
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [observed-data law](goal) is the image of the population measure under the factual covariate--treatment--outcome map. -/
+noncomputable def P_Z (S : BackdoorEstimationSystem P γ) :
+    Measure (γ × Bool × ℝ) :=
+  P.μ.map S.factualZ
+
+/-- The joint data law is the image of the population measure under the map recording the
+observed covariate, treatment, and outcome. -/
+@[causal_defs_simps]
+lemma P_Z_eq (S : BackdoorEstimationSystem P γ) :
+    S.P_Z = P.μ.map S.factualZ :=
+  rfl
+
+/-- The covariate marginal `P_X` is the pushforward of `P_Z` along the
+projection `(x, a, y) ↦ x`.  Used to bridge integrals/`eLpNorm` between
+`P_X` (covariates only) and `P_Z` (full data triple). -/
+lemma P_Z_map_projX_eq_P_X (S : BackdoorEstimationSystem P γ) :
+    S.P_Z.map (fun z : γ × Bool × ℝ => z.1) = S.P_X := by
+  unfold BackdoorEstimationSystem.P_Z BackdoorEstimationSystem.P_X
+  rw [Measure.map_map (by fun_prop : Measurable (fun z : γ × Bool × ℝ => z.1))
+    S.measurable_factualZ]
+  rfl
+
+/-! ## ATE estimand on the value space -/
+
+/-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), and [a back-door estimation system](hyp:S), the [value-space average treatment effect](goal) is the covariate-law integral of the true treated outcome regression minus the true control outcome regression. -/
+noncomputable def θ₀ (S : BackdoorEstimationSystem P γ) : ℝ :=
+  ∫ x, S.μ_val true x - S.μ_val false x ∂(S.P_X)
+
+/-- **Value-space estimand equals the potential-outcome ATE.** Under [the back-door
+identification assumptions](hyp:hA), [the value-space estimand `θ₀ = ∫ (μ(1,x) −
+μ(0,x)) dP_X`, built from the outcome-regression nuisance, coincides with the average
+treatment effect defined on potential outcomes](goal).
+
+Restates `def:est-ate-nuisance` (last sentence) combined with `prop:po-backdoor-ate`. -/
+theorem θ₀_eq_ATE (S : BackdoorEstimationSystem P γ)
+    (hA : S.toPOBackdoorSystem.Assumptions) :
+    S.θ₀ = S.toPOBackdoorSystem.ATE := by
+  unfold BackdoorEstimationSystem.θ₀ BackdoorEstimationSystem.P_X PO.POBackdoorSystem.ATE
+  have hmeas_diff : Measurable (fun x => S.μ_val true x - S.μ_val false x) :=
+    (S.μ_meas true).sub (S.μ_meas false)
+  rw [MeasureTheory.integral_map S.toPOBackdoorSystem.measurable_factualX.aemeasurable
+    hmeas_diff.aestronglyMeasurable]
+  have hcompat :
+      (fun ω => S.μ_val true (S.toPOBackdoorSystem.factualX ω) -
+        S.μ_val false (S.toPOBackdoorSystem.factualX ω))
+        =ᵐ[P.μ]
+      (fun ω => P.μ[S.toPOBackdoorSystem.YofD true | S.toPOBackdoorSystem.sigmaX] ω -
+        P.μ[S.toPOBackdoorSystem.YofD false | S.toPOBackdoorSystem.sigmaX] ω) :=
+    (S.μ_compat hA true).symm.sub (S.μ_compat hA false).symm
+  rw [MeasureTheory.integral_congr_ae hcompat]
+  have hsub :
+      P.μ[S.toPOBackdoorSystem.YofD true - S.toPOBackdoorSystem.YofD false |
+          S.toPOBackdoorSystem.sigmaX]
+        =ᵐ[P.μ]
+      (fun ω => P.μ[S.toPOBackdoorSystem.YofD true | S.toPOBackdoorSystem.sigmaX] ω -
+        P.μ[S.toPOBackdoorSystem.YofD false | S.toPOBackdoorSystem.sigmaX] ω) :=
+    MeasureTheory.condExp_sub hA.integrable_Y1 hA.integrable_Y0 S.toPOBackdoorSystem.sigmaX
+  rw [MeasureTheory.integral_congr_ae hsub.symm]
+  rw [MeasureTheory.integral_condExp S.toPOBackdoorSystem.sigmaX_le]
+  rfl
+
+end BackdoorEstimationSystem
+
+/-! ## Derivability: the estimation system adds no assumptions beyond overlap -/
+
+open Classical in
+/-- Given a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door potential-outcome system](hyp:S), [the assumption that its treated propensity is strictly between zero and one almost surely](hyp:hov), and [an integrable factual outcome](hyp:hY), the [associated back-door estimation system](goal) uses the value-space outcome regression and a propensity score that equals the lifted propensity on its strict-overlap support and equals one half elsewhere.
+
+**The compatibility/positivity fields are free.** Every added field is discharged: the outcome-regression compatibility follows from regression adjustment, positivity from the clamp, and propensity compatibility from overlap. Thus the estimation system adds no assumption beyond the back-door potential-outcome system, overlap, and integrability. -/
+noncomputable def _root_.Causalean.PO.POBackdoorSystem.toBackdoorEstimationSystem
+    {P : POSystem} {γ : Type*} [MeasurableSpace γ]
+    (S : PO.POBackdoorSystem P γ) [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+    (hov : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
+    (hY : Integrable S.factualY P.μ) :
+    BackdoorEstimationSystem P γ where
+  toPOBackdoorSystem := S
+  μ_val := fun b x => S.regFn (b, x)
+  μ_meas := fun _ => S.measurable_regFn.comp (measurable_const.prodMk measurable_id)
+  e_val := Set.piecewise {x : γ | 0 < S.eLift x ∧ S.eLift x < 1} S.eLift (fun _ => 1 / 2)
+  e_meas := by
+    refine Measurable.piecewise ?_ S.measurable_eLift measurable_const
+    exact (measurableSet_lt measurable_const S.measurable_eLift).inter
+      (measurableSet_lt S.measurable_eLift measurable_const)
+  e_pos := by
+    intro x
+    by_cases hx : x ∈ {x : γ | 0 < S.eLift x ∧ S.eLift x < 1}
+    · rw [Set.piecewise_eq_of_mem _ _ _ hx]; exact hx.1
+    · rw [Set.piecewise_eq_of_notMem _ _ _ hx]; norm_num
+  e_lt_one := by
+    intro x
+    by_cases hx : x ∈ {x : γ | 0 < S.eLift x ∧ S.eLift x < 1}
+    · rw [Set.piecewise_eq_of_mem _ _ _ hx]; exact hx.2
+    · rw [Set.piecewise_eq_of_notMem _ _ _ hx]; norm_num
+  μ_reg_compat := fun d =>
+    (S.regression_adjustment d hY (S.propScore_ne_of_overlap hov d)).symm
+  e_compat := by
+    filter_upwards [hov] with ω hω
+    have heq : S.propScore true ω = S.eLift (S.factualX ω) :=
+      congrFun S.propScore_true_eq_eLift ω
+    have hmem : S.factualX ω ∈ {x : γ | 0 < S.eLift x ∧ S.eLift x < 1} := by
+      rw [Set.mem_setOf_eq, ← heq]; exact hω
+    rw [heq, Set.piecewise_eq_of_mem _ _ _ hmem]
+
+end ATE
+end Estimation
+end Causalean

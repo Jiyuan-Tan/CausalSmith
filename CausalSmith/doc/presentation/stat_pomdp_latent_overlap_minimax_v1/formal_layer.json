@@ -1,0 +1,1462 @@
+{
+  "commit": null,
+  "blocks": [
+    {
+      "obj_id": "synth_8",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Policy-overlap factor",
+      "body": "For a real parameter \\(\\zeta\\), define the policy-overlap constant \\(L\\) by\n\\[\nL(\\zeta)=\\exp(\\zeta).\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.policyFactor",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_3",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Full finite trajectory",
+      "body": "For natural numbers \\(T,n_X,n_H\\), a full trajectory of length \\(T\\) is a pair\n\\[\n\\bigl((S_t)_{t\\in\\{0,\\ldots,T\\}},((A_t,Y_t))_{t\\in\\{0,\\ldots,T-1\\}}\\bigr)\n\\in\n\\bigl(\\{0,\\ldots,n_X-1\\}\\times \\{0,\\ldots,n_H-1\\}\\bigr)^{\\{0,\\ldots,T\\}}\n\\times\n\\bigl(\\{\\mathrm{false},\\mathrm{true}\\}\\times \\mathbb R\\bigr)^{\\{0,\\ldots,T-1\\}} .\n\\]\nHere \\(S_t=(X_t,H_t)\\) is the observed--latent joint state at state time \\(t\\), with observed coordinate \\(X_t\\in\\{0,\\ldots,n_X-1\\}\\) and latent coordinate \\(H_t\\in\\{0,\\ldots,n_H-1\\}\\). At transition time \\(t\\), \\(A_t\\in\\{\\mathrm{false},\\mathrm{true}\\}\\) is the Boolean action and \\(Y_t\\in\\mathbb R\\) is the reward; when actions are written numerically, \\(\\mathrm{false}\\) is identified with \\(0\\) and \\(\\mathrm{true}\\) with \\(1\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.FullTrajectory",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:pomdp-kernel",
+      "alias": "A-1",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Markov kernel",
+      "body": "For each \\(t=0,\\ldots,T-1\\),\n\\[\n\\mathcal L(Y_t,X_{t+1},H_{t+1}\\mid X_{0:t},H_{0:t},A_{0:t},Y_{0:t-1})\n=\nK(\\cdot\\mid X_t,H_t,A_t).\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.PomdpKernelLaw",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_1",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Memoryless binary policy carrier",
+      "body": "For \\(n_X\\in\\mathbb N\\), a memoryless policy on an observed-state alphabet of size \\(n_X\\) is a function\n\\[\np:\\{0,\\ldots,n_X-1\\}\\times\\{\\mathrm{false},\\mathrm{true}\\}\\to\\mathbb R .\n\\]\nWhen the action alphabet is written as \\(\\mathcal A=\\{0,1\\}\\), we identify \\(\\mathrm{false}\\) with \\(0\\) and \\(\\mathrm{true}\\) with \\(1\\). This is a carrier only: no nonnegativity and no normalization is imposed here. The probability-vector restrictions on the behavior and target carriers are imposed later, on \\(b\\) in \\cref{obj:ass:sequential-ignorability} and on \\(e\\) in \\cref{obj:ass:policy-overlap}.",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.Policy",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:sequential-ignorability",
+      "alias": "A-2",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Observed-state sequential ignorability",
+      "body": "Identify the numeric action alphabet \\(\\mathcal A=\\{0,1\\}\\) with the Boolean action set by \\(0\\leftrightarrow \\mathrm{false}\\) and \\(1\\leftrightarrow \\mathrm{true}\\). The behavior carrier \\(b\\) is a probability vector at each observed state,\n\\[\nb(a\\mid x)\\ge 0\n\\quad\\text{for all }x\\in\\mathcal X,\\ a\\in\\mathcal A,\n\\qquad\n\\sum_{a\\in\\mathcal A} b(a\\mid x)=1\n\\quad\\text{for all }x\\in\\mathcal X.\n\\]\nFor every \\(t\\in\\{0,\\ldots,T-1\\}\\), the joint law of the state-and-epoch history strictly before \\(t\\), the current joint state \\((X_t,H_t)\\), and the current action \\(A_t\\) factors as the law of that history and current joint state followed by the behavior kernel evaluated at the current observed state:\n\\[\n\\mathbb P\\!\\left\\{\n\\bigl((X_s,H_s)_{s<t},(A_s,Y_s)_{s<t},(X_t,H_t),A_t\\bigr)\\in dh\\,da\n\\right\\}\n=\n\\mathbb P\\!\\left\\{\n\\bigl((X_s,H_s)_{s<t},(A_s,Y_s)_{s<t},(X_t,H_t)\\bigr)\\in dh\n\\right\\}\n\\, b(da\\mid X_t(h)).\n\\]\nEquivalently, for every \\(a\\in\\mathcal A\\) and every \\(t\\in\\{0,\\ldots,T-1\\}\\),\n\\[\n\\Pr\\!\\left(A_t=a\\mid X_{0:t},H_{0:t},A_{0:t-1},Y_{0:t-1}\\right)\n=\nb(a\\mid X_t).\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.SequentialIgnorability",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_4",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Policy transition operator",
+      "body": "For a raw experiment \\(M\\) with one-step kernel \\(K\\), a memoryless policy \\(p\\), and joint states \\(s=(x,h)\\) and \\(s'\\), define the policy-induced transition operator \\(P_p\\) by\n\\[\nP_p(s,s')\n:=\n\\sum_{a\\in\\{0,1\\}}\np(a\\mid x)\\,\nK\\bigl(\\{(r,\\widetilde s): \\widetilde s=s'\\}\\mid s,a\\bigr).\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.policyKernel",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_2",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Joint-state alphabet",
+      "body": "For natural numbers \\(n_X\\) and \\(n_H\\), the finite observed--latent joint-state alphabet is\n\\[\n\\mathcal S(n_X,n_H)\n:=\n\\{i\\in\\mathbb N: 0\\le i<n_X\\}\n\\times\n\\{j\\in\\mathbb N: 0\\le j<n_H\\}.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.JointState",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_9",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Behavior and target stationary joint-state laws",
+      "body": "For a memoryless policy \\(p\\in\\{b,e\\}\\), let \\(P_p\\) be the policy-induced Markov kernel on the joint state space \\(\\mathcal S=\\mathcal X\\times\\mathcal H\\). Define \\(d_p\\in\\Delta(\\mathcal S)\\) to be the stationary joint-state law satisfying\n\\[\nd_pP_p=d_p .\n\\]\nWe write \\(d_b\\) for the behavior-policy stationary joint-state law and \\(d_e\\) for the target-policy stationary joint-state law.",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:stationary-start",
+      "alias": "A-3",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Stationary start",
+      "body": "The initial joint state \\(S_0\\) has the behavior stationary law \\(d_b\\):\n\\[\nS_0\\sim d_b.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.StationaryStart",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:bounded-reward",
+      "alias": "A-4",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Bounded rewards",
+      "body": "For each \\(t=0,\\ldots,T-1\\),\n\\[\n\\Pr(|Y_t|\\le 1)=1.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.BoundedReward",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:policy-overlap",
+      "alias": "A-5",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Policy overlap",
+      "body": "The target carrier \\(e\\) is a probability vector at each observed state,\n\\[\ne(a\\mid x)\\ge 0\n\\quad\\text{for all }x\\in\\mathcal X,\\ a\\in\\mathcal A,\n\\qquad\n\\sum_{a\\in\\mathcal A} e(a\\mid x)=1\n\\quad\\text{for all }x\\in\\mathcal X,\n\\]\nand for every \\((a,x)\\in\\mathcal A\\times\\mathcal X\\) the policy-overlap constant \\(L\\) satisfies\n\\[\ne(a\\mid x)\\le L b(a\\mid x).\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.PolicyOverlap",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_7",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Derived contraction factor",
+      "body": "For any real \\(t_0\\), define the contraction parameter \\(\\alpha\\) by\n\\[\n\\alpha := \\exp\\!\\left(-\\frac{1}{t_0}\\right).\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.mixingAlpha",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:uniform-contraction",
+      "alias": "A-6",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Uniform contraction",
+      "body": "For every \\((p,\\nu,\\nu')\\in\\{b,e\\}\\times\\Delta(\\mathcal S)^2\\), the contraction parameter \\(\\alpha\\) and the policy-induced transition operator \\(P_p\\) satisfy\n\\[\n\\|\\nu P_p-\\nu'P_p\\|_{\\mathrm{TV}}\n\\le\n\\alpha\\|\\nu-\\nu'\\|_{\\mathrm{TV}}.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.UniformContraction",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "ass:latent-stationary-overlap",
+      "alias": "A-7",
+      "kind": "assumption",
+      "env": "assumptionv",
+      "title": "Latent stationary overlap",
+      "body": "For the overlap constant \\(C\\) and experiment \\(M\\), the latent stationary overlap condition holds when \\(C\\ge 1\\) and, writing \\(d_e\\) and \\(d_b\\) for the stationary laws of the target-policy and behavior-policy joint-state transition kernels, respectively,\n\\[\nd_e(s)\\le C\\,d_b(s),\n\\qquad s\\in\\mathcal S .\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.LatentStationaryOverlap",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_12",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Observable trajectory space",
+      "body": "For a horizon \\(T\\) and observed-state cardinality \\(n_X\\), define the observable trajectory space \\(\\mathsf O_T\\) by\n\\[\n\\mathsf O_T\n=\n\\{0,\\ldots,T-1\\}\\to\n\\bigl(\\{0,\\ldots,n_X-1\\}\\times\\{0,1\\}\\times\\mathbb R\\bigr).\n\\]\nThus an element of \\(\\mathsf O_T\\) records, at each epoch \\(t<T\\), the observed coordinate \\(X_t\\), the binary action \\(A_t\\), and the real reward \\(Y_t\\). Equivalently, it is the sequence \\(((X_t,A_t,Y_t))_{t=0}^{T-1}\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.ObsView",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_11",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Model-class assumption predicates",
+      "body": "For an observable-data POMDP experiment \\((\\mathcal X,\\mathcal H,K,b,e,\\mathcal L(\\mathsf O_T))\\) with \\(\\mathcal S=\\mathcal X\\times\\mathcal H\\), \\(\\mathcal A=\\{0,1\\}\\), policy-induced kernels \\(P_p\\), stationary laws \\(d_p\\), \\(\\alpha=\\exp(-1/t_0)\\), and \\(L=\\exp(\\zeta)\\), write\n\\[\n\\mathrm A_{\\mathrm{pomdp}},\\quad\n\\mathrm A_{\\mathrm{ign}},\\quad\n\\mathrm A_{\\mathrm{start}},\\quad\n\\mathrm A_{\\mathrm{reward}},\\quad\n\\mathrm A_{\\mathrm{act}},\\quad\n\\mathrm A_{\\mathrm{mix}},\\quad\n\\mathrm A_{\\mathrm{stat}}\n\\]\nfor the following seven restrictions, respectively:\n\\[\n\\mathcal L(Y_t,X_{t+1},H_{t+1}\\mid X_{0:t},H_{0:t},A_{0:t},Y_{0:t-1})\n=\nK(\\cdot\\mid X_t,H_t,A_t),\n\\qquad t=0,\\ldots,T-1,\n\\]\nas in \\cref{obj:ass:pomdp-kernel};\n\\[\n\\Pr(A_t=a\\mid X_{0:t},H_{0:t},A_{0:t-1},Y_{0:t-1})\n=\nb(a\\mid X_t),\n\\qquad (a,t)\\in\\mathcal A\\times\\{0,\\ldots,T-1\\},\n\\]\nas in \\cref{obj:ass:sequential-ignorability};\n\\[\nS_0\\sim d_b,\n\\]\nas in \\cref{obj:ass:stationary-start};\n\\[\n\\Pr(|Y_t|\\le1)=1,\n\\qquad t=0,\\ldots,T-1,\n\\]\nas in \\cref{obj:ass:bounded-reward};\n\\[\ne(a\\mid x)\\le L b(a\\mid x),\n\\qquad (a,x)\\in\\mathcal A\\times\\mathcal X,\n\\qquad e\\text{ a probability vector at each }x,\n\\]\nas in \\cref{obj:ass:policy-overlap};\n\\[\n\\|\\nu P_p-\\nu'P_p\\|_{\\mathrm{TV}}\n\\le\n\\alpha\\|\\nu-\\nu'\\|_{\\mathrm{TV}},\n\\qquad (p,\\nu,\\nu')\\in\\{b,e\\}\\times\\Delta(\\mathcal S)^2,\n\\]\nas in \\cref{obj:ass:uniform-contraction}; and\n\\[\nd_e(s)\\le C d_b(s),\n\\qquad s\\in\\mathcal S,\n\\]\nas in \\cref{obj:ass:latent-stationary-overlap}.",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:model-class",
+      "alias": "P-1",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Latent-overlap POMDP class",
+      "body": "For \\(T\\in\\mathbb N\\) and \\(t_0,\\zeta,C\\in\\mathbb R\\), \\(\\mathcal M_T(t_0,\\zeta,C)\\) is the class of all observable-data POMDP experiments\n\\[\n(\\mathcal X,\\mathcal H,K,b,e,\\mathcal L(\\mathsf O_T))\n\\]\nwith the following defining properties:\n\\begin{itemize}\n\\item \\textbf{(Horizon and alphabets.)} The trajectory horizon satisfies \\(1\\le T\\), the observed and latent alphabets \\(\\mathcal X\\) and \\(\\mathcal H\\) are finite, and \\(|\\mathcal A|=2\\).\n\\item \\textbf{(Parameter scales.)} The mixing and log-overlap parameters satisfy \\(0<t_0\\) and \\(0<\\zeta\\).\n\\item \\textbf{(Raw experiment.)} The tuple has a reward-transition kernel \\(K\\), behavior policy \\(b\\), target policy \\(e\\), and probability law \\(\\mathcal L(\\mathsf O_T)\\) for the observed trajectory generated from the joint state coordinates \\((X_t,H_t)\\).\n\\item \\textbf{(Seven restrictions.)} The seven restrictions in \\cref{obj:ass:pomdp-kernel,obj:ass:sequential-ignorability,obj:ass:stationary-start,obj:ass:bounded-reward,obj:ass:policy-overlap,obj:ass:uniform-contraction,obj:ass:latent-stationary-overlap} hold, with policy-overlap factor \\(L=\\exp(\\zeta)\\) and contraction factor \\(\\alpha=\\exp(-1/t_0)\\).\n\\end{itemize}\nEquivalently,\n\\[\n\\mathcal M_T(t_0,\\zeta,C)\n:=\n\\left\\{\n(\\mathcal X,\\mathcal H,K,b,e,\\mathcal L(\\mathsf O_T)):\n\\begin{array}{l}\n1\\le T,\\quad |\\mathcal X|<\\infty,\\quad |\\mathcal H|<\\infty,\\quad |\\mathcal A|=2,\\\\\n0<t_0,\\quad 0<\\zeta,\\\\\n\\mathrm A_{\\mathrm{pomdp}},\\mathrm A_{\\mathrm{ign}},\\mathrm A_{\\mathrm{start}},\n\\mathrm A_{\\mathrm{reward}},\\mathrm A_{\\mathrm{act}},\n\\mathrm A_{\\mathrm{mix}},\\mathrm A_{\\mathrm{stat}}\\text{ hold}\n\\end{array}\n\\right\\}.\n\\]\nThe class ranges over all finite observed and latent cardinalities and all revealed behavior-target policy pairs satisfying these conditions.",
+      "ref_set": [
+        "ass:pomdp-kernel",
+        "ass:sequential-ignorability",
+        "ass:stationary-start",
+        "ass:bounded-reward",
+        "ass:policy-overlap",
+        "ass:uniform-contraction",
+        "ass:latent-stationary-overlap"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.LatentOverlapClass",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_5",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Target reward regression",
+      "body": "For any raw finite-state experiment \\(M\\) with target policy \\(e\\) and one-step law \\(K\\), and for every joint state \\(s=(x,h)\\in \\{0,\\ldots,n_X-1\\}\\times\\{0,\\ldots,n_H-1\\}\\), define the target-policy reward regression \\(g_e\\) by\n\\[\ng_e(s)\n=\n\\sum_{a\\in\\{0,1\\}} e(a\\mid x)\\int r\\,K(d r,d s'\\mid s,a).\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.rewardRegression",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:target-value",
+      "alias": "P-2",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Target value \\(\\theta(K,e)\\)",
+      "body": "For the joint state \\(S_t\\) and the target-policy reward regression \\(g_e\\),\n\\[\n\\theta(K,e)\n:=\n\\sum_{s=(x,h)\\in\\mathcal S} d_e(s)g_e(s)\n=\n\\sum_{s=(x,h)\\in\\mathcal S} d_e(s)\n\\sum_{a\\in\\mathcal A}\ne(a\\mid x)\\,E_K[Y_t\\mid S_t=s,A_t=a].\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.targetValue",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_13",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Estimator-specific risk",
+      "body": "Let\n\\[\nM=(\\mathcal X,\\mathcal H,K,b,e,\\mathcal L(\\mathsf O_T))\n\\in \\mathcal M_T(t_0,\\zeta,C)\n\\]\nbe a model in the latent-overlap class of \\cref{obj:def:model-class}, whose observed trajectory is\n\\[\n\\mathsf O_T=((X_t,A_t,Y_t))_{t=0}^{T-1},\n\\]\nand let \\(\\operatorname{Law}^{\\mathrm{obs}}_M\\) denote the probability law of \\(\\mathsf O_T\\) induced by \\(M\\) under the behavior policy \\(b\\).\n\nFor any observable-data estimator \\(\\widehat\\theta\\), its estimator-specific worst-case squared risk over \\(\\mathcal M_T(t_0,\\zeta,C)\\) is\n\\[\nR_T(t_0,\\zeta,C;\\widehat\\theta)\n:=\n\\sup_{M\\in\\mathcal M_T(t_0,\\zeta,C)}\n\\mathbb E_{\\operatorname{Law}^{\\mathrm{obs}}_M}\n\\!\\left[\n\\left\\{\\widehat\\theta(n_X,b,e,\\mathsf O_T)-\\theta(K,e)\\right\\}^2\n\\right],\n\\]\nwhere \\(n_X=|\\mathcal X|\\) is the revealed observed-alphabet size of \\(M\\). In particular,\n\\[\nR_T(t_0,\\zeta,C;\\widehat\\theta_{k_T})\n\\]\nis this quantity evaluated at the clipped partial-history importance-weighted estimator \\(\\widehat\\theta_{k_T}\\) with balanced history depth \\(k_T\\).",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:minimax-risk",
+      "alias": "P-3",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Observable minimax risk",
+      "body": "For a trajectory horizon \\(T\\ge 1\\) and parameters \\(t_0,\\zeta,C\\), the cardinality-uniform observable-data minimax squared-error risk is\n\\[\nR_T(t_0,\\zeta,C)\n:=\n\\inf_{\\widehat\\theta}\n\\sup_{M\\in\\mathcal M_T(t_0,\\zeta,C)}\n\\mathbb E_{\\operatorname{Law}^{\\mathrm{obs}}_M}\n\\!\\left[\n\\left\\{\\widehat\\theta(n_X,b,e,\\mathsf O_T)-\\theta(K,e)\\right\\}^2\n\\right].\n\\]\nHere \\(\\mathcal M_T(t_0,\\zeta,C)\\) is the finite observed- and latent-state model class in \\cref{obj:def:model-class}, with unrestricted finite observed alphabet size \\(n_X\\) and unrestricted finite latent alphabet size, and \\(\\theta(K,e)\\) is the stationary target-policy mean reward in \\cref{obj:def:target-value}. The positive-horizon requirement \\(1\\le T\\) is part of membership in \\(\\mathcal M_T(t_0,\\zeta,C)\\), not a separate restriction on the supremum; at the degenerate horizon \\(T=0\\) the class is empty and the display is not used. The infimum ranges over all observable-data estimators \\(\\widehat\\theta\\) that take as inputs only \\(n_X\\), \\(b\\), \\(e\\), and the observed trajectory view \\(\\mathsf O_T\\), are measurable in \\(\\mathsf O_T\\) for each \\(n_X,b,e\\), and are uniformly valued in \\([-1,1]\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.minimaxRisk",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_6",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "One-step policy ratio",
+      "body": "For behavior and target policy functions \\(b,e : \\{0,\\ldots,n_X-1\\}\\times\\{0,1\\}\\to\\mathbb R\\), the observable one-step policy ratio is\n\\[\n\\rho_t\n=\n\\begin{cases}\n0, & b(X_t,A_t)=0,\\\\\ne(X_t,A_t)/b(X_t,A_t), & b(X_t,A_t)\\ne 0.\n\\end{cases}\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.ratio",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:phiw-estimator",
+      "alias": "P-4",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Partial-history estimator \\(\\widehat\\theta_k\\)",
+      "body": "For \\(0\\le k<T\\), define\n\\[\nZ_t(k)\n:=\nY_t\\prod_{j=t-k}^{t}\\rho_j,\n\\]\nwhere \\(\\rho_t\\) is the observable one-step policy ratio with the zero-cell convention. The clipped partial-history importance-weighted estimator is\n\\[\n\\widehat\\theta_k\n:=\n\\operatorname{clip}_{[-1,1]}\n\\left\\{\n\\frac{1}{T-k}\\sum_{t=k}^{T-1} Z_t(k)\n\\right\\}.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.phiwEstimator",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:history-depth",
+      "alias": "P-5",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "History depth \\(k_T\\)",
+      "body": "For the contraction parameter \\(\\alpha\\) and policy-overlap constant \\(L\\), the balanced fixed-radius history depth is\n\\[\nk_T\n:=\n\\min\\left\\{\n\\left\\lfloor\\frac{T}{2}\\right\\rfloor,\n\\max\\left\\{\n0,\n\\left\\lfloor\n\\frac{\\log(T)}{2\\log(1/\\alpha)+\\log L}\n\\right\\rfloor\n\\right\\}\n\\right\\}.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.historyDepth",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:signed-depth-family",
+      "alias": "P-6",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Signed-depth family",
+      "body": "For a trajectory length \\(T\\), parameters \\(t_0,\\zeta,C\\in\\mathbb R\\), a terminal depth \\(Q\\in\\mathbb N\\), and an alternative index \\(v\\in\\{-1,+1\\}\\), the signed-depth family is defined under\n\\[\nt_0>0,\\qquad \\zeta>0,\\qquad C>1,\\qquad Q\\ge 1.\n\\]\nIt is the raw POMDP experiment in \\(\\mathsf O_T\\) with one observed state and \\(2(Q+1)\\) hidden states obtained by embedding the following finite-reward model.  The observed coordinate \\(X_t\\) is constant, and the hidden coordinate is written\n\\[\nH_t=(J_t,U_t)\\in\\{0,\\ldots,Q\\}\\times\\{-1,+1\\}.\n\\]\nWriting \\(\\alpha\\) for the mixing value determined by \\(t_0\\), \\(L\\) for the policy factor determined by \\(\\zeta\\), \\(\\varepsilon_C=\\min\\{(C-1)/2,1/2\\}\\), and \\(c_0=(1-\\alpha)/4\\), the behavior and target policies are\n\\[\nb(A_t=1)=\\frac{1}{L},\\qquad b(A_t=0)=1-\\frac{1}{L},\n\\qquad\ne(A_t=1)=1,\\qquad e(A_t=0)=0.\n\\]\nThe initial hidden-state law is the probability measure obtained from the weights\n\\[\nw_j\\frac{1+u\\varepsilon_C L^{-j}}{2},\n\\qquad\nw_j=\n\\frac{(1-\\alpha)\\alpha^j}{1-\\alpha^{Q+1}},\n\\qquad\nj\\in\\{0,\\ldots,Q\\},\\ u\\in\\{-1,+1\\}.\n\\]\nThe transition kernel is the probability measure on reward-symbol and next-hidden-state pairs whose real weight at \\((y,H_{t+1})\\), with \\(y\\in\\{-1,+1\\}\\), is the product of the reward weight\n\\[\n\\frac{1+yvc_0U_t\\mathbf 1\\{J_t=Q\\}}{2}\n\\]\nand the hidden-transition weight specified as follows.  A reset sign \\(u'\\) has weight\n\\[\n\\frac{1+u'\\varepsilon_C}{2}.\n\\]\nIf \\(J_t=Q\\), then only transitions with \\(J_{t+1}=0\\) receive this reset-sign weight.  If \\(J_t<Q\\), transitions with \\(J_{t+1}=0\\) receive weight \\((1-\\alpha)(1+U_{t+1}\\varepsilon_C)/2\\), while transitions with \\(J_{t+1}=J_t+1\\) receive weight\n\\[\n\\alpha\\,\\mathbf 1\\{U_{t+1}=U_t\\}\n\\quad\\text{when }A_t=1,\n\\qquad\n\\frac{\\alpha}{2}\n\\quad\\text{when }A_t=0,\n\\]\nand all other hidden transitions receive weight zero.  The finite reward symbols are mapped to real rewards by \\(0\\mapsto -1\\) and \\(1\\mapsto 1\\), and the trajectory law is the finite chronological law generated by this initial distribution, behavior policy, and kernel, then embedded into the unrestricted real-reward raw experiment.",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthFamily",
+        "file": "Helpers/SignedDepth.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:overlap-distance-radius",
+      "alias": "P-10",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Overlap-distance radius \\(q_C\\)",
+      "body": "For \\(C\\ge 1\\), define\n\\[\nq_C:=\\frac{C-1}{C}.\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.overlapRadius",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:radius-adaptive-history-depth",
+      "alias": "P-11",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Radius-calibrated history depth \\(\\kappa_T^{\\mathrm{rad}}(C)\\)",
+      "body": "For \\(T\\in\\mathbb N\\) and \\(C\\ge 1\\), define\n\\[\n\\kappa_T^{\\mathrm{rad}}(C):=\n\\begin{cases}\n0, & Tq_C^2\\le 1,\\\\[3pt]\n\\displaystyle\n\\min\\!\\left\\{\n\\left\\lfloor\\frac T2\\right\\rfloor,\n\\left\\lfloor\\frac{\\log(Tq_C^2)}{2\\log(1/\\alpha)+\\log L}\\right\\rfloor\n\\right\\},\n& Tq_C^2>1.\n\\end{cases}\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.radiusAdaptiveDepth",
+        "file": "Basic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_16",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Finite signed-depth observed-word law",
+      "body": "For \\(C>1\\), \\(Q\\ge1\\), and \\(v\\in\\{-1,+1\\}\\), let\n\\[\n\\mathbb P_{Q,v}^{\\mathrm{fin},T}\n\\]\nbe the finite observed-word law through horizon \\(T\\) generated by the signed-depth construction of \\cref{obj:def:signed-depth-family}. Its observed state is constant, its latent state is \\(H_t=(J_t,U_t)\\in\\{0,\\ldots,Q\\}\\times\\{-1,+1\\}\\), its behavior and target policies satisfy \\(b(1)=1/L\\) and \\(e(1)=1\\), and its reward alphabet is \\(\\{-1,+1\\}\\) with\n\\[\n\\Pr_v(Y_t=y\\mid J_t,U_t,A_t)\n=\n\\frac{1+yvc_0U_t\\mathbf 1\\{J_t=Q\\}}{2}.\n\\]\nThe initial latent law is \\(d_b(j,u)=w_j(1+u\\varepsilon_C L^{-j})/2\\), and the resulting finite observation consists of the action-reward word \\((A_t,Y_t)_{t=0}^{T-1}\\), equivalently the finite observed trajectory with constant observed-state coordinate.",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_14",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Target value of an indexed model",
+      "body": "For an indexed model \\(m\\in\\mathcal M_T(t_0,\\zeta,C)\\), write \\(K_m\\) and \\(e_m\\) for its joint reward-transition kernel and target policy. The target value of \\(m\\) is\n\\[\n\\theta_m:=\\theta(K_m,e_m),\n\\]\nwith \\(\\theta(K,e)\\) the stationary target-policy causal value from \\(\\cref{obj:def:target-value}\\).",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_10",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Unclipped partial-history average",
+      "body": "For the balanced history depth \\(k_T\\), define the unclipped partial-history average by\n\\[\n\\widehat\\theta^{\\rm raw}_{k_T}\n:=\n\\frac{1}{T-k_T}\\sum_{t=k_T}^{T-1} Z_t(k_T),\n\\qquad\nZ_t(k_T):=\nY_t\\prod_{j=t-k_T}^{t}\\rho_j .\n\\]\nHere \\(\\rho_j=e(A_j\\mid X_j)/b(A_j\\mid X_j)\\) on behavior-supported cells, with the zero-cell convention used for \\(\\rho_j\\).",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "thm:uniform-overlap-frontier",
+      "alias": "T-5",
+      "kind": "theorem",
+      "env": "theoremv",
+      "title": "Uniform overlap frontier",
+      "body": "Fix \\(t_0>0\\) and \\(\\zeta>0\\).  Let \\(R_T(t_0,\\zeta,C)\\) be the minimax squared-error risk in \\cref{obj:def:minimax-risk}, let \\(q_C=(C-1)/C\\) be the overlap-distance radius in \\cref{obj:def:overlap-distance-radius}, and set\n\\[\n\\beta=\\frac{2}{2+t_0\\zeta},\n\\qquad\n\\mathfrak r_T(t_0,\\zeta,C)\n=\nT^{-1}+T^{-\\beta}q_C^{2(1-\\beta)} .\n\\]\nThere exist constants \\(c_{\\mathrm{lo}},c_{\\mathrm{hi}}>0\\), with\n\\(c_{\\mathrm{lo}}\\le c_{\\mathrm{hi}}\\), and an integer \\(T_\\star\\ge 1\\), all depending only on \\(t_0\\) and \\(\\zeta\\), such that for every \\(C\\ge 1\\) and every \\(T\\ge T_\\star\\),\n\\[\nc_{\\mathrm{lo}}\\mathfrak r_T(t_0,\\zeta,C)\n\\le\nR_T(t_0,\\zeta,C)\n\\le\nc_{\\mathrm{hi}}\\mathfrak r_T(t_0,\\zeta,C),\n\\]\nand the radius-adaptive partial-history importance-weighted estimator with depth\n\\(\\kappa_T^{\\mathrm{rad}}(C)\\) from \\cref{obj:def:radius-adaptive-history-depth} satisfies\n\\[\n\\sup_{m\\in\\mathcal M_T(t_0,\\zeta,C)}\n\\mathbb E_m\\!\\left[\n  \\bigl(\\widehat\\theta_{\\kappa_T^{\\mathrm{rad}}(C)}-\\theta_m\\bigr)^2\n\\right]\n\\le\nc_{\\mathrm{hi}}\\mathfrak r_T(t_0,\\zeta,C).\n\\]\nMoreover, for every sequence \\(C_T\\ge 1\\), if \\(Tq_{C_T}^2\\) is eventually bounded, then there is a constant \\(c_{\\mathrm{imm}}>0\\), depending on the sequence and on \\(t_0,\\zeta\\), such that eventually\n\\[\n\\sup_{m\\in\\mathcal M_T(t_0,\\zeta,C_T)}\n\\mathbb E_m\\!\\left[\n  \\bigl(\\widehat\\theta_{0}-\\theta_m\\bigr)^2\n\\right]\n\\le\n\\frac{c_{\\mathrm{imm}}}{T}.\n\\]",
+      "ref_set": [
+        "def:minimax-risk",
+        "def:radius-adaptive-history-depth",
+        "def:overlap-distance-radius"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.uniform_overlap_frontier",
+        "file": "TUniformOverlapFrontier.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "thm:fixed-c-minimax",
+      "alias": "T-1",
+      "kind": "theorem",
+      "env": "theoremv",
+      "title": "Fixed-overlap minimax rate",
+      "body": "Fix \\(t_0,\\zeta,C\\in\\mathbb R\\). Assume:\n\\begin{itemize}\n\\item \\textbf{(Positive memory exponent.)} \\(t_0>0\\).\n\\item \\textbf{(Positive overlap exponent.)} \\(\\zeta>0\\).\n\\item \\textbf{(Fixed latent-overlap radius.)} \\(C>1\\).\n\\end{itemize}\nLet the exponent \\(\\beta\\) be\n\\[\n\\beta=\\frac{2}{2+t_0\\zeta}.\n\\]\nThere exist constants \\(c_\\star,c^\\star\\in\\mathbb R\\) and an integer \\(T_\\star\\ge 1\\) such that\n\\[\n0<c_\\star\\le c^\\star\n\\]\nand, for every integer \\(T\\ge T_\\star\\),\n\\[\nc_\\star T^{-\\beta}\n\\le\nR_T(t_0,\\zeta,C)\n\\le\nc^\\star T^{-\\beta},\n\\]\nwhere \\(R_T(t_0,\\zeta,C)\\) is the minimax squared-error risk in \\cref{obj:def:minimax-risk}. Moreover, the clipped partial-history importance-weighted estimator \\(\\widehat\\theta_{k_T}\\), with \\(k_T\\) as in \\cref{obj:def:history-depth}, satisfies\n\\[\n\\sup_{M\\in\\mathcal M_T(t_0,\\zeta,C)}\n\\mathbb E_M\\!\\left[\n\\{\\widehat\\theta_{k_T}-\\theta(M)\\}^2\n\\right]\n\\le\nc^\\star T^{-\\beta},\n\\]\nwith \\(\\theta(M)\\) the stationary target-policy mean reward in \\cref{obj:def:target-value}.\n\nFor each integer \\(T\\ge T_\\star\\), there is an integer \\(Q\\ge 1\\) such that the lower bound is witnessed by the two signed-depth alternatives \\(M_{Q,v}^T\\), \\(v\\in\\{-1,+1\\}\\), generated by \\cref{obj:def:signed-depth-family} with one observed state and \\(2(Q+1)\\) latent states: for every measurable observable-data estimator \\(\\widehat\\theta\\), under the usual squared-error integrability conditions for both alternatives,\n\\[\nc_\\star T^{-\\beta}\n\\le\n\\max_{v\\in\\{-1,+1\\}}\n\\mathbb E_{M_{Q,v}^T}\\!\\left[\n\\{\\widehat\\theta-\\theta(M_{Q,v}^T)\\}^2\n\\right].\n\\]",
+      "ref_set": [
+        "def:minimax-risk",
+        "def:history-depth",
+        "def:signed-depth-family",
+        "def:target-value"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.fixed_c_minimax",
+        "file": "TFixedCMinimax.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "prop:unit-overlap-boundary",
+      "alias": "T-2",
+      "kind": "theorem",
+      "env": "theoremv",
+      "title": "Unit overlap boundary",
+      "body": "Let \\(t_0>0\\) and \\(\\zeta>0\\). At unit latent overlap, \\(C=1\\), the following assertions hold.\n\nFor every trajectory length \\(T\\), every finite observed and hidden state cardinalities, and every experiment \\(M\\in\\mathcal M_T(t_0,\\zeta,1)\\) in the model class of \\cref{obj:def:model-class}, the target stationary law \\(d_e\\) and the behavior stationary law \\(d_b\\) of the corresponding policy-induced joint-state transition kernels coincide:\n\\[\nd_e=d_b .\n\\]\n\nMoreover, there is a constant \\(c_{\\mathrm{imm}}>0\\), depending only on \\(t_0\\) and \\(\\zeta\\), such that for every integer \\(T\\ge 1\\), the worst-case squared risk of the immediate observable estimator \\(\\widehat\\theta_0\\) satisfies\n\\[\n\\sup_{M\\in\\mathcal M_T(t_0,\\zeta,1)}\n\\mathbb E_M\\!\\left[\\bigl(\\widehat\\theta_0-\\theta(K,e)\\bigr)^2\\right]\n\\le \\frac{c_{\\mathrm{imm}}}{T}.\n\\]\nFinally, for the minimax squared-error risk \\(R_T(t_0,\\zeta,1)\\) of \\cref{obj:def:minimax-risk}, there are constants \\(c_{\\mathrm{lo}},c_{\\mathrm{hi}}>0\\) with \\(c_{\\mathrm{lo}}\\le c_{\\mathrm{hi}}\\) and an integer \\(T_\\star\\ge 1\\) such that, for every \\(T\\ge T_\\star\\),\n\\[\n\\frac{c_{\\mathrm{lo}}}{T}\n\\le\nR_T(t_0,\\zeta,1)\n\\le\n\\frac{c_{\\mathrm{hi}}}{T}.\n\\]\nThe hidden-state exponent at these positive scales satisfies\n\\[\n\\frac{2}{2+t_0\\zeta}<1 .\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "def:minimax-risk"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.unit_overlap_boundary",
+        "file": "TUnitOverlapBoundary.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "thm:shrinking-overlap-frontier",
+      "alias": "T-4",
+      "kind": "theorem",
+      "env": "theoremv",
+      "title": "Shrinking-overlap frontier",
+      "body": "The following conditions hold:\n\\begin{itemize}\n\\item \\textbf{(Fixed smoothness.)} The constants satisfy \\(t_0>0\\) and \\(\\zeta>0\\).\n\\item \\textbf{(Shrinking radius.)} The deterministic radius excess sequence \\((\\delta_T)_{T\\ge1}\\) satisfies \\(\\delta_T\\ge0\\) for every \\(T\\).\n\\item \\textbf{(Local limit.)} The sequence satisfies \\(\\delta_T\\to0\\).\n\\item \\textbf{(Rate exponent.)} Let \\(\\beta=2/(2+t_0\\zeta)\\).\n\\item \\textbf{(Local rate and depth.)} Define\n\\[\nr_T(\\delta)\n=\nT^{-1}+T^{-\\beta}\\delta_T^{2(1-\\beta)}\n\\]\nand\n\\[\n\\kappa_T\n=\n\\begin{cases}\n0, & T\\delta_T^2\\le 1,\\\\[3pt]\n\\displaystyle\n\\min\\left\\{\\left\\lfloor T/2\\right\\rfloor,\n\\left\\lfloor\n\\frac{\\log(T\\delta_T^2)}\n{2\\log(1/\\alpha)+\\log L}\n\\right\\rfloor\\right\\}, & T\\delta_T^2>1.\n\\end{cases}\n\\]\n\\end{itemize}\nThen there exist constants \\(c_{\\mathrm{loc}},C_{\\mathrm{loc}}\\) with\n\\(0<c_{\\mathrm{loc}}\\le C_{\\mathrm{loc}}\\), depending only on \\(t_0\\) and\n\\(\\zeta\\), such that, for all sufficiently large \\(T\\),\n\\[\nc_{\\mathrm{loc}}\\,r_T(\\delta)\n\\le\nR_T(t_0,\\zeta,1+\\delta_T)\n\\le\nC_{\\mathrm{loc}}\\,r_T(\\delta),\n\\]\nwhere \\(R_T\\) is the minimax squared-error risk in\n\\cref{obj:def:minimax-risk}.  Moreover, the observable partial-history\nimportance-weighted estimator \\(\\widehat\\theta_{\\kappa_T}\\) of\n\\cref{obj:def:phiw-estimator} satisfies\n\\[\n\\sup_{M\\in\\mathcal M_T(t_0,\\zeta,1+\\delta_T)}\n\\mathbb E_M\\!\\left[\n\\bigl(\\widehat\\theta_{\\kappa_T}-\\theta(M)\\bigr)^2\n\\right]\n\\le\nC_{\\mathrm{loc}}\\,r_T(\\delta)\n\\]\nfor all sufficiently large \\(T\\).  Finally, if there is a constant \\(D\\ge0\\)\nsuch that \\(T\\delta_T^2\\le D\\) for all sufficiently large \\(T\\), then there is\na constant \\(c_{\\mathrm{imm}}>0\\) such that\n\\[\n\\sup_{M\\in\\mathcal M_T(t_0,\\zeta,1+\\delta_T)}\n\\mathbb E_M\\!\\left[\n\\bigl(\\widehat\\theta_{0}-\\theta(M)\\bigr)^2\n\\right]\n\\le\n\\frac{c_{\\mathrm{imm}}}{T}\n\\]\nfor all sufficiently large \\(T\\).",
+      "ref_set": [
+        "def:minimax-risk"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.shrinking_overlap_frontier",
+        "file": "TShrinkingOverlapFrontier.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:insulin-grid",
+      "alias": "P-9",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Insulin grid \\(\\mathcal I_{\\mathrm{grid}}\\)",
+      "body": "The finite insulin-grid state is\n\\[\ns=(g,d_1,d_2,x_1,x_2,a_1)\n\\in\n\\{50,100,150,200,250\\}\n\\times\\{0,78\\}^2\n\\times\\{0,31,850\\}^2\n\\times\\{0,1\\},\n\\]\nso the state space has \\(360\\) states. The diet coordinates form\n\\[\nH_t=(d_1,d_2),\n\\]\nand all other coordinates form \\(X_t\\). The behavior and target policies are\n\\[\nb(1\\mid X_t)=0.3,\n\\qquad\ne(1\\mid X_t)=\\mathbf 1\\{g\\ge 125\\}.\n\\]\nWith probability \\(1/2\\), the next full state is drawn uniformly. With the remaining probability, draw\n\\[\nd_0\\in\\{0,78\\}\n\\quad\\text{with probabilities}\\quad\n(0.8,0.2),\n\\]\ndraw\n\\[\nx_0\\in\\{0,31,850\\}\n\\quad\\text{with probabilities}\\quad\n(0.4,0.4,0.2),\n\\]\ndraw \\(\\xi\\sim N(0,25)\\), and set\n\\[\ng'\n=\n\\operatorname{round}_{\\{50,100,150,200,250\\}}\n\\operatorname{clip}_{[50,250]}\n\\bigl(\n10+0.9g+0.1d_1+0.1d_2-0.01x_1-0.01x_2-2A_t-4a_1+\\xi\n\\bigr).\n\\]\nThe memory coordinates then shift to\n\\[\n(g',d_0,d_1,x_0,x_1,A_t).\n\\]\nThe reward is\n\\[\nY_t=\n\\begin{cases}\n-1, & g\\le 70,\\\\\n-2/3, & g>150,\\\\\n-1/3, & 70<g\\le 80\\ \\text{or}\\ 120<g\\le 150,\\\\\n0, & \\text{otherwise}.\n\\end{cases}\n\\]\nThis construction defines \\(\\mathcal I_{\\mathrm{grid}}\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinGrid",
+        "file": "Helpers/InsulinGridCore/Model.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:insulin-policy-contraction",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Uniform one-half contraction of the insulin-grid policy kernels",
+      "body": "Let \\(T\\in\\mathbb N\\) and let \\(p\\) assign to each of the \\(90\\) observed states of the refreshed finite insulin adaptation \\(\\mathcal I_{\\mathrm{grid}}\\) of \\cref{obj:def:insulin-grid} a probability law on the action set \\(\\{0,1\\}\\). Write \\(\\mathsf S_{\\mathrm{grid}}\\) for the \\(360\\)-point joint state space, \\(x(s)\\) for the observed coordinate of a grid state \\(s\\), \\(K_T\\) for the transition kernel of \\(\\mathcal I_{\\mathrm{grid}}\\), and\n\\[\nP_p^{(T)}(s,s')=\\sum_{a\\in\\{0,1\\}}p(a\\mid x(s))\\,K_T\\{(q,s''):\\ s''=s'\\mid s,a\\},\n\\qquad s,s'\\in\\mathsf S_{\\mathrm{grid}},\n\\]\nfor the induced transition matrix. Then, for all probability vectors \\(\\nu,\\nu'\\) on \\(\\mathsf S_{\\mathrm{grid}}\\),\n\\[\n\\|\\nu P_p^{(T)}-\\nu'P_p^{(T)}\\|_{\\mathrm{TV}}\n\\le\n\\frac12\\|\\nu-\\nu'\\|_{\\mathrm{TV}} ,\n\\]\nequivalently, in the \\(\\ell^1\\) norm \\(\\|\\cdot\\|_1=2\\|\\cdot\\|_{\\mathrm{TV}}\\),\n\\[\n\\|\\nu P_p^{(T)}-\\nu'P_p^{(T)}\\|_1\\le\\frac12\\|\\nu-\\nu'\\|_1 .\n\\]",
+      "ref_set": [
+        "def:insulin-grid"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinPolicy_contraction",
+        "file": "Helpers/InsulinGridCore/Model.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:insulin-stationary-law",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "The selected insulin-grid stationary law is stationary",
+      "body": "Let \\(T\\in\\mathbb N\\) and let \\(p\\) assign to each observed state of the refreshed finite insulin adaptation \\(\\mathcal I_{\\mathrm{grid}}\\) of \\cref{obj:def:insulin-grid} a probability law on \\(\\{0,1\\}\\). Suppose that the induced transition matrix \\(P_p^{(T)}\\) on the joint state space \\(\\mathsf S_{\\mathrm{grid}}\\) satisfies\n\\[\n\\|\\nu P_p^{(T)}-\\nu'P_p^{(T)}\\|_{\\mathrm{TV}}\\le\\frac12\\|\\nu-\\nu'\\|_{\\mathrm{TV}}\n\\]\nfor all probability vectors \\(\\nu,\\nu'\\) on \\(\\mathsf S_{\\mathrm{grid}}\\). Then the stationary law \\(d_p\\) selected for \\(P_p^{(T)}\\) is a probability vector and satisfies the stationarity equations\n\\[\nd_p(s')=\\sum_{s\\in\\mathsf S_{\\mathrm{grid}}}d_p(s)P_p^{(T)}(s,s'),\n\\qquad s'\\in\\mathsf S_{\\mathrm{grid}} .\n\\]",
+      "ref_set": [
+        "def:insulin-grid",
+        "lem:insulin-policy-contraction"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinStationaryLaw_isStationary",
+        "file": "Helpers/InsulinGridCore/Model.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:insulin-target-reward-regression",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Target-policy reward regression on the insulin grid",
+      "body": "Let \\(T\\in\\mathbb N\\), let \\(\\mathcal I_{\\mathrm{grid}}\\) be the refreshed finite insulin adaptation of \\cref{obj:def:insulin-grid} with transition kernel \\(K_T\\) and target policy \\(e\\), and for a grid state \\(s=(g,d_1,d_2,x_1,x_2,a_1)\\) write \\(x(s)=(g,x_1,x_2,a_1)\\) for its observed coordinate and\n\\[\nr_{\\mathrm{ins}}(s)=\n\\begin{cases}\n-1,&g\\le70,\\\\\n-2/3,&g>150,\\\\\n-1/3,&70<g\\le80\\ \\text{or}\\ 120<g\\le150,\\\\\n0,&\\text{otherwise},\n\\end{cases}\n\\]\nfor the insulin reward vector. Writing \\(p_1\\) for the numeric reward coordinate of a reward/state pair \\(p\\) drawn by \\(K_T\\), we have, for every \\(s\\in\\mathsf S_{\\mathrm{grid}}\\),\n\\[\n\\sum_{a\\in\\{0,1\\}}e(a\\mid x(s))\\int p_1\\,K_T(dp\\mid s,a)\n=\nr_{\\mathrm{ins}}(s) .\n\\]",
+      "ref_set": [
+        "def:insulin-grid",
+        "def:target-value"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinTargetRewardRegression",
+        "file": "Helpers/InsulinGridCore/Semantic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:insulin-immediate-reward-regression",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Immediate weighted reward regression on the insulin grid",
+      "body": "Let \\(T\\in\\mathbb N\\), let \\(\\mathcal I_{\\mathrm{grid}}\\) be the refreshed finite insulin adaptation of \\cref{obj:def:insulin-grid} with transition kernel \\(K_T\\), behavior policy \\(b\\) and target policy \\(e\\), and for a grid state \\(s=(g,d_1,d_2,x_1,x_2,a_1)\\) write \\(x(s)=(g,x_1,x_2,a_1)\\). Let\n\\[\n\\rho(x,a)=\\begin{cases}e(a\\mid x)/b(a\\mid x),&b(a\\mid x)\\ne0,\\\\0,&\\text{otherwise},\\end{cases}\n\\]\nand let \\(r_{\\mathrm{ins}}\\) be the insulin reward vector\n\\[\nr_{\\mathrm{ins}}(s)=\n\\begin{cases}\n-1,&g\\le70,\\\\\n-2/3,&g>150,\\\\\n-1/3,&70<g\\le80\\ \\text{or}\\ 120<g\\le150,\\\\\n0,&\\text{otherwise},\n\\end{cases}\n\\]\nWriting \\(p_1\\) for the numeric reward coordinate of a reward/state pair \\(p\\) drawn by \\(K_T\\), we have, for every \\(s\\in\\mathsf S_{\\mathrm{grid}}\\),\n\\[\n\\sum_{a\\in\\{0,1\\}}b(a\\mid x(s))\\,\\rho(x(s),a)\\int p_1\\,K_T(dp\\mid s,a)\n=\nr_{\\mathrm{ins}}(s) .\n\\]",
+      "ref_set": [
+        "def:insulin-grid"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinImmediateRewardRegression",
+        "file": "Helpers/InsulinGridCore/Semantic.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:certified-stationary-reward-enclosure",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Stationary reward enclosure",
+      "body": "Let \\(\\mathsf S\\) be a finite set, and let \\(P\\) be a stochastic matrix on \\(\\mathsf S\\) whose entries satisfy\n\\[\nP(s,s')\\in\\mathfrak A(s,s')\n\\]\nfor all \\(s,s'\\in\\mathsf S\\). The intervals are rational intervals \\([\\ell,u]\\) with \\(\\ell\\le u\\), combined by exact interval arithmetic:\n\\[\n[a,b]+[c,d]=[a+c,b+d],\\qquad\n[a,b]\\ominus[c,d]=[a-d,b-c],\n\\]\nand \\([a,b]\\cdot[c,d]\\) is the interval whose endpoints are the smallest and largest of the four endpoint products. For an interval \\(\\mathfrak r\\), write \\(\\ell(\\mathfrak r)\\) and \\(u(\\mathfrak r)\\) for its endpoints and\n\\[\n|\\mathfrak r|_{\\max}=\\max\\{|\\ell(\\mathfrak r)|,|u(\\mathfrak r)|\\}.\n\\]\nSuppose the following conditions hold.\n\\begin{itemize}\n\\item \\textbf{(Initial row and interval rows.)} There are an exact rational probability vector \\(\\mu_0\\) on \\(\\mathsf S\\), a number \\(m\\in\\mathbb N\\), and interval rows \\(\\mathfrak T_0,\\ldots,\\mathfrak T_{m+1}\\) on \\(\\mathsf S\\) such that\n\\[\n\\mu_0(s)\\in\\mathfrak T_0(s)\n\\]\nfor every \\(s\\in\\mathsf S\\).\n\n\\item \\textbf{(Chunked recurrence.)} For every \\(k\\le m\\) and every output state \\(s'\\), there are pairwise disjoint blocks \\(\\mathcal G_1,\\ldots,\\mathcal G_J\\subseteq\\mathsf S\\) covering \\(\\mathsf S\\), each with at most a fixed positive number of states; block intervals \\(\\Xi_1(s'),\\ldots,\\Xi_J(s')\\); and partial-sum intervals \\(\\Sigma_1,\\ldots,\\Sigma_{J+1}\\) such that\n\\[\n\\sum_{s\\in\\mathcal G_j}\\mathfrak T_k(s)\\cdot\\mathfrak A(s,s')\\subseteq\\Xi_j(s')\n\\]\nfor each \\(j\\),\n\\[\n0\\in\\Sigma_{J+1},\\qquad\n\\Xi_j(s')+\\Sigma_{j+1}\\subseteq\\Sigma_j\n\\]\nfor \\(j=J,\\ldots,1\\), and\n\\[\n\\Sigma_1=\\mathfrak T_{k+1}(s').\n\\]\n\n\\item \\textbf{(Reward bounds.)} There are a reward vector \\(r:\\mathsf S\\to\\mathbb R\\), rational intervals \\(\\mathfrak r(s)\\ni r(s)\\), and a rational bound \\(B\\ge0\\) such that\n\\[\n|\\mathfrak r(s)|_{\\max}\\le B\n\\]\nfor every \\(s\\in\\mathsf S\\).\n\n\\item \\textbf{(Contraction and stationarity.)} There are a rational coefficient \\(0\\le\\rho<1\\) and a probability vector \\(\\pi\\) such that\n\\[\n\\|\\nu P-\\nu'P\\|_1\\le\\rho\\|\\nu-\\nu'\\|_1\n\\]\nfor all probability vectors \\(\\nu,\\nu'\\) on \\(\\mathsf S\\), and\n\\[\n\\pi P=\\pi .\n\\]\n\\end{itemize}\nDefine\n\\[\n\\delta=\\sum_{s\\in\\mathsf S}\\bigl|\\mathfrak T_m(s)\\ominus\\mathfrak T_{m+1}(s)\\bigr|_{\\max},\n\\qquad\n\\mathfrak E=\\sum_{s\\in\\mathsf S}\\mathfrak T_m(s)\\cdot\\mathfrak r(s),\n\\]\nand\n\\[\n\\mathfrak J=\n\\left[\n\\ell(\\mathfrak E)-\\frac{B\\delta}{1-\\rho},\nu(\\mathfrak E)+\\frac{B\\delta}{1-\\rho}\n\\right].\n\\]\nThen\n\\[\n\\sum_{s\\in\\mathsf S}\\pi(s)\\,r(s)\\in\\mathfrak J .\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.stationaryRewardInterval_sound_of_chunked",
+        "file": "Helpers/InsulinGrid.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:insulin-bias-interval-evaluation",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Insulin bias interval bounds",
+      "body": "For \\(\\star\\in\\{\\mathrm b,\\mathrm e\\}\\), let \\(\\mathfrak T_{\\star,0}\\) and \\(\\mathfrak T_{\\star,1}\\) be the terminal and successor rational interval rows on the \\(360\\)-state grid \\(\\mathsf S_{\\mathrm{grid}}\\) of \\cref{obj:def:insulin-grid} recorded by the zero-step chunked iterate certificate, in blocks of at most \\(40\\) states, for the rational interval enclosure of the behavior-policy case \\(\\star=\\mathrm b\\) or target-policy case \\(\\star=\\mathrm e\\). Let \\(\\mathfrak r_{\\mathrm{ins}}(s)=[r_{\\mathrm{ins}}(s),r_{\\mathrm{ins}}(s)]\\), where \\(r_{\\mathrm{ins}}(s)\\in\\{-1,-2/3,-1/3,0\\}\\) is the grid reward from \\cref{obj:def:insulin-grid}. Using the exact rational interval arithmetic of \\cref{obj:lem:certified-stationary-reward-enclosure}, define\n\\[\n\\delta_\\star=\\sum_{s\\in\\mathsf S_{\\mathrm{grid}}}\\bigl|\\mathfrak T_{\\star,0}(s)\\ominus\\mathfrak T_{\\star,1}(s)\\bigr|_{\\max},\n\\qquad\n\\mathfrak E_\\star=\\sum_{s\\in\\mathsf S_{\\mathrm{grid}}}\\mathfrak T_{\\star,0}(s)\\cdot\\mathfrak r_{\\mathrm{ins}}(s),\n\\]\n\\[\n\\mathfrak J_\\star=\n\\left[\n\\ell(\\mathfrak E_\\star)-\\frac{\\delta_\\star}{1-1/2},\n\\,\nu(\\mathfrak E_\\star)+\\frac{\\delta_\\star}{1-1/2}\n\\right],\n\\qquad\n\\mathfrak B=\\mathfrak J_{\\mathrm b}\\ominus\\mathfrak J_{\\mathrm e}.\n\\]\nEquivalently,\n\\[\n\\mathfrak B=\n\\left[\n\\ell(\\mathfrak J_{\\mathrm b})-u(\\mathfrak J_{\\mathrm e}),\n\\,\nu(\\mathfrak J_{\\mathrm b})-\\ell(\\mathfrak J_{\\mathrm e})\n\\right].\n\\]\nThen the endpoints of this rational interval satisfy\n\\[\n-\\frac{6}{1000}<\\ell(\\mathfrak B)\n\\qquad\\text{and}\\qquad\nu(\\mathfrak B)<-\\frac{58}{10000}.\n\\]",
+      "ref_set": [
+        "def:insulin-grid",
+        "lem:certified-stationary-reward-enclosure"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinBiasInterval_bounds",
+        "file": "Helpers/InsulinChunkAssembly.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:insulin-bias-certificate",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Insulin-grid bias certificate",
+      "body": "For every natural horizon \\(T\\), let \\(\\Delta_{\\mathrm{imm}}(T)\\) be the stationary immediate-weighting bias for the refreshed finite insulin adaptation \\(\\mathcal I_{\\mathrm{grid}}\\) of \\cref{obj:def:insulin-grid},\n\\[\n\\Delta_{\\mathrm{imm}}(T)\n=\n\\sum_s d_b(s)\n\\sum_{a\\in\\{0,1\\}}\nb(s_1,a)\\,\n\\rho(s_1,a)\\,\n\\int p_1\\,K_T(dp\\mid s,a)\n-\n\\theta(K_T,e),\n\\]\nwhere \\(d_b\\) is the stationary law of the behavior-policy transition kernel on the insulin grid, \\(K_T\\) is the refreshed insulin-grid transition kernel, \\(b\\) and \\(e\\) are its behavior and target policies, \\(\\rho(s_1,a)\\) is the one-step target-to-behavior policy ratio, and \\(\\theta(K_T,e)\\) is the target value in \\cref{obj:def:target-value}. Then\n\\[\n-\\frac{6}{1000}\n<\n\\Delta_{\\mathrm{imm}}(T)\n<\n-\\frac{58}{10000}.\n\\]",
+      "ref_set": [
+        "def:insulin-grid",
+        "def:target-value",
+        "lem:insulin-policy-contraction",
+        "lem:insulin-stationary-law",
+        "lem:insulin-target-reward-regression",
+        "lem:insulin-immediate-reward-regression",
+        "lem:certified-stationary-reward-enclosure",
+        "lem:insulin-bias-interval-evaluation"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.insulinGrid_bias_certificate",
+        "file": "Helpers/InsulinGrid.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "prop:finite-insulin-demonstration",
+      "alias": "T-3",
+      "kind": "theorem",
+      "env": "theoremv",
+      "title": "Finite insulin witness",
+      "body": "For every horizon \\(T\\), the refreshed insulin experiment \\(\\mathcal I_{\\mathrm{grid}}\\) of \\cref{obj:def:insulin-grid} satisfies:\n\\begin{itemize}\n\\item \\textbf{(State count.)} Its observed--latent joint-state alphabet has cardinality \\(90\\cdot 4=360\\).\n\\item \\textbf{(Uniform contraction.)} It satisfies \\cref{obj:ass:uniform-contraction} with contraction parameter \\(\\alpha=1/2\\).\n\\item \\textbf{(Policy overlap.)} It satisfies \\cref{obj:ass:policy-overlap} with one-step overlap constant \\(L=10/3\\).\n\\item \\textbf{(Stationary overlap.)} It satisfies \\cref{obj:ass:latent-stationary-overlap} with stationary-overlap constant \\(C=720\\).\n\\end{itemize}\nDefine the immediate-weighting bias diagnostic by\n\\[\n\\Delta_{\\mathrm{imm}}(T)\n=\n\\sum_s d_b(s)\\sum_{a\\in\\{0,1\\}} b(a\\mid s_X)\\,\n\\frac{e(a\\mid s_X)}{b(a\\mid s_X)}\n\\int r\\,K(ds',dr\\mid s,a)\n-\n\\theta(K,e),\n\\]\nwhere \\(K,b,e\\) are the transition kernel, behavior policy, and target policy of \\(\\mathcal I_{\\mathrm{grid}}\\), \\(s_X\\) is the observed coordinate of \\(s\\), and \\(d_b\\) is the stationary law induced by \\(b\\). This diagnostic is interval-certified as strictly negative:\n\\[\n-0.006 < \\Delta_{\\mathrm{imm}}(T) < -0.0058 .\n\\]",
+      "ref_set": [
+        "ass:uniform-contraction",
+        "def:insulin-grid",
+        "ass:policy-overlap",
+        "ass:latent-stationary-overlap",
+        "lem:insulin-bias-certificate",
+        "lem:insulin-policy-contraction",
+        "lem:insulin-stationary-law"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.finite_insulin_demonstration",
+        "file": "TFiniteInsulinDemonstration.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "def:filter-quantities",
+      "alias": "P-7",
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Filter quantities \\(\\mathcal F_{t-1}^{\\mathrm{obs}},\\ell_t,q_t^v,a_t^{(Q)}\\)",
+      "body": "Define\n\\[\n\\mathcal F_{t-1}^{\\mathrm{obs}}\n:=\n\\sigma(A_0,Y_0,\\ldots,A_{t-1},Y_{t-1}),\n\\]\n\\[\n\\ell_t:=\\min\\{Q,t\\},\n\\]\n\\[\nq_t^v\n:=\n\\Pr_v(J_t=Q\\mid\\mathcal F_{t-1}^{\\mathrm{obs}}),\n\\]\nand\n\\[\na_t^{(Q)}\n:=\nL^{-(Q-\\ell_t)}\n\\prod_{j=t-\\ell_t}^{t-1}\\mathbf 1\\{A_j=1\\},\n\\]\nwhere the empty product is equal to one.",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.filterQuantities",
+        "file": "Helpers/ObservedFilter.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:phiw-window-second-moment",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Window second moment",
+      "body": "Let \\(T,n_X,n_H\\in\\mathbb N\\), let \\(k\\in\\mathbb N\\), let \\(L\\in\\mathbb R\\), and let \\(M\\) be a raw POMDP experiment on finite observed and hidden alphabets. Suppose that:\n\\begin{itemize}\n\\item \\textbf{(Sequential ignorability.)} \\(M\\) satisfies \\cref{obj:ass:sequential-ignorability}.\n\\item \\textbf{(Policy overlap.)} \\(M\\) satisfies \\cref{obj:ass:policy-overlap} with constant \\(L\\).\n\\item \\textbf{(Overlap level.)} \\(L\\ge 1\\).\n\\item \\textbf{(Kernel law.)} \\(M\\) satisfies \\cref{obj:ass:pomdp-kernel}.\n\\item \\textbf{(Bounded rewards.)} \\(M\\) satisfies \\cref{obj:ass:bounded-reward}.\n\\item \\textbf{(Window position.)} \\(t\\in\\{0,\\ldots,T-1\\}\\) and \\(k\\le t\\).\n\\end{itemize}\nFor the depth-\\(k\\) score \\(Z_t(k)\\) of \\cref{obj:def:phiw-estimator}, under the observed trajectory law of \\(M\\),\n\\[\n\\mathbb E_{\\mathrm{obs}}\\bigl[Z_t(k)^2\\bigr]\\le L^{k+1}.\n\\]",
+      "ref_set": [
+        "def:phiw-estimator",
+        "ass:pomdp-kernel",
+        "ass:sequential-ignorability",
+        "ass:bounded-reward",
+        "ass:policy-overlap"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_sq_phiwScore_le",
+        "file": "Helpers/PhiwWindowMoments.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:phiw-overlapping-window-covariance",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Overlapping-window covariance",
+      "body": "Let \\(M\\) be a raw POMDP experiment of length \\(T\\) on finite observed and hidden alphabets. Let \\(k,h\\in\\mathbb N\\), let \\(L\\in\\mathbb R\\), and let \\(t,u\\in\\{0,\\ldots,T-1\\}\\). Assume:\n\\begin{itemize}\n\\item \\textbf{(Model conditions.)} \\(M\\) satisfies \\cref{obj:ass:sequential-ignorability}, \\cref{obj:ass:policy-overlap} with overlap constant \\(L\\), \\cref{obj:ass:pomdp-kernel}, and \\cref{obj:ass:bounded-reward}.\n\\item \\textbf{(Overlap constant.)} \\(L\\ge 1\\).\n\\item \\textbf{(Initial window.)} \\(k\\le t\\).\n\\item \\textbf{(Lag identity.)} \\(u=t+h\\).\n\\item \\textbf{(Overlapping lag.)} \\(1\\le h\\le k\\).\n\\end{itemize}\nThen the depth-\\(k\\) scores \\(Z_t(k)\\) of \\cref{obj:def:phiw-estimator}, evaluated under the observed trajectory law of \\(M\\), satisfy\n\\[\n\\bigl|\\operatorname{Cov}_{\\mathrm{obs}}\\bigl(Z_t(k),Z_u(k)\\bigr)\\bigr|\n\\le\n2L^{k+1-h}.\n\\]",
+      "ref_set": [
+        "def:phiw-estimator",
+        "ass:pomdp-kernel",
+        "ass:sequential-ignorability",
+        "ass:bounded-reward",
+        "ass:policy-overlap"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.abs_covariance_phiwScore_le_overlapDecay",
+        "file": "Helpers/PhiwWindowMoments.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_15",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Observed-trajectory law",
+      "body": "For a raw POMDP experiment \\(M=(\\mathcal X,\\mathcal H,K,b,e,\\mathcal L(\\mathsf O_T))\\), let\n\\[\n\\mathbb P_M^{\\mathrm{obs}}:=\\operatorname{Law}^{\\mathrm{obs}}_M\n\\]\ndenote the probability law of the observed trajectory\n\\[\n\\mathsf O_T=((X_t,A_t,Y_t))_{t=0}^{T-1}\n\\]\ninduced by the behavior-policy experiment \\(M\\). Equivalently, under \\(\\mathbb P_M^{\\mathrm{obs}}\\), \\(S_0\\sim d_b\\), \\(A_t\\sim b(\\cdot\\mid X_t)\\), and \\(K\\) generates \\((Y_t,S_{t+1})\\) from \\((S_t,A_t)\\), with only \\((X_t,A_t,Y_t)_{t=0}^{T-1}\\) retained.",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_17",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Full trajectory law and observation map",
+      "body": "For a raw POMDP experiment \\(M=(\\mathcal X,\\mathcal H,K,b,e,\\mathcal L(\\mathsf O_T))\\) with joint state space \\(\\mathcal S=\\mathcal X\\times\\mathcal H\\), let \\(\\mathbb P_M\\) denote the full behavior-policy trajectory law on\n\\[\n(S_0,A_0,Y_0,S_1,\\ldots,A_{T-1},Y_{T-1},S_T).\n\\]\nUnder \\(\\mathbb P_M\\), the initial state satisfies \\(S_0\\sim d_b\\), each action is drawn as \\(A_t\\sim b(\\cdot\\mid X_t)\\), and the kernel \\(K\\) generates \\((Y_t,S_{t+1})\\) from \\((S_t,A_t)\\), for \\(t=0,\\ldots,T-1\\).\n\nLet \\(O\\) be the observation map from a full trajectory to its observed trajectory,\n\\[\nO(S_0,A_0,Y_0,\\ldots,A_{T-1},Y_{T-1},S_T)\n:=((X_t,A_t,Y_t))_{t=0}^{T-1},\n\\]\nwhere \\(S_t=(X_t,H_t)\\). The observed behavior-policy law is the pushforward\n\\[\n\\mathbb P_M^{\\mathrm{obs}}:=\\mathbb P_M\\circ O^{-1}.\n\\]",
+      "ref_set": [],
+      "lean": null,
+      "status": "presentation-synthesized",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:phiw-separated-window-peeling",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Separated window peeling",
+      "body": "Let \\(M\\) be a raw POMDP experiment with trajectory length \\(T\\), and let \\(L\\), the policy-overlap constant, be real. Let \\(Z_s(k)\\) denote the depth-\\(k\\) partial-history weighted reward score from \\cref{obj:def:phiw-estimator}. Suppose:\n\\begin{itemize}\n\\item \\textbf{(Model conditions.)} \\(M\\) satisfies \\cref{obj:ass:sequential-ignorability,obj:ass:policy-overlap,obj:ass:pomdp-kernel,obj:ass:bounded-reward} with overlap constant \\(L\\).\n\\item \\textbf{(Overlap scale.)} \\(1\\le L\\).\n\\item \\textbf{(Mature earlier window.)} The history depth \\(k\\) satisfies \\(k\\le t\\).\n\\item \\textbf{(Separated future window.)} For an epoch \\(t\\) and a gap \\(\\gamma\\in\\mathbb N\\), the epoch\n\\[\nu=t+1+\\gamma+k\n\\]\nlies in the observed horizon, equivalently \\(t+1+\\gamma+k<T\\).\n\\end{itemize}\nFor \\(p\\in\\{b,e\\}\\), let \\(P_p\\) be the policy-induced transition operator obtained from the reward-marginalized kernel under policy \\(p\\), let\n\\[\ng_e(s)=\\sum_a e(a\\mid x(s))\\int y\\,K(dy\\times\\mathcal S\\mid s,a),\n\\]\nand put\n\\[\n\\Phi_{\\gamma,k}(s)=P_b^\\gamma P_e^k g_e(s).\n\\]\nThen, with \\(\\mathbb P_M^{\\mathrm{obs}}\\) the observed law induced by the observed trajectory map \\(O\\),\n\\[\n\\int Z_t(k)(w)Z_u(k)(w)\\,d\\mathbb P_M^{\\mathrm{obs}}(w)\n=\n\\int Z_t(k)(O(\\tau))\\,\\Phi_{\\gamma,k}(S_{t+1}(\\tau))\\,d\\mathbb P_M(\\tau).\n\\]",
+      "ref_set": [
+        "ass:pomdp-kernel",
+        "ass:sequential-ignorability",
+        "ass:bounded-reward",
+        "ass:policy-overlap",
+        "def:phiw-estimator",
+        "def:target-value"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_phiwScore_mul_eq_futureFunction",
+        "file": "Helpers/PhiwFutureEndpoint.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:behavior-support-operator-congruence",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Behavior-support operator congruence",
+      "body": "Let \\(M\\in\\mathcal M_T(t_0,\\zeta,C)\\) satisfy \\cref{obj:def:model-class}, with behavior policy \\(b\\), target policy \\(e\\), and the policy-overlap condition in \\cref{obj:ass:policy-overlap}.  For \\(p\\in\\{b,e\\}\\), write\n\\[\nP_p(s,s')=\\sum_{a\\in\\{0,1\\}} p(a\\mid x(s))\\,K(\\{S'=s'\\}\\mid s,a),\n\\]\nand let \\(P_p^0 h=h\\) and \\(P_p^{m+1}h=P_p(P_p^m h)\\).  Let \\(d_b\\) denote the behavior stationary law of \\(P_b\\).\n\nAssume:\n\\begin{itemize}\n\\item \\textbf{(Policy choice.)} The policy \\(p\\) is either \\(b\\) or \\(e\\).\n\\item \\textbf{(Terminal agreement.)} The functions \\(f,g:\\mathcal S\\to\\mathbb R\\) satisfy\n\\[\nf(s)=g(s)\n\\]\nfor every joint state \\(s\\) with \\(d_b(s)>0\\).\n\\item \\textbf{(Initial support.)} The joint state \\(s\\) satisfies \\(d_b(s)>0\\).\n\\end{itemize}\nThen, for every \\(m\\in\\mathbb N\\),\n\\[\n(P_p^m f)(s)=(P_p^m g)(s).\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "ass:policy-overlap"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.markovOperatorIter_congr_on_behaviorSupport",
+        "file": "Helpers/StationaryRewardSupport.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:phiw-separated-window-covariance",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Separated window covariance",
+      "body": "Let \\(T,n_X,n_H,k,h\\in\\mathbb N\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), and let \\(M\\in\\mathcal M_T(t_0,\\zeta,C)\\) be a raw POMDP experiment as in \\cref{obj:def:model-class}, with the uniform contraction restriction of \\cref{obj:ass:uniform-contraction}. Write the contraction factor as \\(\\alpha=e^{-1/t_0}\\). Let \\(t,u\\in\\{0,\\ldots,T-1\\}\\) satisfy\n\\[\nk\\le t,\\qquad u=t+h,\\qquad k+1\\le h .\n\\]\nThen the depth-\\(k\\) scores \\(Z_t(k)\\) of \\cref{obj:def:phiw-estimator}, evaluated under the observed trajectory law of \\(M\\), satisfy\n\\[\n\\bigl|\\operatorname{Cov}_{\\mathrm{obs}}\\bigl(Z_t(k),Z_u(k)\\bigr)\\bigr|\n\\le\n2\\alpha^{h-k-1}.\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "def:phiw-estimator",
+        "ass:uniform-contraction",
+        "lem:phiw-separated-window-peeling",
+        "lem:behavior-support-operator-congruence"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.abs_covariance_phiwScore_le_disjoint_sharp",
+        "file": "Helpers/PhiwFutureEndpoint.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:phiw-future-covariance-sum",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Aggregate future-covariance bound",
+      "body": "Let \\(T\\ge1\\), \\(k\\in\\mathbb N\\), \\(t_0,\\zeta,C\\in\\mathbb R\\), and let \\(M\\in\\mathcal M_T(t_0,\\zeta,C)\\) be as in \\cref{obj:def:model-class}. Write \\(L=e^{\\zeta}\\), \\(\\alpha=e^{-1/t_0}\\), and \\(\\mathscr T_k=\\{t:k\\le t\\le T-1\\}\\). Then, for every \\(t\\in\\mathscr T_k\\), the depth-\\(k\\) scores of \\cref{obj:def:phiw-estimator} satisfy, under the observed trajectory law of \\(M\\),\n\\[\n\\sum_{\\substack{u\\in\\mathscr T_k\\\\ t<u}}\n\\bigl|\\operatorname{Cov}_{\\mathrm{obs}}\\bigl(Z_t(k),Z_u(k)\\bigr)\\bigr|\n\\le\n\\frac{2L^{k+1}}{L-1}+\\frac{2}{1-\\alpha}.\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "def:phiw-estimator"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.sum_abs_covariance_future_le",
+        "file": "Helpers/PhiwVariance.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:phiw-raw-variance",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Raw variance assembly",
+      "body": "Let \\(T\\) and \\(k\\) be nonnegative integers, let \\(t_0,\\zeta,C\\in\\mathbb R\\), and let \\(M\\) be a raw POMDP experiment. Write \\(L=e^\\zeta\\) for the policy-overlap factor and \\(\\alpha=e^{-1/t_0}\\) for the contraction factor. Suppose that\n\\begin{itemize}\n\\item \\textbf{(Horizon.)} \\(T\\ge 1\\).\n\\item \\textbf{(Model class.)} \\(M\\in\\mathcal M_T(t_0,\\zeta,C)\\), with \\(\\mathcal M_T(t_0,\\zeta,C)\\) as in \\cref{obj:def:model-class}.\n\\item \\textbf{(History depth.)} \\(k\\le \\lfloor T/2\\rfloor\\).\n\\end{itemize}\nFor the depth-\\(k\\) scores \\(Z_t(k)\\) of \\cref{obj:def:phiw-estimator}, form the unclipped partial-history average\n\\[\n\\frac{1}{T-k}\\sum_{t=k}^{T-1} Z_t(k).\n\\]\nUnder the observed trajectory law obtained by projecting the full trajectory law of \\(M\\) onto observed histories, its variance satisfies\n\\[\n\\operatorname{Var}\\!\\left(\\frac{1}{T-k}\\sum_{t=k}^{T-1} Z_t(k)\\right)\n\\le\n\\frac{2}{T}\\left\\{\nL^{k+1}\\left(1+\\frac{4}{L-1}\\right)\n+\n\\frac{4}{1-\\alpha}\n\\right\\}.\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "def:phiw-estimator",
+        "lem:phiw-window-second-moment",
+        "lem:phiw-overlapping-window-covariance",
+        "lem:phiw-separated-window-covariance",
+        "lem:phiw-future-covariance-sum"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.variance_phiwRaw_le",
+        "file": "Helpers/PhiwVariance.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:phiw-upper",
+      "alias": "L-1",
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Balanced PHIW upper bound",
+      "body": "Fix constants satisfying\n\\begin{itemize}\n\\item \\textbf{(Mixing scale.)} \\(t_0>0\\).\n\\item \\textbf{(Policy-overlap scale.)} \\(\\zeta>0\\).\n\\item \\textbf{(Latent-overlap radius.)} \\(C\\ge 1\\).\n\\end{itemize}\nLet \\(k_T\\) be the balanced history depth in \\cref{obj:def:history-depth}, and set\n\\[\n\\beta=\\frac{2}{2+t_0\\zeta}.\n\\]\nThen there exist constants \\(c^\\star>0\\) and \\(T_\\star\\in\\mathbb N\\) such that, for every \\(T\\ge T_\\star\\), the estimator-specific worst-case squared risk from \\cref{obj:synth_13} of the observable PHIW estimator \\(\\widehat\\theta_{k_T}\\) from \\cref{obj:def:phiw-estimator} satisfies\n\\[\nR_T(t_0,\\zeta,C;\\widehat\\theta_{k_T})\n\\le\nc^\\star T^{-\\beta}.\n\\]\nMoreover, for every \\(T\\ge T_\\star\\), every finite alphabet sizes \\(n_X,n_H\\), and every raw POMDP experiment \\(M\\in\\mathcal M_T(t_0,\\zeta,C)\\), the variance under the observed trajectory law induced by \\(M\\) of the unclipped partial-history average\n\\[\n\\frac{1}{T-k_T}\\sum_{t=k_T}^{T-1} Z_t(k_T)\n\\]\nsatisfies\n\\[\n\\operatorname{Var}\n\\!\\left(\\frac{1}{T-k_T}\\sum_{t=k_T}^{T-1} Z_t(k_T)\\right)\n\\le\n\\frac{2}{T}\n\\left[\ne^{\\zeta(k_T+1)}\n\\left(1+\\frac{4}{e^\\zeta-1}\\right)\n+\n\\frac{4}{1-e^{-1/t_0}}\n\\right].\n\\]",
+      "ref_set": [
+        "def:history-depth",
+        "def:model-class",
+        "lem:phiw-raw-variance",
+        "lem:phiw-window-second-moment",
+        "lem:phiw-overlapping-window-covariance",
+        "lem:phiw-separated-window-covariance",
+        "lem:phiw-future-covariance-sum"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.phiw_upper",
+        "file": "Helpers/PhiwUpper.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:signed-depth-constant-policy-contraction",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Contraction of the constant-policy signed-depth kernel",
+      "body": "Let \\(t_0>0\\), \\(\\zeta>0\\), \\(C\\ge1\\), \\(Q\\ge1\\), \\(v\\in\\{-1,+1\\}\\) and \\(r\\in[0,1]\\), and write \\(\\alpha=e^{-1/t_0}\\). Let \\(P^{(r)}\\) be the transition kernel induced on the joint state space \\(\\mathcal S_Q=\\{0\\}\\times(\\{0,\\ldots,Q\\}\\times\\{-1,+1\\})\\) of the signed-depth alternative of \\cref{obj:def:signed-depth-family} with terminal depth \\(Q\\) and index \\(v\\) by the constant policy \\(a_r\\) that plays action one with probability \\(r\\). Then, for all probability vectors \\(\\mu,\\mu'\\) on \\(\\mathcal S_Q\\),\n\\[\n\\|\\mu P^{(r)}-\\mu'P^{(r)}\\|_{\\mathrm{TV}}\n\\le\n\\alpha\\|\\mu-\\mu'\\|_{\\mathrm{TV}} .\n\\]",
+      "ref_set": [
+        "def:signed-depth-family"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_uniformContraction_actionOne",
+        "file": "Helpers/SignedDepthStationarity.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:signed-depth-stationary-law",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Closed form of the signed-depth stationary law",
+      "body": "Let \\(t_0>0\\), \\(\\zeta>0\\), \\(C\\ge1\\), \\(Q\\ge1\\), \\(v\\in\\{-1,+1\\}\\) and \\(r\\in[0,1]\\). Write \\(\\alpha=e^{-1/t_0}\\), \\(\\varepsilon_C=\\min\\{(C-1)/2,1/2\\}\\), and \\(w_j=(1-\\alpha)\\alpha^{j}/(1-\\alpha^{Q+1})\\). Let \\(P^{(r)}\\) be the kernel induced on \\(\\mathcal S_Q\\) by the constant policy \\(a_r\\) for the signed-depth alternative of \\cref{obj:def:signed-depth-family} with terminal depth \\(Q\\) and index \\(v\\), and let \\(d_r\\) be the stationary law selected for \\(P^{(r)}\\). Then, for every hidden state \\(h=(j(h),u(h))\\),\n\\[\nd_r(0,h)\n=\nw_{j(h)}\\,\\frac{1+u(h)\\varepsilon_Cr^{j(h)}}{2}.\n\\]",
+      "ref_set": [
+        "def:signed-depth-family",
+        "lem:signed-depth-constant-policy-contraction"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_stationaryLaw_apply",
+        "file": "Helpers/SignedDepthStationarity.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:signed-depth-membership",
+      "alias": "L-2",
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Signed-depth membership",
+      "body": "For every \\(T\\ge 1\\), \\(Q\\ge 1\\), \\(t_0>0\\), \\(\\zeta>0\\), \\(C>1\\), and \\(v\\in\\{-1,+1\\}\\), let \\(M_{Q,v}^T\\) be the signed-depth experiment of \\cref{obj:def:signed-depth-family}.  Put\n\\[\n\\varepsilon_C=\\min\\{(C-1)/2,1/2\\},\n\\qquad\nL=\\exp(\\zeta),\n\\qquad\nw_j=\\frac{(1-\\alpha(t_0))\\alpha(t_0)^j}{1-\\alpha(t_0)^{Q+1}},\n\\]\nwhere \\(\\alpha(t_0)\\) is the mixing factor and \\(j=0,\\ldots,Q\\).  Then:\n\\begin{itemize}\n\\item \\textbf{(Membership.)} \\(M_{Q,v}^T\\in \\mathcal M_T(t_0,\\zeta,C)\\) in the sense of \\cref{obj:def:model-class}.\n\\item \\textbf{(Behavior stationary law.)} For every hidden state \\(h\\), with decoded depth \\(j(h)\\in\\{0,\\ldots,Q\\}\\) and sign \\(u(h)\\in\\{-1,+1\\}\\),\n\\[\nd_b(0,h)\n=\nw_{j(h)}\n\\frac{1+u(h)\\varepsilon_C L^{-j(h)}}{2}.\n\\]\n\\item \\textbf{(Constant action-one stationary laws.)} For every \\(r\\in[0,1]\\), if \\(d_r\\) denotes the stationary law induced by the constant policy that chooses action one with probability \\(r\\), then for every hidden state \\(h\\),\n\\[\nd_r(0,h)\n=\nw_{j(h)}\n\\frac{1+u(h)\\varepsilon_C r^{j(h)}}{2}.\n\\]\n\\item \\textbf{(Target-over-behavior domination.)} For every joint state \\(s\\),\n\\[\nd_e(s)\\le (1+\\varepsilon_C)d_b(s),\n\\qquad\n1+\\varepsilon_C\\le C.\n\\]\n\\end{itemize}\nThe stationary target value of \\cref{obj:def:target-value} is\n\\[\n\\theta(K,e)\n=\nv\\,c_0(t_0)\\,\\varepsilon_C\\,w_Q .\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "def:signed-depth-family",
+        "def:target-value",
+        "lem:signed-depth-constant-policy-contraction",
+        "lem:signed-depth-stationary-law"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_membership",
+        "file": "Helpers/SignedDepthMembership.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:posterior-lower-window-power",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Posterior window power bound",
+      "body": "Let \\(N,Q,k,d\\in\\mathbb N\\), let \\(t_0,\\zeta,C,b\\in\\mathbb R\\), let \\(v\\in\\{-1,+1\\}\\), and let \\(o=((a_0,y_0),\\ldots,(a_{k-1},y_{k-1}))\\) be an observed prefix for the signed-depth family of \\cref{obj:def:signed-depth-family}.  Write\n\\[\nc_0(t_0)=\\frac{1-\\alpha(t_0)}{4},\n\\]\nand, for \\(0\\le m\\le k\\), write \\(o_{\\le m}\\) for the first \\(m\\) observed pairs.  For any observed prefix \\(o'\\), define the raw terminal-depth posterior by\n\\[\n\\pi_v(o')\n=\n\\frac{\\sum_h \\mathbf 1\\{J(h)=Q\\}\\lambda_v(h;o')}\n     {\\sum_h \\lambda_v(h;o')}.\n\\]\nAssume:\n\\begin{itemize}\n\\item \\textbf{(Nonnegative amplitude.)} \\(0\\le c_0(t_0)\\).\n\\item \\textbf{(Nonnegative base.)} \\(0\\le 1-c_0(t_0)b\\).\n\\item \\textbf{(Window length.)} \\(d\\le k\\).\n\\item \\textbf{(Strict-prefix posterior bound.)} For every \\(i\\in\\{0,\\ldots,k-1\\}\\),\n\\[\n\\pi_v(o_{\\le i})\\le b.\n\\]\n\\end{itemize}\nDefine the final \\(d\\)-prefix lower window by\n\\[\n\\Lambda_d(o)\n=\n\\prod_{\\substack{0\\le i<k\\\\ k-d\\le i}}\n\\left(1-c_0(t_0)\\pi_v(o_{\\le i})\\right).\n\\]\nThen\n\\[\n\\bigl(1-c_0(t_0)b\\bigr)^d\\le \\Lambda_d(o).\n\\]",
+      "ref_set": [
+        "def:signed-depth-family"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.pow_one_sub_le_signedDepthPosteriorLowerWindow",
+        "file": "Helpers/TerminalPosteriorBound.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:terminal-posterior-mature-window",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Terminal posterior window bound",
+      "body": "Let \\(N,Q\\in\\mathbb N\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), and let \\(v\\in\\{-1,+1\\}\\).  Put \\(\\alpha=\\exp\\{-(1/t_0)\\}\\).  In the finite signed-depth model of \\cref{obj:def:signed-depth-family}, for an observed prefix \\(o=((a_1,y_1),\\ldots,(a_k,y_k))\\), write\n\\[\n\\pi_v(o)\n=\n\\frac{\n\\sum_{h\\in\\{0,\\ldots,Q\\}\\times\\{-1,+1\\}}\n\\mathbf 1\\{J(h)=Q\\}\\lambda_v(h;o)\n}{\n\\mathsf M_v(o)\n}.\n\\]\nFor \\(d\\in\\mathbb N\\), define the lower posterior window\n\\[\n\\Lambda_d(o)\n=\n\\prod_{\\substack{0\\le i<k\\\\ k-d\\le i}}\n\\left(1-c_0(t_0)\\,\\pi_v(o_{\\le i})\\right),\n\\]\nwhere \\(o_{\\le i}\\) is the prefix of \\(o\\) containing its first \\(i\\) action--reward pairs.\n\nAssume:\n\\begin{itemize}\n\\item \\textbf{(Positive scale.)} \\(t_0>0\\).\n\\item \\textbf{(Positive tilt.)} \\(\\zeta>0\\).\n\\item \\textbf{(Overlap level.)} \\(C>1\\).\n\\item \\textbf{(Mature window.)} \\(Q\\le k\\).\n\\end{itemize}\nThen the terminal-depth posterior satisfies\n\\[\n\\pi_v(o)\n\\le\n\\frac{\\alpha^Q}{\\Lambda_Q(o)}.\n\\]",
+      "ref_set": [
+        "def:signed-depth-family",
+        "def:filter-quantities"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthRawPosterior_le_product_of_le",
+        "file": "Helpers/TerminalPosteriorBound.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:terminal-posterior-initial-window",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Initial-window posterior bound",
+      "body": "Let \\(N,Q\\in\\mathbb N\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), let \\(v\\in\\{-1,+1\\}\\), let \\(k\\in\\mathbb N\\), and let\n\\[\no:\\{0,\\ldots,k-1\\}\\to \\{0,1\\}\\times\\{0,1\\}\n\\]\nbe an observed action/reward prefix for the signed-depth construction of \\cref{obj:def:signed-depth-family}.  Write \\(\\alpha=e^{-1/t_0}\\).  For any prefix \\(o'\\), define the raw terminal-depth posterior by\n\\[\n\\pi_v(o')\n=\n\\frac{\\sum_{h:\\,J(h)=Q}\\lambda_v(h;o')}\n     {\\sum_h \\lambda_v(h;o')}.\n\\]\nDefine the initial lower posterior window over the available prefixes by\n\\[\n\\Lambda_k(o)\n=\n\\prod_{i=0}^{k-1}\n\\left(1-c_0\\,\\pi_v(o_{\\le i})\\right),\n\\]\nwhere \\(o_{\\le i}\\) is the prefix of \\(o\\) of length \\(i\\).\n\nAssume:\n\\begin{itemize}\n\\item \\textbf{(Positive scale.)} \\(t_0>0\\).\n\\item \\textbf{(Positive overlap exponent.)} \\(\\zeta>0\\).\n\\item \\textbf{(Nontrivial overlap radius.)} \\(C>1\\).\n\\item \\textbf{(Initial window.)} \\(k<Q\\).\n\\end{itemize}\nThen the terminal-depth posterior after observing \\(o\\) satisfies\n\\[\n\\pi_v(o)\\le \\frac{\\alpha^Q}{\\Lambda_k(o)}.\n\\]",
+      "ref_set": [
+        "def:signed-depth-family",
+        "def:filter-quantities"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthRawPosterior_le_product_of_lt",
+        "file": "Helpers/TerminalPosteriorBound.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:terminal-posterior-crude-bound",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Crude terminal posterior bound",
+      "body": "Let \\(N,Q,k\\in\\mathbb N\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), and let \\(v\\in\\{-1,+1\\}\\). Suppose that\n\\begin{itemize}\n\\item \\textbf{(Positive temperature.)} \\(t_0>0\\).\n\\item \\textbf{(Positive log-overlap.)} \\(\\zeta>0\\).\n\\item \\textbf{(Overlap level.)} \\(C>1\\).\n\\end{itemize}\nFor the finite signed-depth model of \\cref{obj:def:signed-depth-family}, write\n\\[\n\\alpha=\\exp(-1/t_0),\n\\qquad\nc_0=\\frac{1-\\alpha}{4}.\n\\]\nFor every observed prefix \\(o\\in(\\{0,1\\}\\times\\{0,1\\})^k\\), define the raw terminal-depth posterior by\n\\[\n\\pi_v(o)\n=\n\\frac{\n\\sum_h \\mathbf 1\\{J(h)=Q\\}\\,\\lambda_v(h;o)\n}{\n\\mathsf M_v(o)\n},\n\\qquad\n\\mathsf M_v(o)=\\sum_h \\lambda_v(h;o),\n\\]\nwhere the sums range over the signed-depth hidden states at depth horizon \\(Q\\). Then\n\\[\n\\pi_v(o)\n\\le\n\\left(\\frac{\\alpha}{1-c_0}\\right)^Q .\n\\]",
+      "ref_set": [
+        "def:signed-depth-family",
+        "lem:posterior-lower-window-power",
+        "lem:terminal-posterior-mature-window",
+        "lem:terminal-posterior-initial-window"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthRawPosterior_le_ratio_pow",
+        "file": "Helpers/TerminalPosteriorBound.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:refined-terminal-posterior",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Refined terminal posterior bound",
+      "body": "Let \\(N,Q,k\\) be nonnegative integers. Suppose that\n\\begin{itemize}\n\\item \\textbf{(Positive scale.)} \\(t_0>0\\).\n\\item \\textbf{(Positive perturbation.)} \\(\\zeta>0\\).\n\\item \\textbf{(Overlap level.)} \\(C>1\\).\n\\end{itemize}\nWrite \\(\\alpha=\\exp(-1/t_0)\\) for the contraction parameter and\n\\(c_0=(1-\\alpha)/4\\) for the signed-depth reward-amplitude constant. For an\nalternative \\(v\\in\\{-1,+1\\}\\) in the signed-depth family of\n\\cref{obj:def:signed-depth-family} and any observed prefix\n\\(o=(a_1,y_1,\\ldots,a_k,y_k)\\), let \\(\\pi_{N,Q,v}(o)\\) be the raw\nterminal-depth posterior: the run-local unnormalized filter mass at latent\ndepth \\(Q\\), divided by the total run-local unnormalized filter mass of the\nprefix. Then\n\\[\n\\pi_{N,Q,v}(o)\n\\le\n\\frac{\\alpha^Q}\n{\\left\\{1-c_0\\left(\\frac{\\alpha}{1-c_0}\\right)^Q\\right\\}^Q}.\n\\]",
+      "ref_set": [
+        "def:signed-depth-family",
+        "lem:posterior-lower-window-power",
+        "lem:terminal-posterior-mature-window",
+        "lem:terminal-posterior-initial-window",
+        "lem:terminal-posterior-crude-bound"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthRawPosterior_le_refined",
+        "file": "Helpers/TerminalPosteriorBound.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:rare-action-second-moment-exact",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Rare-action second moment",
+      "body": "Let \\(Q,k\\in\\mathbb N\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), and let \\(v\\in\\{-1,+1\\}\\). Assume:\n\\begin{itemize}\n\\item \\textbf{(Time scale.)} \\(t_0>0\\).\n\\item \\textbf{(Overlap exponent.)} \\(\\zeta>0\\).\n\\item \\textbf{(Radius constant.)} \\(C>1\\).\n\\end{itemize}\nWrite \\(L=\\exp(\\zeta)\\), let \\(\\ell=\\min\\{Q,k\\}\\), and consider the finite signed-depth model of \\cref{obj:def:signed-depth-family} at horizon \\(k+1\\). For an action/reward-symbol prefix\n\\[\no=((a_1,y_1),\\ldots,(a_k,y_k)),\n\\]\nlet \\(\\pi_k^v(o)\\) be its prefix mass under this model, and define the rare-action-history factor from \\cref{obj:def:filter-quantities} by\n\\[\n\\mathfrak a_k(o)\n=\nL^{-(Q-\\ell)}\n\\prod_{i:\\,k-\\ell<i\\le k}\\mathbf 1\\{a_i=1\\},\n\\]\nwith the empty product equal to one. Then\n\\[\n\\sum_{o}\\pi_k^v(o)\\,\\mathfrak a_k(o)^2\n=\nL^{-2(Q-\\ell)}\n\\left(\\frac{1}{L}\\right)^{|\\{i:\\ k-\\ell<i\\le k\\}|},\n\\]\nwhere the sum ranges over all action/reward-symbol prefixes of length \\(k\\).",
+      "ref_set": [
+        "def:signed-depth-family",
+        "def:filter-quantities"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.rareAction_secondMoment_eq",
+        "file": "Helpers/SignedDepthObservedChain.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:finite-signed-depth-kl",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Finite observed KL bound",
+      "body": "Let \\(T,Q\\in\\mathbb N\\) and \\(t_0,\\zeta,C,K_0\\in\\mathbb R\\).  Write \\(\\alpha=e^{-1/t_0}\\), \\(L=e^\\zeta\\), \\(c_0=(1-\\alpha)/4\\), and \\(\\varepsilon_C=\\min\\{(C-1)/2,1/2\\}\\).  Suppose that\n\\begin{itemize}\n\\item \\textbf{(Positive scale.)} \\(t_0>0\\), \\(\\zeta>0\\), \\(C>1\\), and \\(K_0>0\\).\n\\item \\textbf{(Uniform terminal posterior.)} For every horizon \\(N\\), every alternative index \\(v\\in\\{-1,+1\\}\\), every time \\(t<N\\), and every observed prefix \\(o\\) of actions and two-symbol rewards before \\(t\\), the finite conditional terminal-depth probability \\(q_t^v(o)\\) from \\cref{obj:def:filter-quantities} satisfies\n\\[\nq_t^v(o)\\le K_0\\alpha^Q .\n\\]\n\\end{itemize}\nThen the finite observed-word laws of the signed-depth alternatives of \\cref{obj:def:signed-depth-family}, taken before the reward symbols are decoded as real rewards, satisfy\n\\[\n\\operatorname{KL}\\!\\left(\\mathbb P_{Q,+1}^{\\mathrm{fin},T}\\middle\\|\\mathbb P_{Q,-1}^{\\mathrm{fin},T}\\right)\n\\le\n\\frac{4c_0^2K_0^2}{1-c_0^2}\\,\nT\\,\\varepsilon_C^2\\,\\alpha^{2Q}\\,L^{-Q}.\n\\]",
+      "ref_set": [
+        "def:signed-depth-family",
+        "def:filter-quantities",
+        "lem:rare-action-second-moment-exact"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_finiteObs_klDiv_le",
+        "file": "Helpers/ObservedKL.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:signed-depth-bootstrap-factor",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Uniform bootstrap factor",
+      "body": "Let \\(t_0>0\\) and write \\(\\alpha=e^{-1/t_0}\\), \\(c_0=(1-\\alpha)/4\\), \\(\\eta_0=\\alpha/(1-c_0)\\). Then there exists \\(K_0>0\\) such that\n\\[\n\\frac{1}{\\bigl(1-c_0\\bigl(\\alpha/(1-c_0)\\bigr)^{Q}\\bigr)^{Q}}\n\\le\nK_0\n\\qquad(Q\\in\\mathbb N).\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.exists_uniform_signedDepth_bootstrap_factor",
+        "file": "Helpers/TerminalPosteriorBound.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:signed-depth-terminal-sign-invariant",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Terminal signed mass invariant",
+      "body": "Let \\(N,Q,k\\in\\mathbb N\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), let \\(v\\in\\{-1,+1\\}\\), and consider the finite signed-depth model of \\cref{obj:def:signed-depth-family}.  For an observed prefix \\(o=((a_i,y_i))_{i=1}^k\\), write \\(\\lambda_v(h;o)\\) for the unnormalized filter mass of terminal hidden state \\(h\\), write \\(J(h)\\in\\{0,\\ldots,Q\\}\\) and \\(U(h)\\in\\{-1,+1\\}\\) for its depth and sign coordinates, and set\n\\[\n\\varepsilon_C=\\min\\left\\{\\frac{C-1}{2},\\frac12\\right\\}.\n\\]\nAssume:\n\\begin{itemize}\n\\item \\textbf{(Positive initial scale.)} \\(t_0>0\\).\n\\item \\textbf{(Positive overlap exponent.)} \\(\\zeta>0\\).\n\\item \\textbf{(Nontrivial overlap radius.)} \\(C>1\\).\n\\end{itemize}\nWith \\(L=e^\\zeta\\), define the depth-\\(Q\\) action-history factor\n\\[\na^{(Q)}(o)\n=\nL^{-\\max\\{Q-k,0\\}}\n\\prod_{\\substack{1\\le i\\le k\\\\ i>k-\\min\\{Q,k\\}}}\n\\mathbf 1\\{a_i=1\\}.\n\\]\nThen\n\\[\n\\sum_{h:\\,J(h)=Q} U(h)\\lambda_v(h;o)\n=\n\\varepsilon_C\\,a^{(Q)}(o)\n\\sum_{h:\\,J(h)=Q}\\lambda_v(h;o).\n\\]",
+      "ref_set": [
+        "def:signed-depth-family",
+        "def:filter-quantities"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_terminalMass_invariant",
+        "file": "Helpers/SignedDepthFilterInvariant.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:signed-depth-next-reward-numerator",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Next reward numerator",
+      "body": "Let \\(U,k,N,Q\\in\\mathbb N\\), let \\(v\\in\\{-1,+1\\}\\), and consider the finite signed-depth model of \\cref{obj:def:signed-depth-family} with horizon \\(N\\), terminal depth \\(Q\\), initial weights \\(p_v\\), behavior policy \\(b\\), and reward-symbol/hidden-state kernel \\(K_v\\). Suppose that\n\\begin{itemize}\n\\item \\textbf{(Positive time scale.)} \\(t_0>0\\).\n\\item \\textbf{(Positive behavior perturbation.)} \\(\\zeta>0\\).\n\\item \\textbf{(Overlap radius.)} \\(C>1\\).\n\\end{itemize}\nWrite\n\\[\nc_0(t_0)=\\frac{1-\\alpha}{4},\n\\]\nwhere \\(\\alpha\\) is the signed-depth mixing parameter, and write \\(\\phi(0)=-1\\), \\(\\phi(1)=1\\).  For any observed action/reward-symbol prefix \\(o\\in(\\{0,1\\}\\times\\{0,1\\})^k\\), let\n\\[\n\\lambda_v(h;o)\n\\]\ndenote the unnormalized signed-depth filter mass, after the prefix \\(o\\), assigned to observed state \\(0\\) and packed hidden state \\(h\\in\\{0,\\ldots,2(Q+1)-1\\}\\).  Decode the packed hidden state by\n\\[\nJ(h)=\\bigl\\lfloor h/2\\bigr\\rfloor,\n\\qquad\nU(h)=\n\\begin{cases}\n+1, & h \\equiv 1 \\pmod 2,\\\\\n-1, & h \\equiv 0 \\pmod 2.\n\\end{cases}\n\\]\nThen\n\\[\n\\sum_{\\tau}\n\\mathbf 1\\!\\left\\{ ((a_i,r_i))_{i=1}^k(\\tau)=o\\right\\}\n\\,\\omega_v(\\tau)\\,\\phi\\!\\left(r_{k+1}(\\tau)\\right)\n=\nv\\,c_0(t_0)\n\\sum_{h=0}^{2(Q+1)-1}\n\\mathbf 1\\{J(h)=Q\\}\\,U(h)\\,\\lambda_v(h;o),\n\\]\nwhere the outer sum is over all finite signed-depth trajectories \\(\\tau\\) of horizon \\(U+k+1\\), and \\(\\omega_v(\\tau)\\) is their chronological path weight under \\(p_v\\), \\(b\\), and \\(K_v\\).",
+      "ref_set": [
+        "def:signed-depth-family"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepth_prefix_nextRewardNumerator",
+        "file": "Helpers/SignedDepthFilterRecursion.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:signed-depth-terminal-prefix-mass",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Terminal prefix mass identity",
+      "body": "Let \\(U,k,Q\\in\\mathbb N\\) with \\(U\\ge 1\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), let \\(v\\in\\{-1,+1\\}\\), and consider the finite signed-depth model of \\cref{obj:def:signed-depth-family} at horizon \\(U+k\\).  For an action/reward-symbol prefix \\(o\\) of length \\(k\\), define the joint prefix-and-terminal-depth mass at the cut after the first \\(k\\) epochs by\n\\[\nm_v^Q(o)\n=\n\\Pr_v\\{(A_1,R_1),\\ldots,(A_k,R_k)=o,\\ J_{k+1}=Q\\}.\n\\]\nFor each hidden coordinate \\(h\\in\\{0,\\ldots,2(Q+1)-1\\}\\), let \\(J(h)=\\lfloor h/2\\rfloor\\), and let \\(\\lambda_v(h;o)\\) be the unnormalized filter mass, as in \\cref{obj:def:filter-quantities}, assigned after observing \\(o\\) to the cut state with hidden coordinate \\(h\\).  Then\n\\[\nm_v^Q(o)\n=\n\\sum_{h=0}^{2(Q+1)-1}\n\\mathbf 1\\{J(h)=Q\\}\\,\\lambda_v(h;o).\n\\]",
+      "ref_set": [
+        "def:signed-depth-family",
+        "def:filter-quantities"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.terminalPrefixMass_eq_sum_signedDepthFilterMass",
+        "file": "Helpers/ObservedFilter.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:signed-depth-conditional-reward-mean",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Conditional reward mean identity",
+      "body": "Let \\(T,Q\\in\\mathbb N\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), and let \\(v\\) be a Boolean alternative, written through\n\\[\n\\sigma(v)=\n\\begin{cases}\n1, & v=\\mathrm{true},\\\\\n-1, & v=\\mathrm{false}.\n\\end{cases}\n\\]\nAssume\n\\begin{itemize}\n\\item \\textbf{(Positive baseline.)} \\(t_0>0\\).\n\\item \\textbf{(Positive policy scale.)} \\(\\zeta>0\\).\n\\item \\textbf{(Overlap radius.)} \\(C>1\\).\n\\end{itemize}\nFor every epoch \\(t<T\\) and every observed prefix \\(o\\in\\{\\,\\mathrm{false},\\mathrm{true}\\,\\}^{t}\\times\\{0,1\\}^{t}\\), the conditional next-reward mean satisfies\n\\[\n\\mathbb E_v[Y_t\\mid \\mathcal F_{t-1}^{\\mathrm{obs}}=o]\n=\n\\sigma(v)\\,c_0(t_0)\\,\\varepsilon_C(C)\\,\na_t^{(Q)}(o)\\,q_t^v(o),\n\\]\nwhere the left-hand side is the totalized ratio defining the finite-prefix conditional reward mean, \\(c_0(t_0)=(1-\\alpha)/4\\), \\(\\varepsilon_C(C)=\\min\\{(C-1)/2,1/2\\}\\), and \\(a_t^{(Q)}(o)\\) and \\(q_t^v(o)\\) are the rare-action-history factor and terminal posterior of \\cref{obj:def:filter-quantities}.",
+      "ref_set": [
+        "def:signed-depth-family",
+        "def:filter-quantities",
+        "lem:signed-depth-terminal-sign-invariant",
+        "lem:signed-depth-next-reward-numerator",
+        "lem:signed-depth-terminal-prefix-mass"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.conditionalRewardMean_signedDepth_all",
+        "file": "Helpers/ObservedFilter.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "synth_18",
+      "alias": null,
+      "kind": "definition",
+      "env": "definitionv",
+      "title": "Observed signed-depth law",
+      "body": "For \\(T,Q\\in\\mathbb N\\), \\(t_0,\\zeta,C\\in\\mathbb R\\), and two-point alternative index \\(v\\), define\n\\[\n\\mathbb P_{Q,v}^{\\mathrm{obs},T}\n\\]\nto be the observed-path law obtained by applying the observed-coordinate projection to the trajectory law of the embedded finite signed-depth model with horizon \\(T\\), parameters \\((t_0,\\zeta,C,Q)\\), and alternative index \\(v\\).",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.signedDepthObsLaw",
+        "file": "Helpers/ObservedKL.lean"
+      },
+      "status": "matched",
+      "provenance": "presentation-synthesized",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:observed-path-kl",
+      "alias": "L-3",
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Observed-path KL bound",
+      "body": "Fix \\(t_0>0\\), and write \\(\\alpha=\\exp(-1/t_0)\\). There exists a constant \\(K_0>0\\), depending on \\(t_0\\), such that whenever the following conditions hold:\n\\begin{itemize}\n\\item \\textbf{(Overlap exponent.)} \\(\\zeta>0\\), and \\(L=\\exp(\\zeta)\\).\n\\item \\textbf{(Reset amplitude.)} \\(C>1\\), and \\(\\varepsilon_C=\\min\\{(C-1)/2,1/2\\}\\).\n\\item \\textbf{(Sequential ignorability.)} For every horizon \\(T\\), terminal depth \\(Q\\ge 1\\), and alternative \\(v\\in\\{-1,+1\\}\\), the signed-depth experiment in \\cref{obj:def:signed-depth-family} satisfies \\cref{obj:ass:sequential-ignorability}.\n\\item \\textbf{(Stationary start.)} For every horizon \\(T\\), terminal depth \\(Q\\ge 1\\), and alternative \\(v\\in\\{-1,+1\\}\\), the signed-depth experiment in \\cref{obj:def:signed-depth-family} satisfies \\cref{obj:ass:stationary-start}.\n\\end{itemize}\nthere exists a constant \\(B_0>0\\), depending on \\(t_0,\\zeta,C\\), such that for every \\(T\\) and every \\(Q\\ge 1\\), with \\(\\mathbb P_{Q,v}^{\\mathrm{obs},T}\\) denoting the observed-path law of the signed-depth alternative \\(v\\),\n\\[\n\\operatorname{KL}\\!\\left(\\mathbb P_{Q,+1}^{\\mathrm{obs},T}\\,\\middle\\|\\,\\mathbb P_{Q,-1}^{\\mathrm{obs},T}\\right)\n\\le\nB_0\\,T\\,\\alpha^{2Q}L^{-Q}.\n\\]\nMoreover, for each \\(v\\in\\{-1,+1\\}\\), each \\(t<T\\), and each observed prefix \\(o\\in\\mathcal F_{t-1}^{\\mathrm{obs}}\\), the conditional reward mean satisfies the exact finite-prefix identity\n\\[\n\\mathbb E_v[Y_t\\mid \\mathcal F_{t-1}^{\\mathrm{obs}}=o]\n=\nv\\,c_0\\,\\varepsilon_C\\,a_t^{(Q)}(o)\\,q_t^v(o),\n\\]\nwhere \\(c_0=(1-\\alpha)/4\\), and \\(a_t^{(Q)}\\) and \\(q_t^v\\) are the rare-action-history factor and terminal-depth posterior from \\cref{obj:def:filter-quantities}. The posterior satisfies\n\\[\nq_t^v(o)\\le K_0\\,\\alpha^Q .\n\\]\nThe same observed-path laws also satisfy\n\\[\n\\operatorname{KL}\\!\\left(\\mathbb P_{Q,+1}^{\\mathrm{obs},T}\\,\\middle\\|\\,\\mathbb P_{Q,-1}^{\\mathrm{obs},T}\\right)\n\\le\n\\frac{4c_0^2K_0^2}{1-c_0^2}\\,\nT\\,\\varepsilon_C^2\\,\\alpha^{2Q}L^{-Q}.\n\\]",
+      "ref_set": [
+        "ass:sequential-ignorability",
+        "def:signed-depth-family",
+        "ass:stationary-start",
+        "def:filter-quantities",
+        "lem:refined-terminal-posterior",
+        "lem:finite-signed-depth-kl",
+        "lem:signed-depth-bootstrap-factor",
+        "lem:signed-depth-terminal-sign-invariant",
+        "lem:signed-depth-conditional-reward-mean"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.observed_path_kl",
+        "file": "Helpers/ObservedKL.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:phiw-score-stationary-mean",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Stationary PHIW score mean",
+      "body": "Let \\(T,n_X,n_H,k\\in\\mathbb N\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), and let \\(M\\) be a raw POMDP experiment. Suppose:\n\\begin{itemize}\n\\item \\textbf{(Model class.)} \\(M\\in\\mathcal M_T(t_0,\\zeta,C)\\), as in \\cref{obj:def:model-class}.\n\\item \\textbf{(Mature time.)} \\(t\\in\\{0,\\ldots,T-1\\}\\) and \\(k\\le t\\).\n\\end{itemize}\nThen the depth-\\(k\\) score \\(Z_t(k)\\) of \\cref{obj:def:phiw-estimator}, evaluated under the observed trajectory law of \\(M\\), satisfies\n\\[\n\\int Z_t(k)\\,d\\mathbb P_M^{\\mathrm{obs}}\n=\n\\sum_s d_b(s)\\,(P_e^k g_e)(s).\n\\]\nHere \\(d_b\\) is the stationary law selected for the behavior-policy transition matrix\n\\[\nP_b(s,s')=\\sum_{a\\in\\{0,1\\}} b(a\\mid x_s)\\,K(s,a)\\{(r,s''):\\ s''=s'\\},\n\\]\nand \\(P_e^k g_e\\) is the \\(k\\)-fold iterate of the target-policy transition operator applied to the target-policy reward regression\n\\[\ng_e(s)=\\sum_{a\\in\\{0,1\\}} e(a\\mid x_s)\\int r\\,K(s,a)(d r,d s').\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "def:phiw-estimator"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.integral_phiwScore_eq_init_targetIter",
+        "file": "Helpers/BiasVariance.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:target-value-unit-interval",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Target value is bounded",
+      "body": "Let \\(T\\ge 1\\), let \\(t_0,\\zeta,C\\in\\mathbb R\\), and let\n\\(M=(\\mathcal X,\\mathcal H,K,b,e,\\mathcal L(\\mathsf O_T))\\in\n\\mathcal M_T(t_0,\\zeta,C)\\) be a model in \\cref{obj:def:model-class}. Assume the model satisfies the stationary-start, sequential-ignorability, POMDP-kernel, bounded-reward, latent-stationary-overlap, and policy-overlap conditions of\n\\cref{obj:ass:stationary-start,obj:ass:sequential-ignorability,obj:ass:pomdp-kernel,obj:ass:bounded-reward,obj:ass:latent-stationary-overlap,obj:ass:policy-overlap}. Then the stationary target-policy mean reward \\(\\theta(K,e)\\) of \\cref{obj:def:target-value} lies in the unit interval:\n\\[\n\\theta(K,e)\\in[-1,1].\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "def:target-value",
+        "ass:stationary-start",
+        "ass:sequential-ignorability",
+        "ass:pomdp-kernel",
+        "ass:bounded-reward",
+        "ass:latent-stationary-overlap",
+        "ass:policy-overlap"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.targetValue_mem_unit",
+        "file": "Helpers/Kernels.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:radius-sensitive-phiw",
+      "alias": "L-4",
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Radius-sensitive PHIW risk",
+      "body": "For every trajectory length \\(T\\), observable alphabet size \\(n_X\\), latent alphabet size \\(n_H\\), and history depth \\(k\\), let\n\\[\n\\alpha=\\exp\\{-(1/t_0)\\},\\qquad L=\\exp\\{\\zeta\\},\\qquad q_C=\\frac{C-1}{C}.\n\\]\nSuppose that\n\\begin{itemize}\n\\item \\textbf{(Mixing scale.)} \\(0<t_0\\).\n\\item \\textbf{(Overlap scale.)} \\(0<\\zeta\\).\n\\item \\textbf{(Radius parameter.)} \\(1\\le C\\), with \\(q_C\\) as in \\cref{obj:def:overlap-distance-radius}.\n\\item \\textbf{(Trajectory length.)} \\(1\\le T\\).\n\\item \\textbf{(Model class.)} The experiment \\(M\\) belongs to \\(\\mathcal M_T(t_0,\\zeta,C)\\) in the sense of \\cref{obj:def:model-class}.\n\\item \\textbf{(History depth.)} \\(k\\le T/2\\).\n\\end{itemize}\nThen the clipped partial-history importance-weighted estimator \\(\\widehat\\theta_k\\) from \\cref{obj:def:phiw-estimator}, evaluated under the observed trajectory law induced by \\(M\\), satisfies\n\\[\n\\mathbb E_M\\!\\left[\\{\\widehat\\theta_k-\\theta(K,e)\\}^2\\right]\n\\le\n4q_C^2\\alpha^{2k}\n+\\frac{2}{T}\\left\\{\nL^{k+1}\\left(1+\\frac{4}{L-1}\\right)\n+\\frac{4}{1-\\alpha}\n\\right\\},\n\\]\nwhere \\(\\theta(K,e)\\) is the stationary target-policy mean reward from \\cref{obj:def:target-value}.",
+      "ref_set": [
+        "def:model-class",
+        "def:phiw-estimator",
+        "def:target-value",
+        "def:overlap-distance-radius",
+        "lem:phiw-raw-variance",
+        "lem:phiw-score-stationary-mean",
+        "lem:target-value-unit-interval"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.radius_sensitive_phiw",
+        "file": "Helpers/BiasVariance.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:radius-explicit-observed-kl",
+      "alias": "L-5",
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Observed KL radius bound",
+      "body": "Let \\(t_0>0\\).  Define\n\\[\n\\alpha(t_0)=\\exp(-1/t_0),\\qquad\nc_0(t_0)=\\frac{1-\\alpha(t_0)}{4}.\n\\]\nThen there exists a constant \\(K_0=K_0(t_0)>0\\) such that, for every \\(\\zeta>0\\), \\(C>1\\), \\(T\\in\\mathbb N\\), and \\(Q\\in\\mathbb N\\) with \\(Q\\ge1\\), if\n\\[\n\\varepsilon_C=\\min\\left\\{\\frac{C-1}{2},\\frac12\\right\\},\\qquad\nL(\\zeta)=\\exp(\\zeta),\n\\]\nand if \\(q_C\\) is the radius in \\cref{obj:def:overlap-distance-radius}, then\n\\[\n\\frac{q_C}{2}\\le \\varepsilon_C \\le q_C\n\\]\nand the observed-path laws \\(\\mathbb P_{Q,+1}^{\\mathrm{obs},T}\\) and\n\\(\\mathbb P_{Q,-1}^{\\mathrm{obs},T}\\) of the signed-depth alternatives satisfy\n\\[\n\\operatorname{KL}\\!\\left(\n\\mathbb P_{Q,+1}^{\\mathrm{obs},T}\\,\\middle\\|\\,\n\\mathbb P_{Q,-1}^{\\mathrm{obs},T}\n\\right)\n\\le\n\\frac{4c_0(t_0)^2K_0^2}{1-c_0(t_0)^2}\\,\nT\\,\\varepsilon_C^2\\,\\alpha(t_0)^{2Q}\\,L(\\zeta)^{-Q}.\n\\]",
+      "ref_set": [
+        "def:overlap-distance-radius"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.radius_explicit_observed_kl",
+        "file": "Helpers/ObservedKL.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:parametric-pair-target-value",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Parametric pair target value",
+      "body": "Let \\(T\\in\\mathbb N\\), let \\(v\\in\\{0,1\\}\\), and define the sign\n\\[\n\\sigma(v)=\n\\begin{cases}\n+1, & v=1,\\\\\n-1, & v=0.\n\\end{cases}\n\\]\nPut\n\\[\n\\eta_T=\\frac{1}{4\\sqrt T},\n\\]\nwith value \\(0\\) when \\(T=0\\). Suppose the scalar parameters satisfy:\n\\begin{itemize}\n\\item \\textbf{(Initial scale.)} \\(t_0>0\\).\n\\item \\textbf{(Overlap scale.)} \\(\\zeta>0\\).\n\\item \\textbf{(Radius scale.)} \\(C\\ge 1\\).\n\\end{itemize}\nLet \\(M_T^v\\) be the singleton-state finite experiment with one observed state and one hidden state, fair behavior and target policies \\(b(a\\mid x_\\star)=e(a\\mid x_\\star)=1/2\\), reward support \\(\\{-1,+1\\}\\), and reward-transition kernel that assigns, from every state-action pair, probability\n\\[\n\\frac{1+\\sigma(v)y\\eta_T}{2}\n\\]\nto reward \\(y\\in\\{-1,+1\\}\\) and next state \\((x_\\star,h_\\star)\\). Then the stationary target-policy mean reward of \\cref{obj:def:target-value}, evaluated in this experiment, satisfies\n\\[\n\\theta(K_{M_T^v},e_{M_T^v})=\\sigma(v)\\eta_T .\n\\]",
+      "ref_set": [
+        "def:target-value",
+        "def:model-class"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.parametricPair_targetValue",
+        "file": "Helpers/TwoPoint.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:parametric-pair-observed-kl",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Observed KL budget",
+      "body": "Let \\(T\\in\\mathbb N\\) satisfy \\(T\\ge 1\\), and set \\(\\eta_T=1/(4\\sqrt T)\\). Let \\(M_T^{-}\\) and \\(M_T^{+}\\) be the two finite singleton-state experiments with one observed state \\(x_\\star\\), one hidden state, initial mass at the single joint state, fair behavior and target policies \\(b=e\\) on \\(\\{0,1\\}\\), and reward code \\(\\mathsf r\\in\\{0,1\\}\\) decoded as \\(2\\mathsf r-1\\). Under \\(M_T^\\sigma\\), for \\(\\sigma\\in\\{-1,+1\\}\\), the reward-transition kernel returns to the single joint state and assigns reward \\(y\\in\\{-1,+1\\}\\) probability\n\\[\n\\frac{1+\\sigma y\\eta_T}{2}.\n\\]\nWriting \\(\\mathbb P^{\\mathrm{obs}}_{M_T^\\sigma}\\) for the image of the decoded trajectory law under the observed-path projection, the required KL budget holds in the direction\n\\[\n\\operatorname{KL}\\!\\left(\n\\mathbb P^{\\mathrm{obs}}_{M_T^-}\n\\,\\middle\\|\\,\n\\mathbb P^{\\mathrm{obs}}_{M_T^+}\n\\right)\n\\le \\frac14 .\n\\]",
+      "ref_set": [],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.parametricPair_observed_klDiv_le",
+        "file": "Helpers/TwoPoint.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:observed-risk-bounded-by-four",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Observed risk bound",
+      "body": "Let \\(T\\ge 1\\) and let \\(t_0,\\zeta,C\\in\\mathbb R\\). Let \\(\\widehat\\theta\\) be an observable-data estimator of the admissible class used in \\cref{obj:def:minimax-risk}: for each observed-alphabet size and policy pair, \\(\\widehat\\theta\\) is a measurable real-valued function of the observed path taking values in \\([-1,1]\\). For every\n\\[\nM=(\\mathcal X,\\mathcal H,K,b,e,\\mathcal L(\\mathsf O_T))\\in \\mathcal M_T(t_0,\\zeta,C)\n\\]\nas in \\cref{obj:def:model-class}, with \\(\\widehat\\theta\\) evaluated at the observed-alphabet size and policies of \\(M\\), the squared risk for the target value \\(\\theta(K,e)\\) of \\cref{obj:def:target-value} satisfies\n\\[\nE_M\\bigl[(\\widehat\\theta-\\theta(K,e))^2\\bigr]\\le 4 .\n\\]",
+      "ref_set": [
+        "lem:target-value-unit-interval",
+        "def:minimax-risk",
+        "def:model-class",
+        "def:target-value"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.observedRisk_le_four",
+        "file": "Helpers/Kernels.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:two-point-risk-floor",
+      "alias": null,
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Two-point risk floor",
+      "body": "Let \\(T\\ge 1\\), \\(t_0,\\zeta,C\\in\\mathbb R\\), and let \\(M_0,M_1\\in\\mathcal M_T(t_0,\\zeta,C)\\) as in \\cref{obj:def:model-class}.  After identifying their common observed alphabet, write \\(\\mathbb P_j\\) for the observed-data law of \\(M_j\\) and \\(\\theta_j\\) for the target value of \\(M_j\\) from \\cref{obj:def:target-value}, \\(j\\in\\{0,1\\}\\).  Let \\(s\\) be a nonnegative separation radius and let \\(\\chi\\) be a nonnegative KL upper bound.  Assume:\n\\begin{itemize}\n\\item \\textbf{(Common observable structure.)} The two models have the same observed-alphabet cardinality, the same behavior policy, and the same target policy.\n\\item \\textbf{(Information bound.)} \\(\\mathbb P_0\\ll\\mathbb P_1\\),\n\\[\n\\operatorname{KL}(\\mathbb P_0\\|\\mathbb P_1)\\le \\chi,\n\\qquad\n\\operatorname{KL}(\\mathbb P_0\\|\\mathbb P_1)<\\infty .\n\\]\n\\item \\textbf{(Target separation.)}\n\\[\n2s\\le |\\theta_0-\\theta_1| .\n\\]\n\\end{itemize}\nThen every raw observable-data estimator \\(\\widehat\\theta\\), viewed as a real-valued measurable function of the observed-alphabet size, the policy pair, and the observed path, with \\((\\widehat\\theta-\\theta_j)^2\\) integrable under \\(\\mathbb P_j\\) at \\(M_j\\) for \\(j=0,1\\), satisfies\n\\[\n\\frac{s^2\\exp(-\\chi)}{4}\n\\le\n\\max\\left\\{\n\\mathbb E_{M_0}\\!\\left[(\\widehat\\theta-\\theta_0)^2\\right],\n\\mathbb E_{M_1}\\!\\left[(\\widehat\\theta-\\theta_1)^2\\right]\n\\right\\}.\n\\]\nConsequently, the minimax squared-error risk of \\cref{obj:def:minimax-risk} satisfies\n\\[\n\\frac{s^2\\exp(-\\chi)}{4}\n\\le\nR_T(t_0,\\zeta,C).\n\\]",
+      "ref_set": [
+        "def:model-class",
+        "def:target-value",
+        "def:minimax-risk",
+        "lem:observed-risk-bounded-by-four"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.two_point_floor_explicit",
+        "file": "Helpers/TwoPoint.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    },
+    {
+      "obj_id": "lem:uniform-parametric-floor",
+      "alias": "L-6",
+      "kind": "lemma",
+      "env": "lemmav",
+      "title": "Uniform parametric floor",
+      "body": "Fix a positive mixing scale \\(t_0>0\\) and a positive log-overlap scale \\(\\zeta>0\\). For every horizon \\(T\\in\\mathbb N\\) with \\(T\\ge 1\\) and every radius \\(C\\ge 1\\), let \\(M_T^{-}\\) and \\(M_T^{+}\\) be the two raw POMDP experiments generated by the singleton-state, singleton-observation Rademacher construction with rewards in \\(\\{-1,+1\\}\\), fair behavior and target policies \\(b=e\\), and the two opposite signs of the construction's parametric reward tilt. Then:\n\\begin{itemize}\n\\item \\textbf{(Class membership.)} Both \\(M_T^{-}\\) and \\(M_T^{+}\\) belong to the latent-overlap model class \\(\\mathcal M_T(t_0,\\zeta,C)\\) of \\cref{obj:def:model-class}.\n\\item \\textbf{(Common policies.)} Each experiment has equal behavior and target policies, and the two experiments share these policies:\n\\[\nb_{M_T^{-}}=e_{M_T^{-}},\n\\qquad\nb_{M_T^{+}}=e_{M_T^{+}},\n\\qquad\nb_{M_T^{-}}=b_{M_T^{+}},\n\\qquad\ne_{M_T^{-}}=e_{M_T^{+}}.\n\\]\n\\item \\textbf{(Uniform minimax floor.)} The minimax squared-error risk \\(R_T(t_0,\\zeta,C)\\) of \\cref{obj:def:minimax-risk} satisfies\n\\[\n\\frac{\\exp(-1/4)}{64T}\\le R_T(t_0,\\zeta,C).\n\\]\n\\item \\textbf{(Pointwise two-experiment floor.)} For every observable-data estimator \\(\\widehat\\theta\\), viewed as a measurable function of the revealed alphabet and the policies, under the usual squared-error integrability conditions for the observed trajectory laws of \\(M_T^{-}\\) and \\(M_T^{+}\\),\n\\[\n\\frac{\\exp(-1/4)}{64T}\n\\le\n\\max\\left\\{\n\\mathbb E_{M_T^{-}}^{\\mathrm{obs}}\n\\left[\n\\left(\\widehat\\theta(1,b_{M_T^{-}},e_{M_T^{-}};\\mathsf O_T)-\\theta(K_{M_T^{-}},e_{M_T^{-}})\\right)^2\n\\right],\n\\mathbb E_{M_T^{+}}^{\\mathrm{obs}}\n\\left[\n\\left(\\widehat\\theta(1,b_{M_T^{+}},e_{M_T^{+}};\\mathsf O_T)-\\theta(K_{M_T^{+}},e_{M_T^{+}})\\right)^2\n\\right]\n\\right\\},\n\\]\nwhere \\(\\theta(K,e)\\) is the stationary target-policy mean reward of \\cref{obj:def:target-value}.\n\\end{itemize}",
+      "ref_set": [
+        "def:minimax-risk",
+        "def:model-class",
+        "def:target-value",
+        "lem:parametric-pair-target-value",
+        "lem:parametric-pair-observed-kl",
+        "lem:two-point-risk-floor"
+      ],
+      "lean": {
+        "decl": "CausalSmith.Stat.PomdpLatentOverlapMinimax.uniform_parametric_floor",
+        "file": "Helpers/TwoPoint.lean"
+      },
+      "status": "matched",
+      "provenance": "from-note",
+      "cited_dependencies": []
+    }
+  ]
+}

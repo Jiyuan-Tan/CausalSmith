@@ -1,0 +1,79 @@
+// Central model registry. The pipeline dispatches to two agent runners — OpenAI
+// `codex` (discovery / proof filling) and Anthropic `claude` (review / judge) —
+// and every concrete model id flows through this module so a user on a different
+// model lineup can override them WITHOUT editing source.
+//
+// Each logical role has a committed default (the current lineup) and an env-var
+// override. Set the env var to any id the corresponding CLI accepts:
+//   - codex roles  → an OpenAI `codex` model id (e.g. "gpt-6.1-sol")
+//   - claude roles → a `claude` CLI --model value: an alias ("opus"/"sonnet"/
+//     "haiku") or a pinned id ("claude-opus-4-8").
+//
+// Env overrides (all optional):
+//   CAUSALEAN_MODEL_CODEX_KERNEL   D-1.1 scout + F-stage proof filler (default gpt-6.1-sol)
+//   CAUSALEAN_MODEL_CODEX_DISCOVERY  D-1.2 author through D0.5 referees (default gpt-6.1-sol)
+//   CAUSALEAN_MODEL_CODEX_MECH     mechanical                       (default gpt-5.6-terra)
+//   CAUSALEAN_MODEL_CODEX_PRESENT  presentation authoring/revision  (default gpt-6.1-sol)
+//   CAUSALEAN_MODEL_CODEX_PRESENT_REVIEW  presentation P5 referee    (default gpt-6.1-sol)
+//   CAUSALEAN_MODEL_CODEX_CONSULT  orchestrator D-stage              (default gpt-6.1-sol)
+//                                  halt-consultation (manual,
+//                                  referenced by causalsmith-d /
+//                                  causalsmith-main skill prose)
+//   CAUSALEAN_MODEL_CLAUDE_MAIN    main reviewer / producer  (default opus)
+//   CAUSALEAN_MODEL_CLAUDE_MID     mid-tier                  (default sonnet)
+//   CAUSALEAN_MODEL_CLAUDE_CHEAP   cheap / bulk              (default haiku)
+
+/** A value accepted by the `claude` CLI `--model` flag: an alias
+ *  (opus/sonnet/haiku) or a pinned model id. */
+export type ClaudeModel = string;
+/** A value accepted by `codex`'s `-c model=` config: an OpenAI model id. */
+export type CodexModel = string;
+
+function envModel(key: string, def: string): string {
+  const v = process.env[key];
+  return v && v.trim() ? v.trim() : def;
+}
+
+/** Concrete model ids by logical role, each overridable via its env var. */
+export const MODELS = {
+  /** codex, hard kernel-math / proof tier: the D-1.1 literature scout and the F-stage
+   *  proof filler. D-1.2 through D0.5 run on `codexDiscovery`. */
+  codexKernel: envModel("CAUSALEAN_MODEL_CODEX_KERNEL", "gpt-6.1-sol"),
+  /** codex, D-stage discovery tier: the D-1.2 proposal author, D0-solve and the D0.5
+   *  referees (math, decision, general), at each stage's own effort. Same model as the
+   *  kernel tier; kept as a separate role so discovery can be moved on its own. */
+  codexDiscovery: envModel("CAUSALEAN_MODEL_CODEX_DISCOVERY", "gpt-6.1-sol"),
+  /** codex, mechanical / clerical tier. */
+  codexMechanical: envModel("CAUSALEAN_MODEL_CODEX_MECH", "gpt-5.6-terra"),
+  /** codex, presentation authoring/revision tier, on the strongest sol model. Sol is a
+   *  solving tier; if P1/P2 prose quality degrades, try gpt-6-astra here rather than a
+   *  retiring model. */
+  codexPresentation: envModel("CAUSALEAN_MODEL_CODEX_PRESENT", "gpt-6.1-sol"),
+  /** codex, P4 NL↔Lean crosswalk ASSIGNMENT tier: a closed-world, id-only matching
+   *  task under a total contract (wrong-shaped replies are refused and re-asked), so
+   *  the mechanical model suffices and carries most of P4's token spend. */
+  codexCrosswalkAssign: envModel("CAUSALEAN_MODEL_CODEX_CROSSWALK_ASSIGN", "gpt-5.6-terra"),
+  /** codex, P4 crosswalk VERIFY tier — the rigor backstop that judges every claim
+   *  and forces corrections; follows the presentation model (gpt-6.1-sol). A rigor backstop belongs on the strongest
+   *  available tier, so sol is the right home for it. */
+  codexCrosswalkVerify: envModel("CAUSALEAN_MODEL_CODEX_CROSSWALK_VERIFY", "gpt-6.1-sol"),
+  /** codex, P4 formula→declaration component mapping (closed vocabulary; the
+   *  closure walk and artifact validator catch misses). */
+  codexComponents: envModel("CAUSALEAN_MODEL_CODEX_COMPONENTS", "gpt-5.6-terra"),
+  /** codex, P1 notation-table consistency check (bounded, cheap to re-ask). */
+  codexNotationCheck: envModel("CAUSALEAN_MODEL_CODEX_NOTATION", "gpt-5.6-terra"),
+  /** codex, P3 citation-support check against the verified pool (batched yes/no). */
+  codexCitationSupport: envModel("CAUSALEAN_MODEL_CODEX_CITATION_SUPPORT", "gpt-5.6-terra"),
+  /** codex, terminal P5 journal-referee review tier. */
+  codexPresentationReview: envModel("CAUSALEAN_MODEL_CODEX_PRESENT_REVIEW", "gpt-6.1-sol"),
+  /** codex, orchestrator D-stage halt-consultation tier. The orchestrator (causalsmith-d /
+   *  causalsmith-main skills) runs this MANUALLY per its codex recipe; no pipeline stage reads
+   *  it. Kept on the stronger solving model (gpt-6.1-sol) for adjudication. */
+  codexConsult: envModel("CAUSALEAN_MODEL_CODEX_CONSULT", "gpt-6.1-sol"),
+  /** claude, main reviewer / producer tier. */
+  claudeMain: envModel("CAUSALEAN_MODEL_CLAUDE_MAIN", "opus"),
+  /** claude, mid tier. */
+  claudeMid: envModel("CAUSALEAN_MODEL_CLAUDE_MID", "sonnet"),
+  /** claude, cheap / bulk tier. */
+  claudeCheap: envModel("CAUSALEAN_MODEL_CLAUDE_CHEAP", "haiku"),
+} as const;

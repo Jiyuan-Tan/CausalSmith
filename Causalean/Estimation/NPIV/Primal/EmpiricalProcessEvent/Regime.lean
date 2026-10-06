@@ -1,0 +1,533 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.Algebra
+public import Causalean.Estimation.NPIV.Primal.Estimator
+public import Causalean.Estimation.NPIV.SourceCondition
+
+/-! # Localized Empirical-Process Regimes
+
+This file bundles the localized empirical-process hypotheses required for the
+primal NPIV rate theorem. `LocalizedRegimeBundle` packages one abstract
+localized loss class with its sample map, critical-radius certificate, and
+radius-uniform boundedness/integrability assumptions. `LocalizedRegimes`
+assembles the four concrete bundles used downstream, for `H · F`, `m ∘ F`,
+`F`, and `H`, together with the law bridge, realizability, closedness, diameter,
+and pair-gap interpretation fields needed by the class-specific deviation
+events. `PeelingFloor` separately records the finite-depth inequalities at one
+chosen confidence level.
+-/
+
+@[expose] public section
+
+namespace Causalean
+namespace Estimation
+namespace NPIV
+namespace Primal
+
+open MeasureTheory Causalean.Stat Causalean.Stat.Concentration
+
+variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
+
+/-- A localized regime bundle packages [a countable index set and a measurable family of loss
+functions on a nonempty covariate space](hyp:ι,𝒳,F,countable_ι,meas_𝒳,nonempty_𝒳,nonempty_ι,F_meas),
+together with a [localization norm, nonnegative on every class member](hyp:norm,norm_nonneg) and
+a [measurable sample embedding into that covariate space](hyp:X,X_meas). It further records a
+[localized empirical-process regime](hyp:regime) whose critical radius [is at most the target
+localization scale `δ_n`](hyp:crit_le) and [is strictly positive](hyp:crit_pos). Finally, uniformly
+over every radius at least `δ_n`, it requires that [the empirical Rademacher process on the
+star-hull is almost-surely bounded](hyp:rad_bdd) and that [the corresponding empirical Rademacher
+complexity is integrable](hyp:rad_int).
+
+`LocalizedRegimeBundle` bundles one `LocalizedRegime` together with the
+critical-radius and integrability hypotheses required by
+`localized_uniform_deviation`.
+
+**Radius-uniform boundedness/integrability.**  The fields `rad_bdd`
+and `rad_int` are quantified over **all radii `r ≥ δ_n`** (rather than
+only `r = δ_n`).  This is needed by the candidate / centred-regulariser
+helper `localized_omega_event_for_H`, which applies localized deviation
+at the bilinear radius `‖h₁ − h₂‖ + δ_n ≥ δ_n` (proof-sketch line 345).
+The other three helpers instantiate `r := δ_n` and only consume the
+`r = δ_n` slice. -/
+structure LocalizedRegimeBundle (Ω : Type*) [MeasurableSpace Ω]
+    (μ : Measure Ω) (n : ℕ) (δ_n : ℝ) where
+  ι : Type
+  𝒳 : Type
+  [meas_𝒳 : MeasurableSpace 𝒳]
+  [nonempty_𝒳 : Nonempty 𝒳]
+  [nonempty_ι : Nonempty ι]
+  [countable_ι : Countable ι]
+  /-- Loss-class family. -/
+  F : ι → 𝒳 → ℝ
+  /-- Norm/seminorm used for star-hull localization. -/
+  norm : (𝒳 → ℝ) → ℝ
+  /-- Nonnegativity of the localization norm on the indexed class.  The
+      paper's localized concentration inputs use genuine radii/norms; Lean
+      keeps the class norm abstract, so this implicit mathematical fact is
+      carried explicitly. -/
+  norm_nonneg : ∀ i, 0 ≤ norm (F i)
+  /-- Sample-side embedding `Ω → 𝒳`. -/
+  X : Ω → 𝒳
+  X_meas : Measurable X
+  F_meas : ∀ i, Measurable (F i)
+  regime : LocalizedRegime Ω ι 𝒳 F norm μ X
+  crit_le : criticalRadius (regime.ψ n) ≤ δ_n
+  crit_pos : 0 < criticalRadius (regime.ψ n)
+  /-- **Radius-uniform boundedness** of the empirical Rademacher process
+      on the zero-out star-hull. Quantified over all radii `r ≥ δ_n`,
+      so that `localized_omega_event_for_H` may apply at the bilinear
+      radius `‖h₁ − h₂‖ + δ_n`. -/
+  rad_bdd : ∀ r : ℝ, δ_n ≤ r →
+    ∀ Ssamp : Fin n → 𝒳, ∀ σ : Signs n,
+      BddAbove (Set.range fun p : starHullParam ι =>
+        |(n : ℝ)⁻¹ * ∑ k : Fin n, (σ k : ℝ) *
+          starHullZeroOut F norm r p (Ssamp k)|)
+  /-- **Radius-uniform integrability** of the empirical Rademacher
+      complexity on the zero-out star-hull, quantified over all radii
+      `r ≥ δ_n` for the same reason as `rad_bdd`. -/
+  rad_int : ∀ r : ℝ, δ_n ≤ r →
+    Integrable
+      (fun ω : Fin n → Ω =>
+        empiricalRademacherComplexity n (starHullZeroOut F norm r) (X ∘ ω))
+      (Measure.pi (fun _ => μ))
+
+attribute [instance] LocalizedRegimeBundle.meas_𝒳
+  LocalizedRegimeBundle.nonempty_𝒳
+  LocalizedRegimeBundle.nonempty_ι
+  LocalizedRegimeBundle.countable_ι
+
+attribute [fun_prop] LocalizedRegimeBundle.X_meas LocalizedRegimeBundle.F_meas
+
+/-- This structure bundles [four localized regime witnesses, one for each function class entering
+the empirical-process and centred-regulariser arguments — the product, moment, critic, and candidate
+classes](hyp:bundle_HF,bundle_mF,bundle_F,bundle_H), with the deterministic hypotheses that [the
+observation variable has the stated law](hyp:law_W), that [the population Tikhonov solution is
+realizable in the statistical candidate class](hyp:realizability), that [the moment, candidate, and
+critic maps are almost-surely uniformly bounded](hyp:bounded), and that [every candidate has a
+critic whose `L²` lift realizes the projected residual](hyp:closedness). It also records that [the
+empirical sup-min objective is bounded above by, and attained at, the population sup
+objective](hyp:inner_le_supObjective,supObjective_attained); diameter caps on the [candidate
+class](hyp:H_diameter,H_diameter_lb,H_diameter_bound) and the [critic
+class](hyp:F_diameter,F_diameter_lb,F_diameter_bound); and [nonnegative proportionality constants
+together with a matching radius lower bound for the moment-class pair
+differences](hyp:mF_L2_const,mF_L2_const_nonneg,mF_pair_radius_lb) and [for the product-class cross
+terms](hyp:HF_pair_const,HF_pair_const_nonneg). For the candidate class it further supplies an
+interpretation triple: [an index into the H-bundle whose norm controls the pairwise loss gap, and
+whose composed evaluation equals the difference of squared candidate
+losses](hyp:interp_H_idx,interp_H_norm,interp_H_eval). For the product class it supplies both [a
+single-candidate interpretation triple bounded by the localization
+scale](hyp:interp_HF_idx,interp_HF_norm,interp_HF_eval) and [a pair-difference interpretation triple
+scaling with the candidate gap](hyp:interp_HF_idx_pair,interp_HF_norm_pair,interp_HF_eval_pair). For
+the moment class it likewise supplies [a single-critic interpretation
+triple](hyp:interp_mF_idx,interp_mF_norm,interp_mF_eval) and [a pair-difference interpretation
+triple](hyp:interp_mF_idx_pair,interp_mF_norm_pair,interp_mF_eval_pair).
+
+**Observation-space convention.**  Each bundle lives over `(S.𝒲, P_W)`
+— the per-observation outcome space and its law — so that the deviation
+event produced by `localized_uniform_deviation` is a subset of
+`Fin n → S.𝒲` (which is exactly the codomain of the IID-sample joint
+observable `fun ω k => sample.Z k ω` in
+`Causalean/Stat/Sample/PiTransport.lean`, line 36).  The pullback to
+`Ω` happens via `event_pullback_along_iidSample`.
+
+**Sample-size convention.**  The `n` parameter of this structure is
+the **sample size at which the localized deviation is applied**, i.e.
+`split.n₁ horizon` for fold-A deviations.  Public theorems below take
+`regimes : ∀ horizon, LocalizedRegimes ... (split.n₁ horizon) (delta horizon)`,
+so `bundle_*.regime.ψ n = bundle_*.regime.ψ (split.n₁ horizon)` is the
+fold-A envelope at that horizon.
+
+**Per-bundle interpretation fields** (`interp_*_idx`, `interp_*_norm`,
+`interp_*_eval`) link the abstract bundle data `(ι, F, X)` to the
+concrete loss attached to each candidate / critic in `TC.H, TC.F`.  Each
+interpretation field gives, for every concrete element of the relevant
+class, an index into `bundle.ι` whose `bundle.norm`-radius is bounded by
+`δ_n` and whose composed value `bundle.F i ∘ bundle.X` evaluates to the
+concrete loss at every `w : S.𝒲`.
+
+The deterministic fields do not depend on `n, δ_n`; they are bundled
+here so that callers pass a single `LocalizedRegimes` value to the
+discharge lemmas. -/
+structure LocalizedRegimes
+    (S : OperatorSystem Ω μ) (TC : TRAEClasses S)
+    {P_W : Measure S.𝒲}
+    (sample : IIDSample Ω S.𝒲 μ P_W)
+    {β lambda : ℝ}
+    (sc : SourceCondition S β)
+    (tb : TikhonovBiasBoundAt S β lambda sc)
+    (n : ℕ) (δ_n : ℝ) where
+  /-- Regime for the product class `star(H · F)` over `(S.𝒲, P_W)`. -/
+  bundle_HF : LocalizedRegimeBundle S.𝒲 P_W n δ_n
+  /-- Regime for the moment class `star(m ∘ F)` over `(S.𝒲, P_W)`. -/
+  bundle_mF : LocalizedRegimeBundle S.𝒲 P_W n δ_n
+  /-- Regime for the critic class `star(F)` over `(S.𝒲, P_W)`. -/
+  bundle_F  : LocalizedRegimeBundle S.𝒲 P_W n δ_n
+  /-- Regime for the candidate class `star(H)` (centred regulariser),
+      over `(S.𝒲, P_W)`. -/
+  bundle_H  : LocalizedRegimeBundle S.𝒲 P_W n δ_n
+  /-- **Law bridge.**  The observation random variable `S.W` has law
+      `P_W` under `μ`.  This is *not* implied by the existing fields of
+      `OperatorSystem` or `IIDSample` (the latter only constrains
+      `μ.map (sample.Z 0) = P_W`).  Without this hypothesis the helpers
+      below cannot equate `∫ ω' f(S.W ω') ∂μ` with the population mean
+      `μ_{P_W}[f]` produced by `localized_uniform_deviation`. -/
+  law_W : μ.map S.W = P_W
+  /-- **Realizability**: the population Tikhonov solution lies in the
+      statistical class.  Needed to apply `is_estimator.opt` against
+      `tb.h_lambda_star_fun`. -/
+  realizability : tb.h_lambda_star_fun ∈ TC.H
+  /-- **Boundedness**: a.s. uniform bound on `m(W; f), h(X), f(Z)` over
+      `h ∈ TC.H, f ∈ TC.F`.  Needed for the centred-regulariser
+      Cauchy–Schwarz step (controls `‖h*‖ + ‖ĥ‖`) and the Bousquet
+      step inside `localized_uniform_deviation`. -/
+  bounded :
+    ∃ B : ℝ, 0 ≤ B ∧
+      (∀ᵐ ω ∂μ,
+        (∀ f ∈ TC.F, |S.m (S.W ω) f| ≤ B) ∧
+        (∀ h ∈ TC.H, |h (S.xOf (S.W ω))| ≤ B) ∧
+        (∀ f ∈ TC.F, |f (S.zOf (S.W ω))| ≤ B))
+  /-- **Closedness (Hilbert form)**: for every `h ∈ TC.H` there is a
+      critic `f ∈ TC.F` whose `L²` lift coincides with the projected
+      residual `T(h₀ − h)` *as elements of* `Lp ℝ 2 μ`.
+
+      This is the standard NPIV closedness assumption (Dikkala–Lewis–
+      Mackey–Syrgkanis; Chen–Pouzo): the projected residual is realized
+      by an element of the critic class.  Needed to convert the empirical
+      sup-min comparison into operator-side `weakNorm` expressions in
+      step (iii) below — a weak (test-against-`Qbar` inner-product) form
+      does not suffice unless `{q_L2 g | g ∈ Qbar}` is total in
+      `Qbar_L2`, which is not currently part of the `OperatorSystem`
+      interface. -/
+  closedness :
+    ∀ h, ∀ hh : h ∈ TC.H,
+      ∃ f, ∃ hf : f ∈ TC.F,
+        S.T (S.hL2 S.h₀_mem - S.hL2 (TC.H_subset hh))
+          = S.qL2 (TC.F_subset hf)
+  /-- **Critic max order.**  The paper states the critic objective with
+      `max_{f ∈ F}`.  Since Lean encodes it as `supObjective`, we expose
+      the corresponding maximum-order facts explicitly: every feasible
+      inner objective is below the max, and the max is attained. -/
+  inner_le_supObjective :
+    ∀ (split' : OneShotSplit sample) (horizon : ℕ) (ω : Ω),
+      ∀ h, h ∈ TC.H → ∀ f, f ∈ TC.F →
+        innerObjective S sample split' lambda h f horizon ω
+          ≤ supObjective S TC sample split' lambda h horizon ω
+  supObjective_attained :
+    ∀ (split' : OneShotSplit sample) (horizon : ℕ) (ω : Ω),
+      ∀ h, h ∈ TC.H →
+        ∃ f, ∃ _hf : f ∈ TC.F,
+          supObjective S TC sample split' lambda h horizon ω
+            ≤ innerObjective S sample split' lambda h f horizon ω
+  /-- **`TC.H` strong-norm diameter cap.**  Upper bound on the
+      strongNorm-gap `‖h₁ − h₂‖_{strong}` for every pair `(h₁, h₂) ∈ TC.H × TC.H`.
+
+      This caps the radius scale over which the peeled H-side localized
+      deviation operates — `localized_omega_event_for_H` peels dyadically
+      across `[δ_n, H_diameter]` to produce a *single* high-probability
+      event simultaneously valid for all pairs, with the bilinear
+      scaling `4 · (‖h₁ − h₂‖ + δ_n) · critRad` plus an extra peeling
+      `√(log(H_diameter/δ_n + 1)/n)` log-factor. -/
+  H_diameter : ℝ
+  H_diameter_lb : δ_n ≤ H_diameter
+  H_diameter_bound :
+    ∀ h₁ h₂ (hh₁ : h₁ ∈ TC.H) (hh₂ : h₂ ∈ TC.H),
+      S.strongNorm
+          (S.hL2 (TC.H_subset hh₁) - S.hL2 (TC.H_subset hh₂))
+        ≤ H_diameter
+  /-- **Interpretation: centred-regulariser class.**  For each pair
+      `(h₁, h₂) ∈ TC.H × TC.H` there is a `bundle_H`-index whose
+      composed evaluation equals the *difference* of squared candidate
+      losses, `h₁(S.xOf w)² − h₂(S.xOf w)²`.  The
+      `bundle_H.norm`-radius of this index is bounded by the **gap norm**
+      `‖h₁ − h₂‖_{L²(P_X)}`, so the localized deviation rate scales with
+      `‖h₁ − h₂‖ · δ_n + δ_n²` — matching proof-sketch line 345.
+
+      This is the star-hull-localized form needed for the centred
+      regulariser bound (the uniform-radius form `‖h‖_X · δ_n + δ_n²` per
+      single `h ∈ TC.H` does not suffice, since the bilinear gap
+      `(h*-ĥ)(h*+ĥ)` is what controls `D_n`). -/
+  interp_H_idx  : ∀ h₁ h₂, h₁ ∈ TC.H → h₂ ∈ TC.H → bundle_H.ι
+  interp_H_norm :
+    ∀ h₁ h₂ (hh₁ : h₁ ∈ TC.H) (hh₂ : h₂ ∈ TC.H),
+      bundle_H.norm (bundle_H.F (interp_H_idx h₁ h₂ hh₁ hh₂))
+        ≤ S.strongNorm
+            (S.hL2 (TC.H_subset hh₁) - S.hL2 (TC.H_subset hh₂))
+  interp_H_eval :
+    ∀ h₁ h₂ (hh₁ : h₁ ∈ TC.H) (hh₂ : h₂ ∈ TC.H), ∀ w : S.𝒲,
+      bundle_H.F (interp_H_idx h₁ h₂ hh₁ hh₂) (bundle_H.X w)
+        = (h₁ (S.xOf w)) ^ 2 - (h₂ (S.xOf w)) ^ 2
+  /-- **Interpretation: product class `star(H · F)` (single-index form).**
+      Each pair `(h, f) ∈ TC.H × TC.F` has a `bundle_HF`-index of radius
+      `≤ δ_n` whose composed evaluation equals `h(S.xOf ·) · f(S.zOf ·)`.
+      Used in the `h*_λ`-side realizability step where the comparison
+      point is fixed and only the critic varies. -/
+  interp_HF_idx  : ∀ h, h ∈ TC.H → ∀ f, f ∈ TC.F → bundle_HF.ι
+  interp_HF_norm : ∀ h (hh : h ∈ TC.H), ∀ f (hf : f ∈ TC.F),
+      bundle_HF.norm (bundle_HF.F (interp_HF_idx h hh f hf)) ≤ δ_n
+  interp_HF_eval : ∀ h (hh : h ∈ TC.H), ∀ f (hf : f ∈ TC.F), ∀ w : S.𝒲,
+      bundle_HF.F (interp_HF_idx h hh f hf) (bundle_HF.X w)
+        = h (S.xOf w) * f (S.zOf w)
+  /-- **Foster constant for HF cross-terms.**  An upper bound on the
+      bundle radius for the cross-class integrand `(h₁ - h₂)(X) · f(Z)`,
+      bilinear in the strong-norm gap `‖h₁ - h₂‖_{strong}` and the
+      critic-side scale `δ_n`.  Concretely `HF_pair_const ≤ B` (the
+      boundedness constant from `bounded`) by Cauchy–Schwarz with the
+      sup-norm bound on `f`. -/
+  HF_pair_const : ℝ
+  HF_pair_const_nonneg : 0 ≤ HF_pair_const
+  /-- **Interpretation: pair-gap form for `star(H · F)` (Foster pair-gap).**
+      For each triple `(h₁, h₂, f) ∈ TC.H × TC.H × TC.F`, an index whose
+      `bundle_HF.norm`-radius scales bilinearly with
+      `HF_pair_const · ‖h₁ - h₂‖_{strong} · δ_n` and whose composed
+      evaluation equals the *difference* `(h₁ - h₂)(X) · f(Z)`.
+
+      This is the Foster pair-gap form (Foster–Syrgkanis Lemma 11; TRAE
+      paper, Bennett–Kallus–Mao–Newey–Syrgkanis–Uehara 2023): the
+      localized deviation on the cross class scales with the *actual*
+      L²-norm of the loss-difference at the comparison point, not with
+      a fixed star-hull radius.  Required to obtain the cross term
+      `δ_n · weak_gap` on the EP RHS (where
+      `weak_gap = ‖T(ĥ - h*_λ)‖`); the single-index form alone yields
+      only the weaker `(R_b + δ_n) · rate` envelope.
+
+      **Note (consistency with existing helpers).**  The deviation
+      helper for HF that consumes this pair-form interpretation is
+      `localized_omega_event_for_HF_pair`, which instantiates the
+      localized concentration at the *worst-case* radius
+      `HF_pair_const · H_diameter · δ_n + δ_n` (mirroring the design of
+      `localized_omega_event_for_H`, which uses `H_diameter + δ_n`),
+      not at the per-pair radius — strict Foster pair-gap requires
+      peeling infrastructure analogous to the H-side.  The pair-gap
+      norm field below provides the *interpretation* the EP proof
+      consumes; tightening the deviation rate from worst-case to
+      per-pair is a separate (peeling) upgrade. -/
+  interp_HF_idx_pair :
+    ∀ h₁ h₂, h₁ ∈ TC.H → h₂ ∈ TC.H → ∀ f, f ∈ TC.F → bundle_HF.ι
+  interp_HF_norm_pair :
+    ∀ h₁ h₂ (hh₁ : h₁ ∈ TC.H) (hh₂ : h₂ ∈ TC.H), ∀ f (hf : f ∈ TC.F),
+      bundle_HF.norm
+          (bundle_HF.F (interp_HF_idx_pair h₁ h₂ hh₁ hh₂ f hf))
+        ≤ HF_pair_const *
+            S.strongNorm
+              (S.hL2 (TC.H_subset hh₁) - S.hL2 (TC.H_subset hh₂)) *
+            δ_n
+  interp_HF_eval_pair :
+    ∀ h₁ h₂ (hh₁ : h₁ ∈ TC.H) (hh₂ : h₂ ∈ TC.H), ∀ f (hf : f ∈ TC.F), ∀ w : S.𝒲,
+      bundle_HF.F (interp_HF_idx_pair h₁ h₂ hh₁ hh₂ f hf) (bundle_HF.X w)
+        = (h₁ (S.xOf w) - h₂ (S.xOf w)) * f (S.zOf w)
+  /-- **L²-norm constant for the moment class** `m(W; f)`: an explicit
+      bound `‖m(W;f)‖_{L²(P_W)} ≤ mF_L2_const · ‖f‖_{L²(P_Z)}` for every
+      `f ∈ TC.F`, i.e. `√C_m` from the mean-square continuity hypothesis.
+      Carried at the bundle layer because
+      the EP loss-difference L²-norm calculation (Foster Lemma 11
+      input) needs it, but the import cycle with the rate modules would
+      otherwise force replication.  Bundle norm `interp_mF_norm` is
+      kept at `≤ δ_n` (separate from the L²-radius). -/
+  mF_L2_const : ℝ
+  mF_L2_const_nonneg : 0 ≤ mF_L2_const
+  /-- **`TC.F` diameter cap.**  Upper bound on critic L² gaps.  This is a
+      formal consequence of the paper's a.s. uniform boundedness
+      assumption, exposed here as the radius cap needed by dyadic
+      peeling for the `m∘F` and `F²` pair-difference classes. -/
+  F_diameter : ℝ
+  F_diameter_lb : δ_n ≤ F_diameter
+  F_diameter_bound :
+    ∀ f₁ f₂ (hf₁ : f₁ ∈ TC.F) (hf₂ : f₂ ∈ TC.F),
+      ‖S.qL2 (TC.F_subset hf₁) - S.qL2 (TC.F_subset hf₂)‖
+        ≤ F_diameter
+  /-- Radius lower bound for the `m∘F` pair class at this localization
+      scale.  In concrete applications this is discharged by increasing
+      the critical-radius floor constant. -/
+  mF_pair_radius_lb : δ_n ≤ mF_L2_const * F_diameter
+  /-- **Interpretation: moment class `star(m ∘ F)`.** Each `f ∈ TC.F` has
+      a `bundle_mF`-index of bundle-radius `≤ δ_n` whose composed
+      evaluation equals `S.m · f`. -/
+  interp_mF_idx  : ∀ f, f ∈ TC.F → bundle_mF.ι
+  interp_mF_norm : ∀ f (hf : f ∈ TC.F),
+      bundle_mF.norm (bundle_mF.F (interp_mF_idx f hf)) ≤ δ_n
+  interp_mF_eval : ∀ f (hf : f ∈ TC.F), ∀ w : S.𝒲,
+      bundle_mF.F (interp_mF_idx f hf) (bundle_mF.X w) = S.m w f
+  /-- **Pair interpretation: moment class.**  Difference form
+      `m(W; f₁) - m(W; f₂)` with bundle radius controlled by the
+      mean-square-continuity constant and the critic L² gap. -/
+  interp_mF_idx_pair :
+    ∀ f₁ f₂, f₁ ∈ TC.F → f₂ ∈ TC.F → bundle_mF.ι
+  interp_mF_norm_pair :
+    ∀ f₁ f₂ (hf₁ : f₁ ∈ TC.F) (hf₂ : f₂ ∈ TC.F),
+      bundle_mF.norm (bundle_mF.F (interp_mF_idx_pair f₁ f₂ hf₁ hf₂))
+        ≤ mF_L2_const *
+            ‖S.qL2 (TC.F_subset hf₁) - S.qL2 (TC.F_subset hf₂)‖
+  interp_mF_eval_pair :
+    ∀ f₁ f₂ (hf₁ : f₁ ∈ TC.F) (hf₂ : f₂ ∈ TC.F), ∀ w : S.𝒲,
+      bundle_mF.F (interp_mF_idx_pair f₁ f₂ hf₁ hf₂) (bundle_mF.X w)
+        = S.m w f₁ - S.m w f₂
+  /-- **L²-norm constant for the squared-critic class** `f²`: an explicit
+      bound `‖f²‖_{L²(P_W)} ≤ F_L2_const · ‖f‖_{L²(P_Z)}` for every
+      `f ∈ TC.F`, equal to the critic sup-norm `B` from `bounded` (since
+      `f²(z) ≤ B · |f(z)|`).  Used by Foster's loss-norm input. -/
+  F_L2_const : ℝ
+  F_L2_const_nonneg : 0 ≤ F_L2_const
+  /-- Radius lower bound for the squared-critic pair class at this
+      localization scale, discharged from boundedness and the δ floor in
+      concrete applications. -/
+  F_pair_radius_lb : δ_n ≤ F_L2_const * F_diameter
+  /-- **Interpretation: critic class `star(F)`.** Each `f ∈ TC.F` has
+      a `bundle_F`-index of bundle-radius `≤ δ_n` whose composed
+      evaluation equals `(f ∘ S.zOf)²`. -/
+  interp_F_idx  : ∀ f, f ∈ TC.F → bundle_F.ι
+  interp_F_norm : ∀ f (hf : f ∈ TC.F),
+      bundle_F.norm (bundle_F.F (interp_F_idx f hf)) ≤ δ_n
+  interp_F_eval : ∀ f (hf : f ∈ TC.F), ∀ w : S.𝒲,
+      bundle_F.F (interp_F_idx f hf) (bundle_F.X w) = (f (S.zOf w)) ^ 2
+  /-- **Pair interpretation: squared critic class.**  Difference form
+      `f₁(Z)² - f₂(Z)²` with bundle radius controlled by the critic
+      sup-norm constant and the critic L² gap. -/
+  interp_F_idx_pair :
+    ∀ f₁ f₂, f₁ ∈ TC.F → f₂ ∈ TC.F → bundle_F.ι
+  interp_F_norm_pair :
+    ∀ f₁ f₂ (hf₁ : f₁ ∈ TC.F) (hf₂ : f₂ ∈ TC.F),
+      bundle_F.norm (bundle_F.F (interp_F_idx_pair f₁ f₂ hf₁ hf₂))
+        ≤ F_L2_const *
+            ‖S.qL2 (TC.F_subset hf₁) - S.qL2 (TC.F_subset hf₂)‖
+  interp_F_eval_pair :
+    ∀ f₁ f₂ (hf₁ : f₁ ∈ TC.F) (hf₂ : f₂ ∈ TC.F), ∀ w : S.𝒲,
+      bundle_F.F (interp_F_idx_pair f₁ f₂ hf₁ hf₂) (bundle_F.X w)
+        = (f₁ (S.zOf w)) ^ 2 - (f₂ (S.zOf w)) ^ 2
+/-! ## Fixed-confidence peeling floors -/
+
+/-- At a [fixed confidence allocation `eta`](hyp:eta), a [localized NPIV
+regime](hyp:regime) satisfies the peeling floor when the variance-sensitive
+slack is absorbed at some finite dyadic depth for the [product](hyp:HF),
+[moment](hyp:mF), [squared-critic](hyp:F), and
+[squared-candidate](hyp:H) pair classes.
+
+The confidence level is deliberately a parameter rather than a universal
+quantifier.  A finite sample can absorb peeling slack at a chosen positive
+level, but cannot do so uniformly as the level tends to zero. -/
+structure PeelingFloor
+    {S : OperatorSystem Ω μ} {TC : TRAEClasses S}
+    {P_W : Measure S.𝒲}
+    {sample : IIDSample Ω S.𝒲 μ P_W}
+    {β lambda : ℝ}
+    {sc : SourceCondition S β}
+    {tb : TikhonovBiasBoundAt S β lambda sc}
+    {n : ℕ} {δ_n : ℝ}
+    (regime : LocalizedRegimes S TC sample sc tb n δ_n)
+    (eta : ℝ) : Prop where
+  /-- Fixed-level peeling floor for product-class pair deviations. -/
+  HF : ∃ K : ℕ,
+    max δ_n (regime.HF_pair_const * regime.H_diameter * δ_n)
+        ≤ δ_n * (2 : ℝ) ^ K ∧
+      2 * Real.sqrt
+          ((1 + 8 * regime.bundle_HF.regime.b) *
+            Real.log (2 * ((K : ℝ) + 1) / eta) / n)
+        + 8 * regime.bundle_HF.regime.b *
+            Real.log (2 * ((K : ℝ) + 1) / eta) / (n * δ_n)
+      ≤ δ_n
+  /-- Fixed-level peeling floor for moment-class pair deviations. -/
+  mF : ∃ K : ℕ,
+    max δ_n (regime.mF_L2_const * regime.F_diameter)
+        ≤ δ_n * (2 : ℝ) ^ K ∧
+      2 * Real.sqrt
+          ((1 + 8 * regime.bundle_mF.regime.b) *
+            Real.log (2 * ((K : ℝ) + 1) / eta) / n)
+        + 8 * regime.bundle_mF.regime.b *
+            Real.log (2 * ((K : ℝ) + 1) / eta) / (n * δ_n)
+      ≤ δ_n
+  /-- Fixed-level peeling floor for squared-critic pair deviations. -/
+  F : ∃ K : ℕ,
+    max δ_n (regime.F_L2_const * regime.F_diameter)
+        ≤ δ_n * (2 : ℝ) ^ K ∧
+      2 * Real.sqrt
+          ((1 + 8 * regime.bundle_F.regime.b) *
+            Real.log (2 * ((K : ℝ) + 1) / eta) / n)
+        + 8 * regime.bundle_F.regime.b *
+            Real.log (2 * ((K : ℝ) + 1) / eta) / (n * δ_n)
+      ≤ δ_n
+  /-- Fixed-level peeling floor for squared-candidate pair deviations. -/
+  H : ∃ K : ℕ,
+    max δ_n regime.H_diameter ≤ δ_n * (2 : ℝ) ^ K ∧
+      2 * Real.sqrt
+          ((1 + 8 * regime.bundle_H.regime.b) *
+            Real.log (2 * ((K : ℝ) + 1) / eta) / n)
+        + 8 * regime.bundle_H.regime.b *
+            Real.log (2 * ((K : ℝ) + 1) / eta) / (n * δ_n)
+      ≤ δ_n
+
+private lemma quarter_unit_peeling_slack {n : ℕ} (hn : 32 ≤ n) :
+    2 * Real.sqrt
+        ((1 + 8 * (0 : ℝ)) * Real.log (2 * ((0 : ℝ) + 1) / (1 / 4 : ℝ)) / n)
+      + 8 * (0 : ℝ) * Real.log (2 * ((0 : ℝ) + 1) / (1 / 4 : ℝ)) /
+          (n * (1 : ℝ))
+      ≤ 1 := by
+  have hn_pos : (0 : ℝ) < n := by exact_mod_cast (lt_of_lt_of_le (by norm_num) hn)
+  have hlog_nonneg : 0 ≤ Real.log (8 : ℝ) := Real.log_nonneg (by norm_num)
+  have hlog_le : Real.log (8 : ℝ) ≤ 7 := by
+    have h := Real.log_le_sub_one_of_pos (by norm_num : (0 : ℝ) < 8)
+    norm_num at h ⊢
+    exact h
+  have hquot : Real.log (8 : ℝ) / n ≤ (1 : ℝ) / 4 := by
+    rw [div_le_iff₀ hn_pos]
+    have hn32 : (32 : ℝ) ≤ n := by exact_mod_cast hn
+    nlinarith
+  have hsqrt_sq : (Real.sqrt (Real.log (8 : ℝ) / n)) ^ 2 =
+      Real.log (8 : ℝ) / n := by
+    rw [Real.sq_sqrt (div_nonneg hlog_nonneg hn_pos.le)]
+  have hsqrt_nonneg := Real.sqrt_nonneg (Real.log (8 : ℝ) / n)
+  have hmain : 2 * Real.sqrt (Real.log (8 : ℝ) / n) ≤ 1 := by
+    nlinarith
+  convert hmain using 1 <;> norm_num
+
+/-- For [a localized regime at unit radius](hyp:regime) with [at least
+thirty-two observations](hyp:hn), [zero envelope constants for all four
+classes](hyp:hb_HF,hb_mF,hb_F,hb_H), and [unit upper bounds on the four
+peeled radii](hyp:hR_HF,hR_mF,hR_F,hR_H), the [quarter-confidence peeling
+floor is inhabited](goal).
+
+All four witnesses use peeling depth zero.  The numerical inequality follows
+from `log 8 ≤ 7` and `n ≥ 32`, so this construction demonstrates directly
+that the fixed-confidence replacement is satisfiable. -/
+theorem peelingFloor_quarter_of_unit_scale
+    {S : OperatorSystem Ω μ} {TC : TRAEClasses S}
+    {P_W : Measure S.𝒲}
+    {sample : IIDSample Ω S.𝒲 μ P_W}
+    {β lambda : ℝ}
+    {sc : SourceCondition S β}
+    {tb : TikhonovBiasBoundAt S β lambda sc}
+    {n : ℕ}
+    (regime : LocalizedRegimes S TC sample sc tb n 1)
+    (hn : 32 ≤ n)
+    (hb_HF : regime.bundle_HF.regime.b = 0)
+    (hb_mF : regime.bundle_mF.regime.b = 0)
+    (hb_F : regime.bundle_F.regime.b = 0)
+    (hb_H : regime.bundle_H.regime.b = 0)
+    (hR_HF : regime.HF_pair_const * regime.H_diameter ≤ 1)
+    (hR_mF : regime.mF_L2_const * regime.F_diameter ≤ 1)
+    (hR_F : regime.F_L2_const * regime.F_diameter ≤ 1)
+    (hR_H : regime.H_diameter ≤ 1) :
+    PeelingFloor regime (1 / 4) := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · refine ⟨0, ?_, ?_⟩
+    · norm_num [max_le_iff, hR_HF]
+    · simpa [hb_HF] using quarter_unit_peeling_slack hn
+  · refine ⟨0, ?_, ?_⟩
+    · norm_num [max_le_iff, hR_mF]
+    · simpa [hb_mF] using quarter_unit_peeling_slack hn
+  · refine ⟨0, ?_, ?_⟩
+    · norm_num [max_le_iff, hR_F]
+    · simpa [hb_F] using quarter_unit_peeling_slack hn
+  · refine ⟨0, ?_, ?_⟩
+    · norm_num [max_le_iff, hR_H]
+    · simpa [hb_H] using quarter_unit_peeling_slack hn
+
+
+
+end Primal
+end NPIV
+end Estimation
+end Causalean

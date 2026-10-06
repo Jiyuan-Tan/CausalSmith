@@ -1,0 +1,471 @@
+\begin{proof}[Proof of \cref{obj:thm:laplace-comparison}]
+Throughout, reciprocals at zero are interpreted as zero, empty sums as zero, and the real square root as zero on negative arguments.
+
+\begin{enumerate}
+\item At the balanced parameter point, the arm means are interior, their sum is one, and the contrast is zero. Thus \cref{obj:thm:balanced-reduction}, with privacy parameter one, gives
+\[
+V^*((1/2,1/2)^\top,1/2,1)
+=
+\left(\frac{\cosh(1/2)}{\sinh(1/2)}\right)^2.
+\]
+We retain this identity for the final comparison.
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.balanced_reduction
+
+\item The specified public experiment and its private-record representation are retained directly from the hypotheses:
+\[
+\mathcal L(X_1,\ldots,X_n)=P_\theta^{\otimes n},
+\qquad n\ge1,
+\]
+where
+\[
+\bigl(P_\theta(\{x_0\}),P_\theta(\{x_1\}),
+P_\theta(\{x_2\}),P_\theta(\{x_3\})\bigr)
+=
+\bigl(q(1-\mu_0),q\mu_0,p(1-\mu_1),p\mu_1\bigr).
+\]
+These are the public product experiments in \cref{obj:def:binary-trial-model}.
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.laplace_comparison
+
+\item Define the trial contribution and the Laplace scale by
+\[
+A_{\mathrm{trial},i}
+=
+\frac{W_iY_i}{p}-\frac{(1-W_i)Y_i}{q},
+\qquad
+b_{\mathrm{Lap}}=\frac{\Delta_A}{\varepsilon}>0.
+\]
+Binary assignment and outcome consistency imply, almost surely,
+\[
+A_{\mathrm{trial},i}
+=
+\begin{cases}
+0,&X_i=x_0,\\
+-q^{-1},&X_i=x_1,\\
+0,&X_i=x_2,\\
+p^{-1},&X_i=x_3.
+\end{cases}
+\]
+Summing against the four record probabilities therefore gives
+\[
+\mathbb E[A_{\mathrm{trial},i}]
+=
+-q^{-1}(q\mu_0)+p^{-1}(p\mu_1)=\tau,
+\]
+\[
+\mathbb E[A_{\mathrm{trial},i}^2]
+=
+q^{-2}(q\mu_0)+p^{-2}(p\mu_1)
+=
+\frac{\mu_0}{q}+\frac{\mu_1}{p}.
+\]
+The trial contribution is bounded, so both moments are finite.
+
+The Laplace density is
+\[
+f_{\mathrm{Lap}}(\ell)
+=
+\frac{1}{2b_{\mathrm{Lap}}}
+\exp\!\left(-\frac{|\ell|}{b_{\mathrm{Lap}}}\right),
+\qquad \ell\in\mathbb R.
+\]
+Its symmetry gives \(\mathbb E[L_i]=0\). The gamma integral at shape three gives
+\[
+\int_0^\infty
+\ell^2e^{-\ell/b_{\mathrm{Lap}}}\,d\ell
+=
+2b_{\mathrm{Lap}}^3,
+\]
+and hence
+\[
+\mathbb E[L_i^2]
+=
+\frac{1}{b_{\mathrm{Lap}}}
+\int_0^\infty
+\ell^2e^{-\ell/b_{\mathrm{Lap}}}\,d\ell
+=
+2b_{\mathrm{Lap}}^2
+=
+\frac{2\Delta_A^2}{\varepsilon^2}.
+\]
+Since \(A_{\mathrm{trial},i}\) is a function of \(X_i\), its independence from \(L_i\) yields
+\[
+\mathbb E[L_iA_{\mathrm{trial},i}]
+=
+\mathbb E[L_i]\mathbb E[A_{\mathrm{trial},i}]
+=0.
+\]
+For the releases of \cref{obj:def:oa-release}, it follows that
+\[
+\mathbb E[\widetilde A_i]=\tau,
+\qquad
+\mathbb E[\widetilde A_i^2]
+=
+\frac{\mu_1}{p}+\frac{\mu_0}{q}
++\frac{2\Delta_A^2}{\varepsilon^2}.
+\]
+Define their centered versions by
+\[
+\xi_{\mathrm{OA},i}=\widetilde A_i-\tau.
+\]
+Expanding the centered square gives
+\[
+\mathbb E[\xi_{\mathrm{OA},i}]=0,
+\qquad
+\mathbb E[\xi_{\mathrm{OA},i}^2]
+=
+\mathbb E[\widetilde A_i^2]
+-2\tau\mathbb E[\widetilde A_i]+\tau^2
+=
+V_{\mathrm{OA}}(\theta,p,\varepsilon)<\infty.
+\]
+
+The pairs \((X_i,L_i)\) are independent across subjects. Each pair has the same product law, because the record law and the noise law are common across subjects and its two coordinates are independent. Applying the release function to each pair shows that the centered releases are independent and identically distributed. The iid central limit theorem therefore gives
+\[
+\frac{1}{\sqrt n}\sum_{i=1}^n\xi_{\mathrm{OA},i}
+\rightsquigarrow
+N\!\left(0,V_{\mathrm{OA}}(\theta,p,\varepsilon)\right).
+\]
+For every \(n\ge1\),
+\[
+\frac{1}{\sqrt n}\sum_{i=1}^n\xi_{\mathrm{OA},i}
+=
+\sqrt n(\widehat\tau_{\mathrm{OA}}-\tau).
+\]
+At \(n=0\), both normalized expressions are zero under the stated conventions. This proves the asserted convergence in law.
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.oaRelease_clt
+
+\item Use the staircase notation of \cref{obj:synth_4}. Interior assignment and means give nonnegative record probabilities, and every component of \(b_S\) is nonnegative. Thus
+\[
+h_S(\theta)
+=
+\sum_{j=0}^3\pi_{\theta,j}(b_S)_j\ge0,
+\]
+and, for every feasible \(\alpha\) and every \(t\in\mathbb R\),
+\[
+F_\theta(\alpha,t)
+=
+\sum_{S\in\mathcal S}
+\alpha_S\frac{(g_S^\top v(t))^2}{h_S(\theta)}
+\ge0.
+\]
+Taking the profiled minimum and optimized maximum in
+\cref{obj:def:staircase-saddle} gives
+\[
+J^*(\theta,p,\varepsilon)\ge0,
+\qquad
+V^*(\theta,p,\varepsilon)=J^*(\theta,p,\varepsilon)^{-1}\ge0.
+\]
+
+For every positive integer \(n\), factoring out \(\sqrt n\) from both square roots and canceling the positive common factor \(z_{1-\gamma/2}/\sqrt n\) gives
+\[
+\begin{aligned}
+\frac{z_{1-\gamma/2}\sqrt{V_{\mathrm{OA}}(\theta,p,\varepsilon)/n}}
+     {z_{1-\gamma/2}\sqrt{V^*(\theta,p,\varepsilon)/n}}
+&=
+\frac{\sqrt{V_{\mathrm{OA}}(\theta,p,\varepsilon)}}
+     {\sqrt{V^*(\theta,p,\varepsilon)}}\\
+&=
+\sqrt{\frac{V_{\mathrm{OA}}(\theta,p,\varepsilon)}
+           {V^*(\theta,p,\varepsilon)}}.
+\end{aligned}
+\]
+The identities also respect the zero-reciprocal convention. The sequence is consequently equal to its claimed limit for every \(n\ge1\).
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.Vstar_nonneg
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.laplace_comparison
+
+\item Apply the weak law to the centered releases and their squares. The moment identities above yield
+\[
+\frac1n\sum_{i=1}^n\xi_{\mathrm{OA},i}
+\xrightarrow{\Pr}0,
+\qquad
+\frac1n\sum_{i=1}^n\xi_{\mathrm{OA},i}^2
+\xrightarrow{\Pr}V_{\mathrm{OA}}(\theta,p,\varepsilon).
+\]
+For \(n\ge1\), centering the empirical variance at \(\tau\) gives the exact identity
+\[
+\begin{aligned}
+\widehat V_{\mathrm{OA}}
+&=
+\frac1n\sum_{i=1}^n
+(\widetilde A_i-\widehat\tau_{\mathrm{OA}})^2\\
+&=
+\frac1n\sum_{i=1}^n\xi_{\mathrm{OA},i}^2
+-
+\left(\frac1n\sum_{i=1}^n\xi_{\mathrm{OA},i}\right)^2\\
+&=
+\frac1n\sum_{i=1}^n\widetilde A_i^2
+-\widehat\tau_{\mathrm{OA}}^2.
+\end{aligned}
+\]
+At \(n=0\), each empirical expression is zero. Continuity of squaring and subtraction proves variance consistency. In particular, for every \(\delta>0\),
+\[
+0\le
+\Pr\!\left(
+|\widehat V_{\mathrm{OA}}-V_{\mathrm{OA}}|>\delta
+\right)
+\le
+\Pr\!\left(
+|\widehat V_{\mathrm{OA}}-V_{\mathrm{OA}}|\ge\delta
+\right)
+\longrightarrow0.
+\]
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.oaVariance_consistency
+
+\item Choose, for every \(n\in\mathbb N\),
+\[
+m_n=\lfloor\sqrt n\rfloor.
+\]
+For every integer \(r_{\mathrm{pilot}}\ge0\),
+\[
+n\ge r_{\mathrm{pilot}}^2
+\quad\Longrightarrow\quad
+m_n\ge r_{\mathrm{pilot}},
+\]
+so \(m_n\to\infty\). Moreover, for \(n\ge1\),
+\[
+0\le\frac{m_n}{n}
+\le\frac{\sqrt n}{n}
+=\frac1{\sqrt n}\longrightarrow0.
+\]
+For \(n\ge2\),
+\[
+1\le m_n\le\sqrt n<n.
+\]
+The remaining values are \(m_0=0\) and \(m_1=1\). Thus the schedule satisfies
+\cref{obj:ass:pilot-diverges,obj:ass:pilot-sublinear} over their full stated ranges.
+
+Take the privacy sequence
+\[
+\varepsilon_n=\varepsilon,\qquad n\in\mathbb N.
+\]
+It satisfies \cref{obj:ass:fixed-privacy}. The fixed measurable strong-saddle selector, the interior parameters, the chosen schedule, and \(0<\gamma<1\) meet the hypotheses of \cref{obj:thm:pilot-attainment}. Its variance-consistency conclusion supplies, under the transcript law of the selected procedure,
+\[
+\Pr_\theta\!\left(
+|\widehat V^*-V^*(\theta,p,\varepsilon)|>\delta
+\right)\longrightarrow0
+\qquad(\delta>0).
+\]
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.natSqrt_pilotDiverges
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.natSqrt_pilotSublinear
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.pilot_attainment
+
+\item Fix any sequence of couplings \((\nu_n)_{n\ge0}\) with the specified trial and transcript marginals. Each \(\nu_n\) is a probability measure because its first marginal is the trial probability law. For measurable events \(E\) in the corresponding product space, write
+\[
+\Pr_{\nu_n}(E)=\nu_n(E).
+\]
+Regard \(\widehat V_{\mathrm{OA}}\) and \(\widehat V^*\) as functions of the first and second components, respectively.
+
+We first establish strict positivity of the limiting denominator. In the notation of \cref{obj:synth_4},
+\[
+d=e^\varepsilon-1>0,
+\qquad
+h_S(\theta)
+=
+\sum_{j=0}^3\pi_{\theta,j}(b_S)_j>0,
+\]
+because all record probabilities are positive and all components of \(b_S\) are at least one. Define the singleton weights, for every \(S\in\mathcal S\), by
+\[
+\alpha_{\mathrm{RR},S}
+=
+\begin{cases}
+(e^\varepsilon+3)^{-1},&|S|=1,\\
+0,&|S|\ne1.
+\end{cases}
+\]
+They are nonnegative, and for every record coordinate \(j\),
+\[
+\sum_{S\in\mathcal S}
+\alpha_{\mathrm{RR},S}(b_S)_j
+=
+\frac{e^\varepsilon+3}{e^\varepsilon+3}=1.
+\]
+Hence \(\alpha_{\mathrm{RR}}\in\mathcal A_\varepsilon\).
+
+To justify attainment of the profiling minimum, define, for any feasible \(\alpha\),
+\[
+\lambda_{\mathrm{lin}}(\alpha)
+=
+\sum_{S\in\mathcal S}
+\frac{2\alpha_S(g_S^\top v(0))
+\bigl((g_S)_0+(g_S)_1\bigr)}{h_S(\theta)},
+\]
+\[
+\lambda_{\mathrm{quad}}(\alpha)
+=
+\sum_{S\in\mathcal S}
+\frac{\alpha_S\bigl((g_S)_0+(g_S)_1\bigr)^2}
+     {h_S(\theta)}
+\ge0.
+\]
+Expanding \(v(t)=(t,t+1)^\top\) gives, for every real \(t\),
+\[
+F_\theta(\alpha,t)
+=
+F_\theta(\alpha,0)
++t\lambda_{\mathrm{lin}}(\alpha)
++t^2\lambda_{\mathrm{quad}}(\alpha).
+\]
+If \(\lambda_{\mathrm{quad}}(\alpha)=0\) and
+\(\lambda_{\mathrm{lin}}(\alpha)\ne0\), substitution of
+\[
+t=-\frac{F_\theta(\alpha,0)+1}
+        {\lambda_{\mathrm{lin}}(\alpha)}
+\]
+would give \(F_\theta(\alpha,t)=-1\), contradicting nonnegativity. Thus in this case the linear coefficient is also zero and \(t=0\) is a minimizer. If \(\lambda_{\mathrm{quad}}(\alpha)>0\), define
+\[
+t_{\min}(\alpha)
+=
+-\frac{\lambda_{\mathrm{lin}}(\alpha)}
+       {2\lambda_{\mathrm{quad}}(\alpha)}.
+\]
+Then
+\[
+F_\theta(\alpha,t)-F_\theta(\alpha,t_{\min}(\alpha))
+=
+\lambda_{\mathrm{quad}}(\alpha)
+\bigl(t-t_{\min}(\alpha)\bigr)^2\ge0.
+\]
+In both cases a minimizing real coordinate exists. Choose such a coordinate
+\(t_{\mathrm{RR}}\) for \(\alpha_{\mathrm{RR}}\).
+
+All summands in \(F_\theta(\alpha_{\mathrm{RR}},t_{\mathrm{RR}})\) are nonnegative. The singleton patterns \(\{0\}\) and \(\{3\}\) therefore give
+\[
+0\le
+\frac{\alpha_{\mathrm{RR},\{0\}}(dq)^2}
+     {h_{\{0\}}(\theta)}\,t_{\mathrm{RR}}^2
+\le F_\theta(\alpha_{\mathrm{RR}},t_{\mathrm{RR}}),
+\]
+\[
+0\le
+\frac{\alpha_{\mathrm{RR},\{3\}}(dp)^2}
+     {h_{\{3\}}(\theta)}\,(t_{\mathrm{RR}}+1)^2
+\le F_\theta(\alpha_{\mathrm{RR}},t_{\mathrm{RR}}).
+\]
+Both coefficients are strictly positive. If the objective value were zero, the first inequality would force \(t_{\mathrm{RR}}=0\), while the second would force \(t_{\mathrm{RR}}+1=0\). Consequently,
+\[
+0<
+F_\theta(\alpha_{\mathrm{RR}},t_{\mathrm{RR}})
+=
+\min_{t\in\mathbb R}F_\theta(\alpha_{\mathrm{RR}},t)
+\le J^*(\theta,p,\varepsilon).
+\]
+The final inequality follows from the optimized maximum in
+\cref{obj:def:staircase-saddle}. Taking the reciprocal proves
+\[
+V^*(\theta,p,\varepsilon)>0.
+\]
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.Jstar_pos_interior
+
+\item The formula in \cref{obj:synth_1} expresses \(\widehat V^*\) as a nonnegative reciprocal times a sum of squares. Thus, for every sample size and every transcript,
+\[
+\widehat V^*\ge0.
+\]
+When \(m_n\ge n\), the main-sample sum is empty and its reciprocal normalization is zero, so \(\widehat V^*=0\).
+
+For real numerator and denominator inputs, define the total ratio map
+\[
+f_{\mathrm{ratio}}(r_{\mathrm{num}},r_{\mathrm{den}})
+=
+\begin{cases}
+\sqrt{r_{\mathrm{num}}/r_{\mathrm{den}}},
+&r_{\mathrm{den}}>0,\\
+0,&r_{\mathrm{den}}\le0,
+\end{cases}
+\qquad
+(r_{\mathrm{num}},r_{\mathrm{den}})\in\mathbb R^2.
+\]
+On the half-plane \(r_{\mathrm{den}}\ge0\), this agrees with the displayed square-root ratio: at a zero denominator both expressions are zero. Since \(V^*>0\), the map agrees with the continuous square-root-of-quotient map in a neighborhood of \((V_{\mathrm{OA}},V^*)\), and is therefore continuous at that pair.
+
+The marginal identities and the union bound give, for every \(\eta>0\),
+\[
+\begin{aligned}
+&\Pr_{\nu_n}\!\left(
+\max\{|\widehat V_{\mathrm{OA}}-V_{\mathrm{OA}}|,
+       |\widehat V^*-V^*|\}\ge\eta
+\right)\\
+&\qquad\le
+\Pr\!\left(|\widehat V_{\mathrm{OA}}-V_{\mathrm{OA}}|\ge\eta\right)
++
+\Pr_\theta\!\left(|\widehat V^*-V^*|\ge\eta\right)\\
+&\qquad\le
+\Pr\!\left(|\widehat V_{\mathrm{OA}}-V_{\mathrm{OA}}|>\eta/2\right)
++
+\Pr_\theta\!\left(|\widehat V^*-V^*|>\eta/2\right)
+\longrightarrow0.
+\end{aligned}
+\]
+Hence the pair of variance estimates converges in probability under every prescribed coupling.
+
+For any \(\delta>0\), continuity supplies an \(\eta>0\) such that
+\[
+\max\{|r_{\mathrm{num}}-V_{\mathrm{OA}}|,
+       |r_{\mathrm{den}}-V^*|\}<\eta
+\quad\Longrightarrow\quad
+\left|
+f_{\mathrm{ratio}}(r_{\mathrm{num}},r_{\mathrm{den}})
+-\sqrt{V_{\mathrm{OA}}/V^*}
+\right|<\delta.
+\]
+Using the pointwise nonnegativity of \(\widehat V^*\), we obtain
+\[
+\begin{aligned}
+&\Pr_{\nu_n}\!\left(
+\left|
+\sqrt{\widehat V_{\mathrm{OA}}/\widehat V^*}
+-\sqrt{V_{\mathrm{OA}}/V^*}
+\right|>\delta
+\right)\\
+&\qquad\le
+\Pr_{\nu_n}\!\left(
+\max\{|\widehat V_{\mathrm{OA}}-V_{\mathrm{OA}}|,
+       |\widehat V^*-V^*|\}\ge\eta
+\right)
+\longrightarrow0.
+\end{aligned}
+\]
+This proves the empirical ratio assertion for the exhibited schedule and every sequence of the stated couplings.
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.VhatStar_nonneg
+% lean: Causalean.Stat.Modes.coupled_sqrtRatio_tendsto_strict_abs
+
+\item Finally, at \(p=q=1/2\), \(\mu_0=\mu_1=1/2\), and \(\varepsilon=1\),
+\[
+\tau=0,\qquad \Delta_A=4,
+\]
+so direct substitution gives
+\[
+V_{\mathrm{OA}}
+=
+\frac{1/2}{1/2}+\frac{1/2}{1/2}
++2\cdot4^2
+=34.
+\]
+To compare this with the balanced value, use
+\[
+\sinh(1/2)>1/2>0,
+\qquad
+\cosh^2(1/2)-\sinh^2(1/2)=1.
+\]
+In particular,
+\[
+33\sinh^2(1/2)>\frac{33}{4}>1,
+\]
+and therefore
+\[
+\cosh^2(1/2)
+=
+1+\sinh^2(1/2)
+<
+34\sinh^2(1/2).
+\]
+Division by the positive quantity \(\sinh^2(1/2)\) yields
+\[
+V^*
+=
+\left(\frac{\cosh(1/2)}{\sinh(1/2)}\right)^2
+<34=V_{\mathrm{OA}},
+\]
+as required.
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.VOA_balanced_value
+% lean: CausalSmith.Stat.LdpAteEfficiencySurface.balanced_coth_sq_lt_34
+\end{enumerate}
+\end{proof}

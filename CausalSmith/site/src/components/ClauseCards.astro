@@ -1,0 +1,77 @@
+---
+// The clause side of a declaration — a theorem's conclusion, a definition's
+// given-by — as nested cards: each card lifts its own `∀`/`premise →` rows,
+// hoists an `∃` run, and either states a leaf or splits into sub-cards. The
+// layout mirrors the paper drawer's `structuredHtml` (site/src/scripts/
+// drawer.ts) so a reader sees the same shape on both pages:
+//   • top-level cards are numbered when there is more than one;
+//   • an ∃-headed lone card leaves the ∃ frame unlabelled and numbers the
+//     claims under it, lifting leading side conditions (`0 < a`) into quiet
+//     rows so they are not counted as claims.
+// Every content line (row, ∃ intro, leaf) carries the card's hover token in
+// `data-binder`, so a docstring's `(goal)` / `(step:N)` link highlights it.
+import { isSideCondition, type ViewCard } from "../lib/leanDeclView.js";
+import { type StmtLine } from "../lib/leanStatement.js";
+import StmtBodyView from "./StmtBodyView.astro";
+import StmtRowList from "./StmtRowList.astro";
+import ClauseBody from "./ClauseBody.astro";
+
+interface Props {
+  cards: ViewCard[];
+  /** Kicker on a numbered card: "conclusion" | "clause". */
+  clauseWord: string;
+}
+const { cards, clauseWord } = Astro.props as Props;
+
+const lineHtml = (l: StmtLine) => l.html ?? l.text;
+const only = cards[0];
+const lone = cards.length === 1;
+const existsHeaded = lone && !!only.intro && (only.sub?.length ?? 0) > 0;
+let lead = 0;
+let claims: ViewCard[] = [];
+if (existsHeaded) {
+  const subs = only.sub!;
+  while (lead < subs.length && isSideCondition(subs[lead])) lead++;
+  if (lead === subs.length) lead = 0;
+  claims = subs.slice(lead);
+}
+---
+
+{
+  existsHeaded ? (
+    <>
+      <div class="stmt-lift">
+        {only.hyps.length > 0 && <StmtRowList items={only.hyps} />}
+        <div class="stmt-intro" data-binder={only.token}>
+          {only.intro!.map((l) => <div class="stmt-line" set:html={lineHtml(l)} />)}
+        </div>
+        {lead > 0 && (
+          <div class="stmt-rows stmt-sides">
+            {only.sub!.slice(0, lead).map((s) => (
+              <div class="stmt-row side" data-binder={s.token}>
+                <div class="stmt-body-span">
+                  <StmtBodyView body={s.code!} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {claims.map((c, i) => (
+        <div class="stmt-card">
+          <div class="stmt-card-label">{`${clauseWord} ${i + 1}`}</div>
+          <ClauseBody card={c} depth={1} />
+        </div>
+      ))}
+    </>
+  ) : lone ? (
+    <ClauseBody card={only} depth={0} />
+  ) : (
+    cards.map((c, i) => (
+      <div class="stmt-card">
+        <div class="stmt-card-label">{`${clauseWord} ${i + 1}`}</div>
+        <ClauseBody card={c} depth={0} />
+      </div>
+    ))
+  )
+}

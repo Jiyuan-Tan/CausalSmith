@@ -1,0 +1,66 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Bandwidth
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.CausalBridgeIdentification
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.CausalBridgeMeasure
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityCriteriaLift
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityCriteriaTransport
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityExpectedLength
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityLengthLower
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityProcedureBounds
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityRates
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityRiskLower
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityUpper
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityWitness
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityWitnessFunctional
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Design
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Divergence
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.EstimatorMeasurable
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.FixedPositive
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestCoverage
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestExpectedLength
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestIntervalBasic
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestLengthLower
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestLengthUpper
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestMixedTerm
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestPointwise
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.LocalWindowGram
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxDivergence
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxFunctional
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxHolder
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxLaw
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxMembership
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxRegression
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxWitness
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.PhaseRates
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Pushforward
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.RegressionVersion
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ShiftedPowerCoercivity
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SurjectivityLift
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.TotalGram
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperEmpirical
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperNoise
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperTotal
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.WeightedConcentration
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.OpenQuestions
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TCausalBridge
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TCausalFrontierLift
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.THonestLength
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TMinimaxRisk
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TOneCellCalibration
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TPhaseDiagram
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

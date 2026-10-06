@@ -1,0 +1,398 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Direct-effect CLT under literally identical groups
+
+This file discharges the analytic homogeneity hypothesis `hhom` of the control-minus-treatment
+direct-effect CLT bundle `Homogeneous` from a *concrete, checkable* condition: that the groups are
+literally identical.  In the identical-groups regime every group has the same size `K`, the same
+allocation strategies ψ/φ, the same potential outcomes, and the same unit counts, so the
+within-group assignment space is the common, non-dependent space `W := Fin K → Bool` and the
+conditional design is a genuine product over `ι → W`.
+
+The mathematical content is selection symmetry.  The conditional studentized CDF given a stage-1
+selection `s` depends on `s` only through the number of selected groups (fixed at `C`), because a
+coordinate permutation `σ : ι ≃ ι` carrying one selection pattern to another simultaneously relabels
+the conditional product design (via `prodDesign_Pr_reindex`) and carries the studentized statistic,
+since identical groups make the per-group summand the same for every coordinate.  Hence any two
+supported selections give the same conditional CDF, which is exactly `hhom`.
+
+It provides: the identical-groups bundle `IdenticalRef` (reference data per `n` plus the common
+propensity hypotheses, assembling a constant `LHExperiment`); the selection-symmetry permutation
+existence lemma `exists_equiv_selection`; the derived hypothesis `hhom_of_identical`; the assembled
+`Homogeneous` bundle `homogeneous_of_identical`; and `directEffect_clt_identical`, which
+rests on identical groups, a uniform bound on centered per-group contrast estimators, and the
+many-groups rates — no `hhom` assumption.
+The control-minus-treatment contrast is the negative of Liu–Hudgens' treatment-minus-control
+estimand. Literal identity makes this a strict special case, not their heterogeneous Proposition
+5.1.
+-/
+
+module
+public import Causalean.Experimentation.TwoStageInterference.Asymptotic.CLTDischargeMain
+public import Causalean.Experimentation.DesignBased.ProductReindex
+
+/-!
+# Identical-groups discharge for the direct-effect CLT
+
+This file turns literal group-level symmetry into the homogeneity hypothesis used by the
+special-case direct-effect CLT. Its control-minus-treatment contrast reverses the Liu–Hudgens sign.
+
+The reference bundle `IdenticalRef` stores one identical-groups experiment: a common group size,
+common within-group strategies, common potential outcomes, common treated/control counts, the
+stage-1 design, and the propensities/nondegeneracy hypotheses needed to build `toExp :
+LHExperiment`. It also defines the common per-group contrast `groupDiff₀`, the concrete
+studentized statistic `studId`, the common group effect `refDelta`, and the common within-group
+variance `refVar`.
+
+The theorem `hhom_of_identical` proves the selection-symmetry hypothesis by relabeling equal-size
+selected sets with `exists_equiv_selection` and `prodDesign_Pr_reindex`. The definition
+`homogeneous_of_identical` assembles the resulting `Homogeneous` bundle, and
+`directEffect_clt_identical` derives asymptotic normality without assuming analytic homogeneity as a
+separate premise.
+-/
+
+@[expose] public section
+
+open scoped BigOperators Topology
+open Finset Filter
+
+namespace Causalean
+namespace Experimentation
+namespace TwoStageInterference
+
+open DesignBased
+
+/-! ### Selection-symmetry permutation -/
+
+/-- **Selection-symmetry permutation.** Given two Boolean selections `s, s'` on a finite type `ι`
+that flag the same number of indices (`card {i | s i} = card {i | s' i}`), there is a permutation
+`σ : ι ≃ ι` aligning their patterns: `s' i = s (σ i)` for every `i`.  Built by gluing a bijection of
+the selected sets (equal cardinality) with a bijection of their complements (equal cardinality,
+since the total is fixed) through `Equiv.sumCompl`. -/
+lemma exists_equiv_selection {ι : Type*} [Fintype ι] (s s' : ι → Bool)
+    (hcard : (Finset.univ.filter (fun i => s i = true)).card
+      = (Finset.univ.filter (fun i => s' i = true)).card) :
+    ∃ σ : ι ≃ ι, ∀ i, s' i = s (σ i) := by
+  classical
+  -- Predicates with the carried `Fintype`/`DecidablePred` instances.
+  -- True-sets have equal cardinality (`hcard`); complements then also (total `card ι` fixed).
+  have hcardT : Fintype.card {i // s' i = true} = Fintype.card {i // s i = true} := by
+    simp only [Fintype.card_subtype]
+    exact hcard.symm
+  have hcardF : Fintype.card {i // ¬ s' i = true} = Fintype.card {i // ¬ s i = true} := by
+    have h1 := Fintype.card_subtype_compl (fun i => s' i = true)
+    have h2 := Fintype.card_subtype_compl (fun i => s i = true)
+    rw [h1, h2, hcardT]
+  -- Bijections of selected sets and of complements.
+  let eT : {i // s' i = true} ≃ {i // s i = true} := Fintype.equivOfCardEq hcardT
+  let eF : {i // ¬ s' i = true} ≃ {i // ¬ s i = true} := Fintype.equivOfCardEq hcardF
+  -- Glue via `sumCompl` on both sides.
+  let σ : ι ≃ ι :=
+    (Equiv.sumCompl (fun i => s' i = true)).symm.trans
+      ((eT.sumCongr eF).trans (Equiv.sumCompl (fun i => s i = true)))
+  refine ⟨σ, fun i => ?_⟩
+  -- Compute `σ i` explicitly: it is the underlying element of the image of `i` under the glued
+  -- bijection, which by construction lies in the matching set of `s`.
+  have hσ : ∀ i, σ i = (Equiv.sumCompl (fun i => s i = true))
+      ((eT.sumCongr eF) ((Equiv.sumCompl (fun i => s' i = true)).symm i)) := fun i => rfl
+  rw [hσ]
+  -- Case on `s' i`; in each branch `σ i` lands in the matching set of `s`.
+  by_cases hi : s' i = true
+  · rw [Equiv.sumCompl_symm_apply_of_pos (p := fun i => s' i = true) hi]
+    rw [Equiv.sumCongr_apply, Sum.map_inl, Equiv.sumCompl_apply_inl]
+    exact hi.trans ((eT ⟨i, hi⟩).2).symm
+  · rw [Equiv.sumCompl_symm_apply_of_neg (p := fun i => s' i = true) hi]
+    rw [Equiv.sumCongr_apply, Sum.map_inr, Equiv.sumCompl_apply_inr]
+    have hF : s (↑(eF ⟨i, hi⟩)) = false := Bool.not_eq_true _ ▸ (eF ⟨i, hi⟩).2
+    rw [hF]; simpa using hi
+
+/-! ### Identical-groups reference data and the constant experiment -/
+
+/-- **Reference data for one identical-groups experiment.** All [groups in the
+population](hyp:ι) share [a common size K](hyp:K), a common pair of within-group allocation
+strategies [ψ₀](hyp:ψ₀) and [φ₀](hyp:φ₀), common [potential outcomes Y₀](hyp:Y₀), and common
+[control](hyp:m0₀) and [treatment](hyp:m1₀) unit counts, each [assumed nonzero](hyp:hm0,hm1), as
+is [the group size K](hyp:hn). [A stage-1 design D₁ assigns each group a strategy](hyp:D₁),
+[selecting a nonzero number C of groups for ψ](hyp:C,hC), out of [a population of at least two
+groups](hyp:hN,hN1); [every unit's within-group control propensity equals m0₀/K](hyp:hprop0) and
+[its treatment propensity equals m1₀/K](hyp:hprop1), [every group's stage-1 selection propensity
+equals C/N](hyp:hstage1), and [every pair's joint selection propensity equals
+C(C−1)/(N(N−1))](hyp:hstage1pair). Together these assemble the constant `LHExperiment` `toExp`. -/
+structure IdenticalRef where
+  /-- Finite population of groups. -/
+  ι : Type
+  [fι : Fintype ι]
+  [dι : DecidableEq ι]
+  /-- The common group size. -/
+  K : ℕ
+  /-- The common allocation strategy ψ. -/
+  ψ₀ : FiniteDesign (Fin K → Bool)
+  /-- The common comparison strategy φ. -/
+  φ₀ : FiniteDesign (Fin K → Bool)
+  /-- The common partial-interference potential outcomes. -/
+  Y₀ : Fin K → (Fin K → Bool) → ℝ
+  /-- The common control-unit count. -/
+  m0₀ : ℝ
+  /-- The common treated-unit count. -/
+  m1₀ : ℝ
+  /-- Stage-1 strategy-assignment design. -/
+  D₁ : FiniteDesign (StratAssign ι)
+  /-- Number of groups selected for ψ at stage 1. -/
+  C : ℝ
+  /-- The ψ-selection count is nonzero. -/
+  hC : C ≠ 0
+  /-- The common control count is nonzero. -/
+  hm0 : m0₀ ≠ 0
+  /-- The common treated count is nonzero. -/
+  hm1 : m1₀ ≠ 0
+  /-- The common group size is nonzero. -/
+  hn  : (K : ℝ) ≠ 0
+  /-- There is at least one group. -/
+  hN  : (Fintype.card ι : ℝ) ≠ 0
+  /-- There are at least two groups, needed for the pair propensity. -/
+  hN1 : (Fintype.card ι : ℝ) - 1 ≠ 0
+  /-- Within-group control propensity of every unit is `m0₀ / K`. -/
+  hprop0 : ∀ j : Fin K, ψ₀.Pr (fun w => w j = false) = m0₀ / (K : ℝ)
+  /-- Within-group treatment propensity of every unit is `m1₀ / K`. -/
+  hprop1 : ∀ j : Fin K, ψ₀.Pr (fun w => w j = true) = m1₀ / (K : ℝ)
+  /-- Stage-1 first-order selection propensity of every group is `C/N`. -/
+  hstage1 : ∀ i, D₁.Pr (fun s => s i = true) = C / (Fintype.card ι : ℝ)
+  /-- Stage-1 second-order (pair) selection propensity is `C(C−1)/(N(N−1))`. -/
+  hstage1pair : ∀ i j, i ≠ j →
+    D₁.E (fun s => FiniteDesign.ind (fun s => s i = true) s
+        * FiniteDesign.ind (fun s => s j = true) s)
+      = (C * (C - 1)) / ((Fintype.card ι : ℝ) * ((Fintype.card ι : ℝ) - 1))
+
+attribute [instance] IdenticalRef.fι IdenticalRef.dι
+
+namespace IdenticalRef
+
+variable (R : IdenticalRef)
+
+/-- Given [reference data for one identical-groups experiment](hyp:R), the [constant two-stage
+experiment](goal) assigns every group the common size, two common within-group
+randomization designs, common potential outcomes, and common treated and control counts in that
+reference data.  Thus its conditional within-group randomization is a product across groups.
+
+The within-group assignment space is non-dependent because every group has the same size. -/
+noncomputable def toExp : LHExperiment where
+  ι := R.ι
+  gsize := fun _ => R.K
+  D₁ := R.D₁
+  ψ := fun _ => R.ψ₀
+  φ := fun _ => R.φ₀
+  Y := fun _ => R.Y₀
+  m0 := fun _ => R.m0₀
+  m1 := fun _ => R.m1₀
+  C := R.C
+  hC := R.hC
+  hm0 := fun _ => R.hm0
+  hm1 := fun _ => R.hm1
+  hn := fun _ => R.hn
+  hN := R.hN
+  hN1 := R.hN1
+  hprop0 := fun _ => R.hprop0
+  hprop1 := fun _ => R.hprop1
+  hstage1 := R.hstage1
+  hstage1pair := R.hstage1pair
+
+/-- Given [reference data for one identical-groups experiment](hyp:R) and [a realized assignment
+within its common-size group](hyp:w), the [common per-group control-minus-treatment contrast
+estimator](goal) is the control-outcome sum divided by the common control count minus the
+treatment-outcome sum divided by the common treated count. -/
+noncomputable def groupDiff₀ (w : Fin R.K → Bool) : ℝ :=
+  (∑ j, if w j = false then R.Y₀ j w else 0) / R.m0₀
+    - (∑ j, if w j = true then R.Y₀ j w else 0) / R.m1₀
+
+/-- In the constant experiment, every group's contrast estimator equals the common `groupDiff₀`. -/
+lemma groupDiff_toExp (i : R.ι) : groupDiff R.toExp i = R.groupDiff₀ := by
+  rfl
+
+/-- The conditional design of the constant experiment is the genuine product, over the
+non-dependent space `R.ι → (Fin K → Bool)`, of the per-group strategy designs. -/
+lemma condDesign_toExp (s : StratAssign R.ι) :
+    condDesign R.toExp s = prodDesign (fun i => if s i then R.ψ₀ else R.φ₀) := rfl
+
+/-- Given [reference data for one identical-groups experiment](hyp:R) and [a realized first-stage
+strategy assignment together with a realized within-group assignment for every group](hyp:sw), the
+[studentized control-minus-treatment contrast statistic](goal) is the aggregate direct-effect
+estimator minus its population direct effect, divided by the square root of its direct-effect
+variance. -/
+noncomputable def studId (sw : StratAssign R.ι × (R.ι → (Fin R.K → Bool))) : ℝ :=
+  (R.toExp.estD sw - R.toExp.DEbar) / Real.sqrt (R.toExp.directVar)
+
+/-- **Estimator equivariance.** Because all groups are identical, the aggregate contrast estimator
+sees a selection only through its pattern: if `σ` aligns the patterns of `s'` and `s`
+(`s' i = s (σ i)`), then evaluating at `s'` and the relabeled assignment `w ∘ σ` equals the value
+at `s` and `w`. -/
+lemma estD_equivariant (s s' : StratAssign R.ι) (σ : R.ι ≃ R.ι) (hσ : ∀ i, s' i = s (σ i))
+    (w : R.ι → (Fin R.K → Bool)) :
+    R.toExp.estD (s', fun i => w (σ i)) = R.toExp.estD (s, w) := by
+  rw [estD_eq_agg R.toExp s' (fun i => w (σ i)), estD_eq_agg R.toExp s w]
+  congr 1
+  refine Fintype.sum_equiv σ
+    (fun i => (if s' i then (1 : ℝ) else 0) * groupDiff R.toExp i (w (σ i)))
+    (fun i => (if s i then (1 : ℝ) else 0) * groupDiff R.toExp i (w i)) (fun i => ?_)
+  simp only [groupDiff_toExp, hσ i]
+
+/-- **Studentized equivariance.** The studentized statistic is likewise selection-pattern
+equivariant, since `DEbar` and `directVar` are scalars and the estimator is equivariant. -/
+lemma studId_equivariant (s s' : StratAssign R.ι) (σ : R.ι ≃ R.ι) (hσ : ∀ i, s' i = s (σ i))
+    (w : R.ι → (Fin R.K → Bool)) :
+    R.studId (s', fun i => w (σ i)) = R.studId (s, w) := by
+  unfold studId
+  congr 2
+  exact estD_equivariant R s s' σ hσ w
+
+open Classical in
+/-- **Derived homogeneity hypothesis under identical groups.** For two stage-1 selections each
+flagging exactly `C` groups, the conditional studentized CDF is the same.  This is exactly the
+analytic homogeneity hypothesis `hhom`, now a theorem: the selection-symmetry permutation `σ`
+(`exists_equiv_selection`) relabels the conditional product design (`prodDesign_Pr_reindex`) while
+carrying the studentized statistic (`studId_equivariant`), so the two CDFs coincide. -/
+lemma hhom_of_identical (t : ℝ) (s s' : StratAssign R.ι)
+    (hs : (∑ i, if s i then (1 : ℝ) else 0) = R.C)
+    (hs' : (∑ i, if s' i then (1 : ℝ) else 0) = R.C) :
+    (condDesign R.toExp s).Pr (fun w => R.studId (s, w) ≤ t)
+      = (condDesign R.toExp s').Pr (fun w => R.studId (s', w) ≤ t) := by
+  -- The two selections flag the same number of groups, so their selected sets have equal card.
+  have hsum : (∑ i, if s i then (1 : ℝ) else 0) = (∑ i, if s' i then (1 : ℝ) else 0) := by
+    rw [hs, hs']
+  have hcardℝ : ((Finset.univ.filter (fun i => s i = true)).card : ℝ)
+      = ((Finset.univ.filter (fun i => s' i = true)).card : ℝ) := by
+    have e : ∀ u : StratAssign R.ι, (∑ i, if u i then (1 : ℝ) else 0)
+        = ((Finset.univ.filter (fun i => u i = true)).card : ℝ) := by
+      intro u
+      rw [Finset.sum_ite, Finset.sum_const, Finset.sum_const_zero, add_zero, nsmul_eq_mul,
+        mul_one]
+    rw [← e s, ← e s', hsum]
+  have hcard : (Finset.univ.filter (fun i => s i = true)).card
+      = (Finset.univ.filter (fun i => s' i = true)).card := by exact_mod_cast hcardℝ
+  -- The selection-symmetry permutation aligning `s'` to `s`.
+  obtain ⟨σ, hσ⟩ := exists_equiv_selection s s' hcard
+  -- Relabel `condDesign s'` to `condDesign s` via `prodDesign_Pr_reindex`, carrying the statistic.
+  rw [condDesign_toExp, condDesign_toExp]
+  -- The permuted product `D ∘ σ` equals the conditional design at `s'` (since `s' i = s (σ i)`).
+  have hdesign : (fun i => if s (σ i) then R.ψ₀ else R.φ₀)
+      = (fun i => if s' i then R.ψ₀ else R.φ₀) := by
+    funext i; rw [hσ i]
+  calc (prodDesign (fun i => if s i then R.ψ₀ else R.φ₀)).Pr (fun w => R.studId (s, w) ≤ t)
+      = (prodDesign (fun i => if s i then R.ψ₀ else R.φ₀)).Pr
+          (fun w => R.studId (s', fun i => w (σ i)) ≤ t) :=
+        FiniteDesign.Pr_congr _ _ _ (fun w => by rw [studId_equivariant R s s' σ hσ w])
+    _ = (prodDesign (fun i => (fun i => if s i then R.ψ₀ else R.φ₀) (σ i))).Pr
+          (fun w => R.studId (s', w) ≤ t) :=
+        FiniteDesign.prodDesign_Pr_reindex σ (fun i => if s i then R.ψ₀ else R.φ₀)
+          (fun w => R.studId (s', w) ≤ t)
+    _ = (prodDesign (fun i => if s' i then R.ψ₀ else R.φ₀)).Pr (fun w => R.studId (s', w) ≤ t) := by
+        rw [hdesign]
+
+/-! ### Reference group effect and variance -/
+
+/-- Given [reference data for one identical-groups experiment](hyp:R) and [a treatment
+status](hyp:z),
+the [common group-average potential outcome](goal) is the arithmetic mean over units in
+the common group of their expected potential outcomes under the reference allocation strategy,
+conditional on their own treatment having that status. -/
+noncomputable def refGroupMean (z : Bool) : ℝ :=
+  (∑ j : Fin R.K,
+    R.ψ₀.E (fun w => if w j = z then R.Y₀ j w else 0) / R.ψ₀.Pr (fun w => w j = z)) / (R.K : ℝ)
+
+/-- Given [reference data for one identical-groups experiment](hyp:R), the [common group-level
+direct-effect contrast](goal) is its common group-average potential outcome under control minus
+that under treatment. -/
+noncomputable def refDelta : ℝ := R.refGroupMean false - R.refGroupMean true
+
+/-- Given [reference data for one identical-groups experiment](hyp:R), the [common within-group
+contrast-estimator variance](goal) is the variance, under the reference first allocation strategy,
+of the common per-group control-minus-treatment contrast estimator. -/
+noncomputable def refVar : ℝ := R.ψ₀.Var R.groupDiff₀
+
+/-- In the constant experiment every group's level contrast equals the common `refDelta`. -/
+lemma hδ_toExp (i : R.ι) :
+    groupMean R.toExp.ψ R.toExp.Y i false - groupMean R.toExp.ψ R.toExp.Y i true = R.refDelta := by
+  rfl
+
+/-- In the constant experiment every group's within-group variance equals the common `refVar`. -/
+lemma hv_toExp (i : R.ι) :
+    (R.toExp.ψ i).Var (groupDiff R.toExp i) = R.refVar := by
+  rfl
+
+end IdenticalRef
+
+open DesignBased in
+open scoped Classical in
+/-- Given [a sequence of identical-groups reference experiments](hyp:R), [a real evaluation
+threshold](hyp:t), [a real common direct-effect contrast](hyp:δ), [a real uniform bound](hyp:M),
+[the assumption that every reference direct-effect contrast equals that common contrast](hyp:hδ),
+[the assumption that every reference within-group contrast variance is positive](hyp:hvpos), [the
+assumption that, for every experiment, group, and within-group assignment, the absolute difference
+between the realized group contrast and the common contrast is at most the uniform
+bound](hyp:hMbound),
+[the assumption that every first-stage assignment with positive probability selects exactly its
+prescribed number of groups](hyp:hcount), [the assumption that, as the sequence index grows,
+$M/\sqrt{C_n v_n}$ converges to zero, where $C_n$ is the prescribed selected-group count and $v_n$
+the reference within-group variance](hyp:hB0), and [the assumption that the number of groups times
+`(M/√(C_n v_n))^3` converges to zero](hyp:hNB3), the [homogeneity bundle for this
+sequence](goal)
+has the stated threshold, studentized statistics, common contrast, bound, and reference
+within-group variances.  Its conditional-distribution homogeneity follows from literal identity of
+the groups.
+
+The within-group variances may vary across the sequence. -/
+noncomputable def homogeneous_of_identical (R : ℕ → IdenticalRef) (t δ M : ℝ)
+    (hδ : ∀ n, (R n).refDelta = δ)
+    (hvpos : ∀ n, 0 < (R n).refVar)
+    (hMbound : ∀ n i w, |groupDiff (R n).toExp i w - δ| ≤ M)
+    (hcount : ∀ n s, (R n).toExp.D₁.p s ≠ 0 →
+      (∑ i, if s i then (1 : ℝ) else 0) = (R n).toExp.C)
+    (hB0 : Tendsto (fun n => M / Real.sqrt ((R n).toExp.C * (R n).refVar)) atTop (𝓝 0))
+    (hNB3 : Tendsto (fun n => (Fintype.card (R n).toExp.ι : ℝ)
+        * (M / Real.sqrt ((R n).toExp.C * (R n).refVar)) ^ 3) atTop (𝓝 0)) :
+    Homogeneous (fun n => (R n).toExp) t (fun n => (R n).studId) δ M (fun n => (R n).refVar) where
+  hstud := fun n sw => rfl
+  hδ := fun n i => by rw [(R n).hδ_toExp i, hδ n]
+  hv := fun n i => (R n).hv_toExp i
+  hvpos := hvpos
+  hMbound := hMbound
+  hcount := hcount
+  hB0 := hB0
+  hNB3 := hNB3
+  hhom := fun n s s' hs hs' =>
+    (R n).hhom_of_identical t s s' (hcount n s hs) (hcount n s' hs')
+
+open DesignBased in
+open scoped Classical in
+/-- **Direct-effect CLT under literally identical groups.** Along
+[identical-group experiments](hyp:R) at [a fixed threshold](hyp:t), suppose
+[all group-level control-minus-treatment contrasts equal δ](hyp:δ,hδ),
+[each common within-group variance is positive](hyp:hvpos),
+[centered per-group contrast estimators are uniformly bounded by M](hyp:M,hMbound),
+[supported first-stage selections have fixed size C](hyp:hcount),
+[the normalized bound vanishes](hyp:hB0), and
+[the Lyapunov cube rate vanishes](hyp:hNB3). Then
+[the studentized contrast is asymptotically standard normal](goal). No analytic homogeneity
+hypothesis is assumed: it is derived from the concrete identical-groups structure via
+`hhom_of_identical`. The contrast is the negative of Liu–Hudgens' treatment-minus-control
+estimand, and literal identity makes the theorem a strict special case of their heterogeneous
+Proposition 5.1. -/
+theorem directEffect_clt_identical (R : ℕ → IdenticalRef) (t δ M : ℝ)
+    (hδ : ∀ n, (R n).refDelta = δ)
+    (hvpos : ∀ n, 0 < (R n).refVar)
+    (hMbound : ∀ n i w, |groupDiff (R n).toExp i w - δ| ≤ M)
+    (hcount : ∀ n s, (R n).toExp.D₁.p s ≠ 0 →
+      (∑ i, if s i then (1 : ℝ) else 0) = (R n).toExp.C)
+    (hB0 : Tendsto (fun n => M / Real.sqrt ((R n).toExp.C * (R n).refVar)) atTop (𝓝 0))
+    (hNB3 : Tendsto (fun n => (Fintype.card (R n).toExp.ι : ℝ)
+        * (M / Real.sqrt ((R n).toExp.C * (R n).refVar)) ^ 3) atTop (𝓝 0)) :
+    Tendsto (fun n => (R n).toExp.jointD.Pr (fun sw => (R n).studId sw ≤ t)) atTop
+      (𝓝 (stdNormalCdf t)) :=
+  directEffect_clt_homogeneous
+    (homogeneous_of_identical R t δ M hδ hvpos hMbound hcount hB0 hNB3)
+
+end TwoStageInterference
+end Experimentation
+end Causalean

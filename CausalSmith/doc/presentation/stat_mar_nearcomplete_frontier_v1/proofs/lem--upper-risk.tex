@@ -1,0 +1,950 @@
+\begin{proof}[Proof of \cref{obj:lem:upper-risk}]
+\begin{enumerate}
+\item Define the numerical constants
+\[
+\begin{aligned}
+C_{\mathrm{bias}}&=268435456,\\
+C_{\mathrm{switch}}&=201719808,\\
+C_{\mathrm{log}}&=720(4/3)^6(e+1),\\
+C_{\mathrm{non}}&=
+8\bigl(C_{\mathrm{switch}}^2C_{\mathrm{log}}+119\bigr)
++2C_{\mathrm{bias}}^2+104,\\
+C_{\mathrm{fall}}&=4e^{128},\\
+C_U&=C_{\mathrm{non}}+C_{\mathrm{fall}}.
+\end{aligned}
+\]
+These constants are finite and positive. Fix parameters and a law satisfying the hypotheses, and put
+\[
+\delta=1-q\in[0,1/2],
+\qquad
+\ell_n=\log(e+n).
+\]
+By the independent sampling hypothesis,
+\[
+(O_1,\ldots,O_n)\sim P_O^{\otimes n}.
+\]
+From \cref{obj:def:rate},
+\[
+r_{n,d,q}\ge \frac1n>0.
+\]
+We establish the risk bounds \(C_{\mathrm{fall}}r_{n,d,q}\) and
+\(C_{\mathrm{non}}r_{n,d,q}\) in the corresponding branches of
+\cref{obj:def:mm-estimator}. Each is at most \(C_Ur_{n,d,q}\).
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_risk
+
+\item Suppose first that \(q=1\). The arrival floor makes the conditional arrival probability equal to one in every positive-probability cell. Consequently,
+\[
+P(R=0)=0.
+\]
+Define the complete-arrival score on the observed-record space by
+\[
+F_{\mathrm{complete}}:O\longrightarrow[-2,2],
+\qquad
+F_{\mathrm{complete}}(O)=2(2A-1)RY.
+\]
+The restrictions defining \cref{obj:def:law-class} give
+\[
+\begin{aligned}
+\mathbb E_P[F_{\mathrm{complete}}(O)]
+&=2P(A=1,Y=1)-2P(A=0,Y=1)\\
+&=P(Y(1)=1)-P(Y(0)=1)
+=\tau(P).
+\end{aligned}
+\]
+Indeed, consistency replaces the realized outcome within each arm by its potential outcome, and randomized independence and balanced assignment give
+\(2P(A=a,Y=1)=P(Y(a)=1)\) for \(a\in\{0,1\}\).
+Also,
+\[
+\operatorname{Var}_P(F_{\mathrm{complete}}(O))
+\le \mathbb E_P[F_{\mathrm{complete}}(O)^2]\le4.
+\]
+Independence of the observations therefore yields
+\[
+\mathbb E_P\!\left[
+\left\{\frac1n\sum_{i=1}^nF_{\mathrm{complete}}(O_i)-\tau(P)\right\}^2
+\right]
+=\frac{\operatorname{Var}_P(F_{\mathrm{complete}}(O))}{n}
+\le\frac4n.
+\]
+The binary potential outcomes imply \(\tau(P)\in[-1,1]\), and interval projection satisfies
+\[
+\left|\Pi_{[-1,1]}(t)-\tau(P)\right|
+\le |t-\tau(P)|,
+\qquad t\in\mathbb R.
+\]
+Thus the complete-arrival branch satisfies
+\[
+\mathbb E_P[(\widehat\tau_{\mathrm{MM}}-\tau(P))^2]
+\le \frac4n
+=4r_{n,d,1}
+\le C_{\mathrm{fall}}r_{n,d,1}
+\le C_Ur_{n,d,1}.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_complete_arrival_risk_rate
+
+\item Suppose next that
+\[
+q\ne1,
+\qquad
+\ell_n<128\ \text{or}\ d\ge n\ell_n.
+\]
+When \(\ell_n<128\), exponentiating its definition gives
+\[
+n<e+n=e^{\ell_n}<e^{128}.
+\]
+Both the estimator and the target lie in \([-1,1]\), so
+\[
+\mathbb E_P[(\widehat\tau_{\mathrm{MM}}-\tau(P))^2]
+\le4
+\le\frac{4e^{128}}n
+\le C_{\mathrm{fall}}r_{n,d,q}.
+\]
+
+For the large-dimension branch, introduce the following quantities, defined for every cell, including null cells:
+\[
+\begin{gathered}
+\mathcal J=\{0,\ldots,d-1\}\times\{0,1\}^2,
+\qquad j=(x,a,s)\in\mathcal J,\\
+\pi_j=P(X=x,A=a,S=s),\\
+t_j=P(X=x,A=a,S=s,R=1),
+\qquad
+w_j=\pi_j-t_j=P(X=x,A=a,S=s,R=0),\\
+\mu_P(j)=\mu_P(x,a,s),
+\qquad
+\eta_j=\mu_P(j)-\frac12,
+\qquad
+\epsilon_j=2a-1.
+\end{gathered}
+\]
+The mean \(\mu_P(j)\) uses the zero-denominator convention in
+\cref{obj:def:identified-functional}. In particular,
+\[
+|\eta_j|\le\frac12,\qquad
+\sum_{j\in\mathcal J}\pi_j=1.
+\]
+The arrival floor gives \(q\pi_j\le t_j\) on positive cells. On a null cell,
+\(\pi_j=t_j=w_j=0\), so the same inequality holds. Since \(q\ge1/2\),
+\[
+0\le w_j\le\delta\pi_j\le2\delta t_j,
+\qquad
+\sum_{j\in\mathcal J}w_j\le\delta.
+\]
+Balanced assignment gives
+\[
+\sum_{j\in\mathcal J}\epsilon_j\pi_j=0.
+\]
+Applying \cref{obj:lem:identification-infrastructure} and centering the cell means therefore gives
+\[
+\tau(P)
+=2\sum_{j\in\mathcal J}\epsilon_j\pi_j\eta_j
+=2\sum_{j\in\mathcal J}\epsilon_j(t_j\eta_j+w_j\eta_j).
+\]
+
+Define the fallback score by
+\[
+F_{\mathrm{fallback}}:O\longrightarrow[-1,1],
+\qquad
+F_{\mathrm{fallback}}(O)=2(2A-1)R(RY-1/2).
+\]
+On the support of \(P_O\), its mean is
+\[
+\mathbb E_P[F_{\mathrm{fallback}}(O)]
+=2\sum_{j\in\mathcal J}\epsilon_jt_j\eta_j.
+\]
+Hence
+\[
+\left|\mathbb E_P[F_{\mathrm{fallback}}(O)]-\tau(P)\right|
+=\left|2\sum_{j\in\mathcal J}\epsilon_jw_j\eta_j\right|
+\le\sum_{j\in\mathcal J}w_j
+\le\delta.
+\]
+The score bound and independent sampling imply
+\[
+\mathbb E_P\!\left[
+\left\{\frac1n\sum_{i=1}^nF_{\mathrm{fallback}}(O_i)
+-\mathbb E_P[F_{\mathrm{fallback}}(O)]\right\}^2
+\right]\le\frac1n.
+\]
+Using projection contraction and
+\((u+v)^2\le2u^2+2v^2\), we obtain
+\[
+\mathbb E_P[(\widehat\tau_{\mathrm{MM}}-\tau(P))^2]
+\le\frac2n+2\delta^2.
+\]
+For \(d\ge n\ell_n\), the minimum in \cref{obj:def:rate} equals one. Thus
+\[
+\frac2n+2\delta^2
+=2r_{n,d,q}
+\le C_{\mathrm{fall}}r_{n,d,q}.
+\]
+Both fallback subcases consequently satisfy the bound with \(C_U\).
+The cell quantities just defined will also be used below.
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_fallback_branches_risk_rate
+
+\item Consider now the remaining regime
+\[
+q\ne1,\qquad \ell_n\ge128,\qquad d<n\ell_n.
+\]
+The tuning parameters and benchmark become
+\[
+m=\frac n8,\qquad
+k=\lfloor\ell_n/64\rfloor,\qquad
+B=256\ell_n,
+\]
+\[
+\frac{\ell_n}{128}\le k\le\frac{\ell_n}{64}
+=\frac{B}{16384},
+\qquad
+g_{n,d,q}=\frac{\delta d}{n\ell_n},
+\qquad
+r_{n,d,q}=\frac1n+g_{n,d,q}^2.
+\]
+The lower bound on \(k\) follows from
+\(\lfloor\ell_n/64\rfloor\ge\ell_n/64-1\ge\ell_n/128\).
+
+Extend the observed sample to an infinite independent sequence with law \(P_O\). Independently draw
+\[
+N\sim\operatorname{Poisson}(n/2),
+\qquad
+Z_i\stackrel{\mathrm{iid}}{\sim}\operatorname{Unif}\{1,2,3,4\},
+\qquad i\ge1,
+\]
+and define the uncapped stream sets
+\[
+\mathcal I_t^\star=\{i\le N:Z_i=t\},
+\qquad t\in\{1,2,3,4\}.
+\]
+Write \(\mathbb E_\star\) and \(\Pr_\star\) for expectation and probability under this joint experiment. For an observed record \(o\), define its stream histogram count by
+\[
+K_{t,o}^{\mathrm{hist}}
+=\sum_{i\in\mathcal I_t^\star}\mathbf1\{O_i=o\}.
+\]
+For \(u_{t,o}\in[0,1]\), conditioning on \(N\) gives the joint probability generating function
+\[
+\mathbb E_\star\!\left[
+\prod_{t=1}^4\prod_{o\in O}
+u_{t,o}^{K_{t,o}^{\mathrm{hist}}}\right]
+=
+\exp\!\left\{
+m\sum_{t=1}^4\sum_{o\in O}P_O(\{o\})(u_{t,o}-1)
+\right\}.
+\]
+Its factorization shows that these histogram counts are independent Poisson variables with means \(mP_O(\{o\})\).
+
+Evaluate the correction formulas of \cref{obj:def:mm-estimator} on the uncapped streams:
+\[
+\begin{aligned}
+V_j^\star&=\frac1m\sum_{i\in\mathcal I_2^\star}
+\mathbf1\{(X_i,A_i,S_i)=j,\ R_i=0\},\\
+C_j^{\prime\star}&=\sum_{i\in\mathcal I_3^\star}
+\mathbf1\{(X_i,A_i,S_i)=j,\ R_i=1\},\\
+C_j^\star&=\sum_{i\in\mathcal I_4^\star}
+\mathbf1\{(X_i,A_i,S_i)=j,\ R_i=1\},\\
+U_j^\star&=\sum_{i\in\mathcal I_4^\star}
+\mathbf1\{(X_i,A_i,S_i)=j,\ Y_i^{\mathrm{obs}}=1\},\\
+H_j^\star&=\sum_{v=1}^{k-1}
+a_v(U_j^\star-C_j^\star/2)(C_j^\star-1)_{v-1},\\
+D_j^\star&=
+\begin{cases}
+U_j^\star/C_j^\star-1/2,&C_j^\star>0,\\
+0,&C_j^\star=0,
+\end{cases}\\
+G_j^\star&=
+H_j^\star\mathbf1\{C_j^{\prime\star}\le B/4\}
++D_j^\star\mathbf1\{C_j^{\prime\star}>B/4\}.
+\end{aligned}
+\]
+Define the linear term, aggregate correction, raw estimate, and projected ideal estimate by
+\[
+\begin{aligned}
+\tau_{\mathrm{lin}}
+&=\frac2m\sum_{i\in\mathcal I_1^\star}
+(2A_i-1)R_i(Y_i^{\mathrm{obs}}-1/2),\\
+W_{\mathrm{corr}}
+&=\sum_{j\in\mathcal J}\epsilon_jV_j^\star G_j^\star,\\
+\tau_{\mathrm{raw}}
+&=\tau_{\mathrm{lin}}+2W_{\mathrm{corr}},\\
+\widetilde\tau_\star&=\Pi_{[-1,1]}(\tau_{\mathrm{raw}}).
+\end{aligned}
+\]
+
+The capped randomized estimate \(\widetilde\tau\) in
+\cref{obj:def:mm-estimator} agrees with \(\widetilde\tau_\star\) when \(N\le n\).
+On the complementary event their squared errors are bounded by four.
+Conditional Jensen and this coupling therefore give
+\[
+\begin{aligned}
+\mathbb E_P[(\widehat\tau_{\mathrm{MM}}-\tau(P))^2]
+&\le\mathbb E_\star[(\widetilde\tau-\tau(P))^2]\\
+&\le\mathbb E_\star[(\widetilde\tau_\star-\tau(P))^2]
++4\Pr_\star(N>n).
+\end{aligned}
+\]
+Exponential Markov, applied to \(2^N\), yields
+\[
+\Pr_\star(N>n)
+\le2^{-n}\mathbb E_\star[2^N]
+=\exp\{-(\log2-1/2)n\}
+\le e^{-n/8}
+\le\frac8n.
+\]
+Here \(\log2-1/2\ge1/8\), and \(n/8\le e^{n/8}\) gives the last inequality. Consequently,
+\[
+\mathbb E_P[(\widehat\tau_{\mathrm{MM}}-\tau(P))^2]
+\le\mathbb E_\star[(\widetilde\tau_\star-\tau(P))^2]
++\frac{32}{n}.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_nonfallback_risk_le_ideal_add_rate
+
+\item All the correction statistics have finite second moments: their polynomial parts are finite polynomials in Poisson counts, and their ratio parts are bounded. Projection contraction and the variance--bias identity give
+\[
+\mathbb E_\star[(\widetilde\tau_\star-\tau(P))^2]
+\le
+\operatorname{Var}_\star(\tau_{\mathrm{raw}})
++\{\mathbb E_\star[\tau_{\mathrm{raw}}]-\tau(P)\}^2.
+\]
+To bound the first term, define
+\[
+\begin{aligned}
+K_{\mathrm{lin},+}
+&=\sum_{i\in\mathcal I_1^\star}
+\mathbf1\{R_i=1,\ A_i=Y_i^{\mathrm{obs}}\},\\
+K_{\mathrm{lin},-}
+&=\sum_{i\in\mathcal I_1^\star}
+\mathbf1\{R_i=1,\ A_i\ne Y_i^{\mathrm{obs}}\}.
+\end{aligned}
+\]
+Then
+\[
+\tau_{\mathrm{lin}}
+=\frac{K_{\mathrm{lin},+}-K_{\mathrm{lin},-}}m.
+\]
+Each count is Poisson with mean at most \(m\). Using
+\(\operatorname{Var}(U-V)\le2\operatorname{Var}(U)+2\operatorname{Var}(V)\),
+\[
+\operatorname{Var}_\star(\tau_{\mathrm{lin}})
+\le\frac{4m}{m^2}
+=\frac{32}{n}.
+\]
+Applying the corresponding sum inequality to
+\(\tau_{\mathrm{raw}}=\tau_{\mathrm{lin}}+2W_{\mathrm{corr}}\) gives
+\[
+\operatorname{Var}_\star(\tau_{\mathrm{raw}})
+\le\frac{64}{n}
++8\operatorname{Var}_\star(W_{\mathrm{corr}}).
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_fourStreamRawEstimate_variance_le_aggregate
+
+\item For every \(j\in\mathcal J\), define its arrived-count intensity and light-branch probability by
+\[
+\zeta_j=mt_j\ge0,
+\qquad
+\wp_j=\Pr_\star(C_j^{\prime\star}\le B/4)\in[0,1].
+\]
+Poisson splitting gives
+\[
+\mathbb E_\star[V_j^\star]=w_j,
+\qquad
+\mathbb E_\star[(V_j^\star)^2]=w_j^2+\frac{w_j}{m},
+\]
+\[
+C_j^{\prime\star},C_j^\star\sim\operatorname{Poisson}(\zeta_j),
+\qquad
+U_j^\star\mid C_j^\star
+\sim\operatorname{Binomial}(C_j^\star,\mu_P(j)).
+\]
+The conditional binomial statement includes \(t_j=0\): then both counts vanish almost surely and \(\mu_P(j)=0\).
+
+For integers \(v\ge1\), use the falling factorial
+\[
+(C_j^\star)_v=\prod_{t=0}^{v-1}(C_j^\star-t).
+\]
+Conditional expectation of \(U_j^\star\), followed by the Poisson factorial-moment identity, gives
+\[
+\begin{aligned}
+\mathbb E_\star[
+(U_j^\star-C_j^\star/2)(C_j^\star-1)_{v-1}]
+&=\eta_j\mathbb E_\star[(C_j^\star)_v]\\
+&=\eta_j\zeta_j^v.
+\end{aligned}
+\]
+Thus the coefficient identity in \cref{obj:def:mm-estimator} yields
+\[
+\mathbb E_\star[H_j^\star]
+=\eta_j\{1-Q_k(\zeta_j)\}.
+\]
+Similarly, conditioning on \(C_j^\star>0\) gives
+\[
+\mathbb E_\star[D_j^\star]
+=\eta_j\Pr_\star(C_j^\star>0)
+=\eta_j(1-e^{-\zeta_j}).
+\]
+Independence of the pilot stream from the fourth stream now implies
+\[
+\mathbb E_\star[G_j^\star]-\eta_j
+=-\eta_j\{\wp_jQ_k(\zeta_j)+(1-\wp_j)e^{-\zeta_j}\}.
+\]
+The first-stream mean and independence of the second stream from the pilot and fourth streams also give
+\[
+\mathbb E_\star[\tau_{\mathrm{lin}}]
+=2\sum_{j\in\mathcal J}\epsilon_jt_j\eta_j,
+\qquad
+\mathbb E_\star[V_j^\star G_j^\star]
+=w_j\mathbb E_\star[G_j^\star].
+\]
+Combining these identities with the cell decomposition of the target,
+\[
+\mathbb E_\star[\tau_{\mathrm{raw}}]-\tau(P)
+=
+2\sum_{j\in\mathcal J}
+\epsilon_jw_j\{\mathbb E_\star[G_j^\star]-\eta_j\}.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_fourStreamRawEstimate_bias_eq
+
+\item We next derive the polynomial and pilot bounds used to control this bias. For \(0<z\le B\), the argument \(1-2z/B\) belongs to \([-1,1]\), so the Chebyshev bound \(|T_k(1-2z/B)|\le1\) gives
+\[
+Q_k(z)\ge0,
+\qquad
+zQ_k(z)
+=\frac{B\{1-T_k(1-2z/B)\}}{2k^2}
+\le\frac{B}{k^2}.
+\]
+At \(z=0\), the convention is \(Q_k(0)=1\).
+The degree bound already established implies
+\[
+\frac{B}{k^2}
+\le\frac{4194304}{\ell_n}.
+\]
+
+For the second-moment estimates, define the coefficient norm of a polynomial
+\(\mathcal P(u)\) by
+\[
+\|\mathcal P\|_{\mathrm{coeff},1}
+=\sum_{v\ge0}|[u^v]\mathcal P|,
+\]
+where \([u^v]\mathcal P\) denotes its coefficient of \(u^v\); the sum is finite. Define the shifted Chebyshev polynomials by
+\[
+\mathcal P_v(u)=T_v(1-2u),
+\qquad v\in\mathbb N_0.
+\]
+Their recurrence and initial values give
+\[
+\mathcal P_{v+1}(u)
+=2(1-2u)\mathcal P_v(u)-\mathcal P_{v-1}(u)
+\quad(v\ge1),
+\]
+\[
+\|\mathcal P_0\|_{\mathrm{coeff},1}=1,
+\qquad
+\|\mathcal P_1\|_{\mathrm{coeff},1}=3,
+\]
+\[
+\|\mathcal P_{v+1}\|_{\mathrm{coeff},1}
+\le6\|\mathcal P_v\|_{\mathrm{coeff},1}
++\|\mathcal P_{v-1}\|_{\mathrm{coeff},1}.
+\]
+Induction therefore yields
+\[
+\|\mathcal P_v\|_{\mathrm{coeff},1}\le7^v.
+\]
+Indeed, the induction step uses
+\(6\cdot7^v+7^{v-1}\le7^{v+1}\).
+Since
+\[
+Q_k(Bu)=\frac{1-\mathcal P_k(u)}{2k^2u},
+\]
+with the removable value at zero, deleting the zero constant term and dividing by \(u\) cannot increase the coefficient norm. Hence
+\[
+\sum_{v=1}^{k-1}|a_v|B^v
+\le\frac{1+7^k}{2k^2}
+\le7^k
+\le8^k.
+\]
+
+On observed-law support, \(0\le U_j^\star\le C_j^\star\), and
+\[
+|(U_j^\star-C_j^\star/2)(C_j^\star-1)_{v-1}|
+\le\frac{(C_j^\star)_v}{2}
+\le\frac{(C_j^\star)^v}{2}.
+\]
+For every \(z\ge0\) and \(1\le v\le k\),
+\[
+(z/B)^v\le\max\{1,(z/B)^k\}.
+\]
+The coefficient bound therefore gives the pointwise envelope
+\[
+(H_j^\star)^2
+\le\frac{64^k}{4}
+\max\left\{1,\left(\frac{C_j^\star}{B}\right)^{2k}\right\}
+\le\frac{64^k}{4}
+\left\{1+\left(\frac{C_j^\star}{B}\right)^{2k}\right\}.
+\]
+For an integer \(v\ge0\), expansion of an ordinary Poisson moment into factorial moments gives
+\[
+\mathbb E_\star[(C_j^\star)^v]
+=\sum_{t=0}^v {v\brace t}\zeta_j^t
+\le\sum_{t=0}^v\binom vt v^{\,v-t}\zeta_j^t
+=(\zeta_j+v)^v.
+\]
+Here \({v\brace t}\) counts partitions into \(t\) nonempty blocks: choosing one representative per block and assigning the remaining elements gives
+\({v\brace t}\le\binom vt v^{v-t}\). The case \(v=0\) uses the constant zeroth moment. Integrating the pointwise envelope yields
+\[
+\mathbb E_\star[(H_j^\star)^2]
+\le\frac{64^k}{4}
+\left\{1+\left(\frac{\zeta_j+2k}{B}\right)^{2k}\right\}
+\le\frac{64^k}{2}
+\max\left\{1,\left(\frac{\zeta_j+2k}{B}\right)^{2k}\right\}.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_streamH_second_moment_le
+
+\item When \(\zeta_j\le B\), the degree calibration gives
+\[
+0\le\frac{\zeta_j+2k}{B}\le\frac32\le e^{1/2}.
+\]
+Consequently,
+\[
+\mathbb E_\star[(H_j^\star)^2]
+\le\frac{64^k}{2}e^k
+\le e^{7k}
+\le e^{\ell_n/8},
+\]
+where \(64^k\le e^{6k}\) and \(7k\le\ell_n/8\).
+
+For \(\zeta_j\ge B\), define
+\[
+\upsilon_j=\frac{\zeta_j+2k}{B}.
+\]
+From \(k\le B/16384\) and \(B\le\zeta_j\),
+\[
+2k\le\zeta_j,\qquad
+k\upsilon_j\le\frac{\zeta_j}{8192},
+\qquad
+6k+2k\upsilon_j\le\frac{\zeta_j}{8}.
+\]
+Using \(\upsilon_j\le e^{\upsilon_j}\) in the second-moment envelope gives
+\[
+\mathbb E_\star[(H_j^\star)^2]
+\le
+64^k\max\{1,\upsilon_j^{2k}\}
+\le e^{6k+2k\upsilon_j}
+\le e^{\zeta_j/8}.
+\]
+
+Exponential Markov for the Poisson pilot count, using \(4^{-C_j^{\prime\star}}\) and \(4^{C_j^{\prime\star}}\), respectively, gives
+\[
+\wp_j\le
+\exp\{B\log4/4-3\zeta_j/4\},
+\qquad
+1-\wp_j\le
+\exp\{3\zeta_j-B\log4/4\}.
+\]
+Since \(1\le\log4\le2\), for \(\zeta_j\ge B\) these imply
+\[
+\wp_j\le e^{-\zeta_j/4},
+\qquad
+\wp_j\mathbb E_\star[(H_j^\star)^2]
+\le e^{-\zeta_j/8}.
+\]
+Also, for every \(\zeta_j\ge0\),
+\[
+(1-\wp_j)e^{-\zeta_j}\le e^{-B/16}.
+\]
+To see this, if \(\zeta_j\ge B/16\), use \(1-\wp_j\le1\). Otherwise, the upper-tail bound gives
+\[
+(1-\wp_j)e^{-\zeta_j}
+\le e^{2\zeta_j-B\log4/4}
+\le e^{-B/16}.
+\]
+
+For \(\zeta_j\ge B\), Cauchy--Schwarz and \(\wp_j^2\le\wp_j\) yield
+\[
+\{\wp_j|\mathbb E_\star[H_j^\star]|\}^2
+\le\wp_j\mathbb E_\star[(H_j^\star)^2]
+\le e^{-\zeta_j/8},
+\]
+and hence
+\[
+\wp_j|\mathbb E_\star[H_j^\star]|
+\le e^{-\zeta_j/16}.
+\]
+Using
+\(\eta_jQ_k(\zeta_j)=\eta_j-\mathbb E_\star[H_j^\star]\), we obtain
+\[
+\begin{aligned}
+\wp_j|\eta_jQ_k(\zeta_j)|
+&\le\frac{\wp_j}{2}
++\wp_j|\mathbb E_\star[H_j^\star]|\\
+&\le\frac32e^{-B/16}.
+\end{aligned}
+\]
+The pilot bias identity therefore gives, on these large-intensity cells,
+\[
+|\mathbb E_\star[G_j^\star]-\eta_j|
+\le2e^{-B/16}.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_stream_pilot_large_bias_abs_le
+
+\item We can now sum the bias. If \(\zeta_j=0\), then \(t_j=0\), and
+\(0\le w_j\le2\delta t_j\) forces \(w_j=0\). Thus null arrived cells contribute zero to the weighted bias.
+
+For \(0<\zeta_j\le B\), polynomial nonnegativity and
+\(w_j\le2\delta t_j=2\delta\zeta_j/m\) give
+\[
+w_j\wp_j|Q_k(\zeta_j)|
+\le w_jQ_k(\zeta_j)
+\le\frac{2\delta}{m}\frac{B}{k^2}
+\le\frac{2\delta}{m}\frac{4194304}{\ell_n}.
+\]
+There are \(4d\) cells in \(\mathcal J\), so
+\[
+\sum_{\substack{j\in\mathcal J\\\zeta_j\le B}}
+w_j\wp_j|Q_k(\zeta_j)|
+\le
+4d\,\frac{2\delta}{m}\frac{4194304}{\ell_n}
+=C_{\mathrm{bias}}g_{n,d,q}.
+\]
+For a small-intensity cell, the pilot bias identity and
+\(|\eta_j|\le1/2\) give
+\[
+2w_j|\mathbb E_\star[G_j^\star]-\eta_j|
+\le w_j\wp_j|Q_k(\zeta_j)|+w_je^{-B/16}.
+\]
+For a large-intensity cell, the preceding bound gives
+\[
+2w_j|\mathbb E_\star[G_j^\star]-\eta_j|
+\le4w_je^{-B/16}.
+\]
+Together, these yield the uniform cellwise bound
+\[
+2w_j|\mathbb E_\star[G_j^\star]-\eta_j|
+\le
+\mathbf1\{\zeta_j\le B\}w_j\wp_j|Q_k(\zeta_j)|
++4w_je^{-B/16}.
+\]
+The triangle inequality and \(\sum_jw_j\le\delta\) therefore imply
+\[
+|\mathbb E_\star[\tau_{\mathrm{raw}}]-\tau(P)|
+\le C_{\mathrm{bias}}g_{n,d,q}
++4\delta e^{-16\ell_n}.
+\]
+The remainder satisfies
+\[
+(4\delta e^{-16\ell_n})^2
+=16\delta^2e^{-32\ell_n}
+\le4e^{-32\ell_n}
+\le4e^{-\ell_n}
+=\frac4{e+n}
+\le\frac4n.
+\]
+Squaring the bias bound with \((u+v)^2\le2u^2+2v^2\) gives
+\[
+\{\mathbb E_\star[\tau_{\mathrm{raw}}]-\tau(P)\}^2
+\le
+2C_{\mathrm{bias}}^2g_{n,d,q}^2+\frac8n
+\le(2C_{\mathrm{bias}}^2+8)r_{n,d,q}.
+\]
+Combining projection, the raw variance bound, and the capping penalty established above,
+\[
+\begin{aligned}
+\mathbb E_P[(\widehat\tau_{\mathrm{MM}}-\tau(P))^2]
+&\le
+8\operatorname{Var}_\star(W_{\mathrm{corr}})
++\frac{96}{n}
++(2C_{\mathrm{bias}}^2+8)r_{n,d,q}\\
+&\le
+8\operatorname{Var}_\star(W_{\mathrm{corr}})
++(2C_{\mathrm{bias}}^2+104)r_{n,d,q}.
+\end{aligned}
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_nonfallback_risk_le_aggregate
+
+\item The histogram coordinates used by two distinct cells are disjoint. Their independence, together with \(\epsilon_j^2=1\), gives
+\[
+\operatorname{Var}_\star(W_{\mathrm{corr}})
+=\sum_{j\in\mathcal J}
+\operatorname{Var}_\star(V_j^\star G_j^\star).
+\]
+We first bound the ratio component.
+
+Since \(|D_j^\star|\le1/2\), its variance is at most \(1/4\). Thus, when \(\zeta_j\le15\),
+\[
+\operatorname{Var}_\star(D_j^\star)
+\le\frac14\le\frac4{1+\zeta_j}.
+\]
+For \(\zeta_j>15\), define the arrived-success and arrived-failure fractions by
+\[
+F_{j,+}=
+\begin{cases}
+U_j^\star/C_j^\star,&C_j^\star>0,\\
+0,&C_j^\star=0,
+\end{cases}
+\qquad
+F_{j,-}=
+\begin{cases}
+(C_j^\star-U_j^\star)/C_j^\star,&C_j^\star>0,\\
+0,&C_j^\star=0.
+\end{cases}
+\]
+Then
+\[
+D_j^\star=\frac{F_{j,+}-F_{j,-}}2.
+\]
+Conditioning on the arrived count gives
+\[
+\begin{aligned}
+\mathbb E_\star[(F_{j,+}-\mu_P(j))^2]
+&\le
+\Pr_\star(C_j^\star=0)
++\mathbb E_\star\!\left[
+\frac{\mathbf1\{C_j^\star>0\}}{C_j^\star}\right],\\
+\mathbb E_\star[(F_{j,-}-(1-\mu_P(j)))^2]
+&\le
+\Pr_\star(C_j^\star=0)
++\mathbb E_\star\!\left[
+\frac{\mathbf1\{C_j^\star>0\}}{C_j^\star}\right].
+\end{aligned}
+\]
+On a positive count, the conditional binomial variance divided by the squared count is at most its reciprocal; on a zero count, the squared error is at most one.
+
+For a Poisson count of intensity \(\zeta_j\), the zero-safe reciprocal on the right is at most one. If \(\zeta_j\le1\), this is at most \(4/(1+\zeta_j)\). If \(\zeta_j>1\), the pointwise bounds
+\[
+\mathbf1\{C_j^\star=0\}
++\frac{\mathbf1\{C_j^\star>0\}}{C_j^\star}
+\le\frac2{C_j^\star+1}
+\]
+and the Poisson identity
+\[
+\mathbb E_\star\!\left[\frac1{C_j^\star+1}\right]
+=\frac{1-e^{-\zeta_j}}{\zeta_j}
+\]
+give
+\[
+\Pr_\star(C_j^\star=0)
++\mathbb E_\star\!\left[
+\frac{\mathbf1\{C_j^\star>0\}}{C_j^\star}\right]
+\le\frac2{\zeta_j}
+\le\frac4{1+\zeta_j}.
+\]
+The reciprocal identity has value one at \(\zeta_j=0\), by its continuous extension. Using the center
+\(\eta_j=\{\mu_P(j)-(1-\mu_P(j))\}/2\), we conclude
+\[
+\begin{aligned}
+\operatorname{Var}_\star(D_j^\star)
+&\le\mathbb E_\star[(D_j^\star-\eta_j)^2]\\
+&\le\frac12\mathbb E_\star[(F_{j,+}-\mu_P(j))^2]
++\frac12\mathbb E_\star[(F_{j,-}-(1-\mu_P(j)))^2]\\
+&\le\frac4{1+\zeta_j}.
+\end{aligned}
+\]
+Together with the small-intensity case, this holds for every cell.
+
+The second and fourth streams are independent. Their first and second moments consequently give
+\[
+\begin{aligned}
+\operatorname{Var}_\star(V_j^\star D_j^\star)
+&=\left(w_j^2+\frac{w_j}{m}\right)
+\operatorname{Var}_\star(D_j^\star)
++\frac{w_j}{m}\{\mathbb E_\star[D_j^\star]\}^2\\
+&\le\frac{4w_j^2}{1+\zeta_j}
++\frac{17w_j}{4m},
+\end{aligned}
+\]
+where \(\{\mathbb E_\star[D_j^\star]\}^2\le1/4\).
+Also,
+\[
+\frac{w_j^2}{1+mt_j}
+\le\frac{2\delta}{m}w_j,
+\qquad
+\sum_{j\in\mathcal J}\frac{w_j^2}{1+mt_j}
+\le\frac{2\delta^2}{m}.
+\]
+Since \(\delta+2\delta^2\le1\),
+\[
+\sum_{j\in\mathcal J}
+\left(\frac{w_j}{m}+\frac{w_j^2}{1+mt_j}\right)
+\le\frac1m.
+\]
+Replacing the coefficient \(4\) of the nonnegative quadratic term by \(17/4\) therefore yields
+\[
+\sum_{j\in\mathcal J}
+\operatorname{Var}_\star(V_j^\star D_j^\star)
+\le\frac{17}{4m}
+=\frac{34}{n}.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_streamVD_variance_sum_le
+
+\item Define the total switching second moment by
+\[
+\mathcal V_{\mathrm{switch}}
+=
+\sum_{j\in\mathcal J}
+\mathbb E_\star[
+\{V_j^\star(G_j^\star-D_j^\star)\}^2].
+\]
+The identity
+\[
+G_j^\star-D_j^\star
+=\mathbf1\{C_j^{\prime\star}\le B/4\}(H_j^\star-D_j^\star)
+\]
+and independence of the second, third, and fourth streams imply
+\[
+\mathbb E_\star[
+\{V_j^\star(G_j^\star-D_j^\star)\}^2]
+=
+\left(w_j^2+\frac{w_j}{m}\right)\wp_j
+\mathbb E_\star[(H_j^\star-D_j^\star)^2].
+\]
+Since \((u-v)^2\le2u^2+2v^2\) and
+\(\mathbb E_\star[(D_j^\star)^2]\le1/4\),
+\[
+\mathbb E_\star[
+\{V_j^\star(G_j^\star-D_j^\star)\}^2]
+\le
+\left(w_j^2+\frac{w_j}{m}\right)
+\left\{2\wp_j\mathbb E_\star[(H_j^\star)^2]+\frac{\wp_j}{2}\right\}.
+\]
+
+For \(\zeta_j\le B\), use \(\wp_j\le1\), the light second-moment bound, and
+\(w_j\le2\delta B/m\). Since \(e^{\ell_n/8}\ge1\), this gives
+\[
+\mathbb E_\star[
+\{V_j^\star(G_j^\star-D_j^\star)\}^2]
+\le
+3e^{\ell_n/8}
+\frac{4\delta^2B^2+2\delta B}{m^2}.
+\]
+Summing over at most \(4d\) cells,
+\[
+\sum_{\substack{j\in\mathcal J\\\zeta_j\le B}}
+\mathbb E_\star[
+\{V_j^\star(G_j^\star-D_j^\star)\}^2]
+\le
+12d\,e^{\ell_n/8}
+\frac{4\delta^2B^2+2\delta B}{m^2}.
+\]
+
+For \(\zeta_j>B\), the pilot-weighted polynomial bound and
+\(\wp_j\le e^{-\zeta_j/4}\le e^{-\zeta_j/8}\) give
+\[
+\mathbb E_\star[
+\{V_j^\star(G_j^\star-D_j^\star)\}^2]
+\le
+\frac52\left(w_j^2+\frac{w_j}{m}\right)e^{-B/8}.
+\]
+Nonnegativity and \(\sum_jw_j\le\delta\) imply
+\(\sum_jw_j^2\le\delta^2\). Hence
+\[
+\sum_{\substack{j\in\mathcal J\\\zeta_j>B}}
+\mathbb E_\star[
+\{V_j^\star(G_j^\star-D_j^\star)\}^2]
+\le\frac52\left(\delta^2+\frac{\delta}{m}\right)e^{-B/8}
+\le\frac{25}{n}.
+\]
+For the last inequality, use \(n\ge1\), \(\delta\le1\),
+\(\delta/m\le8\), and
+\[
+e^{-B/8}=e^{-32\ell_n}\le e^{-\ell_n}
+=\frac1{e+n}\le\frac1n.
+\]
+Thus
+\[
+\mathcal V_{\mathrm{switch}}
+\le
+12d\,e^{\ell_n/8}
+\frac{4\delta^2B^2+2\delta B}{m^2}
++\frac{25}{n}.
+\]
+
+To convert the first term into the benchmark, define
+\[
+\Lambda_n=\frac{e^{\ell_n/8}\ell_n^3}{n}.
+\]
+Since \(\delta^2\le\delta\), \(\ell_n\le\ell_n^2\), and \(B=256\ell_n\),
+\[
+4\delta^2B^2+2\delta B
+\le262656\,\delta\ell_n^2.
+\]
+Substitution of \(m=n/8\) gives the calibrated bound
+\[
+12d\,e^{\ell_n/8}
+\frac{4\delta^2B^2+2\delta B}{m^2}
+\le
+C_{\mathrm{switch}}g_{n,d,q}\Lambda_n,
+\qquad
+C_{\mathrm{switch}}=12\cdot64\cdot262656.
+\]
+The sixth term of the exponential series yields
+\[
+\frac{(3\ell_n/4)^6}{720}\le e^{3\ell_n/4},
+\qquad
+\ell_n^6\le720(4/3)^6e^{3\ell_n/4}.
+\]
+Since \(e^{\ell_n}=e+n\le(e+1)n\),
+\[
+\Lambda_n^2
+=\frac{e^{\ell_n/4}\ell_n^6}{n^2}
+\le\frac{720(4/3)^6e^{\ell_n}}{n^2}
+\le\frac{C_{\mathrm{log}}}{n}.
+\]
+Finally, the nonnegative square
+\((g_{n,d,q}-C_{\mathrm{switch}}\Lambda_n)^2\) gives
+\[
+C_{\mathrm{switch}}g_{n,d,q}\Lambda_n
+\le\frac{g_{n,d,q}^2}{2}
++\frac{C_{\mathrm{switch}}^2\Lambda_n^2}{2}
+\le\frac{g_{n,d,q}^2}{2}
++\frac{C_{\mathrm{switch}}^2C_{\mathrm{log}}}{2n}.
+\]
+Consequently,
+\[
+\mathcal V_{\mathrm{switch}}
+\le
+\frac{g_{n,d,q}^2}{2}
++\frac{C_{\mathrm{switch}}^2C_{\mathrm{log}}/2+25}{n}.
+\]
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_stream_correction_second_moment_sum_rate
+
+\item The decomposition
+\[
+V_j^\star G_j^\star
+=V_j^\star D_j^\star
++V_j^\star(G_j^\star-D_j^\star)
+\]
+and the variance sum inequality give
+\[
+\operatorname{Var}_\star(V_j^\star G_j^\star)
+\le
+2\operatorname{Var}_\star(V_j^\star D_j^\star)
++2\mathbb E_\star[
+\{V_j^\star(G_j^\star-D_j^\star)\}^2].
+\]
+Summing and using the two preceding bounds,
+\[
+\begin{aligned}
+\operatorname{Var}_\star(W_{\mathrm{corr}})
+&\le\frac{68}{n}+2\mathcal V_{\mathrm{switch}}\\
+&\le
+g_{n,d,q}^2+
+\frac{C_{\mathrm{switch}}^2C_{\mathrm{log}}+118}{n}\\
+&\le
+\bigl(C_{\mathrm{switch}}^2C_{\mathrm{log}}+119\bigr)
+r_{n,d,q}.
+\end{aligned}
+\]
+Substitution into the aggregate risk inequality yields
+\[
+\begin{aligned}
+\mathbb E_P[(\widehat\tau_{\mathrm{MM}}-\tau(P))^2]
+&\le
+\left\{
+8\bigl(C_{\mathrm{switch}}^2C_{\mathrm{log}}+119\bigr)
++2C_{\mathrm{bias}}^2+104
+\right\}r_{n,d,q}\\
+&=C_{\mathrm{non}}r_{n,d,q}
+\le C_Ur_{n,d,q}.
+\end{aligned}
+\]
+Together with the complete-arrival and fallback branches, this establishes the asserted uniform bound for every admissible \(n,d,q,P\) and the stated independent sample.
+% lean: CausalSmith.Stat.MarNearcompleteFrontier.upper_risk
+\end{enumerate}
+\end{proof}

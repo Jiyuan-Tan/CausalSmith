@@ -1,0 +1,230 @@
+\begin{proof}[Proof of \cref{obj:prop:rademacher-mixture-separation}]
+\begin{enumerate}
+\item Fix a row \(n\) and a realized design \(w=(\mathbf A_n,\mathbf Z_n)\).  Under the independent-sign prior, define the selected sign field
+\[
+\xi_i^{w}:=\xi_{i,\alpha_w(i)},
+\qquad
+\alpha_w(i):=\mathbf 1\{i\text{ is observed in a treated realized group under }w\}.
+\]
+Because the realized groups are pairwise disjoint, every observed unit has \(\alpha_w(i)\) equal to its realized treatment arm.  Hence the observation produced from the independent schedule is exactly the observation produced from the common-sign schedule with signs \((\xi_i^w)_{i\in\mathcal U_n}\).  For fixed \(w\), the vector \((\xi_i^w)_i\) has the same product Rademacher law as the common-sign vector.  Finite Fubini then gives, for every statistic \(\varphi\),
+\[
+\mathbb E_{\mathbb H_n^{\mathrm{same}}}\mathbb E_{\mathbf Z_n}\{\varphi(\mathcal O_n)\}
+=
+\mathbb E_{\mathbf Z_n}\mathbb E_{\mathbb H_n^{\mathrm{same}}}\{\varphi(\mathcal O_n)\}
+=
+\mathbb E_{\mathbf Z_n}\mathbb E_{\mathbb H_n^{\mathrm{ind}}}\{\varphi(\mathcal O_n)\}
+=
+\mathbb E_{\mathbb H_n^{\mathrm{ind}}}\mathbb E_{\mathbf Z_n}\{\varphi(\mathcal O_n)\}.
+\]
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.sameObservedExpectation_eq_independent
+
+\item For any deterministic vector \(\boldsymbol x=(x_i)_{i\in\mathcal U_n}\), write
+\[
+\bar x_n:=\frac1n\sum_{i\in\mathcal U_n}x_i,
+\qquad
+\operatorname{PV}_n(\boldsymbol x):=\frac1{n-1}\sum_{i\in\mathcal U_n}(x_i-\bar x_n)^2,
+\qquad
+m_{\boldsymbol x}(Q):=\frac1M\sum_{i\in Q}x_i
+\]
+for \(Q\in\Omega_{n,M}\).  Sampling without replacement gives
+\[
+\operatorname{Var}_{Q\sim\mathrm{Unif}(\Omega_{n,M})}\{m_{\boldsymbol x}(Q)\}
+=
+\left(\frac1M-\frac1n\right)\operatorname{PV}_n(\boldsymbol x).
+\]
+If \(x_i\in\{-1,1\}\), then
+\[
+\operatorname{PV}_n(\boldsymbol x)
+=
+\frac n{n-1}\left(1-\bar x_n^2\right).
+\]
+Under the common-sign prior, \(\mathbb E\bar\xi_n=0\) and
+\[
+\operatorname{Var}(\bar\xi_n)=\frac1n,
+\]
+so \(\bar\xi_n\to 0\) in probability.  Since \cref{obj:ass:group-count-growth} implies \(n\to\infty\),
+\[
+\left(\frac1M-\frac1n\right)\frac n{n-1}\to\frac1M,
+\]
+and therefore, for each arm \(z\),
+\[
+V_{z,n}\stackrel{p}{\longrightarrow}\frac1M
+\qquad
+\text{under }\mathbb H_n^{\mathrm{same}}.
+\]
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_same_armVar_tendstoInProb
+
+\item The same calculation applies arm by arm under \(\mathbb H_n^{\mathrm{ind}}\).  For each fixed arm \(z\),
+\[
+\bar\xi_{z,n}:=\frac1n\sum_{i\in\mathcal U_n}\xi_{i,z},
+\qquad
+\mathbb E\bar\xi_{z,n}=0,
+\qquad
+\operatorname{Var}(\bar\xi_{z,n})=\frac1n,
+\]
+so \(\bar\xi_{z,n}\to0\) in probability and
+\[
+V_{z,n}\stackrel{p}{\longrightarrow}\frac1M
+\qquad
+\text{under }\mathbb H_n^{\mathrm{ind}}.
+\]
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_independent_armVar_tendstoInProb
+
+\item Under \(\mathbb H_n^{\mathrm{same}}\), the two arm tables coincide pointwise:
+\[
+h_{1,n}(Q)-h_{0,n}(Q)=0
+\qquad
+(Q\in\Omega_{n,M}).
+\]
+By linearity of the Johnson projection,
+\[
+E_{\tau,1,n}
+=
+\left\|\Pi_{n,1}(h_{1,n}-h_{0,n})\right\|_n^2
+=
+\|\Pi_{n,1}0\|_n^2
+=
+0.
+\]
+Thus \(E_{\tau,1,n}\stackrel{p}{\to}0\) under \(\mathbb H_n^{\mathrm{same}}\).
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_same_degreeOne_tendstoInProb
+
+\item Under \(\mathbb H_n^{\mathrm{ind}}\), put
+\[
+d_i:=\xi_{i,1}-\xi_{i,0},
+\qquad
+\bar d_n:=\frac1n\sum_i d_i,
+\qquad
+\bar c_n:=\frac1n\sum_i \xi_{i,1}\xi_{i,0}.
+\]
+The arm-difference table is the slice sample mean
+\[
+h_{1,n}(Q)-h_{0,n}(Q)=m_{\boldsymbol d}(Q).
+\]
+This function is a linear combination of degree-one inclusion indicators; after subtracting its slice mean, it is orthogonal to constants and lies in \(\mathcal H_{n,1}\).  Hence the degree-one projection equals the centered sample mean, and
+\[
+E_{\tau,1,n}
+=
+\left(\frac1M-\frac1n\right)\operatorname{PV}_n(\boldsymbol d).
+\]
+Since
+\[
+\operatorname{PV}_n(\boldsymbol d)
+=
+\frac n{n-1}
+\left(2-2\bar c_n-\bar d_n^2\right),
+\]
+while \(\bar c_n\to0\), \(\bar\xi_{1,n}\to0\), and \(\bar\xi_{0,n}\to0\) in probability, we get
+\[
+E_{\tau,1,n}\stackrel{p}{\longrightarrow}\frac2M
+\qquad
+\text{under }\mathbb H_n^{\mathrm{ind}}.
+\]
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scheduleArray_independent_degreeOne_tendstoInProb
+
+\item By \cref{obj:ass:stable-treatment-fraction},
+\[
+p_n\to p,\qquad 0<p<1,
+\]
+and hence
+\[
+\frac1{p_n}\to\frac1p,
+\qquad
+\frac1{1-p_n}\to\frac1{1-p}.
+\]
+Consequently, for either prior,
+\[
+\Theta_n:=
+\frac{V_{1,n}}{p_n}+\frac{V_{0,n}}{1-p_n}
+\stackrel{p}{\longrightarrow}
+\frac1M\left(\frac1p+\frac1{1-p}\right)
+=
+\frac1{M p(1-p)}.
+\]
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.rademacher_mixture_separation
+
+\item Since \(0<G_{1n}<G_n\), every row has \(G_n\ge2\), and therefore \(2M\le M G_n\le n\).  The degree-one Kneser eigenvalue in \cref{obj:thm:exact-kneser-identity} is
+\[
+\lambda_{n,1}=-\frac{M}{n-M}.
+\]
+Thus \(\lambda_{n,1}\to0\).  Writing \(N_n=M G_n\) for the grouped-unit count and using \cref{obj:ass:sampling-fraction},
+\[
+G_n\lambda_{n,1}
+=
+-\frac{M G_n}{n-M}
+=
+-\frac{N_n/n}{1-M/n}
+\longrightarrow
+-\rho .
+\]
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.kneserEigenvalue_one
+
+\item The exact rowwise variance identity is used on the eventual rows where both treatment arms contain at least two realized groups.  These rows are eventual because \(p_n\to p\in(0,1)\) and \(G_n\to\infty\): eventually \(p_n>p/2\) and \(G_n>4/p\), forcing \(G_{1n}\ge2\), and eventually \(p_n<(1+p)/2\) and \(G_n>4/(1-p)\), forcing \(G_{0n}\ge2\).
+
+On those rows, \cref{obj:thm:exact-pame-variance,obj:thm:exact-kneser-identity} give
+\[
+G_n\sigma_n^2
+=
+\Theta_n+G_n\lambda_{n,1}E_{\tau,1,n}
+-\lambda_{n,1}\Theta_n
+=
+(1-\lambda_{n,1})\Theta_n
++
+G_n\lambda_{n,1}E_{\tau,1,n}.
+\]
+Combining the convergence statements above yields
+\[
+G_n\sigma_n^2
+\stackrel{p}{\longrightarrow}
+\frac1{M p(1-p)}
+\qquad
+\text{under }\mathbb H_n^{\mathrm{same}},
+\]
+and
+\[
+G_n\sigma_n^2
+\stackrel{p}{\longrightarrow}
+\frac1{M p(1-p)}-\frac{2\rho}{M}
+\qquad
+\text{under }\mathbb H_n^{\mathrm{ind}}.
+\]
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.scaledSigmaSq_eq_of_additive_armTables
+
+\item The separation is positive because \(M>0\) and \(\rho>0\):
+\[
+0<\frac{2\rho}{M}.
+\]
+Also \cref{obj:ass:sampling-fraction} gives \(\rho\le1\), and \(p(1-p)\le1/4\) follows from \((p-1/2)^2\ge0\).  Since \(p(1-p)>0\),
+\[
+\frac{1}{M p(1-p)}-\frac{2\rho}{M}
+=
+\frac1M\left(\frac1{p(1-p)}-2\rho\right)
+\ge
+\frac1M(4-2\rho)
+\ge
+\frac2M .
+\]
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.rademacher_mixture_separation
+
+\item Finally, if \(X_n\to c\) in probability and \(t<c\), then
+\[
+\Pr\{X_n<t\}
+\le
+\Pr\{|X_n-c|>c-t\}
+\to0,
+\qquad
+\Pr\{X_n\ge t\}\to1.
+\]
+Apply this with \(X_n=G_n\sigma_n^2\).  The same-sign limit exceeds the independent-sign limit by \(2\rho/M\), so every
+\[
+0<c_\sigma<\frac{1}{M p(1-p)}-\frac{2\rho}{M}
+\]
+lies below both limits.  Therefore
+\[
+\Pr_{\mathbb H_n^{\mathrm{same}}}\{G_n\sigma_n^2\ge c_\sigma\}\to1,
+\qquad
+\Pr_{\mathbb H_n^{\mathrm{ind}}}\{G_n\sigma_n^2\ge c_\sigma\}\to1.
+\]
+% lean: CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase.probability_ge_tendsto_one_of_tendstoInProb
+\end{enumerate}
+\end{proof}

@@ -1,0 +1,185 @@
+---
+/**
+ * `/papers/<id>/review` — the AI referee report in full, a sibling of
+ * `/formalization` and `/slides`.
+ *
+ * The report already ships in every bundle (`p5_review.json`) and is already
+ * public in the repository; until now it was invisible on the site, which left
+ * the score badge as a number with no argument behind it. This page is that
+ * argument: summary, strengths, every finding with its suggested fix, the
+ * questions the referee would ask the authors, and the full round history.
+ *
+ * It does NOT show the recommendation, and there is no recommendation column
+ * in the history table (user decision, 2026-09-20). Scores are noisy, so every
+ * round is shown rather than only the last or the best.
+ *
+ * Only bundles that carry a readable report get a route at all.
+ */
+import { crosswalkLabels, loadBundles, type Bundle } from "../../../lib/bundles.js";
+import { bundleRoots, GITHUB_URL, PAPER_CITE, PAPER_URL, SERIES_NAME } from "../../../lib/config.js";
+import SeoHead from "../../../components/SeoHead.astro";
+import { formatDate } from "../../../lib/citation.js";
+import { renderTexLine, TEX_SOURCED as TEX, titleCase } from "../../../lib/docmd.js";
+import { renderReviewText } from "../../../lib/reviewText.js";
+import { latestPaperSha256, stalenessNote } from "../../../lib/review.js";
+import "../../../styles/series.css";
+import "../../../styles/review.css";
+import "katex/dist/katex.min.css";
+
+export async function getStaticPaths() {
+  const bundles = await loadBundles(bundleRoots());
+  return bundles
+    .filter((b) => b.review)
+    .map((b) => ({ params: { id: b.id }, props: { bundle: b } }));
+}
+
+const { bundle } = Astro.props as { bundle: Bundle };
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const review = bundle.review!;
+const m = bundle.meta;
+const labels = crosswalkLabels(bundle);
+const title = titleCase(m.title);
+const c = review.counts;
+const countBits = [
+  c.major > 0 && `${c.major} major`,
+  c.minor > 0 && `${c.minor} minor`,
+  c.nit > 0 && `${c.nit} nit`,
+].filter(Boolean) as string[];
+// A history of one round is just the current report — a one-row table would be
+// furniture, so it is only drawn once there is something to compare.
+const showHistory = review.history.length > 1;
+---
+
+<html lang="en">
+  <head>
+    <SeoHead
+      title={`AI referee report · ${title} · ${SERIES_NAME}`}
+      description={review.rationale ?? review.summary ?? `The automated referee report for "${title}".`}
+      ogType="article"
+    />
+    {/* A machine-written report must not compete with the paper it is about in
+        search results, but its links should still be followed. It is also kept
+        out of the sitemap (astro.config.mjs). */}
+    <meta name="robots" content="noindex,follow" />
+  </head>
+  <body>
+    <article class="series-wrap review-page">
+      <div class="review-byline">
+        <a href={`${base}/`}>{SERIES_NAME}</a>
+        {" — "}{m.wp_number ?? bundle.id} ·
+        <a href={`${base}/papers/${bundle.id}/`}>&larr; back to the paper</a>
+        {" · "}
+        <a class="nav-external" href={PAPER_URL} title={PAPER_CITE} target="_blank" rel="noopener">arXiv <span aria-hidden="true">↗</span></a>
+        {GITHUB_URL && <> · <a class="nav-external" href={GITHUB_URL} target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></>}
+      </div>
+      <h1>AI referee report</h1>
+      <p class="review-on">on &ldquo;<span set:html={renderTexLine(title, TEX)} />&rdquo;</p>
+
+      <section class="review-verdict">
+        <div class="review-verdict-head">
+          {/* No score, no heading: an "Overall score" label with nothing after
+              it is furniture (audit r4). */}
+          {typeof bundle.score === "number" && (
+            <>
+              <span class="review-verdict-k">Overall score</span>
+              <span class="review-score">{bundle.score.toFixed(1)}/10</span>
+            </>
+          )}
+          {countBits.length > 0 && (
+            <span class="review-counts">{c.total} finding{c.total === 1 ? "" : "s"} &mdash; {countBits.join(" · ")}</span>
+          )}
+        </div>
+        {review.rationale && <p set:html={renderReviewText(review.rationale, labels)} />}
+        <div class="ai-stale">
+          {stalenessNote(review, { revised: m.revised, paperSha256: latestPaperSha256(m.versions) }, formatDate)}
+          {" "}Produced by a single automated referee in the pipeline's review stage. It can be
+          wrong, and it is not peer review.
+        </div>
+      </section>
+
+      {review.summary && (
+        <>
+          <h2>Summary</h2>
+          <p set:html={renderReviewText(review.summary, labels)} />
+        </>
+      )}
+
+      {review.strengths.length > 0 && (
+        <>
+          <h2>Strengths</h2>
+          <ul class="review-plain">
+            {review.strengths.map((s) => <li set:html={renderReviewText(s, labels)} />)}
+          </ul>
+        </>
+      )}
+
+      {review.findings.length > 0 && (
+        <>
+          <h2>Findings</h2>
+          {review.findings.map((f) => (
+            <div class="finding">
+              <div class="finding-head">
+                <span class={`sev sev-${f.severity}`}>{f.severity}</span>
+                {f.section && <span class="f-sec">{f.section}</span>}
+              </div>
+              <p set:html={renderReviewText(f.issue, labels)} />
+              {f.fix && (
+                <details class="finding-fix">
+                  <summary>Suggested fix</summary>
+                  <p set:html={renderReviewText(f.fix, labels)} />
+                </details>
+              )}
+            </div>
+          ))}
+        </>
+      )}
+
+      {review.questions.length > 0 && (
+        <>
+          <h2>Questions for the authors</h2>
+          <ul class="review-plain">
+            {review.questions.map((q) => <li set:html={renderReviewText(q, labels)} />)}
+          </ul>
+        </>
+      )}
+
+      {showHistory && (
+        <>
+          <h2>Review history</h2>
+          <div class="review-scroll-x">
+            <table class="review-hist">
+              <thead>
+                <tr>
+                  <th scope="col">Round</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Score</th>
+                  <th scope="col">Findings</th>
+                </tr>
+              </thead>
+              <tbody>
+                {review.history.map((r) => (
+                  <tr class={r.current ? "is-current" : undefined}>
+                    <td>{r.round}{r.current ? " · current" : ""}</td>
+                    <td>{r.date ? formatDate(r.date) : "—"}</td>
+                    <td>{typeof r.score === "number" ? r.score.toFixed(1) : "—"}</td>
+                    <td>{r.findings}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p class="review-foot">
+            Every referee draw is kept: scores are noisy, so the history is shown rather than
+            only the last or the best pass.
+          </p>
+        </>
+      )}
+
+      {review.manuscriptSha256 && (
+        <p class="review-foot">
+          Read against <code>paper.tex</code> sha256 <code>{review.manuscriptSha256.slice(0, 12)}</code>.
+        </p>
+      )}
+    </article>
+  </body>
+</html>

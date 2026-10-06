@@ -1,0 +1,172 @@
+\section{Population, causal target, and observation design}
+
+Throughout, indices range over the fixed population unless another range is specified. Absolute-value signs denote scalar magnitude or set cardinality according to their argument. Generic positive constants may vary across statements; the notation \(A\asymp B\) denotes upper and lower bounds by positive constant multiples, with the stated uniformity.
+
+Fix a \leanref{S-1}{finite-population setup} with population \leanref{sym:V}{\ensuremath{V=\{1,\ldots,n\}}}, population size \(n\ge4\), and degree index \(1\le d\le n-1\). The recipient index is \leanref{sym:i}{\ensuremath{i}}, and the source index is \leanref{sym:j}{\ensuremath{j}}. A simple directed off-diagonal interference graph \leanref{sym:G}{\ensuremath{G}} contains arrows \((j,i)\) from source \(j\) to recipient \(i\). A fixed graph-and-coefficient schedule \leanref{sym:theta}{\ensuremath{\theta=(G,a,t,b)}} specifies the baseline vector \leanref{sym:a}{\ensuremath{a}}, own-treatment vector \leanref{sym:t}{\ensuremath{t}}, and spillover array \leanref{sym:b}{\ensuremath{b}}. Thus \(b_{ij}\) records the effect of source \(j\)'s treatment on recipient \(i\).
+
+The population-and-outcome conventions begin with the potential-outcome map \leanref{sym:Y}{\ensuremath{Y}}. Its argument \leanref{sym:z}{\ensuremath{z\in\{0,1\}^V}} is a binary assignment vector, and its additive form separates baseline, own-treatment, and source-specific spillover contributions.
+
+\begin{definitionv}{synth_1}[Additive potential outcomes]
+For a population \(V=\{1,\ldots,n\}\) and a fixed schedule \(\theta=(G,a,t,b)\), where \(G\subseteq\{(j,i)\in V^2:j\ne i\}\) is a simple directed off-diagonal graph, define the potential-outcome map \(Y:\{0,1\}^V\to\mathbb R^V\) by
+\[
+Y(z)=(Y_i(z))_{i\in V},
+\qquad
+Y_i(z)=a_i+t_i z_i+\sum_{j:(j,i)\in G}b_{ij}z_j,
+\qquad z\in\{0,1\}^V.
+\]
+Here \(a_i\) is the fixed baseline coefficient, \(t_i\) is the fixed own-treatment coefficient, and \(b_{ij}\) is the fixed spillover coefficient on the arrow from source \(j\) to recipient \(i\). For the realized assignment \(Z\), the realized outcome vector is \(Y(Z)\).
+\end{definitionv}
+
+For the outcome map in \cref{obj:synth_1}, let \(\boldsymbol 1\) and \(\boldsymbol 0\) denote the assignments treating every unit and treating no unit, respectively. Define the population all-treated-versus-all-control contrast \leanref{sym:tau}{\ensuremath{\tau(\theta)}} by
+\[
+\tau(\theta)
+=
+\frac1n\sum_{i\in V}\bigl(Y_i(\boldsymbol 1)-Y_i(\boldsymbol 0)\bigr)
+=
+\frac1n\sum_{i\in V}
+\left(t_i+\sum_{j:(j,i)\in G}b_{ij}\right).
+\]
+This contrast averages the combined own-treatment and spillover effects of moving the entire population between the two assignments. The schedule, and hence this causal target, remains fixed throughout the experiment.
+
+We impose three restrictions on schedules: bounds on the number of sources affecting each recipient, the number of recipients affected by each source, and the total absolute coefficient mass for each outcome.
+
+\begin{assumptionv}{ass:in-degree}[In-degree bound]
+The interference graph \(G\) on the finite population \(V\) satisfies the in-degree bound \(d\):
+\[
+\max_{i\in V}\bigl|\{j:(j,i)\in G\}\bigr|\le d.
+\]
+\end{assumptionv}
+
+The recipient in-degree condition bounds the number of other units whose treatments can enter a given outcome. Including the compulsory own-treatment coordinate gives the augmented in-degree bound \(d+1\), corresponding to the neighborhood-size restriction in the published additive model \citep{CortezRodriguezEichhornYu2023SNIPE}. The source-side restriction controls how widely a single treatment coordinate can affect outcomes.
+
+\begin{assumptionv}{ass:out-degree}[Out-degree bound]
+The interference graph \(G\) on the finite population \(V\) satisfies the out-degree bound \(d\):
+\[
+\max_{j\in V}\bigl|\{i:(j,i)\in G\}\bigr|\le d.
+\]
+\end{assumptionv}
+
+On the source side, the out-degree condition bounds the number of other recipients reached by one treatment coordinate. Its augmented counterpart is the published out-degree bound \(d+1\) \citep{CortezRodriguezEichhornYu2023SNIPE}. Together, \cref{obj:ass:in-degree,obj:ass:out-degree} control both the breadth of each unit's exposure and the reach of each source's treatment. The coefficient-mass restriction above controls outcome magnitudes.
+
+\begin{assumptionv}{ass:coefficient-mass}[Unit coefficient-mass bound]
+The baseline coefficients \(a_i\), own-treatment coefficients \(t_i\), and spillover coefficients \(b_{ij}\) on the interference graph \(G\) satisfy
+\[
+\max_{i\in V}
+\left(
+|a_i|+|t_i|+\sum_{j:(j,i)\in G}|b_{ij}|
+\right)\le 1,
+\]
+where \(V\) is the finite population.
+\end{assumptionv}
+
+The coefficient-mass condition is the published interaction-order-one SNIPE restriction with \(Y_{\max}\), the maximum absolute coefficient mass, bounded by one; it includes both the baseline and the diagonal singleton coefficient \citep{CortezRodriguezEichhornYu2023SNIPE}. It supplies a common outcome scale while permitting heterogeneous coefficients of either sign. In particular, \cref{obj:synth_1,obj:ass:coefficient-mass} imply \(|Y_i(z)|\le1\) for every unit and assignment, and \(|\tau(\theta)|\le1\). Collecting these restrictions defines the schedule class over which precision is evaluated.
+
+\begin{definitionv}{def:model}[Schedule class $\mathcal M_{n,d}$]
+\[
+\mathcal M_{n,d}
+=
+\left\{\theta=(G,a,t,b):
+\max_{i\in V}|\{j:(j,i)\in G\}|\le d,\quad
+\max_{j\in V}|\{i:(j,i)\in G\}|\le d,\quad
+\max_{i\in V}\left(|a_i|+|t_i|+\sum_{j:(j,i)\in G}|b_{ij}|\right)\le1
+\right\}.
+\]
+Here \(V\) is the fixed finite population, \(n\) is its size, and \(\theta=(G,a,t,b)\) is a fixed graph-and-coefficient schedule, with the following conventions:
+\begin{itemize}
+\item \textbf{(Parameters.)} \(n\ge4\) and \(1\le d\le n-1\).
+\item \textbf{(Graph.)} \(G\) is directed, simple, and off-diagonal; an arrow \((j,i)\) points from source \(j\) to recipient \(i\).
+\item \textbf{(Bounds.)} The degree and coefficient-mass requirements are those of \cref{obj:ass:in-degree,obj:ass:out-degree,obj:ass:coefficient-mass}.
+\end{itemize}
+The coordinates \(a_i\), \(t_i\), and \(b_{ij}\) are, respectively, baseline, own-treatment, and source-to-recipient spillover coefficients. This is the interaction-order-one coefficient-mass model of \citet{CortezRodriguezEichhornYu2023SNIPE}, with published interaction order \(\beta=1\), restricted to compulsory diagonal coordinates after graph augmentation. The corresponding published total in-degree and out-degree bound is \(d+1\), while \(d\) counts off-diagonal arrows. The own-treatment coordinate is always available and unthinned. Off-diagonal arrows are observed through the audit channel specified in the design assumptions.
+\end{definitionv}
+
+The schedule class \leanref{sym:Mclass}{\ensuremath{\mathcal M_{n,d}}} in \cref{obj:def:model} uses separate notation for own-treatment effects and off-diagonal spillovers. Adding every diagonal arrow represents the same outcomes in the published neighborhood convention, with each degree increasing by one. The compulsory diagonal coordinates remain available even when their coefficients are zero. The coefficient correspondence and degree translation are given in \cref{obj:lem:published-model}.
+
+The \leanref{S-2}{experimental design} combines treatment randomization with an edge audit on this fixed schedule. Write \leanref{sym:Z}{\ensuremath{Z}} for the random treatment-assignment vector. Its coordinates follow the independent half-Bernoulli design.
+
+\begin{assumptionv}{ass:assignment}[Independent treatment assignment]
+The treatment-assignment vector \(Z\), indexed by the finite population \(V\), has law
+\[
+\operatorname{Law}(Z)
+=
+\bigotimes_{j\in V}\operatorname{Bernoulli}(1/2).
+\]
+\end{assumptionv}
+
+Independent unit Bernoulli randomization is the treatment-design condition used by SNIPE, here with treatment probability one half \citep{CortezRodriguezEichhornYu2023SNIPE}. Equal assignment probabilities give each treatment coordinate the same experimental variation. For subsequent score formulas, define the centered treatment signs \leanref{sym:X}{\ensuremath{X_k=2Z_k-1}} for \(k\in V\); \(X_i\) and \(X_j\) denote the own-treatment and source-treatment signs under the same convention.
+
+Graph observation is governed by the audit-mark array \leanref{sym:W}{\ensuremath{W}}. The coordinate \(W_{ij}\) is the mark for the ordered pair \((j,i)\), and \leanref{sym:q}{\ensuremath{q\in[0,1]}} is the known edge-retention probability.
+
+\begin{assumptionv}{ass:audit}[Independent edge audit]
+The audit-mark array \(W\), indexed by ordered pairs of distinct units in the finite population \(V\), has law
+\[
+\operatorname{Law}(W)
+=
+\bigotimes_{(j,i)\in V^2:j\ne i}\operatorname{Bernoulli}(q),
+\]
+where \(q\) is the known edge-retention probability.
+\end{assumptionv}
+
+Independent homogeneous edge error supplies the measurement model; the audit adopts its directed, false-negative-only variant \citep{LiSussmanKolaczyk2021NetworkNoise}. Each true off-diagonal arrow is retained with probability \(q\), independently across ordered pairs, and every recorded arrow is a true arrow. Marks on pairs outside the true graph leave the recorded graph unchanged. The independence condition below makes this measurement mechanism exogenous to treatment randomization.
+
+\begin{assumptionv}{ass:design-independence}[Assignment and audit independence]
+The audit-mark array \(W\) and the treatment-assignment vector \(Z\) are independent:
+\[
+W\mathbin{\perp\!\!\!\perp}Z.
+\]
+\end{assumptionv}
+
+Independence of network measurement error and treatment assignment makes the audit mechanism exogenous to the randomized treatments, as in the network-error design of \citep{LiSussmanKolaczyk2021NetworkNoise}. Conditional on a fixed schedule, \cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence} therefore specify the joint design randomness. The assignment-and-record conventions below assemble that randomness into the retained graph \leanref{sym:H}{\ensuremath{H}}, the complete observed record \leanref{sym:O}{\ensuremath{O}}, and the law used to evaluate estimators.
+
+\begin{definitionv}{synth_3}[Fixed-schedule experiment law]
+Fix \(V=\{1,\ldots,n\}\), a schedule \(\theta=(G,a,t,b)\), and a known edge-retention probability \(q\in[0,1]\). Draw the treatment coordinates independently as
+\[
+Z_j\sim\operatorname{Bernoulli}(1/2),\qquad j\in V.
+\]
+Independently of \(Z\), draw mutually independent audit marks
+\[
+W_{ij}\sim\operatorname{Bernoulli}(q),
+\qquad (j,i)\in V^2,\ j\ne i.
+\]
+Define the retained graph and complete observed record by
+\[
+H=\{(j,i)\in G:W_{ij}=1\},
+\qquad
+O=(H,Z,Y(Z)),
+\]
+where
+\[
+Y_i(Z)=a_i+t_iZ_i+\sum_{j:(j,i)\in G}b_{ij}Z_j,
+\qquad i\in V.
+\]
+The record contains every retained-edge label, every treatment coordinate, and every noiseless realized outcome. Draw \(\xi\sim\operatorname{Uniform}[0,1]\) independently of \((Z,W)\) to represent optional estimator randomization. Define
+\[
+P_{\theta,q}=\operatorname{Law}(O,\xi)
+\]
+with \(\theta\) fixed. This law is taken on
+\[
+2^{\{(j,i)\in V^2:j\ne i\}}
+\times\{0,1\}^V\times\mathbb R^V\times[0,1],
+\]
+with discrete sigma-algebras on the finite graph and assignment coordinates and Borel sigma-algebras on the outcome and seed coordinates.
+\end{definitionv}
+
+The experiment law \leanref{sym:P}{\ensuremath{P_{\theta,q}}} in \cref{obj:synth_3} holds the graph and coefficients fixed while averaging over assignment, audit, and optional estimator randomization. The independent uniform seed \leanref{sym:xi}{\ensuremath{\xi}} permits randomized rules, with deterministic rules represented by estimators that ignore it. Every treatment coordinate and realized outcome is observed, including those associated with arrows omitted by the audit. Accordingly, estimation can use the full joint information in the record.
+
+We evaluate that estimation problem by expected squared error for the population contrast and take the worst case over the bounded schedule class.
+
+\begin{definitionv}{def:risk}[Minimax squared risk $R_{n,d}(q)$]
+\[
+R_{n,d}(q)
+=
+\inf_T\sup_{\theta\in\mathcal M_{n,d}}\mathcal L(T;\theta,q),
+\qquad
+\mathcal L(T;\theta,q)
+=
+\mathbb E_{P_{\theta,q}}
+\left[(T(O,\xi)-\tau(\theta))^2\right].
+\]
+The infimum ranges over measurable randomized estimators \(T\). Here \(O\) is the complete observed graph, assignment, and realized-outcome record, \(\tau(\theta)\) is the population all-treated-versus-all-control contrast, and \(P_{\theta,q}\) is the experiment law for the fixed schedule \(\theta\) and known edge-retention probability \(q\). The estimator-randomization seed \(\xi\) is uniform on \([0,1]\) and independent of the experiment.
+\end{definitionv}
+
+For a measurable estimator \leanref{sym:T}{\ensuremath{T}}, the loss \leanref{sym:L}{\ensuremath{\mathcal L(T;\theta,q)}} in \cref{obj:def:risk} averages its squared error under the fixed-schedule experiment. The minimax squared risk \leanref{sym:R}{\ensuremath{R_{n,d}(q)}} optimizes this worst-case loss over all measurable uses of the complete record and independent seed. Thus population size, off-diagonal degree, and known edge retention index a common precision criterion for the declared causal target and schedule class.

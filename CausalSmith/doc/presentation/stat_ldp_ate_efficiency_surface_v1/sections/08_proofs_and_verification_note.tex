@@ -1,0 +1,192 @@
+\section{Proofs and verification note}
+\label{sec:proofs}
+
+The auxiliary statements in this section connect measurable private experiments to the finite information problem and supply the localization used for the sequential risk bound. We first present the refinement underlying the stationary comparison, then organize its role in the oracle and cardinality results. The private-pilot construction, sequential lower bound, and comparator calculation follow in that order.
+
+\subsection{Measurable refinement and information equality}
+
+A staircase refinement represents a stationary private release as a post-processing of a finite private experiment. For cardinality comparisons, the relevant equality condition concerns information in the profiling direction: patterns with distinct projected scores must remain distinguishable whenever post-processing preserves that directional information. The following statement supplies both properties for arbitrary measurable output spaces. Within that environment only, \(x_1,x_2,x_3,x_4\) and \(\pi_{\theta,1},\ldots,\pi_{\theta,4}\) denote the standing zero-based records \(x_0,x_1,x_2,x_3\) and their probabilities in the same order; this local one-based relabeling leaves subject indices unchanged.
+
+\begin{lemmav}{lem:staircase-refinement}[Staircase refinement and score equality]
+Let \(p\) be the treatment-assignment probability, let \(\theta=(\mu_0,\mu_1)^\top\) be the arm-mean parameter, and let \(\varepsilon\) be the privacy level. Suppose that:
+\begin{itemize}
+\item \textbf{(Interior assignment.)} \(p\) satisfies \cref{obj:ass:interior-assignment}.
+\item \textbf{(Interior means.)} \(\theta\) satisfies \cref{obj:ass:interior-means}.
+\item \textbf{(Fixed privacy.)} The privacy sequence and \(\varepsilon\) satisfy \cref{obj:ass:fixed-privacy}.
+\item \textbf{(Stationary privacy.)} \(Q\) is a probability kernel from the four-record alphabet \(\mathcal X\) to an arbitrary measurable space \(Z\), and, for every measurable \(A\subseteq Z\) and every \(x,x'\in\mathcal X\),
+\[
+Q(A\mid x)\le e^\varepsilon Q(A\mid x').
+\]
+\end{itemize}
+Index the fourteen nonempty proper subsets of \(\mathcal X\) by \(\mathcal S\). The feasible staircase weights and their channel are given by
+\[
+\mathcal A_\varepsilon
+=
+\left\{
+\alpha:
+\alpha_S\ge0\ \text{for every }S\in\mathcal S,\quad
+\sum_{S\in\mathcal S}\alpha_S
+\begin{cases}
+e^\varepsilon,&x\in S,\\
+1,&x\notin S
+\end{cases}
+=1\ \text{for every }x\in\mathcal X
+\right\},
+\qquad
+Q_\alpha(S\mid x)=\alpha_S
+\begin{cases}
+e^\varepsilon,&x\in S,\\
+1,&x\notin S.
+\end{cases}
+\]
+Writing \(\pi_{\theta,j}=P_\theta(X=x_j)\) for the record probabilities, define the pattern masses, gradients, profiling directions, and projected scores by
+\[
+h_S(\theta)
+=
+\sum_{j=1}^{4}\pi_{\theta,j}
+\begin{cases}
+e^\varepsilon,&x_j\in S,\\
+1,&x_j\notin S,
+\end{cases}
+\qquad
+g_S=\nabla_\theta h_S(\theta),
+\qquad
+v(t)=\begin{pmatrix}t\\t+1\end{pmatrix},
+\qquad
+\rho_S(\theta,t)=\frac{g_S^\top v(t)}{h_S(\theta)},
+\]
+with \(p\) and \(\varepsilon\) fixed in the gradient. Let \(I_\theta(Q)\) denote the output Fisher-information matrix, obtained by integrating the outer product of the output score against the output law, and set
+\[
+I_\theta(\alpha)
+=
+\sum_{S\in\mathcal S}
+\frac{\alpha_S g_Sg_S^\top}{h_S(\theta)}.
+\]
+Then there exist \(\alpha\in\mathcal A_\varepsilon\) and a probability kernel \(K\) from \(\mathcal S\) to \(Z\) such that
+\[
+Q=K\circ Q_\alpha,
+\qquad
+I_\theta(\alpha)-I_\theta(Q)\succeq0.
+\]
+For every \(t\in\mathbb R\), if
+\[
+v(t)^\top I_\theta(\alpha)v(t)
+=
+v(t)^\top I_\theta(Q)v(t),
+\]
+then every pair \(S,T\in\mathcal S\) with \(\alpha_S\ne0\), \(\alpha_T\ne0\), and conditional output measures \(K(S,\cdot)\) and \(K(T,\cdot)\) that are not mutually singular satisfies
+\[
+\rho_S(\theta,t)=\rho_T(\theta,t).
+\]
+\end{lemmav}
+
+\begin{definitionv}{synth_7}[Smooth prior density \(w_R\)]
+For \(R>0\), define the Lebesgue density \(w_R\) by
+\[
+w_R(a)=
+\begin{cases}
+\displaystyle\frac{15}{16R}\left(1-\frac{a^2}{R^2}\right)^2,
+& |a|<R,\\[6pt]
+0,& |a|\ge R.
+\end{cases}
+\]
+This density is nonnegative, is positive exactly on \((-R,R)\), has closed support \([-R,R]\), and satisfies
+\[
+\int_{\mathbb R}w_R(a)\,da
+=\int_{-R}^{R}w_R(a)\,da=1.
+\]
+It is continuously differentiable on \(\mathbb R\), with
+\[
+w_R'(a)=
+\begin{cases}
+\displaystyle-\frac{15a}{4R^3}\left(1-\frac{a^2}{R^2}\right),
+& |a|<R,\\[6pt]
+0,& |a|\ge R,
+\end{cases}
+\]
+so both the density and its derivative vanish at the endpoints. Its squared score is integrable under the prior, with
+\[
+\int_{-R}^{R}
+\frac{\{w_R'(a)\}^2}{w_R(a)}\,da=\frac{10}{R^2},
+\]
+where the integrand is taken to be zero at points where \(w_R(a)=0\).
+\end{definitionv}
+
+The information ordering in \cref{obj:lem:staircase-refinement} makes the finite experiment a benchmark for every stationary release satisfying the stated privacy inequalities, including releases with continuous outputs. Its equality clause concerns the selected direction rather than equality of the entire information matrix. In that direction, overlapping conditional output measures can preserve information when their active patterns have the same projected score. Pairwise distinct projected scores therefore require mutually singular conditional output measures under directional equality.
+
+\subsection{Finite optimization and optimal supports}
+
+For \cref{obj:thm:finite-oracle}, the refinement supplies the comparison between arbitrary stationary experiments and the staircase family. The finite objective is defined in \cref{obj:synth_4}, with pattern coordinates fixed by \cref{obj:synth_8}. Linearity in the weights and convexity in the profiling coordinate explain the theorem's representation as a minimum of the upper envelope of finitely many vertex objectives. The contrast-estimability convention in \cref{obj:thm:finite-oracle} retains singular experiments whose information range contains the treatment-effect contrast.
+
+The support arguments use the normalization, profiling stationarity, and dual conditions collected in \cref{obj:synth_5}. These conditions identify a feasible release and its information value at a saddle; the strict inactive inequalities distinguish the certified active patterns. The existence conclusion in \cref{obj:thm:five-output-upper-bound} gives an attaining staircase experiment with at most five active outputs throughout the interior domain.
+
+The equality clause of \cref{obj:lem:staircase-refinement} supplies the additional distinction needed for universal cardinality comparisons. The five-pattern region in \cref{obj:def:support-regions} explicitly includes projected-score separation, and \cref{obj:thm:five-output-region} establishes the matching lower cardinality bound for every attaining stationary channel in that region. The three-pattern optimizer and its exact information value are given in \cref{obj:thm:three-output-region}. At fixed assignment probability \(3/10\) and privacy level \(\log 3\), \cref{obj:thm:support-transition} supplies the separate neighborhoods where three and five are the respective minimum attaining cardinalities. Thus uniqueness of staircase weights and minimum cardinality among arbitrary stationary releases remain distinct conclusions with their stated domains.
+
+Under balanced assignment and complementary arm means, \cref{obj:thm:balanced-reduction} identifies a binary experiment aligned with the contrast. Its information-range condition explains how two outputs suffice for efficient contrast estimation under that symmetry.
+
+\subsection{Private-pilot attainment and studentization}
+
+The pilot argument is governed by the fixed measurable strong-saddle selector in \cref{obj:def:pilot-estimator}. At every interior parameter, its selected weights are feasible, its profiling coordinate minimizes the selected objective, and its weights maximize the objective at that coordinate. These joint conditions connect the correction in \cref{obj:synth_9} to the optimized information value.
+
+The diverging pilot condition in \cref{obj:ass:pilot-diverges} supports parameter learning through the randomized-response experiment in \cref{obj:synth_10}. The sublinear allocation in \cref{obj:ass:pilot-sublinear} preserves an asymptotically full main sample. Conditional centering in \cref{obj:thm:pilot-attainment} gives the affine correction its exact statistical role: the estimator targets the treatment effect conditional on the released pilot history.
+
+Local regularity is specified in \cref{obj:synth_6}. Under the attainment conditions, \cref{obj:thm:pilot-attainment} supplies both a common normal limit under every fixed local perturbation and uniform integrability of squared scaled errors over bounded admissible perturbation sets. These conclusions connect the distributional approximation to the squared-error criterion in \cref{obj:thm:sequential-minimax}.
+
+The empirical variance in \cref{obj:synth_1} estimates the variance constant of that normal limit. Its consistency and the coverage conclusion in \cref{obj:thm:pilot-attainment} apply pointwise at every admissible interior parameter, including points where the optimal support changes. The governing condition at such points is the measurable strong-saddle selection rule. Accordingly, studentization remains tied to the optimized variance at the parameter under consideration.
+
+\subsection{Sequential localization and the lower bound}
+
+The sequential lower-bound construction localizes the experiment along a direction that changes the treatment effect by one unit, following the local-risk framework of \citet[Chapter 6]{LeCam2000} and \citet[Chapters 7--8 and 25]{VanDerVaart1998}. The smooth scalar prior in \cref{obj:synth_7} supplies a normalized, continuously differentiable density with compact support, vanishing density and derivative at the endpoints, and prior information \(10/R^2\). Pairing this prior with the minimizing direction selected by \cref{obj:thm:finite-oracle} gives the following handle for the Bayesian information inequality \citep{VanTrees2001}, as used statistically by \citet[pp. 59--79]{Gill1995}.
+
+\begin{definitionv}{def:sequential-vt-handle}[Sequential van Trees handle]
+The sequential van Trees handle \(\mathfrak H_{\mathrm{VT}}\) is defined for parameters \(\theta,p,\varepsilon,R\) satisfying:
+\begin{itemize}
+\item \textbf{(Interiority.)} \cref{obj:ass:interior-assignment,obj:ass:interior-means}.
+\item \textbf{(Privacy.)} \(\varepsilon>0\).
+\item \textbf{(Prior radius.)} \(R>0\).
+\end{itemize}
+It is the direction--prior pair
+\[
+\mathfrak H_{\mathrm{VT}}=(v(t^*),w_R),
+\qquad
+v(t^*)=(t^*,t^*+1)^{\top},
+\]
+where \(t^*\) is the selected minimizing coordinate supplied by \cref{obj:thm:finite-oracle}, satisfying
+\[
+\max_{\alpha\in\mathcal A_\varepsilon}F_\theta(\alpha,t^*)
+=J^*(\theta,p,\varepsilon),
+\]
+with the feasible weights, profiled objective, and optimized value as in \cref{obj:def:staircase-saddle}. The prior density is
+\[
+w_R(u)=
+\begin{cases}
+\dfrac{15}{16R}\left(1-\left(\dfrac{u}{R}\right)^2\right)^2,
+& |u|<R,\\
+0,& |u|\ge R.
+\end{cases}
+\]
+\end{definitionv}
+
+The sequential van Trees handle \leanref{sym:\mathfrak H_{\mathrm{VT}}}{\ensuremath{\mathfrak H_{\mathrm{VT}}}} fixes the direction at the interior baseline and supplies scalar localization along that direction. Its directional choice links the sequential information comparison to the same optimized value used in the stationary oracle.
+
+In the lower-bound argument for \cref{obj:thm:sequential-minimax}, the conditional-score martingale accounts for information accumulated through history-dependent releases. The preceding release tuple \leanref{sym:H_{i-1}}{\ensuremath{H_{i-1}}} determines the channel used at the next stage, as specified in \cref{obj:def:sequential-channels}. Conditional centering of the stage scores is the basis for the martingale information accounting. Uniform domination over compact interior parameter neighborhoods supplies the control required for the score integrals and their localization, while the privacy condition at every history permits the stationary information comparison at each stage.
+
+The lower-bound conclusion in \cref{obj:thm:sequential-minimax} ranges over complete sequential private procedure sequences with measurable estimators and arbitrary measurable release spaces. Its risk criterion takes the worst risk over admissible perturbations, the lower asymptotic limit, and then the supremum over localization radii, in the displayed order. The regular attainment conclusion uses the fixed selector and the exhibited pilot schedule \(m_n=\lfloor\sqrt n\rfloor\). The local convergence and squared-error tail control in \cref{obj:thm:pilot-attainment} supply the corresponding regularity properties.
+
+\subsection{Comparator variance and interval lengths}
+
+The comparator in \cref{obj:def:oa-release} combines an inverse-probability-weighted binary outcome with independent centered Laplace noise. The variance formula in \cref{obj:thm:laplace-comparison} separates these contributions:
+\[
+V_{\mathrm{OA}}(\theta,p,\varepsilon)
+=
+\left(\frac{\mu_1}{p}+\frac{\mu_0}{q}-\tau^2\right)
++
+\frac{2\Delta_A^2}{\varepsilon^2}.
+\]
+At the balanced parameter point specified there, the two contributions are \(2\) and \(32\), giving \(V_{\mathrm{OA}}=34\). The efficient variance at that point is the balanced-reduction value in \cref{obj:thm:balanced-reduction}, and the strict comparison is stated in \cref{obj:thm:laplace-comparison}.
+
+A common sample size and normal critical value leave the square root of the variance ratio as the asymptotic Wald half-length ratio. The empirical comparison in \cref{obj:thm:laplace-comparison} uses consistent variance statistics and applies to every coupling with the specified marginal laws. Its scope is the selected efficient procedure and the custom-Laplace sample mean defined in \cref{obj:def:oa-release}.
+
+\subsection{Verification note}
+
+The formal statements and their accompanying proofs are machine-checked in Lean 4. Their scope is conditional on the stated trial model, measurable experiment representations, privacy restrictions, and procedure inputs, including the strong-saddle selector and the regularity requirements where invoked. The checked presentation layer contains 28 frozen statement environments and ten synthesized definitions, and the ten theorem or lemma proof receipts were audited as faithful. The formal contract lists no external published theorem as a Lean proof dependency; literature citations motivate and position the results rather than serving as unchecked formal premises.

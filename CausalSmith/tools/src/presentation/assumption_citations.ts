@@ -1,0 +1,244 @@
+// P2 helper: turn each ASSUMPTION node's citation provenance (`node.standard` =
+// {name, cite, citation}, carried from the typed core by `from_core.ts`) into prose
+// guidance for the section drafter plus a RESOLVABLE bib key.
+//
+// Two bibliography namespaces exist: the discovery `core.bibliography` keys that
+// `node.standard.cite` points at (e.g. `Tsybakov2004OptimalAggregation`) and the
+// paper's own P0-curated `references.bib` keys (e.g. `Audibert2007`). They rarely
+// coincide. We RECONCILE each discovery cite to the paper's key by matching first-author
+// surname + exact year against `references.bib` (match-or-inject): a confident match
+// reuses the paper key (no duplicate reference); no match injects a fresh entry under the
+// discovery key (so `\citep` resolves rather than printing `[?]`). Matching requires BOTH
+// surname ⊂ author AND equal year, so a wrong-paper citation is very unlikely; the
+// fallback only ever ADDS the correct reference, it never mis-cites.
+import type { FormalizationGraph, GraphNode } from "../graph/types.js";
+import { isCitedNode } from "./graph_view.js";
+import { parseBib } from "./citations.js";
+import { MASKED_PERIOD, maskNonBoundaryPeriods } from "../shared/tex_text.js";
+
+export interface BibEntry {
+  key: string;
+  author: string;
+  year: string | null;
+}
+
+/** Parse `references.bib` into {key, author, year} records (one per `@type{...}` entry).
+ *  Tolerant field scan — enough to match author surname + year, not a full BibTeX parse. */
+export function indexBib(bibText: string): BibEntry[] {
+  // Route through citations.ts's depth-counting scanner. The old lazy field
+  // regex stopped at the FIRST `}` inside a value, so nested capitalization
+  // protection (`author = {Van der Vaart, {A. W.} and …}`) truncated the author
+  // list, `reconcileCite`'s surname match then failed, and a DUPLICATE entry
+  // was injected for a paper already in the pool. Its entry splitter also broke
+  // on an `@` inside a field value.
+  return parseBib(bibText).map((e) => ({
+    key: e.key,
+    author: (e.fields.author ?? "").replace(/\s+/g, " ").trim(),
+    year: e.fields.year?.match(/((?:19|20)\d{2})/)?.[1] ?? null,
+  }));
+}
+
+/** First-author surname from a free-text citation ("Tsybakov, A. B. (2004)…" → "Tsybakov";
+ *  "Athey, S., and Wager, S. (2021)…" → "Athey"). The leading capitalized word. */
+export function firstAuthorSurname(citation: string): string | null {
+  return citation.trim().match(/^([A-Z][A-Za-z'’\-]+)/)?.[1] ?? null;
+}
+
+/** First 4-digit year (19xx/20xx) in a citation. */
+export function citationYear(citation: string): string | null {
+  return citation.match(/\b((?:19|20)\d{2})\b/)?.[1] ?? null;
+}
+
+/** Escape TeX-special characters for a BibTeX field value: injected entries carry
+ *  free-text citations (journal names with `&`, identifiers with `_`) that natbib
+ *  passes straight to TeX. Backslash first, then the single-char specials. */
+export function escapeBibText(s: string): string {
+  // Braces are escaped too: an unbalanced `{` in free-text citation prose would
+  // otherwise break the injected entry's grouping (and the whole bib scan).
+  // Backslashes go through a placeholder so the braces that our OWN replacement
+  // commands introduce stay live.
+  return s
+    .replace(/\\/g, "\u0000")
+    .replace(/([&%#_$])/g, "\\$1")
+    .replace(/\{/g, "\\{")
+    .replace(/\}/g, "\\}")
+    .replace(/~/g, "\\textasciitilde{}")
+    .replace(/\^/g, "\\textasciicircum{}")
+    .replace(/\u0000/g, "\\textbackslash{}");
+}
+
+/** Build a minimal natbib-citable BibTeX entry from a free-text citation, under `key`.
+ *  author + year drive `\citep`'s "(Author, year)"; the full text is kept in `note`. */
+export function injectionEntry(key: string, citation: string): string {
+  const surname = firstAuthorSurname(citation) ?? key;
+  const year = citationYear(citation) ?? "";
+  // title ≈ the clause after the "(year)." up to the next SENTENCE period —
+  // masked first so "et al." / decimals inside the title do not truncate it.
+  const title = maskNonBoundaryPeriods(citation)
+    .match(/\((?:19|20)\d{2}[a-z]?\)\.?\s*([^.]+)\./)?.[1]
+    ?.replaceAll(MASKED_PERIOD, ".")
+    .trim();
+  const fields = [
+    `  author = {${escapeBibText(surname)}}`,
+    year ? `  year = {${year}}` : null,
+    title ? `  title = {${escapeBibText(title)}}` : null,
+    `  note = {${escapeBibText(citation.replace(/\s+/g, " ").trim())}}`,
+  ].filter(Boolean);
+  return `@misc{${key},\n${fields.join(",\n")}\n}`;
+}
+
+export interface ResolvedCite {
+  /** The key to `\citep` — a paper `references.bib` key when matched, else the discovery key. */
+  citeKey: string;
+  /** A BibTeX entry to APPEND to references.bib (only when no paper match was found). */
+  inject: string | null;
+}
+
+/** Reconcile a `node.standard` to a resolvable bib key: a confident paper-key match
+ *  (surname ⊂ author AND equal year) reuses it; otherwise inject under the discovery key. */
+export function reconcileCite(
+  std: { name: string; cite: string; citation?: string },
+  bibIndex: BibEntry[],
+): ResolvedCite {
+  // If the discovery key is literally a paper key, use it as-is.
+  if (bibIndex.some((b) => b.key === std.cite)) return { citeKey: std.cite, inject: null };
+  // Gate sources normally use a kebab-case `cite:` slug while P0 emits a CamelCase
+  // BibTeX key.  Match those namespaces before consulting mutable metadata such as
+  // the year of the latest arXiv version.  Equality after punctuation/case removal is
+  // deliberately strict: it accepts `zeng-...-2024` ↔ `Zeng...2024`, but cannot turn
+  // a merely similar author or title into a citation match.
+  const normalizedCite = std.cite.replace(/[^A-Za-z0-9]/g, "").toLowerCase();
+  const normalizedHit = bibIndex.find(
+    (b) => b.key.replace(/[^A-Za-z0-9]/g, "").toLowerCase() === normalizedCite,
+  );
+  if (normalizedHit) return { citeKey: normalizedHit.key, inject: null };
+  // Some research gates use a compact multi-author acronym followed by the year and
+  // a theorem locator, e.g. `jms2025-thm54`. Match that strict source identity to a
+  // curated entry whose author-family initials and year agree. The locator suffix is
+  // intentionally ignored; both pieces of bibliographic identity must still match.
+  const compact = normalizedCite.match(/^([a-z]+)((?:19|20)\d{2})(?:[a-z0-9]*)$/);
+  if (compact) {
+    const [, initials, year] = compact;
+    const authorInitials = (author: string): string => author
+      .split(/\s+and\s+/i)
+      .map((part) => {
+        const family = part.includes(",") ? part.split(",", 1)[0] : part.trim().split(/\s+/).at(-1) ?? "";
+        return family.match(/[A-Za-z]/)?.[0]?.toLowerCase() ?? "";
+      })
+      .join("");
+    const acronymHit = bibIndex.find((b) => b.year === year && authorInitials(b.author) === initials);
+    if (acronymHit) return { citeKey: acronymHit.key, inject: null };
+  }
+  const citation = std.citation;
+  if (citation) {
+    const surname = firstAuthorSurname(citation);
+    const year = citationYear(citation);
+    if (surname && year) {
+      const hit = bibIndex.find((b) => b.year === year && b.author.includes(surname));
+      if (hit) return { citeKey: hit.key, inject: null };
+    }
+    return { citeKey: std.cite, inject: injectionEntry(std.cite, citation) };
+  }
+  // No citation text: inject a stub so the key resolves (name in note).
+  return { citeKey: std.cite, inject: `@misc{${std.cite},\n  note = {${escapeBibText(std.name)}}\n}` };
+}
+
+/** Resolve a CITED gate through F1's reviewed source-id → bibliography-key join.
+ *  A source id may deliberately carry a claim/locator suffix while sharing one work's
+ *  canonical key, so no spelling, author, year, or normalized-key inference is sound here.
+ *  A plan that records no bibliography keys (`citationBibkeys` undefined) has only the
+ *  `firstauthor[-coauthor...]-year` source slug to go on: its first segment is read as the
+ *  first-author surname and a trailing 4-digit segment as the year, for `reconcileCite`. */
+export function citedStdFromNode(
+  n: GraphNode,
+  citationBibkeys: ReadonlyMap<string, string> | undefined,
+): { name: string; cite: string; citation?: string } | null {
+  const src = n.gate?.source;
+  if (!src) return null;
+  if (citationBibkeys) {
+    const key = citationBibkeys.get(src);
+    return key ? { name: "cited external result", cite: key } : null;
+  }
+  const cite = src.replace(/^cite:/, "");
+  const segs = cite.split("-").filter(Boolean);
+  const year = [...segs].reverse().find((s) => /^(?:19|20)\d{2}$/.test(s)) ?? null;
+  const surnameSeg = segs[0] ?? cite;
+  const surname = surnameSeg.charAt(0).toUpperCase() + surnameSeg.slice(1);
+  return { name: "cited external result", cite, ...(year ? { citation: `${surname} (${year})` } : {}) };
+}
+
+/** The bibliography key a CITED gate is attributed with: the plan's reviewed key when it is
+ *  in the bibliography, or, for a plan without recorded keys, the slug reconciled to it. A
+ *  source id the plan's keys do not cover counts only when it is literally a bibliography key. */
+export function citedCiteKey(
+  n: GraphNode,
+  citationBibkeys: ReadonlyMap<string, string> | undefined,
+  bibIndex: BibEntry[],
+): ResolvedCite | null {
+  const std = citedStdFromNode(n, citationBibkeys);
+  if (!std) {
+    const raw = n.gate?.source?.replace(/^cite:/, "");
+    return raw && bibIndex.some((entry) => entry.key === raw) ? { citeKey: raw, inject: null } : null;
+  }
+  if (!citationBibkeys) return reconcileCite(std, bibIndex);
+  return bibIndex.some((entry) => entry.key === std.cite) ? { citeKey: std.cite, inject: null } : null;
+}
+
+export interface AssumptionCiteContext {
+  /** Prose guidance for the drafter, one line per assumption in the section. */
+  notes: string;
+  /** Reconciled cite keys to ADD to the section's allowed bib keys. */
+  extraKeys: string[];
+  /** BibTeX entries to append to references.bib, deduped by key (the caller still dedups
+   *  ACROSS sections, since the same source can appear in more than one section). */
+  injections: string[];
+}
+
+/** Build the drafter guidance + resolved keys/injections for the ASSUMPTION objects that
+ *  appear in a section. Standard assumptions get a named, citable note; novel ones are
+ *  flagged as specific to this work (no citation). Non-assumption objs are ignored. */
+export function assumptionCiteContext(
+  graph: FormalizationGraph,
+  objIds: string[],
+  bibText: string,
+  citationBibkeys?: ReadonlyMap<string, string>,
+): AssumptionCiteContext {
+  const bibIndex = indexBib(bibText);
+  const byId = new Map(graph.nodes.map((n) => [n.id, n] as const));
+  const lines: string[] = [];
+  const extraKeys: string[] = [];
+  const injections = new Map<string, string>(); // dedup by injected key (one ref per source)
+  for (const id of objIds) {
+    const n: GraphNode | undefined = byId.get(id);
+    if (!n) continue;
+    // CITED gate: an imported external result the paper relies on but does not prove. Attribute it
+    // with its bibliography key (`citedCiteKey`) and tell the drafter never to claim it as the
+    // paper's own.
+    if (isCitedNode(n)) {
+      const hit = citedCiteKey(n, citationBibkeys, bibIndex);
+      if (hit) {
+        extraKeys.push(hit.citeKey);
+        if (hit.inject) injections.set(hit.citeKey, hit.inject);
+        lines.push(
+          `- Cited result obj_id "${n.obj_id ?? n.id}" (env arg \`${n.id}\`): IMPORTED external result — ` +
+            `the paper relies on it but does NOT prove it. When you reference it, attribute it with ` +
+            `\\citep{${hit.citeKey}}; never present it as a contribution of this paper.`,
+        );
+      }
+      continue;
+    }
+    if (n.kind !== "assumption") continue;
+    const label = `Assumption obj_id "${n.obj_id ?? n.id}" (env arg \`${n.id}\`)`;
+    if (n.standard) {
+      const { citeKey, inject } = reconcileCite(n.standard, bibIndex);
+      extraKeys.push(citeKey);
+      if (inject) injections.set(citeKey, inject);
+      lines.push(
+        `- ${label}: STANDARD — the ${n.standard.name} condition; cite it with \\citep{${citeKey}} in the explanatory sentence.`,
+      );
+    } else {
+      lines.push(`- ${label}: NOVEL — specific to this analysis; explain it in words, do NOT cite a reference for it.`);
+    }
+  }
+  return { notes: lines.join("\n"), extraKeys: [...new Set(extraKeys)], injections: [...injections.values()] };
+}

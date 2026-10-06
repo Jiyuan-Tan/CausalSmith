@@ -1,0 +1,151 @@
+import { describe, it, expect } from "vitest";
+import { mkdirSync, mkdtempSync, writeFileSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { ensureComponentsForEnvs, assembleComponentText } from "../src/presentation/components.js";
+import type { AnchoredEnv } from "../src/presentation/tex_anchors.js";
+import type { CrosswalkEntry } from "../src/presentation/types.js";
+import type { FormalizationGraph } from "../src/graph/types.js";
+
+const env = (obj_id: string, e: AnchoredEnv["env"], order: number): AnchoredEnv => ({
+  env: e,
+  obj_id,
+  title: null,
+  body: `body of ${obj_id}`,
+  order,
+});
+const cw = (obj_id: string, kind: string, decl: string | null): CrosswalkEntry => ({
+  obj_id,
+  kind,
+  title: obj_id,
+  tex: null,
+  lean: decl ? { file: "Basic.lean", decl, decl_kind: "def", line: 0 } : null,
+  verdict: "equivalent",
+});
+const defNode = (id: string, obj_id: string, decl: string): FormalizationGraph["nodes"][number] => ({
+  id,
+  obj_id,
+  kind: "definition",
+  provenance: "from-note",
+  nl: { statement: id, tex_anchor: "", frozen: true },
+  lean: { decl_name: decl, file: "Basic.lean" },
+  review: { status: "matched", passed_hash: null },
+  proof: { state: "complete", sorry_count: 0 },
+});
+const graph: FormalizationGraph = {
+  qid: "q",
+  specialization: "s",
+  nodes: [defNode("def:a", "P-1", "declA"), defNode("def:h", "P-2", "declH")],
+  edges: [{ kind: "statement-uses", from: "def:a", to: "def:h", source: "declared" }],
+};
+
+describe("ensureComponentsForEnvs graph-first", () => {
+  it("uses graph support for a lemma that also has a primary crosswalk declaration", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "comp-"));
+    try {
+      mkdirSync(join(dir, "Lean"));
+      writeFileSync(join(dir, "Lean", "Basic.lean"),
+        "theorem mainLemma : True := trivial\ntheorem supportLemma : True := trivial\n");
+      const g = structuredClone(graph);
+      g.nodes = [defNode("lem:main", "lem:main", "mainLemma")];
+      g.nodes[0].lean.supporting_decls = ["supportLemma"];
+      g.edges = [];
+      const result = await ensureComponentsForEnvs({
+        envs: [env("lem:main", "lemmav", 0)],
+        crosswalk: [cw("lem:main", "lemma", "mainLemma")],
+        repoRoot: dir, leanSubdir: "Lean", cachePath: join(dir, "components_cache.json"),
+        deps: { runCodex: async () => { throw new Error("graph support must bypass discovery"); } },
+        graph: g,
+      });
+      expect(result.components["lem:main"]).toEqual([
+        { type: "decl", decl: "mainLemma" },
+        { type: "decl", decl: "supportLemma" },
+      ]);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+
+  it("uses graph component specs and does not call codex", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "comp-"));
+    mkdirSync(join(dir, "nonexistent"));
+    writeFileSync(join(dir, "nonexistent", "Basic.lean"),
+      "def declA : Nat := 1\ndef declH : Nat := 2\n", "utf8");
+    const throwingCodex = {
+      runCodex: async () => {
+        throw new Error("codex must not be called when graph specs exist");
+      },
+    };
+    const { components } = await ensureComponentsForEnvs({
+      envs: [env("P-1", "definitionv", 0)],
+      crosswalk: [cw("P-1", "definition", "declA"), cw("P-2", "definition", "declH")],
+      repoRoot: dir,
+      leanSubdir: "nonexistent",
+      cachePath: join(dir, "components_cache.json"),
+      deps: throwingCodex,
+      graph,
+    });
+    expect(components["P-1"]).toEqual([
+      { type: "decl", decl: "declA" },
+      { type: "decl", decl: "declH" },
+    ]);
+  });
+
+  it("falls back to codex when the graph yields no specs for an env", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "comp-"));
+    let called = 0;
+    const fakeCodex = {
+      runCodex: async () => {
+        called++;
+        return { stdout: JSON.stringify({ components: [{ type: "decl", decl: "discovered" }] }), stderr: "" };
+      },
+    };
+    const { components } = await ensureComponentsForEnvs({
+      envs: [env("X-9", "definitionv", 0)],
+      crosswalk: [cw("X-9", "definition", null)], // no lean → graph gives []
+      repoRoot: dir,
+      leanSubdir: "nonexistent",
+      cachePath: join(dir, "components_cache.json"),
+      deps: fakeCodex,
+      graph, // X-9 is not in the graph
+    });
+    expect(called).toBe(1);
+    expect(components["X-9"]).toEqual([{ type: "decl", decl: "discovered" }]);
+  });
+});
+
+
+describe("supporting property source mapping", () => {
+  it("resolves explicit sibling theorems and invalidates their source receipt without paid discovery", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "comp-support-"));
+    try {
+      mkdirSync(join(dir, "Lean"));
+      writeFileSync(join(dir, "Lean", "Basic.lean"), "def declA : Nat := 1\n");
+      const helper = join(dir, "Lean", "Property.lean");
+      writeFileSync(helper, "theorem propertyA : declA = 1 := rfl\n");
+      const g = structuredClone(graph);
+      g.nodes = [g.nodes[0]];
+      g.edges = [];
+      const cachePath = join(dir, "components_cache.json");
+      const args = {
+        envs: [env("P-1", "definitionv", 0)], crosswalk: [cw("P-1", "definition", "declA")],
+        repoRoot: dir, leanSubdir: "Lean", cachePath, graph: g,
+        deps: { runCodex: async () => { throw new Error("unexpected paid discovery"); } },
+      };
+      await ensureComponentsForEnvs(args);
+      const originalKey = JSON.parse(readFileSync(cachePath, "utf8"))["P-1"].key;
+      g.nodes[0].lean.supporting_decls = ["propertyA"];
+      const mapped = await ensureComponentsForEnvs(args);
+      const mappedKey = JSON.parse(readFileSync(cachePath, "utf8"))["P-1"].key;
+      expect(mappedKey).not.toBe(originalKey);
+      const assembled = await assembleComponentText({ specs: mapped.components["P-1"],
+        crosswalk: args.crosswalk, moduleDecls: mapped.moduleDecls, repoRoot: dir, leanSubdir: "Lean" });
+      expect(assembled.text).toContain("theorem propertyA");
+      expect(assembled.resolved).toHaveLength(2);
+      writeFileSync(helper, "theorem propertyA : declA + 1 = 2 := rfl\n");
+      await ensureComponentsForEnvs(args);
+      expect(JSON.parse(readFileSync(cachePath, "utf8"))["P-1"].key).not.toBe(mappedKey);
+      await expect(assembleComponentText({ specs: [{ type: "decl", decl: "missing_property" }],
+        crosswalk: args.crosswalk, moduleDecls: mapped.moduleDecls, repoRoot: dir, leanSubdir: "Lean" }))
+        .rejects.toThrow();
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+});

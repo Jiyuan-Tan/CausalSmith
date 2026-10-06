@@ -1,0 +1,474 @@
+\begin{proof}[Proof of \cref{obj:lem:score-audit}]
+\begin{enumerate}
+\item Fix the schedule and design in the hypotheses. For \(i,j\in V\) and \(z\in\{0,1\}^{V}\), write
+\[
+N_i^-:=\{j\in V:(j,i)\in G\},
+\qquad
+X_j(z):=2z_j-1,
+\qquad
+X_j:=X_j(Z).
+\]
+The additive outcome map is
+\[
+Y_i(z)=a_i+t_i z_i+\sum_{j\in N_i^-}b_{ij}z_j.
+\]
+Index an audit mark by its recipient and source:
+\[
+W_{ij}:=W(j,i)\quad(j\ne i),
+\qquad
+H:=\{(j,i)\in G:W_{ij}=1\}.
+\]
+By \cref{obj:ass:assignment,obj:ass:audit,obj:ass:design-independence},
+\[
+0<q\le1,
+\qquad
+\operatorname{Law}(Z,W)
+=
+\left(\bigotimes_{j\in V}\operatorname{Bernoulli}(1/2)\right)
+\otimes
+\left(\bigotimes_{\substack{(j,i)\in V^2\\j\ne i}}
+\operatorname{Bernoulli}(q)\right).
+\]
+We use \(\mathbb E_W\) for expectation over the audit marks with the assignment fixed, and \(\mathbb E_Z\) for expectation over the assignment. All the sums and expectations below are finite.
+
+The evaluations of the scores in
+\cref{obj:def:audit-score,obj:def:oracle-score} are
+\[
+\begin{aligned}
+T_q(z,W)
+&=\frac2n\sum_{i\in V}Y_i(z)
+ \left(X_i(z)+q^{-1}\sum_{j\in N_i^-}W_{ij}X_j(z)\right),\\
+T_G(z)
+&=\frac2n\sum_{i\in V}Y_i(z)
+ \left(X_i(z)+\sum_{j\in N_i^-}X_j(z)\right),
+\end{aligned}
+\qquad
+T_q=T_q(Z,W),\quad T_G=T_G(Z).
+\]
+Since \(\mathbb E_W[W_{ij}]=q\), for every assignment \(z\),
+\[
+\mathbb E_W\!\left[\sum_{j\in N_i^-}W_{ij}X_j(z)\right]
+=q\sum_{j\in N_i^-}X_j(z),
+\qquad
+\mathbb E_W[T_q(z,W)]=T_G(z).
+\]
+
+Under the half-Bernoulli assignment law, for \(j,k\in V\),
+\[
+\mathbb E_Z[X_j]=0,
+\qquad
+\mathbb E_Z[Z_kX_j]
+=
+\begin{cases}
+\frac12,&k=j,\\
+0,&k\ne j.
+\end{cases}
+\]
+The first case follows from \(Z_j(2Z_j-1)=Z_j\); the second follows from independence and the zero mean of \(X_j\). Expanding the additive outcome therefore gives
+\[
+\mathbb E_Z[Y_i(Z)X_j]
+=
+\frac12\left(
+t_i\mathbf1_{\{i=j\}}
++\sum_{k\in N_i^-}b_{ik}\mathbf1_{\{k=j\}}
+\right).
+\]
+Because \(i\notin N_i^-\), summing this identity over the own coordinate and the incoming sources yields
+\[
+\mathbb E_Z\!\left[
+Y_i(Z)\left(X_i+\sum_{j\in N_i^-}X_j\right)
+\right]
+=
+\frac12\left(t_i+\sum_{j\in N_i^-}b_{ij}\right).
+\]
+Also, evaluating the outcome map at the two constant assignments gives
+\[
+Y_i(\mathbf1)-Y_i(\mathbf0)
+=t_i+\sum_{j\in N_i^-}b_{ij}.
+\]
+Consequently,
+\[
+\mathbb E_Z[T_G]
+=\frac1n\sum_{i\in V}\left(t_i+\sum_{j\in N_i^-}b_{ij}\right)
+=\tau(\theta),
+\qquad
+\mathbb E_{P_{\theta,q}}[T_q]
+=\mathbb E_Z\!\left[\mathbb E_W[T_q(Z,W)]\right]
+=\tau(\theta).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.integral_auditScore_eq_tte
+
+\item For a fixed assignment \(z\), subtracting the two score evaluations gives
+\[
+T_q(z,W)-T_G(z)
+=
+\frac{2}{nq}\sum_{i\in V}\sum_{j\in N_i^-}
+Y_i(z)X_j(z)(W_{ij}-q).
+\]
+Each centered mark has mean zero and second moment
+\[
+\mathbb E_W[W_{ij}-q]=0,
+\qquad
+\mathbb E_W[(W_{ij}-q)^2]
+=q(1-q)^2+(1-q)q^2
+=q(1-q).
+\]
+For distinct off-diagonal pairs, independence gives
+\[
+\mathbb E_W[(W_{ij}-q)(W_{i'j'}-q)]=0
+\qquad\bigl((j,i)\ne(j',i')\bigr).
+\]
+Thus variance is unchanged by subtracting the constant \(T_G(z)\), and the variance of the resulting weighted sum is
+\[
+\begin{aligned}
+\operatorname{Var}_W(T_q(z,W))
+&=\operatorname{Var}_W(T_q(z,W)-T_G(z))\\
+&=\frac{4}{n^2q^2}\,q(1-q)
+ \sum_{i\in V}\sum_{j\in N_i^-}Y_i(z)^2X_j(z)^2\\
+&=\frac{4(1-q)}{n^2q}
+ \sum_{i\in V}|N_i^-|\,Y_i(z)^2,
+\end{aligned}
+\]
+where the last equality uses \(X_j(z)^2=1\). Combining this with the conditional mean already established gives the conditional second-moment identity
+\[
+\mathbb E_W[T_q(z,W)^2]
+=
+T_G(z)^2
++\frac{4(1-q)}{n^2q}
+ \sum_{i\in V}|N_i^-|\,Y_i(z)^2.
+\]
+Empty incoming neighborhoods contribute zero. These identities also include \(q=1\), when every audit mark equals one almost surely.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.integral_auditScore_sq_given_assignment
+
+\item Integrating the preceding second-moment identity over the assignment gives
+\[
+\mathbb E_{P_{\theta,q}}[T_q^2]
+=
+\mathbb E_Z[T_G^2]
++\frac{4(1-q)}{n^2q}
+ \sum_{i\in V}|N_i^-|\,\mathbb E_Z[Y_i(Z)^2].
+\]
+Both scores have mean \(\tau(\theta)\). Subtracting its square from the two second moments therefore yields
+\[
+\begin{aligned}
+\operatorname{Var}_{P_{\theta,q}}(T_q)
+&=\mathbb E_Z[T_G^2]-\tau(\theta)^2
+ +\frac{4(1-q)}{n^2q}
+  \sum_{i\in V}|N_i^-|\,\mathbb E_Z[Y_i(Z)^2]\\
+&=\operatorname{Var}_Z(T_G)
+ +\frac{4(1-q)}{n^2q}
+  \sum_{i\in V}|N_i^-|\,\mathbb E_Z[Y_i(Z)^2].
+\end{aligned}
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.variance_auditScore_eq_oracle_add
+
+\item To bound the oracle variance, augment each incoming neighborhood by its own coordinate. Define
+\[
+N_i:=\{i\}\cup N_i^-,
+\qquad
+\widetilde b_{ij}:=
+\begin{cases}
+t_i,&j=i,\\
+b_{ij},&j\in N_i^-,
+\end{cases}
+\quad(i\in V,\ j\in N_i),
+\qquad
+\mu_i:=a_i+\frac12\sum_{j\in N_i}\widetilde b_{ij}.
+\]
+The two cases defining \(\widetilde b_{ij}\) are disjoint because the graph is off-diagonal. Substituting \(z_j=(1+X_j(z))/2\) into the outcome map gives
+\[
+Y_i(z)=\mu_i+\frac12\sum_{j\in N_i}\widetilde b_{ij}X_j(z),
+\qquad
+\tau(\theta)=\frac1n\sum_{i\in V}\sum_{j\in N_i}\widetilde b_{ij}.
+\]
+Separating the diagonal products in each row gives
+\[
+\begin{aligned}
+\left(\sum_{j\in N_i}\widetilde b_{ij}X_j(z)\right)
+\left(\sum_{k\in N_i}X_k(z)\right)
+&=\sum_{j\in N_i}\widetilde b_{ij}\\
+&\quad+\sum_{j\in N_i}\sum_{k\in N_i\setminus\{j\}}
+\widetilde b_{ij}X_j(z)X_k(z),
+\end{aligned}
+\]
+since \(X_j(z)^2=1\). Define, for every \(z\in\{0,1\}^{V}\),
+\[
+\begin{aligned}
+T_{G,\mathrm{lin}}(z)
+&:=\frac2n\sum_{i\in V}\mu_i\sum_{j\in N_i}X_j(z),\\
+T_{G,\mathrm{quad}}(z)
+&:=\frac1n\sum_{i\in V}\sum_{j\in N_i}
+ \sum_{k\in N_i\setminus\{j\}}\widetilde b_{ij}X_j(z)X_k(z),
+\end{aligned}
+\qquad
+\begin{aligned}
+T_{G,\mathrm{lin}}&:=T_{G,\mathrm{lin}}(Z),\\
+T_{G,\mathrm{quad}}&:=T_{G,\mathrm{quad}}(Z).
+\end{aligned}
+\]
+Expanding the oracle score and subtracting its constant coefficient now gives
+\[
+T_G(z)-\tau(\theta)
+=T_{G,\mathrm{lin}}(z)+T_{G,\mathrm{quad}}(z).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.oracleScore_centered_expansion
+
+\item Since \(\mathbb E_Z[T_G]=\tau(\theta)\), the expansion gives
+\[
+\operatorname{Var}_Z(T_G)
+=
+\mathbb E_Z[T_{G,\mathrm{lin}}^2]
++\mathbb E_Z[2T_{G,\mathrm{lin}}T_{G,\mathrm{quad}}]
++\mathbb E_Z[T_{G,\mathrm{quad}}^2].
+\]
+Collecting the linear terms by their source coordinate gives
+\[
+T_{G,\mathrm{lin}}(z)
+=
+\frac2n\sum_{j\in V}
+\left(\sum_{\substack{i\in V\\j\in N_i}}\mu_i\right)X_j(z).
+\]
+
+For any subsets \(E_1,E_2\subseteq V\), independence and centering imply
+\[
+\mathbb E_Z\!\left[
+\left(\prod_{j\in E_1}(Z_j-\tfrac12)\right)
+\left(\prod_{k\in E_2}(Z_k-\tfrac12)\right)
+\right]
+=
+\begin{cases}
+4^{-|E_1|},&E_1=E_2,\\
+0,&E_1\ne E_2.
+\end{cases}
+\]
+Indeed, when the sets agree, every factor is a square equal to \(1/4\). When they differ, a coordinate in their symmetric difference contributes an independent factor with mean zero. Using
+\[
+\prod_{j\in E_1}X_j
+=2^{|E_1|}\prod_{j\in E_1}(Z_j-\tfrac12)
+\]
+and the corresponding identity for \(E_2\), we obtain
+\[
+\mathbb E_Z\!\left[
+\left(\prod_{j\in E_1}X_j\right)
+\left(\prod_{k\in E_2}X_k\right)
+\right]
+=\mathbf1_{\{E_1=E_2\}}.
+\]
+The empty product equals one, so these formulas include empty sets.
+
+In particular,
+\[
+\mathbb E_Z[X_\ell X_jX_k]=0
+\qquad(\ell,j,k\in V,\ j\ne k),
+\]
+because the singleton \(\{\ell\}\) differs from the two-element set \(\{j,k\}\). Expanding the collected linear term against the quadratic term expresses every summand of their cross moment as a constant times such a triple moment. Hence
+\[
+\mathbb E_Z[2T_{G,\mathrm{lin}}T_{G,\mathrm{quad}}]=0,
+\qquad
+\operatorname{Var}_Z(T_G)
+=\mathbb E_Z[T_{G,\mathrm{lin}}^2]
++\mathbb E_Z[T_{G,\mathrm{quad}}^2].
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.oracle_mixed_second_moment_zero
+
+\item Set
+\[
+d_+:=d+1.
+\]
+The degree and coefficient-mass bounds in \cref{obj:def:model} imply
+\[
+|N_i|=1+|N_i^-|\le d_+,
+\qquad
+\left|\{i\in V:j\in N_i\}\right|
+=1+\left|\{i\in V:(j,i)\in G\}\right|
+\le d_+,
+\]
+and
+\[
+|a_i|+\sum_{j\in N_i}|\widetilde b_{ij}|
+=
+|a_i|+|t_i|+\sum_{j\in N_i^-}|b_{ij}|
+\le1.
+\]
+In particular,
+\[
+\sum_{j\in N_i}|\widetilde b_{ij}|\le1,
+\qquad
+|\mu_i|
+\le |a_i|+\frac12\left|\sum_{j\in N_i}\widetilde b_{ij}\right|
+\le |a_i|+\sum_{j\in N_i}|\widetilde b_{ij}|
+\le1.
+\]
+
+The sign orthogonality above, applied to singleton sets, gives
+\[
+\mathbb E_Z[T_{G,\mathrm{lin}}^2]
+=
+\frac4{n^2}\sum_{j\in V}
+\left(\sum_{\substack{i\in V\\j\in N_i}}\mu_i\right)^2.
+\]
+For each \(j\), finite Cauchy--Schwarz and the coordinate multiplicity bound yield
+\[
+\left(\sum_{\substack{i\in V\\j\in N_i}}\mu_i\right)^2
+\le
+\left|\{i\in V:j\in N_i\}\right|
+\sum_{\substack{i\in V\\j\in N_i}}\mu_i^2
+\le
+d_+\sum_{\substack{i\in V\\j\in N_i}}\mu_i^2.
+\]
+Summing and reversing the finite sums gives
+\[
+\begin{aligned}
+\sum_{j\in V}
+\left(\sum_{\substack{i\in V\\j\in N_i}}\mu_i\right)^2
+&\le d_+\sum_{j\in V}\sum_{\substack{i\in V\\j\in N_i}}\mu_i^2\\
+&=d_+\sum_{i\in V}|N_i|\mu_i^2\\
+&\le d_+\sum_{i\in V}d_+
+=nd_+^2.
+\end{aligned}
+\]
+Since \(n\ge4\), scaling by \(4/n^2\) therefore gives
+\[
+\mathbb E_Z[T_{G,\mathrm{lin}}^2]\le\frac{4d_+^2}{n}.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.oracle_linear_scaled_second_moment_le
+
+\item Define the collected ordered-pair coefficients for all \(j,k\in V\) by
+\[
+b^{\mathrm{pair}}_{jk}
+:=
+\sum_{\substack{i\in V\\j\in N_i,\ k\in N_i\setminus\{j\}}}
+\widetilde b_{ij}.
+\]
+An empty sum equals zero; in particular,
+\[
+b^{\mathrm{pair}}_{jj}=0.
+\]
+Reversing the finite sums in the quadratic term gives
+\[
+nT_{G,\mathrm{quad}}
+=\sum_{j\in V}\sum_{k\in V}b^{\mathrm{pair}}_{jk}X_jX_k.
+\]
+For \(j,k,j',k'\in V\) with \(j\ne k\) and \(j'\ne k'\), sign orthogonality gives
+\[
+\mathbb E_Z[X_jX_kX_{j'}X_{k'}]
+=
+\begin{cases}
+1,&(j',k')=(j,k)\ \text{or}\ (j',k')=(k,j),\\
+0,&\text{otherwise}.
+\end{cases}
+\]
+Indeed, the two products correspond to the sets \(\{j,k\}\) and \(\{j',k'\}\), which agree precisely in those two orientations. Thus, for \(j\ne k\),
+\[
+\mathbb E_Z\!\left[
+X_jX_k\sum_{j'\in V}\sum_{k'\in V}
+b^{\mathrm{pair}}_{j'k'}X_{j'}X_{k'}
+\right]
+=b^{\mathrm{pair}}_{jk}+b^{\mathrm{pair}}_{kj}.
+\]
+Expanding the square and using \(b^{\mathrm{pair}}_{jj}=0\) for its diagonal terms consequently yields
+\[
+\mathbb E_Z[T_{G,\mathrm{quad}}^2]
+=
+\frac1{n^2}\sum_{j\in V}\sum_{k\in V}
+b^{\mathrm{pair}}_{jk}
+\left(b^{\mathrm{pair}}_{jk}+b^{\mathrm{pair}}_{kj}\right).
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.oracle_quadratic_second_moment
+
+\item The incidence condition defining \(b^{\mathrm{pair}}_{jk}\) is unchanged by swapping \(j\) and \(k\). Hence
+\[
+b^{\mathrm{pair}}_{jk}+b^{\mathrm{pair}}_{kj}
+=
+\sum_{\substack{i\in V\\j\in N_i,\ k\in N_i\setminus\{j\}}}
+(\widetilde b_{ij}+\widetilde b_{ik}).
+\]
+The set of recipients in this sum is contained in
+\(\{i\in V:j\in N_i\}\), whose size is at most \(d_+\). Cauchy--Schwarz therefore gives, for every \(j,k\in V\),
+\[
+\left(b^{\mathrm{pair}}_{jk}+b^{\mathrm{pair}}_{kj}\right)^2
+\le
+d_+\sum_{\substack{i\in V\\j\in N_i,\ k\in N_i\setminus\{j\}}}
+(\widetilde b_{ij}+\widetilde b_{ik})^2.
+\]
+For \(j=k\), both sides are zero.
+
+For \(j\in N_i\) and \(k\in N_i\setminus\{j\}\), the coefficient-mass bound gives
+\[
+|\widetilde b_{ij}|+|\widetilde b_{ik}|
+\le\sum_{\ell\in N_i}|\widetilde b_{i\ell}|
+\le1.
+\]
+The triangle inequality then gives the rowwise pair estimate
+\[
+(\widetilde b_{ij}+\widetilde b_{ik})^2
+\le
+\left(|\widetilde b_{ij}|+|\widetilde b_{ik}|\right)^2
+\le
+|\widetilde b_{ij}|+|\widetilde b_{ik}|.
+\]
+Summing this estimate and enlarging each inner sum by its nonnegative diagonal term yields
+\[
+\begin{aligned}
+\sum_{j\in N_i}\sum_{k\in N_i\setminus\{j\}}
+(\widetilde b_{ij}+\widetilde b_{ik})^2
+&\le
+\sum_{j\in N_i}\sum_{k\in N_i\setminus\{j\}}
+\left(|\widetilde b_{ij}|+|\widetilde b_{ik}|\right)\\
+&\le
+\sum_{j\in N_i}\sum_{k\in N_i}
+\left(|\widetilde b_{ij}|+|\widetilde b_{ik}|\right)\\
+&=2|N_i|\sum_{j\in N_i}|\widetilde b_{ij}|\\
+&\le2d_+.
+\end{aligned}
+\]
+When \(N_i=\{i\}\), the sums over distinct coordinates are empty and the same bound applies.
+
+Summing the pairwise Cauchy--Schwarz inequalities and reindexing by recipient now gives
+\[
+\begin{aligned}
+\sum_{j\in V}\sum_{k\in V}
+\left(b^{\mathrm{pair}}_{jk}+b^{\mathrm{pair}}_{kj}\right)^2
+&\le
+d_+\sum_{i\in V}\sum_{j\in N_i}
+\sum_{k\in N_i\setminus\{j\}}
+(\widetilde b_{ij}+\widetilde b_{ik})^2\\
+&\le d_+\sum_{i\in V}2d_+
+=2nd_+^2.
+\end{aligned}
+\]
+Finally, expanding the square and exchanging \(j\) and \(k\) in one of the resulting sums gives
+\[
+\sum_{j\in V}\sum_{k\in V}
+\left(b^{\mathrm{pair}}_{jk}+b^{\mathrm{pair}}_{kj}\right)^2
+=
+2\sum_{j\in V}\sum_{k\in V}
+b^{\mathrm{pair}}_{jk}
+\left(b^{\mathrm{pair}}_{jk}+b^{\mathrm{pair}}_{kj}\right).
+\]
+It follows that
+\[
+\sum_{j\in V}\sum_{k\in V}
+b^{\mathrm{pair}}_{jk}
+\left(b^{\mathrm{pair}}_{jk}+b^{\mathrm{pair}}_{kj}\right)
+\le nd_+^2.
+\]
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.oracle_quadratic_energy_le
+
+\item Combining the exact quadratic second moment with this energy bound gives
+\[
+\mathbb E_Z[T_{G,\mathrm{quad}}^2]
+\le\frac{nd_+^2}{n^2}
+=\frac{d_+^2}{n}.
+\]
+Together with the vanishing cross moment and the linear bound, this proves
+\[
+\operatorname{Var}_Z(T_G)
+\le\frac{4d_+^2}{n}+\frac{d_+^2}{n}
+=\frac{5(d+1)^2}{n}.
+\]
+The unbiasedness and variance identity established above complete the proof.
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.oracle_variance_le
+\end{enumerate}
+% lean: CausalSmith.Experimentation.ThinnedgraphAdditiveRiskFrontier.score_audit
+\end{proof}

@@ -1,0 +1,239 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Bochner integral against a `Measure.bind`
+
+Mathlib provides `MeasureTheory.Measure.lintegral_bind` for the lower Lebesgue
+integral, but no analogue for the Bochner integral.  This file supplies the
+missing bridge: integrating a Bochner-integrable function against the Giry-monad
+bind `m.bind κ` equals the iterated integral `∫ a, ∫ x, f x ∂κ a ∂m`.
+
+This is a purely measure-theoretic statement over generic types and a generic
+normed space, with the standard measurability and integrability side-conditions.
+-/
+
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Measure.GiryMonad
+public import Mathlib.Probability.Kernel.Composition.IntegralCompProd
+public import Mathlib.Probability.Kernel.Invariance
+
+/-! # Bochner Integrals Against Measure Binds
+
+This file proves Bochner-integral identities for Giry-monad binds and for binds whose
+fibres are pushforwards. These identities convert an integral against a bound measure
+into the corresponding iterated integral, supporting nested-kernel calculations in the
+causal and statistical parts of the library.
+
+The main public results are `integral_bind`, `integral_bind_map`,
+`integral_bind_bind_map`, `integral_bind_of_ae_eq_const`, `map_bind_bind_map_proj`, and
+`integral_bind_bind_map_proj`. Together they cover one-level binds, bind-then-map
+integrals, doubly nested bind-then-map integrals, fibrewise constant collapses, and
+projection back to a reattached base coordinate. -/
+
+public section
+
+open MeasureTheory ProbabilityTheory
+
+namespace Causalean.Mathlib.MeasureTheory
+
+/-- If [`κ` is a measurable family of measures, one per point of the base space (a measurable
+kernel)](hyp:hκ) and [`f` is Bochner-integrable against the measure `m.bind κ` obtained by
+mixing `κ` over the base measure `m`](hyp:hf), then [the Bochner integral of `f` against
+`m.bind κ` equals the iterated integral: first integrate `f` against `κ a` for each base
+point `a`, then integrate the result against `m`](goal). This is the Bochner analogue of
+`MeasureTheory.Measure.lintegral_bind`. -/
+theorem integral_bind {α β E : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {m : Measure α} {κ : α → Measure β} {f : β → E}
+    (hκ : Measurable κ)
+    (hf : Integrable f (m.bind κ)) :
+    ∫ x, f x ∂m.bind κ = ∫ a, ∫ x, f x ∂κ a ∂m := by
+  let K : Kernel α β := ⟨κ, hκ⟩
+  have hcomp : (K ∘ₘ m) = m.bind κ := by
+    rw [Measure.comp_eq_comp_const_apply]
+    rfl
+  rw [← hcomp]
+  simpa [K, Kernel.comp_apply, Measure.comp_eq_comp_const_apply] using
+    (ProbabilityTheory.Kernel.integral_comp
+      (κ := Kernel.const Unit m) (η := K) (a := ()) (f := f)
+      (by simpa [K, Kernel.comp_apply, Measure.comp_eq_comp_const_apply] using hf))
+
+/-- Suppose [each map `g a` is measurable](hyp:hg), [the kernel sending a base point `a` to the
+pushforward measure `(κ a).map (g a)` is itself measurable](hyp:hgm), and [`f` is
+Bochner-integrable against the mixed measure `m.bind (fun a => (κ a).map (g a))`](hyp:hf).
+Then [the Bochner integral of `f` against that mixed measure equals the iterated integral
+of the pulled-back integrand `a ↦ ∫ x, f (g a x) ∂κ a` against the base measure `m`](goal).
+This packages a single application of `integral_bind` with the fibrewise
+`MeasureTheory.integral_map`, supplying the bridge needed to expand a nested bind-then-map
+Bochner integral. -/
+theorem integral_bind_map {α β γ E : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    [MeasurableSpace γ] [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {m : Measure α} {κ : α → Measure β} {g : α → β → γ} {f : γ → E}
+    (hg : ∀ a, Measurable (g a))
+    (hgm : Measurable (fun a => (κ a).map (g a)))
+    (hf : Integrable f (m.bind (fun a => (κ a).map (g a)))) :
+    ∫ z, f z ∂m.bind (fun a => (κ a).map (g a)) = ∫ a, ∫ x, f (g a x) ∂κ a ∂m := by
+  let K : Kernel α γ := ⟨fun a => (κ a).map (g a), hgm⟩
+  have hcomp : (K ∘ₘ m) = m.bind fun a => (κ a).map (g a) := by
+    rw [Measure.comp_eq_comp_const_apply]
+    rfl
+  have hfK : Integrable f ((K ∘ₘ m)) := by simpa [hcomp] using hf
+  have hfiber_int_ae : ∀ᵐ a ∂m, Integrable f ((κ a).map (g a)) := by
+    simpa [K, Kernel.const_apply] using
+      (MeasureTheory.Integrable.ae_of_comp
+        (κ := Kernel.const Unit m) (η := K) (a := ()) (f := f) hfK)
+  have hfiber : (fun a => ∫ z, f z ∂(κ a).map (g a)) =ᶠ[ae m]
+      (fun a => ∫ x, f (g a x) ∂κ a) := by
+    filter_upwards [hfiber_int_ae] with a ha
+    exact integral_map (hg a).aemeasurable ha.aestronglyMeasurable
+  calc
+    ∫ z, f z ∂m.bind (fun a => (κ a).map (g a))
+        = ∫ z, f z ∂(K ∘ₘ m) := by rw [hcomp]
+    _ = ∫ a, ∫ z, f z ∂K a ∂m := by
+      simpa [K, Kernel.comp_apply, Measure.comp_eq_comp_const_apply] using
+        (ProbabilityTheory.Kernel.integral_comp
+          (κ := Kernel.const Unit m) (η := K) (a := ()) (f := f) hfK)
+    _ = ∫ a, ∫ x, f (g a x) ∂κ a ∂m := integral_congr_ae hfiber
+
+/-- Suppose [each map `g a b` is measurable](hyp:hg), [for every base point `a` the pushforward
+kernel `b ↦ (κ₂ a b).map (g a b)` is measurable](hyp:hmap), [the resulting doubly-nested mixed
+kernel `a ↦ (κ₁ a).bind (fun b => (κ₂ a b).map (g a b))` is itself measurable](hyp:hker), and
+[`f` is Bochner-integrable against the measure obtained by mixing `κ₁` over the base measure
+`m` and, within each fibre, mixing the pushforward of `κ₂` under `g`](hyp:hf). Then [the
+Bochner integral of `f` against that triply-nested mixed measure equals the threefold iterated
+integral of the pulled-back integrand `(a, b, c) ↦ f (g a b c)`, integrated successively
+against `κ₂ a b`, `κ₁ a`, and `m`](goal). This is the single bridge for a
+`bind`-then-`bind`-then-`map` integrand, which neither `integral_bind` nor `integral_bind_map`
+covers in one step. -/
+theorem integral_bind_bind_map {α β γ δ E : Type*}
+    [MeasurableSpace α] [MeasurableSpace β] [MeasurableSpace γ]
+    [MeasurableSpace δ] [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {m : Measure α} {κ₁ : α → Measure β} {κ₂ : α → β → Measure γ}
+    {g : α → β → γ → δ} {f : δ → E}
+    (hg : ∀ a b, Measurable (g a b))
+    (hmap : ∀ a, Measurable fun b => (κ₂ a b).map (g a b))
+    (hker : Measurable fun a => (κ₁ a).bind fun b => (κ₂ a b).map (g a b))
+    (hf : Integrable f (m.bind fun a => (κ₁ a).bind fun b => (κ₂ a b).map (g a b))) :
+    ∫ z, f z ∂(m.bind fun a => (κ₁ a).bind fun b => (κ₂ a b).map (g a b))
+      = ∫ a, ∫ b, ∫ c, f (g a b c) ∂(κ₂ a b) ∂(κ₁ a) ∂m := by
+  let K : Kernel α δ := ⟨fun a => (κ₁ a).bind fun b => (κ₂ a b).map (g a b), hker⟩
+  have hcomp : (K ∘ₘ m) = m.bind fun a => (κ₁ a).bind fun b => (κ₂ a b).map (g a b) := by
+    rw [Measure.comp_eq_comp_const_apply]; rfl
+  have hfK : Integrable f (K ∘ₘ m) := by simpa [hcomp] using hf
+  have hfiber_int_ae : ∀ᵐ a ∂m,
+      Integrable f ((κ₁ a).bind fun b => (κ₂ a b).map (g a b)) := by
+    simpa [K, Kernel.const_apply] using
+      (MeasureTheory.Integrable.ae_of_comp
+        (κ := Kernel.const Unit m) (η := K) (a := ()) (f := f) hfK)
+  have hcollapse :
+      (fun a => ∫ z, f z ∂((κ₁ a).bind fun b => (κ₂ a b).map (g a b)))
+        =ᶠ[ae m] (fun a => ∫ b, ∫ c, f (g a b c) ∂(κ₂ a b) ∂(κ₁ a)) := by
+    filter_upwards [hfiber_int_ae] with a hfa
+    exact integral_bind_map (hg a) (hmap a) hfa
+  rw [integral_bind hker hf]
+  exact integral_congr_ae hcollapse
+
+/-- Suppose [`κ` is a measurable family of measures](hyp:hκ), [every fibre `κ a` is a
+probability measure](hyp:hp), [the integrand `f` agrees `κ a`-almost everywhere with a constant
+`f' a` on that fibre, for every base point `a`](hyp:hconst), and [`f` is Bochner-integrable
+against the mixed measure `m.bind κ`](hyp:hf). Then [the Bochner integral of `f` against
+`m.bind κ` equals the integral of the fibrewise constant `f'` against the base measure
+`m`](goal). This is the bridge for the situation where the integrand only depends on a
+coordinate that is constant within each inner kernel, so the inner integral evaluates to that
+constant and the `bind` reduces to `∫ a, f' a ∂m`. -/
+theorem integral_bind_of_ae_eq_const {α β E : Type*} [MeasurableSpace α]
+    [MeasurableSpace β] [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {m : Measure α} {κ : α → Measure β} {f : β → E} {f' : α → E}
+    (hκ : Measurable κ) (hp : ∀ a, IsProbabilityMeasure (κ a))
+    (hconst : ∀ a, ∀ᵐ y ∂κ a, f y = f' a)
+    (hf : Integrable f (m.bind κ)) :
+    ∫ y, f y ∂m.bind κ = ∫ a, f' a ∂m := by
+  rw [integral_bind hκ hf]
+  by_cases hE : CompleteSpace E
+  · have hfiber : (fun a => ∫ y, f y ∂κ a) =ᶠ[ae m] (fun a => f' a) := by
+      exact Filter.Eventually.of_forall fun a => by
+        calc
+          ∫ y, f y ∂κ a = ∫ y, f' a ∂κ a := integral_congr_ae (hconst a)
+          _ = f' a := by
+            rw [integral_const, measureReal_def, isProbabilityMeasure_iff.mp (hp a)]
+            simp
+    exact integral_congr_ae hfiber
+  · simp [integral, hE]
+
+/-- Suppose [every fibre `κ₁ a` is a probability measure](hyp:hp₁), [every inner fibre
+`κ₂ a b` is a probability measure](hyp:hp₂), [each map `g a b` is measurable](hyp:hg), [for
+every base point `a` the pushforward kernel `b ↦ (κ₂ a b).map (g a b)` is
+measurable](hyp:hmap), [the resulting doubly-nested mixed kernel is measurable](hyp:hker), [the
+projection `π` is measurable](hyp:hπ), and [`π` undoes `g` by recovering the base point:
+`π (g a b c) = a` for all `a`, `b`, `c`](hyp:hπg). Then [pushing the triply-nested mixed
+measure forward along `π` returns exactly the base measure `m`](goal). This is the underlying
+measure identity behind `integral_bind_bind_map_proj`, stated without any integrability or
+integrand hypotheses: the two inner probability fibres each contribute total mass one over a
+fixed base point, so transporting back along `π` returns `m` unchanged (no hypothesis on `m`
+is needed). It is the bridge for marginalising a nested Giry-monad construction onto its
+reattached coordinate when only measurability of the eventual integrand is available. -/
+theorem map_bind_bind_map_proj {α β γ δ : Type*}
+    [MeasurableSpace α] [MeasurableSpace β] [MeasurableSpace γ]
+    [MeasurableSpace δ]
+    {m : Measure α} {κ₁ : α → Measure β} {κ₂ : α → β → Measure γ}
+    {g : α → β → γ → δ} {π : δ → α}
+    (hp₁ : ∀ a, IsProbabilityMeasure (κ₁ a))
+    (hp₂ : ∀ a b, IsProbabilityMeasure (κ₂ a b))
+    (hg : ∀ a b, Measurable (g a b))
+    (hmap : ∀ a, Measurable fun b => (κ₂ a b).map (g a b))
+    (hker : Measurable fun a => (κ₁ a).bind fun b => (κ₂ a b).map (g a b))
+    (hπ : Measurable π) (hπg : ∀ a b c, π (g a b c) = a) :
+    (m.bind fun a => (κ₁ a).bind fun b => (κ₂ a b).map (g a b)).map π = m := by
+  have hdπ : Measurable (fun z => Measure.dirac (π z)) := by fun_prop
+  have key : ∀ a, ((κ₁ a).bind fun b => (κ₂ a b).map (g a b)).map π = Measure.dirac a := by
+    intro a
+    have hinner : (fun b => ((κ₂ a b).map (g a b)).map π) = fun _ => Measure.dirac a := by
+      funext b; rw [Measure.map_map hπ (hg a b)]
+      have hc : (π ∘ g a b) = fun _ => a := funext (hπg a b)
+      rw [hc, Measure.map_const, (hp₂ a b).measure_univ, one_smul]
+    rw [← Measure.bind_dirac_eq_map _ hπ, Measure.bind_bind (hmap a).aemeasurable hdπ.aemeasurable]
+    have hstep : (fun b => ((κ₂ a b).map (g a b)).bind fun z => Measure.dirac (π z))
+        = fun _ => Measure.dirac a := by
+      funext b; rw [Measure.bind_dirac_eq_map _ hπ]; exact congrFun hinner b
+    rw [hstep, Measure.bind_const, (hp₁ a).measure_univ, one_smul]
+  rw [← Measure.bind_dirac_eq_map _ hπ, Measure.bind_bind hker.aemeasurable hdπ.aemeasurable]
+  have hstep2 : (fun a => ((κ₁ a).bind fun b => (κ₂ a b).map (g a b)).bind
+        fun z => Measure.dirac (π z)) = fun a => Measure.dirac a := by
+    funext a; rw [Measure.bind_dirac_eq_map _ hπ]; exact key a
+  rw [hstep2, Measure.bind_dirac]
+
+/-- Suppose [every fibre `κ₁ a` is a probability measure](hyp:hp₁), [every inner fibre
+`κ₂ a b` is a probability measure](hyp:hp₂), [each map `g a b` is measurable](hyp:hg), [for
+every base point `a` the pushforward kernel `b ↦ (κ₂ a b).map (g a b)` is
+measurable](hyp:hmap), [the resulting doubly-nested mixed kernel is measurable](hyp:hker), [the
+projection `π` is measurable](hyp:hπ), [`π` undoes `g` by recovering the base point:
+`π (g a b c) = a` for all `a`, `b`, `c`](hyp:hπg), and [`f` is Bochner-integrable against the
+base measure `m`](hyp:hf'). Then [integrating the pulled-back function `f ∘ π` against the
+triply-nested mixed measure equals integrating `f` directly against the base measure
+`m`](goal). This is the one-step bridge for marginalising a nested Giry-monad construction
+back onto the coordinate that the innermost pushforward carries through; the fibrewise
+probability-mass-one hypotheses are what make the two inner integrals of the constant `f a`
+evaluate to `f a` (no assumption on `m` is needed). -/
+theorem integral_bind_bind_map_proj {α β γ δ E : Type*}
+    [MeasurableSpace α] [MeasurableSpace β] [MeasurableSpace γ]
+    [MeasurableSpace δ] [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {m : Measure α} {κ₁ : α → Measure β} {κ₂ : α → β → Measure γ}
+    {g : α → β → γ → δ} {π : δ → α} {f : α → E}
+    (hp₁ : ∀ a, IsProbabilityMeasure (κ₁ a))
+    (hp₂ : ∀ a b, IsProbabilityMeasure (κ₂ a b))
+    (hg : ∀ a b, Measurable (g a b))
+    (hmap : ∀ a, Measurable fun b => (κ₂ a b).map (g a b))
+    (hker : Measurable fun a => (κ₁ a).bind fun b => (κ₂ a b).map (g a b))
+    (hπ : Measurable π) (hπg : ∀ a b c, π (g a b c) = a)
+    (hf' : Integrable f m) :
+    ∫ z, f (π z) ∂(m.bind fun a => (κ₁ a).bind fun b => (κ₂ a b).map (g a b))
+      = ∫ a, f a ∂m := by
+  have hmeq := map_bind_bind_map_proj (m := m)
+    hp₁ hp₂ hg hmap hker hπ hπg
+  conv_rhs => rw [← hmeq]
+  exact (integral_map hπ.aemeasurable (hmeq.symm ▸ hf'.aestronglyMeasurable)).symm
+
+end Causalean.Mathlib.MeasureTheory

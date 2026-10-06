@@ -1,0 +1,48 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Basic
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.AuditedProjectionRisk
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.CappedConverse
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.CappedRisk
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.CloneClass
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.ClonePreservation
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.CollisionAsymptotic
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.CollisionEnvelope
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.CollisionTV
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.FrontierCollision
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.FrontierTheorems
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.FrontierWitness
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.FullHistory
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.MinimaxMonotonicity
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.PhiwBias
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.PhiwCrossMoments
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.PhiwOverlapCarrier
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.PhiwScoreMoments
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.PhiwSharpMoments
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.PhiwStationary
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.PhiwVariance
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.PhiwWeightedFuture
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.PlateauAsymptotic
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.SignedDepth
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.Transfer
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.UniformLower
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.UnitOverlapLower
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.UnitOverlapUpper
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.UnitOverlapVariance
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.TCloneBudgetFrontier
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.THuWagerUniformAuditMinimax
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.TOverflowSafeHighCardinalityPlateau
+public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.TUnitOverlapSanity
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

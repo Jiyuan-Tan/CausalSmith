@@ -1,0 +1,67 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.SCM.PartialID.CanonicalModel
+
+/-! # Sharpness certificates for graphical partial-identification bounds
+
+For a graphical partial-identification problem, a valid bound `[L, U]` on a real-valued causal
+query is **sharp** when the identified set — the range of the query over the compatible class
+of structural causal models — is exactly `[L, U]`. Sharpness is *preferred but not required*:
+a valid relaxed bound stands on its own; a sharpness claim must additionally exhibit compatible
+models attaining each endpoint.
+
+This file records the sharpness predicate and the standard **certificate**: if the identified
+set is order-convex, lies inside `[L, U]` (soundness), and the endpoints `L` and `U` are each
+attained by some compatible model, then the bound is sharp. The order-convexity hypothesis is
+the usual mixing-path input (a continuous family of compatible models interpolating the query
+value); it is left as a hypothesis so the certificate applies to any problem that supplies it.
+-/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+namespace Causalean.SCM.PartialID
+
+variable {N : Type*} [DecidableEq N] [Fintype N]
+variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
+
+/-- For [a finite node set](hyp:N) with [measurable node-value spaces](hyp:Ω),
+[a SWIG graph](hyp:G), [a structural-assumption predicate](hyp:As),
+[a baseline structural causal model](hyp:M₀), [a real-valued query of such models](hyp:obj),
+and [lower and upper endpoints](hyp:L,U), [the sharpness predicate](goal) holds exactly when
+the query's range over compatible models is the closed interval with those endpoints.
+
+A bound `[L, U]` is **sharp** for the real-valued query `obj` over the compatible class of
+`(G, As, M₀)` when the identified set (the range of `obj` over the compatible class) is exactly
+the closed interval `[L, U]`. -/
+def IsSharp (G : SWIGGraph N) (As : Causalean.SCM N Ω → Prop) (M₀ : Causalean.SCM N Ω)
+    (obj : Causalean.SCM N Ω → ℝ) (L U : ℝ) : Prop :=
+  compatibleIdentifiedSet G As M₀ obj = Set.Icc L U
+
+/-- **Sharpness certificate.** For a real-valued query `obj` over the compatible class of
+`(G, As, M₀)`, if [the identified set is contained in the interval `[L, U]`](hyp:hsub)
+(soundness), [the identified set is order-connected](hyp:hconn), [some compatible model attains
+the value `L`](hyp:hL), and [some compatible model attains the value `U`](hyp:hU), then [the
+identified set equals `[L, U]`, i.e. the bound is sharp](goal). -/
+theorem isSharp_of_attaining (G : SWIGGraph N) (As : Causalean.SCM N Ω → Prop)
+    (M₀ : Causalean.SCM N Ω) (obj : Causalean.SCM N Ω → ℝ) (L U : ℝ)
+    (hsub : compatibleIdentifiedSet G As M₀ obj ⊆ Set.Icc L U)
+    (hconn : (compatibleIdentifiedSet G As M₀ obj).OrdConnected)
+    (hL : ∃ M, CompatibleSCM G As M₀ M ∧ obj M = L)
+    (hU : ∃ M, CompatibleSCM G As M₀ M ∧ obj M = U) :
+    IsSharp G As M₀ obj L U := by
+  refine Set.Subset.antisymm hsub ?_
+  obtain ⟨ML, hML, hobjL⟩ := hL
+  obtain ⟨MU, hMU, hobjU⟩ := hU
+  have memL : L ∈ compatibleIdentifiedSet G As M₀ obj := ⟨⟨ML, hML⟩, hobjL⟩
+  have memU : U ∈ compatibleIdentifiedSet G As M₀ obj := ⟨⟨MU, hMU⟩, hobjU⟩
+  exact hconn.out memL memU
+
+end Causalean.SCM.PartialID

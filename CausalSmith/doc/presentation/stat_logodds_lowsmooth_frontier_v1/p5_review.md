@@ -1,0 +1,30 @@
+# Referee review
+
+**Recommendation:** major_revision
+**Overall score:** 7.2/10 — The verified all-radius characterization provides a substantial theoretical contribution with faithful scope, while the manuscript requires major organizational revision and several targeted exposition and attribution repairs.
+
+The paper characterizes minimax expected interval length for a homogeneous conditional log-odds coefficient under a known uniform scalar design and prescribed public Hölder exponents. Its contribution combines an effect-sensitive two-term profile, one ambiently honest attaining procedure across radii, and matching converses within the homogeneous logistic model. The principal prose claims faithfully represent the verified results, and the related-work comparisons engage relevant rates and conditions. Publication merits serious consideration after restructuring the manuscript around its statistical contribution.
+
+## Strengths
+- The separation between ambient coverage and effect-radius length evaluation produces a clear and consequential characterization of precision near zero.
+- Concrete attainment and the converse cover every finite sample size, the complete stated exponent domain, and independently randomized competitors.
+- The calibrated lower-bound families preserve continuity, native-logit smoothness, and a common effect within every constituent law.
+- The dedicated early related-work section compares nearby logistic, covariance, and higher-order inference results through their actual conditions and guarantees.
+- The computational discussion accurately conditions its guarantees on valid representations and primitive arithmetic contracts.
+
+## Findings
+- **[major·structure] Sharp expected length across effect radii; Constructing an honest interval; appendices** — The presentation obscures the statistical result beneath implementation and calibration declarations. After the concise statistical summary, readers encounter dyadic policies, arithmetic engines, rank selection, causal extensions, comparison constants, and lengthy calibration maps before the principal theorem. Three extensive frontier theorem statements and their synthesis proofs then repeat substantially the same guarantees. Exhaustive object-reference lists further interrupt the argument.
+  - *Fix:* Organize the main text around the model, coverage criterion, one primary frontier statement, observable coordinates, attaining construction, and a concise converse roadmap. Move detailed arithmetic contracts, calibration definitions, and synthesis declarations to a technical appendix or supplement while preserving their exact labels and guarantees. Consolidate repeated interpretations and replace exhaustive reference inventories with references to the objects needed at each step.
+- **[minor·citation] Related work; Identification and projection bounds** — The manuscript attributes the projected-product architecture mainly through recent covariance papers. Its extensive treatment of U-statistic moments and smoothness elbows would benefit from explicit credit to the foundational U-statistic and quadratic-functional literature identified in the supplied related-work brief.
+  - *Fix:* Add a compact paragraph identifying Hoeffding decomposition and classical quadratic-functional estimation as supporting foundations. Supply accurate source locators and distinguish that inherited architecture from the paper's all-radius honest-length characterization and homogeneous-logistic calibration.
+- **[minor·prose] Sharp expected length across effect radii** — The first displayed use of C(P) and S(P), in the main statistical summary, supplies their identity and denominator floor before naming each symbol explicitly or giving its observable definition. Their defining formulas appear substantially later. The comparison-constants definition likewise uses the rate and interval aliases before their defining environment.
+  - *Fix:* Introduce C(P), the observable covariance numerator, and S(P), the integrated off-diagonal cell-product denominator, with their formulas before the identity. Place the comparison-constants definition after the rate and attaining-family definition. Attach plain-word glosses at first use and retain exact cleveref references.
+- **[minor·prose] Sharp expected length across effect radii** — The sentence 'Equating the two contributions yields the radius balance' is followed by the exact assignment r_n=n^{-(a-b)} within a discussion of sequences restricted to [0,1/2]. This assignment exceeds the admissible radius range at n=1 and can remain outside it for additional sample sizes.
+  - *Fix:* Describe n^{-(a-b)} as the asymptotic balance scale and state that it enters the admissible radius range for sufficiently large n at each fixed exponent pair. Keep the all-n frontier comparison separate from this asymptotic regime interpretation.
+- **[minor·prose] Introduction; Constructing an honest interval** — Editorial explanations such as 'In reader-facing prose ... the formal layer also uses the aliases' and the isolated sentence 'The results supporting ... hold under their stated assumptions' distract from the scientific exposition. Reusing the same symbols for resolution endpoints and coordinate error radii also requires repeated explanatory interruptions.
+  - *Fix:* Replace editorial commentary with a short scientific notation convention, use distinct notation for resolution-enclosure endpoints and coordinate error radii in surrounding exposition, and remove the vacuous introductory sentence. Preserve the conditions already stated with each result.
+
+## Questions for authors
+- Can the manuscript identify one primary statistical theorem and place the remaining synthesis declarations in the technical supplement?
+- Which foundational references most directly support the projected-product construction, and where does the homogeneous-logistic calibration depart from their constructions?
+

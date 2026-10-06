@@ -1,0 +1,10 @@
+# Revision routing plan (minor_revision)
+
+## fix by hand in the authored sources (prose/structure rewrite)
+- [minor·structure·rewrite] (Introduction; Causal records and observational sampling) The introduction references \cref{sec:related-work}, but the supplied Related work section has no corresponding label. The sentence saying that coordinate conventions are 'recorded in Appendix~A' uses a manually numbered reference and points away from the conventions actually presented immediately afterward in the main text.
+- [minor·structure·rewrite] (Observation model, identification, and decision criteria) The observation model repeatedly introduces the same record coordinates through an opening paragraph, separate outcome, treatment, and covariate definitions, and another full-coordinate definition. This interrupts the progression from observational sampling to identification and the decision problems.
+- [minor·prose·rewrite] (Discussion and limitations, before Limitations and future work) The sentences 'These are order comparisons for the specified model, rather than finite-sample design recommendations' and 'This argument explains the common frontier without reducing honest inference to a point-estimation slogan' use contrastive non-coverage framing outside the explicitly titled limitations subsection. The latter also introduces an unnecessarily dismissive description of an alternative argument.
+- [minor·prose·rewrite] (Discussion and limitations) Two consecutive paragraphs explain essentially the same interval mechanism: transferred coverage produces simultaneous containment, and connectedness converts separation into length. This repeats explanations already supplied in the introduction and main-results section.
+- [nit·prose·rewrite] (A private release based on within-cell pairs; Population pair moments and occupancy) The phrases 'following frozen algorithm' and 'following frozen statement' introduce unexplained editorial terminology into the mathematical exposition.
+
+→ revise by hand at the level that owns each finding; formal statements remain frozen; then rescore once

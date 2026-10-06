@@ -1,0 +1,293 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+
+# Linear-smoother specialisation for the DR-Learner CATE estimator
+
+This file proves a finite-grid Hölder-type product bound for the smoothed
+DR-bias term and records a separate assumption-driven oracle-efficiency
+wrapper. The wrapper does not derive its smoothed-bias rate from the bound.
+
+Two declarations are provided:
+
+* `cate_linear_smoother_bias_bound` — linear-smoother bias bound. The smoothed
+  bias of `condBias η_hat η₀` is bounded arm-by-arm by
+  `aipw_rem_const ε * c_n * ‖Δπ‖_{w,p} * Σ_a ‖Δμ_a‖_{w,q}` once the linear
+  smoother is witnessed by `HasWeightedSumRepresentation op n ω x B w xs` and the
+  absolute-weight envelope `Σ |w_i| ≤ c_n` is in place.
+* `cate_dr_oracle_efficient_linear_of_stable_of_smoothed_bias` — projection
+  wrapper specialized to a `SecondStageOperatorWithWeights`, assuming stability and the
+  smoothed-bias rate.
+-/
+
+module
+public import Causalean.Estimation.CATE.Kennedy.OracleExpansion
+public import Causalean.Estimation.OrthogonalMoments.LinearSmoother
+public import Causalean.Estimation.ATE.Remainder.Bound
+
+/-! # Linear-Smoother DR-Learner Bounds
+
+This file proves a deterministic finite-grid Hölder product bound:
+`cate_linear_smoother_bias_bound` bounds the smoothed nuisance bias by weighted
+outcome-regression and propensity-score errors under its displayed overlap,
+linear-smoother, weight-envelope, and conjugate-exponent hypotheses. It also
+provides the separate projection wrapper
+`cate_dr_oracle_efficient_linear_of_stable_of_smoothed_bias`, whose stability
+and smoothed-bias rate remain caller-supplied assumptions. -/
+
+public section
+
+namespace Causalean
+namespace Estimation
+namespace CATE
+
+open MeasureTheory ProbabilityTheory Filter Topology
+  Causalean.PO Causalean.Stat Causalean.Estimation.ATE Causalean.Estimation.OrthogonalMoments
+
+variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
+  [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+
+/-- **Finite-grid Hölder product bound for the DR-Learner CATE estimator.** Fix a candidate
+nuisance sequence `η_hat`, a linear-smoother operator `op`, a sample index `n`, a
+realization `ω`, an evaluation point `x`, a data enumeration `xs` over an index set `B`
+with weights `w`, and constants `c_n, p, q`. Under [two-sided strict overlap for the
+truth](hyp:h_overlap), if [the estimated nuisance `η_hat n ω` has propensity uniformly
+bounded in `[ε, 1 − ε]`](hyp:h_overlap_η_hat), [`op` realizes the linear smoother
+`Σ_i w_i · f(xs i)` at `(n, ω, x)` over `B`](hyp:hLin), [the weights satisfy the
+absolute-value envelope `Σ |w_i| ≤ c_n`](hyp:hWeights), and [`p` and `q` are
+Hölder-conjugate exponents](hyp:hConj), then [the smoothed conditional-bias evaluation
+`op.evalAt n ω (condBias η_hat η₀ ∘ proj₁) x` is bounded in absolute value by
+`aipw_rem_const ε · c_n` times the weighted-`p`-norm of the propensity error `Δπ` times the
+sum over treatment arms of the weighted-`q`-norm of the outcome-regression error
+`Δμ_a`](goal).
+
+Kennedy (2023), Proposition 2, instead gives an asymptotic stochastic-order
+bound for a generic factorized conditional bias under the paper's own setup.
+The result here is a deterministic CATE-specific inequality from the explicit
+finite-grid hypotheses above, not a formalization of that proposition.
+
+Proof outline: expand `condBias` as a sum over `a : Bool` of
+`((η_hat.e_fn − S.e_val) (η_hat.μ_fn a − S.μ_val a))/(if a then η_hat.e_fn else 1 − η_hat.e_fn)`.
+Use `HasWeightedSumRepresentation` to expand `evalAt` as
+`Σ_i w_i * condBias … (xs i).1`.
+For each arm `a`, bound the denominator pointwise by `1/ε` (overlap), then
+factor `Σ |w_j|` and apply Hölder via `Real.inner_le_Lp_mul_Lq_of_nonneg`
+with the normalised weights `α_i = |w_i|/Σ|w_j|`. Sum over arms; absorb the
+`Σ |w_j| ≤ c_n` and `1/ε ≤ aipw_rem_const ε` factors. -/
+theorem cate_linear_smoother_bias_bound
+    (S : CATEEstimationSystem P γ)
+    {ε : ℝ} (h_overlap : S.toBackdoorEstimationSystem.StrictOverlap ε)
+    (op : SecondStageOperatorWithWeights P.Ω P.μ γ)
+    (η_hat : ℕ → P.Ω → NuisanceVec γ)
+    (n : ℕ) (ω : P.Ω) (x : γ)
+    {ι : Type*} (B : Finset ι) (w : ι → ℝ) (xs : ι → γ × Bool × ℝ)
+    (c_n p q : ℝ)
+    (h_overlap_η_hat : η_hat n ω ∈
+                         BackdoorEstimationSystem.H_ε (γ := γ) ε)
+    (hLin : SecondStageOperatorWithWeights.HasWeightedSumRepresentation
+      op n ω x B w xs)
+    (hWeights : ∑ i ∈ B, |w i| ≤ c_n)
+    (hConj : Real.HolderConjugate p q) :
+    |op.evalAt n ω
+        (fun z => condBias (η_hat n ω)
+                    S.toBackdoorEstimationSystem.η₀ z.1) x|
+      ≤ BackdoorEstimationSystem.aipw_rem_const ε * c_n
+        * WeightedNorm B w
+            (fun i => (η_hat n ω).e_fn (xs i).1 - S.e_val (xs i).1) p
+        * (∑ a : Bool, WeightedNorm B w
+            (fun i => (η_hat n ω).μ_fn a (xs i).1 - S.μ_val a (xs i).1) q) := by
+  classical
+  let η : NuisanceVec γ := η_hat n ω
+  let C : ℝ := BackdoorEstimationSystem.aipw_rem_const ε
+  let de : γ → ℝ := fun y => η.e_fn y - S.e_val y
+  let dμ : Bool → γ → ℝ := fun a y => η.μ_fn a y - S.μ_val a y
+  have hC_ge_inv : ε⁻¹ ≤ C := by
+    unfold C BackdoorEstimationSystem.aipw_rem_const
+    have hpos : 0 < ε := h_overlap.1
+    have hone : 0 < 1 - ε := by linarith [h_overlap.2.1]
+    have hden : 0 < ε * (1 - ε) := mul_pos hpos hone
+    rw [div_eq_mul_inv]
+    field_simp [hpos.ne', hden.ne']
+    nlinarith [h_overlap.2.1]
+  have hC_nonneg : 0 ≤ C :=
+    (inv_nonneg.mpr h_overlap.1.le).trans hC_ge_inv
+  have hη_lower : ∀ y, ε ≤ η.e_fn y := fun y => (h_overlap_η_hat y).1
+  have hη_upper : ∀ y, η.e_fn y ≤ 1 - ε := fun y => (h_overlap_η_hat y).2
+  have hη_pos : ∀ y, 0 < η.e_fn y := fun y => lt_of_lt_of_le h_overlap.1 (hη_lower y)
+  have hη_false_pos : ∀ y, 0 < 1 - η.e_fn y := by
+    intro y
+    have : ε ≤ 1 - η.e_fn y := by linarith [hη_upper y]
+    exact lt_of_lt_of_le h_overlap.1 this
+  have hpoint : ∀ y, |condBias η S.toBackdoorEstimationSystem.η₀ y|
+      ≤ C * ∑ a : Bool, |de y| * |dμ a y| := by
+    intro y
+    have hdenT : η.e_fn y ≠ 0 := (hη_pos y).ne'
+    have hdenF : 1 - η.e_fn y ≠ 0 := (hη_false_pos y).ne'
+    have hinvT : |(η.e_fn y)⁻¹| ≤ C := by
+      have hle : (η.e_fn y)⁻¹ ≤ ε⁻¹ :=
+        (inv_le_inv₀ (hη_pos y) h_overlap.1).2 (hη_lower y)
+      rw [abs_of_pos (inv_pos.mpr (hη_pos y))]
+      exact hle.trans hC_ge_inv
+    have hinvF : |(1 - η.e_fn y)⁻¹| ≤ C := by
+      have hden : ε ≤ 1 - η.e_fn y := by linarith [hη_upper y]
+      have hle : (1 - η.e_fn y)⁻¹ ≤ ε⁻¹ :=
+        (inv_le_inv₀ (hη_false_pos y) h_overlap.1).2 hden
+      rw [abs_of_pos (inv_pos.mpr (hη_false_pos y))]
+      exact hle.trans hC_ge_inv
+    have hT :
+        |(de y * dμ true y) / η.e_fn y| ≤ C * (|de y| * |dμ true y|) := by
+      calc
+        |(de y * dμ true y) / η.e_fn y|
+            = |de y| * |dμ true y| * |(η.e_fn y)⁻¹| := by
+              rw [div_eq_mul_inv]
+              simp [abs_mul, mul_assoc, mul_comm]
+        _ ≤ |de y| * |dμ true y| * C :=
+              mul_le_mul_of_nonneg_left hinvT (mul_nonneg (abs_nonneg _) (abs_nonneg _))
+        _ = C * (|de y| * |dμ true y|) := by ring
+    have hF :
+        |(de y * dμ false y) / (1 - η.e_fn y)| ≤ C * (|de y| * |dμ false y|) := by
+      calc
+        |(de y * dμ false y) / (1 - η.e_fn y)|
+            = |de y| * |dμ false y| * |(1 - η.e_fn y)⁻¹| := by
+              rw [div_eq_mul_inv]
+              simp [abs_mul, mul_assoc, mul_comm]
+        _ ≤ |de y| * |dμ false y| * C :=
+              mul_le_mul_of_nonneg_left hinvF (mul_nonneg (abs_nonneg _) (abs_nonneg _))
+        _ = C * (|de y| * |dμ false y|) := by ring
+    calc
+      |condBias η S.toBackdoorEstimationSystem.η₀ y|
+          = |(de y * dμ true y) / η.e_fn y +
+              (de y * dμ false y) / (1 - η.e_fn y)| := by
+              simp [condBias, BackdoorEstimationSystem.η₀, de, dμ]
+      _ ≤ |(de y * dμ true y) / η.e_fn y| +
+            |(de y * dμ false y) / (1 - η.e_fn y)| := abs_add_le _ _
+      _ ≤ C * (|de y| * |dμ true y|) +
+            C * (|de y| * |dμ false y|) := add_le_add hT hF
+      _ = C * ∑ a : Bool, |de y| * |dμ a y| := by
+            simp
+            ring
+  let absOp : SecondStageOperatorWithWeights P.Ω P.μ γ :=
+    { evalAt := fun _ _ f _ => ∑ i ∈ B, |w i| * f (xs i)
+      meas_evalAt_const := by
+        intro _ c
+        simpa using (measurable_const :
+          Measurable (fun _ : P.Ω × γ => ∑ i ∈ B, |w i| * c))
+      weights := fun _ _ _ _ => 0 }
+  have hAbsLin : SecondStageOperatorWithWeights.HasWeightedSumRepresentation
+      absOp n ω x B (fun i => |w i|) xs := by
+    intro f
+    rfl
+  have hAbsWeights : ∑ i ∈ B, |(|w i|)| ≤ c_n := by
+    simpa [abs_of_nonneg] using hWeights
+  have hProd : ∀ a : Bool,
+      ∑ i ∈ B, |w i| * (|de (xs i).1| * |dμ a (xs i).1|)
+        ≤ c_n
+          * WeightedNorm B w (fun i => de (xs i).1) p
+          * WeightedNorm B w (fun i => dμ a (xs i).1) q := by
+    intro a
+    have h :=
+      smoother_bias_product_holder absOp n ω x
+        (fun y => |de y|) (fun y => |dμ a y|)
+        B (fun i => |w i|) xs c_n p q hAbsLin hAbsWeights hConj
+    have hsum_nonneg :
+        0 ≤ ∑ i ∈ B, |w i| * (|de (xs i).1| * |dμ a (xs i).1|) := by
+      refine Finset.sum_nonneg ?_
+      intro i hi
+      positivity
+    simpa [absOp, WeightedNorm, abs_of_nonneg, hsum_nonneg, de, dμ, mul_assoc]
+      using h
+  have hEval :
+      op.evalAt n ω
+        (fun z => condBias (η_hat n ω)
+                    S.toBackdoorEstimationSystem.η₀ z.1) x
+        = ∑ i ∈ B, w i * condBias η S.toBackdoorEstimationSystem.η₀ (xs i).1 := by
+    simpa [η] using
+      hLin (fun z => condBias (η_hat n ω) S.toBackdoorEstimationSystem.η₀ z.1)
+  have hMain :
+      |∑ i ∈ B, w i * condBias η S.toBackdoorEstimationSystem.η₀ (xs i).1|
+        ≤ C * c_n
+          * WeightedNorm B w (fun i => de (xs i).1) p
+          * (∑ a : Bool, WeightedNorm B w (fun i => dμ a (xs i).1) q) := by
+    calc
+      |∑ i ∈ B, w i * condBias η S.toBackdoorEstimationSystem.η₀ (xs i).1|
+          ≤ ∑ i ∈ B, |w i * condBias η S.toBackdoorEstimationSystem.η₀ (xs i).1| :=
+            Finset.abs_sum_le_sum_abs _ _
+      _ = ∑ i ∈ B, |w i| * |condBias η S.toBackdoorEstimationSystem.η₀ (xs i).1| := by
+            simp [abs_mul]
+      _ ≤ ∑ i ∈ B, |w i| *
+            (C * ∑ a : Bool, |de (xs i).1| * |dμ a (xs i).1|) := by
+            refine Finset.sum_le_sum ?_
+            intro i hi
+            exact mul_le_mul_of_nonneg_left (hpoint (xs i).1) (abs_nonneg _)
+      _ = C * ∑ a : Bool,
+            ∑ i ∈ B, |w i| * (|de (xs i).1| * |dμ a (xs i).1|) := by
+            simp only [Fintype.sum_bool, Finset.mul_sum, mul_add,
+              Finset.sum_add_distrib]
+            congr 1 <;> (refine Finset.sum_congr rfl ?_; intro i _; ring)
+      _ ≤ C * ∑ a : Bool,
+            (c_n * WeightedNorm B w (fun i => de (xs i).1) p
+              * WeightedNorm B w (fun i => dμ a (xs i).1) q) := by
+            exact mul_le_mul_of_nonneg_left
+              (Finset.sum_le_sum (fun a _ => hProd a)) hC_nonneg
+      _ = C * c_n
+          * WeightedNorm B w (fun i => de (xs i).1) p
+          * (∑ a : Bool, WeightedNorm B w (fun i => dμ a (xs i).1) q) := by
+            simp only [Fintype.sum_bool]
+            ring
+  simpa [hEval, C, de, dμ, η] using hMain
+
+/-- **Linear-smoother DR-Learner efficiency from assumed stability and smoothed-bias
+negligibility.** Fix a
+CATE estimation system, a linear-smoother second-stage operator `op`, an estimated
+nuisance sequence `η_hat`, an evaluation point `x`, a centering-rate sequence `d_n`, and a
+bias-identity relation `BiasIdent`. Under [the back-door identification
+assumptions](hyp:hA) and two-sided strict overlap for the truth, if [the smoothed oracle
+estimator is stable at `(τ_val, d_n, x)` relative to `BiasIdent`](hyp:hStab), [the
+centering sequence `d_n` converges to `0` in probability](hyp:hCons), [the pseudo-outcome
+bias, the true pseudo-outcome, and the smoothed conditional bias jointly satisfy the
+identity relation `BiasIdent`](hyp:hBias), and [the smoothed conditional-bias evaluation
+is `o_p` of the oracle risk scale](hyp:hSmoothedBias), then [the DR-Learner CATE estimator
+and the oracle estimator, both built from the linear-smoother second-stage operator,
+differ by `o_p` of the oracle risk scale](goal).
+
+This is only the projection of the linear-smoother operator onto its
+`SecondStageOperator` ancestor, followed by
+`dr_oracle_efficient_of_stable_of_smoothed_bias`. It does not use
+`cate_linear_smoother_bias_bound` to derive `hSmoothedBias`; that rate is an
+explicit premise. -/
+theorem cate_dr_oracle_efficient_linear_of_stable_of_smoothed_bias
+    (S : CATEEstimationSystem P γ)
+    (hA : S.toPOBackdoorSystem.Assumptions)
+    {ε : ℝ} (_h_overlap : S.toBackdoorEstimationSystem.StrictOverlap ε)
+    (op : SecondStageOperatorWithWeights P.Ω P.μ γ)
+    (η_hat : ℕ → P.Ω → NuisanceVec γ)
+    (x : γ)
+    (d_n : ℕ → P.Ω → ℝ)
+    (BiasIdent :
+      (ℕ → P.Ω → γ × Bool × ℝ → ℝ) →
+      (γ × Bool × ℝ → ℝ) →
+      (ℕ → P.Ω → γ → ℝ) → Prop)
+    (hStab : Stable op.toSecondStageOperator S.τ_val d_n x BiasIdent)
+    (hCons : Tendsto_inProb d_n (fun _ => 0) P.μ)
+    (hBias : BiasIdent
+              (fun n ω z => phi_eta z (η_hat n ω))
+              (fun z => phi₀ S z)
+              (fun n ω u => condBias (η_hat n ω)
+                            S.toBackdoorEstimationSystem.η₀ u))
+    (hSmoothedBias : IsLittleOp
+      (fun n ω => op.evalAt n ω
+        (fun z => condBias (η_hat n ω)
+                    S.toBackdoorEstimationSystem.η₀ z.1) x)
+      (fun n => drOracleRiskScale S op.toSecondStageOperator x n) P.μ) :
+    IsLittleOp
+      (fun n ω => drLearnerEstimator S op.toSecondStageOperator η_hat n ω x
+                    - drOracleEstimator S op.toSecondStageOperator n ω x)
+      (fun n => drOracleRiskScale S op.toSecondStageOperator x n) P.μ :=
+  dr_oracle_efficient_of_stable_of_smoothed_bias
+    S hA op.toSecondStageOperator η_hat x d_n BiasIdent
+    hStab hCons hBias hSmoothedBias
+
+end CATE
+end Estimation
+end Causalean

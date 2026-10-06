@@ -1,0 +1,106 @@
+\begin{proof}[Proof of \cref{obj:prop:compatibility}]
+Suppose \(P\in\mathfrak M(H,g,P_{\mathrm{rel}})\). For each label \(r\), score-based assignment, deterministic release, and the score marginal give the treated-arm identity
+\[
+\begin{aligned}
+P_{\mathrm{rel}}(A=1,R=r)
+&=P(A=1,g(E)=r)\\
+&=\mathbb E_P\!\left[\mathbf 1\{g(E)=r\}p_1(E)\right]
+=\int_{C_r}e\,H(de)=q_{1r}.
+\end{aligned}
+\]
+This is the treated-arm instance of \cref{obj:lem:released-arm-cell-masses}; the arm-cell quantities are defined in \cref{obj:def:arm-cell-primitives}. The score marginal and deterministic release also give
+\[
+P_{\mathrm{rel}}(R=r)=P(g(E)=r)=H(C_r).
+\]
+Partitioning the label event by arm therefore yields the control-arm identity
+\[
+\begin{aligned}
+P_{\mathrm{rel}}(A=0,R=r)
+&=P_{\mathrm{rel}}(R=r)-P_{\mathrm{rel}}(A=1,R=r)\\
+&=H(C_r)-\int_{C_r}e\,H(de)
+=\int_{C_r}(1-e)\,H(de)=q_{0r}.
+\end{aligned}
+\]
+Thus \(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\) for both arms.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.compatibleCellMasses_of_compatibleCausalLaw
+Since \(p_0(e)+p_1(e)=1\), summing the arm masses gives
+\[
+P_{\mathrm{rel}}(R=r)
+=\sum_{a\in\mathcal A}P_{\mathrm{rel}}(A=a,R=r)
+=\sum_{a\in\mathcal A}q_{ar}
+=\int_{C_r}1\,H(de)
+=H(C_r).
+\]
+The treated-arm identity above is the second required equality.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.releasedLabelMass_sum_arms
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.compatibility_armCellMass_sum
+
+Conversely, suppose the two stated equalities hold for every \(r\). Partitioning each label event by arm and using \(p_0=1-p_1\) yields
+\[
+\begin{aligned}
+P_{\mathrm{rel}}(A=0,R=r)
+&=P_{\mathrm{rel}}(R=r)-P_{\mathrm{rel}}(A=1,R=r)\\
+&=H(C_r)-\int_{C_r}e\,H(de)
+=\int_{C_r}(1-e)\,H(de)=q_{0r}.
+\end{aligned}
+\]
+The assumed treated equality is \(P_{\mathrm{rel}}(A=1,R=r)=q_{1r}\). Thus \(P_{\mathrm{rel}}(A=a,R=r)=q_{ar}\) for both arms and every label.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.compatibleCellMasses_of_label_treated
+
+For every \((a,r)\in\mathcal A\times\mathcal R_J\), define a probability law on the outcome interval by
+\[
+F^\star_{ar}(\mathcal U):=
+\begin{cases}
+P_{\mathrm{rel}}(Y\in\mathcal U\mid A=a,R=r), & P_{\mathrm{rel}}(A=a,R=r)>0,\\
+\mathbf 1\{0\in\mathcal U\}, & P_{\mathrm{rel}}(A=a,R=r)=0,
+\end{cases}
+\qquad \mathcal U\subseteq[0,1]\text{ Borel}.
+\]
+On positive-mass pairs this is \(F_{ar}\) from \cref{obj:def:arm-cell-primitives}; on zero-mass pairs it is point mass at zero. In particular, for every Borel outcome set \(\mathcal U\),
+\[
+P_{\mathrm{rel}}(Y\in\mathcal U,A=a,R=r)
+=P_{\mathrm{rel}}(A=a,R=r)F^\star_{ar}(\mathcal U)
+=q_{ar}F^\star_{ar}(\mathcal U).
+\]
+Define a law for the latent variables by
+\[
+\Lambda(de,dy_0,dy_1)
+=H(de)\,F^\star_{0,g(e)}(dy_0)\,F^\star_{1,g(e)}(dy_1).
+\]
+Its score marginal is \(H\), and its two potential outcomes are conditionally independent given the score. The finite label alphabet and measurability of \(g\) make these kernels measurable.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedLatentLaw
+
+From \(\Lambda\), construct \(\widetilde P\) by drawing \(A\) conditionally on \((E,Y_0,Y_1)\) with probabilities \(p_a(E)\), then setting \(R=g(E)\) and \(Y=AY_1+(1-A)Y_0\). Equivalently, in the full-row coordinate order \((E,Y_0,Y_1,A,Y,R)\), its law is
+\[
+\widetilde P
+=\sum_{a\in\mathcal A}
+\bigl((e,y_0,y_1)\mapsto(e,y_0,y_1,a,ay_1+(1-a)y_0,g(e))\bigr)_{\#}
+\bigl(p_a(e)\,\Lambda(de,dy_0,dy_1)\bigr).
+\] Overlap gives \(0\leq p_a(e)\leq1\), and
+\[
+p_0(e)+p_1(e)=1,\qquad
+\widetilde P(E\in\mathcal S)
+=\int_{\mathcal S}\sum_{a\in\mathcal A}p_a(e)\,H(de)
+=H(\mathcal S)
+\]
+for every Borel score set \(\mathcal S\). Hence \(\widetilde P\) is a probability law with score marginal \(H\). Its conditional assignment probabilities are \(p_a(E)\), while consistency and deterministic release hold by construction.
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_isProbabilityMeasure
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_scoreMarginal
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_randomizedAssignment
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_consistency
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_deterministicRelease
+
+Finally, for every \(a,r,\mathcal U\) as above,
+\[
+\begin{aligned}
+\widetilde P(R=r,A=a,Y\in\mathcal U)
+&=\int_{C_r}p_a(e)F^\star_{ar}(\mathcal U)\,H(de)\\
+&=q_{ar}F^\star_{ar}(\mathcal U)
+=P_{\mathrm{rel}}(R=r,A=a,Y\in\mathcal U).
+\end{aligned}
+\]
+These events determine the law of \((R,A,Y)\), including zero-mass cells. Thus its law under \(\widetilde P\) is \(P_{\mathrm{rel}}\), and \(\widetilde P\in\mathfrak M(H,g,P_{\mathrm{rel}})\).
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_releasedLaw
+% lean: CausalSmith.PartialID.UnlinkedPropensityAte.reconstructedFullLaw_compatibleCausalLaw
+\end{proof}

@@ -1,0 +1,30 @@
+# Referee review
+
+**Recommendation:** major_revision
+**Overall score:** 7.3/10 — The verified contribution is substantial and generally represented faithfully, but extensive repetition and an underdeveloped econometric motivation require substantial editorial revision.
+
+The paper characterizes pointwise and expected spatial-supremum minimax response recovery under global propensity tails, with known smoothness and an explicit estimator adapting to overlap. Its substantive advance extends the established polynomial rate to broader treatment geometry and an expectation guarantee uniform over compact overlap intervals. The manuscript carefully preserves the bounded-converse, Gaussian-transfer, and fixed-exponent qualifications, but its presentation obscures the central contribution through repeated definitions, comparisons, and technical explanations.
+
+## Strengths
+- The expected spatial-supremum guarantee under measurable propensities and a covariate density lower bound is a meaningful extension of the closest comparator.
+- Equal-cell weighting and the ordered treated-mass profile provide a clear statistical explanation for stable fitting and the pure-power supremum rate.
+- The matching converse uses bounded potential outcomes and covers every fixed evaluation point, including boundary points.
+- The exposition accurately distinguishes known-smoothness overlap adaptation, exponent-specific lower bounds, fixed-constant Gaussian envelopes, and exponent-specific geometric witnesses.
+- The dedicated early related-work section engages competitors' actual losses, rates, and assumptions, and acknowledges Dorn's count-based estimator as an antecedent.
+
+## Findings
+- **[major·structure] Introduction; Main results; Identification and upper-bound proofs; Source-model transfer and comparison scope; Proofs of the main results** — The manuscript repeatedly presents the same material at substantial length. The Dorn comparison appears in the introduction, related work, geometric discussion, source appendix, and deferred proofs; the template is defined in three overlapping environments; and the main-result proof substantially repeats the selected-mesh and coefficient-envelope analysis already presented in its auxiliary lemma. This organization makes the new statistical argument difficult to distinguish from routine supporting detail.
+  - *Fix:* Consolidate the template exposition, give the closest-comparator discussion one principal location, and organize the main argument around approximation, conditioning, ordered information, and testing. Shorten the main-result proof by invoking the established auxiliary conclusions. Place extensive mechanical proof renderings and repeated source-family qualifications in a clearly organized supplement, preserving their declaration links and conditions.
+- **[minor·citation] Introduction and Related work** — The econometric motivation remains largely at the level of calling response recovery a building block for causal adjustment. The related-work discussion develops regression comparisons carefully, but gives readers little explanation of how whole-response recovery relates to the established weak-overlap econometrics literature and its alternative estimands and losses.
+  - *Fix:* Add a concise paragraph positioning this recovery criterion alongside irregular identification, trimming or overlap-weighted estimands, and smoothness-based average-effect estimation. Relevant starting points include Khan and Tamer, Crump and coauthors, and Armstrong and Kolesár. Explain the distinct statistical objective and identify plausible uses of the delivered response guarantee, with any downstream implications stated under their required conditions.
+- **[minor·statement] Local treatment geometry and the Gaussian transfer — Thin-strip law** — The construction says to draw treatment given covariates and then to draw the two potential outcomes 'conditionally independently given X.' This specifies independence between the potential outcomes but leaves their joint dependence on treatment ambiguous. The verified construction uses a conditional product law for all three variables.
+  - *Fix:* State explicitly that A, Y(0), and Y(1) are mutually independent conditional on X, with the displayed Bernoulli marginals, or display their conditional product distribution directly.
+- **[minor·prose] Global** — Several reader-facing references use unnamed appendix descriptions instead of cleveref, including 'An appendix documents the precise scope of the mathematical results,' 'The appendix proves the concentration event and the maximal inequality in full,' and references to the 'source-comparison appendix.' These references are difficult to locate and violate the cross-reference contract.
+  - *Fix:* Add structural labels to the relevant appendix sections and replace these descriptions with \cref or sentence-initial \Cref commands targeting those exact labels. Apply the same treatment to the introductory roadmap wherever it directs readers to a particular section or appendix.
+- **[minor·prose] Main results — Construction; Source-model transfer and comparison scope** — Some symbols enter running prose without the required first-use gloss. Examples include the monomial index set I_m before its defining environment and the source constants q, M, and sigma_min in the opening source-model paragraph.
+  - *Fix:* Name I_m as the monomial index set at first use. Introduce q as the conditional moment order, M as the common moment and regression-variance bound, sigma_min as the common Gaussian noise standard deviation, and L_0 as the source smoothness seminorm radius before using their symbols.
+
+## Questions for authors
+- Which downstream econometric use best motivates expected unweighted spatial-supremum recovery of the treated response under the stated global-tail class?
+- How conservative is the prescribed template width in representative dimensions and smoothness orders, and what sample sizes make its count-feasibility rule useful?
+
