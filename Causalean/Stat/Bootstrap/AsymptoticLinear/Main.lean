@@ -106,11 +106,9 @@ theorem sampling_tendsto_gaussian (h : BootstrapAsymLinear S est theta0 psi) :
 distribution of the centred estimator statistic approaches the centred Gaussian influence-function
 law in Kolmogorov distance, in sampling probability](goal). -/
 theorem bootstrap_tendsto_gaussian (h : BootstrapAsymLinear S est theta0 psi) :
-    Tendsto_inProb
-      (fun n omega => cdfKolmogorov
+    Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega => cdfKolmogorov
         (bootstrapEstimatorLaw est h.meas.1 n (S.sampleVector n omega))
-        h.asymptoticGaussian)
-      (fun _ => 0) mu := by
+        h.asymptoticGaussian) atTop (fun _ _ => 0) := by
   letI : IsProbabilityMeasure mu := S.indep.isProbabilityMeasure
   haveI : IsProbabilityMeasure P := by
     rw [← S.law]
@@ -183,7 +181,7 @@ theorem bootstrap_tendsto_gaussian (h : BootstrapAsymLinear S est theta0 psi) :
                   (S.sampleVector n omega ∘ j) ≤ q then 1 else 0 by
         funext omega
         exact bootstrapCDF_eq_average_indicators _
-          (measurable_centeredBootstrapSum psi h.meas.2 _) _ _ hn]
+          (measurable_centeredBootstrapSum psi h.meas.2 _) _ _]
       apply Measurable.const_mul
       apply Finset.measurable_sum
       intro j hj
@@ -199,11 +197,10 @@ theorem bootstrap_tendsto_gaussian (h : BootstrapAsymLinear S est theta0 psi) :
           (h.meas.2.comp (S.meas (j i))).sub hmean))
       exact Measurable.ite
         (measurableSet_le hstat measurable_const) measurable_const measurable_const
-  have hlinearProb : Tendsto_inProb (fun n omega =>
+  have hlinearProb : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega =>
       cdfKolmogorov
         (bootstrapMeanLaw S psi h.meas.2 n omega)
-        h.asymptoticGaussian) (fun _ => 0) mu := by
-    unfold Tendsto_inProb
+        h.asymptoticGaussian) atTop (fun _ _ => 0) := by
     exact tendstoInMeasure_of_tendsto_ae
       (fun n => (hlinearLawMeas n).aestronglyMeasurable) hlinearAE
 
@@ -273,11 +270,10 @@ theorem bootstrap_tendsto_gaussian (h : BootstrapAsymLinear S est theta0 psi) :
     congr 1
     funext xstar
     simp [remainder, linear, extend]
-  have hlinearMapped : Tendsto_inProb (fun n omega =>
+  have hlinearMapped : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega =>
       cdfKolmogorov
         ((nu n omega).map (hlinearMeas n omega).aemeasurable)
-        h.asymptoticGaussian) (fun _ => 0) mu := by
-    unfold Tendsto_inProb at hlinearProb ⊢
+        h.asymptoticGaussian) atTop (fun _ _ => 0) := by
     apply TendstoInMeasure.congr'
       (f := fun n omega => cdfKolmogorov
         (bootstrapMeanLaw S psi h.meas.2 n omega)
@@ -317,7 +313,6 @@ theorem bootstrap_tendsto_gaussian (h : BootstrapAsymLinear S est theta0 psi) :
   have hslutsky := conditionalSlutsky_cdfKolmogorov_inProb
     nu linear remainder hlinearMeas hremainderMeas h.asymptoticGaussian hGcont
     hlinearMapped hremainder
-  unfold Tendsto_inProb at hslutsky ⊢
   apply TendstoInMeasure.congr'
     (f := fun n omega => cdfKolmogorov
       ((nu n omega).map
@@ -333,11 +328,9 @@ theorem bootstrap_tendsto_gaussian (h : BootstrapAsymLinear S est theta0 psi) :
 conditional law of the centred bootstrap statistic and the finite-sample law of the centred sampling
 statistic approach one another in Kolmogorov distance, in sampling probability](goal). -/
 theorem consistent (h : BootstrapAsymLinear S est theta0 psi) :
-    Tendsto_inProb
-      (fun n omega => cdfKolmogorov
+    Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega => cdfKolmogorov
         (bootstrapEstimatorLaw est h.meas.1 n (S.sampleVector n omega))
-        (samplingEstimatorLaw S est theta0 h.meas.1 n))
-      (fun _ => 0) mu := by
+        (samplingEstimatorLaw S est theta0 h.meas.1 n)) atTop (fun _ _ => 0) := by
   -- Pólya applied to `sampling_tendsto_gaussian` gives deterministic Kolmogorov convergence of
   -- the sampling law to the Gaussian law.  Combine it with `bootstrap_tendsto_gaussian` and
   -- `cdfKolmogorov_triangle` (using symmetry of the distance).
@@ -359,11 +352,10 @@ theorem consistent (h : BootstrapAsymLinear S est theta0 psi) :
       atTop (nhds 0) :=
     tendsto_cdfKolmogorov_of_tendsto
       (sampling_tendsto_gaussian h) tendsto_const_nhds hGcont
-  have hsamplingProb : Tendsto_inProb
+  have hsamplingProb : Modes.TendstoInProbability (fun _ : ℕ => mu)
       (fun n (_ : Omega) => cdfKolmogorov
-        h.asymptoticGaussian (samplingEstimatorLaw S est theta0 h.meas.1 n))
-      (fun _ => 0) mu := by
-    unfold Tendsto_inProb
+        h.asymptoticGaussian
+            (samplingEstimatorLaw S est theta0 h.meas.1 n)) atTop (fun _ _ => 0) := by
     apply tendstoInMeasure_of_tendsto_ae
     · intro n
       exact aestronglyMeasurable_const
@@ -374,17 +366,15 @@ theorem consistent (h : BootstrapAsymLinear S est theta0 psi) :
       congr 1
       funext t
       rw [abs_sub_comm]
-  have hsum : Tendsto_inProb
-      (fun n omega =>
+  have hsum : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega =>
         cdfKolmogorov
             (bootstrapEstimatorLaw est h.meas.1 n (S.sampleVector n omega))
             h.asymptoticGaussian +
           cdfKolmogorov h.asymptoticGaussian
-            (samplingEstimatorLaw S est theta0 h.meas.1 n))
-      (fun _ => 0) mu := by
-    have hneg := Tendsto_inProb.comp_continuousAt
+            (samplingEstimatorLaw S est theta0 h.meas.1 n)) atTop (fun _ _ => 0) := by
+    have hneg := Modes.TendstoInProbability.comp_continuousAt
       (g := fun x : ℝ => -x) continuousAt_neg hsamplingProb
-    have hsub := Tendsto_inProb.sub (bootstrap_tendsto_gaussian h) hneg
+    have hsub := Modes.TendstoInProbability.sub (bootstrap_tendsto_gaussian h) hneg
     simpa only [Pi.zero_apply, neg_zero, sub_neg_eq_add, sub_self] using hsub
   rw [Tendsto_inProb_iff] at hsum ⊢
   rw [tendstoInMeasure_iff_norm] at hsum ⊢
@@ -415,9 +405,9 @@ probability to the corresponding centered-Gaussian quantile](goal), the influenc
 deviation times the standard-normal probit. -/
 theorem quantile_tendsto (h : BootstrapAsymLinear S est theta0 psi)
     {beta : ℝ} (hbeta0 : 0 < beta) (hbeta1 : beta < 1) :
-    Tendsto_inProb
-      (fun n omega => bootstrapQuantile est n beta (S.sampleVector n omega))
-      (fun _ => Real.sqrt h.asymptoticVariance * Causalean.Mathlib.probit beta) mu := by
+    Modes.TendstoInProbability (fun _ : ℕ => mu)
+        (fun n omega => bootstrapQuantile est n beta (S.sampleVector n omega)) atTop
+        (fun _ _ => Real.sqrt h.asymptoticVariance * Causalean.Mathlib.probit beta) := by
   -- Apply `quantile_tendsto_inProb_of_cdfKolmogorov` to `bootstrap_tendsto_gaussian`, use the
   -- measurable-quantile theorem and the eventual identity with `bootstrapEstimatorLaw`, then
   -- evaluate the Gaussian quantile by `quantile_gaussianReal_zero`.
@@ -430,10 +420,9 @@ theorem quantile_tendsto (h : BootstrapAsymLinear S est theta0 psi)
   have hG : h.asymptoticGaussian = G := by
     apply ProbabilityMeasure.toMeasure_injective
     rfl
-  have hquantLaw : Tendsto_inProb
-      (fun n omega => quantile
-        (bootstrapEstimatorLaw est h.meas.1 n (S.sampleVector n omega) : Measure ℝ) beta)
-      (fun _ => quantile (G : Measure ℝ) beta) mu := by
+  have hquantLaw : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega => quantile
+        (bootstrapEstimatorLaw est h.meas.1 n (S.sampleVector n omega) : Measure ℝ) beta) atTop
+            (fun _ _ => quantile (G : Measure ℝ) beta) := by
     apply quantile_tendsto_inProb_of_cdfKolmogorov
       (nu := fun n omega => bootstrapEstimatorLaw est h.meas.1 n (S.sampleVector n omega))
       G hbeta0 hbeta1
@@ -441,7 +430,6 @@ theorem quantile_tendsto (h : BootstrapAsymLinear S est theta0 psi)
     · have hstrict := strictMono_cdf_gaussianReal_zero hv
       exact ⟨fun x hx => hstrict hx, fun x hx => hstrict hx⟩
     · simpa only [← hG] using bootstrap_tendsto_gaussian h
-  unfold Tendsto_inProb at hquantLaw ⊢
   apply TendstoInMeasure.congr'
     (f := fun n omega => quantile
       (bootstrapEstimatorLaw est h.meas.1 n (S.sampleVector n omega) : Measure ℝ) beta)

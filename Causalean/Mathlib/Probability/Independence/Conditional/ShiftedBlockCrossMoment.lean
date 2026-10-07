@@ -25,8 +25,10 @@ variable {Ω : ι → Type*} [∀ i, MeasurableSpace (Ω i)]
 blocks](hyp:B0,B1,hdisj), [two held-out scores](hyp:f,g), [two training shifts](hyp:a,b),
 [measurability](hyp:hfmeas,hgmeas,hameas,hbmeas), [integrability of the scores and
 shifts](hyp:hf,hg,ha,hb), [an integrable held-out cross product](hyp:hfg), and
-[square-integrable shifted scores](hyp:hflp,hglp) imply that [their conditional cross
-moment equals unconditional covariance plus the product of shifted means](goal). -/
+[square-integrable shifted scores](hyp:hflp,hglp) imply that [the conditional mean, given the
+training block, of the product of the two shifted scores almost surely equals the unconditional
+covariance of the two held-out scores plus the product of the two held-out means each minus its
+training shift](goal). -/
 theorem condExp_shiftedBlockCross_eq_covariance_add
     (μ : (i : ι) → Measure (Ω i)) [∀ i, IsProbabilityMeasure (μ i)]
     (B0 B1 : Finset ι) (hdisj : Disjoint B0 B1)
@@ -120,9 +122,9 @@ theorem condExp_shiftedBlockCross_eq_covariance_add
     · exact (hfg'.sub (hf.mul_const _))
     · exact (hg.const_mul _).sub (integrable_const _)
   have hcross := condExp_heldoutBlock_eq_integral μ B0 B1 hdisj
-    (fun z => f z * g z) (hfmeas.mul hgmeas) hfg
-  have hF := condExp_heldoutBlock_eq_integral μ B0 B1 hdisj f hfmeas hf
-  have hG := condExp_heldoutBlock_eq_integral μ B0 B1 hdisj g hgmeas hg
+    (fun z => f z * g z) (hfmeas.mul hgmeas)
+  have hF := condExp_heldoutBlock_eq_integral μ B0 B1 hdisj f hfmeas
+  have hG := condExp_heldoutBlock_eq_integral μ B0 B1 hdisj g hgmeas
   have hAB : condExp m P (A * B) =ᵐ[P] A * B := by
     rw [condExp_of_stronglyMeasurable hle (hA.mul hB) hab]
   have hFB : condExp m P (F * B) =ᵐ[P] (fun x => (∫ y, F y ∂P) * B x) := by

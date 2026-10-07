@@ -15,14 +15,25 @@ module
 public import Causalean.Estimation.ATT.Remainder.Bound
 
 /-!
-Roll-up for the ATT second-order AIPW remainder development. It re-exports
-`aipw_remainder_identity_ATT`, which rewrites the population moment error as the
-single cross-product of control-regression and propensity errors, and
-`aipw_remainder_bound_ATT`, which bounds that identity by the corresponding
-`L²(P_X)` product under one-sided overlap.
+# The second-order remainder of the AIPW moment for the treated
 
-The stochastic corollary `aipw_remainder_op_ATT` packages the same product-rate
-condition as an `o_p(n^{-1/2})` remainder for ATT double machine learning.
+How far the population ATT moment moves when the nuisance functions are wrong. For a candidate
+control regression μ̂₀ and propensity ê in the overlap class, the population AIPW moment at the
+true ATT equals exactly the single cross-product
+
+    ∫ (ê(x) − e(x))/(1 − ê(x)) · (μ̂₀(x) − μ₀(x)) dP_X(x),
+
+so its absolute value is at most (1/ε)·‖μ̂₀ − μ₀‖₂·‖ê − e‖₂ in L²(P_X), and a sequence of
+nuisance estimators whose error product is o_p(n^{-1/2}) has remainder o_p(n^{-1/2}). The
+statements assume one-sided overlap e ≤ 1 − ε of the true propensity, the one-sided back-door
+ATT assumptions, a positive treatment probability, finite second moments of the outcome and of
+the untreated potential outcome, and integrability of the candidate's odds-weighted correction.
+
+## Main results
+
+* `aipw_remainder_identity_ATT` — the exact cross-product identity (`Remainder/Identity`).
+* `aipw_remainder_bound_ATT` — the L² product bound (`Remainder/Bound`).
+* `aipw_remainder_op_ATT` — the o_p(n^{-1/2}) remainder under the product-rate condition.
 -/
 
 public section

@@ -30,11 +30,11 @@ Legendre entries for the matching pair of degrees](step:1). -/
 def inverseTensorCoeff {d : ℕ} (h : ℝ) (α β : Fin d → ℕ) : ℝ :=
   ∏ i, inverseEntry h (α i) (β i)
 
-/-- For [a degree bound m at most two](hyp:hm), [any scale](hyp:h), [an input multi-index of total
+/-- For [any scale](hyp:h), [an input multi-index of total
 order at most m](hyp:α), and [an output vector of degrees](hyp:β), if [some output degree exceeds
 the input degree in the same coordinate](hyp:hβ), then [the tensor inverse coefficient is
 zero](goal). -/
-theorem inverseTensorCoeff_zero {d m : ℕ} (hm : m ≤ 2) (h : ℝ)
+theorem inverseTensorCoeff_zero {d m : ℕ} (h : ℝ)
     (α : MultiIndex d m) (β : Fin d → ℕ) (hβ : ¬ ∀ i, β i ≤ α.1 i) :
     inverseTensorCoeff h α.1 β = 0 := by
   -- Find an offending coordinate and use inverseEntry_above in prod_eq_zero.
@@ -43,8 +43,7 @@ theorem inverseTensorCoeff_zero {d m : ℕ} (hm : m ≤ 2) (h : ℝ)
   obtain ⟨i, hi⟩ := hβ
   unfold inverseTensorCoeff
   exact Finset.prod_eq_zero (Finset.mem_univ i)
-    (inverseEntry_above h _ _ ((coordinate_le_order α.1 i).trans (α.2.trans hm))
-      hi)
+    (inverseEntry_above h _ _ hi)
 
 /-- For [a degree bound m at most two](hyp:hm), [a scale h](hyp:h) that is [positive](hyp:hh), [an
 input multi-index of total order at most m](hyp:α), and [any output vector of degrees](hyp:β), [the
@@ -105,7 +104,7 @@ theorem degree_two_monomial_scaledLegendre {d m : ℕ} (hm : m ≤ 2)
       funext i
       apply Fin.ext
       rfl
-    simp only [term, inverseTensorCoeff_zero hm h α _ hnot, zero_mul]
+    simp only [term, inverseTensorCoeff_zero h α _ hnot, zero_mul]
   calc
     centeredMonomial a x α.1 =
         ∏ i, ∑ j : Fin 3, inverseEntry h (α.1 i) j.val *

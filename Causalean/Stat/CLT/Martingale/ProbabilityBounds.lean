@@ -25,7 +25,7 @@ variable {Ω : ℕ → Type*} {mΩ : (n : ℕ) → MeasurableSpace (Ω n)}
   {μ : (n : ℕ) → Measure (Ω n)}
 
 /-- If [real row variables measurable almost everywhere](hyp:hMeas) [converge in probability to a
-constant](hyp:hTendsto), [the bound is nonnegative](hyp:hB), and [their absolute
+constant](hyp:hTendsto) and [their absolute
 deviations are uniformly bounded almost everywhere](hyp:hBound), then [their
 expected absolute deviations tend to zero](goal). The probability spaces may
 vary with the row. -/
@@ -33,7 +33,6 @@ theorem tendsto_integral_abs_sub_of_tendstoInProbability_of_ae_bound
     [∀ n, IsProbabilityMeasure (μ n)]
     (Y : (n : ℕ) → Ω n → ℝ) (c B : ℝ)
     (hMeas : ∀ n, AEMeasurable (Y n) (μ n))
-    (hB : 0 ≤ B)
     (hBound : ∀ n, ∀ᵐ ω ∂(μ n), |Y n ω - c| ≤ B)
     (hTendsto : Modes.TendstoInProbability μ Y atTop (fun _ _ => c)) :
     Tendsto (fun n => ∫ ω, |Y n ω - c| ∂(μ n)) atTop (𝓝 0) := by
@@ -44,7 +43,7 @@ theorem tendsto_integral_abs_sub_of_tendstoInProbability_of_ae_bound
   `{|Y-c| < ε}` and its complement.  The first part is at most `ε`; the second
   is at most `B` times the exceptional probability, which tends to zero by
   `hTendsto`.  `hMeas` and the a.e. bound supply all integrability and measurable
-  set side conditions.  Treat `B = 0` directly.
+  set side conditions.
   -/
   let f : (n : ℕ) → Ω n → ℝ := fun n ω => |Y n ω - c|
   have hfMeas : ∀ n, AEMeasurable (f n) (μ n) := fun n => by
@@ -88,7 +87,7 @@ theorem tendsto_integral_abs_sub_of_tendstoInProbability_of_ae_bound
         by_cases htail : ω ∈ s n
         · simp only [g, Set.indicator_of_mem htail]
           dsimp [δ]
-          linarith [hB]
+          linarith
         · have hlt : f n ω < δ := lt_of_not_ge htail
           simp only [g, Set.indicator_of_notMem htail, mul_zero, add_zero]
           exact hlt.le

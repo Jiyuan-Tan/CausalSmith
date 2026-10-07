@@ -14,8 +14,9 @@ namespace Causalean.Stat.CLT.BerryEsseen
 
 open MeasureTheory
 
-/-- The complex density equal to `π` on the interval of radius `1/(2π)`
-and zero elsewhere has the real Fourier transform `sinc`. -/
+/-- The interval density at a real point: the complex number π when the
+point lies in the half-open interval (−1/(2π), 1/(2π)], and zero otherwise.
+It integrates to one, and its Fourier transform is the real sinc function. -/
 noncomputable def sincBox (t : ℝ) : ℂ :=
   (Set.Ioc (-(2 * Real.pi)⁻¹) ((2 * Real.pi)⁻¹)).indicator
     (fun _ => (Real.pi : ℂ)) t

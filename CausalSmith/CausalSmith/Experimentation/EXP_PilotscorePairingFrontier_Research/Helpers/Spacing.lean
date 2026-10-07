@@ -141,7 +141,7 @@ lemma score_oracle_spacing_bound (hN : Even N) (hN2 : 2 ≤ N)
     simpa [p, hmem] using ht
   have hcomparison :=
     Causalean.Stat.OrderStatistic.real_alternating_gap_second_moment_bounds
-      ν (1 / 4 : ℝ) (3 / 4 : ℝ) cg Cg p (by norm_num) hcg hCg hμ
+      ν (1 / 4 : ℝ) (3 / 4 : ℝ) cg Cg p hcg hCg hμ
       (by simpa [scoreInterval] using hsupp)
       (by simpa [scoreInterval] using hbound) N hN
   let F : (Fin N → UnitRecord d) → (Fin N → ℝ) := fun us i => q (us i)
@@ -277,7 +277,7 @@ lemma coordinate_oracle_spacing_bound_one_dim (hN : Even N) (hN2 : 2 ≤ N)
     simpa [p, hmem] using ht
   have hcomparison :=
     Causalean.Stat.OrderStatistic.real_alternating_gap_second_moment_bounds
-      ν 0 1 cX CX p (by norm_num) hcX hCX hν hsupp hbound N hN
+      ν 0 1 cX CX p hcX hCX hν hsupp hbound N hN
   let q : UnitRecord 1 → ℝ := fun u => u.1 0
   let F : (Fin N → UnitRecord 1) → (Fin N → ℝ) := fun us i => q (us i)
   let H : (Fin N → ℝ) → ℝ := fun s =>

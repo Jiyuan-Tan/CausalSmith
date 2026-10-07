@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.Coll
 
 /-! # Finite estimates used by the birthday occupancy asymptotic. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.PomdpStateauditMinimax
 

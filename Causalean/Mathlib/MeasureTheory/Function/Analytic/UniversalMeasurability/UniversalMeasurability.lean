@@ -16,7 +16,7 @@ membership in the completed sigma-algebra.  Its main declaration is the public u
 measurability theorem for Mathlib's `MeasureTheory.AnalyticSet`.
 -/
 
-@[expose] public section
+public section
 
 open Filter Set
 open scoped ENNReal Topology

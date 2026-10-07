@@ -547,7 +547,7 @@ lemma compressedPackingCellExperiment_klDiv_le {M n : ℕ}
     simpa [Q0, Q1, P0, P1, compressedSampleLaw_eq_pi_onePointDistanceLaw,
       hflip] using hpi (packingSingleBit j false) j
   have hpois := markedPoissonKL_le_two_mul_of_piKL Q0 Q1 packingMarkLaw
-    n hn hB hfixed
+    n hn hfixed
   rw [finiteMeasureMarkedPoissonLaw_probability_eq Q0 Q0,
     finiteMeasureMarkedPoissonLaw_probability_eq Q1 Q0] at hpois
   calc

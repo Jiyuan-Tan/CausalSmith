@@ -51,8 +51,8 @@ theorem integral_centered_bin (hbin : MeasurableSet bin) :
   rw [integral_sub hi (integrable_const (μ.real bin))]
   simp [binIndicator, integral_indicator_const, hbin]
 
-/-- The centered indicator of a [measurable bin](hyp:hbin) under the [law](hyp:μ)
-has [second moment equal to the Bernoulli variance](goal).
+/-- For a [measurable bin](hyp:hbin) with probability p under a [probability law](hyp:μ),
+[the expected square of the bin indicator minus p equals p (1 − p)](goal).
 
 Expand the square using that the indicator squared is the indicator; integrate the
 three terms, using the preceding integrability and mean lemmas. This is the variance

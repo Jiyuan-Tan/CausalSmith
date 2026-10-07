@@ -47,9 +47,11 @@ inverse-propensity-weighted conditional outcome-variance terms.
 
 The helper lemmas establish bounded inverse-propensity weights and L²
 membership for the regression representatives under overlap and square-integrable
-outcomes. The final theorem `dml_ATE_tendstoNormal_hahnVariance` rewrites the limiting
-variance in the pointwise one-shot DML central-limit theorem by this decomposition;
-it does not prove regularity under local alternatives or a convolution lower bound.
+outcomes. The final theorems `dml_ATE_tendstoNormal_hahnVariance_on_highProbEvent` (learner
+conditions on events of probability tending to one) and its every-realization corollary
+`dml_ATE_tendstoNormal_hahnVariance` rewrite the limiting variance in the one-shot DML
+central-limit theorem by this decomposition; they do not prove regularity under local
+alternatives or a convolution lower bound.
 -/
 
 public section
@@ -425,41 +427,42 @@ end BackdoorEstimationSystem
 
 open Causalean.Stat
 open BackdoorEstimationSystem
+open scoped ENNReal
 
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- **The one-shot DML ATE has a Gaussian limit with Hahn-form variance.** Assume [the
-back-door identifying assumptions](hyp:hA) and [strict overlap of the true
-propensity score with margin `ε`](hyp:h_overlap), with [the factual
-outcome](hyp:h_y2) and [every potential outcome `Y(d)`](hyp:h_yd2)
-square-integrable. Let `sample` be an i.i.d. draw of the observed data and
-`split` a one-shot fold split whose [training-fold share converges to a limit
-`c` strictly between `0` and `1`](hyp:hc_pos,hc_lt,h_split_rate). For the
-nuisance estimators `μ_hat`, `e_hat` fit on the training fold, assume [each is jointly measurable
-in the training data and the evaluation point and square-integrable against
-`P_X`](hyp:h_mu_meas,h_e_meas,h_mu_memLp,h_e_memLp), and [each is a measurable function of the
-training fold alone](hyp:h_mu_foldA,h_e_foldA,h_mu_uncurry_foldA,h_e_uncurry_foldA), that [the
-estimated propensity score also satisfies overlap with margin `ε`](hyp:h_e_overlap),
-that [each nuisance estimator is `L²(P_X)`-consistent](hyp:h_mu_rate,h_e_rate),
-and that [the product of the two `L²` estimation errors is `o_P(n^{-1/2})` —
-the Neyman-orthogonality rate condition](hyp:h_product_rate). Assume finally
-[the AIPW influence function, the rescaled estimator, and the normalized
-influence-function sum are all measurable](hyp:hψ_meas,hθn_meas,hSum_meas).
-Then [the rescaled one-shot DML ATE estimator converges in distribution to
-the mean-zero Gaussian law whose variance has Hahn's three-term AIPW form](goal).
+/-- **The one-shot DML ATE has a Gaussian limit with Hahn-form variance, with learner conditions
+on events of probability tending to one.** For [a back-door estimation
+system](hyp:S) satisfying [the back-door identification assumptions](hyp:hA), with [an overlap
+threshold ε](hyp:ε) such that [0 < ε ≤ 1/2 and the true propensity score lies between ε and
+1 − ε almost surely](hyp:h_overlap), [a square-integrable observed outcome](hyp:h_y2) and [square-integrable
+potential outcomes](hyp:h_yd2), let [an i.i.d. sample](hyp:sample) be [split once into a training
+fold and an evaluation fold](hyp:split) whose [evaluation-fold share converges](hyp:h_split_rate)
+to [a limit c](hyp:c) that is [positive](hyp:hc_pos), and let [μ̂_n and ê_n be the
+outcome-regression and propensity learners](hyp:μ_hat,e_hat). Suppose there are [events
+G_n](hyp:goodSet) whose [complements have probability at most Δ_n](hyp:hfail) for [a sequence
+Δ_n](hyp:Δ) that [tends to zero](hyp:hΔ). Assume [(ω, x) ↦ μ̂_n(ω)(a, x) is jointly measurable
+for each arm a](hyp:h_mu_meas) and [so is (ω, x) ↦ ê_n(ω)(x)](hyp:h_e_meas); on G_n [each
+μ̂_n(a, ·) is square-integrable under the covariate law](hyp:h_mu_memLp), [ê_n is
+square-integrable under the covariate law](hyp:h_e_memLp) and [ε ≤ ê_n ≤ 1 − ε almost everywhere
+under the covariate law](hyp:h_e_overlap); [μ̂_n](hyp:h_mu_uncurry_foldA) and
+[ê_n](hyp:h_e_uncurry_foldA) are measurable with respect to the product of the σ-algebra generated
+by the training-fold observations and the covariate σ-algebra; [for each arm the L² error of μ̂_n
+under the covariate law is o_p(1)](hyp:h_mu_rate), [the L² error of ê_n is o_p(1)](hyp:h_e_rate),
+and [for each arm the product of these two L² errors is o_p(n^(−1/2))](hyp:h_product_rate). Given
+in addition [measurability of the augmented inverse-probability-weighted influence
+function](hyp:hψ_meas), [almost-everywhere measurability of the rescaled estimator at every sample
+size](hyp:hθn_meas), and [almost-everywhere measurability of the normalized influence-function sum
+at every sample size](hyp:hSum_meas), then [√|B(n)|·(θ̂_n − θ₀), where B(n) is the
+evaluation fold, converges in distribution to the mean-zero Gaussian law whose variance has Hahn's
+three-term form: the variance of the conditional average treatment effect plus the two
+inverse-propensity-weighted conditional outcome variances](goal).
 
-Composing `dml_ATE_tendstoNormal` with `aipw_variance_hahn_decomposition`,
-the rescaled estimator `√|B(n)| (θ̂ⁿ − θ₀)` converges in distribution to the
-mean-zero Gaussian whose variance is the Hahn-form AIPW variance
-
-    V_H = ∫ (μ₁ − μ₀ − θ₀)² dP_X
-          + ∫ (a / e²)   (y − μ₁)² dP_Z
-          + ∫ ((1−a) / (1−e)²) (y − μ₀)² dP_Z.
-
-The hypotheses are exactly those of `dml_ATE_tendstoNormal`; the conclusion
-only rewrites the limiting variance via the variance decomposition. -/
-theorem dml_ATE_tendstoNormal_hahnVariance
+The learner square-integrability and overlap conditions are required only on the events `G_n`.
+The proof composes `dml_ATE_tendstoNormal_on_highProbEvent` with
+`aipw_variance_hahn_decomposition`; the conclusion only rewrites the limiting variance. -/
+theorem dml_ATE_tendstoNormal_hahnVariance_on_highProbEvent
     (S : BackdoorEstimationSystem P γ)
     {ε : ℝ}
     (hA : S.toPOBackdoorSystem.Assumptions)
@@ -469,31 +472,26 @@ theorem dml_ATE_tendstoNormal_hahnVariance
       (fun ω => (S.toPOBackdoorSystem.YofD d ω) ^ 2) P.μ)
     (sample : IIDSample P.Ω (γ × Bool × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
-    {c : ℝ} (hc_pos : 0 < c) (hc_lt : c < 1)
+    {c : ℝ} (hc_pos : 0 < c)
     (h_split_rate :
       Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
     (μ_hat : ℕ → P.Ω → (Bool → γ → ℝ))
     (e_hat : ℕ → P.Ω → (γ → ℝ))
+    (goodSet : ℕ → Set P.Ω)
+    (Δ : ℕ → ℝ≥0∞)
+    (hΔ : Tendsto Δ atTop (𝓝 0))
+    (hfail : ∀ n, P.μ (goodSet n)ᶜ ≤ Δ n)
     (h_mu_meas :
       ∀ n a, Measurable (fun (p : P.Ω × γ) => μ_hat n p.1 a p.2))
     (h_e_meas :
       ∀ n, Measurable (fun (p : P.Ω × γ) => e_hat n p.1 p.2))
     (h_mu_memLp :
-      ∀ n ω a, MemLp (fun x => μ_hat n ω a x) 2 S.P_X)
+      ∀ n ω, ω ∈ goodSet n → ∀ a, MemLp (fun x => μ_hat n ω a x) 2 S.P_X)
     (h_e_memLp :
-      ∀ n ω, MemLp (fun x => e_hat n ω x) 2 S.P_X)
+      ∀ n ω, ω ∈ goodSet n → MemLp (fun x => e_hat n ω x) 2 S.P_X)
     (h_e_overlap :
-      ∀ n ω, ∀ᵐ x ∂S.P_X, ε ≤ e_hat n ω x ∧ e_hat n ω x ≤ 1 - ε)
-    (h_mu_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (μ_hat n))
-    (h_e_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (e_hat n))
+      ∀ n ω, ω ∈ goodSet n → ∀ᵐ x ∂S.P_X,
+        ε ≤ e_hat n ω x ∧ e_hat n ω x ≤ 1 - ε)
     (h_mu_uncurry_foldA :
       ∀ n a,
         Measurable[(MeasurableSpace.comap
@@ -530,21 +528,123 @@ theorem dml_ATE_tendstoNormal_hahnVariance
         (dmlEstimator S sample split μ_hat e_hat) S.θ₀ split.foldB n) P.μ)
     (hSum_meas : ∀ n : ℕ, AEMeasurable
       (IsAsymLinear.normalizedSum sample (S.ψ_AIPW) split.foldB n) P.μ) :
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator
-        (dmlEstimator S sample split μ_hat e_hat) S.θ₀ split.foldB)
-      (gaussianMeasure 0
+    Modes.TendstoInLaw (fun _ : ℕ => P.μ) (IsAsymLinear.rescaledEstimator
+        (dmlEstimator S sample split μ_hat e_hat) S.θ₀ split.foldB) atTop (gaussianMeasure 0
         ((∫ x, (S.μ_val true x - S.μ_val false x - S.θ₀) ^ 2 ∂S.P_X)
           + (∫ z, (indA z / (S.e_val (projX z)) ^ 2) *
               (projY z - S.μ_val true (projX z)) ^ 2 ∂S.P_Z)
           + (∫ z, ((1 - indA z) / (1 - S.e_val (projX z)) ^ 2) *
-              (projY z - S.μ_val false (projX z)) ^ 2 ∂S.P_Z)))
-      P.μ
-      hθn_meas := by
+              (projY z - S.μ_val false (projX z)) ^ 2 ∂S.P_Z))) := by
   rw [← S.aipw_variance_hahn_decomposition h_overlap hA h_y2 h_yd2]
-  exact dml_ATE_tendstoNormal S hA h_overlap h_y2 h_yd2
-    sample split hc_pos hc_lt h_split_rate μ_hat e_hat h_mu_meas h_e_meas
-    h_mu_memLp h_e_memLp h_e_overlap h_mu_foldA h_e_foldA
+  exact dml_ATE_tendstoNormal_on_highProbEvent S hA h_overlap h_y2 h_yd2
+    sample split hc_pos h_split_rate μ_hat e_hat goodSet Δ hΔ hfail h_mu_meas h_e_meas
+    h_mu_memLp h_e_memLp h_e_overlap
+    h_mu_uncurry_foldA h_e_uncurry_foldA h_mu_rate h_e_rate h_product_rate
+    hψ_meas hθn_meas hSum_meas
+
+/-- **The one-shot DML ATE has a Gaussian limit with Hahn-form variance.** Assume [the
+back-door identifying assumptions](hyp:hA) and [strict overlap of the true
+propensity score with margin `ε`](hyp:h_overlap), with [the factual
+outcome](hyp:h_y2) and [every potential outcome `Y(d)`](hyp:h_yd2)
+square-integrable. Let `sample` be an i.i.d. draw of the observed data and
+`split` a one-shot fold split whose [evaluation-fold share converges to a positive
+limit `c`](hyp:hc_pos,h_split_rate). For the
+nuisance estimators `μ_hat`, `e_hat` fit on the training fold, assume [each is jointly measurable
+in the training data and the evaluation point and square-integrable against
+`P_X`](hyp:h_mu_meas,h_e_meas,h_mu_memLp,h_e_memLp), and [each is measurable in the
+training fold jointly with the evaluation point](hyp:h_mu_uncurry_foldA,h_e_uncurry_foldA), that [the
+estimated propensity score also satisfies overlap with margin `ε`](hyp:h_e_overlap),
+that [each nuisance estimator is `L²(P_X)`-consistent](hyp:h_mu_rate,h_e_rate),
+and that [the product of the two `L²` estimation errors is `o_P(n^{-1/2})` —
+the Neyman-orthogonality rate condition](hyp:h_product_rate). Assume finally
+[the AIPW influence function, the rescaled estimator, and the normalized
+influence-function sum are all measurable](hyp:hψ_meas,hθn_meas,hSum_meas).
+Then [the rescaled one-shot DML ATE estimator converges in distribution to
+the mean-zero Gaussian law whose variance has Hahn's three-term AIPW form](goal).
+
+Composing `dml_ATE_tendstoNormal` with `aipw_variance_hahn_decomposition`,
+the rescaled estimator `√|B(n)| (θ̂ⁿ − θ₀)` converges in distribution to the
+mean-zero Gaussian whose variance is the Hahn-form AIPW variance
+
+    V_H = ∫ (μ₁ − μ₀ − θ₀)² dP_X
+          + ∫ (a / e²)   (y − μ₁)² dP_Z
+          + ∫ ((1−a) / (1−e)²) (y − μ₀)² dP_Z.
+
+The hypotheses are exactly those of `dml_ATE_tendstoNormal`; the conclusion
+only rewrites the limiting variance via the variance decomposition. -/
+theorem dml_ATE_tendstoNormal_hahnVariance
+    (S : BackdoorEstimationSystem P γ)
+    {ε : ℝ}
+    (hA : S.toPOBackdoorSystem.Assumptions)
+    (h_overlap : S.StrictOverlap ε)
+    (h_y2 : Integrable (fun ω => (S.toPOBackdoorSystem.factualY ω) ^ 2) P.μ)
+    (h_yd2 : ∀ d : Bool, Integrable
+      (fun ω => (S.toPOBackdoorSystem.YofD d ω) ^ 2) P.μ)
+    (sample : IIDSample P.Ω (γ × Bool × ℝ) P.μ S.P_Z)
+    (split : OneShotSplit sample)
+    {c : ℝ} (hc_pos : 0 < c)
+    (h_split_rate :
+      Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
+    (μ_hat : ℕ → P.Ω → (Bool → γ → ℝ))
+    (e_hat : ℕ → P.Ω → (γ → ℝ))
+    (h_mu_meas :
+      ∀ n a, Measurable (fun (p : P.Ω × γ) => μ_hat n p.1 a p.2))
+    (h_e_meas :
+      ∀ n, Measurable (fun (p : P.Ω × γ) => e_hat n p.1 p.2))
+    (h_mu_memLp :
+      ∀ n ω a, MemLp (fun x => μ_hat n ω a x) 2 S.P_X)
+    (h_e_memLp :
+      ∀ n ω, MemLp (fun x => e_hat n ω x) 2 S.P_X)
+    (h_e_overlap :
+      ∀ n ω, ∀ᵐ x ∂S.P_X, ε ≤ e_hat n ω x ∧ e_hat n ω x ≤ 1 - ε)
+    (h_mu_uncurry_foldA :
+      ∀ n a,
+        Measurable[(MeasurableSpace.comap
+            (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
+          (inferInstance : MeasurableSpace γ)]
+          (fun (p : P.Ω × γ) => μ_hat n p.1 a p.2))
+    (h_e_uncurry_foldA :
+      ∀ n,
+        Measurable[(MeasurableSpace.comap
+            (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
+          (inferInstance : MeasurableSpace γ)]
+          (fun (p : P.Ω × γ) => e_hat n p.1 p.2))
+    (h_mu_rate :
+      ∀ a : Bool,
+        IsLittleOp
+          (fun n ω =>
+            (eLpNorm (fun x => μ_hat n ω a x - S.μ_val a x) 2 S.P_X).toReal)
+          (fun _ => (1 : ℝ)) P.μ)
+    (h_e_rate :
+      IsLittleOp
+        (fun n ω =>
+          (eLpNorm (fun x => e_hat n ω x - S.e_val x) 2 S.P_X).toReal)
+        (fun _ => (1 : ℝ)) P.μ)
+    (h_product_rate :
+      ∀ a : Bool,
+        IsLittleOp
+          (fun n ω =>
+            (eLpNorm (fun x => μ_hat n ω a x - S.μ_val a x) 2 S.P_X).toReal *
+              (eLpNorm (fun x => e_hat n ω x - S.e_val x) 2 S.P_X).toReal)
+          (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ)
+    (hψ_meas : Measurable (S.ψ_AIPW))
+    (hθn_meas : ∀ n : ℕ, AEMeasurable
+      (IsAsymLinear.rescaledEstimator
+        (dmlEstimator S sample split μ_hat e_hat) S.θ₀ split.foldB n) P.μ)
+    (hSum_meas : ∀ n : ℕ, AEMeasurable
+      (IsAsymLinear.normalizedSum sample (S.ψ_AIPW) split.foldB n) P.μ) :
+    Modes.TendstoInLaw (fun _ : ℕ => P.μ) (IsAsymLinear.rescaledEstimator
+        (dmlEstimator S sample split μ_hat e_hat) S.θ₀ split.foldB) atTop (gaussianMeasure 0
+        ((∫ x, (S.μ_val true x - S.μ_val false x - S.θ₀) ^ 2 ∂S.P_X)
+          + (∫ z, (indA z / (S.e_val (projX z)) ^ 2) *
+              (projY z - S.μ_val true (projX z)) ^ 2 ∂S.P_Z)
+          + (∫ z, ((1 - indA z) / (1 - S.e_val (projX z)) ^ 2) *
+              (projY z - S.μ_val false (projX z)) ^ 2 ∂S.P_Z))) := by
+  exact dml_ATE_tendstoNormal_hahnVariance_on_highProbEvent S hA h_overlap h_y2 h_yd2
+    sample split hc_pos h_split_rate μ_hat e_hat (fun _ => Set.univ) (fun _ => 0)
+    tendsto_const_nhds (by simp) h_mu_meas h_e_meas
+    (fun n ω _ a => h_mu_memLp n ω a) (fun n ω _ => h_e_memLp n ω)
+    (fun n ω _ => h_e_overlap n ω)
     h_mu_uncurry_foldA h_e_uncurry_foldA h_mu_rate h_e_rate h_product_rate
     hψ_meas hθn_meas hSum_meas
 

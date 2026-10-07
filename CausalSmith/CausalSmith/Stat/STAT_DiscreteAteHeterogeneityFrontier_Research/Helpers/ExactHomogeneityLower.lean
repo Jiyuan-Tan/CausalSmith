@@ -17,7 +17,7 @@ symmetric finite Rademacher mixture from Zeng--Balakrishnan--Han--Kennedy,
 Theorem 4 and Appendix C.8.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

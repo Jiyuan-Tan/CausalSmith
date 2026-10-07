@@ -575,10 +575,11 @@ theorem condIndepFun_threeBlock_iff_densityIdentity (hd : Measurable d) :
   ⟨threeBlockDensityIdentity_of_condIndepFun muA muB muC hd,
     condIndepFun_threeBlock_of_densityIdentity muA muB muC hd⟩
 
-/-- For [three reference measures](hyp:muA,muB,muC) and
-[a measurable finite three-block density](hyp:hd),
-[conditional independence of the first two blocks given the third is equivalent to a measurable
-conditional product factorization of the density](goal). -/
+/-- For [three σ-finite reference measures on standard Borel spaces](hyp:muA,muB,muC) and
+[a measurable three-block density of finite total mass](hyp:hd),
+[conditional independence of the first two blocks given the third under the density-weighted
+measure is equivalent to the density being almost everywhere a product of a measurable term of the
+first and third blocks and a measurable term of the second and third blocks](goal). -/
 theorem condIndepFun_threeBlock_iff_factors (hd : Measurable d) :
     CondIndepFun
         (MeasurableSpace.comap (@thirdThreeCoord A B C) inferInstance)

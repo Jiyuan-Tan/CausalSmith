@@ -20,8 +20,8 @@ namespace Causalean.Stat.RandomGraph.PathOccupancy
 variable {Ω : Type*} [MeasurableSpace Ω]
 
 /-- In [the iid uniform marked model](hyp:h), [a fixed subset of size at
-least two](hyp:C,hC) has [connected occupied cells and two marks with probability
-bounded by K times m^m times the quadratic mark factor over K^m](goal),
+least two](hyp:C,hC) has [connected occupied cells and at least two marks with
+probability at most ε² · K · m^(m+2) / K^m](goal), where m is the subset's size,
 with [positive cell count](hyp:hK).
 
 Union over assignments to the subtype C, use connected_assignment_count, and

@@ -20,7 +20,7 @@ namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
 open Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- If [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1) and [the reflection weights a
+/-- If [0 < s](hyp:hs) and [the reflection weights a
 satisfy the moment conditions Σ_q a_q·(−(q + 1))^k = 1 for every k ≤ m](hyp:ha),
 then for [the left face in coordinate i](hyp:i) [there is a positive constant C
 such that the one-face reflection of every response u in the intrinsic Hölder
@@ -28,7 +28,7 @@ ball of order m, exponent s and radius L ≥ 0 on the normalized cube lies in th
 intrinsic Hölder ball of radius C·L on the closed left collar](goal). The
 constant depends only on the dimension, m, s, the face and the weights. -/
 theorem exists_leftFaceReflection_collar_holder_constant
-    (d m : ℕ) (s : ℝ) (hs : 0 < s) (hs1 : s ≤ 1)
+    (d m : ℕ) (s : ℝ) (hs : 0 < s)
     (i : Fin d) (a : Fin (m + 1) → ℝ)
     (ha : ∀ k : Fin (m + 1),
       (∑ q : Fin (m + 1),
@@ -46,7 +46,7 @@ theorem exists_leftFaceReflection_collar_holder_constant
   obtain ⟨Cd, hCd, hd⟩ :=
     exists_leftFaceReflection_collar_derivBound_constant d m s i a ha
   obtain ⟨Ch, hCh, hh⟩ :=
-    exists_leftFaceReflection_collar_modulus_constant d m s hs hs1 i a ha
+    exists_leftFaceReflection_collar_modulus_constant d m s hs i a ha
   refine ⟨Cd + Ch, add_pos hCd hCh, ?_⟩
   intro u L hL hu
   refine ⟨leftFaceReflection_contDiffOn_collar d m i a ha u hu.regularity, ?_, ?_⟩

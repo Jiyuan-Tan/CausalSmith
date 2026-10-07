@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_TransportCaceRoughnuisanceLength_Research.He
 
 /-! # Target covariate and conditioning identities -/
 
-@[expose] public section
+public section
 
 open Set MeasureTheory
 open scoped BigOperators ENNReal

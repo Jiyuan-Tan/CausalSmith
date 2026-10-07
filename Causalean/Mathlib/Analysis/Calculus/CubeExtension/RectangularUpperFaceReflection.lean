@@ -31,7 +31,7 @@ def rectRightCollar {d : ℕ} (lo hi : Fin d → ℝ) (m : ℕ)
     (i : Fin d) : Set (Fin d → ℝ) :=
   rectBox lo (rectRightUpper lo hi m i)
 
-/-- If [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1) and [the box with corners lo, hi has
+/-- If [0 < s](hyp:hs) and [the box with corners lo, hi has
 positive side lengths](hyp:hbox), then for [derivative order m](hyp:m) and
 [coordinate i](hyp:i) [there is a positive constant C such that every response u
 in the intrinsic Hölder ball of order m, exponent s and radius L ≥ 0 on the box
@@ -43,7 +43,7 @@ Reflect coordinate `i` through the box midpoint, apply the lower-face
 reflection theorem to the reversed box, and transport the result back. -/
 theorem exists_rectRightFaceReflection_holder_constant {d : ℕ}
     (lo hi : Fin d → ℝ) (m : ℕ) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1)
+    (hs : 0 < s)
     (hbox : ∀ j, lo j < hi j) (i : Fin d) :
     ∃ C : ℝ, 0 < C ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (L : ℝ), 0 ≤ L →
@@ -80,7 +80,7 @@ theorem exists_rectRightFaceReflection_holder_constant {d : ℕ}
       linarith
     · simpa [rectLeftLower, hji] using hnbox j
   obtain ⟨C, hC, hreflect⟩ :=
-    exists_rectLeftFaceReflection_holder_constant nlo nhi m s hs hs1 hnbox i
+    exists_rectLeftFaceReflection_holder_constant nlo nhi m s hs hnbox i
   refine ⟨C, hC, ?_⟩
   intro u L hL hu
   have hnu : HolderBallOn (rectBox nlo nhi) m s L (fun x => u (-x)) :=

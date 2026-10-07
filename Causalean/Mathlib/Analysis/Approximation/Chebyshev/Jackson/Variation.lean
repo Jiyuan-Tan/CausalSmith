@@ -343,7 +343,7 @@ theorem normalizedCoeff_l1 (N : ℕ) (hN : 0 < N) :
     rw [tsum_mul_right]
   rw [hscale]
   have hn : (0 : ℝ) ≤ N := by positivity
-  rw [convolution_zero N hN] at hpos ⊢
+  rw [convolution_zero N] at hpos ⊢
   apply (div_le_iff₀ hpos).2
   nlinarith [sq_nonneg ((N : ℝ) ^ 2), sq_nonneg (N : ℝ)]
 
@@ -395,7 +395,7 @@ theorem normalizedCoeff_delta_l1 (N : ℕ) (hN : 0 < N) :
     simp_rw [hdiff, abs_div, abs_of_pos hpos, div_eq_mul_inv]
     rw [tsum_mul_right]
   rw [hscale]
-  rw [convolution_zero N hN] at hpos ⊢
+  rw [convolution_zero N] at hpos ⊢
   apply (div_le_iff₀ hpos).2
   have hn : (0 : ℝ) ≤ N := by positivity
   nlinarith [sq_nonneg (N : ℝ)]
@@ -426,7 +426,7 @@ theorem normalizedCoeff_delta2_l1 (N : ℕ) (hN : 0 < N) :
     rw [tsum_mul_right]
   rw [hscale]
   have hn : (0 : ℝ) < N := by exact_mod_cast hN
-  rw [convolution_zero N hN] at hpos ⊢
+  rw [convolution_zero N] at hpos ⊢
   apply (div_le_iff₀ hpos).2
   rw [show 6 / (N : ℝ) * ((2 * (N : ℝ) ^ 3 + N) / 3) =
       (6 * ((2 * (N : ℝ) ^ 3 + N) / 3)) / N by ring]

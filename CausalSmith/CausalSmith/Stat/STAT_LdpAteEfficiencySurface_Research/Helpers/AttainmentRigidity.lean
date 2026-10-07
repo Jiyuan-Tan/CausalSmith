@@ -11,7 +11,7 @@ postprocessing rows to be pairwise mutually singular, giving an output
 cardinality lower bound for arbitrary measurable output spaces.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

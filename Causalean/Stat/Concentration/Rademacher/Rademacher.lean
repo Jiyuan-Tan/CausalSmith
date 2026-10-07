@@ -20,28 +20,26 @@ public import FoML.Defs
 public import FoML.BoundedDifference
 public import Causalean.Tactic.Attr
 
-/-!
-Re-exports FoML Rademacher-complexity primitives and adds congruence lemmas for empirical and
-population complexities.
+/-! # Rademacher complexity: unfolding and invariance lemmas
 
-The FoML symbols (`Signs`, `empiricalRademacherComplexity`,
-`rademacherComplexity`, `empiricalRademacherComplexity_without_abs`,
-`uniformDeviation`, `uniformDeviation_measurable`) live in the root
-namespace and are imported transitively above. We declare the namespace
-`Causalean.Stat.Concentration` so that downstream `open
-Causalean.Stat.Concentration` continues to elaborate, but we do not
-re-export the FoML names — root-namespace symbols are already in scope
-unqualified, and declaring `abbrev` aliases here would trigger
-ambiguous-term errors when both forms are visible.
+Rademacher complexity of a class of real functions. For a sample S of size n, the empirical
+Rademacher complexity is the average over sign vectors σ in {−1, +1}ⁿ of the supremum over the
+class of |(1/n) Σ σₖ f(Sₖ)|; the population Rademacher complexity is its expectation over iid
+samples. The definitions (`empiricalRademacherComplexity`, `rademacherComplexity`,
+`empiricalRademacherComplexity_without_abs`, `uniformDeviation`, `Signs`) come from the FoML
+library and live in the root namespace. This file adds their unfolding equations and shows that
+both complexities depend on the class only through its values on the sample.
 
-We also collect a few generic congruence facts for empirical and population
-Rademacher complexity (invariance under sample-pointwise / almost-everywhere
-agreement of the function family). The public lemmas are
-`empiricalRademacherComplexity_congr_sample`,
-`rademacherComplexity_congr_ae`, and `rademacherComplexity_congr_ae_all`,
-which let callers replace a function class by an equal-on-samples or
-almost-everywhere equal representative without changing the corresponding
-Rademacher complexity.
+## Main results
+
+* `empiricalRademacherComplexity_eq`, `rademacherComplexity_eq` — the two definitions written
+  out as an average over sign vectors and as an expectation over samples.
+* `empiricalRademacherComplexity_congr_sample` — two classes that agree at every sample point
+  have the same empirical Rademacher complexity.
+* `rademacherComplexity_congr_ae` — replacing each function of a countable class by an
+  almost-everywhere equal version leaves the population complexity unchanged.
+* `rademacherComplexity_congr_ae_all` — the same when the whole class agrees almost surely on
+  one common event, with no countability assumption.
 -/
 
 public section

@@ -12,7 +12,7 @@ Mathlib's circle-integral Cauchy formulas supply the scalar residue calculation;
 bounds themselves use the explicitly supplied reference diagonalizer and a Neumann argument.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Mathlib.LinearAlgebra.Tensor.SymmetricPencil
 
@@ -658,7 +658,7 @@ theorem coordinateProjector_perturbation_of_matched_eigenvalue {n : ℕ} [NeZero
     rw [← complexMatrix_norm_eq]
     rw [hprojector_diff]
     exact hcontour
-  have hP := coordinateProjector_operatorNorm_le S j hS hcondition
+  have hP := coordinateProjector_operatorNorm_le S j hcondition
   have hP' : squareOperatorNorm (coordinateProjector S' j') ≤ 2 * chi := by
     calc
       squareOperatorNorm (coordinateProjector S' j') =
@@ -708,7 +708,7 @@ theorem exists_permutation_projector_matching {n : ℕ} [NeZero n]
   have hradius : 0 ≤ chi * delta := mul_nonneg hchi.le hdelta
   have htwosmall : 2 * (chi * delta) < sigma := by linarith
   obtain ⟨pi, hpi⟩ := exists_permutation_matching_of_localization values values'
-    hradius hgap' hlocal htwosmall
+    hgap' hlocal htwosmall
   refine ⟨pi, fun j => ?_⟩
   have hmatch := hpi j
   have hthird : |values' (pi j) - values j| < sigma / 3 := by linarith

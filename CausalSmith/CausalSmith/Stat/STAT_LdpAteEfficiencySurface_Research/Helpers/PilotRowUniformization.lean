@@ -9,7 +9,7 @@ prefixes into eventual uniform control over all prefixes whose selected paramete
 in a shrinking neighborhood of the base point.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

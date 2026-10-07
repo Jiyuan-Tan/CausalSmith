@@ -57,10 +57,10 @@ theorem monomial_inverse_legendre (k : ℕ) (hk : k ≤ 2) (h t : ℝ) :
   · field_simp
     ring
 
-/-- For [any scale](hyp:h) and [a monomial degree k and a Legendre degree j](hyp:k,j) with [k at
-most two](hyp:hk) and [j strictly larger than k](hyp:hj), [the inverse Legendre entry is
+/-- For [any scale](hyp:h) and [a monomial degree k and a Legendre degree j](hyp:k,j) with
+[j strictly larger than k](hyp:hj), [the inverse Legendre entry is
 zero](goal). -/
-theorem inverseEntry_above (h : ℝ) (k j : ℕ) (hk : k ≤ 2) (hj : k < j) :
+theorem inverseEntry_above (h : ℝ) (k j : ℕ) (hj : k < j) :
     inverseEntry h k j = 0 := by
   unfold inverseEntry
   split_ifs <;> first | omega | rfl

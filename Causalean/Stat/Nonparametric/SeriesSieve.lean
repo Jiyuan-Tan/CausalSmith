@@ -8,21 +8,26 @@ public import Causalean.Stat.Nonparametric.SeriesSieve.Jackson
 public import Causalean.Stat.Nonparametric.SeriesSieve.PredictionRate
 
 /-!
-# Series / sieve `L²` substrate
+# Series (sieve) least squares: approximation and prediction
 
-This barrel collects reusable series/sieve approximation and prediction tools for
-nonparametric regression and projection arguments.
+Tools for regression on a finite set of basis functions. On the approximation side, the
+piecewise-Taylor approximant of a `β`-Hölder function on `J` uniform cells has sup-norm error of
+order `J^(−β)`. On the estimation side, the closed-form least-squares coefficients satisfy the
+normal equations, the hat matrix has squared Frobenius norm equal to the number of basis
+functions, the prediction error splits exactly into approximation and estimation parts, and under
+mean-zero uncorrelated errors with variances at most `σ̄²` the expected prediction error obeys an
+oracle inequality.
 
-* `SeriesSieve/Jackson.lean` — a Jackson-type bound for a function-valued piecewise-Taylor
-  approximant on `J` cells (`piecewiseTaylor_sup_approx`, `piecewiseTaylor_sup_approx_rate`). It
-  does not represent that approximant in a finite basis or identify `J` with basis cardinality.
-* `SeriesSieve/LeastSquares.lean` — closed-form series least-squares coefficients and hat-matrix
-  identities for an arbitrary finite design.
-* `SeriesSieve/Prediction.lean` — empirical approximation reduction, exact Pythagorean prediction
-  decomposition, and a conditional heteroskedastic oracle inequality.
-* `SeriesSieve/PredictionRate.lean` — a finite-dimensional prediction bound conditional on an
-  assumed Jackson-shaped objective bound; the basis-membership bridge is left to the caller.
+## Contents
 
-Built on normal-equation identities from `Causalean.Mathlib.LinearAlgebra.NormalEquations` and
-the shared fixed-weight linear-smoother variance layer.
+* `SeriesSieve/Jackson` — `piecewiseTaylor_sup_approx`, `piecewiseTaylor_sup_approx_rate`. The
+  approximant is function-valued: it is not represented in a finite basis, and `J` is not
+  identified with a basis cardinality.
+* `SeriesSieve/LeastSquares` — `seriesLSCoeff`, `seriesHatMatrix`;
+  `seriesLSCoeff_normal_equations`, `seriesHatMatrix_frobenius_sq`.
+* `SeriesSieve/Prediction` — `seriesApprox_le_of_sup`, `seriesLS_prediction_decomp`,
+  `seriesLS_expected_prediction_le` (a conditional heteroskedastic oracle inequality).
+* `SeriesSieve/PredictionRate` — `seriesLS_prediction_rate_of_jackson_bound`: a prediction bound
+  conditional on an assumed Jackson-shaped bound for the noise-free objective; linking that bound
+  to a concrete basis is left to the caller.
 -/

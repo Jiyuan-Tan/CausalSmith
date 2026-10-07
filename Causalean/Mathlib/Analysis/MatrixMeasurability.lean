@@ -82,7 +82,9 @@ measurable. -/
     Measurable (fun A : RectMatrix rows cols => singularValue A j) :=
   singularValue_continuous.measurable
 
-/-- The finite mask of singular directions retained by a hard threshold. -/
+/-- The finite mask of singular directions retained by a hard threshold: the set of column
+indices j whose j-th singular value of the matrix (zero-based, in decreasing order) is at least
+the threshold. -/
 noncomputable def singularThresholdMask {rows cols : ℕ} (threshold : ℝ)
     (A : RectMatrix rows cols) : Finset (Fin cols) :=
   Finset.univ.filter fun j => threshold ≤ singularValue A j
@@ -123,9 +125,11 @@ lemma measurableSet_singularThresholdMask_eq {rows cols : ℕ} (threshold : ℝ)
   · simpa only [Set.preimage, Set.mem_Iio] using
       (singularValue_measurable (rows := rows) (cols := cols) (j := j)) measurableSet_Iio
 
-/-- A rational approximation to the hard-thresholded inverse.  The index `m` represents the
-positive exponent `m + 1`; this convention avoids a special zeroth term in the approximating
-sequence. -/
+/-- A rational approximation to the hard-thresholded inverse of a real matrix A at a threshold
+τ: with G = AᵀA and q = m + 1, it is the matrix G^m·(G^q + (τ^(2q)/q)·I)⁻¹·Aᵀ. On a singular
+direction with singular value σ > 0 it acts as (1/σ)/(1 + (τ/σ)^(2q)/q). The index `m`
+represents the positive exponent `m + 1`; this convention avoids a special zeroth term in the
+approximating sequence. -/
 noncomputable def rationalThresholdApprox {rows cols : ℕ} (threshold : ℝ) (m : ℕ)
     (A : RectMatrix rows cols) : RectMatrix cols rows :=
   let G := A.transpose * A

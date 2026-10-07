@@ -24,9 +24,13 @@ variable {Obs : Type*} [MeasurableSpace Obs] {P : Measure Obs}
 
 /-- A [measurable observation space](hyp:Obs), [probability law](hyp:P), and
 [measurable real-valued dose map](hyp:A) determine a chosen continuous-dose
-conditional law. Its [measurable dose map](hyp:measurable_dose), [conditional
-kernel](hyp:K), [Markov property](hyp:markov), and [coherence identity](hyp:coherence)
-record the supplied disintegration of the joint dose--observation law. -/
+conditional law. It consists of a proof that [the dose map is measurable](hyp:measurable_dose),
+[a kernel assigning to each real dose value a measure on observations](hyp:K), a proof that
+[every such measure is a probability measure](hyp:markov), and the [coherence identity: drawing
+a dose from its marginal law and then an observation from the kernel at that dose reproduces
+the joint law of the dose and the observation](hyp:coherence). The kernel is supplied, not
+constructed; nothing asserts that the kernel at a dose value is concentrated on observations
+with that dose beyond what the coherence identity implies. -/
 structure ContinuousDoseConditionalLaw (Obs : Type*) [MeasurableSpace Obs]
     (P : Measure Obs) [IsProbabilityMeasure P] (A : Obs → ℝ) where
   measurable_dose : Measurable A

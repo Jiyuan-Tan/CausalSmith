@@ -44,7 +44,7 @@ lemma observedRisk_bddAbove {n d : ℕ} {ε : ℝ} (est : Estimator n d) :
 lemma lowerHistogramEstimator_abs_le_one {n d : ℕ} (est : Estimator n d)
     (fallback : Fin n → Obs d) (N : Obs d → ℕ) :
     |lowerHistogramEstimator est fallback N| ≤ 1 := by
-  apply Causalean.Stat.abs_kernelMean_le _ (by norm_num)
+  apply Causalean.Stat.abs_kernelMean_le _
   intro s
   have hp := projectUnit_mem_unitInterval (est.1 (orderedPrefix fallback s))
   exact abs_le.mpr ⟨by dsimp [lowerPrefixEstimator]; linarith [hp.1], hp.2⟩

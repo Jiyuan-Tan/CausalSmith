@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Pil
 
 /-! # Localization bounds for adaptive pilot inputs -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

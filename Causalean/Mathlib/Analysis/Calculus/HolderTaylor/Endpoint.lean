@@ -16,8 +16,8 @@ open Filter
 
 namespace Causalean.Mathlib.Analysis.Calculus.HolderTaylor
 
-/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα) and
-[at most one](hyp:hα1), [an interval length d](hyp:d) that is [positive](hyp:hd), and
+/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα),
+[an interval length d](hyp:d) that is [positive](hyp:hd), and
 [a nonnegative Hölder constant L](hyp:L,hL). Then [there is one nonnegative constant C such
 that every function f that is k times continuously differentiable on an interval from a to a + d,
 with k-th within-interval derivative Hölder with constant L and exponent α there, has a polynomial
@@ -25,7 +25,7 @@ of degree at most k in the distance a + d − t to the right endpoint whose erro
 of the interval is at most C times that distance to the power k + α](goal). The polynomial
 coefficients may depend on f; this includes k = 0. -/
 theorem endpoint_holder_taylor
-    (k : ℕ) (α d L : ℝ) (hα : 0 < α) (hα1 : α ≤ 1)
+    (k : ℕ) (α d L : ℝ) (hα : 0 < α)
     (hd : 0 < d) (hL : 0 ≤ L) :
     ∃ C : ℝ, 0 ≤ C ∧
       ∀ (a : ℝ) (f : ℝ → ℝ),
@@ -170,8 +170,8 @@ theorem endpoint_holder_taylor
         ring
       rw [neg_sub, mul_assoc, hp]
 
-/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα) and
-[at most one](hyp:hα1), [endpoints a and b](hyp:a,b) with [a < b](hyp:hab), and
+/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα),
+[endpoints a and b](hyp:a,b) with [a < b](hyp:hab), and
 [a nonnegative Hölder constant L](hyp:L,hL). Then [there is one nonnegative constant C such
 that every function f that is k times continuously differentiable on the interval from a to b,
 with k-th within-interval derivative Hölder with constant L and exponent α there, has a polynomial
@@ -179,7 +179,7 @@ of degree at most k in b − t whose error at every point t of the interval is a
 C·(b − t)^(k + α)](goal). The coefficients may depend on the function, while the remainder
 constant depends only on the order, exponent, length, and Hölder constant. -/
 theorem endpoint_holder_taylor_Icc
-    (k : ℕ) (α a b L : ℝ) (hα : 0 < α) (hα1 : α ≤ 1)
+    (k : ℕ) (α a b L : ℝ) (hα : 0 < α)
     (hab : a < b) (hL : 0 ≤ L) :
     ∃ C : ℝ, 0 ≤ C ∧
       ∀ (f : ℝ → ℝ),
@@ -193,7 +193,7 @@ theorem endpoint_holder_taylor_Icc
             |f t - ∑ j : Fin (k + 1), coeff j * (b - t) ^ j.val| ≤
               C * (b - t) ^ ((k : ℝ) + α) := by
   obtain ⟨C, hC, hbound⟩ :=
-    endpoint_holder_taylor k α (b - a) L hα hα1 (sub_pos.mpr hab) hL
+    endpoint_holder_taylor k α (b - a) L hα (sub_pos.mpr hab) hL
   refine ⟨C, hC, ?_⟩
   intro f hf hholder
   have heq : a + (b - a) = b := by ring

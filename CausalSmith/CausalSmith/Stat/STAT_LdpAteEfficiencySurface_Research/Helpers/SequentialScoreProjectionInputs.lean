@@ -4,7 +4,7 @@ public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Seq
 
 /-! # Paper inputs for measurable-statistic score projection -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

@@ -226,8 +226,7 @@ lemma compressedSampleLaw_klDiv_le (P P' : CtyLaw) (n : ℕ) (x : Score) :
   letI : IsProbabilityMeasure (sampleLaw P' n) := by
     unfold sampleLaw
     infer_instance
-  exact Causalean.Mathlib.InformationTheory.Measure.klDiv_map_le
-    (measurable_distanceData n x)
+  exact InformationTheory.klDiv_map_le _ _ (measurable_distanceData n x)
 
 /-- The common additive standard-Gaussian channel used to turn Bernoulli
 outcomes into the smooth conditional outcome laws of the packing. -/
@@ -259,8 +258,7 @@ lemma gaussianNoiseKernel_klDiv_bind_le
     InformationTheory.klDiv (μ.bind gaussianNoiseKernel)
         (ν.bind gaussianNoiseKernel) ≤
       InformationTheory.klDiv μ ν := by
-  exact Causalean.Mathlib.InformationTheory.Measure.klDiv_bind_le_of_isProbabilityMeasure
-    μ ν gaussianNoiseKernel
+  exact InformationTheory.klDiv_comp_right_le μ ν gaussianNoiseKernel
 
 /-- The conditional outcome law obtained by adding independent standard
 Gaussian noise to a real-valued Bernoulli draw. -/

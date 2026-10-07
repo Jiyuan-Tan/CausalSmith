@@ -112,18 +112,5 @@ theorem identifiedSet_param_Icc {γ : ℝ → α} {L U : ℝ}
     exact ⟨(hbound t ht).1, (hbound t ht).2⟩
   · exact hord.out ⟨0, by norm_num, hL⟩ ⟨1, by norm_num, hU⟩
 
-/-- Deprecated former name of `mem_identifiedSet`. -/
-@[deprecated (since := "2026-09-16")]
-alias mem_identifiedInterval := mem_identifiedSet
-/-- Deprecated former name of `identifiedSet_subset_Icc`. -/
-@[deprecated (since := "2026-09-16")]
-alias identifiedInterval_subset_Icc := identifiedSet_subset_Icc
-/-- Deprecated former name of `identifiedSet_eq_Icc`. -/
-@[deprecated (since := "2026-09-16")]
-alias identifiedInterval_eq_Icc := identifiedSet_eq_Icc
-/-- Deprecated former name of `identifiedSet_param_Icc`. -/
-@[deprecated (since := "2026-09-16")]
-alias identifiedInterval_param_Icc := identifiedSet_param_Icc
-
 end PartialID
 end Causalean

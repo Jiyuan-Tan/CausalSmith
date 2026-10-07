@@ -12,7 +12,7 @@ public section
 
 namespace Causalean.Stat.Minimax.Multinomial.TwoSampleL1
 
-/-- [A universal positive constant lower-bounds the two-sample multinomial L1 minimax risk at the alphabet-over-sample logarithmic rate whenever the sample size exceeds the squared alphabet size](goal). -/
+/-- [There is a universal constant c > 0 such that, for every alphabet size k ≥ 2 and every sample size n > k², the minimax squared risk of estimating the L1 distance between two probability vectors on k symbols from two independent samples of size n is at least c · k / (n · log(e·k))](goal). -/
 theorem twoSampleL1MinimaxRisk_largeSample_lower :
     ∃ c : ℝ, 0 < c ∧ ∀ k n : ℕ, 2 ≤ k → k ^ 2 < n →
       c * ((k : ℝ) / ((n : ℝ) * logAlphabet k)) ≤

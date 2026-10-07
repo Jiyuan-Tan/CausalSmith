@@ -71,12 +71,12 @@ theorem finiteIterateResidualBound_nonneg {ι : Type*} [Fintype ι]
   exact Finset.sum_nonneg fun i _ =>
     le_max_of_le_left (abs_nonneg ((c.terminal i).sub (c.next i)).lo)
 
-/-- A nonnegative contraction coefficient strictly below one gives a
+/-- A contraction coefficient strictly below one gives a
 nonnegative a posteriori stationary error radius. -/
 theorem stationaryErrorRadius_nonneg {ι : Type*} [Fintype ι]
     {K : IntervalMatrix ι ι} {p0 : RationalProbabilityVector ι}
     (c : FiniteIterateCertificate K p0) (rho : ℚ)
-    (hrho0 : 0 ≤ rho) (hrho1 : rho < 1) :
+    (hrho1 : rho < 1) :
     0 ≤ stationaryErrorRadius c rho := by
   exact div_nonneg (finiteIterateResidualBound_nonneg c) (sub_nonneg.mpr hrho1.le)
 
@@ -85,9 +85,9 @@ coordinate interval by the common a posteriori `ℓ¹` radius. -/
 def stationaryDistributionInterval {ι : Type*} [Fintype ι]
     {K : IntervalMatrix ι ι} {p0 : RationalProbabilityVector ι}
     (c : FiniteIterateCertificate K p0) (rho : ℚ)
-    (hrho0 : 0 ≤ rho) (hrho1 : rho < 1) : IntervalVector ι :=
+    (hrho1 : rho < 1) : IntervalVector ι :=
   fun i => (c.terminal i).expand (stationaryErrorRadius c rho)
-    (stationaryErrorRadius_nonneg c rho hrho0 hrho1)
+    (stationaryErrorRadius_nonneg c rho hrho1)
 
 /-- The stationary reward interval is the terminal interval expectation widened
 by the reward bound times the a posteriori stationary radius. -/
@@ -98,7 +98,7 @@ def stationaryRewardInterval {ι : Type*} [Fintype ι]
     (hrho0 : 0 ≤ rho) (hrho1 : rho < 1) : RatInterval :=
   (intervalExpectation c.terminal r.intervals).expand
     (r.bound * stationaryErrorRadius c rho)
-    (mul_nonneg r.bound_nonneg (stationaryErrorRadius_nonneg c rho hrho0 hrho1))
+    (mul_nonneg r.bound_nonneg (stationaryErrorRadius_nonneg c rho hrho1))
 
 /-- Two real vectors enclosed by the terminal and successor rows have `ℓ¹`
 distance at most the exact rational residual bound. -/
@@ -119,8 +119,7 @@ theorem l1Distance_stationary_le_residual {ι : Type*} [Fintype ι]
     {P : Matrix ι ι ℝ} {p π : ι → ℝ} {rho residual : ℝ}
     (hp : IsProbabilityVector p) (hπ : IsStationary P π)
     (hcontract : ContractsL1 P rho)
-    (hrho0 : 0 ≤ rho) (hrho1 : rho < 1)
-    (hresidual0 : 0 ≤ residual)
+    (hrho1 : rho < 1)
     (hresidual : l1Distance p (markovStep p P) ≤ residual) :
     l1Distance p π ≤ residual / (1 - rho) := by
   have htriangle : l1Distance p π ≤
@@ -144,7 +143,7 @@ theorem l1Distance_stationary_le_residual {ι : Type*} [Fintype ι]
 `ℓ¹` distance between two mass vectors. -/
 theorem abs_rewardExpectation_sub_le {ι : Type*} [Fintype ι]
     {p q reward : ι → ℝ} {B : ℝ}
-    (hB0 : 0 ≤ B) (hreward : ∀ i, |reward i| ≤ B) :
+    (hreward : ∀ i, |reward i| ≤ B) :
     |rewardExpectation p reward - rewardExpectation q reward| ≤
       B * l1Distance p q := by
   unfold rewardExpectation l1Distance
@@ -179,7 +178,7 @@ private theorem finiteIterate_stationary_l1_le {ι : Type*} [Fintype ι]
     {P : Matrix ι ι ℝ} {p0 : RationalProbabilityVector ι}
     (kernel : CertifiedKernel P)
     (c : FiniteIterateCertificate kernel.intervals p0)
-    (rho : ℚ) (hrho0 : 0 ≤ rho) (hrho1 : rho < 1)
+    (rho : ℚ) (hrho1 : rho < 1)
     (hcontract : ContractsL1 P (rho : ℝ))
     {π : ι → ℝ} (hπ : IsStationary P π) :
     l1Distance (markovIterate P p0.toReal c.steps) π ≤
@@ -195,8 +194,7 @@ private theorem finiteIterate_stationary_l1_le {ι : Type*} [Fintype ι]
     l1Distance_le_finiteIterateResidualBound c hterminal hnext
   simpa only [stationaryErrorRadius, Rat.cast_div, Rat.cast_sub, Rat.cast_one] using
     l1Distance_stationary_le_residual hp hπ hcontract
-      (by exact_mod_cast hrho0) (by exact_mod_cast hrho1)
-      (by exact_mod_cast finiteIterateResidualBound_nonneg c) hresidual
+      (by exact_mod_cast hrho1) hresidual
 
 /-- A checked finite recurrence and a strict `ℓ¹` contraction enclose every
 stationary distribution coordinate in the computed rational expansion of the
@@ -205,14 +203,14 @@ theorem stationaryDistributionInterval_sound {ι : Type*} [Fintype ι]
     {P : Matrix ι ι ℝ} {p0 : RationalProbabilityVector ι}
     (kernel : CertifiedKernel P)
     (c : FiniteIterateCertificate kernel.intervals p0)
-    (rho : ℚ) (hrho0 : 0 ≤ rho) (hrho1 : rho < 1)
+    (rho : ℚ) (hrho1 : rho < 1)
     (hcontract : ContractsL1 P (rho : ℝ))
     {π : ι → ℝ} (hπ : IsStationary P π) :
-    ContainsVector (stationaryDistributionInterval c rho hrho0 hrho1) π := by
+    ContainsVector (stationaryDistributionInterval c rho hrho1) π := by
   let p := markovIterate P p0.toReal c.steps
   have hterminal : ContainsVector c.terminal p := c.terminal_sound kernel.contains
   have hl1 : l1Distance p π ≤ (stationaryErrorRadius c rho : ℝ) :=
-    finiteIterate_stationary_l1_le kernel c rho hrho0 hrho1 hcontract hπ
+    finiteIterate_stationary_l1_le kernel c rho hrho1 hcontract hπ
   intro i
   have hcoord : |p i - π i| ≤ (stationaryErrorRadius c rho : ℝ) :=
     (Finset.single_le_sum (fun j _ => abs_nonneg (p j - π j))
@@ -241,12 +239,12 @@ theorem stationaryRewardInterval_sound {ι : Type*} [Fintype ι]
   have hbase : (intervalExpectation c.terminal r.intervals).Contains
       (rewardExpectation p reward) := intervalDot_sound hterminal r.contains
   have hl1 : l1Distance p π ≤ (stationaryErrorRadius c rho : ℝ) :=
-    finiteIterate_stationary_l1_le kernel c rho hrho0 hrho1 hcontract hπ
+    finiteIterate_stationary_l1_le kernel c rho hrho1 hcontract hπ
   have hperturb : |rewardExpectation π reward - rewardExpectation p reward| ≤
       (r.bound : ℝ) * (stationaryErrorRadius c rho : ℝ) :=
     (by
       rw [abs_sub_comm]
-      exact (abs_rewardExpectation_sub_le (by exact_mod_cast r.bound_nonneg)
+      exact (abs_rewardExpectation_sub_le
         r.bound_sound).trans
         (mul_le_mul_of_nonneg_left hl1 (by exact_mod_cast r.bound_nonneg)))
   change

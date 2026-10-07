@@ -188,7 +188,8 @@ theorem lintegral_quadratic_kernel (θ : ℝ) (hθ : θ ∈ Ioo (0 : ℝ) 1) :
   ring
 
 /-- [Positive finite weights](hyp:a,b,ha,hb) and [an interior exponent](hyp:θ,hθ)
-give [the exact geometric weight after normalized harmonic-kernel integration](goal).
+give [the identity that the normalization constant times the integral over positive scales t
+of t^(−1−2θ) times the harmonic weight of a and b at scale t equals a^(1−θ)·b^θ](goal).
 
 Use t=s*sqrt(a.toReal/b.toReal), the preceding normalization integral, and
 ENNReal.ofReal/real-power conversion. Off positive finite weights this statement

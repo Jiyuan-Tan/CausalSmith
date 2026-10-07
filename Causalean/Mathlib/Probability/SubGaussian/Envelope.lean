@@ -18,9 +18,11 @@ namespace Causalean.Mathlib.Probability.SubGaussian
 open MeasureTheory
 
 /-- For [a decay exponent](hyp:α) satisfying [strict positivity](hyp:hα),
-[there is a positive constant](goal) that bounds every integrated clipped
-ordered Gaussian tail sum with positive cap and initial scales by its
-square-root logarithmic envelope.
+[there is a positive constant depending only on the exponent such that, for every
+number of terms `N` and all positive cap scale `a` and initial scale `b`, the clipped
+tail sum `min(1, Σ_{k<N} 2·exp(-t²/(2·min(a², b²(k+1)^(-α)))))` is integrable in `t` over
+the positive half-line with integral at most the constant times
+`a·√(1 + max(0, log((b/a)^(2/α))))`](goal).
 
 Proof strategy: put `m = max 1 (ceil ((b/a)^(2/α)))`.  Split indices at `m`,
 where the cap `a²` crosses `b²(k+1)^(-α)`.  Bound the low-index part by

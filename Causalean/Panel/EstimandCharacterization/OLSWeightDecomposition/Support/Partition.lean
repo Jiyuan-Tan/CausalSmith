@@ -173,7 +173,7 @@ noncomputable def residWitnessD {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 
               filter_upwards [hc] with ω hω
               rw [hω]
             _ = 0 :=
-              integral_mul_saturated_eq_zero_of_cell μ
+              CellBridge.integral_mul_indicatorSpan_eq_zero_of_cell μ
                 (fun ω => D ω - propensity μ D G ω) G G_meas hV_mem c
                 (fun g => residD_cell_orthogonal μ D G G_meas D_meas D_binary g)
       }
@@ -221,7 +221,7 @@ noncomputable def residWitnessY {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 
               filter_upwards [hc] with ω hω
               rw [hω]
             _ = 0 :=
-              integral_mul_saturated_eq_zero_of_cell μ
+              CellBridge.integral_mul_indicatorSpan_eq_zero_of_cell μ
                 (fun ω => Y ω - meanReg μ Y G ω) G G_meas hV_mem c
                 (fun g => residY_cell_orthogonal μ Y G G_meas Y_memLp g)
       }

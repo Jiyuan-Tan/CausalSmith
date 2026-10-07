@@ -69,14 +69,6 @@ theorem cdf_tendsto_of_charFun_tendsto (lawn : ℕ → ProbabilityMeasure ℝ)
   refine (ENNReal.tendsto_toReal ?_).comp hmeas
   exact measure_ne_top _ _
 
-/-- A bounded real function of a measurable map is integrable on a finite measure. -/
-@[deprecated MeasureTheory.Integrable.of_bound (since := "2026-08-29")]
-private theorem integrable_bdd_real {Ω : Type*} [MeasurableSpace Ω] {ν : Measure Ω}
-    [IsFiniteMeasure ν] (g : Ω → ℝ) (hg : Measurable g) {c : ℝ} (hc : ∀ ω, |g ω| ≤ c) :
-    Integrable g ν :=
-  (MemLp.of_bound hg.aestronglyMeasurable c
-    (Filter.Eventually.of_forall (fun ω => by rw [Real.norm_eq_abs]; exact hc ω))).integrable le_rfl
-
 /-- A measurable real random variable under a finite measure has a characteristic function whose
 real and imaginary components are the corresponding cosine and sine integrals. -/
 theorem charFun_map_eq_cos_sin {Ω : Type*} [MeasurableSpace Ω] (ν : Measure Ω)

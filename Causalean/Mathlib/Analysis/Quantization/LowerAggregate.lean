@@ -13,10 +13,13 @@ open scoped BigOperators
 
 namespace Causalean.Mathlib.Analysis.Quantization
 
-/-- On [a nondegenerate interval](hyp:a,b,hab), [a nonempty finite
+/-- On [a nondegenerate interval from a to b](hyp:a,b,hab), for [a nonempty finite
 weight family](hyp:S,hS) with [continuous strictly positive weights](hyp:β,hcont,hpos),
-each relative error below one gives [a uniform mass-deficit lower
-bound for the scaled cost of every feasible partition](goal). -/
+[for every relative error η strictly between zero and one there is a positive radius δ such that,
+for every positive cell count k, every measurable partition into k cells and every array of
+reproduction points in the interval, k times the paired weighted cost is at least
+(1 − η)/4 times the square of the total square-root diagonal mass of the interval minus the
+square-root diagonal mass of the radius-δ bad regions of all cells](goal). -/
 theorem partition_good_mass_lower (a b : ℝ) (hab : a < b)
     (S : ℕ) (hS : 0 < S) (β : Fin S → ℝ → ℝ → ℝ)
     (hcont : ∀ s, ContinuousOn (fun p : ℝ × ℝ => β s p.1 p.2)

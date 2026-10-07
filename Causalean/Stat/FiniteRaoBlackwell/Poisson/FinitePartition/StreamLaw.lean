@@ -176,7 +176,7 @@ theorem labeledStreamLaw_eq_independent
   apply Measure.ext_of_iUnion_eq_univ hcover
   intro c
   exact (labeledStreamLaw_restrict_countVector_eq P p hp lambda c).trans
-    (independentStreamLaw_restrict_countVector_eq P p hp lambda c).symm
+    (independentStreamLaw_restrict_countVector_eq P p lambda c).symm
 
 /-- On [a Poisson mean](hyp:lambda) and [label masses summing to one](hyp:p,hp), [an observation law](hyp:P), and [an exact admissible Poisson count](hyp:m,h), [the labeled fixed-pool
 experiment](goal) has Poisson mass at that count times the law of an unshuffled iid

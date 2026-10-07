@@ -134,7 +134,7 @@ theorem uniform_gap_square_integrable (n k : ℕ) (hk : k + 1 < n) :
       (by simpa only [Measure.restrict_univ] using hbound) :
       IntegrableOn (fun x => (sortedGap n k x) ^ 2) Set.univ (iidSample uniform01 n))
 
-/-- Given [a finite sample size](hyp:n) and [proof that it is even](hyp:hn), [the alternating sum of squared sorted unit-uniform gaps has the stated exact second moment](goal). -/
+/-- Given [a finite sample size](hyp:n) and [proof that it is even](hyp:hn), [the expected sum of squares of every other sorted gap of an iid unit-uniform sample (the gaps between the order statistics of ranks `2j+1` and `2j+2`, over all `n/2` such pairs) equals `n/((n+1)(n+2))`](goal). -/
 theorem uniform_alternating_gap_second_moment (n : ℕ) (hn : Even n) :
     ∫ x, (∑ j ∈ Finset.range (n / 2), (sortedGap n (2 * j) x) ^ 2)
         ∂iidSample uniform01 n =

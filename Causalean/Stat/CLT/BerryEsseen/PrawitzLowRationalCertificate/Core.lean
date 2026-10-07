@@ -12,24 +12,31 @@ the kernel-checked blocks that consume them live in sibling modules.
 
 namespace Causalean.Stat.CLT.BerryEsseen
 
-/-- A fraction whose integer numerator and denominator are left unreduced. -/
+/-- The rational value of an unreduced integer pair (numerator, denominator)
+is the numerator divided by the denominator; a zero denominator gives zero. -/
 def lowRawVal (q : ℤ × ℤ) : ℚ := (q.1 : ℚ) / (q.2 : ℚ)
 
-/-- The numerator-denominator presentation of a small rational input. -/
+/-- The pair (numerator, denominator) of a rational number in lowest terms. -/
 def lowRawRat (x : ℚ) : ℤ × ℤ := (x.num, x.den)
 
-/-- Multiplication without greatest-common-divisor normalization. -/
+/-- Multiplication of unreduced fractions: numerators and denominators are
+multiplied separately, with no reduction to lowest terms. -/
 def lowRawMul (q r : ℤ × ℤ) : ℤ × ℤ := (q.1 * r.1, q.2 * r.2)
 
-/-- Division without greatest-common-divisor normalization. -/
+/-- Division of unreduced fractions: (n₁, d₁) divided by (n₂, d₂) is
+(n₁·d₂, d₁·n₂), with no reduction to lowest terms. -/
 def lowRawDiv (q r : ℤ × ℤ) : ℤ × ℤ := (q.1 * r.2, q.2 * r.1)
 
-/-- Addition, including the zero-denominator convention for rational division. -/
+/-- Addition of unreduced fractions by cross-multiplication,
+(n₁·d₂ + n₂·d₁, d₁·d₂), except that when one summand has zero denominator
+(rational value zero) the other summand is returned unchanged. -/
 def lowRawAdd (q r : ℤ × ℤ) : ℤ × ℤ :=
   if q.2 = 0 then r else if r.2 = 0 then q
   else (q.1 * r.2 + r.1 * q.2, q.2 * r.2)
 
-/-- Exact upward rounding of an unreduced fraction, using integer division. -/
+/-- The ceiling of the integer fraction with numerator n and denominator d,
+computed by integer division:
+−⌊−n/d⌋ when d ≥ 0 and −⌊n/(−d)⌋ when d < 0. A zero denominator gives zero. -/
 def lowRawCeil (q : ℤ × ℤ) : ℤ :=
   if 0 ≤ q.2 then -(-q.1 / q.2) else -(q.1 / -q.2)
 
@@ -71,7 +78,10 @@ private theorem lowRawCeil_val (q : ℤ × ℤ) :
       neg_neg, neg_div_neg_eq] using
       (Rat.ceil_intCast_div_natCast (-n) (-d).toNat).symm
 
-/-- Integer Horner numerator of all sixteen Taylor terms. -/
+/-- The integer Taylor numerator at integers n and d is the sum over k from 0
+to 15 of (15!/k!)·nᵏ·d^(15−k), written in Horner form. For d ≠ 0 it equals
+15!·d¹⁵ times the sixteen-term Taylor polynomial of the exponential at
+n/d. -/
 def lowTaylorNum (n d : ℤ) : ℤ :=
   (1307674368000 * d ^ 15 + n *
     (1307674368000 * d ^ 14 + n *
@@ -101,7 +111,10 @@ private theorem lowTaylor_fraction (n d : ℤ) (hd : d ≠ 0) :
   field_simp
   ring
 
-/-- The full Taylor polynomial evaluated on an unreduced fraction. -/
+/-- The sixteen-term Taylor polynomial of the exponential evaluated on an
+unreduced fraction (n, d), returned as the unreduced fraction whose numerator
+is the integer Taylor numerator at (n, d) and whose denominator is 15!·d¹⁵.
+For d = 0 (rational value zero) it returns (1, 1). -/
 def lowRawTaylor (q : ℤ × ℤ) : ℤ × ℤ :=
   if q.2 = 0 then (1, 1)
   else (lowTaylorNum q.1 q.2, 1307674368000 * q.2 ^ 15)
@@ -113,14 +126,16 @@ private theorem lowRawTaylor_val (q : ℤ × ℤ) :
   · simpa only [lowRawTaylor, if_neg hd, lowRawVal] using
       (lowTaylor_fraction q.1 q.2 hd).symm
 
-/-- Integer powers on unreduced fractions. -/
+/-- The n-th power of an unreduced fraction: numerator and denominator are
+raised to the power separately. -/
 def lowRawPow (q : ℤ × ℤ) (n : ℕ) : ℤ × ℤ := (q.1 ^ n, q.2 ^ n)
 
 private theorem lowRawPow_val (q : ℤ × ℤ) (n : ℕ) :
     lowRawVal (lowRawPow q n) = lowRawVal q ^ n := by
   simp [lowRawPow, lowRawVal, div_pow]
 
-/-- The smaller fraction, with its unreduced representation retained. -/
+/-- Of two unreduced fractions, the one with the smaller rational value (the
+first when they tie), returned in its given unreduced representation. -/
 def lowRawMin (q r : ℤ × ℤ) : ℤ × ℤ :=
   if 0 < q.2 ∧ 0 < r.2 then
     if q.1 * r.2 ≤ r.1 * q.2 then q else r
@@ -153,7 +168,10 @@ private theorem lowCeil_mul_min (c a b : ℚ) (hc : 0 ≤ c) :
   · have hm := mul_le_mul_of_nonneg_left h hc
     simp [min_eq_right h, min_eq_right (Int.ceil_mono hm)]
 
-/-- The exact rounded low-cell integer, with both branches retained. -/
+/-- The two branches of the rational low cell bound for parameter cell j and
+frequency index i, each multiplied by one hundred million and kept as an
+unreduced integer fraction: first the Taylor branch, second the modulus-sum
+branch. Neither is rounded here. -/
 def lowCellBranches (j i : ℕ) : (ℤ × ℤ) × (ℤ × ℤ) :=
   let r := lowRawRat (prawitzCompactLeft j)
   let s := lowRawRat (prawitzCompactRight j)
@@ -176,7 +194,9 @@ def lowCellBranches (j i : ℕ) : (ℤ × ℤ) × (ℤ × ℤ) :=
       (lowRawAdd (lowRawDiv (1, 1) (lowRawTaylor e))
         (lowRawDiv (1, 1) (lowRawTaylor (lowRawDiv (lowRawPow a 2) (2, 1))))) r))
 
-/-- Both rounded branches of the original cell, retaining their minimum. -/
+/-- The integer low-frequency cell for parameter cell j and frequency index i
+is the smaller of the ceilings of the two branch fractions. It equals the
+rational low cell bound multiplied by one hundred million and rounded up. -/
 def lowCellInteger (j i : ℕ) : ℤ :=
   min (lowRawCeil (lowCellBranches j i).1) (lowRawCeil (lowCellBranches j i).2)
 
@@ -197,7 +217,9 @@ private theorem lowCellInteger_eq (j i : ℕ) :
   congr 1
   ring_nf
 
-/-- Integer prefix containing every adjacent positive frequency cell. -/
+/-- The integer prefix sum for parameter cell j and length n is the sum of the
+integer low-frequency cells over frequency indices 1 through n; it is zero
+for n = 0. -/
 def lowIntPrefix (j : ℕ) : ℕ → ℤ
   | 0 => 0
   | n + 1 => lowIntPrefix j n + lowCellInteger j (n + 1)
@@ -217,7 +239,9 @@ private theorem lowIntPrefix_cutoff (j k : ℕ) :
 
 set_option maxRecDepth 1000000
 
-/-- Multiplication certificate for an upper bound on an integer ceiling. -/
+/-- The Boolean test that an unreduced fraction (n, d) is at most an integer
+z, decided in integer arithmetic: it holds exactly when d > 0 and n ≤ z·d.
+When it holds, the ceiling of the fraction is at most z. -/
 def lowBranchBound (q : ℤ × ℤ) (z : ℤ) : Bool :=
   decide (0 < q.2 ∧ q.1 ≤ z * q.2)
 
@@ -229,7 +253,10 @@ private theorem lowBranchBound_sound (q : ℤ × ℤ) (z : ℤ)
   apply (div_le_iff₀ (show (0 : ℚ) < q.2 by exact_mod_cast hq.1)).2
   exact_mod_cast hq.2
 
-/-- Either complete discrepancy branch can certify the retained minimum. -/
+/-- The Boolean test that the integer low-frequency cell at (j, i) is at most
+an integer z: it holds when at least one of the two branch fractions passes
+the fraction test against z, which suffices because the cell is the smaller
+of the two rounded branches. -/
 def lowCellBound (j i : ℕ) (z : ℤ) : Bool :=
   lowBranchBound (lowCellBranches j i).1 z ||
     lowBranchBound (lowCellBranches j i).2 z
@@ -243,7 +270,10 @@ private theorem lowCellBound_sound (j i : ℕ) (z : ℤ)
   · exact (min_le_left _ _).trans (lowBranchBound_sound _ _ h)
   · exact (min_le_right _ _).trans (lowBranchBound_sound _ _ h)
 
-/-- Check every positive frequency index against a reversed list of bounds. -/
+/-- The Boolean test that a list of integers bounds, entry by entry, the
+integer low-frequency cells of parameter cell j at frequency indices n,
+n − 1, …, 1 (the list is in decreasing index order): it holds exactly when
+the list has length n and every cell passes the cell test against its entry. -/
 def lowCheckPrefix (j : ℕ) : ℕ → List ℤ → Bool
   | 0, [] => true
   | n + 1, z :: zs => lowCellBound j (n + 1) z && lowCheckPrefix j n zs

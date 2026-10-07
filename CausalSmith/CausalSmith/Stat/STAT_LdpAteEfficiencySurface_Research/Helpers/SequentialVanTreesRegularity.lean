@@ -334,7 +334,7 @@ lemma sequentialVTPrior_endpoints {R : ℝ} (hR : 0 < R) :
   unfold sequentialVTPrior
   have h := smoothPrior_ambient_endpoints
     (ell := -R) (u := R) (c := 0) (a := R / 2)
-    (by linarith) (by linarith) (by linarith)
+    (by linarith) (by linarith)
   exact ⟨h.2, h.1⟩
 
 end CausalSmith.Stat.LdpAteEfficiencySurface

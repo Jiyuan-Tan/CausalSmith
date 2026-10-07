@@ -160,10 +160,13 @@ private theorem klDiv_eq_poissonRateKL_add_normalized
 
 open Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition
 
-/-- [Two finite intensity measures](hyp:ν₁,ν₀), [a shared fallback probability law](hyp:P₀),
+/-- On [a standard Borel observation space](hyp:X), [two finite intensity
+measures](hyp:ν₁,ν₀), [a shared fallback probability law](hyp:P₀),
 [a shared real mark law](hyp:R), and [a nonnegative scalar intensity](hyp:lam) imply that
-[the marked-Poisson divergence](goal) is intensity times finite-measure divergence, including
-unequal total masses. -/
+[the extended-real KL divergence between the two finite-measure marked Poisson laws equals
+the scalar intensity times the KL divergence between the two intensity measures](goal),
+where the divergence of finite measures includes the total-mass correction, so unequal
+total masses are covered. -/
 theorem klDiv_finiteMeasureMarkedPoissonLaw_unequal
     {X : Type*} [MeasurableSpace X] [StandardBorelSpace X]
     (ν₁ ν₀ : Measure X) [IsFiniteMeasure ν₁] [IsFiniteMeasure ν₀]

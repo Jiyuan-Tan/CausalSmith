@@ -18,8 +18,9 @@ namespace Causalean.Stat.Minimax
 
 variable {X : Type*} [MeasurableSpace X]
 
-/-- The [unhalved squared Hellinger distance](goal) of [two laws](hyp:B,C) uses their
-Radon–Nikodym densities relative to their sum as the common reference measure. -/
+/-- The [unhalved squared Hellinger distance](goal) of [two laws](hyp:B,C): the integral,
+against their sum, of the squared difference of the square roots of their Radon–Nikodym
+densities relative to that sum. -/
 noncomputable def hellingerSqMeasure (B C : Measure X) : ℝ :=
   Causalean.Stat.hellingerSqDensity (B + C)
     (fun x => (B.rnDeriv (B + C) x).toReal)
@@ -178,8 +179,9 @@ theorem hellingerSqMeasure_bounds (B C : Measure X)
   simp only [add_comm C B] at hg hg0 hg1
   exact hellingerSqDensity_bounds (B + C) _ _ hf hg hf0 hg0 hf1 hg1
 
-/-- [Two probability laws](hyp:B,C) assign a [measurable event](hyp:hE) an
-[absolute probability gap bounded by the sharp Hellinger expression](goal).
+/-- [Two probability laws](hyp:B,C) assign a [measurable event](hyp:hE)
+[probabilities whose absolute difference is at most `√(H² (1 − H²/4))`, where `H²` is the
+unhalved squared Hellinger distance of the two laws](goal).
 
 Recover both real event masses from RN set integrals. The integral of f-g is zero;
 reuse `abs_setIntegral_le_half_integral_abs_of_integral_eq_zero` for the factor

@@ -4,9 +4,10 @@ public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Basic
 /-!
 # Geometry of affine maps between closed rectangular boxes
 
-Positive side lengths make the coordinatewise affine map a bijection between
-two closed boxes. Its distance distortion also controls every real power of
-the distance, including negative exponents away from the diagonal.
+For boxes with positive side lengths, a point lies in the source box exactly
+when the coordinatewise affine map sends it into the target box. The map's
+distance distortion also controls every real power of the distance, including
+negative exponents.
 -/
 
 @[expose] public section

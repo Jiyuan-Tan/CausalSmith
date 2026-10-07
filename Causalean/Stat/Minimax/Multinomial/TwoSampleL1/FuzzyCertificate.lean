@@ -43,8 +43,12 @@ theorem logAlphabet_one_le (k : ℕ) (hk : 1 ≤ k) :
   rw [Real.log_mul (Real.exp_ne_zero _) (by positivity), Real.log_exp]
   linarith
 
-/-- A finite pair of priors on multinomial pairs with separated L1 targets,
-concentrated target values, and nearby laws of the two fixed samples. -/
+/-- A finite pair of priors on pairs of probability vectors, serving as fuzzy hypotheses
+for the fixed two-sample experiment: each prior has finitely many atoms (at least one) with
+weights summing to one; the second center exceeds the first by at least a positive
+separation δ; under each prior, the atoms whose L1 distance lies farther than δ/4 from that
+prior's center carry total weight at most 1/8; and the two prior mixtures of the two-sample
+laws are within total variation distance 1/16. -/
 structure FuzzyCertificate (n k : ℕ) where
   m : ℕ
   m_pos : 0 < m
@@ -341,7 +345,7 @@ theorem largeAlphabet_fuzzyCertificate :
         (Causalean.Stat.mixture (w false) (fun i => twoSampleLaw n (θ i)))
         (Causalean.Stat.mixture (w true) (fun i => twoSampleLaw n (θ i))) ≤
         1 / 16 := by
-    have htv := pairedFixedPredictive_tv_le P hL b n hb t ht ht1 hscale
+    have htv := pairedFixedPredictive_tv_le P b n hb t ht ht1 hscale
     have hleft (side : Bool) :
         Causalean.Stat.mixture (w side) (fun i => twoSampleLaw n (θ i)) =
           pairedFixedPredictive P b n hb t ht ht1 side := by
@@ -413,7 +417,7 @@ theorem boundedAlphabet_fuzzyCertificate (K : ℕ) (hK : 2 ≤ K) :
     _ = a / (n : ℝ) := by ring
     _ ≤ V.delta ^ 2 := by simpa only [hV] using hW
 
-/-- [Finite fuzzy hypotheses with a universal logarithmic separation rate above the alphabet-square sample threshold](goal) exist. -/
+/-- [There is a universal constant a > 0 such that for every alphabet size k ≥ 2 and every sample size n > k² a fuzzy certificate exists whose separation δ satisfies δ² ≥ a · k / (n · log(e·k))](goal). -/
 theorem largeSample_fuzzyCertificate :
     ∃ a : ℝ, 0 < a ∧ ∀ k n : ℕ, 2 ≤ k → k ^ 2 < n →
       ∃ W : FuzzyCertificate n k,

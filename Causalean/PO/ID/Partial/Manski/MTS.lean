@@ -213,7 +213,7 @@ theorem baseline_lower_le_E_Y1 (hA : S.BaseAssumptions) :
           rw [hTL, hq]
 
 /-- Under [the baseline Manski assumptions](hyp:hA) and [monotone treatment
-selection with `0 < P(D=1) < 1`](hyp:hMTS), [the treated potential-outcome mean
+selection](hyp:hMTS), [the treated potential-outcome mean
 is no larger than the observed treated-cell mean](goal). -/
 theorem mts_E_Y1_le_condY1 (hA : S.BaseAssumptions) (hMTS : S.MTS) :
     ∫ ω, S.YofD true ω ∂P.μ
@@ -246,7 +246,7 @@ theorem mts_E_Y1_le_condY1 (hA : S.BaseAssumptions) (hMTS : S.MTS) :
     _ = normalizedRestrictedIntegral P.μ (S.dEvent true) S.factualY := hcons1
 
 /-- Under [the baseline Manski assumptions](hyp:hA) and [monotone treatment
-selection with `0 < P(D=1) < 1`](hyp:hMTS), [the observed control-cell mean is
+selection](hyp:hMTS), [the observed control-cell mean is
 no larger than the control potential-outcome mean](goal). -/
 theorem mts_condY0_le_E_Y0 (hA : S.BaseAssumptions) (hMTS : S.MTS) :
     normalizedRestrictedIntegral P.μ (S.dEvent false) S.factualY
@@ -324,7 +324,7 @@ theorem baseline_E_Y0_le_upper (hA : S.BaseAssumptions) :
 /-! ### ATE sandwich -/
 
 /-- **MTS bounds for the ATE.** Under [the baseline Manski assumptions](hyp:hA)
-and [monotone treatment selection with `0 < P(D=1) < 1`](hyp:hMTS), [the
+and [monotone treatment selection](hyp:hMTS), [the
 average treatment effect is sandwiched between a probability-weighted range
 bound and the observed treated-control mean contrast](goal). -/
 theorem mts_bounds_ATE (hA : S.BaseAssumptions) (hMTS : S.MTS) :

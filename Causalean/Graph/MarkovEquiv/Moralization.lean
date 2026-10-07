@@ -26,7 +26,7 @@ sets, d-separation is equivalent to separation in the moral graph of the ancestr
 
 The file also proves that moral adjacency, moral steps, and moral connectivity are
 invariants of a graph's skeleton together with its v-structures, for a fixed ground set.
-The main Verma–Pearl hard direction used by the public umbrella theorem is assembled through
+The main Verma–Pearl hard direction used by the Verma–Pearl equivalence theorem is assembled through
 the covered-edge route in `Transfer.lean` and `Decompose.lean`.
 -/
 

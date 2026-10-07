@@ -42,16 +42,17 @@ theorem integral_finiteAtomicKernel
   simp only [integral_smul_measure, integral_dirac,
     ENNReal.toReal_ofReal (hweight x _), smul_eq_mul]
 
-/-- An [s-finite base measure](hyp:μ) and [s-finite finite atomic kernel with nonnegative,
-normalized weights](hyp:κ,atom,weight,hweight,hnorm,hκ), together with [a measurable projection
+/-- An [s-finite base measure](hyp:μ) and [s-finite finite atomic kernel with nonnegative
+weights](hyp:κ,atom,weight,hweight,hκ), together with [a measurable projection
 that recovers the base point from every atom](hyp:base,hbase_meas,hbase), a [measurable base
-set](hyp:B,hB), and an [integrable outcome](hyp:f,hf), turn [the outcome integral over atoms
-above that set into the integral of their finite weighted mean](goal). -/
+set](hyp:B,hB), and an [outcome integrable under the law obtained by drawing a base point and
+then an atom](hyp:f,hf), give that [the integral of the outcome under that law, over the points
+whose recovered base point lies in the set, equals the base-measure integral over the set of the
+weighted sum of the outcome values at the atoms above each base point](goal). -/
 theorem setIntegral_finiteAtomicKernel
     (μ : Measure X) [SFinite μ] (κ : Kernel X Y) [IsSFiniteKernel κ]
     (atom : X → I → Y) (weight : X → I → ℝ)
     (hweight : ∀ x i, 0 ≤ weight x i)
-    (hnorm : ∀ x, ∑ i : I, weight x i = 1)
     (hκ : ∀ x, κ x = ∑ i : I,
       ENNReal.ofReal (weight x i) • Measure.dirac (atom x i))
     (base : Y → X) (hbase_meas : Measurable base)
@@ -88,31 +89,30 @@ theorem setIntegral_finiteAtomicKernel
   exact integral_indicator hB
 
 /-- An [s-finite base measure](hyp:μ),
-[normalized finite atomic kernel](hyp:κ,atom,weight,hweight,hnorm,hκ),
+[finite atomic kernel with nonnegative weights](hyp:κ,atom,weight,hweight,hκ),
 [measurable base-recovering projection](hyp:base,hbase_meas,hbase),
-[measurable base set](hyp:B,hB), and [integrable outcome](hyp:f,hf), with an [integrable
-pointwise-equal candidate mean](hyp:q,hq_int,hq), make [the selected outcome integral equal the
+[measurable base set](hyp:B,hB), and [integrable outcome](hyp:f,hf), with a
+[pointwise-equal candidate mean](hyp:q,hq), make [the selected outcome integral equal the
 set integral of that mean](goal). -/
 theorem setIntegral_finiteAtomicKernel_of_pointwise
     (μ : Measure X) [SFinite μ] (κ : Kernel X Y) [IsSFiniteKernel κ]
     (atom : X → I → Y) (weight : X → I → ℝ)
     (hweight : ∀ x i, 0 ≤ weight x i)
-    (hnorm : ∀ x, ∑ i : I, weight x i = 1)
     (hκ : ∀ x, κ x = ∑ i : I,
       ENNReal.ofReal (weight x i) • Measure.dirac (atom x i))
     (base : Y → X) (hbase_meas : Measurable base)
     (hbase : ∀ x i, base (atom x i) = x)
     (B : Set X) (hB : MeasurableSet B)
     (f : Y → ℝ) (hf : Integrable f (κ ∘ₘ μ))
-    (q : X → ℝ) (hq_int : Integrable q μ)
+    (q : X → ℝ)
     (hq : ∀ x, (∑ i : I, weight x i * f (atom x i)) = q x) :
     ∫ y in {y | base y ∈ B}, f y ∂(κ ∘ₘ μ) = ∫ x in B, q x ∂μ := by
-  rw [setIntegral_finiteAtomicKernel μ κ atom weight hweight hnorm hκ
+  rw [setIntegral_finiteAtomicKernel μ κ atom weight hweight hκ
     base hbase_meas hbase B hB f hf]
   simp_rw [hq]
 
-/-- An [s-finite base measure](hyp:μ) and [two-atom s-finite kernel with nonnegative,
-normalized weights](hyp:κ,weight,hweight,hnorm,hκ), a [measurable base set](hyp:B,hB), and an
+/-- An [s-finite base measure](hyp:μ) and [two-atom s-finite kernel with nonnegative
+weights](hyp:κ,weight,hweight,hκ), a [measurable base set](hyp:B,hB), and an
 [integrable paired outcome](hyp:f,hf) give [the selected integral as the weighted average of the
 two atom values over that base set](goal). -/
 theorem setIntegral_twoAtomicKernel
@@ -121,7 +121,6 @@ theorem setIntegral_twoAtomicKernel
     (κ : Kernel X (X × Fin 2)) [IsSFiniteKernel κ]
     (weight : X → Fin 2 → ℝ)
     (hweight : ∀ x i, 0 ≤ weight x i)
-    (hnorm : ∀ x, ∑ i : Fin 2, weight x i = 1)
     (hκ : ∀ x, κ x = ∑ i : Fin 2,
       ENNReal.ofReal (weight x i) • Measure.dirac (x, i))
     (B : Set X) (hB : MeasurableSet B)
@@ -129,7 +128,7 @@ theorem setIntegral_twoAtomicKernel
     ∫ y in {y | y.1 ∈ B}, f y ∂(κ ∘ₘ μ) =
       ∫ x in B, (∑ i : Fin 2, weight x i * f (x, i)) ∂μ := by
   exact setIntegral_finiteAtomicKernel μ κ (fun x i => (x, i)) weight
-    hweight hnorm hκ Prod.fst measurable_fst (by intros; rfl) B hB f hf
+    hweight hκ Prod.fst measurable_fst (by intros; rfl) B hB f hf
 
 example (κ : Kernel ℝ (ℝ × Fin 2)) [IsSFiniteKernel κ]
     (hκ : ∀ x, κ x = ∑ i : Fin 2,
@@ -139,8 +138,6 @@ example (κ : Kernel ℝ (ℝ × Fin 2)) [IsSFiniteKernel κ]
     ∫ y in {y | y.1 ∈ B}, f y ∂(κ ∘ₘ volume) =
       ∫ x in B, (∑ i : Fin 2, (1 / 2 : ℝ) * f (x, i)) ∂volume := by
   apply setIntegral_twoAtomicKernel volume κ (fun _ _ => (1 / 2 : ℝ))
-    (by intro x i; norm_num) ?_ hκ B hB f hf
-  intro x
-  simp
+    (by intro x i; norm_num) hκ B hB f hf
 
 end Causalean.Mathlib.Probability.Kernel.FiniteAtomic

@@ -5,7 +5,7 @@ public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
 
 /-! # Conditional covariance factorization for three held-out blocks -/
 
-@[expose] public section
+public section
 
 open MeasureTheory
 open scoped BigOperators

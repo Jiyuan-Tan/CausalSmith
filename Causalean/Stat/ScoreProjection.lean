@@ -8,8 +8,10 @@ public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 
 This module develops guarded likelihood scores for dominated laws and proves
 that pushing a law through any measurable statistic projects its score onto the
-statistic's σ-algebra.  It also gives the corresponding L² contraction, without
-conditional distributions or regularity assumptions on the sample spaces.
+statistic's σ-algebra, provided the derivative density on the statistic's space
+is assumed to be the pushforward of the source derivative density.  It also
+gives the corresponding L² contraction, without conditional distributions or
+regularity assumptions on the sample spaces.
 -/
 
 @[expose] public section
@@ -65,19 +67,16 @@ theorem integrable_guardedScore_of_derivative_integrable
   exact hxeq
 
 /-- A [finite reference measure and law](hyp:ν,μ), [measurable density and derivative
-density](hyp:q,qdot,hq,hqdot), [nonnegative density](hyp:hqnonneg), [zero-set derivative
-control](hyp:hzero), [density representation](hyp:hμ), [integrable guarded score and
-derivative](hyp:hscoreInt,hderivInt), and [measurable event](hyp:A,hA) make [the guarded-score
+density](hyp:q,qdot,hq), [nonnegative density](hyp:hqnonneg), [zero-set derivative
+control](hyp:hzero), [density representation](hyp:hμ), and [measurable event](hyp:A,hA) make [the guarded-score
 integral on that event equal the derivative-density integral](goal). -/
 theorem setIntegral_guardedScore_eq_derivative
     (ν μ : Measure α) [IsFiniteMeasure ν]
     (q qdot : α → ℝ)
-    (hq : Measurable q) (hqdot : Measurable qdot)
+    (hq : Measurable q)
     (hqnonneg : ∀ᵐ x ∂ν, 0 ≤ q x)
     (hzero : ∀ᵐ x ∂ν, q x = 0 → qdot x = 0)
     (hμ : μ = ν.withDensity (fun x => ENNReal.ofReal (q x)))
-    (hscoreInt : Integrable (guardedScore q qdot) μ)
-    (hderivInt : Integrable qdot ν)
     {A : Set α} (hA : MeasurableSet A) :
     ∫ x in A, guardedScore q qdot x ∂μ = ∫ x in A, qdot x ∂ν := by
   rw [hμ, restrict_withDensity hA,
@@ -132,15 +131,14 @@ theorem condExp_eq_statistic_iff_integral_preimage_eq
         exact (hintegral A hA).trans (hmap A hA).symm)
 
 /-- [Finite source and statistic reference measures](hyp:νΩ,νY), [source and statistic
-laws](hyp:μΩ,μY), [a measurable statistic](hyp:T,hT), [measurable densities and derivative
-densities](hyp:qΩ,qdotΩ,qY,qdotY,hqΩ,hqdotΩ,hqY,hqdotY), [nonnegative densities](hyp:hqΩnonneg,hqYnonneg),
-[zero-set derivative controls](hyp:hzeroΩ,hzeroY), [the source and statistic density laws](hyp:hμΩ,hμYmap,hμYdensity),
-[integrable scores and derivatives](hyp:hscoreΩInt,hscoreYInt,hderivΩInt,hderivYInt), [an exact
+laws](hyp:μΩ,μY), [a measurable statistic](hyp:T,hT), [densities and derivative
+densities, all measurable except possibly the source derivative density](hyp:qΩ,qdotΩ,qY,qdotY,hqΩ,hqY,hqdotY), [nonnegative densities](hyp:hqΩnonneg,hqYnonneg),
+[zero-set derivative controls](hyp:hzeroΩ,hzeroY), [the source and statistic density laws](hyp:hμΩ,hμYmap,hμYdensity), [an exact
 derivative pushforward identity](hyp:hderivMap), and [a measurable statistic event](hyp:A,hA)
 give [equal source-score and pulled-back statistic-score integrals on that event](goal). -/
 theorem score_integral_preimage_eq
     (hT : Measurable T)
-    (hqΩ : Measurable qΩ) (hqdotΩ : Measurable qdotΩ)
+    (hqΩ : Measurable qΩ)
     (hqY : Measurable qY) (hqdotY : Measurable qdotY)
     (hqΩnonneg : ∀ᵐ ω ∂νΩ, 0 ≤ qΩ ω)
     (hqYnonneg : ∀ᵐ y ∂νY, 0 ≤ qY y)
@@ -149,10 +147,6 @@ theorem score_integral_preimage_eq
     (hμΩ : μΩ = νΩ.withDensity (fun ω => ENNReal.ofReal (qΩ ω)))
     (hμYmap : μY = μΩ.map T)
     (hμYdensity : μY = νY.withDensity (fun y => ENNReal.ofReal (qY y)))
-    (hscoreΩInt : Integrable (guardedScore qΩ qdotΩ) μΩ)
-    (hscoreYInt : Integrable (guardedScore qY qdotY) μY)
-    (hderivΩInt : Integrable qdotΩ νΩ)
-    (hderivYInt : Integrable qdotY νY)
     (hderivMap : ∀ A : Set Y, MeasurableSet A →
       ∫ ω in T ⁻¹' A, qdotΩ ω ∂νΩ = ∫ y in A, qdotY y ∂νY)
     (A : Set Y) (hA : MeasurableSet A) :
@@ -169,23 +163,34 @@ theorem score_integral_preimage_eq
     ∫ ω in T ⁻¹' A, guardedScore qΩ qdotΩ ω ∂μΩ =
         ∫ ω in T ⁻¹' A, qdotΩ ω ∂νΩ :=
       setIntegral_guardedScore_eq_derivative νΩ μΩ qΩ qdotΩ
-        hqΩ hqdotΩ hqΩnonneg hzeroΩ hμΩ hscoreΩInt hderivΩInt (hT hA)
+        hqΩ hqΩnonneg hzeroΩ hμΩ (hT hA)
     _ = ∫ y in A, qdotY y ∂νY := hderivMap A hA
     _ = ∫ y in A, guardedScore qY qdotY y ∂μY :=
       (setIntegral_guardedScore_eq_derivative νY μY qY qdotY
-        hqY hqdotY hqYnonneg hzeroY hμYdensity hscoreYInt hderivYInt hA).symm
+        hqY hqYnonneg hzeroY hμYdensity hA).symm
     _ = ∫ ω in T ⁻¹' A, guardedScore qY qdotY (T ω) ∂μΩ := hmap.symm
 
-/-- [Finite source and statistic reference measures](hyp:νΩ,νY), [source and statistic
-laws](hyp:μΩ,μY), [a measurable statistic](hyp:T,hT), [measurable densities and derivative
-densities](hyp:qΩ,qdotΩ,qY,qdotY,hqΩ,hqdotΩ,hqY,hqdotY), [nonnegative densities](hyp:hqΩnonneg,hqYnonneg),
-[zero-set derivative controls](hyp:hzeroΩ,hzeroY), [the source and statistic density laws](hyp:hμΩ,hμYmap,hμYdensity),
-[integrable scores and derivatives](hyp:hscoreΩInt,hscoreYInt,hderivΩInt,hderivYInt), and [an
-exact derivative pushforward identity](hyp:hderivMap) imply [that the conditional expectation
-of the source score given the statistic equals the pulled-back statistic score almost everywhere](goal). -/
+/-- Take [finite reference measures on the source space and on the statistic's space](hyp:νΩ,νY),
+[a source probability law and a statistic law](hyp:μΩ,μY), [a measurable statistic](hyp:T,hT),
+and [real densities and derivative densities on both spaces, all measurable except possibly the
+source derivative density](hyp:qΩ,qdotΩ,qY,qdotY,hqΩ,hqY,hqdotY).
+Suppose [the densities are nonnegative almost everywhere under their reference
+measures](hyp:hqΩnonneg,hqYnonneg), [each derivative density vanishes almost everywhere where
+its density vanishes](hyp:hzeroΩ,hzeroY), [the source law has the source density with respect to
+its reference measure, the statistic law is the law of the statistic under the source law, and
+it has the statistic density with respect to its reference measure](hyp:hμΩ,hμYmap,hμYdensity),
+[both guarded scores are integrable under their laws](hyp:hscoreΩInt,hscoreYInt), and
+[the derivative densities are linked by the same pushforward: for every measurable set of
+statistic values, the source derivative density integrated over the set's preimage equals the
+statistic derivative density integrated over the set](hyp:hderivMap). Then [the conditional
+expectation, under the source law, of the source guarded score given the statistic equals the
+statistic's guarded score evaluated at the statistic, almost everywhere](goal).
+
+The derivative densities are arbitrary signed functions; the pushforward link between them is
+an assumption, not derived from a parametric family. -/
 theorem condExp_guardedScore_eq_statistic_score
     (hT : Measurable T)
-    (hqΩ : Measurable qΩ) (hqdotΩ : Measurable qdotΩ)
+    (hqΩ : Measurable qΩ)
     (hqY : Measurable qY) (hqdotY : Measurable qdotY)
     (hqΩnonneg : ∀ᵐ ω ∂νΩ, 0 ≤ qΩ ω)
     (hqYnonneg : ∀ᵐ y ∂νY, 0 ≤ qY y)
@@ -196,8 +201,6 @@ theorem condExp_guardedScore_eq_statistic_score
     (hμYdensity : μY = νY.withDensity (fun y => ENNReal.ofReal (qY y)))
     (hscoreΩInt : Integrable (guardedScore qΩ qdotΩ) μΩ)
     (hscoreYInt : Integrable (guardedScore qY qdotY) μY)
-    (hderivΩInt : Integrable qdotΩ νΩ)
-    (hderivYInt : Integrable qdotY νY)
     (hderivMap : ∀ A : Set Y, MeasurableSet A →
       ∫ ω in T ⁻¹' A, qdotΩ ω ∂νΩ = ∫ y in A, qdotY y ∂νY) :
     μΩ[guardedScore qΩ qdotΩ | MeasurableSpace.comap T inferInstance] =ᵐ[μΩ]
@@ -210,25 +213,32 @@ theorem condExp_guardedScore_eq_statistic_score
     ∫ ω in T ⁻¹' A, guardedScore qΩ qdotΩ ω ∂μΩ =
         ∫ ω in T ⁻¹' A, guardedScore qY qdotY (T ω) ∂μΩ :=
       score_integral_preimage_eq νΩ νY μΩ μY T qΩ qdotΩ qY qdotY
-        hT hqΩ hqdotΩ hqY hqdotY hqΩnonneg hqYnonneg
-        hzeroΩ hzeroY hμΩ hμYmap hμYdensity hscoreΩInt hscoreYInt
-        hderivΩInt hderivYInt hderivMap A hA
+        hT hqΩ hqY hqdotY hqΩnonneg hqYnonneg
+        hzeroΩ hzeroY hμΩ hμYmap hμYdensity hderivMap A hA
     _ = ∫ y in A, guardedScore qY qdotY y ∂μY := by
       rw [hμYmap]
       exact (setIntegral_map hA
         (measurable_guardedScore hqY hqdotY).aestronglyMeasurable
         hT.aemeasurable).symm
 
-/-- [Finite source and statistic reference measures](hyp:νΩ,νY), [source and statistic
-laws](hyp:μΩ,μY), [a measurable statistic](hyp:T,hT), [measurable densities and derivative
-densities](hyp:qΩ,qdotΩ,qY,qdotY,hqΩ,hqdotΩ,hqY,hqdotY), [nonnegative densities](hyp:hqΩnonneg,hqYnonneg),
-[zero-set derivative controls](hyp:hzeroΩ,hzeroY), [the source and statistic density laws](hyp:hμΩ,hμYmap,hμYdensity),
-[integrable scores and derivatives](hyp:hderivΩInt,hderivYInt), [an exact derivative pushforward
-identity](hyp:hderivMap), and [a square-integrable source score](hyp:hscoreΩL2) give [a
-square-integrable statistic score whose second moment is no larger than the source score's](goal). -/
+/-- Take [finite reference measures on the source space and on the statistic's space](hyp:νΩ,νY),
+[a source probability law and a statistic law](hyp:μΩ,μY), [a measurable statistic](hyp:T,hT),
+and [real densities and derivative densities on both spaces, all measurable except possibly the
+source derivative density](hyp:qΩ,qdotΩ,qY,qdotY,hqΩ,hqY,hqdotY).
+Suppose [the densities are nonnegative almost everywhere under their reference
+measures](hyp:hqΩnonneg,hqYnonneg), [each derivative density vanishes almost everywhere where
+its density vanishes](hyp:hzeroΩ,hzeroY), [the source law has the source density with respect to
+its reference measure, the statistic law is the law of the statistic under the source law, and
+it has the statistic density with respect to its reference measure](hyp:hμΩ,hμYmap,hμYdensity),
+[the statistic derivative density is integrable under its reference measure](hyp:hderivYInt),
+[for every measurable set of statistic values, the source derivative density integrated over the
+set's preimage equals the statistic derivative density integrated over the set](hyp:hderivMap),
+and [the source guarded score is square-integrable under the source law](hyp:hscoreΩL2). Then
+[the statistic's guarded score is square-integrable under the statistic law, and its second
+moment is at most the second moment of the source guarded score under the source law](goal). -/
 theorem statistic_score_memLp_and_secondMoment_le
     (hT : Measurable T)
-    (hqΩ : Measurable qΩ) (hqdotΩ : Measurable qdotΩ)
+    (hqΩ : Measurable qΩ)
     (hqY : Measurable qY) (hqdotY : Measurable qdotY)
     (hqΩnonneg : ∀ᵐ ω ∂νΩ, 0 ≤ qΩ ω)
     (hqYnonneg : ∀ᵐ y ∂νY, 0 ≤ qY y)
@@ -237,7 +247,6 @@ theorem statistic_score_memLp_and_secondMoment_le
     (hμΩ : μΩ = νΩ.withDensity (fun ω => ENNReal.ofReal (qΩ ω)))
     (hμYmap : μY = μΩ.map T)
     (hμYdensity : μY = νY.withDensity (fun y => ENNReal.ofReal (qY y)))
-    (hderivΩInt : Integrable qdotΩ νΩ)
     (hderivYInt : Integrable qdotY νY)
     (hderivMap : ∀ A : Set Y, MeasurableSet A →
       ∫ ω in T ⁻¹' A, qdotΩ ω ∂νΩ = ∫ y in A, qdotY y ∂νY)
@@ -251,9 +260,9 @@ theorem statistic_score_memLp_and_secondMoment_le
     integrable_guardedScore_of_derivative_integrable νY μY qY qdotY
       hqY hqYnonneg hzeroY hμYdensity hderivYInt
   have hprojection := condExp_guardedScore_eq_statistic_score
-    νΩ νY μΩ μY T qΩ qdotΩ qY qdotY hT hqΩ hqdotΩ hqY hqdotY
+    νΩ νY μΩ μY T qΩ qdotΩ qY qdotY hT hqΩ hqY hqdotY
     hqΩnonneg hqYnonneg hzeroΩ hzeroY hμΩ hμYmap hμYdensity
-    hscoreΩInt hscoreYInt hderivΩInt hderivYInt hderivMap
+    hscoreΩInt hscoreYInt hderivMap
   have hpull : MemLp (fun ω => guardedScore qY qdotY (T ω)) 2 μΩ :=
     (memLp_congr_ae hprojection).mp
       (MemLp.condExp (m := MeasurableSpace.comap T inferInstance)

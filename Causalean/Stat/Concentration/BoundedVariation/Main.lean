@@ -144,7 +144,7 @@ theorem centered_path_sum_maximal
   calc
     (∫ ω, ‖∑ j, (W j ω - ∫ x, W j x ∂μ)‖ ^ 2 ∂μ) ≤
         ∫ ω, ∫ ω', ‖∑ j, (W j ω - W j ω')‖ ^ 2 ∂μ ∂μ :=
-      centered_path_sum_energy_le_copy μ W hWmeas hWint hWsq
+      centered_path_sum_energy_le_copy μ W hWint hWsq
     _ = ∫ ω, ∫ ω', rademacherEnergy (fun j => W j ω - W j ω') ∂μ ∂μ :=
       independent_copy_difference_energy_eq_sign_energy μ W hWmeas hWsq hind
     _ ≤ 8192 * ∫ ω, ∫ ω', B ω ω' ∂μ ∂μ := houter

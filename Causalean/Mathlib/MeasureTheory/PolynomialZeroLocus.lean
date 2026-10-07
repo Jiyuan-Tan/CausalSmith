@@ -22,7 +22,7 @@ This file proves that the zero locus of a nonzero real multivariate polynomial i
 variables is Lebesgue-null.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory
 
@@ -141,12 +141,5 @@ lemma volume_zeroLocus_mvPolynomial_finite {α : Type*} [Fintype α]
     rw [hx]
   rw [← hpre, ← Measure.map_apply hφ.measurable hSmeas, hφ.map_eq]
   exact hS
-
-/-- For [a real multivariate polynomial](hyp:p), this deprecated compatibility name denotes its
-[real zero locus](goal) in the algebraic-geometry namespace. -/
-@[deprecated Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus
-  (since := "2026-09-19")]
-abbrev mvPolynomialZeroLocus {σ : Type*} (p : MvPolynomial σ ℝ) : Set (σ → ℝ) :=
-  Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus p
 
 end Causalean.Mathlib.MeasureTheory

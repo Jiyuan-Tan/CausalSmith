@@ -330,12 +330,12 @@ lemma l1_minimax_transfer {n d : ℕ} {epsilon : ℝ}
     ⟨Causalean.Stat.kernelAffinePullback (l1FixedSampleKernel n d) (1 / 4) (1 / 2) est.1,
       Causalean.Stat.measurable_kernelAffinePullback _ est.2⟩
   have hmin : fixedL1MinimaxRisk n d ≤
-      Causalean.Stat.worstCaseRisk (fixedL1Risk (d := d) n) sourceEst := by
+      Causalean.Stat.worstCaseRiskReal (fixedL1Risk (d := d) n) sourceEst := by
     unfold fixedL1MinimaxRisk
     exact Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg
       (fun _ _ => by unfold fixedL1Risk Causalean.Stat.sqRisk; positivity) sourceEst
-  have hwc : Causalean.Stat.worstCaseRisk (fixedL1Risk (d := d) n) sourceEst ≤
-      16 * Causalean.Stat.worstCaseRisk
+  have hwc : Causalean.Stat.worstCaseRiskReal (fixedL1Risk (d := d) n) sourceEst ≤
+      16 * Causalean.Stat.worstCaseRiskReal
         (observedRisk n (d := d) (epsilon := epsilon)) est := by
     apply Causalean.Stat.worstCaseRisk_le
     rintro ⟨Pv, Qv⟩
@@ -372,9 +372,9 @@ lemma l1_minimax_transfer {n d : ℕ} {epsilon : ℝ}
     exact hpoint.trans (mul_le_mul_of_nonneg_left htarget (by norm_num))
   calc
     fixedL1MinimaxRisk n d / 16 ≤
-        Causalean.Stat.worstCaseRisk (fixedL1Risk (d := d) n) sourceEst / 16 := by
+        Causalean.Stat.worstCaseRiskReal (fixedL1Risk (d := d) n) sourceEst / 16 := by
       gcongr
-    _ ≤ Causalean.Stat.worstCaseRisk
+    _ ≤ Causalean.Stat.worstCaseRiskReal
         (observedRisk n (d := d) (epsilon := epsilon)) est := by linarith
 
 -- @node: prop:equal-propensity-l1-reduction

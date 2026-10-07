@@ -68,21 +68,18 @@ theorem conditionalSlutsky_cdfKolmogorov_inProb
     (hremainderMeas : forall n omega, Measurable (remainder n omega))
     (G : ProbabilityMeasure ℝ)
     (hGcont : Continuous (cdf (G : Measure ℝ)))
-    (hlinear : Tendsto_inProb
-      (fun n omega => cdfKolmogorov
-        ((nu n omega).map (hlinearMeas n omega).aemeasurable) G)
-      (fun _ => 0) mu)
+    (hlinear : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega => cdfKolmogorov
+        ((nu n omega).map (hlinearMeas n omega).aemeasurable) G) atTop (fun _ _ => 0))
     (hremainder : forall epsilon : ℝ, 0 < epsilon ->
       Tendsto
         (fun n => mu.real {omega |
           epsilon < ((nu n omega : ProbabilityMeasure Y) : Measure Y).real
             {y | epsilon < abs (remainder n omega y)}})
         atTop (nhds 0)) :
-    Tendsto_inProb
-      (fun n omega => cdfKolmogorov
+    Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega => cdfKolmogorov
         ((nu n omega).map
-          ((hlinearMeas n omega).add (hremainderMeas n omega)).aemeasurable) G)
-      (fun _ => 0) mu := by
+          ((hlinearMeas n omega).add (hremainderMeas n omega)).aemeasurable) G) atTop
+              (fun _ _ => 0) := by
   rw [Tendsto_inProb_iff,
     tendstoInMeasure_iff_measureReal_dist]
   rw [Tendsto_inProb_iff,
@@ -257,12 +254,12 @@ theorem quantile_tendsto_inProb_of_cdfKolmogorov
       (quantile (G : Measure ℝ) beta))
     (hGstrict : StrictlyIncreasingAt (cdf (G : Measure ℝ))
       (quantile (G : Measure ℝ) beta))
-    (hdist : Tendsto_inProb
-      (fun n omega => cdfKolmogorov (nu n omega) G)
-      (fun _ => 0) mu) :
-    Tendsto_inProb
-      (fun n omega => quantile (nu n omega : Measure ℝ) beta)
-      (fun _ => quantile (G : Measure ℝ) beta) mu := by
+    (hdist : Modes.TendstoInProbability (fun _ : ℕ => mu)
+        (fun n omega => cdfKolmogorov (nu n omega) G)
+        atTop (fun _ _ => 0)) :
+    Modes.TendstoInProbability (fun _ : ℕ => mu)
+        (fun n omega => quantile (nu n omega : Measure ℝ) beta)
+        atTop (fun _ _ => quantile (G : Measure ℝ) beta) := by
   rw [Tendsto_inProb_iff,
     tendstoInMeasure_iff_measureReal_dist]
   rw [Tendsto_inProb_iff,
@@ -353,12 +350,12 @@ theorem tendsto_dist_random_Icc_coverage
     {mu : Measure Omega} [IsProbabilityMeasure mu]
     {Sn : ℕ -> Omega -> ℝ} {Q : Measure ℝ} [IsProbabilityMeasure Q]
     (hSnMeas : forall n, AEMeasurable (Sn n) mu)
-    (hSn : Tendsto_dist Sn Q mu hSnMeas)
+    (hSn : Modes.TendstoInLaw (fun _ : ℕ => mu) Sn atTop Q)
     (lower upper : ℕ -> Omega -> ℝ) (a b : ℝ)
     (hlowerMeas : forall n, Measurable (lower n))
     (hupperMeas : forall n, Measurable (upper n))
-    (hlower : Tendsto_inProb lower (fun _ => a) mu)
-    (hupper : Tendsto_inProb upper (fun _ => b) mu)
+    (hlower : Modes.TendstoInProbability (fun _ : ℕ => mu) lower atTop (fun _ _ => a))
+    (hupper : Modes.TendstoInProbability (fun _ : ℕ => mu) upper atTop (fun _ _ => b))
     (hab : a <= b) (hboundary : Q (frontier (Icc a b)) = 0) :
     Tendsto
       (fun n => mu.real {omega | Sn n omega ∈ Icc (lower n omega) (upper n omega)})

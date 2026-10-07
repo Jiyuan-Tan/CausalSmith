@@ -107,8 +107,11 @@ theorem mixedProfile_jets_zero {t c : ℕ} (x : EuclideanSpace ℝ (Fin t ⊕ Fi
       (oddProduct_jets_zero _ (fun h => (not_le.mpr hy) (h i))).1
     simp only [mixedProfile, hz, zero_mul]
 
-/-- [A finite dimension-dependent constant bounds all three mixed-profile jets](goal)
-in [fixed dimensions](hyp:t,c). -/
+/-- For [every tangent dimension t and complementary dimension c](hyp:t,c)
+[there is a constant C ≥ 1 such that the mixed profile is twice continuously
+differentiable on the whole space and its absolute value, the operator norm of
+its derivative and the operator norm of its second derivative are all at most C
+at every point](goal). -/
 theorem mixedProfile_jetBounds (t c : ℕ) :
     ∃ C : ℝ, 1 ≤ C ∧ JetBounds (mixedProfile (t := t) (c := c)) C := by
   exact exists_jetBounds_of_compactSupport mixedProfile_contDiff mixedProfile_hasCompactSupport

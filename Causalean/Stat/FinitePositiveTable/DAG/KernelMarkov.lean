@@ -143,8 +143,7 @@ private theorem mechanism_orderedLocalBasis_condIndep
     (fixed R : Finset V) (hR : R = Finset.univ \ fixed)
     (hroot : ∀ f ∈ fixed, H.parents f = ∅)
     {v : V} (hv : v ∈ R) (P : Finset V)
-    (hP : P ⊆ R) (hND : P ⊆ H.nonDescendants v)
-    (hPa : H.parents v ∩ R ⊆ P) :
+    (hP : P ⊆ R) (hND : P ⊆ H.nonDescendants v) :
     CondIndepFun
       (MeasurableSpace.comap
         (coordinateProjection (X := fun i ↦ Fin (r i))
@@ -301,16 +300,14 @@ private theorem fixedKernelCondIndep_of_mechanism
 namespace PositiveDAGTableFactorization
 
 /-- A [factorized table](hyp:fac), [fixed vertex set](hyp:fixed), [remaining vertex](hyp:hv),
-[candidate nondescendant set](hyp:P), [proof that it remains random](hyp:hP), [proof that it
-contains only nondescendants](hyp:hND), and [proof that it contains the remaining parents](hyp:hPa)
+[candidate nondescendant set](hyp:P), [proof that it remains random](hyp:hP), and [proof that it
+contains only nondescendants](hyp:hND)
 give [the ordered-local fixed-row conditional-independence basis statement](goal). -/
 theorem remainingFactorKernel_orderedLocalBasis
     (fac : PositiveDAGTableFactorization G p) (fixed : Finset V)
     {v : V} (hv : v ∈ Finset.univ \ fixed) (P : Finset V)
     (hP : P ⊆ Finset.univ \ fixed)
-    (hND : P ⊆ (arrowheadRemovedDAG G fixed).nonDescendants v)
-    (hPa : (arrowheadRemovedDAG G fixed).parents v ∩
-      (Finset.univ \ fixed) ⊆ P) :
+    (hND : P ⊆ (arrowheadRemovedDAG G fixed).nonDescendants v) :
     FixedKernelCondIndep (fac.remainingFactorKernel fixed) fixed
       {v} (P \ ((arrowheadRemovedDAG G fixed).parents v ∩
         (Finset.univ \ fixed)))
@@ -384,7 +381,7 @@ theorem remainingFactorKernel_orderedLocalBasis
   have hci := mechanism_orderedLocalBasis_condIndep H M fixed
     (Finset.univ \ fixed) rfl
     (fun f hf ↦ arrowheadRemovedDAG_fixed_parents_empty G fixed hf)
-    hv P hP hND hPa
+    hv P hP hND
   exact fixedKernelCondIndep_of_mechanism H M fac.cardinalitiesPositive
     (fac.remainingFactorKernel fixed) c hcpos hmarginal fixed {v}
       (P \ (H.parents v ∩ (Finset.univ \ fixed)))
@@ -492,7 +489,7 @@ theorem remainingFactorKernel_orderedLocalMarkov
     | basis v hv P hP hND hPa =>
         exact mechanism_orderedLocalBasis_condIndep H M fixed R rfl
           (fun f hf ↦ arrowheadRemovedDAG_fixed_parents_empty G fixed hf)
-          hv P hP hND hPa
+          hv P hP hND
     | symm h ih =>
         exact ih.symm
     | @decomp X Y W Z h ih =>
@@ -589,10 +586,16 @@ theorem remainingFactorKernel_orderedLocalMarkov
   exact fixedKernelCondIndep_of_mechanism H M fac.cardinalitiesPositive
     (fac.remainingFactorKernel fixed) c hcpos hmarginal fixed X Y Z hci
 
-/-- A [factorized table](hyp:fac), [fixed and three coordinate sets](hyp:fixed,X,Y,Z), [proofs
-that each random set is remaining](hyp:hX,hY,hZ), and [d-separation after removing incoming arrows
-to fixed vertices](hyp:hdSep) give [the atomwise multiplicative fixed-row conditional-independence
-identity](goal). -/
+/-- Take [a strictly positive finite table that factorizes into normalized parent-local factors
+along a DAG](hyp:fac), and [a set of fixed vertices with three further vertex sets, two random
+sets and a conditioning set](hyp:fixed,X,Y,Z), [each consisting of unfixed vertices](hyp:hX,hY,hZ).
+If [the two random sets are d-separated given the conditioning set together with the fixed
+vertices, in the DAG obtained by deleting every arrow pointing into a fixed vertex](hyp:hdSep),
+then [the truncated product of the unfixed local factors satisfies the multiplicative
+conditional-independence identity at every profile: with the fixed coordinates held at the
+profile's values, its marginal over both random sets and the conditioning set, times its marginal
+over the conditioning set, equals the product of its marginals over each random set joined with
+the conditioning set](goal). -/
 theorem remainingFactorKernel_globalMarkov
     (fac : PositiveDAGTableFactorization G p) (fixed X Y Z : Finset V)
     (hX : X ⊆ Finset.univ \ fixed) (hY : Y ⊆ Finset.univ \ fixed)

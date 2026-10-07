@@ -24,11 +24,11 @@ with the unit-mass order-four Jackson kernel. -/
 def jacksonApproximant (K : ℕ) (f : ℝ → ℝ) (x : ℝ) : ℝ :=
   ∫ t in Set.Icc (-Real.pi) Real.pi, evenExtension f (Real.pi * x - t) * jackson K t
 
-/-- At a [positive order](hyp:hK), a [target continuous on the closed
-interval](hyp:hf) has [continuous Jackson approximant](goal). -/
+/-- A [target continuous on the closed interval](hyp:hf) has
+[continuous Jackson approximant](goal) at every order. -/
 @[fun_prop]
 theorem continuous_jacksonApproximant {K : ℕ} {f : ℝ → ℝ}
-    (hK : 0 < K) (hf : ContinuousOn f (Set.Icc (0 : ℝ) 1)) :
+    (hf : ContinuousOn f (Set.Icc (0 : ℝ) 1)) :
     Continuous (jacksonApproximant K f) := by
   unfold jacksonApproximant
   apply continuous_parametric_integral_of_continuous (s := Set.Icc (-Real.pi) Real.pi)

@@ -125,7 +125,9 @@ theorem cubical_histogram_bandwidth_risk_le {d m : ℕ}
 default](hyp:hbound,ha), [the conditional mean identity](hyp:hmean),
 [positive Hölder smoothness and nonnegative constant](hyp:hβ,hC),
 [a Hölder bound](hyp:hholder), and [at least one observation](hyp:hm)
-give [the exact optimized exponent for the ceiling-mesh histogram](goal). -/
+give [the bound `(2 C² (√d)^(2β) + 6 · 2^d) · m^(-2β/(2β+d))` on the expected integrated
+squared risk, under iid sampling, of the cubical histogram with the optimized bandwidth
+`m^(-1/(2β+d))`](goal). -/
 theorem optimized_cubical_histogram_risk_le {d m : ℕ}
     (μ : Measure Ω) [IsProbabilityMeasure μ] (X : Ω → Cube d)
     (Y : Ω → ℝ) (g : Cube d → ℝ) (a β C : ℝ)

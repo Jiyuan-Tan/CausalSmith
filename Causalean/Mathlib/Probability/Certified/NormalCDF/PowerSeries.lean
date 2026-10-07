@@ -49,9 +49,9 @@ theorem gaussianIntegrand_hasSum (t : ℝ) :
   rw [hfun]
   exact NormedSpace.exp_series_hasSum_exp' (𝕂 := ℝ) (x := (-(t ^ 2) / 2 : ℝ))
 
-/-- Integrating one Gaussian power-series term from zero to a nonnegative
+/-- Integrating one Gaussian power-series term from zero to a real
 endpoint gives the corresponding signed integrated-series coefficient. -/
-theorem gaussianIntegrandTerm_integral (x : ℝ) (hx : 0 ≤ x) (k : ℕ) :
+theorem gaussianIntegrandTerm_integral (x : ℝ) (k : ℕ) :
     (∫ t in (0 : ℝ)..x, gaussianIntegrandTerm k t) =
       (-1 : ℝ) ^ k * gaussianIntegralMagnitude x k := by
   unfold gaussianIntegrandTerm gaussianIntegralMagnitude
@@ -67,8 +67,8 @@ theorem gaussianIntegrandTerm_integral (x : ℝ) (hx : 0 ≤ x) (k : ℕ) :
   ring
 
 /-- On `[0,x]`, the norm of one Gaussian-series function is bounded by the
-same unsigned monomial evaluated at the nonnegative right endpoint. -/
-theorem gaussianIntegrandTerm_norm_le (x : ℝ) (hx : 0 ≤ x) (k : ℕ)
+same unsigned monomial evaluated at the right endpoint. -/
+theorem gaussianIntegrandTerm_norm_le (x : ℝ) (k : ℕ)
     {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) x) :
     ‖gaussianIntegrandTerm k t‖ ≤
       x ^ (2 * k) / ((2 : ℝ) ^ k * (k.factorial : ℝ)) := by
@@ -82,8 +82,8 @@ theorem gaussianIntegrandTerm_norm_le (x : ℝ) (hx : 0 ≤ x) (k : ℕ)
   exact div_le_div_of_nonneg_right hp hden
 
 /-- The endpoint majorants for the Gaussian integrand's power series are
-summable for every fixed nonnegative endpoint. -/
-theorem gaussianIntegrandMajorant_summable (x : ℝ) (hx : 0 ≤ x) :
+summable for every fixed real endpoint. -/
+theorem gaussianIntegrandMajorant_summable (x : ℝ) :
     Summable (fun k =>
       x ^ (2 * k) / ((2 : ℝ) ^ k * (k.factorial : ℝ))) := by
   -- Identify this nonnegative series with the absolute exponential series at
@@ -181,19 +181,19 @@ theorem gaussianIntegral_hasSum (x : ℝ) (hx : 0 ≤ x) :
       ‖(f k).restrict
         (⟨Set.uIcc (0 : ℝ) x, isCompact_uIcc⟩ : TopologicalSpace.Compacts ℝ)‖) := by
     apply Summable.of_nonneg_of_le (fun _ => norm_nonneg _)
-      (fun k => ?_) (gaussianIntegrandMajorant_summable x hx)
+      (fun k => ?_) (gaussianIntegrandMajorant_summable x)
     apply (ContinuousMap.norm_le _ (by positivity)).2
     intro t
     change ‖gaussianIntegrandTerm k t‖ ≤ _
     simpa only [ContinuousMap.restrict_apply] using
-      gaussianIntegrandTerm_norm_le x hx k
+      gaussianIntegrandTerm_norm_le x k
         (by simpa [Set.uIcc_of_le hx] using t.property)
   have hi := intervalIntegral.hasSum_intervalIntegral_of_summable_norm hnorm
   have hterms : (fun k => ∫ t in (0 : ℝ)..x, f k t) =
       (fun k => (-1 : ℝ) ^ k * gaussianIntegralMagnitude x k) := by
     funext k
     change (∫ t in (0 : ℝ)..x, gaussianIntegrandTerm k t) = _
-    exact gaussianIntegrandTerm_integral x hx k
+    exact gaussianIntegrandTerm_integral x k
   rw [hterms] at hi
   rw [show (∫ t in (0 : ℝ)..x, Real.exp (-(t ^ 2) / 2)) =
       ∫ t in (0 : ℝ)..x, ∑' k, f k t by

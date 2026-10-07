@@ -342,15 +342,15 @@ private theorem poisson_score_moment_aux (lambda : ℝ≥0) {L : ℝ} (hL : 1 �
           mul_le_mul_of_nonneg_right hcoeff (pow_nonneg (by positivity) t)
 
 /-- Under [a Poisson law with a nonnegative mean](hyp:lambda), at [a logarithmic level of at least
-one](hyp:L,hL), every [moment order through four](hyp:t,ht) gives an [integrable power of the
-universal score](goal). -/
+one](hyp:L,hL), every [moment order](hyp:t) gives an [integrable power of the universal
+score](goal). -/
 -- Reduce `score` to a polynomial envelope in the count: for `L ≥ 1`,
 -- `sqrt (w*L) ≤ w*L + 1`, so every power through four is bounded by a
 -- constant multiple of `(w+1)^4`.  After `integrable_poissonMeasure_iff`,
 -- summability follows from `Real.summable_pow_div_factorial` after shifting
 -- the series finitely many times (as in `integrable_natCast_poisson`).
 theorem integrable_score_pow (lambda : ℝ≥0) {L : ℝ} (hL : 1 ≤ L)
-    {t : ℕ} (ht : t ≤ 4) :
+    {t : ℕ} :
     Integrable (fun w : ℕ => (score universalH L lambda w) ^ t)
       (poissonMeasure lambda) := by
   exact integrable_score_pow_aux lambda hL t

@@ -1162,7 +1162,7 @@ lemma common_marginal_uniform_intensity :
     exact Measure.map_congr R.commonTable_pointwise
   have hnuIcc : ∀ᵐ p ∂nu, p ∈ Set.Icc (0 : Real) B := by
     filter_upwards [cert.zeroInflatedPrior_support
-      a kappa B ha_pos hkappa hcertSupport] with p hp
+      a kappa B hcertSupport] with p hp
     rcases hp with rfl | hp
     · exact ⟨le_rfl, hB.le⟩
     · exact ⟨(div_nonneg ha_pos.le hkappa.le).trans hp.1, hp.2⟩

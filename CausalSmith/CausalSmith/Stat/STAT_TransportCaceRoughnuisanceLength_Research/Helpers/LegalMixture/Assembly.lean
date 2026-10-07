@@ -127,7 +127,7 @@ lemma uniformMixture_finite_chiSquare {Ω S : Type*} [MeasurableSpace Ω]
   have hpoint : ∀ᵐ x ∂P, p x ^ 2 =
       (∑ s : S, ∑ t : S, d s x * d t x) / card ^ 2 := by
     filter_upwards [Causalean.Stat.Minimax.Mixture.uniformMixture_rnDeriv
-      Q P hac] with x hx
+      Q P] with x hx
     change p x = (∑ s : S, d s x) / card at hx
     rw [hx, div_pow, sq, Finset.sum_mul_sum]
   have hsq : Integrable (fun x => p x ^ 2) P :=

@@ -20,13 +20,16 @@ namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 def coordinateSupport (d : ℕ) : Set (Fin d → ℝ) :=
   {x | ∀ i, |x i| ≤ 1}
 
-/-- At [a coordinate vector](hyp:x) in [dimension](hyp:d), [the odd product profile](goal)
-is [coordinate zero times all cutoffs in positive dimension, and zero in dimension zero](step:1). -/
+/-- At [a coordinate vector x](hyp:x) in [dimension d](hyp:d), [the odd product profile](goal)
+is [the first coordinate of x times the product over all coordinates i of the
+cutoff of x_i when d is positive, and zero in dimension zero](step:1); the cutoff
+of a real u is (1 − u²)³ for |u| ≤ 1 and zero otherwise. -/
 noncomputable def oddProduct {d : ℕ} (x : Fin d → ℝ) : ℝ :=
   if hd : 0 < d then x ⟨0, hd⟩ * ∏ i : Fin d, cutoff (x i) else 0
 
-/-- At [a Euclidean vector](hyp:x) in [dimension](hyp:d), [the Euclidean odd profile](goal)
-is [the same exact coordinate formula](step:1). -/
+/-- At [a Euclidean vector x](hyp:x) in [dimension d](hyp:d), [the Euclidean odd profile](goal)
+is [the odd product profile evaluated at the coordinates of x](step:1); only the
+norm on the domain differs from the coordinate version. -/
 noncomputable def oddEuclidean {d : ℕ} (x : EuclideanSpace ℝ (Fin d)) : ℝ :=
   oddProduct (fun i => x i)
 
@@ -99,8 +102,10 @@ theorem oddProduct_jets_zero {d : ℕ} (x : Fin d → ℝ) (hx : x ∉ coordinat
       (by simp [cutoff, not_le.mpr hy])
   simp [oddProduct, hz]
 
-/-- [A dimension-dependent finite constant bounds all three global jets](goal)
-of the odd product in [dimension](hyp:d). -/
+/-- In [every dimension d](hyp:d) [there is a constant C ≥ 1 such that the odd
+product profile is twice continuously differentiable on the whole space and its
+absolute value, the operator norm of its derivative and the operator norm of its
+second derivative are all at most C at every point](goal). -/
 theorem oddProduct_jetBounds (d : ℕ) :
     ∃ C : ℝ, 1 ≤ C ∧ JetBounds (oddProduct (d := d)) C := by
   exact exists_jetBounds_of_compactSupport oddProduct_contDiff oddProduct_hasCompactSupport

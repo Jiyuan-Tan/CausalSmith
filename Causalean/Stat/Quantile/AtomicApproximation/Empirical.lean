@@ -20,13 +20,13 @@ noncomputable section
 namespace Causalean.Stat.Quantile.AtomicApproximation
 
 /-- [A finite real measure](hyp:μ), [an ordered closed interval](hyp:a,b,hab),
-[concentration on that interval](hyp:hμ), [a location set contained in it](hyp:D,hD),
+[concentration on that interval](hyp:hμ), [a location set](hyp:D),
 [density of that set inside the interval](hyp:hDense), and [a tolerance](hyp:ε) [that is positive](hyp:hε) give [a threshold after which every positive grid size has an equally
 weighted approximation located in that dense set within the tolerance](goal). -/
 theorem eventually_equalAtomMeasure_approx
     (μ : Measure ℝ) [IsFiniteMeasure μ]
     (a b : ℝ) (hab : a ≤ b) (hμ : μ (Set.Icc a b)ᶜ = 0)
-    (D : Set ℝ) (hD : D ⊆ Set.Icc a b)
+    (D : Set ℝ)
     (hDense : Dense ((Subtype.val : Set.Icc a b → ℝ) ⁻¹' D))
     (ε : ℝ) (hε : 0 < ε) :
     ∃ N₀ : ℕ, ∀ N : ℕ, N₀ ≤ N → 0 < N →
@@ -49,7 +49,7 @@ theorem eventually_equalAtomMeasure_approx
   intro N hN₀N hN
   obtain ⟨x₀, hx₀⟩ := hN₀ N hN₀N hN
   obtain ⟨x, hx⟩ := equalAtomMeasure_dense_locations
-    a b hab D hD hDense N hN (μ.real Set.univ) measureReal_nonneg
+    a b hab D hDense N hN (μ.real Set.univ) measureReal_nonneg
     x₀ (ε / 2) (by linarith)
   refine ⟨x, ?_⟩
   have hfinite (z : Fin N → ℝ) :

@@ -187,11 +187,11 @@ theorem pairValue_integral_eq_kernel_mean {n : ℕ}
   change (∫ ω, H (ω p.1) (ω p.2) ∂iidLaw P n) = _
   exact integral_two_coordinates P hij H h.measurable_kernel M hbound
 
-/-- A [probability law and localized-kernel certificate](hyp:P,h), [two unordered sample
-pairs](hyp:hp,hq), and [their disjointness](hyp:hpq) give [zero covariance](goal) under the
+/-- A [probability law and localized-kernel certificate](hyp:P,h), two unordered sample
+pairs, and [their disjointness](hyp:hpq) give [zero covariance](goal) under the
 finite independent product law. -/
 theorem covariance_disjoint_pairs_eq_zero {n : ℕ}
-    {p q : Fin n × Fin n} (hp : p ∈ pairIndices n) (hq : q ∈ pairIndices n)
+    {p q : Fin n × Fin n}
     (hpq : ¬ SharesIndex p q) :
     covariance (pairValue H p) (pairValue H q) (iidLaw P n) = 0 := by
   -- The two coordinate pairs are independent by `iIndepFun_pi` and the four
@@ -359,9 +359,12 @@ theorem shared_pairs_product_integral_abs_le_rowMassSq {n : ℕ}
     rw [h.symmetric_kernel (ω p.1) (ω p.2),
       h.symmetric_kernel (ω q.1) (ω q.2), h22]
 
-/-- A [probability law and localized-kernel certificate](hyp:P,h), [two unordered sample
-pairs](hyp:hp,hq), [their inequality](hyp:hne), and [their shared index](hyp:hpq) give [a
-covariance bounded by twice the scaled squared row mass](goal). -/
+/-- Under [a probability law and a kernel H localized by a weight W with envelope M](hyp:P,h),
+for [two unordered pairs of sample indices](hyp:hp,hq) that are [distinct](hyp:hne) and
+[share an index](hyp:hpq), [the covariance, under independent draws from the law, of the kernel
+values at the two pairs is at most 2·M² times the squared row mass of W](goal). The squared row
+mass is the expectation over one draw of the square of the weight's mean over a second
+independent draw. -/
 theorem covariance_shared_pairs_le_rowMassSq {n : ℕ}
     {p q : Fin n × Fin n} (hp : p ∈ pairIndices n) (hq : q ∈ pairIndices n)
     (hne : p ≠ q) (hpq : SharesIndex p q) :

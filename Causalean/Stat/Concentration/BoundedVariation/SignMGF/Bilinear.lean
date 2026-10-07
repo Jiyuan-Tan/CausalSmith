@@ -76,9 +76,10 @@ theorem bilinearSignMGF_le {r c : ℕ} (A : Fin r → Fin c → ℝ) (t : ℝ) :
       simp [Fintype.card_bool]
 
 /-- Given [a finite real matrix](hyp:A) whose [total absolute coefficient
-mass is at most one](hyp:hmass), [the double-sign average of the nonnegative
-integer power of one plus its bilinear form is at most the corresponding
-Gaussian bound](goal). -/
+mass is at most one](hyp:hmass), [for every nonnegative integer n, the
+uniform average over both sign vectors of the n-th power of one plus the
+bilinear signed matrix sum is at most exp((n^2/2) times the sum over columns
+of the squared column sums of absolute entries)](goal). -/
 theorem bilinearSignPowAverage_le {r c n : ℕ} (A : Fin r → Fin c → ℝ)
     (hmass : ∑ j : Fin c, ∑ i : Fin r, |A i j| ≤ 1) :
     (∑ σ : Fin r → Bool, ∑ τ : Fin c → Bool,

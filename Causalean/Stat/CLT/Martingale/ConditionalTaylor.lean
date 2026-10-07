@@ -25,11 +25,10 @@ open Complex MeasureTheory ProbabilityTheory
 
 variable {Ω : Type*} {m mΩ : MeasurableSpace Ω} {μ : Measure Ω}
 
-/-- If [the conditioning sigma-algebra is contained in the ambient sigma-algebra](hyp:hm),
-[a real random variable is integrable](hyp:hX), and [has conditional mean zero](hyp:hZero),
+/-- If [a real random variable is integrable](hyp:hX) and [has conditional mean zero](hyp:hZero),
 then [its complex embedding also has conditional mean
 zero](goal). -/
-theorem condExp_ofReal_ae_eq_zero [IsProbabilityMeasure μ] (hm : m ≤ mΩ)
+theorem condExp_ofReal_ae_eq_zero [IsProbabilityMeasure μ]
     (X : Ω → ℝ) (hX : Integrable X μ) (hZero : μ[X | m] =ᵐ[μ] 0) :
     μ[(fun ω => (X ω : ℂ)) | m] =ᵐ[μ] 0 := by
   /- Apply `ContinuousLinearMap.comp_condExp_comm` to the real-to-complex
@@ -131,7 +130,7 @@ theorem condExp_cexp_ae_eq_quadratic_add_remainder
       convert condExp_smul (μ := μ) (Complex.I * (t : ℂ))
         (fun ω => (X ω : ℂ)) m using 1 <;> ext ω <;> rfl
     have hzero := condExp_ofReal_ae_eq_zero (mΩ := mΩ) (m := m) (μ := μ)
-      hm X hX1 hZero
+      X hX1 hZero
     filter_upwards [hsmul, hzero] with ω hsmulω hzeroω
     simpa only [Pi.smul_apply, Pi.zero_apply, smul_eq_mul, mul_zero] using
       hsmulω.trans (congrArg ((Complex.I * (t : ℂ)) * ·) hzeroω)
@@ -181,13 +180,13 @@ theorem integral_mul_condExp_eq_integral_mul_of_ae_bound
 
 /-- If [the conditioning sigma-algebra is contained in the ambient sigma-algebra](hyp:hm),
 [an integrable complex error](hyp:hf) is multiplied by [a predictable complex weight](hyp:hg)
-whose [norm is bounded by a nonnegative constant](hyp:hB,hgBound),
+whose [norm is bounded by a constant](hyp:hgBound),
 then [the norm of the integral of the weight times the conditional error is at
 most that constant times the integral norm of the original error](goal). -/
 theorem norm_integral_mul_condExp_le_of_ae_bound
     [IsProbabilityMeasure μ] (hm : m ≤ mΩ)
     (f g : Ω → ℂ) (hf : Integrable f μ) (hg : StronglyMeasurable[m] g)
-    (B : ℝ) (hB : 0 ≤ B) (hgBound : ∀ᵐ ω ∂μ, ‖g ω‖ ≤ B) :
+    (B : ℝ) (hgBound : ∀ᵐ ω ∂μ, ‖g ω‖ ≤ B) :
     ‖∫ ω, g ω * μ[f | m] ω ∂μ‖ ≤ B * ∫ ω, ‖f ω‖ ∂μ := by
   /- Use the conditional-expectation pull-out theorem for the bounded
   `m`-measurable factor `g`, then `integral_condExp`.  Bound the resulting

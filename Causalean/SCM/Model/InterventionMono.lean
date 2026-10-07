@@ -25,8 +25,9 @@ iterated single-target interventions.
   tuple expected by the original structural function.
 * `SCM.fixMono` builds the monolithic multi-target intervention SCM, inheriting
   latent laws and reusing structural functions through `fixMonoParentMap`.
-* `SCM.fixMono_observed`, `SCM.fixMono_unobserved`, `SCM.fixMono_fixed`, and
-  `SCM.fixMono_latentDist` expose the preserved or enlarged primitive fields.
+* `SWIGGraph.splitMono_observed`, `SWIGGraph.splitMono_unobserved`,
+  `SWIGGraph.splitMono_fixed`, and `SCM.fixMono_latentDist` expose the preserved or enlarged
+  primitive fields.
 * `SCM.fixMono_parents_eq_of_no_fixed_parent` gives parent-set coincidence at
   vertices whose post-intervention parents contain no targeted fixed copy.
 -/
@@ -296,27 +297,6 @@ noncomputable def fixMono (M : Causalean.SCM N Ω) (X : Finset N)
 -- ============================================================
 -- Interface lemmas
 -- ============================================================
-
-/-- Deprecated compatibility alias for `SWIGGraph.splitMono_observed`: for [a SWIG graph](hyp:G)
-and [an intervention target set](hyp:X) whose [targeted random copies are observed](hyp:hObs)
-and whose [targeted fixed copies are not already fixed](hyp:hFix), [monolithic splitting
-preserves the observed node set](goal). -/
-@[simp, deprecated SWIGGraph.splitMono_observed (since := "2026-09-15")]
-alias fixMono_observed := SWIGGraph.splitMono_observed
-
-/-- Deprecated compatibility alias for `SWIGGraph.splitMono_unobserved`: for [a SWIG graph](hyp:G)
-and [an intervention target set](hyp:X) whose [targeted random copies are observed](hyp:hObs)
-and whose [targeted fixed copies are not already fixed](hyp:hFix), [monolithic splitting
-preserves the unobserved node set](goal). -/
-@[simp, deprecated SWIGGraph.splitMono_unobserved (since := "2026-09-15")]
-alias fixMono_unobserved := SWIGGraph.splitMono_unobserved
-
-/-- Deprecated compatibility alias for `SWIGGraph.splitMono_fixed`: for [a SWIG graph](hyp:G)
-and [an intervention target set](hyp:X) whose [targeted random copies are observed](hyp:hObs)
-and whose [targeted fixed copies are not already fixed](hyp:hFix), [monolithic splitting adds
-the targeted fixed copies to the fixed node set](goal). -/
-@[simp, deprecated SWIGGraph.splitMono_fixed (since := "2026-09-15")]
-alias fixMono_fixed := SWIGGraph.splitMono_fixed
 
 /-- **Latent-distribution invariance of the monolithic intervention.** For a structural causal
     model `M` and an intervention target set `X` such that [every targeted node is currently a

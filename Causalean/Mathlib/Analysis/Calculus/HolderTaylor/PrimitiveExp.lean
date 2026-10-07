@@ -19,8 +19,8 @@ public section
 
 namespace Causalean.Mathlib.Analysis.Calculus.HolderTaylor
 
-/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα) and
-[at most one](hyp:hα1), [an interval length d](hyp:d) that is [positive](hyp:hd), and
+/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα),
+[an interval length d](hyp:d) that is [positive](hyp:hd), and
 [a nonnegative value envelope M](hyp:M,hM) and [a nonnegative Hölder constant L](hyp:L,hL). Then
 [there is one nonnegative constant B such that, for every interval from a to a + d and every
 integrand h that is k times continuously differentiable on it, bounded by M there, and whose k-th
@@ -29,7 +29,7 @@ a is k + 1 times continuously differentiable on the interval, all its within-int
 up to order k + 1 are bounded by B there, and its (k + 1)-th within-interval derivative is Hölder
 with constant B and exponent α](goal). -/
 theorem primitive_quantitative_closure
-    (k : ℕ) (α d M L : ℝ) (hα : 0 < α) (hα1 : α ≤ 1)
+    (k : ℕ) (α d M L : ℝ) (hα : 0 < α)
     (hd : 0 < d) (hM : 0 ≤ M) (hL : 0 ≤ L) :
     ∃ B : ℝ, 0 ≤ B ∧
       ∀ (a : ℝ) (h : ℝ → ℝ),
@@ -48,7 +48,7 @@ theorem primitive_quantitative_closure
             iteratedDerivWithin (k + 1) H (Set.Icc a (a + d)) y| ≤
               B * |x - y| ^ α) := by
   obtain ⟨C, hC, hbound⟩ :=
-    uniform_iteratedDerivWithin_bound k α d M L hα hα1 hd hM hL
+    uniform_iteratedDerivWithin_bound k α d M L hα hd hM hL
   refine ⟨d * M + C + L, by positivity, ?_⟩
   intro a h hh hval hholder
   let s := Set.Icc a (a + d)
@@ -114,9 +114,9 @@ theorem survival_holder_closure
   covers `k=0`. Differentiability follows from `interval_primitive_contDiffOn`
   and composition with `Real.exp`. -/
   obtain ⟨C, hC, hjet⟩ :=
-    uniform_iteratedDerivWithin_bound k α d M L hα hα1 hd hM hL
+    uniform_iteratedDerivWithin_bound k α d M L hα hd hM hL
   obtain ⟨P, hP, hprim⟩ :=
-    primitive_quantitative_closure k α d M L hα hα1 hd hM hL
+    primitive_quantitative_closure k α d M L hα hd hM hL
   have hE : 0 ≤ Real.exp P := (Real.exp_pos P).le
   obtain ⟨J, hJ, hsurvjet⟩ :=
     survival_jet_bound_of_integrand_jet_bound k d C (Real.exp P) hd hC hE

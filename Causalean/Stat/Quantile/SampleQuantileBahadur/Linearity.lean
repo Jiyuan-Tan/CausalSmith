@@ -43,9 +43,11 @@ variable [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
 omit [IsProbabilityMeasure μ] in
 /-- **Sum of in-probability limits.**  If `Xn →ₚ 0` and `Yn →ₚ 0`
 then `Xn + Yn →ₚ 0`.  Union bound: `{ε ≤ |Xn+Yn|} ⊆ {ε/2 ≤ |Xn|} ∪ {ε/2 ≤ |Yn|}`. -/
-lemma Tendsto_inProb.add_zero_zero {Xn Yn : ℕ → Ω → ℝ}
-    (hX : Tendsto_inProb Xn (fun _ => 0) μ) (hY : Tendsto_inProb Yn (fun _ => 0) μ) :
-    Tendsto_inProb (fun n ω => Xn n ω + Yn n ω) (fun _ => 0) μ := by
+lemma Modes.TendstoInProbability.add_zero_zero {Xn Yn : ℕ → Ω → ℝ}
+    (hX : Modes.TendstoInProbability (fun _ : ℕ => μ) Xn atTop
+        (fun _ _ => 0)) (hY : Modes.TendstoInProbability (fun _ : ℕ => μ) Yn atTop (fun _ _ => 0)) :
+    Modes.TendstoInProbability
+        (fun _ : ℕ => μ) (fun n ω => Xn n ω + Yn n ω) atTop (fun _ _ => 0) := by
   rw [Tendsto_inProb_iff] at hX hY ⊢
   rw [tendstoInMeasure_iff_norm] at hX hY ⊢
   intro ε hε
@@ -73,9 +75,9 @@ omit [IsProbabilityMeasure μ] in
 An `IsLittleOp _ 1` sequence converges to
 `0` in probability.  Both unwind to the same `μ{· < |·|} → 0` statement up to a
 harmless `<`/`≤` slack (handled with `ε/2`). -/
-lemma Tendsto_inProb.of_isLittleOp_one {Xn : ℕ → Ω → ℝ}
+lemma Modes.TendstoInProbability.of_isLittleOp_one {Xn : ℕ → Ω → ℝ}
     (h : IsLittleOp Xn (fun _ => (1 : ℝ)) μ) :
-    Tendsto_inProb Xn (fun _ => 0) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) Xn atTop (fun _ _ => 0) := by
   rw [Tendsto_inProb_iff]
   rw [tendstoInMeasure_iff_norm]
   intro ε hε
@@ -96,9 +98,9 @@ Inside the regularity neighborhood the atom bound is at most `1/n`; root-`n` tig
 probability that the sample quantile leaves that neighborhood vanish. -/
 lemma IIDSample.sampleQuantile_atom_term_tendsto_zero (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (hreg : SampleQuantileReg P τ q₀ f₀) :
-    Tendsto_inProb
-      (fun n ω => Real.sqrt (n : ℝ) * (S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ))
-      (fun _ => 0) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ)
+        (fun n ω => Real.sqrt (n : ℝ) * (S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ)) atTop
+        (fun _ _ => 0) := by
   rw [Tendsto_inProb_iff]
   rw [tendstoInMeasure_iff_norm]
   intro ε hε
@@ -115,9 +117,10 @@ lemma IIDSample.sampleQuantile_atom_term_tendsto_zero (S : IIDSample Ω ℝ μ P
     exact Measure.isProbabilityMeasure_map (S.meas 0).aemeasurable
   have hUnBig : IsBigOp Un (fun _ => (1 : ℝ)) μ := by
     simpa [Un] using S.sampleQuantile_rate hreg
-  have hscaled : Tendsto_inProb
-      (fun n ω => (Real.sqrt (n : ℝ))⁻¹ * Un n ω) (fun _ => 0) μ :=
-    Tendsto_inProb.of_isLittleOp_one (hUnBig.const_mul_tendsto_zero hInvSqrt)
+  have hscaled : Modes.TendstoInProbability (fun _ : ℕ => μ)
+      (fun n ω => (Real.sqrt (n : ℝ))⁻¹ * Un n ω)
+      atTop (fun _ _ => 0) :=
+    Modes.TendstoInProbability.of_isLittleOp_one (hUnBig.const_mul_tendsto_zero hInvSqrt)
   have hlocalTail : Tendsto
       (fun n : ℕ => μ {ω | ρ ≤ ‖(Real.sqrt (n : ℝ))⁻¹ * Un n ω - 0‖})
       atTop (nhds 0) :=
@@ -134,7 +137,7 @@ lemma IIDSample.sampleQuantile_atom_term_tendsto_zero (S : IIDSample Ω ℝ μ P
   have hnpos : 0 < n := hn1
   have hnR : 0 < (n : ℝ) := by exact_mod_cast hnpos
   have hsq : 0 < Real.sqrt (n : ℝ) := Real.sqrt_pos.mpr hnR
-  have hatom := S.sampleQuantile_atom_bound hρ hcont hnpos
+  have hatom := S.sampleQuantile_atom_bound hcont hnpos
     hreg.tau_pos hreg.tau_lt_one
   apply measure_mono_ae
   filter_upwards [hatom] with ω hω
@@ -182,11 +185,9 @@ scaled remainder at the sample quantile vanishes in probability:
 derivative little-o `|R(y)| ≤ η|y − q₀|`, and `|√n·R(q̂ₙ)| ≤ η|Un|`. -/
 lemma IIDSample.sampleQuantile_taylor_remainder_tendsto_zero (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (hreg : SampleQuantileReg P τ q₀ f₀) :
-    Tendsto_inProb
-      (fun n ω => Real.sqrt (n : ℝ) *
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => Real.sqrt (n : ℝ) *
         (cdf P (S.sampleQuantile τ n ω) - cdf P q₀
-          - f₀ * (S.sampleQuantile τ n ω - q₀)))
-      (fun _ => 0) μ := by
+          - f₀ * (S.sampleQuantile τ n ω - q₀))) atTop (fun _ _ => 0) := by
   -- Driver `Un = √n(q̂ₙ − q₀)` is `O_p(1)` (L4).
   set Un : ℕ → Ω → ℝ := fun n ω => Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀)
     with hUn
@@ -223,7 +224,7 @@ lemma IIDSample.sampleQuantile_taylor_remainder_tendsto_zero (S : IIDSample Ω �
     simp only [Set.mem_setOf_eq, mul_one, Real.norm_eq_abs]
     rw [heq]
   -- Now produce `IsLittleOp (√n·R(q̂ₙ)) 1`, copying `deltaMethod_scalar`'s hRn.
-  apply Tendsto_inProb.of_isLittleOp_one
+  apply Modes.TendstoInProbability.of_isLittleOp_one
   apply (Modes.isLittleOpF_iff_strict _ _ _ _
     (Eventually.of_forall fun _ => zero_lt_one)).2
   intro ε hε
@@ -331,18 +332,16 @@ Uses the switching relation (`τ ≤ F̂ₙ(q̂ₙ)` and atom bound `|F̂ₙ(q̂
 `F(q̂ₙ) = τ + f₀(q̂ₙ − q₀) + o(q̂ₙ − q₀)` from `HasDerivAt F f₀ q₀`. -/
 lemma IIDSample.sampleQuantile_inversion (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (hreg : SampleQuantileReg P τ q₀ f₀) :
-    Tendsto_inProb
-      (fun n ω => S.empProcess n ω (S.sampleQuantile τ n ω)
-        + f₀ * (Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀)))
-      (fun _ => 0) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ)
+        (fun n ω => S.empProcess n ω (S.sampleQuantile τ n ω)
+        + f₀ * (Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀))) atTop (fun _ _ => 0) := by
   -- Atom term `Aₙ = √n(F̂ₙ(q̂ₙ) − τ) →ₚ 0`.
   have hAtom := S.sampleQuantile_atom_term_tendsto_zero hreg
   -- Taylor remainder `√n·R(q̂ₙ) →ₚ 0`; negate it.
   have hRem := S.sampleQuantile_taylor_remainder_tendsto_zero hreg
-  have hRemNeg : Tendsto_inProb
-      (fun n ω => -(Real.sqrt (n : ℝ) *
+  have hRemNeg : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => -(Real.sqrt (n : ℝ) *
         (cdf P (S.sampleQuantile τ n ω) - cdf P q₀
-          - f₀ * (S.sampleQuantile τ n ω - q₀)))) (fun _ => 0) μ := by
+          - f₀ * (S.sampleQuantile τ n ω - q₀)))) atTop (fun _ _ => 0) := by
     rw [Tendsto_inProb_iff] at hRem ⊢
     rw [tendstoInMeasure_iff_norm] at hRem ⊢
     intro ε hε
@@ -350,7 +349,7 @@ lemma IIDSample.sampleQuantile_inversion (S : IIDSample Ω ℝ μ P)
     refine measure_congr (Eventually.of_forall fun ω => ?_)
     simp only [sub_zero, Real.norm_eq_abs, abs_neg]
   -- Sum of the two in-probability limits.
-  have hsum := hAtom.add_zero_zero hRemNeg
+  have hsum := Modes.TendstoInProbability.add_zero_zero hAtom hRemNeg
   -- The target equals `Aₙ + (−√n·R(q̂ₙ))` pointwise (ring identity, using `τ = F(q₀)`).
   rw [Tendsto_inProb_iff] at hsum ⊢
   refine TendstoInMeasure.congr' (Eventually.of_forall fun n => ?_) EventuallyEq.rfl hsum
@@ -390,9 +389,9 @@ lemma IIDSample.normalizedSum_quantileIF_eq (S : IIDSample Ω ℝ μ P)
 
 omit [IsProbabilityMeasure μ] in
 /-- Scalar multiple preserves in-probability convergence to `0`. -/
-lemma Tendsto_inProb.const_mul_zero {Xn : ℕ → Ω → ℝ} (c : ℝ)
-    (h : Tendsto_inProb Xn (fun _ => 0) μ) :
-    Tendsto_inProb (fun n ω => c * Xn n ω) (fun _ => 0) μ := by
+lemma Modes.TendstoInProbability.const_mul_zero {Xn : ℕ → Ω → ℝ} (c : ℝ)
+    (h : Modes.TendstoInProbability (fun _ : ℕ => μ) Xn atTop (fun _ _ => 0)) :
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => c * Xn n ω) atTop (fun _ _ => 0) := by
   rcases eq_or_ne c 0 with hc | hc
   · subst hc
     rw [Tendsto_inProb_iff]
@@ -438,9 +437,9 @@ theorem IIDSample.sampleQuantile_isAsymLinear (S : IIDSample Ω ℝ μ P)
   have hUn : IsBigOp (fun n ω => Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀))
       (fun _ => (1 : ℝ)) μ := S.sampleQuantile_rate hreg
   have hosc := S.empProcess_oscillation hreg hUn
-  have hP2 : Tendsto_inProb
-      (fun n ω => S.empProcess n ω (S.sampleQuantile τ n ω) - S.empProcess n ω q₀)
-      (fun _ => 0) μ := by
+  have hP2 : Modes.TendstoInProbability (fun _ : ℕ => μ)
+      (fun n ω => S.empProcess n ω (S.sampleQuantile τ n ω) - S.empProcess n ω q₀) atTop
+      (fun _ _ => 0) := by
     have heq : (fun n ω => S.empProcess n ω
           (q₀ + (Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀)) / Real.sqrt (n : ℝ))
             - S.empProcess n ω q₀)
@@ -456,9 +455,9 @@ theorem IIDSample.sampleQuantile_isAsymLinear (S : IIDSample Ω ℝ μ P)
         rw [harg]
     rwa [heq] at hosc
   -- Assemble: `R̃ₙ = (1/f₀)·P1ₙ + (−1/f₀)·P2ₙ`.
-  have hcP1 := hP1.const_mul_zero (1 / f₀)
-  have hcP2 := hP2.const_mul_zero (-(1 / f₀))
-  have hsum := Tendsto_inProb.add_zero_zero hcP1 hcP2
+  have hcP1 := Modes.TendstoInProbability.const_mul_zero (h := hP1) (1 / f₀)
+  have hcP2 := Modes.TendstoInProbability.const_mul_zero (h := hP2) (-(1 / f₀))
+  have hsum := Modes.TendstoInProbability.add_zero_zero hcP1 hcP2
   have heq : (fun n ω =>
         (1 / f₀) * (S.empProcess n ω (S.sampleQuantile τ n ω)
             + f₀ * (Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀)))
@@ -472,7 +471,7 @@ theorem IIDSample.sampleQuantile_isAsymLinear (S : IIDSample Ω ℝ μ P)
     field_simp
     ring
   rw [heq] at hsum
-  exact hsum.isLittleOp_one
+  exact Modes.TendstoInProbability.isLittleOp_one hsum
 
 /-- **Sample quantile satisfies `QuantileRegularity` (derived Bahadur).** Given [a
 `SampleQuantileReg` regularity bundle `hreg`](hyp:hreg) for the population $\tau$-quantile $q_0$

@@ -4,7 +4,7 @@ public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.Go
 
 /-! Deterministic clipping bounds for bad pilot cells. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteBudgetvalueCurve
 
@@ -412,8 +412,7 @@ lemma idealBadPilotCellEnvelope_sq_integral_le {n d : ℕ} {epsilon : ℝ}
     fun_prop
   have hblockMap : Measure.map block μ = μcell := by
     simpa [block, μ, μcell] using
-      (poissonTable_eval_cell_law rate rate
-        (fun _ : Fin d × Fin 4 => 0) j).map_eq
+      (poissonTable_eval_cell_law rate j).map_eq
   have hpairMap : Measure.map (Prod.map block block) (μ.prod μ) =
       μcell.prod μcell := by
     rw [← Measure.map_prod_map μ μ hblockMeas hblockMeas,
@@ -692,8 +691,7 @@ lemma idealClippedCell_error_sSup_sq_integrable
     fun_prop
   have hblockMap : Measure.map block μ = μcell := by
     simpa [block, μ, μcell] using
-      (poissonTable_eval_cell_law rate rate
-        (fun _ : Fin d × Fin 4 => 0) j).map_eq
+      (poissonTable_eval_cell_law rate j).map_eq
   have hscoreFull : Integrable (scoreSq ∘ block) μ := by
     have hmapped : Integrable scoreSq (Measure.map block μ) := by
       rw [hblockMap]

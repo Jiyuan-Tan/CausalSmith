@@ -19,9 +19,13 @@ open MeasureTheory ProbabilityTheory
 /-- For [a probability law with finite first moment](hyp:μ,hfirst),
 [positive ordered cutoffs U0 ≤ U](hyp:U0,U,hU0,hcut), and
 [any threshold x](hyp:x), [the distance between half the expected Prawitz
-sign approximation at U(x − y) and the Gaussian sine integral, plus half the
-expected squared sinc of U(x − y)/2, is at most the four exact Prawitz
-spectral terms](goal). -/
+sign approximation at U(x − y) and the Gaussian sine integral
+(1/π)·∫₀^∞ exp(−t²/2)·sin(tx)/t dt, plus half the expected squared sinc of
+U(x − y)/2, is at most the sum of the four Prawitz spectral terms
+(2/U)·∫₀^{U0} |K(t/U)|·|φ_μ(t) − φ_γ(t)| dt + (2/U)·∫_{U0}^{U} |K(t/U)|·|φ_μ(t)| dt +
+2·∫₀^{U0} |K(t/U)/U − i/(2πt)|·exp(−t²/2) dt + (1/π)·∫_{U0}^{∞} exp(−t²/2)/t dt](goal).
+The expectations are over y drawn from the law. Here K is the Prawitz spectral filter, φ_μ the characteristic function of the law, and φ_γ
+that of the standard Gaussian. -/
 theorem prawitz_gaussian_sine_spectral_bound
     (μ : Measure ℝ) [IsProbabilityMeasure μ]
     (hfirst : Integrable (fun y : ℝ => y) μ)

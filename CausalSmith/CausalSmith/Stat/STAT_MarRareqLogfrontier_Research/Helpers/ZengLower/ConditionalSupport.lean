@@ -1,7 +1,7 @@
 module
 public import CausalSmith.Stat.STAT_MarRareqLogfrontier_Research.Helpers.ZengLower.Concentration
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set Finset
 

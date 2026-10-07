@@ -8,7 +8,7 @@ This file records the first two moments and square integrability of the
 positive-scale centered Laplace distribution used by the comparator release.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

@@ -56,9 +56,9 @@ private theorem score_nonneg_product (lambda : ℝ≥0) {L : ℝ} (hL : 1 ≤ L)
 private theorem integrable_score_pow_comp
     {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
     (W : Ω → ℕ) (lambda : ℝ≥0) (hWlaw : HasLaw W (poissonMeasure lambda) μ)
-    {L : ℝ} (hL : 1 ≤ L) {t : ℕ} (ht : t ≤ 4) :
+    {L : ℝ} (hL : 1 ≤ L) {t : ℕ} :
     Integrable (fun ω => (score universalH L lambda (W ω)) ^ t) μ := by
-  have hbase := integrable_score_pow lambda hL ht
+  have hbase := integrable_score_pow lambda hL (t := t)
   have hmap : μ.map W = poissonMeasure lambda := hWlaw.map_eq
   have hbase' : Integrable (fun w : ℕ => (score universalH L lambda w) ^ t) (μ.map W) := by
     rwa [hmap]
@@ -344,7 +344,6 @@ theorem independent_poisson_badAny_moment
   classical
   by_cases hι : Nonempty ι
   · letI := hι
-    have ht4 : t ≤ 4 := by rcases ht with rfl | rfl | rfl <;> norm_num
     let K : ℝ := scalarBadMomentConstant t + 2 * scalarMomentConstant t
     let A : ℝ := Real.sqrt ((∑ i, (lambda i : ℝ)) * L) + L
     let n : ℝ := Fintype.card ι
@@ -371,7 +370,7 @@ theorem independent_poisson_badAny_moment
       · simp [hω, pow_nonneg (hscore0 i ω) t]
       · simp [hω]
     have hFint (j i : ι) : Integrable (F j i) μ := by
-      have hi := (integrable_score_pow_comp μ (W i) (lambda i) (hWlaw i) hL ht4).indicator
+      have hi := (integrable_score_pow_comp μ (W i) (lambda i) (hWlaw i) hL (t := t)).indicator
         ((measurableSet_badEvent universalH L (lambda j)).preimage (hWmeas j))
       change Integrable ((W j ⁻¹' badEvent universalH L (lambda j)).indicator
         (fun ω => (score universalH L (lambda i) (W i ω)) ^ t)) μ at hi

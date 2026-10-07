@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_SemisupervisedDiscreteAteAnnotationFrontier_
 
 /-! Exact one-cell expectation and bias bounds for the heavy branch. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier
 

@@ -69,8 +69,8 @@ private lemma memLp_mul_design {n : ℕ} {p : ENNReal} (μ : Measure Ω)
     simp only [Real.norm_eq_abs, abs_mul]
     exact mul_le_mul_of_nonneg_right (hv _) (abs_nonneg _)
 
-/-- Under [a probability law μ of one observation](hyp:μ), if [the cell label X](hyp:X,hX),
-[the treatment A](hyp:A,hA) and [the outcome Y](hyp:Y,hY) are measurable and
+/-- Under [a probability law μ of one observation](hyp:μ), if [the cell label X](hyp:X,hX) and
+[the treatment A](hyp:A,hA) are measurable, [Y is the outcome](hyp:Y), and
 [each arm-cell-supported residual from the centres is square integrable](hyp:center,hmem), then
 for [every sample size n](hyp:n) and [every design-dependent coefficient](hyp:b)
 [the design-weighted residual sum is square integrable under the iid product law](goal).
@@ -82,7 +82,7 @@ designs. Use MemLp.of_le_mul and memLp_finsetSum.
 -/
 lemma designWeightedResidual_memLp (n : ℕ) (μ : Measure Ω) [IsProbabilityMeasure μ]
     (X : Ω → κ) (A : Ω → Bool) (Y : Ω → ℝ) (center : Bool → κ → ℝ)
-    (hX : Measurable X) (hA : Measurable A) (hY : Measurable Y)
+    (hX : Measurable X) (hA : Measurable A)
     (hmem : ∀ a k, MemLp (supportedArmGroupResidual X A Y center a k) 2 μ)
     (b : (Fin n → κ × Bool) → Fin n → ℝ) :
     MemLp (designWeightedResidual X A Y center b) 2
@@ -98,9 +98,9 @@ lemma designWeightedResidual_memLp (n : ℕ) (μ : Measure Ω) [IsProbabilityMea
       (hr.comp_measurePreserving (measurePreserving_eval (fun _ : Fin n => μ) i))
       (fun d => b d i)
 
-/-- Under [a probability law μ of one observation](hyp:μ), suppose [the cell label X](hyp:X,hX),
-[the treatment A](hyp:A,hA) and [the outcome Y](hyp:Y,hY) are measurable, and on each arm-cell
-event the residual from [its centre](hyp:center) [is square integrable](hyp:hmem),
+/-- Under [a probability law μ of one observation](hyp:μ), suppose [the cell label X](hyp:X,hX)
+and [the treatment A](hyp:A,hA) are measurable, and on each arm-cell event the residual of [the
+outcome Y](hyp:Y) from [its centre](hyp:center) [is square integrable](hyp:hmem),
 [integrates to zero](hyp:hcenter), and [has integral of its square at most the event's mass times
 M²](hyp:M,hsq). Then for [any design-dependent coefficients b](hyp:b) and [any nonnegative weight
 W on designs of n cell-treatment pairs](hyp:n,W,hW), [the expectation under the iid product law of
@@ -123,7 +123,7 @@ for the finite integral expansions. No homogeneity or overlap is used here.
 theorem integral_designWeightedResidual_sq_le (n : ℕ) (μ : Measure Ω)
     [IsProbabilityMeasure μ] (X : Ω → κ) (A : Ω → Bool) (Y : Ω → ℝ)
     (center : Bool → κ → ℝ) (M : ℝ)
-    (hX : Measurable X) (hA : Measurable A) (hY : Measurable Y)
+    (hX : Measurable X) (hA : Measurable A)
     (hmem : ∀ a k, MemLp (supportedArmGroupResidual X A Y center a k) 2 μ)
     (hcenter : ∀ a k,
       ∫ ω in armGroupEvent X A a k, armGroupResidual Y center a k ω ∂μ = 0)
@@ -189,11 +189,11 @@ theorem integral_designWeightedResidual_sq_le (n : ℕ) (μ : Measure Ω)
         rw [← hi, mul_assoc, hh, mul_zero]
       simp only [hz, integral_zero]
     · exact integral_designWeight_residual_cross_coordinates_eq_zero μ X A Y center
-        hX hA hY hmem hcenter (fun d => W d * b d t.1 * b d u.1)
+        hX hA hmem hcenter (fun d => W d * b d t.1 * b d u.1)
         t.1 u.1 hi t.2.1 u.2.1 t.2.2 u.2.2
   have hdiag (t : T) : (∫ z, F t t z ∂ν) ≤ M ^ 2 * ∫ z, G t z ∂ν := by
     have hh := integral_designWeight_residual_sq_le_indicator μ X A Y center M
-      hX hA hY hmem hsq (fun d => W d * b d t.1 ^ 2)
+      hX hA hmem hsq (fun d => W d * b d t.1 ^ 2)
       (fun d => mul_nonneg (hW d) (sq_nonneg _)) t.1 t.2.1 t.2.2
     convert hh using 1
     congr 1

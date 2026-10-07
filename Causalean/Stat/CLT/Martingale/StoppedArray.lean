@@ -51,11 +51,10 @@ noncomputable def stopMultiplier
   fun ω => if A.predictableQuadraticVariationThrough n k ω ≤ K ∧
       A.conditionalLindebergThrough ε n k ω ≤ δ then 1 else 0
 
-/-- For [an active row increment](hyp:hk), [its stopping multiplier is measurable
+/-- [The stopping multiplier of a row increment is measurable
 at the preceding filtration time](goal). -/
 theorem stopMultiplier_stronglyMeasurable
-    (A : MartingaleDifferenceArray Ω μ) (ε K δ : ℝ) (n k : ℕ)
-    (hk : k < A.rowLength n) :
+    (A : MartingaleDifferenceArray Ω μ) (ε K δ : ℝ) (n k : ℕ) :
     StronglyMeasurable[A.filtration n k] (A.stopMultiplier ε K δ n k) := by
   /- Conditional expectations are strongly measurable in their conditioning
   sigma-algebras.  Lift every term with filtration monotonicity (`j ≤ k`),
@@ -96,14 +95,14 @@ noncomputable def stoppedArray
     /- Lift the predictable multiplier from time `k` to `k+1`, multiply by
     the adapted increment, and unfold the stopped definitions. -/
     intro n k hk
-    exact ((A.stopMultiplier_stronglyMeasurable ε K δ n k hk).mono
+    exact ((A.stopMultiplier_stronglyMeasurable ε K δ n k).mono
       ((A.filtration n).mono (Nat.le_succ k))).mul (A.adapted n k hk)
   squareIntegrable := by
     /- The multiplier only takes values zero and one, so bounded
     multiplication preserves the increment's `MemLp 2` property. -/
     intro n k hk
     refine (A.squareIntegrable n k hk).of_le
-      (((A.stopMultiplier_stronglyMeasurable ε K δ n k hk).mono
+      (((A.stopMultiplier_stronglyMeasurable ε K δ n k).mono
         ((A.filtration n).le k)).aestronglyMeasurable.mul
           (A.squareIntegrable n k hk).aestronglyMeasurable) ?_
     filter_upwards with ω
@@ -116,7 +115,7 @@ noncomputable def stoppedArray
     intro n k hk
     let M := A.stopMultiplier ε K δ n k
     have hM : StronglyMeasurable[A.filtration n k] M :=
-      A.stopMultiplier_stronglyMeasurable ε K δ n k hk
+      A.stopMultiplier_stronglyMeasurable ε K δ n k
     have hX : Integrable (A.increment n k) (μ n) :=
       (A.squareIntegrable n k hk).integrable (by norm_num)
     have hMX : Integrable (fun ω => M ω * A.increment n k ω) (μ n) := by
@@ -146,11 +145,11 @@ zero-one stopping multiplier. -/
     (A.stoppedArray ε K δ).increment n k =
       fun ω => A.stopMultiplier ε K δ n k ω * A.increment n k ω := rfl
 
-/-- If [the truncation threshold is positive](hyp:hε) and the original final predictable
+/-- If the original final predictable
 variance and conditional Lindeberg mass stay within their budgets, then [predictable stopping
 leaves the row sum unchanged almost everywhere](goal). -/
 theorem stoppedArray_rowSum_ae_eq_of_bounds
-    (A : MartingaleDifferenceArray Ω μ) (ε K δ : ℝ) (hε : 0 < ε) (n : ℕ) :
+    (A : MartingaleDifferenceArray Ω μ) (ε K δ : ℝ) (n : ℕ) :
     ∀ᵐ ω ∂(μ n), A.predictableQuadraticVariation n ω ≤ K →
       A.conditionalLindeberg ε n ω ≤ δ →
         (A.stoppedArray ε K δ).rowSum n ω = A.rowSum n ω := by
@@ -215,7 +214,7 @@ theorem stoppedArray_predictableQuadraticVariation_le
           (μ n)[fun ω => (A.increment n k ω) ^ 2 | A.filtration n k] ω := by
     let M := A.stopMultiplier ε K δ n k
     have hsm : StronglyMeasurable[A.filtration n k] M :=
-      A.stopMultiplier_stronglyMeasurable ε K δ n k hk
+      A.stopMultiplier_stronglyMeasurable ε K δ n k
     have hsq : Integrable (fun ω => (A.increment n k ω) ^ 2) (μ n) :=
       (A.squareIntegrable n k hk).integrable_sq
     have hprod : Integrable (fun ω => M ω * (A.increment n k ω) ^ 2) (μ n) := by
@@ -284,12 +283,12 @@ theorem stoppedArray_predictableQuadraticVariation_le
       (fun j => A.lindebergTerm ε n j ω) K δ (A.rowLength n)
       (fun k _ => hxω k) (fun k _ => hyω k) hK hδ).1
 
-/-- With [a positive truncation threshold](hyp:hε) and [nonnegative variance
+/-- With [nonnegative variance
 and Lindeberg budgets](hyp:hK,hδ), [the stopped row's conditional Lindeberg sum
 at that threshold never exceeds its budget almost everywhere](goal). -/
 theorem stoppedArray_conditionalLindeberg_le
     (A : MartingaleDifferenceArray Ω μ) (ε K δ : ℝ)
-    (hε : 0 < ε) (hK : 0 ≤ K) (hδ : 0 ≤ δ) (n : ℕ) :
+    (hK : 0 ≤ K) (hδ : 0 ≤ δ) (n : ℕ) :
     (A.stoppedArray ε K δ).conditionalLindeberg ε n ≤ᵐ[μ n]
       fun _ => δ := by
   /- For `ε > 0`, truncating a zero-one multiple gives that multiplier times
@@ -303,7 +302,7 @@ theorem stoppedArray_conditionalLindeberg_le
     let g := fun ω => if ε < |A.increment n k ω| then
       (A.increment n k ω) ^ 2 else 0
     have hsm : StronglyMeasurable[A.filtration n k] M :=
-      A.stopMultiplier_stronglyMeasurable ε K δ n k hk
+      A.stopMultiplier_stronglyMeasurable ε K δ n k
     have hinc : StronglyMeasurable (A.increment n k) :=
       (A.adapted n k hk).mono ((A.filtration n).le (k + 1))
     have hgsm : StronglyMeasurable g := by
@@ -380,11 +379,11 @@ theorem stoppedArray_conditionalLindeberg_le
       (fun j => A.lindebergTerm ε n j ω) K δ (A.rowLength n)
       (fun k _ => hxω k) (fun k _ => hyω k) hK hδ).2
 
-/-- For [a positive truncation threshold](hyp:hε), [the probability that
+/-- [The probability that
 stopping changes a row sum is bounded by the probability that the original
 row exceeds either stopping budget](goal). -/
 theorem measure_stoppedArray_rowSum_ne_le
-    (A : MartingaleDifferenceArray Ω μ) (ε K δ : ℝ) (hε : 0 < ε) (n : ℕ) :
+    (A : MartingaleDifferenceArray Ω μ) (ε K δ : ℝ) (n : ℕ) :
     (μ n) {ω | (A.stoppedArray ε K δ).rowSum n ω ≠ A.rowSum n ω} ≤
       (μ n) {ω | K < A.predictableQuadraticVariation n ω ∨
         δ < A.conditionalLindeberg ε n ω} := by
@@ -392,7 +391,7 @@ theorem measure_stoppedArray_rowSum_ne_le
   disagreement event in the union of the two strict budget violations, then
   apply `measure_mono_ae`. -/
   apply measure_mono_ae
-  filter_upwards [A.stoppedArray_rowSum_ae_eq_of_bounds ε K δ hε n] with ω hω
+  filter_upwards [A.stoppedArray_rowSum_ae_eq_of_bounds ε K δ n] with ω hω
   intro hne
   by_contra hbudgets
   change ¬(K < A.predictableQuadraticVariation n ω ∨

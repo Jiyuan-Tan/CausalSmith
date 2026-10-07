@@ -3,7 +3,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Exact quantiles of the normalized Bernoulli margin in the three-score problem. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.PartialID.UnlinkedPropensityAte
 

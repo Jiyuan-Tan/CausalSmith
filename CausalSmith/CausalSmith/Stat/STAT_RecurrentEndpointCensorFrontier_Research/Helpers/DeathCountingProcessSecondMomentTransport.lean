@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_RecurrentEndpointCensorFrontier_Research.Hel
 
 /-! # Transport of the death counting-process second moment -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 

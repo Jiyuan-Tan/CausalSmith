@@ -13,17 +13,16 @@ open MeasureTheory
 
 namespace Causalean.Stat.RecurrentEvent.CountingProcess
 
-/-- If [the censor-time law has the given censor hazard](hyp:hazard,hHazard), the payoff g is
-[measurable](hyp:hG) and [nonnegative](hyp:hGnonneg), and [the horizon u is
-nonnegative](hyp:hu), then for a fixed failure time f, [the expected payoff over censor times
-that fall by u and strictly before f equals the Lebesgue integral, over times s from 0 to u with
-s before f, of the payoff times the hazard times the probability of censoring at or after
-s](goal). -/
+/-- If [the censor-time law has the given censor hazard](hyp:hazard,hHazard) and the payoff g is
+[measurable](hyp:hG), then for a fixed failure time f and horizon u, [the expected positive part
+of the payoff over censor times that fall by u and strictly before f equals the Lebesgue
+integral, over times s from 0 to u with s before f, of the positive part of the payoff times the
+hazard times the probability of censoring at or after s](goal). -/
 theorem censor_event_hazard_lintegral
     (censorLaw : Measure ℝ) (hazard g : ℝ → ℝ)
     (hHazard : HasCensorHazard censorLaw hazard)
-    (hG : Measurable g) (hGnonneg : ∀ s, 0 ≤ g s)
-    (f u : ℝ) (hu : 0 ≤ u) :
+    (hG : Measurable g)
+    (f u : ℝ) :
     (∫⁻ c : ℝ,
       ENNReal.ofReal (if c ≤ u ∧ c < f then g c else 0) ∂censorLaw) =
     ∫⁻ s in Set.Icc 0 u,

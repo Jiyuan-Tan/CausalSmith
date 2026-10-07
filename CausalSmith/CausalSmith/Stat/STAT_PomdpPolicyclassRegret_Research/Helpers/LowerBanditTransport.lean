@@ -54,9 +54,7 @@ lemma lower_bandit_selected_singleton {d : Nat} (hd : 0 < d)
   have hcell := selectedLaw_cell (lowerBanditContextLaw hd) (fun _ ↦ 1 / 2)
     (fun x ↦ lowerBanditRewardMean gamma (word x) false)
     (fun x ↦ lowerBanditRewardMean gamma (word x) true)
-    (by fun_prop) (by fun_prop) (by fun_prop) (by intro x; norm_num)
-    (fun x ↦ lower_bandit_reward_prob_unit gamma hg0 hg1 (word x) false)
-    (fun x ↦ lower_bandit_reward_prob_unit gamma hg0 hg1 (word x) true)
+    (by fun_prop) (by fun_prop) (by fun_prop)
     {z.1} (measurableSet_singleton _) z.2.1 z.2.2
   have hset : {w : SelectedCoord (Fin d) | w.1 ∈ ({z.1} : Set (Fin d)) ∧
       w.2.1 = z.2.1 ∧ w.2.2 = z.2.2} = {z} := by

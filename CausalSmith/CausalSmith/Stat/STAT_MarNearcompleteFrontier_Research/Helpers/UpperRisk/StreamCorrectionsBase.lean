@@ -9,7 +9,7 @@ This module contains the scalar factorial identities, the joint arrived-success
 moment, and the integrability result used by the correction branch means.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.MarNearcompleteFrontier
 

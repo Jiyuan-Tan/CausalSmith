@@ -17,17 +17,17 @@ open MeasureTheory
 /-- Let K be [an integrable](hyp:hK) [nonnegative](hyp:hKnonneg)
 [probability density](hyp:hKmass) that [puts mass at most q outside the
 open interval (−a, a)](hyp:hKtail), where [a ≥ 0](hyp:ha) and
-[0 ≤ q < 1/2](hyp:hq0,hq). If [the reference law ν assigns every interval at
+[q < 1/2](hyp:hq). If [the reference law ν assigns every interval at
 most L times its length, for a nonnegative constant L](hyp:hL,hν) and
 [the CDF difference of μ and ν, convolved with K, is bounded in absolute
-value at every point by a nonnegative constant B](hyp:hB,hsmooth),
+value at every point by a constant B](hyp:hsmooth),
 then [the unsmoothed CDF difference is bounded in absolute value by
 (B + 2aL)/(1 − 2q) at every point](goal). -/
 theorem cdf_general_kernel_sandwich
     (μ ν : Measure ℝ) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (K : ℝ → ℝ) (a q L B : ℝ)
-    (ha : 0 ≤ a) (hq0 : 0 ≤ q) (hq : q < 1 / 2)
-    (hL : 0 ≤ L) (hB : 0 ≤ B)
+    (ha : 0 ≤ a) (hq : q < 1 / 2)
+    (hL : 0 ≤ L)
     (hK : Integrable K) (hKnonneg : ∀ y, 0 ≤ K y)
     (hKmass : ∫ y, K y = 1)
     (hKtail : ∫ y in {y : ℝ | a ≤ |y|}, K y ≤ q)
@@ -106,7 +106,7 @@ theorem cdf_general_kernel_sandwich
       have hzy : z ≤ (z + a) - y := by linarith [le_abs_self y]
       have hd : ((z + a) - y) - z ≤ 2 * a := by
         linarith [neg_abs_le y]
-      have hm := cdf_difference_one_sided_modulus μ ν L hL hν z
+      have hm := cdf_difference_one_sided_modulus μ ν L hν z
         ((z + a) - y) hzy
       have hmul := mul_le_mul_of_nonneg_left hd hL
       dsimp [H]
@@ -124,7 +124,7 @@ theorem cdf_general_kernel_sandwich
       have hzy : (z - a) - y ≤ z := by linarith [neg_abs_le y]
       have hd : z - ((z - a) - y) ≤ 2 * a := by
         linarith [le_abs_self y]
-      have hm := cdf_difference_one_sided_modulus μ ν L hL hν
+      have hm := cdf_difference_one_sided_modulus μ ν L hν
         ((z - a) - y) z hzy
       have hmul := mul_le_mul_of_nonneg_left hd hL
       dsimp [H]

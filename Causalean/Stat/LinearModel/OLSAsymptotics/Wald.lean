@@ -248,15 +248,14 @@ theorem olsContrast_tendsto_normal [IsProbabilityMeasure μ] [IsProbabilityMeasu
     (hx : Measurable x) (hy : Measurable y)
     (hraw : Integrable (olsRawMoment x y) P)
     (hQ : (olsQ P x y).PosDef) (c : EuclideanSpace ℝ K) :
-    Tendsto_dist (olsContrastRescaled S x y c)
-      (gaussianMeasure 0 (olsContrastVariance (olsAsymptoticCovariance P x y) c)) μ
-      (aemeasurable_olsContrastRescaled S hx hy c) := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (olsContrastRescaled S x y c) atTop
+        (gaussianMeasure 0 (olsContrastVariance (olsAsymptoticCovariance P x y) c)) := by
   let reg := olsSmoothZRegularity hx hy hraw hQ
   have hvec := olsBetaHat_tendsto_normal S hx hy hraw hQ
   have hvec' := (Tendsto_dist_vec_iff _ _ _
     (aemeasurable_ols_rescaled S hx hy)).2 hvec
-  have hmap := Tendsto_dist_vec.map_continuous (innerSL ℝ c).continuous
-    (aemeasurable_ols_rescaled S hx hy) hvec'
+  have hmap := Modes.TendstoInLaw.map_continuous hvec'
+    (innerSL ℝ c).continuous
   have hmap_eq :
       (gaussianLimit reg.influence_measurable reg.influence_integrable_sq).map
         (innerSL ℝ c) =
@@ -273,7 +272,7 @@ theorem olsContrast_tendsto_normal [IsProbabilityMeasure μ] [IsProbabilityMeasu
     apply Subtype.ext
     exact hmap_eq
   rw [hpm_eq] at hmap
-  apply (Tendsto_dist_iff _ _ _ _).2
+  apply (Tendsto_dist_iff _ _ _ (aemeasurable_olsContrastRescaled S hx hy c)).2
   refine hmap.congr' ?_
   filter_upwards with n
   apply Subtype.ext
@@ -289,22 +288,22 @@ private theorem olsHC0Studentized_tendsto [IsProbabilityMeasure μ]
     (hraw : Integrable (olsRawMoment x y) P)
     (hQ : (olsQ P x y).PosDef) (c : EuclideanSpace ℝ K)
     (hpos : 0 < olsContrastVariance (olsAsymptoticCovariance P x y) c) :
-    Tendsto_dist (olsHC0Studentized S x y c) (gaussianMeasure 0 1) μ
-      (aemeasurable_olsHC0Studentized S hx hy c) := by
+    Modes.TendstoInLaw
+        (fun _ : ℕ => μ) (olsHC0Studentized S x y c) atTop (gaussianMeasure 0 1) := by
   let v := olsContrastVariance (olsAsymptoticCovariance P x y) c
   let σ := Real.sqrt v
   have hσpos : 0 < σ := Real.sqrt_pos.mpr hpos
   have hσsq : σ ^ 2 = v := Real.sq_sqrt hpos.le
-  have hnum : Tendsto_dist (olsContrastRescaled S x y c)
-      (gaussianMeasure 0 (σ ^ 2)) μ
-      (aemeasurable_olsContrastRescaled S hx hy c) := by
+  have hnum : Modes.TendstoInLaw (fun _ : ℕ => μ) (olsContrastRescaled S x y c) atTop
+      (gaussianMeasure 0 (σ ^ 2)) := by
     rw [hσsq]
     exact olsContrast_tendsto_normal S hx hy hraw hQ c
-  have hse : Tendsto_inProb (olsHC0ContrastSE S x y c) (fun _ => σ) μ := by
+  have hse : Modes.TendstoInProbability (fun _ : ℕ => μ) (olsHC0ContrastSE S x y c) atTop
+      (fun _ _ => σ) := by
     exact tendstoInMeasure_comp_continuousAt_const Real.continuous_sqrt.continuousAt
       (olsHC0_contrast_tendsto_inProb S hx hy hraw hQ c)
-  exact Tendsto_dist.div_tendsto_inProb_gaussian hσpos
-    (aemeasurable_olsContrastRescaled S hx hy c) hnum hse
+  exact Modes.TendstoInLaw.div_tendsto_inProb_gaussian hnum
+    hσpos hse
     (aemeasurable_olsHC0Studentized S hx hy c)
 
 private theorem olsHC0TStatistic_eq_studentized
@@ -367,14 +366,12 @@ theorem olsHC0TStatistic_tendsto_normal [IsProbabilityMeasure μ]
     (hraw : Integrable (olsRawMoment x y) P)
     (hQ : (olsQ P x y).PosDef) (c : EuclideanSpace ℝ K)
     (hpos : 0 < olsContrastVariance (olsAsymptoticCovariance P x y) c) :
-    Tendsto_dist (olsHC0TStatistic S x y c) (gaussianMeasure 0 1) μ
-      (fun n => (measurable_olsHC0TStatistic S hx hy c n).aemeasurable) := by
-  have hstud : Tendsto_dist (olsHC0Studentized S x y c) (gaussianMeasure 0 1) μ
-      (aemeasurable_olsHC0Studentized S hx hy c) :=
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (olsHC0TStatistic S x y c) atTop (gaussianMeasure 0 1) := by
+  have hstud : Modes.TendstoInLaw (fun _ : ℕ => μ) (olsHC0Studentized S x y c) atTop
+      (gaussianMeasure 0 1) :=
     olsHC0Studentized_tendsto S hx hy hraw hQ c hpos
-  apply Tendsto_dist.congr_ae
-    (aemeasurable_olsHC0Studentized S hx hy c)
-    (fun n => (measurable_olsHC0TStatistic S hx hy c n).aemeasurable) hstud
+  apply Modes.TendstoInLaw.congr_ae hstud
+    (fun n => (measurable_olsHC0TStatistic S hx hy c n).aemeasurable)
   filter_upwards [eventually_gt_atTop 0] with n hn
   filter_upwards with ω
   exact (olsHC0TStatistic_eq_studentized S x y c hn ω).symm
@@ -452,11 +449,10 @@ theorem olsHC0_wald_coverage [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
       atTop (𝓝 0) := by
     rw [tendsto_iff_dist_tendsto_zero]
     simpa [Real.dist_eq] using hgap_abs
-  have hstat : Tendsto_dist (olsHC0TStatistic S x y c) (gaussianMeasure 0 1) μ
-      (fun n => (measurable_olsHC0TStatistic S hx hy c n).aemeasurable) :=
+  have hstat : Modes.TendstoInLaw (fun _ : ℕ => μ) (olsHC0TStatistic S x y c) atTop
+      (gaussianMeasure 0 1) :=
     olsHC0TStatistic_tendsto_normal S hx hy hraw hQ c hpos
-  exact Tendsto_dist.wald_coverage
-    (fun n => (measurable_olsHC0TStatistic S hx hy c n).aemeasurable) hstat hz
+  exact Modes.TendstoInLaw.wald_coverage hstat hz
     (olsHC0WaldCoverageProbability S x y c z)
     (by simpa [B, measureReal_def] using hbridge)
 

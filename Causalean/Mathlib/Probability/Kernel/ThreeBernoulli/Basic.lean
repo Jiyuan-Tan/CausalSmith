@@ -28,7 +28,9 @@ def bitMass (p : ℝ) (b : Bool) : ℝ := if b then p else 1 - p
 
 /-- The [selected cell mass](goal) at [first mark `a`](hyp:a) and
 [selected value `y`](hyp:y), from [first-mark probability](hyp:p) and [the two remaining-mark
-probabilities](hyp:q₀,q₁). -/
+probabilities](hyp:q₀,q₁): the Bernoulli mass of the first mark at `a` times the Bernoulli
+mass at `y` of the mark that `a` selects, whose success probability is `q₁` when `a` is true
+and `q₀` when `a` is false. -/
 def cellMass (p q₀ q₁ : ℝ) (a y : Bool) : ℝ :=
   bitMass p a * bitMass (if a then q₁ else q₀) y
 
@@ -57,7 +59,10 @@ def reference {X : Type u} [MeasurableSpace X] (μ : Measure X) :
     (((Measure.count : Measure Bool).prod (Measure.count : Measure Bool)).prod μ)
 
 /-- The [product Bernoulli density](goal) at [one three-mark point](hyp:z) uses
-[three base-dependent mark probabilities](hyp:e,q₀,q₁). -/
+[three base-dependent mark probabilities](hyp:e,q₀,q₁): it is the product of the three
+Bernoulli masses of the point's marks, evaluated at the point's base value and read as an
+extended nonnegative number (a negative product, possible only when a probability leaves
+the unit interval, is replaced by zero). -/
 def density {X : Type u} (e q₀ q₁ : X → ℝ) (z : DensityCoord X) : ℝ≥0∞ :=
   ENNReal.ofReal (tripleMass (e z.2.2) (q₀ z.2.2) (q₁ z.2.2)
     z.1 z.2.1.1 z.2.1.2)

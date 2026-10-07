@@ -43,7 +43,7 @@ open scoped MeasureTheory ProbabilityTheory
     the base latent product `M'.latentProduct`.
 
     True because `fixSet` inherits `latentDist` verbatim and preserves
-    `unobserved` definitionally (`fixMono_unobserved` is `rfl`); the intervened
+    `unobserved` definitionally (`SWIGGraph.splitMono_unobserved` is `rfl`); the intervened
     and base latent products are *literally the same `Measure.pi`* on the same
     per-coordinate measures, just over propositionally-equal index types.  The
     `valuesProjection` cast bridges the two by relabelling the `Subtype` index

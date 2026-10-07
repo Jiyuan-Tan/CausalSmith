@@ -4,7 +4,7 @@ public import Mathlib
 /-! Explicit numerical calibration of the many-cell factorial tail at the
 source-faithful external Poisson multiplier `2n`. -/
 
-@[expose] public section
+public section
 
 open scoped NNReal ENNReal
 

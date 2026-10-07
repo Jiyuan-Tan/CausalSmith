@@ -429,16 +429,12 @@ fits](hyp:sample,split,g_hat,α_hat), under [at least two
 folds](hyp:hK_pos), [mean zero and finite variance](hyp:hMZ,hFV), [foldwise neighborhood,
 integrability, and square-integrability conditions](hyp:hη_mem,h_int_pred,h_g_memLp,h_α_memLp),
 [the joint and uncurried cross-fit measurability and moment
-conditions](hyp:h_m_meas,h_m_train_uncurry,h_m_int,h_m_sq_int), [a curried
-training-complement witness retained for compatibility](hyp:h_m_train),
+conditions](hyp:h_m_meas,h_m_train_uncurry,h_m_int,h_m_sq_int),
 [uniform L² score stability](hyp:Cscore,hCscore,h_score_lipschitz), [L² consistency of the regression fit](hyp:h_g_rate),
 [L² consistency of the fitted pairing function](hyp:h_α_rate), [the parametric product
 rate](hyp:h_product_rate), and [influence and oracle measurability](hyp:hψ_meas,hOracle_meas),
 [the feasible K-fold automatic-debiasing estimator is asymptotically linear with the full
 influence function](goal).
-
-The cross-fit proof uses the uncurried product-measurability witness; the
-separate curried witness does not enter that argument.
 
 The empirical-process term is controlled by complementary-fold measurability
 inside `crossFitOneStepOracleDML_isAsymLinear_of_everywhere`; the affine-score transfer then
@@ -467,11 +463,6 @@ theorem linAutoDML_asymptoticLinear
       MemLp (fun x => α_hat n k ω x - rep.α₀ x) 2 S.P_X)
     (h_m_meas : ∀ n k, Measurable (fun p : Ω × S.Z =>
       linRieszScore S (g_hat n k p.1) (α_hat n k p.1) (L_of_m S S.g₀) p.2))
-    (h_m_train : ∀ n k,
-      Measurable[MeasurableSpace.comap
-        (fun ω (i : split.trainComplement n k) => sample.Z i ω) inferInstance]
-        (fun ω z => linRieszScore S (g_hat n k ω) (α_hat n k ω)
-          (L_of_m S S.g₀) z))
     (h_m_train_uncurry : ∀ n k,
       Measurable[(MeasurableSpace.comap
           (fun ω (i : split.trainComplement n k) => sample.Z i ω) inferInstance).prod
@@ -529,15 +520,6 @@ theorem linAutoDML_asymptoticLinear
     intro n k
     dsimp [M, η_hat, linAutoLinearMoment]
     fun_prop
-  have hΔa_train : ∀ n k,
-      Measurable[MeasurableSpace.comap
-        (fun ω (i : split.trainComplement n k) => sample.Z i ω) inferInstance]
-        (fun ω z => M.m_a (η_hat n k ω) z - M.m_a M.η₀ z) := by
-    intro n k
-    simpa [M, η_hat, linAutoLinearMoment] using
-      (measurable_const : Measurable[MeasurableSpace.comap
-        (fun ω (i : split.trainComplement n k) => sample.Z i ω) inferInstance]
-        (fun _ : Ω => (fun _ : S.Z => (0 : ℝ))))
   have hΔa_uncurry : ∀ n k,
       Measurable[(MeasurableSpace.comap
           (fun ω (i : split.trainComplement n k) => sample.Z i ω) inferInstance).prod
@@ -568,8 +550,8 @@ theorem linAutoDML_asymptoticLinear
   have hFV' : Integrable (fun z => (M.m M.η₀ z M.θ₀) ^ 2) S.P_Z := by
     simpa [M, linAutoLinearMoment] using hFV
   have h := feasibleCrossFitLinearDML_isAsymLinear M hMZ hFV' sample hK_pos split
-    η_hat hBR_at h_m_meas h_m_train h_m_train_uncurry h_m_int h_m_sq_int
-    h_score_diff_rate h_g_rate h_α_rate h_product_rate ha hΔa_meas hΔa_train
+    η_hat hBR_at h_m_meas h_m_train_uncurry h_m_int h_m_sq_int
+    h_score_diff_rate h_product_rate ha hΔa_meas
     hΔa_uncurry hΔa_memLp hΔa_rate hΔa_bias hψM hOracle_meas
   simpa [linAutoDMLEstimator, M, η_hat, linAutoLinearMoment,
     linAutoGeneralMoment, GeneralMoment.linScaleInv] using h
@@ -605,13 +587,10 @@ theorem linAutoDML_tendstoNormal
       (IsAsymLinear.rescaledEstimator
         (linAutoDMLEstimator S rep ε hε_nn h_score_meas sample split g_hat α_hat)
         (L_of_m S S.g₀) (fun n => Finset.range n) n) μ) :
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (IsAsymLinear.rescaledEstimator
         (linAutoDMLEstimator S rep ε hε_nn h_score_meas sample split g_hat α_hat)
-        (L_of_m S S.g₀) (fun n => Finset.range n))
-      (gaussianMeasure 0 (∫ z,
-        (linAutoInfluence S rep z) ^ 2 ∂S.P_Z))
-      μ hEstimator_meas := by
+        (L_of_m S S.g₀) (fun n => Finset.range n)) atTop (gaussianMeasure 0 (∫ z,
+        (linAutoInfluence S rep z) ^ 2 ∂S.P_Z)) := by
   exact hAL.tendsto_normal hψ_meas hEstimator_meas
 
 end Causalean.Estimation.OrthogonalMoments.AutoDebias

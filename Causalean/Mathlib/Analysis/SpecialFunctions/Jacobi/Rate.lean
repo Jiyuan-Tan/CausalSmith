@@ -115,7 +115,7 @@ theorem factorial_div_rising_power_bounds (α : ℝ) (hα : 0 < α) :
     change _ ≤ (B * α * (α + 1)) / (((k + 1 : ℕ) : ℝ) ^ α)
     exact (le_div_iff₀ hp).2 (by simpa [mul_comm] using hhi)
 
-/-- A [positive shape parameter](hyp:α), with [parameter positivity](hyp:hα), gives [positive uniform lower and upper power bounds for the exact zeroth shifted-Jacobi moment](goal).
+/-- A [positive shape parameter](hyp:α), with [parameter positivity](hyp:hα), gives [positive constants c and C, depending only on α, such that for every degree k ≥ 1 the zeroth weighted moment, α times the integral over the unit interval of x^(α−1) times the shifted Jacobi perturbation of degree k, lies between c·(k+1)^(−2α) and C·(k+1)^(−2α)](goal).
 
 The exact zeroth weighted moment has positive two-sided bounds of order
 `(k+1)^(-2α)`, with constants depending only on `α`. -/

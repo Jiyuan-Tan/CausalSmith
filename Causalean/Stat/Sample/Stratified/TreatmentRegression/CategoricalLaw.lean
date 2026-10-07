@@ -173,7 +173,7 @@ theorem conditional_gram_mean (n : ℕ) (ν : Measure (κ × Bool))
 
 /-- Under [the n-fold product of a joint probability law ν of a cell and a Boolean
 treatment](hyp:n,ν), if [a fixed label vector x has positive product weight](hyp:x,hx),
-[the overlap margin ε is positive](hyp:epsilon,hepsilon) and [at most one half](hyp:hhalf), and
+[ε is an overlap margin](hyp:epsilon) and
 [every cell of positive probability has propensity between ε and 1 − ε](hyp:hoverlap), then
 [the conditional mean of the Gram denominator given the labels x is at least ε(1 − ε) times the
 repeat count of x](goal).
@@ -182,7 +182,7 @@ Occupied-cell overlap lower bounds the conditional Gram mean on every
 positive-mass label fiber by epsilon(1-epsilon) times its repeat count. -/
 theorem conditional_gram_mean_lower (n : ℕ) (ν : Measure (κ × Bool))
     [IsProbabilityMeasure ν] (x : Fin n → κ) (hx : 0 < labelWeight ν x)
-    (epsilon : ℝ) (hepsilon : 0 < epsilon) (hhalf : epsilon ≤ 1 / 2)
+    (epsilon : ℝ)
     (hoverlap : ∀ k, 0 < cellProbability ν k →
       epsilon ≤ propensity ν k ∧ propensity ν k ≤ 1 - epsilon) :
     epsilon * (1 - epsilon) * (repeatCount x : ℝ) ≤
@@ -203,6 +203,6 @@ theorem conditional_gram_mean_lower (n : ℕ) (ν : Measure (κ × Bool))
     rw [← hi]
     exact lt_of_le_of_ne ENNReal.toReal_nonneg (Ne.symm (hn i))
   rw [conditional_gram_mean n ν x hx, ← assignment_gram_mean]
-  exact assignment_gram_mean_lower (propensity ν) x epsilon hepsilon hhalf hocc
+  exact assignment_gram_mean_lower (propensity ν) x epsilon hocc
 
 end Causalean.Stat.Sample.Stratified.TreatmentRegression

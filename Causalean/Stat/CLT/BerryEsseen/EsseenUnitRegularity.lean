@@ -3,8 +3,12 @@ public import Causalean.Stat.CLT.BerryEsseen.EsseenConvolutionTransfer
 
 /-! # Regularity consequences of a unit-bandlimited kernel
 
-Compact Fourier support and a uniform Fourier bound give the integrability
-and physical-space boundedness needed by one-sided spectral comparison.
+For an integrable real kernel whose Fourier transform vanishes outside the
+unit interval and has magnitude at most one, the Fourier transform is
+integrable (`integrable_unit_supported_kernel_fourier`) and the product of
+the kernel with a reflected factor is integrable
+(`integrable_reflected_mul_unit_supported_kernel`). These are the two
+integrability facts used by the one-sided spectral comparison.
 -/
 
 public section

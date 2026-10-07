@@ -23,18 +23,16 @@ variable {X : Type*} [MeasurableSpace X] (P : Measure X)
 variable [IsProbabilityMeasure P]
 
 /-- A [probability law](hyp:P), [sample size](hyp:n), [two sample
-coordinates](hyp:i,j), [their distinctness](hyp:hij), [pair kernel](hyp:H),
-[measurability of that kernel](hyp:hH), and [its integrability under the
-independent two-draw law](hyp:hInt) give [a coordinate-pair mean equal to its
+coordinates](hyp:i,j), [their distinctness](hyp:hij), [pair kernel](hyp:H), and
+[measurability of that kernel](hyp:hH) give [a coordinate-pair mean equal to its
 independent two-draw mean](goal). -/
 theorem integral_two_coordinates_integrable {n : ℕ} {i j : Fin n}
     (hij : i ≠ j) (H : X → X → ℝ)
-    (hH : Measurable fun z : X × X => H z.1 z.2)
-    (hInt : Integrable (fun z : X × X => H z.1 z.2) (P.prod P)) :
+    (hH : Measurable fun z : X × X => H z.1 z.2) :
     ∫ ω, H (ω i) (ω j) ∂iidLaw P n =
       ∫ z : X × X, H z.1 z.2 ∂(P.prod P) := by
   -- Follow `LocalizedVariance.integral_two_coordinates`: the joint coordinate
-  -- map sends `iidLaw P n` to `P.prod P`. Use `integral_map` with `hInt`.
+  -- map sends `iidLaw P n` to `P.prod P`. Use `integral_map`.
   letI : IsProbabilityMeasure (iidLaw P n) := by unfold iidLaw; infer_instance
   have hcoord : iIndepFun (fun a : Fin n => fun ω : Fin n → X => ω a) (iidLaw P n) := by
     unfold iidLaw
@@ -52,12 +50,11 @@ theorem integral_two_coordinates_integrable {n : ℕ} {i j : Fin n}
     _ = _ := by rw [hpair]
 
 /-- A [probability law](hyp:P), [sample size](hyp:n), [at least two
-observations](hyp:hn), [pair kernel](hyp:H), [symmetry of that kernel](hyp:hSym),
-[its measurability](hyp:hH), and [its integrability under the independent
+observations](hyp:hn), [pair kernel](hyp:H), [its measurability](hyp:hH), and [its integrability under the independent
 two-draw law](hyp:hInt) give [an unordered U-statistic mean equal to its
 independent two-draw mean](goal). -/
 theorem integral_uStatistic_eq_pair (n : ℕ) (hn : 2 ≤ n)
-    (H : X → X → ℝ) (hSym : ∀ x y, H x y = H y x)
+    (H : X → X → ℝ)
     (hH : Measurable fun z : X × X => H z.1 z.2)
     (hInt : Integrable (fun z : X × X => H z.1 z.2) (P.prod P)) :
     ∫ ω, uStatistic n H ω ∂iidLaw P n =
@@ -65,7 +62,7 @@ theorem integral_uStatistic_eq_pair (n : ℕ) (hn : 2 ≤ n)
   -- Integrate the finite sum in `uStatistic`, using the integrability supplied
   -- by `integral_two_coordinates_integrable` for every pair. Every summand
   -- has the same mean. `hn` makes `pairIndices n` nonempty, so its cardinal
-  -- cancels the normalization. Symmetry records the unordered-kernel contract.
+  -- cancels the normalization.
   letI : IsProbabilityMeasure (iidLaw P n) := by unfold iidLaw; infer_instance
   have hcoord : iIndepFun (fun a : Fin n => fun ω : Fin n → X => ω a) (iidLaw P n) := by
     unfold iidLaw
@@ -95,7 +92,7 @@ theorem integral_uStatistic_eq_pair (n : ℕ) (hn : 2 ≤ n)
         apply Finset.sum_congr rfl
         intro p hp
         exact integral_two_coordinates_integrable P (ne_of_lt (by
-          simpa [pairIndices] using hp)) H hH hInt
+          simpa [pairIndices] using hp)) H hH
       _ = _ := by simp
   have hcard : ((pairIndices n).card : ℝ) ≠ 0 := by
     rw [card_pairIndices]

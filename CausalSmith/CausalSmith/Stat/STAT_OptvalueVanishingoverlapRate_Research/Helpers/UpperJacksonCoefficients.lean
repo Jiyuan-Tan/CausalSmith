@@ -38,7 +38,7 @@ lemma cubePolynomial_coeff_sum_le {K : ℕ} (hK : 0 < K)
     rw [show (ContinuousMap.const Time v : Time → ℝ) = (fun _ => v) from rfl,
       hvar, ENNReal.toReal_zero, add_zero]
     simp [ContinuousMap.norm_eq_iSup_norm]
-  have he := tensorCoefficientPath_four_chebyshev_size_envelope hK
+  have he := tensorCoefficientPath_four_chebyshev_size_envelope
     (fun _ => p) B hB (fun _ => hdeg) (fun _ => continuous_const)
     (fun _ _ => continuous_const) (by
       intro z hz

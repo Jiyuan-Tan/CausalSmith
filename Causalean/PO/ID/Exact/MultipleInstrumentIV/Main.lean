@@ -65,27 +65,6 @@ theorem centeredScoreIVFiniteAlgebra_eq_signedAdjacentRatio
       R.signedAdjacentNumerator I / R.signedAdjacentDenominator I := by
   rfl
 
-/-- [The centered-score IV ratio equals the response-type-weighted causal-effect sum](goal) for
-[an ordered score](hyp:I) and [finite response-type statistics](hyp:R) when [the score-weight
-denominator is nonzero](hyp:hden). -/
-theorem centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum'
-    (hden : R.typeWeightDenom I ≠ 0) :
-    R.centeredScoreIVFiniteAlgebra I = R.responseTypeEstimand I := by
-  exact R.centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum I hden
-
-/-- [The centered-score IV ratio is a convex response-type average](goal) for [an ordered
-score](hyp:I) and [finite response-type statistics](hyp:R) when [response types are
-sign-aligned](hyp:hAlign) and [the score-weight denominator is positive](hyp:hden).
-
-This does not derive sign alignment from a behavioral monotonicity restriction. -/
-theorem centeredScoreIVFiniteAlgebra_eq_positiveResponseTypeAverage_of_signAligned'
-    (hAlign : R.SignAligned I)
-    (hden : 0 < R.typeWeightDenom I) :
-    R.centeredScoreIVFiniteAlgebra I = R.responseTypeEstimand I ∧
-      (∀ g : ResponseType K, 0 ≤ R.normalizedTypeWeight I g) ∧
-      (∑ g : ResponseType K, R.normalizedTypeWeight I g = 1) := by
-  exact R.centeredScoreIVFiniteAlgebra_eq_positiveResponseTypeAverage_of_signAligned I hAlign hden
-
 end ResponseTypeStats
 
 namespace ResponseTypeStats.PopulationBridge

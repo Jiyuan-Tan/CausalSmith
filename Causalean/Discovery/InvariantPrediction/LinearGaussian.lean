@@ -8,13 +8,19 @@ module
 public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Completeness
 
 /-!
-# Invariant Causal Prediction — linear-Gaussian completeness (umbrella)
+# Invariant Causal Prediction — linear-Gaussian completeness
 
-Self-contained linear-Gaussian specialization of the **completeness** half of
-Invariant Causal Prediction (Peters, Bühlmann & Meinshausen, JRSS-B 2016,
-`arXiv:1501.01332`, Theorem 2(i), the **do-intervention** version). The encoded
-models additionally carry observational and interventional target-exogeneity
-certificates rather than deriving them from the recursive SEM.
+Exact recovery of the direct causes of a target in a linear structural equation model with
+centered Gaussian noise observed under do-interventions: a specialization of Theorem 2(i) of
+Peters, Bühlmann & Meinshausen (JRSS-B 2016, `arXiv:1501.01332`). A predictor set S passes the
+regression-invariance null when some coefficient vector supported on S leaves a residual that is
+independent of each predictor in S and has the same law in the observational and in every
+interventional environment; S(E) is the intersection of all such sets. If every predictor is, in
+at least one environment, the only intervened variable and is set to a value different from its
+observational mean, and the observational regressors are integrable, then S(E) is exactly the
+parent set of the target. The models carry independence of the target noise from the target's
+parents, in the observational and in each interventional environment, as an assumption; it is not
+derived from the recursive structural equations.
 
 Unlike the sibling nonparametric SWIG/kernel development (which proves
 soundness, `S(E) ⊆ PA(Y)`, in full generality), this sub-development works in the

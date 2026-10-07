@@ -46,7 +46,7 @@ lemma pilotCoordinate_score_pow_integrable (q m : ℝ≥0) (hm : 0 < m)
     Integrable (fun w : ℕ =>
       (|(w : ℝ) / m - q| + empiricalRadius H m (L / m) w) ^ t)
       (poissonMeasure (m * q)) := by
-  have hraw := integrable_score_pow (m * q) hL ht
+  have hraw := integrable_score_pow (m * q) hL (t := t)
   have hH0 : 0 ≤ H := universalH_pos.le.trans hH
   apply (hraw.const_mul ((H / universalH / (m : ℝ)) ^ t)).mono'
     (Measurable.of_discrete.aestronglyMeasurable)

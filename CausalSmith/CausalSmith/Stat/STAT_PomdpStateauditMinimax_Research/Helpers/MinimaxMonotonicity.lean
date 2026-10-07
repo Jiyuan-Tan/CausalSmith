@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.Capp
 
 /-! # Monotonicity between capped and unrestricted audited minimax risks. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.PomdpStateauditMinimax
 

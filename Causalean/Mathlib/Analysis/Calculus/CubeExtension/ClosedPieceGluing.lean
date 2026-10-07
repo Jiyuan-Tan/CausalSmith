@@ -51,7 +51,7 @@ theorem differentiableOn_closed_union_of_matching_fderiv (d : ℕ)
       exact ((hft x hx).hasFDerivWithinAt.mono_of_mem_nhdsWithin hnear).differentiableWithinAt
 
 /-- If [two sets s and t are closed](hyp:hs,ht), [each has unique within-set
-derivatives](hyp:hus,hut), [so does their union](hyp:hu), [a function f is m
+derivatives](hyp:hus,hut), [a function f is m
 times continuously differentiable within s and within t](hyp:hfs,hft), and [for
 every order j ≤ m the j-th within-s and within-t derivatives of f agree on
 s ∩ t](hyp:hmatch), then [f is m times continuously differentiable within
@@ -60,7 +60,6 @@ theorem contDiffOn_closed_union_of_matching_jets (d m : ℕ)
     (s t : Set (Fin d → ℝ))
     (hs : IsClosed s) (ht : IsClosed t)
     (hus : UniqueDiffOn ℝ s) (hut : UniqueDiffOn ℝ t)
-    (hu : UniqueDiffOn ℝ (s ∪ t))
     (f : (Fin d → ℝ) → ℝ)
     (hfs : ContDiffOn ℝ m f s) (hft : ContDiffOn ℝ m f t)
     (hmatch : ∀ j ≤ m, ∀ x ∈ s ∩ t,

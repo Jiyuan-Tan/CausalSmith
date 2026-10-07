@@ -8,18 +8,22 @@ public import Causalean.Stat.Nonparametric.HigherOrderInfluence.ProjectedKernelT
 public import Causalean.Stat.Nonparametric.HigherOrderInfluence.ProjectionRisk
 
 /-!
-# Higher-order influence function (HOIF) building blocks
+# Projection-kernel identities for higher-order influence function calculations
 
-Building blocks for projection-kernel risk algebra: projected-kernel trace identities and
-algebraic assembly of assumed component bounds.
+Two ingredients of the risk analysis of second-order U-statistic corrections built from a
+`J`-dimensional projection. For a feature map `c` with invertible second-moment matrix
+`Σ = E[c cᵀ]`, the projection kernel `g(x, y) = ⟨c(x), Σ⁻¹ c(y)⟩` has squared L²(P⊗P) norm exactly
+`J` (the trace identity `tr(Σ Σ⁻¹ Σ Σ⁻¹) = J`), and integrates to zero in one argument when the
+features are centred. A second result is pure algebra: it combines assumed bounds on the
+first-order variance, the projection bias, the kernel energy and the remainder into one risk bound.
 
-This barrel collects independently useful projection-kernel and risk-algebra results.
-It does not define an influence function or an estimator:
+## Main results
 
-* `HigherOrderInfluence/ProjectedKernelTrace.lean` — the projected degenerate kernel
-  `g(x,y) = ⟨c(x), Σ⁻¹ c(y)⟩` has L²-energy `ζ = ∬ g² dP dP = J`
-  (`projKernel_L2_eq_dim`), the trace identity `tr(Σ Σ⁻¹ Σ Σ⁻¹) = J`; the file also proves
-  its degeneracy (`projKernel_degen`).
-* `HigherOrderInfluence/ProjectionRisk.lean` — risk algebra assembling supplied component bounds
-  into a single projection-kernel risk bound (`projectionKernel_risk_bound`).
+* `projKernel_L2_eq_dim` (`HigherOrderInfluence/ProjectedKernelTrace`) — `∬ g² dP dP = J`, for
+  `projKernel` with the inverse of the Gram matrix `gram`.
+* `projKernel_degen` — `∫ g(x, ·) dP = 0` for centred features.
+* `projectionKernel_risk_bound` (`HigherOrderInfluence/ProjectionRisk`) — the conditional risk
+  algebra; the risk decomposition and all four component bounds are hypotheses.
+
+No influence function or estimator is defined here, and no risk decomposition is derived.
 -/

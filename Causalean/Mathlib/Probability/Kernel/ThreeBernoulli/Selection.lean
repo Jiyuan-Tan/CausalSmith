@@ -20,26 +20,31 @@ namespace Causalean.Mathlib.Probability.Kernel.ThreeBernoulli
 
 universe u
 
-/-- The [selected value of three marks](goal) retains the [base and first mark](hyp:z)
-and selects the remaining mark corresponding to first mark. -/
+/-- The [selected observation of a three-mark point](goal) retains the base and first
+mark of [that point](hyp:z) and keeps only the remaining mark that the first mark selects:
+the second remaining mark when the first mark is true, the first remaining mark when it
+is false. -/
 def selectMark {X : Type u} (z : FullCoord X) : SelectedCoord X :=
   (z.1, (z.2.1, if z.2.1 then z.2.2.2 else z.2.2.1))
 
-/-- The [selected four-cell density](goal) at [a first mark-selected value cell and
-base](hyp:z) uses [first-mark probability and remaining-mark probabilities](hyp:e,q₀,q₁). -/
+/-- The [selected four-cell density](goal) at [a cell (first mark, selected value) and
+base value](hyp:z) uses [first-mark probability and remaining-mark probabilities](hyp:e,q₀,q₁):
+it is the selected cell mass of that cell at that base value, read as an extended
+nonnegative number (a negative value is replaced by zero). -/
 def selectedDensity {X : Type u} (e q₀ q₁ : X → ℝ)
     (z : (Bool × Bool) × X) : ℝ≥0∞ :=
   ENNReal.ofReal (cellMass (e z.2) (q₀ z.2) (q₁ z.2) z.1.1 z.1.2)
 
-/-- The [explicit selected four-cell law](goal) weights counting measure on the
-four cells and [base measure](hyp:μ) by [cell probabilities](hyp:e,q₀,q₁). -/
+/-- The [explicit selected four-cell law](goal) weights the product of counting measure
+on the four cells and the [base measure](hyp:μ) by the [selected cell
+probabilities](hyp:e,q₀,q₁), then reorders coordinates to put the base first. -/
 def selectedLaw {X : Type u} [MeasurableSpace X] (μ : Measure X)
     (e q₀ q₁ : X → ℝ) : Measure (SelectedCoord X) :=
   (((Measure.count : Measure Bool).prod (Measure.count : Measure Bool)).prod μ).withDensity
     (selectedDensity e q₀ q₁) |>.map (fun z => (z.2, z.1))
 
 /-- [The pushforward of the three-mark law under observation is the explicit
-four-cell selected law](goal) for [the base measure](hyp:μ),
+four-cell selected law](goal) for [a probability base measure](hyp:μ),
 [measurable mark probabilities](hyp:he,hq₀,hq₁), and
 [unit-interval bounds](hyp:he01,hq₀01,hq₁01). -/
 theorem jointLaw_selectMark_map {X : Type u} [MeasurableSpace X]
@@ -227,15 +232,11 @@ theorem selectedLaw_probability {X : Type u} [MeasurableSpace X]
 
 /-- [An selected cell cell over a measurable base set has
 the integral of its Bernoulli cell mass](goal), for [a base law](hyp:μ),
-[measurable mark probabilities](hyp:he,hq₀,hq₁),
-[unit-interval bounds](hyp:he01,hq₀01,hq₁01), [a measurable base set](hyp:B,hB),
+[measurable mark probabilities](hyp:he,hq₀,hq₁), [a measurable base set](hyp:B,hB),
 and [the specified cell](hyp:a,y). -/
 theorem selectedLaw_cell {X : Type u} [MeasurableSpace X]
     (μ : Measure X) [IsProbabilityMeasure μ] (e q₀ q₁ : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
-    (he01 : ∀ x, e x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₀01 : ∀ x, q₀ x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₁01 : ∀ x, q₁ x ∈ Set.Icc (0 : ℝ) 1)
     (B : Set X) (hB : MeasurableSet B) (a y : Bool) :
     selectedLaw μ e q₀ q₁
       {z : SelectedCoord X | z.1 ∈ B ∧ z.2.1 = a ∧ z.2.2 = y} =
@@ -290,70 +291,54 @@ theorem selectedLaw_cell {X : Type u} [MeasurableSpace X]
 
 /-- [The untreated, selected-failure cell integral](goal) holds over
 [a measurable base set](hyp:B,hB) under [a probability base law](hyp:μ),
-[measurable mark probabilities](hyp:he,hq₀,hq₁), and
-[unit-interval bounds](hyp:he01,hq₀01,hq₁01). -/
+and [measurable mark probabilities](hyp:he,hq₀,hq₁). -/
 theorem selectedLaw_cell_00 {X : Type u} [MeasurableSpace X]
     (μ : Measure X) [IsProbabilityMeasure μ] (e q₀ q₁ : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
-    (he01 : ∀ x, e x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₀01 : ∀ x, q₀ x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₁01 : ∀ x, q₁ x ∈ Set.Icc (0 : ℝ) 1)
     (B : Set X) (hB : MeasurableSet B) :
     selectedLaw μ e q₀ q₁
       {z : SelectedCoord X | z.1 ∈ B ∧ z.2.1 = false ∧ z.2.2 = false} =
     ∫⁻ x in B, ENNReal.ofReal ((1 - e x) * (1 - q₀ x)) ∂μ := by
   simpa [cellMass, bitMass] using
-    selectedLaw_cell μ e q₀ q₁ he hq₀ hq₁ he01 hq₀01 hq₁01 B hB false false
+    selectedLaw_cell μ e q₀ q₁ he hq₀ hq₁ B hB false false
 
 /-- [The untreated, selected-success cell integral](goal) holds over
 [a measurable base set](hyp:B,hB) under [a probability base law](hyp:μ),
-[measurable mark probabilities](hyp:he,hq₀,hq₁), and
-[unit-interval bounds](hyp:he01,hq₀01,hq₁01). -/
+and [measurable mark probabilities](hyp:he,hq₀,hq₁). -/
 theorem selectedLaw_cell_01 {X : Type u} [MeasurableSpace X]
     (μ : Measure X) [IsProbabilityMeasure μ] (e q₀ q₁ : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
-    (he01 : ∀ x, e x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₀01 : ∀ x, q₀ x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₁01 : ∀ x, q₁ x ∈ Set.Icc (0 : ℝ) 1)
     (B : Set X) (hB : MeasurableSet B) :
     selectedLaw μ e q₀ q₁
       {z : SelectedCoord X | z.1 ∈ B ∧ z.2.1 = false ∧ z.2.2 = true} =
     ∫⁻ x in B, ENNReal.ofReal ((1 - e x) * q₀ x) ∂μ := by
   simpa [cellMass, bitMass] using
-    selectedLaw_cell μ e q₀ q₁ he hq₀ hq₁ he01 hq₀01 hq₁01 B hB false true
+    selectedLaw_cell μ e q₀ q₁ he hq₀ hq₁ B hB false true
 
 /-- [The treated, selected-failure cell integral](goal) holds over
 [a measurable base set](hyp:B,hB) under [a probability base law](hyp:μ),
-[measurable mark probabilities](hyp:he,hq₀,hq₁), and
-[unit-interval bounds](hyp:he01,hq₀01,hq₁01). -/
+and [measurable mark probabilities](hyp:he,hq₀,hq₁). -/
 theorem selectedLaw_cell_10 {X : Type u} [MeasurableSpace X]
     (μ : Measure X) [IsProbabilityMeasure μ] (e q₀ q₁ : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
-    (he01 : ∀ x, e x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₀01 : ∀ x, q₀ x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₁01 : ∀ x, q₁ x ∈ Set.Icc (0 : ℝ) 1)
     (B : Set X) (hB : MeasurableSet B) :
     selectedLaw μ e q₀ q₁
       {z : SelectedCoord X | z.1 ∈ B ∧ z.2.1 = true ∧ z.2.2 = false} =
     ∫⁻ x in B, ENNReal.ofReal (e x * (1 - q₁ x)) ∂μ := by
   simpa [cellMass, bitMass] using
-    selectedLaw_cell μ e q₀ q₁ he hq₀ hq₁ he01 hq₀01 hq₁01 B hB true false
+    selectedLaw_cell μ e q₀ q₁ he hq₀ hq₁ B hB true false
 
 /-- [The treated, selected-success cell integral](goal) holds over
 [a measurable base set](hyp:B,hB) under [a probability base law](hyp:μ),
-[measurable mark probabilities](hyp:he,hq₀,hq₁), and
-[unit-interval bounds](hyp:he01,hq₀01,hq₁01). -/
+and [measurable mark probabilities](hyp:he,hq₀,hq₁). -/
 theorem selectedLaw_cell_11 {X : Type u} [MeasurableSpace X]
     (μ : Measure X) [IsProbabilityMeasure μ] (e q₀ q₁ : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
-    (he01 : ∀ x, e x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₀01 : ∀ x, q₀ x ∈ Set.Icc (0 : ℝ) 1)
-    (hq₁01 : ∀ x, q₁ x ∈ Set.Icc (0 : ℝ) 1)
     (B : Set X) (hB : MeasurableSet B) :
     selectedLaw μ e q₀ q₁
       {z : SelectedCoord X | z.1 ∈ B ∧ z.2.1 = true ∧ z.2.2 = true} =
     ∫⁻ x in B, ENNReal.ofReal (e x * q₁ x) ∂μ := by
   simpa [cellMass, bitMass] using
-    selectedLaw_cell μ e q₀ q₁ he hq₀ hq₁ he01 hq₀01 hq₁01 B hB true true
+    selectedLaw_cell μ e q₀ q₁ he hq₀ hq₁ B hB true true
 
 end Causalean.Mathlib.Probability.Kernel.ThreeBernoulli

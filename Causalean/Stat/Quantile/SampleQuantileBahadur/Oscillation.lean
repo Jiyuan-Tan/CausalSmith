@@ -119,9 +119,9 @@ process increment between `q₀` and `q₀ + u/√n` vanishes in probability:
 since the increment is a centered Bernoulli sum of variance `pₙ(1−pₙ) → 0`. -/
 lemma IIDSample.empProcess_increment_tendsto_zero (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (hreg : SampleQuantileReg P τ q₀ f₀) (u : ℝ) :
-    Tendsto_inProb
-      (fun n ω => S.empProcess n ω (q₀ + u / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀)
-      (fun _ => 0) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ)
+        (fun n ω => S.empProcess n ω (q₀ + u / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀) atTop
+        (fun _ _ => 0) := by
   classical
   -- Abbreviations.
   set yn : ℕ → ℝ := fun n => q₀ + u / Real.sqrt (n : ℝ) with hyn
@@ -428,16 +428,16 @@ each summand `→ 0`. -/
 lemma IIDSample.empProcess_node_max_tendsto_zero (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (hreg : SampleQuantileReg P τ q₀ f₀)
     {ι : Type*} (s : Finset ι) (hs : s.Nonempty) (v : ι → ℝ) :
-    Tendsto_inProb
-      (fun n ω => s.sup' hs (fun i =>
-        |S.empProcess n ω (q₀ + v i / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀|))
-      (fun _ => 0) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => s.sup' hs (fun i =>
+        |S.empProcess n ω (q₀ + v i / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀|)) atTop
+            (fun _ _ => 0) := by
   classical
   -- abbreviation for the per-node increment.
   set Δ : ι → ℕ → Ω → ℝ := fun i n ω =>
     S.empProcess n ω (q₀ + v i / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀ with hΔ
   -- Each node increment vanishes in probability (L2).
-  have heach : ∀ i ∈ s, Tendsto_inProb (Δ i) (fun _ => 0) μ := fun i _ =>
+  have heach : ∀ i ∈ s, Modes.TendstoInProbability (fun _ : ℕ => μ) (Δ i) atTop
+      (fun _ _ => 0) := fun i _ =>
     S.empProcess_increment_tendsto_zero hreg (v i)
   rw [Tendsto_inProb_iff]
   rw [MeasureTheory.tendstoInMeasure_iff_norm]
@@ -559,9 +559,9 @@ mesh `f₀ε`; the node maximum vanishes (finite union of L2 limits); let `ε �
 lemma IIDSample.empProcess_oscillation (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (hreg : SampleQuantileReg P τ q₀ f₀)
     {Un : ℕ → Ω → ℝ} (hUn : IsBigOp Un (fun _ => (1 : ℝ)) μ) :
-    Tendsto_inProb
-      (fun n ω => S.empProcess n ω (q₀ + Un n ω / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀)
-      (fun _ => 0) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ)
+        (fun n ω => S.empProcess n ω (q₀ + Un n ω / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀) atTop
+        (fun _ _ => 0) := by
   classical
   have hf0 : 0 < f₀ := hreg.density_pos
   -- The random increment.
@@ -618,7 +618,7 @@ lemma IIDSample.empProcess_oscillation (S : IIDSample Ω ℝ μ P)
   set NodeMax : ℕ → Ω → ℝ := fun n ω => (Finset.range (K + 1)).sup' hne
     (fun k => |S.empProcess n ω (q₀ + node k / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀|)
     with hNodeMax
-  have hNodeMax_p : Tendsto_inProb NodeMax (fun _ => 0) μ :=
+  have hNodeMax_p : Modes.TendstoInProbability (fun _ : ℕ => μ) NodeMax atTop (fun _ _ => 0) :=
     S.empProcess_node_max_tendsto_zero hreg (Finset.range (K + 1)) hne node
   -- `μ{ε/2 ≤ NodeMax} → 0`.
   have hNodeTail : Tendsto (fun n => μ {ω | ε / 2 ≤ |NodeMax n ω|}) atTop (𝓝 0) := by

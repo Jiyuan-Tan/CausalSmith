@@ -326,9 +326,12 @@ theorem condIndepFun_xv_given_zy_iff_factors (hd : Measurable d) :
       condIndepFun_threeBlock_iff_factors μX μV (μY.prod μZ) hd'
     _ ↔ FactorsXVGivenZY μX μY μV μZ d := hfactors
 
-/-- [Four product reference measures](hyp:μX,μY,μV,μZ) and [a measurable density](hyp:hd)
-give [conditional independence of the first block from the combined second and third blocks
-given the fourth exactly when the density has the corresponding measurable factorization](goal). -/
+/-- For [four σ-finite reference measures on standard Borel spaces](hyp:μX,μY,μV,μZ) and [a
+measurable density](hyp:hd) whose weighting of the product reference measure has finite total mass,
+[the first block is conditionally independent of the combined second and third blocks given the
+fourth, under the density-weighted measure, exactly when the density is almost everywhere a product
+of a measurable factor of the first and fourth blocks and a measurable factor of the other three
+blocks](goal). -/
 theorem condIndepFun_xyv_given_z_iff_factors (hd : Measurable d) :
     CondIndepFun
         (MeasurableSpace.comap (@zCoord X Y V Z) inferInstance)

@@ -81,9 +81,7 @@ lemma integral_markedPoissonRatioBranch_of_zero (n d : ℕ) (P : FullLaw d)
   simp_rw [poissonRatioBranch_eq_successFraction]
   exact Causalean.Stat.FiniteRaoBlackwell.Poisson.FinitePartition.NestedEventRatioMean.finitePoisson_successFraction_mean_of_mass_zero
     (markedObsLaw P) ((n : ℝ≥0) / 2)
-    (Set.Finite.measurableSet (Set.toFinite _))
-    (Set.Finite.measurableSet (Set.toFinite _))
-    (streamEvent_ones_subset_arrived 2 j) hmass
+    (Set.Finite.measurableSet (Set.toFinite _)) hmass
 
 /-- Given [the specified inputs and assumptions](hyp:n,d,P,j), [the stated mathematical conclusion holds](goal). -/
 -- @node: integral_markedPoissonRatioBranch

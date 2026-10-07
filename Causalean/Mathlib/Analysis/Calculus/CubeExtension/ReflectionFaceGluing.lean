@@ -54,8 +54,6 @@ theorem leftFaceReflection_contDiffOn_collar (d m : ℕ) (i : Fin d)
     (leftClosedExteriorCollar d m i) (cube d)
     (isClosed_leftClosedExteriorCollar d m i) hclosed
     (uniqueDiffOn_leftClosedExteriorCollar d m i) hunique
-    (by rw [leftClosedExteriorCollar_union_cube]
-        exact uniqueDiffOn_leftCubeCollar d m i)
     (leftFaceReflection d m i a u)
     (leftFaceReflection_contDiffOn_closedExterior d m i a hzero u hu) hcube
     (by

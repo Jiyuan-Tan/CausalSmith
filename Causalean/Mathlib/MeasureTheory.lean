@@ -27,7 +27,6 @@ public import Causalean.Mathlib.MeasureTheory.IntegralBind
 public import Causalean.Mathlib.MeasureTheory.Matrix
 public import Causalean.Mathlib.MeasureTheory.MeasurableSpace.Embedding
 public import Causalean.Mathlib.MeasureTheory.MeasurableSpace.MeasureEquality
-public import Causalean.Mathlib.MeasureTheory.MemLp
 public import Causalean.Mathlib.MeasureTheory.MomentSliceSupport
 public import Causalean.Mathlib.MeasureTheory.PartitionIntegral
 public import Causalean.Mathlib.MeasureTheory.PartitionRnDeriv

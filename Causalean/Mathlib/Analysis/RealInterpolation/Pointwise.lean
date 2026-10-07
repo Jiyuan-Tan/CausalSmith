@@ -48,8 +48,9 @@ theorem harmonic_quadratic_attained (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (z : �
     field_simp
     ring
 
-/-- [Positive real weights](hyp:a,b,ha,hb) give [the exact extended quadratic
-decomposition infimum](goal) of [a complex vector](hyp:z). -/
+/-- For [positive real weights a and b](hyp:a,b,ha,hb) and [a complex number z](hyp:z),
+[the infimum of a·|z0|² + b·|z1|² over all decompositions z = z0 + z1 equals
+a·b/(a+b)·|z|²](goal). -/
 theorem harmonic_quadratic_iInf (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (z : ℂ) :
     (⨅ (z0 : ℂ) (z1 : ℂ) (_ : z = z0 + z1),
       ENNReal.ofReal (a * ‖z0‖ ^ 2 + b * ‖z1‖ ^ 2)) =

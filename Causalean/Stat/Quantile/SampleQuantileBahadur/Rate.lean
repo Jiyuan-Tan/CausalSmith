@@ -25,7 +25,7 @@ tail argument based on the sample quantile switching relation.
 The supporting declarations include measurability of `IIDSample.empProcess`,
 the fixed-`q₀` CLT `IIDSample.empProcess_q0_tendsto_normal`, tightness
 `IIDSample.empProcess_q0_bigO`, and the closed-set portmanteau helper
-`Tendsto_dist.limsup_measure_closed_le`.
+`Modes.TendstoInLaw.limsup_measure_closed_le`.
 -/
 
 public section
@@ -70,8 +70,8 @@ Restates `empiricalCDF_tendsto_normal` at `y = q₀`, using `cdf P q₀ = τ`. -
 lemma IIDSample.empProcess_q0_tendsto_normal (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (hreg : SampleQuantileReg P τ q₀ f₀)
     (hmeas : ∀ n : ℕ, AEMeasurable (fun ω => S.empProcess n ω q₀) μ) :
-    Tendsto_dist (fun n ω => S.empProcess n ω q₀)
-      (gaussianMeasure 0 (τ * (1 - τ))) μ hmeas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => S.empProcess n ω q₀) atTop
+        (gaussianMeasure 0 (τ * (1 - τ))) := by
   -- `rescaledEstimator (F̂ q₀) (F q₀) range n = empProcess(·,q₀)` (card_range).
   have hθeq : (IsAsymLinear.rescaledEstimator (S.empiricalCDF q₀) (cdf P q₀)
         (fun m => Finset.range m)) = fun n ω => S.empProcess n ω q₀ := by
@@ -86,8 +86,9 @@ lemma IIDSample.empProcess_q0_tendsto_normal (S : IIDSample Ω ℝ μ P)
   -- Rewrite the *goal's* variance `τ → cdf P q₀` (the goal's `hmeas` does not
   -- mention `cdf`, so this is motive-safe), matching `h`'s limit measure.
   rw [← hreg.cdf_eq]
-  -- `h : Tendsto_dist (rescaledEstimator …) (gaussianMeasure 0 (F q₀*(1-F q₀))) μ hθn_meas`.
-  rw [Tendsto_dist_iff] at h ⊢
+  -- `h`: the rescaled estimator converges in law to `gaussianMeasure 0 (F q₀*(1-F q₀))`.
+  rw [Tendsto_dist_iff _ _ _ hθn_meas] at h
+  rw [Tendsto_dist_iff _ _ _ hmeas]
   -- The two probability-measure sequences agree pointwise (same function).
   refine h.congr' ?_
   filter_upwards with n
@@ -100,20 +101,21 @@ lemma IIDSample.empProcess_q0_tendsto_normal (S : IIDSample Ω ℝ μ P)
 lemma IIDSample.empProcess_q0_bigO (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (hreg : SampleQuantileReg P τ q₀ f₀) :
     IsBigOp (fun n ω => S.empProcess n ω q₀) (fun _ => (1 : ℝ)) μ :=
-  Tendsto_dist.tightness (fun n => (S.measurable_empProcess n q₀).aemeasurable)
-    (S.empProcess_q0_tendsto_normal hreg _)
+  Modes.TendstoInLaw.tightness (S.empProcess_q0_tendsto_normal hreg (fun n => (S.measurable_empProcess n q₀).aemeasurable))
 
-/-- **Portmanteau (closed-set limsup).**  If `Xn ⇒ Q` in distribution, then for
-every closed `F`, `limsup μ{ω | Xn n ω ∈ F} ≤ Q F`.  Mirrors the closed-set
-half of `Tendsto_dist.tightness`. -/
-theorem Tendsto_dist.limsup_measure_closed_le
+/-- If [a real sequence converges in distribution](hyp:hX) and
+[the target set is closed](hyp:hF), then [the upper limit of the
+probabilities that the sequence lies in that set is bounded by the
+limiting law's probability of the set](goal). -/
+theorem Modes.TendstoInLaw.limsup_measure_closed_le
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     {Xn : ℕ → Ω → ℝ} {Q : Measure ℝ} [IsProbabilityMeasure Q]
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hX : Tendsto_dist Xn Q μ hXn)
-    {F : Set ℝ} (hF : IsClosed F) :
+    {F : Set ℝ}
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q)
+    (hF : IsClosed F) :
     Filter.limsup (fun n => μ {ω | Xn n ω ∈ F}) atTop ≤ Q F := by
-  rw [Tendsto_dist_iff] at hX
+  have hXn : ∀ n, AEMeasurable (Xn n) μ := hX.forall_aemeasurable
+  rw [Tendsto_dist_iff _ _ _ hX.forall_aemeasurable] at hX
   let μs : ℕ → ProbabilityMeasure ℝ := fun n =>
     ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩
   let ν : ProbabilityMeasure ℝ := ⟨Q, inferInstance⟩
@@ -125,10 +127,8 @@ theorem Tendsto_dist.limsup_measure_closed_le
   change μ {ω | Xn n ω ∈ F} ≤ (μ.map (Xn n)) F
   rw [Measure.map_apply_of_aemeasurable (hXn n) hF.measurableSet]
   exact le_refl _
-
 -- `finite_measure_halfline_tails_small` (Gaussian half-line tail control) lives in
 -- `Causalean/Stat/CLT/GaussianTail.lean`, imported above.
-
 /-- **Root-`n` consistency of the sample quantile.** Given [a `SampleQuantileReg` regularity
 bundle `hreg`](hyp:hreg) for the population $\tau$-quantile $q_0$ with density $f_0$, [the rescaled
 deviation $\sqrt n(\hat q_n(\tau)-q_0)$ of the sample quantile from the population quantile is
@@ -169,9 +169,9 @@ lemma IIDSample.sampleQuantile_rate (S : IIDSample Ω ℝ μ P)
   set Δm : ℕ → Ω → ℝ := fun n ω =>
     S.empProcess n ω (q₀ + (-M) / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀ with hΔm
   -- L2: both increments vanish in probability.
-  have hL2p : Tendsto_inProb Δp (fun _ => 0) μ :=
+  have hL2p : Modes.TendstoInProbability (fun _ : ℕ => μ) Δp atTop (fun _ _ => 0) :=
     S.empProcess_increment_tendsto_zero hreg M
-  have hL2m : Tendsto_inProb Δm (fun _ => 0) μ :=
+  have hL2m : Modes.TendstoInProbability (fun _ : ℕ => μ) Δm atTop (fun _ _ => 0) :=
     S.empProcess_increment_tendsto_zero hreg (-M)
   -- Δ-tail events vanish: `μ{|Δ| > R} → 0` (squeeze below the `≤`-tail from L2).
   have hΔp_tail : Tendsto (fun n => μ {ω | R < |Δp n ω|}) atTop (𝓝 0) := by
@@ -218,9 +218,9 @@ lemma IIDSample.sampleQuantile_rate (S : IIDSample Ω ℝ μ P)
   -- Portmanteau on `F`, and `Q(F) ≤ ε` (disjoint half-lines, `R > 0`).
   have hcl : Filter.limsup (fun n => μ {ω | Gq n ω ∈ F}) atTop
       ≤ gaussianMeasure 0 σ2 F := by
-    refine Tendsto_dist.limsup_measure_closed_le
-      (fun n => (S.measurable_empProcess n q₀).aemeasurable) ?_ hFclosed
-    exact S.empProcess_q0_tendsto_normal hreg _
+    refine Modes.TendstoInLaw.limsup_measure_closed_le ?_ hFclosed
+    exact S.empProcess_q0_tendsto_normal hreg
+      (fun n => (S.measurable_empProcess n q₀).aemeasurable)
   have hQF : gaussianMeasure 0 σ2 F ≤ ENNReal.ofReal ε := by
     refine le_trans (measure_union_le _ _) ?_
     refine le_trans (add_le_add hRiic hRici) ?_

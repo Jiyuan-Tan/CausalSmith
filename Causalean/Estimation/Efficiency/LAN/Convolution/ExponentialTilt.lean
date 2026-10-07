@@ -184,7 +184,7 @@ theorem integral_boundedContinuous_mul_exp_tendsto_of_normalized
     {R : (n : ℕ) → Ω n → ℝ} (a : C(S, ℝ)) (f : BoundedContinuousFunction S ℂ)
     (hP : ∀ n, IsProbabilityMeasure (P n)) (hQ : IsProbabilityMeasure Q)
     (hY : WeaklyConverges P Y Q)
-    (hR : TendstoInProbability P R 0)
+    (hR : Causalean.Stat.Modes.TendstoInProbability P R atTop (fun _ _ => 0))
     (hRmeas : ∀ n, AEMeasurable (R n) (P n))
     (hweight : ∀ n, Integrable (fun ω => Real.exp (a (Y n ω) + R n ω)) (P n))
     (hlimitWeight : Integrable (fun y => Real.exp (a y)) Q)

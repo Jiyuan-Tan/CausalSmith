@@ -46,14 +46,14 @@ theorem leftFaceSample_lipschitz (d : ℕ) (i : Fin d) (q : ℕ)
       _ ≤ ((q : ℝ) + 1) * ‖x - y‖ := by
         nlinarith [norm_nonneg (x - y), Nat.cast_nonneg (α := ℝ) q]
 
-/-- If [L ≥ 0](hyp:hL) and [a response u lies in the intrinsic Hölder ball of
+/-- If [a response u lies in the intrinsic Hölder ball of
 order m, exponent s and radius L on the normalized cube](hyp:hu), then at
 [every point x of the open exterior collar](hyp:hx) [the one-face reflection of u
 has absolute value at most (Σ_q |a_q|)·L](goal). -/
 theorem leftFaceReflection_abs_le_openCollar (d m : ℕ) (s : ℝ)
     (i : Fin d) (a : Fin (m + 1) → ℝ)
     (u : (Fin d → ℝ) → ℝ) (L : ℝ)
-    (hL : 0 ≤ L) (hu : CubeHolderBall d m s L u)
+    (hu : CubeHolderBall d m s L u)
     (x : Fin d → ℝ) (hx : x ∈ leftOpenCubeCollar d m i) :
     |leftFaceReflection d m i a u x| ≤
       (∑ q : Fin (m + 1), |a q|) * L := by

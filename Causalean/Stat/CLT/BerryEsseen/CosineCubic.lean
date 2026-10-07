@@ -3,11 +3,11 @@ public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 
 /-! # Global cubic and quartic cosine remainder bounds
 
-This deterministic leaf isolates the sharp analytic ingredient of the wide
+This deterministic leaf isolates the analytic ingredient of the wide
 characteristic-function estimate and a reusable quartic Taylor enclosure.
 The cubic coefficient is conservatively rounded
-up from Tyurin's extremal cosine-remainder constant, approximately 0.099162;
-see `tmp/mnar_round4_sources/arxiv.tex`, definition of a before Theorem 5.
+up from Tyurin's extremal cosine-remainder constant, approximately 0.099162
+(Tyurin, arXiv:0912.0726, the constant defined before Theorem 5).
 -/
 
 public section

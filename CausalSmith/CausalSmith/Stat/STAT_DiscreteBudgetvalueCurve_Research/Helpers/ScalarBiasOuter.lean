@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.Sc
 
 /-! Outer pilot expectation bounds for the scalar Jackson cell bias. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteBudgetvalueCurve
 

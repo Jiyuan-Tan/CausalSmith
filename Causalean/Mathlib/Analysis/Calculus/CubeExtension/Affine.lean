@@ -2,10 +2,23 @@ module
 public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Basic
 
 /-!
-# Affine transport of intrinsic cube Hölder balls
+# Affine transport of Hölder balls between the cubes [0,1]^d and [−1,1]^d
 
-The coordinatewise affine map from `[0,1]^d` to `[-1,1]^d` transports
-within-cube jets and their quantitative bounds.
+Composing with the coordinatewise affine map x ↦ 2x − 1 or its inverse x ↦ (x + 1)/2 carries the
+intrinsic Hölder ball of derivative order m and exponent s ∈ (0, 1] on one cube into the Hölder
+ball on the other, with the radius multiplied by a constant depending only on the dimension d,
+on m and on s. Results proved on the normalized cube [−1,1]^d therefore transfer to the unit cube
+[0,1]^d and back.
+
+## Main definitions
+
+* `cubeAffineInv` — the map x ↦ (x + 1)/2, coordinate by coordinate, from [−1,1]^d onto [0,1]^d.
+
+## Main results
+
+* `cube_holder_affine_transport` — u in the radius-R Hölder ball on [−1,1]^d implies
+  x ↦ u(2x − 1) in the radius-C·R Hölder ball on [0,1]^d.
+* `unit_holder_affine_transport` — the converse direction, for x ↦ u((x + 1)/2).
 -/
 
 @[expose] public section
@@ -140,14 +153,14 @@ private theorem cubeAffineInv_norm_sub {d : ℕ} (x y : Fin d → ℝ) :
   norm_num
 
 /-- In [dimension d](hyp:d), for [derivative order m](hyp:m) and
-[a Hölder exponent s](hyp:s) with [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1),
+[a Hölder exponent s](hyp:s) with [s ≤ 1](hyp:hs1),
 [there is a positive constant C such that whenever a response u lies in the
 intrinsic Hölder ball of order m, exponent s and radius R ≥ 0 on the
 normalized cube `[-1,1]^d`, its pullback x ↦ u(2x − 1) along the coordinatewise
 affine map lies in the intrinsic Hölder ball of radius C·R on the unit cube
 `[0,1]^d`](goal). The constant depends only on d, m and s. -/
 theorem cube_holder_affine_transport (d m : ℕ) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1) :
+    (hs1 : s ≤ 1) :
     ∃ C : ℝ, 0 < C ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (R : ℝ), 0 ≤ R →
         CubeHolderBall d m s R u →
@@ -197,14 +210,14 @@ theorem cube_holder_affine_transport (d m : ℕ) (s : ℝ)
         rw [pow_succ]
 
 /-- In [dimension d](hyp:d), for [derivative order m](hyp:m) and
-[a Hölder exponent s](hyp:s) with [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1),
+[a Hölder exponent s](hyp:s) with [0 < s](hyp:hs),
 [there is a positive constant C such that whenever a response u lies in the
 intrinsic Hölder ball of order m, exponent s and radius R ≥ 0 on the unit cube
 `[0,1]^d`, its pullback x ↦ u((x + 1)/2) along the inverse coordinatewise affine
 map lies in the intrinsic Hölder ball of radius C·R on the normalized cube
 `[-1,1]^d`](goal). The constant depends only on d, m and s. -/
 theorem unit_holder_affine_transport (d m : ℕ) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1) :
+    (hs : 0 < s) :
     ∃ C : ℝ, 0 < C ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (R : ℝ), 0 ≤ R →
         HolderBallOn (unitCube d) m s R u →

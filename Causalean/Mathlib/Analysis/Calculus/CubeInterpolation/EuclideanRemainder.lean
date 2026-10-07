@@ -51,7 +51,7 @@ theorem segment_topHolder_from_sorted {d m : ℕ}
     segment_iteratedDeriv_eq_within_diagonal b a y H hH u hu ha hy q hq m le_rfl]
   have hrc := interior_subset (segment_mem_interior_centeredCube b a y H ha hy r hr)
   have hqc := interior_subset (segment_mem_interior_centeredCube b a y H ha hy q hq)
-  have hbound := within_diagonal_topHolder_from_sorted b H hH u L s hL hs hu hmod
+  have hbound := within_diagonal_topHolder_from_sorted b H hH u L s hL hu hmod
     (a + r • (y - a)) (a + q • (y - a)) (y - a) hrc hqc
   have hdiff : (a + r • (y - a)) - (a + q • (y - a)) =
       (r - q) • (y - a) := by
@@ -134,7 +134,7 @@ theorem cube_euclidean_taylor_remainder (d m : ℕ) :
       (uniqueDiffOn_uIcc (by norm_num : (0 : ℝ) ≠ 1)) hcont Set.left_mem_uIcc
   by_cases hm0 : m = 0
   · subst m
-    have htop := within_diagonal_topHolder_from_sorted b H hH u L s hL hs hu
+    have htop := within_diagonal_topHolder_from_sorted b H hH u L s hL hu
       hmod y a (y - a) hy (interior_subset ha)
     simpa [diagonalTaylor, iteratedFDerivWithin_zero_apply] using htop
   · have hmpos : 0 < m := Nat.pos_of_ne_zero hm0

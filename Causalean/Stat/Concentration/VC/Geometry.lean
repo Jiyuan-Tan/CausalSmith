@@ -344,13 +344,12 @@ Proof route for the next two declarations:
   `Fin (p+1)`.
 -/
 
-/-- For [a Euclidean dimension and fixed degree](hyp:d,k),
-[a positive bandwidth](hyp:hq), [a nonnegative inner radius](hyp:ha), and
-[an ordered annulus](hyp:hab), [the moving-center radial-monomial class has the
+/-- For [a Euclidean dimension and fixed degree](hyp:d,k) and
+[a positive bandwidth](hyp:hq), [the moving-center radial-monomial class has the
 stated pseudo-dimension bound depending only on the Euclidean dimension](goal). -/
 theorem radialAnnulusMonomial_hasPseudoDimAtMost
     (d k : ℕ) {q a b : ℝ}
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) :
+    (hq : 0 < q) :
     HasPseudoDimAtMost
       (fun x : EuclideanPoint d => radialAnnulusMonomial d q a b k x)
       (fixedRadialPseudoDimBound d) := by
@@ -418,13 +417,12 @@ theorem radialAnnulusMonomial_hasPseudoDimAtMost
         movingCenterBallExteriorClassifier, hann, ht, hnot]
 
 /-- **Pseudo-dimension bound for the moving-center radial-monomial class.** For [a positive
-bandwidth q](hyp:hq), [a nonnegative annulus inner radius a](hyp:ha), and [inner radius at most
-outer radius b](hyp:hab), allowing both the Euclidean center and the monomial degree — ranging
+bandwidth q](hyp:hq), allowing both the Euclidean center and the monomial degree — ranging
 from zero through p — to vary gives [the radial-monomial class a pseudo-dimension of at most
 `radialPseudoDimBound d p`](goal). -/
 theorem radialMonomialClass_hasPseudoDimAtMost
     (d p : ℕ) {q a b : ℝ}
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) :
+    (hq : 0 < q) :
     HasPseudoDimAtMost (radialMonomialClass d p q a b)
       (radialPseudoDimBound d p) := by
   let pi : (j : Fin (p + 1)) → EuclideanPoint d →
@@ -433,7 +431,7 @@ theorem radialMonomialClass_hasPseudoDimAtMost
       (fun x : EuclideanPoint d => radialAnnulusMonomial d q a b j.1 x)
   have hpi : ∀ j, HasVCAtMost (pi j) (fixedRadialPseudoDimBound d) := by
     intro j
-    exact radialAnnulusMonomial_hasPseudoDimAtMost d j.1 hq ha hab
+    exact radialAnnulusMonomial_hasPseudoDimAtMost d j.1 hq
   have hu := finiteUnion_hasVCAtMost pi hpi
   have hr := HasVCAtMost.reindex hu
     (fun theta : RadialMonomialParam d p =>

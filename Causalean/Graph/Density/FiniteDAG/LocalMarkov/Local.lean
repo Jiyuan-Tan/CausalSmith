@@ -96,7 +96,7 @@ private theorem map_coordinateProjection_withDensity_eq_marginal
 private theorem map_withDensity_equiv_of_measurePreserving
     {A D : Type*} [MeasurableSpace A] [MeasurableSpace D]
     (e : A ≃ᵐ D) {ν : Measure A} {ξ : Measure D}
-    (he : MeasurePreserving e ν ξ) (d : A → ℝ≥0∞) (hd : Measurable d) :
+    (he : MeasurePreserving e ν ξ) (d : A → ℝ≥0∞) :
     Measure.map e (ν.withDensity d) =
       ξ.withDensity (d ∘ e.symm) := by
   classical
@@ -136,11 +136,12 @@ private theorem condIndepFun_comp_of_map
   have hjoint := (condIndepFun_iff_condDistrib_prod_ae_eq_prodMkRight
     (μ := ν.map φ) (f := z) (g := y) (k := c) hz hy hc).mp h
   have hpair : Measurable (fun d : D ↦ (c d, y d)) := hc.prodMk hy
-  have htr_pair := condDistrib_map_comp (𝒴 := Z) ν
-    (φ := φ) (g := z) (f := fun d : D ↦ (c d, y d))
-    hφ hz hpair
-  have htr_c := condDistrib_map_comp (𝒴 := Z) ν
-    (φ := φ) (g := z) (f := c) hφ hz hc
+  have htr_pair := ProbabilityTheory.condDistrib_map (ν := ν) (f := φ)
+    hpair.aemeasurable hz.aemeasurable hφ.aemeasurable
+  rw [← MeasureTheory.Measure.map_map hpair hφ] at htr_pair
+  have htr_c := ProbabilityTheory.condDistrib_map (ν := ν) (f := φ)
+    hc.aemeasurable hz.aemeasurable hφ.aemeasurable
+  rw [← MeasureTheory.Measure.map_map hc hφ] at htr_c
   have hmap_pair : (ν.map φ).map (fun d : D ↦ (c d, y d)) =
       ν.map (fun a : A ↦ ((c ∘ φ) a, (y ∘ φ) a)) := by
     rw [Measure.map_map hpair hφ]
@@ -390,10 +391,6 @@ theorem Factorization.localMarkovParents_of_parentClosed
         (refI.prod (refZ.prod refC)).withDensity d := by
       let dS : (∀ j : S, X j) → ℝ≥0∞ :=
         fun z ↦ B.partialDensity S (coordinateExtension S x₀ z)
-      have hdS : Measurable dS := by
-        unfold dS
-        exact (B.measurable_partialDensity S).comp
-          (measurable_coordinateExtension S x₀)
       have hproj := map_coordinateProjection_withDensity_eq_marginal
         (X := X) (μ := μ)
         S B.observationalDensity B.measurable_observationalDensity x₀
@@ -416,7 +413,7 @@ theorem Factorization.localMarkovParents_of_parentClosed
               (refI.prod (refZ.prod refC)) :=
             MeasurePreserving.symm e he
           simpa [dS, d, ext, Function.comp_def] using
-            map_withDensity_equiv_of_measurePreserving e.symm heSymm dS hdS
+            map_withDensity_equiv_of_measurePreserving e.symm heSymm dS
     have hfinite : IsFiniteMeasure
         ((refI.prod (refZ.prod refC)).withDensity d) := by
       rw [← hlaw]

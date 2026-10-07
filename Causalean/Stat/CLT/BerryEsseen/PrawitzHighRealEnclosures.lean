@@ -130,8 +130,10 @@ theorem prawitz_high_real_kernel_square_enclosure
 
 /-- On [the j-th certified compact parameter cell and the i-th positive
 high-frequency grid cell [i/1000, (i+1)/1000], for i from 1 to
-999](hyp:j,i,hi), [the exponential of the rescaled cubic endpoint exponent
-is at most the reciprocal of the rational Taylor polynomial evaluated at the
+999](hyp:j,i,hi), with s the parameter cell's right endpoint and E the larger
+of the values of (−72x²/25 + 1728x³/625)/s² at the two grid endpoints
+x = i/1000 and x = (i+1)/1000, [the exponential of E is at most 1/T(−E), where
+T is the sixteen-term Taylor polynomial of the exponential and −E is the
 matching rational exponent from the high table](goal). -/
 theorem prawitz_high_real_exponential_enclosure
     (j : Fin 270) (i : ℕ) (hi : i ∈ Ico 1 1000) :

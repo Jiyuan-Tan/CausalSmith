@@ -80,7 +80,7 @@ theorem kernel_sandwich_step
 the unsmoothed CDF discrepancy is at most `2 B + 24 L / T`. -/
 theorem sinc4_cdf_sandwich
     (μ ν : Measure ℝ) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    (T L B : ℝ) (hT : 0 < T) (hL : 0 ≤ L) (hB : 0 ≤ B)
+    (T L B : ℝ) (hT : 0 < T) (hL : 0 ≤ L)
     (hν : ∀ a b : ℝ, a ≤ b →
       (ν (Set.Ioc a b)).toReal ≤ L * (b - a))
     (hsmooth : ∀ z : ℝ,
@@ -163,7 +163,7 @@ theorem sinc4_cdf_sandwich
       have hzy : z ≤ (z + a) - y := by linarith [le_abs_self y]
       have hd : ((z + a) - y) - z ≤ 2 * a := by
         linarith [neg_abs_le y]
-      have hm := cdf_difference_one_sided_modulus μ ν L hL hν z
+      have hm := cdf_difference_one_sided_modulus μ ν L hν z
         ((z + a) - y) hzy
       have hmul := mul_le_mul_of_nonneg_left hd hL
       dsimp [H]
@@ -181,7 +181,7 @@ theorem sinc4_cdf_sandwich
       have hzy : (z - a) - y ≤ z := by linarith [neg_abs_le y]
       have hd : z - ((z - a) - y) ≤ 2 * a := by
         linarith [le_abs_self y]
-      have hm := cdf_difference_one_sided_modulus μ ν L hL hν
+      have hm := cdf_difference_one_sided_modulus μ ν L hν
         ((z - a) - y) z hzy
       have hmul := mul_le_mul_of_nonneg_left hd hL
       dsimp [H]

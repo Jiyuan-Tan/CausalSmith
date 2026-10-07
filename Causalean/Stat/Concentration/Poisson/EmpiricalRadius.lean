@@ -185,10 +185,9 @@ private theorem empirical_bad_moment (q m : ℝ≥0) (hm : 0 < m)
     dsimp [c]
     exact div_nonneg (pow_nonneg (div_nonneg hH0 universalH_pos.le) t)
       (pow_nonneg hmR.le t)
-  have ht4 : t ≤ 4 := by rcases ht with rfl | rfl | rfl <;> omega
   have hgi : Integrable (fun w : ℕ => c * B.indicator
       (fun w => (score universalH L (m * q) w) ^ t) w) μ :=
-    ((integrable_score_pow (m * q) hL ht4).indicator
+    ((integrable_score_pow (m * q) hL (t := t)).indicator
       (measurableSet_badEvent universalH L (m * q))).const_mul c
   have hpoint (w : ℕ) :
       (if normalizedDeviation m q w > empiricalRadius H m (L / (m : ℝ)) w / 4

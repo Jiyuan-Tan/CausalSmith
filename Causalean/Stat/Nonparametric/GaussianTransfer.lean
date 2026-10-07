@@ -27,7 +27,7 @@ open MeasureTheory ProbabilityTheory Set
 open Causalean.Mathlib.Analysis.Fourier
 namespace Causalean.Stat.Nonparametric
 
-/-- [A moment exponent](hyp:κ), [a Gaussian noise scale](hyp:σ), and [a complex physical-space kernel](hyp:g) determine [the Gaussian-shifted design variance integral](goal) [by averaging squared kernel values over the normalized design interval and standard Gaussian noise](step:1). -/
+/-- [A moment exponent](hyp:κ), [a Gaussian noise scale](hyp:σ), and [a complex physical-space kernel](hyp:g) determine [the Gaussian-shifted design variance integral](goal) [as sixteen times the integral, over the design interval `[-1/2, 1/2]`, of the absolute design point raised to the moment exponent times the standard-Gaussian average of the squared modulus of the kernel evaluated at the design point plus the noise scale times the Gaussian draw](step:1). -/
 def shiftedVariance (κ σ : ℝ) (g : ℝ → ℂ) : ℝ :=
   16 * ∫ t in Icc (-1 / 2 : ℝ) (1 / 2),
     |t| ^ κ * (∫ z, ‖g (t + σ * z)‖ ^ 2 ∂gaussianReal 0 1)
@@ -160,7 +160,7 @@ private theorem shifted_energy_le (g : ℝ → ℂ) (κ c : ℝ)
       rw [integral_const_mul, integral_add hκ (h0.const_mul _), integral_const_mul]
       rfl
 
-/-- [A complex physical-space kernel](hyp:g), [a moment exponent in the interval from zero to two](hyp:κ,hκ0,hκ2), [a nonnegative Gaussian noise scale](hyp:σ,hσ), [finite ordinary and weighted squared energies](hyp:h0,hκ), and [integrability of the weighted joint squared norm](hyp:hjoint) imply [the stated Gaussian-shifted design variance bound](goal). -/
+/-- [A complex physical-space kernel](hyp:g), [a moment exponent in the interval from zero to two](hyp:κ,hκ0,hκ2), [a nonnegative Gaussian noise scale](hyp:σ,hσ), [finite ordinary and weighted squared energies](hyp:h0,hκ), and [integrability of the weighted joint squared norm](hyp:hjoint) imply [that the Gaussian-shifted design variance integral is at most `32 · (W + 2 σ^κ E)`, where `W` is the kernel's `κ`-weighted squared energy and `E` its ordinary squared energy](goal). -/
 theorem shiftedVariance_le (g : ℝ → ℂ) (κ σ : ℝ)
     (hκ0 : 0 ≤ κ) (hκ2 : κ ≤ 2) (hσ : 0 ≤ σ)
     (h0 : Integrable (fun v => ‖g v‖ ^ 2))

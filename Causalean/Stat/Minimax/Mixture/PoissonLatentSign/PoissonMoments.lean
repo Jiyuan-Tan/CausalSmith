@@ -151,8 +151,8 @@ theorem integral_poisson_collision_tilt (ξ : NNReal) {a : ℝ} (ha : 0 ≤ a) :
     integral_poisson_tilted_factorial ξ ha 3,
     integral_poisson_tilted_factorial ξ ha 2]
 
-/-- When [the Poisson mean is at most one](hyp:hξ), [the tilted double-collision
-moment is bounded by an explicit universal constant times the squared mean](goal). -/
+/-- When [the Poisson mean ξ is at most one](hyp:hξ), [the mean of m(m − 1)²(25/9)ᵐ over
+a Poisson count m is at most e^((5/3)² − 1) · ((5/3)⁶ + (5/3)⁴) · ξ²](goal). -/
 theorem integral_poisson_collision_le {ξ : NNReal} (hξ : (ξ : ℝ) ≤ 1) :
     (∫ m : ℕ, (m : ℝ) * ((m - 1 : ℕ) : ℝ) ^ 2 *
       ((5 / 3 : ℝ) ^ 2) ^ m ∂poissonMeasure ξ) ≤

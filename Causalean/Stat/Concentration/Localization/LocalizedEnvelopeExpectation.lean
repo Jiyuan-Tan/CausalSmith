@@ -24,7 +24,7 @@ tail step, to expose:
   critical radius;
 * `localized_offset_expectation` — the self-localizing offset
   positive-part envelope `𝔼[supᵢ {2|(Pₙ−P)F i| − Δᵢ/4}_+]`, bounded via the
-  high-probability sharp bound, the deterministic Young/AM-GM offset
+  high-probability peeled bound, the deterministic Young/AM-GM offset
   optimisation `OffsetPeeling.offset_peeling_coeff`, and a bounded
   bad-event tail split, given a caller-supplied margin coupling
   `norm(F i) ≤ A·Δᵢ^κ`.
@@ -259,7 +259,7 @@ positive critical radius `criticalRadius (R.ψ n)`, satisfying the star-shaped-e
 (criticalRadius (R.ψ n)) ≤ criticalRadius (R.ψ n) ^ 2`](hyp:hcrit_le_ρ,hρ_pos,hcrit_pos),
 with [the star-hull Rademacher process almost-surely bounded and integrable at every radius `r ≥
 ρ`](hyp:hrad_bdd,hrad_int) and [a covering peeling depth whose normalized Bousquet slack is bounded linearly by `ρ`](hyp:hδ_dom). Suppose further that [every `norm (F i)` lies
-in `[0, Rmax]`, so the sharp deviation bound applies uniformly over the
+in `[0, Rmax]`, so the peeled deviation bound applies uniformly over the
 class](hyp:hnorm_nonneg,hnorm_le), that [the exponent `κ` lies strictly between 0 and
 1](hyp:hκ_pos,hκ_lt), that [the coupling constant `A` is nonnegative](hyp:hA_nonneg), that [the
 regret radius `Δ i` is nonnegative for every `i`](hyp:hΔ_nonneg), and that [the localization radius
@@ -271,8 +271,8 @@ Then [the expectation over the `n`-fold sample of the supremum over `i` of the p
     The self-localizing offset form of the localized deviation bound,
     assembled from three existing pieces:
 
-    * the high-probability sharp localized deviation
-      `localized_uniform_deviation_sharp`, which gives, on a `1-δ` event,
+    * the high-probability peeled localized deviation
+      `localized_uniform_deviation_peeled`, which gives, on a `1-δ` event,
       `|(Pₙ−P)F i| ≤ 10·ρ·norm(F i) + 5·ρ²` uniformly over the class
       (`ρ` an upper bound on the critical radius);
     * the deterministic Young/AM-GM offset optimisation
@@ -320,7 +320,7 @@ theorem localized_offset_expectation
           ((1 + 8 * R.b) * Real.log (2 * ((K : ℝ) + 1) / δ) / n)
         + 8 * R.b * Real.log (2 * ((K : ℝ) + 1) / δ) / (n * ρ)
         ≤ ρ)
-    -- Class is uniformly within the diameter cap (so the sharp bound applies to every `i`).
+    -- Class is uniformly within the diameter cap (so the peeled bound applies to every `i`).
     (hnorm_nonneg : ∀ i, 0 ≤ norm (F i))
     (hnorm_le : ∀ i, norm (F i) ≤ Rmax)
     -- Problem radius `Δ` (the regret) and the margin coupling `norm(F i) ≤ A·(Δ i)^κ`.
@@ -334,8 +334,8 @@ theorem localized_offset_expectation
       ≤ offsetPeelingConstantC (1 / 8) κ * (20 * ρ * A) ^ (1 / (1 - κ))
           + 10 * ρ ^ 2 + 4 * R.b * δ := by
   -- Outline:
-  -- 1. Obtain the `1-δ` good event `E` from `localized_uniform_deviation_sharp`
-  --    (all the sharp-bound hypotheses are present); on `E`, for every `i`,
+  -- 1. Obtain the `1-δ` good event `E` from `localized_uniform_deviation_peeled`
+  --    (all the peeled-bound hypotheses are present); on `E`, for every `i`,
   --    `|dev_i| ≤ 10·ρ·norm(F i) + 5·ρ²`.
   -- 2. On `E`, using the coupling `norm(F i) ≤ A·(Δ i)^κ`:
   --      2|dev_i| − Δ i/4 ≤ (20ρA·(Δ i)^κ − (Δ i)/8) + (10ρ² − (Δ i)/8),
@@ -350,11 +350,11 @@ theorem localized_offset_expectation
   classical
   haveI : Nonempty Ω := nonempty_of_isProbabilityMeasure μ
   let μπ : Measure (Fin n → Ω) := Measure.pi (fun _ : Fin n => μ)
-  have hsharp := localized_uniform_deviation_sharp
+  have hpeeled := localized_uniform_deviation_peeled
     (F := F) (norm := norm) (μ := μ) (X := X)
     hX hF_meas hnorm_nonneg R hδ hδ' n hn
     hcrit_le_ρ hρ_pos hcrit_pos hrad_bdd hrad_int hδ_dom
-  rcases hsharp with ⟨E, hE_meas, hE_prob, hE_bound⟩
+  rcases hpeeled with ⟨E, hE_meas, hE_prob, hE_bound⟩
   let dev : ι → (Fin n → Ω) → ℝ := fun i ω =>
     (n : ℝ)⁻¹ * (Finset.univ.sum fun k : Fin n => F i (X (ω k)))
       - μ[fun ω' => F i (X ω')]

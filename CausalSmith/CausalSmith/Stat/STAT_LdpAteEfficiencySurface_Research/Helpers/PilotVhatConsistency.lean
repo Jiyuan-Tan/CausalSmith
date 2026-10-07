@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Pil
 
 /-! # Transcript-law wrapper for pilot variance consistency -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

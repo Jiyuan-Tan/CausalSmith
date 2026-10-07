@@ -208,7 +208,7 @@ theorem BPObjective_le_bpUpper (hA : S.BaseAssumptions)
 /-- The identified interval is contained in the closed-form interval. -/
 theorem BPIdentifiedInterval_subset_Icc (hA : S.BaseAssumptions) :
     S.BPIdentifiedInterval hA ⊆ Set.Icc S.bpLower S.bpUpper :=
-  PartialID.identifiedInterval_subset_Icc
+  PartialID.identifiedSet_subset_Icc
     (fun _ h => S.bpLower_le_BPObjective hA h)
     (fun _ h => S.BPObjective_le_bpUpper hA h)
 

@@ -27,7 +27,7 @@ lemma targetFeature_entry_bound {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
       (MeasureTheory.measure_mono fun _ hw => hw.1)
   let mu := normalizedRestrict P (latentClass u)
   let _ : MeasureTheory.IsProbabilityMeasure mu :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentClass u) hclass
+    normalizedRestrict_isProbabilityMeasure hclass
   have hboundP := (proxy_coordinate_bounds_of_model P hk hkx hM).1
   have hbound : ∀ᵐ w ∂mu, |w.X i| ≤ L :=
     (ae_normalizedRestrict_iff hclass).mpr <|

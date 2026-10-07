@@ -2,18 +2,26 @@ module
 public import Causalean.Mathlib.Topology.SpaceFillingCurve.CurveCells
 
 /-!
-# Geometry of neighboring traversal cells
+# Points in consecutive cells of a dyadic traversal are close
 
-Face adjacency bounds the squared distance of arbitrary points in equal or
-consecutive closed dyadic cube cells.
+For a dyadic traversal of the d-dimensional cube at level n, which visits the 2^(d·n) closed
+dyadic cells of side 2^(−n) in an order where consecutive cells share a face, any two points lying
+in the same cell or in consecutive cells have squared Euclidean distance at most 4·d·2^(−2n).
+This is the locality property of a space-filling-curve ordering: neighbours in the ordering are
+neighbours in space.
+
+## Main results
+
+* `sqEuclideanDist_le_of_neighboring_cubeCells` — the squared-distance bound 4·d·(2^(−n))² for
+  points in cells whose indices differ by at most one.
 -/
 
 public section
 
 namespace Causalean.Mathlib.Topology.SpaceFillingCurve
 
-/-- Given [a dimension and level](hyp:d,n), [a traversal and two neighboring cell indices](hyp:T,k,l,hkl),
-and [points localized in those cells](hyp:x,y,hx,hy), [their squared Euclidean distance has the stated cell-width bound](goal). -/
+/-- Given [a dimension and level](hyp:d,n), [a traversal and two cell indices that are equal or consecutive](hyp:T,k,l,hkl),
+and [points localized in those cells](hyp:x,y,hx,hy), [their squared Euclidean distance is at most four times the dimension times the squared cell width `2^(-n)`](goal). -/
 theorem sqEuclideanDist_le_of_neighboring_cubeCells {d n : ℕ}
     (T : DyadicTraversal d) (k l : Fin (2 ^ (d * n)))
     (hkl : k.val ≤ l.val + 1 ∧ l.val ≤ k.val + 1)

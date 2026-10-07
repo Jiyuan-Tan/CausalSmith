@@ -13,7 +13,7 @@ public import Causalean.Mathlib.Analysis.Duality.MomentPrior.Basic
 Finite original-record private value frontiers: Helpers/Frontier/Lower.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 

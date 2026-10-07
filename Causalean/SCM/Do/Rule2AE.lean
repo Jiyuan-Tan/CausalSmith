@@ -53,7 +53,7 @@ open scoped MeasureTheory ProbabilityTheory
     intervened at `t` (evaluated at `w`) equals the original model's `(Z.random ∪ W)`-conditional
     (evaluated at the filled point `fill(t, w)`).  This is the `condDistrib`-level analogue of the
     theorem below; reducing the `obsCondKernel` statement to this lemma is the easy assembly
-    (Rule 3* + Fubini + obs-side AC transport, done in `obsCondKernel_fixSet_eq_ae_witness`). -/
+    (Rule 3* + Fubini + obs-side AC transport, done in `do_rule2_kernel_of_nondescendant_product_ae`). -/
 theorem condDistrib_fixSet_cross_SCM_bridge
     (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)
@@ -111,7 +111,7 @@ theorem condDistrib_fixSet_cross_SCM_bridge
     fun p => valuesUnionMk p.1 p.2 with hG
   have hG_meas : Measurable G := measurable_valuesUnionMk
   -- (II) obs-side bridge: `M1.obsCondKernel Y (Zr∪W) (s0, G p) = condDistrib … (G p)`, λ-a.e.
-  -- (the proven obs-side AC transport, mirrored from `obsCondKernel_fixSet_eq_ae_witness`).
+  -- (the proven obs-side AC transport, mirrored from `do_rule2_kernel_of_nondescendant_product_ae`).
   have h_obs_cd := obsCondKernel_ae_eq_condDistrib M' Y (Z.image SWIGNode.random ∪ W) hY hZrW s0
   have h_obs_ae_mapG :
       (fun c => M'.obsCondKernel Y (Z.image SWIGNode.random ∪ W) hY hZrW (s0, c))
@@ -161,7 +161,7 @@ theorem condDistrib_fixSet_cross_SCM_bridge
     measure, the `W`-conditional kernel of the model intervened at treatment value `t`, evaluated
     together with `w`, restricted to `Y`, equals the base model's conditional distribution of `Y`
     given `Z.random ∪ W` evaluated at the combined point `(t, w)`](goal). -/
-theorem obsCondKernel_fixSet_eq_ae_witness
+theorem do_rule2_kernel_of_nondescendant_product_ae
     (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)
     (hZ_fixed : ∀ D ∈ Z, SWIGNode.fixed D ∉ M'.fixed)

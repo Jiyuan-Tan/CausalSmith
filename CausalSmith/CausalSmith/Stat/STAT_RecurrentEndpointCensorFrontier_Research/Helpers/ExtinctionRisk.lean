@@ -7,7 +7,7 @@ public import CausalSmith.Stat.STAT_RecurrentEndpointCensorFrontier_Research.Hel
 Finite risk sets are positive before the last at-risk time and vanish after it.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 

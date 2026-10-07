@@ -221,16 +221,15 @@ theorem van_trees_inequality_of_smooth_model
       Real.sq_sqrt hq]
     simp only [jointDensity]
   exact van_trees_inequality μ hellu w dw p dp ψ dψ T
-    M.hwC1 M.hwsupport M.hwderiv M.hwnonneg M.hwnorm M.hpnonneg M.hpnorm
-    M.hpint M.hdpint M.hdiffUnder M.hpAC M.hψAC M.hdp M.hψderiv M.hboundary
-    hbalanceInt.aestronglyMeasurable hbalanceInt
+    M.hwC1 M.hwderiv M.hwnonneg M.hpnonneg M.hpnorm
+    M.hdiffUnder M.hpAC M.hψAC M.hdp M.hψderiv M.hboundary
+    hbalanceInt
     herrorScoreInt.aestronglyMeasurable herrorScoreInt
-    hsensitivityInt.aestronglyMeasurable hsensitivityInt
+    hsensitivityInt
     herrorSqInt.aestronglyMeasurable herrorSqInt
     hscoreSqInt.aestronglyMeasurable hscoreSqInt
-    M.hpriorSqInt.aestronglyMeasurable M.hpriorSqInt
-    hpriorJointSqInt.aestronglyMeasurable hpriorJointSqInt
-    hfisherSqInt.aestronglyMeasurable hfisherSqInt
-    hcrossInt.aestronglyMeasurable hcrossInt M.hinfoPos
+    hpriorJointSqInt
+    hfisherSqInt
+    hcrossInt M.hinfoPos
 
 end Causalean.Stat.Minimax

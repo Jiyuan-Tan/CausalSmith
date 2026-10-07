@@ -3,7 +3,7 @@ public import Causalean.Stat.CLT.BerryEsseen.EsseenConvolutionDilation
 public import Causalean.Stat.CLT.BerryEsseen.EsseenKernelDilation
 public import Causalean.Stat.CLT.BerryEsseen.EsseenUnitSpectralComparison
 
-/-! # Sharp one-sided spectral comparison
+/-! # One-sided spectral comparison with constant 24/π
 
 This module isolates the kernel construction in Esseen's one-sided smoothing
 argument. The Fourier estimate for a supplied kernel is proved separately in

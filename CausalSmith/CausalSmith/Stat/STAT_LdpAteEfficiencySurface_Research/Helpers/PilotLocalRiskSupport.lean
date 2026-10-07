@@ -5,7 +5,7 @@ public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Pil
 
 /-! # Exact conditional local risk of the adaptive main row -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace Causalean.Stat.CLT.FiniteIidTriangular

@@ -162,11 +162,11 @@ lemma evalObservedAuxOverride_agree_anc (M : Causalean.SCM N Ω)
         · exact Or.inr (M.dag.isAncestor_trans hw_anc_obs hAncToT)
       have hWAgree := hAgree w.val hAncW
       by_cases huo : w.val ∈ M.unobserved
-      · rw [parentMapOverride_unobserved M hC₁ s c₁ ℓ hn _ w huo,
-            parentMapOverride_unobserved M hC₂ s c₂ ℓ hn _ w huo]
+      · rw [parentMapOverride_unobserved M s c₁ ℓ hn _ w huo,
+            parentMapOverride_unobserved M s c₂ ℓ hn _ w huo]
       · by_cases hfix : w.val ∈ M.fixed
-        · rw [parentMapOverride_fixed M hC₁ s c₁ ℓ hn _ w hfix,
-              parentMapOverride_fixed M hC₂ s c₂ ℓ hn _ w hfix]
+        · rw [parentMapOverride_fixed M s c₁ ℓ hn _ w hfix,
+              parentMapOverride_fixed M s c₂ ℓ hn _ w hfix]
         · -- Observed (non-fixed, non-latent) parent: either in C or recurse.
           have hobs : w.val ∈ M.observed := by
             rcases Finset.mem_union.mp
@@ -181,8 +181,8 @@ lemma evalObservedAuxOverride_agree_anc (M : Causalean.SCM N Ω)
                 parentMapOverride_C M hC₂ s c₂ ℓ hn _ w hcW2]
             exact hWAgree.2 hcW1 hcW2
           · have hcW2 : w.val ∉ C₂ := fun h => hcW1 (hWAgree.1.mpr h)
-            rw [parentMapOverride_observed M hC₁ s c₁ ℓ hn _ w hobs hcW1,
-                parentMapOverride_observed M hC₂ s c₂ ℓ hn _ w hobs hcW2]
+            rw [parentMapOverride_observed M s c₁ ℓ hn _ w hobs hcW1,
+                parentMapOverride_observed M s c₂ ℓ hn _ w hobs hcW2]
             -- Recursion at w's smaller topological index.
             have hj : (M.observedIndex ⟨w.val, hobs⟩).val < n :=
               M.observed_parent_index_lt hn hedge hobs

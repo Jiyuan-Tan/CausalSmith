@@ -66,9 +66,9 @@ second moment](hyp:hU,hUV,hbX,hD,hV,hsq); [for the estimated nuisance sequence
 `η_hat`, at every fold and draw the outcome- and treatment-regression errors are
 square-integrable in the covariate law, with the resulting cross terms against the
 structural error and the treatment residual integrable](hyp:hΔl,hΔm,hUΔm,hΔlV,hVΔm);
-[the estimated score is jointly measurable, fold-A measurable, and
-integrable/square-integrable at every
-fold](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry,h_m_int,h_m_sq_int); [the true residual
+[the estimated score is jointly measurable, measurable in the training fold
+jointly with the observation, and integrable/square-integrable at every
+fold](hyp:h_m_meas,h_m_foldA_uncurry,h_m_int,h_m_sq_int); [the true residual
 factors have finite fourth moments, the nuisance errors have finite fourth moments bounded
 almost surely by a common nonnegative envelope, and both fourth-moment nuisance errors are
 $o_p(1)$](hyp:hA_memLp,hv_memLp,B,hB,hΔl4_memLp,hΔm4_memLp,hΔl4_bound,hΔm4_bound,h_l_rate,h_m_rate);
@@ -118,11 +118,6 @@ theorem plr_oneStepOracleDML_isAsymLinear
     (h_m_meas :
       ∀ n, Measurable (fun (p : P.Ω × (γ × ℝ × ℝ)) =>
         S.plrGeneralMoment.m (η_hat n p.1) p.2 S.plrGeneralMoment.θ₀))
-    (h_m_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (fun ω z => S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀))
     (h_m_foldA_uncurry :
       ∀ n,
         Measurable[(MeasurableSpace.comap
@@ -187,7 +182,7 @@ theorem plr_oneStepOracleDML_isAsymLinear
     (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML_isAsymLinear_of_ae
       S.plrGeneralMoment hMZ hFV sample split hc_pos h_split_rate η_hat
       (Crem := Crem) (fun n => Eventually.of_forall (hBR_at n))
-      h_m_meas h_m_foldA h_m_foldA_uncurry
+      h_m_meas h_m_foldA_uncurry
       (fun n => Eventually.of_forall (h_m_int n))
       (fun n => Eventually.of_forall (h_m_sq_int n))
       h_score_diff_rate h_product_rate)
@@ -201,8 +196,8 @@ true score has finite second moment](hyp:hU,hUV,hbX,hD,hV,hsq); for the estimate
 sequence `η_hat`, [the outcome- and treatment-regression errors are square-integrable in the
 covariate law at every fold and draw, with the resulting cross terms against the structural error
 and the treatment residual integrable](hyp:hΔl,hΔm,hUΔm,hΔlV,hVΔm); [the estimated score is
-jointly measurable and measurable as a function of the nuisance-training fold alone and jointly
-with the observation](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry), and [integrable and
+jointly measurable, and measurable in the nuisance-training fold jointly
+with the observation](hyp:h_m_meas,h_m_foldA_uncurry), and [integrable and
 square-integrable at every fold and draw](hyp:h_m_int,h_m_sq_int);
 [the residual factors have finite fourth moments](hyp:hA_memLp,hv_memLp),
 [the nuisance errors have finite fourth moments](hyp:hΔl4_memLp,hΔm4_memLp),
@@ -251,11 +246,6 @@ theorem plr_oneStepOracleDML_tendstoNormal
     (h_m_meas :
       ∀ n, Measurable (fun (p : P.Ω × (γ × ℝ × ℝ)) =>
         S.plrGeneralMoment.m (η_hat n p.1) p.2 S.plrGeneralMoment.θ₀))
-    (h_m_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (fun ω z => S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀))
     (h_m_foldA_uncurry :
       ∀ n,
         Measurable[(MeasurableSpace.comap
@@ -316,7 +306,7 @@ theorem plr_oneStepOracleDML_tendstoNormal
   have hAL :=
     S.plr_oneStepOracleDML_isAsymLinear sample split hc_pos h_split_rate η_hat
       hU hUV hbX hD hV hsq hΔl hΔm hUΔm hΔlV hVΔm
-      h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int h_m_sq_int
+      h_m_meas h_m_foldA_uncurry h_m_int h_m_sq_int
       hA_memLp hv_memLp hB hΔl4_memLp hΔm4_memLp hΔl4_bound hΔm4_bound
       h_l_rate h_m_rate h_product_rate
   exact hAL.tendsto_normal_foldB split hψ_meas hθn_meas hSum_meas

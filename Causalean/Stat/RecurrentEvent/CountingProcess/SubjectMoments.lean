@@ -9,7 +9,7 @@ needed to turn finite predictable quadratic energy into compensated-count
 second-moment identities.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory
 
@@ -108,7 +108,7 @@ theorem subject_prefix_mixed_hazard_integrable_prod {n : ℕ}
         exact measurable_const.ite hs measurable_const)
   have hsection : ∀ᵐ x ∂μ, Integrable (fun s => f (x, s)) ν := by
     filter_upwards [subject_hazard_path_integrable_ae failureLaw censorLaw hazard
-      hFailure hHazard H hMeasurable i u hu hQuadratic] with x hx
+      hHazard H hMeasurable i u hQuadratic] with x hx
     have hinterval : IntervalIntegrable
         (fun s => H s x * hazard s * riskIndicator i s x) volume 0 u :=
       (intervalIntegrable_iff_integrableOn_Icc_of_le hu).2 hx
@@ -161,7 +161,7 @@ theorem subject_prefix_mixed_hazard_integrable_prod {n : ℕ}
       ?_ (integrable_const 0)
       (he_outer.const_mul (∫ s in Set.Icc 0 u, hazard s ∂volume))
     filter_upwards [subject_hazard_path_integrable_ae failureLaw censorLaw hazard
-      hFailure hHazard H hMeasurable i u hu hQuadratic,
+      hHazard H hMeasurable i u hQuadratic,
       henergy_subject, he_path] with x hx hxe hxt
     have hbound := subject_prefix_mixed_abs_integral_le_energy
       hazard hHazard.2.2.1 H i u hu x (hHazard.2.2.2.1 u) hx hxe
@@ -241,7 +241,7 @@ theorem subject_prefix_mixed_event_integrable {n : ℕ}
     by simpa only [Real.norm_eq_abs] using hPmeas.norm
   have hQnonneg : ∀ s x, 0 ≤ Q s x := fun s x => abs_nonneg _
   have hlin := predictable_censor_compensator_lintegral
-    failureLaw censorLaw hazard hFailure hHazard Q hQpred hQmeas hQnonneg i u hu
+    failureLaw censorLaw hazard hFailure hHazard Q hQpred hQmeas hQnonneg i u
   have hJoint := subject_prefix_mixed_hazard_integrable_prod
     failureLaw censorLaw hazard hFailure hHazard H hMeasurable i u hu hQuadratic
   have hfinite : (∫⁻ x : Sample n, ∫⁻ s in Set.Icc 0 u,
@@ -305,22 +305,18 @@ theorem subject_prefix_mixed_event_integrable {n : ℕ}
   exact (integrable_norm_iff hm.aestronglyMeasurable).1 (by
     simpa only [Real.norm_eq_abs] using hnorm)
 
-/-- If [a subject's censor time is nonnegative](hyp:hc0) and [occurs by the horizon u](hyp:hcu),
-and [the subject's at-risk payoff weighted by the censor hazard is integrable from 0 to
-u](hyp:hazard,hPath), then
+/-- If [a subject's censor time occurs by the horizon u](hyp:hcu), then for [a censor hazard](hyp:hazard)
 [the accumulated payoff up to u times the payoff at the censor time equals the accumulated payoff
 up to the censor time times the same payoff](goal). -/
 theorem subject_mixed_event_stops {n : ℕ}
     (hazard : ℝ → ℝ) (H : ℝ → Sample n → ℝ)
     (i : Fin n) (x : Sample n) (u : ℝ)
-    (hc0 : 0 ≤ (x i).2) (hcu : (x i).2 ≤ u)
-    (hPath : Integrable (fun s => H s x * hazard s * riskIndicator i s x)
-      (volume.restrict (Set.Icc 0 u))) :
+    (hcu : (x i).2 ≤ u) :
     (∫ s in Set.Icc 0 u,
       H s x * hazard s * riskIndicator i s x ∂volume) * H (x i).2 x =
     (∫ s in Set.Icc 0 (x i).2,
       H s x * hazard s * riskIndicator i s x ∂volume) * H (x i).2 x := by
   exact congrArg (fun z : ℝ => z * H (x i).2 x)
-    (subject_hazard_stops_at_censor hazard H i x u hc0 hcu hPath)
+    (subject_hazard_stops_at_censor hazard H i x u hcu)
 
 end Causalean.Stat.RecurrentEvent.CountingProcess

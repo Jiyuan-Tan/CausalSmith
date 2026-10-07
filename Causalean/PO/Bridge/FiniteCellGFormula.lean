@@ -39,8 +39,12 @@ def observedY (A Y0 Y1 : Ω → Bool) (ω : Ω) : Bool :=
 
 /-- A [sample space](hyp:Ω), [covariate space](hyp:γ), and [population
 measure](hyp:μ) determine a binary observed table with covariate-indexed arm
-probabilities and outcome means. Its fields record the observed variables,
-measurable kernels, integrability, and the four setwise cell identities. -/
+probabilities and outcome means. Its fields record the covariate, the binary
+treatment, and the two binary potential outcomes; measurable arm-probability
+and outcome-mean functions of the covariate with values between zero and one;
+integrability; the observed law as the joint law of covariate, treatment, and
+realized outcome; and the setwise cell identities expressing the probability of
+each treatment-outcome cell over a covariate set through those functions. -/
 structure FiniteCellData (Ω γ : Type*) [MeasurableSpace Ω] [MeasurableSpace γ]
     (μ : Measure Ω) where
   X : Ω → γ

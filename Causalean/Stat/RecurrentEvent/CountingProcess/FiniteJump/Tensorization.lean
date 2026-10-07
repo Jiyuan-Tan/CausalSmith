@@ -9,8 +9,9 @@ subject isometry. Cross-prefix compensation gives distinct-subject
 orthogonality under the iid path law, even for a common integrand depending on
 all subject histories. Finite-sum algebra then gives the aggregate isometry.
 
-The former coordinate-only `copy*` theorems are superseded by this interface:
-independence of the integrals themselves is not valid for full-sample payoffs.
+This interface covers payoffs depending on the whole sample, for which
+independence of the subject integrals themselves is not valid; the
+coordinate-only `copy*` definitions cover only integrands of a subject's own path.
 -/
 
 public section
@@ -43,7 +44,7 @@ theorem SampleModel.distinct_subject_integrals_orthogonal (S : SampleModel n Ω 
       Integrable (C k l) (finiteSampleLaw n μ) ∧
       (∫ x, E k l x ∂finiteSampleLaw n μ) =
         ∫ x, C k l x ∂finiteSampleLaw n μ := by
-    have hp := S.crossPayoff_predictable H hPredictable hbound k l
+    have hp := S.crossPayoff_predictable H hPredictable k l
     have hm := (S.process k).predictable_joint_measurable _ hp
     obtain ⟨hjAbs, heAbs⟩ := S.crossPayoff_integrable H hPredictable hbound k l
     have hj : Integrable (E k l) (finiteSampleLaw n μ) := by
@@ -70,7 +71,7 @@ theorem SampleModel.distinct_subject_integrals_orthogonal (S : SampleModel n Ω 
           rw [Real.norm_eq_abs, abs_mul, abs_of_nonneg
             (mul_nonneg ((S.process k).atRisk_nonneg t x)
               ((S.process k).intensity_nonneg t x))]
-    exact ⟨hj, he, (S.process k).predictable_compensator _ hp hjAbs heAbs⟩
+    exact ⟨hj, he, (S.process k).predictable_compensator _ hp hjAbs⟩
   have hi := hPair i j
   have hj := hPair j i
   have hPath : ∀ᵐ x ∂finiteSampleLaw n μ,

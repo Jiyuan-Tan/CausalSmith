@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.Fron
 
 /-! # A recurrent constant-path witness for the exact birthday distance. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.PomdpStateauditMinimax
 

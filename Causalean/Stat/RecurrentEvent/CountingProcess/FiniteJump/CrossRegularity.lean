@@ -27,10 +27,9 @@ noncomputable def SampleModel.crossPayoff (S : SampleModel n Ω μ)
 /-- An oriented cross payoff remains predictable for any subject's process,
 since all component processes share the full-sample history filtration. -/
 theorem SampleModel.crossPayoff_predictable (S : SampleModel n Ω μ)
-    (H : ℝ → (Fin n → Ω) → ℝ) (hH : S.LeftPredictable H)
-    (hbound : ∃ C : ℝ, ∀ t x, |H t x| ≤ C) (i j : Fin n) :
+    (H : ℝ → (Fin n → Ω) → ℝ) (hH : S.LeftPredictable H) (i j : Fin n) :
     (S.process i).Predictable (S.crossPayoff H j) := by
-  have hp := (S.process j).predictable_prefix H (S.process_predictable H hH j) hbound
+  have hp := (S.process j).predictable_prefix H (S.process_predictable H hH j)
   have hp' : (S.process i).Predictable ((S.process j).prefixIntegral H) := by
     unfold Model.Predictable at hp ⊢
     rw [S.process_filtration j] at hp
@@ -63,7 +62,7 @@ theorem SampleModel.crossPayoff_jump_abs_integrable (S : SampleModel n Ω μ)
     C * (C * (((S.process j).eventTimes x).card : ℝ) +
       C * (R * (S.process j).horizon))
   have hpay := (S.process i).predictable_joint_measurable _
-    (S.crossPayoff_predictable H hH ⟨C, hb⟩ i j)
+    (S.crossPayoff_predictable H hH i j)
   have hpaybound (t : ℝ) (x : Fin n → Ω) (ht : 0 < t)
       (hT : t ≤ (S.process i).horizon) : |S.crossPayoff H j t x| ≤ B x := by
     have hTj : t ≤ (S.process j).horizon := by
@@ -119,7 +118,7 @@ theorem SampleModel.crossPayoff_energy_abs_integrable (S : SampleModel n Ω μ)
     C * (C * (((S.process j).eventTimes x).card : ℝ) +
       C * (R * (S.process j).horizon))
   have hpay := (S.process i).predictable_joint_measurable _
-    (S.crossPayoff_predictable H hH ⟨C, hb⟩ i j)
+    (S.crossPayoff_predictable H hH i j)
   have hpaybound (t : ℝ) (x : Fin n → Ω) (ht : 0 < t)
       (hT : t ≤ (S.process i).horizon) : |S.crossPayoff H j t x| ≤ B x := by
     have hTj : t ≤ (S.process j).horizon := by
@@ -137,7 +136,7 @@ theorem SampleModel.crossPayoff_energy_abs_integrable (S : SampleModel n Ω μ)
     have hT := (S.process j).horizon_pos.le
     positivity
   obtain ⟨Ri, hRi, hri⟩ := (S.process i).rate_horizon_uniform_bound
-  exact (S.process i).integrable_energy_of_envelope _ hpay.abs B hi hnonneg Ri hRi
+  exact (S.process i).integrable_energy_of_envelope _ hpay.abs B hi hnonneg Ri
     (fun t x ht hT => (hri t x ht hT).2)
     (fun t x ht hT => by simpa only [abs_abs] using hpaybound t x ht hT)
 

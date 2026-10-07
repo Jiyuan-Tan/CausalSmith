@@ -8,8 +8,8 @@ public import Causalean.Stat.CLT.BerryEsseen.PrawitzBudgetLow
 
 The unchanged explicit smoothing envelope is bounded by four focused
 sufficient estimates. The three integral allocations are 1/4, 3/20, and
-3/5 of the ratio, summing to one. Their proofs remain separate obligations;
-exploratory numerical sampling is not a proof.
+3/5 of the ratio, summing to one. Each estimate is proved in its own imported
+module; this module only combines them.
 -/
 
 public section

@@ -6,7 +6,6 @@ Authors: Jiyuan Tan
 
 module
 public import Causalean.Experimentation.UnknownInterference.Basic
-public import Causalean.Experimentation.UnknownInterference.Bernoulli
 public import Causalean.Experimentation.UnknownInterference.Confidence
 public import Causalean.Experimentation.UnknownInterference.Consistency
 public import Causalean.Experimentation.UnknownInterference.Hajek

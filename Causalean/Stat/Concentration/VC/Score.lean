@@ -63,14 +63,13 @@ def radialPolynomialEnvelope (b : ℝ) (p : ℕ) (B : ℝ) : ℝ :=
   ((p + 1 : ℕ) : ℝ) * B * radialMonomialEnvelope b p
 
 /-- For [a Euclidean dimension and maximal degree](hyp:d,p),
-[a positive bandwidth](hyp:hq), [a nonnegative inner radius](hyp:ha),
-[an ordered annulus](hyp:hab), [a nonnegative coefficient bound](hyp:hB),
+[a positive bandwidth](hyp:hq), [a nonnegative coefficient bound](hyp:hB),
 [a center](hyp:x), [a boxed coefficient vector](hyp:β), and
 [an evaluation point](hyp:z), [the shared-center radial polynomial is bounded
 by its stated envelope](goal). -/
 theorem abs_boundedRadialPolynomial_le
     (d p : ℕ) {q a b B : ℝ}
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) (hB : 0 ≤ B)
+    (hq : 0 < q) (hB : 0 ≤ B)
     (x : EuclideanPoint d) (β : CoeffBox (Fin (p + 1)) B)
     (z : EuclideanPoint d) :
     |boundedRadialPolynomial d p q a b B x β z| ≤
@@ -88,7 +87,7 @@ theorem abs_boundedRadialPolynomial_le
     _ ≤ ∑ _k : Fin (p + 1), B * radialMonomialEnvelope b p := by
       exact Finset.sum_le_sum fun k _ =>
         mul_le_mul (β.2 k)
-          (abs_radialAnnulusMonomial_le d p k.1 hq ha hab
+          (abs_radialAnnulusMonomial_le d p k.1 hq
             (Nat.le_of_lt_succ k.2) x z)
           (abs_nonneg _) hB
     _ = radialPolynomialEnvelope b p B := by
@@ -109,15 +108,14 @@ genuinely indexed by shared-center polynomials.
 
 /-- For [a Euclidean dimension and maximal degree](hyp:d,p),
 [a location map](hyp:loc), [measurability of that map](hyp:hloc),
-[a positive bandwidth](hyp:hq), [a nonnegative inner radius](hyp:ha),
-[an ordered annulus](hyp:hab), and [a positive coefficient bound](hyp:hB),
+[a positive bandwidth](hyp:hq), and [a positive coefficient bound](hyp:hB),
 [boxed radial polynomials sharing one moving center have a uniform polynomial
 covering certificate](goal). -/
 theorem boundedRadialPolynomialOn_hasPolynomialL2Cover
     {Ω : Type u} [MeasurableSpace Ω]
     (d p : ℕ) (loc : Ω → EuclideanPoint d) {q a b B : ℝ}
     (hloc : Measurable loc)
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) (hB : 0 < B) :
+    (hq : 0 < q) (hB : 0 < B) :
     HasPolynomialL2Cover (boundedRadialPolynomialOn d p loc q a b B)
       (radialPolynomialEnvelope b p B) := by
   classical
@@ -147,7 +145,7 @@ theorem boundedRadialPolynomialOn_hasPolynomialL2Cover
       HasPolynomialL2Cover
         (fun x : EuclideanPoint d => fun ω =>
           radialAnnulusMonomial d q a b k.1 x (loc ω)) M := by
-    have hfull := radialMonomialOn_hasPolynomialL2Cover d p loc hloc hq ha hab
+    have hfull := radialMonomialOn_hasPolynomialL2Cover d p loc hloc (a := a) (b := b) hq
     have hpull :=
       Causalean.Stat.Concentration.HasPolynomialL2Cover.pullback
         hfull (fun x : EuclideanPoint d => (x, k))
@@ -219,8 +217,7 @@ this retains internal score-class cover centers and the displayed envelope.
 location map](hyp:hloc), [a finite family of arms, each measurable](hyp:harmMeas) and [bounded in
 absolute value by 1](hyp:harmBound), [a measurable response variable](hyp:hresponseMeas) that is
 [bounded in absolute value by R](hyp:hresponseBound), together with [a positive bandwidth
-q](hyp:hq), [a nonnegative annulus inner radius a](hyp:ha), [inner radius at most outer radius
-b](hyp:hab), [a positive polynomial-coefficient bound B](hyp:hB), and [a positive response bound
+q](hyp:hq), [a positive polynomial-coefficient bound B](hyp:hB), and [a positive response bound
 R](hyp:hR), then [the score formed by multiplying a bounded arm function, a radial monomial, and the
 residual of the response against a boxed radial-polynomial fit carries a positive-envelope uniform
 polynomial `L²(Q)` covering certificate — with envelope `radialResidualScoreEnvelope b p B R` —
@@ -236,7 +233,7 @@ theorem radialResidualScore_hasPolynomialL2Cover
     (harmBound : ∀ s ω, |arm s ω| ≤ 1)
     (hresponseMeas : Measurable response)
     (hresponseBound : ∀ ω, |response ω| ≤ R)
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b)
+    (hq : 0 < q)
     (hB : 0 < B) (hR : 0 < R) :
     HasPolynomialL2Cover
       (radialResidualScore d p loc arm response q a b B j)
@@ -276,13 +273,13 @@ theorem radialResidualScore_hasPolynomialL2Cover
       have hleading : HasPolynomialL2Cover
           (fun x : EuclideanPoint d => fun ω =>
             radialAnnulusMonomial d q a b j.1 x (loc ω)) M := by
-        have hfull := radialMonomialOn_hasPolynomialL2Cover d p loc hloc hq ha hab
+        have hfull := radialMonomialOn_hasPolynomialL2Cover d p loc hloc (a := a) (b := b) hq
         have hpull :=
           Causalean.Stat.Concentration.HasPolynomialL2Cover.pullback
             hfull (fun x : EuclideanPoint d => (x, j))
         exact hpull
       have hpoly := boundedRadialPolynomialOn_hasPolynomialL2Cover
-        d p loc hloc hq ha hab hB
+        d p loc hloc (a := a) (b := b) hq hB
       have hresponse : HasPolynomialL2Cover
           (fun _ : Unit => response) R := by
         exact finiteClass_hasPolynomialL2Cover (fun _ : Unit => response)
@@ -378,7 +375,7 @@ theorem radialResidualScore_hasUniformPolynomialL2CoverWith
         M := by
     refine ⟨16, 8 * (radialPseudoDimBound d p + 1), fun s => ?_⟩
     exact radialMonomialOn_hasPolynomialL2CoverWith d p s.loc s.loc_measurable
-      s.q_pos s.a_nonneg s.ab
+      s.q_pos
   have hradialDegree (k : Fin (p + 1)) :
       HasUniformPolynomialL2CoverOver S
         (fun s (x : EuclideanPoint d) ω =>

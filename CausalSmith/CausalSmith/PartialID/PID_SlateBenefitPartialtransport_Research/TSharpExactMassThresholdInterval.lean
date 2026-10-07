@@ -44,7 +44,7 @@ theorem sharp_exact_mass_threshold_interval
       sInf (benefitMass '' branchFreePolytope c hValid x) = c.benefitLower x ∧
       sSup (benefitMass '' branchFreePolytope c hValid x) = c.benefitUpper x) ∧
     (∀ x, c.mass x = 0 → branchFreePolytope c hValid x = {0}) ∧
-    Causalean.Stat.AttainableSet.IdentifiedInterval
+    Causalean.Stat.AttainableSet.IdentifiedSet
       (fun W : FullLawCandidate P 𝒳 K => benefitProbabilityOf W)
       (fun W : FullLawCandidate P 𝒳 K => FullLawFeasible S.observedLaw W) =
         c.identifiedIcc S.p S.observedLaw rfl (p_eq_observedCellWeights S)
@@ -172,7 +172,7 @@ theorem sharp_exact_mass_threshold_interval
     have hLU : L ≤ U := by
       dsimp [L, U, Capacities.endpointMap]
       exact (div_le_div_iff_of_pos_right model.positiveAggregateSurvivors).2 hsumLU
-    have houter : Causalean.Stat.AttainableSet.IdentifiedInterval
+    have houter : Causalean.Stat.AttainableSet.IdentifiedSet
         (fun W : FullLawCandidate P 𝒳 K => benefitProbabilityOf W)
         (fun W : FullLawCandidate P 𝒳 K => FullLawFeasible S.observedLaw W) ⊆
         Set.Icc L U := by

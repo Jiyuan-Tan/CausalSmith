@@ -26,9 +26,9 @@ noncomputable def pairedPoissonPredictive {L : ℕ} (P : ScalarMomentPriors L)
     (fun u => Measure.pi fun j : Fin b =>
       scalarPoissonPairLaw lambda t (P.node (u j)))
 
-/-- Given [a positive-degree moment prior](hyp:P,hL), [a pair count](hyp:b), [a nonnegative Poisson intensity and bounded nonnegative tilt](hyp:lambda,t,hlambda,ht,ht1), and [the scale budget](hyp:hscale), [the paired Poisson predictive distance is bounded by the product moment remainder](goal). -/
+/-- Given [a moment prior](hyp:P), [a pair count](hyp:b), [a nonnegative Poisson intensity and bounded nonnegative tilt](hyp:lambda,t,hlambda,ht,ht1), and [the scale budget 100·λ·t² ≤ L](hyp:hscale), [the total variation distance between the paired Poisson predictive laws of the two prior sides is at most b · 2^(−L/4)](goal). -/
 theorem pairedPoissonPredictive_tv_le {L : ℕ} (P : ScalarMomentPriors L)
-    (hL : 1 ≤ L) (b : ℕ) (lambda t : ℝ) (hlambda : 0 ≤ lambda)
+    (b : ℕ) (lambda t : ℝ) (hlambda : 0 ≤ lambda)
     (ht : 0 ≤ t) (ht1 : t ≤ 1)
     (hscale : 100 * lambda * t ^ 2 ≤ (L : ℝ)) :
     Causalean.Stat.tvDist
@@ -74,7 +74,7 @@ theorem pairedPoissonPredictive_tv_le {L : ℕ} (P : ScalarMomentPriors L)
   rw [hfactor false, hfactor true]
   exact (Causalean.Stat.Minimax.MomentMatchedMixture.tvDist_pi_iid_le b _ _).trans
     (mul_le_mul_of_nonneg_left
-      (scalarPoissonPredictive_tv_le P hL lambda t hlambda ht ht1 hscale)
+      (scalarPoissonPredictive_tv_le P lambda t hlambda ht ht1 hscale)
       (Nat.cast_nonneg b))
 
 end Causalean.Stat.Minimax.Multinomial.TwoSampleL1

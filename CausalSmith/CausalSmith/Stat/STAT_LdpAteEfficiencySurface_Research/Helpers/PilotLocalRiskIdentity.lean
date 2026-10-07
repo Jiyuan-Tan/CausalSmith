@@ -4,7 +4,7 @@ public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Pil
 
 /-! # Exact transcript-law identity for private-pilot local risk -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

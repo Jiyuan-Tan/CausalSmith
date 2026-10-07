@@ -94,14 +94,6 @@ lemma finite_measure_halfline_tails_small (Q : Measure ℝ) [IsFiniteMeasure Q]
     have h2 : (N₂ : ℝ) ≤ (max N₁ N₂ : ℝ) := by exact_mod_cast le_max_right N₁ N₂
     linarith
 
-/-- Compatibility alias for probability-measure half-line tail control. -/
-@[deprecated finite_measure_halfline_tails_small (since := "2026-08-04")]
-lemma gaussian_tail_small (Q : Measure ℝ) [IsProbabilityMeasure Q] {ε : ℝ} (hε : 0 < ε) :
-    ∃ R : ℝ, 0 < R ∧
-      Q (Set.Iic (-R)) ≤ ENNReal.ofReal ε ∧
-      Q (Set.Ici R) ≤ ENNReal.ofReal ε :=
-  finite_measure_halfline_tails_small Q hε
-
 /-- Both symmetric half-line tails of a Gaussian distribution can be
 made smaller than any positive tolerance by choosing a sufficiently large
 positive cutoff. -/

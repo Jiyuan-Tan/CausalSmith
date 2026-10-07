@@ -25,7 +25,8 @@ variable {Ω A κ : Type*} [MeasurableSpace Ω] [MeasurableSpace A]
 
 /-- The [zero-totalized empirical centered cell mean](goal) divides the cell
 sum of [responses centered at the specified value](hyp:Y,c) by the cell count
-for [the given partition, covariates, label, and sample](hyp:label,X,k,z). -/
+for [the given partition, covariates, label, and sample](hyp:label,X,k,z), and equals zero
+when the sample has no observation in the cell. -/
 def centeredCellMean {m : ℕ} (label : A → κ) (X : Ω → A)
     (Y : Ω → ℝ) (c : ℝ) (k : κ) (z : Fin m → Ω) : ℝ :=
   cellSum label X (fun ω => Y ω - c) k z / (cellCount label X k z : ℝ)
@@ -97,14 +98,14 @@ theorem integrable_centeredCellMean_sq {m : ℕ}
     simpa only [centeredCellMean, div_pow] using
       (div_le_self (sq_nonneg (cellSum label X (fun ω => Y ω - c) k z)) hn2).trans hcs'
 
-/-- [Measurable inputs and integrable response moments](hyp:hlabel,hX,hY,hint,hsq),
+/-- [Measurable inputs and integrable response moments](hyp:hlabel,hX,hint,hsq),
 [zero cell residual mean](hyp:hcenter), and [positive cell mass](hyp:hp) give
 [a patternwise squared centered-mean integral equal to the within-cell second
 moment times the patternwise totalized reciprocal-count integral](goal). -/
 theorem integral_centeredCellMean_sq_on_pattern {m : ℕ}
     (μ : Measure Ω) [IsProbabilityMeasure μ] (label : A → κ) (X : Ω → A)
     (Y : Ω → ℝ) (c : ℝ) (k : κ) (T : Finset (Fin m))
-    (hlabel : Measurable label) (hX : Measurable X) (hY : Measurable Y)
+    (hlabel : Measurable label) (hX : Measurable X)
     (hint : Integrable Y μ) (hsq : Integrable (fun ω => Y ω ^ 2) μ)
     (hcenter : (∫ ω in cell label X k, (Y ω - c) ∂μ) = 0)
     (hp : 0 < cellMass μ label X k) :
@@ -145,7 +146,7 @@ theorem integral_centeredCellMean_sq_on_pattern {m : ℕ}
         rw [cellCount_on_pattern label X k T z hz, hsum z hz, div_pow]
       _ = _ := by
         rw [integral_div, integral_centered_sum_sq_on_pattern
-          μ label X Y c k T hlabel hX hY hint hsq hcenter]
+          μ label X Y c k T hlabel hX hint hsq hcenter]
   by_cases hT : T.card = 0
   · rw [hmean]
     have hrec :

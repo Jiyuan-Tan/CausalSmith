@@ -15,7 +15,7 @@ variable, so latent unconfoundedness is immediate; the marked law supplies the
 complete propensity and reproduces the observable record law.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean
 namespace PO

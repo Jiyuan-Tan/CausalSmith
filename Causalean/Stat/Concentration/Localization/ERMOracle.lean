@@ -10,21 +10,22 @@ public import FoML.Main
 
 /-! # Generic ERM oracle inequality via Rademacher complexity
 
-The method-agnostic learning-theory rate: for empirical risk minimization over a
-(countable) hypothesis class with a bounded loss, the excess population risk of the
-empirical minimizer is controlled by the Rademacher complexity of the loss class plus a
-McDiarmid tail term.  This is the engine that turns a complexity bound for a specific
-method's loss class into a concrete excess-risk rate.
+The method-agnostic learning-theory rate: for empirical risk minimization over a hypothesis
+class with a loss bounded in absolute value by b, the excess population risk of any estimator
+whose empirical risk does not exceed that of a comparator h⋆ is controlled by the Rademacher
+complexity 𝔯ₙ of the loss class plus a McDiarmid tail term. This turns a complexity bound for a
+specific method's loss class into a concrete excess-risk rate.
 
-* `erm_excess_le_two_uniformDeviation` — deterministic ERM basic inequality:
-  `R(ĥ) − R(h⋆) ≤ 2·uniformDeviation`.
-* `erm_oracle_inequality` — high-probability oracle inequality: chains the basic
-  inequality with FoML's symmetrization + McDiarmid tail
-  (`uniform_deviation_tail_bound_countable`), giving
-  `μⁿ{ 4·𝔯ₙ + 2ε < R(ĥ) − R(h⋆) } ≤ exp(−ε² t n)`.
+## Main results
 
-Built on the FoML `Rademacher`/`uniformDeviation` machinery (re-exported under
-`Causalean.Stat.Concentration`).
+* `erm_excess_le_two_uniformDeviation` — deterministic basic inequality: on every sample,
+  R(ĥ) − R(h⋆) ≤ 2 · sup over the class of |Rₙ − R|.
+* `erm_oracle_inequality` — for a countable class, iid samples of size n, ε ≥ 0 and a tail
+  parameter t with t·b² ≤ 1/2,
+  P( R(ĥ) − R(h⋆) > 4·𝔯ₙ + 2ε ) ≤ exp(−ε² t n).
+  It chains the basic inequality with symmetrization and McDiarmid's inequality.
+* `erm_oracle_inequality_separable` — the same bound when the index set is a separable,
+  first-countable topological space and the loss depends continuously on the index.
 -/
 
 public section

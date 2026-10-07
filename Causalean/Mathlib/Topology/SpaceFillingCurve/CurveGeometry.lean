@@ -38,7 +38,7 @@ theorem LocalizedCubeMap.surjectiveOn {d : ℕ} {T : DyadicTraversal d}
   exact ⟨k, H.localizes n k t htk, hxk⟩
 
 /-- Given [a cube dimension and traversal](hyp:d,T), [a localized map](hyp:H), [a dimension of at least two](hyp:hd),
-and [two unit-interval parameters](hyp:s,t,hs,ht), [the map's squared Euclidean increment obeys the stated Hölder bound](goal). -/
+and [two unit-interval parameters](hyp:s,t,hs,ht), [the squared Euclidean distance between the map's two values is at most 16·d·|s − t|^(2/d)](goal), a Hölder bound of exponent 1/d. -/
 theorem LocalizedCubeMap.modulus {d : ℕ} {T : DyadicTraversal d}
     (H : LocalizedCubeMap d T) (hd : 2 ≤ d) {s t : ℝ}
     (hs : s ∈ Set.Icc (0 : ℝ) 1) (ht : t ∈ Set.Icc (0 : ℝ) 1) :

@@ -735,7 +735,7 @@ lemma doseWitness_kl_nfold_le {p0 : (Fin d → ℝ) → ℝ} {q0 : ℝ → ℝ}
         (Measure.pi fun _ : Fin n => μ)
         (Measure.pi fun _ : Fin n => ν) ≠ ∞ := by
     exact InformationTheory.klDiv_ne_top
-      (Causalean.Mathlib.InformationTheory.pi_iid_absolutelyContinuous μ ν hac n)
+      (Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous μ ν hac n)
       (Causalean.Mathlib.InformationTheory.pi_iid_llr_integrable μ ν hac hint n)
   calc
     InformationTheory.klDiv

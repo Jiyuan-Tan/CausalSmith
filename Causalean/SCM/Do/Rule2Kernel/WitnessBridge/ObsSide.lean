@@ -42,7 +42,7 @@ respects the W–Y confounding allowed by the backdoor criterion.  (The old
 
 The spine is:
 
-* `condDistrib_map_comp` (Mathlib helper): transport the obs-level
+* `ProbabilityTheory.condDistrib_map` (Mathlib): transport the obs-level
   `condDistrib π_Y π_{Zr∪W} (obsKernel s)` onto the latent space
   `latentProduct`, where `π ∘ E` are the pulled-back coordinate maps.
 * `condDistrib_map_of_condDistrib_fst_eq` (witness lemma, `CondDistribWitness.lean`):
@@ -200,7 +200,7 @@ theorem obsSide_eq_witness (M : Causalean.SCM N Ω)
     `Zr∪W` is, `μ_C`-a.e. (μ_C the `(Zr∪W)`-marginal of `obsKernel s`), the posterior
     witness kernel evaluated at the `(Zr, W)`-split of the conditioning value.
     Assembled from `obsCondKernel_ae_eq_condDistrib` (obsCondKernel ↔ condDistrib),
-    `condDistrib_map_comp` (transport onto `latentProduct`),
+    `condDistrib_map` (transport onto `latentProduct`),
     `condDistrib_comp_right_measurableEquiv` with `valuesUnionEquiv` (re-split the
     union conditioning into the pair), and `obsSide_eq_witness` (the witness
     identity). -/
@@ -270,9 +270,9 @@ theorem obsCondKernel_union_eq_witness (M : Causalean.SCM N Ω)
   have h1 := M.obsCondKernel_ae_eq_condDistrib Y (Z.image SWIGNode.random ∪ W) hY hZrW s
   -- Step 2: transport the condDistrib onto `latentProduct` along `E`.
   have hobs : M.obsKernel s = M.latentProduct.map E := M.obsKernel_eq_latentProduct_map s
-  have h2 := condDistrib_map_comp (𝒴 := ValuesOn Y (swigΩ Ω))
-    M.latentProduct (φ := E) (g := valuesProjection hY) (f := valuesProjection hZrW)
-    hEmeas hπY hπZrW
+  have h2 := ProbabilityTheory.condDistrib_map (ν := M.latentProduct) (f := E)
+    hπZrW.aemeasurable hπY.aemeasurable hEmeas.aemeasurable
+  rw [← MeasureTheory.Measure.map_map hπZrW hEmeas] at h2
   -- Step 3: reparametrize the `πZrW∘E` conditioning by the union iso.
   have h3 := condDistrib_comp_right_measurableEquiv (Ω := ValuesOn Y (swigΩ Ω))
     M.latentProduct (Y := valuesProjection hY ∘ E) (X := valuesProjection hZrW ∘ E)

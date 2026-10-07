@@ -52,7 +52,7 @@ lemma holderOnCube_tensor_approx (d : ℕ) (β L : ℝ) (hβ : 0 < β) (hL : 0 <
     exact ha i
   obtain ⟨Cb, hCb, happrox⟩ :=
     Causalean.Stat.Nonparametric.holder_taylor_monomial_approx_uniform_center
-      (L := A * L) (r := 2) hβ (mul_pos hA hL) (by norm_num) expo hcover
+      (L := A * L) (r := 2) hβ (mul_pos hA hL) expo hcover
   refine ⟨(Cb + 1) * A, by positivity, ?_⟩
   intro f hf b h hh hh1
   obtain ⟨g, hg, hfg⟩ := hext f L hf

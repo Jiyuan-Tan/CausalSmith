@@ -8,10 +8,17 @@ module
 
 public import Mathlib.Data.List.Infix
 
-/-! # List append and tail identities
+/-!
+# Length and entries of a list appended to the tail of another
 
-This file provides index-level identities for a list formed by appending the tail of one
-nonempty list to another list.
+For a nonempty list q, the list formed by appending the tail of q to a list p has length
+|p| + |q| − 1, agrees with p at positions below |p|, and has the entry of q at position
+j − |p| + 1 at each later position j. This describes the concatenation of two walks or paths that
+share an endpoint, the shared vertex being listed once.
+
+## Main results
+
+* `get_appendTail` — the length formula and both indexing rules, in one statement.
 -/
 
 public section

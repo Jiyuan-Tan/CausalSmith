@@ -190,10 +190,15 @@ theorem bad_occupancy_rate (epsilon : ℝ) (hepsilon : 0 < epsilon)
     _ ≤ B * (1 / (n : ℝ) + (Fintype.card κ : ℝ) / (n : ℝ) ^ 2) :=
       hrate n (Fintype.card κ) hn
 
-/-- An [overlap margin below one half](hyp:epsilon,hepsilon,hepsilon_half)
-gives [a uniform `1/n + card(κ)/n²` bound for expected guarded reciprocal
-usable occupancy](goal) under any finite measurable cell law; a zero usable
-total contributes zero.
+/-- For an [overlap margin ε strictly between zero and one half](hyp:epsilon,hepsilon,hepsilon_half),
+[there is a positive constant B, depending only on ε, such that the following
+holds for every finite set of cells, every probability law on cell-arm pairs,
+and every positive sample size n: if in each cell of positive mass both
+arm-cell pairs have mass at least ε times the cell mass, then under n
+independent draws the expectation of the reciprocal of the usable total (the
+number of observations in cells containing both arms), with the reciprocal
+read as zero when the usable total is zero, is at most B·(1/n + card(κ)/n²),
+where card(κ) is the number of cells](goal).
 
 Proof route: apply `fixed_design_laplace_rate`. For a positive threshold `t`,
 the guarded reciprocal is pointwise at most `1/t + exp(t) * exp(-usableTotal)`;

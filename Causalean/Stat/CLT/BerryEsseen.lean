@@ -103,9 +103,30 @@ public import Causalean.Stat.CLT.BerryEsseen.SmoothingKernelTail
 public import Causalean.Stat.CLT.BerryEsseen.SymmetrizedThirdMoment
 public import Causalean.Stat.CLT.BerryEsseen.TriangularCosineIntegral
 
-/-! # Quantitative scalar normal approximation
+/-! # The Berry–Esseen theorem for iid real sums
 
-This barrel exports the Fourier-analytic quantitative normal approximation package for scalar iid laws with a finite third absolute moment.
+The Berry–Esseen theorem with explicit constant one. For n ≥ 1 independent draws from a real law
+with mean zero, variance σ² > 0 and E|X|³ ≤ M₃ < ∞, the distribution function of the standardized
+sum (X₁ + … + Xₙ)/(σ√n) differs from the standard normal distribution function Φ at every point
+by at most M₃/(σ³√n). The proof is Fourier-analytic: a smoothing inequality bounds the
+distribution-function discrepancy by an integral of the characteristic-function discrepancy,
+the iid product structure gives local and tail bounds on that discrepancy, and a Prawitz-type
+smoothing kernel with a verified numerical budget brings the constant down to one.
+
+## Main results
+
+* `iid_real_berry_esseen` — the bound above, for every n ≥ 1 and every threshold.
+* `iid_unit_variance_berry_esseen` — the unit-variance case, n ≥ 2, from which the general case
+  follows by rescaling; the case n = 1 uses E|X|³ ≥ σ³.
+* `normal_cdf_smoothing`, `cdf_esseen_inversion_lipschitz` — Esseen's smoothing inequality:
+  the discrepancy from a reference law whose distribution function is L-Lipschitz is at most
+  (1/π) ∫ over [−T, T] of |φ_μ(t) − φ_ν(t)|/|t| dt, plus 24L/(πT).
+* `gaussian_charFun_quadratic_remainder` — |exp(−t²/2) − (1 − t²/2)| ≤ t⁴/8.
+* `prawitz_berry_esseen_budget` — the deterministic numerical estimate closing the argument:
+  for third-moment ratio ρ in (0, 1), the smoothing envelope at the chosen cutoffs is at most ρ.
+
+The remaining modules supply the sinc-kernel Fourier analysis, the Prawitz kernel and its
+certified rational enclosures, and the characteristic-function estimates for iid products.
 -/
 
 public section

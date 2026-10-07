@@ -98,16 +98,11 @@ evaluation fraction converges to a positive limit](hyp:sample,split,c,_hc_pos,_h
 [nuisance fits and good events](hyp:η_hat,goodSet), [vanishing failure bounds
 for those events](hyp:Δ,_hΔ,_hfail), [a remainder constant and a bilinear
 bound on each good event](hyp:Crem,_hBR_at), [joint and uncurried
-training-fold product measurability](hyp:_h_m_meas,_h_m_foldA_uncurry), [a
-curried training-fold witness retained for interface
-compatibility](hyp:_h_m_foldA), [score
+training-fold product measurability](hyp:_h_m_meas,_h_m_foldA_uncurry), [score
 integrability and square-integrability on the good events](hyp:_h_m_int,_h_m_sq_int),
 and [vanishing score-difference and product rates](hyp:_h_score_diff_rate,_h_product_rate),
 [the one-step estimator is asymptotically linear with the
 inverse-scale-weighted true score](goal).
-
-The proof uses the uncurried product-measurability witness; the separate
-curried witness is accepted by the interface but does not enter the argument.
 
 Hypotheses (mirroring `dml_asymptoticLinear`):
 
@@ -120,8 +115,7 @@ Hypotheses (mirroring `dml_asymptoticLinear`):
                   membership. Neyman orthogonality is implicitly required for
                   the bound and is checked when constructing that predicate;
 * one-shot split with rate `|B(n)|/n → c ∈ (0, ∞)` (`hc_pos`, `h_split_rate`);
-* joint and uncurried fold-A product measurability; the separate curried
-  witness is retained for interface compatibility and is not used by the proof;
+* joint and uncurried fold-A product measurability;
 * product rate `ρ₁ · ρ₂ = o_p(n^{-1/2})`;
 * `h_score_diff_rate` — abstract analogue of AIPW's
   `aipw_score_diff_isLittleOp_one`.
@@ -150,11 +144,6 @@ theorem oneStepOracleDML_isAsymLinear_on_highProbEvent
                  ((M.ρ₂ (η_hat n ω) M.η₀ : NNReal) : ℝ))
     (_h_m_meas :
       ∀ n, Measurable (fun (p : Ω × Z) => M.m (η_hat n p.1) p.2 M.θ₀))
-    (_h_m_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (fun ω z => M.m (η_hat n ω) z M.θ₀))
     (_h_m_foldA_uncurry :
       ∀ n,
         Measurable[(MeasurableSpace.comap
@@ -219,16 +208,6 @@ theorem oneStepOracleDML_isAsymLinear_on_highProbEvent
       change Measurable (fun p : Ω × Z =>
         M.m (η_hat n p.1) p.2 M.θ₀ - M.m M.η₀ p.2 M.θ₀)
       exact (_h_m_meas n).sub ((M.m_meas M.η₀ M.θ₀).comp measurable_snd)
-    have hf_foldA :
-        ∀ n,
-          Measurable[MeasurableSpace.comap
-            (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-            (fun ω => f n ω) := by
-      intro n
-      change Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-        (fun ω z => M.m (η_hat n ω) z M.θ₀ - M.m M.η₀ z M.θ₀)
-      exact (_h_m_foldA n).sub measurable_const
     have hf_uncurry_foldA :
         ∀ n,
           Measurable[(MeasurableSpace.comap
@@ -529,13 +508,9 @@ evaluation fraction](hyp:sample,split,_hc_pos,_h_split_rate), and [nuisance
 fits](hyp:η_hat), assume the population remainder, score integrability, and
 score square-integrability conditions [hold almost
 surely](hyp:_hBR_at,_h_m_int,_h_m_sq_int), the score has [joint and uncurried
-training-fold product measurability](hyp:_h_m_meas,_h_m_foldA_uncurry), the
-interface also accepts [a compatibility curried
-witness](hyp:_h_m_foldA), and [the score and
-product rates vanish](hyp:_h_score_diff_rate,_h_product_rate). Then [the
-one-step estimator is asymptotically linear](goal).
-
-The compatibility witness does not enter the proof. -/
+training-fold product measurability](hyp:_h_m_meas,_h_m_foldA_uncurry), and
+[the score and product rates vanish](hyp:_h_score_diff_rate,_h_product_rate).
+Then [the one-step estimator is asymptotically linear](goal). -/
 theorem oneStepOracleDML_isAsymLinear_of_ae
     [StandardBorelSpace Ω] [IsFiniteMeasure μ] [IsProbabilityMeasure μ]
     (M : GeneralMoment Ω μ Z P_Z H)
@@ -554,10 +529,6 @@ theorem oneStepOracleDML_isAsymLinear_of_ae
           ((M.ρ₂ (η_hat n ω) M.η₀ : NNReal) : ℝ))
     (_h_m_meas : ∀ n,
       Measurable (fun (p : Ω × Z) => M.m (η_hat n p.1) p.2 M.θ₀))
-    (_h_m_foldA : ∀ n,
-      Measurable[MeasurableSpace.comap
-        (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-        (fun ω z => M.m (η_hat n ω) z M.θ₀))
     (_h_m_foldA_uncurry : ∀ n,
       Measurable[(MeasurableSpace.comap
           (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
@@ -598,7 +569,6 @@ theorem oneStepOracleDML_isAsymLinear_of_ae
   · intro n ω hω
     exact hω.1
   · exact _h_m_meas
-  · exact _h_m_foldA
   · exact _h_m_foldA_uncurry
   · intro n ω hω
     exact hω.2.1
@@ -607,22 +577,25 @@ theorem oneStepOracleDML_isAsymLinear_of_ae
   · exact _h_score_diff_rate
   · exact _h_product_rate
 
-/-- **Asymptotic linearity of one-shot DML on a deterministic nuisance good
-set.** Given [a moment system and its mean-zero and finite-variance
-conditions](hyp:M,_hMZ,_hFV), [a sample and split, a positive split limit, and
-nuisance fits](hyp:sample,split,_hc_pos,_h_split_rate,η_hat),
-assume [a uniform bilinear remainder bound on the nuisance set](hyp:_hBR), [a
-failure-probability sequence](hyp:Δ) that [vanishes](hyp:_hΔ), [the fits miss that set with
-probability at most the stated bound](hyp:_hT), [the score has joint and
-uncurried training-fold product
-measurability](hyp:_h_m_meas,_h_m_foldA_uncurry), and the interface accepts [a
-compatibility curried witness](hyp:_h_m_foldA),
-[every nuisance value in the set gives an integrable square-integrable
-score](hyp:_h_m_int,_h_m_sq_int), and [the score and product rates
-vanish](hyp:_h_score_diff_rate,_h_product_rate). Then [the one-step estimator is
-asymptotically linear with the inverse-scale-weighted true score](goal).
-
-The compatibility witness does not enter the proof. -/
+/-- **Asymptotic linearity of the oracle one-step DML estimator on a nuisance good set.** Take [a
+moment system with score m, true nuisance η₀, true parameter θ₀, a set 𝒯 of admissible nuisance
+values, two error gauges ρ₁ and ρ₂, and a nonzero linearization scale J₀](hyp:M) whose [score has
+mean zero at the truth](hyp:_hMZ) and [finite second moment at the truth](hyp:_hFV). Let [an
+i.i.d. sample](hyp:sample) be [split once into a training fold and an evaluation fold](hyp:split)
+whose [evaluation-fold share of the first n observations converges](hyp:_h_split_rate) to [a
+positive limit](hyp:_hc_pos), and let [η̂_n be the nuisance fit at sample size n](hyp:η_hat).
+Assume [for every η in 𝒯 the population moment of m(η, ·, θ₀) is bounded in absolute value by a
+fixed constant times ρ₁(η, η₀)·ρ₂(η, η₀)](hyp:_hBR); [η̂_n falls outside 𝒯 with probability at
+most Δ_n](hyp:_hT), where [Δ_n is a sequence of bounds](hyp:Δ) that [tends to zero](hyp:_hΔ); [the
+map (ω, z) ↦ m(η̂_n(ω), z, θ₀) is jointly measurable](hyp:_h_m_meas) and [is measurable with
+respect to the product of the σ-algebra generated by the training-fold observations and the
+σ-algebra on the observation space](hyp:_h_m_foldA_uncurry); [for every η in 𝒯 the score m(η, ·,
+θ₀) is integrable](hyp:_h_m_int) and [square-integrable](hyp:_h_m_sq_int) under the observation
+law; [the L² distance between m(η̂_n, ·, θ₀) and m(η₀, ·, θ₀) is o_p(1)](hyp:_h_score_diff_rate);
+and [the product ρ₁(η̂_n, η₀)·ρ₂(η̂_n, η₀) is o_p(n^(−1/2))](hyp:_h_product_rate). Then [the
+oracle one-step estimator, θ₀ minus J₀⁻¹ times the evaluation-fold average of m(η̂_n, Z_i, θ₀), is
+asymptotically linear at θ₀ along the evaluation fold with influence function −J₀⁻¹·m(η₀, z,
+θ₀)](goal). -/
 theorem oneStepOracleDML_isAsymLinear_of_goodSet
     [StandardBorelSpace Ω] [IsFiniteMeasure μ] [IsProbabilityMeasure μ]
     (M : GeneralMoment Ω μ Z P_Z H)
@@ -641,11 +614,6 @@ theorem oneStepOracleDML_isAsymLinear_of_goodSet
     (_hT : ∀ n, μ {ω | η_hat n ω ∉ M.H_ε} ≤ Δ n)
     (_h_m_meas :
       ∀ n, Measurable (fun (p : Ω × Z) => M.m (η_hat n p.1) p.2 M.θ₀))
-    (_h_m_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (fun ω z => M.m (η_hat n ω) z M.θ₀))
     (_h_m_foldA_uncurry :
       ∀ n,
         Measurable[(MeasurableSpace.comap
@@ -681,7 +649,6 @@ theorem oneStepOracleDML_isAsymLinear_of_goodSet
   · intro n ω hω
     exact _hBR (η_hat n ω) hω
   · exact _h_m_meas
-  · exact _h_m_foldA
   · exact _h_m_foldA_uncurry
   · intro n ω hω
     exact _h_m_int (η_hat n ω) hω
@@ -694,14 +661,11 @@ theorem oneStepOracleDML_isAsymLinear_of_goodSet
 conditions](hyp:M,_hMZ,_hFV,sample,split,_hc_pos,_h_split_rate,η_hat,_hBR),
 [the measurability, integrability, and rate inputs used by the
 proof](hyp:_h_m_meas,_h_m_foldA_uncurry,_h_m_int,_h_m_sq_int,_h_score_diff_rate,_h_product_rate),
-and [a curried training-fold witness retained for
-compatibility](hyp:_h_m_foldA),
 if [the nuisance fit belongs to the set almost surely at every sample
 size](hyp:_hT), then [the one-step estimator is asymptotically linear](goal).
 
 This is the zero-failure-probability corollary of
-`oneStepOracleDML_isAsymLinear_of_goodSet`. The compatibility witness does not
-enter the proof. -/
+`oneStepOracleDML_isAsymLinear_of_goodSet`. -/
 theorem oneStepOracleDML_isAsymLinear_of_goodSet_ae
     [StandardBorelSpace Ω] [IsFiniteMeasure μ] [IsProbabilityMeasure μ]
     (M : GeneralMoment Ω μ Z P_Z H)
@@ -718,10 +682,6 @@ theorem oneStepOracleDML_isAsymLinear_of_goodSet_ae
     (_hT : ∀ n, ∀ᵐ ω ∂μ, η_hat n ω ∈ M.H_ε)
     (_h_m_meas : ∀ n,
       Measurable (fun (p : Ω × Z) => M.m (η_hat n p.1) p.2 M.θ₀))
-    (_h_m_foldA : ∀ n,
-      Measurable[MeasurableSpace.comap
-        (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-        (fun ω z => M.m (η_hat n ω) z M.θ₀))
     (_h_m_foldA_uncurry : ∀ n,
       Measurable[(MeasurableSpace.comap
           (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
@@ -750,7 +710,6 @@ theorem oneStepOracleDML_isAsymLinear_of_goodSet_ae
       exact hω
     simpa [hz]
   · exact _h_m_meas
-  · exact _h_m_foldA
   · exact _h_m_foldA_uncurry
   · exact _h_m_int
   · exact _h_m_sq_int
@@ -763,11 +722,7 @@ regularity](hyp:_hBR_at,_h_m_int,_h_m_sq_int) and
 conditions](hyp:M,_hMZ,_hFV,sample,split,_hc_pos,_h_split_rate,η_hat), [joint
 and uncurried product measurability](hyp:_h_m_meas,_h_m_foldA_uncurry), and
 [the score and product rates](hyp:_h_score_diff_rate,_h_product_rate),
-plus [a curried training-fold witness retained for
-compatibility](hyp:_h_m_foldA), [the one-step estimator is asymptotically
-linear](goal).
-
-The compatibility witness does not enter the proof. -/
+[the one-step estimator is asymptotically linear](goal). -/
 theorem oneStepOracleDML_isAsymLinear_of_everywhere
     [StandardBorelSpace Ω] [IsFiniteMeasure μ] [IsProbabilityMeasure μ]
     (M : GeneralMoment Ω μ Z P_Z H)
@@ -786,10 +741,6 @@ theorem oneStepOracleDML_isAsymLinear_of_everywhere
           ((M.ρ₂ (η_hat n ω) M.η₀ : NNReal) : ℝ))
     (_h_m_meas :
       ∀ n, Measurable (fun (p : Ω × Z) => M.m (η_hat n p.1) p.2 M.θ₀))
-    (_h_m_foldA : ∀ n,
-      Measurable[MeasurableSpace.comap
-        (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-        (fun ω z => M.m (η_hat n ω) z M.θ₀))
     (_h_m_foldA_uncurry : ∀ n,
       Measurable[(MeasurableSpace.comap
           (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
@@ -813,7 +764,6 @@ theorem oneStepOracleDML_isAsymLinear_of_everywhere
     _hc_pos _h_split_rate η_hat
   · exact fun n => Filter.Eventually.of_forall (_hBR_at n)
   · exact _h_m_meas
-  · exact _h_m_foldA
   · exact _h_m_foldA_uncurry
   · exact fun n => Filter.Eventually.of_forall (_h_m_int n)
   · exact fun n => Filter.Eventually.of_forall (_h_m_sq_int n)

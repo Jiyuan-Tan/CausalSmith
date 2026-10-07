@@ -79,14 +79,6 @@ lemma foldB_eq_Ico (split : OneShotSplit S) (n : ℕ) :
   ext i
   simp [OneShotSplit.foldB, Finset.mem_Ico, and_comm]
 
-omit [IsProbabilityMeasure μ] in
-/-- For [a one-shot sample split](hyp:split) and [a sample size](hyp:n), [the
-size of its estimation fold is the sample size minus the split point](goal).
-
-Deprecated compatibility name for `OneShotSplit.foldB_card`. -/
-@[deprecated foldB_card (since := "2026-09-15")]
-alias card_foldB := foldB_card
-
 end OneShotSplit
 
 namespace IIDSample
@@ -172,11 +164,8 @@ theorem clt_normalizedFoldB
     (hψ_sq_int : Integrable (fun x => (ψ x) ^ 2) P)
     (hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinear.normalizedSum S ψ split.foldB n) μ) :
-    Tendsto_dist
-      (IsAsymLinear.normalizedSum S ψ split.foldB)
-      (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P))
-      μ
-      hSum_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (IsAsymLinear.normalizedSum S ψ split.foldB) atTop
+        (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P)) := by
   have hFull_meas : ∀ n, AEMeasurable
       (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m) n) μ := by
     intro n
@@ -189,7 +178,8 @@ theorem clt_normalizedFoldB
     convert split.cogrow using 1
     funext n
     exact split.foldB_card n
-  rw [Tendsto_dist_iff] at hFull ⊢
+  replace hFull := (Tendsto_dist_iff _ _ _ hFull_meas).1 hFull
+  rw [Tendsto_dist_iff _ _ _ hSum_meas]
   refine ProbabilityMeasure.tendsto_iff_tendsto_charFun.mpr fun t => ?_
   have hFull_char :=
     (ProbabilityMeasure.tendsto_iff_tendsto_charFun.mp hFull t).comp hcard_tendsto
@@ -227,7 +217,7 @@ every sample size, then [`√|B(n)| · (θn n − θ₀)` converges in distribut
 centered Gaussian law with variance `∫ψ²dP`](goal).
 
 Direct combination of `clt_normalizedFoldB` (the fold-B CLT) with
-`Tendsto_dist.add_isLittleOp_one` (Slutsky absorption). -/
+`Modes.TendstoInLaw.add_isLittleOp_one` (Slutsky absorption). -/
 theorem IsAsymLinear.tendsto_normal_foldB
     (split : OneShotSplit S)
     (h : IsAsymLinear θn θ₀ ψ S split.foldB)
@@ -236,14 +226,11 @@ theorem IsAsymLinear.tendsto_normal_foldB
       (IsAsymLinear.rescaledEstimator θn θ₀ split.foldB n) μ)
     (hSum_meas : ∀ n : ℕ, AEMeasurable
       (IsAsymLinear.normalizedSum S ψ split.foldB n) μ) :
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator θn θ₀ split.foldB)
-      (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P))
-      μ
-      hθn_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (IsAsymLinear.rescaledEstimator θn θ₀ split.foldB) atTop
+        (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P)) := by
   have hCLT :=
     IIDSample.clt_normalizedFoldB S split hψ_meas h.mean_zero h.finite_var hSum_meas
-  refine Tendsto_dist.add_isLittleOp_one hSum_meas hθn_meas hCLT ?_
+  refine Modes.TendstoInLaw.add_isLittleOp_one hCLT hθn_meas ?_
   simpa [IsAsymLinear.normalizedSum, IsAsymLinear.rescaledEstimator] using h.remainder
 
 /-- **Conversion to √n-rate under a fixed split ratio.** Along an i.i.d. sample `S` under
@@ -261,11 +248,8 @@ theorem IsAsymLinear.tendsto_normal_foldB_sqrt_n
     (hψ_meas : Measurable ψ)
     (hθn_meas : ∀ n : ℕ, AEMeasurable
       (fun ω => Real.sqrt (n : ℝ) * (θn n ω - θ₀)) μ) :
-    Tendsto_dist
-      (fun n ω => Real.sqrt (n : ℝ) * (θn n ω - θ₀))
-      (gaussianMeasure 0 ((∫ x, (ψ x) ^ 2 ∂P) / c))
-      μ
-      hθn_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => Real.sqrt (n : ℝ) * (θn n ω - θ₀)) atTop
+        (gaussianMeasure 0 ((∫ x, (ψ x) ^ 2 ∂P) / c)) := by
   let a : ℕ → ℝ :=
     fun n => (Real.sqrt ((split.foldB n).card : ℝ))⁻¹ * Real.sqrt (n : ℝ)
   let σ2 : ℝ := ∫ x, (ψ x) ^ 2 ∂P
@@ -296,9 +280,8 @@ theorem IsAsymLinear.tendsto_normal_foldB_sqrt_n
     exact (measurable_const.mul
       (Finset.measurable_sum _ (fun i _hi => hψ_meas.comp (S.meas i)))).aemeasurable
   have hfold :
-      Tendsto_dist
-        (IsAsymLinear.rescaledEstimator θn θ₀ split.foldB)
-        (gaussianMeasure 0 σ2) μ hfold_meas := by
+      Modes.TendstoInLaw (fun _ : ℕ => μ) (IsAsymLinear.rescaledEstimator θn θ₀ split.foldB) atTop
+          (gaussianMeasure 0 σ2) := by
     simpa [σ2] using h.tendsto_normal_foldB split hψ_meas hfold_meas hSum_meas
   have hscaled_meas : ∀ n : ℕ,
       AEMeasurable
@@ -333,10 +316,10 @@ theorem IsAsymLinear.tendsto_normal_foldB_sqrt_n
       ring
     · rw [Real.sqrt_inv]
   have hscaled :
-      Tendsto_dist
-        (fun n ω => a n * IsAsymLinear.rescaledEstimator θn θ₀ split.foldB n ω)
-        (gaussianMeasure 0 (((Real.sqrt c)⁻¹) ^ 2 * σ2)) μ hscaled_meas :=
-    Tendsto_dist.const_mul_tendsto_gaussian hfold_meas hfold hscale_tendsto
+      Modes.TendstoInLaw (fun _ : ℕ => μ)
+          (fun n ω => a n * IsAsymLinear.rescaledEstimator θn θ₀ split.foldB n ω) atTop
+          (gaussianMeasure 0 (((Real.sqrt c)⁻¹) ^ 2 * σ2)) :=
+    Modes.TendstoInLaw.const_mul_tendsto_gaussian hfold hscale_tendsto
   have h_eventual_eq : ∀ᶠ n in atTop,
       (fun ω => a n * IsAsymLinear.rescaledEstimator θn θ₀ split.foldB n ω)
         =ᵐ[μ] (fun ω => Real.sqrt (n : ℝ) * (θn n ω - θ₀)) := by
@@ -354,7 +337,7 @@ theorem IsAsymLinear.tendsto_normal_foldB_sqrt_n
   have hvar : (Real.sqrt c ^ 2)⁻¹ * σ2 = σ2 / c := by
     rw [Real.sq_sqrt hc_pos.le]
     ring
-  exact Tendsto_dist.congr_ae hscaled_meas hθn_meas (by simpa [hvar, σ2] using hscaled)
+  exact Modes.TendstoInLaw.congr_ae (by simpa [hvar, σ2] using hscaled) hθn_meas
     h_eventual_eq
 
 end Causalean.Stat

@@ -18,8 +18,12 @@ namespace Causalean.Mathlib.Probability.Kernel.ThreeBernoulli.SelectedLawKL
 open Causalean.Mathlib.Probability.Kernel.ThreeBernoulli
 
 /-- [The sum of four selected-cell KL contributions equals the two weighted
-Bernoulli divergences](goal) for a [strictly interior propensity](hyp:he0,he1)
-and [strictly interior outcome means](hyp:hq₀0,hq₀1,hq₁0,hq₁1,hq₀'0,hq₀'1,hq₁'0,hq₁'1).
+Bernoulli divergences](goal) for a [strictly interior propensity](hyp:he0,he1).
+
+The four outcome probabilities are unrestricted: when one of them is zero or one (or lies
+outside the unit interval), both sides are evaluated with the conventions that the logarithm of
+zero and a quotient by zero are zero, and the identity is a statement about Kullback–Leibler
+divergences only for outcome probabilities strictly between zero and one.
 
 Split both finite sums on `Bool`. Cancel the common positive propensity
 factor in the log quotient using `Real.log_mul` or `Real.log_div`, then unfold
@@ -27,11 +31,7 @@ factor in the log quotient using `Real.log_mul` or `Real.log_div`, then unfold
 -/
 theorem sum_cellMass_mul_log_ratio_eq_weighted_bernoulliKL
     {e q₀ q₁ q₀' q₁' : ℝ}
-    (he0 : 0 < e) (he1 : e < 1)
-    (hq₀0 : 0 < q₀) (hq₀1 : q₀ < 1)
-    (hq₁0 : 0 < q₁) (hq₁1 : q₁ < 1)
-    (hq₀'0 : 0 < q₀') (hq₀'1 : q₀' < 1)
-    (hq₁'0 : 0 < q₁') (hq₁'1 : q₁' < 1) :
+    (he0 : 0 < e) (he1 : e < 1) :
     (∑ a : Bool, ∑ y : Bool,
       cellMass e q₀ q₁ a y *
         Real.log (cellMass e q₀ q₁ a y / cellMass e q₀' q₁' a y)) =

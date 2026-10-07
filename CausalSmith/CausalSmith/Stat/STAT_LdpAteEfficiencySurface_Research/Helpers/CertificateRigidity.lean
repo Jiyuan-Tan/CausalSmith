@@ -9,7 +9,7 @@ regions.  Equality in the certificate bound forces every inactive staircase
 weight to vanish.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

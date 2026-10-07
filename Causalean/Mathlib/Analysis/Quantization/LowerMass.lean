@@ -2,8 +2,21 @@ module
 public import Causalean.Mathlib.Analysis.Quantization.LowerBad
 public import Mathlib.MeasureTheory.Integral.Bochner.Set
 
-/-! Additivity of square-root diagonal mass across the good and bad parts of
-an arbitrary finite measurable partition. -/
+/-!
+# Good-region mass of a quantization partition
+
+For a finite measurable partition of [a, b] into cells with reproduction points, each cell splits
+into its bad region (points at distance at least δ from one of the cell's reproduction points) and
+the remaining good region. The integral over [a, b] of the square root of the diagonal weight
+Σ_s β_s(x, x), minus its integral over all bad regions, equals its integral over all good regions,
+for continuous strictly positive weights β_s. This bookkeeping identity feeds the lower bound on
+the optimal quantization cost.
+
+## Main results
+
+* `partition_good_mass_identity` — total square-root diagonal mass minus bad-region mass equals
+  good-region mass, for an arbitrary measurable partition and any threshold δ.
+-/
 
 public section
 

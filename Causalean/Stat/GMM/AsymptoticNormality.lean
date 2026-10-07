@@ -345,7 +345,7 @@ theorem gmm_asymLinear_of_extremum
     (m : E → X → ℝ)
     (hGC : WeakGlivenkoCantelli S m)
     (slack : ℕ → Ω → ℝ)
-    (hSlack : Tendsto_inProb slack (fun _ => 0) μ)
+    (hSlack : Modes.TendstoInProbability (fun _ : ℕ => μ) slack atTop (fun _ _ => 0))
     (hApprox : ∀ n ω,
       S.sampleMean (m prob.θ₀) n ω ≤ S.sampleMean (m (θn n ω)) n ω + slack n ω)
     (hSep : ∀ ε : ℝ, 0 < ε → ∃ η : ℝ, 0 < η ∧
@@ -414,7 +414,7 @@ theorem gmm_asymLinear_of_extremum_asymptoticEquicont
     (m : E → X → ℝ)
     (hGC : WeakGlivenkoCantelli S m)
     (slack : ℕ → Ω → ℝ)
-    (hSlack : Tendsto_inProb slack (fun _ => 0) μ)
+    (hSlack : Modes.TendstoInProbability (fun _ : ℕ => μ) slack atTop (fun _ _ => 0))
     (hApprox : ∀ n ω,
       S.sampleMean (m prob.θ₀) n ω ≤ S.sampleMean (m (θn n ω)) n ω + slack n ω)
     (hSep : ∀ ε : ℝ, 0 < ε → ∃ η : ℝ, 0 < η ∧

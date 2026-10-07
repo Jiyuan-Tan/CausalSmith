@@ -6,7 +6,7 @@ Authors: Jiyuan Tan
 # Convergence modes and stochastic order for random variables in metric and normed spaces
 
 Causal-agnostic primitives for the estimation layer.  Wraps Mathlib's
-`TendstoInMeasure` and `eLpNorm`; introduces `Tendsto_dist`, `IsBigOp`, and
+`TendstoInMeasure` and `eLpNorm`; introduces `Tendsto_L2`, `IsBigOp`, and
 `IsLittleOp` matching the natural-language definitions in
 `doc/basic_concepts/po/estimation.tex` (`def:est-conv-prob`,
 `def:est-conv-l2`, `def:est-conv-dist`, `def:est-stoch-order`).
@@ -14,7 +14,7 @@ Causal-agnostic primitives for the estimation layer.  Wraps Mathlib's
 All declarations are proved.  The arithmetic lemmas
 `IsLittleOp.mul_isBigOp`, `IsBigOp.add`, and
 `IsBigOp.mul_isLittleOp_one_isLittleOp`, plus the Δ-method helpers
-`Tendsto_dist.tightness` and `IsBigOp.const_mul_tendsto_zero`, are
+`Modes.TendstoInLaw.tightness` and `IsBigOp.const_mul_tendsto_zero`, are
 candidates for upstream contribution to Mathlib.
 -/
 
@@ -32,10 +32,12 @@ Defines extended-metric-valued convergence in probability, scalar L² convergenc
 convergence in distribution, and normed-space
 stochastic-order notation used by the estimation layer.
 
-The core predicates are `Tendsto_inProb`, `Tendsto_L2`, `Tendsto_dist`,
-`IsBigOp`, and `IsLittleOp`.  The main theorem set includes deterministic-scalar
-Slutsky for distributional convergence (`Tendsto_dist.const_mul_tendsto`),
-tightness from convergence in distribution (`Tendsto_dist.tightness`),
+The core predicates are `Tendsto_L2`, `IsBigOp`, and `IsLittleOp`; convergence in probability and
+in law along a sequence on a fixed probability space are `Modes.TendstoInProbability` and
+`Modes.TendstoInLaw` with constant row laws, unfolded by `Tendsto_inProb_iff` and
+`Tendsto_dist_iff`.  The main theorem set includes deterministic-scalar
+Slutsky for distributional convergence (`Modes.TendstoInLaw.const_mul_tendsto`),
+tightness from convergence in distribution (`Modes.TendstoInLaw.tightness`),
 degenerate Slutsky (`IsBigOp.const_mul_tendsto_zero`), and stochastic-order
 arithmetic such as `IsLittleOp.add_eventually_nonneg_rate`,
 `IsLittleOp.mul_isBigOp`, `IsBigOp.add`, and
@@ -52,35 +54,14 @@ variable {Ω : Type*} [MeasurableSpace Ω]
 
 /-! ## Convergence in probability -/
 
-/-- Given [a sequence of random variables in an extended-distance space](hyp:Xn), [a limiting
-random variable in that space](hyp:X), and [a measure on a measurable sample space](hyp:μ),
-[convergence in probability](goal) means that, for every positive tolerance, the measure of
-outcomes whose distance from the limit exceeds that tolerance tends to zero as the sample-size
-index tends to infinity.
-
-This is the fixed-space specialization of the row-varying convergence hub
-`TendstoInProbability` along the natural-number limit. -/
-@[deprecated "Use Causalean.Stat.Modes.TendstoInProbability." (since := "2026-09-18")]
-abbrev Tendsto_inProb {E : Type*} [EDist E]
-    (Xn : ℕ → Ω → E) (X : Ω → E) (μ : Measure Ω) : Prop :=
-  Modes.TendstoInProbability (fun _ => μ) Xn atTop (fun _ => X)
-
 /-- Convergence in probability of [a sequence in an extended-distance space](hyp:Xn) to [a
 limit](hyp:X) under [a measure](hyp:μ) is exactly [convergence in measure of that sequence along
 the natural numbers](goal). -/
 @[causal_defs_simps]
 lemma Tendsto_inProb_iff {E : Type*} [EDist E]
     (Xn : ℕ → Ω → E) (X : Ω → E) (μ : Measure Ω) :
-    Tendsto_inProb Xn X μ ↔ TendstoInMeasure μ Xn atTop X :=
-  Iff.rfl
-
-/-- Convergence in probability of [a natural-number-indexed sequence](hyp:Xn) to [a fixed
-limit](hyp:X) under [a fixed measure](hyp:μ) [is exactly the fixed-space specialization of the
-row-varying convergence hub](goal). -/
-lemma Tendsto_inProb_iff_hub {E : Type*} [EDist E]
-    (Xn : ℕ → Ω → E) (X : Ω → E) (μ : Measure Ω) :
-    Tendsto_inProb Xn X μ ↔
-      Modes.TendstoInProbability (fun _ => μ) Xn atTop (fun _ => X) :=
+    Modes.TendstoInProbability
+        (fun _ : ℕ => μ) Xn atTop (fun _ => X) ↔ TendstoInMeasure μ Xn atTop X :=
   Iff.rfl
 
 /-! ## L² convergence -/
@@ -97,22 +78,8 @@ def Tendsto_L2 (Xn : ℕ → Ω → ℝ) (X : Ω → ℝ) (μ : Measure Ω) : Pr
 Defined as weak convergence of the pushforward measures of `Xn` to a target
 probability measure `Q` on ℝ.  Phrased at the measure level (rather than as
 convergence to a limiting random variable) so the target laws — e.g. a
-Gaussian — can be supplied directly. The compatibility wrapper below specializes
-`Modes.TendstoInLaw` to a fixed measure and the natural-number limit. -/
-/-- Given [a sequence of real-valued random variables carrying a measurability argument that the
-definition no longer uses](hyp:Xn,_hXn), [a probability law on the real line](hyp:Q), and [a
-probability measure on a measurable sample space](hyp:μ),
-[convergence in distribution](goal) means that the sequence of induced laws converges weakly to
-the specified real-line probability law.
-
-This is the project-level scalar convergence-in-distribution wrapper, phrased directly
-in terms of pushforward probability measures. -/
-@[deprecated "Use Causalean.Stat.Modes.TendstoInLaw." (since := "2026-09-18")]
-abbrev Tendsto_dist (Xn : ℕ → Ω → ℝ) (Q : Measure ℝ) (μ : Measure Ω)
-    [IsProbabilityMeasure μ] [IsProbabilityMeasure Q]
-    (_hXn : ∀ n, AEMeasurable (Xn n) μ) : Prop :=
-  Modes.TendstoInLaw (fun _ => μ) Xn atTop Q
-
+Gaussian — can be supplied directly. `Tendsto_dist_iff` below unfolds `Modes.TendstoInLaw` with a
+fixed measure along the natural numbers into this pushforward form. -/
 /-- Convergence in distribution of a sequence of real random variables to a probability law on
 the real line is exactly convergence, in the space of probability measures on the real line, of
 the pushforward laws of the random variables to that law. -/
@@ -120,7 +87,7 @@ the pushforward laws of the random variables to that law. -/
 lemma Tendsto_dist_iff (Xn : ℕ → Ω → ℝ) (Q : Measure ℝ) (μ : Measure Ω)
     [IsProbabilityMeasure μ] [IsProbabilityMeasure Q]
     (hXn : ∀ n, AEMeasurable (Xn n) μ) :
-    Tendsto_dist Xn Q μ hXn ↔
+    Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q ↔
       Tendsto (β := ProbabilityMeasure ℝ)
         (fun n =>
           ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩) atTop
@@ -133,27 +100,29 @@ by
     refine ⟨hXn, by fun_prop, ?_⟩
     simpa only [ProbabilityMeasure.coe_mk, Measure.map_id] using h
 
-/-- Deterministic-scalar Slutsky for the project's measure-level
-`Tendsto_dist` wrapper.
+/-- If [a real sequence converges in distribution](hyp:hX) and [deterministic
+scalar multipliers converge to a constant](hyp:ha), then [the laws of the
+scaled sequence converge weakly to the limiting law scaled by that
+constant](goal).
 
 If `Xn ⇒ Q` and `a n → a₀`, then `a n * Xn ⇒ Q.map (fun x => a₀ * x)`.
 The nontrivial weak-convergence fact is isolated in
 `MeasureTheory.ProbabilityMeasure.tendsto_map_mul_of_tendsto`. -/
-theorem Tendsto_dist.const_mul_tendsto
+theorem Modes.TendstoInLaw.const_mul_tendsto
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     {Xn : ℕ → Ω → ℝ} {Q : Measure ℝ} [IsProbabilityMeasure Q]
     {a : ℕ → ℝ} {a₀ : ℝ}
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hX : Tendsto_dist Xn Q μ hXn)
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q)
     (ha : Tendsto a atTop (𝓝 a₀)) :
     Tendsto (β := ProbabilityMeasure ℝ)
       (fun n =>
         ⟨μ.map (fun ω => a n * Xn n ω),
           Measure.isProbabilityMeasure_map
-            ((measurable_const.mul measurable_id).aemeasurable.comp_aemeasurable (hXn n))⟩)
+            ((measurable_const.mul measurable_id).aemeasurable.comp_aemeasurable (hX.forall_aemeasurable n))⟩)
       atTop
       (𝓝 ⟨Q.map (fun x : ℝ => a₀ * x),
         Measure.isProbabilityMeasure_map (measurable_const.mul measurable_id).aemeasurable⟩) := by
+  have hXn : ∀ n, AEMeasurable (Xn n) μ := hX.forall_aemeasurable
   have hScaled : ∀ n, AEMeasurable (fun ω => a n * Xn n ω) μ := fun n =>
     (measurable_const.mul measurable_id).aemeasurable.comp_aemeasurable (hXn n)
   letI : IsProbabilityMeasure (Q.map (fun x : ℝ => a₀ * x)) :=
@@ -169,7 +138,6 @@ theorem Tendsto_dist.const_mul_tendsto
   · rfl
   · exact (measurable_const.mul measurable_id).aemeasurable
   · exact hXn n
-
 /-! ## Stochastic order -/
 
 /-- Given [a sequence of random variables in a seminormed additive group](hyp:Xn), [a real-valued
@@ -199,22 +167,20 @@ abbrev IsLittleOp {E : Type*} [SeminormedAddCommGroup E]
 
 /-! ## Tightness and degenerate Slutsky (helpers for the Δ-method)
 
-`Tendsto_dist.tightness` says that any sequence converging in distribution
+`Modes.TendstoInLaw.tightness` says that any sequence converging in distribution
 is bounded in probability (Prokhorov tightness for a single tight limit).
 `IsBigOp.const_mul_tendsto_zero` is the degenerate-Slutsky helper used in
 the Δ-method linearization step: `a n · X n` is `o_p(1)` whenever
 `a n → 0` and `X n` is `O_p(1)`. -/
 
-/-- **Tightness from convergence in distribution.**  Suppose [a real-valued sequence `Xn` is
-measurable at every sample size](hyp:hXn) and [it converges in distribution under `μ` to a
-probability measure `Q` on ℝ](hyp:hX). Then [`Xn` is bounded in probability, `O_p(1)`](goal).
-Standard fact: any single tight limit gives a tight sequence (Prokhorov). -/
-theorem Tendsto_dist.tightness
+/-- A real sequence that [converges in distribution to a probability
+law](hyp:hX) [is bounded in probability at the constant rate one](goal). -/
+theorem Modes.TendstoInLaw.tightness
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     {Xn : ℕ → Ω → ℝ} {Q : Measure ℝ} [IsProbabilityMeasure Q]
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hX : Tendsto_dist Xn Q μ hXn) :
+     (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q) :
     IsBigOp Xn (fun _ => (1 : ℝ)) μ := by
+  have hXn : ∀ n, AEMeasurable (Xn n) μ := hX.forall_aemeasurable
   intro δ hδ
   by_cases hδtop : δ = ⊤
   · exact ⟨1, one_pos, by simp [hδtop]⟩
@@ -245,7 +211,7 @@ theorem Tendsto_dist.tightness
   let F : Set ℝ := s N
   have hFclosed : IsClosed F := by
     exact isClosed_le continuous_const continuous_abs
-  simp only [causal_defs_simps] at hX
+  rw [Tendsto_dist_iff Xn Q μ hXn] at hX
   let νs : ℕ → ProbabilityMeasure ℝ := fun n =>
     ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩
   let ν : ProbabilityMeasure ℝ := ⟨Q, inferInstance⟩
@@ -276,7 +242,6 @@ theorem Tendsto_dist.tightness
   exact (((Filter.limsup_le_iff
     (u := fun n => μ {ω | ((N + 1 : ℕ) : ℝ) * (fun _ => (1 : ℝ)) n ≤ |Xn n ω|})
     (x := δ / 2)).mp hlim) δ hhalf_lt).mono fun _ hi => hi.le
-
 /-- **Degenerate Slutsky.**  If [a real-valued sequence `Xn` is bounded in probability,
 `O_p(1)`, under `μ`](hyp:hX), and [a deterministic scalar sequence `a` converges to
 `0`](hyp:ha), then [the product sequence `a n · Xn` is `o_p(1)`](goal).  Concretely: the product

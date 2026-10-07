@@ -8,8 +8,22 @@ module
 public import Causalean.ML.Surrogate.ClampedSquare
 public import Causalean.ML.Surrogate.ProperLoss
 
-/-! # Surrogate losses
+/-!
+# Surrogate losses
 
-This barrel exports the clamped-square contraction tool for bounded squared
-losses and the proper/strictly-proper binary-loss population-risk interface.
+Two tools for replacing a loss by a better-behaved one. The clamped square agrees with t² on
+[−c, c], is 2c-Lipschitz on the whole line and vanishes at zero, which is what a contraction
+argument needs to pass Rademacher complexity bounds through the squared loss on a bounded
+prediction range. A proper binary loss is one whose expected value under a Bernoulli(η) label is
+minimized by predicting η; integrating this shows that predicting the true conditional probability
+has the smallest population risk among measurable [0, 1]-valued predictors, and for a strictly
+proper loss every population risk minimizer equals the true conditional probability almost
+everywhere.
+
+## Contents
+
+* `ClampedSquare` — `clampedSq`, `clampedSq_eq_sq` (agreement with the square on the band) and
+  `lipschitzAt0_clampedSq` (the Lipschitz and zero-at-zero property).
+* `ProperLoss` — `ProperBinaryLoss`, `StrictProperBinaryLoss`, `properLoss_population_risk_le`
+  and `properLoss_population_minimizer_recovers_eta`.
 -/

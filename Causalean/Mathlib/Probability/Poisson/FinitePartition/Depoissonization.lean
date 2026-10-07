@@ -77,15 +77,14 @@ lemma cellObservationLaw_eq_of_restrict_eq
   rw [dif_neg hpos, dif_neg hν, ← hmass, hrest]
 
 /-- For [two observation probability laws](hyp:P,Q), [a real-valued mark law](hyp:R), and
-[a sample size](hyp:n), suppose [the size is positive](hyp:hn),
-[the divergence budget is nonnegative](hyp:hB), and
-[the product-law divergence is within that budget](hyp:hpi).
+[a sample size](hyp:n), suppose [the size is positive](hyp:hn) and
+[the product-law divergence is within a budget](hyp:hpi).
 [The corresponding doubled-mean marked Poisson divergence is at most twice the budget](goal). -/
 lemma markedPoissonKL_le_two_mul_of_piKL
     {X : Type*} [MeasurableSpace X] [StandardBorelSpace X]
     (P Q : Measure X) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
     (R : Measure ℝ) [IsProbabilityMeasure R]
-    (n : ℕ) (hn : 1 ≤ n) {B : ℝ} (hB : 0 ≤ B)
+    (n : ℕ) (hn : 1 ≤ n) {B : ℝ}
     (hpi : InformationTheory.klDiv
       (Measure.pi (fun _ : Fin n => P))
       (Measure.pi (fun _ : Fin n => Q)) ≤ ENNReal.ofReal B) :
@@ -97,9 +96,8 @@ lemma markedPoissonKL_le_two_mul_of_piKL
   have hone_le : InformationTheory.klDiv P Q ≤
       InformationTheory.klDiv (Measure.pi (fun _ : Fin n => P))
         (Measure.pi (fun _ : Fin n => Q)) := by
-    have h := Causalean.Mathlib.InformationTheory.Measure.klDiv_map_le
-      (measurable_pi_apply i) (μ := Measure.pi (fun _ : Fin n => P))
-        (ν := Measure.pi (fun _ : Fin n => Q))
+    have h := InformationTheory.klDiv_map_le (Measure.pi (fun _ : Fin n => P))
+      (Measure.pi (fun _ : Fin n => Q)) (measurable_pi_apply i)
     rw [Measure.pi_map_eval, Measure.pi_map_eval] at h
     simpa using h
   have hprod_ne : InformationTheory.klDiv

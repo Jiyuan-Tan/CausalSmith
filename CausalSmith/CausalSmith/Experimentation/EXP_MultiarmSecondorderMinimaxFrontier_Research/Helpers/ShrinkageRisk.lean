@@ -566,7 +566,7 @@ lemma shrinkageProcedure_risk_bound_of_tail (K n : ℕ) (c : Contrast ℝ K)
     (htail : 4 * Real.sqrt (lambdaC c) * (n : ℝ) *
       Real.exp (-(n : ℝ) ^ (1 / 3 : ℝ) / 8) ≤
         Real.sqrt (lambdaC c) / 2 - lambdaC c / 16) :
-    Causalean.Stat.worstCaseRisk
+    Causalean.Stat.worstCaseRiskReal
       (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z)
       (shrinkageProcedure K n c) ≤
         C0 c * ((n : ℝ)⁻¹ - kappaC c * (n : ℝ) ^ (-(4 / 3 : ℝ))) := by

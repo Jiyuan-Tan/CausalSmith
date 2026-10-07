@@ -240,8 +240,8 @@ lemma dense_product_prior_bayesRisk_lower :
     (denseProductPoissonKernel_probability d r a) est hest (measurable_densePriorTarget d a)
     (1 / 2 + a * (∫ t, |t| ∂P.ν₀) / 2) (1 / 2 + a * (∫ t, |t| ∂P.ν₁) / 2)
     Delta (Delta / 4) (1 / 8) (1 / 8) (1 / 8)
-    hDelta.le (by positivity) (by dsimp [Delta] at *; linarith)
-    (by dsimp [Delta]; linarith) (by norm_num) (by norm_num) (by norm_num)
+    (by dsimp [Delta] at *; linarith)
+    (by dsimp [Delta]; linarith)
     (ht P.ν₀ P.supported₀ P.symmetric₀) (ht P.ν₁ P.supported₁ P.symmetric₁) htv
   convert hb using 1
   congr 1

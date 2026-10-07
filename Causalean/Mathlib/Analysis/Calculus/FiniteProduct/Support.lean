@@ -137,10 +137,15 @@ theorem leibnizTerm22_all_same (I : Finset ι) (J : FactorJets ι)
   have hri : r ≠ i := (Finset.mem_erase.mp hi).1.symm
   simp [hri]
 
-/-- [The explicit fourth mixed jet](hyp:I,J,a,u) [splits into terms whose
-second-coordinate support is a singleton carrying the (2,2) factor jet,
-and terms whose support is two distinct indices each carrying order one](goal).
-The indices in the fourfold sum remain ordered, retaining every Leibniz multiplicity. -/
+/-- [The explicit mixed (2,2) jet of the finite product of the factors J over the index set I at a
+point (a, u)](hyp:I,J,a,u) [equals the sum, over single factors, of that factor's (2,2) jet times
+the base values of all the other factors, plus the sum of the ordered-hit Leibniz summands over all
+ordered pairs of first-coordinate hits and all ordered pairs of two distinct second-coordinate
+hits](goal).
+
+The first sum collects the terms whose second-coordinate support is a singleton, the second those
+whose support is two distinct indices each carrying order one. The indices in the fourfold sum
+remain ordered, retaining every Leibniz multiplicity. -/
 theorem productJet22_support_decomposition (I : Finset ι) (J : FactorJets ι)
     (a u : ℝ) :
     productJet22 I J a u =

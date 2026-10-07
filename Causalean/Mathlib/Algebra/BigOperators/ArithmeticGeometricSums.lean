@@ -10,8 +10,17 @@ public import Mathlib.Data.Real.Basic
 /-!
 # Finite arithmetic-geometric sums
 
-Exact identities and upper bounds for finite geometric sums with affine
-coefficients.
+Closed form and uniform bound for the truncated series ∑_{i<N} (i + 2)·zⁱ over the reals.
+Multiplying the partial sum by (1 − z)² gives exactly 2 − z − z^N·(N + 2 − (N + 1)·z), valid for
+every real z and every N; for 0 ≤ z < 1 this yields ∑_{i<N} (i + 2)·zⁱ ≤ (2 − z)/(1 − z)², the
+value of the infinite series, uniformly in N.
+
+## Main results
+
+* `shiftedArithmeticGeometric_sum_identity` — the exact identity for the partial sum times
+  (1 − z)².
+* `shiftedArithmeticGeometric_sum_le` — the partial sums are at most (2 − z)/(1 − z)² when
+  0 ≤ z < 1.
 -/
 
 public section
@@ -32,8 +41,8 @@ lemma shiftedArithmeticGeometric_sum_identity (z : ℝ) (N : ℕ) :
     ring
 
 /-- For [a nonnegative real ratio below one](hyp:z,hz,hz1) and [a truncation
-index](hyp:N), the finite sum with coefficient `i + 2` is [bounded by its
-infinite arithmetic-geometric limit](goal). -/
+index](hyp:N), [the finite sum of (i + 2)·zⁱ over i below N is at most
+(2 − z)/(1 − z)², the value of the corresponding infinite series](goal). -/
 lemma shiftedArithmeticGeometric_sum_le (z : ℝ) (hz : 0 ≤ z) (hz1 : z < 1)
     (N : ℕ) :
     (∑ i ∈ Finset.range N, ((i : ℝ) + 2) * z ^ i) ≤

@@ -72,7 +72,7 @@ private lemma map_prefixCoordinates_pi {X : Type*} [MeasurableSpace X]
   rw [← hc.map_eq]
   congr 1
 
-/-- Given [a measurable outcome space](hyp:X), [a probability law](hyp:P), [a Poisson mean](hyp:lam), [a fallback outcome](hyp:x₀), and [a prefix length](hyp:n), [the padded Poisson prefix law splits into the fixed iid law and the fallback law according to the count tail](goal). -/
+/-- Given [a measurable outcome space](hyp:X), [a probability law](hyp:P), [a Poisson mean](hyp:lam), [a fallback outcome](hyp:x₀), and [a prefix length](hyp:n), [the law of the padded prefix is the fixed-size iid law weighted by the probability that the Poisson count is at least n, plus a point mass at the constant fallback array weighted by the probability that the count is below n](goal). -/
 theorem finitePoissonSampleLaw_map_prefix {X : Type*} [MeasurableSpace X]
     (P : Measure X) [IsProbabilityMeasure P]
     (lam : ℝ≥0) (x₀ : X) (n : ℕ) :

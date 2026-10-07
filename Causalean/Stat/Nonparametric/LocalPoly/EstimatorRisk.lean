@@ -9,13 +9,28 @@ public import Causalean.Stat.Nonparametric.LocalPoly.EstimatorRisk.EstimatorRisk
 public import Causalean.Stat.Nonparametric.LocalPoly.EstimatorRisk.Unconditional
 
 /-!
-# Local-polynomial conditional bounds and generic unconditional lifts
+# Conditional risk of the local-polynomial estimator and unconditional lifts
 
-Reusable local-polynomial and probabilistic bounds, including density constants, leverage bounds,
-conditional MSE factorization, and generic unconditional risk lifts.
+Given the design, the degree-`p` local-polynomial intercept of a `β`-Hölder regression function
+has bias at most `Cbias · h^β` and stochastic L² error at most `Cvar · (Nh)^(−1/2)`, with the
+leverage constants expressed through lower and upper bounds on the design density over the kernel
+window. Separately, for a bounded estimator and a design-measurable good event, bounds on the
+conditional bias and variance that hold on the event lift to unconditional bounds, at the cost of
+a term proportional to the probability of the complement.
 
-This barrel collects square completion of the conditional bias/variance trade-off, density and
-leverage bounds, conditional MSE factorization, and generic theorems that lift assumed good-event
-bounds to the full sample law. It does not connect a random local-polynomial estimator, a concrete
-good-design event, and a concentration theorem in one capstone.
+## Main results
+
+* `localPoly_estimatorBias_window`, `localPoly_estimatorStochL2` (`EstimatorRisk/EstimatorRisk`) —
+  the conditional bias and stochastic-error bounds.
+* `localPoly_density_inv00_rate`, `localPoly_density_leverage_bound`
+  (`EstimatorRisk/DensityLeverage`) — conditional `O(1/(Nh))` leverage bounds with explicit density
+  constants; `popDesignMatrix_factor` and the quadratic-form sandwich lemmas support them.
+* `estimatorBias_unconditional`, `estimatorVariance_unconditional`,
+  `estimatorStochL2_unconditional` (`EstimatorRisk/Unconditional`) — the lifts from a good-design
+  event.
+
+`LocalPoly/RandomDesignRate` applies these lifts in dimension one to a design event that it
+constructs from kernel-moment concentration, giving an unconditional mean-squared-error bound and
+the `N^(-2β/(2β+1))` rate for the clipped estimator under a design density bounded above and
+below near the evaluation point.
 -/

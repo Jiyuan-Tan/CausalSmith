@@ -140,11 +140,11 @@ def positiveCells [Fintype κ] (μ : Measure Ω) (label : A → κ) (X : Ω → 
       measurable_const
   simpa [histogram] using hsum
 
-/-- [Unit-interval responses and default](hyp:hY,ha) ensure that
+/-- [A default value in the unit interval](hyp:ha) ensures that
 [every cell estimate belongs to the unit interval](goal). -/
 theorem cellEstimate_mem_Icc {m : ℕ} (label : A → κ) (X : Ω → A)
     (Y : Ω → ℝ) (a : ℝ) (k : κ) (z : Fin m → Ω)
-    (hY : ∀ r, Y (z r) ∈ Set.Icc (0 : ℝ) 1) (ha : a ∈ Set.Icc (0 : ℝ) 1) :
+    (ha : a ∈ Set.Icc (0 : ℝ) 1) :
     cellEstimate label X Y a k z ∈ Set.Icc (0 : ℝ) 1 := by
   unfold cellEstimate
   split_ifs with hzero

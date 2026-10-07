@@ -163,9 +163,9 @@ lemma twoPrior_fixedMixture_tv_le_randomScalePoisson
     Measure.isProbabilityMeasure_map hf.aemeasurable
   let _ : IsProbabilityMeasure (Measure.map f ρ₁) :=
     Measure.isProbabilityMeasure_map hf.aemeasurable
-  have herr₀ := tvDist_fixedMixture_map_rawMixture_le π₀ P₀ S₀ hS₀ u n
+  have herr₀ := tvDist_fixedMixture_map_rawMixture_le π₀ P₀ S₀ u n
     fallback hfixed₀ hraw₀
-  have herr₁ := tvDist_fixedMixture_map_rawMixture_le π₁ P₁ S₁ hS₁ u n
+  have herr₁ := tvDist_fixedMixture_map_rawMixture_le π₁ P₁ S₁ u n
     fallback hfixed₁ hraw₁
   have hcontract : Causalean.Stat.tvDist (Measure.map f ρ₀)
       (Measure.map f ρ₁) ≤ Causalean.Stat.tvDist ρ₀ ρ₁ := by

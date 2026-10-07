@@ -19,8 +19,9 @@ namespace Causalean.Stat.CLT.BerryEsseen
 
 open MeasureTheory
 
-/-- At positive bandwidth `T`, this rescaled fourth power of sinc is a
-probability smoothing density with Fourier support in `[-T,T]`. -/
+/-- The fourth-power sinc kernel at bandwidth T and point x is
+(3T/(8π))·sinc(Tx/4)⁴. At positive bandwidth it is a probability density
+whose Fourier transform vanishes outside [−T, T]. -/
 noncomputable def sinc4Kernel (T x : ℝ) : ℝ :=
   (3 * T / (8 * Real.pi)) * (Real.sinc (T * x / 4)) ^ 4
 

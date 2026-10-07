@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_SparseheterogeneityCriticalRadius_Research.H
 
 /-! Removal of clipping and zero-mass ideal-cell artifacts in the upper-risk transport. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SparseheterogeneityCriticalRadius
 

@@ -15,7 +15,7 @@ Hájek array.  The resulting formula is the starting point for the remaining con
 estimate in the finite-population central limit theorem.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory
 open scoped BigOperators

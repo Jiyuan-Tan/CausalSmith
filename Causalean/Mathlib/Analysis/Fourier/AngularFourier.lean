@@ -31,7 +31,8 @@ power of two pi. -/
 def angularPrefactor (p : ℕ) : ℝ := (2 * Real.pi) ^ (-(p : ℝ) / 2)
 
 /-- The [angular Fourier transform](goal) of a [complex spatial function](hyp:G) at a
-[frequency](hyp:w) is its exponential integral multiplied by the unitary prefactor. -/
+[frequency](hyp:w) is (2π)^(−p/2) times the integral over u of exp(−i·⟨w, u⟩)·G(u), where p is
+the dimension and ⟨w, u⟩ is the sum of coordinate products. -/
 def angularFourier {p : ℕ} (G : Space p → ℂ) (w : Space p) : ℂ :=
   angularPrefactor p •
     ∫ u, Complex.exp (-Complex.I * ((∑ r, w r * u r : ℝ) : ℂ)) * G u
@@ -67,9 +68,13 @@ values](hyp:z), and [one real value](hyp:t) into a Euclidean point. -/
 def insertCoordinate {p : ℕ} (r : Fin p) (z : RemainingCoordinates r) (t : ℝ) : Space p :=
   WithLp.toLp 2 (fun s => if h : s = r then t else z ⟨s, h⟩)
 
-/-- [Real slice integration by parts](goal) for [a function and its coordinate
-derivatives](hyp:G,D) means the ordinary one-dimensional integral identity on every
-coordinate slice for every real continuously differentiable test pair. -/
+/-- [Real slice integration by parts](goal) for [a real function G and a family D of proposed
+coordinate derivatives](hyp:G,D) means: for every coordinate r, every base point x, and every
+real function v that is differentiable everywhere with continuous derivative v′, the integral
+over real t of G(x with coordinate r set to t)·v′(t) equals minus the integral over t of
+D_r(x with coordinate r set to t)·v(t). The identity is required on every coordinate line (not
+only almost every one) and for every such test function, with no support or decay condition on
+v; integrals of non-integrable functions are read as zero. -/
 def HasRealSliceIBP {p : ℕ} (G : Space p → ℝ) (D : Fin p → Space p → ℝ) : Prop :=
   ∀ (r : Fin p) (x : Space p) (v v' : ℝ → ℝ),
     (∀ t, HasDerivAt v (v' t) t) → Continuous v' →
@@ -125,13 +130,12 @@ theorem map_angularDilation_volume (p : ℕ) :
   simp only [Space, finrank_euclideanSpace, Fintype.card_fin, inv_pow, inv_inv]
   rw [abs_of_pos (pow_pos (by positivity : 0 < 2 * Real.pi) p)]
 
-/-- Normalized angular dilation preserves the squared energy of an almost
-everywhere measurable complex function, even when its energy is infinite.
+/-- Normalized angular dilation preserves the squared energy of a complex
+function, even when its energy is infinite.
 
-Use the preceding exact Jacobian and scalar cancellation. No integrability or
-Fourier estimate is a premise here. -/
-theorem l2Energy_normalized_dilation (F : Space p → ℂ)
-    (hF : AEMeasurable F volume) :
+Use the preceding exact Jacobian and scalar cancellation. No measurability,
+integrability or Fourier estimate is a premise here. -/
+theorem l2Energy_normalized_dilation (F : Space p → ℂ) :
     l2Energy (fun w => angularPrefactor p • F ((2 * Real.pi)⁻¹ • w)) =
       l2Energy F := by
   have hd : MeasurableEmbedding (fun w : Space p => (2 * Real.pi)⁻¹ • w) :=
@@ -398,11 +402,7 @@ The separate angular a.e. compatibility theorem is not needed for this chain. -/
 theorem angular_plancherel (G : Space p → ℂ)
     (hG1 : Integrable G volume) (hG2 : MemLp G 2 volume) :
     zeroEnergy G = l2Energy G := by
-  have hc : Continuous (𝓕 G) :=
-    VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar
-      continuous_inner hG1
-  have hm : AEMeasurable (𝓕 G) volume := hc.aemeasurable
-  have hn := l2Energy_normalized_dilation (p := p) (𝓕 G) hm
+  have hn := l2Energy_normalized_dilation (p := p) (𝓕 G)
   calc
     zeroEnergy G = l2Energy (fun w : Space p =>
         angularPrefactor p • (𝓕 G) ((2 * Real.pi)⁻¹ • w)) := by

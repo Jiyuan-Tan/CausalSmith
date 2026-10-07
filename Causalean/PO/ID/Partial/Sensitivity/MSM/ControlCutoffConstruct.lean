@@ -18,9 +18,8 @@ membership hypothesis in the calibrated control calibrated upper bound.
 The file defines `controlSet`, `controlXYLaw`, `controlCondCDF`, and
 `calibLevel0`; proves the constant and functional survival bridges
 `controlSurv_const_eq` and `controlSurv_eq`; constructs a measurable cutoff in
-`exists_calibrating_cutoff0`; and packages the calibrated upper endpoint under universal cutoff
-integrability as
-`msmUpperCalib0_eq_cutoff_of_universal_cutoff_integrability`.
+`exists_calibrating_cutoff0`; and packages the calibrated upper endpoint under integrability of
+the calibrating cutoff as `msmUpperCalib0_eq_cutoff_of_calibrating_cutoff_integrability`.
 -/
 
 @[expose] public section
@@ -308,6 +307,20 @@ divided by that unit's propensity for control. It is the control conditional-dis
 level whose quantile supplies the calibrating cutoff. -/
 noncomputable def calibLevel0 (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 - S.survTarget0 Λ ω / S.propScore false ω
+
+/-- Fix [a sensitivity parameter Λ strictly greater than one](hyp:Λ,hΛ) and assume [the control
+propensity score lies strictly between 0 and 1 almost surely](hyp:hoverlap). Then [the control
+calibration quantile level lies strictly between 0 and 1 almost surely](goal): on the overlap event
+it equals Λ/(Λ+1). -/
+theorem calibLevel0_mem_Ioo (Λ : ℝ) (hΛ : 1 < Λ)
+    (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1) :
+    ∀ᵐ ω ∂P.μ, 0 < S.calibLevel0 Λ ω ∧ S.calibLevel0 Λ ω < 1 := by
+  filter_upwards [hoverlap] with ω hω
+  have h : S.calibLevel0 Λ ω = Λ / (Λ + 1) := (calibLevel_formulas hΛ hω.1 hω.2).1
+  have hΛ0 : 0 < Λ := by linarith
+  have hΛp : 0 < Λ + 1 := by linarith
+  rw [h]
+  exact ⟨div_pos hΛ0 hΛp, (div_lt_one hΛp).mpr (by linarith)⟩
 
 /-- **The survival bridge (constant cutoff).** The weighted conditional survival equals the control
 conditional survival scaled by the propensity:
@@ -738,47 +751,48 @@ theorem exists_calibrating_cutoff0 (Λ : ℝ)
   field_simp [hpos]
   ring
 
-/-- **The calibrated control upper bound under universal cutoff integrability.**
-Fix [a sensitivity parameter Λ strictly greater than 1](hyp:Λ,hΛ). If [the control propensity
-`P[D=0∣X]` lies strictly between 0 and 1 almost everywhere (overlap)](hyp:hoverlap), [the control
-outcome's conditional law given the covariates is atomless (its conditional CDF is
-continuous)](hyp:hatomless), [the calibration level lies strictly between 0 and 1 almost
-everywhere](hyp:hlevel), and suppose [every ambient-measurable cutoff function
-satisfies the integrability conditions needed to evaluate the calibration and candidate-mean
-functionals at it](hyp:hreg), then [there exists an ambient-measurable cutoff c such that the
-cutoff-calibration propensity `cutoffProp0 Λ c` lies in the calibrated control MSM set and the
-calibrated control upper bound equals the candidate mean at that cutoff, `msmUpperCalib0 Λ = candMean0
-(cutoffProp0 Λ c)`](goal).
+/-- Fix [a sensitivity parameter Λ strictly greater than one](hyp:Λ,hΛ). Assume [the control
+propensity score, the conditional probability of no treatment given the covariates, lies strictly
+between 0 and 1 almost surely](hyp:hoverlap) and [the conditional distribution function of the
+control outcome given each covariate value is continuous](hyp:hatomless). Write D for the
+control-arm indicator, Y for the observed outcome, and w_min ≤ w_max for the smallest and largest
+admissible control inverse-propensity weights at level Λ; the upper cutoff propensity at a cutoff c
+is 1/w_max where Y > c and 1/w_min elsewhere. Suppose [every σ(X)-measurable cutoff c (measurable
+with respect to the covariates) for which the conditional mean of D·1{Y > c} given the covariates
+equals the control target survival probability almost surely makes two functions integrable: c
+itself and |c|·D·w_max](hyp:hreg), and that [D·w_max](hyp:hweight_env) and [D·|Y|·w_max](hyp:henv)
+are integrable. Then [there is a σ(X)-measurable cutoff c whose upper cutoff propensity lies in the
+calibrated control sensitivity set and whose candidate inverse-probability-weighted mean equals the
+calibrated upper bound for the mean of the control potential outcome](goal).
 
-Combining the constructed calibrating cutoff with `msmUpperCalib0_eq_cutoff` gives a
-quantile-balancing closed form under the stated universal integrability assumption. The
-membership hypothesis is discharged by `exists_calibrating_cutoff0`. -/
-theorem msmUpperCalib0_eq_cutoff_of_universal_cutoff_integrability (Λ : ℝ) (hΛ : 1 < Λ)
+Combines the cutoff constructed by `exists_calibrating_cutoff0` with `msmUpperCalib0_eq_cutoff`,
+whose membership hypothesis the survival equation of that cutoff discharges. The calibration level
+is strictly between 0 and 1 by `calibLevel0_mem_Ioo`, and the integrability of D·1{Y > c}, D·w_min
+and (w_max − w_min)·D·1{Y > c} follows from that of D·w_max. -/
+theorem msmUpperCalib0_eq_cutoff_of_calibrating_cutoff_integrability (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
     (hatomless : ∀ a : γ, Continuous (condCDF S.controlXYLaw a))
-    (hlevel : ∀ᵐ ω ∂P.μ, 0 < S.calibLevel0 Λ ω ∧ S.calibLevel0 Λ ω < 1)
     (hreg : ∀ c : P.Ω → ℝ, Measurable[S.sigmaX] c →
+      S.controlSurv c =ᵐ[P.μ] S.survTarget0 Λ →
       Integrable c P.μ ∧
-      Integrable (fun ω => S.dVar.indicator false ω / S.cutoffProp0 Λ c ω) P.μ ∧
-      Integrable (fun ω =>
-        S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ ∧
-      Integrable (fun ω => S.dVar.indicator false ω * S.wMin0 Λ ω) P.μ ∧
-      Integrable (fun ω => (S.wMax0 Λ ω - S.wMin0 Λ ω) *
-        (S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0))) P.μ ∧
-      Integrable (fun ω => S.dVar.indicator false ω * |S.factualY ω| * S.wMax0 Λ ω) P.μ ∧
-      Integrable (fun ω => S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ ∧
-      Integrable (fun ω => |c ω| * S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ) :
+      Integrable (fun ω => |c ω| * S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ)
+    (henv : Integrable (fun ω => S.dVar.indicator false ω * |S.factualY ω| * S.wMax0 Λ ω) P.μ)
+    (hweight_env : Integrable (fun ω => S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ) :
     ∃ c : P.Ω → ℝ, Measurable[S.sigmaX] c ∧
-      S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ ∧
-      S.msmUpperCalib0 Λ = S.candMean0 (S.cutoffProp0 Λ c) := by
+      S.cutoffProp0 Λ c ∈ S.MSMSetCalib false Λ ∧
+      S.msmUpperCalib false Λ = S.candMean false (S.cutoffProp0 Λ c) := by
   obtain ⟨c, hc_meas, hsurv⟩ :=
-    S.exists_calibrating_cutoff0 Λ hoverlap hatomless hlevel
-  obtain ⟨hc_int, _hint, hint1, hmin_int, hdiff_int,
-    henv, hweight_env, hc_env⟩ := hreg c hc_meas
-  have hcut_mem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ :=
+    S.exists_calibrating_cutoff0 Λ hoverlap hatomless (S.calibLevel0_mem_Ioo Λ hΛ hoverlap)
+  obtain ⟨hc_int, hc_env⟩ := hreg c hc_meas hsurv
+  have hc_amb : Measurable c := hc_meas.mono S.sigmaX_le le_rfl
+  have hint1 := S.integrable_control_gt_cutoff c hc_amb
+  have hdiff_int :=
+    S.integrable_wDiff0_mul_control_gt_cutoff Λ (le_of_lt hΛ) hoverlap c hc_amb hweight_env
+  have hmin_int := S.integrable_control_wMin0_of_wMax0 Λ (le_of_lt hΛ) hoverlap hweight_env
+  have hcut_mem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib false Λ :=
     S.cutoffProp0_mem_MSMSetCalib0_of_survival Λ hΛ hoverlap c
       hint1 hmin_int hdiff_int hsurv
-  have heq : S.msmUpperCalib0 Λ = S.candMean0 (S.cutoffProp0 Λ c) :=
+  have heq : S.msmUpperCalib false Λ = S.candMean false (S.cutoffProp0 Λ c) :=
     S.msmUpperCalib0_eq_cutoff Λ (le_of_lt hΛ) hoverlap c hc_meas
       hc_int hcut_mem henv hweight_env hc_env
   exact ⟨c, hc_meas, hcut_mem, heq⟩

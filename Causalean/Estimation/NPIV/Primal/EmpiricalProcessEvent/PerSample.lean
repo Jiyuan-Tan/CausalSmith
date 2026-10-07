@@ -231,7 +231,7 @@ theorem per_sample_empirical_process_event
           = (S.weakNorm
               (S.hL2 (TC.H_subset (is_estimator.mem_H n omega))
                 - S.hL2 S.h₀_mem)) ^ 2 :=
-      population_inner_eq_closedness_witness
+      population_inner_eq_weakNorm_sq
         (hh := is_estimator.mem_H n omega) (hf := hf_h) hcl_h
     have hpop_star_le :
         2 * (∫ omega', S.m (S.W omega') f_star ∂mu)

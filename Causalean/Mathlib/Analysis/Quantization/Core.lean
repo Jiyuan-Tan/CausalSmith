@@ -17,21 +17,25 @@ namespace Causalean.Mathlib.Analysis.Quantization
 noncomputable section
 
 /-- [A family of `k` cells](hyp:k,B) is [a measurable partition](goal) of [the closed source
-interval from `a` to `b`](hyp:a,b) when its cells are measurable, pairwise disjoint, and cover
-that interval. No cell is required to be an interval. This is the real-line instance of the
-library's finite measurable partition predicate `IsIntervalPartition`. -/
+interval from `a` to `b`](hyp:a,b) when its cells are measurable, pairwise disjoint, and their
+union is exactly that interval. No cell is required to be an interval. This is the real-line
+instance of the library's finite measurable partition predicate `IsIntervalPartition`. -/
 abbrev IsMeasurablePartition (a b : ℝ) (k : ℕ) (B : Fin k → Set ℝ) : Prop :=
   Causalean.Mathlib.MeasureTheory.IsIntervalPartition a b k B
 
-/-- The paired weighted absolute-deviation cost uses one common cell partition and
-allows a separate reproduction point for each coefficient in each cell. -/
+/-- The paired weighted absolute-deviation cost of a family of k cells B_j and reproduction
+points z_(j,s), for S coefficient functions β_s, is the sum over cells j and coefficients s of
+the integral over x in B_j of β_s(x, z_(j,s))·|x − z_(j,s)|. One common cell partition is used
+for all coefficients, with a separate reproduction point for each coefficient in each cell. -/
 def weightedCost (S k : ℕ) (β : Fin S → ℝ → ℝ → ℝ)
     (B : Fin k → Set ℝ) (z : Fin k → Fin S → ℝ) : ℝ :=
   ∑ j : Fin k, ∑ s : Fin S,
     ∫ x in B j, β s x (z j s) * |x - z j s|
 
-/-- The optimal paired cost is the infimum over every measurable partition and
-admissible reproduction array. -/
+/-- The optimal paired cost on the source interval from a to b with k cells is the infimum of
+the paired weighted cost over every measurable partition of that interval into k cells and every
+array of reproduction points lying in the interval. When no such partition exists or the costs
+are unbounded below, the infimum is read as zero. -/
 def optimalCost (a b : ℝ) (S k : ℕ) (β : Fin S → ℝ → ℝ → ℝ) : ℝ :=
   sInf {v : ℝ | ∃ (B : Fin k → Set ℝ) (z : Fin k → Fin S → ℝ),
     IsMeasurablePartition a b k B ∧
@@ -78,7 +82,7 @@ theorem coefficient_bounds (a b : ℝ) (hab : a < b) (S : ℕ) (hS : 0 < S)
 
 /-- Joint continuity on the compact square is uniform across the finite family.
 Here closeness of pairs uses the product metric. -/
-theorem coefficient_uniform_continuity (a b : ℝ) (hab : a < b) (S : ℕ)
+theorem coefficient_uniform_continuity (a b : ℝ) (S : ℕ)
     (β : Fin S → ℝ → ℝ → ℝ)
     (hcont : ∀ s, ContinuousOn (fun p : ℝ × ℝ => β s p.1 p.2)
       (Set.Icc a b ×ˢ Set.Icc a b)) :

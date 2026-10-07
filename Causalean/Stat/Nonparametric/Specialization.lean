@@ -25,11 +25,11 @@ open scoped FourierTransform
 open Causalean.Mathlib.Analysis.Fourier
 namespace Causalean.Stat.Nonparametric
 
-/-- [A compact continuously differentiable frequency profile](hyp:F,hF,hcompact), [a moment exponent in the interval from zero to two](hyp:κ,hκ0,hκ2), [a nonnegative Gaussian noise scale and bandwidth in the stated range](hyp:σ,h,hσ,hσmax,hh,hhmax), [nonnegative envelope constants](hyp:a,b,ha,hb), [sinc-six spectral support and uniform envelope bounds](hyp:hsupport,hbound,hderiv), and [integrable inverse-transform and joint design-noise quantities](hyp:hinv,hinvD,hjoint) imply [the stated explicit Gaussian-shifted variance bound](goal). -/
+/-- [A compact continuously differentiable frequency profile](hyp:F,hF,hcompact), [a moment exponent in the interval from zero to two](hyp:κ,hκ0,hκ2), [a nonnegative Gaussian noise scale `σ` and a bandwidth `h` in `(0, 1/4]`](hyp:σ,h,hσ,hh,hhmax), [nonnegative envelope constants](hyp:a,b,ha,hb), [support of the profile within `3/(πh)` of the origin, the uniform bound `a h` on the profile and the uniform bound `b h²` on its derivative](hyp:hsupport,hbound,hderiv), and [integrable inverse-transform and joint design-noise quantities](hyp:hinv,hinvD,hjoint) imply [that the Gaussian-shifted design variance integral of the inverse Fourier transform of the inverse-Gaussian multiplier of the profile is at most `32 · (6/π) · (3a² + (2π)⁻² (b + 12πa)²) · h^(κ+1) · (1 + σ/h)^10 · exp(36 (σ/h)²)`](goal). -/
 theorem inverseGaussian_shiftedVariance_le (F : ℝ → ℂ) (κ σ h a b : ℝ)
     (hF : ContDiff ℝ 1 F) (hcompact : HasCompactSupport F)
     (hκ0 : 0 ≤ κ) (hκ2 : κ ≤ 2) (hh : 0 < h) (hhmax : h ≤ 1 / 4)
-    (hσ : 0 ≤ σ) (hσmax : σ ≤ 1 / 4) (ha : 0 ≤ a) (hb : 0 ≤ b)
+    (hσ : 0 ≤ σ) (ha : 0 ≤ a) (hb : 0 ≤ b)
     (hsupport : Function.support F ⊆ Icc (-(3 / (Real.pi * h))) (3 / (Real.pi * h)))
     (hbound : ∀ ξ, ‖F ξ‖ ≤ a * h) (hderiv : ∀ ξ, ‖deriv F ξ‖ ≤ b * h ^ 2)
     (hinv : Integrable (𝓕⁻ (inverseGaussian σ F)))

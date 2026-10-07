@@ -182,11 +182,11 @@ theorem cosineProjection_pythagoras {f : ℝ → ℝ} (k : ℕ) (a : ℕ → ℝ
 
 
 /-- The projection of a [continuous target](hyp:hf) has [L² error no greater
-than any competitor](goal) that is [continuous on the interval](hyp:hp)
-and [belongs to the same cosine span](hyp:hspan). -/
+than any competitor](goal) that
+[belongs to the same cosine span](hyp:hspan). -/
 theorem cosineProjection_bestApproximation {f p : ℝ → ℝ} {k : ℕ}
     (hf : ContinuousOn f (Set.Icc (0 : ℝ) 1))
-    (hp : ContinuousOn p (Set.Icc (0 : ℝ) 1)) (hspan : InCosineSpan k p) :
+    (hspan : InCosineSpan k p) :
     l2Norm (fun x => f x - cosineProjection k f x) ≤ l2Norm (fun x => f x - p x) := by
   obtain ⟨a, ha⟩ := hspan
   have heq : (∫ x, |f x - p x| ^ 2 ∂uniformMeasure) =

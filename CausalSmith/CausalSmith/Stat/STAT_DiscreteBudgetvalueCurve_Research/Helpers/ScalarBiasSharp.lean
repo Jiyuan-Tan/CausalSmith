@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.Sc
 
 /-! Sharp boundary-product bounds for the scalar Jackson bias. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteBudgetvalueCurve
 
@@ -191,13 +191,12 @@ lemma goodPilot_jacksonCellStatistic_conditional_bias_sharp
   have hWlaw (i : Fin 4) : HasLaw (W i) (poissonMeasure (rate j i)) mu := by
     simpa [W, mu, rate, poissonTableCell] using
       poissonTable_eval_coordinate_law
-        (fun iz : Fin d × Fin 4 => rate iz.1 iz.2)
-        (fun iz : Fin d × Fin 4 => rate iz.1 iz.2) p (j, i)
+        (fun iz : Fin d × Fin 4 => rate iz.1 iz.2) (j, i)
   have hWindep : iIndepFun W mu := by
     rw [iIndepFun_iff_map_fun_eq_infinitePi_map (by fun_prop)]
     calc
       Measure.map (fun e i => W i e) mu = poissonTableLaw (rate j) := by
-        simpa [W, mu] using (poissonTable_eval_cell_law rate rate p j).map_eq
+        simpa [W, mu] using (poissonTable_eval_cell_law rate j).map_eq
       _ = Measure.infinitePi (fun i => poissonMeasure (rate j i)) := rfl
       _ = Measure.infinitePi (fun i => Measure.map (W i) mu) := by
         congr 1

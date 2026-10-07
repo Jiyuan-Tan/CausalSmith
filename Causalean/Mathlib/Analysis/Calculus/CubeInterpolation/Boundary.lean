@@ -28,6 +28,6 @@ theorem interior_coordPartial_bound_extends {d m : ℕ}
   rcases ambient_jet_zero_or_within hu hj x hx with hzero | hwithin
   · simpa [coordPartial, hzero] using hB
   · simpa only [coordPartial, hwithin] using
-      within_coordPartial_bound_extends hB hu hj f (hinterior j hj f) x hx
+      within_coordPartial_bound_extends hu hj f (hinterior j hj f) x hx
 
 end Causalean.Mathlib.Analysis.Calculus.CubeInterpolation

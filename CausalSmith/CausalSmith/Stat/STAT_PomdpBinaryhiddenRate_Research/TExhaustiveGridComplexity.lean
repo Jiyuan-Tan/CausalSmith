@@ -11,7 +11,7 @@ The finite simplex grid has a stars-and-bars count. Its candidate-list
 cardinality has degree-nineteen growth for fixed mixing scale.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.PomdpBinaryhiddenRate
 

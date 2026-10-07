@@ -5,7 +5,8 @@ public import Causalean.Mathlib.Optimization.QuadraticSaddle.Basic
 # Borel value and saddle relations for finite quadratics
 
 This module proves that the finite-quadratic saddle relation and the attained max-min value are
-Borel on a measurable parameter domain of pointwise saddle attainment.
+Borel on every parameter domain of pointwise saddle attainment; the domain itself need not be
+measurable.
 -/
 
 public section
@@ -84,11 +85,11 @@ theorem measurableSet_isSaddle (P : Polytope ι κ) (Q : Quadratics Θ ι) :
   rw [heq]
   exact hfeas.inter ((MeasurableSet.iInter hrat).inter (MeasurableSet.iInter hwt))
 
-/-- A [fixed polytope](hyp:P), [quadratic family](hyp:Q), [Borel parameter domain](hyp:D,hD),
+/-- A [fixed polytope](hyp:P), [quadratic family](hyp:Q), [parameter domain](hyp:D),
 and [pointwise saddle-attainment certificate](hyp:hAttains) give a [Borel max-min value on that
 domain](goal). -/
 theorem measurable_value_on (P : Polytope ι κ) (Q : Quadratics Θ ι)
-    (D : Set Θ) (hD : MeasurableSet D)
+    (D : Set Θ)
     (hAttains : ∀ θ ∈ D, ∃ α t, IsSaddle P Q θ α t) :
     Measurable (fun θ : D => value P Q θ.1) := by
   classical

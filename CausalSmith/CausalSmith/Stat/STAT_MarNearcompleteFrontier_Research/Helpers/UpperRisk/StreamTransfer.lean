@@ -100,7 +100,7 @@ lemma upper_nonfallback_risk_le_ideal_add_tail {n d : ℕ} (q : ℝ) (P : FullLa
     uniformFourMass uniformFourMass_sum ((n : NNReal) / 2) n
     (upper_measurable_fourStreamEstimate n d)
     (a := -1) (b := 1) (theta := tau P) (zOver := 0)
-    (by norm_num) (fun streams => upper_fourStreamEstimate_range streams)
+    (fun streams => upper_fourStreamEstimate_range streams)
     (tau_range P) (by norm_num)
   have hlaw : fourStreamLaw n P = Measure.pi (fun i : Fin 4 =>
       finitePoissonSampleLaw (observedLaw P).toMeasure

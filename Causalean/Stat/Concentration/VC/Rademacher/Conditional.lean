@@ -357,7 +357,7 @@ lemma clippedSquare_lipschitzAt0 {U : ℝ} (hU0 : 0 ≤ U) :
         mul_le_mul habsum hab (abs_nonneg _) (by positivity)
 
 /-- If [the population L2 radius is positive](hyp:hσ), [it is smaller than the envelope
-level](hyp:hσU), [all class functions are measurable](hyp:hmeas), [they are uniformly bounded
+level](hyp:hσU), [the class functions are uniformly bounded
 by the envelope](hyp:henvelope), [their population L2 distances from zero are at most the stated
 radius](hyp:hL2), and [the sample size is positive](hyp:hn), then [the squared empirical L2 radius
 is at most the squared population radius plus the uniform deviation of the squared class](goal). -/
@@ -366,7 +366,6 @@ lemma empiricalL2Radius_sq_le_uniformDeviation
     (P : Measure 𝒳) [IsProbabilityMeasure P]
     (F : ι → 𝒳 → ℝ) {U σ : ℝ}
     (hσ : 0 < σ) (hσU : σ < U)
-    (hmeas : ∀ i, Measurable (F i))
     (henvelope : ∀ i x, |F i x| ≤ U)
     (hL2 : ∀ i, measureL2Dist P (F i) (fun _ => 0) ≤ σ)
     {n : ℕ} (hn : 0 < n) (S : Fin n → 𝒳) :

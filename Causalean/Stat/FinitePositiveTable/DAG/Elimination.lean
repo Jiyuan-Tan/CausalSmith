@@ -218,7 +218,9 @@ theorem sum_remainingFactorKernel_sink
             simp
 
 /-- A [factorized table](hyp:fac), [fixed vertex set](hyp:fixed), and [profile](hyp:x) give
-[unit total mass for the truncated product in that fixed-coordinate row](goal). -/
+[unit total mass for the truncated product in that fixed-coordinate row: the product of the
+local factors of the unfixed vertices, summed over all complete profiles that agree with the given
+profile on the fixed set, equals one](goal). -/
 theorem remainingFactorKernel_row_normalized
     (fac : PositiveDAGTableFactorization G p) (fixed : Finset V)
     (x : ProfileSpace r) :

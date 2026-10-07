@@ -11,7 +11,7 @@ written through `vcMcDiarmidRadius`, so changes to the upstream VC constant
 propagate without duplicating a numeric tail formula here.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set Filter Topology
 open scoped ENNReal

@@ -16,6 +16,12 @@ It first derives consistency of the empirical score coefficient from the
 coefficient-level nuisance rates, then transfers the oracle one-step
 linearization to the estimator that solves the empirical moment equation. It
 also supplies the normalization by the true asymptotic standard deviation.
+
+The main statements `linearDML_jacobianConsistency_on_highProbEvent` and
+`feasibleLinearDML_isAsymLinear_on_highProbEvent` impose the bilinear remainder bound and
+the integrability conditions only on events of probability tending to one; the
+theorems without the suffix are their corollaries for nuisance fits satisfying those
+conditions at every realization.
 -/
 
 public section
@@ -25,6 +31,7 @@ namespace Estimation
 namespace OrthogonalMoments
 
 open MeasureTheory ProbabilityTheory Filter Topology Causalean.Stat
+open scoped ENNReal
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : Measure Z}
@@ -32,7 +39,7 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 
 private lemma tendstoInProb_zero_of_isLittleOp_one
     {X : ℕ → Ω → ℝ} (h : IsLittleOp X (fun _ => (1 : ℝ)) μ) :
-    Tendsto_inProb X (fun _ => 0) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) X atTop (fun _ _ => 0) := by
   rw [Tendsto_inProb_iff]
   rw [tendstoInMeasure_iff_norm]
   intro ε hε
@@ -45,41 +52,40 @@ private lemma tendstoInProb_zero_of_isLittleOp_one
   simp only [Set.mem_setOf_eq, Real.norm_eq_abs, sub_zero, mul_one] at hω ⊢
   linarith
 
-/-- **Empirical Jacobian consistency for an affine score.** For [an affine moment
-system](hyp:M), [an i.i.d. sample](hyp:sample), [a one-shot split](hyp:split), and
-[a complementary-fold nuisance fit](hyp:η_hat), suppose [the true coefficient is
-square-integrable](hyp:h_a_truth), [the coefficient increment has the joint and
+/-- **Empirical Jacobian consistency for an affine score, with square-integrability on events
+of probability tending to one.** For [an affine moment system](hyp:M), [an i.i.d.
+sample](hyp:sample), [a one-shot split](hyp:split), and [a complementary-fold nuisance
+fit](hyp:η_hat), let [G_n be events](hyp:goodSet) whose [complements have probability at most
+Δ_n](hyp:hfail) for [a sequence Δ_n](hyp:Δ) that [tends to zero](hyp:hΔ). Suppose [the true
+coefficient is square-integrable](hyp:h_a_truth), [the coefficient increment has the joint and
 uncurried training-fold product measurability used for
-cross-fitting](hyp:hΔa_meas,hΔa_uncurry_foldA), and [a curried training-fold
-witness retained for compatibility](hyp:_hΔa_foldA),
-[each increment is square-integrable](hyp:hΔa_memLp), [its L² norm is
-`o_P(1)`](hyp:hΔa_rate), and [its population mean is `o_P(1)`](hyp:hΔa_bias_rate).
-Then [the evaluation-fold empirical coefficient converges in probability to
-the population Jacobian](goal).
+cross-fitting](hyp:hΔa_meas,hΔa_uncurry_foldA), [at every realization in G_n the increment is
+square-integrable](hyp:hΔa_memLp), [its L² norm is `o_P(1)`](hyp:hΔa_rate), and [its population
+mean is `o_P(1)`](hyp:hΔa_bias_rate). Then [the evaluation-fold empirical coefficient converges
+in probability to the population Jacobian](goal).
 
 The last two rates are the coefficient consequences of Assumption 3.2(c) in
-Chernozhukov et al. (2018); the conclusion is derived rather than assumed.
-The compatibility witness does not enter the proof. -/
-theorem linearDML_jacobianConsistency
+Chernozhukov et al. (2018); the conclusion is derived rather than assumed. Outside the events
+`G_n` the coefficient increment is unrestricted beyond measurability. -/
+theorem linearDML_jacobianConsistency_on_highProbEvent
     [StandardBorelSpace Ω] [IsFiniteMeasure μ] [IsProbabilityMeasure μ]
     (M : LinearMoment Ω μ Z P_Z H)
     (sample : IIDSample Ω Z μ P_Z)
     (split : OneShotSplit sample)
     (η_hat : ℕ → Ω → H)
+    (goodSet : ℕ → Set Ω) (Δ : ℕ → ℝ≥0∞)
+    (hΔ : Tendsto Δ atTop (𝓝 0))
+    (hfail : ∀ n, μ (goodSet n)ᶜ ≤ Δ n)
     (h_a_truth : MemLp (M.m_a M.η₀) 2 P_Z)
     (hΔa_meas : ∀ n, Measurable (Function.uncurry
       (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z)))
-    (_hΔa_foldA : ∀ n,
-      Measurable[MeasurableSpace.comap
-        (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-        (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z))
     (hΔa_uncurry_foldA : ∀ n,
       Measurable[(MeasurableSpace.comap
           (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
         (inferInstance : MeasurableSpace Z)]
         (Function.uncurry
           (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z)))
-    (hΔa_memLp : ∀ n ω,
+    (hΔa_memLp : ∀ n ω, ω ∈ goodSet n →
       MemLp (fun z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z) 2 P_Z)
     (hΔa_rate : IsLittleOp
       (fun n ω => (eLpNorm
@@ -88,10 +94,8 @@ theorem linearDML_jacobianConsistency
     (hΔa_bias_rate : IsLittleOp
       (fun n ω => ∫ z, (M.m_a (η_hat n ω) z - M.m_a M.η₀ z) ∂P_Z)
       (fun _ => (1 : ℝ)) μ) :
-    Tendsto_inProb
-      (fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
-        ∑ i ∈ split.foldB n, M.m_a (η_hat n ω) (sample.Z i ω))
-      (fun _ => M.linScale) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
+        ∑ i ∈ split.foldB n, M.m_a (η_hat n ω) (sample.Z i ω)) atTop (fun _ _ => M.linScale) := by
   classical
   haveI : IsProbabilityMeasure P_Z := by
     rw [← sample.law]
@@ -100,7 +104,7 @@ theorem linearDML_jacobianConsistency
     ∑ i ∈ split.foldB n, M.m_a (η_hat n ω) (sample.Z i ω)
   let Y₀ : ℕ → Ω → ℝ := fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
     ∑ i ∈ split.foldB n, M.m_a M.η₀ (sample.Z i ω)
-  have hY₀ : Tendsto_inProb Y₀ (fun _ => M.linScale) μ := by
+  have hY₀ : Modes.TendstoInProbability (fun _ : ℕ => μ) Y₀ atTop (fun _ _ => M.linScale) := by
     have h := OneShotSplit.foldB_sampleMean_tendsto_inProb sample split
       (M.m_a_meas M.η₀) h_a_truth
     rw [← M.linScale_eq] at h
@@ -118,10 +122,11 @@ theorem linearDML_jacobianConsistency
       (Real.sqrt ((split.foldB n).card : ℝ))⁻¹ *
         ∑ i ∈ split.foldB n, (f n ω (sample.Z i ω) - ∫ z, f n ω z ∂P_Z)
     have hG : IsLittleOp G (fun _ => (1 : ℝ)) μ := by
-      simpa [G] using foldB_centered_sum_isLittleOp_one sample split f
+      simpa [G] using foldB_centered_sum_isLittleOp_one_of_memLp_on_highProbEvent
+        sample split f goodSet Δ hΔ hfail
         hΔa_meas hΔa_uncurry_foldA hΔa_memLp hΔa_rate
     have hGbig : IsBigOp G (fun _ => (1 : ℝ)) μ :=
-      (tendstoInProb_zero_of_isLittleOp_one hG).isBigOp_one
+      Modes.TendstoInProbability.isBigOp_one (tendstoInProb_zero_of_isLittleOp_one hG)
     have hinv : Tendsto
         (fun n => (Real.sqrt ((split.foldB n).card : ℝ))⁻¹) atTop (𝓝 0) :=
       (Real.tendsto_sqrt_atTop.comp
@@ -167,14 +172,58 @@ theorem linearDML_jacobianConsistency
     exact IsLittleOp.add_one hcentered hbiasEff
   have hYsubJ : IsLittleOp
       (fun n ω => Y n ω - M.linScale) (fun _ => (1 : ℝ)) μ := by
-    convert IsLittleOp.add_one hYsub hY₀.sub_const.isLittleOp_one using 1
+    convert IsLittleOp.add_one hYsub (Modes.TendstoInProbability.isLittleOp_one (Modes.TendstoInProbability.sub_const hY₀))
+        using 1
     funext n ω
     ring
   have hzero := tendstoInProb_zero_of_isLittleOp_one hYsubJ
-  have hadd := hzero.comp_continuousAt
+  have hadd := Modes.TendstoInProbability.comp_continuousAt (h := hzero)
     (g := fun x : ℝ => x + M.linScale)
     (continuous_add_const M.linScale).continuousAt
   simpa [Y] using hadd
+
+/-- **Empirical Jacobian consistency for an affine score.** For [an affine moment
+system](hyp:M), [an i.i.d. sample](hyp:sample), [a one-shot split](hyp:split), and
+[a complementary-fold nuisance fit](hyp:η_hat), suppose [the true coefficient is
+square-integrable](hyp:h_a_truth), [the coefficient increment has the joint and
+uncurried training-fold product measurability used for
+cross-fitting](hyp:hΔa_meas,hΔa_uncurry_foldA),
+[each increment is square-integrable](hyp:hΔa_memLp), [its L² norm is
+`o_P(1)`](hyp:hΔa_rate), and [its population mean is `o_P(1)`](hyp:hΔa_bias_rate).
+Then [the evaluation-fold empirical coefficient converges in probability to
+the population Jacobian](goal).
+
+The last two rates are the coefficient consequences of Assumption 3.2(c) in
+Chernozhukov et al. (2018); the conclusion is derived rather than assumed. -/
+theorem linearDML_jacobianConsistency
+    [StandardBorelSpace Ω] [IsFiniteMeasure μ] [IsProbabilityMeasure μ]
+    (M : LinearMoment Ω μ Z P_Z H)
+    (sample : IIDSample Ω Z μ P_Z)
+    (split : OneShotSplit sample)
+    (η_hat : ℕ → Ω → H)
+    (h_a_truth : MemLp (M.m_a M.η₀) 2 P_Z)
+    (hΔa_meas : ∀ n, Measurable (Function.uncurry
+      (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z)))
+    (hΔa_uncurry_foldA : ∀ n,
+      Measurable[(MeasurableSpace.comap
+          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
+        (inferInstance : MeasurableSpace Z)]
+        (Function.uncurry
+          (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z)))
+    (hΔa_memLp : ∀ n ω,
+      MemLp (fun z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z) 2 P_Z)
+    (hΔa_rate : IsLittleOp
+      (fun n ω => (eLpNorm
+        (fun z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z) 2 P_Z).toReal)
+      (fun _ => (1 : ℝ)) μ)
+    (hΔa_bias_rate : IsLittleOp
+      (fun n ω => ∫ z, (M.m_a (η_hat n ω) z - M.m_a M.η₀ z) ∂P_Z)
+      (fun _ => (1 : ℝ)) μ) :
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
+        ∑ i ∈ split.foldB n, M.m_a (η_hat n ω) (sample.Z i ω)) atTop (fun _ _ => M.linScale) := by
+  exact linearDML_jacobianConsistency_on_highProbEvent M sample split η_hat
+    (fun _ => Set.univ) (fun _ => 0) tendsto_const_nhds (by simp) h_a_truth
+    hΔa_meas hΔa_uncurry_foldA (fun n ω _ => hΔa_memLp n ω) hΔa_rate hΔa_bias_rate
 
 /-- **Feasible affine-score DML asymptotic linearity, conditional bridge.** If
 [the corresponding oracle one-step estimator is asymptotically linear](hyp:hOracle),
@@ -194,10 +243,8 @@ theorem feasibleLinearDML_isAsymLinear_of_jacobianConsistency
     (hOracle : IsAsymLinear
       (oneStepOracleDML M.toGeneralMoment sample split η_hat) M.θ₀
       (fun z => -M.linScaleInv * M.m M.η₀ z M.θ₀) sample split.foldB)
-    (hJ : Tendsto_inProb
-      (fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
-        ∑ i ∈ split.foldB n, M.m_a (η_hat n ω) (sample.Z i ω))
-      (fun _ => M.linScale) μ)
+    (hJ : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
+        ∑ i ∈ split.foldB n, M.m_a (η_hat n ω) (sample.Z i ω)) atTop (fun _ _ => M.linScale))
     (hψ_meas : Measurable (fun z => -M.linScaleInv * M.m M.η₀ z M.θ₀))
     (hOracle_meas : ∀ n, AEMeasurable
       (IsAsymLinear.rescaledEstimator
@@ -234,15 +281,15 @@ theorem feasibleLinearDML_isAsymLinear_of_jacobianConsistency
   have hSψ_big : IsBigOp Sψ (fun _ => (1 : ℝ)) μ := by
     rw [hSψ_eq]
     exact Causalean.Stat.IsBigOp.const_mul (-M.linScale)
-      (Tendsto_dist.tightness hOracle_meas hXdist)
-  have hFinProb : Tendsto_inProb F (fun _ => 0) μ := by
-    have hi := hJ.inv M.linScale_ne_zero
-    have hs := hi.sub_const
-    have hn := hs.comp_continuousAt (g := fun x : ℝ => -x)
+      (Modes.TendstoInLaw.tightness hXdist)
+  have hFinProb : Modes.TendstoInProbability (fun _ : ℕ => μ) F atTop (fun _ _ => 0) := by
+    have hi := Modes.TendstoInProbability.inv hJ M.linScale_ne_zero
+    have hs := Modes.TendstoInProbability.sub_const hi
+    have hn := Modes.TendstoInProbability.comp_continuousAt (h := hs) (g := fun x : ℝ => -x)
       continuous_neg.continuousAt
     simpa [F, A, GeneralMoment.linScaleInv, one_div] using hn
   have hprod : IsLittleOp (fun n ω => Sψ n ω * F n ω) (fun _ => (1 : ℝ)) μ :=
-    hSψ_big.mul_isLittleOp_one_isLittleOp hFinProb.isLittleOp_one
+    hSψ_big.mul_isLittleOp_one_isLittleOp (Modes.TendstoInProbability.isLittleOp_one hFinProb)
   have heq : ∀ n ω, A n ω ≠ 0 → Y n ω - X n ω = Sψ n ω * F n ω := by
     intro n ω hA
     have hp : 0 < (split.foldB n).card := by
@@ -308,24 +355,125 @@ theorem feasibleLinearDML_isAsymLinear_of_jacobianConsistency
   simp only [Y, X, IsAsymLinear.rescaledEstimator]
   ring
 
-/-- **Feasible affine-score DML asymptotic linearity.** Under [the mean-zero,
-finite-variance, orthogonal-remainder, measurability, and score-rate conditions
-of the oracle DML
-theorem](hyp:hMZ,hFV,hBR_at,h_m_int,h_m_sq_int), [its joint and uncurried
-measurability conditions](hyp:h_m_meas,h_m_foldA_uncurry), and [its score and
-product rates](hyp:h_score_diff_rate,h_product_rate),
-[a curried score-measurability witness retained for
-compatibility](hyp:h_m_foldA),
-[the coefficient-level moment and nuisance-rate conditions of Assumption
-3.2](hyp:h_a_truth,hΔa_meas,hΔa_uncurry_foldA,hΔa_memLp,hΔa_rate,hΔa_bias_rate),
-and [a curried coefficient-measurability witness retained for
-compatibility](hyp:hΔa_foldA),
-with [a positive limiting validation-fold share](hyp:hc_pos,h_split_rate) and [the required
-convergence-wrapper measurability](hyp:hψ_meas,hOracle_meas,hSum_meas),
-[the empirical-moment solution is asymptotically linear with influence function
-`-J₀⁻¹ m(η₀,·,θ₀)`](goal).
+/-- **Feasible affine-score DML asymptotic linearity, with nuisance conditions on events of
+probability tending to one.** Take [a moment system whose score is affine in the parameter,
+m(η, z, θ) = a(η, z)·θ + b(η, z), with true nuisance η₀, true parameter θ₀, error gauges ρ₁ and
+ρ₂, and linearization scale J₀ equal to the population mean of a(η₀, ·)](hyp:M), whose [score has
+mean zero at the truth](hyp:hMZ) and [finite second moment at the truth](hyp:hFV). Let [an i.i.d.
+sample](hyp:sample) be [split once into a training fold and an evaluation fold](hyp:split) whose
+[evaluation-fold share converges](hyp:h_split_rate) to [a positive limit](hyp:hc_pos), let [η̂_n
+be the nuisance fit at sample size n](hyp:η_hat), and let [G_n be events](hyp:goodSet) whose
+[complements have probability at most Δ_n](hyp:hfail) for [a sequence Δ_n](hyp:Δ) that [tends to
+zero](hyp:hΔ). Assume that at every sample size and every realization in G_n [the population
+moment of m(η̂_n, ·, θ₀) is bounded in absolute value by a fixed constant times ρ₁(η̂_n,
+η₀)·ρ₂(η̂_n, η₀)](hyp:hBR_at) and m(η̂_n, ·, θ₀) is [integrable](hyp:h_m_int) and
+[square-integrable](hyp:h_m_sq_int) under the observation law; that [(ω, z) ↦ m(η̂_n(ω), z, θ₀)
+is jointly measurable](hyp:h_m_meas) and [is measurable with respect to the product of the
+σ-algebra generated by the training-fold observations and the σ-algebra on the observation
+space](hyp:h_m_foldA_uncurry); that [the L² distance between m(η̂_n, ·, θ₀) and m(η₀, ·, θ₀) is
+o_p(1)](hyp:h_score_diff_rate); and that [the product ρ₁(η̂_n, η₀)·ρ₂(η̂_n, η₀) is
+o_p(n^(−1/2))](hyp:h_product_rate). For the coefficient, assume [a(η₀, ·) is
+square-integrable](hyp:h_a_truth) and that the increment a(η̂_n, ·) − a(η₀, ·) is [jointly
+measurable in (ω, z)](hyp:hΔa_meas), [measurable with respect to the same training-fold product
+σ-algebra](hyp:hΔa_uncurry_foldA), [square-integrable at every realization in
+G_n](hyp:hΔa_memLp), [o_p(1) in L²](hyp:hΔa_rate), and [has a population mean that is
+o_p(1)](hyp:hΔa_bias_rate). Finally assume [z ↦ −J₀⁻¹·m(η₀, z, θ₀) is measurable](hyp:hψ_meas),
+[the rescaled oracle one-step estimator is almost-everywhere measurable at every sample
+size](hyp:hOracle_meas), and [so is the normalized evaluation-fold sum of −J₀⁻¹·m(η₀, Z_i,
+θ₀)](hyp:hSum_meas). Then [the solution of the evaluation-fold empirical moment equation, minus
+the evaluation-fold mean of b(η̂_n, ·) divided by the evaluation-fold mean of a(η̂_n, ·), is
+asymptotically linear at θ₀ along the evaluation fold with influence function −J₀⁻¹·m(η₀, z,
+θ₀)](goal).
 
-Neither compatibility witness enters the proof. -/
+The bilinear remainder bound and the integrability conditions are required only on the events
+`G_n`, whose probability tends to one, as in Chernozhukov et al. (2018), Assumption 3.2; outside
+`G_n` the nuisance fit is unrestricted beyond measurability. -/
+theorem feasibleLinearDML_isAsymLinear_on_highProbEvent
+    [StandardBorelSpace Ω] [IsFiniteMeasure μ] [IsProbabilityMeasure μ]
+    (M : LinearMoment Ω μ Z P_Z H)
+    (hMZ : MeanZero M.toGeneralMoment)
+    (hFV : Integrable (fun z => (M.m M.η₀ z M.θ₀) ^ 2) P_Z)
+    (sample : IIDSample Ω Z μ P_Z) (split : OneShotSplit sample)
+    {c : ℝ} (hc_pos : 0 < c)
+    (h_split_rate : Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
+    (η_hat : ℕ → Ω → H)
+    (goodSet : ℕ → Set Ω) (Δ : ℕ → ℝ≥0∞)
+    (hΔ : Tendsto Δ atTop (𝓝 0))
+    (hfail : ∀ n, μ (goodSet n)ᶜ ≤ Δ n) {Crem : ℝ}
+    (hBR_at : ∀ n ω, ω ∈ goodSet n → |∫ z, M.m (η_hat n ω) z M.θ₀ ∂P_Z| ≤
+      Crem * ((M.ρ₁ (η_hat n ω) M.η₀ : NNReal) : ℝ) *
+        ((M.ρ₂ (η_hat n ω) M.η₀ : NNReal) : ℝ))
+    (h_m_meas : ∀ n, Measurable (fun p : Ω × Z => M.m (η_hat n p.1) p.2 M.θ₀))
+    (h_m_foldA_uncurry : ∀ n, Measurable[(MeasurableSpace.comap
+      (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod inferInstance]
+      (fun p : Ω × Z => M.m (η_hat n p.1) p.2 M.θ₀))
+    (h_m_int : ∀ n ω, ω ∈ goodSet n → Integrable (fun z => M.m (η_hat n ω) z M.θ₀) P_Z)
+    (h_m_sq_int : ∀ n ω, ω ∈ goodSet n →
+      Integrable (fun z => (M.m (η_hat n ω) z M.θ₀) ^ 2) P_Z)
+    (h_score_diff_rate : IsLittleOp (fun n ω => (eLpNorm
+      (fun z => M.m (η_hat n ω) z M.θ₀ - M.m M.η₀ z M.θ₀) 2 P_Z).toReal)
+      (fun _ => (1 : ℝ)) μ)
+    (h_product_rate : IsLittleOp (fun n ω =>
+      ((M.ρ₁ (η_hat n ω) M.η₀ : NNReal) : ℝ) *
+        ((M.ρ₂ (η_hat n ω) M.η₀ : NNReal) : ℝ))
+      (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) μ)
+    (h_a_truth : MemLp (M.m_a M.η₀) 2 P_Z)
+    (hΔa_meas : ∀ n, Measurable (Function.uncurry
+      (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z)))
+    (hΔa_uncurry_foldA : ∀ n, Measurable[(MeasurableSpace.comap
+      (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod inferInstance]
+      (Function.uncurry (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z)))
+    (hΔa_memLp : ∀ n ω, ω ∈ goodSet n → MemLp
+      (fun z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z) 2 P_Z)
+    (hΔa_rate : IsLittleOp (fun n ω => (eLpNorm
+      (fun z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z) 2 P_Z).toReal)
+      (fun _ => (1 : ℝ)) μ)
+    (hΔa_bias_rate : IsLittleOp
+      (fun n ω => ∫ z, (M.m_a (η_hat n ω) z - M.m_a M.η₀ z) ∂P_Z)
+      (fun _ => (1 : ℝ)) μ)
+    (hψ_meas : Measurable (fun z => -M.linScaleInv * M.m M.η₀ z M.θ₀))
+    (hOracle_meas : ∀ n, AEMeasurable (IsAsymLinear.rescaledEstimator
+      (oneStepOracleDML M.toGeneralMoment sample split η_hat) M.θ₀ split.foldB n) μ)
+    (hSum_meas : ∀ n, AEMeasurable (IsAsymLinear.normalizedSum sample
+      (fun z => -M.linScaleInv * M.m M.η₀ z M.θ₀) split.foldB n) μ) :
+    IsAsymLinear (feasibleLinearDML M sample split η_hat) M.θ₀
+      (fun z => -M.linScaleInv * M.m M.η₀ z M.θ₀) sample split.foldB := by
+  have hOracle := oneStepOracleDML_isAsymLinear_on_highProbEvent
+    M.toGeneralMoment hMZ hFV
+    sample split hc_pos h_split_rate η_hat goodSet Δ hΔ hfail hBR_at h_m_meas
+    h_m_foldA_uncurry h_m_int h_m_sq_int h_score_diff_rate h_product_rate
+  have hJ := linearDML_jacobianConsistency_on_highProbEvent M sample split η_hat
+    goodSet Δ hΔ hfail h_a_truth
+    hΔa_meas hΔa_uncurry_foldA hΔa_memLp hΔa_rate hΔa_bias_rate
+  exact feasibleLinearDML_isAsymLinear_of_jacobianConsistency M sample split η_hat
+    hOracle hJ hψ_meas hOracle_meas hSum_meas
+
+/-- **Feasible affine-score DML asymptotic linearity.** Take [a moment system whose score is affine in
+the parameter, m(η, z, θ) = a(η, z)·θ + b(η, z), with true nuisance η₀, true parameter θ₀, error
+gauges ρ₁ and ρ₂, and linearization scale J₀ equal to the population mean of a(η₀, ·)](hyp:M),
+whose [score has mean zero at the truth](hyp:hMZ) and [finite second moment at the
+truth](hyp:hFV). Let [an i.i.d. sample](hyp:sample) be [split once into a training fold and an
+evaluation fold](hyp:split) whose [evaluation-fold share converges](hyp:h_split_rate) to [a
+positive limit](hyp:hc_pos), and let [η̂_n be the nuisance fit at sample size n](hyp:η_hat).
+Assume that at every sample size and every realization [the population moment of m(η̂_n, ·, θ₀) is
+bounded in absolute value by a fixed constant times ρ₁(η̂_n, η₀)·ρ₂(η̂_n, η₀)](hyp:hBR_at) and
+m(η̂_n, ·, θ₀) is [integrable](hyp:h_m_int) and [square-integrable](hyp:h_m_sq_int) under the
+observation law; that [(ω, z) ↦ m(η̂_n(ω), z, θ₀) is jointly measurable](hyp:h_m_meas) and [is
+measurable with respect to the product of the σ-algebra generated by the training-fold
+observations and the σ-algebra on the observation space](hyp:h_m_foldA_uncurry); that [the L²
+distance between m(η̂_n, ·, θ₀) and m(η₀, ·, θ₀) is o_p(1)](hyp:h_score_diff_rate); and that [the
+product ρ₁(η̂_n, η₀)·ρ₂(η̂_n, η₀) is o_p(n^(−1/2))](hyp:h_product_rate). For the coefficient,
+assume [a(η₀, ·) is square-integrable](hyp:h_a_truth) and that the increment a(η̂_n, ·) − a(η₀, ·)
+is [jointly measurable in (ω, z)](hyp:hΔa_meas), [measurable with respect to the same
+training-fold product σ-algebra](hyp:hΔa_uncurry_foldA), [square-integrable at every
+realization](hyp:hΔa_memLp), [o_p(1) in L²](hyp:hΔa_rate), and [has a population mean that is
+o_p(1)](hyp:hΔa_bias_rate). Finally assume [z ↦ −J₀⁻¹·m(η₀, z, θ₀) is measurable](hyp:hψ_meas),
+[the rescaled oracle one-step estimator is almost-everywhere measurable at every sample
+size](hyp:hOracle_meas), and [so is the normalized evaluation-fold sum of −J₀⁻¹·m(η₀, Z_i,
+θ₀)](hyp:hSum_meas). Then [the solution of the evaluation-fold empirical moment equation, minus
+the evaluation-fold mean of b(η̂_n, ·) divided by the evaluation-fold mean of a(η̂_n, ·), is
+asymptotically linear at θ₀ along the evaluation fold with influence function −J₀⁻¹·m(η₀, z,
+θ₀)](goal). -/
 theorem feasibleLinearDML_isAsymLinear
     [StandardBorelSpace Ω] [IsFiniteMeasure μ] [IsProbabilityMeasure μ]
     (M : LinearMoment Ω μ Z P_Z H)
@@ -339,9 +487,6 @@ theorem feasibleLinearDML_isAsymLinear
       Crem * ((M.ρ₁ (η_hat n ω) M.η₀ : NNReal) : ℝ) *
         ((M.ρ₂ (η_hat n ω) M.η₀ : NNReal) : ℝ))
     (h_m_meas : ∀ n, Measurable (fun p : Ω × Z => M.m (η_hat n p.1) p.2 M.θ₀))
-    (h_m_foldA : ∀ n, Measurable[MeasurableSpace.comap
-      (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-      (fun ω z => M.m (η_hat n ω) z M.θ₀))
     (h_m_foldA_uncurry : ∀ n, Measurable[(MeasurableSpace.comap
       (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod inferInstance]
       (fun p : Ω × Z => M.m (η_hat n p.1) p.2 M.θ₀))
@@ -357,9 +502,6 @@ theorem feasibleLinearDML_isAsymLinear
     (h_a_truth : MemLp (M.m_a M.η₀) 2 P_Z)
     (hΔa_meas : ∀ n, Measurable (Function.uncurry
       (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z)))
-    (hΔa_foldA : ∀ n, Measurable[MeasurableSpace.comap
-      (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-      (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z))
     (hΔa_uncurry_foldA : ∀ n, Measurable[(MeasurableSpace.comap
       (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod inferInstance]
       (Function.uncurry (fun ω z => M.m_a (η_hat n ω) z - M.m_a M.η₀ z)))
@@ -378,14 +520,13 @@ theorem feasibleLinearDML_isAsymLinear
       (fun z => -M.linScaleInv * M.m M.η₀ z M.θ₀) split.foldB n) μ) :
     IsAsymLinear (feasibleLinearDML M sample split η_hat) M.θ₀
       (fun z => -M.linScaleInv * M.m M.η₀ z M.θ₀) sample split.foldB := by
-  have hOracle := oneStepOracleDML_isAsymLinear_of_everywhere
-    M.toGeneralMoment hMZ hFV
-    sample split hc_pos h_split_rate η_hat hBR_at h_m_meas h_m_foldA
-    h_m_foldA_uncurry h_m_int h_m_sq_int h_score_diff_rate h_product_rate
-  have hJ := linearDML_jacobianConsistency M sample split η_hat h_a_truth
-    hΔa_meas hΔa_foldA hΔa_uncurry_foldA hΔa_memLp hΔa_rate hΔa_bias_rate
-  exact feasibleLinearDML_isAsymLinear_of_jacobianConsistency M sample split η_hat
-    hOracle hJ hψ_meas hOracle_meas hSum_meas
+  exact feasibleLinearDML_isAsymLinear_on_highProbEvent M hMZ hFV sample split
+    hc_pos h_split_rate η_hat (fun _ => Set.univ) (fun _ => 0)
+    tendsto_const_nhds (by simp) (fun n ω _ => hBR_at n ω) h_m_meas
+    h_m_foldA_uncurry (fun n ω _ => h_m_int n ω) (fun n ω _ => h_m_sq_int n ω)
+    h_score_diff_rate h_product_rate h_a_truth
+    hΔa_meas hΔa_uncurry_foldA (fun n ω _ => hΔa_memLp n ω) hΔa_rate hΔa_bias_rate
+    hψ_meas hOracle_meas hSum_meas
 
 /-- **True-σ standardized feasible DML limit.** If [the feasible affine-score
 estimator is asymptotically linear with the reference influence
@@ -411,17 +552,17 @@ theorem feasibleLinearDML_tendstoStandardNormal_of_isAsymLinear
     (hStud_meas : ∀ n, AEMeasurable (fun ω =>
       IsAsymLinear.rescaledEstimator (feasibleLinearDML M sample split η_hat)
         M.θ₀ split.foldB n ω / σ) μ) :
-    Tendsto_dist (fun n ω =>
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω =>
       IsAsymLinear.rescaledEstimator (feasibleLinearDML M sample split η_hat)
-        M.θ₀ split.foldB n ω / σ)
-      (gaussianMeasure 0 1) μ hStud_meas := by
+        M.θ₀ split.foldB n ω / σ) atTop (gaussianMeasure 0 1) := by
   have hN := hAL.tendsto_normal_foldB split hψ_meas hNum_meas hSum_meas
   rw [← hσ_sq] at hN
-  have hscaled := Tendsto_dist.const_mul_tendsto_gaussian
-    (Xn := IsAsymLinear.rescaledEstimator
+  have hscaled := Modes.TendstoInLaw.const_mul_tendsto_gaussian (Xn := IsAsymLinear.rescaledEstimator
       (feasibleLinearDML M sample split η_hat) M.θ₀ split.foldB)
-    (a := fun _ : ℕ => 1 / σ) (a₀ := 1 / σ) (v := σ ^ 2)
-    hNum_meas hN tendsto_const_nhds
+    (a := fun _ : ℕ => 1 / σ)
+    (a₀ := 1 / σ)
+    (v := σ ^ 2)
+    hN tendsto_const_nhds
   have hvar : (1 / σ) ^ 2 * σ ^ 2 = 1 := by
     field_simp [ne_of_gt hσ_pos]
   rw [hvar] at hscaled
@@ -449,11 +590,9 @@ theorem feasibleCrossFitLinearDML_isAsymLinear_of_jacobianConsistency
       (crossFitOneStepOracleDML M.toGeneralMoment sample split η_hat) M.θ₀
       (fun z => -M.linScaleInv * M.m M.η₀ z M.θ₀)
       sample (fun n => Finset.range n))
-    (hJ : Tendsto_inProb
-      (fun n ω => (K : ℝ)⁻¹ * ∑ k : Fin K,
+    (hJ : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => (K : ℝ)⁻¹ * ∑ k : Fin K,
         ((split.fold n k).card : ℝ)⁻¹ *
-          ∑ i ∈ split.fold n k, M.m_a (η_hat n k ω) (sample.Z i ω))
-      (fun _ => M.linScale) μ)
+          ∑ i ∈ split.fold n k, M.m_a (η_hat n k ω) (sample.Z i ω)) atTop (fun _ _ => M.linScale))
     (hψ_meas : Measurable (fun z => -M.linScaleInv * M.m M.η₀ z M.θ₀))
     (hOracle_meas : ∀ n, AEMeasurable
       (IsAsymLinear.rescaledEstimator
@@ -490,15 +629,16 @@ theorem feasibleCrossFitLinearDML_isAsymLinear_of_jacobianConsistency
   have hSψ_big : IsBigOp Sψ (fun _ => (1 : ℝ)) μ := by
     rw [hSψ_eq]
     exact Causalean.Stat.IsBigOp.const_mul (-M.linScale)
-      (Tendsto_dist.tightness hOracle_meas hXdist)
-  have hFinProb : Tendsto_inProb F (fun _ => 0) μ := by
-    have hi := hJ.inv M.linScale_ne_zero
-    have hn := hi.sub_const.comp_continuousAt (g := fun x : ℝ => -x)
+      (Modes.TendstoInLaw.tightness hXdist)
+  have hFinProb : Modes.TendstoInProbability (fun _ : ℕ => μ) F atTop (fun _ _ => 0) := by
+    have hi := Modes.TendstoInProbability.inv hJ M.linScale_ne_zero
+    have hn := Modes.TendstoInProbability.comp_continuousAt (h := Modes.TendstoInProbability.sub_const hi)
+        (g := fun x : ℝ => -x)
       continuous_neg.continuousAt
     simpa [F, A, GeneralMoment.linScaleInv, one_div] using hn
   have hprod : IsLittleOp (fun n ω => Sψ n ω * F n ω)
       (fun _ => (1 : ℝ)) μ :=
-    hSψ_big.mul_isLittleOp_one_isLittleOp hFinProb.isLittleOp_one
+    hSψ_big.mul_isLittleOp_one_isLittleOp (Modes.TendstoInProbability.isLittleOp_one hFinProb)
   have hQ : ∀ n ω, Q n ω = A n ω * M.θ₀ + B n ω := by
     intro n ω
     simp only [Q, A, B, M.m_decomp]
@@ -585,18 +725,18 @@ theorem feasibleCrossFitLinearDML_tendstoStandardNormal_of_isAsymLinear
     (hStud_meas : ∀ n, AEMeasurable (fun ω =>
       IsAsymLinear.rescaledEstimator (feasibleCrossFitLinearDML M sample split η_hat)
         M.θ₀ (fun n => Finset.range n) n ω / σ) μ) :
-    Tendsto_dist (fun n ω =>
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω =>
       IsAsymLinear.rescaledEstimator (feasibleCrossFitLinearDML M sample split η_hat)
-        M.θ₀ (fun n => Finset.range n) n ω / σ)
-      (gaussianMeasure 0 1) μ hStud_meas := by
+        M.θ₀ (fun n => Finset.range n) n ω / σ) atTop (gaussianMeasure 0 1) := by
   have hN := hAL.tendsto_normal hψ_meas hNum_meas
   rw [← hσ_sq] at hN
-  have hscaled := Tendsto_dist.const_mul_tendsto_gaussian
-    (Xn := IsAsymLinear.rescaledEstimator
+  have hscaled := Modes.TendstoInLaw.const_mul_tendsto_gaussian (Xn := IsAsymLinear.rescaledEstimator
       (feasibleCrossFitLinearDML M sample split η_hat)
       M.θ₀ (fun n => Finset.range n))
-    (a := fun _ : ℕ => 1 / σ) (a₀ := 1 / σ) (v := σ ^ 2)
-    hNum_meas hN tendsto_const_nhds
+    (a := fun _ : ℕ => 1 / σ)
+    (a₀ := 1 / σ)
+    (v := σ ^ 2)
+    hN tendsto_const_nhds
   have hvar : (1 / σ) ^ 2 * σ ^ 2 = 1 := by
     field_simp [ne_of_gt hσ_pos]
   rw [hvar] at hscaled

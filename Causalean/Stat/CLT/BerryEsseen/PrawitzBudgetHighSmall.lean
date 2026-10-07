@@ -125,7 +125,7 @@ private theorem scaled_integral_comparison (ρ U a z b : ℝ)
 /-- For [a positive moment ratio ρ at most one hundredth](hyp:ρ,hρ,hsmall), with
 the logarithmic inner cutoff U0 = max(3/2, √(4 log(1/ρ))) and the reciprocal
 outer cutoff U = 12/(5ρ), [the high-frequency Prawitz contribution
-(2/U)·∫ over [U0, U] of the Prawitz filter magnitude times the moment
+(2/U)·∫ over [U0, U] of the Prawitz filter magnitude at t/U times the moment
 envelope is at most three twentieths of ρ](goal). -/
 theorem prawitz_budget_high_small
     (ρ : ℝ) (hρ : 0 < ρ) (hsmall : ρ ≤ 1 / 100) :

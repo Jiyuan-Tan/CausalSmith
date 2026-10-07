@@ -14,7 +14,7 @@ feasible control propensities are dominated by the control cutoff propensity, so
 control upper bound is attained at that cutoff.
 
 The theorem `cutoff_optimal0` proves optimality of a calibrated control cutoff
-against every member of `MSMSetCalib0`. The theorem `msmUpperCalib0_eq_cutoff`
+against every member of `MSMSetCalib false`. The theorem `msmUpperCalib0_eq_cutoff`
 then identifies the calibrated control upper bound with the cutoff
 candidate mean.
 -/
@@ -43,12 +43,12 @@ cutoff attains the maximum over all calibrated candidates. -/
 theorem cutoff_optimal0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
     (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c) (hc_int : Integrable c P.μ)
-    (hcut_mem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ)
+    (hcut_mem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib false Λ)
     (henv : Integrable (fun ω => S.dVar.indicator false ω * |S.factualY ω| * S.wMax0 Λ ω) P.μ)
     (hweight_env : Integrable (fun ω => S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ)
     (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ)
-    {etilde : P.Ω → ℝ} (hmem : etilde ∈ S.MSMSetCalib0 Λ) :
-    S.candMean0 etilde ≤ S.candMean0 (S.cutoffProp0 Λ c) := by
+    {etilde : P.Ω → ℝ} (hmem : etilde ∈ S.MSMSetCalib false Λ) :
+    S.candMean false etilde ≤ S.candMean false (S.cutoffProp0 Λ c) := by
   classical
   have _ : Integrable c P.μ := hc_int
   have hΛ0 : (0 : ℝ) < Λ := lt_of_lt_of_le one_pos hΛ
@@ -142,7 +142,7 @@ theorem cutoff_optimal0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
     · simp only [if_neg hcy]
       exact ⟨le_rfl, hminmax, by linarith⟩
   have hXE_int : Integrable (fun ω => A ω / etilde ω) P.μ := by
-    simpa [hA_def] using S.calibrated_weight_integrable0 etilde hmem.2
+    simpa [hA_def] using S.calibrated_weight_integrable false etilde hmem.2
   have hAwE_int : Integrable (fun ω => A ω * wE ω) P.μ := by
     refine hXE_int.congr (Filter.Eventually.of_forall ?_)
     intro ω
@@ -229,7 +229,7 @@ theorem cutoff_optimal0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
       exact MeasureTheory.condExp_mul_of_stronglyMeasurable_left
         (m := S.sigmaX) (μ := P.μ) hc_meas.stronglyMeasurable hprod_int hXE_int
     have hcal : P.μ[fun ω => A ω / etilde ω | S.sigmaX] =ᵐ[P.μ] (fun _ => (1 : ℝ)) := by
-      simpa [POBackdoorSystem.Calibrated0, POBackdoorSystem.Calibrated, hA_def] using hmem.2
+      simpa [POBackdoorSystem.Calibrated, hA_def] using hmem.2
     have hmain : ∫ ω, c ω * (A ω / etilde ω) ∂P.μ = ∫ ω, c ω ∂P.μ := by
       have hcond :
           ∫ ω, P.μ[fun ω => c ω * (A ω / etilde ω) | S.sigmaX] ω ∂P.μ
@@ -268,7 +268,7 @@ theorem cutoff_optimal0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
     have hcal :
         P.μ[fun ω => A ω / S.cutoffProp0 Λ c ω | S.sigmaX]
           =ᵐ[P.μ] (fun _ => (1 : ℝ)) := by
-      simpa [POBackdoorSystem.Calibrated0, POBackdoorSystem.Calibrated, hA_def] using hcut_mem.2
+      simpa [POBackdoorSystem.Calibrated, hA_def] using hcut_mem.2
     have hmain :
         ∫ ω, c ω * (A ω / S.cutoffProp0 Λ c ω) ∂P.μ = ∫ ω, c ω ∂P.μ := by
       have hcond :
@@ -310,10 +310,9 @@ theorem cutoff_optimal0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
         exact mul_nonpos_of_nonneg_of_nonpos (hA0 ω) (sub_nonpos.mpr (le_of_not_gt hcy))
       exact mul_le_mul_of_nonpos_left hminE hcoef_nonpos
   have hcandE :
-      S.candMean0 etilde =
+      S.candMean false etilde =
         ∫ ω, A ω * (Y ω - c ω) * wE ω ∂P.μ
           + ∫ ω, c ω * A ω * wE ω ∂P.μ := by
-    unfold POBackdoorSystem.candMean0
     rw [← integral_add hfirstE_int hcE_int]
     refine integral_congr_ae (Filter.Eventually.of_forall ?_)
     intro ω
@@ -323,10 +322,9 @@ theorem cutoff_optimal0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
     rw [div_eq_mul_inv, one_div]
     ring
   have hcandC :
-      S.candMean0 (S.cutoffProp0 Λ c) =
+      S.candMean false (S.cutoffProp0 Λ c) =
         ∫ ω, A ω * (Y ω - c ω) * wC ω ∂P.μ
           + ∫ ω, c ω * A ω * wC ω ∂P.μ := by
-    unfold POBackdoorSystem.candMean0
     rw [← integral_add hfirstC_int hcC_int]
     refine integral_congr_ae ?_
     filter_upwards [hboxC] with ω hbox
@@ -350,27 +348,25 @@ propensity](goal). -/
 theorem msmUpperCalib0_eq_cutoff (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
     (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c) (hc_int : Integrable c P.μ)
-    (hcut_mem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ)
+    (hcut_mem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib false Λ)
     (henv : Integrable (fun ω => S.dVar.indicator false ω * |S.factualY ω| * S.wMax0 Λ ω) P.μ)
     (hweight_env : Integrable (fun ω => S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ)
     (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ) :
-    S.msmUpperCalib0 Λ = S.candMean0 (S.cutoffProp0 Λ c) := by
+    S.msmUpperCalib false Λ = S.candMean false (S.cutoffProp0 Λ c) := by
   classical
-  have hne : (S.candMean0 '' S.MSMSetCalib0 Λ).Nonempty :=
-    ⟨S.candMean0 (S.cutoffProp0 Λ c), Set.mem_image_of_mem _ hcut_mem⟩
+  have hne : (S.candMean false '' S.MSMSetCalib false Λ).Nonempty :=
+    ⟨S.candMean false (S.cutoffProp0 Λ c), Set.mem_image_of_mem _ hcut_mem⟩
   have hle_all :
-      ∀ x ∈ S.candMean0 '' S.MSMSetCalib0 Λ,
-        x ≤ S.candMean0 (S.cutoffProp0 Λ c) := by
+      ∀ x ∈ S.candMean false '' S.MSMSetCalib false Λ,
+        x ≤ S.candMean false (S.cutoffProp0 Λ c) := by
     rintro x ⟨etilde, hmem, rfl⟩
     exact S.cutoff_optimal0 Λ hΛ hoverlap c hc_meas hc_int hcut_mem henv hweight_env hc_env
       hmem
-  have hbdd : BddAbove (S.candMean0 '' S.MSMSetCalib0 Λ) :=
-    ⟨S.candMean0 (S.cutoffProp0 Λ c), hle_all⟩
+  have hbdd : BddAbove (S.candMean false '' S.MSMSetCalib false Λ) :=
+    ⟨S.candMean false (S.cutoffProp0 Λ c), hle_all⟩
   refine le_antisymm ?_ ?_
-  · unfold POBackdoorSystem.msmUpperCalib0
-    exact csSup_le hne hle_all
-  · unfold POBackdoorSystem.msmUpperCalib0
-    exact le_csSup hbdd (Set.mem_image_of_mem _ hcut_mem)
+  · exact csSup_le hne hle_all
+  · exact le_csSup hbdd (Set.mem_image_of_mem _ hcut_mem)
 
 end POBackdoorSystem
 

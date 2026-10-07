@@ -119,7 +119,7 @@ theorem integral_mul_iterated_deriv_with_boundary (k : ℕ) (a b : ℝ)
       rw [pow_succ]
       ring
 
-/-- An [integration order](hyp:k), [interval endpoints](hyp:a,b), and [two smooth functions](hyp:p,f), when [the first function is smooth on the interval](hyp:hp), [the second function is smooth on the interval](hyp:hf), [all lower derivatives of the second function vanish at both endpoints](hyp:hbd), and [the interval has positive length](hyp:hab), give [the boundary-free repeated integration-by-parts identity](goal).
+/-- An [integration order](hyp:k), [interval endpoints](hyp:a,b), and [two smooth functions](hyp:p,f), when [the first function is smooth on the interval](hyp:hp), [the second function is smooth on the interval](hyp:hf), [all lower derivatives of the second function vanish at both endpoints](hyp:hbd), and [the interval has positive length](hyp:hab), give [the boundary-free repeated integration-by-parts identity: the integral over the interval of the first function times the k-th derivative of the second equals (−1)^k times the integral of the k-th derivative of the first times the second](goal).
 
 If every derivative of `f` below order `k` vanishes at both endpoints,
 then `k` integrations by parts transfer all derivatives from `f` to `p`.

@@ -45,7 +45,7 @@ theorem aemeasurable_of_supportMeasurableOn
   filter_upwards [ae_iff.mpr hfull] with x hx
   exact congr_fun hf'eq ⟨x, hx⟩
 
-/-- [Finite numerator and denominator measures](hyp:m,n) with [absolute continuity](hyp:hmn),
+/-- [Finite numerator and denominator measures](hyp:m,n) with
 [measurable source and target supports](hyp:S,T,hS,hT), [concentration on the source support](hyp:hμS,hνS), and [forward and reverse maps measurable on their supports](hyp:f,g,hf,hg), whose
 [images stay in the matching supports](hyp:hfT,hgS) and [are mutual inverses there](hyp:hgf,hfg),
 give [a canonical Radon--Nikodym derivative preserved after the forward map](goal). -/
@@ -53,7 +53,7 @@ theorem rnDeriv_map_of_support_equiv
     {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
     [StandardBorelSpace X] [StandardBorelSpace Y]
     (m n : Measure X) [IsFiniteMeasure m] [IsFiniteMeasure n]
-    (hmn : m ≪ n) (S : Set X) (T : Set Y)
+    (S : Set X) (T : Set Y)
     (hS : MeasurableSet S) (hT : MeasurableSet T)
     (hμS : m Sᶜ = 0) (hνS : n Sᶜ = 0)
     (f : X → Y) (g : Y → X)
@@ -130,7 +130,7 @@ theorem rnDeriv_map_of_support_equiv
     rw [Filter.EventuallyEq, ae_zero]
     simp
 
-/-- [Finite numerator and denominator measures](hyp:m,n) with [absolute continuity](hyp:hmn),
+/-- [Finite numerator and denominator measures](hyp:m,n) with
 [measurable source and target supports](hyp:S,T,hS,hT), [concentration on the source support](hyp:hμS,hνS), and [forward and reverse maps measurable on their supports](hyp:f,g,hf,hg), whose
 [images stay in the matching supports](hyp:hfT,hgS) and [are mutual inverses there](hyp:hgf,hfg),
 give [an unchanged pushforward law for the real-valued canonical Radon--Nikodym ratio](goal). -/
@@ -138,7 +138,7 @@ theorem map_toReal_rnDeriv_eq_map_toReal_rnDeriv_map_of_support_equiv
     {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
     [StandardBorelSpace X] [StandardBorelSpace Y]
     (m n : Measure X) [IsFiniteMeasure m] [IsFiniteMeasure n]
-    (hmn : m ≪ n) (S : Set X) (T : Set Y)
+    (S : Set X) (T : Set Y)
     (hS : MeasurableSet S) (hT : MeasurableSet T)
     (hμS : m Sᶜ = 0) (hνS : n Sᶜ = 0)
     (f : X → Y) (g : Y → X)
@@ -159,7 +159,7 @@ theorem map_toReal_rnDeriv_eq_map_toReal_rnDeriv_map_of_support_equiv
       letI : Nonempty Y := ⟨f hX.some⟩
       have hfn : AEMeasurable f n :=
         aemeasurable_of_supportMeasurableOn hS hνS hf
-      have hrn := rnDeriv_map_of_support_equiv m n hmn S T hS hT hμS hνS
+      have hrn := rnDeriv_map_of_support_equiv m n S T hS hT hμS hνS
         f g hf hg hfT hgS hgf hfg
       have hreal :
           (fun x ↦ ((m.map f).rnDeriv (n.map f) (f x)).toReal) =ᵐ[n]

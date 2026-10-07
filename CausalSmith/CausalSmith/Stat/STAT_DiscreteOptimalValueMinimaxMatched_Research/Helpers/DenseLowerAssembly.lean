@@ -200,7 +200,7 @@ lemma denseFuzzyMinimax_to_poissonRisk {n d : ℕ} {epsilon : ℝ}
     exact iInf_le_of_le ⟨clipped, hclipped⟩ le_rfl
   have hworst :
       Causalean.Stat.Minimax.FuzzyHypotheses.worstCaseSquaredRisk K target clipped ≤
-        ENNReal.ofReal (Causalean.Stat.worstCaseRisk
+        ENNReal.ofReal (Causalean.Stat.worstCaseRiskReal
           (poissonObservedRisk (2 * n) (d := d) (epsilon := epsilon)) est) := by
     apply iSup_le
     intro theta
@@ -210,7 +210,7 @@ lemma denseFuzzyMinimax_to_poissonRisk {n d : ℕ} {epsilon : ℝ}
     have hvalue' : observedOptimalValue Ptheta.1 Ptheta.2 = target theta := by
       simpa [Ptheta, target, denseTargetAt] using hvalue
     have hrisk_le : poissonObservedRisk (2 * n) est Ptheta ≤
-        Causalean.Stat.worstCaseRisk
+        Causalean.Stat.worstCaseRiskReal
           (poissonObservedRisk (2 * n) (d := d) (epsilon := epsilon)) est :=
       Causalean.Stat.le_worstCaseRisk (hpoisson_bdd est) Ptheta
     calc
@@ -246,18 +246,18 @@ lemma denseFuzzyMinimax_to_poissonRisk {n d : ℕ} {epsilon : ℝ}
           rw [← sq_abs]
           simpa using (sq_le_sq₀ (abs_nonneg _) (by norm_num)).2 habs
         · exact ae_of_all _ fun _ => sq_nonneg _
-      _ ≤ ENNReal.ofReal (Causalean.Stat.worstCaseRisk
+      _ ≤ ENNReal.ofReal (Causalean.Stat.worstCaseRiskReal
           (poissonObservedRisk (2 * n) (d := d) (epsilon := epsilon)) est) :=
         ENNReal.ofReal_le_ofReal hrisk_le
-  have hfinite : ENNReal.ofReal (Causalean.Stat.worstCaseRisk
+  have hfinite : ENNReal.ofReal (Causalean.Stat.worstCaseRiskReal
       (poissonObservedRisk (2 * n) (d := d) (epsilon := epsilon)) est) ≠ ⊤ :=
     ENNReal.ofReal_ne_top
   calc
     (Causalean.Stat.Minimax.FuzzyHypotheses.minimaxSquaredRisk K target).toReal ≤
-        (ENNReal.ofReal (Causalean.Stat.worstCaseRisk
+        (ENNReal.ofReal (Causalean.Stat.worstCaseRiskReal
           (poissonObservedRisk (2 * n) (d := d) (epsilon := epsilon)) est)).toReal :=
       ENNReal.toReal_mono hfinite (hmini.trans hworst)
-    _ = Causalean.Stat.worstCaseRisk
+    _ = Causalean.Stat.worstCaseRiskReal
         (poissonObservedRisk (2 * n) (d := d) (epsilon := epsilon)) est := by
       rw [ENNReal.toReal_ofReal]
       exact Causalean.Stat.worstCaseRisk_nonneg (fun _ => by

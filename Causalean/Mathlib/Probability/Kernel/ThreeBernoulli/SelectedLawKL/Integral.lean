@@ -24,7 +24,7 @@ universe u
 /-- [The expected cellwise log likelihood ratio is the covariate integral of
 the four cell contributions](goal) for a [probability covariate law](hyp:μ),
 [measurable propensity and outcome means](hyp:he,hq₀,hq₁,hq₀',hq₁'), and
-[uniform interior bounds](hyp:hη0,hηhalf,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
+[uniform interior bounds](hyp:hη0,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
 
 Use the explicit `selectedLaw` density and coordinate swap. Apply
 `integral_map`, `integral_withDensity_eq_integral_toReal_smul₀`, Fubini for the product with
@@ -36,7 +36,7 @@ theorem selectedLaw_integral_cell_log_eq_sum {X : Type u} [MeasurableSpace X]
     (e q₀ q₁ q₀' q₁' : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
     (hq₀' : Measurable q₀') (hq₁' : Measurable q₁')
-    {η : ℝ} (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    {η : ℝ} (hη0 : 0 < η)
     (heη : ∀ x, e x ∈ Set.Icc η (1 - η))
     (hq₀η : ∀ x, q₀ x ∈ Set.Icc η (1 - η))
     (hq₁η : ∀ x, q₁ x ∈ Set.Icc η (1 - η))
@@ -91,7 +91,7 @@ theorem selectedLaw_integral_cell_log_eq_sum {X : Type u} [MeasurableSpace X]
     simp [selectedDensity]
   have hgi : Integrable g (selectedLaw μ e q₀ q₁) :=
     selectedCellRatio_log_integrable μ e q₀ q₁ q₀' q₁'
-      he hq₀ hq₁ hq₀' hq₁' hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η
+      he hq₀ hq₁ hq₀' hq₁' hη0 heη hq₀η hq₁η hq₀'η hq₁'η
   have hwi : Integrable (g ∘ f) (ν.withDensity (selectedDensity e q₀ q₁)) := by
     exact (integrable_map_measure hg.aestronglyMeasurable hf.aemeasurable).1 hgi
   have hprod : Integrable

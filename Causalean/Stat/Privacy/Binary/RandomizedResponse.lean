@@ -26,14 +26,15 @@ def responseProbability (ε : ℝ) (b : Bool) : ℝ :=
   else 1 / (Real.exp ε + 1)
 
 /-- A [privacy level](hyp:ε) determines [the Boolean-output randomized-response
-kernel](goal), [given by success probabilities `responseProbability ε`](step:1). -/
+kernel](goal), [which reports a positive sign with probability `exp ε/(exp ε + 1)` when the
+input is positive and `1/(exp ε + 1)` when it is negative, and a negative sign
+otherwise](step:1). -/
 def randomizedResponse (ε : ℝ) : Kernel Bool Bool :=
   Kernel.ofFunOfCountable fun b =>
     Causalean.Mathlib.Probability.bernoulliBool (responseProbability ε b)
 
-/-- A [positive privacy level](hyp:hε) at [the supplied parameter](hyp:ε) makes
-[binary randomized response a Markov kernel](goal). -/
-theorem randomizedResponse_markov (ε : ℝ) (hε : 0 < ε) :
+/-- At [any privacy level](hyp:ε), [binary randomized response is a Markov kernel](goal). -/
+theorem randomizedResponse_markov (ε : ℝ) :
     IsMarkovKernel (randomizedResponse ε) := by
   have he : 0 < Real.exp ε := Real.exp_pos ε
   refine ⟨fun b => ?_⟩
@@ -114,10 +115,12 @@ theorem randomizedResponse_private (ε : ℝ) (hε : 0 < ε) :
 variable {Z : Type*} [MeasurableSpace Z] [Countable Z]
   [MeasurableSingletonClass Z]
 
-/-- A [Boolean-input Markov kernel](hyp:Q) on a countable measurable output alphabet
-and [a sign-family parameter](hyp:τ) determine [the atomic scalar Fisher
-information](goal), [given by the sum of squared row-mass differences over twice the
-mixture mass, with zero-mass atoms contributing zero](step:1). -/
+/-- A [Boolean-input Markov kernel](hyp:Q), intended for a countable measurable output
+alphabet, and [a sign-family parameter](hyp:τ) determine [the atomic scalar Fisher
+information](goal), [given by the sum over output points of the squared difference of the two
+row masses divided by four times the mixture mass `((1 + τ)·positive + (1 - τ)·negative)/2`,
+with atoms whose denominator vanishes contributing zero](step:1). Equivalently each atom
+contributes its squared half-difference of row masses divided by its mixture mass. -/
 def discreteInformation (Q : Kernel Bool Z) (τ : ℝ) : ℝ :=
   ∑' z : Z,
     ((Q true {z}).toReal - (Q false {z}).toReal) ^ 2 /
@@ -260,13 +263,14 @@ theorem information_eq_discrete (Q : Kernel Bool Z) [IsMarkovKernel Q]
 
 /-- A [positive privacy level](hyp:ε,hε) and [an interior sign-family
 parameter](hyp:τ,hτ) make [binary randomized response attain the sharp scalar
-Fisher-information bound](goal). -/
+Fisher-information bound](goal): its output Fisher information equals `c² / (1 - c² τ²)`
+exactly, where `c = (exp ε - 1)/(exp ε + 1)` is the contraction parameter. -/
 theorem randomizedResponse_information_eq (ε τ : ℝ)
     (hε : 0 < ε) (hτ : |τ| < 1) :
-    letI : IsMarkovKernel (randomizedResponse ε) := randomizedResponse_markov ε hε
+    letI : IsMarkovKernel (randomizedResponse ε) := randomizedResponse_markov ε
     information (randomizedResponse ε) τ =
       contraction ε ^ 2 / (1 - contraction ε ^ 2 * τ ^ 2) := by
-  letI : IsMarkovKernel (randomizedResponse ε) := randomizedResponse_markov ε hε
+  letI : IsMarkovKernel (randomizedResponse ε) := randomizedResponse_markov ε
   let e := Real.exp ε
   let p := e / (e + 1)
   let q := 1 / (e + 1)
@@ -334,7 +338,9 @@ theorem randomizedResponse_information_eq (ε τ : ℝ)
 /-- A [Boolean-input Markov kernel](hyp:Q) on a countable measurable output alphabet,
 [a positive privacy level](hyp:ε,hε), [an interior sign-family parameter](hyp:τ,hτ),
 and [setwise local privacy](hyp:hpriv) give [the sharp atomic Fisher-information
-bound](goal). -/
+bound](goal): the atomic Fisher information is at most `c² / (1 - c² τ²)`, where
+`c = (exp ε - 1)/(exp ε + 1)` is the contraction parameter. This statement is the upper
+bound only. -/
 theorem discreteInformation_le_sharp (Q : Kernel Bool Z) [IsMarkovKernel Q]
     (ε τ : ℝ) (hε : 0 < ε) (hτ : |τ| < 1)
     (hpriv : SetwisePrivate Q ε) :

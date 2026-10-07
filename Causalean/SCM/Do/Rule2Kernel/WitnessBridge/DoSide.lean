@@ -43,7 +43,7 @@ respects the W–Y confounding allowed by the backdoor criterion.  (The old
 
 The spine is:
 
-* `condDistrib_map_comp` (Mathlib helper): transport the obs-level
+* `ProbabilityTheory.condDistrib_map` (Mathlib): transport the obs-level
   `condDistrib π_Y π_{Zr∪W} (obsKernel s)` onto the latent space
   `latentProduct`, where `π ∘ E` are the pulled-back coordinate maps.
 * `condDistrib_map_of_condDistrib_fst_eq` (witness lemma, `CondDistribWitness.lean`):
@@ -106,7 +106,7 @@ set_option maxHeartbeats 1000000 in
     `M2.latentProduct` equals the M1 posterior witness kernel.**
 
     This is the genuinely-new analytic content of the do-side bridge, isolated
-    *after* the mechanical Step-A transport (`condDistrib_map_comp`@M2).  The LHS
+    *after* the mechanical Step-A transport (`condDistrib_map`@M2).  The LHS
     is the conditional law of `π_Y ∘ E2` given `π_W ∘ E2` under `M2.latentProduct`
     (`E2 := M2.randomToObserved ∘ M2.evalMap s'`, `s' := fixSetExtend s0 t`);
     the RHS is `M1`'s posterior witness kernel `(condDistrib C_W (π_W∘E1)
@@ -330,16 +330,14 @@ theorem doSide_M2_pullback_eq_M1_witness
     `M'` be a structural causal model and `Z` a set of treatment names with [each
     treatment's pre-intervention node observed](hyp:hZ_obs) and [each treatment's
     post-intervention node not already fixed in `M'`](hyp:hZ_fixed), so that intervening on
-    `Z` is well-formed; let `Y`, `W` be node sets with [`Y`, `W`, the treatments'
-    pre-intervention nodes, and their union with `W` all observed](hyp:hY,hW,hZr,hZrW) and
+    `Z` is well-formed; let `Y`, `W` be node sets with [`Y`, `W`, and the union of the
+    treatments' pre-intervention nodes with `W` all observed](hyp:hY,hW,hZrW) and
     [`Y` disjoint from the treatments' pre-intervention nodes](hyp:hDisj_YZr). Suppose
     [no node of `W` is a descendant, in the intervened model's graph, of any treatment's
     post-intervention node](hyp:hWNonDesc), and let `h` be [a jointly measurable
     map](hyp:hh) that, at a baseline assignment `s0` to the original model's fixed nodes,
-    [factors the realized outcome as `h` applied to the realized treatment value, the
-    realized `W` value, and the latent cut-set's value](hyp:hfac) and additionally,
-    [for every candidate treatment/`W` pair, agrees there with the outcome obtained by
-    instead overriding the baseline assignment `s0` to that pair](hyp:hoverride). Then, at
+    [for every candidate treatment/`W` pair and latent cut-set value, returns the outcome
+    obtained by overriding the baseline assignment `s0` to that pair](hyp:hoverride). Then, at
     the intervened model's slice fixing the treatments to a value `t` and the remaining
     fixed nodes to `s0`, [the measure-level conditional law of `Y` given `W` equals, for
     almost every `w` under the `W`-marginal of the original model's observational kernel at
@@ -355,7 +353,7 @@ theorem doSide_M2_pullback_eq_M1_witness
 
     This is the genuinely-new analytic content of the do-side bridge.  It bundles
     the `M2`-side witness chain (transport the `M2` obs-level conditional onto
-    `M2.latentProduct` via `condDistrib_map_comp`, then apply the witness lemma
+    `M2.latentProduct` via `condDistrib_map`, then apply the witness lemma
     with the `M2` cut-set factorization — where random `Zr` is childless, so it
     contributes no treatment coordinate) together with the cross-SCM
     identification of the resulting `M2` witness kernel with the `M1` witness
@@ -376,7 +374,6 @@ theorem doSide_M2_condDistrib_eq_M1_witness
     (hZ_fixed : ∀ D ∈ Z, SWIGNode.fixed D ∉ M'.fixed)
     (Y W : Finset (SWIGNode N))
     (hY : Y ⊆ M'.observed) (hW : W ⊆ M'.observed)
-    (hZr : Z.image SWIGNode.random ⊆ M'.observed)
     (hZrW : Z.image SWIGNode.random ∪ W ⊆ M'.observed)
     (hDisj_YZr : Disjoint Y (Z.image SWIGNode.random))
     (hWNonDesc : ∀ z ∈ Z, ∀ v ∈ W,
@@ -405,12 +402,6 @@ theorem doSide_M2_condDistrib_eq_M1_witness
         (ValuesOn (Z.image SWIGNode.random) (swigΩ Ω) × ValuesOn W (swigΩ Ω))
           × ValuesOn (M'.cutsetLatent Y (Z.image SWIGNode.random ∪ W)) (swigΩ Ω) =>
         h p.1.1 p.1.2 p.2))
-    (hfac : ∀ ℓ : M'.LatentValues,
-        valuesProjection hY (M'.randomToObserved (M'.evalMap s0 ℓ))
-          = h (valuesProjection hZr (M'.randomToObserved (M'.evalMap s0 ℓ)))
-              (valuesProjection hW (M'.randomToObserved (M'.evalMap s0 ℓ)))
-              (valuesProjection (M'.cutsetLatent_subset Y
-                (Z.image SWIGNode.random ∪ W)) ℓ))
     (hoverride : ∀ (zr : ValuesOn (Z.image SWIGNode.random) (swigΩ Ω))
           (w' : ValuesOn W (swigΩ Ω)) (ℓ : M'.LatentValues),
         h zr w'
@@ -454,12 +445,12 @@ theorem doSide_M2_condDistrib_eq_M1_witness
         from rfl, hRule3,
       M'.fixSetProj_fixSetExtend Z hZ_obs hZ_fixed s0 t]
   -- Step A: transport the M2 LHS `condDistrib π_Y π_W (M2.obsKernel s')` onto
-  -- `M2.latentProduct` via `obsKernel_eq_latentProduct_map` + `condDistrib_map_comp`.
+  -- `M2.latentProduct` via `obsKernel_eq_latentProduct_map` + `condDistrib_map`.
   have hobs : M2.obsKernel s' = M2.latentProduct.map E2 :=
     M2.obsKernel_eq_latentProduct_map s'
-  have hstepA := condDistrib_map_comp (𝒴 := ValuesOn Y (swigΩ Ω))
-    M2.latentProduct (φ := E2) (g := valuesProjection hY_M2) (f := valuesProjection hW_M2)
-    hE2meas hπY hπW
+  have hstepA := ProbabilityTheory.condDistrib_map (ν := M2.latentProduct) (f := E2)
+    hπW.aemeasurable hπY.aemeasurable hE2meas.aemeasurable
+  rw [← MeasureTheory.Measure.map_map hπW hE2meas] at hstepA
   -- `hstepA : condDistrib π_Y π_W (latentProduct.map E2)
   --            =ᵐ[(latentProduct.map E2).map π_W] condDistrib (π_Y∘E2) (π_W∘E2) latentProduct`.
   -- Align the base of `hstepA` to `μW`.
@@ -483,17 +474,14 @@ theorem doSide_M2_condDistrib_eq_M1_witness
     structural causal model and `Z` a set of treatment names with [each treatment's
     pre-intervention node observed](hyp:hZ_obs) and [each treatment's post-intervention
     node not already fixed in `M'`](hyp:hZ_fixed); let `Y`, `W` be node sets with [`Y`,
-    `W`, the treatments' pre-intervention nodes, and their union with `W` all
-    observed](hyp:hY,hW,hZr,hZrW), [`Y` disjoint from the treatments' pre-intervention
-    nodes](hyp:hDisj_YZr), and [those pre-intervention nodes disjoint from
-    `W`](hyp:hDisj_ZrW). Suppose [no node of `W` is a descendant, in the intervened
+    `W`, and the union of the treatments' pre-intervention nodes with `W` all
+    observed](hyp:hY,hW,hZrW) and [`Y` disjoint from the treatments' pre-intervention
+    nodes](hyp:hDisj_YZr). Suppose [no node of `W` is a descendant, in the intervened
     model's graph, of any treatment's post-intervention node](hyp:hWNonDesc), and let `h`
     be [a jointly measurable map](hyp:hh) that, at a baseline assignment `s0` to the
-    original model's fixed nodes, [factors the realized outcome as `h` applied to the
-    realized treatment value, the realized `W` value, and the latent cut-set's
-    value](hyp:hfac), and additionally [for every candidate treatment/`W` pair agrees there
-    with the outcome obtained by instead overriding the baseline assignment `s0` to that
-    pair](hyp:hoverride). Then, at the intervened model's slice fixing the treatments to a
+    original model's fixed nodes, [for every candidate treatment/`W` pair and latent
+    cut-set value, returns the outcome obtained by overriding the baseline assignment `s0`
+    to that pair](hyp:hoverride). Then, at the intervened model's slice fixing the treatments to a
     value `t` and the remaining fixed nodes to `s0`, [for almost every `w` under the
     `W`-marginal of the original model's observational kernel at `s0`, the intervened
     model's conditional-probability kernel for `Y` given `W` at `(s', w)` equals the
@@ -506,7 +494,7 @@ theorem doSide_M2_condDistrib_eq_M1_witness
 
     the SAME witness kernel `obsCondKernel_union_eq_witness`@M1 produces (so the
     export can connect the two by transitivity without any positivity assumption in
-    *this* lemma).  The `h`/`hh`/`hfac` arguments are the M1 cut-set factorization
+    *this* lemma).  The `h`/`hh`/`hoverride` arguments are the M1 cut-set factorization
     data (obtained by the export from `cutset_factor_pointwise M' Y W Z … s0`,
     exactly as `obsSide_eq_witness` consumes them).
 
@@ -525,7 +513,7 @@ theorem doSide_M2_condDistrib_eq_M1_witness
       `obsKernel_fixSet_W_marginal_eq_M1_marginal` (Rule 3*).
 
     The theorem combines the `M2`-side mirror of the obs-side witness chain
-    (`obsCondKernel_ae_eq_condDistrib`@M2 → `condDistrib_map_comp`@M2 → the
+    (`obsCondKernel_ae_eq_condDistrib`@M2 → `condDistrib_map`@M2 → the
     `M2` cut-set factorization → the `M2` witness identity) with the cross-SCM
     identification of the `M2` witness kernel and the `M1` witness kernel,
     transported onto the common `μW` base via Rule 3*'s `W`-marginal equality. -/
@@ -535,9 +523,7 @@ theorem doSide_eq_witness
     (hZ_fixed : ∀ D ∈ Z, SWIGNode.fixed D ∉ M'.fixed)
     (Y W : Finset (SWIGNode N))
     (hY : Y ⊆ M'.observed) (hW : W ⊆ M'.observed)
-    (hZr : Z.image SWIGNode.random ⊆ M'.observed)
     (hZrW : Z.image SWIGNode.random ∪ W ⊆ M'.observed)
-    (hDisj_ZrW : Disjoint (Z.image SWIGNode.random) W)
     (hDisj_YZr : Disjoint Y (Z.image SWIGNode.random))
     (hWNonDesc : ∀ z ∈ Z, ∀ v ∈ W,
       ¬ (M'.fixSet Z hZ_obs hZ_fixed).dag.isAncestor (SWIGNode.fixed z) v)
@@ -570,12 +556,6 @@ theorem doSide_eq_witness
         (ValuesOn (Z.image SWIGNode.random) (swigΩ Ω) × ValuesOn W (swigΩ Ω))
           × ValuesOn (M'.cutsetLatent Y (Z.image SWIGNode.random ∪ W)) (swigΩ Ω) =>
         h p.1.1 p.1.2 p.2))
-    (hfac : ∀ ℓ : M'.LatentValues,
-        valuesProjection hY (M'.randomToObserved (M'.evalMap s0 ℓ))
-          = h (valuesProjection hZr (M'.randomToObserved (M'.evalMap s0 ℓ)))
-              (valuesProjection hW (M'.randomToObserved (M'.evalMap s0 ℓ)))
-              (valuesProjection (M'.cutsetLatent_subset Y
-                (Z.image SWIGNode.random ∪ W)) ℓ))
     (hoverride : ∀ (zr : ValuesOn (Z.image SWIGNode.random) (swigΩ Ω))
           (w' : ValuesOn W (swigΩ Ω)) (ℓ : M'.LatentValues),
         h zr w'
@@ -596,7 +576,7 @@ theorem doSide_eq_witness
   -- Witness-route per-slice identity, **M1-witness-kernel form**.  The LHS (the M2
   -- `W`-conditional intervened at `t`) equals the M1 posterior witness kernel at
   -- `(t, w)`. The M2 witness chain (`obsCondKernel_ae_eq_condDistrib`@M2 →
-  -- `condDistrib_map_comp`@M2 → the M2 cut-set factorization with trivial `Zr`
+  -- `condDistrib_map`@M2 → the M2 cut-set factorization with trivial `Zr`
   -- coordinate → the M2 witness identity) and the cross-SCM identification of the M2
   -- witness kernel with the M1 witness kernel via `fixSet_latentProduct_compat` +
   -- `evalMap_overrideC_fixSet_compat_on_fillZrW`, transported onto the common `μW`
@@ -625,8 +605,8 @@ theorem doSide_eq_witness
   have h1 := M2.obsCondKernel_ae_eq_condDistrib Y W hY_M2 hW_M2 s'
   rw [hbase] at h1
   -- Step 2: the analytic core — that condDistrib equals the M1 witness kernel.
-  have h2 := doSide_M2_condDistrib_eq_M1_witness M' Z hZ_obs hZ_fixed Y W hY hW hZr
-    hZrW hDisj_YZr hWNonDesc s0 t h hh hfac hoverride
+  have h2 := doSide_M2_condDistrib_eq_M1_witness M' Z hZ_obs hZ_fixed Y W hY hW
+    hZrW hDisj_YZr hWNonDesc s0 t h hh hoverride
   -- Both `h1` and `h2` are stated over the base `μW`; chain.
   filter_upwards [h1, h2] with w hw1 hw2
   -- `hw1 : M2.obsCondKernel Y W (s', w) = condDistrib π_Y π_W (M2.obsKernel s') w`
@@ -668,7 +648,7 @@ theorem doSide_eq_witness
 
     * Obs side: `obsCondKernel_ae_eq_condDistrib` pins
       `M1.obsCondKernel Y (Zr∪W) (s0, ·) =ᵐ condDistrib π_Y π_{Zr∪W} (obsKernel s0)`;
-      `condDistrib_map_comp` (with `φ = randomToObserved ∘ evalMap s0`) transports
+      `condDistrib_map` (with `φ = randomToObserved ∘ evalMap s0`) transports
       this onto `latentProduct`; reparametrizing the `(Zr∪W)`-conditioning by the
       disjoint-union iso `valuesUnionEquiv` (via
       `condDistrib_comp_right_measurableEquiv`) lands it on the pair
@@ -861,8 +841,8 @@ theorem obsCondKernel_fixSet_M1_eq_ae_product
     · -- The per-slice posterior witness-kernel identity at `s' := fixSetExtend s0 t`.
       refine MeasureTheory.ae_of_all _ (fun t => ?_)
       rw [ProbabilityTheory.Kernel.const_apply]
-      exact SCM.doSide_eq_witness M' Z hZ_obs hZ_fixed Y W hY hW hZr hZrW
-        hDisj_ZrW hDisj_YZr hWNonDesc s0 t h hh hfac hoverride
+      exact SCM.doSide_eq_witness M' Z hZ_obs hZ_fixed Y W hY hW hZrW
+        hDisj_YZr hWNonDesc s0 t h hh hoverride
   -- Combine: LHS = witness = RHS.
   filter_upwards [h_lhs_witness, h_rhs_witness] with p hL hR
   rw [hL, ← hR]

@@ -2,29 +2,37 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Variable-intensity IV ordered treatment algebra
-
-Finite ordered treatment-intensity algebra: adjacent margins, crossing
-indicators, and telescoping identities, plus normalized finite weights, used by
-the variable-intensity instrumental-variable characterizations in this folder.
-This is the sole consumer of the ordered-intensity algebra, so it is colocated
-here rather than under `Panel`.
 -/
-
 module
 public import Mathlib.Algebra.BigOperators.Intervals
 public import Mathlib.Data.Fintype.BigOperators
 public import Mathlib.Data.Real.Basic
 public import Causalean.Stat.Weighted.NormalizedWeights
 
-/-! # Variable-Intensity IV Ordered Treatment
+/-!
+# Telescoping over the margins of an ordered treatment
 
-This file provides algebra for finite ordered treatment or intensity levels: it
-defines adjacent margins, crossing indicators, and telescoping identities that
-express a change across ordered levels as the sum of crossed marginal increments,
-and re-exports the generic normalized finite weights. These are used in
-variable-intensity instrumental-variable characterizations. -/
+For a treatment with ordered levels 0, 1, …, J, margin j is the step from level j to level j + 1.
+A move from level a to level b ≥ a crosses margin j exactly when a ≤ j < b, and the change of any
+response schedule f between the two levels is the sum of its one-step increments over the
+crossed margins: f(b) − f(a) = Σ_j (f(j + 1) − f(j))·1{a ≤ j < b}. Taking f to be the numeric
+level gives b − a = the number of margins crossed. These identities turn a dose contrast into
+margin-specific responses in the variable-intensity instrumental-variable results.
+
+## Main definitions
+
+* `lowerLevel`, `upperLevel`, `intensityValue` — the endpoints of a margin and the numeric level.
+* `marginIncrement` — the increment f(j + 1) − f(j) of a schedule across margin j.
+* `Crossing`, `crossingIndicator` — whether a move from a to b crosses margin j, and its 0/1 value.
+* `normalizedWeight` — a weight divided by the total weight, as in `Stat.Weighted`.
+
+## Main results
+
+* `ordered_telescope_indicator` — f(b) − f(a) as the sum of increments over crossed margins.
+* `ordered_telescope_identity` — b − a equals the number of crossed margins.
+* `normalizedWeight_nonneg`, `sum_normalizedWeight_eq_one` — normalized weights are nonnegative
+  and sum to one when the raw weights are nonnegative with positive total.
+-/
 
 @[expose] public section
 

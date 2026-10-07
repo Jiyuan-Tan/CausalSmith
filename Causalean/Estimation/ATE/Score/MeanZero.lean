@@ -33,7 +33,7 @@ pull-out lemmas used by the proof, the source-level mean-zero theorem
 integrability gates from strict overlap and second moments.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean
 namespace Estimation

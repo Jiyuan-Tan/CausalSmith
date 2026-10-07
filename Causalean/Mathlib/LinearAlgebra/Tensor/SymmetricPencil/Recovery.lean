@@ -143,11 +143,11 @@ noncomputable def recoverRankOneLift {p d : ℕ}
 /-- Given [a reference matrix](hyp:P), [a nearby candidate matrix](hyp:P'), and
 [a factor direction](hyp:c), the candidate recovers the normalized rank-one lift with error at
 most `2 * delta / (1 - delta)`. Under
-[the listed assumptions](hyp:hd,hunit,hfixed,hdelta,hsmall,hclose),
+[the listed assumptions](hyp:hunit,hfixed,hdelta,hsmall,hclose),
 [the stated conclusion follows](goal). -/
 -- Proof route: apply the operator bound to the unit true lift, deduce that its projected image
 -- has norm at least `1-delta`, and use `normalizeFinite_sub_normalizeFinite_le`.
-theorem recoverRankOneLift_error_le {p d : ℕ} (hd : 0 < d)
+theorem recoverRankOneLift_error_le {p d : ℕ}
     (P P' : Matrix (LiftIndex p d) (LiftIndex p d) ℝ) (c : Vec p) {delta : ℝ}
     (hunit : finiteFrobeniusNorm c = 1)
     (hfixed : P.mulVec (fun I => ∏ k, c (I k)) = fun I => ∏ k, c (I k))
@@ -164,7 +164,7 @@ theorem recoverRankOneLift_error_le {p d : ℕ} (hd : 0 < d)
     change finiteFrobeniusNorm (fun i => c i) = 1
     exact hunit
   have hv : finiteFrobeniusNorm v = 1 := by
-    have h := finiteFrobeniusNorm_liftedColumn_eq_one hd C₁ hC₁ (0 : Fin 1)
+    have h := finiteFrobeniusNorm_liftedColumn_eq_one (d := d) C₁ hC₁ (0 : Fin 1)
     change finiteFrobeniusNorm
       (fun I : LiftIndex p d => ∏ k, c (I k)) = 1 at h
     exact h

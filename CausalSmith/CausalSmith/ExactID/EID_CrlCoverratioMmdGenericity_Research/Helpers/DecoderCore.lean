@@ -309,7 +309,7 @@ lemma canonicalRatio_map_eq_observedLawRatio_map_mix
     exact Measure.measure_compl_support
   have hmn : m ≪ ν := interventionalLaw_absolutelyContinuous_observational W hpos i
   have hrn := Causalean.Mathlib.MeasureTheory.rnDeriv_map_of_support_equiv
-    m ν hmn S T hS hT hmS hνS
+    m ν S T hS hT hmS hνS
     W.mix W.unmix hmix.1.continuousOn.domRestrict.measurable
       hmix.2.1.continuousOn.domRestrict.measurable
     (fun x hx ↦ ⟨x, hx, rfl⟩)

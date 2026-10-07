@@ -32,8 +32,9 @@ noncomputable def scalarSecondForm (B : T →L[ℝ] T →L[ℝ] N) (u : N) :
     T →L[ℝ] T →L[ℝ] ℝ :=
   ((innerSL ℝ u).postcomp T).comp B
 
-/-- The shape operator is the Riesz representative of the scalar second form in its second
-argument. -/
+/-- The shape operator of a normal-valued bilinear form B in a normal direction u is the linear
+map S on the tangent space with ⟨S v, w⟩ = ⟨u, B(v, w)⟩ for all tangent vectors v and w, that is,
+the Riesz representative of the scalar second form in its second argument. -/
 noncomputable def shapeOperator (B : T →L[ℝ] T →L[ℝ] N) (u : N) : T →L[ℝ] T :=
   InnerProductSpace.continuousLinearMapOfBilin (scalarSecondForm B u)
 
@@ -405,8 +406,11 @@ theorem exists_secondFundamentalForm (f : M → E)
     · exact congrArg Subtype.val (e.apply_symm_apply _)
     · exact congrArg Subtype.val (e.apply_symm_apply _)
 
-/-- The second fundamental form is the chart-independent normal-valued bilinear form of the
-embedding. -/
+/-- The second fundamental form of a C² Euclidean embedding at a point is the symmetric
+bilinear form on the full tangent space, with values in the normal space, whose value on the
+images of two model directions under any admissible chart parametrization is the orthogonal
+projection onto the normal space of the Hessian of that parametrization in those directions;
+the form is the same for every admissible chart. -/
 noncomputable def secondFundamentalForm (f : M → E)
     (hf : IsSmoothEmbedding I (modelWithCornersSelf ℝ E) 2 f) (x : M) :
     tangentSpace I f x →L[ℝ] tangentSpace I f x →L[ℝ] normalSpace I f x :=
@@ -421,9 +425,10 @@ theorem secondFundamentalForm_symmetric (f : M → E)
 
 /-- A [smooth Euclidean embedding `f`](hyp:f) with [embedding certificate
 `hf`](hyp:hf), [model with corners `I`](hyp:I), and [an admissible chart `φ` at
-`x` with atlas and source conditions `hφ` and `hx`](hyp:φ,hφ,x,hx), has [a
-second fundamental form whose value on the indicated directions `v` and
-`w`](hyp:v,w) equal to [the normal component of its chart Hessian](goal). -/
+`x` with atlas and source conditions `hφ` and `hx`](hyp:φ,hφ,x,hx), and [two model
+directions `v` and `w`](hyp:v,w), satisfies: [the second fundamental form at `x`, evaluated on
+the tangent vectors that the chart differential assigns to `v` and `w`, equals the orthogonal
+projection onto the normal space of the chart Hessian applied to `v` and `w`](goal). -/
 theorem secondFundamentalForm_chart (f : M → E)
     (hf : IsSmoothEmbedding I (modelWithCornersSelf ℝ E) 2 f) (x : M)
     (φ : OpenPartialHomeomorph M H) (hφ : φ ∈ IsManifold.maximalAtlas I 2 M)

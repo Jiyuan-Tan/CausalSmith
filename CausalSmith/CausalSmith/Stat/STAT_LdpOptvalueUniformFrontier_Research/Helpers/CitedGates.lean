@@ -223,7 +223,7 @@ theorem caiLowChebyshevApproximation_proved : CaiLowChebyshevApproximation := by
   · intro x hx
     exact absChebPoly_halfDegree_error_le D hD hx
   · intro v _hv
-    exact absChebPoly_halfDegree_coeff_le D hD hD2 v
+    exact absChebPoly_halfDegree_coeff_le D hD v
 
 
 end CausalSmith.Stat.LdpOptvalueUniformFrontier

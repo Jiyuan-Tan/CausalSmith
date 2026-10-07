@@ -10,7 +10,7 @@ Reconstruction therefore works simultaneously for all participants, before any
 adaptive transcript is generated.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 open MeasureTheory ProbabilityTheory

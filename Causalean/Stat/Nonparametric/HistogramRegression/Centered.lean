@@ -46,7 +46,7 @@ theorem cell_estimation_mse_le {m : ℕ}
   let c := cellMean μ label X Y k
   let E : (Fin m → Ω) → ℝ := fun z =>
     if cellCount label X k z = 0 then 1 else 0
-  have hc := cellMean_mem_Icc μ label X Y k hlabel hX hY hbound
+  have hc := cellMean_mem_Icc μ label X Y k hY hbound
   have hint : Integrable Y μ := by
     apply (integrable_const (1 : ℝ)).mono' hY.aestronglyMeasurable
     filter_upwards [hbound] with ω hω

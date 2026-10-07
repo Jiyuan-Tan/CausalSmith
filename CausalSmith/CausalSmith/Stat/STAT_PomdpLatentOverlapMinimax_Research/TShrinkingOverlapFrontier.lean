@@ -37,14 +37,14 @@ theorem shrinking_overlap_frontier {t0 zeta : ℝ} (ht0 : 0 < t0) (hzeta : 0 < z
             minimaxRisk T t0 zeta (1 + delta T) ∧
           minimaxRisk T t0 zeta (1 + delta T) ≤
             cUpper * localFrontierRate T t0 zeta delta ∧
-          Causalean.Stat.worstCaseRisk
+          Causalean.Stat.worstCaseRiskReal
             (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := 1 + delta T))
             (phiwObservable (T := T) (shrinkingDepth T t0 zeta delta)) ≤
               cUpper * localFrontierRate T t0 zeta delta) ∧
         ((∃ D : ℝ, 0 ≤ D ∧ ∀ᶠ (T : Nat) in atTop, (T : ℝ) * delta T ^ 2 ≤ D) →
           ∃ cImmediate : ℝ, 0 < cImmediate ∧
             ∀ᶠ (T : Nat) in atTop,
-              Causalean.Stat.worstCaseRisk
+              Causalean.Stat.worstCaseRiskReal
                 (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := 1 + delta T))
                 (phiwObservable (T := T) 0) ≤ cImmediate / T) := by
   obtain ⟨cL, cU, hcL, hLcU, ⟨TU, hTU, hfront⟩, himmediate⟩ :=
@@ -99,7 +99,7 @@ theorem shrinking_overlap_frontier {t0 zeta : ℝ} (ht0 : 0 < t0) (hzeta : 0 < z
         minimaxRisk T t0 zeta (1 + delta T) ∧
       minimaxRisk T t0 zeta (1 + delta T) ≤
         cUpper * localFrontierRate T t0 zeta delta ∧
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := 1 + delta T))
         (phiwObservable (T := T) (shrinkingDepth T t0 zeta delta)) ≤
           cUpper * localFrontierRate T t0 zeta delta := by

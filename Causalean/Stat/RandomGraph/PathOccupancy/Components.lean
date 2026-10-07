@@ -62,9 +62,10 @@ noncomputable def singleScore {n : ℕ} (R : Fin n → Fin n → Prop)
     (b : Fin n → Bool) : ℝ := ∑ C ∈ components R, singleWeight C b
 
 /-- [The paired weight](goal) for [two subsets, cells, and marks](hyp:C,D,x,b)
-at [coarse count M](hyp:M) is the product of their fourth-power exponential
-weights if each size is at least two, each contains a mark, and they share
-a coarse-pair envelope; otherwise it is zero. -/
+at [coarse count M](hyp:M) is the product of the two subsets' weights, each
+weight being the subset's cardinality to the fourth power times eight to the
+power of that cardinality, if each size is at least two, each contains a mark,
+and they share a coarse-pair envelope; otherwise it is zero. -/
 noncomputable def pairWeight {n K : ℕ} (M : ℕ) (C D : Finset (Fin n))
     (x : Fin n → Fin K) (b : Fin n → Bool) : ℝ := by
   classical
@@ -145,8 +146,7 @@ theorem component_geometry {n K : ℕ} (M : ℕ) (x : Fin n → Fin K)
         have hj := (hmem j).mpr (.trans a i j ((hmem i).mp hi) hij)
         exact .trans _ _ _ (ihij hi hj) (ihjk hj hk)
   constructor
-  · apply connected_image_of_local_relation (component R a) x
-      ⟨a, (hmem a).mpr (.refl a)⟩ S
+  · apply connected_image_of_local_relation (component R a) x S
     · intro i j hij
       exact (hR i j hij).1
     · intro i j

@@ -116,7 +116,9 @@ theorem poisson_lintegral_count (r : ℝ≥0) :
 
 
 /-- [Two nonnegative Poisson rates](hyp:r,s) determine [the extended-real rate divergence](goal),
-given by [the zero-rate and log-ratio cases in its defining expression](step:1). -/
+given by [three cases](step:1): the second rate when the first rate is zero; infinity when
+the first rate is positive and the second is zero; and otherwise the first rate times the
+logarithm of the ratio of first to second rate, plus the second rate, minus the first. -/
 noncomputable def poissonRateKL (r s : ℝ≥0) : ℝ≥0∞ :=
   if r = 0 then (s : ℝ≥0∞)
   else if s = 0 then ∞

@@ -1,7 +1,33 @@
 module
 public import Causalean.Mathlib.Analysis.DiagonalizableFunctionalCalculus
 
-/-! # Sharp collision-safe two-diagonalizer functional calculus -/
+/-!
+# Lipschitz perturbation of the functional calculus for two diagonalizable matrices
+
+For two real n × n matrices A and B, each with a chosen real diagonalization, and a 1-Lipschitz
+scalar function f, the matrices f(A) and f(B) satisfy ‖f(A) − f(B)‖ ≤ √n·κ_A·κ_B·‖A − B‖ in
+operator norm, where κ_A and κ_B bound the condition numbers of the two diagonalizing bases. The
+proof writes f(A) − f(B) as a Hadamard product of divided differences of f with the perturbation
+A − B expressed between the two eigenbases; the divided difference is set to zero where an
+eigenvalue of A coincides with one of B, so no spectral separation is assumed.
+
+## Main definitions
+
+* `crossDividedDifference` — the matrix of divided differences (f(λ_i) − f(μ_j))/(λ_i − μ_j)
+  between eigenvalues of A and of B, zero where λ_i = μ_j.
+* `crossPerturbation`, `crossHadamard` — A − B written between the two eigenbases, and its
+  entrywise product with the divided differences.
+
+## Main results
+
+* `applyFunction_sub_eq_crossHadamard` — f(A) − f(B) is the cross Hadamard matrix conjugated by
+  the two bases.
+* `norm_applyFunction_sub_le_sqrt_dim` — the √n·κ_A·κ_B·‖A − B‖ perturbation bound.
+* `abs_anchorEval_applyFunction_sub_le_sqrt_dim` — the resulting bound on the difference of the
+  bilinear evaluations ⟨a, f(A)c⟩ and ⟨b, f(B)d⟩, when f(0) = 0 and both spectra lie in [−R, R].
+* `matrix_norm_le_sqrt_card_mul_of_column_norm_le` — a matrix whose columns have Euclidean norm
+  at most M has operator norm at most √(number of columns)·M.
+-/
 
 @[expose] public section
 
@@ -56,7 +82,10 @@ lemma matrix_norm_le_sqrt_card_mul_of_column_norm_le
             simp [ax, Real.norm_eq_abs]
     _ = (Real.sqrt cols * M) * ‖x‖ := by ring
 
-/-- Collision-safe divided differences in the two unrelated eigenbases. -/
+/-- The collision-safe divided-difference matrix of a scalar function for two real
+diagonalizations: its (i, j) entry is the divided difference (f(λᵢ) − f(μⱼ))/(λᵢ − μⱼ) of the
+i-th eigenvalue λᵢ of the first diagonalization and the j-th eigenvalue μⱼ of the second, and
+is zero when the two eigenvalues coincide. -/
 noncomputable def crossDividedDifference {n : ℕ} {A B : RectMatrix n n}
     (DA : RealDiagonalization A) (DB : RealDiagonalization B) (f : ℝ → ℝ) :
     RectMatrix n n := fun i j =>
@@ -64,7 +93,9 @@ noncomputable def crossDividedDifference {n : ℕ} {A B : RectMatrix n n}
   else (f (DA.eigenvalue i) - f (DB.eigenvalue j)) /
     (DA.eigenvalue i - DB.eigenvalue j)
 
-/-- Cross-coordinate perturbation between two unrelated diagonalizers. -/
+/-- The difference A − B of two diagonalized matrices written in cross coordinates: the
+inverse eigenbasis of the first diagonalization times A − B times the eigenbasis of the
+second diagonalization. -/
 noncomputable def crossPerturbation {n : ℕ} {A B : RectMatrix n n}
     (DA : RealDiagonalization A) (DB : RealDiagonalization B) : RectMatrix n n :=
   DA.basisInv * (A - B) * DB.basis
@@ -146,7 +177,7 @@ lemma applyFunction_sub_eq_crossHadamard
   rw [DB.basis_mul_inv, Matrix.mul_one,
     ← Matrix.mul_assoc DA.basis DA.basisInv, DA.basis_mul_inv, Matrix.one_mul]
 
-/-- [A matrix dimension and two real matrices](hyp:n,A,B), [their real diagonalizations](hyp:DA,DB), [a one-Lipschitz scalar function](hyp:f,hf), and [condition-number bounds](hyp:κA,κB,hκA,hκB) give [a collision-safe functional-calculus perturbation bound with only square-root dimensional loss](goal). -/
+/-- [A matrix dimension and two real matrices](hyp:n,A,B), [their real diagonalizations](hyp:DA,DB), [a one-Lipschitz scalar function](hyp:f,hf), and [condition-number bounds](hyp:κA,κB,hκA,hκB) give [the perturbation bound: the operator norm of the difference of the function applied to the two matrices through their diagonalizations is at most √n·κA·κB times the operator norm of A − B](goal). -/
 theorem norm_applyFunction_sub_le_sqrt_dim
     {n : ℕ} {A B : RectMatrix n n}
     (DA : RealDiagonalization A) (DB : RealDiagonalization B)

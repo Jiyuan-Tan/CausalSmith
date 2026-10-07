@@ -101,9 +101,15 @@ theorem lightHeavyExponent_ge_birthdayScale
     dsimp [light, heavy] at *
     nlinarith [mul_le_mul_of_nonneg_left hsquares ha]
 
-/-- An [overlap margin below one half](hyp:epsilon,hepsilon,hepsilon_half)
-gives [a positive-constant birthday-scale bound for the usable-count Laplace
-transform](goal) of any finite-cell two-arm intensity table. -/
+/-- For an [overlap margin ε strictly between zero and one half](hyp:epsilon,hepsilon,hepsilon_half),
+[there is a positive constant c, depending only on ε, such that the following
+holds for every positive number d of cells and every table of nonnegative
+control and treated Poisson intensities whose cell totals are x and whose grand
+total is T: if in each cell both intensities are at least ε times the cell
+total, then, for independent Poisson arm counts with those intensities, the
+expectation of exp(−sum over cells of the usable count) is at most
+exp(−c·T²/max(T, d))](goal). The usable count of a cell is the sum of its two
+arm counts when both are positive, and zero otherwise. -/
 theorem independent_poisson_laplace_rate (epsilon : ℝ)
     (hepsilon : 0 < epsilon) (hepsilon_half : epsilon < 1 / 2) :
     ∃ c : ℝ, 0 < c ∧
@@ -119,7 +125,7 @@ theorem independent_poisson_laplace_rate (epsilon : ℝ)
             (poissonMeasure (u k)).prod (poissonMeasure (v k)))) ≤
           Real.exp (-(c * total ^ 2 / max total (d : ℝ))) := by
   obtain ⟨a, ha, hlight⟩ :=
-    poissonCellLaplace_light_rate epsilon hepsilon hepsilon_half
+    poissonCellLaplace_light_rate epsilon hepsilon
   obtain ⟨b, hb, hheavy⟩ :=
     poissonCellLaplace_heavy_rate epsilon hepsilon hepsilon_half
   let c : ℝ := min (a / 4) (b / 2)

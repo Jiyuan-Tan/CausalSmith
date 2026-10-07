@@ -10,7 +10,7 @@ and the squared contrast splits into the sum of armwise squares without a
 probabilistic independence argument.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.RecurrentEndpointCensorFrontier
 

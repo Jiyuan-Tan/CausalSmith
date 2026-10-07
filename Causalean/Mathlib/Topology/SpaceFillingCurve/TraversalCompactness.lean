@@ -49,7 +49,7 @@ theorem finite_finiteDyadicTraversal (d n : ℕ) :
       rfl
 
 /-- Given [a cube dimension](hyp:d) and [nonempty finite traversals at every depth](hyp:hfinite),
-[one coherent sequence of finite traversals exists](goal). -/
+[there is a sequence of finite traversals, one for each depth, in which every traversal is the truncation of the next one](goal). -/
 theorem exists_coherent_finiteDyadicTraversals (d : ℕ)
     (hfinite : ∀ n, Nonempty (FiniteDyadicTraversal d n)) :
     ∃ T : ∀ n, FiniteDyadicTraversal d n,

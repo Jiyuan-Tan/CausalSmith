@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_FinitepHomogeneityDensegamma_Research.Helper
 public import CausalSmith.Stat.STAT_FinitepHomogeneityDensegamma_Research.Helpers.MeanErrorBounds
 
 /-! Assembly of the public singleton and canonical energy ledgers. -/
-@[expose] public section
+public section
 set_option linter.style.longLine false
 set_option linter.style.whitespace false
 set_option linter.unusedVariables false

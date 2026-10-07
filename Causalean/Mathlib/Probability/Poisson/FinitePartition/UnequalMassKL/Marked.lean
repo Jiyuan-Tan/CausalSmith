@@ -11,7 +11,7 @@ fixed-size conditional sample kernel, then applies the KL chain rule at
 unequal rates.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal NNReal
@@ -140,9 +140,8 @@ private theorem klDiv_pi_const
   by_cases htop : InformationTheory.klDiv P Q = ∞
   · have hnpos : 0 < n := Nat.pos_of_ne_zero hn
     let i : Fin n := ⟨0, hnpos⟩
-    have hle := Causalean.Mathlib.InformationTheory.Measure.klDiv_map_le
-      (μ := Measure.pi fun _ : Fin n ↦ P)
-      (ν := Measure.pi fun _ : Fin n ↦ Q) (measurable_pi_apply i)
+    have hle := InformationTheory.klDiv_map_le (Measure.pi fun _ : Fin n ↦ P)
+      (Measure.pi fun _ : Fin n ↦ Q) (measurable_pi_apply i)
     rw [(measurePreserving_eval (fun _ : Fin n ↦ P) i).map_eq,
       (measurePreserving_eval (fun _ : Fin n ↦ Q) i).map_eq, htop] at hle
     have hpi : InformationTheory.klDiv
@@ -357,9 +356,11 @@ private theorem klDiv_finiteMarkedPoissonSampleLaw_zero_left
   simpa using
     klDiv_finiteMarkedPoissonSampleLaw_of_ac_unequal Q Q R 0 s (by rfl)
 
-/-- [Two point probability laws](hyp:P,Q), [a shared real mark law](hyp:R), and
-[two nonnegative count rates](hyp:r,s) imply that [the marked-Poisson divergence](goal)
-is count-law divergence plus source rate times point-law divergence. -/
+/-- On [a standard Borel point space](hyp:X), [two point probability laws](hyp:P,Q),
+[a shared real mark law](hyp:R), and [two nonnegative count rates](hyp:r,s) imply that
+[the extended-real KL divergence between the two finite marked Poisson sample laws equals
+the KL divergence between the two Poisson count laws plus the first (source) rate times
+the KL divergence between the point laws](goal). -/
 theorem klDiv_finiteMarkedPoissonSampleLaw_unequal
     {X : Type*} [MeasurableSpace X] [StandardBorelSpace X]
     (P Q : Measure X) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]

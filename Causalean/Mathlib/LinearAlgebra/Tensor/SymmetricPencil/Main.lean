@@ -124,13 +124,13 @@ private theorem abs_dot_le_one_of_unit {p : ℕ} (x y : Vec p)
 
 /-- For positive dimensions and admissible positive margins, the contracted margin, lifted
 condition envelope, pencil constant, local radius, trace constant, and factor constant are all
-strictly positive. Under [the listed assumptions](hyp:hp,hn,hq,hsigma,hkappa,hkappaLambda), [the stated conclusion follows](goal). -/
+strictly positive. Under [the listed assumptions](hyp:hp,hn,hsigma,hkappa,hkappaLambda), [the stated conclusion follows](goal). -/
 -- Proof route: unfold the six constants in dependency order.  `Real.sqrt_pos.2` handles the
 -- two dimension square roots; `pow_pos`, division positivity, and `min_pos` handle the remaining
 -- arithmetic.  Derive `0 < Lambda` from `hkappa` and `hkappaLambda` before proving positivity of
 -- `pencilPerturbationConstant`.
 theorem localInverse_constants_pos {p n q : ℕ}
-    (hp : 0 < p) (hn : 0 < n) (hq : 0 < q)
+    (hp : 0 < p) (hn : 0 < n)
     {sigma kappa Lambda : ℝ} (hsigma : 0 < sigma)
     (hkappa : 0 < kappa) (hkappaLambda : kappa ≤ Lambda) :
     0 < contractedMargin q sigma kappa ∧
@@ -167,12 +167,13 @@ theorem localInverse_constants_pos {p n q : ℕ}
 
 /-- **Quantitative symmetric-tensor-pencil local inverse.** Given two finite factor matrices,
 their coefficient vectors, two probes, the gap and coefficient margins,
-positive ambient dimensions and degrees, an admissible singular-value margin,
+positive ambient dimension p, positive number of factors n, positive degree q,
+an admissible singular-value margin,
 positive and compatible coefficient bounds, unit probes,
 unit factor columns, two-sided coefficient bounds, positive denominator
 loadings, well-conditioned lifted directions, separated pencil ratios,
 and a tensor perturbation below the explicit local radius, one column permutation makes
-the factor-matrix Frobenius error at most the stated Lipschitz factor times the tensor Frobenius error. Under [the listed assumptions](hyp:hp,hn,hd,hq,hsigma,hkappa,hkappaLambda,hu,hv,hunit,hlam,hprobe,hlift,hgap,hclose), [the stated conclusion follows](goal). -/
+the factor-matrix Frobenius error at most the stated Lipschitz factor times the tensor Frobenius error. Under [the listed assumptions](hyp:hp,hn,hq,hsigma,hkappa,hkappaLambda,hu,hv,hunit,hlam,hprobe,hlift,hgap,hclose), [the stated conclusion follows](goal). -/
 -- Proof route: contract and compress using one orthonormal basis for the unprimed lifted range;
 -- the denominator margin is `eta`, every coordinate pencil moves by at most `h*e`, and the
 -- Riesz-projector theorem supplies one common permutation.  Trace coordinates then move by
@@ -208,7 +209,7 @@ the factor-matrix Frobenius error at most the stated Lipschitz factor times the 
 theorem exists_permutation_factorMatrix_frobeniusNorm_le
     {p n d q : ℕ} (C C' : FactorMatrix p n) (lam lam' : Fin n → ℝ)
     (u v : Vec p) (sigma kappa Lambda : ℝ)
-    (hp : 0 < p) (hn : 0 < n) (hd : 0 < d) (hq : 0 < q)
+    (hp : 0 < p) (hn : 0 < n) (hq : 0 < q)
     (hsigma : 0 < sigma ∧ sigma ≤ 1) (hkappa : 0 < kappa)
     (hkappaLambda : kappa ≤ Lambda)
     (hu : finiteFrobeniusNorm u = 1) (hv : finiteFrobeniusNorm v = 1)
@@ -243,7 +244,7 @@ theorem exists_permutation_factorMatrix_frobeniusNorm_le
   let Lz := traceRecoveryConstant n q sigma kappa Lambda
   have hLambda : 0 < Lambda := lt_of_lt_of_le hkappa hkappaLambda
   obtain ⟨heta, hchi, hh, hradius, hLz, _hfactor⟩ :=
-    localInverse_constants_pos hp hn hq hsigma.1 hkappa hkappaLambda
+    localInverse_constants_pos (q := q) hp hn hsigma.1 hkappa hkappaLambda
   change 0 < eta at heta
   change 0 < chi at hchi
   change 0 < h at hh
@@ -325,7 +326,7 @@ theorem exists_permutation_factorMatrix_frobeniusNorm_le
     simp only [S', V', Matrix.transpose_mul, Matrix.transpose_transpose, Matrix.mul_assoc]
   have hAuSv : eta ≤ leastColumnSingularValue Au := by
     rw [hAuFactor]
-    exact compressedDenominator_leastSingularValue C lam u U hq hsigma.1 hkappa
+    exact compressedDenominator_leastSingularValue C lam u U hsigma.1 hkappa
       hUorth hUspace hlift.1 (fun j => hlam.1 j |>.1) hprobe.1
   obtain ⟨hAuUnit, hAuInv⟩ := inverse_operatorNorm_le_reciprocal Au heta hAuSv
   obtain ⟨hAuUnit', hAuInv', hAuInvPert⟩ :=
@@ -341,13 +342,13 @@ theorem exists_permutation_factorMatrix_frobeniusNorm_le
       simp
     exact (isUnit_iff_ne_zero.mp hAuUnit') hdetzero
   have hcondition : squareOperatorNorm S * squareOperatorNorm S⁻¹ ≤ chi := by
-    exact compressedLift_condition_le C U hd hsigma.1 hunit.1 hlift.1 hUorth hUspace
+    exact compressedLift_condition_le C U hsigma.1 hunit.1 hlift.1 hUorth hUspace
   have hstandard (i : Fin p) : finiteFrobeniusNorm (standardBasis p i) = 1 := by
     unfold finiteFrobeniusNorm standardBasis
     simp
   have hAwNorm (i : Fin p) : squareOperatorNorm (Aw (standardBasis p i)) ≤
       n * Lambda := by
-    exact compressedNumerator_operatorNorm_le C lam u (standardBasis p i) U hd hq
+    exact compressedNumerator_operatorNorm_le C lam u (standardBasis p i) U hq
       hLambda.le hUorth hunit.1 hu (hstandard i) (fun j => hlam.1 j |>.2)
   let G : Vec p → Matrix (Fin n) (Fin n) ℝ := fun w => rightPencil (Aw w) Au
   let G' : Vec p → Matrix (Fin n) (Fin n) ℝ := fun w => rightPencil (Aw' w) Au'
@@ -438,7 +439,7 @@ theorem exists_permutation_factorMatrix_frobeniusNorm_le
   have hGv : squareOperatorNorm (G' v - G v) ≤ h * e := by
     exact (rightPencil_perturbation_bound (Aw v) Au (Aw' v) Au'
       heta hLambda.le he hAuSv
-      (compressedNumerator_operatorNorm_le C lam u v U hd hq hLambda.le hUorth
+      (compressedNumerator_operatorNorm_le C lam u v U hq hLambda.le hUorth
         hunit.1 hu hv (fun j => hlam.1 j |>.2))
       (hcompressedPert v hv) hAuPert heSmall).2.2
   obtain ⟨pi, hpi⟩ := exists_permutation_projector_matching S S' values values'
@@ -478,7 +479,7 @@ theorem exists_permutation_factorMatrix_frobeniusNorm_le
         dsimp only [Lz, traceRecoveryConstant, h, chi, eta]
         field_simp [hsigma.1.ne',
           (show contractedMargin q sigma kappa ≠ 0 from
-            (localInverse_constants_pos hp hn hq hsigma.1 hkappa hkappaLambda).1.ne')]
+            (localInverse_constants_pos (q := q) hp hn hsigma.1 hkappa hkappaLambda).1.ne')]
   have hzError (j : Fin n) : finiteFrobeniusNorm (z' j - z j) ≤
       Real.sqrt p * (Lz * e) := by
     exact finiteFrobeniusNorm_sub_le_sqrt_mul (z' j) (z j)

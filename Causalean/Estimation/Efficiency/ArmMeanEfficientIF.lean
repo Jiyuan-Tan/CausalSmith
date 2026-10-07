@@ -24,7 +24,7 @@ two arm derivatives. Reference: Kennedy (2024), *Semiparametric doubly robust
 targeted double machine learning: a review*.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 

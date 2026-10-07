@@ -8,15 +8,20 @@ public import Causalean.Stat.Nonparametric.LinearSmoother.Bias
 public import Causalean.Stat.Nonparametric.LinearSmoother.Variance
 
 /-!
-# Fixed-weight linear-smoother building blocks
+# Bias and variance of fixed-weight linear smoothers
 
-Design-agnostic deterministic bias and heteroskedastic, uncorrelated-error variance bounds for
-fixed-weight linear smoothers.
+A linear smoother estimates `f(t)` by `∑ᵢ Sᵢ Yᵢ` with weights that depend only on the design. If
+the weights reproduce polynomials of degree up to `p` (the largest integer strictly below `β`) at
+`t` and `f` is `β`-Hölder with constant `M`, the bias satisfies
+`|∑ᵢ Sᵢ f(aᵢ) − f(t)| ≤ (M/p!) ∑ᵢ |Sᵢ| |aᵢ − t|^β`, which is of order `h^β` when all design points
+lie within `h` of `t`. If the responses are pairwise uncorrelated with variances at most `σ̄²`,
+then `Var(∑ᵢ Sᵢ Yᵢ) ≤ σ̄² ∑ᵢ Sᵢ²`. Both bounds hold for any design and are shared by the
+local-polynomial and series estimators.
 
-This barrel collects the design-agnostic fixed-weight linear-smoother results consumed by both the
-local-polynomial and the series/sieve estimators:
+## Main results
 
-* `LinearSmoother/Bias.lean` — the deterministic bias of a fixed-weight linear smoother.
-* `LinearSmoother/Variance.lean` — the generic variance bound under pairwise uncorrelated errors
-  with `Var[Yᵢ] ≤ σ̄²`, together with its leverage consequence.
+* `linearSmoother_bias_of_reproduces`, `linearSmoother_bias_window` (`LinearSmoother/Bias`) — the
+  weighted-spread bias bound and its `O(h^β)` window form.
+* `linearSmoother_variance_le` (`LinearSmoother/Variance`) — the variance bound, for an
+  `UncorrelatedVarianceFamily` of responses.
 -/

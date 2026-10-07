@@ -276,7 +276,7 @@ theorem varianceAdaptiveRademacherComplexity_le
   have hradiusSecond : (∫ S, radius S ^ 2 ∂μn) ≤
       σ ^ 2 + 8 * U * rademacherComplexity n F P id := by
     have hpoint := fun S => empiricalL2Radius_sq_le_uniformDeviation P F hσ hσU
-      hmeas henvelope hL2 hn S
+      henvelope hL2 hn S
     calc
       (∫ S, radius S ^ 2 ∂μn) ≤ ∫ S, σ ^ 2 + uniformDeviation n sqF P id S ∂μn := by
         exact integral_mono hradiusSqInt ((integrable_const (σ ^ 2)).add hdevInt) hpoint

@@ -277,7 +277,7 @@ lemma integral_orderedPair_average (P : ObservedLaw) (n : ℕ) (hn : 2 ≤ n)
       (∫ o, H (o ij.1) (o ij.2) ∂μ) =
         ∫ z : Record × Record, H z.1 z.2 ∂(P.measure.prod P.measure) :=
     Causalean.Stat.UStatistic.LocalizedVariance.integral_two_coordinates_integrable
-      P.measure (Finset.mem_filter.mp hij).2 H hH hInt
+      P.measure (Finset.mem_filter.mp hij).2 H hH
   rw [Finset.sum_congr rfl he]
   simp only [Finset.sum_const, nsmul_eq_mul, hcard]
   rw [inv_mul_cancel_left₀ (mul_ne_zero hn0 hn1)]

@@ -264,7 +264,7 @@ theorem integral_fixedStratumArmCenteredNoise_sq_le {m : Nat}
                 supportedArmResidual group arm Y center a u.1 (z u.2)) := by ring
           _ = 0 := by rw [hz]; ring
       · have hcross := Causalean.Stat.integral_designWeight_residual_cross_coordinates_eq_zero
-          mu group arm Y₀ center₀ hgroup harm hY₀ hmem₀ hcenter₀
+          mu group arm Y₀ center₀ hgroup harm hmem₀ hcenter₀
           (fun d => weight d t.1 * weight d u.1) t.2 u.2 hij a a t.1 u.1
         simpa only [term, hresidual₀, mul_assoc, mul_left_comm, mul_comm] using hcross
     have hdiagonal (t : kappa × Fin m) :
@@ -274,7 +274,7 @@ theorem integral_fixedStratumArmCenteredNoise_sq_le {m : Nat}
               (armCategoryEvent group arm a t.1).indicator (fun _ => (1 : Real)) (z t.2)
             ∂(Measure.pi (fun _ : Fin m => mu)) := by
       have hdiag := Causalean.Stat.integral_designWeight_residual_sq_le_indicator
-        mu group arm Y₀ center₀ M hgroup harm hY₀ hmem₀ hsq₀
+        mu group arm Y₀ center₀ M hgroup harm hmem₀ hsq₀
         (fun d => weight d t.1 ^ 2) (fun d => sq_nonneg _) t.2 a t.1
       simpa only [term, hresidual₀, armCategoryEvent, pow_two, mul_assoc,
         mul_left_comm, mul_comm] using hdiag

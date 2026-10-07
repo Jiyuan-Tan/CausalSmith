@@ -92,9 +92,9 @@ theorem norm_integral_compensatedWeight_rowSum_sub_gaussian_le_of_budgets
     simp [F, compensatedWeight, partialRowSum,
       partialPredictableQuadraticVariation, c]
   have hRem := A.sum_integral_norm_expQuadraticRemainder_le_of_budgets
-    n t η K δ hη htη hK hδ hVariance hLindeberg
+    n t η K δ hη htη hVariance hLindeberg
   have hV₂ := A.sum_sq_conditionalSecondMoment_le_of_budgets
-    n η K δ hη hK hδ hVariance hLindeberg
+    n η K δ hη hδ hVariance hLindeberg
   have hV₂int : (∑ k ∈ Finset.range (A.rowLength n), V₂ k) ≤
       (η ^ 2 + δ) * K := by
     have hEach : ∀ k ∈ Finset.range (A.rowLength n),

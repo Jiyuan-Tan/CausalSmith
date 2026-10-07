@@ -11,14 +11,17 @@ public import Causalean.Graph.MarkovEquiv.Transfer
 public import Causalean.Graph.MarkovEquiv.Moralization
 
 /-!
-# Markov equivalence of DAGs (Verma–Pearl) — umbrella
+# Markov equivalence of DAGs (Verma–Pearl)
 
-Entry point for the formalization of the **Verma–Pearl characterization of Markov
-equivalence** (Verma & Pearl, *Equivalence and synthesis of causal models*, 1990): two
-directed acyclic graphs declare the same conditional-independence constraints exactly when
-they have the same skeleton and the same v-structures. Import this file for the whole
-development; the headline result is stated here so it is not buried among the supporting
-files.
+The Verma–Pearl characterization of Markov equivalence (Verma & Pearl, *Equivalence and
+synthesis of causal models*, 1990): two directed acyclic graphs on the same finite vertex set
+imply exactly the same d-separation statements, and hence the same conditional-independence
+constraints, if and only if they have the same skeleton (the same adjacent pairs) and the same
+v-structures (colliders a → b ← c with a and c non-adjacent). The forward direction reads the
+skeleton and v-structures off the d-separation relation; the converse shows that two such graphs
+are linked by reversals of covered edges, each of which preserves every d-separation. The
+development also proves the moralization criterion: for pairwise-disjoint sets, d-separation is
+the same as separation in the moral graph of the ancestral set.
 
 ## Main results
 
@@ -41,7 +44,7 @@ d-separation). The development reuses the existing d-separation engine
 
 The higher-layer companion `Causalean.SCM.Do.MarkovEquivDistributional` connects
 this graph notion to distributions and proves `SCM.distMarkovEquiv_of_markovEquiv`;
-it is not imported or re-exported by this Graph umbrella.
+it is not imported by this file.
 -/
 
 public section

@@ -20,7 +20,7 @@ each singleton mass.  The second exchanges the nonnegative coefficient sum
 with the finite prior integral, then reindexes the four rates by `Fin 4` and
 applies `fourRateFactorialTail_le`. -/
 
-/-- An [experiment size](hyp:n), [parameter triple](hyp:θ), and [four Taylor indices](hyp:t,u,v,w) determine [the nonnegative marked-Poisson envelope coefficient](goal) by [multiplying the four factorial-weighted rate powers](step:1). -/
+/-- An [experiment size](hyp:n) n, [parameter triple](hyp:θ) of arrival mass p, propensity π, and conditional success probability μ, and [four Taylor indices](hyp:t,u,v,w) determine [the marked-Poisson envelope coefficient](goal) as [the product (np)ᵗ/t! · (npπμ)ᵘ/u! · (npπ(1−μ))ᵛ/v! · (np(1−π))ʷ/w!](step:1). It is nonnegative when n ≥ 0, p ≥ 0, and π and μ lie between 0 and 1. -/
 noncomputable def markedEnvelopeCoeff (n : ℝ) (θ : MarkedParam)
     (t u v w : ℕ) : ℝ :=
   (n * θ.1) ^ t / (Nat.factorial t : ℝ) *
@@ -34,9 +34,9 @@ noncomputable def markedEnvelopeCoeff (n : ℝ) (θ : MarkedParam)
   difference by the sum of the two nonnegative integrals.  Finite support
   supplies summability of every coefficient series. -/
 
-/-- A [positive matching degree](hyp:hK), [nonnegative experiment size](hyp:hn), [nonnegative overlap margin](hyp:hε), [bounded triple priors](hyp:T), and [three observed counts](hyp:u,v,w) give [an unmatched-envelope bound on their predictive singleton difference](goal). -/
+/-- A [nonnegative experiment size](hyp:hn), [nonnegative overlap margin](hyp:hε), [bounded triple priors](hyp:T), and [three observed counts](hyp:u,v,w) give [an unmatched-envelope bound on their predictive singleton difference](goal). -/
 theorem abs_predictiveLaw_singleton_diff_le_unmatchedEnvelope
-    {K : ℕ} (hK : 1 ≤ K) {b ε gap n : ℝ}
+    {K : ℕ} {b ε gap n : ℝ}
     (hn : 0 ≤ n) (hε : 0 ≤ ε)
     (T : TriplePriors K b ε gap) (u v w : ℕ) :
     |(predictiveLaw n T.ν₀).real {((u, v), w)} -
@@ -187,7 +187,7 @@ theorem abs_predictiveLaw_singleton_diff_le_unmatchedEnvelope
     congr 1
     simp_rw [hErepr, integral_const_mul]
     congr 1
-    exact integral_markedRateProduct_match hK T t u v w hd
+    exact integral_markedRateProduct_match T t u v w hd
   let D (t : ℕ) : ℝ := A T.ν₀ t - A T.ν₁ t
   let B (t : ℕ) : ℝ :=
     (∫ θ, E t θ ∂T.ν₀) + (∫ θ, E t θ ∂T.ν₁)
@@ -255,9 +255,9 @@ theorem abs_predictiveLaw_singleton_diff_le_unmatchedEnvelope
   partition by total degree, whose fiber sums are factorial coefficients.
   Then apply `fourRateFactorialTail_le` to the identified series. -/
 
-/-- A [positive matching degree](hyp:hK), [nonnegative experiment size and support bound](hyp:hn,hb), and a [parameter triple whose arrival, propensity, and response coordinates obey the stated bounds](hyp:θ,hp₀,hp₁,hπ₀,hπ₁,hμ₀,hμ₁) give [a summable unmatched coefficient series bounded by the factorial tail](goal). -/
+/-- A [positive matching degree](hyp:hK), [nonnegative experiment size](hyp:hn), and a [parameter triple with arrival mass between 0 and b and propensity and success probability between 0 and 1](hyp:θ,hp₀,hp₁,hπ₀,hπ₁,hμ₀,hμ₁) give [that the envelope coefficients over index quadruples of total degree above 3K are summable, with sum at most the unmatched Taylor tail Σ over m > 3K of (2nb)ᵐ/m!](goal). -/
 theorem unmatchedEnvelopeCoeff_pointwise_le_tail
-    {K : ℕ} (hK : 1 ≤ K) {n b : ℝ} (hn : 0 ≤ n) (hb : 0 ≤ b)
+    {K : ℕ} (hK : 1 ≤ K) {n b : ℝ} (hn : 0 ≤ n)
     (θ : MarkedParam) (hp₀ : 0 ≤ θ.1) (hp₁ : θ.1 ≤ b)
     (hπ₀ : 0 ≤ θ.2.1) (hπ₁ : θ.2.1 ≤ 1)
     (hμ₀ : 0 ≤ θ.2.2) (hμ₁ : θ.2.2 ≤ 1) :

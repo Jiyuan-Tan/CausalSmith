@@ -28,7 +28,7 @@ Key declarations:
   is the genuine two-sided inverse of the second-moment operator `Σ`.
 * `gaussianLimit_waldForm_map` — **the χ² identification**:
   `(gaussianLimit ψ).map (S ↦ ⟪S, Σ⁻¹ S⟫) = chiSqDist (finrank E)`.
-* `Tendsto_dist.wald_coverage_chiSq` — the WaldVec ellipsoid-coverage theorem with
+* `Modes.TendstoInLaw.wald_coverage_chiSq` — the WaldVec ellipsoid-coverage theorem with
   the limit law pinned to `chiSqDist d` (atomless for `d ≥ 1`).
 -/
 
@@ -47,7 +47,7 @@ whitening in `gaussianLimit_waldForm_map` to show that
 `gaussianLimit hψ hvar` pushed through `S ↦ ⟪S, Σ⁻¹ S⟫` is
 `chiSqDist (Module.finrank ℝ E)`.
 
-The final theorem `Tendsto_dist.wald_coverage_chiSq` plugs that chi-squared
+The final theorem `Modes.TendstoInLaw.wald_coverage_chiSq` plugs that chi-squared
 limit into the generic ellipsoid-coverage theorem from
 `Causalean.Stat.Inference.WaldVec`.
 -/
@@ -175,25 +175,25 @@ theorem gaussianLimit_waldForm_map
 
 /-! ## Wiring into WaldVec coverage -/
 
-/-- **χ²-coverage of the Wald confidence ellipsoid.**  Suppose [the Wald statistic sequence
-`Wₙ` is measurable at every sample size](hyp:hWn), [`d` is a positive-integer degrees-of-freedom
-parameter](hyp:hd), and [`Wₙ` converges in distribution to the χ²_d law](hyp:hW). If [a
-coverage-probability sequence `coverProb` is asymptotically equivalent to the ellipsoid event
-`{Wₙ ≤ c}`](hyp:h_bridge), then [`coverProb` converges to the χ²_d probability of
-`(-∞, c]`](goal).
+/-- If [a Wald statistic converges in distribution to a chi-squared
+law](hyp:hW), [the degrees of freedom are positive](hyp:hd), and [a
+coverage-probability sequence is asymptotically equivalent to the
+probability that the statistic lies in a lower half-line](hyp:h_bridge),
+then [coverage converges to the chi-squared probability of that
+half-line](goal).
 
-Instantiates `Tendsto_dist.wald_coverage_Iic_of_noAtoms` at the identified limit law
+Instantiates `Modes.TendstoInLaw.wald_coverage_Iic_of_noAtoms` at the identified limit law
 `chiSqDist d`, which is atomless for `d ≥ 1`. -/
-theorem Tendsto_dist.wald_coverage_chiSq
+theorem Modes.TendstoInLaw.wald_coverage_chiSq
     {Ω : Type*} [MeasurableSpace Ω] {ν : Measure Ω} [IsProbabilityMeasure ν]
-    {Wn : ℕ → Ω → ℝ} (hWn : ∀ n, AEMeasurable (Wn n) ν)
-    {d : ℕ} (hd : 1 ≤ d)
-    (hW : Tendsto_dist Wn (chiSqDist d) ν hWn)
+    {Wn : ℕ → Ω → ℝ}
+    {d : ℕ}
+    (hW : Modes.TendstoInLaw (fun _ : ℕ => ν) Wn atTop (chiSqDist d))
+    (hd : 1 ≤ d)
     (c : ℝ) (coverProb : ℕ → ℝ)
     (h_bridge : Tendsto
       (fun n => coverProb n - (ν {ω | Wn n ω ≤ c}).toReal) atTop (𝓝 0)) :
     Tendsto coverProb atTop (𝓝 ((chiSqDist d (Set.Iic c)).toReal)) := by
   haveI := noAtoms_chiSqDist hd
-  exact Tendsto_dist.wald_coverage_Iic_of_noAtoms hWn hW c coverProb h_bridge
-
+  exact Modes.TendstoInLaw.wald_coverage_Iic_of_noAtoms hW c coverProb h_bridge
 end Causalean.Stat

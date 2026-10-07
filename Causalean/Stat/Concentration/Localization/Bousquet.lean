@@ -78,7 +78,7 @@ private lemma normalizedSignedScore_integral_eq_zero
     {Ω : Type u} {ι : Type v} [MeasurableSpace Ω]
     (mu : Measure Ω) [IsProbabilityMeasure mu]
     (f : ι → Ω → ℝ) (hf : ∀ i, Measurable (f i))
-    {b : ℝ} (hb : 0 < b) (hbound : ∀ i x, |f i x| ≤ b) :
+    {b : ℝ} (hbound : ∀ i x, |f i x| ≤ b) :
     ∀ q, ∫ x, normalizedSignedScore mu f b q x ∂mu = 0 := by
   rintro ⟨sign, i⟩
   have hint : Integrable (f i) mu :=
@@ -284,7 +284,7 @@ theorem uniform_deviation_bousquet_tail_countable
     (normalizedSignedScore_abs_le_one mu f hf hb hbound)
     (fun q y => (le_abs_self (g q y)).trans
       (normalizedSignedScore_abs_le_one mu f hf hb hbound q y))
-    (normalizedSignedScore_integral_eq_zero mu f hf hb hbound)
+    (normalizedSignedScore_integral_eq_zero mu f hf hbound)
     hsigma_nonneg (normalizedSignedScore_second_le mu f hf hb hvariance)
     n htailScale ht
   have htarget_subset :

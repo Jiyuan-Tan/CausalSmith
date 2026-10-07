@@ -5,7 +5,7 @@ public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier
 
 /-! Exact lossless reduction of the labeled game to response-type orbits. -/
 
-@[expose] public section
+public section
 
 open scoped BigOperators
 open Finset Set
@@ -52,10 +52,10 @@ private lemma permutation_average_le_labeledWorstCase {K n : ℕ}
   letI := Fintype.ofFinite (Equiv.Perm (Unit n))
   exact (Fintype.card (Equiv.Perm (Unit n)) : ℝ)⁻¹ *
       ∑ σ : Equiv.Perm (Unit n), labeledRisk c p (permuteSchedule σ z) ≤
-    Causalean.Stat.worstCaseRisk (fun p z => labeledRisk c p z) p := by
+    Causalean.Stat.worstCaseRiskReal (fun p z => labeledRisk c p z) p := by
   classical
   letI := Fintype.ofFinite (Equiv.Perm (Unit n))
-  let W := Causalean.Stat.worstCaseRisk (fun p z => labeledRisk c p z) p
+  let W := Causalean.Stat.worstCaseRiskReal (fun p z => labeledRisk c p z) p
   have hterm (σ : Equiv.Perm (Unit n)) :
       labeledRisk c p (permuteSchedule σ z) ≤ W :=
     Causalean.Stat.le_worstCaseRisk (Set.finite_range _).bddAbove _
@@ -110,7 +110,7 @@ private lemma rhoN_eq_orbitGameValue (K n : ℕ) (c : Contrast ℝ K)
         labeledRisk_eq_orbitRisk_of_realizes c p q
           ((orbitToInvariantProcedure_realizes c q).1)
           ((orbitToInvariantProcedure_realizes c q).2) z
-      _ ≤ Causalean.Stat.worstCaseRisk (fun q m => orbitRisk c q m) q :=
+      _ ≤ Causalean.Stat.worstCaseRiskReal (fun q m => orbitRisk c q m) q :=
         Causalean.Stat.le_worstCaseRisk (Set.finite_range _).bddAbove _
   · unfold rhoN orbitGameValue
     apply Causalean.Stat.minimaxValue_le_minimaxValue

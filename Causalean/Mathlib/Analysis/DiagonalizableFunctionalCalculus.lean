@@ -414,7 +414,7 @@ theorem norm_applyFunction_sub_le {n : ℕ} {A B : RectMatrix n n}
           simp [RealDiagonalization.specCount]
           ring
 
-/-- [A matrix dimension and two real matrices](hyp:n,A,B), [their real diagonalizations](hyp:DA,DB), [a one-Lipschitz scalar function](hyp:f,hf), and [bounds on both diagonalizer condition numbers](hyp:κA,κB,hκA,hκB) give [a collision-safe dimension-squared functional-calculus perturbation bound](goal). -/
+/-- For [two real n × n matrices A and B](hyp:n,A,B) with [chosen real diagonalizations](hyp:DA,DB), [a one-Lipschitz scalar function f](hyp:f,hf), and [numbers κA and κB bounding the two diagonalizer condition numbers](hyp:κA,κB,hκA,hκB), [the operator-norm distance between f applied to A and f applied to B is at most n²·κA·κB times the operator norm of A − B](goal). No gap between the eigenvalues of A and those of B is assumed: eigenvalues shared by the two matrices are allowed. -/
 theorem norm_applyFunction_sub_le_dim_sq {n : ℕ} {A B : RectMatrix n n}
     (DA : RealDiagonalization A) (DB : RealDiagonalization B)
     (f : ℝ → ℝ) (hf : LipschitzWith 1 f) {κA κB : ℝ}

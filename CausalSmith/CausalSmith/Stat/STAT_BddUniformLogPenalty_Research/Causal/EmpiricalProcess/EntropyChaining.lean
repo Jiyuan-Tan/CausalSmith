@@ -89,7 +89,7 @@ lemma winsorizedScore_hasVCUniformEntropy_at
         (mul_le_mul_of_nonneg_right hC₀C hh.le)
     · intro g₀
       exact Causalean.Stat.Concentration.HasPolynomialEmpiricalL2Cover.pullback
-        (hemp.enlargeEnvelope hU') hmeas g₀
+        (hemp.monoEnvelope hU') hmeas g₀
 
 /-- The same entropy certificate with all witnesses chosen uniformly before
 the moment exponent.  The L² proof's displayed constant does not depend on
@@ -159,7 +159,7 @@ lemma winsorizedScore_hasVCUniformEntropy_all_nu
           (mul_le_mul_of_nonneg_right hC₀C hh.le)
     · intro g₀
       exact Causalean.Stat.Concentration.HasPolynomialEmpiricalL2Cover.pullback
-        (hemp.enlargeEnvelope hU') hmeas g₀
+        (hemp.monoEnvelope hU') hmeas g₀
 
 /-- A positive coefficient clipping radius can be chosen together with the
 uniform entropy witnesses. -/

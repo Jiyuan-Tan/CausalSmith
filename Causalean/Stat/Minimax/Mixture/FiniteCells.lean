@@ -86,13 +86,14 @@ theorem bind_latent_map_cellSetMass {X C Z : Type*} [MeasurableSpace X] [Measura
 /-- Given [a covariate sample space](hyp:X), [a finite observed-cell space](hyp:C),
 [a covariate law](hyp:ν), [reference and alternative observed laws](hyp:μ,Q),
 [reference and alternative cell masses](hyp:p,q), [a likelihood](hyp:L),
-[measurable reference and alternative masses](hyp:hp,hq), [a measurable
-nonnegative likelihood](hyp:hL,hL0), [finite-cell event-mass representations](hyp:hμ,hQ),
-and [the cellwise likelihood ratio identity](hyp:hratio), [the alternative law
-is the reference law tilted by that likelihood](goal). -/
+[measurable reference masses](hyp:hp), [a measurable
+likelihood](hyp:hL), [finite-cell event-mass representations](hyp:hμ,hQ),
+and [each alternative cell mass equal to the reference cell mass times the likelihood at that
+covariate value and cell](hyp:hratio), [the alternative law is the measure having that likelihood
+as its density with respect to the reference law](goal). -/
 theorem eq_withDensity_of_cellSetMass {X C : Type*} [MeasurableSpace X] [MeasurableSpace C] [Fintype C] (ν : Measure X)
-    (μ Q : Measure (X × C)) (p q : X → C → ℝ≥0∞) (L : X × C → ℝ) (hp : ∀ c, Measurable fun x => p x c) (hq : ∀ c,
-    Measurable fun x => q x c) (hL : Measurable L) (hL0 : ∀ z, 0 ≤ L z) (hμ : ∀ A, MeasurableSet A → μ A = cellSetMass ν
+    (μ Q : Measure (X × C)) (p q : X → C → ℝ≥0∞) (L : X × C → ℝ) (hp : ∀ c, Measurable fun x => p x c)
+    (hL : Measurable L) (hμ : ∀ A, MeasurableSet A → μ A = cellSetMass ν
     p A) (hQ : ∀ A, MeasurableSet A → Q A = cellSetMass ν q A) (hratio : ∀ x c, q x c = p x c * ENNReal.ofReal (L (x,
     c))) : Q = μ.withDensity (fun z => ENNReal.ofReal (L z)) := by
   classical
@@ -147,17 +148,17 @@ theorem eq_withDensity_of_cellSetMass {X C : Type*} [MeasurableSpace X] [Measura
       simp [Set.indicator, smul_eq_mul]
 /-- Given [a covariate sample space](hyp:X), [a finite observed-cell space](hyp:C),
 [a covariate law](hyp:ν), [reference and alternative cell masses](hyp:p,q),
-[a likelihood](hyp:L), [measurable masses](hyp:hp,hq), [a measurable nonnegative
-likelihood](hyp:hL,hL0), and [the cellwise likelihood ratio identity](hyp:hratio),
+[a likelihood](hyp:L), [measurable masses](hyp:hp,hq), [a measurable
+likelihood](hyp:hL), and [the cellwise likelihood ratio identity](hyp:hratio),
 [the alternative finite-cell bound law is the likelihood tilt of the reference
 bound law](goal). -/
 theorem bind_cells_eq_withDensity {X C : Type*} [MeasurableSpace X] [MeasurableSpace C] [Fintype C] (ν : Measure X) (p q
     : X → C → ℝ≥0∞) (L : X × C → ℝ) (hp : ∀ c, Measurable fun x => p x c) (hq : ∀ c, Measurable fun x => q x c) (hL :
-    Measurable L) (hL0 : ∀ z, 0 ≤ L z) (hratio : ∀ x c, q x c = p x c * ENNReal.ofReal (L (x, c))) : ν.bind (fun x => ∑
+    Measurable L) (hratio : ∀ x c, q x c = p x c * ENNReal.ofReal (L (x, c))) : ν.bind (fun x => ∑
     c : C, q x c • Measure.dirac (x, c)) = (ν.bind (fun x => ∑ c : C, p x c • Measure.dirac (x, c))).withDensity (fun z
     => ENNReal.ofReal (L z)) := by
   classical
-  apply eq_withDensity_of_cellSetMass ν _ _ p q L hp hq hL hL0
+  apply eq_withDensity_of_cellSetMass ν _ _ p q L hp hL
   · intro A hA
     rw [bind_latent_map_cellSetMass ν p (fun _ c => c) hp
       (fun _ => measurable_const) A hA]

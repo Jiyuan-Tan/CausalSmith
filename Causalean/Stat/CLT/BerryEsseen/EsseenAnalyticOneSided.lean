@@ -4,7 +4,7 @@ public import Mathlib.Analysis.Fourier.Inversion
 
 /-! # Analytic one-sided Esseen inequality
 
-This separates the sharp band-limited comparison for an integrable real
+This separates the band-limited comparison with constant 24/π for an integrable real
 function from the measure-specific CDF and characteristic-function identities.
 -/
 
@@ -19,7 +19,7 @@ open MeasureTheory
 distance](hyp:hL,hdown) and
 [a positive bandwidth T](hyp:hT), [the value of H at every point is at most
 1/π times the integral over [−T, T] of the magnitude of its Fourier
-transform, plus the sharp one-sided Esseen smoothing error 24L/(πT)](goal). -/
+transform, plus the one-sided Esseen smoothing error 24L/(πT)](goal). -/
 theorem integrable_one_sided_esseen_fourier_bound
     (H : ℝ → ℝ) (hH : Integrable H volume)
     (L : ℝ) (hL : 0 ≤ L)
@@ -32,10 +32,10 @@ theorem integrable_one_sided_esseen_fourier_bound
             Complex.exp (((t * y : ℝ) : ℂ) * Complex.I) * (H y : ℂ)‖) +
       24 * L / (Real.pi * T) := by
   refine le_of_forall_pos_le_add fun ε hε => ?_
-  obtain ⟨K, hKi, hKc, hKhat, hsupp, hnorm, hconv, hpoint⟩ :=
+  obtain ⟨K, hKi, hKc, hKhat, hsupp, hnorm, _, hpoint⟩ :=
     exists_esseen_one_sided_spectral_comparator H hH L hL hdown T hT x ε hε
   have hbound := bandlimited_convolution_fourier_bound
-    H K hH hKi hKc hKhat T hT hsupp hnorm x hconv
+    H K hH hKi hKc hKhat T hT hsupp hnorm x
   have hcoeff : 2 * (1 / (2 * Real.pi)) = 1 / Real.pi := by
     field_simp [Real.pi_ne_zero]
   calc

@@ -55,8 +55,8 @@ theorem feasibleGMM_asymLinear_of_smoothMoment
     (θn : ℕ → Ω → E) (sampleW : ℕ → Ω → (F →L[ℝ] F))
     (hConsistent : ∀ ε > 0,
       Tendsto (fun n => μ {ω | ε < ‖θn n ω - prob.θ₀‖}) atTop (𝓝 0))
-    (hWeight : Tendsto_inProb
-      (fun n ω => ‖sampleW n ω - prob.W‖) (fun _ => 0) μ)
+    (hWeight : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => ‖sampleW n ω - prob.W‖) atTop
+        (fun _ _ => 0))
     (hApproxFOC : IsLittleOp
       (fun n ω => ‖(adjoint (gmmSampleJacobian reg S (θn n ω) n ω) ∘L
         sampleW n ω) (gmmNormalizedMoment S prob.g (θn n ω) n ω)‖)
@@ -103,17 +103,16 @@ theorem feasibleGMM_asymLinear_of_smoothMoment
       intro n
       exact ((Finset.measurable_sum _
         (fun i _ => prob.g_meas.comp (S.meas i))).const_smul _).aemeasurable
-    have hUclt : Tendsto_dist_vec U
-        (gaussianLimit prob.g_meas prob.finite_var) μ hUmeas := by
+    have hUclt : Modes.TendstoInLaw (fun _ : ℕ => μ) U atTop
+        (gaussianLimit prob.g_meas prob.finite_var) := by
       exact S.clt_normalizedSum_vec prob.g_meas prob.finite_var prob.identification
-    have hNormUclt := hUclt.map_continuous continuous_norm hUmeas
+    have hNormUclt := Modes.TendstoInLaw.map_continuous (hX := hUclt) continuous_norm
     have hUbig : IsBigOp (fun n ω => ‖U n ω‖) (fun _ => (1 : ℝ)) μ := by
       letI : IsProbabilityMeasure
           ((gaussianLimit prob.g_meas prob.finite_var).map norm) :=
         Measure.isProbabilityMeasure_map continuous_norm.measurable.aemeasurable
-      exact Tendsto_dist.tightness
-        (fun n => continuous_norm.measurable.comp_aemeasurable (hUmeas n))
-        ((Tendsto_dist_iff _ _ _ _).2 hNormUclt)
+      exact Modes.TendstoInLaw.tightness ((Tendsto_dist_iff _ _ _
+          (fun n => continuous_norm.measurable.comp_aemeasurable (hUmeas n))).2 hNormUclt)
     have hGVbig : IsBigOp (fun n ω => ‖prob.G‖ * ‖V n ω‖)
         (fun _ => (1 : ℝ)) μ := by
       exact IsBigOp.const_mul ‖prob.G‖ hVbig
@@ -212,8 +211,8 @@ theorem feasibleGMM_tendsto_normal_of_smoothMoment
     (θn : ℕ → Ω → E) (sampleW : ℕ → Ω → (F →L[ℝ] F))
     (hConsistent : ∀ ε > 0,
       Tendsto (fun n => μ {ω | ε < ‖θn n ω - prob.θ₀‖}) atTop (𝓝 0))
-    (hWeight : Tendsto_inProb
-      (fun n ω => ‖sampleW n ω - prob.W‖) (fun _ => 0) μ)
+    (hWeight : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => ‖sampleW n ω - prob.W‖) atTop
+        (fun _ _ => 0))
     (hApproxFOC : IsLittleOp
       (fun n ω => ‖(adjoint (gmmSampleJacobian reg S (θn n ω) n ω) ∘L
         sampleW n ω) (gmmNormalizedMoment S prob.g (θn n ω) n ω)‖)
@@ -248,8 +247,8 @@ theorem feasibleGMM_asymLinear_of_smoothMoment_of_sampleFn
     (sampleW : ℕ → Ω → (F →L[ℝ] F))
     (hConsistent : ∀ ε > 0, Tendsto (fun n =>
       μ {ω | ε < ‖est n (S.sampleVector n ω) - prob.θ₀‖}) atTop (𝓝 0))
-    (hWeight : Tendsto_inProb
-      (fun n ω => ‖sampleW n ω - prob.W‖) (fun _ => 0) μ)
+    (hWeight : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => ‖sampleW n ω - prob.W‖) atTop
+        (fun _ _ => 0))
     (hApproxFOC : IsLittleOp
       (fun n ω => ‖(adjoint
           (gmmSampleJacobian reg S (est n (S.sampleVector n ω)) n ω) ∘L
@@ -277,8 +276,8 @@ theorem feasibleGMM_tendsto_normal_of_smoothMoment_of_sampleFn
     (sampleW : ℕ → Ω → (F →L[ℝ] F))
     (hConsistent : ∀ ε > 0, Tendsto (fun n =>
       μ {ω | ε < ‖est n (S.sampleVector n ω) - prob.θ₀‖}) atTop (𝓝 0))
-    (hWeight : Tendsto_inProb
-      (fun n ω => ‖sampleW n ω - prob.W‖) (fun _ => 0) μ)
+    (hWeight : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => ‖sampleW n ω - prob.W‖) atTop
+        (fun _ _ => 0))
     (hApproxFOC : IsLittleOp
       (fun n ω => ‖(adjoint
           (gmmSampleJacobian reg S (est n (S.sampleVector n ω)) n ω) ∘L

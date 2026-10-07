@@ -32,7 +32,9 @@ namespace PositiveDAGTableFactorization
 
 /-- A [factorized table](hyp:fac), [vertex list](hyp:vertices), and [proof that its vertices are
 distinct](hyp:hvertices) give [the sequential-fixing expansion as the truncated local-factor
-product](goal). -/
+product: fixing the listed vertices one after another, each time dividing the current kernel by
+its conditional mass of the vertex given the vertex's DAG parents, yields at every complete
+profile the product of the local factors of the vertices not in the list](goal). -/
 theorem fixSequence_eq_remainingFactorKernel
     (fac : PositiveDAGTableFactorization G p) (vertices : List V)
     (hvertices : vertices.Nodup) :

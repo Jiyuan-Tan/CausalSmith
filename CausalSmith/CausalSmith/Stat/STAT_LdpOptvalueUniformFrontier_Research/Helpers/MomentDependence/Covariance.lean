@@ -8,7 +8,7 @@ public import CausalSmith.Stat.STAT_LdpOptvalueUniformFrontier_Research.Helpers.
 Finite original-record private value frontiers: Helpers/MomentDependence/Covariance.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 

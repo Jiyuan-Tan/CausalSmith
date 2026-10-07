@@ -8,7 +8,7 @@ Authors: Jiyuan Tan
 `msmUpperCalib_eq_cutoff` and `cutoffProp_mem_MSMSetCalib_of_survival` reduce the calibrated
 upper endpoint to one construction: a `σ(X)`-measurable cutoff `c` solving the
 conditional-survival equation `treatedSurv c =ᵐ survTarget Λ`. This file completes that
-construction and obtains a closed form under universal cutoff integrability.
+construction and obtains a closed form under integrability of the calibrating cutoff.
 
 The cutoff is the conditional quantile `Q_{τ}(X)` of `Y` among the treated, where the level
 `τ(X) = 1 − survTarget(X)/e(X)` (`calibLevel`) is set by the sensitivity budget. The construction uses:
@@ -30,8 +30,8 @@ public import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffConstruct.ConstantCu
 /-! # Variable cutoffs and calibrated MSM construction
 
 This part extends the survival bridge to covariate-measurable cutoffs, constructs a measurable
-calibrating conditional quantile, and obtains the calibrated upper endpoint under universal cutoff
-integrability. -/
+calibrating conditional quantile, and obtains the calibrated upper endpoint under integrability of
+the calibrating cutoff. -/
 
 public section
 
@@ -535,42 +535,43 @@ theorem exists_calibrating_cutoff (Λ : ℝ)
   field_simp [hpos]
   ring
 
-/-- **The calibrated treated upper bound under universal cutoff integrability.** Fix [a
-sensitivity parameter Λ strictly greater than one](hyp:Λ,hΛ). Assume [two-sided overlap of the
-treated propensity
-score](hyp:hoverlap), that [the treated-arm conditional outcome law given covariates is atomless,
-i.e. its conditional CDF is continuous](hyp:hatomless), that [the calibration quantile level lies
-strictly between 0 and 1 almost everywhere](hyp:hlevel). If [every
-ambient-measurable cutoff satisfies the integrability conditions needed for the calibration and
-optimality arguments](hyp:hreg), then
-[there exists an ambient-measurable cutoff function whose induced quantile-cutoff propensity is
-calibrated-feasible, at which the calibrated (supremum) upper bound for `E[Y(1)]` equals the candidate
-mean](goal).
+/-- Fix [a sensitivity parameter Λ strictly greater than one](hyp:Λ,hΛ). Assume [the treated
+propensity score lies strictly between 0 and 1 almost surely](hyp:hoverlap) and [the conditional
+distribution function of the treated outcome given each covariate value is
+continuous](hyp:hatomless). Write D for the treated-arm indicator, Y for the observed outcome, and
+w_min ≤ w_max for the smallest and largest admissible inverse-propensity weights at level Λ; the
+upper cutoff propensity at a cutoff c is 1/w_max where Y > c and 1/w_min elsewhere. Suppose [every
+σ(X)-measurable cutoff c (measurable with respect to the covariates) for which the conditional mean
+of D·1{Y > c} given the covariates equals the target survival probability almost surely makes two
+functions integrable: c itself and |c|·D·w_max](hyp:hreg), and that [D·w_max](hyp:hweight_env) and
+[D·|Y|·w_max](hyp:henv) are integrable. Then [there is a σ(X)-measurable cutoff c whose upper cutoff
+propensity lies in the calibrated sensitivity set and whose candidate inverse-probability-weighted
+mean equals the calibrated upper bound for the mean of the treated potential outcome](goal).
 
-Combines the constructed calibrating cutoff with `msmUpperCalib_eq_cutoff`, discharging the
-`hcut_mem` hypothesis via `exists_calibrating_cutoff`. -/
-theorem msmUpperCalib_eq_cutoff_of_universal_cutoff_integrability (Λ : ℝ) (hΛ : 1 < Λ)
+Combines the cutoff constructed by `exists_calibrating_cutoff` with `msmUpperCalib_eq_cutoff`, whose
+membership hypothesis the survival equation of that cutoff discharges. The calibration level is
+strictly between 0 and 1 by `calibLevel_mem_Ioo`, and the integrability of D·1{Y > c}, D·w_min and
+(w_max − w_min)·D·1{Y > c} follows from that of D·w_max. -/
+theorem msmUpperCalib_eq_cutoff_of_calibrating_cutoff_integrability (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     (hatomless : ∀ a : γ, Continuous (condCDF S.treatedXYLaw a))
-    (hlevel : ∀ᵐ ω ∂P.μ, 0 < S.calibLevel Λ ω ∧ S.calibLevel Λ ω < 1)
     (hreg : ∀ c : P.Ω → ℝ, Measurable[S.sigmaX] c →
+      S.treatedSurv c =ᵐ[P.μ] S.survTarget Λ →
       Integrable c P.μ ∧
-      Integrable (fun ω => S.dVar.indicator true ω / S.cutoffProp Λ c ω) P.μ ∧
-      Integrable (fun ω =>
-        S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ ∧
-      Integrable (fun ω => S.dVar.indicator true ω * S.wMin Λ ω) P.μ ∧
-      Integrable (fun ω => (S.wMax Λ ω - S.wMin Λ ω) *
-        (S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0))) P.μ ∧
-      Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ ∧
-      Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ ∧
-      Integrable (fun ω => |c ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ) :
+      Integrable (fun ω => |c ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
+    (henv : Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ)
+    (hweight_env : Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ) :
     ∃ c : P.Ω → ℝ, Measurable[S.sigmaX] c ∧
       S.cutoffProp Λ c ∈ S.MSMSetCalib true Λ ∧
       S.msmUpperCalib true Λ = S.candMean true (S.cutoffProp Λ c) := by
   obtain ⟨c, hc_meas, hsurv⟩ :=
-    S.exists_calibrating_cutoff Λ hoverlap hatomless hlevel
-  obtain ⟨hc_int, _hint, hint1, hmin_int, hdiff_int,
-    henv, hweight_env, hc_env⟩ := hreg c hc_meas
+    S.exists_calibrating_cutoff Λ hoverlap hatomless (S.calibLevel_mem_Ioo Λ hΛ hoverlap)
+  obtain ⟨hc_int, hc_env⟩ := hreg c hc_meas hsurv
+  have hc_amb : Measurable c := hc_meas.mono S.sigmaX_le le_rfl
+  have hint1 := S.integrable_treated_gt_cutoff c hc_amb
+  have hdiff_int :=
+    S.integrable_wDiff_mul_treated_gt_cutoff Λ (le_of_lt hΛ) hoverlap c hc_amb hweight_env
+  have hmin_int := S.integrable_treated_wMin_of_wMax Λ (le_of_lt hΛ) hoverlap hweight_env
   have hcut_mem : S.cutoffProp Λ c ∈ S.MSMSetCalib true Λ :=
     S.cutoffProp_mem_MSMSetCalib_of_survival Λ hΛ hoverlap c
       hint1 hmin_int hdiff_int hsurv

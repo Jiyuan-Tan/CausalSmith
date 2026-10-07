@@ -11,16 +11,21 @@ public import Mathlib.Analysis.Calculus.MeanValue
 /-!
 # Rectangular derivative remainders
 
-This module gives a sharp one-dimensional quadratic remainder bound from explicit derivative
-witnesses and its iterated two-coordinate consequence. The latter converts a uniform mixed
-fourth-derivative envelope into a rectangular fourth-order bound.
+This module gives a one-dimensional quadratic remainder bound with constant one half from
+explicit derivative witnesses and its iterated two-coordinate consequence. The latter converts a
+uniform mixed fourth-derivative envelope into a rectangular fourth-order bound.
 -/
 public section
 noncomputable section
 open Set
 namespace Causalean.Mathlib.Analysis.Calculus
 
-/-- Two integrations of a bounded curvature, with zero value and slope at the origin, give the exact quadratic factor one half. The proof uses quadratic comparison functions. This statement assumes [the ha condition](hyp:ha), [the hf condition](hyp:hf), [the hf₁ condition](hyp:hf₁), [the hf₂ condition](hyp:hf₂), [the h0 condition](hyp:h0), [the h10 condition](hyp:h10). [This is the stated conclusion](goal). -/
+/-- Let f be a real function with [derivative f₁](hyp:hf) and [second derivative f₂](hyp:hf₁)
+at every point of the interval from 0 to [a nonnegative endpoint a](hyp:ha). If [f₂ is bounded
+in absolute value by B on that interval](hyp:hf₂), and both [f](hyp:h0) and [f₁](hyp:h10) vanish
+at 0, then [the value of f at a is at most B·a²/2 in absolute value](goal).
+
+The proof compares f with the quadratic functions ±B·x²/2. -/
 lemma quadratic_remainder_bound (f f₁ f₂ : ℝ → ℝ) (a B : ℝ)
     (ha : 0 ≤ a) (hf : ∀ x ∈ Icc 0 a, HasDerivAt f (f₁ x) x)
     (hf₁ : ∀ x ∈ Icc 0 a, HasDerivAt f₁ (f₂ x) x)
@@ -53,7 +58,18 @@ lemma quadratic_remainder_bound (f f₁ f₂ : ℝ → ℝ) (a B : ℝ)
     one_mul, neg_one_mul] at hp hn
   exact abs_le.mpr ⟨by linarith, by linarith⟩
 
-/-- Applying the quadratic remainder in each amplitude gives one quarter of the fourth mixed derivative envelope. All derivative fields are explicit; this lemma assumes no likelihood estimate and can be applied once the concrete component jets are certified. This statement assumes [the ha condition](hyp:ha), [the hu condition](hyp:hu), [the hFa condition](hyp:hFa), [the hFaa condition](hyp:hFaa), [the hFaaU condition](hyp:hFaaU), [the hFaaUU condition](hyp:hFaaUU), [the hbound condition](hyp:hbound), [the hF0 condition](hyp:hF0), [the hFa0 condition](hyp:hFa0), [the hFaa0 condition](hyp:hFaa0), [the hFaaU0 condition](hyp:hFaaU0). [This is the stated conclusion](goal). -/
+/-- Let F be a real function of two real variables and fix [nonnegative amplitudes a and
+u](hyp:ha,hu). Suppose that, at the second argument u, [F has partial derivative Fa in its first
+argument](hyp:hFa) and [Fa has partial derivative Faa in its first argument](hyp:hFaa) at every
+point of the interval from 0 to a; that on the rectangle 0 ≤ b ≤ a, 0 ≤ v ≤ u [Faa has partial
+derivative FaaU in its second argument](hyp:hFaaU), [FaaU has partial derivative FaaUU in its
+second argument](hyp:hFaaUU), and [FaaUU is bounded in absolute value by B](hyp:hbound); and that
+[F](hyp:hF0) and [Fa](hyp:hFa0) vanish at the point (0, u), while [Faa](hyp:hFaa0) and
+[FaaU](hyp:hFaaU0) vanish at (b, 0) for every b between 0 and a. Then [the value of F at (a, u)
+is at most B·a²·u²/4 in absolute value](goal).
+
+The bound is the quadratic remainder applied once in each amplitude. All derivative witnesses
+are explicit inputs. -/
 lemma fourth_rectangular_remainder_bound
     (F Fa Faa FaaU FaaUU : ℝ → ℝ → ℝ) (a u B : ℝ)
     (ha : 0 ≤ a) (hu : 0 ≤ u)

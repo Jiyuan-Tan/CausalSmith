@@ -15,7 +15,7 @@ Helpers/Law-level constructions and the obligations specified by the typed core.
 Cited logical facts are explicit inputs; bibliographic records have no logical consumers.
 -/
 
-@[expose] public section
+public section
 
 set_option linter.style.longLine false
 set_option linter.style.whitespace false

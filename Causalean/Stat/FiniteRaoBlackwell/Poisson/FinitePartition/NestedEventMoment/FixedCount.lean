@@ -144,8 +144,9 @@ theorem integral_nestedEventKernel (P : Measure X) [IsProbabilityMeasure P]
 /-- Under an [observation probability law](hyp:P), two [events](hyp:A,B) with
 [measurable membership](hyp:hA,hB) and [the first contained in the second](hyp:hAB), an
 [order](hyp:v) with [positive order](hyp:hv), and a [fixed sample size](hyp:n), the [iid
-mean of the weighted nested-event factorial equals the falling-factorial tuple count times
-the event probabilities](goal). -/
+mean of the weighted nested-event factorial equals the falling factorial of the sample size of
+the given order, times the smaller-event probability, times the larger-event probability raised
+to the order minus one](goal). -/
 theorem integral_weightedFactorial_fixedCount (P : Measure X)
     [IsProbabilityMeasure P] (A B : Set X) (hA : MeasurableSet A)
     (hB : MeasurableSet B) (hAB : A ⊆ B) (v n : ℕ) (hv : 1 ≤ v) :

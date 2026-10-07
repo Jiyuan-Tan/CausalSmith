@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Seq
 
 /-! # Finite sequential Fisher recursion -/
 
-@[expose] public section
+public section
 noncomputable section
 namespace CausalSmith.Stat.LdpAteEfficiencySurface
 

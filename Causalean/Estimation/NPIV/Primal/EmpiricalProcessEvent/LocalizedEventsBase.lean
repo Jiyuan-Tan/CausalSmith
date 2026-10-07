@@ -81,7 +81,7 @@ empirical average of that function over the first n sample draws deviates from i
 population mean by at most `10 * δ_n * norm + 5 * δ_n ^ 2`](goal).
 
 This is the NPIV-facing wrapper around
-`localized_uniform_deviation_sharp`: it transports the product-space event
+`localized_uniform_deviation_peeled`: it transports the product-space event
 for `(Fin n → S.𝒲)` back to the ambient sample space through `sample` and
 rewrites the population mean under `P_W` as an integral over `S.W`.
 Concrete HF/mF/F/H event lemmas can instantiate the abstract index `i`
@@ -114,7 +114,7 @@ lemma localized_omega_event_sharp_for_bundle
     rw [← h_law_W]
     exact Measure.isProbabilityMeasure_map S.meas_W.aemeasurable
   obtain ⟨E₀, hE₀_meas, hE₀_prob, hE₀_bound⟩ :=
-    localized_uniform_deviation_sharp B.F B.norm P_W B.X B.X_meas B.F_meas
+    localized_uniform_deviation_peeled B.F B.norm P_W B.X B.X_meas B.F_meas
       B.norm_nonneg B.regime hζ_pos hζ_le n hn (ρ := δ_n) (Rmax := Rmax)
       B.crit_le hδn_pos B.crit_pos
       B.rad_bdd B.rad_int hslack

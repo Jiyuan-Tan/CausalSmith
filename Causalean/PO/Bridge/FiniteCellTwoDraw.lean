@@ -167,10 +167,14 @@ theorem integral_pair_arm (d e : Bool) (W : γ → γ → ℝ)
 /-- A [finite-cell observed table](hyp:D), [two treatment arms](hyp:d,e),
 [covariate-pair weight](hyp:W), [two centering functions](hyp:c,k),
 [measurability of the weight](hyp:hW), [measurability of both centers](hyp:hc,hk),
-and [integrability of the displayed envelope under the independent covariate-pair
-law](hyp:hInt) give [the centered observed-outcome product expectation through
-arm probabilities and arm regressions](goal). The integrable envelope permits
-unbounded centering functions. -/
+and [integrability of the envelope |W(x, x′)|·(1 + |c(x)|)·(1 + |k(x′)|) under the
+independent covariate-pair law](hyp:hInt) give that [for two independent draws from
+the observed law, the expectation of
+W(X, X′)·1{A = d}·(Y − c(X))·1{A′ = e}·(Y′ − k(X′)) equals the integral over
+independent covariate pairs of
+W(x, x′)·p_d(x)·(m_d(x) − c(x))·p_e(x′)·(m_e(x′) − k(x′)), where p and m are the
+table's arm probabilities and arm outcome means](goal). The integrable envelope
+permits unbounded centering functions. -/
 theorem integral_pair_centered (d e : Bool) (W : γ → γ → ℝ)
     (c k : γ → ℝ)
     (hW : Measurable fun p : γ × γ => W p.1 p.2)

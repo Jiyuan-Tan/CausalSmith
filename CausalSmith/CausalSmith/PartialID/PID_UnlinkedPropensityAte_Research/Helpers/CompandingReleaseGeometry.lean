@@ -8,7 +8,7 @@ public import Mathlib.MeasureTheory.Function.Floor
 Geometry of the ordered companding release used in the unlinked propensity-score ATE analysis.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set Filter
 

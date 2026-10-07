@@ -12,8 +12,21 @@ public import Mathlib.Topology.MetricSpace.HausdorffDistance
 /-!
 # Sign polynomials for extremal residual sets
 
-This module develops the ordered sign-block argument used in the necessity proof
-of Chebyshev's alternation theorem.
+A continuous function g on a compact interval [r, s] with positive supremum norm either attains
+its norm with alternating signs at L + 2 increasing points, or admits a polynomial Q of degree at
+most L with g(x)·Q(x) > 0 at every point where |g| equals its supremum norm. This is the
+sign-change counting step in the necessity half of Chebyshev's alternation (equioscillation)
+theorem: such a Q, scaled small, could be subtracted from g to lower its supremum norm.
+
+## Main definitions
+
+* `IsAlternatingExtrema` — g takes the values ±‖g‖, with alternating signs, at L + 2 strictly
+  increasing nodes of the interval.
+
+## Main results
+
+* `exists_signPolynomial_of_no_alternatingExtrema` — if g has no L + 2 alternating extrema, there
+  is a polynomial of degree at most L having the sign of g on the whole extremal set.
 -/
 
 @[expose] public section

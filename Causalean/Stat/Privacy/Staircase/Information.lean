@@ -138,7 +138,7 @@ private theorem outputScore_bound (Q : Kernel (Fin 4) Z) (p u : Fin 4 → ℝ)
 
 private theorem weighted_release_integral (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
     (r : ℝ) (R : Refinement Q r) (w : Fin 4 → ℝ) (f : Z → ℝ)
-    (hK : ∀ S, Integrable f (R.K S)) (hQ : ∀ i, Integrable f (Q i)) :
+    (hQ : ∀ i, Integrable f (Q i)) :
     (∑ S, (∑ i, w i * (R.T i {S}).toReal) * ∫ z, f z ∂(R.K S)) =
       ∫ z, (∑ i, w i * rowDensity Q i z) * f z ∂rowSum Q := by
   letI : IsMarkovKernel R.T := R.markovT
@@ -254,7 +254,7 @@ sides. The score is bounded by the largest absolute input score because all
 four row densities and input probabilities are nonnegative. -/
 theorem score_cross_moment (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
     (r : ℝ) (R : Refinement Q r) (p u : Fin 4 → ℝ)
-    (hp : ∀ i, 0 < p i) (hpsum : ∑ i, p i = 1) :
+    (hp : ∀ i, 0 < p i) :
     (∑ S, releaseMass R.T p S * releaseScore R.T p u S *
       ∫ z, outputScore Q p u z ∂(R.K S)) =
       outputFisher Q p u := by
@@ -278,7 +278,7 @@ theorem score_cross_moment (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
     _ = ∫ z, (∑ i, (p i * u i) * rowDensity Q i z) *
         outputScore Q p u z ∂rowSum Q :=
       weighted_release_integral Q r R (fun i => p i * u i)
-        (outputScore Q p u) hK hQ
+        (outputScore Q p u) hQ
     _ = outputFisher Q p u := by
       unfold outputFisher
       apply integral_congr_ae
@@ -300,7 +300,7 @@ The release mixture and the output mixture are equal measures by
 input-weighted sum of the four row densities. -/
 theorem output_score_second_moment (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
     (r : ℝ) (R : Refinement Q r) (p u : Fin 4 → ℝ)
-    (hp : ∀ i, 0 < p i) (hpsum : ∑ i, p i = 1) :
+    (hp : ∀ i, 0 < p i) :
     (∑ S, releaseMass R.T p S *
       ∫ z, (outputScore Q p u z) ^ 2 ∂(R.K S)) =
       outputFisher Q p u := by
@@ -320,7 +320,7 @@ theorem output_score_second_moment (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
     _ = ∫ z, (∑ i, p i * rowDensity Q i z) *
         (outputScore Q p u z) ^ 2 ∂rowSum Q :=
       weighted_release_integral Q r R p
-        (fun z => (outputScore Q p u z) ^ 2) hK hQ
+        (fun z => (outputScore Q p u z) ^ 2) hQ
     _ = outputFisher Q p u := by
       unfold outputFisher
       apply integral_congr_ae
@@ -338,7 +338,7 @@ the output first and second score moments, and use the Markov normalization of e
 postprocessing row. Handle zero release masses using the zero numerator convention. -/
 theorem fisher_gap_eq_variance (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
     (r : ℝ) (R : Refinement Q r) (p u : Fin 4 → ℝ)
-    (hp : ∀ i, 0 < p i) (hpsum : ∑ i, p i = 1) :
+    (hp : ∀ i, 0 < p i) :
     finiteFisher R.T p u - outputFisher Q p u = varianceGap Q r R p u := by
   letI : IsMarkovKernel R.K := R.markovK
   have hrow (S : RayIndex) :
@@ -382,8 +382,8 @@ theorem fisher_gap_eq_variance (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
         (∑ S, releaseMass R.T p S *
           ∫ z, (outputScore Q p u z) ^ 2 ∂(R.K S)) := by
             rw [finite_score_second_moment Q r R p u hp,
-              score_cross_moment Q r R p u hp hpsum,
-              output_score_second_moment Q r R p u hp hpsum]
+              score_cross_moment Q r R p u hp,
+              output_score_second_moment Q r R p u hp]
             ring
     _ = ∑ S, releaseMass R.T p S *
           ∫ z, (releaseScore R.T p u S - outputScore Q p u z) ^ 2 ∂(R.K S) := by
@@ -394,7 +394,7 @@ theorem fisher_gap_eq_variance (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
             ring
 
 /-- Given [a four-input Markov kernel](hyp:Q), [a privacy ratio](hyp:r), [a staircase
-refinement](hyp:R), [strictly positive input probabilities](hyp:hp) that [sum to one](hyp:hpsum),
+refinement](hyp:R), [strictly positive input weights, which need not sum to one](hyp:hp),
 [a finite-dimensional input score](hyp:u), and [a score direction](hyp:v), [the directional
 Fisher-information gap is nonnegative](goal).
 
@@ -407,11 +407,11 @@ the output is the output score; the difference is the integral of conditional va
 Equivalently, prove pointwise weighted Cauchy–Schwarz using the coefficient measures. -/
 theorem fisher_gap_nonneg {d : ℕ} (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
     (r : ℝ) (R : Refinement Q r) (p : Fin 4 → ℝ)
-    (hp : ∀ i, 0 < p i) (hpsum : ∑ i, p i = 1)
+    (hp : ∀ i, 0 < p i)
     (u : Fin 4 → Fin d → ℝ) (v : Fin d → ℝ) :
     0 ≤ finiteFisher R.T p (projectedScore u v) -
       outputFisher Q p (projectedScore u v) := by
-  rw [fisher_gap_eq_variance Q r R p (projectedScore u v) hp hpsum]
+  rw [fisher_gap_eq_variance Q r R p (projectedScore u v) hp]
   unfold varianceGap
   apply Finset.sum_nonneg
   intro S _
@@ -423,7 +423,7 @@ theorem fisher_gap_nonneg {d : ℕ} (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
   · exact integral_nonneg fun z => sq_nonneg _
 
 /-- Given [a four-input Markov kernel](hyp:Q), [a privacy ratio](hyp:r), [a staircase
-refinement](hyp:R), [strictly positive input probabilities](hyp:hp) that [sum to one](hyp:hpsum),
+refinement](hyp:R), [strictly positive input weights, which need not sum to one](hyp:hp),
 [a finite-dimensional input score](hyp:u), [a score direction](hyp:v), [a zero directional
 Fisher gap](hyp:hgap), [two rays](hyp:S,U) with [positive release mass](hyp:hS,hU), and
 [different projected scores](hyp:hdiff), the [two postprocessing laws are mutually singular](goal).
@@ -437,7 +437,7 @@ and output score almost everywhere under every positive ray contribution. Distin
 release scores therefore live on disjoint measurable level sets. -/
 theorem equality_rigidity {d : ℕ} (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
     (r : ℝ) (R : Refinement Q r) (p : Fin 4 → ℝ)
-    (hp : ∀ i, 0 < p i) (hpsum : ∑ i, p i = 1)
+    (hp : ∀ i, 0 < p i)
     (u : Fin 4 → Fin d → ℝ) (v : Fin d → ℝ)
     (hgap : finiteFisher R.T p (projectedScore u v) -
       outputFisher Q p (projectedScore u v) = 0)
@@ -450,7 +450,7 @@ theorem equality_rigidity {d : ℕ} (Q : Kernel (Fin 4) Z) [IsMarkovKernel Q]
   have hvar : (∑ V, releaseMass R.T p V *
       ∫ z, (releaseScore R.T p w V - outputScore Q p w z) ^ 2 ∂(R.K V)) = 0 := by
     simpa only [varianceGap] using
-      ((fisher_gap_eq_variance Q r R p w hp hpsum).symm.trans hgap)
+      ((fisher_gap_eq_variance Q r R p w hp).symm.trans hgap)
   have hterm_nonneg (V : RayIndex) :
       0 ≤ releaseMass R.T p V *
         ∫ z, (releaseScore R.T p w V - outputScore Q p w z) ^ 2 ∂(R.K V) := by

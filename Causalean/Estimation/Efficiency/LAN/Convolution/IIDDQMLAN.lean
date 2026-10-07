@@ -274,8 +274,10 @@ private theorem sqrtLikelihoodIncrement_moments
 private theorem tendstoInProbability_add_zero
     {Ω : ℕ → Type*} [∀ n, MeasurableSpace (Ω n)]
     (P : ∀ n, Measure (Ω n)) (A B : ∀ n, Ω n → ℝ)
-    (hA : TendstoInProbability P A 0) (hB : TendstoInProbability P B 0) :
-    TendstoInProbability P (fun n x => A n x + B n x) 0 := by
+    (hA : Causalean.Stat.Modes.TendstoInProbability P A atTop
+        (fun _ _ => 0)) (hB : Causalean.Stat.Modes.TendstoInProbability P B atTop (fun _ _ => 0)) :
+    Causalean.Stat.Modes.TendstoInProbability P (fun n x => A n x + B n x) atTop
+        (fun _ _ => 0) := by
   rw [tendstoInProbability_iff_real] at hA hB ⊢
   intro ε hε
   have hhalf : 0 < ε / 2 := half_pos hε
@@ -310,8 +312,8 @@ private theorem tendstoInProbability_add_zero
 private theorem tendstoInProbability_const_mul_zero
     {Ω : ℕ → Type*} [∀ n, MeasurableSpace (Ω n)]
     (P : ∀ n, Measure (Ω n)) (c : ℝ) (A : ∀ n, Ω n → ℝ)
-    (hA : TendstoInProbability P A 0) :
-    TendstoInProbability P (fun n x => c * A n x) 0 := by
+    (hA : Causalean.Stat.Modes.TendstoInProbability P A atTop (fun _ _ => 0)) :
+    Causalean.Stat.Modes.TendstoInProbability P (fun n x => c * A n x) atTop (fun _ _ => 0) := by
   rw [tendstoInProbability_iff_real] at hA ⊢
   by_cases hc : c = 0
   · subst c
@@ -343,13 +345,13 @@ private theorem iid_sqrtLikelihoodIncrement_array_limits
       Tendsto (fun n : ℕ => (n : ℝ) * ∫ x,
         qmd.sqrtLikelihoodIncrement n h x ∂M.law 0)
           atTop (𝓝 (-(1 / 4 : ℝ) * qmd.information M h h))) :
-    TendstoInProbability (fun n => M.iidLaw 0 n)
-      (fun n x => (∑ i, qmd.sqrtLikelihoodIncrement n h (x i)) -
+    Causalean.Stat.Modes.TendstoInProbability (fun n => M.iidLaw 0 n)
+        (fun n x => (∑ i, qmd.sqrtLikelihoodIncrement n h (x i)) -
         inner ℝ h (qmd.centralSequence n x) +
-          (1 / 4 : ℝ) * qmd.information M h h) 0 ∧
-    TendstoInProbability (fun n => M.iidLaw 0 n)
-      (fun n x => (∑ i, qmd.sqrtLikelihoodIncrement n h (x i) ^ 2) -
-        qmd.information M h h) 0 ∧
+          (1 / 4 : ℝ) * qmd.information M h h) atTop (fun _ _ => 0) ∧
+    Causalean.Stat.Modes.TendstoInProbability (fun n => M.iidLaw 0 n)
+        (fun n x => (∑ i, qmd.sqrtLikelihoodIncrement n h (x i) ^ 2) -
+        qmd.information M h h) atTop (fun _ _ => 0) ∧
     ∀ ε : ℝ, 0 < ε → Tendsto (fun n => M.iidLaw 0 n
       {x | ∃ i, ε ≤ |qmd.sqrtLikelihoodIncrement n h (x i)|}) atTop (𝓝 0) := by
   -- Center the row sum and use product independence plus Chebyshev.  The quadratic row sum uses
@@ -373,15 +375,15 @@ private theorem iid_sqrtLikelihoodIncrement_array_limits
     simp [P, qmd.score_integral_eq_zero]
   have hlindeberg : ∀ ε : ℝ, 0 < ε → Tendsto (fun n : ℕ => (n : ℝ) *
       ∫ x in {x | ε ≤ |W n x|}, W n x ^ 2 ∂P) atTop (𝓝 0) :=
-    @scaledL2Approx_lindeberg X _ P _ W S hWmeas hW2 hS
+    @scaledL2Approx_lindeberg X _ P _ W S hWmeas hS
       (by simpa [P, W, S] using hincrement)
   have hlinear := @iid_sum_approx_tendstoInProbability X _ P _ W S
-    (-(1 / 4 : ℝ) * qmd.information M h h) hWmeas hW2 hS hSmean
+    (-(1 / 4 : ℝ) * qmd.information M h h) hW2 hS hSmean
     (by simpa [P, W, S] using hincrement) (by simpa [P, W] using hmoments.2)
-  have hlinear' : TendstoInProbability (fun n => M.iidLaw 0 n)
+  have hlinear' : Causalean.Stat.Modes.TendstoInProbability (fun n => M.iidLaw 0 n)
       (fun n x => (∑ i, qmd.sqrtLikelihoodIncrement n h (x i)) -
-        inner ℝ h (qmd.centralSequence n x))
-      (-(1 / 4 : ℝ) * qmd.information M h h) := by
+        inner ℝ h (qmd.centralSequence n x)) atTop
+            (fun _ _ => (-(1 / 4 : ℝ) * qmd.information M h h)) := by
     simpa [P, W, S, DominatedIIDModel.iidLaw, centralSequence,
       inner_smul_right, inner_sum] using hlinear
   refine ⟨?_, ?_, ?_⟩
@@ -467,25 +469,21 @@ private theorem iid_guardedLogLikelihood_eq_sum_on_small_increments
 
 private theorem iid_guardedLogLikelihood_taylor_remainder
     (qmd : IIDQuadraticMeanDifferentiable M) (h : H)
-    (hlinear : TendstoInProbability (fun n => M.iidLaw 0 n)
-      (fun n x => (∑ i, qmd.sqrtLikelihoodIncrement n h (x i)) -
-        inner ℝ h (qmd.centralSequence n x) +
-          (1 / 4 : ℝ) * qmd.information M h h) 0)
-    (hquadratic : TendstoInProbability (fun n => M.iidLaw 0 n)
-      (fun n x => (∑ i, qmd.sqrtLikelihoodIncrement n h (x i) ^ 2) -
-        qmd.information M h h) 0)
+    (hquadratic : Causalean.Stat.Modes.TendstoInProbability (fun n => M.iidLaw 0 n)
+        (fun n x => (∑ i, qmd.sqrtLikelihoodIncrement n h (x i) ^ 2) -
+        qmd.information M h h) atTop (fun _ _ => 0))
     (hmax : ∀ ε : ℝ, 0 < ε → Tendsto (fun n => M.iidLaw 0 n
       {x | ∃ i, ε ≤ |qmd.sqrtLikelihoodIncrement n h (x i)|}) atTop (𝓝 0)) :
-    TendstoInProbability (fun n => M.iidLaw 0 n)
-      (fun n x => (localExperiment M).logLikelihoodRatio n h x -
+    Causalean.Stat.Modes.TendstoInProbability (fun n => M.iidLaw 0 n)
+        (fun n x => (localExperiment M).logLikelihoodRatio n h x -
         (∑ i, qmd.sqrtLikelihoodIncrement n h (x i)) +
-          (1 / 4 : ℝ) * ∑ i, qmd.sqrtLikelihoodIncrement n h (x i) ^ 2) 0 := by
+          (1 / 4 : ℝ) * ∑ i, qmd.sqrtLikelihoodIncrement n h (x i) ^ 2) atTop (fun _ _ => 0) := by
   -- On the event where every increment is small, `iidLaw_rnDeriv_eq_prod` turns the guarded
   -- likelihood into `∑ i, 2 * log (1 + Wᵢ/2)`.  Apply the generic summed-log Taylor lemma;
   -- the preceding bridge supplies its a.e. identity and the zero-density guard is in the bad event.
-  have hquadratic' : TendstoInProbability (fun n => M.iidLaw 0 n)
-      (fun n x => ∑ i, qmd.sqrtLikelihoodIncrement n h (x i) ^ 2)
-      (qmd.information M h h) := by
+  have hquadratic' : Causalean.Stat.Modes.TendstoInProbability (fun n => M.iidLaw 0 n)
+      (fun n x => ∑ i, qmd.sqrtLikelihoodIncrement n h (x i) ^ 2) atTop
+      (fun _ _ => (qmd.information M h h)) := by
     rw [tendstoInProbability_iff_real] at hquadratic ⊢
     intro ε hε
     simpa only [sub_zero] using hquadratic ε hε
@@ -494,7 +492,6 @@ private theorem iid_guardedLogLikelihood_taylor_remainder
     (fun n x => (localExperiment M).logLikelihoodRatio n h x)
     (fun n x i => qmd.sqrtLikelihoodIncrement n h (x i))
     (qmd.information M h h)
-  · exact fun n => iidLaw_probability M 0 n
   · exact fun n => iid_guardedLogLikelihood_eq_sum_on_small_increments qmd h n
   · exact hquadratic'
   · exact hmax
@@ -511,10 +508,10 @@ theorem iid_logLikelihoodRatio_taylor
     (hsingular : Tendsto (fun n : ℕ => (n : ℝ) *
       (M.law ((Real.sqrt (n : ℝ))⁻¹ • h)
         {x | M.sqrtDensity 0 x = 0}).toReal) atTop (𝓝 0)) :
-    TendstoInProbability (fun n => M.iidLaw 0 n)
-      (fun n x => (localExperiment M).logLikelihoodRatio n h x -
+    Causalean.Stat.Modes.TendstoInProbability (fun n => M.iidLaw 0 n)
+        (fun n x => (localExperiment M).logLikelihoodRatio n h x -
         inner ℝ h (qmd.centralSequence n x) +
-          (1 / 2 : ℝ) * qmd.information M h h) 0 := by
+          (1 / 2 : ℝ) * qmd.information M h h) atTop (fun _ _ => 0) := by
   -- Use `iidLaw_rnDeriv_eq_prod`; expand each `2 * log (1 + W/2)`; show the
   -- maximum increment vanishes, replace the linear sum by the score sum, and apply the
   -- weak law to the quadratic sum.  The three preceding lemmas isolate these steps.
@@ -522,7 +519,7 @@ theorem iid_logLikelihoodRatio_taylor
   obtain ⟨hlinear, hquadratic, hmax⟩ :=
     qmd.iid_sqrtLikelihoodIncrement_array_limits h hincrement hmoments
   have htaylor := qmd.iid_guardedLogLikelihood_taylor_remainder h
-    hlinear hquadratic hmax
+    hquadratic hmax
   let P := fun n => M.iidLaw 0 n
   let T : ∀ n, (Fin n → X) → ℝ := fun n x =>
     (localExperiment M).logLikelihoodRatio n h x -
@@ -535,15 +532,16 @@ theorem iid_logLikelihoodRatio_taylor
   let Q : ∀ n, (Fin n → X) → ℝ := fun n x =>
     (∑ i, qmd.sqrtLikelihoodIncrement n h (x i) ^ 2) -
       qmd.information M h h
-  have hTL : TendstoInProbability P (fun n x => T n x + L n x) 0 :=
+  have hTL : Causalean.Stat.Modes.TendstoInProbability P (fun n x => T n x + L n x) atTop
+      (fun _ _ => 0) :=
     tendstoInProbability_add_zero P T L (by simpa [P, T] using htaylor)
       (by simpa [P, L] using hlinear)
-  have hQ : TendstoInProbability P (fun n x => -(1 / 4 : ℝ) * Q n x) 0 :=
+  have hQ : Causalean.Stat.Modes.TendstoInProbability P (fun n x => -(1 / 4 : ℝ) * Q n x) atTop
+      (fun _ _ => 0) :=
     tendstoInProbability_const_mul_zero P (-(1 / 4 : ℝ)) Q
       (by simpa [P, Q] using hquadratic)
   have hall := tendstoInProbability_add_zero P
     (fun n x => T n x + L n x) (fun n x => -(1 / 4 : ℝ) * Q n x) hTL hQ
-  unfold TendstoInProbability at hall ⊢
   intro ε hε
   exact (hall ε hε).congr' (Filter.Eventually.of_forall fun n => by
     congr 1
@@ -577,7 +575,7 @@ theorem centralSequence_weaklyConverges (qmd : IIDQuadraticMeanDifferentiable M)
       law := by simp only [μ, Measure.infinitePi_map_eval] }
     have hclt := S.clt_normalizedSum_vec qmd.score_measurable
       qmd.score_squareIntegrable qmd.score_integral_eq_zero
-    rw [Causalean.Stat.Tendsto_dist_vec_iff] at hclt
+    rw [Causalean.Stat.Tendsto_dist_vec_iff _ _ _ hclt.forall_aemeasurable] at hclt
     intro f
     have ht := (ProbabilityMeasure.tendsto_iff_forall_integral_tendsto.mp hclt) f
     simp only [ProbabilityMeasure.coe_mk] at ht
@@ -619,10 +617,10 @@ theorem centralSequence_weaklyConverges (qmd : IIDQuadraticMeanDifferentiable M)
 the DQM quadratic expansion: normalized score sum minus half the Fisher-information quadratic
 form, with a remainder vanishing in base-law probability. -/
 theorem iid_logLikelihoodRatio_expansion (qmd : IIDQuadraticMeanDifferentiable M) (h : H) :
-    TendstoInProbability (fun n => M.iidLaw 0 n)
-      (fun n x => (localExperiment M).logLikelihoodRatio n h x -
+    Causalean.Stat.Modes.TendstoInProbability (fun n => M.iidLaw 0 n)
+        (fun n x => (localExperiment M).logLikelihoodRatio n h x -
         inner ℝ h (qmd.centralSequence n x) +
-          (1 / 2 : ℝ) * qmd.information M h h) 0 := by
+          (1 / 2 : ℝ) * qmd.information M h h) atTop (fun _ _ => 0) := by
   exact iid_logLikelihoodRatio_taylor qmd h
     (sqrtLikelihoodIncrement_L2 qmd h) (local_zeroBaseDensity_mass qmd h)
 

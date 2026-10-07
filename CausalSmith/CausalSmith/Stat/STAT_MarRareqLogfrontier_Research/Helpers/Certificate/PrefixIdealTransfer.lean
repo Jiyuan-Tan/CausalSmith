@@ -7,7 +7,7 @@ public import Causalean.Stat.FiniteRaoBlackwell.Poisson.FinitePartition.Risk
 
 /-! Transfer from the finite prefix estimator to the independent ideal streams. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set Finset
 open scoped NNReal ENNReal
@@ -69,7 +69,7 @@ lemma deterministicRisk_mixedCountEstimator_le_streamRisk_add_tail
     (P.1.map obs) uniformPoolMass uniformPoolMass_sum ((n : ℝ≥0) / 2) n
     (measurable_streamAuxiliaryMixedValue n d q)
     (a := (-1 : ℝ)) (b := 1) (theta := ate P) (zOver := 0)
-    (by norm_num) (streamAuxiliaryMixedValue_mem_Icc n d q)
+    (streamAuxiliaryMixedValue_mem_Icc n d q)
     (ate_mem_Icc_of_fullLaw P) (by norm_num)
   have hfun : (fun sample : Fin n → ObsRecord d ↦
       fixedStatistic uniformPoolMass uniformPoolMass_sum ((n : ℝ≥0) / 2)

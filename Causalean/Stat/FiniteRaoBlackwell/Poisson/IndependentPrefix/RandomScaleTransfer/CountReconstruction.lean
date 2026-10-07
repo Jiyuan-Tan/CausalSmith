@@ -94,11 +94,13 @@ lemma randomScale_fixed_tv_le_count_tv_add_tail
     (randomScale_ordered_tv_le_count_tv π P₀ P₁ S u) le_rfl)
 
 
-/-- For a [probability mixing law](hyp:π), [two conditional sampling
-kernels](hyp:P₀,P₁), a [random scale and multiplier](hyp:S,u), a [positive fixed
-sample size with fallback](hyp:n,hn,fallback), and [conditional Poisson means at
-least twice that size](hyp:hmean), the fixed-sample mixture distance is bounded
-by the count-mixture distance plus `16 / n`. The result is [the fixed-sample total-variation bound with the `16 / n` correction](goal). -/
+/-- On finite parameter and observation spaces, for a [probability mixing law](hyp:π), [two
+conditional sampling kernels](hyp:P₀,P₁), a [random scale and multiplier](hyp:S,u), a [positive
+fixed sample size with fallback](hyp:n,hn,fallback), and [conditional Poisson means, multiplier
+times scale, at least twice that size at every parameter](hyp:hmean), [the total-variation
+distance between the two fixed-size iid mixtures is at most the total-variation distance between
+the two mixtures of independent Poisson cell counts plus sixteen divided by the sample
+size](goal). -/
 lemma randomScale_fixed_tv_le_count_tv_add_inverse
     {Θ X : Type*} [Fintype Θ] [MeasurableSpace Θ] [MeasurableSingletonClass Θ]
     [Fintype X] [MeasurableSpace X] [MeasurableSingletonClass X] [DecidableEq X]

@@ -113,7 +113,7 @@ lemma integrable_missingArmCount_mul {m : Nat}
     (Nat.cast_nonneg m : (0 : Real) ≤ (m : Real))]
 
 private lemma one_sub_pow_le_exp {n : Nat} {x : Real}
-    (hx0 : 0 ≤ x) (hx1 : x ≤ 1) :
+    (hx1 : x ≤ 1) :
     (1 - x) ^ n ≤ Real.exp (-(n : Real) * x) := by
   calc
     (1 - x) ^ n ≤ (Real.exp (-x)) ^ n :=
@@ -141,7 +141,7 @@ private lemma overlap_all (mu : Measure Omega) [IsProbabilityMeasure mu]
 
 private lemma diagonal_decay_bound {m : Nat} (mu : Measure Omega)
     [IsProbabilityMeasure mu] (group : Omega → kappa) (arm : Omega → Bool) (a : Bool)
-    (epsilon : Real) (hepsilon : 0 < epsilon)
+    (epsilon : Real)
     (hoverlap : ∀ k, 0 < categoryMass mu group k →
       epsilon * categoryMass mu group k ≤ armCategoryMass mu group arm a k)
     (k : kappa) :
@@ -160,7 +160,7 @@ private lemma diagonal_decay_bound {m : Nat} (mu : Measure Omega)
       _ = 1 := probReal_univ
   have hq1 : q ≤ 1 := hqp.trans hp1
   have hov : epsilon * p ≤ q := overlap_all mu group arm a epsilon hoverlap k
-  have hpow := one_sub_pow_le_exp (n := m - 2) hq hq1
+  have hpow := one_sub_pow_le_exp (n := m - 2) hq1
   have hexp : Real.exp (-((m - 2 : Nat) : Real) * q) ≤
       Real.exp (-((m - 2 : Nat) : Real) * (epsilon * p)) := by
     apply Real.exp_le_exp.mpr
@@ -214,7 +214,7 @@ private lemma cross_decay_bound {m : Nat} (mu : Measure Omega)
     linarith
   have hovk : epsilon * pk ≤ qk := overlap_all mu group arm a epsilon hoverlap k
   have hovl : epsilon * pl ≤ ql := overlap_all mu group arm a epsilon hoverlap l
-  have hpow := one_sub_pow_le_exp (n := m - 2) (add_nonneg hqk hql) hsum1
+  have hpow := one_sub_pow_le_exp (n := m - 2) hsum1
   have hepk : 0 ≤ epsilon * pk := mul_nonneg hepsilon.le hpk
   have hepl : 0 ≤ epsilon * pl := mul_nonneg hepsilon.le hpl
   have hovsum : epsilon * pk + epsilon * pl ≤ qk + ql := add_le_add hovk hovl
@@ -330,7 +330,7 @@ private lemma integral_sum_missingArmCount_sq_le {m : Nat}
           simpa using mul_le_mul_of_nonneg_left hrp
             (Nat.cast_nonneg m : (0 : Real) ≤ (m : Real))
     have hsecond := diagonal_decay_bound (m := m) mu group arm a epsilon
-      hepsilon hoverlap k
+      hoverlap k
     rw [show (fun z : Fin m → Omega ↦ X k z * X k z) =
         fun z ↦ (missingArmCount group arm z a k : Real) ^ 2 by
       funext z; simp [X, sq]]
@@ -395,7 +395,7 @@ absolute value by the envelope](hyp:hcenterBound), [a positive overlap
 margin](hyp:hepsilon), and [arm mass at least that margin times category
 mass](hyp:hoverlap) imply that [the missing-arm remainder has a boundary-safe
 diagonal-plus-exponential second-moment bound](goal). -/
-theorem integral_fixedStratumArmMissingRemainder_sq_le_aux {m : Nat}
+theorem integral_fixedStratumArmMissingRemainder_sq_le {m : Nat}
     (mu : Measure Omega) [IsProbabilityMeasure mu]
     (group : Omega → kappa) (arm : Omega → Bool)
     (center : Bool → kappa → Real) (H : Finset kappa) (a : Bool)

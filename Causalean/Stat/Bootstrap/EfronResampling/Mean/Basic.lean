@@ -100,7 +100,7 @@ theorem integral_id_centeredEmpiricalLaw {n : ℕ} (hn : n ≠ 0)
   rw [centeredEmpiricalLaw, if_neg hn]
   unfold Causalean.Stat.empiricalMeasure
   rw [Causalean.Stat.Concentration.integral_finiteSampleMeasure
-    (f := fun y : ℝ ↦ y) _ (Nat.pos_of_ne_zero hn) measurable_id]
+    (f := fun y : ℝ ↦ y) _ measurable_id]
   unfold IIDSample.sampleMean
   rw [Finset.sum_sub_distrib]
   simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
@@ -143,7 +143,7 @@ theorem integral_sq_centeredEmpiricalLaw_eq_empiricalVar {n : ℕ} (hn : n ≠ 0
   rw [centeredEmpiricalLaw, if_neg hn]
   unfold Causalean.Stat.empiricalMeasure
   rw [Causalean.Stat.Concentration.integral_finiteSampleMeasure
-    (f := fun y : ℝ ↦ y ^ 2) _ (Nat.pos_of_ne_zero hn)
+    (f := fun y : ℝ ↦ y ^ 2) _
     (measurable_id.pow_const 2)]
   rw [IIDSample.empiricalVar_eq_centered]
   rw [Fin.sum_univ_eq_sum_range
@@ -167,7 +167,7 @@ theorem setIntegral_sq_centeredEmpiricalLaw_eq_average {n : ℕ} (hn : n ≠ 0)
   unfold Causalean.Stat.empiricalMeasure
   rw [Causalean.Stat.Concentration.integral_finiteSampleMeasure
     (f := Set.indicator A (fun y : ℝ ↦ y ^ 2)) _
-    (Nat.pos_of_ne_zero hn) ((measurable_id.pow_const 2).indicator hA)]
+    ((measurable_id.pow_const 2).indicator hA)]
   simp only [one_div]
 
 /-- Given [an iid sample](hyp:S), [a measurable observation statistic](hyp:ψ,hψ),

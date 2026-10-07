@@ -4,7 +4,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Concrete sharp endpoint identities for the three-score score-log laws. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.PartialID.UnlinkedPropensityAte
 

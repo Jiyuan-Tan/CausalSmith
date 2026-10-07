@@ -12,7 +12,27 @@ public import Mathlib.Data.Real.Basic
 /-!
 # Product-difference telescopes
 
-Finite product differences have exact weighted telescopes and absolute-value bounds.
+Bounds on the difference of two finite products of real numbers, ∏ᵢ aᵢ − ∏ᵢ bᵢ. When all factors
+lie in [0, 1], the difference is at most ∑ᵢ |aᵢ − bᵢ| in absolute value. For general factors the
+difference along a list is written exactly as a telescoping sum in which the i-th term is
+(aᵢ − bᵢ) times the earlier a-factors and the later b-factors; for nonnegative factors its absolute
+value is at most the same expression with |aᵢ − bᵢ| in place of aᵢ − bᵢ, which gives a weighted
+bound on the product gap over a finite index type.
+
+## Main definitions
+
+* `weightedProductTelescope` — the recursive telescoping expansion of a list-product difference.
+* `weightedProductTelescopeAbs` — the same expansion with each difference replaced by its absolute
+  value.
+
+## Main results
+
+* `abs_prod_sub_prod_le_sum_abs` — for factors in [0, 1], |∏ aᵢ − ∏ bᵢ| ≤ ∑ |aᵢ − bᵢ|.
+* `list_prod_sub_prod_eq_weightedProductTelescope` — the product difference equals its telescope.
+* `abs_weightedProductTelescope_le` — for nonnegative factors the telescope is bounded by its
+  absolute-value envelope.
+* `abs_fintype_prod_sub_prod_le_weighted` — for nonnegative factors on a finite type, the product
+  gap is bounded by the envelope along the list of all indices.
 -/
 
 @[expose] public section
@@ -66,9 +86,11 @@ lemma abs_prod_sub_prod_le_sum_abs {I : Type*}
         _ ≤ |a i - b i| + ∑ j ∈ s, |a j - b j| := by linarith
 
 
-/-- Given [two real-valued coordinate families](hyp:a,b), recursively expand their
-product difference along a [list of coordinates](goal), retaining the unchanged
-factors on each side of the changed coordinate. The result is [the recursive weighted expansion of a list-product difference](goal). -/
+/-- Given [two real-valued coordinate families a and b](hyp:a,b) and a list of coordinates,
+[the weighted product telescope](goal) is the sum, over positions in the list, of the product of
+the a-values at the earlier positions, times the difference a − b at that position, times the
+product of the b-values at the later positions. It is defined by recursion on the list and is
+zero for the empty list. -/
 noncomputable def weightedProductTelescope {I : Type*} (a b : I → ℝ) :
     List I → ℝ
   | [] => 0
@@ -90,9 +112,11 @@ lemma list_prod_sub_prod_eq_weightedProductTelescope {I : Type*}
       ring
 
 
-/-- Given [two real-valued coordinate families](hyp:a,b), recursively form the
-nonnegative envelope of their weighted product telescope along a [coordinate
-list](goal), replacing each coordinate difference by its absolute value. The result is [the recursive nonnegative envelope of the weighted product telescope](goal). -/
+/-- Given [two real-valued coordinate families a and b](hyp:a,b), recursively form the
+envelope of their weighted product telescope along a [coordinate
+list](goal), replacing each coordinate difference by its absolute value: the empty list gives
+zero, and a list with head i and tail l gives |a(i) − b(i)| times the product of b over l plus
+a(i) times the envelope of l. The result is [the recursive envelope of the weighted product telescope, which is nonnegative whenever both families are nonnegative](goal). -/
 noncomputable def weightedProductTelescopeAbs {I : Type*} (a b : I → ℝ) :
     List I → ℝ
   | [] => 0

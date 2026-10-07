@@ -197,13 +197,16 @@ private theorem measurePreserving_fourBlockValuesEquiv
   convert hu'.comp h0 using 1 <;>
     rfl
 
-/-- For [four finite coordinate blocks](hyp:I,J,K,L) with
-[all pairwise overlaps excluded](hyp:hIJ,hIK,hIL,hJK,hJL,hKL),
-[coordinate reference measures](hyp:μ), [a measurable finite-block density](hyp:hd), [strict
-positivity of that density almost everywhere](hyp:hpos), and [the two conditional independence
-relations conditioning on the alternate coordinate blocks](hyp:hIJ_given_LK,hIK_given_LJ), [the
-coordinates in the first block are conditionally independent of the union of the second and third
-blocks given the fourth](goal). -/
+/-- For [four finite coordinate blocks](hyp:I,J,K,L) that are
+[pairwise disjoint](hyp:hIJ,hIK,hIL,hJK,hJL,hKL),
+[σ-finite coordinate reference measures on standard Borel coordinate spaces](hyp:μ), [a measurable
+density on assignments to the union of the blocks](hyp:hd) whose weighting of the product reference
+measure has finite total mass, [strict positivity of that density almost everywhere for the product
+reference measure](hyp:hpos), and, under the density-weighted measure, [conditional independence of
+the first and second blocks given the fourth and third together, and of the first and third blocks
+given the fourth and second together](hyp:hIJ_given_LK,hIK_given_LJ), [the coordinates in the first
+block are conditionally independent of those in the union of the second and third blocks given the
+fourth](goal). -/
 theorem condIndep_valuesProjection_intersection_of_positiveDensity
     {M : Type uM} [DecidableEq M]
     {Ω : M → Type uΩ} [∀ i, MeasurableSpace (Ω i)]

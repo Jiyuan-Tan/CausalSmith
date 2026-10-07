@@ -74,7 +74,7 @@ theorem manski_ATE_mem_Icc_ciSup [IsFiniteMeasure P.μ]
 
 /-- **`Set.Icc` form of `mtr_mts_bounds_ATE`.** Under [the baseline Manski
 assumptions](hyp:hA), [monotone treatment response](hyp:hMTR), and [monotone
-treatment selection with `0 < P(D=1) < 1`](hyp:hMTS), [the average treatment
+treatment selection](hyp:hMTS), [the average treatment
 effect lies in the closed interval from `0` to the observed treated-control
 mean contrast](goal). -/
 theorem mtr_mts_ATE_mem_Icc (hA : S.BaseAssumptions)

@@ -61,7 +61,7 @@ lemma orderedPairAverage_integral (P : Measure Ω) [IsProbabilityMeasure P]
       (∫ data : Fin s → Ω, g (data i) (data j) ∂Measure.pi (fun _ : Fin s => P)) =
         pairMean P g := by
     exact Causalean.Stat.UStatistic.LocalizedVariance.integral_two_coordinates_integrable
-      P (Finset.mem_erase.mp hj).1.symm g hg (hL2.integrable (by norm_num))
+      P (Finset.mem_erase.mp hj).1.symm g hg
   have hsn : (s : ℝ) ≠ 0 := by exact_mod_cast (by omega : s ≠ 0)
   have hs1 : (s : ℝ)-1 ≠ 0 := by
     have : (2 : ℝ) ≤ s := by exact_mod_cast hs

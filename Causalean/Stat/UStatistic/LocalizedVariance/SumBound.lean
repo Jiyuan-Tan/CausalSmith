@@ -31,9 +31,10 @@ theorem pair_sum_variance_eq_covariance_sum {n : ℕ} :
   have : IsProbabilityMeasure (iidLaw P n) := by unfold iidLaw; infer_instance
   exact variance_fun_sum' (fun p _ => pairValue_memLp_two P h p)
 
-/-- A [probability law and localized-kernel certificate](hyp:P,h) with [at least two
-observations](hyp:hn) give [an unnormalized pair-sum variance bound retaining both pair and
-row mass scales](goal). -/
+/-- Under [a probability law and a kernel H localized by a weight W with envelope M](hyp:P,h),
+with [at least two observations](hyp:hn), [the variance, under n independent draws, of the sum
+of the kernel values over all N = n(n − 1)/2 unordered pairs is at most
+N·M²·Q + 2N(n − 2)·2M²·R, where Q is the pair mass and R the squared row mass of W](goal). -/
 theorem pair_sum_variance_le_localized_counts {n : ℕ} (hn : 2 ≤ n) :
     variance (fun ω => ∑ p ∈ pairIndices n, pairValue H p ω) (iidLaw P n) ≤
       (n.choose 2 : ℝ) * (M ^ 2 * pairMass P W) +
@@ -51,7 +52,7 @@ theorem pair_sum_variance_le_localized_counts {n : ℕ} (hn : 2 ≤ n) :
     split_ifs with heq hshare
     · simpa only [heq, A] using covariance_identical_pair_le_pairMass P h hp
     · exact covariance_shared_pairs_le_rowMassSq P h hp hq heq hshare
-    · rw [covariance_disjoint_pairs_eq_zero P h hp hq hshare]
+    · rw [covariance_disjoint_pairs_eq_zero P h hshare]
   calc
     variance (fun ω => ∑ p ∈ s, pairValue H p ω) (iidLaw P n)
         = ∑ pq ∈ s.product s,

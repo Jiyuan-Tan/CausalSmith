@@ -94,10 +94,14 @@ private theorem commonFactor_of_ae_eq
   exact (Measure.ae_prod_iff_ae_ae
     (measurableSet_eq_fun (by fun_prop) (by fun_prop))).2 hy
 
-/-- For [four product reference measures](hyp:μX,μY,μV,μZ), [a measurable density](hyp:hd),
-[strict positivity almost everywhere](hyp:hpos), and [the two alternate-conditioning density
-factorizations](hyp:hXY,hXV), [the density has the factorization for independence from the combined
-second and third blocks given the fourth](goal). -/
+/-- For [four σ-finite reference measures](hyp:μX,μY,μV,μZ), [a measurable density](hyp:hd) whose
+weighting of the product reference measure has finite total mass, [strict positivity of the density
+almost everywhere for the product reference measure](hyp:hpos), and [almost-everywhere
+factorizations of the density both as a factor of the first, third and fourth blocks times a factor
+of the second, third and fourth blocks, and as a factor of the first, second and fourth blocks times
+a factor of the third, second and fourth blocks](hyp:hXY,hXV), [the density is almost everywhere a
+measurable factor of the first and fourth blocks times a measurable factor of the second, third and
+fourth blocks](goal). -/
 theorem positiveDensity_factorization_splice
     {X : Type uX} {Y : Type uY} {V : Type uV} {Z : Type uZ}
     [MeasurableSpace X] [MeasurableSpace Y] [MeasurableSpace V] [MeasurableSpace Z]

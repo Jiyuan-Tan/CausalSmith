@@ -309,20 +309,6 @@ theorem minimaxValueENNRealOfReal_toReal_of_nonneg_of_bddAbove {risk : E → Θ 
   minimaxValueENNRealOfReal_toReal hr fun e =>
     worstCaseRiskOfReal_ne_top_of_bddAbove (hbdd e)
 
-/-- Use `worstCaseRiskReal` instead of this [legacy real worst-case risk](goal) for an
-[estimator class](hyp:E), a [model class](hyp:Θ), a [real-valued risk](hyp:risk), and an
-[estimator](hyp:e) because this name is retained only for compatibility. -/
-@[deprecated worstCaseRiskReal (since := "2026-09-17")]
-noncomputable def worstCaseRisk (risk : E → Θ → ℝ) (e : E) : ℝ :=
-  ⨆ θ : Θ, risk e θ
-
-/-- Use `minimaxValueReal` instead of this [legacy real minimax value](goal) for an
-[estimator class](hyp:E), a [model class](hyp:Θ), and a [real-valued risk](hyp:risk)
-because this name is retained only for compatibility. -/
-@[deprecated minimaxValueReal (since := "2026-09-17")]
-noncomputable def minimaxValueRealLegacy (risk : E → Θ → ℝ) : ℝ :=
-  ⨅ e : E, worstCaseRiskReal risk e
-
 section Degenerate
 
 /-- Over an empty model class the worst-case risk of every estimator is zero. -/

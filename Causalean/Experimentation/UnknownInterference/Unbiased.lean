@@ -5,8 +5,9 @@ Authors: Jiyuan Tan
 -/
 
 module
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
 public import Causalean.Experimentation.DesignBased.ProductBlock
-public import Causalean.Experimentation.UnknownInterference.Bernoulli
+public import Causalean.Experimentation.UnknownInterference.Basic
 
 /-! # Unbiasedness under unknown interference
 

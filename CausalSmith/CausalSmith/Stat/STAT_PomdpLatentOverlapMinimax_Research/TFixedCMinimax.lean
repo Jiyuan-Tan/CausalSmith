@@ -24,7 +24,7 @@ theorem fixed_c_minimax {t0 zeta C : ℝ}
         cLower * (T : ℝ) ^ (-rateExponent t0 zeta) ≤ minimaxRisk T t0 zeta C ∧
         minimaxRisk T t0 zeta C ≤
           cUpper * (T : ℝ) ^ (-rateExponent t0 zeta) ∧
-        Causalean.Stat.worstCaseRisk
+        Causalean.Stat.worstCaseRiskReal
           (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := C))
           (phiwObservable (T := T) (historyDepth T t0 zeta)) ≤
             cUpper * (T : ℝ) ^ (-rateExponent t0 zeta) ∧
@@ -281,7 +281,7 @@ theorem fixed_c_minimax {t0 zeta C : ℝ}
     have hexp0 := (Real.exp_pos (-(1 / 8 : ℝ))).le
     nlinarith [mul_le_mul_of_nonneg_right hsSq hexp0]
   have hmini : minimaxRisk T t0 zeta C ≤
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := C))
         (phiwObservable (T := T) (historyDepth T t0 zeta)) := by
     apply Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg

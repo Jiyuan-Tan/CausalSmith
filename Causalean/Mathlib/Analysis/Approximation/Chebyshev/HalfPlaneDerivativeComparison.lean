@@ -23,7 +23,7 @@ propagate derivative control at the real roots of a Chebyshev polynomial to a
 sharp endpoint comparison.
 -/
 
-@[expose] public section
+public section
 
 open Polynomial Set Filter Bornology
 open Asymptotics
@@ -472,7 +472,7 @@ theorem norm_eval_derivative_zero_le_chebyshev_endpoint_of_vertical
 
 /-- For [a positive degree L](hyp:hL) and [a real polynomial](hyp:Q) of [degree at most L](hyp:hQ)
 whose [derivative is at most that of the degree-L Chebyshev polynomial, in absolute value, at every
-real root of that Chebyshev polynomial](hyp:hroots), at [a point x between −1 and 1](hyp:hx) for
+real root of that Chebyshev polynomial](hyp:hroots), at a real point x for
 which [the modulus of the Chebyshev polynomial at x + i y is at most its modulus at 1 + i y for
 every real y](hyp:hvertical), [the derivative of the polynomial at x is at most the absolute value
 of the derivative of the Chebyshev polynomial at one](goal). -/
@@ -482,7 +482,7 @@ theorem abs_eval_derivative_le_chebyshev_endpoint_of_root_control
       (Polynomial.Chebyshev.T ℝ (L : ℤ)).eval z = 0 →
         |Q.derivative.eval z| ≤
           |(Polynomial.Chebyshev.T ℝ (L : ℤ)).derivative.eval z|)
-    {x : ℝ} (hx : x ∈ Set.Icc (-1) 1)
+    {x : ℝ}
     (hvertical : ∀ y : ℝ,
       ‖(Polynomial.Chebyshev.T ℂ (L : ℤ)).eval
           ((x : ℂ) + (y : ℂ) * Complex.I)‖ ≤

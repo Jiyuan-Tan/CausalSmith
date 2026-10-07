@@ -44,23 +44,23 @@ def ObservedOnControl (etilde : P.Ω → ℝ) : Prop :=
 calibrated control marginal-sensitivity set and are observed-data measurable on the
 control arm. -/
 def MSMSetCalibObs0 (Λ : ℝ) : Set (P.Ω → ℝ) :=
-  { etilde | etilde ∈ S.MSMSetCalib0 Λ ∧ S.ObservedOnControl etilde }
+  { etilde | etilde ∈ S.MSMSetCalib false Λ ∧ S.ObservedOnControl etilde }
 
 /-- Given [a binary-treatment backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), the
 [observed-candidate calibrated control upper endpoint](goal) is the supremum of the control
 candidate mean over observed calibrated control candidates. -/
 noncomputable def msmUpperCalibObs0 (Λ : ℝ) : ℝ :=
-  sSup (S.candMean0 '' S.MSMSetCalibObs0 Λ)
+  sSup (S.candMean false '' S.MSMSetCalibObs0 Λ)
 
 /-- Given [a binary-treatment backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), the
 [observed-candidate calibrated control lower endpoint](goal) is the infimum of the control
 candidate mean over observed calibrated control candidates. -/
 noncomputable def msmLowerCalibObs0 (Λ : ℝ) : ℝ :=
-  sInf (S.candMean0 '' S.MSMSetCalibObs0 Λ)
+  sInf (S.candMean false '' S.MSMSetCalibObs0 Λ)
 
 /-- For [a binary-treatment backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), [every
 observed calibrated control candidate is a calibrated control candidate](goal). -/
-theorem MSMSetCalibObs0_subset (Λ : ℝ) : S.MSMSetCalibObs0 Λ ⊆ S.MSMSetCalib0 Λ :=
+theorem MSMSetCalibObs0_subset (Λ : ℝ) : S.MSMSetCalibObs0 Λ ⊆ S.MSMSetCalib false Λ :=
   fun _ h => h.1
 
 private lemma sigmaX_le_sigmaXYObs0 : S.sigmaX ≤ S.sigmaXYObs := by
@@ -113,7 +113,7 @@ covariate-measurable cutoff](hyp:c,hc), if [the upper control-cutoff candidate i
 box-feasible](hyp:hmem), then [that candidate belongs to the observed calibrated control
 class](goal). -/
 theorem cutoffProp0_mem_MSMSetCalibObs0 (Λ : ℝ) (c : P.Ω → ℝ)
-    (hc : Measurable[S.sigmaX] c) (hmem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ) :
+    (hc : Measurable[S.sigmaX] c) (hmem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib false Λ) :
     S.cutoffProp0 Λ c ∈ S.MSMSetCalibObs0 Λ := by
   refine ⟨hmem, S.cutoffProp0 Λ c, S.measurable_cutoffProp0_sigmaXYObs Λ c hc, ?_⟩
   exact Filter.EventuallyEq.rfl
@@ -123,7 +123,7 @@ covariate-measurable cutoff](hyp:c,hc), if [the lower control-cutoff candidate i
 box-feasible](hyp:hmem), then [that candidate belongs to the observed calibrated control
 class](goal). -/
 theorem lowerCutoffProp0_mem_MSMSetCalibObs0 (Λ : ℝ) (c : P.Ω → ℝ)
-    (hc : Measurable[S.sigmaX] c) (hmem : S.lowerCutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ) :
+    (hc : Measurable[S.sigmaX] c) (hmem : S.lowerCutoffProp0 Λ c ∈ S.MSMSetCalib false Λ) :
     S.lowerCutoffProp0 Λ c ∈ S.MSMSetCalibObs0 Λ := by
   refine ⟨hmem, S.lowerCutoffProp0 Λ c,
     S.measurable_lowerCutoffProp0_sigmaXYObs Λ c hc, ?_⟩
@@ -139,29 +139,29 @@ endpoint](goal). -/
 theorem msmUpperCalibObs0_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
     (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c) (hc_int : Integrable c P.μ)
-    (hcut_mem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ)
+    (hcut_mem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib false Λ)
     (henv : Integrable (fun ω => S.dVar.indicator false ω * |S.factualY ω| * S.wMax0 Λ ω) P.μ)
     (hweight_env : Integrable (fun ω => S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ)
     (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ) :
-    S.msmUpperCalibObs0 Λ = S.msmUpperCalib0 Λ := by
+    S.msmUpperCalibObs0 Λ = S.msmUpperCalib false Λ := by
   let eCut := S.cutoffProp0 Λ c
   have hcut_obs : eCut ∈ S.MSMSetCalibObs0 Λ :=
     S.cutoffProp0_mem_MSMSetCalibObs0 Λ c hc_meas hcut_mem
-  have hne : (S.candMean0 '' S.MSMSetCalibObs0 Λ).Nonempty :=
-    ⟨S.candMean0 eCut, Set.mem_image_of_mem _ hcut_obs⟩
-  have hle_all : ∀ x ∈ S.candMean0 '' S.MSMSetCalibObs0 Λ, x ≤ S.candMean0 eCut := by
+  have hne : (S.candMean false '' S.MSMSetCalibObs0 Λ).Nonempty :=
+    ⟨S.candMean false eCut, Set.mem_image_of_mem _ hcut_obs⟩
+  have hle_all : ∀ x ∈ S.candMean false '' S.MSMSetCalibObs0 Λ, x ≤ S.candMean false eCut := by
     rintro x ⟨etilde, hmem, rfl⟩
     exact S.cutoff_optimal0 Λ hΛ hoverlap c hc_meas hc_int hcut_mem henv hweight_env hc_env
       hmem.1
-  have hbdd : BddAbove (S.candMean0 '' S.MSMSetCalibObs0 Λ) :=
-    ⟨S.candMean0 eCut, hle_all⟩
-  have hobs : S.msmUpperCalibObs0 Λ = S.candMean0 eCut := by
+  have hbdd : BddAbove (S.candMean false '' S.MSMSetCalibObs0 Λ) :=
+    ⟨S.candMean false eCut, hle_all⟩
+  have hobs : S.msmUpperCalibObs0 Λ = S.candMean false eCut := by
     unfold POBackdoorSystem.msmUpperCalibObs0
     exact le_antisymm (csSup_le hne hle_all)
       (le_csSup hbdd (Set.mem_image_of_mem _ hcut_obs))
   calc
-    S.msmUpperCalibObs0 Λ = S.candMean0 eCut := hobs
-    _ = S.msmUpperCalib0 Λ :=
+    S.msmUpperCalibObs0 Λ = S.candMean false eCut := hobs
+    _ = S.msmUpperCalib false Λ :=
       (S.msmUpperCalib0_eq_cutoff Λ hΛ hoverlap c hc_meas hc_int hcut_mem henv
         hweight_env hc_env).symm
 
@@ -175,29 +175,29 @@ endpoint](goal). -/
 theorem msmLowerCalibObs0_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
     (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c) (hc_int : Integrable c P.μ)
-    (hcut_mem : S.lowerCutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ)
+    (hcut_mem : S.lowerCutoffProp0 Λ c ∈ S.MSMSetCalib false Λ)
     (henv : Integrable (fun ω => S.dVar.indicator false ω * |S.factualY ω| * S.wMax0 Λ ω) P.μ)
     (hweight_env : Integrable (fun ω => S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ)
     (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ) :
-    S.msmLowerCalibObs0 Λ = S.msmLowerCalib0 Λ := by
+    S.msmLowerCalibObs0 Λ = S.msmLowerCalib false Λ := by
   let eCut := S.lowerCutoffProp0 Λ c
   have hcut_obs : eCut ∈ S.MSMSetCalibObs0 Λ :=
     S.lowerCutoffProp0_mem_MSMSetCalibObs0 Λ c hc_meas hcut_mem
-  have hne : (S.candMean0 '' S.MSMSetCalibObs0 Λ).Nonempty :=
-    ⟨S.candMean0 eCut, Set.mem_image_of_mem _ hcut_obs⟩
-  have hle_all : ∀ x ∈ S.candMean0 '' S.MSMSetCalibObs0 Λ, S.candMean0 eCut ≤ x := by
+  have hne : (S.candMean false '' S.MSMSetCalibObs0 Λ).Nonempty :=
+    ⟨S.candMean false eCut, Set.mem_image_of_mem _ hcut_obs⟩
+  have hle_all : ∀ x ∈ S.candMean false '' S.MSMSetCalibObs0 Λ, S.candMean false eCut ≤ x := by
     rintro x ⟨etilde, hmem, rfl⟩
     exact S.cutoff_optimal0_lower Λ hΛ hoverlap c hc_meas hc_int hcut_mem henv hweight_env
       hc_env hmem.1
-  have hbdd : BddBelow (S.candMean0 '' S.MSMSetCalibObs0 Λ) :=
-    ⟨S.candMean0 eCut, hle_all⟩
-  have hobs : S.msmLowerCalibObs0 Λ = S.candMean0 eCut := by
+  have hbdd : BddBelow (S.candMean false '' S.MSMSetCalibObs0 Λ) :=
+    ⟨S.candMean false eCut, hle_all⟩
+  have hobs : S.msmLowerCalibObs0 Λ = S.candMean false eCut := by
     unfold POBackdoorSystem.msmLowerCalibObs0
     exact le_antisymm (csInf_le hbdd (Set.mem_image_of_mem _ hcut_obs))
       (le_csInf hne hle_all)
   calc
-    S.msmLowerCalibObs0 Λ = S.candMean0 eCut := hobs
-    _ = S.msmLowerCalib0 Λ :=
+    S.msmLowerCalibObs0 Λ = S.candMean false eCut := hobs
+    _ = S.msmLowerCalib false Λ :=
       (S.msmLowerCalib0_eq_cutoff Λ hΛ hoverlap c hc_meas hc_int hcut_mem henv
         hweight_env hc_env).symm
 

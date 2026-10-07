@@ -62,7 +62,7 @@ lemma residualRegression_memLp (n : ℕ) (μ : Measure Ω) [IsProbabilityMeasure
     MemLp (residualRegression (n := n) X A Y center) 2
       (Measure.pi (fun _ : Fin n => μ)) := by
   have hm := designWeightedResidual_memLp n μ X A Y center h.X_measurable
-    h.A_measurable h.Y_measurable h.residual_L2
+    h.A_measurable h.residual_L2
     (fun d i => inverseGram d * residualWeight d i)
   convert hm using 1
   funext z
@@ -97,7 +97,7 @@ theorem integral_weighted_residualRegression_sq_le (n : ℕ) (μ : Measure Ω)
       field_simp [ne_of_gt hd]
     · simp [hd]
   have hv := integral_designWeightedResidual_sq_le n μ X A Y center M
-    h.X_measurable h.A_measurable h.Y_measurable h.residual_L2
+    h.X_measurable h.A_measurable h.residual_L2
     h.residual_centered h.residual_second_moment
     (fun d i => inverseGram d * residualWeight d i) W hW
   simpa only [← residualRegression_eq_designWeightedResidual, hb] using hv

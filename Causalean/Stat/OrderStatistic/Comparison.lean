@@ -20,22 +20,18 @@ open MeasureTheory
 
 noncomputable section
 
-/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [a nonempty interval](hyp:hab), [its density representation](hyp:hμ), [support in that interval](hyp:hsupp), and [an almost-everywhere density envelope](hyp:hbound), [its CDF pushes the law forward to the unit-uniform law](goal). -/
+/-- Given [a real probability law](hyp:μ), [a density](hyp:p), and [its density representation](hyp:hμ), [its CDF pushes the law forward to the unit-uniform law](goal). -/
 theorem cdf_pushforward_uniform01 (μ : Measure ℝ) [IsProbabilityMeasure μ]
-    (a b cg Cg : ℝ) (p : ℝ → ℝ)
-    (hab : a < b) (hcg : 0 < cg) (hCg : cg ≤ Cg)
-    (hμ : μ = volume.withDensity (fun x => ENNReal.ofReal (p x)))
-    (hsupp : μ (Set.Icc a b)ᶜ = 0)
-    (hbound : ∀ᵐ x ∂(volume.restrict (Set.Icc a b)), cg ≤ p x ∧ p x ≤ Cg) :
+    (p : ℝ → ℝ)
+    (hμ : μ = volume.withDensity (fun x => ENNReal.ofReal (p x))) :
     μ.map (fun x => ProbabilityTheory.cdf μ x) = uniform01 := by
   exact cdf_pushforward_of_continuous μ (cdf_continuous_of_withDensity μ p hμ)
 
-/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [a nonempty interval](hyp:hab), [its density representation](hyp:hμ), [support in that interval](hyp:hsupp), [an almost-everywhere density envelope](hyp:hbound), and [two ordered points inside it](hyp:hax,hxy,hyb), [the CDF increment lies between the density constants times their distance](goal). -/
+/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [its density representation](hyp:hμ), [an almost-everywhere density envelope](hyp:hbound), and [two ordered points inside it](hyp:hax,hxy,hyb), [the CDF increment lies between the density constants times their distance](goal). -/
 theorem cdf_increment_bounds (μ : Measure ℝ) [IsProbabilityMeasure μ]
     (a b cg Cg : ℝ) (p : ℝ → ℝ)
-    (hab : a < b) (hcg : 0 < cg) (hCg : cg ≤ Cg)
+    (hcg : 0 < cg) (hCg : cg ≤ Cg)
     (hμ : μ = volume.withDensity (fun x => ENNReal.ofReal (p x)))
-    (hsupp : μ (Set.Icc a b)ᶜ = 0)
     (hbound : ∀ᵐ x ∂(volume.restrict (Set.Icc a b)), cg ≤ p x ∧ p x ≤ Cg)
     {x y : ℝ} (hax : a ≤ x) (hxy : x ≤ y) (hyb : y ≤ b) :
     cg * (y - x) ≤ ProbabilityTheory.cdf μ y - ProbabilityTheory.cdf μ x ∧
@@ -43,18 +39,15 @@ theorem cdf_increment_bounds (μ : Measure ℝ) [IsProbabilityMeasure μ]
   rw [cdf_increment_eq_interval_mass μ hxy]
   exact withDensity_interval_mass_bounds μ a b cg Cg p hcg hCg hμ hbound hax hxy hyb
 
-/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [a nonempty interval](hyp:hab), [its density representation](hyp:hμ), [support in that interval](hyp:hsupp), [an almost-everywhere density envelope](hyp:hbound), and [a sample size](hyp:n), [coordinatewise CDF transformation sends the iid sample law to the iid unit-uniform law](goal). -/
+/-- Given [a real probability law](hyp:μ), [a density](hyp:p), [its density representation](hyp:hμ), and [a sample size](hyp:n), [coordinatewise CDF transformation sends the iid sample law to the iid unit-uniform law](goal). -/
 theorem iid_cdf_pushforward_uniform01 (μ : Measure ℝ) [IsProbabilityMeasure μ]
-    (a b cg Cg : ℝ) (p : ℝ → ℝ)
-    (hab : a < b) (hcg : 0 < cg) (hCg : cg ≤ Cg)
+    (p : ℝ → ℝ)
     (hμ : μ = volume.withDensity (fun x => ENNReal.ofReal (p x)))
-    (hsupp : μ (Set.Icc a b)ᶜ = 0)
-    (hbound : ∀ᵐ x ∂(volume.restrict (Set.Icc a b)), cg ≤ p x ∧ p x ≤ Cg)
     (n : ℕ) :
     (iidSample μ n).map (fun x i => ProbabilityTheory.cdf μ (x i)) =
       iidSample uniform01 n := by
   have hc := cdf_continuous_of_withDensity μ p hμ
-  have hmap := cdf_pushforward_uniform01 μ a b cg Cg p hab hcg hCg hμ hsupp hbound
+  have hmap := cdf_pushforward_uniform01 μ p hμ
   haveI : IsProbabilityMeasure (μ.map (fun x => ProbabilityTheory.cdf μ x)) :=
     Measure.isProbabilityMeasure_map hc.measurable.aemeasurable
   change (Measure.pi (fun _ : Fin n => μ)).map
@@ -124,12 +117,11 @@ theorem sortedGap_square_integrable_of_interval_support
       (by simpa only [Measure.restrict_univ] using hbound) :
       IntegrableOn (fun x => (sortedGap n k x) ^ 2) Set.univ (iidSample μ n))
 
-/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [a nonempty interval](hyp:hab), [its density representation](hyp:hμ), [support in that interval](hyp:hsupp), [an almost-everywhere density envelope](hyp:hbound), [a sample size and adjacent-gap index](hyp:n,k), [proof that the gap is interior](hyp:hk), [a real sample](hyp:x), and [coordinatewise interval membership](hyp:hx), [the sorted CDF gap lies between the density constants times the original gap](goal). -/
+/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [its density representation](hyp:hμ), [an almost-everywhere density envelope](hyp:hbound), [a sample size and adjacent-gap index](hyp:n,k), [proof that the gap is interior](hyp:hk), [a real sample](hyp:x), and [coordinatewise interval membership](hyp:hx), [the sorted CDF gap lies between the density constants times the original gap](goal). -/
 theorem sortedGap_cdf_linear_bounds (μ : Measure ℝ) [IsProbabilityMeasure μ]
     (a b cg Cg : ℝ) (p : ℝ → ℝ)
-    (hab : a < b) (hcg : 0 < cg) (hCg : cg ≤ Cg)
+    (hcg : 0 < cg) (hCg : cg ≤ Cg)
     (hμ : μ = volume.withDensity (fun x => ENNReal.ofReal (p x)))
-    (hsupp : μ (Set.Icc a b)ᶜ = 0)
     (hbound : ∀ᵐ x ∂(volume.restrict (Set.Icc a b)), cg ≤ p x ∧ p x ≤ Cg)
     (n k : ℕ) (hk : k + 1 < n) (x : Fin n → ℝ)
     (hx : ∀ i, x i ∈ Set.Icc a b) :
@@ -145,18 +137,17 @@ theorem sortedGap_cdf_linear_bounds (μ : Measure ℝ) [IsProbabilityMeasure μ]
     (hx (Tuple.sort x lo)).1
   have hyb : sortedSample n x hi ≤ b :=
     (hx (Tuple.sort x hi)).2
-  have hinc := cdf_increment_bounds μ a b cg Cg p hab hcg hCg hμ hsupp
+  have hinc := cdf_increment_bounds μ a b cg Cg p hcg hCg hμ
     hbound hax hxy hyb
   have hsort := sortedSample_map_monotone n
     (fun z => ProbabilityTheory.cdf μ z) (ProbabilityTheory.monotone_cdf μ) x
   simpa only [sortedGap, dif_pos hk, lo, hi, hsort] using hinc
 
-/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [a nonempty interval](hyp:hab), [its density representation](hyp:hμ), [support in that interval](hyp:hsupp), [an almost-everywhere density envelope](hyp:hbound), [a sample size and adjacent-gap index](hyp:n,k), [proof that the gap is interior](hyp:hk), [a real sample](hyp:x), and [coordinatewise interval membership](hyp:hx), [the squared sorted CDF gap lies between squared density multiples of the original gap](goal). -/
+/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [its density representation](hyp:hμ), [an almost-everywhere density envelope](hyp:hbound), [a sample size and adjacent-gap index](hyp:n,k), [proof that the gap is interior](hyp:hk), [a real sample](hyp:x), and [coordinatewise interval membership](hyp:hx), [the squared sorted CDF gap lies between squared density multiples of the original gap](goal). -/
 theorem sortedGap_cdf_square_bounds (μ : Measure ℝ) [IsProbabilityMeasure μ]
     (a b cg Cg : ℝ) (p : ℝ → ℝ)
-    (hab : a < b) (hcg : 0 < cg) (hCg : cg ≤ Cg)
+    (hcg : 0 < cg) (hCg : cg ≤ Cg)
     (hμ : μ = volume.withDensity (fun x => ENNReal.ofReal (p x)))
-    (hsupp : μ (Set.Icc a b)ᶜ = 0)
     (hbound : ∀ᵐ x ∂(volume.restrict (Set.Icc a b)), cg ≤ p x ∧ p x ≤ Cg)
     (n k : ℕ) (hk : k + 1 < n) (x : Fin n → ℝ)
     (hx : ∀ i, x i ∈ Set.Icc a b) :
@@ -168,8 +159,8 @@ theorem sortedGap_cdf_square_bounds (μ : Measure ℝ) [IsProbabilityMeasure μ]
   have hg0 : 0 ≤ sortedGap n k x := by
     simp only [sortedGap, dif_pos hk]
     exact sub_nonneg.mpr (hmono (by simp [Fin.le_def]))
-  have hlin := sortedGap_cdf_linear_bounds μ a b cg Cg p hab hcg hCg hμ
-    hsupp hbound n k hk x hx
+  have hlin := sortedGap_cdf_linear_bounds μ a b cg Cg p hcg hCg hμ
+    hbound n k hk x hx
   have hcg0 : 0 ≤ cg * sortedGap n k x := mul_nonneg hcg.le hg0
   have hCg0 : 0 ≤ Cg * sortedGap n k x :=
     mul_nonneg (le_trans hcg.le hCg) hg0
@@ -201,10 +192,10 @@ theorem cdf_transformed_gap_second_moment (μ : Measure ℝ)
   rw [← integral_map hmeas.aemeasurable hstrong, hmap]
   exact uniform_gap_second_moment n k hk
 
-/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [a nonempty interval](hyp:hab), [its density representation](hyp:hμ), [support in that interval](hyp:hsupp), [an almost-everywhere density envelope](hyp:hbound), [a sample size and adjacent-gap index](hyp:n,k), and [proof that the gap is interior](hyp:hk), [the squared sorted-gap moment lies between the inverse squared density bounds times the uniform moment](goal). -/
+/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [its density representation](hyp:hμ), [support in that interval](hyp:hsupp), [an almost-everywhere density envelope](hyp:hbound), [a sample size and adjacent-gap index](hyp:n,k), and [proof that the gap is interior](hyp:hk), [the squared sorted-gap moment lies between the inverse squared density bounds times the uniform moment](goal). -/
 theorem real_gap_second_moment_bounds (μ : Measure ℝ) [IsProbabilityMeasure μ]
     (a b cg Cg : ℝ) (p : ℝ → ℝ)
-    (hab : a < b) (hcg : 0 < cg) (hCg : cg ≤ Cg)
+    (hcg : 0 < cg) (hCg : cg ≤ Cg)
     (hμ : μ = volume.withDensity (fun x => ENNReal.ofReal (p x)))
     (hsupp : μ (Set.Icc a b)ᶜ = 0)
     (hbound : ∀ᵐ x ∂(volume.restrict (Set.Icc a b)), cg ≤ p x ∧ p x ≤ Cg)
@@ -216,8 +207,7 @@ theorem real_gap_second_moment_bounds (μ : Measure ℝ) [IsProbabilityMeasure �
   let F : (Fin n → ℝ) → (Fin n → ℝ) :=
     fun x i => ProbabilityTheory.cdf μ (x i)
   have hcont := cdf_continuous_of_withDensity μ p hμ
-  have hmap := iid_cdf_pushforward_uniform01 μ a b cg Cg p hab hcg hCg
-    hμ hsupp hbound n
+  have hmap := iid_cdf_pushforward_uniform01 μ p hμ n
   have hmeas : Measurable F :=
     measurable_pi_lambda _ fun i => hcont.measurable.comp (measurable_pi_apply i)
   have horig : Integrable (fun x => (sortedGap n k x) ^ 2) (iidSample μ n) :=
@@ -230,7 +220,7 @@ theorem real_gap_second_moment_bounds (μ : Measure ℝ) [IsProbabilityMeasure �
       cg ^ 2 * (sortedGap n k x) ^ 2 ≤ (sortedGap n k (F x)) ^ 2 ∧
       (sortedGap n k (F x)) ^ 2 ≤ Cg ^ 2 * (sortedGap n k x) ^ 2 := by
     filter_upwards [iid_support_interval_ae μ a b hsupp n] with x hx
-    exact sortedGap_cdf_square_bounds μ a b cg Cg p hab hcg hCg hμ hsupp
+    exact sortedGap_cdf_square_bounds μ a b cg Cg p hcg hCg hμ
       hbound n k hk x hx
   have hlow : cg ^ 2 * (∫ x, (sortedGap n k x) ^ 2 ∂iidSample μ n) ≤
       ∫ x, (sortedGap n k (F x)) ^ 2 ∂iidSample μ n := by
@@ -255,10 +245,10 @@ theorem real_gap_second_moment_bounds (μ : Measure ℝ) [IsProbabilityMeasure �
       (le_div_iff₀ hcg2).2 (by simpa only [mul_comm] using hlow)
     simpa only [one_div, div_eq_mul_inv, mul_comm, one_mul, mul_one] using h
 
-/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [a nonempty interval](hyp:hab), [its density representation](hyp:hμ), [support in that interval](hyp:hsupp), [an almost-everywhere density envelope](hyp:hbound), [a sample size](hyp:n), and [proof that it is even](hyp:hn), [the alternating squared-gap moment lies between the inverse squared density bounds times the uniform sum](goal). -/
+/-- Given [a real probability law](hyp:μ), [interval endpoints](hyp:a,b), [density constants and their order](hyp:cg,Cg,hcg,hCg), [a density](hyp:p), [its density representation](hyp:hμ), [support in that interval](hyp:hsupp), [an almost-everywhere density envelope](hyp:hbound), [a sample size](hyp:n), and [proof that it is even](hyp:hn), [the expected sum of squares of every other sorted gap (the gaps between the order statistics of ranks `2j+1` and `2j+2`, over all `n/2` such pairs) lies between `n/((n+1)(n+2))` divided by the squared upper density constant and `n/((n+1)(n+2))` divided by the squared lower density constant](goal). -/
 theorem real_alternating_gap_second_moment_bounds (μ : Measure ℝ) [IsProbabilityMeasure μ]
     (a b cg Cg : ℝ) (p : ℝ → ℝ)
-    (hab : a < b) (hcg : 0 < cg) (hCg : cg ≤ Cg)
+    (hcg : 0 < cg) (hCg : cg ≤ Cg)
     (hμ : μ = volume.withDensity (fun x => ENNReal.ofReal (p x)))
     (hsupp : μ (Set.Icc a b)ᶜ = 0)
     (hbound : ∀ᵐ x ∂(volume.restrict (Set.Icc a b)), cg ≤ p x ∧ p x ≤ Cg)
@@ -299,7 +289,7 @@ theorem real_alternating_gap_second_moment_bounds (μ : Measure ℝ) [IsProbabil
         ∫ x, (sortedGap n (2 * j) x) ^ 2 ∂iidSample μ n := by
     apply Finset.sum_le_sum
     intro j hj
-    exact (real_gap_second_moment_bounds μ a b cg Cg p hab hcg hCg hμ hsupp
+    exact (real_gap_second_moment_bounds μ a b cg Cg p hcg hCg hμ hsupp
       hbound n (2 * j) (hindex j hj)).1
   have hupp :
       (∑ j ∈ Finset.range (n / 2),
@@ -308,7 +298,7 @@ theorem real_alternating_gap_second_moment_bounds (μ : Measure ℝ) [IsProbabil
         (1 / cg ^ 2) * ((2 : ℝ) / ((n + 1 : ℕ) * (n + 2 : ℕ))) := by
     apply Finset.sum_le_sum
     intro j hj
-    exact (real_gap_second_moment_bounds μ a b cg Cg p hab hcg hCg hμ hsupp
+    exact (real_gap_second_moment_bounds μ a b cg Cg p hcg hCg hμ hsupp
       hbound n (2 * j) (hindex j hj)).2
   constructor
   · calc

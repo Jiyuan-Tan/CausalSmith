@@ -11,7 +11,7 @@ half-intensity de-Poissonization and transports the result back to the original
 fixed-size real-outcome sample.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal BigOperators

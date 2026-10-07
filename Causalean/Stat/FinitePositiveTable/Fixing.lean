@@ -23,7 +23,11 @@ variable {V : Type u} [Fintype V] [DecidableEq V]
 variable {r : V → ℕ}
 
 /-- The [kernel](hyp:q), [coordinate](hyp:v), and [conditioning set](hyp:C) determine [the
-kernel after fixing that coordinate](goal) [by dividing each profile mass by its conditional mass](step:1). -/
+kernel after fixing that coordinate](goal) [by dividing each profile's mass by the kernel's
+conditional mass of that profile's value at the coordinate given its values on the conditioning
+set](step:1). The division follows the real-number convention that division by zero gives zero,
+so the result is the intended quotient only when the conditional mass is nonzero, as it is for a
+strictly positive kernel. -/
 def fixKernelCoordinate (q : Kernel r) (v : V) (C : Finset V) : Kernel r :=
   fun x ↦ q x / kernelConditionalMass q v C x (x v)
 
@@ -59,8 +63,10 @@ def fixSequence (p : PositiveTable r) (steps : List (FixingStep V)) : Kernel r :
   fixKernelSequence p.mass steps
 
 /-- The [kernel](hyp:q) and a list of fixing steps determine [the product of the
-successive conditional factors](goal): [an empty list has product one](step:1), and [a nonempty
-list multiplies its first conditional factor by the remaining product](step:2). -/
+successive conditional factors](goal), evaluated at a profile: [an empty list has product
+one](step:1), and [a nonempty list multiplies the kernel's conditional mass for its first step by
+the product for the remaining steps computed from the kernel after that first step has been
+fixed](step:2). -/
 def fixingConditionalProduct (q : Kernel r) : List (FixingStep V) → ProfileSpace r → ℝ
   | [], _ => 1
   | s :: ss, x =>
@@ -152,18 +158,20 @@ theorem fixKernelSequence_eq_div_conditionalProduct {q : Kernel r}
       · exact ⟨hvalid.1.tail, fun t ht ↦ hvalid.2 t (List.mem_cons_of_mem s ht)⟩
 
 /-- For [a positive table](hyp:p), [an algebraically valid list of fixing steps](hyp:steps,hvalid),
-and [a profile](hyp:x), [sequential fixing has the same conditional-product expansion](goal). -/
+and [a profile](hyp:x), [the sequentially fixed kernel at that profile equals the table's mass
+there divided by the product of the successive conditional factors, each computed from the
+kernel obtained after the earlier fixing steps](goal). -/
 theorem fixSequence_eq_div_conditionalProduct (p : PositiveTable r)
     (steps : List (FixingStep V)) (hvalid : FixingSequenceValid steps)
     (x : ProfileSpace r) :
     fixSequence p steps x = p.mass x / fixingConditionalProduct p.mass steps x := by
   exact fixKernelSequence_eq_div_conditionalProduct p.mass_pos steps hvalid x
 
-/-- For [a pointwise strictly positive kernel](hyp:q,hq), [a first fixing step](hyp:s), [the
+/-- For [a kernel](hyp:q), [a first fixing step](hyp:s), [the
 remaining fixing steps](hyp:ss), and [a profile](hyp:x), [the first conditional-product factor
 is the ratio of its joint and conditioning marginals](goal). -/
 theorem fixingConditionalProduct_cons_eq_marginal_ratio {q : Kernel r}
-    (hq : q.IsStrictlyPositive) (s : FixingStep V) (ss : List (FixingStep V))
+    (s : FixingStep V) (ss : List (FixingStep V))
     (x : ProfileSpace r) :
     fixingConditionalProduct q (s :: ss) x =
       (kernelMarginalMass q (insert s.coordinate s.conditioning) x /

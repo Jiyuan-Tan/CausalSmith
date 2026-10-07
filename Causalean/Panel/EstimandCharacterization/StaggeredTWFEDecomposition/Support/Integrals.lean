@@ -40,14 +40,6 @@ section CellHelpers
 
 /-! #### Indicator `MemLp 2` lemmas -/
 
-omit [Fintype 𝒢] [DecidableEq 𝒢] in
-/-- Cohort indicator `𝟙{G = g}` is in `MemLp 2 μ` (bounded + finite measure). -/
-theorem indicator_cohort_memLp
-    (μ : Measure Ω) [IsFiniteMeasure μ]
-    (G : Ω → 𝒢) (G_meas : Measurable G) (g : 𝒢) :
-    MemLp (fun ω => Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω) 2 μ := by
-  exact CellBridge.indicator_cell_memLp μ G G_meas g
-
 /-- Period indicator `𝟙{T_rv = t}` is in `MemLp 2 μ`. -/
 theorem indicator_period_memLp
     (μ : Measure Ω) [IsFiniteMeasure μ]
@@ -304,18 +296,6 @@ theorem integral_mul_panelClass_eq_zero_of_axes
     μ V G T_rv G_meas T_meas V_memLp cG cT hCohort hPeriod
 
 /-! #### Integral-as-sum-over-cells identities -/
-
-omit [DecidableEq 𝒢] in
-/-- Integrate by summing over cohort cells:
-`∫ F dμ = ∑_g ∫ F · 𝟙{G = g} dμ`. -/
-theorem integral_eq_sum_cohort
-    (μ : Measure Ω) (F : Ω → ℝ) (G : Ω → 𝒢)
-    (G_meas : Measurable G) (F_int : Integrable F μ) :
-    ∫ ω, F ω ∂μ =
-      ∑ g, ∫ ω, F ω
-        * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ := by
-  classical
-  exact CellBridge.integral_eq_sum_cell μ F G G_meas F_int
 
 /-- Integrate by summing over period cells. -/
 theorem integral_eq_sum_period

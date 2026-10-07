@@ -291,7 +291,7 @@ lemma complete_arrival_kernel_mean_risk_le {n d : ℕ} (T : Estimator n d)
   have hfbound : ∀ s, f s ∈ Icc (-1 : ℝ) 1 := by
     intro s
     rw [Set.mem_Icc, ← abs_le]
-    exact Causalean.Stat.abs_kernelMean_le T.toBoundedKernel.1 (M := 1) (by norm_num)
+    exact Causalean.Stat.abs_kernelMean_le T.toBoundedKernel.1 (M := 1)
       hclip_abs s
   have hmeas : Measurable (fun s ↦ ∫ t, (t - ate P) ^ 2 ∂(T.toBoundedKernel.1 s)) := by
     exact ((measurable_id.sub measurable_const).pow_const 2).stronglyMeasurable
@@ -381,7 +381,7 @@ lemma complete_arrival_two_point_decision_reduction {n d : ℕ}
   have hbound (P : FullLaw d) : ∀ s, f s ∈ Icc (-1 : ℝ) 1 := by
     intro s
     rw [Set.mem_Icc, ← abs_le]
-    exact Causalean.Stat.abs_kernelMean_le T.toBoundedKernel.1 (M := 1) (by norm_num)
+    exact Causalean.Stat.abs_kernelMean_le T.toBoundedKernel.1 (M := 1)
       (fun t => by rw [abs_le]; constructor <;> simp [clip]) s
   have hint₀ : Integrable (fun s ↦ (f s - ate P₀) ^ 2) (sampleLaw n P₀) :=
     Causalean.Stat.mse_integrable_of_estimator_bound _ f hf (by norm_num)

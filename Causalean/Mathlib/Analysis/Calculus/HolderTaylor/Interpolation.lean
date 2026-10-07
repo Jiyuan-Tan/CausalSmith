@@ -22,8 +22,8 @@ namespace Causalean.Mathlib.Analysis.Calculus.HolderTaylor
 open Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 open Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
-/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα) and
-[at most one](hyp:hα1), [an interval length d](hyp:d) that is [positive](hyp:hd), and
+/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα),
+[an interval length d](hyp:d) that is [positive](hyp:hd), and
 [a nonnegative value envelope M](hyp:M,hM) and [a nonnegative Hölder constant L](hyp:L,hL). Then
 [there is one nonnegative constant B such that, for every interval from a to a + d and every
 function f that is k times continuously differentiable on it, bounded by M there, and whose k-th
@@ -31,7 +31,7 @@ within-interval derivative is Hölder with constant L and exponent α there, tha
 is bounded by B on the whole interval](goal). The bound is independent of the interval location
 and the function. -/
 theorem uniform_top_iteratedDerivWithin_bound
-    (k : ℕ) (α d M L : ℝ) (hα : 0 < α) (hα1 : α ≤ 1)
+    (k : ℕ) (α d M L : ℝ) (hα : 0 < α)
     (hd : 0 < d) (hM : 0 ≤ M) (hL : 0 ≤ L) :
     ∃ B : ℝ, 0 ≤ B ∧
       ∀ (a : ℝ) (f : ℝ → ℝ),
@@ -44,7 +44,7 @@ theorem uniform_top_iteratedDerivWithin_bound
         ∀ x ∈ Set.Icc a (a + d),
           |iteratedDerivWithin k f (Set.Icc a (a + d)) x| ≤ B := by
   obtain ⟨K, hK, hfixed⟩ := fixed_cube_interpolation_within
-    1 k (by omega) α hα hα1
+    1 k α hα
   let c : ℝ := d / 2
   have hc : 0 < c := by dsimp [c]; linarith
   let R : ℝ := K * (M + L * c ^ k * c ^ α)
@@ -65,7 +65,7 @@ theorem uniform_top_iteratedDerivWithin_bound
     exact hval _ (hmap z hz)
   have hL' : 0 ≤ L * c ^ k * c ^ α := by positivity
   have hholder' : TopHolderOn (cube 1) k α (L * c ^ k * c ^ α) u := by
-    simpa [u, c] using affine_cube_topHolderOn k α a d L hd f hf hholder
+    simpa [u, c] using affine_cube_topHolderOn k α a d L hd f hholder
   let z : Fin 1 → ℝ := fun _ => (x - a - c) / c
   have hz : z ∈ cube 1 := by
     intro i
@@ -85,7 +85,7 @@ theorem uniform_top_iteratedDerivWithin_bound
     ring
   have hbound := hfixed u M (L * c ^ k * c ^ α) hM hL' hu hval' hholder'
     k (le_refl k) (fun _ => (0 : Fin 1)) z hz
-  rw [affine_cube_coordJetOn k a d hd f hf (fun _ => (0 : Fin 1)) z hz] at hbound
+  rw [affine_cube_coordJetOn k a d hd f (fun _ => (0 : Fin 1)) z hz] at hbound
   change |c ^ k * iteratedDerivWithin k f (Set.Icc a (a + d))
     (a + c + c * z 0)| ≤ R at hbound
   rw [heq, abs_mul, abs_of_pos (pow_pos hc _)] at hbound
@@ -115,17 +115,17 @@ theorem uniform_lower_iteratedDerivWithin_of_top_bound
   refine ⟨B, hB, ?_⟩
   intro a f hf hval htop
   exact within_jet_bound_of_interior_ambient_bound k a (a + d) B
-    (by linarith) hB f hf (hinterior a f hf hval htop)
+    (by linarith) f hf (hinterior a f hf hval htop)
 
-/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα) and
-[at most one](hyp:hα1), [an interval length d](hyp:d) that is [positive](hyp:hd), and
+/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα),
+[an interval length d](hyp:d) that is [positive](hyp:hd), and
 [a nonnegative value envelope M](hyp:M,hM) and [a nonnegative Hölder constant L](hyp:L,hL). Then
 [there is one nonnegative constant B such that, for every interval from a to a + d and every
 function f that is k times continuously differentiable on it, bounded by M there, and whose k-th
 within-interval derivative is Hölder with constant L and exponent α there, every within-interval
 derivative of f of order at most k is bounded by B on the whole interval](goal). -/
 theorem uniform_iteratedDerivWithin_bound
-    (k : ℕ) (α d M L : ℝ) (hα : 0 < α) (hα1 : α ≤ 1)
+    (k : ℕ) (α d M L : ℝ) (hα : 0 < α)
     (hd : 0 < d) (hM : 0 ≤ M) (hL : 0 ≤ L) :
     ∃ B : ℝ, 0 ≤ B ∧
       ∀ (a : ℝ) (f : ℝ → ℝ),
@@ -138,7 +138,7 @@ theorem uniform_iteratedDerivWithin_bound
         ∀ j ≤ k, ∀ x ∈ Set.Icc a (a + d),
           |iteratedDerivWithin j f (Set.Icc a (a + d)) x| ≤ B := by
   obtain ⟨T, hT, htop⟩ :=
-    uniform_top_iteratedDerivWithin_bound k α d M L hα hα1 hd hM hL
+    uniform_top_iteratedDerivWithin_bound k α d M L hα hd hM hL
   obtain ⟨B, hB, hbound⟩ :=
     uniform_lower_iteratedDerivWithin_of_top_bound k d M T hd hM hT
   exact ⟨B, hB, fun a f hf hM' hL' =>

@@ -15,7 +15,7 @@ multivariate Hölder condition into an explicitly indexed monomial polynomial.
 The resulting remainder constant is uniform over the Hölder ball.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat.Nonparametric
 
@@ -69,13 +69,16 @@ private lemma diagonal_expansion {d j : ℕ} (f : (Fin d → ℝ) → ℝ)
     Fintype.card_fin, prod_eq_monomial]
   ring
 
-/-- For [a dimension and a finite monomial family](hyp:d,p), [positive smoothness, Hölder,
-and neighbourhood parameters](hyp:β,L,r,hβ,hL,hr), and [an exponent enumeration containing
-every multi-index through the Taylor order](hyp:expo,hcover), [one nonnegative approximation
-constant works simultaneously for every centre, every containing domain, and every function
-in the corresponding standard Hölder ball](goal). -/
+/-- For [a dimension and a finite monomial family](hyp:d,p), [positive smoothness and Hölder
+parameters](hyp:β,L,hβ,hL), [a neighbourhood radius](hyp:r), and [an exponent enumeration containing
+every multi-index through the Taylor order](hyp:expo,hcover), [there is one nonnegative constant such that, for every centre, every domain containing the
+closed coordinatewise box of half-width `r` around the centre, every function `f` in the
+standard Hölder ball of smoothness `β` and radius `L` on that domain, and every bandwidth
+`h` strictly between zero and `r`, some coefficient vector makes the monomial polynomial
+with the enumerated exponents approximate `f(x0 + h u)` within the constant times
+`L h^β`, uniformly over rescaled points `u` with all coordinates in `[-1,1]`](goal). -/
 theorem holder_taylor_monomial_approx_uniform_center {d p : ℕ} {β L r : ℝ}
-    (hβ : 0 < β) (hL : 0 < L) (hr : 0 < r)
+    (hβ : 0 < β) (hL : 0 < L)
     (expo : Fin p → (Fin d → ℕ))
     (hcover : ∀ e : Fin d → ℕ, (∑ j, e j) ≤ ⌈β⌉₊ - 1 → ∃ k, expo k = e) :
     ∃ Cb : ℝ, 0 ≤ Cb ∧
@@ -180,7 +183,7 @@ theorem holder_taylor_monomial_approx {d p : ℕ} {β L r : ℝ} {x0 : Fin d →
               |f (x0 + h • u) - ∑ k, θ k * ∏ j, (u j) ^ (expo k j)| ≤
                 Cb * L * h ^ β := by
   obtain ⟨Cb, hCb, happrox⟩ :=
-    holder_taylor_monomial_approx_uniform_center hβ hL _hr expo hcover
+    holder_taylor_monomial_approx_uniform_center (r := r) hβ hL expo hcover
   exact ⟨Cb, hCb, happrox x0 S hS⟩
 
 end Causalean.Stat.Nonparametric

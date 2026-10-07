@@ -14,9 +14,10 @@ its monotone characterization.
 namespace Causalean.Mathlib.Probability.Birthday
 
 /-- For a [trial count](hyp:T), [success probability](hyp:eta), and
-[collision tolerance](hyp:delta), the [least positive threshold](goal) is the
+[collision tolerance](hyp:delta), the [least positive threshold](goal) is
 [given by the infimum of positive alphabet sizes whose averaged repeat
-probability is at most the tolerance](step:1). -/
+probability is at most the tolerance](step:1); it is zero by convention when
+no positive alphabet size meets the tolerance. -/
 noncomputable def mStar (T : ℕ) (eta delta : ℝ) : ℕ :=
   sInf {m : ℕ | 0 < m ∧ birthdayRepeat T m eta ≤ delta}
 
@@ -54,7 +55,8 @@ theorem mStar_pos (T : ℕ) (eta delta : ℝ)
 
 /-- For a [valid success probability](hyp:heta),
 [positive tolerance](hyp:hdelta), and [positive alphabet](hyp:hm), the
-[tolerance is met exactly above the least threshold](goal). -/
+[averaged repeat probability is at most the tolerance exactly when the
+alphabet size is at least the least threshold](goal). -/
 theorem repeat_le_iff_mStar_le (T m : ℕ) (eta delta : ℝ)
     (heta : eta ∈ Set.Icc (0 : ℝ) 1) (hdelta : 0 < delta) (hm : 0 < m) :
     birthdayRepeat T m eta ≤ delta ↔ mStar T eta delta ≤ m := by

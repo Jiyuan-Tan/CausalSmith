@@ -16,7 +16,7 @@ derives that convergence from the primal rate theorem. The current doubly
 robust remainder bundle has no nuisance-consistency field.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean
 namespace Estimation
@@ -34,18 +34,14 @@ theorem primal_l2_consistency_iff_strongNorm
     (S : OperatorSystem Omega mu)
     (h_hat : ℕ → Omega → S.𝒳 → ℝ)
     (hmem : ∀ n omega, h_hat n omega ∈ S.Hbar) :
-    Tendsto_inProb
-        (fun n omega =>
-          S.strongNorm (S.hL2 (hmem n omega) - S.hL2 S.h₀_mem))
-        (fun _ => 0) mu
+    Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega =>
+          S.strongNorm (S.hL2 (hmem n omega) - S.hL2 S.h₀_mem)) atTop (fun _ _ => 0)
       ↔
-    Tendsto_inProb
-        (fun n omega =>
+    Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega =>
           (eLpNorm
             (fun omega' =>
               h_hat n omega (S.xOf (S.W omega'))
-                - S.h₀ (S.xOf (S.W omega'))) 2 mu).toReal)
-      (fun _ => 0) mu := by
+                - S.h₀ (S.xOf (S.W omega'))) 2 mu).toReal) atTop (fun _ _ => 0) := by
   have hfun :
       (fun n omega =>
         S.strongNorm (S.hL2 (hmem n omega) - S.hL2 S.h₀_mem))
@@ -98,13 +94,11 @@ theorem primal_l2_consistency_of_rate
     (hlambda_zero : Tendsto lambda_n atTop (nhds 0))
     (hdelta_sq_div_lambda_zero :
       Tendsto (fun n => (delta n) ^ 2 / lambda_n n) atTop (nhds 0)) :
-    Tendsto_inProb
-      (fun n omega =>
+    Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega =>
         (eLpNorm
           (fun omega' =>
             h_hat n omega (S.xOf (S.W omega'))
-              - S.h₀ (S.xOf (S.W omega'))) 2 mu).toReal)
-      (fun _ => 0) mu := by
+              - S.h₀ (S.xOf (S.W omega'))) 2 mu).toReal) atTop (fun _ _ => 0) := by
   let hmem : ∀ n omega, h_hat n omega ∈ S.Hbar :=
     fun n omega => TC.H_subset (is_estimator.mem_H n omega)
   have hrate := Primal.primal_strongNorm_tendstoInProb_of_rates

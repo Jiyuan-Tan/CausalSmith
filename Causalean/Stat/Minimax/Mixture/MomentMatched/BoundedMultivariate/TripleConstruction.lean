@@ -15,9 +15,9 @@ open MeasureTheory
 
 namespace Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate
 
-/-- A [positive matching degree](hyp:hK), [scalar and triple parameters](hyp:a,q,gap,b,ε), [a positive scalar scale bounded by one](hyp:ha₀,ha₁), [the overlap parametrization](hyp:hq), [an overlap margin between zero and one half](hyp:hε₀,hε₁), [a positive arrival-mass scale](hyp:hb), and [scalar moment priors](hyp:S) produce [bounded triple priors with the stated explicit branches and common mean arrival mass](goal). -/
+/-- A [positive matching degree](hyp:hK), [scalar and triple parameters](hyp:a,q,gap,b,ε), [a positive scalar scale](hyp:ha₀), [the overlap parametrization](hyp:hq), [an overlap margin between zero and one half](hyp:hε₀,hε₁), [a positive arrival-mass scale](hyp:hb), and [scalar moment priors](hyp:S) produce [bounded triple priors with the stated explicit branches and common mean arrival mass](goal). -/
 theorem scalarPriors_to_triple {K : ℕ} (hK : 1 ≤ K)
-    {a q gap b ε : ℝ} (ha₀ : 0 < a) (ha₁ : a ≤ 1)
+    {a q gap b ε : ℝ} (ha₀ : 0 < a)
     (hq : q = 1 - 2 * ε) (hε₀ : 0 < ε) (hε₁ : ε < 1 / 2)
     (hb : 0 < b) (S : ScalarPriors K a q gap) :
     ∃ T : TriplePriors K b ε (a * b * gap),
@@ -129,9 +129,9 @@ theorem scalarPriors_to_triple {K : ℕ} (hK : 1 ≤ K)
       have hj : j = 0 := by omega
       have hk : k = 0 := by omega
       subst i; subst j; subst k
-      have hp₀ := (reweightedScalar_probability_finite_supported ha₀ ha₁ S.ω₀
+      have hp₀ := (reweightedScalar_probability_finite_supported ha₀ S.ω₀
         S.finite₀ S.supported₀).1
-      have hp₁ := (reweightedScalar_probability_finite_supported ha₀ ha₁ S.ω₁
+      have hp₁ := (reweightedScalar_probability_finite_supported ha₀ S.ω₁
         S.finite₁ S.supported₁).1
       have hmap : Measurable (scalarToTriple b a q) := by
         unfold scalarToTriple
@@ -237,7 +237,7 @@ theorem scalarPriors_to_triple {K : ℕ} (hK : 1 ≤ K)
         (∃ s : Finset MarkedParam, (triplePrior b a q ω) (s : Set MarkedParam) = 1) ∧
         (triplePrior b a q ω) A = 1 := by
     obtain ⟨hp, hfin', hs'⟩ :=
-      reweightedScalar_probability_finite_supported ha₀ ha₁ ω hfin hs
+      reweightedScalar_probability_finite_supported ha₀ ω hfin hs
     letI := hp
     have htp : IsProbabilityMeasure (triplePrior b a q ω) := by
       exact (Measure.isProbabilityMeasure_map_iff hmap.aemeasurable).2 hp
@@ -308,7 +308,7 @@ theorem scalarPriors_to_triple {K : ℕ} (hK : 1 ≤ K)
     mean_p_match := hmean₀.trans hmean₁.symm
     target_gap := hgap }, rfl, rfl, hmean₀⟩
 
-/-- An [overlap margin](hyp:ε,hε₀,hε₁) and [positive arrival-mass scale](hyp:b,hb) admit [positive constants that construct bounded finite triple priors at every positive degree with matched mixed moments and mean arrival mass, and a quantitative mean success-mass gap](goal). -/
+/-- An [overlap margin strictly between 0 and 1/2](hyp:ε,hε₀,hε₁) ε and [positive arrival-mass bound](hyp:b,hb) b admit [constants 0 < c₀ < 1 and gap > 0, not depending on the degree, such that for every degree K ≥ 1 there is a bounded finitely supported triple-prior pair with arrival-mass bound b and overlap margin ε whose mixed moments agree through total degree 3K, whose first prior has mean arrival mass c₀·b/K² (shared by the second), and whose mean success masses differ in absolute value by at least c₀·b·gap/K²](goal). -/
 theorem exists_triplePriors (ε b : ℝ) (hε₀ : 0 < ε) (hε₁ : ε < 1 / 2)
     (hb : 0 < b) :
     ∃ c₀ gap : ℝ, 0 < c₀ ∧ c₀ < 1 ∧ 0 < gap ∧
@@ -327,13 +327,9 @@ theorem exists_triplePriors (ε b : ℝ) (hε₀ : 0 < ε) (hε₁ : ε < 1 / 2)
   have ha₀ : 0 < endpointScale c₀ K := by
     unfold endpointScale
     positivity
-  have ha₁ : endpointScale c₀ K ≤ 1 := by
-    unfold endpointScale
-    apply (div_le_iff₀ (by positivity : (0 : ℝ) < (K : ℝ) ^ 2)).2
-    linarith
   obtain ⟨S⟩ := hS K hK
   obtain ⟨T, _, _, hmean⟩ :=
-    scalarPriors_to_triple hK ha₀ ha₁ rfl hε₀ hε₁ hb S
+    scalarPriors_to_triple hK ha₀ rfl hε₀ hε₁ hb S
   exact ⟨T, hmean⟩
 
 end Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate

@@ -361,7 +361,7 @@ one (in fact equal to one).        Under [the stated inputs and assumptions](hyp
 lemma SignalBasis.one_le_signalMinSingular {dx k : ℕ} (V : SignalBasis dx k)
     (hk : 0 < k) : 1 ≤ signalMinSingular V.V := by
   apply Causalean.Mathlib.Analysis.le_singularValues_of_subspace
-      (Matrix.toEuclideanLin V.V) ⊤ (by norm_num)
+      (Matrix.toEuclideanLin V.V) ⊤
   · simpa using hk
   · intro x _hx
     have hn := (signalBasisLinearIsometry V).norm_map x

@@ -52,15 +52,15 @@ lemma deathAggregateIntegral_integrable_centered {n : ℕ}
     have he : Integrable E μ :=
       ((memLp_two_iff_integrable_sq hm.aestronglyMeasurable).2
         (subject_event_payoff_square_integrable failureLaw censorLaw hazard
-          hFailure hHazard H hPredictable hMeasurable i u hu hQuadratic hEnergy)).integrable
+          hFailure hHazard H hPredictable hMeasurable i u hQuadratic)).integrable
             (by norm_num)
     have ha := predictable_censor_compensator_integrable failureLaw censorLaw hazard
-      hFailure hHazard H hPredictable hMeasurable i u hu he
+      hFailure hHazard H hPredictable hMeasurable i u he
     refine ⟨he.sub ha, ?_⟩
     change (∫ x, E x - _ ∂μ) = 0
     rw [integral_sub he ha]
     exact sub_eq_zero.mpr (predictable_censor_compensator failureLaw censorLaw hazard
-      hFailure hHazard H hPredictable hMeasurable i u hu he ha)
+      hFailure hHazard H hPredictable hMeasurable i u he)
   refine ⟨integrable_finsetSum Finset.univ (fun i _ => (hi i).1), ?_⟩
   change (∫ x, ∑ i : Fin n, subjectIntegral hazard H i u x ∂μ) = 0
   rw [integral_finsetSum Finset.univ (fun i _ => (hi i).1)]

@@ -50,7 +50,7 @@ lemma twoArm_secondOrder_lower_witness :
   refine ⟨kappaC twoArmContrast, hk, N, ?_⟩
   intro n hn
   have hrho : rhoN 2 n twoArmContrast ≤
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun (p : Procedure 2 n twoArmContrast) (z : Schedule 2 n) =>
           labeledRisk twoArmContrast p z)
         (shrinkageProcedure 2 n twoArmContrast) := by

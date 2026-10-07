@@ -253,7 +253,7 @@ lemma factorialMonomial_mean {Ω : Type*} [MeasurableSpace Ω]
   simp_rw [factorialMonomial_eq_fourFactorialMonomial]
   unfold fourFactorialMonomial
   rw [integral_div]
-  rw [factorialProduct_mean μ W rate hWlaw hWindep m hm]
+  rw [factorialProduct_mean μ W rate hWlaw hWindep m]
 
 /-- The paper's normalized four-coordinate factorial monomial inherits the
 generic exponential square-moment envelope. With [the specified inputs and conditions](hyp:D,m,L,hm,hL,d,pilot,W,rate,hWlaw,hWindep,hR,hcenter,hvariance,a), [the stated relationship holds](goal). -/

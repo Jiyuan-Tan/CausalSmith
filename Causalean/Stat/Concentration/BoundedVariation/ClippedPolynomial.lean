@@ -21,9 +21,9 @@ open scoped BigOperators
 
 namespace Causalean.Stat.Concentration.BoundedVariation
 
-/-- [a clipping radius and scalar value](hyp:cap,x) determine [the value clipped to the symmetric interval around zero](goal).
+/-- [A clipping radius and a scalar value x](hyp:cap,x) determine [the value x clipped to the symmetric interval from minus the radius to the radius, that is, the smaller of the radius and the larger of minus the radius and x](goal).
 
-Scalar clipping to the symmetric interval with radius `cap`.
+Scalar clipping to the symmetric interval with radius `cap`; the radius is meant to be nonnegative.
 -/
 def scalarClip (cap x : ℝ) : ℝ := min cap (max (-cap) x)
 
@@ -100,10 +100,10 @@ theorem continuous_clipped_finite_sum {ι : Type*} [Fintype ι]
   apply Continuous.max continuous_const
   fun_prop
 
-/-- [coefficient paths, random scalar coefficients, a clipping radius, and a sample point](hyp:c,X,cap,ω) determine [the resulting clipped continuous path](goal).
+/-- [Finitely many coefficient paths c_a, random scalar coefficients X_a, a clipping radius, and a sample point ω](hyp:c,X,cap,ω) determine [the clipped continuous path sending each time t to the finite sum Σ_a X_a(ω)·c_a(t), clipped to the symmetric interval of that radius](goal).
 
-A random finite factorial-polynomial path formed from coefficient paths and scalar monomial
-values, then clipped to a fixed symmetric interval.
+The intended use is a random finite factorial-polynomial path: the coefficient paths are
+deterministic and the scalar coefficients are monomial values.
 -/
 def clippedFinitePath {ι Ω : Type*} [Fintype ι]
     (c : ι → Path) (X : Ω → ι → ℝ) (cap : ℝ) (ω : Ω) : Path :=
@@ -181,10 +181,9 @@ theorem measurable_clippedFinitePath {ι Ω : Type*} [Fintype ι]
   let : BorelSpace Path := ⟨rfl⟩
   exact hcont.measurable.comp hvec
 
-/-- [A probability measure](hyp:μ), [coefficient paths, random scalar coefficients, and a clip radius](hyp:c,X,cap), [a nonnegative clip radius](hyp:hcap), [finite variation of every coefficient path](hyp:hBV), [measurable scalar coefficients](hyp:hXmeas), and [their square integrability](hyp:hXsq) give [square integrability and the stated squared path-size bound for the clipped finite path](goal).
+/-- Under [a probability measure](hyp:μ), take [finitely many coefficient paths c_a, random scalar coefficients X_a, and a clip radius](hyp:c,X,cap) with [the radius nonnegative](hyp:hcap), [every coefficient path of finite total variation](hyp:hBV), and [the scalar coefficients measurable](hyp:hXmeas) and [square integrable](hyp:hXsq). Then [the squared size of the clipped path t ↦ clip(Σ_a X_a·c_a(t)) is integrable, and its expectation is at most (Σ_a size(c_a)²)·(Σ_a E[X_a²]), where the size of a path is its supremum norm plus its total variation](goal).
 
-The expected squared path size is bounded by the coefficient path-size square sum times the
-sum of scalar monomial second moments. This supplies square integrability for finite factorial
+This supplies square integrability for finite factorial
 polynomials from their coordinatewise Poisson moment bounds.
 -/
 theorem clippedFinitePath_sq_integral_le {ι Ω : Type*} [Fintype ι]

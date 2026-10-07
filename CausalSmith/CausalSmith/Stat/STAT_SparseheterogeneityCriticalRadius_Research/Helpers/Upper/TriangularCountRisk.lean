@@ -5,7 +5,7 @@ public import CausalSmith.Stat.STAT_SparseheterogeneityCriticalRadius_Research.H
 /-! A bounded nonnegative loss over two Poisson samples dominates every
 finite triangular collection of its fixed-count fibres. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SparseheterogeneityCriticalRadius
 

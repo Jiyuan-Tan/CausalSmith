@@ -18,7 +18,7 @@ set.  The headline result `irreducible_coordinate_constant_of_finite_range`
 supplies the rigidity step used by the polynomial image-dimension development.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension
 

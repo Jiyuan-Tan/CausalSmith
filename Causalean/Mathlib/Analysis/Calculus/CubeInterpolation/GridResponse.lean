@@ -18,15 +18,15 @@ open Causalean.Mathlib.Analysis.Approximation.Chebyshev
 
 namespace Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- For [a dimension, a derivative order m, and an exponent s](hyp:d,m,s) with [s positive](hyp:hs)
-and [s at most one](hyp:hs1), [there is a positive constant C such that the following holds for all
+/-- For [a dimension, a derivative order m, and an exponent s](hyp:d,m,s) with [s positive](hyp:hs),
+[there is a positive constant C such that the following holds for all
 nonnegative M and L: if a function is m times continuously differentiable on the closed normalized
 cube, bounded there by M in absolute value, and satisfies the top-order Hölder condition with
 exponent s and constant L, then any polynomial that equals its order-m Taylor polynomial at a
 centre in the open cube is at most C times (M + L) in absolute value at every node of the fixed
 tensor grid](goal). -/
 theorem taylor_polynomial_grid_bound (d m : ℕ) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1) :
+    (hs : 0 < s) :
     ∃ C : ℝ, 0 < C ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (M L : ℝ),
         0 ≤ M → 0 ≤ L → ContDiffOn ℝ m u (cube d) →
@@ -39,7 +39,7 @@ theorem taylor_polynomial_grid_bound (d m : ℕ) (s : ℝ)
                   iteratedFDeriv ℝ k u x (fun _ => y - x)) →
           ∀ b : Fin d → Fin (m + 1),
             |MvPolynomial.eval (tensorGridPoint b) p| ≤ C * (M + L) := by
-  obtain ⟨A, hApos, hA⟩ := top_holder_taylor_remainder d m s hs hs1
+  obtain ⟨A, hApos, hA⟩ := top_holder_taylor_remainder d m s hs
   have hcompact : IsCompact (cube d) := by
     have h := isCompact_univ_pi (fun _ : Fin d => isCompact_Icc (a := (-1 : ℝ)) (b := 1))
     convert h using 1

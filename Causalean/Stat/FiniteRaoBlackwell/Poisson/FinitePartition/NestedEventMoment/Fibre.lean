@@ -23,8 +23,10 @@ variable {X : Type*} [MeasurableSpace X]
 /-- Under an [observation probability law](hyp:P), a [Poisson intensity](hyp:lam), two
 [events](hyp:A,B) with [measurable membership](hyp:hA,hB) and [the first contained in the
 second](hyp:hAB), an [order](hyp:v) with [positive order](hyp:hv), and a [sample-size
-fibre](hyp:n), the [weighted-factorial integral on that fibre equals its Poisson mass times
-the fixed-size iid moment](goal). -/
+fibre](hyp:n), the [integral of the weighted nested-event factorial over the samples of exactly
+that size, under the finite Poisson sample law, equals the Poisson probability of that size times
+the falling factorial of the size of the given order, times the smaller-event probability, times
+the larger-event probability raised to the order minus one](goal). -/
 theorem integral_weightedFactorial_countFibre
     (P : Measure X) [IsProbabilityMeasure P] (lam : ℝ≥0)
     (A B : Set X) (hA : MeasurableSet A) (hB : MeasurableSet B)

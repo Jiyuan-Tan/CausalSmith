@@ -24,7 +24,7 @@ public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 /-! # T ExactCalibrations
 
 Paper-owned scaffold obligations; proofs are filled in Stage 3. -/
-@[expose] public section
+public section
 set_option linter.style.longLine false
 noncomputable section
 open MeasureTheory ProbabilityTheory

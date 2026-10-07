@@ -32,12 +32,12 @@ noncomputable def convolution (N : ℕ) (j : ℤ) : ℝ :=
 
 /-- The [normalized Jackson coefficient](goal) of [order N](hyp:N) at [an integer frequency
 j](hyp:j) is [the raw Jackson Fourier coefficient at j divided by its value at frequency
-zero](step:1). -/
+zero](step:1); at order zero that denominator vanishes and the coefficient is read as zero. -/
 noncomputable def normalizedCoeff (N : ℕ) (j : ℤ) : ℝ :=
   convolution N j / convolution N 0
 
 /-- The [scaled Jackson kernel](goal) of [order N](hyp:N) at [an angle u](hyp:u) is [2π times the
-normalized Jackson kernel](step:1), so that it integrates to 2π over a period and its zeroth
+normalized Jackson kernel](step:1), so that for positive order it integrates to 2π over a period and its zeroth
 Fourier coefficient is one. -/
 noncomputable def kernel (N : ℕ) (u : ℝ) : ℝ :=
   2 * Real.pi * Causalean.Mathlib.Analysis.JacksonApproximation.jackson N u
@@ -83,9 +83,9 @@ theorem convolution_support (N : ℕ) (j : ℤ)
   · simp [triangle_support N k h]
   · simp [triangle_support N (j - k) h]
 
-/-- For [an order N](hyp:N) that is [positive](hyp:hN), [the raw Jackson Fourier coefficient at
+/-- For [any order N](hyp:N), [the raw Jackson Fourier coefficient at
 frequency zero equals (2N³ + N) / 3](goal). -/
-theorem convolution_zero (N : ℕ) (hN : 0 < N) :
+theorem convolution_zero (N : ℕ) :
     convolution N 0 = (2 * (N : ℝ) ^ 3 + N) / 3 := by
   have heven : Function.Even (fun k : ℤ => triangle N k * triangle N (0 - k)) := by
     intro k
@@ -122,7 +122,7 @@ theorem convolution_zero (N : ℕ) (hN : 0 < N) :
 frequency zero is strictly positive](goal). -/
 theorem convolution_zero_pos (N : ℕ) (hN : 0 < N) :
     0 < convolution N 0 := by
-  rw [convolution_zero N hN]
+  rw [convolution_zero N]
   have h : (0 : ℝ) < N := by exact_mod_cast hN
   positivity
 
@@ -559,7 +559,7 @@ theorem kernel_fourier (N : ℕ) (hN : 0 < N) (u : ℝ) :
   have hmass : Causalean.Mathlib.Analysis.JacksonApproximation.jrawMass N =
       2 * Real.pi * convolution N 0 := by
     rw [Causalean.Mathlib.Analysis.JacksonApproximation.jrawMass_eq N hN,
-      convolution_zero N hN]
+      convolution_zero N]
     ring
   have hden : (2 * Real.pi : ℝ) ≠ 0 := by positivity
   have hconv : convolution N 0 ≠ 0 := ne_of_gt (convolution_zero_pos N hN)

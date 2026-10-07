@@ -82,14 +82,12 @@ theorem samplingLinearization_smoothFunctionOfMeans
     (h : EuclideanSpace ℝ (Fin d) → ℝ)
     (Dh : EuclideanSpace ℝ (Fin d) →L[ℝ] ℝ)
     (hderiv : HasFDerivAt h Dh (∫ x, g x ∂P)) :
-    Tendsto_inProb
-      (fun n omega ↦
+    Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega ↦
         Real.sqrt (n : ℝ) *
             (smoothMeanEstimator g h n (S.sampleVector n omega) - h (∫ x, g x ∂P)) -
           IsAsymLinear.normalizedSum S
             (fun x ↦ Dh (g x - ∫ y, g y ∂P))
-            (fun k ↦ Finset.range k) n omega)
-      (fun _ ↦ 0) mu := by
+            (fun k ↦ Finset.range k) n omega) atTop (fun _ _ ↦ 0) := by
   let _ : IsProbabilityMeasure mu := S.indep.isProbabilityMeasure
   let _ : IsProbabilityMeasure P := by
     rw [← S.law]
@@ -121,7 +119,7 @@ theorem samplingLinearization_smoothFunctionOfMeans
     intro n
     dsimp [Sn, T]
     fun_prop
-  have hSnDist : Tendsto_dist_vec Sn (gaussianLimit hpsi hpsi2) mu hSn_meas := by
+  have hSnDist : Modes.TendstoInLaw (fun _ : ℕ => mu) Sn atTop (gaussianLimit hpsi hpsi2) := by
     simpa only [hSn_eq] using S.clt_normalizedSum_vec hpsi hpsi2 hpsi_mean
   have hnorm_meas : ∀ n, AEMeasurable (fun omega ↦ ‖Sn n omega‖) mu := by
     intro n
@@ -129,12 +127,12 @@ theorem samplingLinearization_smoothFunctionOfMeans
   let _ : IsProbabilityMeasure ((gaussianLimit hpsi hpsi2).map
       (fun z : EuclideanSpace ℝ (Fin d) ↦ ‖z‖)) :=
     Measure.isProbabilityMeasure_map continuous_norm.measurable.aemeasurable
-  have hnormDist : Tendsto_dist (fun n omega ↦ ‖Sn n omega‖)
-      ((gaussianLimit hpsi hpsi2).map fun z ↦ ‖z‖) mu hnorm_meas :=
+  have hnormDist : Modes.TendstoInLaw (fun _ : ℕ => mu) (fun n omega ↦ ‖Sn n omega‖) atTop
+      ((gaussianLimit hpsi hpsi2).map fun z ↦ ‖z‖) :=
     (Tendsto_dist_iff _ _ _ hnorm_meas).2
-      (Tendsto_dist_vec.map_continuous continuous_norm hSn_meas hSnDist)
+      (Modes.TendstoInLaw.map_continuous hSnDist continuous_norm)
   have hSnBig : IsBigOp (fun n omega ↦ ‖Sn n omega‖) (fun _ ↦ (1 : ℝ)) mu :=
-    Tendsto_dist.tightness hnorm_meas hnormDist
+    Modes.TendstoInLaw.tightness hnormDist
   have hTmeasure : TendstoInMeasure mu T atTop (fun _ ↦ m) :=
     S.sampleMeanVec_tendstoInMeasure hg hg_int
   have hRlittle : IsLittleOp R (fun _ ↦ (1 : ℝ)) mu := by
@@ -225,7 +223,7 @@ theorem samplingLinearization_smoothFunctionOfMeans
         rw [← ENNReal.ofReal_add] <;> try linarith
         congr 1 <;> ring
       _ < delta := h4alpha
-  have hRprob := Tendsto_inProb.of_isLittleOp_one hRlittle
+  have hRprob := Modes.TendstoInProbability.of_isLittleOp_one hRlittle
   rw [Tendsto_inProb_iff] at hRprob ⊢
   refine hRprob.congr' ?_ EventuallyEq.rfl
   filter_upwards [eventually_ne_atTop 0] with n hn
@@ -307,7 +305,7 @@ theorem bootstrapLinearization_smoothFunctionOfMeans
     intro n
     dsimp [Sn, T]
     fun_prop
-  have hSnDist : Tendsto_dist_vec Sn (gaussianLimit hpsi hpsi2) mu hSn_meas := by
+  have hSnDist : Modes.TendstoInLaw (fun _ : ℕ => mu) Sn atTop (gaussianLimit hpsi hpsi2) := by
     simpa only [hSn_eq] using S.clt_normalizedSum_vec hpsi hpsi2 hpsi_mean
   have hnorm_meas : ∀ n, AEMeasurable (fun omega ↦ ‖Sn n omega‖) mu := by
     intro n
@@ -315,12 +313,12 @@ theorem bootstrapLinearization_smoothFunctionOfMeans
   let _ : IsProbabilityMeasure ((gaussianLimit hpsi hpsi2).map
       (fun z : EuclideanSpace ℝ (Fin d) ↦ ‖z‖)) :=
     Measure.isProbabilityMeasure_map continuous_norm.measurable.aemeasurable
-  have hnormDist : Tendsto_dist (fun n omega ↦ ‖Sn n omega‖)
-      ((gaussianLimit hpsi hpsi2).map fun z ↦ ‖z‖) mu hnorm_meas :=
+  have hnormDist : Modes.TendstoInLaw (fun _ : ℕ => mu) (fun n omega ↦ ‖Sn n omega‖) atTop
+      ((gaussianLimit hpsi hpsi2).map fun z ↦ ‖z‖) :=
     (Tendsto_dist_iff _ _ _ hnorm_meas).2
-      (Tendsto_dist_vec.map_continuous continuous_norm hSn_meas hSnDist)
+      (Modes.TendstoInLaw.map_continuous hSnDist continuous_norm)
   have hSnBig : IsBigOp (fun n omega ↦ ‖Sn n omega‖) (fun _ ↦ (1 : ℝ)) mu :=
-    Tendsto_dist.tightness hnorm_meas hnormDist
+    Modes.TendstoInLaw.tightness hnormDist
   intro epsilon hepsilon
   rw [Metric.tendsto_atTop]
   intro delta hdelta

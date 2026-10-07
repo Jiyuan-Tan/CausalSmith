@@ -5,7 +5,7 @@ public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 
 /-! Elementary analytic facts for the two lower-bound directions. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set Filter
 

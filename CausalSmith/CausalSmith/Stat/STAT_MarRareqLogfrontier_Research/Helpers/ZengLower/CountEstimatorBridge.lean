@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_MarRareqLogfrontier_Research.Helpers.ZengLow
 
 /-! Nested-risk form of the relaxed split-count Rao--Blackwell bridge. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

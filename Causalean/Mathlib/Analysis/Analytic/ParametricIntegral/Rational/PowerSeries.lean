@@ -16,11 +16,11 @@ open MeasureTheory
 
 namespace Causalean.Mathlib.Analysis.ParametricRationalIntegralAnalyticity
 
-/-- Given [a finite measure](hyp:μ), [an integrand family](hyp:f), [its coefficient functions](hyp:c), [coefficient envelopes](hyp:M), [an expansion center, radius, and evaluation parameter](hyp:t₀,r,t), [a positive radius and an evaluation inside it](hyp:hr,ht), [measurable coefficients](hyp:hc), [nonnegative envelopes](hyp:hM), [almost-everywhere coefficient domination](hyp:hbound), [a summable radius-weighted envelope](hyp:hsum), and [an almost-everywhere pointwise power-series expansion](hyp:hseries), [the integral equals the series of coefficient integrals at the evaluation parameter](goal). -/
+/-- Given [a finite measure](hyp:μ), [an integrand family](hyp:f), [its coefficient functions](hyp:c), [coefficient envelopes](hyp:M), [an expansion center, radius, and evaluation parameter](hyp:t₀,r,t), [an evaluation parameter within the radius of the center](hyp:ht), [measurable coefficients](hyp:hc), [nonnegative envelopes](hyp:hM), [almost-everywhere coefficient domination](hyp:hbound), [a summable radius-weighted envelope](hyp:hsum), and [an almost-everywhere pointwise power-series expansion](hyp:hseries), [the integral equals the series of coefficient integrals at the evaluation parameter](goal). -/
 theorem integral_eq_tsum_of_powerSeries_domination
     {α : Type*} [MeasurableSpace α] (μ : Measure α) [IsFiniteMeasure μ]
     (f : ℝ → α → ℝ) (c : ℕ → α → ℝ) (M : ℕ → ℝ)
-    (t₀ r t : ℝ) (hr : 0 < r) (ht : |t - t₀| < r)
+    (t₀ r t : ℝ) (ht : |t - t₀| < r)
     (hc : ∀ n, AEStronglyMeasurable (c n) μ)
     (hM : ∀ n, 0 ≤ M n)
     (hbound : ∀ n, ∀ᵐ x ∂μ, ‖c n x‖ ≤ M n)
@@ -109,7 +109,7 @@ theorem analyticAt_integral_of_powerSeries_domination
       have hy_radius : y ∈ Metric.eball (0 : ℝ) p.radius :=
         Metric.mem_eball.2 (lt_of_lt_of_le (Metric.mem_eball.1 hy) hρ_le)
       have hsum_y : Summable (fun n : ℕ ↦ p n fun _ ↦ y) := p.summable hy_radius
-      rw [integral_eq_tsum_of_powerSeries_domination μ f c M t₀ r (t₀ + y) hr hyt
+      rw [integral_eq_tsum_of_powerSeries_domination μ f c M t₀ r (t₀ + y) hyt
         hc hM hbound hsum hseries]
       simpa [p, a, FormalMultilinearSeries.ofScalars_apply_eq, mul_comm] using hsum_y.hasSum
   exact hp.analyticAt

@@ -160,14 +160,6 @@ theorem inClass_pert {εg εm : ℝ} (hv : ValidDGP (C := C) (mC m₀) (gPert g�
     · simpa using hbudget
   err_m := by rw [l2sq_self]; exact hεm
 
-/-- Compatibility alias for the common full-support lemma: for [measures `μ` and `ν` on
-the same measurable space](hyp:μ,ν), if [`ν` charges every singleton](hyp:hν), then [`μ` is
-absolutely continuous with respect to `ν`](goal). -/
-@[deprecated Causalean.Estimation.MinimaxATE.absolutelyContinuous_of_singleton_pos
-  (since := "2026-09-15")]
-alias absolutelyContinuous_of_singleton_pos :=
-  Causalean.Estimation.MinimaxATE.absolutelyContinuous_of_singleton_pos
-
 /-- The null single-observation law charges every point (its mass is positive). -/
 theorem obsLaw_null_singleton_ne_zero (hv : ValidDGP (C := C) (mC m₀) (gNull g₀ g₁))
     (hm0 : 0 < m₀) (hm1 : m₀ < 1) (hg0 : 0 < g₀) (hg0' : g₀ < 1)

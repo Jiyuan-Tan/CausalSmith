@@ -685,7 +685,7 @@ lemma parametricEpoch_klDiv_le (T : Nat) :
   have hprod : InformationTheory.klDiv (P.prod R) (Q.prod R) =
       InformationTheory.klDiv P Q := by
     rw [← Measure.compProd_const, ← Measure.compProd_const]
-    exact Causalean.Mathlib.InformationTheory.Measure.klDiv_compProd_left
+    exact InformationTheory.klDiv_compProd_left
       P Q (Kernel.const Bool R)
   let f : ℝ → Bool := fun x ↦ decide (x = 1)
   have hf : Measurable f := by

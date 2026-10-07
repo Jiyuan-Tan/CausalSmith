@@ -23,9 +23,27 @@ public import Causalean.Mathlib.Algorithms.SlidingWindow.MonotoneDeque.Update
 /-!
 # Correctness and mutation bounds for monotone window deques
 
-This umbrella module exports a reusable, paper-independent API for finite ordered streams,
-nondecreasing contiguous windows, a rightmost-stable monotone deque, scan correctness, exact event
-accounting, window-width memory bounds, and finite indexed families of passes. The accounting
-counts recorded mutations and scheduled-window events; it does not bound the runtime of the list
-implementation.
+Verified sliding-window maximum by a monotone deque. Given a finite stream of values in a linear
+order and a list of contiguous index windows whose left and right endpoints are both
+nondecreasing, the scan maintains a deque of indices with strictly decreasing values (ties keep
+the rightmost index). At every nonempty window the head of the deque is an index in the window
+whose value is the maximum over that window. The total number of recorded deque insertions and
+deletions over the whole scan is at most twice the stream length plus the number of windows, and
+the deque never holds more indices than the current window width. These are counts of recorded
+mutations, not running-time bounds for the list implementation.
+
+## Contents
+
+* `Basic` — finite streams, half-open windows, and schedules with nondecreasing endpoints.
+* `Deque`, `Update` — the deque operations (expire from the front, prune and push at the back),
+  the validity invariant, and its preservation by one window update.
+* `Scan`, `Correctness` — the scan over a schedule; `scan_head_value_eq_windowMax` (the head
+  attains the window maximum).
+* `Accounting` — `scanMutationCount_le` (at most 2·length + number of windows mutations) and
+  `scan_memory_le_windowWidth`.
+* `Passes` — finitely many schedules over one stream, with the summed bound
+  `FixedPasses.totalMutationCount_le`.
+* `PredicateSchedule`, `PredicateRawScan`, `PredicateAccounting` — windows specified by entry and
+  stay predicates on a list of raw keys, a raw-key version of the scan shown to produce the same
+  trace, and the same correctness and counting bounds for it.
 -/

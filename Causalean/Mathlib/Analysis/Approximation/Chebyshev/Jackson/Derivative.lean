@@ -2,10 +2,17 @@ module
 public import Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson.Fourier
 
 /-!
-# Twice differentiating the Jackson packet polynomial
+# The second derivative of the Jackson packet antiderivative
 
-The finite reciprocal-weighted cosine series is a twice antiderivative of
-the modulated Jackson kernel.
+For every order N ≥ 2, the finite cosine series with reciprocal-square weights 1/(4N ± j)² built
+from the Jackson kernel's Fourier coefficients has second derivative equal to the oscillatory
+Jackson packet, the Jackson kernel multiplied by cos(4N·u). So the modulated kernel has an
+explicit trigonometric-polynomial twice antiderivative.
+
+## Main results
+
+* `packet_twice_deriv` — the second derivative of `packetAntideriv N` at every real u is
+  `packetOscillation N u`, for N ≥ 2.
 -/
 
 public section
@@ -126,8 +133,7 @@ theorem packet_twice_deriv (N : ℕ) (hN : 2 ≤ N) (u : ℝ) :
           rw [← mul_add, htrig]
           ring
     _ = packetOscillation N u := by
-      rw [← packet_kernel_reconstruction N (by omega : 0 < N) u]
+      rw [← kernel_fourier N (by omega : 0 < N) u]
       rfl
 
 end Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson
-

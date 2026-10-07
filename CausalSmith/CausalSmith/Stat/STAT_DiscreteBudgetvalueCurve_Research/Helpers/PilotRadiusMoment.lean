@@ -140,9 +140,7 @@ lemma pilotRadius_sum_sq_integral_le_cellScale {n d : ℕ} (hn : 1 ≤ n)
       (poissonMeasure (rate j (CellFourEquiv z))) μ := by
     simpa [N, μ, rate, poissonTableCell] using
       poissonTable_eval_coordinate_law
-        (fun iz : Fin d × Fin 4 => rate iz.1 iz.2)
-        (fun iz : Fin d × Fin 4 => rate iz.1 iz.2)
-        (fun _ => 0) (j, CellFourEquiv z)
+        (fun iz : Fin d × Fin 4 => rate iz.1 iz.2) (j, CellFourEquiv z)
   have hNint (z : Cell) : Integrable (N z) μ := by
     have hi : Integrable (fun w : ℕ => (w : ℝ))
         (poissonMeasure (rate j (CellFourEquiv z))) := by

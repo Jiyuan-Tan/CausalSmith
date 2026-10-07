@@ -6,7 +6,7 @@ public import CausalSmith.Stat.STAT_SparseheterogeneityCriticalRadius_Research.H
 /-! Assembly of the legal count triangle into the unrestricted pair of
 finite-Poisson samples. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SparseheterogeneityCriticalRadius
 

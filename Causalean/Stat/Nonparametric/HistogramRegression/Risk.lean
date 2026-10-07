@@ -53,7 +53,7 @@ theorem histogram_risk_le {m : ℕ}
   -- Regression is bounded almost surely; clipping bounds every training tuple.
   have hb := regression_mem_Icc_ae μ X Y g hX hg hbound hmean
   have hc (k : κ) : c k ∈ Set.Icc (0 : ℝ) 1 :=
-    cellMean_mem_Icc μ label X Y k hlabel hX hY hbound
+    cellMean_mem_Icc μ label X Y k hY hbound
   have he (k : κ) (z : Fin m → Ω) :
       cellEstimate label X Y a k z ∈ Set.Icc (0 : ℝ) 1 := by
     unfold cellEstimate

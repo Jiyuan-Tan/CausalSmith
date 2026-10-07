@@ -218,7 +218,7 @@ private lemma sum_coordFlip (n : ℕ) (k : Fin n) (A : Signs n → ℝ) :
   Fintype.sum_bijective (coordFlip n k) (coordFlipEquiv n k).bijective _ _ fun _ => rfl
 
 private lemma coordHybrid_step [Nonempty ι] [Finite ι]
-    (φ : Fin n → ℝ → ℝ) {L : ℝ} (hL : 0 ≤ L)
+    (φ : Fin n → ℝ → ℝ) {L : ℝ}
     (hφ : ∀ k x y, |φ k x - φ k y| ≤ L * |x - y|)
     (F : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) {m : ℕ} (hm : m < n) :
     coordHybridAverage φ L F S m ≤ coordHybridAverage φ L F S (m + 1) := by
@@ -253,7 +253,7 @@ private lemma coordHybrid_full [Finite ι]
   simp [coordHybridAverage, coordHybridInner, empiricalRademacherComplexity_without_abs]
 
 private lemma coordHybrid_zero_le_full [Nonempty ι] [Finite ι]
-    (φ : Fin n → ℝ → ℝ) {L : ℝ} (hL : 0 ≤ L)
+    (φ : Fin n → ℝ → ℝ) {L : ℝ}
     (hφ : ∀ k x y, |φ k x - φ k y| ≤ L * |x - y|)
     (F : ι → 𝒳 → ℝ) (S : Fin n → 𝒳) :
     coordHybridAverage φ L F S 0 ≤ coordHybridAverage φ L F S n := by
@@ -264,7 +264,7 @@ private lemma coordHybrid_zero_le_full [Nonempty ι] [Finite ι]
     | zero => exact le_rfl
     | succ m ih =>
       exact (ih (Nat.le_trans (Nat.le_succ m) hm)).trans
-        (coordHybrid_step φ hL hφ F S (Nat.lt_of_succ_le hm))
+        (coordHybrid_step φ hφ F S (Nat.lt_of_succ_le hm))
   exact hchain n le_rfl
 
 /-- **Coordinatewise Ledoux--Talagrand contraction, signed form.** If [the common
@@ -283,7 +283,7 @@ theorem rademacher_contraction_coordinatewise
   calc
     coordinateRademacherAverageWithoutAbs n φ F S = coordHybridAverage φ L F S 0 :=
       (coordHybrid_zero φ L F S).symm
-    _ ≤ coordHybridAverage φ L F S n := coordHybrid_zero_le_full φ hL hφ F S
+    _ ≤ coordHybridAverage φ L F S n := coordHybrid_zero_le_full φ hφ F S
     _ = empiricalRademacherComplexity_without_abs n (fun i x => L * F i x) S :=
       coordHybrid_full φ L F S
     _ = L * empiricalRademacherComplexity_without_abs n F S :=

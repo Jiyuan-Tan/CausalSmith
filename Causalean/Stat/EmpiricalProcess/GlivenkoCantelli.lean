@@ -80,9 +80,10 @@ private theorem dev_tendsto_zero (S : IIDSample Ω X μ P) [IsProbabilityMeasure
       (MeasureTheory.integrable_map_measure hg.aestronglyMeasurable
         (S.meas 0).aemeasurable).mpr (by simpa [Function.comp_def] using hgi)
     rwa [S.law] at hgi_map
-  have h : Tendsto_inProb (S.sampleMean g) (fun _ => ∫ x, g x ∂P) μ :=
+  have h : Modes.TendstoInProbability (fun _ : ℕ => μ) (S.sampleMean g) atTop
+      (fun _ _ => ∫ x, g x ∂P) :=
     S.sampleMean_tendsto_inProb hg hgiP
-  -- `Tendsto_inProb` is `edist`/`ℝ≥0∞`-valued; bridge to the real `|·|` event.
+  -- Convergence in probability is `edist`/`ℝ≥0∞`-valued; bridge to the real `|·|` event.
   have h2 := h (ENNReal.ofReal ε) (ENNReal.ofReal_pos.mpr hε)
   have hset : ∀ n,
       {ω | ENNReal.ofReal ε ≤ edist (S.sampleMean g n ω) ((fun _ => ∫ x, g x ∂P) ω)}

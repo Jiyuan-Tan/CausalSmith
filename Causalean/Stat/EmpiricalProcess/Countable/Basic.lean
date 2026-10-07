@@ -36,7 +36,11 @@ structure BoundedClass (Ω ι : Type*) [MeasurableSpace Ω] where
 /-- [The centered supremum](goal) of [an indexed function class](hyp:f) on
 [a sample](hyp:x) relative to [a population measure μ](hyp:μ) is [the
 supremum over the class of the absolute difference between each function's
-empirical average and its population integral](step:1). -/
+empirical average and its population integral](step:1).
+
+The supremum is the real-valued one: it is zero when the class is empty or
+when the absolute deviations are unbounded over the class. For an empty
+sample the empirical average is zero. -/
 def centeredSup {Ω ι : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
     (f : ι → Ω → ℝ) {n : ℕ} (x : Fin n → Ω) : ℝ :=
   ⨆ i, |Causalean.Stat.Concentration.centeredEmpiricalAverage μ x (f i)|
@@ -44,7 +48,11 @@ def centeredSup {Ω ι : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
 /-- [The ghost supremum](goal) of [an indexed function class](hyp:f) on
 [two samples x and y of the same size n](hyp:x,y) is [the supremum over the
 class of the absolute difference between the two samples' empirical
-averages, that is, of |(1/n) Σ_j (f(x_j) − f(y_j))|](step:1). -/
+averages, that is, of |(1/n) Σ_j (f(x_j) − f(y_j))|](step:1).
+
+The supremum is the real-valued one: it is zero when the class is empty or
+when the values are unbounded over the class. For sample size zero the
+factor 1/n is zero. -/
 def ghostSup {Ω ι : Type*} (f : ι → Ω → ℝ) {n : ℕ}
     (x y : Fin n → Ω) : ℝ :=
   ⨆ i, |(n : ℝ)⁻¹ * ∑ j, (f i (x j) - f i (y j))|
@@ -52,7 +60,12 @@ def ghostSup {Ω ι : Type*} (f : ι → Ω → ℝ) {n : ℕ}
 /-- [The signed supremum](goal) of [an indexed function class](hyp:f) on
 [a sample of size n](hyp:x) under [a sign vector σ](hyp:σ) is [the
 supremum over the class of the absolute normalized Rademacher sum
-|(1/n) Σ_j σ_j f(x_j)|](step:1). -/
+|(1/n) Σ_j σ_j f(x_j)|](step:1).
+
+A sign vector is a vector of Booleans, true standing for +1 and false for
+−1. The supremum is the real-valued one: it is zero when the class is empty
+or when the values are unbounded over the class. For sample size zero the
+factor 1/n is zero. -/
 def signedSup {Ω ι : Type*} (f : ι → Ω → ℝ) {n : ℕ}
     (x : Fin n → Ω) (σ : Fin n → Bool) : ℝ :=
   ⨆ i, |(n : ℝ)⁻¹ * ∑ j, (if σ j then (1 : ℝ) else -1) * f i (x j)|
@@ -61,7 +74,12 @@ def signedSup {Ω ι : Type*} (f : ι → Ω → ℝ) {n : ℕ}
 on [two samples x and y of the same size n](hyp:x,y) under [a sign vector
 σ](hyp:σ) is [the supremum over the class of
 |(1/n) Σ_j σ_j (f(x_j) − f(y_j))|, one sign per paired
-difference](step:1). -/
+difference](step:1).
+
+A sign vector is a vector of Booleans, true standing for +1 and false for
+−1. The supremum is the real-valued one: it is zero when the class is empty
+or when the values are unbounded over the class. For sample size zero the
+factor 1/n is zero. -/
 def signedGhostSup {Ω ι : Type*} (f : ι → Ω → ℝ) {n : ℕ}
     (x y : Fin n → Ω) (σ : Fin n → Bool) : ℝ :=
   ⨆ i, |(n : ℝ)⁻¹ * ∑ j,

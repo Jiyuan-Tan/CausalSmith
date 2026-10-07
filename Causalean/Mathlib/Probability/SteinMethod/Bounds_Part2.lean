@@ -27,7 +27,7 @@ the bounds that make the local-dependence Stein estimate work for test functions
 `h = cos(t * ·)` and `h = sin(t * ·)`.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped Real

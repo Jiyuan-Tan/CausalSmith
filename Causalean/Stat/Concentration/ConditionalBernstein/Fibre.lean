@@ -121,7 +121,7 @@ theorem integral_sq_centeredSummand (hbin : MeasurableSet bin) (i : Fin n) :
     integral_sq_centered_bin (K (x i)) hbin]
   by_cases hc : key (x i) = c <;> simp [cellIndicator, hc]
 
-/-- If [conditional bin probabilities obey a nonnegative cell envelope](hyp:hprob,hpMax),
+/-- If [conditional bin probabilities obey a cell envelope](hyp:hprob),
 then the [centered summands](hyp:key,K,hbin,c,x) have
 [total second moment at most the envelope times the realized cell count](goal).
 
@@ -129,7 +129,7 @@ Use `integral_sq_centeredSummand`, bound `p*(1-p) ≤ p ≤ pMax` on active coor
 and use `cellCount_cast`. Inactive coordinates have zero variance. This is the crucial
 budget calculation; replacing the realized cell count by n would not meet the API.
 -/
-theorem sum_second_moments_le (hbin : MeasurableSet bin) {pMax : ℝ} (hpMax : 0 ≤ pMax)
+theorem sum_second_moments_le (hbin : MeasurableSet bin) {pMax : ℝ}
     (hprob : ∀ i, key (x i) = c → binProbability K bin (x i) ≤ pMax) :
     (∑ i, ∫ y, centeredSummand key K bin c x i y ^ 2
       ∂Causalean.Stat.finProductKernel n K x) ≤ pMax * (cellCount key c x : ℝ) := by
@@ -142,14 +142,16 @@ theorem sum_second_moments_le (hbin : MeasurableSet bin) {pMax : ℝ} (hpMax : 0
   · simp only [cellIndicator, if_pos hc, one_mul]
     have hp0 : 0 ≤ binProbability K bin (x i) := measureReal_nonneg
     have hp := hprob i hc
-    nlinarith [sq_nonneg (binProbability K bin (x i)), hpMax]
+    nlinarith [sq_nonneg (binProbability K bin (x i))]
   · simp [cellIndicator, hc]
 
-/-- On the [complete design fibre](hyp:x) under a [Markov outcome kernel](hyp:K),
-the joint count in a [cell and measurable bin](hyp:key,c,hbin) deviates from its
-conditional mean by [at most the Bernstein radius except with probability twice
-the exponential tail](goal), when the [cell bin probabilities obey a nonnegative
-envelope](hyp:hprob,hpMax) and the [tail parameter is nonnegative](hyp:hu).
+/-- Fix a [complete design vector](hyp:x), and draw the outcomes independently across
+coordinates, each from a [Markov outcome kernel](hyp:K) at its design entry. For a
+[design cell and measurable bin](hyp:key,c,hbin), suppose the [kernel probability of the bin
+is at most a nonnegative number pMax at every design entry in the cell](hyp:hprob,hpMax) and
+the [tail parameter u is nonnegative](hyp:hu). Then [the probability that the joint count
+differs from its conditional mean by strictly more than √(2 · pMax · N · u) + u, where N is
+the number of design entries in the cell, is at most 2 exp(−u)](goal).
 
 Apply `bernstein_sum_totalVariance_abs_gt` to the preceding summand data and rewrite
 with `jointCount_sub_conditionalMean`. Both n = 0 and cellCount = 0 are included.
@@ -170,6 +172,6 @@ theorem fibre_pair_tail_le (hbin : MeasurableSet bin) {pMax u : ℝ} (hpMax : 0 
       (integrable_sq_centeredSummand key K c x hbin)
       (integral_centeredSummand key K c x hbin)
       (fun i => Filter.Eventually.of_forall (abs_centeredSummand_le_one key K c x i))
-      (sum_second_moments_le key K c x hbin hpMax hprob)
+      (sum_second_moments_le key K c x hbin hprob)
 
 end Causalean.Stat.Concentration.ConditionalBernstein

@@ -56,7 +56,7 @@ theorem HasPolynomialEmpiricalL2Cover.totallyBounded
         mul_le_mul_of_nonneg_right (min_le_right _ _) (le_of_lt hU)
       _ = r := by field_simp
   have hj' : empiricalDist S (F q.index) (F j) < r := by
-    rw [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hn
+    rw [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S
       (hmeas q.index) (hmeas j)]
     exact lt_of_lt_of_le hj hεU
   refine Set.mem_iUnion_of_mem (⟨j⟩ : EmpiricalFunctionSpace F S) ?_
@@ -98,7 +98,7 @@ theorem HasPolynomialEmpiricalL2Cover.coveringNumber_le
     intro q hq
     obtain ⟨j, hjC, hj⟩ := hCcover q.index
     have hj' : empiricalDist S (F q.index) (F j) < r := by
-      rw [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hn
+      rw [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S
         (hmeas q.index) (hmeas j)]
       exact hj
     refine Set.mem_iUnion_of_mem (⟨j⟩ : EmpiricalFunctionSpace F S) ?_

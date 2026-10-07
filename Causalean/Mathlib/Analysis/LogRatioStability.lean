@@ -21,21 +21,12 @@ noncomputable section
 
 namespace Causalean.Mathlib.Analysis
 
-/-- [Uniform convergence on a set](goal) requires every positive error tolerance eventually to
-control [the whole function sequence](hyp:f) relative to [its limiting function](hyp:g) at every
-point of [that set](hyp:K).
-
-This sequence-specific predicate is retained for compatibility; new developments should use
-Mathlib's filter-general `TendstoUniformlyOn`. -/
-@[deprecated TendstoUniformlyOn (since := "2026-09-19")]
-def UniformlyOn {α : Type*} (K : Set α) (f : ℕ → α → ℝ) (g : α → ℝ) : Prop :=
-  ∀ ε > 0, ∃ N, ∀ n ≥ N, ∀ x ∈ K, |f n x - g x| < ε
-
-/-- [The compatibility predicate `UniformlyOn`](hyp:K,f,g) is equivalent to [Mathlib's
-filter-general uniform convergence on the same set, specialized to sequences](goal). -/
-theorem uniformlyOn_iff_tendstoUniformlyOn {α : Type*} (K : Set α)
+/-- [Uniform convergence of a function sequence on a set](hyp:f,g,K) holds [exactly when every
+positive error tolerance is eventually met, at every point of the set, by the absolute difference
+between the sequence and its limit](goal). -/
+theorem tendstoUniformlyOn_atTop_iff_abs_sub_lt {α : Type*} (K : Set α)
     (f : ℕ → α → ℝ) (g : α → ℝ) :
-    UniformlyOn K f g ↔ TendstoUniformlyOn f g atTop K := by
+    TendstoUniformlyOn f g atTop K ↔ ∀ ε > 0, ∃ N, ∀ n ≥ N, ∀ x ∈ K, |f n x - g x| < ε := by
   rw [Metric.tendstoUniformlyOn_iff]
   simp only [Real.dist_eq, eventually_atTop]
   constructor
@@ -49,8 +40,8 @@ theorem uniformlyOn_iff_tendstoUniformlyOn {α : Type*} (K : Set α)
 /-- Uniform `C¹` convergence on a real set means uniform convergence of both function values and
 their first within-derivatives. -/
 def UniformC1On (K : Set ℝ) (f : ℕ → ℝ → ℝ) (g : ℝ → ℝ) : Prop :=
-  UniformlyOn K f g ∧
-    UniformlyOn K (fun n x ↦ derivWithin (f n) K x) (fun x ↦ derivWithin g K x)
+  TendstoUniformlyOn f g atTop K ∧
+    TendstoUniformlyOn (fun n x ↦ derivWithin (f n) K x) (fun x ↦ derivWithin g K x) atTop K
 
 /-- Two real functions are uniformly `C¹`-close on a set when both values and first
 within-derivatives differ by less than the same radius everywhere on the set. -/
@@ -73,10 +64,11 @@ def logRatio (q p : ℝ → ℝ) (x : ℝ) : ℝ := Real.log (q x / p x)
 limit share one strictly positive lower bound. -/
 theorem uniformlyOn_inv_of_lowerBound {α : Type*} {K : Set α}
     {f : ℕ → α → ℝ} {g : α → ℝ} {m : ℝ}
-    (hm : 0 < m) (hconv : UniformlyOn K f g)
+    (hm : 0 < m) (hconv : TendstoUniformlyOn f g atTop K)
     (hlower : ∀ n x, x ∈ K → m ≤ f n x)
     (hlower_limit : ∀ x, x ∈ K → m ≤ g x) :
-    UniformlyOn K (fun n x ↦ (f n x)⁻¹) (fun x ↦ (g x)⁻¹) := by
+    TendstoUniformlyOn (fun n x ↦ (f n x)⁻¹) (fun x ↦ (g x)⁻¹) atTop K := by
+  rw [tendstoUniformlyOn_atTop_iff_abs_sub_lt] at hconv ⊢
   intro ε hε
   obtain ⟨N, hN⟩ := hconv (ε * m ^ 2) (mul_pos hε (sq_pos_of_pos hm))
   refine ⟨N, fun n hn x hx ↦ ?_⟩
@@ -96,13 +88,15 @@ continuous limit and denominators share a strictly positive lower bound. -/
 theorem uniformlyOn_div_of_lowerBound {α : Type*} [TopologicalSpace α]
     {K : Set α} (hK : IsCompact K)
     {u : ℕ → α → ℝ} {v : ℕ → α → ℝ} {u₀ v₀ : α → ℝ} {m : ℝ}
-    (hm : 0 < m) (hu : UniformlyOn K u u₀) (hv : UniformlyOn K v v₀)
+    (hm : 0 < m) (hu : TendstoUniformlyOn u u₀ atTop K)
+    (hv : TendstoUniformlyOn v v₀ atTop K)
     (hu₀ : ContinuousOn u₀ K)
     (hlower : ∀ n x, x ∈ K → m ≤ v n x)
     (hlower_limit : ∀ x, x ∈ K → m ≤ v₀ x) :
-    UniformlyOn K (fun n x ↦ u n x / v n x) (fun x ↦ u₀ x / v₀ x) := by
+    TendstoUniformlyOn (fun n x ↦ u n x / v n x) (fun x ↦ u₀ x / v₀ x) atTop K := by
   obtain ⟨C, hC⟩ := hK.exists_bound_of_continuousOn hu₀
   have hinv := uniformlyOn_inv_of_lowerBound hm hv hlower hlower_limit
+  rw [tendstoUniformlyOn_atTop_iff_abs_sub_lt] at hu hinv ⊢
   intro ε hε
   let B := |C| + 1
   have hB : 0 < B := add_pos_of_nonneg_of_pos (abs_nonneg C) zero_lt_one
@@ -146,10 +140,11 @@ theorem uniformlyOn_div_of_lowerBound {α : Type*} [TopologicalSpace α]
 positive lower bound. -/
 theorem uniformlyOn_log_of_lowerBound {α : Type*} {K : Set α}
     {f : ℕ → α → ℝ} {g : α → ℝ} {m : ℝ}
-    (hm : 0 < m) (hconv : UniformlyOn K f g)
+    (hm : 0 < m) (hconv : TendstoUniformlyOn f g atTop K)
     (hlower : ∀ n x, x ∈ K → m ≤ f n x)
     (hlower_limit : ∀ x, x ∈ K → m ≤ g x) :
-    UniformlyOn K (fun n x ↦ Real.log (f n x)) (fun x ↦ Real.log (g x)) := by
+    TendstoUniformlyOn (fun n x ↦ Real.log (f n x)) (fun x ↦ Real.log (g x)) atTop K := by
+  rw [tendstoUniformlyOn_atTop_iff_abs_sub_lt] at hconv ⊢
   have hlog_lip : ∀ {r s : ℝ}, m ≤ r → m ≤ s →
       |Real.log r - Real.log s| ≤ m⁻¹ * |r - s| := by
     intro r s hr hs
@@ -224,9 +219,11 @@ theorem uniformC1On_logRatio {a b m : ℝ} (hab : a < b) (hm : 0 < m)
   have hp₀pos : ∀ x, x ∈ Icc a b → 0 < p₀ x :=
     fun x hx ↦ hm.trans_le (hp₀lower x hx)
   have hsub : ∀ {u v : ℕ → ℝ → ℝ} {u₀ v₀ : ℝ → ℝ},
-      UniformlyOn (Icc a b) u u₀ → UniformlyOn (Icc a b) v v₀ →
-      UniformlyOn (Icc a b) (fun n x ↦ u n x - v n x) (fun x ↦ u₀ x - v₀ x) := by
-    intro u v u₀ v₀ hu hv ε hε
+      TendstoUniformlyOn u u₀ atTop (Icc a b) → TendstoUniformlyOn v v₀ atTop (Icc a b) →
+      TendstoUniformlyOn (fun n x ↦ u n x - v n x) (fun x ↦ u₀ x - v₀ x) atTop (Icc a b) := by
+    intro u v u₀ v₀ hu hv
+    rw [tendstoUniformlyOn_atTop_iff_abs_sub_lt] at hu hv ⊢
+    intro ε hε
     obtain ⟨Nu, hNu⟩ := hu (ε / 2) (by positivity)
     obtain ⟨Nv, hNv⟩ := hv (ε / 2) (by positivity)
     refine ⟨max Nu Nv, fun n hn x hx ↦ ?_⟩
@@ -251,7 +248,11 @@ theorem uniformC1On_logRatio {a b m : ℝ} (hab : a < b) (hm : 0 < m)
     hqderiv_cont hqlower hq₀lower
   have hpquot := uniformlyOn_div_of_lowerBound isCompact_Icc hm hpconv.2 hpconv.1
     hpderiv_cont hplower hp₀lower
-  refine ⟨?_, ?_⟩
+  rw [tendstoUniformlyOn_atTop_iff_abs_sub_lt] at hvalue
+  have hderiv := hsub hqquot hpquot
+  rw [tendstoUniformlyOn_atTop_iff_abs_sub_lt] at hderiv
+  refine ⟨(tendstoUniformlyOn_atTop_iff_abs_sub_lt _ _ _).2 ?_,
+    (tendstoUniformlyOn_atTop_iff_abs_sub_lt _ _ _).2 ?_⟩
   · intro ε hε
     obtain ⟨N, hN⟩ := hvalue ε hε
     refine ⟨N, fun n hn x hx ↦ ?_⟩
@@ -260,7 +261,7 @@ theorem uniformC1On_logRatio {a b m : ℝ} (hab : a < b) (hm : 0 < m)
       Real.log_div (hq₀pos x hx).ne' (hp₀pos x hx).ne']
     exact hN n hn x hx
   · intro ε hε
-    obtain ⟨N, hN⟩ := hsub hqquot hpquot ε hε
+    obtain ⟨N, hN⟩ := hderiv ε hε
     refine ⟨N, fun n hn x hx ↦ ?_⟩
     change |derivWithin (logRatio (q n) (p n)) (Icc a b) x -
       derivWithin (logRatio q₀ p₀) (Icc a b) x| < ε

@@ -14,7 +14,7 @@ the earlier simultaneous-in-sample-size NPIV route.  The current fixed-sample
 rate uses `per_sample_empirical_process_event` instead.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean
 namespace Estimation

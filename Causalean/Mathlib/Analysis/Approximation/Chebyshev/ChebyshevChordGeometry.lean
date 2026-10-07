@@ -18,7 +18,7 @@ symmetry and adjacent ordering, and derives the root-product domination used in
 the vertical-modulus argument.
 -/
 
-@[expose] public section
+public section
 
 open Polynomial Set
 

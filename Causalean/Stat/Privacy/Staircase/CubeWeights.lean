@@ -51,9 +51,10 @@ theorem cubeWeight_sum (t : Fin 4 → ℝ) :
           simp only [hweight]
     _ = 1 := by simp
 
-/-- Given [four unit-cube coordinates](hyp:t) and [one selected coordinate](hyp:i), the
+/-- Given [four real coordinates](hyp:t) and [one selected coordinate](hyp:i), the
 [weighted coordinate indicator has expectation equal to that coordinate](goal) under the product
-weights on the sixteen cube vertices.
+weights on the sixteen cube vertices: summing the product weight over the subsets that contain
+the selected coordinate returns that coordinate's value. No unit-cube restriction is needed.
 
 Proof hint: split the sum by membership of `i`, factor out `t i`, and apply
 `cubeWeight_sum` to the remaining three coordinates. -/

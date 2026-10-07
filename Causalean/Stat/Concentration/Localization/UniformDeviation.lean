@@ -41,7 +41,7 @@ public import FoML.Main
 This file develops high-probability, localized empirical-process deviation
 bounds for bounded classes of loss functions. It packages the boundedness and
 star-shaped-envelope complexity assumptions, proves a critical-radius bound at
-a fixed radius, and then obtains a uniform sharp bound by peeling. These results
+a fixed radius, and then obtains a uniform norm-adaptive bound by peeling. These results
 provide the concentration component used by the library's statistical
 estimation theory. -/
 
@@ -368,7 +368,7 @@ theorem localized_uniform_deviation
       nlinarith
     simpa [fΩ, hi, ε, add_assoc] using hmain
 
-/-- **Sharp localized uniform deviation.** Fix [a localized regime `R`](hyp:R) built from
+/-- **Peeled localized uniform deviation.** Fix [a localized regime `R`](hyp:R) built from
 [measurable losses `F i`](hyp:hF_meas) composed with [a measurable map `X`](hyp:hX), a confidence
 level [`δ` in `(0,1]`](hyp:hδ,hδ'), [a sample size `n` at least 1](hyp:hn), and [nonnegative
 localization norms](hyp:hnorm_nonneg). Let `ρ` be
@@ -389,7 +389,7 @@ i` deviates from its population mean by at most `10 · ρ · norm (F i) + 5 · �
     a verbatim formalization: this theorem takes a fixed sample size `n`, a
     diameter cap `Rmax`, and a caller-supplied critical-radius slack absorption
     hypothesis `hδ_dom`. The conclusion is uniform over the whole class with
-    the sharp localized shape
+    the norm-adaptive localized shape
 
         `O(ρ_n · norm(F i) + ρ_n²)`,
 
@@ -401,7 +401,7 @@ i` deviates from its population mean by at most `10 · ρ · norm (F i) + 5 · �
     The caller is responsible for proving the Bousquet absorption condition in
     `hδ_dom`: a linear leading term (`√(x/n) ≲ ρ`) plus the usual quadratic
     floor (`ρ² ≳ R.b x/n`). -/
-theorem localized_uniform_deviation_sharp
+theorem localized_uniform_deviation_peeled
     [MeasurableSpace 𝒳] [Nonempty 𝒳]
     [Nonempty ι] [Countable ι]
     (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ)

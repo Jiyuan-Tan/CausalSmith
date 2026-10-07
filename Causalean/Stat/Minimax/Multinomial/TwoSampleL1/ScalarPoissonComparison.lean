@@ -24,16 +24,19 @@ open scoped ENNReal
 open Causalean.Stat.Minimax.MomentMatchedMixture.FiniteSignedMomentMarkedPoissonMixture
 
 /-- The Poisson count-pair predictive law formed from one of two finite scalar
-moment priors. The Boolean index selects the first or second prior. -/
+moment priors: the mixture, over the prior's nodes `u` with the selected side's weights, of
+the law of two independent Poisson counts with rates `lambda (1 + t u)` and
+`lambda (1 - t u)` (a negative rate is truncated to zero). The Boolean index selects the
+first (`false`) or second (`true`) prior. -/
 noncomputable def scalarPoissonPredictive {L : ℕ} (P : ScalarMomentPriors L)
     (lambda t : ℝ) (side : Bool) : Measure (ℕ × ℕ) :=
   Causalean.Stat.mixture
     (fun i => ENNReal.ofReal (if side then P.w₁ i else P.w₀ i))
     (fun i => scalarPoissonPairLaw lambda t (P.node i))
 
-/-- Given [a positive-degree moment prior](hyp:P,hL), [a nonnegative Poisson intensity and bounded nonnegative tilt](hyp:lambda,t,hlambda,ht,ht1), and [the scale budget](hyp:hscale), [the scalar predictive distance is bounded by the moment remainder](goal). -/
+/-- Given [a scalar moment-prior pair matched through degree `L`](hyp:P), [a nonnegative Poisson intensity `λ` and a tilt `t` between zero and one](hyp:lambda,t,hlambda,ht,ht1), and [the scale budget `100 λ t² ≤ L`](hyp:hscale), [the total variation distance between the two Poisson count-pair predictive laws built from the two priors is at most `2^(-L/4)`](goal). -/
 theorem scalarPoissonPredictive_tv_le {L : ℕ} (P : ScalarMomentPriors L)
-    (hL : 1 ≤ L) (lambda t : ℝ) (hlambda : 0 ≤ lambda)
+    (lambda t : ℝ) (hlambda : 0 ≤ lambda)
     (ht : 0 ≤ t) (ht1 : t ≤ 1)
     (hscale : 100 * lambda * t ^ 2 ≤ (L : ℝ)) :
     Causalean.Stat.tvDist

@@ -56,8 +56,8 @@ theorem hansenJ_tendsto_chiSq
     (θn : ℕ → Ω → E) (sampleW : ℕ → Ω → (F →L[ℝ] F))
     (hConsistent : ∀ ε > 0,
       Tendsto (fun n => μ {ω | ε < ‖θn n ω - prob.θ₀‖}) atTop (𝓝 0))
-    (hWeight : Tendsto_inProb
-      (fun n ω => ‖sampleW n ω - prob.CovInv‖) (fun _ => 0) μ)
+    (hWeight : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => ‖sampleW n ω - prob.CovInv‖)
+        atTop (fun _ _ => 0))
     (hApproxFOC : IsLittleOp
       (fun n ω => ‖(adjoint (gmmSampleJacobian reg S (θn n ω) n ω) ∘L
         sampleW n ω) (gmmNormalizedMoment S prob.g (θn n ω) n ω)‖)
@@ -176,8 +176,8 @@ theorem hansenJ_tendsto_chiSq
             (gmmNormalizedMoment S prob.g prob.θ₀ n ω)‖ := by
         rw [show T n ω = gmmNormalizedMoment S prob.g (θn n ω) n ω by rfl,
           hUeq n ω]
-  have hUclt : Tendsto_dist_vec U
-      (gaussianLimit prob.g_meas prob.finite_var) μ hUmeas := by
+  have hUclt : Modes.TendstoInLaw (fun _ : ℕ => μ) U atTop
+      (gaussianLimit prob.g_meas prob.finite_var) := by
     exact S.clt_normalizedSum_vec prob.g_meas prob.finite_var prob.identification
   have hGaussianWhiten :
       (gaussianLimit prob.g_meas prob.finite_var).map whiten = stdGaussian F := by
@@ -190,23 +190,26 @@ theorem hansenJ_tendsto_chiSq
     exact Measure.map_id
   have hWhitenUmeas : ∀ n, AEMeasurable (fun ω => whiten (U n ω)) μ := fun n =>
     whiten.continuous.measurable.aemeasurable.comp_aemeasurable (hUmeas n)
-  have hWhitenU : Tendsto_dist_vec (fun n ω => whiten (U n ω))
-      (stdGaussian F) μ hWhitenUmeas := by
+  have hWhitenU : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => whiten (U n ω)) atTop
+      (stdGaussian F) := by
     exact (Tendsto_dist_vec_iff _ _ _ hWhitenUmeas).2
-      (hUclt.map_continuous_of_map_eq whiten.continuous hUmeas hGaussianWhiten)
+      (Modes.TendstoInLaw.map_continuous_of_map_eq (hX := hUclt) whiten.continuous
+          hGaussianWhiten)
   have hMwUmeas : ∀ n, AEMeasurable (fun ω => Mw (whiten (U n ω))) μ := fun n =>
     Mw.continuous.measurable.aemeasurable.comp_aemeasurable (hWhitenUmeas n)
   letI : IsProbabilityMeasure ((stdGaussian F).map Mw) :=
     Measure.isProbabilityMeasure_map Mw.continuous.measurable.aemeasurable
-  have hMwU : Tendsto_dist_vec (fun n ω => Mw (whiten (U n ω)))
-      ((stdGaussian F).map Mw) μ hMwUmeas := by
+  have hMwU : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => Mw (whiten (U n ω))) atTop
+      ((stdGaussian F).map Mw) := by
     exact (Tendsto_dist_vec_iff _ _ _ hMwUmeas).2
-      (hWhitenU.map_continuous Mw.continuous hWhitenUmeas)
+      (Modes.TendstoInLaw.map_continuous (hX := hWhitenU) Mw.continuous)
   have hWhitenTmeas : ∀ n, AEMeasurable (fun ω => whiten (T n ω)) μ := fun n =>
     whiten.continuous.measurable.aemeasurable.comp_aemeasurable (hMomentMeas n)
-  have hWhitenT : Tendsto_dist_vec (fun n ω => whiten (T n ω))
-      ((stdGaussian F).map Mw) μ hWhitenTmeas :=
-    Tendsto_dist_vec.add_isLittleOp_one hMwUmeas hWhitenTmeas hMwU hWhiteRes
+  have hWhitenT : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => whiten (T n ω)) atTop
+      ((stdGaussian F).map Mw) :=
+    Modes.TendstoInLaw.add_isLittleOp_one hMwU hWhitenTmeas (by
+      intro ε hε
+      simpa only [norm_norm] using hWhiteRes ε hε)
   have hTfromWhite : ∀ n, (fun ω => sqrtCov (whiten (T n ω))) =ᵐ[μ] T n := by
     intro n
     filter_upwards with ω
@@ -217,16 +220,14 @@ theorem hansenJ_tendsto_chiSq
   let Qun : Measure F := Qres.map sqrtCov
   letI : IsProbabilityMeasure Qun :=
     Measure.isProbabilityMeasure_map sqrtCov.continuous.measurable.aemeasurable
-  have hSqrtWhite : Tendsto_dist_vec
-      (fun n ω => sqrtCov (whiten (T n ω))) Qun μ
-      (fun n => sqrtCov.continuous.measurable.aemeasurable.comp_aemeasurable
-        (hWhitenTmeas n)) := by
-    exact (Tendsto_dist_vec_iff _ _ _ _).2
-      (hWhitenT.map_continuous sqrtCov.continuous hWhitenTmeas)
-  have hTdist : Tendsto_dist_vec T Qun μ hTmeas := by
-    exact Tendsto_dist_vec.congr_ae
-      (fun n => sqrtCov.continuous.measurable.aemeasurable.comp_aemeasurable
-        (hWhitenTmeas n)) hTmeas hSqrtWhite (by
+  have hSqrtWhite : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => sqrtCov (whiten (T n ω))) atTop
+      Qun := by
+    exact (Tendsto_dist_vec_iff _ _ _
+      (fun n => sqrtCov.continuous.measurable.comp_aemeasurable (hWhitenTmeas n))).2
+      (Modes.TendstoInLaw.map_continuous (hX := hWhitenT) sqrtCov.continuous)
+  have hTdist : Modes.TendstoInLaw (fun _ : ℕ => μ) T atTop Qun := by
+    exact Modes.TendstoInLaw.congr_ae hSqrtWhite
+      hTmeas (by
           filter_upwards with n
           change (fun ω => sqrtCov (whiten (T n ω))) =ᵐ[μ] T n
           exact hTfromWhite n)
@@ -259,8 +260,7 @@ theorem hansenJ_tendsto_chiSq
     intro n
     rw [hJidentity n]
     exact hJMeas n
-  have hQuad := hTdist.quadraticForm_of_operator_tendstoInProb
-    hTmeas sampleW prob.CovInv hWeight hQuadMeas
+  have hQuad := Modes.TendstoInLaw.quadraticForm_of_operator_tendstoInProb (hX := hTdist) sampleW prob.CovInv hWeight hQuadMeas
   have hQuadTarget : Qun.map (fun x => ⟪prob.CovInv x, x⟫) =
       chiSqDist (Module.finrank ℝ F - Module.finrank ℝ E) := by
     have hq : Measurable (fun x : F => ⟪prob.CovInv x, x⟫) :=

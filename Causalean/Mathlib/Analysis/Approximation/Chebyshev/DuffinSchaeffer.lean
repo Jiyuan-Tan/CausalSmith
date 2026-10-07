@@ -62,12 +62,12 @@ theorem prod_norm_sub_chebyshevZero_le_endpoint
   intro k hk
   exact vertical_rootDistance_le_endpoint (hzeros k hk) hx₀.2
 
-/-- For [a positive degree L](hyp:hL) and [real numbers x and y](hyp:x,y), [the modulus of the
+/-- For any degree L and [real numbers x and y](hyp:x,y), [the modulus of the
 degree-L Chebyshev polynomial of the first kind at the complex point x + i y equals the modulus of
 its leading coefficient times the product of the distances from that point to its L cosine
 roots](goal). -/
 theorem norm_eval_chebyshev_eq_leadingCoeff_mul_rootProduct
-    {L : ℕ} (hL : 0 < L) (x y : ℝ) :
+    {L : ℕ} (x y : ℝ) :
     ‖(Polynomial.Chebyshev.T ℂ (L : ℤ)).eval
         ((x : ℂ) + (y : ℂ) * Complex.I)‖ =
       ‖(Polynomial.Chebyshev.T ℂ (L : ℤ)).leadingCoeff‖ *
@@ -148,7 +148,7 @@ theorem norm_eval_chebyshev_le_endpoint_vertical
         ‖(Polynomial.Chebyshev.T ℂ (L : ℤ)).leadingCoeff‖ *
           ∏ k ∈ Finset.range L,
             ‖((x - chebyshevZero L k : ℝ) : ℂ) + (y : ℂ) * Complex.I‖ :=
-      norm_eval_chebyshev_eq_leadingCoeff_mul_rootProduct hLpos x y
+      norm_eval_chebyshev_eq_leadingCoeff_mul_rootProduct x y
     _ ≤ ‖(Polynomial.Chebyshev.T ℂ (L : ℤ)).leadingCoeff‖ *
           ∏ k ∈ Finset.range L,
             ‖((1 - chebyshevZero L k : ℝ) : ℂ) + (y : ℂ) * Complex.I‖ :=
@@ -157,7 +157,7 @@ theorem norm_eval_chebyshev_le_endpoint_vertical
     _ = ‖(Polynomial.Chebyshev.T ℂ (L : ℤ)).eval
         ((1 : ℂ) + (y : ℂ) * Complex.I)‖ := by
       simpa using
-        (norm_eval_chebyshev_eq_leadingCoeff_mul_rootProduct hLpos (1 : ℝ) y).symm
+        (norm_eval_chebyshev_eq_leadingCoeff_mul_rootProduct (L := L) (1 : ℝ) y).symm
 
 /-! ## Derivative comparison at Chebyshev zeros -/
 
@@ -441,7 +441,7 @@ theorem abs_eval_derivative_le_sq_of_chebyshev_root_control
     {x : ℝ} (hx : x ∈ Set.Icc (-1) 1) :
     |Q.derivative.eval x| ≤ (L : ℝ) ^ 2 := by
   have hendpoint := abs_eval_derivative_le_chebyshev_endpoint_of_root_control
-    hL Q hQ hroots hx (fun y ↦ norm_eval_chebyshev_le_endpoint_vertical hx y)
+    hL Q hQ hroots (fun y ↦ norm_eval_chebyshev_le_endpoint_vertical hx y)
   rw [Polynomial.Chebyshev.derivative_T_eval_one] at hendpoint
   simpa [abs_of_nonneg (sq_nonneg (L : ℝ))] using hendpoint
 

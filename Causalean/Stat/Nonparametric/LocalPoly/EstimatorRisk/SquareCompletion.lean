@@ -89,54 +89,60 @@ theorem entry00_eq_quadForm (A : Matrix (Fin (p + 1)) (Fin (p + 1)) ℝ) :
     A 0 0 = (Pi.single (0 : Fin (p + 1)) (1 : ℝ)) ⬝ᵥ (A *ᵥ Pi.single 0 1) := by
   simp [dotProduct, mulVec, Pi.single_apply]
 
+/-- **Loewner sandwich bound on a diagonal entry of the inverse.** If [`A`](hyp:hA) and
+[`B`](hyp:hB) are positive definite real matrices and, for [a constant `c > 0`](hyp:hc), [`c
+· wᵀ B w ≤ wᵀ A w` for every vector `w`](hyp:hsand), then for [every index `j`](hyp:j),
+[`(A⁻¹)_{jj} ≤ (B⁻¹)_{jj} / c`](goal).
+
+The proof evaluates the completing-the-square identity for `A` at `w⋆ = A⁻¹ e_j`, bounds
+`w⋆ᵀ A w⋆ ≥ c · w⋆ᵀ B w⋆` by the sandwich, and applies completing-the-square for `B` at `c ·
+w⋆`. -/
+theorem inv_diag_le_of_quadForm_sandwich {A B : Matrix (Fin (p + 1)) (Fin (p + 1)) ℝ}
+    (hA : A.PosDef) (hB : B.PosDef) {c : ℝ} (hc : 0 < c)
+    (hsand : ∀ w : Fin (p + 1) → ℝ, c * (w ⬝ᵥ (B *ᵥ w)) ≤ w ⬝ᵥ (A *ᵥ w))
+    (j : Fin (p + 1)) : A⁻¹ j j ≤ B⁻¹ j j / c := by
+  let e : Fin (p + 1) → ℝ := Pi.single j 1
+  let w : Fin (p + 1) → ℝ := A⁻¹ *ᵥ e
+  have hdet : IsUnit A.det := (Matrix.isUnit_iff_isUnit_det A).mp hA.isUnit
+  have hAw : A *ᵥ w = e := by
+    simpa [w] using congr_arg (fun M => M *ᵥ e) (Matrix.mul_nonsing_inv A hdet)
+  have hew : e ⬝ᵥ w = A⁻¹ j j := by
+    simp [e, w]
+  have hquadA : w ⬝ᵥ (A *ᵥ w) = e ⬝ᵥ w := by
+    rw [hAw, dotProduct_comm]
+  have hoptA : A⁻¹ j j = 2 * (e ⬝ᵥ w) - w ⬝ᵥ (A *ᵥ w) := by
+    rw [hquadA, hew]
+    ring
+  have hAB : 2 * (e ⬝ᵥ w) - w ⬝ᵥ (A *ᵥ w)
+      ≤ 2 * (e ⬝ᵥ w) - c * (w ⬝ᵥ (B *ᵥ w)) := by
+    linarith [hsand w]
+  have hBvar := two_dotProduct_sub_quadForm_le_inv hB e (c • w)
+  have hscale :
+      2 * (e ⬝ᵥ (c • w)) - (c • w) ⬝ᵥ (B *ᵥ (c • w))
+        = c * (2 * (e ⬝ᵥ w) - c * (w ⬝ᵥ (B *ᵥ w))) := by
+    simp [Matrix.mulVec_smul]
+    ring
+  have hBscaled : c * (2 * (e ⬝ᵥ w) - c * (w ⬝ᵥ (B *ᵥ w))) ≤ B⁻¹ j j := by
+    rw [hscale] at hBvar
+    simpa [e] using hBvar
+  have hBdiv : 2 * (e ⬝ᵥ w) - c * (w ⬝ᵥ (B *ᵥ w)) ≤ B⁻¹ j j / c := by
+    rw [le_div_iff₀ hc]
+    linarith
+  rw [hoptA]
+  exact hAB.trans hBdiv
+
 /-- **Loewner sandwich bound on the `(0,0)` inverse entry.** If `A` and `B` are positive definite
 and `A` dominates `c·B` in the Loewner order on quadratic forms (`c·(wᵀ B w) ≤ wᵀ A w` for all `w`)
 with `c > 0`, then the intercept leverage entries satisfy
 
 `(A⁻¹)₀₀ ≤ (B⁻¹)₀₀ / c`.
 
-The proof evaluates the completing-the-square identity for `A` at the optimum `w⋆ = A⁻¹ e₀`
-(giving `(A⁻¹)₀₀ = 2 e₀ᵀw⋆ − w⋆ᵀ A w⋆`), bounds `w⋆ᵀ A w⋆ ≥ c·w⋆ᵀ B w⋆` by the sandwich, and
-re-applies completing-the-square for `B` at the scaled vector `c·w⋆` to land at `(B⁻¹)₀₀ / c`. -/
+This is the intercept case of the bound for an arbitrary diagonal entry of the inverse. -/
 theorem inv00_le_of_quadForm_sandwich {A B : Matrix (Fin (p + 1)) (Fin (p + 1)) ℝ}
     (hA : A.PosDef) (hB : B.PosDef) {c : ℝ} (hc : 0 < c)
     (hsand : ∀ w : Fin (p + 1) → ℝ, c * (w ⬝ᵥ (B *ᵥ w)) ≤ w ⬝ᵥ (A *ᵥ w)) :
-    A⁻¹ 0 0 ≤ B⁻¹ 0 0 / c := by
-  let e0 : Fin (p + 1) → ℝ := Pi.single (0 : Fin (p + 1)) (1 : ℝ)
-  let wstar : Fin (p + 1) → ℝ := (A⁻¹ *ᵥ e0)
-  have hdetA : IsUnit A.det := Matrix.isUnit_iff_isUnit_det A |>.mp hA.isUnit
-  have hAw : A *ᵥ wstar = e0 := by
-    have hAA : (A * A⁻¹) *ᵥ e0 = e0 := by
-      rw [Matrix.mul_nonsing_inv A hdetA]
-      simp
-    simpa [wstar] using hAA
-  have hew : e0 ⬝ᵥ wstar = A⁻¹ 0 0 := by
-    simp [e0, wstar]
-  have hquadA : wstar ⬝ᵥ (A *ᵥ wstar) = e0 ⬝ᵥ wstar := by
-    rw [hAw, dotProduct_comm]
-  have hoptA :
-      A⁻¹ 0 0 = 2 * (e0 ⬝ᵥ wstar) - wstar ⬝ᵥ (A *ᵥ wstar) := by
-    rw [hquadA, hew]
-    ring
-  have hAB :
-      2 * (e0 ⬝ᵥ wstar) - wstar ⬝ᵥ (A *ᵥ wstar)
-        ≤ 2 * (e0 ⬝ᵥ wstar) - c * (wstar ⬝ᵥ (B *ᵥ wstar)) := by
-    linarith [hsand wstar]
-  have hBvar := two_dotProduct_sub_quadForm_le_inv hB e0 (c • wstar)
-  have hscale :
-      2 * (e0 ⬝ᵥ (c • wstar)) - (c • wstar) ⬝ᵥ (B *ᵥ (c • wstar))
-        = c * (2 * (e0 ⬝ᵥ wstar) - c * (wstar ⬝ᵥ (B *ᵥ wstar))) := by
-    simp [Matrix.mulVec_smul]
-    ring
-  have hBscaled :
-      c * (2 * (e0 ⬝ᵥ wstar) - c * (wstar ⬝ᵥ (B *ᵥ wstar))) ≤ B⁻¹ 0 0 := by
-    rwa [hscale, ← inv00_eq_quadForm B] at hBvar
-  have hBdiv :
-      2 * (e0 ⬝ᵥ wstar) - c * (wstar ⬝ᵥ (B *ᵥ wstar)) ≤ B⁻¹ 0 0 / c := by
-    rw [le_div_iff₀ hc]
-    linarith
-  rw [hoptA]
-  exact le_trans hAB hBdiv
+    A⁻¹ 0 0 ≤ B⁻¹ 0 0 / c :=
+  inv_diag_le_of_quadForm_sandwich hA hB hc hsand 0
 
 /-- **Loewner sandwich bound on the `(0,0)` entry.** If `A ⪯ C·B` in the Loewner order on
 quadratic forms (`wᵀ A w ≤ C·wᵀ B w` for all `w`), then the top weight entries satisfy

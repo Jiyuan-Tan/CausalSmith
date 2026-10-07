@@ -7,7 +7,24 @@ public import Mathlib.Topology.Algebra.InfiniteSum.Basic
 /-!
 # Count-vector degree reindexing
 
-An explicit equivalence reorganizes count-vector series by their combined natural-number degree.
+Regrouping of a real series indexed by a pair (t, c), with t a natural number and c a vector of
+natural-number counts on a finite index set I, according to the combined degree s = t + ∑ᵢ cᵢ.
+The pairs are in bijection with triples (s, r, c) where r ≤ s and c is a count vector of total r
+(so t = s − r). For a nonnegative summand, summability of the degree-grouped series
+s ↦ ∑_{r ≤ s} ∑_{|c| = r} f(s − r, c) implies summability of the original series, and for a
+summable series the total sum equals the sum of the degree-grouped series.
+
+## Main definitions
+
+* `countTaylorDegreeEquiv` — the bijection between pairs (t, c) and triples (s, r, c) with |c| = r,
+  r ≤ s.
+
+## Main results
+
+* `countTaylorDegree_fiber_sum` — the sum over one degree fibre is the finite double sum over r ≤ s
+  and count vectors of total r.
+* `summable_countTaylor_of_degree` — a nonnegative series is summable once its degree grouping is.
+* `tsum_countTaylor_eq_degree` — a summable series has the same total as its degree grouping.
 -/
 
 @[expose] public section

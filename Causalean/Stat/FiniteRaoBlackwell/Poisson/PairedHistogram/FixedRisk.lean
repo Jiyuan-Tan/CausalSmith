@@ -17,7 +17,7 @@ fibres and its integrated squared-risk consequence for two independent samples
 whose fixed totals may differ.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators

@@ -42,7 +42,7 @@ variable {P : POSystem} {α : Type*}
 
 /-- **cor:po-iv-mtr-mts.** Under [the baseline Manski assumptions](hyp:hA), [monotone treatment
 response, `Y(0) ≤ Y(1)` almost surely](hyp:hMTR), and [monotone treatment
-selection with `0 < P(D=1) < 1`](hyp:hMTS), [the average treatment effect is
+selection](hyp:hMTS), [the average treatment effect is
 nonnegative and is upper-bounded by the observed treated-control mean
 contrast](goal). -/
 theorem mtr_mts_bounds_ATE (hA : S.BaseAssumptions)

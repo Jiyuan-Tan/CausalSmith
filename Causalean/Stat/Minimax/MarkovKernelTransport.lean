@@ -76,11 +76,10 @@ theorem measurable_kernelMean (K : Kernel X Y) {T : Y → ℝ} (hT : Measurable 
     Measurable (kernelMean K T) := by
   exact hT.stronglyMeasurable.integral_kernel.measurable
 
-/-- If [a proposed bound is nonnegative](hyp:hM) and [bounds the estimator in absolute value at
-every output](hyp:hT), then [the kernel mean obeys the same absolute bound at every input](goal)
+/-- If [a proposed bound bounds the estimator in absolute value at every output](hyp:hT), then [the kernel mean obeys the same absolute bound at every input](goal)
 when each kernel output is a probability distribution. -/
 theorem abs_kernelMean_le (K : Kernel X Y) [IsMarkovKernel K]
-    {T : Y → ℝ} {M : ℝ} (hM : 0 ≤ M) (hT : ∀ y, |T y| ≤ M) :
+    {T : Y → ℝ} {M : ℝ} (hT : ∀ y, |T y| ≤ M) :
     ∀ x, |kernelMean K T x| ≤ M := by
   intro x
   haveI : IsProbabilityMeasure (K x) := inferInstance
@@ -94,7 +93,7 @@ theorem uniformlyBounded_kernelMean (K : Kernel X Y) [IsMarkovKernel K]
     {T : Y → ℝ} (hT : UniformlyBounded T) :
     UniformlyBounded (kernelMean K T) := by
   obtain ⟨M, hM, hT⟩ := hT
-  exact ⟨M, hM, abs_kernelMean_le K hM hT⟩
+  exact ⟨M, hM, abs_kernelMean_le K hT⟩
 
 /-- For [an input measurable space](hyp:X), [an output measurable space](hyp:Y), and [a Markov
 kernel from the input space to the output space](hyp:K),
@@ -113,11 +112,11 @@ theorem measurable_kernelAffinePullback (K : Kernel X Y) {a b : ℝ}
     Measurable (kernelAffinePullback K a b targetEst) := by
   exact ((measurable_kernelMean K htarget).sub measurable_const).div measurable_const
 
-/-- If [the affine slope is nonzero](hyp:ha) and [the target estimator is uniformly
+/-- If [the target estimator is uniformly
 bounded](hyp:htarget), then [the affine kernel pullback is uniformly bounded on the source
 experiment](goal). -/
 theorem uniformlyBounded_kernelAffinePullback (K : Kernel X Y) [IsMarkovKernel K]
-    {a b : ℝ} (ha : a ≠ 0) {targetEst : Y → ℝ}
+    {a b : ℝ} {targetEst : Y → ℝ}
     (htarget : UniformlyBounded targetEst) :
     UniformlyBounded (kernelAffinePullback K a b targetEst) := by
   obtain ⟨M, hM, htarget⟩ := htarget
@@ -125,7 +124,7 @@ theorem uniformlyBounded_kernelAffinePullback (K : Kernel X Y) [IsMarkovKernel K
   intro x
   rw [kernelAffinePullback, abs_div]
   exact div_le_div_of_nonneg_right
-    ((abs_sub _ _).trans (add_le_add (abs_kernelMean_le K hM htarget x) le_rfl))
+    ((abs_sub _ _).trans (add_le_add (abs_kernelMean_le K htarget x) le_rfl))
     (abs_nonneg a)
 
 /-! ## Tower identity and squared-risk comparison -/
@@ -251,7 +250,7 @@ theorem forall_estimator_exists_sqRisk_ge_of_kernel_affine_transport
   intro targetEst htargetMeas htargetBound
   obtain ⟨j, hj⟩ := hsource (kernelAffinePullback K a b targetEst)
     (measurable_kernelAffinePullback K htargetMeas)
-    (uniformlyBounded_kernelAffinePullback K ha htargetBound)
+    (uniformlyBounded_kernelAffinePullback K htargetBound)
   refine ⟨j, ?_⟩
   calc
     a ^ 2 * L ≤ a ^ 2 * sqRisk (P j)

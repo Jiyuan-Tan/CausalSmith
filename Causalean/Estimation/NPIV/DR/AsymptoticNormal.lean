@@ -20,7 +20,7 @@ The first theorem is a direct composition of `trae_dr_isAsymLinear` with
 `IsAsymLinear.tendsto_normal_foldB` (`Causalean/Stat/PartialFoldCLT.lean`).
 
 The studentized statement parameterizes over a standard-deviation-estimator sequence
-`σ_hat_n` together with its `Tendsto_inProb` consistency hypothesis. The
+`σ_hat_n` together with its consistency (convergence in probability) hypothesis. The
 Wald statement additionally assumes that its coverage event and the
 studentized interval event have asymptotically equal probabilities; it is a
 transfer theorem, not a derivation of that event bridge.
@@ -88,12 +88,9 @@ theorem trae_dr_asymp_normal
         (trae_dr_estimator S sample split h_hat q_hat) S.θ₀ split.foldB n) μ)
     (_h_meas_sum : ∀ n, AEMeasurable
       (IsAsymLinear.normalizedSum sample (ρ₀ S q₀) split.foldB n) μ) :
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator
-        (trae_dr_estimator S sample split h_hat q_hat) S.θ₀ split.foldB)
-      (gaussianMeasure 0 (∫ w, (ρ₀ S q₀ w) ^ 2 ∂P_W))
-      μ
-      h_meas_θ := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (IsAsymLinear.rescaledEstimator
+        (trae_dr_estimator S sample split h_hat q_hat) S.θ₀ split.foldB) atTop
+            (gaussianMeasure 0 (∫ w, (ρ₀ S q₀ w) ^ 2 ∂P_W)) := by
   have hAL : IsAsymLinear
       (trae_dr_estimator S sample split h_hat q_hat)
       S.θ₀
@@ -121,7 +118,7 @@ Given any standard-deviation-estimator sequence `σ_hat_n : ℕ → Ω → ℝ` 
 
     √|B(n)| · (θ̂_n − θ₀) / σ̂_n  ⇒  N(0, 1).
 
-A direct application of `Tendsto_dist.const_mul_tendsto_gaussian` to
+A direct application of `Modes.TendstoInLaw.const_mul_tendsto_gaussian` to
 `trae_dr_asymp_normal` plus Slutsky absorption of `1/σ̂_n` against the
 constant `1/σ₀`. -/
 theorem trae_dr_studentized
@@ -139,7 +136,7 @@ theorem trae_dr_studentized
     (σ_hat_n : ℕ → Ω → ℝ) (σ₀ : ℝ)
     (_hσ₀_pos : 0 < σ₀)
     (_hσ_eq : σ₀ ^ 2 = ∫ w, (ρ₀ S q₀ w) ^ 2 ∂P_W)
-    (_hσ_consistent : Tendsto_inProb σ_hat_n (fun _ => σ₀) μ)
+    (_hσ_consistent : Modes.TendstoInProbability (fun _ : ℕ => μ) σ_hat_n atTop (fun _ _ => σ₀))
     (h_ρ₀_meas : Measurable (ρ₀ S q₀))
     (h_meas_θ : ∀ n, AEMeasurable
       (IsAsymLinear.rescaledEstimator
@@ -151,29 +148,25 @@ theorem trae_dr_studentized
         Real.sqrt ((split.foldB n).card : ℝ) *
           (trae_dr_estimator S sample split h_hat q_hat n ω - S.θ₀)
           / σ_hat_n n ω) μ) :
-    Tendsto_dist
-      (fun n ω =>
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω =>
         Real.sqrt ((split.foldB n).card : ℝ) *
           (trae_dr_estimator S sample split h_hat q_hat n ω - S.θ₀)
-          / σ_hat_n n ω)
-      (gaussianMeasure 0 1)
-      μ
-      h_studentized_meas := by
+          / σ_hat_n n ω) atTop (gaussianMeasure 0 1) := by
   let Xn : ℕ → Ω → ℝ :=
     IsAsymLinear.rescaledEstimator
       (trae_dr_estimator S sample split h_hat q_hat) S.θ₀ split.foldB
-  have hAN : Tendsto_dist Xn (gaussianMeasure 0 (σ₀ ^ 2)) μ h_meas_θ := by
+  have hAN : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop (gaussianMeasure 0 (σ₀ ^ 2)) := by
     have h :=
       trae_dr_asymp_normal S hq₀ sample split h_hat q_hat _hyps h_law_W
         h_ρ₀_meas h_meas_θ h_meas_sum
     simpa [Xn, _hσ_eq] using h
   -- The studentized statistic is `Xn / σ̂ₙ`; apply the generic studentized CLT
-  -- (`Tendsto_dist.div_tendsto_inProb_gaussian` in `Causalean/Stat/Studentize.lean`).
+  -- (`Modes.TendstoInLaw.div_tendsto_inProb_gaussian` in `Causalean/Stat/Studentize.lean`).
   have hdiv : ∀ n, AEMeasurable (fun ω => Xn n ω / σ_hat_n n ω) μ := by
     intro n
     simpa [Xn, IsAsymLinear.rescaledEstimator] using h_studentized_meas n
   have hres :=
-    Tendsto_dist.div_tendsto_inProb_gaussian _hσ₀_pos h_meas_θ hAN
+    Modes.TendstoInLaw.div_tendsto_inProb_gaussian hAN _hσ₀_pos
       _hσ_consistent hdiv
   simpa [Xn, IsAsymLinear.rescaledEstimator] using hres
 
@@ -223,7 +216,7 @@ theorem trae_dr_wald_coverage_of_event_bridge
     (σ_hat_n : ℕ → Ω → ℝ) (σ₀ : ℝ)
     (_hσ₀_pos : 0 < σ₀)
     (_hσ_eq : σ₀ ^ 2 = ∫ w, (ρ₀ S q₀ w) ^ 2 ∂P_W)
-    (_hσ_consistent : Tendsto_inProb σ_hat_n (fun _ => σ₀) μ)
+    (_hσ_consistent : Modes.TendstoInProbability (fun _ : ℕ => μ) σ_hat_n atTop (fun _ _ => σ₀))
     (h_ρ₀_meas : Measurable (ρ₀ S q₀))
     (h_meas_θ : ∀ n, AEMeasurable
       (IsAsymLinear.rescaledEstimator
@@ -264,7 +257,7 @@ theorem trae_dr_wald_coverage_of_event_bridge
     (μ {ω | studentized n ω ∈ Set.Icc (-z) z}).toReal
   change Tendsto (fun n => coverProb n - studProb n) atTop (𝓝 0) at h_wald_studentized
   have hStud :
-      Tendsto_dist studentized (gaussianMeasure 0 1) μ h_studentized_meas := by
+      Modes.TendstoInLaw (fun _ : ℕ => μ) studentized atTop (gaussianMeasure 0 1) := by
     simpa [studentized] using
       trae_dr_studentized S hq₀ sample split h_hat q_hat _hyps
         h_law_W σ_hat_n σ₀ _hσ₀_pos _hσ_eq _hσ_consistent
@@ -285,8 +278,7 @@ theorem trae_dr_wald_coverage_of_event_bridge
         zero_le
     · rw [Set.Icc_eq_empty (by linarith)]
       simp
-  have hpm := Tendsto_dist.tendsto_measure_of_null_frontier
-    h_studentized_meas hStud hfrontier
+  have hpm := Modes.TendstoInLaw.tendsto_measure_of_null_frontier hStud hfrontier
   have hstudent_event :
       Tendsto studProb atTop
         (nhds ((gaussianMeasure 0 1) (Set.Icc (-z) z)).toReal) := by

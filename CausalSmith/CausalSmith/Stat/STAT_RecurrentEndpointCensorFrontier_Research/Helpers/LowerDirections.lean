@@ -17,7 +17,7 @@ Smooth cutoff data give the supercritical bump and critical multiscale
 directions. The lower-bound lemma retains the complete observed-history laws.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set Filter ProbabilityTheory
 open scoped Interval

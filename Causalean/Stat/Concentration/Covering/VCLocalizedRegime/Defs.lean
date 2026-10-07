@@ -54,13 +54,21 @@ class](hyp:totallyBounded).
 The universal `empirical_radius` field is substantially stronger than the standard
 population-$L^2(P)$ localization in Bartlett--Bousquet--Mendelson (2005, Theorem 3.3) and
 Wainwright (2019, Chapter 14): it amounts to samplewise, hence essentially sup-norm,
-localization. Replacing it by the standard assumption requires a separate high-probability
-event that controls the empirical radius uniformly over localized star-hull parameters,
-radii, and peeling shells, with its failure probability folded into the final deviation
-event. That event lemma is not currently available, so users should treat this
-structure as the stronger deterministic variant rather than as a formalization
-of population-$L^2(P)$ localization. The current finite-pattern Massart bounds
-use only `empirical_radius`; `totallyBounded` is not consumed by that branch. -/
+localization. It is the stronger deterministic variant, and it yields the linear envelope
+`vcLocalizedPsi`. The finite-pattern Massart bounds use only `empirical_radius`;
+`totallyBounded` is not consumed by that branch.
+
+Under population-$L^2(P)$ localization this certificate is not needed. For a countable class of
+measurable functions bounded by $b$, `populationNormComparisonEvent_compl_le` gives, for every
+$δ$ at least the critical radius of $r ↦ 512\,b\,R_n(r)$, an event of probability at least
+$1 - 4\exp(-nδ^2/(65536\,b^2))$ on which empirical and population $L^2$ norms are comparable
+over the star hull, and `population_localization_transfer` shows that on it every member of
+the star hull localized to population norm at most $r ≥ δ$ has empirical norm at most
+$\sqrt2\,r$. For a `BinaryFactoredVCClass`, `vcPopulationLocalizedRademacherUpperBound` then
+gives the affine envelope `vcPopulationLocalizedPsi`,
+$ψ(r) = 2\sqrt q\,r + 16\,b\,q$ with $q = (d\log(n+1)+1)/n$, and
+`criticalRadius_vcPopulationLocalizedPsi_sq_le_rate` gives the same $d\log n/n$ rate for its
+squared critical radius as the samplewise branch. -/
 structure SamplewiseLocalizedVCDudleyHypotheses
     (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ) where
   empirical_radius : ∀ {n : ℕ} (S : Fin n → 𝒳) {r : ℝ}, 0 ≤ r →

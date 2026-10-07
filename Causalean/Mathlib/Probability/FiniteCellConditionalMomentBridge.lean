@@ -222,12 +222,11 @@ theorem eventCondExp_of_ae_eq_IndepFun
     hx (hz hx) hh_meas.aestronglyMeasurable]
   field_simp
 
-/-- For a finite sampling measure, a [measurable cell](hyp:hC) with [strictly
-positive mass](hyp:hCpos) has [a normalized restricted law that is a probability
-measure](goal). -/
+/-- For a finite sampling measure, a cell with [strictly positive mass](hyp:hCpos) has [a
+normalized restricted law that is a probability measure](goal). -/
 theorem normalizedRestrict_isProbabilityMeasure
     {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsFiniteMeasure P]
-    {C : Set Ω} (hC : MeasurableSet C) (hCpos : 0 < P C) :
+    {C : Set Ω} (hCpos : 0 < P C) :
     IsProbabilityMeasure (normalizedRestrict P C) := by
   have hCne : P C ≠ 0 := ne_of_gt hCpos
   have hCtop : P C ≠ ⊤ := measure_ne_top P C
@@ -235,22 +234,22 @@ theorem normalizedRestrict_isProbabilityMeasure
   simp only [normalizedRestrict, Measure.smul_apply, Measure.restrict_apply_univ]
   exact ENNReal.inv_mul_cancel hCne hCtop
 
-/-- For a [positive-mass cell](hyp:hCpos) and a [measurable event](hyp:hA), [the
+/-- For a cell and a [measurable event](hyp:hA), [the
 normalized cell law of that event is its intersection mass divided by the cell
 mass](goal). -/
 theorem normalizedRestrict_apply
     {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsFiniteMeasure P]
-    {C A : Set Ω} (hCpos : 0 < P C) (hA : MeasurableSet A) :
+    {C A : Set Ω} (hA : MeasurableSet A) :
     normalizedRestrict P C A = (P C)⁻¹ * P (A ∩ C) := by
   simp [normalizedRestrict, Measure.smul_apply, Measure.restrict_apply hA]
 
-/-- On a [positive-mass cell](hyp:hCpos), [integrating a function](hyp:f) under
+/-- On a cell, [integrating a function](hyp:f) under
 the normalized cell law is [the restricted integral rescaled by the reciprocal
 cell mass](goal). -/
 theorem normalizedRestrictedIntegral_eq
     {Ω E : Type*} [MeasurableSpace Ω]
     [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {P : Measure Ω} [IsFiniteMeasure P] {C : Set Ω} (hCpos : 0 < P C)
+    {P : Measure Ω} [IsFiniteMeasure P] {C : Set Ω}
     (f : Ω → E) :
     normalizedRestrictedIntegral P C f =
       (P C).toReal⁻¹ • ∫ ω in C, f ω ∂P := by
@@ -394,7 +393,7 @@ theorem normalizedRestricted_coordinate_factorization
         normalizedRestrictedIntegral P C (fun ω => X ω i) *
           normalizedRestrictedIntegral P C (fun ω => Y ω j) := by
   let _ : IsProbabilityMeasure (normalizedRestrict P C) :=
-    normalizedRestrict_isProbabilityMeasure hC hCpos
+    normalizedRestrict_isProbabilityMeasure hCpos
   have hInd : IndepFun X Y (normalizedRestrict P C) :=
     indepFun_of_boundedTestFactorization hX hY hfactor
   intro i j

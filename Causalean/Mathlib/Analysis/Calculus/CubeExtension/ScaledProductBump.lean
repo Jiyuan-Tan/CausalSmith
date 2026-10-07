@@ -17,14 +17,15 @@ namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
 open Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- At [a real input](hyp:x), [the normalized bump profile](goal) is given by
-[the smooth-transition formula](step:1). -/
+/-- At [a real input x](hyp:x), [the normalized bump profile](goal) is
+[e·exp(−1/(1 − x²)) for |x| < 1 and zero for |x| ≥ 1](step:1); it is smooth,
+supported in the interval from −1 to 1, and equals one at x = 0. -/
 noncomputable def bumpProfile (x : ℝ) : ℝ :=
   Real.exp 1 * expNegInvGlue (1 - x ^ 2)
 
-/-- In [a finite dimension](hyp:d), [the product bump at the given point](hyp:x)
-is [the finite coordinate product](goal) given by
-[multiplying the normalized profiles](step:1). -/
+/-- In [dimension d](hyp:d), [the product bump](goal) at [a point x](hyp:x) is
+[the product over all coordinates i of the normalized bump profile evaluated at
+x_i](step:1). -/
 noncomputable def productBump {d : ℕ} (x : Fin d → ℝ) : ℝ :=
   ∏ i : Fin d, bumpProfile (x i)
 
@@ -110,9 +111,9 @@ theorem productBump_iteratedFDeriv_bounded {d : ℕ} (j : ℕ) :
   intro x
   exact (hC x).trans (le_max_left _ _)
 
-/-- In [a finite dimension](hyp:d), with [smoothness exponent and bandwidth](hyp:β,h)
-and [a center](hyp:x₀) at [an evaluation point](hyp:x), [the scaled product bump](goal) is given by
-[amplitude scaling followed by translation and dilation](step:1). -/
+/-- In [dimension d](hyp:d), with [smoothness exponent β and bandwidth h](hyp:β,h)
+and [a center x₀](hyp:x₀), [the scaled product bump](goal) at [a point x](hyp:x) is
+[h^β times the product bump evaluated at (x − x₀)/h](step:1). -/
 noncomputable def scaledProductBump {d : ℕ} (β h : ℝ)
     (x₀ : Fin d → ℝ) (x : Fin d → ℝ) : ℝ :=
   h ^ β * productBump (h⁻¹ • (x - x₀))
@@ -475,10 +476,14 @@ theorem exists_uniform_scaledProductBump_holderBallOn {d : ℕ}
     exact (hM h hh hh1 x₀ x y).trans
       (mul_le_mul_of_nonneg_right hMA (Real.rpow_nonneg (norm_nonneg _) _))
 
-/-- In [a finite dimension](hyp:d), for
-[a positive smoothness exponent](hyp:β,hβ), [a positive radius constant yields
-the stated intrinsic unit-cube Hölder-ball guarantee for every baseline,
-amplitude, bandwidth, and center](goal). -/
+/-- In [dimension d](hyp:d), for [a smoothness exponent β > 0](hyp:β,hβ), write
+m for the largest integer strictly below β and s = β − m, so 0 < s ≤ 1. Then
+[there is a constant A > 0 such that for every baseline b, amplitude amp,
+bandwidth h with 0 < h ≤ 1 and center x₀, the function
+x ↦ b + amp·h^β·(product bump at (x − x₀)/h) lies in the intrinsic Hölder ball of
+order m, exponent s and radius |b| + |amp|·A on the unit cube of points with all
+coordinates between 0 and 1](goal). The constant A does not depend on the
+baseline, amplitude, bandwidth or center. -/
 theorem exists_scaledProductBump_holderBallOn {d : ℕ}
     (β : ℝ) (hβ : 0 < β) :
     let m := ⌈β⌉₊ - 1

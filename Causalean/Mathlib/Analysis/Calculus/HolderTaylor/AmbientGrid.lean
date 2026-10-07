@@ -52,8 +52,8 @@ private lemma iteratedDeriv_comp_affine_nonzero
   rw [iteratedDeriv_comp_const_add] at h
   exact h
 
-/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα) and
-[at most one](hyp:hα1), [an interval length d](hyp:d) that is [positive](hyp:hd), and
+/-- Fix [a derivative order k](hyp:k), [a Hölder exponent α](hyp:α) with [α positive](hyp:hα),
+[an interval length d](hyp:d) that is [positive](hyp:hd), and
 [a nonnegative value envelope M](hyp:M,hM) and [a nonnegative Hölder constant L](hyp:L,hL). Then
 [there is one nonnegative constant B such that, for every interval from a to a + d and every
 function f that is k times continuously differentiable on it, bounded by M there, and whose
@@ -61,7 +61,7 @@ ambient k-th derivative is Hölder with constant L and exponent α there, every 
 of f of order at most k is bounded by B at the interior points](goal). This includes order zero.
 -/
 theorem uniform_interior_ambient_jet_bound
-    (k : ℕ) (α d M L : ℝ) (hα : 0 < α) (hα1 : α ≤ 1)
+    (k : ℕ) (α d M L : ℝ) (hα : 0 < α)
     (hd : 0 < d) (hM : 0 ≤ M) (hL : 0 ≤ L) :
     ∃ B : ℝ, 0 ≤ B ∧
       ∀ (a : ℝ) (f : ℝ → ℝ),
@@ -77,7 +77,7 @@ theorem uniform_interior_ambient_jet_bound
   have hdc : d = 2 * c := by dsimp [c]; ring
   obtain ⟨K, hK, hfixed⟩ :=
     Causalean.Mathlib.Analysis.Calculus.CubeInterpolation.fixed_cube_interpolation
-      1 k (by omega) α hα hα1
+      1 k α hα
   let R : ℝ := K * (M + L * c ^ k * c ^ α)
   let B : ℝ := ∑ j ∈ Finset.range (k + 1), R / c ^ j
   have hR : 0 ≤ R := by dsimp [R]; positivity

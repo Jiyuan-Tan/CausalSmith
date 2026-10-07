@@ -50,9 +50,9 @@ open MeasureTheory ProbabilityTheory Filter Topology
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- **DR-Learner expansion conditional on abstract stability.** Fix a CATE estimation system under
-[the back-door causal assumptions](hyp:_hA), a query point `x`, and a sequence of estimated
-nuisance vectors `η_hat`. Suppose [the abstract second-stage regression operator `op` is stable
+/-- **DR-Learner expansion conditional on abstract stability.** Fix a CATE estimation system, a
+query point `x`, and a sequence of estimated nuisance vectors `η_hat`. Suppose [the abstract
+second-stage regression operator `op` is stable
 at `x` with respect to a distance `d_n`, meaning the caller-supplied bias-identification
 predicate `BiasIdent` correctly separates the operator-level discrepancy between the
 estimated-nuisance and true pseudo-outcomes into a bias term plus a negligible
@@ -69,7 +69,6 @@ It only instantiates that implication with the AIPW pseudo-outcomes and closed-f
 bias. -/
 theorem dr_oracle_expansion_of_stable
     (S : CATEEstimationSystem P γ)
-    (_hA : S.toPOBackdoorSystem.Assumptions)
     (op : SecondStageOperator P.Ω P.μ γ)
     (η_hat : ℕ → P.Ω → NuisanceVec γ)
     (x : γ)
@@ -79,7 +78,7 @@ theorem dr_oracle_expansion_of_stable
       (γ × Bool × ℝ → ℝ) →
       (ℕ → P.Ω → γ → ℝ) → Prop)
     (hStab : Stable op S.τ_val d_n x BiasIdent)
-    (hCons : Tendsto_inProb d_n (fun _ => 0) P.μ)
+    (hCons : Modes.TendstoInProbability (fun _ : ℕ => P.μ) d_n atTop (fun _ _ => 0))
     (hBias : BiasIdent
               (fun n ω z => phi_eta z (η_hat n ω))
               (fun z => phi₀ S z)
@@ -101,8 +100,8 @@ theorem dr_oracle_expansion_of_stable
     BiasIdent hStab hCons hBias
 
 /-- **DR-Learner oracle efficiency from assumed stability and smoothed-bias negligibility.** Under
-[the back-door causal assumptions](hyp:hA) and the same operator-stability, consistency, and
-bias-identification hypotheses as `dr_oracle_expansion_of_stable` —
+the same operator-stability, consistency, and bias-identification hypotheses as
+`dr_oracle_expansion_of_stable` —
 [`op` is stable at `x` w.r.t. a distance `d_n`, via the bias-identification predicate
 `BiasIdent`](hyp:hStab), [`d_n` converges to zero in probability](hyp:hCons), and [the AIPW
 pseudo-outcome contrast is identified with the closed-form conditional bias `condBias(η_hat,
@@ -115,7 +114,6 @@ This is an arithmetic bookkeeping corollary. It does not derive `hStab` or
 `hSmoothedBias`; both scientific rate inputs are assumptions of the theorem. -/
 theorem dr_oracle_efficient_of_stable_of_smoothed_bias
     (S : CATEEstimationSystem P γ)
-    (hA : S.toPOBackdoorSystem.Assumptions)
     (op : SecondStageOperator P.Ω P.μ γ)
     (η_hat : ℕ → P.Ω → NuisanceVec γ)
     (x : γ)
@@ -125,7 +123,7 @@ theorem dr_oracle_efficient_of_stable_of_smoothed_bias
       (γ × Bool × ℝ → ℝ) →
       (ℕ → P.Ω → γ → ℝ) → Prop)
     (hStab : Stable op S.τ_val d_n x BiasIdent)
-    (hCons : Tendsto_inProb d_n (fun _ => 0) P.μ)
+    (hCons : Modes.TendstoInProbability (fun _ : ℕ => P.μ) d_n atTop (fun _ _ => 0))
     (hBias : BiasIdent
               (fun n ω z => phi_eta z (η_hat n ω))
               (fun z => phi₀ S z)
@@ -141,7 +139,7 @@ theorem dr_oracle_efficient_of_stable_of_smoothed_bias
                     - drOracleEstimator S op n ω x)
       (fun n => drOracleRiskScale S op x n) P.μ := by
   have hExp :=
-    dr_oracle_expansion_of_stable S hA op η_hat x d_n BiasIdent hStab hCons hBias
+    dr_oracle_expansion_of_stable S op η_hat x d_n BiasIdent hStab hCons hBias
   have hrn_nonneg : ∀ᶠ n : ℕ in atTop, 0 ≤ drOracleRiskScale S op x n :=
     Filter.Eventually.of_forall (fun n => by
       unfold drOracleRiskScale SecondStageOperator.oracleRiskScale

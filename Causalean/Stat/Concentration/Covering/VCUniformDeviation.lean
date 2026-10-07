@@ -5,27 +5,27 @@ Authors: Jiyuan Tan
 -/
 
 module
-public import Causalean.Stat.Concentration.Covering.VCLocalizedRegime
+public import Causalean.Stat.Concentration.Covering.VCLocalizedRegime.RademacherBounds
 public import Causalean.Stat.Concentration.Localization.PeelingRates
 
 /-!
 Finite-VC localized uniform-deviation bounds under a universal samplewise
-empirical-radius assumption, derived from the sharp localized empirical-process
+empirical-radius assumption, derived from the peeled localized empirical-process
 theorem.
 
 For a finite-VC binary-indexed function class, with high probability the localized empirical
 process deviates from its mean by at most 10ρ * ‖f‖ + 5ρ² uniformly over members satisfying
 `0 ≤ norm f ≤ b`, with critical radius ρ of order sqrt(d * log n / n) -- derived, under that
 stronger samplewise assumption, by instantiating
-`localized_uniform_deviation_sharp` with the finite-VC localized envelope.
+`localized_uniform_deviation_peeled` with the finite-VC localized envelope.
 
-This file is the samplewise-radius finite-VC specialization layer for the sharp
+This file is the samplewise-radius finite-VC specialization layer for the peeled
 localized uniform-deviation theorem. The empirical-process content is supplied
 by finite-pattern Massart bounds; the only rate arithmetic is supplied by
 `vcLocalizedSlope_peelingCondition_eventually`.
 It exports the VC-dimension event `vc_localized_deviation_event`, the direct
 growth-cardinality variant `vc_localized_deviation_event_of_card`, and the
-measurability/integrability bridges needed to instantiate the sharp theorem.
+measurability/integrability bridges needed to instantiate the peeled theorem.
 -/
 
 public section
@@ -324,12 +324,12 @@ probability δ in `(0,1]`](hyp:hδ,hδ'), writing ρ for the localized slope
 `vcLocalizedSlope K d n`, if [ρ is at most b](hyp:hρ_le_b) and [the
 peeling/log-domination side condition holds at one dyadic depth covering the class](hyp:hδ_dom),
 then [there is a measurable event of probability at least `1 - δ` on which
-every class member i with `0 ≤ norm (F i) ≤ b` satisfies the sharp
+every class member i with `0 ≤ norm (F i) ≤ b` satisfies the peeled
 localized deviation bound `|n⁻¹ ∑ₖ F i(ωₖ) − 𝔼[F i]| ≤ 10ρ·norm(F i) +
 5ρ²`](goal).
 
 The arithmetic side condition `hδ_dom` is the peeling/log domination condition
-from `localized_uniform_deviation_sharp`. -/
+from `localized_uniform_deviation_peeled`. -/
 theorem vc_localized_deviation_event
     (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ)
     (μ : Measure 𝒳) [IsProbabilityMeasure μ]
@@ -383,7 +383,7 @@ theorem vc_localized_deviation_event
     intro r hr
     exact vc_starHullZeroOut_empirical_rademacher_integrable
       F norm μ hF_meas b hb hbound K d n hK hn Hvc Hloc r hr
-  rcases localized_uniform_deviation_sharp
+  rcases localized_uniform_deviation_peeled
       F norm μ id measurable_id hF_meas hnorm_nonneg R hδ hδ' n hn
       (ρ := ρ) (Rmax := b)
       hcrit_le_ρ hρ_pos hcrit_pos hrad_bdd hrad_int
@@ -409,7 +409,7 @@ certificate](hyp:Hloc). For [a failure probability δ in
 peeling/log-domination side condition holds at one dyadic depth covering the
 class](hyp:hδ_dom), then [there is a measurable event of probability at least
 `1 - δ` on which every class member i with `0 ≤ norm (F i) ≤ b` satisfies the
-sharp localized deviation bound
+peeled localized deviation bound
 `|n⁻¹ ∑ₖ F i(ωₖ) − 𝔼[F i]| ≤ 10ρ·norm(F i) + 5ρ²`](goal).
 
 This variant takes a direct cardinality bound on the binary trace family,
@@ -474,7 +474,7 @@ theorem vc_localized_deviation_event_of_card
     intro r hr
     exact vc_starHullZeroOut_empirical_rademacher_integrable_of_card
       F norm π μ hF_meas b hb hbound hfactor K dPi n hK hn hcard Hloc r hr
-  rcases localized_uniform_deviation_sharp
+  rcases localized_uniform_deviation_peeled
       F norm μ id measurable_id hF_meas hnorm_nonneg R hδ hδ' n hn
       (ρ := ρ) (Rmax := b)
       hcrit_le_ρ hρ_pos hcrit_pos hrad_bdd hrad_int

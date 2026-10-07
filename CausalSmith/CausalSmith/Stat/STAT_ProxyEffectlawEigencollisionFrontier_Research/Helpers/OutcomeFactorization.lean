@@ -31,7 +31,7 @@ lemma conditionalMean_potential_latentCell
     intro w hw
     exact hw.1
   let _ : IsProbabilityMeasure μ :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentClass u) hCpos
+    normalizedRestrict_isProbabilityMeasure hCpos
   have hfac := latentIgnorability_to_normalizedFactorization
     hM.latentIgnorability u t hCpos
   have hInd : IndepFun (fun w : FullData k dx dz => w.T) (potential t) μ :=
@@ -50,7 +50,7 @@ lemma conditionalMean_potential_latentCell
     ext w
     simp [A, C, latentCell, latentClass, and_comm]
   have hmuA : (μ A).toReal = P.real (latentCell u t) / P.real C := by
-    rw [normalizedRestrict_apply hCpos (measurableSet_fullDataArm t), hAC]
+    rw [normalizedRestrict_apply (measurableSet_fullDataArm t), hAC]
     simp [Measure.real]
     field_simp
   have hleft : (∫ w in A, potential t w ∂μ) =
@@ -62,7 +62,7 @@ lemma conditionalMean_potential_latentCell
   have hright : (∫ w, potential t w ∂μ) =
       (P.real C)⁻¹ * ∫ w in C, potential t w ∂P := by
     rw [← normalizedRestrictedIntegral]
-    exact normalizedRestrictedIntegral_eq hCpos (potential t)
+    exact normalizedRestrictedIntegral_eq (potential t)
   simp only [id_eq] at hdrop
   rw [hleft, hright, hmuA] at hdrop
   unfold latentMean conditionalMean
@@ -124,7 +124,7 @@ lemma conditionalMean_target_mul_observed
     intro w hw
     exact hw.1
   let _ : IsProbabilityMeasure μ :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentClass u) hCpos
+    normalizedRestrict_isProbabilityMeasure hCpos
   have hfac := targetProxySeparation_to_normalizedFactorization
     hM.targetProxySeparation u hCpos
   have hIndVec : IndepFun (fun w : FullData k dx dz => w.X)
@@ -169,7 +169,7 @@ lemma conditionalMean_target_mul_observed
   have scaleClass : (∫ w, w.X j ∂μ) =
       (P.real C)⁻¹ * ∫ w in C, w.X j ∂P := by
     rw [← normalizedRestrictedIntegral]
-    exact normalizedRestrictedIntegral_eq hCpos (fun w => w.X j)
+    exact normalizedRestrictedIntegral_eq (P := P) (C := C) (fun w => w.X j)
   rw [scaleSet (fun w => w.X j * w.Y), scaleClass, scaleSet (fun w => w.Y)] at hprod
   unfold targetFeature conditionalMean
   dsimp [C] at hprod ⊢
@@ -210,7 +210,7 @@ lemma conditionalMean_reference_targetOutcome
   let μ := normalizedRestrict P C
   have hCpos := latentCell_pos_of_latentArmPositivity P hpi hM.latentArmPositivity u t
   let _ : IsProbabilityMeasure μ :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentCell u t) hCpos
+    normalizedRestrict_isProbabilityMeasure hCpos
   have hfac := referenceProxySeparation_to_normalizedFactorization
     hM.referenceProxySeparation u t hCpos
   have hIndVec : IndepFun (fun w : FullData k dx dz => w.Z)

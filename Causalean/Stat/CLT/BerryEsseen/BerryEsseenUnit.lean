@@ -12,7 +12,7 @@ public import Mathlib.Probability.CentralLimitTheorem
 
 /-! # Unit-variance iid Berry–Esseen inequality
 
-The sharp scalar probability bound is isolated at unit variance, leaving
+The constant-one scalar probability bound is isolated at unit variance, leaving
 rescaling and the one-observation endpoint to the general theorem.
 The standardized sum's pushforward law transfers the iid Fourier envelopes
 to the Prawitz smoothing inequality and its deterministic budget.

@@ -27,8 +27,10 @@ variable (D : FiniteCellData Ω γ μ)
 
 /-- A [finite-cell observed table](hyp:D), [sample size](hyp:n) with [at least
 two observations](hyp:hn), [treatment arm](hyp:d), and [symmetric measurable
-integrable covariate-pair weight](hyp:W,hSym,hW,hInt) give [the localized
-treatment-cell U-statistic mean through finite-cell treatment probabilities](goal). -/
+integrable covariate-pair weight W](hyp:W,hSym,hW,hInt) give that [the expectation,
+over n independent draws from the observed law, of the order-two U-statistic with
+kernel W(X, X′)·1{A = d}·1{A′ = d} equals the integral over independent covariate
+pairs of W(x, x′)·p_d(x)·p_d(x′), where p_d is the table's arm-d probability](goal). -/
 theorem integral_uStatistic_arm (n : ℕ) (hn : 2 ≤ n) (d : Bool)
     (W : γ → γ → ℝ) (hSym : ∀ x y, W x y = W y x)
     (hW : Measurable fun p : γ × γ => W p.1 p.2)
@@ -78,7 +80,7 @@ theorem integral_uStatistic_arm (n : ℕ) (hn : 2 ≤ n) (d : Bool)
   calc
     _ = ∫ p : (γ × Bool × Bool) × (γ × Bool × Bool),
         H p.1 p.2 ∂(D.observedLaw.prod D.observedLaw) :=
-      integral_uStatistic_eq_pair D.observedLaw n hn H hSymH hH hIntH
+      integral_uStatistic_eq_pair D.observedLaw n hn H hH hIntH
     _ = _ := integral_pair_arm D d d W hW hInt
 
 end Causalean.PO.Bridge

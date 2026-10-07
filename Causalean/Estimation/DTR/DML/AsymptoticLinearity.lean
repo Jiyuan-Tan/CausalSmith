@@ -68,18 +68,15 @@ around the true effect `θ₀`](goal). The population-truth propensities obey
 restated [pointwise on the value-space propensity functions `e₀_val`,
 `e₁_val`](hyp:h_e_val_pointwise); [the factual outcome and every counterfactual outcome under a
 fixed regime are square-integrable](hyp:h_y2,h_yd2); and [the one-shot sample split's
-auxiliary-fold fraction `|B(n)|/n` converges to some `c ∈ (0, 1)`](hyp:hc_pos,hc_lt,h_split_rate).
+evaluation-fold fraction `|B(n)|/n` converges to some `c > 0`](hyp:hc_pos,h_split_rate).
 For every horizon `n`, the stage-0 nuisance learners `μ̂₀`, `ê₀` and the stage-1 learners `μ̂₁`,
 `ê₁` are each [jointly measurable in the sample outcome and the covariate
 history](hyp:h_mu0_meas,h_e0_meas) at stage 0 and
 [likewise at stage 1](hyp:h_mu1_meas,h_e1_meas); [the fitted propensities satisfy the same
 strict-overlap bound `ε` pointwise at both stages](hyp:h_e_overlap_hat); each learner
 [lies in L² of the covariate-history distribution](hyp:h_mu0_memLp,h_e0_memLp) at stage 0
-and [likewise at stage 1](hyp:h_mu1_memLp,h_e1_memLp); and, viewed as a function of the sample
-outcome alone, each learner
-[is measurable with respect to the auxiliary training fold's σ-algebra](hyp:h_mu0_foldA,h_e0_foldA)
-at stage 0 and [likewise at stage 1](hyp:h_mu1_foldA,h_e1_foldA), and jointly with the covariate
-in uncurried form
+and [likewise at stage 1](hyp:h_mu1_memLp,h_e1_memLp); and each learner is measurable with
+respect to the auxiliary training fold's σ-algebra jointly with the covariate history
 [at stage 0](hyp:h_mu0_uncurry_foldA,h_e0_uncurry_foldA) and
 [at stage 1](hyp:h_mu1_uncurry_foldA,h_e1_uncurry_foldA). Finally,
 [each stagewise estimation error converges to zero in L² at rate
@@ -87,7 +84,7 @@ in uncurried form
 outcome-regression error with its corresponding propensity error vanish at the doubly-robust rate
 `o_p(n^{-1/2})`](hyp:h_product_rate_00,h_product_rate_11).
 
-Hypotheses (mirroring the NL doc and `dml_ATE_isAsymLinear`):
+Hypotheses (mirroring the NL doc and `dml_ATE_isAsymLinear_of_goodSet`):
 
 1. DTR backdoor `Assumptions`;
 2. strict overlap for both the truth and the estimator: there exists
@@ -97,7 +94,7 @@ Hypotheses (mirroring the NL doc and `dml_ATE_isAsymLinear`):
    place `S.η₀ ∈ H_ε`, see `seqDRGeneralMoment.η₀_mem`);
 4. `E[Y²] < ∞` and square-integrability of every counterfactual outcome
    `Y(dbar)`;
-5. one-shot split with `|B(n)|/n → c` for some `c ∈ (0, 1)`;
+5. one-shot split with `|B(n)|/n → c` for some `c > 0`;
 6. `μ̂_k_n` and `ê_k_n` depend only on the nuisance fold `A(n)`;
 7. individual stagewise rates
    `‖μ̂_k_n(H_k) − μ_k_val(H_k)‖_{L²(P_H_k)} = o_p(1)` and
@@ -128,7 +125,7 @@ theorem dml_DTR_isAsymLinear
       Integrable (fun ω => (S.toPOLongitudinalPathSystem.Y_of dbar ω) ^ 2) P.μ)
     (sample : IIDSample P.Ω (γ 0 × δ × γ 1 × δ × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
-    {c : ℝ} (hc_pos : 0 < c) (hc_lt : c < 1)
+    {c : ℝ} (hc_pos : 0 < c)
     (h_split_rate :
       Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
     -- Stagewise nuisance hats.
@@ -155,27 +152,6 @@ theorem dml_DTR_isAsymLinear
     (h_e0_memLp  : ∀ n ω, MemLp (fun s₀ => e₀_hat n ω s₀) 2 S.P_H₀)
     (h_mu1_memLp : ∀ n ω, MemLp (fun h => μ₁_hat n ω h) 2 S.P_H₁)
     (h_e1_memLp  : ∀ n ω, MemLp (fun h => e₁_hat n ω h) 2 S.P_H₁)
-    -- Fold-A measurability witnesses (per stage).
-    (h_mu0_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (μ₀_hat n))
-    (h_e0_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (e₀_hat n))
-    (h_mu1_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (μ₁_hat n))
-    (h_e1_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (e₁_hat n))
     -- Joint fold-A measurability on the uncurried form (per stage).
     (h_mu0_uncurry_foldA :
       ∀ n,
@@ -390,36 +366,6 @@ theorem dml_DTR_isAsymLinear
         (by simpa [η_hat] using h_e0_meas n)
         (by simpa [η_hat] using h_mu1_meas n)
         (by simpa [η_hat] using h_e1_meas n)
-  have h_m_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (fun ω z => S.seqDRMomentFunctional (η_hat n ω) z S.θ₀) := by
-    intro n
-    let mA : MeasurableSpace P.Ω :=
-      MeasurableSpace.comap
-        (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance
-    change @Measurable P.Ω ((γ 0 × δ × γ 1 × δ × ℝ) → ℝ) mA inferInstance
-      (fun ω z => S.seqDRMomentFunctional (η_hat n ω) z S.θ₀)
-    refine measurable_pi_lambda _ ?_
-    intro z
-    unfold DTREstimationSystem.seqDRMomentFunctional
-    unfold Causalean.Estimation.DTR.seqDRMoment
-    have hμ0 : @Measurable P.Ω ℝ mA inferInstance
-        (fun ω => μ₀_hat n ω (projS₀ z)) :=
-      (measurable_pi_apply (projS₀ z)).comp (h_mu0_foldA n)
-    have he0 : @Measurable P.Ω ℝ mA inferInstance
-        (fun ω => e₀_hat n ω (projS₀ z)) :=
-      (measurable_pi_apply (projS₀ z)).comp (h_e0_foldA n)
-    have hμ1 : @Measurable P.Ω ℝ mA inferInstance
-        (fun ω => μ₁_hat n ω (histH₁ z)) :=
-      (measurable_pi_apply (histH₁ z)).comp (h_mu1_foldA n)
-    have he1 : @Measurable P.Ω ℝ mA inferInstance
-        (fun ω => e₁_hat n ω (histH₁ z)) :=
-      (measurable_pi_apply (histH₁ z)).comp (h_e1_foldA n)
-    exact ((hμ0.add (((measurable_const).div he0).mul (hμ1.sub hμ0))).add
-      ((((measurable_const).mul measurable_const).div (he0.mul he1)).mul
-        (measurable_const.sub hμ1))).sub measurable_const
   have h_m_foldA_uncurry :
       ∀ n,
         Measurable[(MeasurableSpace.comap
@@ -458,9 +404,9 @@ theorem dml_DTR_isAsymLinear
       (η_hat n ω) (h_in_Hε n ω) (h_mu0_memLp n ω) (h_mu1_memLp n ω)).integrable_sq
   have hAL :=
     seqDR_dml_isAsymLinear S h_e_val_pointwise h_overlap hA h_y2 h_yd2
-      sample split hc_pos hc_lt h_split_rate η_hat h_in_Hε
+      sample split hc_pos h_split_rate η_hat h_in_Hε
       h_mu0_diff_memLp h_mu1_diff_memLp h_e0_diff_memLp h_e1_diff_memLp
-      h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int h_m_sq_int
+      h_m_meas h_m_foldA_uncurry h_m_int h_m_sq_int
       h_mu0_rate h_mu1_rate h_e0_rate h_e1_rate h_product_rate_abs
   have h_if_eq :
       (fun z => -(seqDRGeneralMoment S h_e_val_pointwise).linScaleInv *

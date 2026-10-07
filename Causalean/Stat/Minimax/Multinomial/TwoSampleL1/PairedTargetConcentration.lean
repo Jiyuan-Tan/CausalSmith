@@ -15,7 +15,7 @@ namespace Causalean.Stat.Minimax.Multinomial.TwoSampleL1
 
 open scoped BigOperators ENNReal
 
-/-- Given [a scalar moment prior](hyp:P), [a positive balanced pair count](hyp:b,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [a prior side](hyp:side), [the paired-product L1 target has the stated variance bound](goal). -/
+/-- Given [a scalar moment prior](hyp:P), [a positive balanced pair count](hyp:b,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [a prior side](hyp:side), [the product-prior mean squared deviation of the L1 distance between the base and tilted vectors from t times the mean absolute node value under the chosen scalar prior is at most t²/b](goal). -/
 theorem pairedProductTarget_variance_le {L : ℕ} (P : ScalarMomentPriors L)
     (b : ℕ) (hb : 0 < b)
     (t : ℝ) (ht : 0 ≤ t) (ht1 : t ≤ 1) (side : Bool) :

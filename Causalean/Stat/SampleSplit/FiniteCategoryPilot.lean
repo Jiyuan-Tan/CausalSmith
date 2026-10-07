@@ -389,7 +389,7 @@ lemma measurableSet_finiteCategoryPilotGood
     · simpa [hk, not_le] using measurableSet_lt measurable_const (hcount k)
 
 /-- Given [an iid sample](hyp:S), [a measurable category label](hyp:hlabel), [a
-finite pilot block](hyp:block), [a positive selection threshold](hyp:ht), [a
+finite pilot block](hyp:block), [a
 lower population-mass band](hyp:lowerBand), [an upper population-mass
 band](hyp:upperBand), [an upper-tail exponential tilt](hyp:sUpper), [a
 lower-tail exponential tilt](hyp:sLower), [nonnegativity of the upper-tail
@@ -401,7 +401,7 @@ theorem finiteCategoryPilot_bad_probability
     [Fintype Iota] [DecidableEq Iota] [MeasurableSingletonClass Iota]
     (S : Causalean.Stat.IIDSample Omega X mu P)
     {label : X -> Iota} (hlabel : Measurable label)
-    (block : Finset Nat) {t : Real} (ht : 0 < t)
+    (block : Finset Nat) {t : Real}
     (lowerBand upperBand sUpper sLower : Real)
     (hsUpper : 0 ≤ sUpper) (hsLower : sLower ≤ 0) :
     mu.real (finiteCategoryPilotGood S label block t lowerBand upperBand)ᶜ ≤
@@ -488,7 +488,7 @@ theorem finiteCategoryPilot_bad_probability
       rfl
 
 /-- Given [an iid sample](hyp:S), [a measurable category label](hyp:hlabel), [a
-finite pilot block](hyp:block), [a positive selection threshold](hyp:ht), [a
+finite pilot block](hyp:block), a selection threshold, [a
 lower population-mass band](hyp:lowerBand), and [an upper population-mass
 band](hyp:upperBand), [the simultaneous category-mass sandwich failure
 probability obeys the explicit bound obtained from opposite logarithmic tilts
@@ -497,7 +497,7 @@ theorem finiteCategoryPilot_bad_probability_log_two
     [Fintype Iota] [DecidableEq Iota] [MeasurableSingletonClass Iota]
     (S : Causalean.Stat.IIDSample Omega X mu P)
     {label : X -> Iota} (hlabel : Measurable label)
-    (block : Finset Nat) {t : Real} (ht : 0 < t)
+    (block : Finset Nat) {t : Real}
     (lowerBand upperBand : Real) :
     mu.real (finiteCategoryPilotGood S label block t lowerBand upperBand)ᶜ ≤
       (Fintype.card Iota : Real) *
@@ -505,7 +505,7 @@ theorem finiteCategoryPilot_bad_probability_log_two
          Real.exp (Real.log 2 * t - (block.card : Real) * upperBand / 2)) := by
   have hlog : 0 ≤ Real.log (2 : Real) :=
     (Real.log_pos (by norm_num)).le
-  have h := finiteCategoryPilot_bad_probability S hlabel block ht
+  have h := finiteCategoryPilot_bad_probability S hlabel block (t := t)
     lowerBand upperBand (Real.log 2) (-Real.log 2) hlog (neg_nonpos.mpr hlog)
   have hexp_pos : Real.exp (Real.log 2) = (2 : Real) :=
     Real.exp_log (by norm_num)

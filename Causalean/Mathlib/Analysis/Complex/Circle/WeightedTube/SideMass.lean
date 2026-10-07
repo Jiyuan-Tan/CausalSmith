@@ -127,9 +127,9 @@ private theorem comparisonBall_volume_real (side : CircleSide) {h : ℝ} (hh : 0
   have hq : 0 ≤ h / 4 := by positivity
   cases side <;> simp [comparisonBall, Measure.real, ENNReal.toReal_ofReal, hq]
 
-/-- When [the exponent κ exceeds two](hyp:hκ), [the weighted mass of the one-sided ball determined
+/-- For every exponent, the weighted mass of [the one-sided ball determined
 by the chosen side, center, and radius](hyp:side,x,h) [is nonnegative](goal). -/
-theorem sideBallMass_nonneg {κ : ℝ} (hκ : 2 < κ)
+theorem sideBallMass_nonneg {κ : ℝ}
     (side : CircleSide) (x : Plane) (h : ℝ) :
     0 ≤ sideBallMass κ side x h := by
   exact setIntegral_nonneg (measurableSet_sideBall side x h)

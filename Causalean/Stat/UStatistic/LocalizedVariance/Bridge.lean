@@ -20,9 +20,11 @@ variable {X : Type*} [MeasurableSpace X]
 
 include h
 
-/-- A [probability law and localized-kernel certificate](hyp:P,h) with [at least two
-observations](hyp:hn) give [an extended-nonnegative centered second-moment bound retaining
-the localized row and pair mass scales](goal). -/
+/-- Under [a probability law and a kernel H localized by a weight W with envelope M](hyp:P,h),
+with [at least two observations](hyp:hn), [the expected squared deviation of the unordered
+order-two U-statistic of H from its mean under n independent draws, computed as an integral of
+an extended-nonnegative integrand, is at most 16·M²·(R/n + Q/n²), where R is the squared row
+mass and Q the pair mass of W](goal). -/
 theorem lintegral_centered_second_moment_le {n : ℕ} (hn : 2 ≤ n) :
     (∫⁻ ω, ENNReal.ofReal
       ((uStatistic n H ω - ∫ z, uStatistic n H z ∂iidLaw P n) ^ 2)

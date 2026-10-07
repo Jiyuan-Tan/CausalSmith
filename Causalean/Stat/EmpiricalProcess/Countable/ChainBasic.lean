@@ -20,7 +20,9 @@ sample](hyp:x) with [real sample weights w](hyp:w) and [a sign vector
 σ](hyp:σ) is [the supremum over the family of the absolute value of
 Σ_j σ_j w_j taken over the observations lying in the set](step:1).
 
-The weights may have either sign.
+The weights may have either sign, and a sign vector is a vector of
+Booleans, true standing for +1 and false for −1. An empty family gives
+supremum zero.
 -/
 def chainSignSup {Ω ι : Type*} (B : ι → Set Ω) {n : ℕ}
     (x : Fin n → Ω) (w : Fin n → ℝ) (σ : Fin n → Bool) : ℝ := by

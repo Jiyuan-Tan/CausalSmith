@@ -9,7 +9,7 @@ Two-channel point-CATE annotation frontier: Helpers/LocalPolynomial/Taylor
 constructions and obligations.
 -/
 
-@[expose] public section
+public section
 
 attribute [local instance] Classical.propDecidable
 open MeasureTheory ProbabilityTheory Set

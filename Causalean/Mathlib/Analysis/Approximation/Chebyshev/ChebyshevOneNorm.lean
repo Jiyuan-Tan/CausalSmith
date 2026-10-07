@@ -3,7 +3,7 @@ public import Causalean.Mathlib.Analysis.Approximation.Chebyshev.PolynomialOneNo
 public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.Basic
 
 /-!
-# Sharp coefficient one-norm of Chebyshev polynomials
+# Silver-ratio coefficient one-norm bound for Chebyshev polynomials
 
 The Chebyshev recurrence gives the silver-ratio coefficient one-norm estimate used when a
 tensor Chebyshev expansion is converted to monomial coefficients.
@@ -53,7 +53,7 @@ private theorem oneNorm_X_mul (p : Polynomial ℝ) :
       Finset.sum_range_succ']
     simp only [coeff_X_mul_zero, abs_zero, add_zero, Nat.succ_eq_add_one, coeff_X_mul]
 
-/-- [A nonnegative Chebyshev order](hyp:n) has [a first-kind Chebyshev polynomial whose monomial coefficient one-norm is at most the corresponding silver-ratio power](goal).
+/-- For [a natural-number order n](hyp:n), [the sum of the absolute values of the monomial coefficients of the n-th first-kind Chebyshev polynomial is at most (1 + √2)ⁿ](goal).
 
 The sum of the absolute monomial coefficients of the `n`th Chebyshev polynomial is at
 most `(1 + √2)^n`. The recurrence has characteristic equation `x² = 2x + 1`.

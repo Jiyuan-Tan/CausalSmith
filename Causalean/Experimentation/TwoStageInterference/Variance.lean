@@ -267,10 +267,6 @@ theorem Var_tauHat_CRD (hK : 0 < K) (hKn : K < n) :
 
 end Group
 
-/-- Deprecated compatibility name for [the design-level treatment indicator](goal). -/
-@[deprecated (since := "2026-09-17")]
-alias T := DesignBased.T
-
 end TwoStageInterference
 end Experimentation
 end Causalean

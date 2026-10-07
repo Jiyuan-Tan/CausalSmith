@@ -42,11 +42,18 @@ theorem prawitz_low_real_initial_enclosure (j : Fin 270) :
   gcongr
   exact hp.1
 
-/-- On [the j-th certified parameter cell and the i-th positive low grid cell
-[i/200, (i+1)/200] below the cell's low cutoff index](hyp:j,i,hi),
-[the sharp endpoint analytic majorant for the normalized low-frequency cell
-integral is at most the cell's unchanged rational reciprocal-Taylor table
-entry](goal). -/
+/-- On [the j-th certified parameter cell, with rational endpoints r < s, and
+the i-th positive low grid cell [a, b] = [i/200, (i+1)/200] below the cell's
+low cutoff index](hyp:j,i,hi), [the analytic cell majorant
+(b − a)·(1/(πa) + 5s/12)·min((b³/6 + s·b⁴/8)·exp(E/2),
+(min(1, exp E) + exp(−a²/2))/r), where E is the larger of the two endpoint
+exponents −a²/2 + s·a³/5 and −b²/2 + s·b³/5, is at most the cell's rational
+table entry](goal).
+
+The table entry is the same expression with π replaced by 314159/100000,
+each exponential replaced by the reciprocal of a sixteen-term Taylor
+polynomial, and the factor min(1, exp E) replaced by that reciprocal bound
+on exp E. -/
 theorem prawitz_low_real_cell_enclosure
     (j : Fin 270) (i : ℕ)
     (hi : i ∈ Ico 1 (prawitzLowCutoffIndex j.val)) :

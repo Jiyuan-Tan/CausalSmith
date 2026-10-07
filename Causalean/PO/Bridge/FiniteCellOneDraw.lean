@@ -214,11 +214,13 @@ theorem integral_observedLaw_weighted_observedProduct (d : Bool) (w : γ → ℝ
     integral_map hmap.aemeasurable hintegrand.aestronglyMeasurable]
   exact integral_weighted_observedProduct D d w hm hw
 
-/-- A [finite-cell observed table](hyp:D), [treatment arm](hyp:d), [covariate
-weight and center](hyp:w,c), [their measurability](hyp:hm,hc), [integrable
-weight](hyp:hw), and [integrable weighted center](hyp:hwc) give [the
-observed-law centered arm-outcome mean through the arm probability and
-regression](goal). The center may be unbounded. -/
+/-- A [finite-cell observed table](hyp:D), [treatment arm d](hyp:d), [covariate
+weight w and center c](hyp:w,c), [their measurability](hyp:hm,hc), [integrability
+of the weight under the covariate law](hyp:hw), and [integrability of the weight
+times the center](hyp:hwc) give that [the observed-law expectation of
+w(X)·1{A = d}·(Y − c(X)) equals the covariate-law integral of
+w(x)·p_d(x)·(m_d(x) − c(x)), where p_d and m_d are the table's arm-d probability
+and arm-d outcome mean](goal). The center may be unbounded. -/
 theorem integral_observedLaw_weighted_centered (d : Bool)
     (w c : γ → ℝ) (hm : Measurable w) (hc : Measurable c)
     (hw : Integrable w (μ.map D.X))

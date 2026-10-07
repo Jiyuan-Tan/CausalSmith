@@ -30,9 +30,9 @@ def IsOrthogonalProjectorOntoTop (G P : Matrix (Fin 2) (Fin 2) ℝ) : Prop :=
   P.IsHermitian ∧ P * P = P ∧
     ∀ x : Fin 2 → ℝ, P.mulVec x = x ↔ G.mulVec x = lambda₁ G • x
 
-/-- Given [a real symmetric two-by-two matrix](hyp:G,hG) with [distinct explicit roots](hyp:hgap) and [a two-vector](hyp:x), [the algebraic projector fixes that vector exactly when it is an upper-root eigenvector](goal). -/
+/-- Given [a real two-by-two matrix](hyp:G) with [distinct explicit roots](hyp:hgap) and [a two-vector](hyp:x), [the algebraic projector fixes that vector exactly when it is an upper-root eigenvector](goal). -/
 theorem topProjector_mulVec_eq_iff {G : Matrix (Fin 2) (Fin 2) ℝ}
-    (hG : G.IsHermitian) (hgap : G ∈ strictGapSet) (x : Fin 2 → ℝ) :
+    (hgap : G ∈ strictGapSet) (x : Fin 2 → ℝ) :
     (topProjector G).mulVec x = x ↔ G.mulVec x = lambda₁ G • x := by
   have hne : lambda₁ G - lambda₂ G ≠ 0 := ne_of_gt (sub_pos.mpr hgap)
   constructor <;> intro h <;> funext i
@@ -49,9 +49,9 @@ theorem topProjector_mulVec_eq_iff {G : Matrix (Fin 2) (Fin 2) ℝ}
     field_simp [hne]
     linarith
 
-/-- Given [a real symmetric two-by-two matrix](hyp:G,hG) with [distinct explicit roots](hyp:hgap) and [a two-vector](hyp:x), [the algebraic projector sends that vector to zero exactly when it is a lower-root eigenvector](goal). -/
+/-- Given [a real two-by-two matrix](hyp:G) with [distinct explicit roots](hyp:hgap) and [a two-vector](hyp:x), [the algebraic projector sends that vector to zero exactly when it is a lower-root eigenvector](goal). -/
 theorem topProjector_mulVec_eq_zero_iff {G : Matrix (Fin 2) (Fin 2) ℝ}
-    (hG : G.IsHermitian) (hgap : G ∈ strictGapSet) (x : Fin 2 → ℝ) :
+    (hgap : G ∈ strictGapSet) (x : Fin 2 → ℝ) :
     (topProjector G).mulVec x = 0 ↔ G.mulVec x = lambda₂ G • x := by
   have hne : lambda₁ G - lambda₂ G ≠ 0 := ne_of_gt (sub_pos.mpr hgap)
   constructor <;> intro h <;> funext i
@@ -104,7 +104,7 @@ theorem topProjector_isOrthogonalProjectorOntoTop {G : Matrix (Fin 2) (Fin 2) �
     (hG : G.IsHermitian) (hgap : G ∈ strictGapSet) :
     IsOrthogonalProjectorOntoTop G (topProjector G) := by
   exact ⟨topProjector_isHermitian hG, topProjector_mul_self hG hgap,
-    topProjector_mulVec_eq_iff hG hgap⟩
+    topProjector_mulVec_eq_iff hgap⟩
 
 /-- Given [a real symmetric two-by-two matrix](hyp:G,hG) with [distinct explicit roots](hyp:hgap) and [a unit upper-root eigenvector](hyp:v,hv_unit,hv_eig), [the algebraic upper projector equals that vector's outer-product projector](goal). -/
 theorem topProjector_eq_outerProjector {G : Matrix (Fin 2) (Fin 2) ℝ}

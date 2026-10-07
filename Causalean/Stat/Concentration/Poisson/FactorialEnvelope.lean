@@ -8,7 +8,7 @@ This module turns the exact scalar mixed-moment formula for centered Poisson fal
 lifts into the exponential square-moment envelope used by finite factorial-polynomial processes.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 
@@ -17,7 +17,7 @@ open scoped BigOperators
 
 namespace Causalean.Stat.Concentration.Poisson
 
-/-- [A Poisson rate](hyp:rate), [normalization, center, radius, and scale](hyp:m,z,R,L), [positive normalization, radius, and scale](hyp:hm,hR,hL), [a centering condition](hyp:hcenter), [a normalized variance condition](hyp:hvariance), and [a factorial order](hyp:h) give [the exponential square-moment envelope for the normalized centered factorial lift](goal).
+/-- Let N be a Poisson count with [a given rate](hyp:rate), and let [a normalization m, a center z, a radius R, and a scale L](hyp:m,z,R,L) be real numbers with [m, R, and L positive](hyp:hm,hR,hL). If [the normalized mean rate/m is within R of z](hyp:hcenter) and [rate/(m² R²) is at most 1/L](hyp:hvariance), then for [every order h](hyp:h), [the expected square of the order-h centered factorial lift of N divided by R^h is at most exp(h²/L)](goal).
 
 If the mean is within one radius of the centering point and the variance of the
 normalized count is at most `R²/L`, the normalized square moment is at most `exp(h²/L)`.

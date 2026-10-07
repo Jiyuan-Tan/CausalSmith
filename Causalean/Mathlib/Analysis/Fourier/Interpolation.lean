@@ -5,10 +5,12 @@ public import Mathlib.MeasureTheory.Integral.MeanInequalities
 /-!
 # Interpolating absolute weighted L² energies
 
-The hypotheses are only measurable functions and integrable zeroth and second moments.
-Both the sharp geometric interpolation inequality and a scale-dependent additive bound
-include κ = 0 and κ = 2. Integrability is a conclusion, preventing the real integral's
-nonintegrable-zero convention from making the estimates meaningless.
+The geometric interpolation inequality assumes only integrable zeroth and second moments; the
+integrability statement and the additive bound also assume an almost-everywhere strongly
+measurable function.
+Both the geometric interpolation inequality and a scale-dependent additive bound
+include κ = 0 and κ = 2. Integrability of the weighted integrand is proved separately, so
+the real integral's nonintegrable-zero convention does not make the estimates meaningless.
 -/
 
 public section
@@ -51,9 +53,9 @@ theorem integrable_weightedEnergy (g : ℝ → ℂ) (κ : ℝ)
   simpa only [Pi.add_apply, add_mul, one_mul] using
     mul_le_mul_of_nonneg_right hb (sq_nonneg ‖g v‖)
 
-/-- [A complex-valued function with almost-everywhere strong measurability](hyp:g,hg), [a moment exponent in the interval from zero to two](hyp:κ,hκ0,hκ2), and [finite ordinary and quadratic squared energies](hyp:h0,h2) satisfy [the geometric interpolation bound for weighted squared energy](goal). -/
+/-- For [a complex-valued function g on the real line](hyp:g), [a moment exponent κ between zero and two](hyp:κ,hκ0,hκ2), and [integrable |g|² and v²·|g(v)|²](hyp:h0,h2), [the integral of |v|^κ·|g(v)|² is at most E₀^(1 − κ/2)·E₂^(κ/2), where E₀ is the integral of |g|² and E₂ the integral of v²·|g(v)|²](goal). -/
 theorem weightedEnergy_le_interpolation (g : ℝ → ℂ) (κ : ℝ)
-    (hg : AEStronglyMeasurable g) (hκ0 : 0 ≤ κ) (hκ2 : κ ≤ 2)
+    (hκ0 : 0 ≤ κ) (hκ2 : κ ≤ 2)
     (h0 : Integrable (fun v => ‖g v‖ ^ 2))
     (h2 : Integrable (fun v => v ^ 2 * ‖g v‖ ^ 2)) :
     weightedEnergy κ g ≤

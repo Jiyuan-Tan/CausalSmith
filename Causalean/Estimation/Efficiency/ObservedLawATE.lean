@@ -204,11 +204,9 @@ private lemma observedOutcomeIndicator_comp_factualZ
   rfl
 
 /-- At [a backdoor system's observed law](hyp:S), [the law-recomputed arm propensity equals
-the system's label-specific value-space propensity](goal) almost everywhere, under [the
-backdoor assumptions](hyp:hA). -/
+the system's label-specific value-space propensity](goal) almost everywhere. -/
 lemma observedPropensity_P_Z_ae
-    (S : ATE.BackdoorEstimationSystem P γ)
-    (hA : S.toPOBackdoorSystem.Assumptions) (d : Bool) :
+    (S : ATE.BackdoorEstimationSystem P γ) (d : Bool) :
     observedPropensity S.P_Z d =ᵐ[S.P_Z]
       fun z => S.e_val_label d (ATE.BackdoorEstimationSystem.projX z) := by
   letI : IsProbabilityMeasure S.P_Z := by
@@ -270,7 +268,7 @@ lemma observedArmRegression_P_Z_ae
     rw [MeasurableSpace.comap_comp]
     congr 1
   rw [hcomap, observedOutcomeIndicator_comp_factualZ S d] at htransport
-  have hprop := observedPropensity_P_Z_ae S hA d
+  have hprop := observedPropensity_P_Z_ae S d
   have hnum_source : (observedArmNumerator S.P_Z d) ∘ S.factualZ =ᵐ[P.μ]
       P.μ[fun ω => S.toPOBackdoorSystem.factualY ω *
         S.toPOBackdoorSystem.dVar.indicator d ω | S.toPOBackdoorSystem.sigmaX] :=
@@ -329,8 +327,8 @@ theorem observedAIPW_P_Z_ae
     observedAIPW S.P_Z =ᵐ[S.P_Z] S.ψ_AIPW := by
   filter_upwards [observedArmRegression_P_Z_ae S hA true,
     observedArmRegression_P_Z_ae S hA false,
-    observedPropensity_P_Z_ae S hA true,
-    observedPropensity_P_Z_ae S hA false] with z hμ1 hμ0 he1 he0
+    observedPropensity_P_Z_ae S true,
+    observedPropensity_P_Z_ae S false] with z hμ1 hμ0 he1 he0
   rw [observedAIPW, hμ1, hμ0, he1, he0, observedATE_P_Z_eq S hA]
   unfold ATE.BackdoorEstimationSystem.ψ_AIPW ATE.BackdoorEstimationSystem.aipwMoment
     ATE.BackdoorEstimationSystem.e_val_label ATE.BackdoorEstimationSystem.indA

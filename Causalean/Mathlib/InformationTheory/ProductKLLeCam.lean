@@ -412,21 +412,6 @@ theorem ProductKLTensorizationBound.one_ne_top {α : Type*} [MeasurableSpace α]
     _root_.InformationTheory.klDiv μ ν ≠ ∞ :=
   h.2.1
 
-/-- If [one sampling measure is absolutely continuous with respect to another](hyp:hμν),
-then [their finite independent product measures satisfy the same relation](goal) for every
-product length.
-
-Deprecated information-theory spelling of the probability-layer theorem
-`ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous`. -/
-@[deprecated Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous
-  (since := "2026-09-19")]
-theorem pi_iid_absolutelyContinuous {α : Type*} [MeasurableSpace α]
-    (μ ν : Measure α) [SigmaFinite μ] [SigmaFinite ν]
-    (hμν : μ ≪ ν) (n : ℕ) :
-    Measure.pi (fun _ : Fin n => μ) ≪ Measure.pi (fun _ : Fin n => ν) :=
-  Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous
-    μ ν hμν n
-
 /-- Public: log-likelihood-ratio integrability for i.i.d. finite products from
 the one-sample hypotheses `μ ≪ ν` and `Integrable (llr μ ν) μ`.  Combined with
 `ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous` this certifies

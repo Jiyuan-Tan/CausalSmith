@@ -110,8 +110,6 @@ residual to covariate functions (`integral_condExpZero_mul_comp_factualX` with
 lemma integral_plrMomentA_diff_eq (S : PLRSystem P γ)
     (η : PLRNuisance γ)
     (hD : Integrable S.factualD P.μ)
-    (hresid_sq : Integrable
-      (fun ω => (S.factualD ω - S.mVal (S.factualX ω)) ^ 2) P.μ)
     (hΔm_sq : Integrable
       (fun ω => (S.mVal (S.factualX ω) - η.mFn (S.factualX ω)) ^ 2) P.μ)
     (hcross : Integrable
@@ -214,16 +212,15 @@ private lemma integral_Δm_sq_eq_rate_sq (S : PLRSystem P γ) (η : PLRNuisance 
 
 /-- **Fold-B Jacobian consistency.**  Assume [the treatment is
 integrable](hyp:hD); [the true partialling-out moment at the truth is
-square-integrable under the observed-data law, and the squared true treatment
-residual is integrable](hyp:hg0_memLp,hresid_sq); that for the estimated nuisance
+square-integrable under the observed-data law](hyp:hg0_memLp); that for the estimated nuisance
 sequence `η_hat`, at every fold and draw, [the treatment-regression error is
 square-integrable in the covariate law, both marginally and against the true
 treatment residual](hyp:hΔm_sq,hcross,hΔm_memLp); that [the treatment-regression
 error converges to zero in L²(P_X) at rate $o_p(1)$](hyp:h_m_rate); and that the
 partialling-out-moment increment `mₐ(η̂,·) − mₐ(η₀,·)` is [jointly measurable,
-fold-A measurable, square-integrable under the observed-data law, and converges to
-zero in L²(P_Z) at rate
-$o_p(1)$](hyp:hΔa_meas,hΔa_foldA,hΔa_uncurry_foldA,hΔa_memLp,hΔa_rate). Then [the
+measurable in the training fold jointly with the observation, square-integrable
+under the observed-data law, and converges to zero in L²(P_Z) at rate
+$o_p(1)$](hyp:hΔa_meas,hΔa_uncurry_foldA,hΔa_memLp,hΔa_rate). Then [the
 empirical partialling-out Jacobian at the estimated nuisance, averaged over the
 estimation fold, converges in probability to its population value
 $J_0=-E[(D-m_{val}(X))^2]$](goal):
@@ -250,8 +247,6 @@ theorem plr_jacobian_consistency
     -- condition on the treatment residual), so the fold-B WLLN applies to `mₐ(η₀, ·)`.
     (hg0_memLp : MemLp (plrMomentA S.η₀) 2 S.P_Z)
     -- Per-`(n, ω)` integrability witnesses for the bias decomposition.
-    (hresid_sq : Integrable
-      (fun ω => (S.factualD ω - S.mVal (S.factualX ω)) ^ 2) P.μ)
     (hΔm_sq : ∀ n ω, Integrable
       (fun ω' => (S.mVal (S.factualX ω') - (η_hat n ω).mFn (S.factualX ω')) ^ 2) P.μ)
     (hcross : ∀ n ω, Integrable
@@ -266,15 +261,10 @@ theorem plr_jacobian_consistency
           (eLpNorm (fun x => S.mVal x - (η_hat n ω).mFn x) 2 S.P_X).toReal)
         (fun _ => (1 : ℝ)) P.μ)
     -- Fold-A measurability of the partialling-out-moment increment (mirroring the
-    -- `h_m_foldA`-style hypotheses of `plr_oneStepOracleDML_isAsymLinear`: `η̂` is fold-A trained).
+    -- `h_m_foldA_uncurry`-style hypotheses of `plr_oneStepOracleDML_isAsymLinear`: `η̂` is fold-A trained).
     (hΔa_meas :
       ∀ n, Measurable (Function.uncurry
         (fun ω z => plrMomentA (η_hat n ω) z - plrMomentA S.η₀ z)))
-    (hΔa_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (fun ω z => plrMomentA (η_hat n ω) z - plrMomentA S.η₀ z))
     (hΔa_uncurry_foldA :
       ∀ n,
         Measurable[(MeasurableSpace.comap
@@ -321,7 +311,7 @@ theorem plr_jacobian_consistency
       = -((eLpNorm (fun x => S.mVal x - (η_hat n ω).mFn x) 2 S.P_X).toReal) ^ 2 := by
     intro n ω
     simp only [hbias_def]
-    rw [S.integral_plrMomentA_diff_eq (η_hat n ω) hD hresid_sq (hΔm_sq n ω) (hcross n ω)]
+    rw [S.integral_plrMomentA_diff_eq (η_hat n ω) hD (hΔm_sq n ω) (hcross n ω)]
     rw [S.integral_Δm_sq_eq_rate_sq (η_hat n ω) (hΔm_memLp n ω)]
   -- `‖Δm‖₂ →ₚ 0`, so its square →ₚ 0, so `bias →ₚ 0`, hence `o_p(1)`.
   set rateM : ℕ → P.Ω → ℝ := fun n ω =>
@@ -333,7 +323,7 @@ theorem plr_jacobian_consistency
       (fun n ω => (rateM n ω) ^ 2) atTop (fun _ _ => 0) := by
     have hcont : ContinuousAt (fun x : ℝ => x ^ 2) (0 : ℝ) :=
       (continuous_pow 2).continuousAt
-    have := Causalean.Stat.Tendsto_inProb.comp_continuousAt hcont hrateM_inProb
+    have := Causalean.Stat.Modes.TendstoInProbability.comp_continuousAt hcont hrateM_inProb
     simpa using this
   have hbias_inProb : Modes.TendstoInProbability (fun _ => P.μ) bias atTop
       (fun _ _ => 0) := by
@@ -341,10 +331,10 @@ theorem plr_jacobian_consistency
       funext n ω; rw [hbias_eq n ω, hrateM_def]
     rw [heq]
     have hcont : ContinuousAt (fun x : ℝ => -x) (0 : ℝ) := (continuous_neg).continuousAt
-    have := Causalean.Stat.Tendsto_inProb.comp_continuousAt hcont hrateMsq_inProb
+    have := Causalean.Stat.Modes.TendstoInProbability.comp_continuousAt hcont hrateMsq_inProb
     simpa using this
   have hbias_lo : IsLittleOp bias (fun _ => (1 : ℝ)) P.μ :=
-    Causalean.Stat.Tendsto_inProb.isLittleOp_one hbias_inProb
+    Causalean.Stat.Modes.TendstoInProbability.isLittleOp_one hbias_inProb
   -- The "effective" bias `(|B|⁻¹·|B|)·bias` — equal to `bias` on nonempty folds and `0`
   -- on empty folds — so that the pointwise decomposition below holds for ALL `n`.  Its
   -- `{0,1}`-valued prefactor leaves it `o_p(1)`.
@@ -386,7 +376,7 @@ theorem plr_jacobian_consistency
       with hcenteredSqrt_def
     -- `centeredSqrt` is `O_p(1)` (it converges in probability to `0`).
     have hcenteredSqrt_bigO : IsBigOp centeredSqrt (fun _ => (1 : ℝ)) P.μ :=
-      Causalean.Stat.Tendsto_inProb.isBigOp_one
+      Causalean.Stat.Modes.TendstoInProbability.isBigOp_one
         (tendstoInProbability_zero_of_isLittleOp_one hsqrt_centered)
     -- The deterministic factor `(√|B(n)|)⁻¹ → 0`, since `|B(n)| → ∞`.
     have ha_tendsto :
@@ -449,8 +439,8 @@ theorem plr_jacobian_consistency
     exact IsLittleOp.add_one hcentered_lo hbiasEff_lo
   -- STEP 4: `Yn − J₀ = (Yn − Y₀) + (Y₀ − J₀)`, both `o_p(1)`; return to convergence in probability.
   have hY₀_sub_lo : IsLittleOp (fun n ω => Y₀ n ω - J₀) (fun _ => (1 : ℝ)) P.μ :=
-    Causalean.Stat.Tendsto_inProb.isLittleOp_one
-      (Causalean.Stat.Tendsto_inProb.sub_const hY₀_lim)
+    Causalean.Stat.Modes.TendstoInProbability.isLittleOp_one
+      (Causalean.Stat.Modes.TendstoInProbability.sub_const hY₀_lim)
   have hYn_sub_J₀_lo : IsLittleOp (fun n ω => Yn n ω - J₀) (fun _ => (1 : ℝ)) P.μ := by
     have heq : (fun n ω => Yn n ω - J₀)
         = fun n ω => (Yn n ω - Y₀ n ω) + (Y₀ n ω - J₀) := by
@@ -466,7 +456,7 @@ theorem plr_jacobian_consistency
       (fun _ _ => J₀) := by
     have hcont : ContinuousAt (fun x : ℝ => x + J₀) (0 : ℝ) :=
       (continuous_add_const J₀).continuousAt
-    have := Causalean.Stat.Tendsto_inProb.comp_continuousAt hcont hYn_sub_inProb
+    have := Causalean.Stat.Modes.TendstoInProbability.comp_continuousAt hcont hYn_sub_inProb
     simpa using this
   exact hfinal
 

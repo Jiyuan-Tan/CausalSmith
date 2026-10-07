@@ -4,7 +4,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.H
 
 /-! Identification of optimal finite-label ambiguity with paired quantization. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal

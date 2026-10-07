@@ -35,6 +35,7 @@ def finiteSquaredRisk (p : Theta → X → ℝ) (tau : Theta → ℝ)
     (d : BoundedDecision X l u) (theta : Theta) : ℝ :=
   ∑ x, p theta x * (((d x : Set.Icc l u) : ℝ) - tau theta) ^ 2
 
+omit [TopologicalSpace Theta] in
 /-- If the [label coordinates are nonnegative](hyp:hp), every [finite squared risk](goal)
 is nonnegative. -/
 theorem finiteSquaredRisk_nonneg (p : Theta → X → ℝ) (tau : Theta → ℝ)
@@ -42,12 +43,13 @@ theorem finiteSquaredRisk_nonneg (p : Theta → X → ℝ) (tau : Theta → ℝ)
     0 ≤ finiteSquaredRisk p tau d theta := by
   exact Finset.sum_nonneg fun x _ ↦ mul_nonneg (hp theta x) (sq_nonneg _)
 
+omit [TopologicalSpace Theta] in
 /-- If [label probabilities are nonnegative and sum to one](hyp:hp,hsum), and [actions and
-targets lie in the same ordered interval](hyp:hlu,htau), then the [finite squared risk is
+targets lie in the same interval](hyp:htau), then the [finite squared risk is
 bounded](goal) between zero and the squared interval width. -/
 theorem finiteSquaredRisk_bounds (p : Theta → X → ℝ) (tau : Theta → ℝ)
     (hp : ∀ theta x, 0 ≤ p theta x) (hsum : ∀ theta, ∑ x, p theta x = 1)
-    (hlu : l ≤ u) (htau : ∀ theta, tau theta ∈ Set.Icc l u)
+    (htau : ∀ theta, tau theta ∈ Set.Icc l u)
     (d : BoundedDecision X l u) (theta : Theta) :
     0 ≤ finiteSquaredRisk p tau d theta ∧ finiteSquaredRisk p tau d theta ≤ (u - l) ^ 2 := by
   refine ⟨finiteSquaredRisk_nonneg p tau hp d theta, ?_⟩
@@ -84,9 +86,9 @@ theorem continuous_finiteSquaredRisk_joint (p : Theta → X → ℝ) (tau : Thet
   unfold finiteSquaredRisk
   fun_prop
 
-/-- A [finite labeled alphabet](hyp:X) and [ordered action bounds](hyp:hlu) make the
+/-- A [finite labeled alphabet](hyp:X) makes the
 [space of bounded decisions compact](goal). -/
-theorem isCompact_boundedDecision (hlu : l ≤ u) :
+theorem isCompact_boundedDecision :
     IsCompact (Set.univ : Set (BoundedDecision X l u)) := by
   exact isCompact_univ
 

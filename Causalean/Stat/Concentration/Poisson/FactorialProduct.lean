@@ -18,7 +18,7 @@ open scoped BigOperators
 
 namespace Causalean.Stat.Concentration.Poisson
 
-/-- [a finite count-coordinate family](hyp:W), [a normalization](hyp:m), [centers and factorial orders](hyp:z,h), and [a sample point](hyp:ω) determine [the product of centered factorial lifts](goal).
+/-- For [a finite family of count coordinates](hyp:W), [a normalization](hyp:m), [a center and an order for each coordinate](hyp:z,h), and [a sample point](hyp:ω), [the factorial product](goal) is the product over coordinates of the centered factorial lift of that coordinate's count at the sample point, with that coordinate's center and order.
 
 The product of normalized centered factorial lifts over a finite coordinate set.
 -/
@@ -35,7 +35,7 @@ one-coordinate integral through `HasLaw`, and apply `poisson_factorialLift_mean`
 theorem factorialProduct_mean {ι Ω : Type*} [Fintype ι] [MeasurableSpace Ω]
     (μ : Measure Ω) [IsProbabilityMeasure μ] (W : ι → Ω → ℕ)
     (rate : ι → NNReal) (hWlaw : ∀ i, HasLaw (W i) (poissonMeasure (rate i)) μ)
-    (hWindep : iIndepFun W μ) (m : ℝ) (hm : m ≠ 0)
+    (hWindep : iIndepFun W μ) (m : ℝ)
     (z : ι → ℝ) (h : ι → ℕ) :
     (∫ ω, factorialProduct W m z h ω ∂μ) =
       ∏ i, ((rate i : ℝ) / m - z i) ^ (h i) := by
@@ -51,7 +51,7 @@ theorem factorialProduct_mean {ι Ω : Type*} [Fintype ι] [MeasurableSpace Ω]
       simpa only [Function.comp_apply] using
         (hWlaw i).integral_comp (f := fun N : ℕ => factorialLift m (z i) N (h i))
           Measurable.of_discrete.aestronglyMeasurable]
-  exact poisson_factorialLift_mean (rate i) m (z i) hm (h i)
+  exact poisson_factorialLift_mean (rate i) m (z i) (h i)
 
 /-- Under independent Poisson coordinates, the normalized product's square moment is at most
 the exponential of the sum of coordinatewise squared degrees divided by `L`.
@@ -105,7 +105,7 @@ theorem factorialProduct_square_envelope
       congr 1
       rw [Finset.sum_div]
 
-/-- [A probability measure and four count coordinates](hyp:μ,W), [their Poisson rates](hyp:rate), [their marginal Poisson laws and independence](hyp:hWlaw,hWindep), [normalization and scale parameters with positivity](hyp:m,L,hm,hL), [centers and radii with their positivity](hyp:z,R,hR), [centering and variance conditions](hyp:hcenter,hvariance), and [a degree vector bounded by an order](hyp:h,D,hdegree) give [the four-coordinate factorial-product square-moment envelope](goal).
+/-- Under [a probability measure, take four count coordinates](hyp:μ,W) with [given rates](hyp:rate) that [have Poisson laws of those rates and are mutually independent](hyp:hWlaw,hWindep), [a positive normalization m and a positive scale L](hyp:m,L,hm,hL), and [centers and positive radii](hyp:z,R,hR) such that [each normalized mean rate/m is within its radius of its center and each rate/(m² R²) is at most 1/L](hyp:hcenter,hvariance). For [orders, one per coordinate, each at most D](hyp:h,D,hdegree), [the expected square of the factorial product divided by the product of the radii raised to the orders is at most exp(4D²/L)](goal).
 
 For four Poisson coordinates and every degree at most `D`, the normalized factorial product
 has square moment at most `exp(4D²/L)`.

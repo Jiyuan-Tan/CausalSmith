@@ -15,13 +15,17 @@ namespace Causalean.Stat.CLT.BerryEsseen
 
 open MeasureTheory ProbabilityTheory
 
-/-- For [a scalar probability law with finite first moment](hyp:hfirst) and
-[positive cutoffs U0 ≤ U](hyp:hU0,hcut), [its CDF at every threshold x differs
-from the standard Gaussian CDF by at most the four Prawitz Fourier terms: the
-filtered low-frequency characteristic-function discrepancy on [0, U0], the
-filtered high-frequency characteristic-function modulus on [U0, U], the
-Gaussian principal correction on [0, U0], and the Gaussian tail beyond
-U0](goal). -/
+/-- For [a scalar probability law with finite first moment](hyp:μ,hfirst),
+[positive cutoffs U0 ≤ U](hyp:U0,U,hU0,hcut), and [any threshold x](hyp:x),
+[the CDF of the law at x differs from the standard Gaussian CDF at x by at
+most the sum of four Prawitz Fourier terms,
+(2/U)·∫₀^{U0} |K(t/U)|·|φ_μ(t) − φ_γ(t)| dt + (2/U)·∫_{U0}^{U} |K(t/U)|·|φ_μ(t)| dt +
+2·∫₀^{U0} |K(t/U)/U − i/(2πt)|·exp(−t²/2) dt + (1/π)·∫_{U0}^{∞} exp(−t²/2)/t dt](goal).
+Here K is the Prawitz spectral filter, φ_μ the characteristic function of the law, and φ_γ
+that of the standard Gaussian. The four terms are the filtered
+low-frequency characteristic-function discrepancy, the filtered
+high-frequency characteristic-function modulus, the Gaussian principal
+correction, and the Gaussian tail beyond U0. -/
 theorem normal_cdf_prawitz_smoothing
     (μ : Measure ℝ) [IsProbabilityMeasure μ]
     (hfirst : Integrable (fun y : ℝ => y) μ)

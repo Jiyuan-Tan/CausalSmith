@@ -20,10 +20,13 @@ namespace Causalean.Mathlib.Probability.SubGaussian
 open MeasureTheory ProbabilityTheory
 
 /-- For [a decay exponent](hyp:α) with [strictly positive value](hyp:hα), [there
-is a positive finite envelope constant](goal) such that every finite ordered
-real family with positive cap and initial scales, coordinatewise exponential
-integrability, and the polynomially decaying sub-Gaussian moment bound has the
-stated logarithmic expected-maximum envelope, without independence.
+is a positive constant depending only on the exponent such that, on every probability
+space, for every finite family `Z_0, …, Z_{N-1}` of real random variables and all
+positive scales `a` and `b`, if every `exp(t·Z_k)` is integrable and the
+moment-generating function of `Z_k` at every `t` is at most `exp(v_k·t²/2)` with variance
+proxy `v_k = min(a², b²(k+1)^(-α))`, then the expected largest absolute value of the
+family is at most the constant times `a·√(1 + max(0, log((b/a)^(2/α))))`](goal). No
+independence is assumed, and the maximum over an empty family is zero.
 
 Proof strategy: take `Kα` from `ordered_gaussian_tail_integral`.  Each variance
 proxy `v k = min (a²) (b² * (k.val + 1)^(-α))` is positive.  Apply

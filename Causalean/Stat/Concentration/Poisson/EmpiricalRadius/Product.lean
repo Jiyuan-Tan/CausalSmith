@@ -223,8 +223,12 @@ namespace Causalean.Stat.Concentration.Poisson.EmpiricalRadius
 /-- Under [a probability law](hyp:μ), [four measurable Poisson counts](hyp:W,hWmeas,hWlaw)
 with [intensities and positive exposure](hyp:q,m,hm) and [mutual independence](hyp:hWindep),
 for [moment order one, two, or four](hyp:t,ht) and [a multiplier and level above their
-universal thresholds](hyp:H,L,hH,hL), [the empirical aggregate score moment on the union of
-empirical-radius bad events obeys the explicit exponentially decaying product bound](goal). -/
+universal thresholds, H at least 1024 and L at least 1](hyp:H,L,hH,hL), [the expectation of
+the t-th power of the empirical aggregate score, taken on the event that some coordinate's
+normalized deviation exceeds a quarter of its empirical radius and zero otherwise, is at most
+(H/1024)^t times the four-coordinate order-t product moment constant times exp(−20 L) times
+(√((sum of the four intensities) · L/m) + L/m)^t](goal). Each count has Poisson mean equal
+to the exposure times its intensity. -/
 -- Apply empiricalBadAny_subset_raw and empiricalAggregateScore_le_raw
 -- pointwise. Use the integrability of the universal raw indicator score
 -- (from the product theorem's supporting lemmas), integral_mono_of_nonneg,
@@ -246,14 +250,13 @@ theorem independent_poisson_empiricalRadius_badAny_moment_four
   classical
   let lambda : Fin 4 → ℝ≥0 := fun i => m * q i
   let c : ℝ := H / universalH
-  have ht4 : t ≤ 4 := by rcases ht with rfl | rfl | rfl <;> norm_num
   have hc : 0 ≤ c := by
     dsimp [c]
     exact div_nonneg (le_trans universalH_pos.le hH) universalH_pos.le
   have hmR : 0 < (m : ℝ) := NNReal.coe_pos.mpr hm
   have hscoreInt (i : Fin 4) :
       Integrable (fun ω => (score universalH L (lambda i) (W i ω)) ^ t) μ := by
-    have h := integrable_score_pow (lambda i) hL ht4
+    have h := integrable_score_pow (lambda i) hL (t := t)
     have hmap : μ.map (W i) = poissonMeasure (lambda i) := (hWlaw i).map_eq
     rw [← hmap] at h
     exact h.comp_aemeasurable (hWlaw i).aemeasurable

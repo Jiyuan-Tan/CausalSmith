@@ -47,7 +47,7 @@ predicate `WeakGlivenkoCantelli`, the finite-bracketing structure `L1Bracketing`
 and the arbitrary-small-bracketing hypothesis `HasL1Bracketing` consumed by the
 Glivenko-Cantelli and M-estimator consistency files. The unqualified name
 `GlivenkoCantelli` is reserved for the almost-sure version, which has not yet
-been formalized; a deprecated alias preserves the former weak-law API. -/
+been formalized. -/
 
 @[expose] public section
 
@@ -100,11 +100,6 @@ def WeakGlivenkoCantelli (S : IIDSample Ω X μ P) (f : ι → X → ℝ) : Prop
     Tendsto
       (fun n => μ {ω | ∃ i, ε ≤ |S.sampleMean (f i) n ω - ∫ x, f i x ∂P|})
       atTop (𝓝 0)
-
-/-- Deprecated compatibility name for [the weak uniform law of large
-numbers](goal) of [an iid sample](hyp:S) over [a function class](hyp:f). -/
-@[deprecated (since := "2026-09-17")]
-alias GlivenkoCantelli := WeakGlivenkoCantelli
 
 /-- A finite `L¹(P)` `ε`-bracketing of a real-valued function class consists of
 finitely many integrable lower and upper endpoints, a common full-measure

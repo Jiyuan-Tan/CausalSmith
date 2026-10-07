@@ -551,17 +551,14 @@ noncomputable def centeredCrossMoment (μ : Measure Ω) (A B : Ω → ℝ) : ℝ
   (∫ ω, A ω * B ω ∂μ) - (∫ ω, A ω ∂μ) * (∫ ω, B ω ∂μ)
 
 /-- Under a probability law, for [two coordinate-function families of
-orders `r` and `s`](hyp:r,s,f,g), if [the first product kernel is measurable](hyp:hmeasF),
-[the second product kernel is measurable](hyp:hmeasG), [the first product
-kernel is integrable](hyp:hintF), and [the second product kernel is
-integrable](hyp:hintG), [the empty matching's merged moment factors into the
-two separate product-law means](goal). -/
+orders `r` and `s`](hyp:r,s,f,g), [the empty matching's merged moment factors into the
+two separate product-law means](goal).
+
+No integrability is assumed: when the coordinatewise product of one family is not integrable
+under its product law, its mean and the merged moment are both zero by the convention that the
+integral of a non-integrable function is zero. -/
 theorem mergedProductMoment_empty [IsProbabilityMeasure P] {r s : ℕ}
-    (f : Fin r → X → ℝ) (g : Fin s → X → ℝ)
-    (hmeasF : Measurable (orderedProductKernel f))
-    (hmeasG : Measurable (orderedProductKernel g))
-    (hintF : Integrable (orderedProductKernel f) (Measure.pi fun _ : Fin r => P))
-    (hintG : Integrable (orderedProductKernel g) (Measure.pi fun _ : Fin s => P)) :
+    (f : Fin r → X → ℝ) (g : Fin s → X → ℝ) :
     mergedProductMoment P f g (PartialMatching.empty r s) =
       orderedProductMean P f * orderedProductMean P g := by
   classical
@@ -645,7 +642,7 @@ theorem centeredCrossMoment_normalizedOrderedProductStatistic
       (orderedProductMean P f * orderedProductMean P g) := by
     dsimp only [F]
     rw [Finset.sum_eq_single (PartialMatching.empty r s)]
-    · rw [mergedProductMoment_empty f g hmeasF hmeasG hintF hintG]
+    · rw [mergedProductMoment_empty f g]
     · intro M hM hne
       exact False.elim (hne (PartialMatching.eq_empty_of_size_eq_zero M
         ((mem_partialMatchingsOfSize M).mp hM)))

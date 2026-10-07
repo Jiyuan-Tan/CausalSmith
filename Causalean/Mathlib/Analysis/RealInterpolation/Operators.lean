@@ -134,12 +134,15 @@ theorem le_geometric_of_forall_gt (L K A0 A1 : ℝ≥0∞)
     (ENNReal.lt_add_right (ne_of_lt hA1) (ne_of_gt (ENNReal.ofReal_pos.mpr hε)))
     (ENNReal.add_lt_top.mpr ⟨hA1, ENNReal.ofReal_lt_top⟩)
 
-/-- [A common real linear operator](hyp:D) between
-[compatible embedded Banach pairs](hyp:i0,i1,j0,j1,hi0,hi1,hj0,hj1), with
+/-- [A common real linear operator](hyp:D) from
+[a compatible embedded Banach source pair](hyp:i0,i1,hi0,hi1) to
+[an embedded Banach target pair](hyp:j0,j1), with
 [finite nonnegative endpoint bounds](hyp:A0,A1,hA0,hA1,h0,h1),
-satisfies [the exact normalized interpolation estimate](goal) for
+satisfies [the exact interpolation estimate: the normalized squared interpolation norm of
+its image in the target pair is at most (A0^(1−θ)·A1^θ)² times the normalized squared
+interpolation norm of the vector in the source pair](goal), for
 [an interior exponent](hyp:θ,hθ) and
-[an endpoint-sum vector with finite interpolation energy](hyp:v,hv,hvfin).
+[a vector with finite interpolation energy](hyp:v,hvfin).
 
 This is the full embedded-pair operator contract, with no interpolation theorem
 as a hypothesis. Apply the positive-gauge theorem with slightly larger bounds,
@@ -156,12 +159,10 @@ theorem exact_interpolation_operators
     (i0 : E0 →L[ℝ] V) (i1 : E1 →L[ℝ] V)
     (j0 : G0 →L[ℝ] W) (j1 : G1 →L[ℝ] W)
     (hi0 : Function.Injective i0) (hi1 : Function.Injective i1)
-    (hj0 : Function.Injective j0) (hj1 : Function.Injective j1)
     (D : V →ₗ[ℝ] W) (A0 A1 : ℝ≥0∞) (hA0 : A0 < ⊤) (hA1 : A1 < ⊤)
     (h0 : ∀ e, embeddedNorm j0 (D (i0 e)) ≤ A0 * ENNReal.ofReal ‖e‖)
     (h1 : ∀ e, embeddedNorm j1 (D (i1 e)) ≤ A1 * ENNReal.ofReal ‖e‖)
     (θ : ℝ) (hθ : θ ∈ Ioo (0 : ℝ) 1) (v : V)
-    (hv : ∃ e0 e1, v = i0 e0 + i1 e1)
     (hvfin : kNormSq (embeddedNorm i0) (embeddedNorm i1) θ v < ⊤) :
     kNormSq (embeddedNorm j0) (embeddedNorm j1) θ (D v) ≤
       (ENNReal.rpow A0 (1 - θ) * ENNReal.rpow A1 θ) ^ 2 *

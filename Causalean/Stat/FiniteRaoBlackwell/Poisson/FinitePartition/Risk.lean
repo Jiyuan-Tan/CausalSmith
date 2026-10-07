@@ -376,14 +376,14 @@ theorem sqRisk_capped_restrict_nonoverflow_le_independent
 
 /-- For [an iid observation law](hyp:P), [label masses](hyp:p) [summing to one](hyp:hp),
 [a Poisson mean](hyp:lambda), [a pool size](hyp:n), [a measurable stream statistic](hyp:hT)
-[confined to an ordered interval](hyp:hab,hTmem), [a target in that interval](hyp:htheta), and [an
+[confined to an interval](hyp:hTmem), [a target in that interval](hyp:htheta), and [an
 overflow value in it](hyp:hzOver), [capped risk is bounded by independent-stream risk plus
 squared interval diameter times the Poisson upper tail](goal). -/
 theorem cappedRisk_le_independentRisk_add_tail
     (P : Measure X) [IsProbabilityMeasure P]
     (p : I → ℝ≥0) (hp : ∑ i, p i = 1) (lambda : ℝ≥0) (n : ℕ)
     {T : (I → FiniteSample X) → ℝ} (hT : Measurable T)
-    {a b theta zOver : ℝ} (hab : a ≤ b)
+    {a b theta zOver : ℝ}
     (hTmem : ∀ s, T s ∈ Set.Icc a b)
     (htheta : theta ∈ Set.Icc a b) (hzOver : zOver ∈ Set.Icc a b) :
     sqRisk ((fixedPoolLaw P n).prod (auxiliaryLaw p hp lambda n))
@@ -433,14 +433,14 @@ theorem cappedRisk_le_independentRisk_add_tail
 
 /-- For [an iid observation law](hyp:P), [label masses](hyp:p) [summing to one](hyp:hp),
 [a Poisson mean](hyp:lambda), [a pool size](hyp:n), [a measurable stream statistic](hyp:hT)
-[confined to an ordered interval](hyp:hab,hTmem), [a target in that interval](hyp:htheta), and [an
+[confined to an interval](hyp:hTmem), [a target in that interval](hyp:htheta), and [an
 overflow value in it](hyp:hzOver), [fixed-sample squared risk is at most independent
 Poisson-stream risk plus squared interval diameter times the Poisson upper tail](goal). -/
 theorem fixedRisk_le_independentRisk_add_tail
     (P : Measure X) [IsProbabilityMeasure P]
     (p : I → ℝ≥0) (hp : ∑ i, p i = 1) (lambda : ℝ≥0) (n : ℕ)
     {T : (I → FiniteSample X) → ℝ} (hT : Measurable T)
-    {a b theta zOver : ℝ} (hab : a ≤ b)
+    {a b theta zOver : ℝ}
     (hTmem : ∀ s, T s ∈ Set.Icc a b)
     (htheta : theta ∈ Set.Icc a b) (hzOver : zOver ∈ Set.Icc a b) :
     sqRisk (fixedPoolLaw P n)
@@ -449,6 +449,6 @@ theorem fixedRisk_le_independentRisk_add_tail
         T theta +
         (b - a) ^ 2 * (poissonMeasure lambda).real (Set.Ioi n) := by
   exact (fixedRisk_le_cappedRisk P p hp lambda n hT hTmem hzOver theta).trans
-    (cappedRisk_le_independentRisk_add_tail P p hp lambda n hT hab hTmem htheta hzOver)
+    (cappedRisk_le_independentRisk_add_tail P p hp lambda n hT hTmem htheta hzOver)
 
 end Causalean.Stat.FiniteRaoBlackwell.Poisson.FinitePartition

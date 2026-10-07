@@ -168,11 +168,15 @@ section NormalDiskBundle
 variable {X E : Type*} [TopologicalSpace X] [NormedAddCommGroup E]
   [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
 
-/-- The closed unit normal disk bundle consists of orthogonal normal vectors of norm at most one. -/
+/-- The closed unit normal disk bundle of a family of subspaces over a base consists of the
+pairs of a base point and an ambient vector orthogonal to the subspace at that point with norm at
+most one. -/
 def normalDiskSet (T : X → Submodule ℝ E) : Set (X × E) :=
   {z | z.2 ∈ (T z.1)ᗮ ∧ ‖z.2‖ ≤ 1}
 
-/-- The normal disk bundle carries the topology inherited from base times ambient space. -/
+/-- The closed unit normal disk bundle of a family of subspaces over a base, as a space: the
+pairs of a base point and an ambient vector that is orthogonal to the subspace at that point and
+has norm at most one, with the topology inherited from base times ambient space. -/
 abbrev NormalDiskBundle (T : X → Submodule ℝ E) := {z : X × E // z ∈ normalDiskSet T}
 
 /-- A continuous tangent projection makes the unit normal disk bundle closed in base times ambient
@@ -486,7 +490,7 @@ noncomputable def normalDiskReferenceMeasure (f : M → E)
     Measure (M × E) := μ ⊗ₘ normalDiskVolumeKernel I f hf
 
 /-- A [model with corners `I`](hyp:I), [a smooth Euclidean embedding `f` with
-certificate `hf`](hyp:f,hf), [a base measure `μ`](hyp:μ), and [a nonnegative
+certificate `hf`](hyp:f,hf), [an s-finite base measure `μ`](hyp:μ), and [a nonnegative
 measurable integrand `g` with measurability certificate `hg`](hyp:g,hg) give
 [integration against the normal-disk reference measure equal to iterated
 integration over the base and its normal fibers](goal). -/

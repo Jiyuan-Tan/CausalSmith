@@ -67,12 +67,12 @@ theorem exists_collinear_simultaneous_congruence_ambiguity
   · have hΩsymm : Ω₀.IsSymm := by
       rw [← Matrix.isHermitian_iff_isSymm]
       exact hΩ.isHermitian
-    exact deformedInvariant_isSymm B₀ Ω₀ hij hΩsymm
+    exact deformedInvariant_isSymm B₀ Ω₀ hΩsymm
       cert.u cert.v cert.c t
   · intro e
     exact representedCovariance_posDef B₀ Ω₀ (s e) hunit hΩ (hs e)
   · intro e
-    exact representedCovariance_deformation_eq B₀ Ω₀ hij s cert t e hunit hTunit
+    exact representedCovariance_deformation_eq B₀ Ω₀ hij s cert t e hTunit
 
 /-- [Every nonnegative affine-collinear shift family admits a positive-definite covariance family
 with two distinct normalized diagonalizers](goal), providing a concrete interior

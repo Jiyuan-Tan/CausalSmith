@@ -30,9 +30,14 @@ theorem oddEuclidean_uniform_scaled_bounds (d : ℕ) : ∃ C : ℝ, 1 ≤ C ∧
   obtain ⟨C, hC, hf⟩ := oddEuclidean_jetBounds d
   exact ⟨C, hC, fun β h _ _ hh _ z => scaledCopy_jetBounds β h z hf hh⟩
 
-/-- In [fixed tangent and complementary dimensions](hyp:t,c), [one fixed constant bounds
-all scaled mixed-profile jets](goal), uniformly over exponents in `(0,2]`, bandwidths
-in `(0,1]`, and centers. -/
+/-- For [every tangent dimension t and complementary dimension c](hyp:t,c)
+[there is a constant C ≥ 1 such that for every exponent β with 0 < β ≤ 2, every
+bandwidth h with 0 < h ≤ 1 and every center z, the scaled copy
+x ↦ h^β·(mixed profile at (x − z)/h) is twice continuously differentiable on the
+whole space, with absolute value at most C·h^β, derivative of operator norm at
+most C·h^(β−1) and second derivative of operator norm at most C·h^(β−2) at
+every point](goal). The constant does not depend on the exponent, bandwidth or
+center. -/
 theorem mixedProfile_uniform_scaled_bounds (t c : ℕ) : ∃ C : ℝ, 1 ≤ C ∧
     ∀ (β h : ℝ), 0 < β → β ≤ 2 → 0 < h → h ≤ 1 →
       ∀ z : EuclideanSpace ℝ (Fin t ⊕ Fin c),

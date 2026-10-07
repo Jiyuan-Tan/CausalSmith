@@ -10,7 +10,7 @@ arbitrary measurable structures on a finite output type and returns the
 definitional infinite bound for nonfinite output types.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

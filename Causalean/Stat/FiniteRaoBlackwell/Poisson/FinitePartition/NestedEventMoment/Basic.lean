@@ -23,23 +23,25 @@ open Causalean.Stat
 variable {X : Type*} [MeasurableSpace X]
 
 /-- A [finite sample](hyp:s) and an [event](hyp:A) determine the [event count](goal),
-given by filtering all sample positions for membership and taking the resulting cardinality
-(step:1). -/
+given by [the number of sample positions whose observation lies in the event](step:1). -/
 noncomputable def eventCount (s : FiniteSample X) (A : Set X) : ℕ := by
   classical
   exact (Finset.univ.filter fun i : Fin s.count => s.points i ∈ A).card
 
 /-- Two [events](hyp:A,B), an [order](hyp:v), and a [finite sample](hyp:s) determine
-the [weighted nested-event factorial count](goal), given by the smaller-event count
-times the falling factorial of one fewer larger-event observations (step:1). -/
+the [weighted nested-event factorial count](goal), given by [the count of the first event
+times the falling factorial, of order one less than the given order, of the count of the second
+event minus one](step:1). Both subtractions are natural-number subtractions truncated at zero, so
+order zero is treated like order one and an empty second-event count is treated like a count of
+one. -/
 noncomputable def weightedFactorial (A B : Set X) (v : ℕ)
     (s : FiniteSample X) : ℝ :=
   (eventCount s A : ℝ) * ((eventCount s B - 1).descFactorial (v - 1) : ℝ)
 
 /-- Two [events](hyp:A,B), an [order](hyp:v) with [positive order](hyp:hv), and an
 [ordered observation tuple](hyp:x) determine the [nested-event kernel](goal), given by
-one when its first observation is in the first event and all remaining observations are
-in the second event, and zero otherwise (step:1). -/
+[one when its first observation is in the first event and all remaining observations are
+in the second event, and zero otherwise](step:1). -/
 noncomputable def nestedEventKernel (A B : Set X) (v : ℕ) (hv : 1 ≤ v)
     (x : Fin v → X) : ℝ := by
   classical

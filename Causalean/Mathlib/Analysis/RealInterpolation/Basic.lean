@@ -23,7 +23,9 @@ noncomputable section
 namespace Causalean.Mathlib.Analysis.RealInterpolation
 
 /-- [Endpoint norms](hyp:n0,n1), [a positive scale](hyp:t), and [an ambient vector](hyp:v)
-determine [the infimum of squared endpoint decomposition costs](goal).
+determine [the squared quadratic K-functional: the infimum, over all ways of writing the
+vector as a sum of two pieces, of the squared first norm of the first piece plus t² times the
+squared second norm of the second piece](goal).
 The definition also makes sense at arbitrary real scales. -/
 def kFunctionalSq {V : Type*} [AddCommGroup V] (n0 n1 : V → ℝ≥0∞)
     (t : ℝ) (v : V) : ℝ≥0∞ :=
@@ -58,7 +60,7 @@ def wNorm {S : Type*} [MeasurableSpace S] (w : S → ℝ≥0∞) (μ : Measure S
   ENNReal.rpow (∫⁻ x, w x * (‖f x‖₊ : ℝ≥0∞) ^ 2 ∂μ) (1 / 2)
 
 /-- [Two endpoint weights](hyp:a,b) and [a scale](hyp:t) determine [the harmonic
-quadratic minimum weight](goal). Only positive finite weights are used in identities. -/
+weight a·(t²·b)/(a + t²·b)](goal). Only positive finite weights are used in identities. -/
 def harmonicWeight (a b : ℝ≥0∞) (t : ℝ) : ℝ≥0∞ :=
   a * (ENNReal.ofReal (t ^ 2) * b) / (a + ENNReal.ofReal (t ^ 2) * b)
 

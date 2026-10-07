@@ -127,10 +127,9 @@ private theorem exponentialPriorEnergy_eq_tsum
   simp only [priorMoment, integral_mul_const, integral_const_mul]
 
 /-- The absolute [raw moment of order `n`](hyp:n) of [a probability prior](hyp:π) is
-[at most the support radius raised to that order](goal) when [the radius is nonnegative](hyp:a,ha)
-and [the prior is supported within that radius](hyp:hsupp). -/
+[at most the support radius raised to that order](goal) when [the prior is supported within that radius](hyp:a,hsupp). -/
 theorem abs_priorMoment_le_pow_of_supported
-    (π : Measure ℝ) [IsProbabilityMeasure π] (a : ℝ) (n : ℕ) (ha : 0 ≤ a)
+    (π : Measure ℝ) [IsProbabilityMeasure π] (a : ℝ) (n : ℕ)
     (hsupp : π {θ | |θ| ≤ a} = 1) :
     |priorMoment π n| ≤ a ^ n := by
   have hset : MeasurableSet {θ : ℝ | |θ| ≤ a} :=
@@ -153,8 +152,8 @@ private theorem summable_priorMoment_product
       lambda ^ n / (n.factorial : ℝ) * priorMoment π n * priorMoment ρ n := by
   apply (Real.summable_pow_div_factorial (lambda * a ^ 2)).of_norm_bounded
   intro n
-  have hπ := abs_priorMoment_le_pow_of_supported π a n ha hsuppπ
-  have hρ := abs_priorMoment_le_pow_of_supported ρ a n ha hsuppρ
+  have hπ := abs_priorMoment_le_pow_of_supported π a n hsuppπ
+  have hρ := abs_priorMoment_le_pow_of_supported ρ a n hsuppρ
   rw [Real.norm_eq_abs, abs_mul, abs_mul, abs_div, abs_pow,
     abs_of_nonneg hlambda, abs_of_nonneg (show (0 : ℝ) ≤ n.factorial by positivity)]
   calc
@@ -237,8 +236,8 @@ theorem exponentialPriorEnergy_quadratic_le_tail
         4 * (if degree < n then (lambda * a ^ 2) ^ n / (n.factorial : ℝ) else 0) := by
     by_cases hn : degree < n
     · rw [if_pos hn]
-      have h0 := abs_priorMoment_le_pow_of_supported π0 a n ha hsupp0
-      have h1 := abs_priorMoment_le_pow_of_supported π1 a n ha hsupp1
+      have h0 := abs_priorMoment_le_pow_of_supported π0 a n hsupp0
+      have h1 := abs_priorMoment_le_pow_of_supported π1 a n hsupp1
       have hdiff : |priorMoment π0 n - priorMoment π1 n| ≤ 2 * a ^ n := by
         calc
           |priorMoment π0 n - priorMoment π1 n| ≤

@@ -28,8 +28,8 @@ noncomputable def rademacherEnergy {n : ℕ} (w : Fin n → Path) : ℝ :=
 /-- If a continuous scalar control u is [nondecreasing](hyp:hmono), [zero
 at time zero](hyp:hzero), and [dominates the summed squared increments of
 the paths over every interval from s to t](hyp:henergy), then [the
-Rademacher energy of the paths is at most 4096 times the sum of their
-squared values at time zero plus the terminal control value](goal).
+Rademacher energy of the paths is at most 4096 times the total of the sum
+of their squared values at time zero and the terminal control value](goal).
 
 The constant is independent of the number of paths.
 -/
@@ -79,7 +79,7 @@ theorem rademacherEnergy_le_scalar_control {n : ℕ} (w : Fin n → Path)
     simpa [signMaxEnergy, A, E] using h
   have hBenergy (k : ℕ) :
       (∑ σ : Fin n → Bool, (B k σ) ^ 2) / (2 ^ n : ℝ) ≤ Q k * U := by
-    have h := signedDyadicIncrementMax_energy_le w u hmono hzero henergy
+    have h := signedDyadicIncrementMax_energy_le w u henergy
       grid hgridmono hgridval k
     convert h using 1 <;> dsimp [B, Q, U] <;> ring
   have hQ (k : ℕ) : 0 ≤ Q k := by
@@ -117,7 +117,7 @@ theorem rademacherEnergy_le_scalar_control {n : ℕ} (w : Fin n → Path)
       (∑ σ : Fin n → Bool, (∑' k, B k σ) ^ 2) / (2 ^ n : ℝ) ≤
         (∑' k, Real.sqrt ((∑ σ : Fin n → Bool, (B k σ) ^ 2) /
           (2 ^ n : ℝ))) ^ 2 :=
-    finite_sign_l2_tsum_le B hBsum hR
+    finite_sign_l2_tsum_le B hR
   have hpoint (σ : Fin n → Bool) :
       ‖∑ j, (if σ j then (1 : ℝ) else -1) • w j‖ ≤
         A σ + ∑' k, B k σ := by
@@ -133,7 +133,7 @@ theorem rademacherEnergy_le_scalar_control {n : ℕ} (w : Fin n → Path)
       (add_nonneg (abs_nonneg _) (tsum_nonneg hBn))).2
     intro s
     have hs := signed_path_le_dyadic_increment_series w u hmono hzero
-      henergy grid hgridmono hgridval hgridcompat σ s (hBsum σ)
+      henergy grid hgridval hgridcompat σ s (hBsum σ)
     simpa only [f, ContinuousMap.sum_apply, ContinuousMap.smul_apply,
       smul_eq_mul, Real.norm_eq_abs, A, B] using hs
   have hsup :

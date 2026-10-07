@@ -256,14 +256,12 @@ theorem integral_sq_mixtureLikelihood_sub_le_tail
     hmom
 
 /-- Given [a probability prior](hyp:π), [an experiment kernel](hyp:K), [a dominating measure](hyp:Q),
-and [a jointly measurable nonnegative likelihood family](hyp:likelihood,hmeas,hnonneg), if
+and [a likelihood family](hyp:likelihood), if
 [each experiment law has the stated density](hyp:hdensity), then [the prior-predictive mixture is
 absolutely continuous with respect to the dominating measure](goal). -/
 theorem priorPredictive_absolutelyContinuous
     (π : Measure ℝ) (K : Kernel ℝ X) (Q : Measure X) (likelihood : ℝ → X → ℝ)
     [IsProbabilityMeasure π]
-    (hmeas : Measurable fun p : ℝ × X => likelihood p.1 p.2)
-    (hnonneg : ∀ θ x, 0 ≤ likelihood θ x)
     (hdensity : ∀ θ, K θ = Q.withDensity fun x => ENNReal.ofReal (likelihood θ x)) :
     priorPredictive π K ≪ Q := by
   refine Measure.AbsolutelyContinuous.mk fun A hA hQA => ?_

@@ -52,7 +52,7 @@ private theorem integral_periodBox_succ {d : ℕ}
 
 
 private theorem periodBox_reflect_coord {d : ℕ}
-    (F : (Fin d → ℝ) → ℝ) (hF : Continuous F) (i : Fin d) :
+    (F : (Fin d → ℝ) → ℝ) (i : Fin d) :
     (∫ u in periodBox d, F (Function.update u i (-u i))) =
       ∫ u in periodBox d, F u := by
   classical
@@ -292,7 +292,7 @@ private lemma tensorConvolution_shifted {d K : ℕ} (hK : 0 < K)
       change u i = x i - (x i - u i)
       ring
 
-private lemma tensorConvolution_coord_even {d K : ℕ} (hK : 0 < K)
+private lemma tensorConvolution_coord_even {d K : ℕ}
     (f : (Fin d → ℝ) → ℝ) (hf : ContinuousOn f (normalizedCube d))
     (x : Fin d → ℝ) (i : Fin d) :
     tensorConvolution K f (Function.update x i (-x i)) =
@@ -341,7 +341,7 @@ private lemma tensorConvolution_coord_even {d K : ℕ} (hK : 0 < K)
             exact (jackson_even K (u i)).symm
           · simp only [Function.update]
             split <;> simp_all
-    _ = ∫ u in periodBox d, F u := periodBox_reflect_coord F hFc i
+    _ = ∫ u in periodBox d, F u := periodBox_reflect_coord F i
 
 private lemma tensorConvolution_coord_trig {d K : ℕ} (hK : 0 < K)
     (f : (Fin d → ℝ) → ℝ) (hf : ContinuousOn f (normalizedCube d))
@@ -620,7 +620,7 @@ theorem tensorConvolution_exists_mvPolynomial {d K : ℕ} (hK : 0 < K)
   apply exists_mvPolynomial_of_coord_even_trig (q := tensorConvolution K f)
   · exact fun i x => tensorConvolution_coord_trig hK f hf x i
   · intro i x t
-    have h := tensorConvolution_coord_even hK f hf
+    have h := tensorConvolution_coord_even (K := K) f hf
       (Function.update x i t) i
     simpa [Function.update] using h
 

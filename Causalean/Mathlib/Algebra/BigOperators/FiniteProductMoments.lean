@@ -11,7 +11,20 @@ public import Mathlib.Data.Real.Basic
 /-!
 # Finite product moment identities
 
-Finite sums under normalized product weights factor into one-coordinate moments.
+First and second moments of a sum of coordinates under a finite product weight. Let w be a real
+weight on a finite set A with total mass one (signs are not restricted), and weight each
+configuration u : I → A on a finite index set I by ∏ᵢ w(uᵢ). Then the weighted mean of ∑ᵢ X(uᵢ) is
+|I| times the one-coordinate mean ∑ₐ w(a)·X(a), and, when c has one-coordinate mean zero, the
+weighted mean of (∑ᵢ c(uᵢ))² is |I| times ∑ₐ w(a)·c(a)². These are the finite, purely algebraic
+forms of "the mean of an i.i.d. sum is n times the mean" and "the variance of an i.i.d. sum is n
+times the variance".
+
+## Main results
+
+* `finiteProduct_sum_mean` — the product-weighted mean of a coordinate sum is |I| times the
+  one-coordinate mean.
+* `finiteProduct_centered_sum_sq` — for a centered statistic, the product-weighted second moment
+  of the coordinate sum is |I| times the one-coordinate second moment.
 -/
 
 public section

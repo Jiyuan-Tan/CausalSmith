@@ -18,9 +18,10 @@ namespace Causalean.Mathlib.Probability.SubGaussian
 
 open MeasureTheory
 
-/-- [A universal positive constant bounds the integrable clipped Gaussian union
-tail by its scale times the square root of the logarithm of its number of
-terms](goal).
+/-- [There is a universal positive constant such that, for every number of terms
+`m ≥ 1` and every scale `σ > 0`, the clipped Gaussian union tail
+`min(1, 2m·exp(-t²/(2σ²)))` is integrable in `t` over the positive half-line with integral
+at most the constant times `σ·√(1 + log m)`](goal).
 
 Proof strategy: split the integral at `σ * sqrt (2 * log (2 * m))`.
 Below the split use the bound by one.  Above it use the Gaussian tail

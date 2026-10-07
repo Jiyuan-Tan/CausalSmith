@@ -89,25 +89,24 @@ lemma measurable_finiteSelector_sq [Fintype Iota] [MeasurableSingletonClass Iota
   exact ((measurable_finiteSelector_apply hselect herr).comp
     (hpilot.prodMk htail)).pow_const 2
 
-/-- If [pilot and tail coordinates are independent](hyp:hind), [the pilot
+/-- If [the pilot
 coordinate is measurable](hyp:hpilot), [the tail coordinate is
 measurable](hyp:htail), [the finite selection rule is measurable](hyp:hselect),
 and [every fixed branch has integrable squared error under the tail
 law](hyp:herr), [the pilot-selected squared error is integrable under the
 ambient probability law](goal). -/
-theorem IndepFun.integrable_finiteSelector_sq
+theorem integrable_finiteSelector_sq
     [Fintype Iota] [MeasurableSingletonClass Iota]
     {mu : Measure Omega} [IsProbabilityMeasure mu]
     {pilot : Omega -> Alpha} {tail : Omega -> Beta}
     {select : Alpha -> Iota} {err : Iota -> Beta -> Real}
-    (hind : IndepFun pilot tail mu)
     (hpilot : Measurable pilot) (htail : Measurable tail)
     (hselect : Measurable select)
     (herr : ∀ i, Integrable (fun b => (err i b) ^ 2) (mu.map tail)) :
     Integrable (fun omega => (err (select (pilot omega)) (tail omega)) ^ 2) mu := by
-  /- Expand over the measurable selector fibers.  On each fiber, independence
-  transports the branch integrability from `mu.map tail`; combine the finitely
-  many restricted integrable functions. -/
+  /- Expand over the measurable selector fibers.  On each fiber, composition with the
+  measurable tail coordinate transports the branch integrability from `mu.map tail`;
+  combine the finitely many restricted integrable functions. -/
   classical
   let cell : Iota → Set Omega := fun i => pilot ⁻¹' (select ⁻¹' {i})
   have hcell : ∀ i, MeasurableSet (cell i) := fun i =>
@@ -170,7 +169,7 @@ theorem IndepFun.integral_finiteSelector_sq_eq_sum
     ext omega
     simp [cell, selectorCell]
   have hInt : IntegrableOn F (pilot ⁻¹' good) mu :=
-    (IndepFun.integrable_finiteSelector_sq hind hpilot htail hselect herr).integrableOn
+    (integrable_finiteSelector_sq hpilot htail hselect herr).integrableOn
   have hsplit :
       ∫ omega in pilot ⁻¹' good, F omega ∂mu =
         ∑ i : Iota, ∫ omega in cell i, F omega ∂mu := by

@@ -149,7 +149,7 @@ def Stable
       (ℕ → Ω → γ → ℝ) → Prop) : Prop :=
   ∀ (fHat_n : ℕ → Ω → γ × Bool × ℝ → ℝ) (f : γ × Bool × ℝ → ℝ)
     (bHat_n : ℕ → Ω → γ → ℝ),
-    Tendsto_inProb d_n (fun _ => 0) μ →
+    Modes.TendstoInProbability (fun _ : ℕ => μ) d_n atTop (fun _ _ => 0) →
     BiasIdent fHat_n f bHat_n →
     IsLittleOp
       (fun n ω =>
@@ -176,7 +176,7 @@ theorem Stable.isLittleOp
       (γ × Bool × ℝ → ℝ) →
       (ℕ → Ω → γ → ℝ) → Prop)
     (hStab : Stable op target d_n x BiasIdent)
-    (hCons : Tendsto_inProb d_n (fun _ => 0) μ)
+    (hCons : Modes.TendstoInProbability (fun _ : ℕ => μ) d_n atTop (fun _ _ => 0))
     (hBias : BiasIdent fHat_n f bHat_n) :
     IsLittleOp
       (fun n ω =>

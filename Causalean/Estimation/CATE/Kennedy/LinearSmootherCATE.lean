@@ -241,8 +241,7 @@ theorem cate_linear_smoother_bias_bound
 negligibility.** Fix a
 CATE estimation system, a linear-smoother second-stage operator `op`, an estimated
 nuisance sequence `η_hat`, an evaluation point `x`, a centering-rate sequence `d_n`, and a
-bias-identity relation `BiasIdent`. Under [the back-door identification
-assumptions](hyp:hA) and two-sided strict overlap for the truth, if [the smoothed oracle
+bias-identity relation `BiasIdent`. If [the smoothed oracle
 estimator is stable at `(τ_val, d_n, x)` relative to `BiasIdent`](hyp:hStab), [the
 centering sequence `d_n` converges to `0` in probability](hyp:hCons), [the pseudo-outcome
 bias, the true pseudo-outcome, and the smoothed conditional bias jointly satisfy the
@@ -258,8 +257,6 @@ This is only the projection of the linear-smoother operator onto its
 explicit premise. -/
 theorem cate_dr_oracle_efficient_linear_of_stable_of_smoothed_bias
     (S : CATEEstimationSystem P γ)
-    (hA : S.toPOBackdoorSystem.Assumptions)
-    {ε : ℝ} (_h_overlap : S.toBackdoorEstimationSystem.StrictOverlap ε)
     (op : SecondStageOperatorWithWeights P.Ω P.μ γ)
     (η_hat : ℕ → P.Ω → NuisanceVec γ)
     (x : γ)
@@ -269,7 +266,7 @@ theorem cate_dr_oracle_efficient_linear_of_stable_of_smoothed_bias
       (γ × Bool × ℝ → ℝ) →
       (ℕ → P.Ω → γ → ℝ) → Prop)
     (hStab : Stable op.toSecondStageOperator S.τ_val d_n x BiasIdent)
-    (hCons : Tendsto_inProb d_n (fun _ => 0) P.μ)
+    (hCons : Modes.TendstoInProbability (fun _ : ℕ => P.μ) d_n atTop (fun _ _ => 0))
     (hBias : BiasIdent
               (fun n ω z => phi_eta z (η_hat n ω))
               (fun z => phi₀ S z)
@@ -285,7 +282,7 @@ theorem cate_dr_oracle_efficient_linear_of_stable_of_smoothed_bias
                     - drOracleEstimator S op.toSecondStageOperator n ω x)
       (fun n => drOracleRiskScale S op.toSecondStageOperator x n) P.μ :=
   dr_oracle_efficient_of_stable_of_smoothed_bias
-    S hA op.toSecondStageOperator η_hat x d_n BiasIdent
+    S op.toSecondStageOperator η_hat x d_n BiasIdent
     hStab hCons hBias hSmoothedBias
 
 end CATE

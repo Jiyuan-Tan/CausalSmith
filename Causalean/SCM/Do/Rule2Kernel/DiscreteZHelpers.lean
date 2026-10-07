@@ -303,11 +303,11 @@ lemma obsCondKernel_cross_eq_ae_of_discrete
   -- (1) Cross-SCM bridge: μ_C.comap F-a.e. w, M1.obsCondKernel(C)(sM1, F w) B
   --                = M2.obsCondKernel(C)(s, F w) B.
   have h_L2 := obsCondKernel_cross_SCM_ae_eq_on_fillZrW M' Z hZ_obs hZ_fixed
-    Y W hY hW hZrW hDisj_ZrW s hB
+    Y W hY hZrW hDisj_ZrW s hB
   -- (2) D-sep collapse: ν_C-a.e. c, M2.obsCondKernel(C)(s, c) B
   --                = M2.obsCondKernel(W)(s, π_W^C c) B.
   have h_L1 := obsCondKernel_dSep_collapse_ae M' Z hZ_obs hZ_fixed Y W
-    hY hW hdSep s hB
+    hY hW hdSep s (B := B)
   -- (3) Pullback equality: μ_C.comap F = ν_C.comap F.
   have hPartA : μ_C.comap F = ν_C.comap F :=
     mu_C_comap_F_eq_nu_C_comap_F M' Z hZ_obs hZ_fixed W hZrW hDisj_ZrW s

@@ -2,10 +2,17 @@ module
 public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Clamping
 
 /-!
-# Controlled extension at zero derivative order
+# Global Hölder extension from the cube at derivative order zero
 
-The coordinatewise cube retraction gives a global Hölder extension when the
-smoothness order is below or equal to one.
+A function on the cube [−1,1]^d that is bounded and s-Hölder with exponent s ∈ (0, 1] and radius L
+extends to a continuous function on all of ℝ^d that agrees with it on the cube, is bounded by A·L
+and is s-Hölder with constant A·L, where A depends only on d and s. The extension is the function
+composed with the coordinatewise clamping of a point to the cube.
+
+## Main results
+
+* `exists_global_holder_extension_order_zero` — the order-zero extension with controlled sup norm
+  and Hölder constant.
 -/
 
 public section
@@ -14,14 +21,14 @@ namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
 open Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- In [dimension d](hyp:d), for [a Hölder exponent s](hyp:s) with [0 < s](hyp:hs)
-and [s ≤ 1](hyp:hs1), [there is a positive constant A such that every response u
+/-- In [dimension d](hyp:d), for [a Hölder exponent s](hyp:s) with [0 < s](hyp:hs),
+[there is a positive constant A such that every response u
 in the intrinsic order-zero Hölder ball of exponent s and radius L ≥ 0 on the
 normalized cube has a continuous global representative U that agrees with u on
 the cube, is bounded in absolute value by A·L everywhere, and is s-Hölder with
 coefficient A·L on the whole space](goal). -/
 theorem exists_global_holder_extension_order_zero (d : ℕ) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1) :
+    (hs : 0 < s) :
     ∃ A : ℝ, 0 < A ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (L : ℝ), 0 ≤ L →
         CubeHolderBall d 0 s L u →

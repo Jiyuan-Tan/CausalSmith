@@ -20,17 +20,16 @@ variable {A X Y : Type*} [MeasurableSpace A] [MeasurableSingletonClass A]
   [MeasurableSpace X] [MeasurableSpace Y]
 
 /-- [Two recurrent-event models](hyp:M,N), [an arm](hyp:a), and [a
-nonnegative compact sub-horizon time](hyp:T,hT0,hTM,hTN) with [equal
-stopped-history laws](hyp:hobs), [positive assignment mass](hyp:haM,haN),
-and [positive censoring retention throughout that interval](hyp:hcM,hcN)
+sub-horizon time](hyp:T,hTM,hTN) with [equal
+stopped-history laws](hyp:hobs), [positive assignment mass in the first model](hyp:haM),
+and [positive censoring retention of the first model throughout that interval](hyp:hcM)
 have [equal death hazards and recurrence intensities Lebesgue-almost
 everywhere on the interval](goal). -/
 theorem Model.identify_densities (M : Model A X) (N : Model A Y) (a : A)
-    (T : ℝ) (hT0 : 0 ≤ T) (hTM : T < M.horizon) (hTN : T < N.horizon)
+    (T : ℝ) (hTM : T < M.horizon) (hTN : T < N.horizon)
     (hobs : M.observedLaw = N.observedLaw)
-    (haM : 0 < M.armLaw {a}) (haN : 0 < N.armLaw {a})
-    (hcM : ∀ t ∈ Icc (0 : ℝ) T, 0 < M.censorLaw (Ici t))
-    (hcN : ∀ t ∈ Icc (0 : ℝ) T, 0 < N.censorLaw (Ici t)) :
+    (haM : 0 < M.armLaw {a})
+    (hcM : ∀ t ∈ Icc (0 : ℝ) T, 0 < M.censorLaw (Ici t)) :
     ∀ᵐ t ∂(volume.restrict (Icc (0 : ℝ) T)),
       M.hazard t = N.hazard t ∧ M.intensity t = N.intensity t := by
   let s : Set ℝ := Icc 0 T

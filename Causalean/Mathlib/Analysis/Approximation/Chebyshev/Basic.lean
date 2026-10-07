@@ -71,10 +71,10 @@ theorem intervalSupNorm_le_iff {g : ℝ → ℝ} {r s C : ℝ}
     · rintro y ⟨x, hx, rfl⟩
       exact h x hx
 
-/-- For [endpoints with r at most s](hyp:hrs) and [any real polynomial](hyp:Q), [the uniform
-approximation error against any target function is nonnegative](goal). -/
+/-- For [any real polynomial](hyp:Q), [the uniform approximation error against any target function
+on any interval is nonnegative](goal). -/
 theorem uniformApproxError_nonneg {f : ℝ → ℝ} {r s : ℝ}
-    (hrs : r ≤ s) (Q : Polynomial ℝ) :
+    (Q : Polynomial ℝ) :
     0 ≤ uniformApproxError f r s Q := by
   -- Proof plan: split on boundedness of the residual image.  In the bounded
   -- case compare the supremum with the residual at `r`; in the unbounded case
@@ -214,22 +214,21 @@ theorem exists_bestPolynomial
     apply csInf_le
     · refine ⟨0, ?_⟩
       rintro e ⟨u, -, rfl⟩
-      exact uniformApproxError_nonneg hrs.le u
+      exact uniformApproxError_nonneg u
     · exact ⟨p, hpdeg, rfl⟩
 
-/-- For [endpoints with r strictly less than s](hyp:hrs), [a target function continuous on the
-closed interval between them](hyp:hf), and [a real polynomial of degree at most L](hyp:hQ), [the
+/-- For [a real polynomial of degree at most L](hyp:hQ), [the
 best uniform approximation error for degree bound L is at most the uniform approximation error of
 that polynomial](goal). -/
 theorem bestUniformApproxError_le
-    {f : ℝ → ℝ} {r s : ℝ} (hrs : r < s) (hf : ContinuousOn f (Set.Icc r s))
+    {f : ℝ → ℝ} {r s : ℝ}
     {L : ℕ} {Q : Polynomial ℝ} (hQ : Q.natDegree ≤ L) :
     bestUniformApproxError f r s L ≤ uniformApproxError f r s Q := by
   unfold bestUniformApproxError
   apply csInf_le
   · refine ⟨0, ?_⟩
     rintro e ⟨P, -, rfl⟩
-    exact uniformApproxError_nonneg hrs.le P
+    exact uniformApproxError_nonneg P
   · exact ⟨Q, hQ, rfl⟩
 
 /-- For [endpoints with r strictly less than s](hyp:hrs), [a target function continuous on the
@@ -241,6 +240,6 @@ theorem bestUniformApproxError_nonneg
     0 ≤ bestUniformApproxError f r s L := by
   obtain ⟨Q, -, hQ⟩ := exists_bestPolynomial hrs hf L
   rw [← hQ]
-  exact uniformApproxError_nonneg hrs.le Q
+  exact uniformApproxError_nonneg Q
 
 end Causalean.Mathlib.Analysis.FinitePolynomialAlternationDuality

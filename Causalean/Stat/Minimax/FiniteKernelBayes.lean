@@ -335,18 +335,6 @@ theorem finiteDesign_expectedLoss_le_worstCaseRiskENNReal
       (worstCaseRiskOfReal_ne_top_of_bddAbove (finite_range_bddAbove (loss a)))]
   exact finiteDesign_expectedLoss_le_worstCaseRiskReal D loss a
 
-/-- If [the loss is nonnegative for every action and state](hyp:hloss), then [the expected loss
-of any fixed action under a finite design is at most that action's worst-case risk](goal).
-
-Deprecated real-valued form of `finiteDesign_expectedLoss_le_worstCaseRiskENNReal`. -/
-@[deprecated finiteDesign_expectedLoss_le_worstCaseRiskReal (since := "2026-09-17")]
-theorem finiteDesign_expectedLoss_le_worstCaseRisk
-    (D : Causalean.Experimentation.DesignBased.FiniteDesign S)
-    (loss : A → S → ℝ) (hloss : ∀ a s, 0 ≤ loss a s) (a : A) :
-    D.E (loss a) ≤ worstCaseRiskReal loss a := by
-  simpa [worstCaseRiskReal] using
-    finiteDesign_expectedLoss_le_worstCaseRiskReal D loss a
-
 /-- Given [a finite state space](hyp:S), [an action space](hyp:A), [a finite randomization design on the state space](hyp:D), and [a real-valued loss for each action and state](hyp:loss), [the finite-design Bayes risk](goal) is the infimum, over all actions, of their expected losses under that design.
 
 `finiteDesignBayesRisk` is the smallest expected loss attainable under a fixed finite

@@ -40,7 +40,7 @@ respects the W–Y confounding allowed by the backdoor criterion.  (The old
 
 The spine is:
 
-* `condDistrib_map_comp` (Mathlib helper): transport the obs-level
+* `ProbabilityTheory.condDistrib_map` (Mathlib): transport the obs-level
   `condDistrib π_Y π_{Zr∪W} (obsKernel s)` onto the latent space
   `latentProduct`, where `π ∘ E` are the pulled-back coordinate maps.
 * `condDistrib_map_of_condDistrib_fst_eq` (witness lemma, `CondDistribWitness.lean`):
@@ -107,7 +107,7 @@ open scoped MeasureTheory ProbabilityTheory
     Folds `obsKernel = jointKernel.map randomToObserved` (`Kernel.obsKernel`) and
     `jointKernel s = latentProduct.map (evalMap s)` (`jointKernel_apply_eq`) into a
     single pushforward of `latentProduct`.  This is the form consumed by
-    `condDistrib_map_comp` to move the obs-level conditional onto the latent
+    `condDistrib_map` to move the obs-level conditional onto the latent
     space. -/
 theorem obsKernel_eq_latentProduct_map (M : Causalean.SCM N Ω) (s : M.FixedValues) :
     M.obsKernel s
@@ -119,7 +119,7 @@ theorem obsKernel_eq_latentProduct_map (M : Causalean.SCM N Ω) (s : M.FixedValu
 
 /-- The pulled-back observed-coordinate projection through `randomToObserved ∘ evalMap s`
     is the latent projection of the evaluation, `valuesProjection hY ∘ randomToObserved ∘ E`.
-    This is definitional unfolding, exposed so downstream `condDistrib_map_comp`
+    This is definitional unfolding, exposed so downstream `condDistrib_map`
     rewrites can name the composite. -/
 @[fun_prop]
 theorem valuesProjection_randomToObserved_evalMap_meas
@@ -443,12 +443,14 @@ theorem cutset_condIndep_condDistrib (M : Causalean.SCM N Ω)
     change CWmap_rv (M.evalMap s ℓ) = Cmap ℓ
     rw [hbridge_lat ℓ]
   -- Transfer the pair-conditioned `condDistrib` onto `latentProduct`.
-  have htr_pair := condDistrib_map_comp (𝒴 := ValuesOn CW (swigΩ Ω)) M.latentProduct
-    (φ := fun ℓ => M.evalMap s ℓ) (g := CWmap_rv) (f := pairWZr)
-    hev hCW_proj_meas hpairWZr_meas
-  have htr_W := condDistrib_map_comp (𝒴 := ValuesOn CW (swigΩ Ω)) M.latentProduct
-    (φ := fun ℓ => M.evalMap s ℓ) (g := CWmap_rv) (f := Wmap_rv)
-    hev hCW_proj_meas hW_proj_meas
+  have htr_pair := ProbabilityTheory.condDistrib_map (ν := M.latentProduct)
+      (f := fun ℓ => M.evalMap s ℓ)
+    hpairWZr_meas.aemeasurable hCW_proj_meas.aemeasurable hev.aemeasurable
+  rw [← MeasureTheory.Measure.map_map hpairWZr_meas hev] at htr_pair
+  have htr_W := ProbabilityTheory.condDistrib_map (ν := M.latentProduct)
+      (f := fun ℓ => M.evalMap s ℓ)
+    hW_proj_meas.aemeasurable hCW_proj_meas.aemeasurable hev.aemeasurable
+  rw [← MeasureTheory.Measure.map_map hW_proj_meas hev] at htr_W
   -- The `(W, Zr)`-ordered latent pair map and its marginal measure facts.
   set pairWZr_lat : M.LatentValues → ValuesOn W (swigΩ Ω) × ValuesOn Zr (swigΩ Ω) :=
     fun ℓ => (Zmap ℓ, Xmap ℓ) with hpairWZr_lat

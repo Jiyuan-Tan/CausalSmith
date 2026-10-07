@@ -16,40 +16,40 @@ namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
 open Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- If [B ≥ 0](hyp:hB), [a response u is m times continuously differentiable
+/-- If [a response u is m times continuously differentiable
 within the closed normalized cube](hyp:hu), [j ≤ m](hyp:hj), and [the order-j
 intrinsic coordinate jet of u in a fixed choice of coordinate directions is
 bounded in absolute value by B at every interior point of the cube](hyp:hinterior),
 then [the same bound B holds at every point of the closed cube](goal). -/
 theorem interior_coordJet_bound_extends {d m j : ℕ}
-    {u : (Fin d → ℝ) → ℝ} {B : ℝ} (hB : 0 ≤ B)
+    {u : (Fin d → ℝ) → ℝ} {B : ℝ}
     (hu : ContDiffOn ℝ m u (cube d)) (hj : j ≤ m)
     (f : Fin j → Fin d)
     (hinterior : ∀ x ∈ openCube d, |coordJetOn (cube d) j u f x| ≤ B) :
     ∀ x ∈ cube d, |coordJetOn (cube d) j u f x| ≤ B := by
-  apply within_coordPartial_bound_extends hB hu hj f
+  apply within_coordPartial_bound_extends hu hj f
   intro x hx
   have h := hinterior x hx
   rw [coordJetOn_cube_eq_ambient hu hj hx] at h
   exact h
 
-/-- In [dimension d ≥ 1](hyp:hd), for [derivative order m](hyp:m) and [an
-exponent s](hyp:s) with [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1), [there is a
+/-- In [any dimension d](hyp:d), for [derivative order m](hyp:m) and [an
+exponent s](hyp:s) with [0 < s](hyp:hs), [there is a
 positive constant K such that, for every response u that is m times
 continuously differentiable within the closed cube, bounded in absolute value by
 M ≥ 0 there, and whose top-order intrinsic jets have an s-Hölder modulus with
 coefficient L ≥ 0, every intrinsic coordinate jet of order at most m is bounded
 in absolute value by K·(M + L) at every interior point of the cube](goal). The
 constant depends only on d, m and s. -/
-theorem interior_fixed_cube_interpolation_within (d m : ℕ) (hd : 1 ≤ d)
-    (s : ℝ) (hs : 0 < s) (hs1 : s ≤ 1) :
+theorem interior_fixed_cube_interpolation_within (d m : ℕ)
+    (s : ℝ) (hs : 0 < s) :
     ∃ K : ℝ, 0 < K ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (M L : ℝ),
         0 ≤ M → 0 ≤ L → ContDiffOn ℝ m u (cube d) →
         (∀ x ∈ cube d, |u x| ≤ M) → TopHolderOn (cube d) m s L u →
         ∀ j ≤ m, ∀ f : Fin j → Fin d,
           ∀ x ∈ openCube d, |coordJetOn (cube d) j u f x| ≤ K * (M + L) := by
-  obtain ⟨K, hK, hinterp⟩ := interior_fixed_cube_interpolation d m hd s hs hs1
+  obtain ⟨K, hK, hinterp⟩ := interior_fixed_cube_interpolation d m s hs
   refine ⟨K, hK, ?_⟩
   intro u M L hM hL hu hbound hholder j hj f x hx
   have hsub : openCube d ⊆ cube d := by
@@ -135,45 +135,45 @@ theorem interior_fixed_cube_interpolation_within (d m : ℕ) (hd : 1 ≤ d)
     (by simp [hclosure] : (1 : ℝ) ∈ closure (Set.Ioo (0 : ℝ) 1))
   simpa using hfinal
 
-/-- In [dimension d ≥ 1](hyp:hd), for [derivative order m](hyp:m) and [an
-exponent s](hyp:s) with [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1), [there is a
+/-- In [any dimension d](hyp:d), for [derivative order m](hyp:m) and [an
+exponent s](hyp:s) with [0 < s](hyp:hs), [there is a
 positive constant K such that, for every response u that is m times
 continuously differentiable within the closed cube, bounded in absolute value by
 M ≥ 0 there, and whose top-order intrinsic jets have an s-Hölder modulus with
 coefficient L ≥ 0, every intrinsic coordinate jet of order at most m is bounded
 in absolute value by K·(M + L) on the whole closed cube](goal). The constant
 depends only on d, m and s. -/
-theorem fixed_cube_interpolation_within (d m : ℕ) (hd : 1 ≤ d)
-    (s : ℝ) (hs : 0 < s) (hs1 : s ≤ 1) :
+theorem fixed_cube_interpolation_within (d m : ℕ)
+    (s : ℝ) (hs : 0 < s) :
     ∃ K : ℝ, 0 < K ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (M L : ℝ),
         0 ≤ M → 0 ≤ L → ContDiffOn ℝ m u (cube d) →
         (∀ x ∈ cube d, |u x| ≤ M) → TopHolderOn (cube d) m s L u →
         DerivBoundOn (cube d) m (K * (M + L)) u := by
   obtain ⟨K, hK, hinterior⟩ :=
-    interior_fixed_cube_interpolation_within d m hd s hs hs1
+    interior_fixed_cube_interpolation_within d m s hs
   refine ⟨K, hK, ?_⟩
   intro u M L hM hL hu hbound hholder j hj f x hx
   exact interior_coordJet_bound_extends
-    (mul_nonneg hK.le (add_nonneg hM hL)) hu hj f
+    hu hj f
     (hinterior u M L hM hL hu hbound hholder j hj f) x hx
 
-/-- In [dimension d ≥ 1](hyp:hd), for [derivative order m](hyp:m) and [an
-exponent s](hyp:s) with [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1), [there is a
+/-- In [dimension d](hyp:d), for [derivative order m](hyp:m) and [an
+exponent s](hyp:s) with [0 < s](hyp:hs), [there is a
 positive constant K such that every response u that is m times continuously
 differentiable within the closed cube, bounded in absolute value by M ≥ 0
 there, and whose top-order intrinsic jets have an s-Hölder modulus with
 coefficient L ≥ 0, lies in the intrinsic Hölder ball of order m, exponent s and
 radius K·(M + L) on the closed cube](goal). The constant depends only on d, m
 and s. -/
-theorem cube_holder_completion (d m : ℕ) (hd : 1 ≤ d)
-    (s : ℝ) (hs : 0 < s) (hs1 : s ≤ 1) :
+theorem cube_holder_completion (d m : ℕ)
+    (s : ℝ) (hs : 0 < s) :
     ∃ K : ℝ, 0 < K ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (M L : ℝ),
         0 ≤ M → 0 ≤ L → ContDiffOn ℝ m u (cube d) →
         (∀ x ∈ cube d, |u x| ≤ M) → TopHolderOn (cube d) m s L u →
         CubeHolderBall d m s (K * (M + L)) u := by
-  obtain ⟨K, hK, hinterp⟩ := fixed_cube_interpolation_within d m hd s hs hs1
+  obtain ⟨K, hK, hinterp⟩ := fixed_cube_interpolation_within d m s hs
   refine ⟨K + 1, by linarith, ?_⟩
   intro u M L hM hL hu hbound hholder
   refine ⟨hu, ?_, ?_⟩

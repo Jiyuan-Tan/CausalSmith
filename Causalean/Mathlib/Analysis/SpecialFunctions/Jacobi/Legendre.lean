@@ -50,7 +50,7 @@ lemma iter_deriv_aeval_int (p : Polynomial ℤ) (n : ℕ) :
       funext x
       exact Polynomial.deriv_aeval _
 
-/-- The [degree](hyp:n) and [evaluation point](hyp:x) satisfy [the shifted-Legendre Rodrigues identity](goal). -/
+/-- The [degree](hyp:n) and [evaluation point](hyp:x) satisfy [the shifted-Legendre Rodrigues identity: n! times the shifted Legendre polynomial of degree n at x equals the n-th derivative of y^n·(1−y)^n at x](goal). -/
 lemma shiftedLegendre_rodrigues_eval (n : ℕ) (x : ℝ) :
     (n.factorial : ℝ) * Polynomial.aeval x (Polynomial.shiftedLegendre n) =
       (deriv^[n] (fun y : ℝ => y^n * (1-y)^n)) x := by
@@ -148,7 +148,7 @@ lemma iterate_derivative_shiftedLegendre (k : ℕ) :
       all_goals ring
       all_goals simp
 
-/-- For a [degree](hyp:k), [the squared integral of the shifted Legendre polynomial on the unit interval is the reciprocal of twice the degree plus one](goal). -/
+/-- For a [degree](hyp:k), [the integral of the squared shifted Legendre polynomial over the unit interval is the reciprocal of twice the degree plus one](goal). -/
 lemma shiftedLegendre_sq_integral_unit (k : ℕ) :
     (∫ x in (0 : ℝ)..1, (Polynomial.aeval x (Polynomial.shiftedLegendre k) : ℝ) ^ 2) =
       1 / (2 * (k : ℝ) + 1) := by
@@ -265,7 +265,7 @@ lemma shiftedLegendre_sq_integral_unit (k : ℕ) :
     nlinarith only [hsign]
   rw [hcancel, hratio]
 
-/-- For [two degrees](hyp:j,k), [the shifted Legendre inner product on the unit interval is diagonal with value one over twice the degree plus one](goal). -/
+/-- For [two degrees](hyp:j,k), [the integral over the unit interval of the product of the two shifted Legendre polynomials is zero when the degrees differ and one over twice the degree plus one when they agree](goal). -/
 lemma shiftedLegendre_orthogonal_unit (j k : ℕ) :
     (∫ x in (0 : ℝ)..1, Polynomial.aeval x (Polynomial.shiftedLegendre j) *
       Polynomial.aeval x (Polynomial.shiftedLegendre k)) =

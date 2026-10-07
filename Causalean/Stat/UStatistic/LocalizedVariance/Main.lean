@@ -32,9 +32,13 @@ theorem uStatistic_memLp_two {n : ℕ} :
   funext ω
   simp only [uStatistic, pairValue, Finset.sum_apply]
 
-/-- A [probability law and localized-kernel certificate](hyp:P,h) with [at least two
-observations](hyp:hn) give [a centered second-moment bound retaining the row-mass-over-sample
-size and pair-mass-over-squared-sample-size scales](goal). -/
+/-- Under [a probability law and a kernel H localized by a weight W with envelope M](hyp:P,h)
+— both symmetric and measurable, W between zero and one, and |H| at most M·W — with [at least
+two observations](hyp:hn), [the variance of the unordered order-two U-statistic of H under n
+independent draws (its expected squared deviation from its mean) is at most
+16·M²·(R/n + Q/n²)](goal). Here Q, the pair mass, is the mean of W over two independent draws,
+and R, the squared row mass, is the mean over one draw of the square of W's mean over a second
+independent draw. -/
 theorem centered_second_moment_le {n : ℕ} (hn : 2 ≤ n) :
     (∫ ω, (uStatistic n H ω - ∫ z, uStatistic n H z ∂iidLaw P n) ^ 2
       ∂iidLaw P n) ≤

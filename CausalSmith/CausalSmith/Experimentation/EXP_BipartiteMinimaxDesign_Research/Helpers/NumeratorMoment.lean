@@ -455,11 +455,6 @@ lemma treatNumerator_scaled_boundedInProb
     rw [treatNumerator_mean_zero (E n) (p n) (hp0 n) (hp1 n) hpos]
     simp
 
-/-- A Bernoulli assignment design is unchanged when its treatment-probability schedule and the
-corresponding conditions that all probabilities lie between zero and one are replaced by equal
-ones. -/
-add_decl_doc Causalean.Experimentation.UnknownInterference.bernoulliDesign.congr_simp
-
 /-- The `√(card Ox)`-scaled control-arm numerator is bounded in probability (uniformly tight). -/
 lemma ctrlNumerator_scaled_boundedInProb
     (E : ∀ n, BipartiteExperiment (Ix n) (Ox n))

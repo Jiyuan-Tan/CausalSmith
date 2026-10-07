@@ -2,33 +2,29 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Balke-Pearl IV bounds: attainment of the closed-form endpoints
-
-`ClosedForm.lean` proves the closed-form endpoints are *valid* — every feasible
-latent table has objective inside `[bpLower, bpUpper]`. This file proves they are
-*attained*: some feasible table achieves each endpoint, which upgrades the
-containment to an equality and makes the closed form the exact LP optimum. The
-capstone is `bpLower_bpUpper_eq_csInf_csSup`.
-
-Do not confuse this with `Sharp.lean`. That file proves a different statement, on
-the model side: every feasible latent table is realized by an actual PO model, so
-the identified interval is exactly the LP objective range. The present file is
-purely about the linear program — that the max of eight affine expressions equals
-the LP optimum. Both are needed for the closed form to be a sharp bound on the ATE.
-
-The witnesses here are the primal optima corresponding to the eight dual vertices,
-found by complementary slackness. That derivation is offline scaffolding only: no
-duality theory enters the proofs, each witness is an explicit table and is checked
-directly against the feasibility constraints.
 -/
-
 module
 public import Causalean.PO.ID.Partial.BalkePearl.Attainment.Lower
 public import Causalean.PO.ID.Partial.BalkePearl.Attainment.Upper
 public import Causalean.PO.ID.Partial.BalkePearl.IntervalForm
 
-/-! # Attainment of the Balke-Pearl closed-form endpoints -/
+/-! # Attainment of the Balke–Pearl closed-form endpoints
+
+The Balke–Pearl closed-form bounds on the average treatment effect with a binary instrument,
+treatment and outcome are exact: the largest of the eight lower expressions equals the infimum,
+and the smallest of the eight upper expressions equals the supremum, of the linear-program
+objective over all latent response-type tables compatible with the observed cell probabilities.
+The proof combines validity of the closed form (every feasible table has objective between the
+two endpoints) with explicit feasible tables attaining each endpoint. This is a statement about
+the linear program; that every feasible table comes from an actual potential-outcome model is
+the separate sharpness theorem `balkePearl_sharp`.
+
+## Main results
+
+* `csInf_BPIdentifiedInterval_eq_bpLower` — the infimum of the identified set is `bpLower`.
+* `csSup_BPIdentifiedInterval_eq_bpUpper` — the supremum of the identified set is `bpUpper`.
+* `bpLower_bpUpper_eq_csInf_csSup` — both equalities together, under the base assumptions.
+-/
 
 public section
 

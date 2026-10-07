@@ -38,7 +38,7 @@ theorem cdf_esseen_inversion_lipschitz
   haveI : IsProbabilityMeasure (ν.map (fun y : ℝ => -y)) :=
     Measure.isProbabilityMeasure_map (by fun_prop)
   have hpos := cdf_esseen_inversion_one_sided μ ν hμfirst hνfirst L hL hν T hT x
-  obtain ⟨hνref, hlower⟩ := reflected_reference_interval_and_cdf μ ν L hL hν
+  obtain ⟨hνref, hlower⟩ := reflected_reference_interval_and_cdf μ ν L hν
   have hneg := cdf_esseen_inversion_one_sided
     (μ.map (fun y : ℝ => -y)) (ν.map (fun y : ℝ => -y))
     (reflected_first_moment_integrable μ hμfirst)

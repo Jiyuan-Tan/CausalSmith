@@ -90,11 +90,11 @@ lemma fejer_integrand_expand (n k : ℕ) (t : AddCircle Real.pi) :
   rw [← fourier_add]
   congr 2
 
-/-- For [a positive Fejér order](hyp:n,hn) and [a nonnegative frequency](hyp:k), [the Fejér mean has the stated triangular multiplier](goal).
+/-- For [a Fejér order](hyp:n) and [a nonnegative frequency](hyp:k), [the Fejér mean has the stated triangular multiplier](goal).
 
  The Fejér mean multiplies the nonnegative frequency `k` by
 `(n-k)/n` below the cutoff and by zero above it. -/
-lemma fejerMean_fourier_nat (n k : ℕ) (hn : 0 < n) :
+lemma fejerMean_fourier_nat (n k : ℕ) :
     fejerMean n (fourier (k : ℤ)) =
       if k < n then ((n - k : ℕ) : ℝ) / n else 0 := by
   rw [fejerMean]
@@ -156,11 +156,11 @@ lemma fejerMean_fourier_nat (n k : ℕ) (hn : 0 < n) :
     rw [hzero]
     simp
 
-/-- For [a positive Fejér order](hyp:n,hn) and [a negative frequency magnitude](hyp:k), [the Fejér mean has the same triangular multiplier](goal).
+/-- For [a Fejér order](hyp:n) and [a negative frequency magnitude](hyp:k), [the Fejér mean has the same triangular multiplier](goal).
 
  The Fejér mean has the same triangular multiplier at negative natural
 frequencies. -/
-lemma fejerMean_fourier_neg_nat (n k : ℕ) (hn : 0 < n) :
+lemma fejerMean_fourier_neg_nat (n k : ℕ) :
     fejerMean n (fourier (-(k : ℤ))) =
       if k < n then ((n - k : ℕ) : ℝ) / n else 0 := by
   rw [fejerMean]
@@ -175,7 +175,7 @@ lemma fejerMean_fourier_neg_nat (n k : ℕ) (hn : 0 < n) :
       funext t
       simp
     _ = _ := by
-      rw [← fejerMean, fejerMean_fourier_nat n k hn]
+      rw [← fejerMean, fejerMean_fourier_nat n k]
       split <;> simp
 
 /-- For [a positive Fejér order](hyp:n,hn), [the normalized kernel integrates to one](goal).
@@ -183,7 +183,7 @@ lemma fejerMean_fourier_neg_nat (n k : ℕ) (hn : 0 < n) :
  Every positive-order normalized Fejér kernel has Haar integral one. -/
 lemma integral_fejerKernel (n : ℕ) (hn : 0 < n) :
     (∫ t, fejerKernel n t ∂AddCircle.haarAddCircle) = 1 := by
-  have hcomplex := fejerMean_fourier_nat n 0 hn
+  have hcomplex := fejerMean_fourier_nat n 0
   simp only [if_pos hn, Nat.cast_sub (Nat.zero_le _), Nat.cast_zero, sub_zero] at hcomplex
   have hker : Integrable (fejerKernel n) AddCircle.haarAddCircle :=
     (continuous_fejerKernel n).integrable_of_hasCompactSupport
@@ -291,7 +291,7 @@ lemma valleePoussinMean_fourier_nat (n k : ℕ) (hn : 0 < n) (hk : k ≤ n) :
   rw [valleePoussinMeanCLM]
   simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
     fejerMeanCLM_apply]
-  rw [fejerMean_fourier_nat (2 * n) k (by omega), fejerMean_fourier_nat n k hn]
+  rw [fejerMean_fourier_nat (2 * n) k, fejerMean_fourier_nat n k]
   by_cases hlt : k < n
   · rw [if_pos hlt, if_pos (by omega)]
     push_cast
@@ -321,7 +321,7 @@ lemma valleePoussinMean_fourier_neg_nat (n k : ℕ) (hn : 0 < n) (hk : k ≤ n) 
   rw [valleePoussinMeanCLM]
   simp only [ContinuousLinearMap.sub_apply, ContinuousLinearMap.smul_apply, smul_eq_mul,
     fejerMeanCLM_apply]
-  rw [fejerMean_fourier_neg_nat (2 * n) k (by omega), fejerMean_fourier_neg_nat n k hn]
+  rw [fejerMean_fourier_neg_nat (2 * n) k, fejerMean_fourier_neg_nat n k]
   by_cases hlt : k < n
   · rw [if_pos hlt, if_pos (by omega)]
     push_cast
@@ -374,7 +374,7 @@ lemma cuspFunctional_fourier_nat_nonneg (n k : ℕ) (hn : 0 < n) :
   rw [cuspFunctionalCLM, valleePoussinMeanCLM]
   simp only [ContinuousLinearMap.sub_apply, ContinuousMap.evalCLM_apply,
     ContinuousLinearMap.smul_apply, smul_eq_mul, fejerMeanCLM_apply, fourier_eval_zero]
-  rw [fejerMean_fourier_nat (2 * n) k (by omega), fejerMean_fourier_nat n k hn]
+  rw [fejerMean_fourier_nat (2 * n) k, fejerMean_fourier_nat n k]
   by_cases hk2 : k < 2 * n
   · rw [if_pos hk2]
     by_cases hk : k < n
@@ -411,7 +411,7 @@ lemma cuspFunctional_fourier_neg_nat_nonneg (n k : ℕ) (hn : 0 < n) :
   rw [cuspFunctionalCLM, valleePoussinMeanCLM]
   simp only [ContinuousLinearMap.sub_apply, ContinuousMap.evalCLM_apply,
     ContinuousLinearMap.smul_apply, smul_eq_mul, fejerMeanCLM_apply, fourier_eval_zero]
-  rw [fejerMean_fourier_neg_nat (2 * n) k (by omega), fejerMean_fourier_neg_nat n k hn]
+  rw [fejerMean_fourier_neg_nat (2 * n) k, fejerMean_fourier_neg_nat n k]
   by_cases hk2 : k < 2 * n
   · rw [if_pos hk2]
     by_cases hk : k < n
@@ -448,7 +448,7 @@ lemma cuspFunctional_fourier_nat_high (n k : ℕ) (hn : 0 < n)
   rw [cuspFunctionalCLM, valleePoussinMeanCLM]
   simp only [ContinuousLinearMap.sub_apply, ContinuousMap.evalCLM_apply,
     ContinuousLinearMap.smul_apply, smul_eq_mul, fejerMeanCLM_apply, fourier_eval_zero]
-  rw [fejerMean_fourier_nat (2 * n) k (by omega), fejerMean_fourier_nat n k hn,
+  rw [fejerMean_fourier_nat (2 * n) k, fejerMean_fourier_nat n k,
     if_neg (by omega : ¬ k < 2 * n), if_neg (by omega : ¬ k < n)]
   norm_num
 
@@ -461,7 +461,7 @@ lemma cuspFunctional_fourier_neg_nat_high (n k : ℕ) (hn : 0 < n)
   rw [cuspFunctionalCLM, valleePoussinMeanCLM]
   simp only [ContinuousLinearMap.sub_apply, ContinuousMap.evalCLM_apply,
     ContinuousLinearMap.smul_apply, smul_eq_mul, fejerMeanCLM_apply, fourier_eval_zero]
-  rw [fejerMean_fourier_neg_nat (2 * n) k (by omega), fejerMean_fourier_neg_nat n k hn,
+  rw [fejerMean_fourier_neg_nat (2 * n) k, fejerMean_fourier_neg_nat n k,
     if_neg (by omega : ¬ k < 2 * n), if_neg (by omega : ¬ k < n)]
   norm_num
 

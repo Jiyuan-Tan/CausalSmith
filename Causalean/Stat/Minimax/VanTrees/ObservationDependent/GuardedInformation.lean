@@ -76,7 +76,7 @@ theorem errorScoreField_eq_numerator {X : Type*} {w dw : ℝ → ℝ}
     (θ := θ) (x := x) hw hp hwzero hpzero
   rw [errorScoreField, mul_assoc, hjoint]
 
-/-- At an interior parameter value, a [normalized likelihood whose integral may be differentiated using the supplied derivative, with nonnegative density, zero-set derivative control, and both fields integrable](hyp:hθ,hnorm,hdiff,hp,hpzero,hpint,hdpint) has [conditional mean-zero guarded likelihood score](goal). -/
+/-- At an interior parameter value, a [normalized likelihood whose integral may be differentiated using the supplied derivative, with nonnegative density and zero-set derivative control](hyp:hθ,hnorm,hdiff,hp,hpzero) has [conditional mean-zero guarded likelihood score](goal). -/
 theorem likelihoodScore_integral_eq_zero_of_normalization
     {X : Type*} [MeasurableSpace X] {μ : Measure X}
     {a b θ : ℝ} {p dp : ℝ → X → ℝ}
@@ -84,9 +84,7 @@ theorem likelihoodScore_integral_eq_zero_of_normalization
     (hnorm : ∀ t ∈ Icc a b, ∫ x, p t x ∂μ = 1)
     (hdiff : HasDerivAt (fun t => ∫ x, p t x ∂μ) (∫ x, dp θ x ∂μ) θ)
     (hp : ∀ x, 0 ≤ p θ x)
-    (hpzero : ∀ᵐ x ∂μ, p θ x = 0 → dp θ x = 0)
-    (hpint : Integrable (fun x => p θ x) μ)
-    (hdpint : Integrable (fun x => dp θ x) μ) :
+    (hpzero : ∀ᵐ x ∂μ, p θ x = 0 → dp θ x = 0) :
     ∫ x, likelihoodScore p dp θ x * p θ x ∂μ = 0 := by
   have hnorm_nhds : (fun t => ∫ x, p t x ∂μ) =ᶠ[nhds θ] fun _ => 1 := by
     filter_upwards [Ioo_mem_nhds hθ.1 hθ.2] with t ht
@@ -100,39 +98,19 @@ theorem likelihoodScore_integral_eq_zero_of_normalization
     exact guarded_score_mul_density (hp x) hx
   rw [integral_congr_ae hscore_mul, hderiv_zero]
 
-/-- For nonnegative prior and likelihood densities with [zero-set derivative control, likelihood normalization, centered conditional scores, and the stated measurable integrability of all square and cross fields](hyp:hw,hp,hwzero,hpzero,hnorm,hcenter,hscoreSm,hscoreInt,hpriorSm,hpriorInt,hpriorJointSm,hpriorJointInt,hfisherSm,hfisherInt,hcrossSm,hcrossInt), [joint-score information equals prior information plus average conditional Fisher information](goal). -/
+/-- For nonnegative prior and likelihood densities with [likelihood normalization, centered conditional scores, and integrable joint prior-score, Fisher-score and cross fields](hyp:hw,hp,hnorm,hcenter,hpriorJointInt,hfisherInt,hcrossInt), [joint-score information equals prior information plus average conditional Fisher information](goal). -/
 theorem joint_score_information_decomposition
     {X : Type*} [MeasurableSpace X] {μ : Measure X} [SigmaFinite μ]
     {a b : ℝ} {w dw : ℝ → ℝ} {p dp : ℝ → X → ℝ}
     (hw : ∀ θ, 0 ≤ w θ) (hp : ∀ θ x, 0 ≤ p θ x)
-    (hwzero : ∀ᵐ θ ∂parameterMeasure a b, w θ = 0 → dw θ = 0)
-    (hpzero : ∀ᵐ z ∂((parameterMeasure a b).prod μ), p z.1 z.2 = 0 → dp z.1 z.2 = 0)
     (hnorm : ∀ᵐ θ ∂parameterMeasure a b, ∫ x, p θ x ∂μ = 1)
     (hcenter : ∀ᵐ θ ∂parameterMeasure a b,
       ∫ x, likelihoodScore p dp θ x * p θ x ∂μ = 0)
-    (hscoreSm : AEStronglyMeasurable (scoreSqField w dw p dp)
-      ((parameterMeasure a b).prod μ))
-    (hscoreInt : Integrable (scoreSqField w dw p dp)
-      ((parameterMeasure a b).prod μ))
-    (hpriorSm : AEStronglyMeasurable (fun θ => w θ * (priorScore w dw θ) ^ 2)
-      (parameterMeasure a b))
-    (hpriorInt : Integrable (fun θ => w θ * (priorScore w dw θ) ^ 2)
-      (parameterMeasure a b))
-    (hpriorJointSm : AEStronglyMeasurable
-      (fun z : ℝ × X => w z.1 * p z.1 z.2 * (priorScore w dw z.1) ^ 2)
-      ((parameterMeasure a b).prod μ))
     (hpriorJointInt : Integrable
       (fun z : ℝ × X => w z.1 * p z.1 z.2 * (priorScore w dw z.1) ^ 2)
       ((parameterMeasure a b).prod μ))
-    (hfisherSm : AEStronglyMeasurable
-      (fun z : ℝ × X => w z.1 * p z.1 z.2 * (likelihoodScore p dp z.1 z.2) ^ 2)
-      ((parameterMeasure a b).prod μ))
     (hfisherInt : Integrable
       (fun z : ℝ × X => w z.1 * p z.1 z.2 * (likelihoodScore p dp z.1 z.2) ^ 2)
-      ((parameterMeasure a b).prod μ))
-    (hcrossSm : AEStronglyMeasurable
-      (fun z : ℝ × X =>
-        w z.1 * p z.1 z.2 * (priorScore w dw z.1 * likelihoodScore p dp z.1 z.2))
       ((parameterMeasure a b).prod μ))
     (hcrossInt : Integrable
       (fun z : ℝ × X =>

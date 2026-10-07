@@ -36,8 +36,9 @@ variable {r : V → ℕ}
 
 /-- A [DAG](hyp:G) and [strictly positive finite table](hyp:p) have [a normalized
 parent-local factorization](hyp:cardinalitiesPositive,mechanism,mass_eq_jointMass) when every
-coordinate has a state, normalized local mechanisms are available, and their joint product is
-the table mass. -/
+coordinate has at least one state, each vertex carries a strictly positive local factor that
+depends only on the vertex and its parents and sums to one over the vertex's own value, and the
+table mass of every complete profile is the product of all the local factors at that profile. -/
 structure PositiveDAGTableFactorization (G : DAG V) (p : PositiveTable r) where
   /-- Every coordinate alphabet contains at least one state. -/
   cardinalitiesPositive : CardinalitiesPositive r
@@ -51,18 +52,21 @@ namespace PositiveDAGTableFactorization
 variable {G : DAG V} {p : PositiveTable r}
 
 /-- A [factorized table](hyp:fac) and [fixed vertex set](hyp:fixed) determine [the truncated
-product kernel](goal) [by multiplying exactly the unfixed local factors](step:1). -/
+product kernel](goal) [by multiplying, at each complete profile, exactly the local factors of the vertices outside
+the fixed set](step:1). -/
 def remainingFactorKernel (fac : PositiveDAGTableFactorization G p)
     (fixed : Finset V) : Kernel r :=
   fun x ↦ ∏ v ∈ (Finset.univ \ fixed), fac.mechanism.factor v x
 
 /-- A [DAG](hyp:G) and [vertex list](hyp:vertices) determine [the parent-conditioned fixing
-steps](goal) [by pairing each vertex with its DAG parent set](step:1). -/
+steps](goal) [by pairing each listed vertex, in order, with its DAG parent set as the conditioning
+set](step:1). -/
 def parentFixingSteps (G : DAG V) (vertices : List V) : List (FixingStep V) :=
   vertices.map fun v ↦ ⟨v, G.parents v⟩
 
 /-- A [DAG](hyp:G), [vertex list](hyp:vertices), and [proof that the vertices are distinct](hyp:hvertices)
-give [a valid parent-conditioned fixing sequence](goal). -/
+give [a valid parent-conditioned fixing sequence: the fixed coordinates are distinct and no step
+conditions on its own coordinate](goal). -/
 theorem parentFixingSteps_valid (G : DAG V) (vertices : List V)
     (hvertices : vertices.Nodup) :
     FixingSequenceValid (parentFixingSteps G vertices) := by

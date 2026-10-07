@@ -16,7 +16,7 @@ namespace Causalean.Mathlib.Analysis.Quantization
 /-- In any measurable partition of `[a,b]` into `k` cells, the sum of squared
 cell masses is at least the squared interval length divided by `k`. -/
 theorem measurable_partition_mass_square_lower (a b : ℝ) (hab : a ≤ b)
-    (k : ℕ) (hk : 0 < k) (B : Fin k → Set ℝ)
+    (k : ℕ) (B : Fin k → Set ℝ)
     (hB : IsMeasurablePartition a b k B) :
     (b - a) ^ 2 ≤ (k : ℝ) * ∑ j : Fin k, (volume.real (B j)) ^ 2 := by
   -- Add the masses of the disjoint cells, then apply finite Cauchy-Schwarz
@@ -37,7 +37,7 @@ theorem measurable_partition_mass_square_lower (a b : ℝ) (hab : a ≤ b)
 /-- For constant nonnegative coefficients, every measurable partition and
 separate reproduction array obey the exact quarter-square lower bound. -/
 theorem constant_weights_partition_lower (a b : ℝ) (hab : a ≤ b)
-    (S k : ℕ) (hk : 0 < k) (γ : Fin S → ℝ)
+    (S k : ℕ) (γ : Fin S → ℝ)
     (hγ : ∀ s, 0 ≤ γ s) (B : Fin k → Set ℝ)
     (z : Fin k → Fin S → ℝ)
     (hB : IsMeasurablePartition a b k B) :
@@ -49,7 +49,7 @@ theorem constant_weights_partition_lower (a b : ℝ) (hab : a ≤ b)
     intro x hx
     rw [← hB.2.2]
     exact Set.mem_iUnion.2 ⟨j, hx⟩
-  have hmass := measurable_partition_mass_square_lower a b hab k hk B hB
+  have hmass := measurable_partition_mass_square_lower a b hab k B hB
   have hγsum : 0 ≤ ∑ s : Fin S, γ s :=
     Finset.sum_nonneg (fun s _ => hγ s)
   have hkreal : (0 : ℝ) ≤ k := Nat.cast_nonneg _
@@ -72,10 +72,12 @@ theorem constant_weights_partition_lower (a b : ℝ) (hab : a ≤ b)
     _ = (k : ℝ) * weightedCost S k (fun s _ _ => γ s) B z := by
       simp only [weightedCost, integral_const_mul]
 
-/-- On [a nondegenerate interval](hyp:a,b,hab), [a nonempty finite
+/-- On [a nondegenerate interval from a to b](hyp:a,b,hab), for [a nonempty finite
 weight family](hyp:S,hS) with [continuous strictly positive weights](hyp:β,hcont,hpos),
-each positive tolerance gives [a uniform eventual lower bound for
-every feasible measurable partition](goal). -/
+[for every positive tolerance ε there is a cell count K such that, for every k ≥ K, every
+measurable partition of the interval into k cells and every array of reproduction points in the
+interval, k times the paired weighted cost is at least one quarter of the square of the integral
+of the square root of the diagonal weight, minus ε](goal). -/
 theorem arbitrary_partition_lower_eventually (a b : ℝ) (hab : a < b)
     (S : ℕ) (hS : 0 < S) (β : Fin S → ℝ → ℝ → ℝ)
     (hcont : ∀ s, ContinuousOn (fun p : ℝ × ℝ => β s p.1 p.2)
@@ -125,7 +127,7 @@ theorem arbitrary_partition_lower_eventually (a b : ℝ) (hab : a < b)
     partition_good_mass_lower a b hab S hS β hcont hpos η hη hη1
   obtain ⟨K, hK⟩ :=
     bad_region_mass_small_of_scaled_cost_bound a b hab S hS β hcont hpos
-      δ A t hδ hA ht
+      δ A t hδ ht
   refine ⟨K, ?_⟩
   intro k hkK hk B z hB hz
   let bad : ℝ := ∑ j : Fin k,

@@ -48,9 +48,9 @@ theorem product_holder_closure
             iteratedDerivWithin k (fun t => f t * g t) (Set.Icc a (a + d)) y| ≤
               B * |x - y| ^ α) := by
   obtain ⟨Cf, hCf, hCf_bound⟩ :=
-    uniform_iteratedDerivWithin_bound k α d Mf Lf hα hα1 hd hMf hLf
+    uniform_iteratedDerivWithin_bound k α d Mf Lf hα hd hMf hLf
   obtain ⟨Cg, hCg, hCg_bound⟩ :=
-    uniform_iteratedDerivWithin_bound k α d Mg Lg hα hα1 hd hMg hLg
+    uniform_iteratedDerivWithin_bound k α d Mg Lg hα hd hMg hLg
   let Hf := Lf + Cf * d ^ (1 - α)
   let Hg := Lg + Cg * d ^ (1 - α)
   have hHf : 0 ≤ Hf := by dsimp [Hf]; positivity

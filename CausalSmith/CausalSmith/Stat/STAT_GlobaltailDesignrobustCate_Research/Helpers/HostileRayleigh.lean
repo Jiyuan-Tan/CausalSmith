@@ -2,7 +2,7 @@ module
 public import CausalSmith.Stat.STAT_GlobaltailDesignrobustCate_Research.Helpers.HostileRayleighBasic
 
 /-! # Normalized thin-slab Rayleigh bounds -/
-@[expose] public section
+public section
 namespace CausalSmith.Stat.GlobalTailDesignRobustCate
 
 open MeasureTheory Filter

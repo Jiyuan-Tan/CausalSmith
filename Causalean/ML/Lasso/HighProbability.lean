@@ -9,7 +9,7 @@ This module constructs a Borel measurable exact Lasso minimizer and combines
 the deterministic oracle inequality with the sub-Gaussian score event.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.ML
 

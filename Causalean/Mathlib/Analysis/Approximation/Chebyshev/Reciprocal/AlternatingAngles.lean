@@ -12,7 +12,7 @@ to pi. This statement isolates the analytic node construction from the
 polynomial identities and interval change of variables.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev.Reciprocal
 
@@ -214,9 +214,11 @@ private theorem exists_reciprocal_zero_in_cell {ρ : ℝ}
     exact ⟨θ, by simpa [hl] using hleft,
       by simpa [hr] using hright, by simpa [he] using hz⟩
 
-/-- A [decay parameter strictly between zero and one](hyp:ρ,hρ) and a
-[degree bound](hyp:m) imply [the existence of ordered angles where the sine
-and cosine factors vanish in alternating parity](goal). -/
+/-- For a [decay parameter ρ strictly between zero and one](hyp:ρ,hρ) and a
+[degree bound m](hyp:m), [there are m + 2 strictly increasing angles between zero and π such
+that, counting from zero, at each even-indexed angle θ one has
+sin((m + 1)θ/2) − ρ sin((m − 1)θ/2) = 0, and at each odd-indexed angle θ one has
+cos((m + 1)θ/2) − ρ cos((m − 1)θ/2) = 0](goal). -/
 theorem exists_reciprocalAlternatingAngles
     {ρ : ℝ} (hρ : ρ ∈ Set.Ioo (0 : ℝ) 1) (m : ℕ) :
     ∃ angles : Fin (m + 2) → ℝ,

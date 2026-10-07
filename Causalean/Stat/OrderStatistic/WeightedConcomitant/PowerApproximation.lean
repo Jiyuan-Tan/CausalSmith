@@ -25,13 +25,15 @@ open Causalean.Stat.OrderStatistic
 
 noncomputable section
 
-/-- For a [power](hyp:s), the [power density](goal) at a real argument is `s(1-u)^(s-1)`. -/
+/-- For a [power](hyp:s), the [power density](goal) at a [real argument](hyp:u) is `s(1-u)^(s-1)`. -/
 def powerDensity (s u : ℝ) : ℝ := s * (1 - u) ^ (s - 1)
 
 /-- A [sample size](hyp:N), [adjacent order index](hyp:k), and
  [interpolation fraction](hyp:δ) determine
- [the randomized adjacent order-statistic law](goal), which mixes the adjacent statistics of
- `N-1` uniforms with deterministic endpoints. -/
+ [the randomized adjacent order-statistic law](goal): with weight `1-δ` it is the law of the
+ `k`-th smallest and with weight `δ` the law of the `(k+1)`-th smallest of `N-1` independent
+ unit-uniform draws, where the zeroth order statistic is read as the constant 0 and the `N`-th
+ as the constant 1 (weights are truncated at zero when `δ` lies outside the unit interval). -/
 def adjacentOrderMix (N k : ℕ) (δ : ℝ) : Measure ℝ :=
   (ENNReal.ofReal (1 - δ)) • (iidSample uniform01 (N - 1)).map
       (fun x => if h : k = 0 then (0 : ℝ)
@@ -471,7 +473,10 @@ theorem adjacentOrderMix_abs_deviation_le_sqrt {N k : ℕ}
 
 /-- A [positive sample size](hyp:hN), [valid adjacent index](hyp:hk), and
 [unit-interval interpolation fraction](hyp:hδ) give [an integrated indicator
-error bounded by the mixture's root mean-square displacement](goal). -/
+error bounded by the mixture's root mean-square displacement](goal): writing `m = (k+δ)/N`,
+the integral over the unit interval of the absolute difference between the CDF of the
+randomized adjacent order-statistic law and the step function jumping from 0 to 1 at `m` is at
+most the square root of `m(1-m)/(N+1) + δ(1-δ)/(N(N+1))`. -/
 theorem adjacentOrderMix_indicator_L1 {N k : ℕ} (hN : 0 < N) (hk : k < N)
     {δ : ℝ} (hδ : δ ∈ Set.Icc (0 : ℝ) 1) :
     (∫ u in Set.Icc (0 : ℝ) 1,

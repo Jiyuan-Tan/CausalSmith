@@ -12,7 +12,7 @@ public section
 
 namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
-/-- If [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1) and [the box with corners lo, hi has
+/-- If [0 < s](hyp:hs) and [the box with corners lo, hi has
 positive side lengths](hyp:hbox), then for [derivative order m](hyp:m) and
 [coordinate i](hyp:i) [there is a positive constant C such that every response u
 in the intrinsic Hölder ball of order m, exponent s and radius L ≥ 0 on the box
@@ -22,7 +22,7 @@ collar, then the right collar of the resulting box)](goal). The constant depends
 only on the box, m, s and i. -/
 theorem exists_rectTwoFaceReflection_holder_constant {d : ℕ}
     (lo hi : Fin d → ℝ) (m : ℕ) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1)
+    (hs : 0 < s)
     (hbox : ∀ j, lo j < hi j) (i : Fin d) :
     ∃ C : ℝ, 0 < C ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (L : ℝ), 0 ≤ L →
@@ -46,9 +46,9 @@ theorem exists_rectTwoFaceReflection_holder_constant {d : ℕ}
       linarith [hbox i]
     · simpa [lower, rectLeftLower, hji] using hbox j
   obtain ⟨C₁, hC₁, hleft⟩ :=
-    exists_rectLeftFaceReflection_holder_constant lo hi m s hs hs1 hbox i
+    exists_rectLeftFaceReflection_holder_constant lo hi m s hs hbox i
   obtain ⟨C₂, hC₂, hright⟩ :=
-    exists_rectRightFaceReflection_holder_constant lower hi m s hs hs1 hlower i
+    exists_rectRightFaceReflection_holder_constant lower hi m s hs hlower i
   refine ⟨C₂ * C₁, mul_pos hC₂ hC₁, ?_⟩
   intro u L hL hu
   obtain ⟨v, hvagree, hvball⟩ := hleft u L hL hu

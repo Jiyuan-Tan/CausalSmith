@@ -156,12 +156,12 @@ lemma threshold_indicator_integral_eq_cdf_distance (μ ν : Measure ℝ)
   exact integral_abs_cut_indicators (cdf μ t) (cdf ν t)
     (cdf_nonneg μ t) (cdf_le_one μ t) (cdf_nonneg ν t) (cdf_le_one ν t)
 
-/-- [Two probability laws](hyp:μ,ν) and [an ordered finite interval](hyp:hab)
+/-- [Two probability laws](hyp:μ,ν) and a finite interval
 give [an integrable lower-ray disagreement kernel under the product of the
 uniform-level law and restricted Lebesgue measure](goal). -/
 lemma indicator_kernel_integrable (μ ν : Measure ℝ)
     [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    {a b : ℝ} (hab : a ≤ b) :
+    {a b : ℝ} :
     Integrable
       (fun z : ℝ × ℝ =>
         |(if quantile μ z.1 ≤ z.2 then (1 : ℝ) else 0) -
@@ -220,7 +220,7 @@ lemma indicator_integral_swap (μ ν : Measure ℝ)
   simp_rw [intervalIntegral.integral_of_le hab,
     intervalIntegral.integral_of_le (by norm_num : (0 : ℝ) ≤ 1)]
   rw [hrest]
-  exact integral_integral_swap (indicator_kernel_integrable μ ν hab)
+  exact integral_integral_swap (indicator_kernel_integrable μ ν)
 
 /-- [Two points in a common closed interval](hyp:hx,hy) have [a distance equal
 to the integral of their lower-ray indicator disagreement](goal). -/
@@ -315,13 +315,11 @@ lemma quantile_cost_eq_indicator_integral (μ ν : Measure ℝ)
   filter_upwards [quantile_mem_Icc_ae μ hμ, quantile_mem_Icc_ae ν hν] with u hu hv
   exact abs_sub_eq_integral_Icc_indicator hu hv
 
-/-- [Two probability laws](hyp:μ,ν), [an ordered common closed interval](hyp:hab),
-and [concentration of each law on it](hyp:hμ,hν) give [an iterated
+/-- [Two probability laws](hyp:μ,ν) and [an ordered closed interval](hyp:hab) give [an iterated
 quantile-indicator integral equal to their integrated CDF distance](goal). -/
 lemma indicator_integral_eq_cdf_distance (μ ν : Measure ℝ)
     [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    {a b : ℝ} (hab : a ≤ b)
-    (hμ : μ (Icc a b)ᶜ = 0) (hν : ν (Icc a b)ᶜ = 0) :
+    {a b : ℝ} (hab : a ≤ b) :
     (∫ u in (0 : ℝ)..1, ∫ t in a..b,
       |(if quantile μ u ≤ t then (1 : ℝ) else 0) -
         (if quantile ν u ≤ t then 1 else 0)|) =
@@ -346,6 +344,6 @@ theorem quantile_transport_eq_cdf_distance (μ ν : Measure ℝ)
     (∫ u in (0 : ℝ)..1, |quantile μ u - quantile ν u|) =
       ∫ t in a..b, |cdf μ t - cdf ν t| := by
   exact (quantile_cost_eq_indicator_integral μ ν hμ hν).trans
-    (indicator_integral_eq_cdf_distance μ ν hab hμ hν)
+    (indicator_integral_eq_cdf_distance μ ν hab)
 
 end Causalean.Stat.Quantile.Transport

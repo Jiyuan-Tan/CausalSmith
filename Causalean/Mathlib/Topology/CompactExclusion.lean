@@ -51,7 +51,7 @@ structure PositiveExclusionRadius {X : Type*} (K U : Set X) (r : X → ℝ) wher
 
 /-- For [a compact candidate set](hyp:K), [an open local neighborhood](hyp:U), [a continuous
 residual](hyp:r), and [a reference point](hyp:x₀), if [the candidate set is compact](hyp:hK),
-[the neighborhood is open](hyp:hU), [the reference belongs to the candidate set](hyp:hxK),
+[the neighborhood is open](hyp:hU),
 [the reference belongs to the neighborhood](hyp:hxU), [the far set is nonempty](hyp:hfar),
 [the residual is continuous](hyp:hr_cont),
 [the residual is nonnegative on candidates](hyp:hr_nonneg),
@@ -62,7 +62,7 @@ strictly positive attained residual minimum](goal). -/
 -- zero forces its minimizer to be `x₀`, contradicting `x₀ ∈ U`.
 theorem exists_positiveExclusionRadius {X : Type*} [TopologicalSpace X]
     (K U : Set X) (r : X → ℝ) (x₀ : X)
-    (hK : IsCompact K) (hU : IsOpen U) (hxK : x₀ ∈ K) (hxU : x₀ ∈ U)
+    (hK : IsCompact K) (hU : IsOpen U) (hxU : x₀ ∈ U)
     (hfar : (K \ U).Nonempty) (hr_cont : Continuous r)
     (hr_nonneg : ∀ x ∈ K, 0 ≤ r x)
     (hr_zero : ∀ x ∈ K, r x = 0 → x = x₀) :

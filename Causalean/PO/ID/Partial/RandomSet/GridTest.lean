@@ -80,19 +80,21 @@ variable (S : IIDSample Ω X μ P) (F : X → Set V) (EF : Set V) (p : Fin k →
       (fun m => Finset.range m) n) μ)
 
 omit hint [IsProbabilityMeasure P] in
-include hmean in
-/-- [The normalized finite-grid support-process statistic converges in
-distribution to the grid supremum of its Gaussian limit](goal).
+include hmean hSum_meas in
+/-- For [an IID sample and set-valued support process](hyp:S,F,EF,p), if [the support process is
+measurable](hyp:hψ), [its squared norm is integrable](hyp:hvar), [its mean is zero](hyp:hmean),
+and [all normalized sums are almost-everywhere measurable](hyp:hSum_meas), then [the normalized
+finite-grid support-process statistic converges in distribution to the grid supremum of its
+Gaussian limit](goal).
 
-Under the assumed mean-zero moment condition `∫ ψ = 0`, the finite-grid statistic
+Under these hypotheses, the finite-grid statistic
 `gridTestStat` converges in distribution to the law
 `(gaussianLimit ψ).map maxAbsK` of `maxⱼ |z(pⱼ)|` for the finite-dimensional
 Gaussian limit `z` of the support process.  A thin restatement of
 `setValued_supportProcess_clt`. -/
 theorem gridTestStat_clt :
-    Tendsto_dist_vec (gridTestStat S F EF p)
-      ((gaussianLimit hψ hvar).map maxAbsK) μ
-      (fun n => measurable_maxAbsK.comp_aemeasurable (hSum_meas n)) :=
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (gridTestStat S F EF p) atTop
+        ((gaussianLimit hψ hvar).map maxAbsK) :=
   setValued_supportProcess_clt S F EF p hψ hvar hmean hSum_meas
 
 omit [IsProbabilityMeasure P] in

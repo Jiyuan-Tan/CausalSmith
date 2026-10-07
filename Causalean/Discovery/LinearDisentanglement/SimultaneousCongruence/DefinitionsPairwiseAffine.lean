@@ -171,20 +171,20 @@ def InIdentityBranch {p : ℕ} (M δ L : ℝ) (B₀ B : SqMatrix p) : Prop :=
     2 * pairwiseAggregateFactor p M δ L * M *
       entryL2 (transitionError B₀ B) ≤ 1 / 2
 
-/-- [The explicit pairwise residual threshold is strictly positive](goal) when [shift scale `M`
-and separation margin `δ`](hyp:M,δ) are [positive](hyp:hM,hδ), [matrix scale `L`](hyp:L) is [at
-least one](hyp:hL), and the model has [dimension `p`](hyp:p). -/
+/-- [The explicit pairwise residual threshold is strictly positive](goal) when [shift scale
+`M`](hyp:M) is [positive](hyp:hM), for any [separation margin `δ` and matrix scale `L`](hyp:δ,L)
+in [dimension `p`](hyp:p). -/
 theorem pairwiseResidualRadius_pos {p : ℕ} {M δ L : ℝ}
-    (hM : 0 < M) (hδ : 0 < δ) (hL : 1 ≤ L) :
+    (hM : 0 < M) :
     0 < pairwiseResidualRadius p M δ L := by
   unfold pairwiseResidualRadius
   positivity
 
 /-- [The explicit local reference-neighborhood radius is strictly positive](goal) when [dimension
-`p`, shift scale `M`, separation margin `δ`, and inverse envelope `J`](hyp:p,M,δ,J) are
-[positive](hyp:hp,hM,hδ,hJ) and [matrix scale `L`](hyp:L) is [at least one](hyp:hL). -/
+`p`, shift scale `M`, and inverse envelope `J`](hyp:p,M,J) are [positive](hyp:hp,hM,hJ), for any
+[separation margin `δ` and matrix scale `L`](hyp:δ,L). -/
 theorem pairwiseLocalRadius_pos {p : ℕ} {M δ L J : ℝ}
-    (hp : 0 < p) (hM : 0 < M) (hδ : 0 < δ) (hL : 1 ≤ L) (hJ : 0 < J) :
+    (hp : 0 < p) (hM : 0 < M) (hJ : 0 < J) :
     0 < pairwiseLocalRadius p M δ L J := by
   unfold pairwiseLocalRadius
   positivity
@@ -223,12 +223,11 @@ private theorem exists_eigenvalue_eq_opNorm_sq {p : ℕ} (hp : 0 < p)
   rw [← heigNorm, ← hnorm]
   simpa [pow_two] using Matrix.l2_opNorm_conjTranspose_mul_self B
 
-private theorem opNorm_sq_le_condition_sq_mul_eigenvalue {p : ℕ} (hp : 0 < p)
+private theorem opNorm_sq_le_condition_sq_mul_eigenvalue {p : ℕ}
     (B : Matrix (Fin p) (Fin p) ℝ)
     (hunit : IsUnit B.det) (j : Fin p) :
     ‖B‖ ^ 2 ≤ (‖B‖ * ‖B⁻¹‖) ^ 2 *
       (Matrix.isHermitian_conjTranspose_mul_self B).eigenvalues j := by
-  letI : Nonempty (Fin p) := Fin.pos_iff_nonempty.mp hp
   let hH := Matrix.isHermitian_conjTranspose_mul_self B
   let v : EuclideanSpace ℝ (Fin p) := hH.eigenvectorBasis j
   let w : EuclideanSpace ℝ (Fin p) :=
@@ -311,7 +310,7 @@ private theorem opNorm_pow_le_det_mul_condition_pow {p : ℕ} (hp : 0 < p)
     rw [← hdet]
     simp [Matrix.det_mul, Matrix.det_transpose, pow_two]
   · intro j
-    exact opNorm_sq_le_condition_sq_mul_eigenvalue hp B hunit j
+    exact opNorm_sq_le_condition_sq_mul_eigenvalue B hunit j
 
 /-- [The determinant-condition root is at least one](goal) in [dimension `p`](hyp:p) under
 [condition envelope `κ`](hyp:κ), provided [the dimension is positive](hyp:hp) and [the envelope
@@ -328,13 +327,12 @@ theorem one_le_conditionRoot {p : ℕ} {κ : ℝ} (hp : 0 < p) (hκ : 1 ≤ κ) 
 
 /-- [The determinant-condition root bounds the matrix operator norm](goal), turning [matrix
 `B`](hyp:B)'s [determinant-condition certificate](hyp:henv) into a scale bound in [dimension
-`p`](hyp:p) for [condition envelope `κ`](hyp:κ), when [the dimension is positive](hyp:hp) and
-[the envelope is at least one](hyp:hκ). -/
+`p`](hyp:p) for [condition envelope `κ`](hyp:κ), when [the dimension is positive](hyp:hp). -/
 -- Proof route: order the singular values;
 -- `cond(B) ≤ κ` bounds every lower singular value below by `‖B‖/κ`, while their
 -- product is `|det B| ≤ p!`.  Take the positive `p`-th root.
 theorem opNorm_le_conditionRoot {p : ℕ} {κ : ℝ} (B : SqMatrix p)
-    (hp : 0 < p) (hκ : 1 ≤ κ)
+    (hp : 0 < p)
     (henv : DetConditionEnvelope κ B) :
     ‖B‖ ≤ conditionRoot p κ := by
   have hcond_nonneg : 0 ≤ operatorConditionNumber B :=
@@ -365,7 +363,7 @@ one](hyp:hκ), and [the shared certificate](hyp:henv). -/
 theorem pairMatrixNormBound_conditionRoot {p : ℕ} {κ : ℝ} (B₀ B : SqMatrix p)
     (hp : 0 < p) (hκ : 1 ≤ κ) (henv : PairDetConditionEnvelope κ B₀ B) :
     PairMatrixNormBound (conditionRoot p κ) B₀ B := by
-  exact ⟨opNorm_le_conditionRoot B₀ hp hκ henv.1,
-    opNorm_le_conditionRoot B hp hκ henv.2⟩
+  exact ⟨opNorm_le_conditionRoot B₀ hp henv.1,
+    opNorm_le_conditionRoot B hp henv.2⟩
 
 end Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence

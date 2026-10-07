@@ -42,17 +42,18 @@ probability](hyp:hcoord),
 then the [largest absolute coordinate error converges in probability to zero](goal). -/
 theorem tendsto_inProb_finiteMaxError [Fintype ι] [Nonempty ι]
     (empirical : ℕ → Ω → ι → ℝ) (population : ι → ℝ) (μ : Measure Ω)
-    (hcoord : ∀ i, Tendsto_inProb
-      (fun n ω => empirical n ω i) (fun _ => population i) μ) :
-    Tendsto_inProb
-      (fun n ω => finiteMaxError (empirical n ω) population) (fun _ => 0) μ := by
+    (hcoord : ∀ i, Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => empirical n ω i) atTop
+        (fun _ _ => population i)) :
+    Modes.TendstoInProbability (fun _ : ℕ => μ)
+        (fun n ω => finiteMaxError (empirical n ω) population)
+        atTop (fun _ _ => 0) := by
   classical
   have hcontinuous : ContinuousAt (fun x => finiteMaxError x population) population := by
     apply Continuous.continuousAt
     exact Continuous.finset_sup'_apply Finset.univ_nonempty fun i _ =>
       ((continuous_apply i).sub continuous_const).abs
   simpa [finiteMaxError] using
-    (Tendsto_inProb.pi_comp_continuousAt hcontinuous hcoord)
+    (Modes.TendstoInProbability.pi_comp_continuousAt hcontinuous hcoord)
 
 /-- If [empirical loss vectors](hyp:empirical) have
 [coordinatewise population targets](hyp:population)
@@ -62,8 +63,8 @@ then, for [a positive tolerance](hyp:hε), the [probability that the largest coo
 exceeds that tolerance converges to zero](goal). -/
 theorem tendsto_measure_finiteMaxError_ge_zero [Fintype ι] [Nonempty ι]
     (empirical : ℕ → Ω → ι → ℝ) (population : ι → ℝ) (μ : Measure Ω)
-    (hcoord : ∀ i, Tendsto_inProb
-      (fun n ω => empirical n ω i) (fun _ => population i) μ)
+    (hcoord : ∀ i, Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => empirical n ω i) atTop
+        (fun _ _ => population i))
     {ε : ℝ} (hε : 0 < ε) :
     Tendsto (fun n => μ {ω | ε ≤ finiteMaxError (empirical n ω) population})
       atTop (𝓝 0) := by
@@ -111,8 +112,8 @@ theorem finite_penalized_argmin_failure_tendsto_zero
     (empirical : ℕ → Ω → ι → ℝ) (population : ι → ℝ)
     (penalty : ℕ → ι → ℝ) (rank : ι → ℕ) (selector : ℕ → Ω → ι)
     (μ : Measure Ω) [IsProbabilityMeasure μ]
-    (hcoord : ∀ i, Tendsto_inProb
-      (fun n ω => empirical n ω i) (fun _ => population i) μ)
+    (hcoord : ∀ i, Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => empirical n ω i) atTop
+        (fun _ _ => population i))
     (hgap : ∃ gap : ℝ, 0 < gap ∧
       ∀ i ∈ populationMinimizers population,
         ∀ j ∉ populationMinimizers population, population i + gap ≤ population j)
@@ -191,8 +192,8 @@ theorem finite_penalized_argmin_consistent
     (empirical : ℕ → Ω → ι → ℝ) (population : ι → ℝ)
     (penalty : ℕ → ι → ℝ) (rank : ι → ℕ) (selector : ℕ → Ω → ι)
     (μ : Measure Ω) [IsProbabilityMeasure μ]
-    (hcoord : ∀ i, Tendsto_inProb
-      (fun n ω => empirical n ω i) (fun _ => population i) μ)
+    (hcoord : ∀ i, Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => empirical n ω i) atTop
+        (fun _ _ => population i))
     (hgap : ∃ gap : ℝ, 0 < gap ∧
       ∀ i ∈ populationMinimizers population,
         ∀ j ∉ populationMinimizers population, population i + gap ≤ population j)

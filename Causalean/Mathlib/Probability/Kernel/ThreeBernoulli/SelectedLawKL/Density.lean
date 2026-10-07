@@ -25,7 +25,11 @@ universe u
 
 /-- The [cellwise likelihood ratio](goal) at a [selected observation](hyp:z)
 compares [two outcome-mean pairs](hyp:q₀,q₁,q₀',q₁') under the
-[same treatment propensity](hyp:e). -/
+[same treatment propensity](hyp:e): the observation's selected cell mass under the first
+pair divided by its selected cell mass under the second pair, at the observation's
+covariate value, read as an extended nonnegative number. A zero denominator gives ratio
+zero by the real-division convention, so the ratio is a genuine likelihood ratio only
+where the second cell mass is positive. -/
 def selectedCellRatio {X : Type u} (e q₀ q₁ q₀' q₁' : X → ℝ)
     (z : SelectedCoord X) : ℝ≥0∞ :=
   ENNReal.ofReal
@@ -35,7 +39,8 @@ def selectedCellRatio {X : Type u} (e q₀ q₁ q₀' q₁' : X → ℝ)
 /-- [The first selected law is the second selected law weighted by its
 cellwise likelihood ratio](goal) for a [probability base law](hyp:μ),
 [measurable propensity and outcome means](hyp:he,hq₀,hq₁,hq₀',hq₁'),
-and [uniform interior bounds](hyp:hη0,hηhalf,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
+and [uniform interior bounds on the propensity and the reference outcome
+means](hyp:hη0,heη,hq₀'η,hq₁'η).
 
 Proof route: compare on each measurable base-by-cell rectangle using
 `selectedLaw_cell`; positivity permits cancellation of every reference cell
@@ -47,10 +52,8 @@ theorem selectedLaw_eq_withDensity {X : Type u} [MeasurableSpace X]
     (e q₀ q₁ q₀' q₁' : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
     (hq₀' : Measurable q₀') (hq₁' : Measurable q₁')
-    {η : ℝ} (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    {η : ℝ} (hη0 : 0 < η)
     (heη : ∀ x, e x ∈ Set.Icc η (1 - η))
-    (hq₀η : ∀ x, q₀ x ∈ Set.Icc η (1 - η))
-    (hq₁η : ∀ x, q₁ x ∈ Set.Icc η (1 - η))
     (hq₀'η : ∀ x, q₀' x ∈ Set.Icc η (1 - η))
     (hq₁'η : ∀ x, q₁' x ∈ Set.Icc η (1 - η)) :
     selectedLaw μ e q₀ q₁ =
@@ -126,9 +129,10 @@ theorem selectedLaw_eq_withDensity {X : Type u} [MeasurableSpace X]
     ((ν.withDensity (selectedDensity e q₀' q₁')).map f).withDensity r
   rw [hmap, ← withDensity_mul ν hd' (hr.comp hf), hmul]
 
-/-- [Two selected laws with a shared base and propensity are absolutely
-continuous in the stated direction](goal) for [measurable interior
-parameters](hyp:he,hq₀,hq₁,hq₀',hq₁',hη0,hηhalf,heη,hq₀η,hq₁η,hq₀'η,hq₁'η)
+/-- [Of two selected laws with a shared base and propensity, the one with the first
+pair of outcome means is absolutely continuous with respect to the one with the second
+pair](goal) for [measurable interior
+parameters](hyp:he,hq₀,hq₁,hq₀',hq₁',hη0,heη,hq₀'η,hq₁'η)
 over a [probability base law](hyp:μ).
 
 Rewrite with `selectedLaw_eq_withDensity`, then use
@@ -139,15 +143,13 @@ theorem selectedLaw_ac {X : Type u} [MeasurableSpace X]
     (e q₀ q₁ q₀' q₁' : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
     (hq₀' : Measurable q₀') (hq₁' : Measurable q₁')
-    {η : ℝ} (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    {η : ℝ} (hη0 : 0 < η)
     (heη : ∀ x, e x ∈ Set.Icc η (1 - η))
-    (hq₀η : ∀ x, q₀ x ∈ Set.Icc η (1 - η))
-    (hq₁η : ∀ x, q₁ x ∈ Set.Icc η (1 - η))
     (hq₀'η : ∀ x, q₀' x ∈ Set.Icc η (1 - η))
     (hq₁'η : ∀ x, q₁' x ∈ Set.Icc η (1 - η)) :
     selectedLaw μ e q₀ q₁ ≪ selectedLaw μ e q₀' q₁' := by
   rw [selectedLaw_eq_withDensity μ e q₀ q₁ q₀' q₁' he hq₀ hq₁ hq₀' hq₁'
-    hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η]
+    hη0 heη hq₀'η hq₁'η]
   exact withDensity_absolutelyContinuous _ _
 
 end Causalean.Mathlib.Probability.Kernel.ThreeBernoulli.SelectedLawKL

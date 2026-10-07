@@ -23,8 +23,7 @@ total-variation discrepancy between the two marked predictive laws is at most th
 intensity times the discrepancy between the aggregate mixtures of its Jordan priors](goal).
 This holds for [overlap, support-ratio, shift, support-bound, and intensity
 parameters](hyp:ε,κ,a,B,u,v) when [overlap is positive](hyp:hε), [overlap is below one
-half](hyp:hεhalf), [the support ratio has the stated value](hyp:hκ), [the shift and support bound
-are positive](hyp:ha,hB), [both intensities are nonnegative](hyp:hu,hv), [their sum is
+half](hyp:hεhalf), [the support ratio has the stated value](hyp:hκ), [the shift is positive](hyp:ha), [both intensities are nonnegative](hyp:hu,hv), [their sum is
 positive](hyp:ht), and [the certificate variation has the stated support](hyp:hsupp). -/
 theorem tvDist_markedPoissonPredictive_le_palm_aggregate
     {ι : Type*} [Fintype ι] {L : ℕ}
@@ -32,7 +31,7 @@ theorem tvDist_markedPoissonPredictive_le_palm_aggregate
     (ε κ a B u v : ℝ)
     (hε : 0 < ε) (hεhalf : ε < 1 / 2)
     (hκ : κ = (1 - 2 * ε) / ε)
-    (ha : 0 < a) (hB : 0 < B)
+    (ha : 0 < a)
     (hu : 0 ≤ u) (hv : 0 ≤ v) (ht : 0 < u + v)
     (hsupp : ∀ᵐ p ∂C.signedMeasure.variation, p ∈ Set.Icc (a / κ) B) :
     Causalean.Stat.tvDist
@@ -103,7 +102,7 @@ theorem tvDist_markedPoissonPredictive_le_palm_aggregate
           have hr := congrArg (fun μ : Measure MarkedPoissonObservation =>
               μ.real {((0, 0), (s, t))})
             (C.restrict_markedPoissonPredictive_noLabeledTreated_eq
-              ε a u v κ B ha hκpos hsupp)
+              ε a u v)
           simpa [Mf, Mt, Measure.restrict_apply,
             noLabeledTreated] using hr
         have hp := palmSplit_bind_no_labeled_eq q P s t
@@ -198,11 +197,11 @@ theorem tvDist_markedPoissonPredictive_le_palm_aggregate
   have hf : |(Kf ∘ₘ P).real A - (Kf ∘ₘ N).real A| ≤
       Causalean.Stat.tvDist P N :=
     (Causalean.Stat.abs_measureReal_sub_le_tvDist hA).trans
-      (tvDist_bind_le P N Kf)
+      (Causalean.Stat.tvDist_bind_le P N Kf)
   have hs : |(Ks ∘ₘ P).real A - (Ks ∘ₘ N).real A| ≤
       Causalean.Stat.tvDist P N :=
     (Causalean.Stat.abs_measureReal_sub_le_tvDist hA).trans
-      (tvDist_bind_le P N Ks)
+      (Causalean.Stat.tvDist_bind_le P N Ks)
   have hdnonneg : 0 ≤ d.toReal := ENNReal.toReal_nonneg
   rw [hd] at hb hdnonneg
   calc
@@ -252,7 +251,7 @@ theorem exists_geometric_markedPoisson_tv_bound
           (aggregatePoissonPredictive C.positivePrior ε a (u + v))
           (aggregatePoissonPredictive C.negativePrior ε a (u + v)) :=
       C.tvDist_markedPoissonPredictive_le_palm_aggregate
-        ε κ a B u v hε hεhalf hκ ha hB hu hv ht hsupp
+        ε κ a B u v hε hεhalf hκ ha hu hv ht hsupp
     _ ≤ u * ε * a * (D * ρ ^ L) := by
       gcongr
       exact hagg C a B (u + v) ha hB ht hsupp hband

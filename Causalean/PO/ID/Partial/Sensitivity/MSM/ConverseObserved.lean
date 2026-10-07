@@ -105,7 +105,7 @@ theorem observedCandidate_mem_MSMSet (hΛ : 1 ≤ Λ)
     M.observedCandidate ∈ S.MSMSet true Λ := by
   have hΛpos : 0 < Λ := lt_of_lt_of_le zero_lt_one hΛ
   have hq := M.ae_propensityFactor_mem_Ioo hoverlap
-  have hg := M.ae_xyPropensity_mem_Ioo hoverlap
+  have hg := M.ae_xyPropensity_mem_Ioo
   have hodds := M.xyPropensity_odds hΛ hoverlap
   have hmodelInterior : ∀ᵐ ω ∂M.Q,
       0 < M.recordCandidate (M.observedRecord ω) ∧

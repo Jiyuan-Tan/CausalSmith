@@ -12,8 +12,22 @@ public import Mathlib.Data.Real.Basic
 /-!
 # Zero loci of real multivariate polynomials
 
-This file defines real zero loci and records their behavior under finite products of
-multivariate polynomials.
+The real zero locus of a multivariate polynomial with real coefficients is the set of real points
+at which it vanishes. The zero locus of a finite product of polynomials is the union of the zero
+loci of the factors, and a finite product of nonzero polynomials is nonzero. Each fact is stated
+for a product over a finite set, over a finite index type, and over the members of a finite set.
+
+## Main definitions
+
+* `mvPolynomialZeroLocus` — the set of real assignments at which a polynomial evaluates to zero.
+
+## Main results
+
+* `mvPolynomialZeroLocus_finset_prod`, `mvPolynomialZeroLocus_fintype_prod`,
+  `mvPolynomialZeroLocus_subtype_prod` — the zero locus of a finite product is the union of the
+  factors' zero loci.
+* `mvPolynomial_finset_prod_ne_zero`, `mvPolynomial_fintype_prod_ne_zero`,
+  `mvPolynomial_subtype_prod_ne_zero` — a finite product of nonzero polynomials is nonzero.
 -/
 
 @[expose] public section

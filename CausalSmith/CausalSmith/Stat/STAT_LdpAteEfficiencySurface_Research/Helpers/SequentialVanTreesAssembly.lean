@@ -205,12 +205,10 @@ lemma sequential_vanTrees_bayes_lower_bound_of_fisher_control
     filter_upwards with z
     simp [w, hend.1, hend.2]
   have hvan := observation_dependent_van_trees mu (by linarith : -R < R)
-    w dw q dq g dg T hprior.contDiff hprior.support hprior.hasDeriv
-    hprior.nonneg hprior.normalized
+    w dw q dq g dg T hprior.contDiff hprior.hasDeriv
+    hprior.nonneg
     (vtDensity_nonneg P θ v p n (-R) R hp hinterior)
     (fun a ha => vtDensity_integral_eq_one P θ v p n (-R) R hp hinterior ha)
-    (fun a ha => vtDensity_integrable P θ v p n (-R) R ha)
-    (fun a ha => vtDensityDeriv_integrable P θ v p n (-R) R ha)
     (fun a ha => by
       have hzero : ∫ z, dq a z ∂mu = 0 := by
         have haIcc : a ∈ Icc (-R) R := ⟨ha.1.le, ha.2.le⟩
@@ -224,15 +222,14 @@ lemma sequential_vanTrees_bayes_lower_bound_of_fisher_control
     (Filter.Eventually.of_forall (fun z => vtTarget_absolutelyContinuous θ v z (-R) R))
     (ae_hasDerivAt_vtDensity P θ v p n (-R) R)
     (Filter.Eventually.of_forall (fun z => hasDerivAt_vtTarget θ v z.1 z.2))
-    hboundary hmeas.balance.aestronglyMeasurable hbalanceInt
+    hboundary hbalanceInt
     hmeas.errorScore.aestronglyMeasurable herrorScoreInt
-    hmeas.sensitivity.aestronglyMeasurable hsensitivityInt
+    hsensitivityInt
     hmeas.errorSq.aestronglyMeasurable herrorSqInt
     hmeas.scoreSq.aestronglyMeasurable hscoreSqInt
-    hprior.scoreSqMeasurable hprior.scoreSqIntegrable
-    hmeas.priorJointSq.aestronglyMeasurable hpriorJointInt
-    hmeas.fisherSq.aestronglyMeasurable hfisherSqInt
-    hmeas.cross.aestronglyMeasurable hcrossInt hinfoPos
+    hpriorJointInt
+    hfisherSqInt
+    hcrossInt hinfoPos
   have hsensitivity :
       (∫ z, sensitivityField w q dg z
         ∂((parameterMeasure (-R) R).prod mu)) = contrast v :=

@@ -225,7 +225,7 @@ lemma integral_iid_centered_sum_sq (P : Measure X) [IsProbabilityMeasure P]
   simpa only [Causalean.Stat.Concentration.HilbertEmpiricalMean.populationMean,
     Real.norm_eq_abs, sq_abs] using
     (Causalean.Stat.Concentration.HilbertEmpiricalMean.centeredSum_secondMoment_eq
-      P f hf hf2 N)
+      P f hf2 N)
 
 /-- A fixed i.i.d. outcome tuple has zero expected residual sum. -/
 lemma integral_iid_outcome_residual_sum (P : Law n) (a : Bool) (k : Fin n)

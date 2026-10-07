@@ -118,7 +118,7 @@ theorem normalDensityScaleInterval_sound (s : NormalCDFSchedule) :
 
 /-- Every computed Gaussian quadrature node contains the corresponding value
 of the rescaled standard-normal density. -/
-theorem normalDensityNode_sound (q : ℚ) (hq : 0 ≤ q)
+theorem normalDensityNode_sound (q : ℚ)
     (s : NormalCDFSchedule) (k : ℕ) :
     (normalDensityNode q s k).Contains
       ((q : ℝ) * Causalean.Mathlib.stdNormalPDF
@@ -208,7 +208,7 @@ theorem nonnegativeNormalIntegralInterval_sound (q : ℚ) (hq : 0 ≤ q)
       simpa [f] using rescaledNormalDensity_lipschitz q hq u hu v hv)
     (fun k hk => by
       constructor
-      · simpa [normalDensityComplexNode, f] using normalDensityNode_sound q hq s k
+      · simpa [normalDensityComplexNode, f] using normalDensityNode_sound q s k
       · simp [normalDensityComplexNode])
   have hre := hquad.1
   rw [intervalIntegral.integral_ofReal] at hre

@@ -46,7 +46,7 @@ lemma PublishedFuzzyTesting :
     intro P hP
     rcases hP with ⟨z, rfl⟩ | ⟨z, rfl⟩ <;> infer_instance
   have htest := Causalean.Stat.Minimax.absolute_fuzzy_testing_lower_bound_iid
-    v0 ω B C M Ψ hM
+    v0 ω B C M Ψ
     (fun z => Set.mem_union_left _ ⟨z, rfl⟩)
     (fun z => Set.mem_union_right _ ⟨z, rfl⟩)
     hs hu hu2 hsep hhell hest

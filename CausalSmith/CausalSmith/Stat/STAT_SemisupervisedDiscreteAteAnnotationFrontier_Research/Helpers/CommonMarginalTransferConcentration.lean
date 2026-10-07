@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_SemisupervisedDiscreteAteAnnotationFrontier_
 
 /-! Mass, target, event, tail, and fuzzy-hypothesis bounds for common-marginal transfer. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier
 
@@ -354,8 +354,8 @@ lemma commonMarginal_raw_fuzzy_lower {eps : Real}
       (commonMarginalRecipePriorOf R false) (commonMarginalRecipePriorOf R true)
       K ateFunctional hK (fun x => commonMarginalTransferClip (rule x)) hclip htarget
       (rawPriorCenter R false) (rawPriorCenter R true) Delta (Delta / 4)
-      (1 / 16) (1 / 16) (1 / 8) (le_of_lt hDelta) (by positivity)
-      (by linarith) hsep' (by norm_num) (by norm_num) (by norm_num)
+      (1 / 16) (1 / 16) (1 / 8)
+      (by linarith) hsep'
       hmass0 hmass1 htv
     rw [hconst, commonMarginal_raw_bayesSquared_eq_bayesDecision R hb false K rule,
       commonMarginal_raw_bayesSquared_eq_bayesDecision R hb true K rule] at h
@@ -368,8 +368,8 @@ lemma commonMarginal_raw_fuzzy_lower {eps : Real}
       (commonMarginalRecipePriorOf R true) (commonMarginalRecipePriorOf R false)
       K ateFunctional hK (fun x => commonMarginalTransferClip (rule x)) hclip htarget
       (rawPriorCenter R true) (rawPriorCenter R false) Delta (Delta / 4)
-      (1 / 16) (1 / 16) (1 / 8) (le_of_lt hDelta) (by positivity)
-      (by linarith) hsep' (by norm_num) (by norm_num) (by norm_num)
+      (1 / 16) (1 / 16) (1 / 8)
+      (by linarith) hsep'
       hmass1 hmass0 (by
         have hcomm : Causalean.Stat.tvDist
             (Causalean.Stat.Minimax.MomentMatchedMixture.priorPredictive

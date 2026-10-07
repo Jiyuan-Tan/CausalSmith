@@ -225,7 +225,7 @@ lemma poisson_inverse_count_expectation_eq_arm_means {d : Nat}
       (fun x a ↦ Real.toNNReal (u * markedMass P x a))
       (fun x a ↦ Real.toNNReal (t * armMass P x a))
       (fun K : PoissonCounts d ↦ ((K x a).1 : Real) / u)
-      (measurable_of_countable _) |u⁻¹| 2 (abs_nonneg _) ?_).integrable (by norm_num)
+      (measurable_of_countable _) |u⁻¹| 2 ?_).integrable (by norm_num)
     intro K
     have hcoord : ((K x a).1 : Real) ≤ nestedPairedTotalCount K := by
       exact_mod_cast nestedPaired_count_fst_le_total_annotation K x a
@@ -255,7 +255,7 @@ lemma poisson_inverse_count_expectation_eq_arm_means {d : Nat}
       (fun x a ↦ Real.toNNReal (t * armMass P x a))
       (fun K : PoissonCounts d ↦ ((K x a).1 : Real) / u *
         ((K x (!a)).2 : Real) * (((K x a).2 + 1 : Nat) : Real)⁻¹)
-      (measurable_of_countable _) |u⁻¹| 2 (abs_nonneg _) ?_).integrable (by norm_num)
+      (measurable_of_countable _) |u⁻¹| 2 ?_).integrable (by norm_num)
     intro K
     have hfst : ((K x a).1 : Real) ≤ nestedPairedTotalCount K := by
       exact_mod_cast nestedPaired_count_fst_le_total_annotation K x a

@@ -24,8 +24,9 @@ Reuses `MeanPairingRepresentation`, `pairingScore`,
 
 module
 public import Causalean.Estimation.OrthogonalMoments.Riesz
-public import Causalean.Mathlib.MeasureTheory.MemLp
+public import Mathlib.MeasureTheory.Function.L2Space
 public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Automatic Debiasing for Linear Regression Functionals
 

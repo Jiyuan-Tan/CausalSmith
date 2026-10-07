@@ -5,7 +5,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Testing control for the actual trial-plus-score-log experiments. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set Filter
 namespace CausalSmith.PartialID.UnlinkedPropensityAte

@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.Go
 
 /-! Identification and simplification of the aggregate good-pilot path risk. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteBudgetvalueCurve
 

@@ -5,7 +5,7 @@ public import Causalean.Mathlib.Probability.FiniteMarkovOscillation
 
 /-! # Expectation and contraction bias for arbitrary finite action alphabets. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.PomdpStateauditMinimax
 

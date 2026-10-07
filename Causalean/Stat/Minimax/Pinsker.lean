@@ -456,7 +456,7 @@ theorem pinskerBound_pi_iid {α : Type*} [MeasurableSpace α]
     (hac : μ ≪ ν) (hint : Integrable (llr μ ν) μ) (n : ℕ) :
     PinskerBound (Measure.pi (fun _ : Fin n => μ)) (Measure.pi (fun _ : Fin n => ν)) := by
   have hac_pi :=
-    Causalean.Mathlib.InformationTheory.pi_iid_absolutelyContinuous μ ν hac n
+    Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous μ ν hac n
   have hint_pi :=
     Causalean.Mathlib.InformationTheory.pi_iid_llr_integrable μ ν hac hint n
   exact pinskerBound_of_ac_of_ne_top _ _ hac_pi

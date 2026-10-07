@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_TransportCaceRoughnuisanceLength_Research.He
 
 /-! # Elementary bounds for the cubic dyadic resolution -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.TransportCaceRoughnuisanceLength
 /-- Given [the supplied inputs](hyp:n,hn), [the stated result about cubic resolution le block size holds](goal). -/

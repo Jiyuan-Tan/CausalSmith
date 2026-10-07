@@ -85,8 +85,13 @@ private lemma summable_poisson_pair_product
 
 /-- Given [two probability laws](hyp:P,Q), [their nonnegative Poisson
 rates](hyp:rateA,rateB), [a measurable real kernel](hyp:K,hK), and [an
-integrable kernel square](hyp:hK2), [the squared bilinear finite-Poisson sum
-equals its four exact index-coincidence contributions](goal). -/
+integrable kernel square](hyp:hK2), [the expected squared bilinear sum over two
+independent finite Poisson samples is the sum of four terms: the product of the two rates
+times the mean squared kernel; the first rate times the squared second rate times the
+mean product of two kernel values sharing the left point with independent right points;
+the squared first rate times the second rate times the mean product sharing the right
+point with independent left points; and the product of the squared rates times the mean
+product at four independent points](goal). -/
 theorem integral_pairSum_sq
     (P : Measure X) [IsProbabilityMeasure P]
     (Q : Measure Y) [IsProbabilityMeasure Q]

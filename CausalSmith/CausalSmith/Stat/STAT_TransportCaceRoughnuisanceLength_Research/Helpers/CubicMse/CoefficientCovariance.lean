@@ -4,7 +4,7 @@ public import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
 
 /-! # Pulling training coefficients through conditional covariances -/
 
-@[expose] public section
+public section
 
 open MeasureTheory
 

@@ -26,7 +26,7 @@ def orderedSpacings (n : ℕ) (y : Fin n → ℝ) (i : Fin n) : ℝ :=
 def prefixCoordinates (n : ℕ) (z : Fin n → ℝ) (i : Fin n) : ℝ :=
   ∑ j ∈ Finset.Iic i, z j
 
-/-- Given [a sample size](hyp:n), [a real sample](hyp:x), and [a coordinate index](hyp:i), the [first spacing vector](goal) is [the successive differences of the sorted sample](step:1). -/
+/-- Given [a sample size](hyp:n), [a real sample](hyp:x), and [a coordinate index](hyp:i), the [first spacing vector](goal) is [the successive differences of the sorted sample, beginning from zero, so its first entry is the smallest observation itself](step:1). -/
 def firstNSpacings (n : ℕ) (x : Fin n → ℝ) (i : Fin n) : ℝ :=
   if i.val = 0 then sortedSample n x i
   else sortedSample n x i - sortedSample n x ⟨i.val - 1, by omega⟩

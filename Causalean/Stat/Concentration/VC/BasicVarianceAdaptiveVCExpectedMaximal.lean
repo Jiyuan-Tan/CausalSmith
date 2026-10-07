@@ -37,21 +37,6 @@ def HasPolynomialEmpiricalL2Cover
         IsL2Cover (finiteSampleMeasure S) F (ε * U) C ∧
           (C.card : ℝ) ≤ Real.rpow (A / ε) v
 
-/-- Given [an empirical polynomial-cover certificate](hyp:hF) and
-[an enlarged envelope](hyp:hUV), [the larger envelope preserves the same
-entropy witnesses](goal). -/
--- @node: HasPolynomialEmpiricalL2Cover.enlargeEnvelope
-theorem HasPolynomialEmpiricalL2Cover.enlargeEnvelope
-    {F : ι → 𝒳 → ℝ} {U V A v : ℝ}
-    (hF : HasPolynomialEmpiricalL2Cover F U A v) (hUV : U ≤ V) :
-    HasPolynomialEmpiricalL2Cover F V A v := by
-  intro m S hm ε hε hε1
-  obtain ⟨C, hCcover, hCcard⟩ := hF S hm ε hε hε1
-  refine ⟨C, ?_, hCcard⟩
-  intro i
-  obtain ⟨j, hjC, hij⟩ := hCcover i
-  exact ⟨j, hjC, hij.trans_le (mul_le_mul_of_nonneg_left hUV hε.le)⟩
-
 /-- Given [an empirical polynomial-cover certificate](hyp:hF),
 [measurability of the class](hyp:hmeas), and [a map from a nonempty replacement
 parameter set](hyp:e), [the pulled-back class keeps the exponent with a
@@ -89,11 +74,11 @@ theorem HasPolynomialEmpiricalL2Cover.pullback
           measureL2Dist (finiteSampleMeasure S) (F (e k)) (F (center k)) +
             measureL2Dist (finiteSampleMeasure S) (F (center k))
               (F (e (representative (center k)))) := by
-      rw [measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hm
+      rw [measureL2Dist_finiteSampleMeasure_eq_empiricalDist S
           (hmeas (e k)) (hmeas (e (representative (center k)))),
-        measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hm
+        measureL2Dist_finiteSampleMeasure_eq_empiricalDist S
           (hmeas (e k)) (hmeas (center k)),
-        measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hm
+        measureL2Dist_finiteSampleMeasure_eq_empiricalDist S
           (hmeas (center k)) (hmeas (e (representative (center k))))]
       exact @dist_triangle _ (Causalean.Stat.Concentration.empiricalPMet S)
         (F (e k)) (F (center k)) (F (e (representative (center k))))
@@ -155,15 +140,6 @@ inequality](goal) is $16384$.
 
 Its value is deliberately non-optimized. -/
 def varianceAdaptiveVCConstant : ℝ := 16384
-
-/-- Given [a measure $P$ on an observation space](hyp:P,𝒳), [a real-valued function
-class indexed by a set $\iota$](hyp:F,ι), and [a sample of $n$ observations](hyp:S,n),
-the [countable empirical supremum](goal) is the supremum, over the class, of the absolute
-difference between the sample average and the population mean. -/
-@[deprecated uniformDeviation (since := "2026-09-19")]
-noncomputable def countableEmpiricalSup
-    (P : Measure 𝒳) (F : ι → 𝒳 → ℝ) {n : ℕ} (S : Fin n → 𝒳) : ℝ :=
-  uniformDeviation n F P id S
 
 /-- **Empirical covering from population covering.** If [a family `F` of real-valued functions
 with envelope `U` admits a uniform polynomial $L^2$ covering-number bound over every probability

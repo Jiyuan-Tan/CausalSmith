@@ -13,12 +13,14 @@ public section
 
 namespace Causalean.Mathlib.Analysis.Calculus.HolderTaylor
 
-/-- A uniform bound on all derivatives of the integrand through order `k`,
-together with a uniform value bound on its exponential primitive, gives one
-uniform bound on all derivatives of the exponential primitive through order
-`k + 1`. The resulting constant is independent of the interval location and
-of the integrand.
-[The derivative order, length, envelopes, and sign assumptions](hyp:k,d,C,E,hd,hC,hE) yield [the stated survival-jet bound](goal). -/
+/-- Fix [a derivative order k](hyp:k), [an interval length d](hyp:d) that is [positive](hyp:hd),
+[a nonnegative derivative envelope C](hyp:C,hC) and [a nonnegative value envelope E](hyp:E,hE).
+Then [there is one nonnegative constant B such that, for every interval from a to a + d and every
+integrand h that is k times continuously differentiable on it, whose within-interval derivatives
+of every order at most k are bounded by C there, and whose survival-type function
+exp(−∫ from a to t of h) is bounded by E there, every within-interval derivative of that
+survival-type function of order at most k + 1 is bounded by B on the whole interval](goal). The
+constant does not depend on the interval location or on the integrand. -/
 theorem survival_jet_bound_of_integrand_jet_bound
     (k : ℕ) (d C E : ℝ) (hd : 0 < d) (hC : 0 ≤ C) (hE : 0 ≤ E) :
     ∃ B : ℝ, 0 ≤ B ∧

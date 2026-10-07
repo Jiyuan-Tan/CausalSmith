@@ -56,8 +56,8 @@ theorem degreeAtMost_mono {d e : ℕ} (hde : d ≤ e) :
     degreeAtMost n M d ≤ degreeAtMost n M e := by
   exact Submodule.span_mono fun f ⟨S, hSd, hf⟩ => ⟨S, hSd.trans hde, hf⟩
 
-/-- When [the requested slice size is feasible](hyp:hMn), [a slice function belongs to the degree-zero subspace exactly when it is constant](goal), for [the given slice function](hyp:f). -/
-theorem mem_degreeAtMost_zero_iff (hMn : M ≤ n) (f : SliceFn n M) :
+/-- [A slice function belongs to the degree-zero subspace exactly when it is constant](goal), for [the given slice function](hyp:f). -/
+theorem mem_degreeAtMost_zero_iff (f : SliceFn n M) :
     f ∈ degreeAtMost n M 0 ↔ ∃ c : ℝ, f = constFn c := by
   have hgen :
       {g : SliceFn n M | ∃ S : Finset (Fin n), S.card ≤ 0 ∧
@@ -86,8 +86,8 @@ theorem mem_degreeAtMost_zero_iff (hMn : M ≤ n) (f : SliceFn n M) :
     ext A
     simp [constFn]
 
-/-- When [the requested slice size is feasible](hyp:hMn), [inclusion monomials through degree `M` span every real function on the uniform slice](goal). -/
-theorem degreeAtMost_eq_top (hMn : M ≤ n) :
+/-- For every population size and slice size, [inclusion monomials through degree `M` span every real function on the uniform slice](goal). -/
+theorem degreeAtMost_eq_top :
     degreeAtMost n M M = ⊤ := by
   apply top_unique
   intro f hf
@@ -109,8 +109,8 @@ theorem degreeAtMost_eq_top (hMn : M ≤ n) :
   ext B
   simp [inclusionMonomial, hsubset_iff]
 
-/-- When [the requested slice size is feasible](hyp:hMn), [the uniform slice has exactly the usual binomial number of points](goal). -/
-theorem card_omega (hMn : M ≤ n) : Fintype.card (Omega n M) = n.choose M := by
+/-- [The uniform slice has exactly the usual binomial number of points](goal). -/
+theorem card_omega : Fintype.card (Omega n M) = n.choose M := by
   let e : Omega n M ≃
       {S // S ∈ (Finset.univ : Finset (Fin n)).powersetCard M} :=
     { toFun := fun A => ⟨A.1, by simp [A.2]⟩
@@ -128,13 +128,13 @@ theorem card_omega (hMn : M ≤ n) : Fintype.card (Omega n M) = n.choose M := by
 /-- When [the requested slice size is feasible](hyp:hMn), [the uniform inner product of the two given slice functions](goal) equals the ordinary function-space inner product divided by the number of slice points, for [the first function](hyp:f) and [the second function](hyp:g). -/
 theorem sliceInner_eq (hMn : M ≤ n) (f g : SliceFn n M) :
     sliceInner f g = (n.choose M : ℝ)⁻¹ * inner ℝ f g := by
-  rw [sliceInner, card_omega hMn, PiLp.inner_apply]
+  rw [sliceInner, card_omega, PiLp.inner_apply]
   simp only [Real.inner_apply]
 
 /-- When [the requested slice size is feasible](hyp:hMn), [the uniform mean of the given constant slice function equals its constant value](goal), for [the real value](hyp:c). -/
 theorem mean_constFn (hMn : M ≤ n) (c : ℝ) :
     mean (constFn (n := n) (M := M) c) = c := by
   have hchoose : n.choose M ≠ 0 := Nat.ne_of_gt (Nat.choose_pos hMn)
-  simp [mean, constFn, card_omega hMn, hchoose]
+  simp [mean, constFn, card_omega, hchoose]
 
 end Causalean.Mathlib.Combinatorics.JohnsonScheme

@@ -334,7 +334,6 @@ theorem sub_ddot_eq_unitTimeProjection (V : Unit → Time → ℝ) (i : Unit) (t
 
 /-- Double-demeaned arrays are orthogonal to arbitrary unit-only functions. -/
 theorem ddot_orthogonal_unit (hU : 0 < Fintype.card Unit)
-    (hT : 0 < Fintype.card Time)
     (V : Unit → Time → ℝ) (a : Unit → ℝ) :
     ∑ i, ∑ t, ddot V i t * a i = 0 := by
   classical
@@ -387,11 +386,10 @@ theorem ddot_orthogonal_time (hU : 0 < Fintype.card Unit)
     _ = 0 := by
       rw [hweighted, mul_zero]
 
-/-- Assume [at least one unit](hyp:hU) and [at least one period](hyp:hT). Then for [any array
+/-- Assume [at least one unit](hyp:hU). Then for [any array
 `h` of unit/time additive form `h_it = a_i + b_t`](hyp:hh), [the double-demeaned array `ddot V`
 is orthogonal to `h` under the unnormalized uniform panel inner product](goal). -/
 theorem ddot_orthogonal_unit_time (hU : 0 < Fintype.card Unit)
-    (hT : 0 < Fintype.card Time)
     (V h : Unit → Time → ℝ) (hh : IsUnitTimeAdditive h) :
     inner (ddot V) h = 0 := by
   classical

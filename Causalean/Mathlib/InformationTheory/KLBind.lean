@@ -242,60 +242,6 @@ lemma klDiv_bind_eq_of_base_recording
       klDiv_compProd_right_of_forall_ac (μ := m) (κ := κ) (η := η) hκη
 
 end Measure
-/-! ## KL data processing under measurable maps and Markov kernels
-
-The results in this section show that a common observation rule cannot increase
-the Kullback--Leibler divergence between two finite laws.  They cover both
-deterministic measurable coarsenings and randomized Markov channels.
--/
-
-namespace Measure
-
-variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
-
-/-- A common measurable observation rule cannot increase the Kullback--Leibler
-divergence between two finite input laws, even when the rule merges distinct inputs. -/
-@[deprecated _root_.InformationTheory.klDiv_map_le (since := "2026-09-15")]
-theorem klDiv_map_le {μ ν : Measure α} [IsFiniteMeasure μ] [IsFiniteMeasure ν]
-    {f : α → β} (hf : Measurable f) :
-    _root_.InformationTheory.klDiv (μ.map f) (ν.map f)
-      ≤ _root_.InformationTheory.klDiv μ ν :=
-  _root_.InformationTheory.klDiv_map_le μ ν hf
-
-/-- Adding an output drawn from the same Markov kernel preserves the
-Kullback--Leibler divergence between two finite input laws because the joint
-observation still retains the input coordinate. -/
-@[deprecated _root_.InformationTheory.klDiv_compProd_left (since := "2026-09-15")]
-theorem klDiv_compProd_left (μ ν : Measure α) [IsFiniteMeasure μ] [IsFiniteMeasure ν]
-    (κ : Kernel α β) [IsMarkovKernel κ] :
-    _root_.InformationTheory.klDiv (μ ⊗ₘ κ) (ν ⊗ₘ κ)
-      = _root_.InformationTheory.klDiv μ ν :=
-  _root_.InformationTheory.klDiv_compProd_left μ ν κ
-
-/-- Passing [two finite input laws `μ` and `ν`](hyp:μ,ν) through [the same randomized
-observation channel `κ`](hyp:κ), [the Kullback–Leibler divergence between the channel's
-output laws is no larger than the divergence between the original input laws, including when
-the channel is non-injective or the original divergence is infinite](goal). Mathlib now provides the
-same data-processing inequality as `InformationTheory.klDiv_comp_right_le`. -/
-@[deprecated _root_.InformationTheory.klDiv_comp_right_le (since := "2026-09-15")]
-theorem klDiv_bind_le (μ ν : Measure α) [IsFiniteMeasure μ] [IsFiniteMeasure ν]
-    (κ : Kernel α β) [IsMarkovKernel κ] :
-    _root_.InformationTheory.klDiv (μ.bind κ) (ν.bind κ)
-      ≤ _root_.InformationTheory.klDiv μ ν :=
-  _root_.InformationTheory.klDiv_comp_right_le μ ν κ
-
-/-- Passing two probability laws through a shared Markov channel cannot increase their
-Kullback--Leibler divergence; this is the probability-law specialization of the
-finite-measure data-processing inequality. -/
-@[deprecated _root_.InformationTheory.klDiv_comp_right_le (since := "2026-09-15")]
-theorem klDiv_bind_le_of_isProbabilityMeasure (μ ν : Measure α)
-    [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    (κ : Kernel α β) [IsMarkovKernel κ] :
-    _root_.InformationTheory.klDiv (μ.bind κ) (ν.bind κ)
-      ≤ _root_.InformationTheory.klDiv μ ν :=
-  _root_.InformationTheory.klDiv_comp_right_le μ ν κ
-
-end Measure
 
 
 end Causalean.Mathlib.InformationTheory

@@ -95,12 +95,11 @@ theorem zeroInflatedPrior_isProbabilityMeasure
   simp
 
 /-- The zero-inflated prior from [a finite signed certificate](hyp:C) [is supported on zero
-together with the certificate's compact support interval](goal) when [the shift](hyp:a) [is
-positive](hyp:ha), [the support ratio](hyp:κ) [is positive](hyp:hκ), and [the variation measure
-is supported below the stated upper bound](hyp:B,hsupp). -/
+together with the certificate's compact support interval](goal) for [a shift](hyp:a) and [a
+support ratio](hyp:κ), when [the variation measure is supported in the stated
+interval](hyp:B,hsupp). -/
 theorem zeroInflatedPrior_support
     (C : NormalizedFiniteSignedMomentCertificate ι L) (a κ B : ℝ)
-    (ha : 0 < a) (hκ : 0 < κ)
     (hsupp : ∀ᵐ p ∂C.signedMeasure.variation, p ∈ Set.Icc (a / κ) B) :
     ∀ᵐ p ∂C.zeroInflatedPrior a, p = 0 ∨ p ∈ Set.Icc (a / κ) B := by
   rw [zeroInflatedPrior, ae_add_measure_iff]
@@ -118,7 +117,7 @@ private theorem integrable_id_zeroInflatedPrior
     Integrable (fun p : ℝ => p) (C.zeroInflatedPrior a) := by
   letI := zeroInflatedPrior_isProbabilityMeasure C a κ B ha hκ hsupp
   apply Integrable.of_bound measurable_id.aestronglyMeasurable |B|
-  filter_upwards [zeroInflatedPrior_support C a κ B ha hκ hsupp] with p hp
+  filter_upwards [zeroInflatedPrior_support C a κ B hsupp] with p hp
   rcases hp with rfl | hp
   · simp
   · rw [Real.norm_eq_abs, abs_of_nonneg]
@@ -132,7 +131,7 @@ private theorem integrable_sq_zeroInflatedPrior
     Integrable (fun p : ℝ => p ^ 2) (C.zeroInflatedPrior a) := by
   letI := zeroInflatedPrior_isProbabilityMeasure C a κ B ha hκ hsupp
   apply Integrable.of_bound (measurable_id.pow_const 2).aestronglyMeasurable (|B| ^ 2)
-  filter_upwards [zeroInflatedPrior_support C a κ B ha hκ hsupp] with p hp
+  filter_upwards [zeroInflatedPrior_support C a κ B hsupp] with p hp
   rcases hp with rfl | hp
   · norm_num
     positivity
@@ -201,7 +200,7 @@ theorem integral_sq_zeroInflatedPrior_le
   have hsq := integrable_sq_zeroInflatedPrior C a κ B ha hκ hsupp
   rw [← integral_const_mul]
   apply integral_mono_ae hsq (hid.const_mul B)
-  filter_upwards [zeroInflatedPrior_support C a κ B ha hκ hsupp] with p hp
+  filter_upwards [zeroInflatedPrior_support C a κ B hsupp] with p hp
   rcases hp with rfl | hp
   · simp
   · have hp0 : 0 ≤ p := (div_pos ha hκ).le.trans hp.1
@@ -247,7 +246,7 @@ theorem zeroInflatedProductPrior_support
   rw [zeroInflatedProductPrior, ae_all_iff]
   intro i
   exact (Measure.tendsto_eval_ae_ae (μ := fun _ : Fin k => C.zeroInflatedPrior a)).eventually
-    (zeroInflatedPrior_support C a κ B ha hκ hsupp)
+    (zeroInflatedPrior_support C a κ B hsupp)
 
 /-- A selected [coordinate](hyp:i) of the [finite product](hyp:k) from [a finite signed
 certificate](hyp:C) [has the scalar zero-inflated first moment](goal) when [the shift](hyp:a)

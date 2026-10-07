@@ -7,9 +7,16 @@ public import Causalean.Tactic.SumAlgebraSimps
 public import Mathlib.Data.Nat.Choose.Bounds
 
 /-!
-# Binomial coefficient ratio bounds
+# A power bound for ratios of binomial coefficients
 
-Bounds for ratios of binomial coefficients over ordered fields.
+For natural numbers k ≤ U ≤ M, the ratio of binomial coefficients C(U, k) / C(M, k) is at most
+(U/M)^k, in any linearly ordered field. Equivalently, the probability that k draws without
+replacement from M items all land in a fixed subset of size U is at most the corresponding
+probability for draws with replacement.
+
+## Main results
+
+* `choose_div_choose_le_div_pow` — C(U, k) / C(M, k) ≤ (U/M)^k for k ≤ U ≤ M.
 -/
 
 public section

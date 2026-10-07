@@ -5,8 +5,8 @@ Authors: Jiyuan Tan
 
 # Localized regime bridge, Part 3: almost-everywhere and singleton results
 
-This third part proves the almost-everywhere sharp critical-radius bridge and the singleton-class
-result. Parts 1 and 2 supply the definitions, fallback bounds, and everywhere-bounded sharp bridge.
+This third part proves the almost-everywhere sharp critical-radius bridge. Parts 1 and 2 supply
+the definitions, fallback bounds, and everywhere-bounded sharp bridge.
 
 Sibling: `Causalean/Estimation/OrthogonalLearning/LocalEmpProcess/Rademacher.lean` realises the same predicate
 under a global Rademacher bound. Downstream callers pick
@@ -57,7 +57,7 @@ public import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.Localized_
 
 This third part proves the almost-everywhere sharp critical-radius bridge
 `localEmpProcessModulus_of_localized_sharp_ae` and the singleton-class result
-`localEmpProcessModulus_of_localized_singleton`, building on Parts 1 and 2.
+the localized sharp bridge, building on Parts 1 and 2.
 -/
 
 public section
@@ -87,8 +87,7 @@ diameter at most `Rmax` in that norm](hyp:hF_diam). Assume the critical radius o
 every fold-B sample size satisfies [`criticalRadius (ψ m) > 0`](hyp:hcrit_pos), and that
 [ψ upper-bounds the population Rademacher
 complexity of the star-hulled centred loss class on a fold-B-sized sample](hyp:hψ_ub); the
-technical regularity conditions that [the empirical Rademacher supremum is bounded
-above](hyp:hrad_bdd) and [the upper empirical Rademacher complexity process is
+technical regularity condition that [the upper empirical Rademacher complexity process is
 integrable](hyp:hrad_int); and that [the population-optimal parameter minimizes the
 auxiliary population risk with the centred excess loss clamped to
 `[-b, b]`](hyp:hclamp_minimizes). For any confidence level [`0 < δ ≤ 1`](hyp:hδ,hδ'), assume the
@@ -134,12 +133,6 @@ theorem localEmpProcessModulus_of_localized_sharp_ae
       RademacherUpperBound
         (fun k (z : Z) => S.ℓ z (idx k).val g - S.ℓ z S.θ₀ g)
         norm P_Z (id : Z → Z) m (ψ m))
-    (hrad_bdd : ∀ m r, ∀ S_fin : Fin m → Z, ∀ σ : Signs m,
-      BddAbove (Set.range fun p : starHullParam ℕ =>
-        |(m : ℝ)⁻¹ * ∑ k : Fin m, (σ k : ℝ) *
-          starHullZeroOut
-            (fun i (z : Z) => S.ℓ z (idx i).val g - S.ℓ z S.θ₀ g)
-            norm r p (S_fin k)|))
     (hrad_int : ∀ m r,
       Integrable
         (fun ω : Fin m → Z =>
@@ -497,29 +490,6 @@ theorem localEmpProcessModulus_of_localized_sharp_ae
           (if (split.foldB n).card = 0 then Real.sqrt (2 * b)
            else (10 * L + 3) * criticalRadius (ψ (split.foldB n).card)) ^ 2 := by
             simpa [Sc] using hEc_bound ω hωEc θ (by simpa [Sc] using hθ)
-
-/-- **Trivial finite class.**  When `Θ_set = {θ₀}` the
-modulus inequality holds with `ρ n := 0` (the centred excess risk is
-identically zero). Mirrors `localEmpProcessModulus_singleton` in the
-global-Rademacher bridge. -/
-theorem localEmpProcessModulus_of_localized_singleton
-    (S : LearningSystem Ω μ Z P_Z Θ G)
-    (S_iid : IIDSample Ω Z μ P_Z)
-    (split : OneShotSplit S_iid)
-    [IsProbabilityMeasure μ]
-    (g : G)
-    (hsing : S.Θ_set = {S.θ₀})
-    {δ : ℝ} (_hδ : 0 < δ) :
-    LocalEmpProcessModulus S S_iid split (fun _ => 0) δ g := by
-  intro n
-  refine ⟨Set.univ, MeasurableSet.univ, ?_, ?_⟩
-  · rw [measure_univ]
-    exact tsub_le_self
-  · intro ω _ θ hθ
-    have hθ' : θ ∈ ({S.θ₀} : Set Θ) := by
-      simpa [hsing] using hθ
-    rcases hθ' with rfl
-    simp
 
 end OrthogonalLearning
 end Estimation

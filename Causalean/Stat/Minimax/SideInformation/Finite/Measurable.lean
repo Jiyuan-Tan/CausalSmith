@@ -277,24 +277,6 @@ theorem minimaxValueReal_comp_surjective {E A B : Type*} (risk : E → B → ℝ
   funext e
   exact worstCaseRiskReal_comp_surjective risk e phi hphi
 
-/-- Given a [risk](hyp:risk), a [procedure](hyp:e), and a [surjective parameter
-map](hyp:phi,hphi), [reindexing preserves the deprecated real worst-case risk](goal). -/
-@[deprecated worstCaseRiskReal_comp_surjective (since := "2026-09-17")]
-theorem worstCaseRisk_comp_surjective {E A B : Type*} (risk : E → B → ℝ) (e : E)
-    (phi : A → B) (hphi : Function.Surjective phi) :
-    worstCaseRiskReal (fun e a ↦ risk e (phi a)) e = worstCaseRiskReal risk e := by
-  simpa [worstCaseRiskReal] using
-    worstCaseRiskReal_comp_surjective risk e phi hphi
-
-/-- Given a [risk](hyp:risk) and a [surjective parameter map](hyp:phi,hphi),
-[reindexing preserves the deprecated real minimax value](goal). -/
-@[deprecated minimaxValueReal_comp_surjective (since := "2026-09-17")]
-theorem minimaxValue_comp_surjective {E A B : Type*} (risk : E → B → ℝ)
-    (phi : A → B) (hphi : Function.Surjective phi) :
-    minimaxValueReal (fun e a ↦ risk e (phi a)) = minimaxValueReal risk := by
-  simpa [minimaxValueReal, worstCaseRiskReal] using
-    minimaxValueReal_comp_surjective risk phi hphi
-
 /-- Given an [extended risk](hyp:risk), a [fixed procedure](hyp:e), a
 [parameter map](hyp:phi), and [surjectivity](hyp:hphi), [reindexing leaves the extended
 worst-case risk unchanged](goal). -/
@@ -380,7 +362,7 @@ theorem empiricalSideMinimaxValue_comp_surjective {A B : Type*}
   exact minimaxValueReal_comp_surjective (empiricalSideRisk p q hq tau m) phi hphi
 
 private theorem weightedSquaredRisk_le (p : Theta → X → ℝ) (tau : Theta → ℝ)
-    (hp : ∀ theta, p theta ∈ stdSimplex ℝ X) (hlu : l ≤ u)
+    (hp : ∀ theta, p theta ∈ stdSimplex ℝ X)
     (htau : ∀ theta, tau theta ∈ Set.Icc l u) (d : X → Set.Icc l u)
     (theta : Theta) :
     ∑ x, p theta x * ((d x : ℝ) - tau theta) ^ 2 ≤ (u - l) ^ 2 := by
@@ -395,7 +377,7 @@ private theorem weightedSquaredRisk_le (p : Theta → X → ℝ) (tau : Theta �
       have hdiff_le : (d x : ℝ) - tau theta ≤ u - l := sub_le_sub hd.2 ht.1
       have hneg_diff_le : -(u - l) ≤ (d x : ℝ) - tau theta := by
         linarith [hd.1, ht.2]
-      nlinarith [hlu, mul_nonneg (sub_nonneg.mpr hdiff_le)
+      nlinarith [mul_nonneg (sub_nonneg.mpr hdiff_le)
         (by linarith : 0 ≤ (u - l) + ((d x : ℝ) - tau theta))]
     _ = (u - l) ^ 2 := by
       rw [← Finset.sum_mul, (hp theta).2, one_mul]
@@ -421,7 +403,7 @@ theorem exactSideMinimaxValue_le_measurableExactTableMinimaxValue [Nonempty Thet
       BddAbove (Set.range (exactSideRisk p q hq tau d)) := by
     refine ⟨(u - l) ^ 2, ?_⟩
     rintro _ ⟨theta, rfl⟩
-    simpa [exactSideRisk] using weightedSquaredRisk_le p tau hp hlu htau
+    simpa [exactSideRisk] using weightedSquaredRisk_le p tau hp htau
       (fun x ↦ d x (sidePmf q hq theta)) theta
   have htable_nonneg
       (d : MeasurableAmbientExactSideProcedure X C l u) (theta : Theta) :
@@ -433,7 +415,7 @@ theorem exactSideMinimaxValue_le_measurableExactTableMinimaxValue [Nonempty Thet
       BddAbove (Set.range (measurableExactTableRisk p q tau d)) := by
     refine ⟨(u - l) ^ 2, ?_⟩
     rintro _ ⟨theta, rfl⟩
-    simpa [measurableExactTableRisk] using weightedSquaredRisk_le p tau hp hlu htau
+    simpa [measurableExactTableRisk] using weightedSquaredRisk_le p tau hp htau
       (fun x ↦ d.1 x (q theta)) theta
   unfold exactSideMinimaxValue measurableExactTableMinimaxValue
   change minimaxValueReal (exactSideRisk p q hq tau) ≤
@@ -469,7 +451,7 @@ theorem measurableExactTableMinimaxValue_le_empiricalSideMinimaxValue [Nonempty 
       BddAbove (Set.range (measurableExactTableRisk p q tau d)) := by
     refine ⟨(u - l) ^ 2, ?_⟩
     rintro _ ⟨theta, rfl⟩
-    simpa [measurableExactTableRisk] using weightedSquaredRisk_le p tau hp hlu htau
+    simpa [measurableExactTableRisk] using weightedSquaredRisk_le p tau hp htau
       (fun x ↦ d.1 x (q theta)) theta
   have hemp_nonneg (d : EmpiricalSideProcedure X C m l u) (theta : Theta) :
       0 ≤ empiricalSideRisk p q hq tau m d theta :=
@@ -478,7 +460,7 @@ theorem measurableExactTableMinimaxValue_le_empiricalSideMinimaxValue [Nonempty 
       BddAbove (Set.range (empiricalSideRisk p q hq tau m d)) := by
     refine ⟨(u - l) ^ 2, ?_⟩
     rintro _ ⟨theta, rfl⟩
-    exact empiricalSideRisk_le p q hp hq tau hlu htau m d theta
+    exact empiricalSideRisk_le p q hp hq tau htau m d theta
   unfold measurableExactTableMinimaxValue empiricalSideMinimaxValue
   change minimaxValueReal (measurableExactTableRisk p q tau) ≤
     minimaxValueReal (empiricalSideRisk p q hq tau m)
@@ -503,12 +485,12 @@ theorem measurableExactTableMinimaxValue_le_empiricalSideMinimaxValue [Nonempty 
         (fun a : Set.Icc l u ↦ p theta x * ((a : ℝ) - tau theta) ^ 2)
         (hgeq x (sidePmf q hq theta))
     _ ≤ empiricalSideRisk p q hq tau m d theta :=
-      exactSideRisk_conditionalAverage_le p q tau hp hq hlu m d theta
+      exactSideRisk_conditionalAverage_le p q tau hp hq m d theta
     _ ≤ worstCaseRiskReal (empiricalSideRisk p q hq tau m) d := by
       apply le_worstCaseRisk
       refine ⟨(u - l) ^ 2, ?_⟩
       rintro _ ⟨theta', rfl⟩
-      exact empiricalSideRisk_le p q hp hq tau hlu htau m d theta'
+      exact empiricalSideRisk_le p q hp hq tau htau m d theta'
 
 /-- Given [simplex-valid label and side probabilities](hyp:hp,hq), a [target](hyp:tau),
 [ordered action bounds](hyp:hlu), and [target containment in those bounds](hyp:htau), the

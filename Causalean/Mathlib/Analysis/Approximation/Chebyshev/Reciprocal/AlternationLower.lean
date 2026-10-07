@@ -15,11 +15,13 @@ namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev.Reciprocal
 
 open Causalean.Mathlib.Analysis.FinitePolynomialAlternationDuality
 
-/-- A [nondegenerate interval](hyp:a,b,hab), [continuous target](hyp:f,hf),
-[nonnegative error level](hyp:E,hE), [candidate polynomial](hyp:P), [degree
-bound](hyp:m,hdegree), [uniform residual bound](hyp:hbound), and [ordered
-alternating interval nodes](hyp:nodes,hmono,hmem,halt) imply [that the
-candidate and optimal uniform errors equal that level](goal). -/
+/-- On a [nondegenerate interval from a to b](hyp:a,b,hab), let [the target f be continuous on
+the interval](hyp:f,hf), [E a nonnegative error level](hyp:E,hE), and [P a candidate
+polynomial](hyp:P) [of degree at most m](hyp:m,hdegree) [whose residual f − P is at most E in
+absolute value on the whole interval](hyp:hbound). If there are [m + 2 strictly increasing nodes in
+the interval at which the residual equals E with alternating signs, starting with +E at the first
+node](hyp:nodes,hmono,hmem,halt), then [both the uniform error of the candidate on the interval and
+the best uniform error over all polynomials of degree at most m equal E](goal). -/
 theorem alternatingResidual_certifiesBest
     {f : ℝ → ℝ} {a b E : ℝ} {m : ℕ}
     (hab : a < b) (hf : ContinuousOn f (Set.Icc a b))
@@ -110,7 +112,7 @@ theorem alternatingResidual_certifiesBest
   have hP_lower : E ≤ uniformApproxError f a b P := hlower P hdegree
   have hP_eq : uniformApproxError f a b P = E := le_antisymm hupper hP_lower
   refine ⟨hP_eq, le_antisymm ?_ ?_⟩
-  · exact (bestUniformApproxError_le hab hf hdegree).trans_eq hP_eq
+  · exact (bestUniformApproxError_le (f := f) (r := a) (s := b) hdegree).trans_eq hP_eq
   · unfold bestUniformApproxError
     apply le_csInf
     · exact ⟨uniformApproxError f a b P, P, hdegree, rfl⟩

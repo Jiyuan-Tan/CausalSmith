@@ -17,7 +17,7 @@ open Causalean.Stat.Concentration.BoundedVariation
 
 namespace Causalean.Stat.Concentration.BoundedVariation
 
-/-- [A probability measure](hyp:μ), [a family of continuous paths and a scalar weight](hyp:f,w), [nonnegative path-size and weight bounds](hyp:B,M,hB,hM), [integrability of each weighted time section](hyp:hInt), [a pointwise weight bound](hyp:hweight), [finite variation of every input path](hyp:hBV), and [a common path-size bound](hyp:hsize) give [a continuous bounded-variation weighted integral path with the stated size bound](goal).
+/-- Let [a probability measure](hyp:μ), [a family of continuous paths indexed by its sample space together with a real weight function](hyp:f,w), and [nonnegative numbers B and M](hyp:B,M,hB,hM) be given. If [at each time the weighted path value is integrable](hyp:hInt), [the weight is bounded by M in absolute value everywhere](hyp:hweight), [every path has bounded variation](hyp:hBV), and [every path has supremum-plus-variation size at most B](hyp:hsize), then [there is a continuous path whose value at each time is the integral of the weighted path values, which has bounded variation and size at most M B](goal).
 
 Integrating a family of continuous bounded-variation paths against a uniformly bounded
 weight produces a continuous bounded-variation path. If each input path has size at most `B`

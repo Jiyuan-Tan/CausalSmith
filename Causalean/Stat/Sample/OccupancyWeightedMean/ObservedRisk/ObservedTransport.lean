@@ -83,10 +83,15 @@ theorem observed_bad_occupancy_rate (epsilon : ℝ) (hepsilon : 0 < epsilon)
   rw [htransport]
   exact hrate κ ν n hn hoverlap'
 
-/-- An [overlap margin below one half](hyp:epsilon,hepsilon,hepsilon_half)
-gives [a uniform `1/n + card(κ)/n²` bound for the mean guarded reciprocal
-usable total](goal) under any observed finite-cell law satisfying occupied-cell
-overlap. -/
+/-- For an [overlap margin ε strictly between zero and one half](hyp:epsilon,hepsilon,hepsilon_half),
+[there is a positive constant B, depending only on ε, such that the following
+holds for every probability law, every measurable label into a finite set of
+cells, every measurable Boolean arm label, and every positive sample size n: if
+in each cell of positive mass both arm-cell pairs have mass at least ε times the
+cell mass, then under n independent draws the expectation of the reciprocal of
+the usable total (the number of observations in cells containing both arms),
+with the reciprocal read as zero when the usable total is zero, is at most
+B·(1/n + card(κ)/n²), where card(κ) is the number of cells](goal). -/
 theorem observed_reciprocal_occupancy_rate (epsilon : ℝ)
     (hepsilon : 0 < epsilon) (hepsilon_half : epsilon < 1 / 2) :
     ∃ B : ℝ, 0 < B ∧

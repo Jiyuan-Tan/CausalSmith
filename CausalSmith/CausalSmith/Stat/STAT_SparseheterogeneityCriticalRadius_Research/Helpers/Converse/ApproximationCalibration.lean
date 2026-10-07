@@ -92,8 +92,8 @@ lemma rationalTarget_bestUniformApproxError_lower (J : ℕ) (hJ : 2 ≤ J) :
       intro z hz hz0
       have : z = 0 := by simpa using hz0
       linarith [hz.1]
-    have hbestR := bestUniformApproxError_le
-      (show (1 : ℝ) < (K : ℝ) ^ 2 by nlinarith) hrecipCont hR
+    have hbestR := bestUniformApproxError_le (f := fun z : ℝ => z⁻¹) (r := 1)
+      (s := (K : ℝ) ^ 2) hR
     rw [hrecip] at hbestR
     have hratCont : ContinuousOn (rationalTarget a) (Icc a 1) := by
       apply continuousOn_rationalTarget

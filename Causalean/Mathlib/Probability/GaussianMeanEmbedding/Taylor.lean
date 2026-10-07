@@ -143,8 +143,8 @@ theorem exp_series_tail_le_geometric
       field_simp
 
 /-- Given [a real point in the interval from zero to five](hyp:r,hr),
-[the degree-202 Taylor polynomial approximates r² exp(r²) within the certified
-factorial-tail error](goal). -/
+[the order-100 (degree-202) Taylor polynomial differs from r² exp(r²) by at most
+25 · (25¹⁰¹ / 101!) · (102 / 77)](goal). -/
 theorem abs_secondMoment_exp_sub_taylor_oneHundred_le
     {r : ℝ} (hr : r ∈ Icc (0 : ℝ) 5) :
     |r ^ 2 * Real.exp (r ^ 2) -

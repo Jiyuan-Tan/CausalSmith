@@ -27,7 +27,7 @@ namespace Causalean.Mathlib.MeasureTheory
 /-- For [a measure](hyp:μ), [a common diagonal energy](hyp:A),
 [a finite family of real functions](hyp:f), and [real coefficients](hyp:c), if
 [every pairwise product is integrable](hyp:hi) and [the pairwise integrals equal the common
-energy on the diagonal and vanish off it](hyp:ho), then [the squared integral of the finite
+energy on the diagonal and vanish off it](hyp:ho), then [the integral of the square of the finite
 linear combination is the common energy times the sum of squared coefficients](goal). -/
 theorem finite_diagonal_square_integral {ι Ω : Type*}
     [Fintype ι] [DecidableEq ι] [MeasurableSpace Ω]
@@ -58,8 +58,9 @@ theorem finite_diagonal_square_integral {ι Ω : Type*}
 /-- Given [a measurable space](hyp:Ω), [a finite index type](hyp:ι), [a measure](hyp:μ),
 [a finite family of real functions](hyp:b), [square integrability of every family
 member](hyp:hb), [orthonormality through their raw integrals](hyp:hortho), [a target
-function](hyp:f), and [its square integrability](hyp:hf), [the target's squared integral splits
-into the squared integral of its finite orthonormal projection and that of the residual](goal). -/
+function](hyp:f), and [its square integrability](hyp:hf), [the integral of the target's square splits
+into the integral of the square of its finite orthonormal projection plus the integral of the
+square of the residual](goal). -/
 theorem finite_orthonormal_pythagoras {Ω ι : Type*} [MeasurableSpace Ω] [Fintype ι]
     (μ : Measure Ω) (b : ι → Ω → ℝ) (hb : ∀ i, MemLp (b i) 2 μ)
     (hortho : ∀ i j, (∫ x, b i x * b j x ∂μ) = if i = j then 1 else 0)

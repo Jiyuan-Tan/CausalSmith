@@ -19,8 +19,9 @@ open scoped BigOperators
 noncomputable section
 namespace Causalean.Stat.Minimax.Mixture.PoissonLatentSign
 
-/-- The posterior outcome likelihood averages all active outcome factors over the
-single shared sign, weighted by the complete covariate likelihood. -/
+/-- The posterior outcome likelihood of a cell with scores uᵢ, at outcome values vᵢ, is
+the average over the shared sign ±1, weighted by the two sign likelihoods and divided by
+their sum, of the product over the selected records of 1 + γ · (±uᵢ)/(1 ± τuᵢ) · vᵢ. -/
 def outcomeLikelihood {m : ℕ} (τ γ : ℝ) (c : Cell m) (v : Fin m → ℝ) : ℝ :=
   (signLikelihood τ c 1 *
       (∏ i ∈ selected c, (1 + γ * (c.1 i / (1 + τ * c.1 i)) * v i)) +
@@ -244,9 +245,10 @@ theorem integral_outcomeLikelihood_pair {m : ℕ} {Ω : Type*} [MeasurableSpace 
     exact (hnot hS).elim
 
 /-- Given [independent centered paired outcome scores with overlap](hyp:h), [a bounded
-tilt](hyp:hτ), [bounded cell scores](hyp:hu), and [an outcome amplitude](hyp:γ),
-[the paired posterior outcome likelihood has the finite subset-energy overlap
-polynomial](goal). -/
+tilt of absolute value at most 1/4](hyp:hτ), [cell scores of absolute value at most
+one](hyp:hu), and [an outcome amplitude](hyp:γ) γ, [the mean of the product of the two
+posterior outcome likelihoods equals 1 + Σ over d = 1, …, m of γ^(2d) · (order-d subset
+energy of the cell) · zᵈ, where m is the number of records and z the common overlap](goal). -/
 theorem integral_outcomeLikelihood_pair_by_card {m : ℕ} {Ω : Type*}
     [MeasurableSpace Ω] {ρ : Measure Ω} [IsProbabilityMeasure ρ]
     {v w : Fin m → Ω → ℝ} {z : ℝ} (h : CenteredOutcomePair ρ v w z)

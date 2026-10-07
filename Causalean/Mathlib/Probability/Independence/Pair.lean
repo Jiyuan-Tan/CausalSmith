@@ -73,10 +73,12 @@ theorem map_pair_infinitePi_prod
     _ = ∏ j ∈ s, ((μj j).prod (νj j)) (t j) := by
       simpa using (Finset.prod_attach s (fun j => ((μj j).prod (νj j)) (t j)))
 
-/-- Given [measurable first-coordinate observations](hyp:mX), [measurable second-coordinate
-observations](hyp:mY), [independence of the first indexed family](hyp:hX), and [independence
-of the second indexed family](hyp:hY), [coordinatewise pairs are an independent indexed family
-under the product law](goal). -/
+/-- Given two probability spaces, [a measurable indexed family of observations on the
+first](hyp:mX), [a measurable family with the same index set on the second](hyp:mY), [mutual
+independence of the first family under its probability law](hyp:hX), and [mutual independence
+of the second family under its probability law](hyp:hY), [the index-by-index pairs of
+observations form a mutually independent family under the product of the two probability
+laws](goal). -/
 theorem iIndepFun_pair_prod
     (mX : ∀ j, Measurable (X j)) (mY : ∀ j, Measurable (Y j))
     (hX : iIndepFun X μ) (hY : iIndepFun Y ν) :

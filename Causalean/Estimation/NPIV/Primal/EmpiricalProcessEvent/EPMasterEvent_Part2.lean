@@ -460,7 +460,7 @@ theorem ep_master_event_from_localized
             (S.weakNorm
               (S.hL2 (TC.H_subset (is_estimator.mem_H n ω))
                 - S.hL2 S.h₀_mem)) ^ 2 :=
-      population_inner_eq_closedness_witness
+      population_inner_eq_weakNorm_sq
         (hh := is_estimator.mem_H n ω) (hf := hf_h) hcl_h
     have hpop_star_le :
         2 * (∫ ω', S.m (S.W ω') f_star ∂μ)

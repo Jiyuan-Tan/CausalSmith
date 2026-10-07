@@ -609,7 +609,7 @@ projection-consistency step used by the density-level ID assembly.  It is a
 library-specific recovery consequence, not Tian–Pearl Lemma 4; that numbered
 result is the generalized Q-decomposition into c-components with prefix-ratio
 recovery. -/
-lemma tian_full_cComponent_density_recovery_core_direct
+lemma tian_full_cComponent_density_recovery
     [∀ n, Nonempty (Ω n)]
     [∀ n, Fintype (Ω n)] [∀ n, MeasurableSingletonClass (Ω n)]
     (M : Causalean.SCM N Ω) (X : Finset N)

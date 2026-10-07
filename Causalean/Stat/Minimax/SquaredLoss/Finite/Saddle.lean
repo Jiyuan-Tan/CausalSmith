@@ -314,28 +314,4 @@ theorem finite_bounded_squared_loss_has_saddleENNReal
         ENNReal.ofReal_le_ofReal hs_q
       _ = ENNReal.ofReal (nu.E (risk P tau qprime)) := congrArg ENNReal.ofReal hpayoff
 
-/-- Given [nonnegative experiment likelihoods](hyp:P,hP), [target values](hyp:tau), and
-[ordered action bounds](hyp:hlu), [there exist a randomized design, a bounded decision rule,
-and a least-favorable distribution satisfying the real-valued finite saddle inequalities](goal).
-
-This deprecated theorem uses the legacy real-valued minimax functional; the standard minimax
-value is `minimaxValueENNRealOfReal`. -/
-@[deprecated finite_bounded_squared_loss_has_saddleReal (since := "2026-09-17")]
-theorem finite_bounded_squared_loss_has_saddle
-    [Nonempty Theta] [Nonempty R]
-    (P : Theta → ∀ r, X r → ℝ) (tau : Theta → ℝ)
-    {l u : ℝ} (hlu : l ≤ u)
-    (hP : ∀ theta r x, 0 ≤ P theta r x) :
-    ∃ qstar : FiniteDesign R,
-      ∃ deltastar : ∀ r, X r → Set.Icc l u,
-        ∃ nu : FiniteDesign Theta,
-          (∀ theta,
-            risk P tau ⟨qstar, deltastar⟩ theta ≤
-              minimaxValueReal (risk P tau : Procedure X l u → Theta → ℝ)) ∧
-          (∀ qprime : Procedure X l u,
-            minimaxValueReal (risk P tau : Procedure X l u → Theta → ℝ) ≤
-              nu.E (risk P tau qprime)) := by
-  simpa [minimaxValueReal, worstCaseRiskReal] using
-    finite_bounded_squared_loss_has_saddleReal P tau hlu hP
-
 end Causalean.Stat.Minimax.FiniteSquaredLoss

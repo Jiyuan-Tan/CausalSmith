@@ -19,29 +19,34 @@ namespace Causalean.Stat.Coupling
 open MeasureTheory Set
 open scoped BigOperators ENNReal Interval
 
-/-- A labelled finite atomic real law, prior to imposing nonnegativity and unit total mass. -/
+/-- A labelled finite atomic real law: a real weight and a real atom location for every slot of
+an index type, prior to imposing nonnegativity and unit total mass. -/
 structure AtomicLaw (ι : Type*) where
   weight : ι → ℝ
   atom : ι → ℝ
 
 namespace AtomicLaw
 
-/-- Nonnegative weights with total mass one make a finite atomic representation a probability law. -/
+/-- A finite atomic representation is valid when all its weights are nonnegative and they sum to
+one, so that it represents a probability law. -/
 def Valid {ι : Type*} [Fintype ι] (μ : AtomicLaw ι) : Prop :=
   (∀ i, 0 ≤ μ.weight i) ∧ ∑ i, μ.weight i = 1
 
-/-- The probability measure represented by a valid finite list of weighted atoms. -/
+/-- The measure on the real line represented by a finite list of weighted atoms: the sum over
+slots of the point mass at the slot's atom scaled by the slot's weight, a negative weight being
+counted as zero.  It is a probability measure when the representation is valid. -/
 noncomputable def toMeasure {ι : Type*} [Fintype ι] (μ : AtomicLaw ι) : Measure ℝ :=
   ∑ i, ENNReal.ofReal (μ.weight i) • Measure.dirac (μ.atom i)
 
-/-- The finite weighted expectation of a scalar test function. -/
+/-- The finite weighted expectation of a scalar test function: the sum over slots of the weight
+times the function value at the atom. -/
 def integral {ι : Type*} [Fintype ι] (μ : AtomicLaw ι) (f : ℝ → ℝ) : ℝ :=
   ∑ i, μ.weight i * f (μ.atom i)
 
 /-- For a valid law, finite weighted expectation agrees with integration against its represented
 atomic probability measure. -/
 theorem integral_eq_measureIntegral {ι : Type*} [Fintype ι]
-    (μ : AtomicLaw ι) (hμ : μ.Valid) (f : ℝ → ℝ) (hf : Continuous f) :
+    (μ : AtomicLaw ι) (hμ : μ.Valid) (f : ℝ → ℝ) :
     μ.integral f = ∫ x, f x ∂μ.toMeasure := by
   classical
   rw [toMeasure, integral_finsetSum_measure]
@@ -58,7 +63,9 @@ theorem toMeasure_isProbability {ι : Type*} [Fintype ι]
   convert congrArg ENNReal.ofReal hμ.2 using 1 <;>
     simp [ENNReal.ofReal_sum_of_nonneg, hμ.1]
 
-/-- A finite transport plan has nonnegative entries and the prescribed two marginals. -/
+/-- A finite transport plan between two finite atomic representations is a table of masses,
+one per pair of slots, with nonnegative entries, row sums equal to the first representation's
+weights, and column sums equal to the second representation's weights. -/
 structure TransportPlan {ι κ : Type*} [Fintype ι] [Fintype κ]
     (μ : AtomicLaw ι) (ν : AtomicLaw κ) where
   mass : ι → κ → ℝ
@@ -66,12 +73,18 @@ structure TransportPlan {ι κ : Type*} [Fintype ι] [Fintype κ]
   fst_marginal : ∀ i, ∑ j, mass i j = μ.weight i
   snd_marginal : ∀ j, ∑ i, mass i j = ν.weight j
 
-/-- The absolute-distance cost of a finite transport plan. -/
+/-- The absolute-distance cost of a finite transport plan: the sum over slot pairs of the
+transported mass times the absolute distance between the two atoms. -/
 def transportCost {ι κ : Type*} [Fintype ι] [Fintype κ]
     {μ : AtomicLaw ι} {ν : AtomicLaw κ} (π : TransportPlan μ ν) : ℝ :=
   ∑ i, ∑ j, π.mass i j * |μ.atom i - ν.atom j|
 
-/-- Finite-atomic one-Wasserstein distance as the infimum over the transport polytope. -/
+/-- Finite-atomic one-Wasserstein distance: the infimum of the absolute-distance transport cost
+over all transport plans between the two representations.
+
+When no transport plan exists (for instance when the two total masses differ) the infimum is over
+the empty set and the value is zero by convention; two valid representations always admit a
+plan. -/
 noncomputable def w1 {ι κ : Type*} [Fintype ι] [Fintype κ]
     (μ : AtomicLaw ι) (ν : AtomicLaw κ) : ℝ :=
   sInf {c : ℝ | ∃ π : TransportPlan μ ν, transportCost π = c}

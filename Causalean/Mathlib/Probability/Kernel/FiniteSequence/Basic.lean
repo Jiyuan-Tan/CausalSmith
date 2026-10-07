@@ -41,8 +41,9 @@ def take {n k : ℕ} {Z : Fin n → Type*} (hk : k ≤ n)
     (u : Transcript Z) : History Z k hk :=
   fun j => u (Fin.castLE hk j)
 
-/-- Given [evidence that a successor stage lies within the horizon](hyp:hk), [the next output
-index](goal) is [given by that successor stage](step:1). -/
+/-- Given [evidence that stage k + 1 lies within the horizon](hyp:hk), [the next output
+index](goal) is [the zero-based position k, which is the position of the (k + 1)-th
+output](step:1). -/
 def nextIndex {n k : ℕ} (hk : k + 1 ≤ n) : Fin n :=
   ⟨k, Nat.lt_of_succ_le hk⟩
 

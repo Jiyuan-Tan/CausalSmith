@@ -55,8 +55,6 @@ open scoped RealInnerProductSpace
 namespace Causalean.Stat
 
 local notation "stdGaussian" => Causalean.Mathlib.stdGaussian
-local notation "covarianceBilin_stdGaussian" =>
-  Causalean.Mathlib.covarianceBilin_stdGaussian
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
@@ -132,16 +130,20 @@ theorem stdGaussian_map_normSq_orthogonalProjection
       have hstep : ∫ x, x ∂((stdGaussian E).map Q) = Q (∫ x, x ∂(stdGaussian E)) := by
         rw [integral_map (by fun_prop) (by fun_prop)]
         exact ContinuousLinearMap.integral_comp_comm Q IsGaussian.integrable_id
-      rw [hstep, stdGaussian_mean, map_zero]
+      rw [hstep, show ∫ x, x ∂(stdGaussian E) = 0 from integral_id_stdGaussian, map_zero]
     refine Measure.ext_of_charFun ?_
     funext t
     have hmemLp : MemLp id 2 (stdGaussian E) := IsGaussian.memLp_two_id
     have hcoveq : covarianceBilin ((stdGaussian E).map Q) t t
         = covarianceBilin (stdGaussian (EuclideanSpace ℝ (Fin r))) t t := by
-      rw [covarianceBilin_map hmemLp, hadj, covarianceBilin_stdGaussian,
-        covarianceBilin_stdGaussian, ← Submodule.coe_inner, ι.symm.inner_map_map]
+      rw [covarianceBilin_map hmemLp, hadj]
+      simp only [Causalean.Mathlib.stdGaussian, ProbabilityTheory.covarianceBilin_stdGaussian]
+      change (inner ℝ (ι.symm t : E) (ι.symm t : E) : ℝ) = inner ℝ t t
+      rw [← Submodule.coe_inner, ι.symm.inner_map_map]
     rw [charFun_isGaussian_centered _ hmean_map t,
-      charFun_isGaussian_centered _ stdGaussian_mean t, hcoveq]
+      charFun_isGaussian_centered _
+        (show ∫ x, x ∂(stdGaussian (EuclideanSpace ℝ (Fin r))) = 0 from
+          integral_id_stdGaussian) t, hcoveq]
   -- Assemble.
   have hmap2 : (stdGaussian E).map (fun z => ‖Q z‖ ^ 2)
       = ((stdGaussian E).map Q).map (fun w => ‖w‖ ^ 2) := by

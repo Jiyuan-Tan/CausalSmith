@@ -207,10 +207,9 @@ theorem tsupport_smoothPrior_subset_Ioo {ell u c a : ℝ} (ha : 0 < a)
   rintro θ ⟨hθleft, hθright⟩
   constructor <;> linarith
 
-/-- If [the bandwidth is positive](hyp:ha) and [the prior's left](hyp:hleft) and
-[right](hyp:hright) support endpoints lie strictly inside an ambient interval, then
-[the prior vanishes at both ambient endpoints](goal). -/
-theorem smoothPrior_ambient_endpoints {ell u c a : ℝ} (ha : 0 < a)
+/-- If [the prior's left](hyp:hleft) and [right](hyp:hright) support endpoints lie strictly inside
+an ambient interval, then [the prior vanishes at both ambient endpoints](goal). -/
+theorem smoothPrior_ambient_endpoints {ell u c a : ℝ}
     (hleft : ell < c - a) (hright : c + a < u) :
     smoothPrior c a ell = 0 ∧ smoothPrior c a u = 0 := by
   constructor
@@ -332,10 +331,9 @@ theorem hasDerivAt_smoothPrior {c a : ℝ} (ha : 0 < a) (θ : ℝ) :
     HasDerivAt (smoothPrior c a) (smoothPriorDeriv c a θ) θ := by
   exact hasDerivAt_smoothPrior_aux ha θ
 
-/-- A [positive bandwidth](hyp:ha) and [ordered endpoints](hyp:hellu) ensure that [the
+/-- A [positive bandwidth](hyp:ha) ensures that [the
 smooth quartic prior is absolutely continuous on the interval](goal). -/
-theorem smoothPrior_absolutelyContinuousOnInterval {ell u c a : ℝ} (ha : 0 < a)
-    (hellu : ell ≤ u) :
+theorem smoothPrior_absolutelyContinuousOnInterval {ell u c a : ℝ} (ha : 0 < a) :
     AbsolutelyContinuousOnInterval (smoothPrior c a) ell u := by
   exact (smoothPrior_contDiff ha).contDiffOn.absolutelyContinuousOnInterval
 

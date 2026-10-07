@@ -11,7 +11,7 @@ KL plus its Pinsker correction, and measurable event probabilities are
 compared across absolutely continuous laws below a likelihood threshold.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat
 

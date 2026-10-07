@@ -17,7 +17,7 @@ The continuous-`Z` rectangle identity that formerly lived here
 (`obsKernel_fixSet_rect_eq`) was retired: it pinned `obsCondKernel` on the
 `μ_C`-null `{Z.random = ζ_s}` slice, which is ill-posed for continuous
 treatment. The sound continuous Rule 2 is the product-a.e. statement
-`obsCondKernel_fixSet_eq_ae_witness` in `Rule2AE.lean`.
+`do_rule2_kernel_of_nondescendant_product_ae` in `Rule2AE.lean`.
 -/
 
 module
@@ -62,7 +62,7 @@ open scoped MeasureTheory ProbabilityTheory
     outcome set [`Y`](hyp:hY) and conditioning set [`W`](hyp:hW) contained in the observed
     variables, suppose [in the post-intervention SWIG DAG, `Y` is d-separated from the random
     copies of `Z` given `W` together with the post-intervention fixed set](hyp:hdSep). Then,
-    fixing an intervened fixed assignment `s` and [a measurable outcome set `B`](hyp:hB), [for
+    fixing an intervened fixed assignment `s` and an outcome set `B`, [for
     almost every conditioning value on `Z.random ∪ W`, the intervened model's conditional
     distribution of `Y` given `Z.random ∪ W` assigns `B` the same probability as its conditional
     distribution of `Y` given `W` alone, evaluated at the `W`-projection of that conditioning
@@ -110,7 +110,7 @@ lemma obsCondKernel_dSep_collapse_ae
     [MeasurableSpace.CountableOrCountablyGenerated
       (M'.fixSet Z hZ_obs hZ_fixed).FixedValues (ValuesOn W (swigΩ Ω))]
     (s : (M'.fixSet Z hZ_obs hZ_fixed).FixedValues)
-    {B : Set (ValuesOn Y (swigΩ Ω))} (hB : MeasurableSet B) :
+    {B : Set (ValuesOn Y (swigΩ Ω))} :
     let hZr : Z.image SWIGNode.random ⊆ M'.observed := by
       intro v hv
       rcases Finset.mem_image.mp hv with ⟨D, hD, rfl⟩
@@ -331,8 +331,8 @@ lemma obsCondKernel_dSep_collapse_ae
 /-- **Cross-SCM conditional kernels agree along the `fillZrW` filled assignment.** For the
     intervention on names [`Z`, whose random copies are observed in the base model](hyp:hZ_obs)
     and [whose fixed copies are not yet part of the base model's fixed coordinates](hyp:hZ_fixed),
-    with outcome set [`Y`](hyp:hY) and conditioning set [`W`](hyp:hW) contained in the observed
-    variables, [the union of the random copies of `Z` and `W` contained in the observed
+    with outcome set [`Y`](hyp:hY) contained in the observed variables and conditioning set `W`,
+    [the union of the random copies of `Z` and `W` contained in the observed
     variables](hyp:hZrW) with [the random copies of `Z` disjoint from `W`](hyp:hDisj_ZrW), fix
     [an intervened fixed assignment `s`](hyp:s); then for [a measurable outcome set `B`](hyp:hB) and almost
     every conditioning value `w`, taken with respect to the pullback of the base model's law on
@@ -381,7 +381,7 @@ lemma obsCondKernel_cross_SCM_ae_eq_on_fillZrW
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)
     (hZ_fixed : ∀ D ∈ Z, SWIGNode.fixed D ∉ M'.fixed)
     (Y W : Finset (SWIGNode N))
-    (hY : Y ⊆ M'.observed) (hW : W ⊆ M'.observed)
+    (hY : Y ⊆ M'.observed)
     (hZrW : Z.image SWIGNode.random ∪ W ⊆ M'.observed)
     (hDisj_ZrW : Disjoint (Z.image SWIGNode.random) W)
     [StandardBorelSpace (ValuesOn Y (swigΩ Ω))]

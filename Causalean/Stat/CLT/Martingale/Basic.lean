@@ -30,39 +30,6 @@ open Filter MeasureTheory ProbabilityTheory Topology
 variable {Ω : ℕ → Type*} {mΩ : (n : ℕ) → MeasurableSpace (Ω n)}
   {μ : (n : ℕ) → Measure (Ω n)}
 
-/-- Given [one measure space for every row](hyp:Ω,μ), [a row-indexed family of
-real random variables](hyp:Y) [converges in probability](goal) to [the target
-constant](hyp:c) when, at every positive tolerance, the row probability of
-exceeding that tolerance tends to zero. -/
-@[deprecated "Use Causalean.Stat.Modes.TendstoInProbability." (since := "2026-09-18")]
-abbrev TendstoInProbability
-    (μ : (n : ℕ) → Measure (Ω n)) (Y : (n : ℕ) → Ω n → ℝ) (c : ℝ) : Prop :=
-  Modes.TendstoInProbability μ Y atTop
-    (fun _ _ => c)
-
-/-- For [row measures](hyp:μ), [real row variables](hyp:Y), and [a constant target](hyp:c),
-[convergence in probability is equivalent to vanishing real absolute-error tails](goal). -/
-@[deprecated "Use Causalean.Stat.Modes.tendstoInProbability_iff_norm."
-  (since := "2026-09-19")]
-lemma tendstoInProbability_iff_real
-    (μ : (n : ℕ) → Measure (Ω n)) (Y : (n : ℕ) → Ω n → ℝ) (c : ℝ) :
-    TendstoInProbability μ Y c ↔
-      ∀ ε : ℝ, 0 < ε →
-        Tendsto (fun n => μ n {ω | ε ≤ |Y n ω - c|}) atTop (𝓝 0) := by
-  simpa only [Real.norm_eq_abs] using
-    (Modes.tendstoInProbability_iff_norm μ Y atTop (fun _ _ => c))
-
-/-- Given [one probability space for every row](hyp:Ω,μ), [row variables carrying
-a measurability argument that the definition no longer uses](hyp:Y,_hY), and
-[a target probability law](hyp:Q), [convergence in distribution to that
-law](goal) means weak convergence of the row pushforward laws. -/
-@[deprecated "Use Causalean.Stat.Modes.TendstoInLaw." (since := "2026-09-18")]
-abbrev TendstoInDistribution
-    (μ : (n : ℕ) → Measure (Ω n)) [∀ n, IsProbabilityMeasure (μ n)]
-    (Y : (n : ℕ) → Ω n → ℝ) (Q : Measure ℝ) [IsProbabilityMeasure Q]
-    (_hY : ∀ n, AEMeasurable (Y n) (μ n)) : Prop :=
-  Modes.TendstoInLaw μ Y atTop Q
-
 /-- A martingale-difference triangular array consists of [finite row lengths](hyp:rowLength),
 [real increments](hyp:increment), and [one filtration per row](hyp:filtration), such that
 [each active increment is measurable at the next filtration time](hyp:adapted), [is square

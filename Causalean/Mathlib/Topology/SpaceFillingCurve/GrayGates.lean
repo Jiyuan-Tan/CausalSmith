@@ -31,8 +31,9 @@ private theorem grayBit_last (n i : ℕ) (hi : i < n + 1) :
   · have heq : i = n := by omega
     simp [heq]
 
-/-- Given [a positive dimension](hyp:d,hd) and [two face-adjacent binary vertices](hyp:u,v,huv),
-[a reflected-Gray path visits every vertex once while using them as its endpoints](goal). -/
+/-- Given [a positive dimension d](hyp:d,hd) and [two face-adjacent binary vertices](hyp:u,v,huv),
+[there is an ordering of all 2^d binary cube vertices that visits each vertex exactly once, moves between face-adjacent vertices at
+every step, starts at the first given vertex, and ends at the second](goal). -/
 theorem exists_grayPath_between_adjacent_vertices (d : ℕ) (hd : 0 < d)
     (u v : Fin d → Bool) (huv : FaceAdjacentVertex u v) :
     ∃ path : Fin (2 ^ d) → Fin d → Bool,

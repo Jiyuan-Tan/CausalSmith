@@ -23,7 +23,9 @@ is eight times exp(1) times n/K. -/
 noncomputable def occupancyZ (n K : ℕ) : ℝ := 8 * Real.exp 1 * n / K
 
 /-- [The finite majorant](goal) of [order p](hyp:p) for [sample and cell
-counts](hyp:n,K) sums sizes two through n. -/
+counts](hyp:n,K) is the sum, over sizes m from two through n, of m to the power p
+times the density parameter 8 exp(1) n/K raised to the power m; it is zero when n is
+below two. -/
 noncomputable def occupancySeries (p n K : ℕ) : ℝ :=
   ∑ j ∈ Finset.range (n - 1), (j + 2 : ℝ) ^ p * occupancyZ n K ^ (j + 2)
 

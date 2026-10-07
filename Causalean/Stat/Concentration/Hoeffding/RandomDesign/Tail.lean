@@ -213,7 +213,7 @@ theorem product_weighted_centered_attachKernel_tail_le
           {y | t * Real.sqrt (realizedWeightEnergy w d) <=
             |weightedCenteredMarkSum mD w d y|} <= B := by
     filter_upwards [product_weighted_centered_attachKernel_hasSubgaussianMGF
-      Q K mD hmD hmean hbound w hw, henergy] with d hd hdenergy
+      Q K mD hmean hbound w, henergy] with d hd hdenergy
     have henergy_nonneg : 0 <= realizedWeightEnergy w d := le_of_lt hdenergy
     have hepsilon : 0 <= t * Real.sqrt (realizedWeightEnergy w d) :=
       mul_nonneg ht (Real.sqrt_nonneg _)

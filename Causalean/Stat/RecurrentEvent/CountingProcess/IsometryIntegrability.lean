@@ -3,8 +3,12 @@ public import Causalean.Stat.RecurrentEvent.CountingProcess.SubjectIsometry
 public import Mathlib.MeasureTheory.Function.L2Space
 
 /-!
-Finite-sample aggregate isometry and pairwise orthogonality for predictable
-integrals against compensated censor-event counts.
+Integrability lemmas behind the finite-sample aggregate isometry and pairwise
+orthogonality for predictable integrals against compensated censor-event
+counts: integrability of each subject's quadratic hazard energy, square
+integrability of event payoffs, and integrability of the cross-prefix event and
+compensator terms. The isometry and orthogonality statements themselves are in
+the `Isometry` module.
 -/
 
 public section
@@ -16,7 +20,7 @@ namespace Causalean.Stat.RecurrentEvent.CountingProcess
 /-- Suppose subjects are drawn independently with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the integrand be [jointly measurable in time and
-sample](hyp:hMeasurable). For [a nonnegative horizon u](hyp:hu), [finite expected quadratic
+sample](hyp:hMeasurable). For a horizon u, [finite expected quadratic
 energy](hyp:hQuadratic), and [an integrable predictable quadratic energy summed over all
 subjects](hyp:hEnergy), [each single subject's quadratic hazard energy up to u is integrable over
 samples](goal). -/
@@ -26,7 +30,7 @@ theorem subject_energy_integrable {n : ℕ}
     (hHazard : HasCensorHazard censorLaw hazard)
     (H : ℝ → Sample n → ℝ)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
-    (i : Fin n) (u : ℝ) (hu : 0 ≤ u)
+    (i : Fin n) (u : ℝ)
     (hQuadratic : QuadraticEnergyFinite failureLaw censorLaw hazard H u)
     (hEnergy : Integrable (predictableEnergy hazard H u)
       (sampleLaw n failureLaw censorLaw)) :
@@ -112,9 +116,8 @@ theorem subject_energy_integrable {n : ℕ}
 /-- Suppose subjects are drawn independently with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the integrand be [left predictable](hyp:hPredictable) and [jointly
-measurable in time and sample](hyp:hMeasurable). For [a nonnegative horizon u](hyp:hu), [finite
-expected quadratic energy](hyp:hQuadratic), and [an integrable predictable quadratic
-energy](hyp:hEnergy), [the squared payoff at subject i's observed censor event by u, taken as
+measurable in time and sample](hyp:hMeasurable). For a horizon u and [finite
+expected quadratic energy](hyp:hQuadratic), [the squared payoff at subject i's observed censor event by u, taken as
 zero when no such event occurs, is integrable over samples](goal). -/
 theorem subject_event_payoff_square_integrable {n : ℕ}
     (failureLaw censorLaw : Measure ℝ) (hazard : ℝ → ℝ)
@@ -122,10 +125,9 @@ theorem subject_event_payoff_square_integrable {n : ℕ}
     (hHazard : HasCensorHazard censorLaw hazard)
     (H : ℝ → Sample n → ℝ) (hPredictable : LeftPredictable H)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
-    (i : Fin n) (u : ℝ) (hu : 0 ≤ u)
+    (i : Fin n) (u : ℝ)
     (hQuadratic : QuadraticEnergyFinite failureLaw censorLaw hazard H u)
-    (hEnergy : Integrable (predictableEnergy hazard H u)
-      (sampleLaw n failureLaw censorLaw)) :
+    :
     Integrable (fun x : Sample n =>
       (if (x i).2 ≤ u ∧ (x i).2 < (x i).1 then H (x i).2 x else 0) ^ 2)
       (sampleLaw n failureLaw censorLaw) := by
@@ -145,7 +147,7 @@ theorem subject_event_payoff_square_integrable {n : ℕ}
     hMeasurable.pow_const 2
   have hQnonneg : ∀ s x, 0 ≤ Q s x := fun s x => sq_nonneg _
   have hlin := predictable_censor_compensator_lintegral
-    failureLaw censorLaw hazard hFailure hHazard Q hQpred hQmeas hQnonneg i u hu
+    failureLaw censorLaw hazard hFailure hHazard Q hQpred hQmeas hQnonneg i u
   have hfinite : (∫⁻ x : Sample n, ∫⁻ s in Set.Icc 0 u,
       ENNReal.ofReal (Q s x * hazard s * riskIndicator i s x)
         ∂volume ∂μ) ≠ ⊤ := by
@@ -186,9 +188,8 @@ theorem subject_event_payoff_square_integrable {n : ℕ}
 /-- Suppose subjects are drawn independently with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the integrand be [left predictable](hyp:hPredictable) and [jointly
-measurable in time and sample](hyp:hMeasurable). For [a nonnegative horizon u](hyp:hu), [finite
-expected quadratic energy](hyp:hQuadratic), and [an integrable predictable quadratic
-energy](hyp:hEnergy), [the square of subject j's strict-past compensated integral evaluated at
+measurable in time and sample](hyp:hMeasurable). For a horizon u and [finite
+expected quadratic energy](hyp:hQuadratic), [the square of subject j's strict-past compensated integral evaluated at
 subject i's observed censor event by u, taken as zero when no such event occurs, is integrable
 over samples](goal). -/
 theorem cross_prefix_at_event_square_integrable {n : ℕ}
@@ -197,10 +198,9 @@ theorem cross_prefix_at_event_square_integrable {n : ℕ}
     (hHazard : HasCensorHazard censorLaw hazard)
     (H : ℝ → Sample n → ℝ) (hPredictable : LeftPredictable H)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
-    (i j : Fin n) (u : ℝ) (hu : 0 ≤ u)
+    (i j : Fin n) (u : ℝ)
     (hQuadratic : QuadraticEnergyFinite failureLaw censorLaw hazard H u)
-    (hEnergy : Integrable (predictableEnergy hazard H u)
-      (sampleLaw n failureLaw censorLaw)) :
+    :
     Integrable (fun x : Sample n =>
       (if (x i).2 ≤ u ∧ (x i).2 < (x i).1 then
         subjectIntegralBefore hazard H j (x i).2 x else 0) ^ 2)
@@ -227,14 +227,14 @@ theorem cross_prefix_at_event_square_integrable {n : ℕ}
       |H s x * hazard s * riskIndicator j s x| ∂volume
   have hJump : Integrable (fun x => (f x) ^ 2) μ :=
     subject_event_payoff_square_integrable failureLaw censorLaw hazard
-      hFailure hHazard H hPredictable hMeasurable j u hu hQuadratic hEnergy
+      hFailure hHazard H hPredictable hMeasurable j u hQuadratic
   have hAbsQ : QuadraticEnergyFinite failureLaw censorLaw hazard
       (fun s x => |H s x|) u := by
     simpa only [QuadraticEnergyFinite, sq_abs] using hQuadratic
   have hAbs : Integrable (fun x => (g x) ^ 2) μ := by
     have h := subject_hazard_square_integrable failureLaw censorLaw hazard
       hFailure hHazard (fun s x => |H s x|)
-      (by fun_prop) j u hu hAbsQ
+      (by fun_prop) j u hAbsQ
     convert h using 1
     funext x
     congr 1
@@ -269,7 +269,7 @@ theorem cross_prefix_at_event_square_integrable {n : ℕ}
     exact (Measure.tendsto_eval_ae_ae
       (μ := fun _ : Fin n => failureLaw.prod censorLaw) (i := j)) hPair
   have hPath := subject_hazard_path_integrable_ae failureLaw censorLaw hazard
-    hFailure hHazard H hMeasurable j u hu hQuadratic
+    hHazard H hMeasurable j u hQuadratic
   haveI : IsProbabilityMeasure failureLaw := ⟨hFailure.1⟩
   haveI : IsProbabilityMeasure censorLaw := ⟨hHazard.1.1⟩
   haveI : IsProbabilityMeasure μ := by
@@ -328,9 +328,8 @@ theorem cross_prefix_at_event_square_integrable {n : ℕ}
 /-- Suppose subjects are drawn independently with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the integrand be [left predictable](hyp:hPredictable) and [jointly
-measurable in time and sample](hyp:hMeasurable). For [a nonnegative horizon u](hyp:hu), [finite
-expected quadratic energy](hyp:hQuadratic), and [an integrable predictable quadratic
-energy](hyp:hEnergy), [the payoff at subject i's observed censor event by u times subject j's
+measurable in time and sample](hyp:hMeasurable). For a horizon u and [finite
+expected quadratic energy](hyp:hQuadratic), [the payoff at subject i's observed censor event by u times subject j's
 strict-past compensated integral at that event, taken as zero when no such event occurs, is
 integrable over samples](goal). -/
 theorem cross_prefix_event_integrable {n : ℕ}
@@ -339,10 +338,9 @@ theorem cross_prefix_event_integrable {n : ℕ}
     (hHazard : HasCensorHazard censorLaw hazard)
     (H : ℝ → Sample n → ℝ) (hPredictable : LeftPredictable H)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
-    (i j : Fin n) (u : ℝ) (hu : 0 ≤ u)
+    (i j : Fin n) (u : ℝ)
     (hQuadratic : QuadraticEnergyFinite failureLaw censorLaw hazard H u)
-    (hEnergy : Integrable (predictableEnergy hazard H u)
-      (sampleLaw n failureLaw censorLaw)) :
+    :
     Integrable (fun x : Sample n =>
       if (x i).2 ≤ u ∧ (x i).2 < (x i).1 then
         H (x i).2 x * subjectIntegralBefore hazard H j (x i).2 x else 0)
@@ -377,12 +375,12 @@ theorem cross_prefix_event_integrable {n : ℕ}
     (MeasureTheory.memLp_two_iff_integrable_sq hfmeas).2 (by
       simpa only [f, μ] using
         subject_event_payoff_square_integrable failureLaw censorLaw hazard
-          hFailure hHazard H hPredictable hMeasurable i u hu hQuadratic hEnergy)
+          hFailure hHazard H hPredictable hMeasurable i u hQuadratic)
   have hgLp : MemLp g 2 μ :=
     (MeasureTheory.memLp_two_iff_integrable_sq hgmeas).2 (by
       simpa only [g, μ] using
         cross_prefix_at_event_square_integrable failureLaw censorLaw hazard
-          hFailure hHazard H hPredictable hMeasurable i j u hu hQuadratic hEnergy)
+          hFailure hHazard H hPredictable hMeasurable i j u hQuadratic)
   have hfg : Integrable (f * g) μ := hfLp.integrable_mul hgLp
   convert hfg using 1
   funext x
@@ -391,9 +389,8 @@ theorem cross_prefix_event_integrable {n : ℕ}
 /-- Suppose subjects are drawn independently with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the integrand be [left predictable](hyp:hPredictable) and [jointly
-measurable in time and sample](hyp:hMeasurable). For [a nonnegative horizon u](hyp:hu), [finite
-expected quadratic energy](hyp:hQuadratic), and [an integrable predictable quadratic
-energy](hyp:hEnergy), [the integral from 0 to u of subject j's strict-past compensated integral
+measurable in time and sample](hyp:hMeasurable). For a horizon u and [finite
+expected quadratic energy](hyp:hQuadratic), [the integral from 0 to u of subject j's strict-past compensated integral
 times the integrand times the hazard times subject i's at-risk indicator is integrable over
 samples](goal). -/
 theorem cross_prefix_compensator_integrable {n : ℕ}
@@ -402,10 +399,9 @@ theorem cross_prefix_compensator_integrable {n : ℕ}
     (hHazard : HasCensorHazard censorLaw hazard)
     (H : ℝ → Sample n → ℝ) (hPredictable : LeftPredictable H)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
-    (i j : Fin n) (u : ℝ) (hu : 0 ≤ u)
+    (i j : Fin n) (u : ℝ)
     (hQuadratic : QuadraticEnergyFinite failureLaw censorLaw hazard H u)
-    (hEnergy : Integrable (predictableEnergy hazard H u)
-      (sampleLaw n failureLaw censorLaw)) :
+    :
     Integrable (fun x : Sample n =>
       ∫ s in Set.Icc 0 u,
         subjectIntegralBefore hazard H j s x * H s x * hazard s *
@@ -429,9 +425,9 @@ theorem cross_prefix_compensator_integrable {n : ℕ}
       if (x i).2 ≤ u ∧ (x i).2 < (x i).1 then P (x i).2 x else 0)
       (sampleLaw n failureLaw censorLaw) := by
     convert cross_prefix_event_integrable failureLaw censorLaw hazard
-      hFailure hHazard H hPredictable hMeasurable i j u hu hQuadratic hEnergy using 1
+      hFailure hHazard H hPredictable hMeasurable i j u hQuadratic using 1
   have hComp := predictable_censor_compensator_integrable
-    failureLaw censorLaw hazard hFailure hHazard P hPpred hPmeas i u hu hEvent
+    failureLaw censorLaw hazard hFailure hHazard P hPpred hPmeas i u hEvent
   convert hComp using 1
   funext x
   apply integral_congr_ae

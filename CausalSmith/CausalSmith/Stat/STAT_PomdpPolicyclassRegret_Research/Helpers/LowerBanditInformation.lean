@@ -128,7 +128,7 @@ lemma lower_bandit_observation_kl_le {d : Nat} (μ : Measure (Fin d))
   rw [lowerBanditObservationLaw, lowerBanditObservationLaw,
     selectedLaw_klDiv_toReal_eq_integral (η := 1 / 4) μ _ _ _ _ _
       (by fun_prop) (by fun_prop) (by fun_prop) (by fun_prop) (by fun_prop)
-      (by norm_num) (by norm_num) hhalf (hq false) (hq true) (href false) (href true)]
+      (by norm_num) hhalf (hq false) (hq true) (href false) (href true)]
   have hzero (bit a : Bool) : lowerBanditRewardMean 0 bit a = 1 / 2 := by
     simp [lowerBanditRewardMean]
   simp_rw [hzero]

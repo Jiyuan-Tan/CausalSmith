@@ -15,7 +15,7 @@ nonzero bounded measurable function orthogonal, under the standard Gaussian law,
 every monomial through any prescribed finite degree.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat.MomentProblems
 

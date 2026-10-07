@@ -240,7 +240,7 @@ theorem fixedStratumMarkedRatio_memLp_two {m : Nat}
     exact memLp_finsetSum H fun k _ ↦ hcellTerm a k
   exact (harmScore true).sub (harmScore false)
 
-/-- [Measurable group and arm labels](hyp:hgroup,harm) and [cell centers bounded
+/-- [Measurable group labels](hyp:hgroup) and [cell centers bounded
 in absolute value by the envelope](hyp:hcenterBound) imply that [the empirical
 category-mass fluctuation has second moment at most the squared envelope divided
 by the safe sample size, including for an empty sample](goal). -/
@@ -248,7 +248,7 @@ theorem integral_fixedStratumArmMassFluctuation_sq_le {m : Nat}
     (mu : Measure Omega) [IsProbabilityMeasure mu]
     (group : Omega → kappa) (arm : Omega → Bool)
     (center : Bool → kappa → Real) (H : Finset kappa) (a : Bool) (M : Real)
-    (hgroup : Measurable group) (harm : Measurable arm)
+    (hgroup : Measurable group)
     (hcenterBound : ∀ k, |center a k| ≤ M) :
     ∫ z : Fin m → Omega,
         (fixedStratumArmMassFluctuation mu group arm center H a z) ^ 2
@@ -402,27 +402,6 @@ theorem integral_fixedStratumArmMassFluctuation_sq_le {m : Nat}
     unfold safeSampleSize
     positivity
 
-/-- [Measurable group and arm labels](hyp:hgroup,harm), [cell centers bounded in
-absolute value by the envelope](hyp:hcenterBound), [a positive overlap
-margin](hyp:hepsilon), and [arm mass at least that margin times category
-mass](hyp:hoverlap) imply that [the normalized aggregate empty-arm remainder has
-second moment bounded by a parametric diagonal term plus the squared
-exponentially damped missing-arm envelope](goal). -/
-theorem integral_fixedStratumArmMissingRemainder_sq_le {m : Nat}
-    (mu : Measure Omega) [IsProbabilityMeasure mu]
-    (group : Omega → kappa) (arm : Omega → Bool)
-    (center : Bool → kappa → Real) (H : Finset kappa) (a : Bool)
-    (M epsilon : Real) (hgroup : Measurable group) (harm : Measurable arm)
-    (hcenterBound : ∀ k, |center a k| ≤ M) (hepsilon : 0 < epsilon)
-    (hoverlap : ∀ k, 0 < categoryMass mu group k →
-      epsilon * categoryMass mu group k ≤ armCategoryMass mu group arm a k) :
-    ∫ z : Fin m → Omega,
-        (fixedStratumArmMissingRemainder group arm center H a z) ^ 2
-        ∂(Measure.pi (fun _ : Fin m => mu)) ≤
-      M ^ 2 * (1 / safeSampleSize m +
-        (missingArmExponentialEnvelope mu group m epsilon H) ^ 2) := by
-  exact integral_fixedStratumArmMissingRemainder_sq_le_aux mu group arm center H a
-    M epsilon hgroup harm hcenterBound hepsilon hoverlap
 
 /-- [Measurable group and arm labels and a measurable mark](hyp:hgroup,harm,hY),
 [square-integrable supported residuals](hyp:hmem), [cellwise residual
@@ -493,7 +472,7 @@ theorem integral_fixedStratumArm_error_sq_le_exponential {m : Nat}
     mu group arm Y center H a M epsilon hgroup harm hY hmem hcenter hsq
       hepsilon hoverlap
   have hmass := integral_fixedStratumArmMassFluctuation_sq_le (m := m)
-    mu group arm center H a M hgroup harm hcenterBound
+    mu group arm center H a M hgroup hcenterBound
   have hmissing := integral_fixedStratumArmMissingRemainder_sq_le (m := m)
     mu group arm center H a M epsilon hgroup harm hcenterBound hepsilon hoverlap
   have hpoint (z : Fin m → Omega) :
@@ -628,7 +607,7 @@ theorem integral_fixedStratumArm_error_sq_le {m : Nat}
     mu group arm Y center H a M epsilon hgroup harm hY hmem hcenter hsq
       hcenterBound hepsilon hoverlap
   have henv := missingArmExponentialEnvelope_le_lowerMass
-    mu group hgroup m epsilon B H hepsilon hp
+    mu group m epsilon B H hepsilon hp
   have hexp0 : 0 ≤ missingArmExponentialEnvelope mu group m epsilon H := by
     unfold missingArmExponentialEnvelope
     exact Finset.sum_nonneg fun k _ ↦

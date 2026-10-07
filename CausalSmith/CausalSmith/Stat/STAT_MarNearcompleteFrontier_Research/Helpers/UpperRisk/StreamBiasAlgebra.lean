@@ -9,7 +9,7 @@ The signed treatment contrast in equation (14) is controlled by a weighted
 sum of cellwise correction biases.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.MarNearcompleteFrontier
 

@@ -8,7 +8,7 @@ Authors: Jiyuan Tan
 `msmUpperCalib_eq_cutoff` and `cutoffProp_mem_MSMSetCalib_of_survival` reduce the calibrated
 upper endpoint to one construction: a `σ(X)`-measurable cutoff `c` solving the
 conditional-survival equation `treatedSurv c =ᵐ survTarget Λ`. This file begins that construction,
-whose capstone assumes universal cutoff integrability.
+whose capstone assumes integrability of the calibrating cutoff.
 
 The cutoff is the conditional quantile `Q_{τ}(X)` of `Y` among the treated, where the level
 `τ(X) = 1 − survTarget(X)/e(X)` (`calibLevel`) is set by the sensitivity budget. The construction uses:
@@ -327,6 +327,53 @@ that unit's propensity for treatment. It is the treated conditional-distribution
 whose quantile supplies the calibrating cutoff. -/
 noncomputable def calibLevel (Λ : ℝ) (ω : P.Ω) : ℝ :=
   1 - S.survTarget Λ ω / S.propScore true ω
+
+/-- Let e be a propensity value and write w_min = 1 + (1 − e)/(Λe) and w_max = 1 + Λ(1 − e)/e for
+the smallest and largest admissible inverse-propensity weights. For [a sensitivity parameter Λ
+strictly greater than one](hyp:hΛ) and [a propensity value strictly between 0 and
+1](hyp:he0,he1), [the upper calibration quantile level 1 − ((1 − w_min·e)/(w_max − w_min))/e equals
+Λ/(Λ+1), and the lower calibration quantile level 1 − ((w_max·e − 1)/(w_max − w_min))/e equals
+1/(Λ+1)](goal). Neither level depends on the propensity. -/
+theorem calibLevel_formulas {Λ e : ℝ} (hΛ : 1 < Λ) (he0 : 0 < e) (he1 : e < 1) :
+    1 - (1 - (1 + (1 - e) / (Λ * e)) * e) /
+        (1 + Λ * (1 - e) / e - (1 + (1 - e) / (Λ * e))) / e = Λ / (Λ + 1) ∧
+    1 - ((1 + Λ * (1 - e) / e) * e - 1) /
+        (1 + Λ * (1 - e) / e - (1 + (1 - e) / (Λ * e))) / e = 1 / (Λ + 1) := by
+  have h1e : (1 - e) ≠ 0 := ne_of_gt (by linarith)
+  have he : e ≠ 0 := ne_of_gt he0
+  have hΛ0 : Λ ≠ 0 := ne_of_gt (by linarith)
+  have hΛm : Λ - 1 ≠ 0 := ne_of_gt (by linarith)
+  have hΛp : Λ + 1 ≠ 0 := ne_of_gt (by linarith)
+  have hden : 1 + Λ * (1 - e) / e - (1 + (1 - e) / (Λ * e)) =
+      (1 - e) * (Λ - 1) * (Λ + 1) / (Λ * e) := by
+    field_simp
+    ring
+  have hup : 1 - (1 + (1 - e) / (Λ * e)) * e = (1 - e) * (Λ - 1) / Λ := by
+    field_simp
+    ring
+  have hlo : (1 + Λ * (1 - e) / e) * e - 1 = (1 - e) * (Λ - 1) := by
+    field_simp
+    ring
+  rw [hden, hup, hlo]
+  constructor
+  · field_simp
+    ring
+  · field_simp
+    ring
+
+/-- Fix [a sensitivity parameter Λ strictly greater than one](hyp:Λ,hΛ) and assume [the treated
+propensity score lies strictly between 0 and 1 almost surely](hyp:hoverlap). Then [the calibration
+quantile level lies strictly between 0 and 1 almost surely](goal): on the overlap event it equals
+Λ/(Λ+1). -/
+theorem calibLevel_mem_Ioo (Λ : ℝ) (hΛ : 1 < Λ)
+    (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1) :
+    ∀ᵐ ω ∂P.μ, 0 < S.calibLevel Λ ω ∧ S.calibLevel Λ ω < 1 := by
+  filter_upwards [hoverlap] with ω hω
+  have h : S.calibLevel Λ ω = Λ / (Λ + 1) := (calibLevel_formulas hΛ hω.1 hω.2).1
+  have hΛ0 : 0 < Λ := by linarith
+  have hΛp : 0 < Λ + 1 := by linarith
+  rw [h]
+  exact ⟨div_pos hΛ0 hΛp, (div_lt_one hΛp).mpr (by linarith)⟩
 
 /-- For [a potential-outcome system and measurable covariate space](hyp:P,γ), [a back-door
 system](hyp:S), and [a fixed outcome cutoff](hyp:t), [the conditional mean of treatment times

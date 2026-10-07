@@ -32,8 +32,14 @@ namespace PositiveDAGTableFactorization
 
 /-- A [factorized table](hyp:fac), [distinct fixed-vertex list](hyp:vertices,hvertices), [three
 remaining coordinate sets](hyp:X,Y,Z), [proofs that each is remaining](hyp:hX,hY,hZ), and
-[d-separation after removing incoming arrows to fixed vertices](hyp:hdSep) give [the atomwise
-multiplicative conditional-independence identity for the sequentially fixed kernel](goal). -/
+[d-separation of the first two sets given the third set together with all fixed vertices, in the
+DAG with incoming arrows to fixed vertices removed](hyp:hdSep), give [the atomwise
+multiplicative conditional-independence identity for the kernel obtained by sequentially fixing
+the listed vertices given their DAG parents](goal).
+
+Writing m(S) for the kernel's total mass over the complete profiles that agree with a reference
+profile on the fixed vertices and on the set S, the identity states that, at every reference
+profile, m(X ∪ Y ∪ Z) · m(Z) = m(X ∪ Z) · m(Y ∪ Z). -/
 theorem fixSequence_globalMarkov
     (fac : PositiveDAGTableFactorization G p) (vertices : List V)
     (hvertices : vertices.Nodup) (X Y Z : Finset V)

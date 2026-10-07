@@ -13,9 +13,23 @@ public import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
 public import Mathlib.LinearAlgebra.Lagrange
 
 /-!
-# Exterior Lagrange mass on Chebyshev-Lobatto grids
+# Exterior Lagrange mass on Chebyshev–Lobatto grids
 
-Exterior cardinal-basis signs and affine transport identify and bound the Lagrange mass of shifted Lobatto grids.
+For the Chebyshev–Lobatto nodes cos(iπ/N), i = 0, …, N, the sum of the absolute values of the
+Lagrange cardinal polynomials at a point x < −1 outside the grid equals |T_N(x)|, the absolute
+value of the degree-N Chebyshev polynomial. By affine invariance of the cardinal polynomials, the
+grid moved to [a, 1] with 0 < a < 1 has cardinal mass |T_N(−(1 + a)/(1 − a))| at zero, and for
+a = K⁻² and N = K − 1 with K ≥ 2 this value is at most cosh 2. These identities bound how far
+polynomial extrapolation from [a, 1] to 0 can amplify sampled values.
+
+## Main results
+
+* `standard_exterior_basis_sign` — for x < −1 the i-th cardinal value has sign (−1)^(N + i).
+* `standard_exterior_lagrange_abs_sum` — Σ_i |ℓ_i(x)| = |T_N(x)| for x < −1.
+* `lagrange_basis_eval_affine_local` — cardinal polynomials are unchanged when nodes and the
+  evaluation point undergo the same affine map with nonzero slope.
+* `shifted_chebyshev_lagrange_abs_sum` — the cardinal mass at zero of the grid moved to [a, 1].
+* `calibrated_chebyshev_exterior_le_cosh_two` — |T_(K−1)(−(1 + K⁻²)/(1 − K⁻²))| ≤ cosh 2.
 -/
 
 public section
@@ -229,9 +243,9 @@ lemma shifted_chebyshev_lagrange_abs_sum (N : ℕ) (a : ℝ)
     (lagrange_basis_eval_affine_local hv.injOn (Finset.mem_univ i) c r z hr)
 
 
-/-- For an [integer scale at least two](hyp:K,hK), the degree-`K-1`
-Chebyshev polynomial at the calibrated exterior point has absolute value at
-most `cosh 2`. The result is [the `cosh 2` upper bound at the calibrated exterior point](goal). -/
+/-- For an [integer scale K at least two](hyp:K,hK), [the Chebyshev polynomial of the first kind
+of degree K − 1, evaluated at the exterior point −(1 + K⁻²) / (1 − K⁻²), which lies to the left of
+−1, has absolute value at most cosh 2](goal). -/
 lemma calibrated_chebyshev_exterior_le_cosh_two (K : ℕ) (hK : 2 ≤ K) :
     |(Polynomial.Chebyshev.T ℝ ((K - 1 : ℕ) : ℤ)).eval
       (-(1 + (K : ℝ)⁻¹ ^ 2) / (1 - (K : ℝ)⁻¹ ^ 2))| ≤ Real.cosh 2 := by

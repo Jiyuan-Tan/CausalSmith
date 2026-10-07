@@ -3,7 +3,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Algebraic assembly of the finite-label and sampling lower rates. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.PartialID.UnlinkedPropensityAte
 

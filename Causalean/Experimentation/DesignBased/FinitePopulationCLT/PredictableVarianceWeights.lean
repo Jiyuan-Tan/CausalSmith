@@ -15,7 +15,7 @@ This module proves the two weighted prefix-moment estimates in Hájek’s predic
 argument. The bounds are uniform in the allocation fraction by working through the smaller arm.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory
 open scoped BigOperators

@@ -94,14 +94,16 @@ theorem integral_centeredCellMean_sq_eq {m : ℕ}
   rw [hcover, setIntegral_univ] at hsum hsumR
   rw [hsum]
   simp_rw [integral_centeredCellMean_sq_on_pattern
-    μ label X Y c k _ hlabel hX hY hint hsq hcenter hp]
+    μ label X Y c k _ hlabel hX hint hsq hcenter hp]
   rw [← Finset.mul_sum, ← hsumR]
   rw [integral_cellCount_eq_binomial μ label X k
     (fun j => if 0 < j then (j : ℝ)⁻¹ else 0) hlabel hX]
 
 /-- [A measurable partition and responses](hyp:hlabel,hX,hY), [unit-interval
 responses](hyp:hbound), and [positive cell mass](hyp:hp) imply
-[the mass-weighted nonempty-sample centered MSE bound](goal). -/
+[that the cell mass times the iid-sample expectation of the squared empirical cell mean
+centered at the population cell mean (taken as zero on an empty cell) is at most two over the
+sample size plus one](goal). -/
 theorem nonempty_cell_mse_le {m : ℕ}
     (μ : Measure Ω) [IsProbabilityMeasure μ] (label : A → κ) (X : Ω → A)
     (Y : Ω → ℝ) (k : κ) (hlabel : Measurable label)
@@ -127,7 +129,7 @@ theorem nonempty_cell_mse_le {m : ℕ}
     filter_upwards [hbound] with ω hω
     rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
     nlinarith [hω.1, hω.2]
-  have hc := cellMean_mem_Icc μ label X Y k hlabel hX hY hbound
+  have hc := cellMean_mem_Icc μ label X Y k hY hbound
   have hresbound : ∀ᵐ ω ∂μ, (Y ω - cellMean μ label X Y k) ^ 2 ≤ 1 := by
     filter_upwards [hbound] with ω hω
     have hl : -1 ≤ Y ω - cellMean μ label X Y k := by linarith [hω.1, hc.2]

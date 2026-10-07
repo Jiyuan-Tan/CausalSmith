@@ -194,9 +194,9 @@ lemma poisson_pilot_lower_tail (rate : NNReal) (B : ℝ) :
       ring
 
 
-/-- For a [Poisson rate](hyp:rate) and [real threshold](hyp:B), the probability of
-the count exceeding one quarter of the threshold obeys the stated exponential
-upper-tail bound. The result is [the exponential Poisson upper-tail bound at one quarter of the threshold](goal). -/
+/-- For a Poisson count with a [given rate](hyp:rate) and a [real threshold B](hyp:B),
+[the probability that the count strictly exceeds B/4 is at most
+exp(3 · rate − B · log 4 / 4)](goal). -/
 lemma poisson_pilot_upper_tail (rate : NNReal) (B : ℝ) :
     (poissonMeasure rate).real {k : ℕ | B / 4 < (k : ℝ)} ≤
       Real.exp (3 * (rate : ℝ) - B * Real.log 4 / 4) := by

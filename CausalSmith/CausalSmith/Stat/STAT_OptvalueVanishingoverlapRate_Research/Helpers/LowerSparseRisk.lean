@@ -305,8 +305,8 @@ lemma sparse_product_prior_bayesRisk_lower :
       (sparseProductPoissonKernel_probability (hMpaper := hM) B n d ε M) est hest
       (measurable_sparsePriorTarget (hMpaper := hM) d ε M)
       (1 / 2 + a / 2) (1 / 2 + b / 2) Delta (Delta / 4) (1 / 8) (1 / 8) (1 / 8)
-      hDelta.le (by positivity) (by linarith) hsep
-      (by norm_num) (by norm_num) (by norm_num) ht0 ht1 htv
+      (by linarith) hsep
+      ht0 ht1 htv
     rw [hnum] at hb
     exact hb
   · have hsep : Delta ≤ (1 / 2 + a / 2) - (1 / 2 + b / 2) := by
@@ -323,8 +323,8 @@ lemma sparse_product_prior_bayesRisk_lower :
       (sparseProductPoissonKernel_probability (hMpaper := hM) B n d ε M) est hest
       (measurable_sparsePriorTarget (hMpaper := hM) d ε M)
       (1 / 2 + b / 2) (1 / 2 + a / 2) Delta (Delta / 4) (1 / 8) (1 / 8) (1 / 8)
-      hDelta.le (by positivity) (by linarith) hsep
-      (by norm_num) (by norm_num) (by norm_num) ht1 ht0 htv'
+      (by linarith) hsep
+      ht1 ht0 htv'
     rw [hnum, max_comm] at hb
     exact hb
 

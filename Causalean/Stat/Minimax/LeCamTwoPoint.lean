@@ -225,8 +225,7 @@ is positive for every finite KL budget, because the testing floor is supplied by
 Bretagnolle–Huber inequality (`Causalean.Stat.bretagnolle_huber_affinity`).  The estimation→testing
 step uses the `(θ₁ − θ₀)/2` separation via `Causalean.Stat.half_one_sub_tvDist_le_max_error` and a
 Markov/Chebyshev bound on the squared loss. -/
-@[deprecated (since := "2026-09-17")]
-lemma le_cam_two_point_mse (K : ℝ) :
+theorem le_cam_two_point_mse (K : ℝ) :
     ∃ cK : ℝ, 0 < cK ∧
       ∀ {S : Type*} [MeasurableSpace S]
         (Q0 Q1 : Measure S) [IsProbabilityMeasure Q0] [IsProbabilityMeasure Q1]

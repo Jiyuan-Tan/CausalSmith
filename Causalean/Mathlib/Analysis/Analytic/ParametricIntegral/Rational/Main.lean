@@ -172,13 +172,13 @@ theorem analyticAt_setIntegral_polynomial_div_affine
   rw [integral_finsetSum Finset.univ (fun i _ ↦ hfi i)]
   simp only [integral_const_mul]
 
-/-- Given [a measure](hyp:μ), [a measurable integration set of finite measure](hyp:hK,hμK), [a polynomial degree, coefficient functions, and affine endpoint functions](hyp:N,c,a,b), [an open parameter set, positive separation margin, nonnegative slope bound, and coefficient bounds](hyp:O,ε,L,C), [openness and valid numerical bounds](hyp:hO,hε,hL), [measurability of the coefficients and endpoints](hyp:hc,ha,hb), [uniform coefficient and slope bounds on the integration set](hyp:hc_bound,hslope), and [uniform denominator separation over the parameter and integration sets](hyp:hden), [the polynomial-over-affine set integral is real analytic throughout the open parameter set](goal). -/
+/-- Given [a measure](hyp:μ), [a measurable integration set of finite measure](hyp:hK,hμK), [a polynomial degree, coefficient functions, and affine endpoint functions](hyp:N,c,a,b), [a parameter set, positive separation margin, nonnegative slope bound, and coefficient bounds](hyp:O,ε,L,C), [valid numerical bounds](hyp:hε,hL), [measurability of the coefficients and endpoints](hyp:hc,ha,hb), [uniform coefficient and slope bounds on the integration set](hyp:hc_bound,hslope), and [uniform denominator separation over the parameter and integration sets](hyp:hden), [the polynomial-over-affine set integral is real analytic throughout the parameter set](goal). -/
 theorem analyticOnNhd_setIntegral_polynomial_div_affine
     {α : Type*} [MeasurableSpace α] (μ : Measure α)
     {K : Set α} (hK : MeasurableSet K) (hμK : μ K ≠ ∞)
     (N : ℕ) (c : Fin (N + 1) → α → ℝ) (a b : α → ℝ)
     (O : Set ℝ) (ε L : ℝ) (C : Fin (N + 1) → ℝ)
-    (hO : IsOpen O) (hε : 0 < ε) (hL : 0 ≤ L)
+    (hε : 0 < ε) (hL : 0 ≤ L)
     (hc : ∀ i, Measurable (c i)) (ha : Measurable a) (hb : Measurable b)
     (hc_bound : ∀ i, ∀ x ∈ K, |c i x| ≤ C i)
     (hslope : ∀ x ∈ K, |b x - a x| ≤ L)
@@ -396,7 +396,7 @@ theorem analyticOnNhd_setIntegral_polynomial_div_affine_of_uniform_nonzero
   -- Unfold `AnalyticOnNhd` pointwise.  Openness supplies a positive parameter ball contained
   -- in `O`; restrict `hden` to that ball and apply the preceding ball-local theorem.
   intro t₀ ht₀
-  rcases affineDenominator_uniformly_nonzero_on_open_near hO hε hden ht₀ with
+  rcases affineDenominator_uniformly_nonzero_on_open_near hO hden ht₀ with
     ⟨r, hr, _hball, hden_ball⟩
   exact analyticAt_setIntegral_polynomial_div_affine_of_uniform_nonzero_near
     μ hK hμK N c a b t₀ ε r C hε hr hc ha hb hc_bound fun t ht ↦

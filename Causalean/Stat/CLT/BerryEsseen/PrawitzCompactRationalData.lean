@@ -23,18 +23,21 @@ namespace Causalean.Stat.CLT.BerryEsseen
 
 open Finset
 
-/-- The [left endpoint](goal) of [a parameter cell](hyp:j) uses width
-one thousandth below one tenth and one two hundredth thereafter. -/
+/-- The [left endpoint](goal) of [the j-th parameter cell](hyp:j) is
+(10 + j)/1000 for j < 90 and (20 + (j − 90))/200 for j ≥ 90: the cells have
+width one thousandth from 1/100 up to 1/10 and width one two hundredth from
+1/10 onward. -/
 def prawitzCompactLeft (j : ℕ) : ℚ :=
   if j < 90 then (10 + (j : ℚ)) / 1000 else (20 + ((j - 90 : ℕ) : ℚ)) / 200
 
-/-- The [right endpoint](goal) of [a parameter cell](hyp:j) is the next
-left endpoint, so consecutive cells have no gaps. -/
+/-- The [right endpoint](goal) of [the j-th parameter cell](hyp:j) is the
+left endpoint of cell j + 1, so consecutive cells have no gaps. -/
 def prawitzCompactRight (j : ℕ) : ℚ := prawitzCompactLeft (j + 1)
 
-/-- The [upper low-frequency index](goal) for [a parameter cell](hyp:j)
-specifies an endpoint divided by two hundred. Entries outside the finite
-grid are assigned a default that no certificate uses. -/
+/-- The [low-frequency cutoff index](goal) of [the j-th parameter cell](hyp:j)
+is an integer read from an explicit 270-entry table, with values between 300
+and 859; divided by two hundred it is the cell's upper low-frequency grid
+endpoint. For j outside the 270-cell grid the value is the default 300. -/
 def prawitzLowCutoffIndex (j : ℕ) : ℕ :=
   #[
     859, 850, 842, 834, 827, 820, 814, 808, 802, 797, 792, 787,
@@ -62,8 +65,11 @@ def prawitzLowCutoffIndex (j : ℕ) : ℕ :=
     300, 300, 300, 300, 300, 300
   ].getD j 300
 
-/-- The [lower high-frequency index](goal) for [a parameter cell](hyp:j)
-specifies a kernel endpoint divided by one thousand. -/
+/-- The [high-frequency cutoff index](goal) of [the j-th parameter cell](hyp:j)
+is an integer read from an explicit 270-entry table, with values between 16
+and 620; divided by one thousand it is the lower endpoint, in the rescaled
+kernel variable, of the cell's high-frequency range. For j outside the
+270-cell grid the value is the default 1. -/
 def prawitzHighCutoffIndex (j : ℕ) : ℕ :=
   #[
     16, 18, 19, 21, 22, 24, 25, 27, 28, 30, 31, 33,
@@ -91,9 +97,12 @@ def prawitzHighCutoffIndex (j : ℕ) : ℕ :=
     605, 608, 611, 614, 617, 620
   ].getD j 1
 
-/-- The [integer kernel enclosure](goal) for [a frequency cell](hyp:i),
-divided by one million, encloses its norm on the open band. Index zero is
-unused: the high certificate starts at a positive index. -/
+/-- The [integer kernel magnitude entry](goal) of [the i-th frequency
+cell](hyp:i) is read from an explicit 1000-entry table; divided by one million
+it serves as the upper bound for the Prawitz filter magnitude on the cell
+[i/1000, (i + 1)/1000] of the kernel variable, a bound certified separately.
+The entry at index zero and the default for i ≥ 1000 are zero and bound
+nothing: the high certificate starts at a positive index. -/
 def prawitzKernelMagnitudeIndex (i : ℕ) : ℕ :=
   #[
     0, 159156123, 79578712, 53053078, 39790387, 31832872, 26527944, 22738779, 19896965, 17686718, 15918567, 14471940,
@@ -182,9 +191,13 @@ def prawitzKernelMagnitudeIndex (i : ℕ) : ℕ :=
     2001, 1501, 1001, 501
   ].getD i 0
 
-/-- The [rational squared kernel enclosure](goal) on [a grid cell](hyp:i)
-uses lower and upper decimal bounds for pi below the half-band, and the
-reflected polynomial above it. -/
+/-- The [rational squared kernel bound](goal) on [the i-th grid cell](hyp:i),
+with a = i/1000, b = (i + 1)/1000 and the decimal bounds p = 3.14159 and
+q = 3.14160 for π, is
+(1 − a)²/4 + (((1 − a)·(1 − (pa)²/2 + (qb)⁴/24)/(pa·(1 − (qb)²/6)) + 1/p)/2)²
+for i < 500 (the lower half-band) and the reflected polynomial
+(1 − a)²/4 + q²(1 − a)⁴/16 for i ≥ 500. At i = 0 the denominator pa vanishes
+and the quotient is assigned zero. -/
 def prawitzRationalKernelSq (i : ℕ) : ℚ :=
   let a := (i : ℚ) / 1000
   let b := ((i + 1 : ℕ) : ℚ) / 1000
@@ -196,17 +209,25 @@ def prawitzRationalKernelSq (i : ℕ) : ℚ :=
         (p * a * (1 - (q * b) ^ 2 / 6)) + 1 / p) / 2) ^ 2
   else (1 - a) ^ 2 / 4 + q ^ 2 * (1 - a) ^ 4 / 16
 
-/-- The [rational initial low integral enclosure](goal) for
-[a parameter cell](hyp:j) bounds the removable singularity interval. -/
+/-- The [rational bound for the initial low-frequency interval
+[0, 1/200]](goal) on [the j-th parameter cell](hyp:j) is
+(1/p + 5sa/12)·(1/6 + sa/8)·a³/3, with a = 1/200, s the cell's right endpoint
+and p = 3.14159. This interval contains the filter's removable singularity at
+zero. -/
 def prawitzRationalLowInitial (j : ℕ) : ℚ :=
   let s := prawitzCompactRight j
   let a := (1 / 200 : ℚ)
   (1 / (314159 / 100000 : ℚ) + 5 * s * a / 12) *
     (1 / 6 + s * a / 8) * a ^ 3 / 3
 
-/-- The [rational normalized low cell enclosure](goal) for
-[a parameter cell and positive frequency index](hyp:j,i) retains the
-minimum of the Taylor and modulus-sum branches. -/
+/-- The [rational normalized low-frequency cell bound](goal) for
+[the j-th parameter cell and the i-th frequency cell](hyp:j,i) is
+(1/200)·(1/(pa) + 5s/12) times the smaller of the Taylor branch
+(b³/6 + sb⁴/8)/T(e/2) and the modulus-sum branch (1/T(e) + 1/T(a²/2))/r.
+Here r and s are the parameter cell's left and right endpoints, a = i/200,
+b = (i + 1)/200, p = 3.14159, e is the smaller of a²/2 − sa³/5 and
+b²/2 − sb³/5, and T is the sixteen-term Taylor polynomial of the exponential.
+It is meant for positive i; at i = 0 the quotient 1/(pa) is assigned zero. -/
 def prawitzRationalLowCell (j i : ℕ) : ℚ :=
   let r := prawitzCompactLeft j
   let s := prawitzCompactRight j
@@ -217,16 +238,24 @@ def prawitzRationalLowCell (j i : ℕ) : ℚ :=
     min ((b ^ 3 / 6 + s * b ^ 4 / 8) / prawitzTaylor16 (e / 2))
       ((1 / prawitzTaylor16 e + 1 / prawitzTaylor16 (a ^ 2 / 2)) / r)
 
-/-- The [complete normalized rational low sum](goal) for
-[a parameter cell](hyp:j) includes the initial interval and every adjacent
-positive cell through its certified upper cutoff. -/
+/-- The [complete normalized rational low-frequency sum](goal) for
+[the j-th parameter cell](hyp:j) is the initial-interval bound rounded up to
+a multiple of one hundred millionth, plus the sum over frequency indices i
+from 1 up to but not including the cell's low cutoff index of the low cell
+bounds, each rounded up in the same way. -/
 def prawitzRationalLowSum (j : ℕ) : ℚ :=
   prawitzRoundUp (prawitzRationalLowInitial j) +
     ∑ i ∈ Ico 1 (prawitzLowCutoffIndex j), prawitzRoundUp (prawitzRationalLowCell j i)
 
-/-- The [rational raw high cell enclosure](goal) for
-[a parameter cell and kernel frequency index](hyp:j,i) uses the endpoint
-cubic damping at the upper parameter and length at the lower parameter. -/
+/-- The [rational raw high-frequency cell bound](goal) for
+[the j-th parameter cell and the i-th kernel frequency cell](hyp:j,i) is
+(12/(5r))·(1/1000)·(M/1000000)/T(e). Here r and s are the parameter cell's
+left and right endpoints, a = i/1000, b = (i + 1)/1000, M is the integer
+kernel magnitude entry at i, e is the smaller of 72a²/25 − 1728a³/625 and
+72b²/25 − 1728b³/625 divided by s², and T is
+the sixteen-term Taylor polynomial of the exponential. The cell length is
+rescaled by the bandwidth 12/(5r) at the lower parameter, and the cubic
+damping is taken at the upper parameter. -/
 def prawitzRationalHighCell (j i : ℕ) : ℚ :=
   let r := prawitzCompactLeft j
   let s := prawitzCompactRight j
@@ -237,9 +266,10 @@ def prawitzRationalHighCell (j i : ℕ) : ℚ :=
   (12 / (5 * r)) * (1 / 1000 : ℚ) *
     ((prawitzKernelMagnitudeIndex i : ℚ) / 1000000) / prawitzTaylor16 e
 
-/-- The [complete raw rational high sum](goal) for
-[a parameter cell](hyp:j) covers every kernel cell between its lower index
-and the outer cutoff, with the half-band already a grid endpoint. -/
+/-- The [complete raw rational high-frequency sum](goal) for
+[the j-th parameter cell](hyp:j) is the sum, over kernel frequency indices i
+from the cell's high cutoff index through 999, of the high cell bounds, each
+rounded up to a multiple of one hundred millionth. -/
 def prawitzRationalHighSum (j : ℕ) : ℚ :=
   ∑ i ∈ Ico (prawitzHighCutoffIndex j) 1000,
     prawitzRoundUp (prawitzRationalHighCell j i)

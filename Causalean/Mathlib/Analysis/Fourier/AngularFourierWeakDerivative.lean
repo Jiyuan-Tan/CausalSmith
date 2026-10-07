@@ -11,7 +11,7 @@ multiplier identity. It also turns real coordinate-slice integration by parts in
 interface using the exact Euclidean/product-Lebesgue coordinate equivalence.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 open MeasureTheory
@@ -20,15 +20,19 @@ open scoped ContDiff Topology ENNReal
 namespace Causalean.Mathlib.Analysis.Fourier
 variable {p : ℕ}
 
-/-- An integrable weak coordinate derivative vanishes almost everywhere
-outside the topological support of a compactly supported integrable function.
+/-- An integrable weak coordinate derivative of a function vanishes almost
+everywhere outside the topological support of that function.
+
+The function itself is not assumed locally integrable: where the product of the function with
+a test-function derivative is not integrable, the weak-derivative hypothesis reads that integral
+as zero, by the convention that the integral of a non-integrable function is zero.
 
 Test in the open complement of `tsupport G` and reuse the open-set version of
 `ae_eq_zero_of_integral_contDiff_smul_eq_zero`, complexifying real scalar tests.
 The derivative itself need not have pointwise compact support. -/
 theorem weakDerivative_zero_off_support (G D : Space p → ℂ) (r : Fin p)
-    (hG : Integrable G volume) (hD : Integrable D volume)
-    (hGc : HasCompactSupport G) (hweak : HasWeakCoordinateDerivative G D r) :
+    (hD : Integrable D volume)
+    (hweak : HasWeakCoordinateDerivative G D r) :
     ∀ᵐ x ∂volume, x ∉ tsupport G → D x = 0 := by
   apply (isClosed_tsupport G).isOpen_compl.ae_eq_zero_of_integral_contDiff_smul_eq_zero
     (hD.locallyIntegrable.locallyIntegrableOn _)
@@ -88,21 +92,26 @@ theorem integrable_weak_test_products (G D : Space p → ℂ) (r : Fin p)
     · simp [(hχone x hx).eq_of_nhds]
     · simp [image_eq_zero_of_notMem_tsupport hx]
   · apply hDprod.congr
-    filter_upwards [weakDerivative_zero_off_support G D r hG hD hGc hweak] with x hxD
+    filter_upwards [weakDerivative_zero_off_support G D r hD hweak] with x hxD
     by_cases hx : x ∈ tsupport G
     · simp [(hχone x hx).eq_of_nhds]
     · simp [hxD hx]
 
 /-- Spatial integration by parts extends from compact smooth tests to every
-smooth test when the function has compact support and both it and its weak
-derivative are integrable.
+smooth test when the function has compact support and its weak
+derivative is integrable.
+
+The function itself is not assumed integrable: when its product with the test-function
+derivative is not integrable, the left-hand integral, like the corresponding integrals in the
+weak-derivative hypothesis, is zero by the convention that the integral of a non-integrable
+function is zero.
 
 Choose a smooth cutoff equal to one on a neighborhood of `tsupport G`, use
 the product rule, and discard the outside-support derivative term using
 `weakDerivative_zero_off_support`. This is a spatial statement, not a
 Fourier multiplier premise. -/
 theorem weakIBP_smooth_test (G D : Space p → ℂ) (r : Fin p)
-    (hG : Integrable G volume) (hD : Integrable D volume)
+    (hD : Integrable D volume)
     (hGc : HasCompactSupport G) (hweak : HasWeakCoordinateDerivative G D r)
     (φ : Space p → ℂ) (hφ : ContDiff ℝ ∞ φ) :
     (∫ x, G x * coordinateDerivative φ r x) = -(∫ x, D x * φ x) := by
@@ -121,7 +130,7 @@ theorem weakIBP_smooth_test (G D : Space p → ℂ) (r : Fin p)
         hχx, hχd, add_apply, smul_apply, zero_apply, smul_zero, add_zero, one_smul]
     · simp [image_eq_zero_of_notMem_tsupport hx]
   have hright : (fun x => D x * (χ x * φ x)) =ᵐ[volume] (fun x => D x * φ x) := by
-    filter_upwards [weakDerivative_zero_off_support G D r hG hD hGc hweak] with x hxD
+    filter_upwards [weakDerivative_zero_off_support G D r hD hweak] with x hxD
     by_cases hx : x ∈ tsupport G
     · simp [(hχone x hx).eq_of_nhds]
     · simp [hxD hx]
@@ -173,17 +182,21 @@ theorem coordinateDerivative_angular_phase (w : Space p) (r : Fin p) (u : Space 
 
 /-- The angular transform of an integrable weak coordinate derivative equals
 the imaginary unit times that frequency coordinate times the transform of the
-compactly supported integrable spatial function, at every frequency.
+compactly supported spatial function, at every frequency.
+
+The spatial function is not assumed integrable: when it is not, its transform and the integrals
+in the weak-derivative hypothesis are zero by the convention that the integral of a
+non-integrable function is zero.
 
 Apply `weakIBP_smooth_test` to the angular exponential and use its explicit
 coordinate derivative. Compact support of the derivative is derived almost
 everywhere in `WeakTests`, not assumed here. -/
 theorem angularFourier_weakDerivative (G D : Space p → ℂ) (r : Fin p)
-    (hG : Integrable G volume) (hD : Integrable D volume)
+    (hD : Integrable D volume)
     (hGc : HasCompactSupport G) (hweak : HasWeakCoordinateDerivative G D r)
     (w : Space p) :
     angularFourier D w = Complex.I * (w r : ℂ) * angularFourier G w := by
-  have hw := weakIBP_smooth_test G D r hG hD hGc hweak _
+  have hw := weakIBP_smooth_test G D r hD hGc hweak _
     (contDiff_angular_phase w)
   simp_rw [coordinateDerivative_angular_phase] at hw
   have hi : (∫ u, Complex.exp (-Complex.I * ((∑ s, w s * u s : ℝ) : ℂ)) * D u) =
@@ -347,9 +360,9 @@ theorem realSliceIBP_complex_test (G : Space p → ℝ) (D : Fin p → Space p �
 
 variable {p : ℕ}
 
-/-- [A real spatial function and its coordinate derivatives](hyp:hG,hD) with [compact supports](hyp:hGc,hDc) satisfying [real slice integration by parts](hyp:hslice) give [the corresponding complex weak coordinate derivative](goal).
+/-- [An integrable real spatial function and integrable proposed coordinate derivatives](hyp:hG,hD) satisfying [real slice integration by parts](hyp:hslice) give [in each coordinate the complex weak derivative: the complexified proposed derivative is the weak coordinate derivative of the complexified function](goal).
 
-Real slice integration by parts for compactly supported integrable spatial
+Real slice integration by parts for integrable spatial
 data yields the standard complex weak derivative in each coordinate.
 
 Use `integrable_compact_test_products` and `integrable_coordinate_slices_ae`
@@ -361,7 +374,6 @@ For a remaining-coordinate vector z, take x = insertCoordinate r z 0;
 updating its r-th coordinate to t yields insertCoordinate r z t. -/
 theorem sliceIBP_to_weakDerivative (G : Space p → ℝ) (D : Fin p → Space p → ℝ)
     (hG : Integrable G volume) (hD : ∀ r, Integrable (D r) volume)
-    (hGc : HasCompactSupport G) (hDc : ∀ r, HasCompactSupport (D r))
     (hslice : HasRealSliceIBP G D) (r : Fin p) :
     HasWeakCoordinateDerivative (complexify G) (complexify (D r)) r := by
   intro φ hφ hφc

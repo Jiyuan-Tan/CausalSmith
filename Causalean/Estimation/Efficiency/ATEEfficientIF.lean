@@ -18,7 +18,7 @@ Hahn (1998), but these bounded-tilt results are not a formalization of Hahn's
 Theorem 1.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 
@@ -80,13 +80,12 @@ lemma observedOutcome_bounded
   · exact measurableSet_Iic.preimage
       ((measurable_snd.snd : Measurable (fun z : γ × Bool × ℝ => z.2.2)).abs)
 
-/-- Given [a backdoor estimation system `S`](hyp:S), [strict overlap at level
-`ε`](hyp:ε,h_overlap), and [the backdoor assumptions](hyp:hA), [the induced
-observed law has overlap at level `ε` in both arms](goal). -/
+/-- Given [a backdoor estimation system `S`](hyp:S) and [strict overlap at level
+`ε`](hyp:ε,h_overlap), [the induced observed law has overlap at level `ε` in both
+arms](goal). -/
 lemma observedPropensity_overlap
     (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
-    (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPOBackdoorSystem.Assumptions) :
+    (h_overlap : S.StrictOverlap ε) :
     ∀ d, ∀ᵐ z ∂S.P_Z, ε ≤ observedPropensity S.P_Z d z := by
   have heZ : ∀ᵐ z ∂S.P_Z,
       ε ≤ S.e_val (projX z) ∧ S.e_val (projX z) ≤ 1 - ε := by
@@ -105,7 +104,7 @@ lemma observedPropensity_overlap
     simpa [ATE.BackdoorEstimationSystem.factualZ, projX] using hω
   intro d
   have hp := Causalean.Estimation.Efficiency.ATE.BackdoorEstimationSystem.observedPropensity_P_Z_ae
-    S hA d
+    S d
   cases d
   · filter_upwards [hp, heZ] with z hpz hez
     rw [hpz]
@@ -116,24 +115,21 @@ lemma observedPropensity_overlap
     simpa [e_val_label] using hez.1
 
 /-- Given [a backdoor estimation system `S`](hyp:S), [strict overlap at level
-`ε`](hyp:ε,h_overlap), [the backdoor assumptions](hyp:hA), [a nonnegative
-outcome bound `B`](hyp:B,hB), and [bounded factual outcomes](hyp:hY_bound), [the
+`ε`](hyp:ε,h_overlap), [a nonnegative outcome bound `B`](hyp:B,hB), and [bounded factual outcomes](hyp:hY_bound), [the
 observed-law AIPW function belongs to L²](goal). -/
 theorem observedAIPW_memLp_of_bounded
     (S : ATE.BackdoorEstimationSystem P γ) {ε B : ℝ}
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPOBackdoorSystem.Assumptions)
     (hB : 0 ≤ B)
     (hY_bound : ∀ ω, |S.toPOBackdoorSystem.factualY ω| ≤ B) :
     MemLp (observedAIPW S.P_Z) 2 S.P_Z :=
   memLp_observedAIPW S.P_Z B ε hB h_overlap.1
     (S.observedOutcome_bounded B hY_bound)
-    (S.observedPropensity_overlap h_overlap hA)
+    (S.observedPropensity_overlap h_overlap)
 
 /-- The [observed-law AIPW function is efficient for the observed-law ATE relative
 to the bounded-tilt submodel class](goal) for [a backdoor ATE estimation
-system](hyp:S) satisfying [the backdoor assumptions](hyp:hA), [strict overlap at
-a positive level](hyp:ε,h_overlap), and [factual outcomes bounded by a
+system](hyp:S) satisfying [strict overlap at a positive level](hyp:ε,h_overlap) and [factual outcomes bounded by a
 nonnegative constant](hyp:B,hB,hY_bound). No separate factual- or
 potential-outcome second-moment premise is required.
 
@@ -142,14 +138,13 @@ bounded-outcome, bounded-tilt surrogate above and is not Hahn's Theorem 1. -/
 theorem aipw_is_efficientInfluenceFunction_ATE
     (S : ATE.BackdoorEstimationSystem P γ) {ε B : ℝ}
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPOBackdoorSystem.Assumptions)
     (hB : 0 ≤ B)
     (hY_bound : ∀ ω, |S.toPOBackdoorSystem.factualY ω| ≤ B) :
     IsEfficientInfluenceFunction S.P_Z observedATE
-      ((S.observedAIPW_memLp_of_bounded h_overlap hA hB hY_bound).toLp
+      ((S.observedAIPW_memLp_of_bounded h_overlap hB hY_bound).toLp
         (observedAIPW S.P_Z)) (boundedTiltSubmodels S.P_Z) := by
   exact observedAIPW_isEfficientInfluenceFunction_ATE S.P_Z B ε hB h_overlap.1
     (S.observedOutcome_bounded B hY_bound)
-    (S.observedPropensity_overlap h_overlap hA)
+    (S.observedPropensity_overlap h_overlap)
 
 end Causalean.Estimation.ATE.BackdoorEstimationSystem

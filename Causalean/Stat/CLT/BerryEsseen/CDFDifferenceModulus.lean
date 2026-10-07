@@ -14,13 +14,12 @@ namespace Causalean.Stat.CLT.BerryEsseen
 
 open MeasureTheory
 
-/-- If [ν assigns every interval at most L times its length](hyp:hν), for
-[a nonnegative constant L](hyp:hL), then for [any points a ≤ b](hyp:hab)
+/-- If [ν assigns every interval at most L times its length](hyp:hν), then for [any points a ≤ b](hyp:hab)
 [the CDF difference Fμ − Fν at a is at most its value at b plus
 L·(b − a)](goal). -/
 theorem cdf_difference_one_sided_modulus
     (μ ν : Measure ℝ) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    (L : ℝ) (hL : 0 ≤ L)
+    (L : ℝ)
     (hν : ∀ a b : ℝ, a ≤ b →
       (ν (Set.Ioc a b)).toReal ≤ L * (b - a))
     (a b : ℝ) (hab : a ≤ b) :

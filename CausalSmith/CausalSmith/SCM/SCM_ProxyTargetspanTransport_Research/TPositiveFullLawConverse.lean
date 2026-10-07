@@ -44,7 +44,7 @@ theorem positive_full_law_converse (PO : E → W → X → Y → ℝ) (bvec : W 
                 t * dotProduct h bvec) ∧
       Set.Ioo (interventionalProb Mdl x y - ε * |dotProduct h bvec|)
           (interventionalProb Mdl x y + ε * |dotProduct h bvec|) ⊆
-        Causalean.Stat.AttainableSet.IdentifiedInterval
+        Causalean.Stat.AttainableSet.IdentifiedSet
           (fun M : LatentShiftSCM E U W X Y => interventionalProb M x y)
           (fun M => M ∈ compatibleFiber PO bvec) := by
   have hM : PositiveLatentShiftClass Mdl := hMdl.1
@@ -109,6 +109,6 @@ theorem positive_full_law_converse (PO : E → W → X → Y → ℝ) (bvec : W 
         x y ⟨ycirc, hy⟩ wstar t hf_nonneg hf_col) x y = z := by
     linarith
   rw [← heq]
-  exact Causalean.PartialID.mem_identifiedInterval hMt
+  exact Causalean.PartialID.mem_identifiedSet hMt
 
 end CausalSmith.SCM.ProxyTargetspanTransport

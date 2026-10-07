@@ -3,7 +3,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Exact integrals of the Bernoulli and inverse-score quantile steps. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.PartialID.UnlinkedPropensityAte
 

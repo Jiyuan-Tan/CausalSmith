@@ -14,7 +14,7 @@ public section
 
 namespace Causalean.Mathlib.Analysis.SpecialFunctions.Jacobi
 
-/-- An [energy function](hyp:E), [left affine coefficient](hyp:A), [right affine coefficient](hyp:B), and [point in the unit interval](hyp:x,hx), when [the left coefficient is nonnegative](hyp:hA), [the energy is continuous on the unit interval](hyp:hE), [it is differentiable in the interior](hyp:hd), and [its derivative has the stated one-sign-change form](hyp:hder), give [an energy no larger than the greater endpoint energy](goal).
+/-- An [energy function](hyp:E), [left affine coefficient](hyp:A), [right affine coefficient](hyp:B), and [point in the unit interval](hyp:x,hx), when [the left coefficient is nonnegative](hyp:hA), [the energy is continuous on the unit interval](hyp:hE), [it is differentiable in the interior](hyp:hd), and [at each interior point y its derivative is a nonnegative multiple of −A + B·y](hyp:hder), give [an energy no larger than the greater endpoint energy](goal).
 
 A continuous energy on `[0,1]` is at most its larger endpoint value when
 its interior derivative is a nonnegative multiple of `-A + B x`, with `A ≥ 0`.

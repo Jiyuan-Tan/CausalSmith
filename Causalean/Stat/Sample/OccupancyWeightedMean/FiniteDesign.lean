@@ -17,7 +17,7 @@ occupancy. Zero-mass group fibers vanish before any conditional arm probability
 is formed.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat
 

@@ -23,8 +23,6 @@ infrastructure.
   (`condDistrib_ae_eq_of_measure_eq_compProd`).
 * `measure_eq_bind_marginal_condDistrib` — classical bind-form
   disintegration of a finite product measure.
-* `condDistrib_map_comp` — reparameterization of `condDistrib` through a
-  pushforward measure.
 
 ## Removed (April 2026)
 
@@ -47,11 +45,10 @@ independent of the causal-model infrastructure and serve as Mathlib-adjacent
 measure-theoretic support for identification proofs.
 
 The exported results are `map_compProd_prodMap_left_eq_compProd_comap`,
-`condDistrib_comp_right_measurableEquiv`,
-`measure_eq_bind_marginal_condDistrib`, and `condDistrib_map_comp`. Together
-they move regular conditional distributions across measurable equivalences,
-package finite-measure disintegration as a bind identity, and compare
-conditional distributions before and after pushing the source measure forward. -/
+`condDistrib_comp_right_measurableEquiv`, and
+`measure_eq_bind_marginal_condDistrib`. Together
+they move regular conditional distributions across measurable equivalences and
+package finite-measure disintegration as a bind identity. -/
 
 public section
 
@@ -277,33 +274,5 @@ theorem measure_eq_bind_marginal_condDistrib
 -- slice of a `Kernel.condKernel` at the definition layer in
 -- `Causal/Model/Kernel.lean`, then update Rule 2's statement and proof to
 -- work at the `Kernel.condKernel` level directly.
-
-/-- **Reparameterization of `condDistrib` through a pushforward.** For [a measurable map `φ` from
-    the sample space `Ω` to `Ω'`](hyp:hφ), [a measurable outcome map `g`](hyp:hg), and [a
-    measurable conditioning map `f`](hyp:hf), [the conditional distribution of `g` given `f`,
-    computed under the pushforward of `μ` by `φ`, agrees almost everywhere on the `f`-marginal
-    with the conditional distribution of the pullbacks `g ∘ φ` given `f ∘ φ`, computed under `μ`
-    directly](goal).
-
-    This lets a conditional distribution stated on an image space (e.g. observed
-    values, under an observational kernel) be transported to the source space
-    (e.g. latent values, under the latent product), where additional structure is
-    available.  Proved by uniqueness of disintegration
-    (`condDistrib_ae_eq_of_measure_eq_compProd_of_measurable`): the required
-    `compProd` identity is `compProd_map_condDistrib` for `g ∘ φ`, `f ∘ φ`,
-    transported across `φ` by `Measure.map_map`. -/
-@[deprecated ProbabilityTheory.condDistrib_map (since := "2026-09-15")]
-theorem condDistrib_map_comp
-    {Ω Ω' 𝒳 𝒴 : Type*}
-    [MeasurableSpace Ω] [MeasurableSpace Ω'] [MeasurableSpace 𝒳]
-    [MeasurableSpace 𝒴] [StandardBorelSpace 𝒴] [Nonempty 𝒴]
-    (μ : MeasureTheory.Measure Ω) [MeasureTheory.IsFiniteMeasure μ]
-    {φ : Ω → Ω'} {g : Ω' → 𝒴} {f : Ω' → 𝒳}
-    (hφ : Measurable φ) (hg : Measurable g) (hf : Measurable f) :
-    ProbabilityTheory.condDistrib g f (μ.map φ)
-      =ᵐ[(μ.map φ).map f] ProbabilityTheory.condDistrib (g ∘ φ) (f ∘ φ) μ := by
-  simpa only [MeasureTheory.Measure.map_map hf hφ] using
-    (ProbabilityTheory.condDistrib_map (ν := μ) (f := φ)
-      hf.aemeasurable hg.aemeasurable hφ.aemeasurable)
 
 end Causalean.Mathlib.Probability.Kernel

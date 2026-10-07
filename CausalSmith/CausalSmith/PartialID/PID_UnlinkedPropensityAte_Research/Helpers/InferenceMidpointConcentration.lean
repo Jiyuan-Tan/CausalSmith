@@ -5,7 +5,7 @@ public import Causalean.Stat.Sample.PiTransport
 
 /-! Product-law concentration of the equal-width midpoint statistic. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal

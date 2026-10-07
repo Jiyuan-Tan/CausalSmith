@@ -22,10 +22,12 @@ open Causalean.Mathlib.Probability.Kernel.ThreeBernoulli
 
 universe u
 
-/-- [KL between two selected laws equals the integrated conditional Bernoulli
-KL](goal) for a [probability covariate law](hyp:μ),
+/-- [The real-valued KL divergence between two selected laws with the same covariate
+law and propensity equals the covariate integral of the conditional Bernoulli KL: one
+minus the propensity times the untreated-mean Bernoulli KL plus the propensity times
+the treated-mean Bernoulli KL](goal) for a [probability covariate law](hyp:μ),
 [measurable propensity and means](hyp:he,hq₀,hq₁,hq₀',hq₁'), and
-[uniform interior bounds](hyp:hη0,hηhalf,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
+[uniform interior bounds](hyp:hη0,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
 
 Use `InformationTheory.toReal_klDiv_of_measure_eq`, the almost-everywhere
 cellwise log ratio, `selectedLaw_integral_cell_log_eq_sum`, and
@@ -41,7 +43,7 @@ theorem selectedLaw_klDiv_toReal_eq_integral {X : Type u} [MeasurableSpace X]
     (e q₀ q₁ q₀' q₁' : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
     (hq₀' : Measurable q₀') (hq₁' : Measurable q₁')
-    {η : ℝ} (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    {η : ℝ} (hη0 : 0 < η)
     (heη : ∀ x, e x ∈ Set.Icc η (1 - η))
     (hq₀η : ∀ x, q₀ x ∈ Set.Icc η (1 - η))
     (hq₁η : ∀ x, q₁ x ∈ Set.Icc η (1 - η))
@@ -62,12 +64,12 @@ theorem selectedLaw_klDiv_toReal_eq_integral {X : Type u} [MeasurableSpace X]
     selectedLaw_probability μ e q₀' q₁' he hq₀' hq₁'
       (h01 e heη) (h01 q₀' hq₀'η) (h01 q₁' hq₁'η)
   have hac := selectedLaw_ac μ e q₀ q₁ q₀' q₁' he hq₀ hq₁ hq₀' hq₁'
-    hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η
+    hη0 heη hq₀'η hq₁'η
   rw [InformationTheory.toReal_klDiv_of_measure_eq hac (by simp),
     integral_congr_ae (selectedLaw_llr_ae_eq_cell_log μ e q₀ q₁ q₀' q₁'
-      he hq₀ hq₁ hq₀' hq₁' hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η),
+      he hq₀ hq₁ hq₀' hq₁' hη0 heη hq₀'η hq₁'η),
     selectedLaw_integral_cell_log_eq_sum μ e q₀ q₁ q₀' q₁'
-      he hq₀ hq₁ hq₀' hq₁' hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η]
+      he hq₀ hq₁ hq₀' hq₁' hη0 heη hq₀η hq₁η hq₀'η hq₁'η]
   congr 1
   funext x
   have hpos (p : ℝ) (hp : p ∈ Set.Icc η (1 - η)) :
@@ -76,9 +78,5 @@ theorem selectedLaw_klDiv_toReal_eq_integral {X : Type u} [MeasurableSpace X]
     constructor <;> linarith
   exact sum_cellMass_mul_log_ratio_eq_weighted_bernoulliKL
     (hpos (e x) (heη x)).1 (hpos (e x) (heη x)).2
-    (hpos (q₀ x) (hq₀η x)).1 (hpos (q₀ x) (hq₀η x)).2
-    (hpos (q₁ x) (hq₁η x)).1 (hpos (q₁ x) (hq₁η x)).2
-    (hpos (q₀' x) (hq₀'η x)).1 (hpos (q₀' x) (hq₀'η x)).2
-    (hpos (q₁' x) (hq₁'η x)).1 (hpos (q₁' x) (hq₁'η x)).2
 
 end Causalean.Mathlib.Probability.Kernel.ThreeBernoulli.SelectedLawKL

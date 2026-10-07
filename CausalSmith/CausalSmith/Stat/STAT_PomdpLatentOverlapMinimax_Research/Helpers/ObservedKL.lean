@@ -350,7 +350,6 @@ lemma signedDepth_finiteObs_klDiv_le {T Q : Nat} {t0 zeta C K0 : ℝ}
       rw [Causalean.Mathlib.InformationTheory.FiniteWordChainRule.klDiv_lastCoordinate_eq_add_sum_of_fullSupport
         (signedDepthFinite (k + 1) t0 zeta C Q true).obsPMF
         (signedDepthFinite (k + 1) t0 zeta C Q false).obsPMF
-        (signedDepth_fullSupportObs ht0 hzeta hC)
         (signedDepth_fullSupportObs ht0 hzeta hC)]
       rw [signedDepth_observed_horizon_projective (k := k) (Q := Q),
         signedDepth_observed_horizon_projective (k := k) (Q := Q)]

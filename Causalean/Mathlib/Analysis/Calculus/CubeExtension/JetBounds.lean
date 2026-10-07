@@ -41,10 +41,11 @@ structure JetBounds (f : E → ℝ) (C : ℝ) : Prop where
   first : ∀ x, ‖fderiv ℝ f x‖ ≤ C
   second : ∀ x, ‖fderiv ℝ (fderiv ℝ f) x‖ ≤ C
 
-/-- [Bandwidth-weighted jet data for an exponent, bandwidth, function, and constant](hyp:β,h,f,C)
-consist of [a nonnegative bound](hyp:nonneg),
-[global order-two regularity](hyp:regularity), and [bounds with powers
-β, β-1, and β-2](hyp:value,first,second). -/
+/-- [Bandwidth-weighted jet data for an exponent β, bandwidth h, function, and constant C](hyp:β,h,f,C)
+consist of [a nonnegative constant](hyp:nonneg),
+[global order-two regularity](hyp:regularity), and [bounds, at every point, of C·h^β on the absolute
+value, C·h^(β−1) on the norm of the first derivative, and C·h^(β−2) on the norm of the second
+derivative](hyp:value,first,second). -/
 structure ScaledJetBounds (β h : ℝ) (f : E → ℝ) (C : ℝ) : Prop where
   nonneg : 0 ≤ C
   regularity : ContDiff ℝ 2 f
@@ -136,7 +137,8 @@ theorem scaled_min_holder {a C h r s : ℝ} (ha : 0 ≤ a) (hC : 0 ≤ C)
   · exact hsup.trans (mul_le_mul_of_nonneg_left
       (Real.rpow_le_rpow hh.le (le_of_not_ge hrh) hs.le) (by positivity))
 
-/-- [Scaled jet bounds](hyp:hf) give [a bandwidth-independent scalar Hölder modulus](goal)
+/-- [Scaled jet bounds with exponent β, bandwidth h and constant C](hyp:hf) give [the
+bandwidth-independent Hölder bound |f(x) − f(y)| ≤ 2C‖x − y‖^β for all points x and y](goal)
 when [the exponent β lies in `(0,1]`](hyp:hβ,hβ1) and [the bandwidth is positive](hyp:hh). -/
 theorem ScaledJetBounds.value_holder {β h C : ℝ} {f : E → ℝ}
     (hf : ScaledJetBounds β h f C) (hβ : 0 < β) (hβ1 : β ≤ 1)

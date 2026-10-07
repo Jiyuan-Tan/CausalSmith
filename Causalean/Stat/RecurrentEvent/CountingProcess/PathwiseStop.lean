@@ -13,17 +13,13 @@ open MeasureTheory
 
 namespace Causalean.Stat.RecurrentEvent.CountingProcess
 
-/-- If [a subject's censor time is nonnegative](hyp:hc0) and [occurs by the horizon u](hyp:hcu),
-and [the subject's at-risk payoff weighted by the censor hazard is integrable from 0 to
-u](hyp:hazard,hPath), then
-[the integral of that payoff from 0 to u equals its integral from 0 to the censor time](goal),
+/-- If [a subject's censor time occurs by the horizon u](hyp:hcu), then for [a censor hazard](hyp:hazard)
+[the integral of the subject's at-risk payoff weighted by the hazard from 0 to u equals its integral from 0 to the censor time](goal),
 since the subject leaves the risk set after censoring. -/
 theorem subject_hazard_stops_at_censor {n : ℕ}
     (hazard : ℝ → ℝ) (H : ℝ → Sample n → ℝ)
     (i : Fin n) (x : Sample n) (u : ℝ)
-    (hc0 : 0 ≤ (x i).2) (hcu : (x i).2 ≤ u)
-    (hPath : Integrable (fun s => H s x * hazard s * riskIndicator i s x)
-      (volume.restrict (Set.Icc 0 u))) :
+    (hcu : (x i).2 ≤ u) :
     (∫ s in Set.Icc 0 u, H s x * hazard s * riskIndicator i s x ∂volume) =
       ∫ s in Set.Icc 0 (x i).2,
         H s x * hazard s * riskIndicator i s x ∂volume := by

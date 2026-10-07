@@ -79,12 +79,12 @@ lemma vcExpectedMaximalInequality_explicit
   have hFenv : ∀ k x, |F k x| ≤ U := fun k x => henv (g0 k) x
   have hmain := varianceAdaptiveExpectedMaximal_le μ F hσ hσU hA hv
     hFmeas hFenv (fun k => hL2 (g0 k)) (hcover g0) n hn0
-  have hdevMeas : Measurable (fun w : Fin n → Ω => countableEmpiricalSup μ F w) := by
+  have hdevMeas : Measurable (fun w : Fin n → Ω => uniformDeviation n F μ id w) := by
     exact uniformDeviation_measurable id hFmeas
   have hU : 0 < U := hσ.trans hσU
-  have hdevBound : ∀ w : Fin n → Ω, countableEmpiricalSup μ F w ≤ 2 * U := by
+  have hdevBound : ∀ w : Fin n → Ω, uniformDeviation n F μ id w ≤ 2 * U := by
     intro w
-    unfold countableEmpiricalSup uniformDeviation
+    unfold uniformDeviation
     apply ciSup_le
     intro k
     have hint : Integrable (F k) μ :=
@@ -110,18 +110,18 @@ lemma vcExpectedMaximalInequality_explicit
           field_simp
     change |(n : ℝ)⁻¹ * ∑ i, F k (w i) - ∫ x, F k x ∂μ| ≤ 2 * U
     exact (abs_sub _ _).trans (by linarith)
-  have hdevNonneg : ∀ w : Fin n → Ω, 0 ≤ countableEmpiricalSup μ F w := by
+  have hdevNonneg : ∀ w : Fin n → Ω, 0 ≤ uniformDeviation n F μ id w := by
     intro w
     exact Real.iSup_nonneg fun k => abs_nonneg _
-  have hdevInt : Integrable (fun w : Fin n → Ω => countableEmpiricalSup μ F w) μn :=
+  have hdevInt : Integrable (fun w : Fin n → Ω => uniformDeviation n F μ id w) μn :=
     Integrable.of_bound hdevMeas.aestronglyMeasurable (2 * U)
       (ae_of_all _ fun w => by
         rw [Real.norm_eq_abs, abs_of_nonneg (hdevNonneg w)]
         exact hdevBound w)
   have hcountEq (w : Fin n → Ω) :
-      ENNReal.ofReal (countableEmpiricalSup μ F w) =
+      ENNReal.ofReal (uniformDeviation n F μ id w) =
         ⨆ k : ℕ, ENNReal.ofReal |centeredEmpiricalAverage μ w (g (g0 k))| := by
-    unfold countableEmpiricalSup uniformDeviation
+    unfold uniformDeviation
     change ENNReal.ofReal
         (⨆ k : ℕ, |centeredEmpiricalAverage μ w (F k)|) =
       ⨆ k : ℕ, ENNReal.ofReal |centeredEmpiricalAverage μ w (F k)|
@@ -154,16 +154,16 @@ lemma vcExpectedMaximalInequality_explicit
     change |(n : ℝ)⁻¹ * ∑ i, F k (w i) - ∫ x, F k x ∂μ| ≤ 2 * U
     exact (abs_sub _ _).trans (by linarith)
   have hsupMeas : Measurable
-      (fun w : Fin n → Ω => ENNReal.ofReal (countableEmpiricalSup μ F w)) :=
+      (fun w : Fin n → Ω => ENNReal.ofReal (uniformDeviation n F μ id w)) :=
     ENNReal.measurable_ofReal.comp hdevMeas
   calc
     MeasureTheory.outerLIntegral μn (empiricalProcessSup μ g) ≤
-        ∫⁻ w, ENNReal.ofReal (countableEmpiricalSup μ F w) ∂μn :=
+        ∫⁻ w, ENNReal.ofReal (uniformDeviation n F μ id w) ∂μn :=
       outerLIntegral_le_lintegral_of_ae_eq_measurable μn hsupMeas (by
         filter_upwards [hreduce n] with w hw
         rw [empiricalProcessSup, hw]
         exact (hcountEq w).symm)
-    _ = ENNReal.ofReal (∫ w, countableEmpiricalSup μ F w ∂μn) := by
+    _ = ENNReal.ofReal (∫ w, uniformDeviation n F μ id w ∂μn) := by
       rw [ofReal_integral_eq_lintegral_ofReal hdevInt (ae_of_all _ hdevNonneg)]
     _ ≤ ENNReal.ofReal (varianceAdaptiveVCConstant *
           vcExpectedMaximalRate U σ A v n) := ENNReal.ofReal_le_ofReal hmain

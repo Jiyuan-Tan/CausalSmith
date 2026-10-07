@@ -32,7 +32,7 @@ the uniform limit of piecewise-linear traversal approximants, then uses the
 two dyadic cells around a parameter pair to bound their displacement. -/
 theorem exists_holderCubeCurve_of_traversal (d : ℕ) (hd : 2 ≤ d)
     (T : DyadicTraversal d) : Nonempty (HolderCubeCurve d) := by
-  obtain ⟨H⟩ := exists_localizedCubeMap_of_traversal d hd T
+  obtain ⟨H⟩ := exists_localizedCubeMap_of_traversal d T
   exact ⟨{
     toFun := H.toFun
     continuousOn := H.continuousOn hd
@@ -41,7 +41,7 @@ theorem exists_holderCubeCurve_of_traversal (d : ℕ) (hd : 2 ≤ d)
     modulus := fun hs ht => H.modulus hd hs ht
   }⟩
 
-/-- Given [a cube dimension](hyp:d) of [at least two](hyp:hd), [a continuous unit-interval traversal of the unit cube with the stated squared Hölder bound exists](goal). -/
+/-- Given [a cube dimension](hyp:d) of [at least two](hyp:hd), [there is a map that is continuous on the unit interval, sends it onto the whole unit `d`-cube, and has squared Euclidean distance between the images of any two parameters `s`, `t` at most `16·d·|s-t|^(2/d)`](goal). -/
 theorem exists_holderCubeCurve (d : ℕ) (hd : 2 ≤ d) :
     Nonempty (HolderCubeCurve d) := by
   obtain ⟨T⟩ := exists_dyadicTraversal d (by omega)

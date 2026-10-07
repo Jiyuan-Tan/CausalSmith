@@ -25,22 +25,18 @@ open MeasureTheory Set
 
 namespace Causalean.Stat.Minimax.ObservationDependentVanTrees
 
-/-- A nondegenerate parameter interval with a [continuously differentiable, compactly supported, normalized nonnegative prior; a normalized nonnegative dominated likelihood; the stated differentiation-under-the-integral, sectionwise absolute-continuity, derivative, boundary, product-measurability, and integrability conditions; and strictly positive finite total information](hyp:hellu,hwC1,hwsupport,hwderiv,hwnonneg,hwnorm,hpnonneg,hpnorm,hpint,hdpint,hdiffUnder,hpAC,hgAC,hdp,hdg,hboundary,hbalanceSm,hbalanceInt,herrorScoreSm,herrorScoreInt,hsensitivitySm,hsensitivityInt,herrorSqSm,herrorSqInt,hscoreSqSm,hscoreSqInt,hpriorSqSm,hpriorSqInt,hpriorJointSqSm,hpriorJointSqInt,hfisherSqSm,hfisherSqInt,hcrossSm,hcrossInt,hinfoPos) ensures that [Bayes mean-squared error for an estimator of an observation-dependent target is at least the squared joint mean of the target's parameter derivative divided by prior information plus average Fisher information](goal). -/
+/-- A nondegenerate parameter interval with a [continuously differentiable nonnegative prior; a normalized nonnegative dominated likelihood; the stated differentiation-under-the-integral, sectionwise absolute-continuity, derivative, boundary, product-measurability, and integrability conditions; and strictly positive finite total information](hyp:hellu,hwC1,hwderiv,hwnonneg,hpnonneg,hpnorm,hdiffUnder,hpAC,hgAC,hdp,hdg,hboundary,hbalanceInt,herrorScoreSm,herrorScoreInt,hsensitivityInt,herrorSqSm,herrorSqInt,hscoreSqSm,hscoreSqInt,hpriorJointSqInt,hfisherSqInt,hcrossInt,hinfoPos) ensures that [Bayes mean-squared error for an estimator of an observation-dependent target is at least the squared joint mean of the target's parameter derivative divided by prior information plus average Fisher information](goal). -/
 theorem observation_dependent_van_trees
     {X : Type*} [MeasurableSpace X] (μ : Measure X) [SigmaFinite μ]
     {ell u : ℝ} (hellu : ell < u)
     (w dw : ℝ → ℝ) (p dp g dg : ℝ → X → ℝ) (T : X → ℝ)
-    -- Compactly supported C1 prior density and derivative representative.
+    -- C1 prior density and derivative representative.
     (hwC1 : ContDiff ℝ 1 w)
-    (hwsupport : Function.support w ⊆ Icc ell u)
     (hwderiv : ∀ θ, HasDerivAt w (dw θ) θ)
     (hwnonneg : ∀ θ, 0 ≤ w θ)
-    (hwnorm : ∫ θ, w θ ∂parameterMeasure ell u = 1)
     -- Dominated likelihood density and normalization.
     (hpnonneg : ∀ θ x, 0 ≤ p θ x)
     (hpnorm : ∀ θ ∈ Icc ell u, ∫ x, p θ x ∂μ = 1)
-    (hpint : ∀ θ ∈ Icc ell u, Integrable (fun x => p θ x) μ)
-    (hdpint : ∀ θ ∈ Icc ell u, Integrable (fun x => dp θ x) μ)
     (hdiffUnder : ∀ θ ∈ Ioo ell u,
       HasDerivAt (fun t => ∫ x, p t x ∂μ) (∫ x, dp θ x ∂μ) θ)
     -- Absolute continuity of observation sections and joint-a.e. derivative representatives.
@@ -55,15 +51,11 @@ theorem observation_dependent_van_trees
       w u * p u x * (T x - g u x) = 0 ∧
         w ell * p ell x * (T x - g ell x) = 0)
     -- Explicit product-measure measurability and integrability of signed fields.
-    (hbalanceSm : AEStronglyMeasurable (derivativeBalanceField w dw p dp g dg T)
-      ((parameterMeasure ell u).prod μ))
     (hbalanceInt : Integrable (derivativeBalanceField w dw p dp g dg T)
       ((parameterMeasure ell u).prod μ))
     (herrorScoreSm : AEStronglyMeasurable (errorScoreField w dw p dp g T)
       ((parameterMeasure ell u).prod μ))
     (herrorScoreInt : Integrable (errorScoreField w dw p dp g T)
-      ((parameterMeasure ell u).prod μ))
-    (hsensitivitySm : AEStronglyMeasurable (sensitivityField w p dg)
       ((parameterMeasure ell u).prod μ))
     (hsensitivityInt : Integrable (sensitivityField w p dg)
       ((parameterMeasure ell u).prod μ))
@@ -76,27 +68,12 @@ theorem observation_dependent_van_trees
       ((parameterMeasure ell u).prod μ))
     (hscoreSqInt : Integrable (scoreSqField w dw p dp)
       ((parameterMeasure ell u).prod μ))
-    (hpriorSqSm : AEStronglyMeasurable (fun θ => w θ * (priorScore w dw θ) ^ 2)
-      (parameterMeasure ell u))
-    (hpriorSqInt : Integrable (fun θ => w θ * (priorScore w dw θ) ^ 2)
-      (parameterMeasure ell u))
-    (hpriorJointSqSm : AEStronglyMeasurable
-      (fun z : ℝ × X => w z.1 * p z.1 z.2 * (priorScore w dw z.1) ^ 2)
-      ((parameterMeasure ell u).prod μ))
     (hpriorJointSqInt : Integrable
       (fun z : ℝ × X => w z.1 * p z.1 z.2 * (priorScore w dw z.1) ^ 2)
-      ((parameterMeasure ell u).prod μ))
-    (hfisherSqSm : AEStronglyMeasurable
-      (fun z : ℝ × X =>
-        w z.1 * p z.1 z.2 * (likelihoodScore p dp z.1 z.2) ^ 2)
       ((parameterMeasure ell u).prod μ))
     (hfisherSqInt : Integrable
       (fun z : ℝ × X =>
         w z.1 * p z.1 z.2 * (likelihoodScore p dp z.1 z.2) ^ 2)
-      ((parameterMeasure ell u).prod μ))
-    (hcrossSm : AEStronglyMeasurable
-      (fun z : ℝ × X =>
-        w z.1 * p z.1 z.2 * (priorScore w dw z.1 * likelihoodScore p dp z.1 z.2))
       ((parameterMeasure ell u).prod μ))
     (hcrossInt : Integrable
       (fun z : ℝ × X =>
@@ -158,7 +135,7 @@ theorem observation_dependent_van_trees
       ∫ z, derivativeBalanceField w dw p dp g dg T z
           ∂((parameterMeasure ell u).prod μ) = 0 :=
     product_integral_derivativeBalance_eq_zero hellu.le hwAC hpAC hgAC hdw
-      hdpSections hdgSections hboundary hbalanceSm hbalanceInt
+      hdpSections hdgSections hboundary hbalanceInt
   have herrorSensitivity :
       (∫ z, errorScoreField w dw p dp g T z ∂((parameterMeasure ell u).prod μ)) =
         ∫ z, sensitivityField w p dg z ∂((parameterMeasure ell u).prod μ) := by
@@ -202,16 +179,15 @@ theorem observation_dependent_van_trees
       ∫ x, likelihoodScore p dp θ x * p θ x ∂μ = 0 := by
     filter_upwards [hmemIoo, hpzeroSections] with θ hθ hpzeroθ
     exact likelihoodScore_integral_eq_zero_of_normalization hθ hpnorm
-      (hdiffUnder θ hθ) (hpnonneg θ) hpzeroθ (hpint θ ⟨hθ.1.le, hθ.2.le⟩)
-        (hdpint θ ⟨hθ.1.le, hθ.2.le⟩)
+      (hdiffUnder θ hθ) (hpnonneg θ) hpzeroθ
   have hinformation :
       (∫ z, scoreSqField w dw p dp z ∂((parameterMeasure ell u).prod μ)) =
         priorInformation ell u w dw +
           ∫ θ, w θ * fisherInformation μ p dp θ ∂parameterMeasure ell u :=
     joint_score_information_decomposition hwnonneg hpnonneg
-      (by filter_upwards with θ; exact hwzero θ) hpzero hnormAE hcenter
-      hscoreSqSm hscoreSqInt hpriorSqSm hpriorSqInt hpriorJointSqSm hpriorJointSqInt
-      hfisherSqSm hfisherSqInt hcrossSm hcrossInt
+      hnormAE hcenter
+      hpriorJointSqInt
+      hfisherSqInt hcrossInt
   have hcs :
       (∫ z, errorScoreField w dw p dp g T z
           ∂((parameterMeasure ell u).prod μ)) ^ 2 ≤
@@ -332,12 +308,9 @@ structure FiniteVanTreesModelRegularity
     ((parameterMeasure ell u).prod Measure.count)
 
 /-- A [nondegenerate parameter interval](hyp:hellu), [finite-model
-regularity](hyp:M), [continuous differentiability](hyp:hwC1), [compact
-support](hyp:hwsupport), [a valid prior derivative](hyp:hwderiv),
-[nonnegativity](hyp:hwnonneg), [normalization](hyp:hwnorm), [vanishing boundary
-errors](hyp:hboundary), [measurability](hyp:hpriorSqSm) and
-[integrability](hyp:hpriorSqInt) of prior information, [a nonnegative
-sensitivity bound](hyp:hs_nonneg) that [lies below average
+regularity](hyp:M), [continuous differentiability](hyp:hwC1), [a valid prior
+derivative](hyp:hwderiv), [nonnegativity](hyp:hwnonneg), [vanishing boundary
+errors](hyp:hboundary), [a nonnegative sensitivity bound](hyp:hs_nonneg) that [lies below average
 sensitivity](hyp:hsensitivity), [upper bounds on average likelihood
 information](hyp:hlike) and [prior information](hyp:hprior), and [positive total
 information](hyp:hinfoPos) imply [a Bayes squared-risk lower bound equal to
@@ -346,16 +319,11 @@ theorem finite_vanTrees_lower_bound
     {X : Type*} [Fintype X] [MeasurableSpace X] [MeasurableSingletonClass X]
     {ell u s I P : ℝ} {w dw : ℝ → ℝ} {p dp g dg : ℝ → X → ℝ} {T : X → ℝ}
     (hellu : ell < u) (M : FiniteVanTreesModelRegularity X ell u w dw p dp g dg T)
-    (hwC1 : ContDiff ℝ 1 w) (hwsupport : Function.support w ⊆ Icc ell u)
+    (hwC1 : ContDiff ℝ 1 w)
     (hwderiv : ∀ θ, HasDerivAt w (dw θ) θ) (hwnonneg : ∀ θ, 0 ≤ w θ)
-    (hwnorm : ∫ θ, w θ ∂parameterMeasure ell u = 1)
     (hboundary : ∀ᵐ x ∂Measure.count,
       w u * p u x * (T x - g u x) = 0 ∧
         w ell * p ell x * (T x - g ell x) = 0)
-    (hpriorSqSm : AEStronglyMeasurable
-      (fun θ => w θ * (priorScore w dw θ) ^ 2) (parameterMeasure ell u))
-    (hpriorSqInt : Integrable
-      (fun θ => w θ * (priorScore w dw θ) ^ 2) (parameterMeasure ell u))
     (hs_nonneg : 0 ≤ s)
     (hsensitivity : s ≤ ∫ z, sensitivityField w p dg z
       ∂((parameterMeasure ell u).prod Measure.count))
@@ -368,12 +336,12 @@ theorem finite_vanTrees_lower_bound
       ∫ z, errorSqField w p g T z
         ∂((parameterMeasure ell u).prod Measure.count) := by
   have hvanTrees := observation_dependent_van_trees Measure.count hellu
-    w dw p dp g dg T hwC1 hwsupport hwderiv hwnonneg hwnorm
-    M.hpnonneg M.hpnorm M.hpint M.hdpint M.hdiffUnder M.hpAC M.hgAC M.hdp M.hdg
-    hboundary M.hbalanceSm M.hbalanceInt M.herrorScoreSm M.herrorScoreInt
-    M.hsensitivitySm M.hsensitivityInt M.herrorSqSm M.herrorSqInt M.hscoreSqSm
-    M.hscoreSqInt hpriorSqSm hpriorSqInt M.hpriorJointSqSm M.hpriorJointSqInt
-    M.hfisherSqSm M.hfisherSqInt M.hcrossSm M.hcrossInt hinfoPos
+    w dw p dp g dg T hwC1 hwderiv hwnonneg
+    M.hpnonneg M.hpnorm M.hdiffUnder M.hpAC M.hgAC M.hdp M.hdg
+    hboundary M.hbalanceInt M.herrorScoreSm M.herrorScoreInt
+    M.hsensitivityInt M.herrorSqSm M.herrorSqInt M.hscoreSqSm
+    M.hscoreSqInt M.hpriorJointSqInt
+    M.hfisherSqInt M.hcrossInt hinfoPos
   have hs_sq : s ^ 2 ≤
       (∫ z, sensitivityField w p dg z
         ∂((parameterMeasure ell u).prod Measure.count)) ^ 2 := by
@@ -409,7 +377,7 @@ theorem smoothPrior_finite_vanTrees_lower_bound
       ∫ z, errorSqField (smoothPrior c a) p g T z
         ∂((parameterMeasure ell u).prod Measure.count) := by
   have hellu : ell < u := by linarith
-  have hendpoints := smoothPrior_ambient_endpoints ha hleft hright
+  have hendpoints := smoothPrior_ambient_endpoints hleft hright
   have hboundary : ∀ᵐ x ∂Measure.count,
       smoothPrior c a u * p u x * (T x - g u x) = 0 ∧
         smoothPrior c a ell * p ell x * (T x - g ell x) = 0 := by
@@ -432,10 +400,8 @@ theorem smoothPrior_finite_vanTrees_lower_bound
       (integral_smoothPrior_parameterMeasure ha hleft.le hright.le)
       (smoothPrior_integrable_parameterMeasure ha) hweightedInt hpointwise
   exact finite_vanTrees_lower_bound hellu M (smoothPrior_contDiff ha)
-    (support_smoothPrior_subset_Icc ha hleft hright) (hasDerivAt_smoothPrior ha)
-    (smoothPrior_nonneg ha)
-    (integral_smoothPrior_parameterMeasure ha hleft.le hright.le) hboundary
-    (smoothPrior_scoreSq_aestronglyMeasurable ha) (smoothPrior_scoreSq_integrable ha)
+    (hasDerivAt_smoothPrior ha)
+    (smoothPrior_nonneg ha) hboundary
     hs_nonneg hsensitivity hlike
     (priorInformation_smoothPrior_le ha hleft.le hright.le) hinfoPos
 

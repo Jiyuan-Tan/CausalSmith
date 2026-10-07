@@ -23,7 +23,7 @@ open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal
 namespace Causalean.Stat.Concentration
 
-/-- Two independent centered finite-dimensional vectors whose directional second moments are bounded by `Λ` have cross-inner-product second moment at most `M * Λ²`. This statement assumes [the hX condition](hyp:hX), [the hY condition](hyp:hY), [the hXL2 condition](hyp:hXL2), [the hYL2 condition](hyp:hYL2), [the hind condition](hyp:hind), [the hXmom condition](hyp:hXmom), [the hYmom condition](hyp:hYmom). [This is the stated conclusion](goal). -/
+/-- Let X and Y be random vectors in M-dimensional Euclidean space that are [measurable](hyp:hX,hY), [square-integrable](hyp:hXL2,hYL2), and [independent of each other](hyp:hind). If, for a real number Λ, [the second moment of the inner product of X with any fixed vector u is at most Λ times the squared norm of u](hyp:hXmom), and [the same holds for Y](hyp:hYmom), then [the expected squared inner product of X and Y is at most M Λ²](goal). No centering of X or Y is assumed. -/
 lemma indep_inner_sq_integral_le {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
     [IsProbabilityMeasure μ] {M : ℕ} [MeasurableSpace (EuclideanSpace ℝ (Fin M))]
     [BorelSpace (EuclideanSpace ℝ (Fin M))]
@@ -215,7 +215,7 @@ lemma integrable_projection_norm_sq {Ω : Type*} [MeasurableSpace Ω] (μ : Meas
   rw [he]
   exact (hXL2.const_inner _).integrable_sq
 
-/-- A rank-at-most-two projection obeys the Markov tail bound obtained from its directional second-moment envelope. This statement assumes [the hS condition](hyp:hS), [the hΛ condition](hyp:hΛ), [the ha condition](hyp:ha), [the hXL2 condition](hyp:hXL2), [the hmom condition](hyp:hmom). [This is the stated conclusion](goal). -/
+/-- Let X be a [square-integrable](hyp:hXL2) random vector in M-dimensional Euclidean space and let S be a linear subspace of [dimension at most two](hyp:hS). If, for a [nonnegative number Λ](hyp:hΛ), [the second moment of the inner product of X with any fixed vector u is at most Λ times the squared norm of u](hyp:hmom), then for every [positive threshold a](hyp:ha), [the probability that the orthogonal projection of X onto S has norm strictly greater than a is at most 2Λ / a²](goal). -/
 lemma projection_norm_tail_le_two {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
     [IsProbabilityMeasure μ] {M : ℕ} [MeasurableSpace (EuclideanSpace ℝ (Fin M))]
     [BorelSpace (EuclideanSpace ℝ (Fin M))]

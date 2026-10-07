@@ -174,11 +174,13 @@ private theorem obsCondKernel_ae_eq_joint_condDistrib
       (Measure.map (F.M i).randomToObserved ((F.M i).jointKernel (F.s i))) :=
     hObsEq ▸ (inferInstance : IsFiniteMeasure ((F.M i).obsKernel (F.s i)))
   simp only [hObsEq] at hbase
-  have hmap := condDistrib_map_comp ((F.M i).jointKernel (F.s i))
-    (φ := (F.M i).randomToObserved)
-    (g := valuesProjection hYobs) (f := valuesProjection hPobs)
-    (F.M i).measurable_randomToObserved
-    (measurable_valuesProjection hYobs) (measurable_valuesProjection hPobs)
+  have hmap := ProbabilityTheory.condDistrib_map (ν := (F.M i).jointKernel (F.s i))
+    (f := (F.M i).randomToObserved)
+    (measurable_valuesProjection hPobs).aemeasurable
+    (measurable_valuesProjection hYobs).aemeasurable
+    (F.M i).measurable_randomToObserved.aemeasurable
+  rw [← MeasureTheory.Measure.map_map (measurable_valuesProjection hPobs)
+    (F.M i).measurable_randomToObserved] at hmap
   have hcompY :
       valuesProjection hYobs ∘ (F.M i).randomToObserved =
         (valuesProjection hYrv :

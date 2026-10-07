@@ -13,8 +13,10 @@ public section
 
 namespace Causalean.Mathlib.Topology.SpaceFillingCurve
 
-/-- Given [a dimension and level](hyp:d,n), [a dimension of at least two](hyp:hd), [a parent-grid order](hyp:parent),
-[its bijectivity](hyp:hbij), and [its consecutive-face adjacency](hyp:hadj), [a bijective face-adjacent child-grid order exists](goal). -/
+/-- Given [a dimension d and level n](hyp:d,n), [a dimension of at least two](hyp:hd), [an order of the level-n dyadic grid cells](hyp:parent),
+[its bijectivity](hyp:hbij), and [face adjacency of its consecutive cells](hyp:hadj), [there is a bijective order of the level-(n+1) grid cells
+in which consecutive cells are face-adjacent and each consecutive block of 2^d cells consists of the children of the
+corresponding parent cell](goal). -/
 theorem exists_child_grid_order (d n : ℕ) (hd : 2 ≤ d)
     (parent : Fin (2 ^ (d * n)) → Fin d → Fin (2 ^ n))
     (hbij : Function.Bijective parent)

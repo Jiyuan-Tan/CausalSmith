@@ -17,11 +17,11 @@ open Causalean.Stat.OrderStatistic
 
 noncomputable section
 
-/-- For a positive sample size and power above one, the curvature times the
+/-- For a power above one, the curvature times the
 absolute error of the Bernstein hinge approximation is integrable on the
 unit square. This is the Fubini prerequisite for the power-density bound. -/
 theorem power_curvature_hinge_error_integrable {N : ℕ}
-    (hN : 0 < N) {s : ℝ} (hs : 1 < s) :
+    {s : ℝ} (hs : 1 < s) :
     Integrable
       (fun p : ℝ × ℝ => powerCurvature s p.1 *
         |bernsteinCell N (hingeCell N p.1) p.2 -
@@ -82,7 +82,7 @@ theorem power_curvature_hinge_error_integrable {N : ℕ}
 /-- The L1 norm of the integrated, curvature-weighted hinge error is at
 most the curvature-weighted integral of its pointwise L1 norms. -/
 theorem power_curvature_hinge_error_integral_le {N : ℕ}
-    (hN : 0 < N) {s : ℝ} (hs : 1 < s) :
+    {s : ℝ} (hs : 1 < s) :
     (∫ u in Set.Icc (0 : ℝ) 1,
       |∫ t in Set.Icc (0 : ℝ) 1, powerCurvature s t *
         (bernsteinCell N (hingeCell N t) u -
@@ -102,7 +102,7 @@ theorem power_curvature_hinge_error_integral_le {N : ℕ}
     |bernsteinCell N (hingeCell N p.1) p.2 -
       (if p.1 ≤ p.2 then (1 : ℝ) else 0)|
   have hG : Integrable G (μ.prod μ) :=
-    power_curvature_hinge_error_integrable hN hs
+    power_curvature_hinge_error_integrable hs
   have hFmeas : AEStronglyMeasurable F (μ.prod μ) := by
     apply Measurable.aestronglyMeasurable
     dsimp [F, powerCurvature, bernsteinCell, hingeCell]
@@ -223,9 +223,9 @@ theorem power_bernstein_L1_le_curvature_error {N : ℕ}
     _ ≤ ∫ t in I, powerCurvature s t *
           (∫ u in I, |bernsteinCell N (hingeCell N t) u -
             (if t ≤ u then (1 : ℝ) else 0)| ∂volume) ∂volume :=
-      power_curvature_hinge_error_integral_le hN hs
+      power_curvature_hinge_error_integral_le hs
     _ ≤ ∫ t in I, powerCurvature s t * Real.sqrt (2 * t / N) ∂volume := by
-      have hG := power_curvature_hinge_error_integrable hN hs
+      have hG := power_curvature_hinge_error_integrable (N := N) hs
       have hleft : Integrable (fun t => powerCurvature s t *
           (∫ u in I, |bernsteinCell N (hingeCell N t) u -
             (if t ≤ u then (1 : ℝ) else 0)| ∂volume)) μ := by

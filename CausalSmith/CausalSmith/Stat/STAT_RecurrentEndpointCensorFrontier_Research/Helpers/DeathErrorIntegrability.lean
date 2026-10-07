@@ -69,11 +69,11 @@ lemma deathAggregateIntegral_sq_integrable {n : ℕ}
     have hELp : MemLp E 2 μ :=
       (memLp_two_iff_integrable_sq hEmeas.aestronglyMeasurable).2
         (subject_event_payoff_square_integrable failureLaw censorLaw hazard
-          hFailure hHazard H hPredictable hMeasurable i u hu hQuadratic hEnergy)
+          hFailure hHazard H hPredictable hMeasurable i u hQuadratic)
     have hALp : MemLp A 2 μ :=
       (memLp_two_iff_integrable_sq hAmeas.aestronglyMeasurable).2
         (subject_hazard_square_integrable failureLaw censorLaw hazard
-          hFailure hHazard H hMeasurable i u hu hQuadratic)
+          hFailure hHazard H hMeasurable i u hQuadratic)
     constructor
     · change AEStronglyMeasurable (E - A) μ
       exact (hEmeas.sub hAmeas).aestronglyMeasurable

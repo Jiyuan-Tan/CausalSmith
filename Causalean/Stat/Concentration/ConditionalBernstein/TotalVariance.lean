@@ -20,8 +20,8 @@ namespace Causalean.Stat.Concentration.ConditionalBernstein
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators
 
-/-- The [Bernstein radius](goal) combines a [total variance budget](hyp:v) and
-[nonnegative exponential-tail parameter](hyp:u) as a square-root term plus a linear term. -/
+/-- The [Bernstein radius](goal) for a [total variance budget v](hyp:v) and an
+[exponential-tail parameter u](hyp:u) is √(2 v u) + u. -/
 noncomputable def bernsteinRadius (v u : ℝ) : ℝ := Real.sqrt (2 * v * u) + u
 
 /-- The Bernstein radius is [nonnegative](goal) at any [nonnegative tail parameter](hyp:hu). -/
@@ -124,8 +124,10 @@ theorem bernstein_sum_totalVariance_ge
 
 /-- [Independent measurable centered summands](hyp:hindep,hmeas,hmean),
 [integrable with integrable squares](hyp:hint,hsqint), [bounded in absolute value by one](hyp:habs),
-and having [total second moment at most a nonnegative budget](hyp:hsecond,hv), satisfy
-[a two-sided Bernstein bound](goal) at a [nonnegative tail parameter](hyp:hu).
+and having [total second moment at most a nonnegative budget v](hyp:hsecond,hv), satisfy,
+at a [nonnegative tail parameter u](hyp:hu), [the two-sided Bernstein bound: the
+probability that the absolute value of their sum strictly exceeds √(2 v u) + u is at most
+2 exp(−u)](goal).
 
 For positive `v` and `u`, apply the upper-tail lemma to `X` and `-X` at the radius,
 check `radius^2 ≥ 2*u*(v + radius/3)`, and take the union. At `u = 0` the probability

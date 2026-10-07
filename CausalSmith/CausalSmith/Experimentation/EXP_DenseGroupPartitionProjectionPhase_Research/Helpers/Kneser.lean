@@ -379,7 +379,7 @@ lemma canonicalJohnsonOrthogonalDecomposition (n M : ℕ) (hM : M ≤ n) :
       rw [slice]
       simp only [completeRandomization, FiniteDesign.E, one_div, mean]
       rw [completeRandomization_card, Fintype.card_fin,
-        Causalean.Mathlib.Combinatorics.JohnsonScheme.card_omega (by omega),
+        Causalean.Mathlib.Combinatorics.JohnsonScheme.card_omega,
         ← Finset.mul_sum]
       rfl
     rw [hE]

@@ -21,7 +21,6 @@ public import Causalean.Mathlib.LinearAlgebra
 public import Causalean.Mathlib.MeasureTheory
 public import Causalean.Mathlib.Optimization
 public import Causalean.Mathlib.Probability
-public import Causalean.Mathlib.StandardGaussian
 public import Causalean.Mathlib.Topology
 
 /-!

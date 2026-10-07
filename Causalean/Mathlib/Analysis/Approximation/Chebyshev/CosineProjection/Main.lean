@@ -31,7 +31,7 @@ theorem cosineProjection_error_le {f : ℝ → ℝ} {γ H : ℝ} {k : ℕ}
     (hH : 0 ≤ H) (hholder : HasHolderBound f γ H) :
     l2Norm (fun x => f x - cosineProjection k f x) ≤ 5 * H * (k : ℝ) ^ (-γ) := by
   obtain ⟨p, hp, hspan, herr⟩ := exists_cosine_approximant hk hf hγ hγ1 hH hholder
-  apply (cosineProjection_bestApproximation hf hp hspan).trans
+  apply (cosineProjection_bestApproximation hf hspan).trans
   exact l2Norm_le_of_abs_le (hf.sub hp) (by positivity) herr
 
 /-- A [continuous real function on the unit interval](hyp:hf), an

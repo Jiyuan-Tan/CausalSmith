@@ -9,7 +9,7 @@ The uniform law on Boolean sign vectors gives the basic sub-Gaussian estimate
 used in the bounded-variation path maximal inequality.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat.Concentration.BoundedVariation
 

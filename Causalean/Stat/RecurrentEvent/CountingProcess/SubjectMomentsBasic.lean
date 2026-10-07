@@ -8,9 +8,12 @@ public import Causalean.Stat.RecurrentEvent.CountingProcess.PathwiseStop
 public import Causalean.Stat.RecurrentEvent.CountingProcess.PredictablePrefix
 
 /-!
-Second moments of predictable pathwise integrals against finite sums of
-compensated censor-event counts. The individual bracket is the at-risk hazard
-integral; different subjects have zero cross moment.
+Second-moment building blocks for predictable pathwise integrals against
+compensated censor-event counts: the quadratic-energy definitions, the expected
+squared event payoff as the expected at-risk hazard integral of the squared
+payoff, and energy bounds for the mixed terms. The subjectwise isometry and the
+zero cross moment of different subjects are proved in the `SubjectIsometry` and
+`Isometry` modules.
 
 The counting-process and stochastic-integration framework follows Andersen,
 Borgan, Gill, and Keiding (1993), Chapter II. The proofs below establish the
@@ -67,9 +70,8 @@ theorem cumulative_hazard_square {n : ℕ}
 /-- Suppose subjects are drawn independently with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the payoff process be [left predictable](hyp:hPredictable) and
-[jointly measurable in time and sample](hyp:hMeasurable). For [a nonnegative horizon
-u](hyp:hu), [finite expected quadratic energy](hyp:hQuadratic), and [an integrable
-hazard-weighted squared payoff while subject i is at risk](hyp:hEnergy), [the expected squared
+[jointly measurable in time and sample](hyp:hMeasurable). For a horizon
+u and [finite expected quadratic energy](hyp:hQuadratic), [the expected squared
 payoff at subject i's observed censor event by u equals the expected integral from 0 to u of the
 squared payoff times the hazard times the subject's at-risk indicator](goal). -/
 theorem subject_event_square_expectation {n : ℕ}
@@ -78,12 +80,8 @@ theorem subject_event_square_expectation {n : ℕ}
     (hHazard : HasCensorHazard censorLaw hazard)
     (H : ℝ → Sample n → ℝ) (hPredictable : LeftPredictable H)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
-    (i : Fin n) (u : ℝ) (hu : 0 ≤ u)
-    (hQuadratic : QuadraticEnergyFinite failureLaw censorLaw hazard H u)
-    (hEnergy : Integrable (fun x : Sample n =>
-      ∫ s in Set.Icc 0 u,
-        (H s x) ^ 2 * hazard s * riskIndicator i s x ∂volume)
-      (sampleLaw n failureLaw censorLaw)) :
+    (i : Fin n) (u : ℝ)
+    (hQuadratic : QuadraticEnergyFinite failureLaw censorLaw hazard H u) :
     (∫ x : Sample n,
       (if (x i).2 ≤ u ∧ (x i).2 < (x i).1 then H (x i).2 x else 0) ^ 2
         ∂sampleLaw n failureLaw censorLaw) =
@@ -101,7 +99,7 @@ theorem subject_event_square_expectation {n : ℕ}
     exact hMeasurable.pow_const 2
   have hQnonneg : ∀ s x, 0 ≤ Q s x := fun s x => sq_nonneg _
   have hlin := predictable_censor_compensator_lintegral
-    failureLaw censorLaw hazard hFailure hHazard Q hQpred hQmeas hQnonneg i u hu
+    failureLaw censorLaw hazard hFailure hHazard Q hQpred hQmeas hQnonneg i u
   have hfinite : (∫⁻ x : Sample n, ∫⁻ s in Set.Icc 0 u,
       ENNReal.ofReal (Q s x * hazard s * riskIndicator i s x)
         ∂volume ∂μ) ≠ ⊤ := by
@@ -139,22 +137,21 @@ theorem subject_event_square_expectation {n : ℕ}
     exact hfinite
   have hcomp := predictable_censor_compensator_nonnegative
     failureLaw censorLaw hazard hFailure hHazard Q hQpred hQmeas hQnonneg
-      i u hu hEventInt
+      i u hEventInt
   convert hcomp using 1 <;> simp only [Q, ite_pow, zero_pow (by decide : (2 : ℕ) ≠ 0)]
 
-/-- Suppose subjects are drawn independently with [failure times following a nonnegative time
-law](hyp:hFailure) and independent [censor times whose law has the given censor
+/-- Suppose subjects are drawn independently with [failure times following a given
+law](hyp:failureLaw) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the payoff process be [jointly measurable in time and
-sample](hyp:hMeasurable). For [a nonnegative horizon u](hyp:hu) and [finite expected quadratic
+sample](hyp:hMeasurable). For [a horizon u](hyp:u) and [finite expected quadratic
 energy](hyp:hQuadratic), [almost every sample path has a hazard-weighted at-risk payoff for
 subject i that is integrable from 0 to u](goal). -/
 theorem subject_hazard_path_integrable_ae {n : ℕ}
     (failureLaw censorLaw : Measure ℝ) (hazard : ℝ → ℝ)
-    (hFailure : NonnegativeTimeLaw failureLaw)
     (hHazard : HasCensorHazard censorLaw hazard)
     (H : ℝ → Sample n → ℝ)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
-    (i : Fin n) (u : ℝ) (hu : 0 ≤ u)
+    (i : Fin n) (u : ℝ)
     (hQuadratic : QuadraticEnergyFinite failureLaw censorLaw hazard H u) :
     ∀ᵐ x ∂sampleLaw n failureLaw censorLaw,
       Integrable (fun s => H s x * hazard s * riskIndicator i s x)
@@ -241,16 +238,14 @@ theorem subject_hazard_path_integrable_ae {n : ℕ}
     (Filter.Eventually.of_forall hbound)
 
 /-- If [the censor hazard is nonnegative](hyp:hazard,hHazardNonneg) and [integrable from 0 to
-u](hyp:hHazardInt), and on a sample path both [subject i's hazard-weighted at-risk
-payoff](hyp:hPath) and [its squared-payoff analogue](hyp:hEnergyPath) are integrable from 0 to
+u](hyp:hHazardInt), and on a sample path [subject i's hazard-weighted squared at-risk
+payoff](hyp:hEnergyPath) is integrable from 0 to
 u, then [the square of the integral of the absolute hazard-weighted payoff is at most the total
 hazard mass from 0 to u times the subject's quadratic hazard energy](goal). -/
 theorem subject_absolute_payoff_square_le_energy {n : ℕ}
     (hazard : ℝ → ℝ) (hHazardNonneg : ∀ s, 0 ≤ hazard s)
     (H : ℝ → Sample n → ℝ) (i : Fin n) (u : ℝ) (x : Sample n)
     (hHazardInt : Integrable hazard (volume.restrict (Set.Icc 0 u)))
-    (hPath : Integrable (fun s => H s x * hazard s * riskIndicator i s x)
-      (volume.restrict (Set.Icc 0 u)))
     (hEnergyPath : Integrable (fun s =>
       (H s x) ^ 2 * hazard s * riskIndicator i s x)
       (volume.restrict (Set.Icc 0 u))) :
@@ -369,5 +364,5 @@ theorem subject_prefix_mixed_abs_integral_le_energy {n : ℕ}
       integral_prefix_mul_abs_le_square
         (fun s => H s x * hazard s * riskIndicator i s x) u hu hPath
     _ ≤ _ := subject_absolute_payoff_square_le_energy
-      hazard hHazardNonneg H i u x hHazardInt hPath hEnergyPath
+      hazard hHazardNonneg H i u x hHazardInt hEnergyPath
 

@@ -17,14 +17,14 @@ open scoped BigOperators
 
 namespace Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- For [a dimension, a derivative order m, and an exponent s](hyp:d,m,s) with [s positive](hyp:hs)
-and [s at most one](hyp:hs1), [there is a positive constant C such that, for every function that is
+/-- For [a dimension, a derivative order m, and an exponent s](hyp:d,m,s) with [s positive](hyp:hs),
+[there is a positive constant C such that, for every function that is
 m times continuously differentiable on the closed normalized cube and satisfies the top-order
 Hölder condition with exponent s and a nonnegative constant L, the function at any point y of the
 closed cube differs from its order-m Taylor polynomial centred at any point x of the open cube by
 at most C times L times the distance from x to y raised to the power m + s](goal). -/
 theorem top_holder_taylor_remainder (d m : ℕ) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1) :
+    (hs : 0 < s) :
     ∃ C : ℝ, 0 < C ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (L : ℝ),
         0 ≤ L → ContDiffOn ℝ m u (cube d) → TopHolder d m s L u →
@@ -86,7 +86,7 @@ theorem top_holder_taylor_remainder (d m : ℕ) (s : ℝ)
       (uniqueDiffOn_uIcc (by norm_num : (0 : ℝ) ≠ 1)) hcont Set.left_mem_uIcc
   by_cases hm0 : m = 0
   · subst m
-    have htop := topHolder_diagonal_derivative u hs hL hholder y x (y - x) hy
+    have htop := topHolder_diagonal_derivative u hL hholder y x (y - x) hy
       (by
         intro i
         exact ⟨le_of_lt (hx i (Set.mem_univ i)).1,
@@ -113,7 +113,7 @@ theorem top_holder_taylor_remainder (d m : ℕ) (s : ℝ)
       have hξmem : ξ ∈ Set.Icc (0 : ℝ) ((ξ + 1) / 2) := ⟨hξ'.1.le, by linarith [hξ'.2]⟩
       have h0mem : (0 : ℝ) ∈ Set.Icc (0 : ℝ) ((ξ + 1) / 2) := ⟨le_refl _, ht.1⟩
       have h := segment_line_topHolder_before_endpoint hu hs hL hholder hx hy
-        ht.1 ht.2 hξmem h0mem
+        ht.2 hξmem h0mem
       have hp : |ξ - 0| ^ s ≤ (1 : ℝ) := by
         rw [sub_zero, abs_of_pos hξ'.1]
         simpa using Real.rpow_le_rpow (le_of_lt hξ'.1) hξ'.2.le hs.le

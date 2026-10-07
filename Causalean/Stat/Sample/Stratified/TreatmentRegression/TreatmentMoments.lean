@@ -223,7 +223,7 @@ theorem assignment_gram_mean {n : ℕ} (p : κ → ℝ) (x : Fin n → κ) :
 
 
 /-- Given [fixed labels x](hyp:x) and [cell propensities p](hyp:p), if
-[the overlap margin ε is positive](hyp:epsilon,hepsilon) and [at most one half](hyp:hhalf) and
+[ε is an overlap margin](hyp:epsilon) and
 [every occupied cell has propensity between ε and 1 − ε](hyp:hoverlap), then
 [the assignment-weighted sum of the Gram denominator is at least ε(1 − ε) times the repeat
 count of the labels](goal).
@@ -231,7 +231,7 @@ count of the labels](goal).
 Propensity overlap on cells appearing in the fixed labels lower bounds
 the conditional Gram mean by epsilon(1-epsilon) times the repeat count. -/
 theorem assignment_gram_mean_lower {n : ℕ} (p : κ → ℝ) (x : Fin n → κ)
-    (epsilon : ℝ) (hepsilon : 0 < epsilon) (hhalf : epsilon ≤ 1 / 2)
+    (epsilon : ℝ)
     (hoverlap : ∀ k, 0 < cellCount x k → epsilon ≤ p k ∧ p k ≤ 1 - epsilon) :
     epsilon * (1 - epsilon) * (repeatCount x : ℝ) ≤
       ∑ a : Fin n → Bool, assignmentWeight p x a * gram (fun i => (x i, a i)) := by

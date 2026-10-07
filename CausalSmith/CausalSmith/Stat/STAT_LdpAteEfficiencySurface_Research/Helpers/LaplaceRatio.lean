@@ -9,7 +9,7 @@ with the total fallback map.  Consequently marginal convergence in probability
 passes through every coupling of the two rows.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

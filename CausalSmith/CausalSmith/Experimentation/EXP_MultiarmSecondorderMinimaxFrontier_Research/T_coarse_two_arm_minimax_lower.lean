@@ -83,10 +83,7 @@ lemma twoArmSmoothVanTreesErrorLowerBound {n : ℕ} (hn : 0 < n)
   open Causalean.Stat.Minimax.ObservationDependentVanTrees in
     apply finite_vanTrees_lower_bound (by norm_num) M
       (smoothPrior_contDiff (by positivity : 0 < a / 2))
-      (support_smoothPrior_subset_Icc (ell := (-1 / 2 : ℝ)) (u := (1 / 2 : ℝ))
-        (c := 0) (a := a / 2) (by positivity) (by linarith) (by linarith))
       (hasDerivAt_smoothPrior (by positivity)) (smoothPrior_nonneg (by positivity))
-      (integral_smoothPrior_parameterMeasure (by positivity) (by linarith) (by linarith))
       (by
         filter_upwards with s
         have hu : smoothPrior 0 (a / 2) (1 / 2) = 0 := by
@@ -106,8 +103,7 @@ lemma twoArmSmoothVanTreesErrorLowerBound {n : ℕ} (hn : 0 < n)
           simp
         · rw [hl]
           simp)
-      (smoothPrior_scoreSq_aestronglyMeasurable (by positivity))
-      (smoothPrior_scoreSq_integrable (by positivity)) (by linarith) ?_ ?_
+      (by linarith) ?_ ?_
       (by
         rw [priorInformation_smoothPrior (by positivity : 0 < a / 2)
           (by linarith) (by linarith)]

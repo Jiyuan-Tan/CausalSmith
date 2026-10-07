@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_SparseheterogeneityCriticalRadius_Research.H
 
 /-! Count-fibre form of the retained-pilot prefix product law. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SparseheterogeneityCriticalRadius
 

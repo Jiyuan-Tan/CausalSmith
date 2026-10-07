@@ -56,10 +56,10 @@ theorem affineDenominator_uniformly_nonzero_near
         _ ≤ _ := abs_sub _ _
     linarith [hden x hx]
 
-/-- If [the parameter set is open](hyp:hO), [the separation margin is positive](hyp:hε), [the affine denominator is uniformly separated from zero throughout that set and the integration set](hyp:hden), and [the reference parameter lies in the open set](hyp:ht₀), then [some positive ball around it stays in the parameter set and retains the same uniform separation](goal). -/
+/-- If [the parameter set is open](hyp:hO), [the affine denominator is uniformly separated from zero throughout that set and the integration set](hyp:hden), and [the reference parameter lies in the open set](hyp:ht₀), then [some positive ball around it stays in the parameter set and retains the same uniform separation](goal). -/
 theorem affineDenominator_uniformly_nonzero_on_open_near
     {α : Type*} {K : Set α} {a b : α → ℝ} {O : Set ℝ} {ε : ℝ}
-    (hO : IsOpen O) (hε : 0 < ε)
+    (hO : IsOpen O)
     (hden : ∀ t ∈ O, ∀ x ∈ K, ε ≤ |affineDenominator a b t x|)
     {t₀ : ℝ} (ht₀ : t₀ ∈ O) :
     ∃ r > 0, Metric.ball t₀ r ⊆ O ∧

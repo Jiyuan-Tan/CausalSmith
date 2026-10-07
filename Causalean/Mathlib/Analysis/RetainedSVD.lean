@@ -1,7 +1,29 @@
 module
 public import Causalean.Mathlib.Analysis.MoorePenrose
 
-/-! # Retained finite singular-value decompositions -/
+/-!
+# Retained finite singular-value decompositions
+
+A retained singular-value decomposition consists of r strictly positive singular values with
+orthonormal left and right singular directions; it represents the rank-r matrix U·diag(σ)·V
+obtained by keeping exactly those directions. Replacing each singular value by its reciprocal gives
+the Moore–Penrose pseudoinverse of that matrix, whose operator norm is at most 1/s when every
+retained singular value is at least s > 0; the represented matrix has rank exactly r.
+
+## Main definitions
+
+* `RetainedSVD` — positive singular values with orthonormal left columns and right rows.
+* `RetainedSVD.matrix`, `RetainedSVD.inverse` — the represented matrix and its reciprocal
+  expansion Vᵀ·diag(1/σ)·Uᵀ.
+
+## Main results
+
+* `RetainedSVD.inverse_eq_moorePenroseInverse` — the reciprocal expansion is the Moore–Penrose
+  inverse of the represented matrix.
+* `RetainedSVD.norm_inverse_le` — its operator norm is at most 1/s under a lower bound s on the
+  singular values.
+* `RetainedSVD.rank_matrix` — the represented matrix has rank r.
+-/
 
 @[expose] public section
 
@@ -9,8 +31,11 @@ namespace Causalean.Mathlib.Analysis
 
 open scoped Matrix.Norms.L2Operator
 
-/-- A finite collection of positive singular directions.  It represents the matrix obtained by
-retaining precisely these directions, independently of how the ambient SVD was chosen. -/
+/-- A retained singular-value decomposition with a given number r of directions and given
+numbers of rows and columns: r strictly positive singular values, a left factor with r
+orthonormal columns, and a right factor with r orthonormal rows.  It represents the matrix
+obtained by retaining precisely these directions, independently of how the ambient SVD was
+chosen. -/
 structure RetainedSVD (r rows cols : ℕ) where
   sigma : Fin r → ℝ
   left : RectMatrix rows r

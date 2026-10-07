@@ -69,7 +69,7 @@ There is deliberately no `condexp_linearity?` variant: the tactic performs no le
 the right-hand side determines the chain uniquely — so there is no choice to report.
 -/
 
-@[expose] public section
+public section
 
 open Lean Lean.Meta Lean.Elab Lean.Elab.Tactic
 open MeasureTheory Filter

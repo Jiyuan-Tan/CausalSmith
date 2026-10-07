@@ -27,7 +27,7 @@ theorem inverseGaussian_compactInverseData (F : ℝ → ℂ) (σ : ℝ)
   exact ⟨inverseGaussian_contDiff F σ hF,
     inverseGaussian_hasCompactSupport F σ hcompact, hinv, hinvD⟩
 
-/-- [A compact continuously differentiable profile](hyp:F,hF,hcompact), [a moment exponent in the interval from zero to two](hyp:κ,hκ0,hκ2), [a nonnegative Gaussian scale parameter and positive bandwidth](hyp:σ,h,hσ,hh), [nonnegative envelope constants](hyp:a,b,ha,hb), [sinc-six spectral support and uniform envelope bounds](hyp:hsupport,hbound,hderiv), and [integrable inverse transforms of the multiplier and its derivative](hyp:hinv,hinvD) imply [the stated finite weighted inverse-Fourier energy bound](goal). -/
+/-- For [a compactly supported continuously differentiable frequency profile F](hyp:F,hF,hcompact), [a moment exponent κ between zero and two](hyp:κ,hκ0,hκ2), [a nonnegative Gaussian scale σ and positive bandwidth h](hyp:σ,h,hσ,hh), and [nonnegative envelope constants a and b](hyp:a,b,ha,hb), suppose [F vanishes outside the interval of radius 3/(πh) around zero, |F| ≤ a·h and |F′| ≤ b·h² everywhere](hyp:hsupport,hbound,hderiv), and [the inverse Fourier transforms of the inverse-Gaussian multiplier of F and of its derivative are integrable](hyp:hinv,hinvD). Then, writing g for the inverse Fourier transform of that multiplier, [|v|^κ·|g(v)|² is integrable and its integral is at most (6/π)·(a² + (2π)⁻²·(b + 12π·a)²)·h^(κ+1)·(1 + σ/h)⁴·exp(36·(σ/h)²)](goal). -/
 theorem inverseGaussian_weightedEnergy_le (F : ℝ → ℂ) (κ σ h a b : ℝ)
     (hF : ContDiff ℝ 1 F) (hcompact : HasCompactSupport F)
     (hκ0 : 0 ≤ κ) (hκ2 : κ ≤ 2) (hh : 0 < h) (hσ : 0 ≤ σ)

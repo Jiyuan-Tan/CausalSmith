@@ -24,14 +24,14 @@ open scoped BigOperators
 
 namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev
 
-/-- [A grid order and node index](hyp:D,j) determine [the corresponding equally spaced unit-interval node](goal).
+/-- [A grid order D and node index j between 0 and D](hyp:D,j) determine [the equally spaced unit-interval node j/(D + 1)](goal).
 
 The `j`th point of the equally spaced interpolation grid of order `D` in `[0,1]`.
 -/
 def equispacedLagrangeNode (D : ℕ) (j : Fin (D + 1)) : ℝ :=
   (j : ℝ) / (D + 1)
 
-/-- [A grid order, coefficient index, and node index](hyp:D,k,j) determine [the fixed Lagrange coefficient-recovery weight](goal).
+/-- [A grid order D, coefficient index k, and node index j](hyp:D,k,j) determine [the Lagrange coefficient-recovery weight: the coefficient of the k-th power in the Lagrange basis polynomial that equals one at the j-th equally spaced node j/(D + 1) and zero at the other D nodes](goal).
 
 The weight that recovers monomial coefficient `k` from the value at equispaced grid point
 `j`. It is the corresponding coefficient of the fixed Lagrange basis polynomial.
@@ -117,7 +117,7 @@ theorem equispacedLagrange_factorial_ratio_le (D : ℕ) :
     _ = (4 : ℝ) ^ D := by
       rw [show (4 : ℝ) = 2 ^ 2 by norm_num, ← pow_mul]
 
-/-- [A grid order and a real polynomial](hyp:D,p), [a bound on its degree](hyp:hp), and [a requested coefficient index](hyp:k) give [an exact fixed-grid recovery formula for that coefficient](goal).
+/-- For [a grid order D and a real polynomial](hyp:D,p) of [degree at most D](hyp:hp), and [a coefficient index k between 0 and D](hyp:k), [the k-th monomial coefficient of the polynomial equals the sum over the D + 1 equally spaced nodes j/(D + 1) of the Lagrange recovery weight for k and j times the polynomial's value at that node](goal).
 
 Every coefficient of a real polynomial of degree at most `D` is a fixed weighted sum of its
 values on the `D+1` equally spaced grid points in `[0,1]`.

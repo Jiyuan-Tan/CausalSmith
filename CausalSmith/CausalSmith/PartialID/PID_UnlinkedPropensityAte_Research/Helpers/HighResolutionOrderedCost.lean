@@ -4,7 +4,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.TUniversa
 
 /-! Cost bound for the ordered paired-companding release. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open scoped BigOperators

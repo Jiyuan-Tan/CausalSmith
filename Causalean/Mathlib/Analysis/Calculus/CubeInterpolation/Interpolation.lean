@@ -17,16 +17,16 @@ public section
 
 namespace Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- [A finite dimension, derivative order, nonempty-cube condition, Hölder exponent, and exponent bounds](hyp:d,m,hd,s,hs,hs1) guarantee [a positive uniform constant controlling every coordinate partial in the open normalized cube from the response supremum and top-order Hölder seminorm](goal). -/
-theorem interior_fixed_cube_interpolation (d m : ℕ) (hd : 1 ≤ d) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1) :
+/-- [A finite dimension, derivative order, and positive Hölder exponent](hyp:d,m,s,hs) guarantee [a positive uniform constant controlling every coordinate partial in the open normalized cube from the response supremum and top-order Hölder seminorm](goal). -/
+theorem interior_fixed_cube_interpolation (d m : ℕ) (s : ℝ)
+    (hs : 0 < s) :
     ∃ K : ℝ, 0 < K ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (M L : ℝ),
         0 ≤ M → 0 ≤ L → ContDiffOn ℝ m u (cube d) →
         (∀ x ∈ cube d, |u x| ≤ M) → TopHolder d m s L u →
         ∀ j ≤ m, ∀ f : Fin j → Fin d,
           ∀ x ∈ openCube d, |coordPartial j u f x| ≤ K * (M + L) := by
-  obtain ⟨C₁, hC₁, hgrid⟩ := taylor_polynomial_grid_bound d m s hs hs1
+  obtain ⟨C₁, hC₁, hgrid⟩ := taylor_polynomial_grid_bound d m s hs
   obtain ⟨C₂, hC₂, hpoly⟩ := tensor_polynomial_deriv_bound d m
   refine ⟨C₂ * C₁, mul_pos hC₂ hC₁, ?_⟩
   intro u M L hM hL hu hbound hholder j hj f x hx
@@ -49,23 +49,32 @@ theorem interior_fixed_cube_interpolation (d m : ℕ) (hd : 1 ≤ d) (s : ℝ)
         C₂ * (C₁ * (M + L)) := hpbound
     _ = (C₂ * C₁) * (M + L) := by ring
 
-/-- [A finite dimension, derivative order, nonempty-cube condition, Hölder exponent, and exponent bounds](hyp:d,m,hd,s,hs,hs1) guarantee [a positive uniform constant controlling every coordinate partial on the closed normalized cube from the response supremum and top-order Hölder seminorm](goal). -/
-theorem fixed_cube_interpolation (d m : ℕ) (hd : 1 ≤ d) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1) :
+/-- [A finite dimension, derivative order, and positive Hölder exponent](hyp:d,m,s,hs) guarantee [a positive uniform constant controlling every coordinate partial on the closed normalized cube from the response supremum and top-order Hölder seminorm](goal). -/
+theorem fixed_cube_interpolation (d m : ℕ) (s : ℝ)
+    (hs : 0 < s) :
     ∃ K : ℝ, 0 < K ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (M L : ℝ),
         0 ≤ M → 0 ≤ L → ContDiffOn ℝ m u (cube d) →
         (∀ x ∈ cube d, |u x| ≤ M) → TopHolder d m s L u →
         DerivBound d m (K * (M + L)) u := by
-  obtain ⟨K, hK, hinterior⟩ := interior_fixed_cube_interpolation d m hd s hs hs1
+  obtain ⟨K, hK, hinterior⟩ := interior_fixed_cube_interpolation d m s hs
   refine ⟨K, hK, ?_⟩
   intro u M L hM hL hu hbound hholder
   apply interior_coordPartial_bound_extends
     (mul_nonneg (le_of_lt hK) (add_nonneg hM hL)) hu
   exact hinterior u M L hM hL hu hbound hholder
 
-/-- [A finite dimension, nonempty-cube condition, smoothness index, and its lower bound above one](hyp:d,hd,β,hβ) guarantee [a positive fixed-cube Hölder radius determined solely by the response supremum and the top-order coordinate Hölder seminorm](goal). -/
-theorem fixed_cube_holder_completion (d : ℕ) (hd : 1 ≤ d)
+/-- In [dimension d](hyp:d), for [a smoothness index β](hyp:β) [greater
+than one](hyp:hβ), write m for the largest integer strictly below β and s = β − m. Then [there is a
+positive constant K, depending only on d and β, such that for all nonnegative M and L: every
+function that is m times continuously differentiable on the closed normalized cube, is bounded
+there by M in absolute value, and satisfies the top-order Hölder condition of order m with exponent
+s and constant L, lies in the fixed-cube Hölder ball of order m, exponent s, and radius K times
+(M + L); in particular all its coordinate partials of order at most m are bounded by K times
+(M + L) on the cube](goal).
+
+Coordinate partials in both the hypothesis and the conclusion are taken in the whole space. -/
+theorem fixed_cube_holder_completion (d : ℕ)
     (β : ℝ) (hβ : 1 < β) :
     ∃ K : ℝ, 0 < K ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (M L : ℝ),
@@ -85,8 +94,8 @@ theorem fixed_cube_holder_completion (d : ℕ) (hd : 1 ≤ d)
     rw [hcast]
     linarith [Nat.le_ceil β]
   obtain ⟨K, hK, hinterp⟩ :=
-    fixed_cube_interpolation d (⌈β⌉₊ - 1) hd
-      (β - ((⌈β⌉₊ - 1 : ℕ) : ℝ)) hs hs1
+    fixed_cube_interpolation d (⌈β⌉₊ - 1)
+      (β - ((⌈β⌉₊ - 1 : ℕ) : ℝ)) hs
   refine ⟨K + 1, by linarith, ?_⟩
   intro u M L hM hL hu hbound hholder
   have hsum : 0 ≤ M + L := add_nonneg hM hL

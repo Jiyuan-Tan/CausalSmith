@@ -167,7 +167,7 @@ theorem attainment_and_k3_certified_converse
       limsup (fun n => secondOrderScale n * dN K c n) atTop ∧
     limsup (fun n => secondOrderScale n * dN K c n) atTop ≤ 43 * C0 c ∧
     (∃ N : ℕ, ∀ n ≥ N,
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z)
         (shrinkageProcedure K n c) ≤
           C0 c * ((n : ℝ)⁻¹ - kappaC c * (n : ℝ) ^ (-(4 / 3 : ℝ)))) ∧

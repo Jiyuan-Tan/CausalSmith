@@ -382,7 +382,7 @@ lemma critical_poisson_exponential_mean_norm_tendsto
     rw [← ENNReal.tendsto_toReal_zero_iff]
     exact he
   have ht := Causalean.Stat.tendsto_integral_abs_sub_of_tendstoInProbability_of_ae_bound
-    Y 0 2 hm (by norm_num) hb hp
+    Y 0 2 hm hb hp
   apply ht.congr'
   filter_upwards [eventually_ge_atTop 3] with n hn
   apply integral_congr_ae

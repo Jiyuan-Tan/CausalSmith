@@ -194,7 +194,7 @@ theorem companding_integrand_cell_error_eventually (a b : ℝ) (hab : a < b)
   have hone (s : Fin S) :
       |(∫ x in C, β s x m * |x - m|) - β s m m * H| ≤ δ * H := by
     have hInt : IntegrableOn (fun x => β s x m * |x - m|) C volume :=
-      weighted_cell_integrable a b hab.le (β s) (hcont s) C hCmeas hCsub m hm
+      weighted_cell_integrable a b (β s) (hcont s) C hCsub m hm
     have hpoint (x : ℝ) (hx : x ∈ C) : |β s x m - β s m m| ≤ δ := by
       simpa only [C, m, compandingMidpoint] using hK k hkK hk j s x hx
     have hlow : (β s m m - δ) * H ≤ ∫ x in C, β s x m * |x - m| := by
@@ -372,10 +372,12 @@ theorem companding_surrogate_error_tendsto (a b : ℝ) (hab : a < b)
       _ = ε := by ring
   exact lt_of_le_of_lt (by nlinarith [mul_nonneg hη.le (sub_nonneg.mpr hb)]) hsmall
 
-/-- On [a nondegenerate interval](hyp:a,b,hab), [a nonempty finite
-weight family](hyp:S,hS) with [jointly continuous](hyp:β,hcont) and
-[strictly positive](hyp:hpos) losses has [companding midpoint cost converging
-to the exact quarter-square limit](goal). -/
+/-- On [a nondegenerate interval from a to b](hyp:a,b,hab), for [a nonempty finite
+weight family](hyp:S,hS) that is [jointly continuous](hyp:β,hcont) and
+[strictly positive](hyp:hpos) on the square, [k times the paired weighted cost of the k-cell
+companding partition with midpoint reproduction points converges, as k tends to infinity, to one
+quarter of the square of the integral over the interval of the square root of the diagonal
+weight](goal). -/
 theorem companding_scaled_cost_tendsto (a b : ℝ) (hab : a < b)
     (S : ℕ) (hS : 0 < S) (β : Fin S → ℝ → ℝ → ℝ)
     (hcont : ∀ s, ContinuousOn (fun p : ℝ × ℝ => β s p.1 p.2)

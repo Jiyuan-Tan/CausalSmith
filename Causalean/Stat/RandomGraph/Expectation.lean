@@ -230,7 +230,7 @@ theorem expected_labeled_component_count_le
   have hp1 : 1 ≤ p := le_trans (by decide : 1 ≤ 2) hp
   exact (integral_mono (integrable_labeledComponentCount μ M R rootEvent p hroot)
     (integrable_treeWitnessCount μ M R rootEvent p hroot)
-    (labeledComponentCount_le_treeWitnessCount M R rootEvent p hp1)).trans
+    (labeledComponentCount_le_treeWitnessCount M R rootEvent p)).trans
       (integral_treeWitnessCount_le μ M R rootEvent p hp1 α β hα hβ hroot hrootMass hsection)
 
 end Causalean.Stat.RandomGraph

@@ -18,7 +18,7 @@ open MeasureTheory
 /-- For [a positive moment ratio ρ at most one hundredth](hyp:ρ,hρ,hsmall), with
 the logarithmic inner cutoff U0 = max(3/2, √(4 log(1/ρ))) and the reciprocal
 outer cutoff U = 12/(5ρ), [the low-frequency Prawitz contribution
-(2/U)·∫ over [0, U0] of the Prawitz filter magnitude times the discrepancy
+(2/U)·∫ over [0, U0] of the Prawitz filter magnitude at t/U times the discrepancy
 envelope is at most one quarter of ρ](goal). -/
 theorem prawitz_budget_low_small
     (ρ : ℝ) (hρ : 0 < ρ) (hsmall : ρ ≤ 1 / 100) :

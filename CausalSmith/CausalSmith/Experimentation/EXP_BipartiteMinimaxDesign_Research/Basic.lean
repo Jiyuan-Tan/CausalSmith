@@ -6,7 +6,8 @@ Authors: Jiyuan Tan
 
 module
 public import Causalean.Stat.FiniteDesign.DesignCore
-public import Causalean.Experimentation.UnknownInterference.Bernoulli
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
+public import Causalean.Experimentation.UnknownInterference.Basic
 public import Mathlib.Order.Filter.AtTopBot.Basic
 
 /-!
@@ -26,7 +27,7 @@ construction `def`s. Each emitted top-level declaration carries its own `@node` 
 | Submodule | Decision | Reason |
 | --- | --- | --- |
 | `Causalean.Experimentation.DesignBased.DesignCore` (`FiniteDesign`/E/Var/Cov) | reuse (S1) | the finite-sum randomization algebra for `E`/`Var`/`Cov` used by `varScale`. |
-| `Causalean.Experimentation.UnknownInterference.Bernoulli` (`bernoulliDesign`) | reuse (S1) | the independent heterogeneous Bernoulli product design realizing `ass:independent-heterogeneous-bernoulli`. |
+| `Causalean.Experimentation.DesignBased.Designs.Bernoulli` (`bernoulliDesign`) | reuse (S1) | the independent heterogeneous Bernoulli product design realizing `ass:independent-heterogeneous-bernoulli`. |
 | `Causalean.Experimentation.UnknownInterference` (one-mode interference) | bypass-justified | all interference substrate is one-mode; the bipartite graph layer (`I`,`O`,`N`,`M`,shared sets) has no analogue and is new local scaffolding sitting inside the S1 world. |
 -/
 

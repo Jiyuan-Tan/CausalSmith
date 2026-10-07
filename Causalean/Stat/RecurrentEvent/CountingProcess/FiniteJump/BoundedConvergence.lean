@@ -19,14 +19,14 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 
 /-- Uniformly bounded predictable payoffs converging pointwise have convergent
 expected finite event sums under a probability law with a count second moment.
-[The model](hyp:M), [the approximating and limiting payoffs](hyp:G,H), [their
-predictability](hyp:hG,hH), [the common nonnegative bound](hyp:C,hC,hbound),
+[The model](hyp:M), [the approximating and limiting payoffs](hyp:G,H), [predictability of the
+approximating payoffs](hyp:hG), [the common bound](hyp:C,hbound),
 and [pointwise convergence](hyp:hlim) give [convergence of expected event
 sums](goal). -/
 theorem Model.tendsto_expected_jumpIntegral (M : Model Ω μ)
     [IsProbabilityMeasure μ] (G : ℕ → ℝ → Ω → ℝ) (H : ℝ → Ω → ℝ)
-    (hG : ∀ k, M.Predictable (G k)) (hH : M.Predictable H)
-    (C : ℝ) (hC : 0 ≤ C) (hbound : ∀ k t ω, |G k t ω| ≤ C)
+    (hG : ∀ k, M.Predictable (G k))
+    (C : ℝ) (hbound : ∀ k t ω, |G k t ω| ≤ C)
     (hlim : ∀ t ω, Tendsto (fun k => G k t ω) atTop (nhds (H t ω))) :
     Tendsto (fun k => ∫ ω, M.jumpIntegral (G k) M.horizon ω ∂μ)
       atTop (nhds (∫ ω, M.jumpIntegral H M.horizon ω ∂μ)) := by
@@ -44,7 +44,7 @@ theorem Model.tendsto_expected_jumpIntegral (M : Model Ω μ)
   · intro k
     exact Eventually.of_forall (fun ω => by
       simpa only [Real.norm_eq_abs] using
-        M.abs_jumpIntegral_le_card (G k) C hC (hbound k) ω)
+        M.abs_jumpIntegral_le_card (G k) C (hbound k) ω)
   · apply Eventually.of_forall
     intro ω
     unfold Model.jumpIntegral
@@ -54,7 +54,7 @@ theorem Model.tendsto_expected_jumpIntegral (M : Model Ω μ)
 expected intensity integrals on the finite horizon. -/
 theorem Model.tendsto_expected_energyIntegral (M : Model Ω μ)
     [IsProbabilityMeasure μ] (G : ℕ → ℝ → Ω → ℝ) (H : ℝ → Ω → ℝ)
-    (hG : ∀ k, M.Predictable (G k)) (hH : M.Predictable H)
+    (hG : ∀ k, M.Predictable (G k))
     (C : ℝ) (hC : 0 ≤ C) (hbound : ∀ k t ω, |G k t ω| ≤ C)
     (hlim : ∀ t ω, Tendsto (fun k => G k t ω) atTop (nhds (H t ω))) :
     Tendsto (fun k => ∫ ω, M.energyIntegral (G k) M.horizon ω ∂μ)
@@ -77,7 +77,7 @@ theorem Model.tendsto_expected_energyIntegral (M : Model Ω μ)
     rw [Real.norm_eq_abs]
     calc
       |M.energyIntegral (G k) M.horizon ω| ≤ C * M.compensator M.horizon ω :=
-        M.abs_energyIntegral_le_compensator (G k) C hC (hbound k) ω
+        M.abs_energyIntegral_le_compensator (G k) C (hbound k) ω
       _ ≤ C * (R * M.horizon) := by
         apply mul_le_mul_of_nonneg_left _ hC
         have hi := integral_mono_ae (M.rate_integrable ω)

@@ -5,11 +5,12 @@ Authors: Jiyuan Tan
 -/
 
 module
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
 public import Causalean.Experimentation.DesignBased.EdgeVarianceBound
 public import Causalean.Experimentation.DesignBased.ProductBlock
 public import Causalean.Experimentation.DesignBased.ProductVariance
 public import Causalean.Experimentation.DesignBased.Risk
-public import Causalean.Experimentation.UnknownInterference.Bernoulli
+public import Causalean.Experimentation.UnknownInterference.Basic
 
 /-! # Variance bounds under unknown interference
 

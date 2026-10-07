@@ -62,7 +62,7 @@ theorem finiteCover_approximateDecision
       0 ≤ finiteSquaredRisk p tau d theta ∧
         finiteSquaredRisk p tau d theta ≤ (u - l) ^ 2 :=
     finiteSquaredRisk_bounds p tau (fun theta x ↦ (hp theta).1 x)
-      (fun theta ↦ (hp theta).2) hlu htau_mem d theta
+      (fun theta ↦ (hp theta).2) htau_mem d theta
   let d0 : BoundedDecision X l u := fun _ ↦ ⟨l, le_rfl, hlu⟩
   have hfiber_bdd : BddAbove
       (Set.range (fun theta0 : Theta ↦ fiberMinimaxValue p tau q hq l u theta0)) := by
@@ -98,7 +98,7 @@ theorem finiteCover_approximateDecision
   have hfiber_le_exact (theta0 : Theta) :
       fiberMinimaxValue p tau q hq l u theta0 ≤
         exactSideMinimaxValue p q hq tau l u := by
-    rw [exactSideMinimaxValue_eq_iSup_fiber p q tau hp hq hpcont hqcont htau hlu htau_mem]
+    rw [exactSideMinimaxValue_eq_iSup_fiber p q tau hp hq hlu htau_mem]
     exact le_ciSup hfiber_bdd theta0
   have hlocal (theta0 : Theta) : ∃ (d : BoundedDecision X l u) (r : ℝ),
       0 < r ∧ ∀ theta,
@@ -249,7 +249,7 @@ theorem empiricalSideMinimax_limsup_le_exact
       BddAbove (Set.range (empiricalSideRisk p q hq tau m d)) := by
     refine ⟨widthSq, ?_⟩
     rintro _ ⟨theta, rfl⟩
-    exact empiricalSideRisk_le p q hp hq tau hlu htau_mem m d theta
+    exact empiricalSideRisk_le p q hp hq tau htau_mem m d theta
   have hemp_bridge (m : ℕ) :
       (minimaxValueENNRealOfReal (empiricalSideRisk p q hq tau m)).toReal =
         minimaxValueReal (empiricalSideRisk p q hq tau m) :=
@@ -269,7 +269,7 @@ theorem empiricalSideMinimax_limsup_le_exact
           Causalean.Stat.worstCaseRiskReal (empiricalSideRisk p q hq tau m) d0 :=
         Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg (hemp_nonneg m) d0
       _ ≤ widthSq := Causalean.Stat.worstCaseRisk_le fun theta ↦ by
-        exact empiricalSideRisk_le p q hp hq tau hlu htau_mem m d0 theta
+        exact empiricalSideRisk_le p q hp hq tau htau_mem m d0 theta
   have hcobounded : Filter.IsCoboundedUnder (fun x y : ℝ ↦ x ≤ y) atTop
       (fun m : ℕ ↦ empiricalSideMinimaxValue p q hq tau l u m) :=
     Filter.isCoboundedUnder_le_of_le atTop hminimax_nonneg
@@ -309,7 +309,7 @@ theorem empiricalSideMinimax_limsup_le_exact
     · rw [if_pos hbad]
       have hlocalUpper := finiteSquaredRisk_bounds p tau
         (fun theta x ↦ (hp theta).1 x) (fun theta ↦ (hp theta).2)
-        hlu htau_mem (decision (select (empiricalPmf C hm z))) theta |>.2
+        htau_mem (decision (select (empiricalPmf C hm z))) theta |>.2
       have hvalue_nonneg : 0 ≤ value := by
         dsimp [value]
         unfold exactSideMinimaxValue

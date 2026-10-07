@@ -1,10 +1,23 @@
 module
 public import Causalean.Stat.Concentration.BoundedVariation.SignMGF
 
-/-! # Finite sign-overlap exponential bounds
+/-!
+# Exponential bounds for averages over pairs of sign vectors
 
-This module bounds uniform finite-sign averages that arise after a
-finite-mixture second-moment identity.
+When two hypotheses are drawn independently and uniformly from the `2^K` sign vectors in
+`{−1, +1}^K`, the chi-square (second-moment) computation for the resulting mixture reduces to an
+average of powers of `1 + ρ ⟨s, t⟩ / K` over all pairs `(s, t)`. This module bounds such averages:
+for two sample sizes `n₁`, `n₂` and overlap coefficients `ρ₁`, `ρ₂` with nonnegative bases,
+
+    average over (s, t) of (1 + ρ₁⟨s,t⟩/K)^n₁ (1 + ρ₂⟨s,t⟩/K)^n₂ ≤ exp((n₁ρ₁ + n₂ρ₂)² / (2K)).
+
+## Main definitions and results
+
+* `innerSign` — the inner product `⟨s, t⟩` of two Boolean vectors read as ±1 signs.
+* `uniform_innerSign_exp_le` — the average of `exp(t ⟨s,u⟩ / K)` over pairs is at most
+  `exp(t² / (2K))`.
+* `sign_twoPower_pointwise_le_exp` — `(1 + ρ₁x)^n₁ (1 + ρ₂x)^n₂ ≤ exp((n₁ρ₁ + n₂ρ₂) x)`.
+* `uniform_sign_twoPower_le_exp` — the displayed two-sample bound.
 -/
 @[expose] public section
 namespace Causalean.Stat.Minimax.Mixture.SignOverlap
@@ -89,9 +102,10 @@ theorem uniform_innerSign_exp_le (K : ℕ) [NeZero K] (t : ℝ) : (∑ s : Fin K
     _ = Real.exp (t ^ 2 / (2 * (K : ℝ))) := by
       simp [Fintype.card_bool]
 /-- Given [a positive sign-vector length and two sample sizes](hyp:K,n₁,n₂),
-[two overlap coefficients](hyp:ρ₁,ρ₂), and [nonnegative bases for every sign
-pair](hyp:hbase₁,hbase₂), [the uniform double average of two overlap powers is
-bounded by the corresponding Gaussian exponential moment](goal). -/
+[two overlap coefficients](hyp:ρ₁,ρ₂), and [bases 1 + ρ₁⟨s,t⟩/K and 1 + ρ₂⟨s,t⟩/K that
+are nonnegative for every pair of sign vectors](hyp:hbase₁,hbase₂), where ⟨s,t⟩ is the
+inner sign product, [the average over all pairs of sign vectors of
+(1 + ρ₁⟨s,t⟩/K)^n₁ · (1 + ρ₂⟨s,t⟩/K)^n₂ is at most exp((n₁ρ₁ + n₂ρ₂)² / (2K))](goal). -/
 theorem uniform_sign_twoPower_le_exp (K n₁ n₂ : ℕ) [NeZero K] (ρ₁ ρ₂ : ℝ) (hbase₁ : ∀ s t : Fin K → Bool, 0 ≤ 1 + ρ₁ *
     innerSign s t / (K : ℝ)) (hbase₂ : ∀ s t : Fin K → Bool, 0 ≤ 1 + ρ₂ * innerSign s t / (K : ℝ)) : (∑ s : Fin K →
     Bool, ∑ t : Fin K → Bool, (1 + ρ₁ * innerSign s t / (K : ℝ)) ^ n₁ * (1 + ρ₂ * innerSign s t / (K : ℝ)) ^ n₂) /

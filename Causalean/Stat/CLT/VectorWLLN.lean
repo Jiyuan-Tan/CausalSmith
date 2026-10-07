@@ -96,13 +96,12 @@ theorem sampleMeanVec_norm_sub_isLittleOp
       (fun n ω => ‖S.sampleMeanVec g n ω - ∫ x, g x ∂P‖)
       (fun _ => (1 : ℝ)) μ := by
   have hvec := S.sampleMeanVec_tendstoInMeasure hg_meas hg_int
-  have hprob : Tendsto_inProb
-      (fun n ω => ‖S.sampleMeanVec g n ω - ∫ x, g x ∂P‖)
-      (fun _ => 0) μ := by
+  have hprob : Modes.TendstoInProbability (fun _ : ℕ => μ)
+      (fun n ω => ‖S.sampleMeanVec g n ω - ∫ x, g x ∂P‖) atTop (fun _ _ => 0) := by
     rw [Tendsto_inProb_iff]
     rw [tendstoInMeasure_iff_norm] at hvec ⊢
     simpa [Real.norm_eq_abs, abs_of_nonneg] using hvec
-  exact hprob.isLittleOp_one
+  exact Modes.TendstoInProbability.isLittleOp_one hprob
 
 end IIDSample
 

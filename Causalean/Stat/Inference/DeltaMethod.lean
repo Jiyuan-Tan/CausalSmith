@@ -74,10 +74,10 @@ theorem deltaMethod_scalar_rate
     (hTn : ∀ (n : ℕ), AEMeasurable (fun ω => r n * (Tn n ω - t₀)) μ)
     (hgTn : ∀ (n : ℕ), AEMeasurable (fun ω => r n * (g (Tn n ω) - g t₀)) μ)
     (_hg : HasDerivAt g g' t₀)
-    (_hCLT : Tendsto_dist (fun (n : ℕ) ω => r n * (Tn n ω - t₀))
-              (gaussianMeasure 0 σsq) μ hTn) :
-    Tendsto_dist (fun (n : ℕ) ω => r n * (g (Tn n ω) - g t₀))
-                 (gaussianMeasure 0 (g' ^ 2 * σsq)) μ hgTn := by
+    (_hCLT : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun (n : ℕ) ω => r n * (Tn n ω - t₀)) atTop
+        (gaussianMeasure 0 σsq)) :
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun (n : ℕ) ω => r n * (g (Tn n ω) - g t₀)) atTop
+        (gaussianMeasure 0 (g' ^ 2 * σsq)) := by
   let Sn : ℕ → Ω → ℝ := fun n ω => r n * (Tn n ω - t₀)
   let Zn : ℕ → Ω → ℝ := fun n ω => g' * Sn n ω
   let Yn : ℕ → Ω → ℝ := fun n ω => r n * (g (Tn n ω) - g t₀)
@@ -89,13 +89,14 @@ theorem deltaMethod_scalar_rate
   have hYn_meas : ∀ n, AEMeasurable (Yn n) μ := by
     simpa [Yn] using hgTn
   have hSnBig : IsBigOp Sn (fun _ => (1 : ℝ)) μ := by
-    simpa [Sn] using Tendsto_dist.tightness hTn _hCLT
+    simpa [Sn] using Modes.TendstoInLaw.tightness _hCLT
   have hZdist :
-      Tendsto_dist Zn (gaussianMeasure 0 (g' ^ 2 * σsq)) μ hZn_meas := by
+      Modes.TendstoInLaw (fun _ : ℕ => μ) Zn atTop (gaussianMeasure 0 (g' ^ 2 * σsq)) := by
     simpa [Sn, Zn] using
-      Tendsto_dist.const_mul_tendsto_gaussian
-        (a := fun _ : ℕ => g') (a₀ := g') (v := σsq)
-        hSn_meas (by simpa [Sn] using _hCLT) tendsto_const_nhds
+      Modes.TendstoInLaw.const_mul_tendsto_gaussian (a := fun _ : ℕ => g')
+        (a₀ := g')
+        (v := σsq)
+        (by simpa [Sn] using _hCLT) tendsto_const_nhds
   have hInvSqrt : Tendsto (fun n : ℕ => (r n)⁻¹) atTop (𝓝 0) := by
     exact tendsto_inv_atTop_zero.comp hr
   have hDeltaScaled : IsLittleOp (fun n ω => (r n)⁻¹ * Sn n ω)
@@ -255,7 +256,7 @@ theorem deltaMethod_scalar_rate
         · linarith
         · linarith
       _ < δ := hfour_alpha_lt_delta
-  simpa [Yn] using Tendsto_dist.add_isLittleOp_one hZn_meas hYn_meas hZdist hRn
+  simpa [Yn] using Modes.TendstoInLaw.add_isLittleOp_one hZdist hYn_meas hRn
 
 /-- **Square-root-rate scalar delta method.** Given [measurability of the scaled original
 statistic](hyp:hTn), [measurability of the scaled transform](hyp:hgTn),
@@ -268,10 +269,12 @@ theorem deltaMethod_scalar
     (hTn : ∀ (n : ℕ), AEMeasurable (fun ω => Real.sqrt (n : ℝ) * (Tn n ω - t₀)) μ)
     (hgTn : ∀ (n : ℕ), AEMeasurable (fun ω => Real.sqrt (n : ℝ) * (g (Tn n ω) - g t₀)) μ)
     (_hg : HasDerivAt g g' t₀)
-    (_hCLT : Tendsto_dist (fun (n : ℕ) ω => Real.sqrt (n : ℝ) * (Tn n ω - t₀))
-              (gaussianMeasure 0 σsq) μ hTn) :
-    Tendsto_dist (fun (n : ℕ) ω => Real.sqrt (n : ℝ) * (g (Tn n ω) - g t₀))
-                 (gaussianMeasure 0 (g' ^ 2 * σsq)) μ hgTn := by
+    (_hCLT : Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (fun (n : ℕ) ω => Real.sqrt (n : ℝ) * (Tn n ω - t₀))
+        atTop (gaussianMeasure 0 σsq)) :
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun (n : ℕ) ω => Real.sqrt (n : ℝ) * (g (Tn n ω) - g t₀))
+        atTop
+        (gaussianMeasure 0 (g' ^ 2 * σsq)) := by
   exact deltaMethod_scalar_rate Tn t₀ g g' σsq (fun n => Real.sqrt (n : ℝ))
     (fun n => Real.sqrt_nonneg _)
     (Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop)
@@ -279,9 +282,8 @@ theorem deltaMethod_scalar
 
 /-! ## Multivariate delta method
 
-`Tendsto_dist` in `Causalean.Stat.Limit.Convergence` is hard-wired to ℝ-valued
-sequences, so the multivariate form is stated directly at the
-`ProbabilityMeasure`/pushforward level.  -/
+The multivariate form is stated with `Modes.TendstoInLaw` for vector-valued sequences and
+proved at the `ProbabilityMeasure`/pushforward level.  -/
 
 variable {E F : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
@@ -345,7 +347,7 @@ theorem deltaMethod_rate
     exact Dg.continuous.measurable.comp_aemeasurable (hSn_meas n)
   have hYn_meas : ∀ n, AEMeasurable (Yn n) μ := by
     simpa [Yn] using hgTn
-  have hSnDist : Tendsto_dist_vec Sn Q.toMeasure μ hSn_meas := by
+  have hSnDist : Modes.TendstoInLaw (fun _ : ℕ => μ) Sn atTop Q.toMeasure := by
     apply (Tendsto_dist_vec_iff _ _ _ hSn_meas).2
     change Tendsto (β := ProbabilityMeasure E)
       (fun n => ⟨μ.map (Sn n), Measure.isProbabilityMeasure_map (hSn_meas n)⟩)
@@ -355,16 +357,17 @@ theorem deltaMethod_rate
     intro n
     exact continuous_norm.measurable.comp_aemeasurable (hSn_meas n)
   have hNormDistVec :
-      Tendsto_dist_vec (fun n ω => ‖Sn n ω‖)
-        (Q.toMeasure.map (fun x : E => ‖x‖)) μ hNormSn_meas := by
+      Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => ‖Sn n ω‖) atTop
+          (Q.toMeasure.map (fun x : E => ‖x‖)) := by
     apply (Tendsto_dist_vec_iff _ _ _ hNormSn_meas).2
     exact
-      Tendsto_dist_vec.map_continuous
-        (Q := Q.toMeasure) (g := fun x : E => ‖x‖)
-        continuous_norm hSn_meas hSnDist
+      Modes.TendstoInLaw.map_continuous (Q := Q.toMeasure)
+        (g := fun x : E => ‖x‖)
+        hSnDist
+        continuous_norm
   have hNormDist :
-      Tendsto_dist (fun n ω => ‖Sn n ω‖)
-        (Q.toMeasure.map (fun x : E => ‖x‖)) μ hNormSn_meas := by
+      Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => ‖Sn n ω‖) atTop
+          (Q.toMeasure.map (fun x : E => ‖x‖)) := by
     apply (Tendsto_dist_iff _ _ _ hNormSn_meas).2
     have hNormDistVec' := (Tendsto_dist_vec_iff _ _ _ hNormSn_meas).1 hNormDistVec
     change Tendsto (β := ProbabilityMeasure ℝ)
@@ -375,7 +378,7 @@ theorem deltaMethod_rate
       (𝓝 ⟨Q.toMeasure.map (fun x : E => ‖x‖), inferInstance⟩) at hNormDistVec'
     exact hNormDistVec'
   have hSnBig : IsBigOp (fun n ω => ‖Sn n ω‖) (fun _ => (1 : ℝ)) μ :=
-    Tendsto_dist.tightness hNormSn_meas hNormDist
+    Modes.TendstoInLaw.tightness hNormDist
   have hInvSqrt : Tendsto (fun n : ℕ => (r n)⁻¹) atTop (𝓝 0) := by
     exact tendsto_inv_atTop_zero.comp hr
   have hDeltaScaled : IsLittleOp
@@ -542,16 +545,21 @@ theorem deltaMethod_rate
         · linarith
         · linarith
       _ < δ := hfour_alpha_lt_delta
-  have hZdist : Tendsto_dist_vec Zn (Q.toMeasure.map Dg) μ hZn_meas := by
+  have hZdist : Modes.TendstoInLaw (fun _ : ℕ => μ) Zn atTop (Q.toMeasure.map Dg) := by
     apply (Tendsto_dist_vec_iff _ _ _ hZn_meas).2
     exact
-      Tendsto_dist_vec.map_continuous
-        (Q := Q.toMeasure) (g := fun x : E => Dg x)
-        Dg.continuous hSn_meas hSnDist
+      Modes.TendstoInLaw.map_continuous (Q := Q.toMeasure)
+        (g := fun x : E => Dg x)
+        hSnDist
+        Dg.continuous
   apply (Tendsto_dist_vec_iff _ _ _ hYn_meas).1
-  exact Tendsto_dist_vec.add_isLittleOp_one
-    (Q := Q.toMeasure.map Dg) (Xn := Zn) (Yn := Yn)
-    hZn_meas hYn_meas hZdist hRn
+  exact Modes.TendstoInLaw.add_isLittleOp_one (Q := Q.toMeasure.map Dg)
+    (Xn := Zn)
+    (Yn := Yn)
+    hZdist
+    hYn_meas (by
+      intro ε hε
+      simpa only [norm_norm] using hRn ε hε)
 
 /-- **Square-root-rate multivariate delta method.** Given [measurability of the scaled
 original statistic](hyp:hTn), [measurability of the scaled transform](hyp:hgTn),

@@ -43,7 +43,7 @@ completely randomized within-group design, where the moment and support hypothes
 `crd_mean`, `crd_pair`, and `crd_supp`.
 -/
 
-@[expose] public section
+public section
 
 open scoped BigOperators
 open Finset

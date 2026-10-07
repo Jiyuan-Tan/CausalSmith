@@ -17,7 +17,7 @@ the failure of the base-law AIPW function to be exactly affine as a product of
 the propensity and arm-regression changes.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 
@@ -82,7 +82,7 @@ lemma integral_mul_eq_integral_mul_condExp
 
 /-- Let [the evaluation law `Q`](hyp:Q) be a probability law, fix [an arm `d`](hyp:d), and
 compare [base-law nuisance functions from `Q₀`](hyp:Q₀) with the nuisances recomputed under
-`Q`. If [the outcome and both arm regressions are integrable](hyp:hY,hμ0,hμ1), [the inverse
+`Q`. If [the outcome and the base-law arm regression are integrable](hyp:hY,hμ0), [the inverse
 base propensity is bounded](hyp:hinv), and [the evaluation-law arm propensity is positive](hyp:hp),
 then [the inverse-base-propensity residual integral equals the propensity ratio times the
 arm-regression change](goal). -/
@@ -91,7 +91,6 @@ lemma integral_weighted_observed_residual
     (d : Bool) (C : ℝ)
     (hY : Integrable (projY : γ × Bool × ℝ → ℝ) Q)
     (hμ0 : Integrable (observedArmRegression Q₀ d) Q)
-    (hμ1 : Integrable (observedArmRegression Q d) Q)
     (hinv : ∀ᵐ z ∂Q, |(observedPropensity Q₀ d z)⁻¹| ≤ C)
     (hp : ∀ᵐ z ∂Q, 0 < observedPropensity Q d z) :
     ∫ z, observedArmIndicator d z / observedPropensity Q₀ d z *
@@ -206,7 +205,7 @@ theorem observedArmMean_sub_integral_observedArmEIF_eq_product
       -(∫ z, (observedPropensity Q d z - observedPropensity Q₀ d z) /
           observedPropensity Q₀ d z *
             (observedArmRegression Q d z - observedArmRegression Q₀ d z) ∂Q) := by
-  have hr := integral_weighted_observed_residual Q₀ Q d C hY hμ0 hμ1 hinv hp
+  have hr := integral_weighted_observed_residual Q₀ Q d C hY hμ0 hinv hp
   have hratio :
       ∫ z, observedPropensity Q d z / observedPropensity Q₀ d z *
           (observedArmRegression Q d z - observedArmRegression Q₀ d z) ∂Q =
@@ -264,7 +263,7 @@ theorem observedATE_sub_integral_observedAIPW_eq_product
           observedPropensity Q₀ false z *
             (observedArmRegression Q false z - observedArmRegression Q₀ false z) ∂Q := by
   have hr (d : Bool) := integral_weighted_observed_residual Q₀ Q d (C d) hY
-    (hμ0 d) (hμ1 d) (hinv d) (hp d)
+    (hμ0 d) (hinv d) (hp d)
   have hratio (d : Bool) :
       ∫ z, observedPropensity Q d z / observedPropensity Q₀ d z *
           (observedArmRegression Q d z - observedArmRegression Q₀ d z) ∂Q =

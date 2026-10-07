@@ -255,11 +255,9 @@ theorem empiricalCDF_tendsto_normal (S : IIDSample Ω ℝ μ P) (y : ℝ)
     (hθn_meas : ∀ n : ℕ, AEMeasurable
       (IsAsymLinear.rescaledEstimator (S.empiricalCDF y) (cdf P y)
         (fun m => Finset.range m) n) μ) :
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator (S.empiricalCDF y) (cdf P y) (fun m => Finset.range m))
-      (gaussianMeasure 0 (cdf P y * (1 - cdf P y)))
-      μ
-      hθn_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (IsAsymLinear.rescaledEstimator (S.empiricalCDF y) (cdf P y) (fun m => Finset.range m))
+        atTop (gaussianMeasure 0 (cdf P y * (1 - cdf P y))) := by
   have h := (empiricalCDF_isAsymLinear S y).tendsto_normal (measurable_cdfIF y) hθn_meas
   rwa [cdfIF_variance] at h
 
@@ -267,7 +265,7 @@ omit [IsProbabilityMeasure μ] in
 /-- **Empirical-cdf consistency (WLLN).** For [an i.i.d. real sample `S`](hyp:S) [at a fixed point
 `y`](hyp:y), [the empirical cdf `F̂ₙ(y)` converges to `F(y)` in probability](goal). -/
 theorem empiricalCDF_tendsto_inProb (S : IIDSample Ω ℝ μ P) (y : ℝ) :
-    Tendsto_inProb (S.empiricalCDF y) (fun _ => cdf P y) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (S.empiricalCDF y) atTop (fun _ _ => cdf P y) := by
   have h := S.sampleMean_tendsto_inProb (measurable_cdfStat y) (integrable_cdfStat y)
   rw [integral_cdfStat] at h
   exact h

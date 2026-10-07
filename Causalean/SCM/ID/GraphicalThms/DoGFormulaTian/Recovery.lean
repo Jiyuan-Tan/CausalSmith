@@ -128,177 +128,6 @@ lemma nodesAt_toSWIGGraph_observed_eq_observedAt
     M.toSWIGGraph.nodesAt M.observed i = M.observedAt i := by
   rfl
 
-/-- Deprecated compatibility alias for `tian_full_cComponent_density_recovery_core_direct`:
-for [a standard structural causal model](hyp:hStd) with [an intervention set whose random copies
-are observed and fixed copies are not already frozen](hyp:hObs,hFix), under [faithful reference
-measures](hyp:href) and [positive observational kernels](hyp:hpos), for [outcomes disjoint from
-the intervened random copies](hyp:hYX), [a post-intervention ancestral district that is also a
-full observational c-component](hyp:hS,hSfull), and [an extension respecting ancestral
-coordinates and intervention values](hyp:hExtend,hExtendX), [the do-law Tian district density
-agrees almost everywhere with the extended observational c-component density](goal). -/
-@[deprecated tian_full_cComponent_density_recovery_core_direct (since := "2026-09-15")]
-alias tian_full_cComponent_density_recovery_core := tian_full_cComponent_density_recovery_core_direct
-
-/-- Finite same-district recovery: the do-law's `S`-district density factor equals
-`S`'s observational c-component density factor (after extension), for a district `S`
-that is already a full observational c-component.
-
-This is Tian's identification at the DISTRICT level.  Both sides collapse to the
-c-factor `Q[S]`: `tianDistrictDensity` (the do-law's `D`-prefix conditional product)
-to `Q[S]` of the do-model, and `cComponentDensityFactor` (the full-observed-prefix
-conditional product) to `Q[S]` of `M`; the two `Q[S]` kernels agree by
-the non-ancestor kernel transport results. It is NOT a per-coordinate identity — the D-prefix
-and full-observed-prefix conditionals differ node-by-node and only telescope to the
-same district product. -/
-lemma doAncestralDistrictDensity_recovered_from_obs_core_self
-    [∀ n, Nonempty (Ω n)]
-    [∀ n, Fintype (Ω n)] [∀ n, MeasurableSingletonClass (Ω n)]
-    (M : Causalean.SCM N Ω) (X : Finset N)
-    (hStd : M.isStandard)
-    (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
-    (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
-    (Y : Finset (SWIGNode N))
-    (ref : Causalean.SCM.ReferenceMeasures Ω)
-    (href : Causalean.SCM.ReferenceFaithful ref)
-    (sDo : (M.fixSet X hObs hFix).FixedValues)
-    (S : Finset (SWIGNode N))
-    (hS : S ∈ fixTruncCComponentSet M X hObs hFix Y)
-    (hSfull : S ∈ M.toSWIGGraph.cComponentSet)
-    [MeasureTheory.IsFiniteMeasure
-      (doObsKernelAncestralMarginal M X hObs hFix Y sDo)]
-    [∀ s' : M.FixedValues, MeasureTheory.IsFiniteMeasure (M.obsKernel s')]
-    [∀ (k : ℕ) (hk : k < (fixObservedAncestralSet M X hObs hFix Y).card),
-      StandardBorelSpace
-        (ValuesOn
-          ({(((M.fixSet X hObs hFix).toSWIGGraph.induce
-              (fixAncestralSet M X hObs hFix Y)).nodesAt
-                (fixObservedAncestralSet M X hObs hFix Y) ⟨k, hk⟩).val} :
-            Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ (k : ℕ) (hk : k < (fixObservedAncestralSet M X hObs hFix Y).card),
-      Nonempty
-        (ValuesOn
-          ({(((M.fixSet X hObs hFix).toSWIGGraph.induce
-              (fixAncestralSet M X hObs hFix Y)).nodesAt
-                (fixObservedAncestralSet M X hObs hFix Y) ⟨k, hk⟩).val} :
-            Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ (k : ℕ) (hk : k < M.observed.card),
-      StandardBorelSpace
-        (ValuesOn ({(M.observedAt ⟨k, hk⟩).val} : Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ (k : ℕ) (hk : k < M.observed.card),
-      Nonempty
-        (ValuesOn ({(M.observedAt ⟨k, hk⟩).val} : Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ k : ℕ,
-      MeasurableSpace.CountableOrCountablyGenerated
-        M.FixedValues (ValuesOn (M.prefixNodes k) (swigΩ Ω))]
-    (hpos : ∀ s' : M.FixedValues, DiscreteID.PositiveMass (M.obsKernel s'))
-    (hYX : ∀ D ∈ X, SWIGNode.random D ∉ Y)
-    (extend :
-      ValuesOn (fixObservedAncestralSet M X hObs hFix Y) (swigΩ Ω) →
-        ValuesOn M.observed (swigΩ Ω))
-    (hExtend : ∀ xD, valuesProjection
-        (show fixObservedAncestralSet M X hObs hFix Y ⊆ M.observed from
-          Finset.inter_subset_right) (extend xD) = xD)
-    (hExtendX : ∀ xD (D : N) (hD : D ∈ X),
-      extend xD ⟨SWIGNode.random D, hObs D hD⟩ =
-        sDo ⟨SWIGNode.fixed D,
-          Finset.mem_union_right _
-            (Finset.mem_image.mpr ⟨D, hD, rfl⟩)⟩) :
-    let D := fixObservedAncestralSet M X hObs hFix Y
-    let H := (M.fixSet X hObs hFix).toSWIGGraph.induce
-      (fixAncestralSet M X hObs hFix Y)
-    tianDistrictDensity H D
-        (doObsKernelAncestralMarginal M X hObs hFix Y sDo) ref S
-      =ᵐ[Causalean.SCM.jointRef ref D]
-        fun xD =>
-          M.cComponentDensityFactor ref
-            (M.fixSetProj X hObs hFix sDo) S (extend xD) := by
-  exact tian_full_cComponent_density_recovery_core
-    M X hStd hObs hFix Y ref href sDo S hS hSfull hpos hYX extend hExtend hExtendX
-/-- T2 density-recovery core.
-
-For one district `S` of the post-intervention ancestral graph, the product of
-Tian prefix conditional densities computed from the ancestral do-law marginal
-agrees a.e. with the matching full observational c-component density factor,
-pulled back along any extension that agrees on the ancestral observed
-coordinates.  The proof is the finite atomic bridge from the kernel-level
-the non-ancestor kernel transport results to the scalar `rnDeriv` factors,
-together with the index bijection between the `D`-topological `S` nodes and the
-full observed `C` nodes and extension-independence off `D`. -/
-lemma doAncestralDistrictDensity_recovered_from_obs_core
-    [∀ n, Nonempty (Ω n)]
-    [∀ n, Fintype (Ω n)] [∀ n, MeasurableSingletonClass (Ω n)]
-    (M : Causalean.SCM N Ω) (X : Finset N)
-    (hStd : M.isStandard)
-    (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
-    (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
-    (Y : Finset (SWIGNode N))
-    (ref : Causalean.SCM.ReferenceMeasures Ω)
-    (href : Causalean.SCM.ReferenceFaithful ref)
-    (sDo : (M.fixSet X hObs hFix).FixedValues)
-    (S C : Finset (SWIGNode N))
-    (hS : S ∈ fixTruncCComponentSet M X hObs hFix Y)
-    (hReach : cFactorReachable M.toSWIGGraph C S)
-    (hCmem : C ∈ M.toSWIGGraph.cComponentSet)
-    [MeasureTheory.IsFiniteMeasure
-      (doObsKernelAncestralMarginal M X hObs hFix Y sDo)]
-    [∀ s' : M.FixedValues, MeasureTheory.IsFiniteMeasure (M.obsKernel s')]
-    [∀ (k : ℕ) (hk : k < (fixObservedAncestralSet M X hObs hFix Y).card),
-      StandardBorelSpace
-        (ValuesOn
-          ({(((M.fixSet X hObs hFix).toSWIGGraph.induce
-              (fixAncestralSet M X hObs hFix Y)).nodesAt
-                (fixObservedAncestralSet M X hObs hFix Y) ⟨k, hk⟩).val} :
-            Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ (k : ℕ) (hk : k < (fixObservedAncestralSet M X hObs hFix Y).card),
-      Nonempty
-        (ValuesOn
-          ({(((M.fixSet X hObs hFix).toSWIGGraph.induce
-              (fixAncestralSet M X hObs hFix Y)).nodesAt
-                (fixObservedAncestralSet M X hObs hFix Y) ⟨k, hk⟩).val} :
-            Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ (k : ℕ) (hk : k < M.observed.card),
-      StandardBorelSpace
-        (ValuesOn ({(M.observedAt ⟨k, hk⟩).val} : Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ (k : ℕ) (hk : k < M.observed.card),
-      Nonempty
-        (ValuesOn ({(M.observedAt ⟨k, hk⟩).val} : Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ k : ℕ,
-      MeasurableSpace.CountableOrCountablyGenerated
-        M.FixedValues (ValuesOn (M.prefixNodes k) (swigΩ Ω))]
-    (hpos : ∀ s' : M.FixedValues, DiscreteID.PositiveMass (M.obsKernel s'))
-    (hYX : ∀ D ∈ X, SWIGNode.random D ∉ Y)
-    (extend :
-      ValuesOn (fixObservedAncestralSet M X hObs hFix Y) (swigΩ Ω) →
-        ValuesOn M.observed (swigΩ Ω))
-    (hExtend : ∀ xD, valuesProjection
-        (show fixObservedAncestralSet M X hObs hFix Y ⊆ M.observed from
-          Finset.inter_subset_right) (extend xD) = xD)
-    (hExtendX : ∀ xD (D : N) (hD : D ∈ X),
-      extend xD ⟨SWIGNode.random D, hObs D hD⟩ =
-        sDo ⟨SWIGNode.fixed D,
-          Finset.mem_union_right _
-            (Finset.mem_image.mpr ⟨D, hD, rfl⟩)⟩) :
-    let D := fixObservedAncestralSet M X hObs hFix Y
-    let H := (M.fixSet X hObs hFix).toSWIGGraph.induce
-      (fixAncestralSet M X hObs hFix Y)
-    tianDistrictDensity H D
-        (doObsKernelAncestralMarginal M X hObs hFix Y sDo) ref S
-      =ᵐ[Causalean.SCM.jointRef ref D]
-        fun xD =>
-          M.cComponentDensityFactor ref
-            (M.fixSetProj X hObs hFix sDo) C (extend xD) := by
-  classical
-  rcases hReach with ⟨hSnonempty, hSsubC, hSmem⟩
-  have hCS : C = S := by
-    by_contra hne
-    rcases hSnonempty with ⟨v, hvS⟩
-    have hvC : v ∈ C := hSsubC hvS
-    have hdisj := M.toSWIGGraph.cComponentSet_pairwise_disjoint hCmem hSmem hne
-    exact (Finset.disjoint_left.mp hdisj) hvC hvS
-  subst C
-  exact doAncestralDistrictDensity_recovered_from_obs_core_self
-    M X hStd hObs hFix Y ref href sDo S hS hSmem hpos hYX extend hExtend hExtendX
-
 /-- **T2, abstract density recovery statement.** Fix [a standard structural causal model
 `M`](hyp:hStd) and an intervention target set `X` for which [every targeted node is currently a
 random observed node](hyp:hObs) and [none of its fixed copies is already fixed](hyp:hFix), an
@@ -381,9 +210,17 @@ theorem doAncestralDistrictDensity_recovered_from_obs
         fun xD =>
           M.cComponentDensityFactor ref
             (M.fixSetProj X hObs hFix sDo) C (extend xD) := by
-  exact doAncestralDistrictDensity_recovered_from_obs_core
-    M X hStd hObs hFix Y ref href sDo S C hS hReach hCmem hpos hYX extend hExtend
-      hExtendX
+  classical
+  rcases hReach with ⟨hSnonempty, hSsubC, hSmem⟩
+  have hCS : C = S := by
+    by_contra hne
+    rcases hSnonempty with ⟨v, hvS⟩
+    have hvC : v ∈ C := hSsubC hvS
+    have hdisj := M.toSWIGGraph.cComponentSet_pairwise_disjoint hCmem hSmem hne
+    exact (Finset.disjoint_left.mp hdisj) hvC hvS
+  subst C
+  exact tian_full_cComponent_density_recovery
+    M X hStd hObs hFix Y ref href sDo S hS hSmem hpos hYX extend hExtend hExtendX
 
 /-- **ID-specific T1 wrapper.** For an intervention target set `X` where [every targeted node is
 currently a random observed node with no fixed copy already fixed](hyp:hObs,hFix), if [the

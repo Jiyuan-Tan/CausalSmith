@@ -22,7 +22,7 @@ theorem unit_overlap_boundary {t0 zeta : ℝ} (ht0 : 0 < t0) (hzeta : 0 < zeta) 
       stationaryLaw (policyKernel M M.e) =
         stationaryLaw (policyKernel M M.b)) ∧
     (∃ cImmediate : ℝ, 0 < cImmediate ∧ ∀ T : Nat, 1 ≤ T →
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := 1))
         (phiwObservable (T := T) 0) ≤
       cImmediate / T) ∧
@@ -47,7 +47,7 @@ theorem unit_overlap_boundary {t0 zeta : ℝ} (ht0 : 0 < t0) (hzeta : 0 < zeta) 
     dsimp [cI]
     positivity
   have himmediate : ∀ T : Nat, 1 ≤ T →
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := 1))
         (phiwObservable (T := T) 0) ≤ cI / T := by
     intro T hT
@@ -109,7 +109,7 @@ theorem unit_overlap_boundary {t0 zeta : ℝ} (ht0 : 0 < t0) (hzeta : 0 < zeta) 
     · intro T hT
       have hfloor := (uniform_parametric_floor ht0 hzeta T hT (1 : ℝ) le_rfl).1
       have hmini : minimaxRisk T t0 zeta 1 ≤
-          Causalean.Stat.worstCaseRisk
+          Causalean.Stat.worstCaseRiskReal
             (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := 1))
             (phiwObservable (T := T) 0) := by
         apply Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg

@@ -17,7 +17,7 @@ and `exists_half_net_card_le_five_pow_finrank` are the unit-ball and
 unit-sphere-at-scale-`1/2` specializations.
 -/
 
-@[expose] public section
+public section
 
 open Metric Module Set MeasureTheory
 open scoped ENNReal NNReal Function

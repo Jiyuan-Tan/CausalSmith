@@ -22,7 +22,7 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 absolute event payoff have convergent expected finite jump sums. -/
 theorem Model.tendsto_expected_jumpIntegral_of_dominated (M : Model Ω μ)
     [IsProbabilityMeasure μ] (G : ℕ → ℝ → Ω → ℝ) (H : ℝ → Ω → ℝ)
-    (hG : ∀ k, M.Predictable (G k)) (hH : M.Predictable H)
+    (hG : ∀ k, M.Predictable (G k))
     (hdom : ∀ k t ω, |G k t ω| ≤ |H t ω|)
     (hjumpAbs : Integrable
       (M.jumpIntegral (fun t ω => |H t ω|) M.horizon) μ)

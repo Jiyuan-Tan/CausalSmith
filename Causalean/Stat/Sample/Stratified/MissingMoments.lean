@@ -683,15 +683,15 @@ private lemma exp_neg_le_inv_sq (t : ℝ) (ht : 0 < t) :
   rw [Real.exp_neg]
   exact inv_anti₀ (sq_pos_of_pos ht) hsq
 
-/-- For [a probability measure](hyp:mu), [a measurable category
-label](hyp:group,hgroup), [a sample size](hyp:m), [a positive overlap
+/-- For [a probability measure](hyp:mu), [a category
+label](hyp:group), [a sample size](hyp:m), [a positive overlap
 margin](hyp:epsilon,hepsilon), [a category-mass lower bound](hyp:B), [a finite
 set of selected categories](hyp:H), and [the asserted lower bound on every
 selected category mass](hyp:hp), [the exponential missing-arm envelope is at
 most the boundary-safe lower-mass envelope](goal). -/
 theorem missingArmExponentialEnvelope_le_lowerMass
     (mu : Measure Omega) [IsProbabilityMeasure mu] (group : Omega → kappa)
-    (hgroup : Measurable group) (m : Nat) (epsilon B : Real) (H : Finset kappa)
+    (m : Nat) (epsilon B : Real) (H : Finset kappa)
     (hepsilon : 0 < epsilon) (hp : ∀ k ∈ H, B ≤ categoryMass mu group k) :
     missingArmExponentialEnvelope mu group m epsilon H ≤
       lowerMassMissingEnvelope mu group m epsilon B H := by

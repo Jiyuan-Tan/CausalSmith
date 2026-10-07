@@ -105,8 +105,7 @@ lemma affine_two_prior_bayes_lower {X : Type*} [MeasurableSpace X]
     (affineProductPrior true n m d eps hd sigma) K ateFunctional hK
     estimator hestimator (affine_ateFunctional_measurable d)
     (t false) (t true) gap (gap / 8) (1 / 128) (1 / 128) (1 / 64)
-    hgap.le (by positivity) (by linarith) (le_refl _)
-    (by norm_num) (by norm_num) (by norm_num)
+    (by linarith) (le_refl _)
     (affine_productPrior_target_tail_small n m d eps hn hd heps heps' hS hx sigma false)
     (affine_productPrior_target_tail_small n m d eps hn hd heps heps' hS hx sigma true) htv
   apply le_trans (ENNReal.ofReal_le_ofReal ?_) hlower

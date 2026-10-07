@@ -10,7 +10,7 @@ This module proves the light polynomial and heavy ratio branch identities for
 the four-stream estimator.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.MarNearcompleteFrontier
 
@@ -278,10 +278,10 @@ lemma upper_stream_heavy_mean {n d : ℕ} (P : FullLaw d)
       (MeasureTheory.measureReal_eq_zero_iff (μ := Q) (s := B)).mp hQB
     have hzeroAB :=
       Causalean.Stat.FiniteRaoBlackwell.Poisson.FinitePartition.NestedEventRatioMean.finitePoisson_successFraction_mean_of_mass_zero
-        Q lam hA hB hAB hQBmeasure
+        Q lam (A := A) hB hQBmeasure
     have hzeroBB :=
       Causalean.Stat.FiniteRaoBlackwell.Poisson.FinitePartition.NestedEventRatioMean.finitePoisson_successFraction_mean_of_mass_zero
-        Q lam hB hB Set.Subset.rfl hQBmeasure
+        Q lam (A := B) hB hQBmeasure
     rw [hzeroAB, hzeroBB]
     have hz : streamZ n P x a s = 0 := by rw [← hrate, hQB, mul_zero]
     rw [hz]

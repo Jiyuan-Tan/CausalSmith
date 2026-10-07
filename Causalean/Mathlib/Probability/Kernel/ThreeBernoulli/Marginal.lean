@@ -115,7 +115,8 @@ theorem densityLaw_base_marginal {X : Type u} [MeasurableSpace X]
           convert h using 1; ac_rfl
         rw [hs, one_mul]
 
-/-- [The base marginal of the public joint law equals `μ`](goal) when
+/-- [The base marginal of the public joint law equals `μ`](goal) for a
+[probability base law `μ`](hyp:μ) when
 [mark probabilities are measurable](hyp:he,hq₀,hq₁) and
 [unit-interval valued](hyp:he01,hq₀01,hq₁01). -/
 theorem jointLaw_base_marginal {X : Type u} [MeasurableSpace X]

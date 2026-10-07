@@ -525,12 +525,12 @@ lemma component_occupancy_series_bounds (n K M : ℕ) (a u ε L : ℝ)
   have hsample := commonAugmentation_uniformMarkedSample n K M ε hK
     h.2.2.2.2.2.2.2.1.1.le h.2.2.2.2.2.2.2.1.2.le
   have hsingle := Causalean.Stat.RandomGraph.PathOccupancy.single_component_occupancy
-    hsample hn h.2.2.2.2.1 heven hdiv h.2.2.2.1 hdensity
+    hsample hn h.2.2.2.2.1 heven h.2.2.2.1
     (fun aug => componentEdge n K M aug)
     (measurableSet_componentEdge n K M)
     (componentEdge_admissible n K M hK hM hdiv)
   have hpaired := Causalean.Stat.RandomGraph.PathOccupancy.paired_component_occupancy
-    hsample hn h.2.2.2.2.1 heven hdiv h.2.2.2.1 hdensity
+    hsample hn h.2.2.2.2.1 heven hdiv h.2.2.2.1
     (fun aug => componentEdge n K M aug)
     (measurableSet_componentEdge n K M)
     (componentEdge_admissible n K M hK hM hdiv)

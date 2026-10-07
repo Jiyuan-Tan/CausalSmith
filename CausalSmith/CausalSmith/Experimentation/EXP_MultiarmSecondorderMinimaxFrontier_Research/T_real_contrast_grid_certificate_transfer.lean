@@ -22,7 +22,7 @@ def IsProjectedUpperProcedureCertificate (K n : ℕ) (c : Contrast ℝ K)
     allocationOrbitCard (assignmentCounts A)) ∧
   (∀ A y, (p.2 A y : ℝ) =
     clip c (delta (assignmentCounts A) (observedCounts A y))) ∧
-  Causalean.Stat.worstCaseRisk
+  Causalean.Stat.worstCaseRiskReal
     (fun (q : Procedure K n c) (z : Schedule K n) => labeledRisk c q z) p ≤ Rplus
 
 /-- Cardinality of the labeled-schedule orbit having response counts `m`. -/
@@ -505,11 +505,11 @@ lemma fixedRealContrastTransferCertificate
     intro p
     calc
       Rminus ≤ prior.E (fun z => labeledRisk c p z) := hlowerAll p
-      _ ≤ Causalean.Stat.worstCaseRisk
+      _ ≤ Causalean.Stat.worstCaseRiskReal
           (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z) p := by
         unfold Causalean.Experimentation.DesignBased.FiniteDesign.E
         calc
-          _ ≤ ∑ z, prior.p z * Causalean.Stat.worstCaseRisk
+          _ ≤ ∑ z, prior.p z * Causalean.Stat.worstCaseRiskReal
               (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z) p := by
             apply Finset.sum_le_sum
             intro z _

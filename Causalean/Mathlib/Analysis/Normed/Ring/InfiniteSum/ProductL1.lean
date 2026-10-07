@@ -3,9 +3,20 @@ public import Mathlib.Algebra.BigOperators.Fin
 public import Mathlib.Analysis.Normed.Ring.InfiniteSum
 
 /-!
-# L1 bounds for normalized product series
+# ℓ¹ distance between products of normalized nonnegative series
 
-Normalized nonnegative series retain unit mass under finite products, with tensorized L1 bounds.
+For nonnegative real series that each sum to one (probability mass functions on a possibly
+infinite index set), the product over m coordinates again sums to one, and the ℓ¹ distance between
+two such products is at most the sum of the coordinatewise ℓ¹ distances. This is the subadditivity
+of total variation distance over product measures, stated for series.
+
+## Main results
+
+* `normalized_likelihood_abs_gap_summable` — |a − b| is summable for summable nonnegative a, b.
+* `normalized_likelihood_tensor_gap_le` — the two-factor bound
+  Σ |a₀(x)b₀(y) − a₁(x)b₁(y)| ≤ Σ |a₀ − a₁| + Σ |b₀ − b₁|.
+* `normalized_likelihood_fin_product_hasSum_one` — a product of m normalized series sums to one.
+* `normalized_likelihood_fin_product_l1_le` — the m-factor ℓ¹ bound by the sum of marginal gaps.
 -/
 
 public section

@@ -209,7 +209,6 @@ theorem msmUpperCalib_gaussian_halfWidth (Λ : ℝ) (hΛ : 1 < Λ)
     (hint_m : Integrable (fun ω => m (S.factualX ω)) P.μ)
     (hint_σ : Integrable (fun ω => (1 - S.propScore true ω) * σ (S.factualX ω)) P.μ)
     (hreg : Integrable (S.gaussianCutoff m σ Λ) P.μ ∧
-      Integrable (fun ω => S.dVar.indicator true ω / S.cutoffProp Λ (S.gaussianCutoff m σ Λ) ω) P.μ ∧
       Integrable (fun ω => S.dVar.indicator true ω *
         (if S.gaussianCutoff m σ Λ ω < S.factualY ω then (1 : ℝ) else 0)) P.μ ∧
       Integrable (fun ω => S.dVar.indicator true ω * S.wMin Λ ω) P.μ ∧
@@ -240,7 +239,7 @@ theorem msmUpperCalib_gaussian_halfWidth (Λ : ℝ) (hΛ : 1 < Λ)
   have hc : Measurable[S.sigmaX] c := by
     simpa [c] using S.measurable_gaussianCutoff hmodel.measurable_m hmodel.measurable_σ Λ
   have hreg_all := hreg
-  obtain ⟨_hc_int, _hcut_int, _hI_int, _hmin_int, _hdiff_int,
+  obtain ⟨_hc_int, _hI_int, _hmin_int, _hdiff_int,
     henvY, _hweight_env, _hc_env⟩ := hreg
   have hAY_int : Integrable (fun ω => A ω * Y ω) P.μ := by
     simpa [A, Y] using

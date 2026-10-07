@@ -173,7 +173,7 @@ private lemma sinCircle_apply_add_half_pi {theta : ℝ}
     exact Real.cos_nonpos_of_pi_div_two_le_of_le (by linarith) (by
       linarith [htheta.2, Real.pi_pos])
 
-/-- [A mode index and real argument](hyp:j,x) determine [the corresponding nonconstant term of the absolute-value Chebyshev series](goal).
+/-- [A mode index j and real argument x](hyp:j,x) determine [the corresponding nonconstant term of the absolute-value Chebyshev series](goal): (4/π)·(−1)^j·T(x)/(4(j+1)² − 1), where T is the Chebyshev polynomial of the first kind of degree 2(j+1).
 
 The zero-based index selects even order twice the index plus two. -/
 noncomputable def absChebTerm (j : ℕ) (x : ℝ) : ℝ :=
@@ -311,7 +311,7 @@ private lemma hasSum_cheb_denominator_tail (m : ℕ) :
     field_simp [hm]
     ring
 
-/-- [A truncation length](hyp:m) determines [the explicit even Chebyshev truncation of absolute value](goal).
+/-- [A truncation length m](hyp:m) determines [the explicit even Chebyshev truncation of absolute value](goal): the polynomial 2/π plus the sum over j from 0 to m − 1 of (4/π)·(−1)^j/(4(j+1)² − 1) times the Chebyshev polynomial of the first kind of degree 2(j+1).
 
 The constant term is `2 / π`; the remaining terms have even orders through `2 * m`
 and coefficients `(4 / π) * (-1)^j / (4 * (j+1)^2 - 1)`. -/

@@ -124,7 +124,7 @@ private lemma prod_nested_count_partition {I : Type*} [Fintype I] [DecidableEq I
 
 private lemma measure_nestedCountEvent {I Omega : Type*} [Fintype I] [DecidableEq I]
     [MeasurableSpace Omega] (mu : Measure Omega) [IsProbabilityMeasure mu]
-    (C R : Set Omega) (hC : MeasurableSet C) (hR : MeasurableSet R)
+    (C R : Set Omega)
     (hRC : R ⊆ C) (U V : Finset I) (hVU : V ⊆ U) :
     (Measure.pi (fun _ : I => mu)) (nestedCountEvent C R U V) =
       mu R ^ V.card * mu (C \ R) ^ (U.card - V.card) *
@@ -406,7 +406,7 @@ lemma integral_nested_count_sq_mul_totalized_inverse_le {m : Nat}
         apply Finset.sum_congr rfl
         intro V hV
         have hVU := Finset.mem_powerset.mp hV
-        rw [measure_nestedCountEvent mu C R hC hR hRC U V hVU,
+        rw [measure_nestedCountEvent mu C R hRC U V hVU,
           ENNReal.toReal_mul, ENNReal.toReal_mul, ENNReal.toReal_pow,
           ENNReal.toReal_pow, ENNReal.toReal_pow, hpR, hpDiff, hpCompl]
         simp only [Fintype.card_fin]

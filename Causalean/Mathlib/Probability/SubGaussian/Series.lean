@@ -16,8 +16,8 @@ noncomputable section
 namespace Causalean.Mathlib.Probability.SubGaussian
 
 /-- For [a decay exponent](hyp:α) satisfying [strict positivity](hyp:hα), [one
-positive finite constant bounds every dyadically weighted geometric partial
-sum](goal).
+positive constant bounds, for every length `J`, the partial sum over `j < J` of
+`(j+1)·r^j` with ratio `r = exp(-α·log 2/2) = 2^(-α/2)`](goal).
 
 Proof strategy: set `r = exp (-α * log 2 / 2)`, so `0 < r < 1`.
 Use Mathlib's summability of `n * r^n` and of `r^n`, then bound each

@@ -3,7 +3,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Honest two-point lower bounds for excess interval length. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 namespace CausalSmith.PartialID.UnlinkedPropensityAte

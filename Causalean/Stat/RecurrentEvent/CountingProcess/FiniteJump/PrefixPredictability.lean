@@ -227,13 +227,12 @@ private theorem Model.predictable_measurable_pastJump (M : Model Ω μ) (k : ℕ
         (M.predictableSet_Ioi b _ (M.count_adapted b measurableSet_Ici)))).union
     (hD.compl.inter (MeasurableSpace.measurableSet_generateFrom ⟨a, b, B, hB, rfl⟩))
 
-/-- The sum of a bounded predictable payoff over events strictly before
-the current time is a predictable process. [The model and payoff](hyp:M,H),
-[predictability](hyp:hH), and [boundedness](hyp:hbound) give [predictability
+/-- The sum of a predictable payoff over events strictly before
+the current time is a predictable process. [The model and payoff](hyp:M,H)
+and [predictability](hyp:hH) give [predictability
 of the strict-past event sum](goal). -/
 theorem Model.predictable_strictJumpIntegral (M : Model Ω μ)
-    (H : ℝ → Ω → ℝ) (hH : M.Predictable H)
-    (hbound : ∃ C : ℝ, ∀ t ω, |H t ω| ≤ C) :
+    (H : ℝ → Ω → ℝ) (hH : M.Predictable H) :
     M.Predictable (fun t ω =>
       ∑ s ∈ (M.eventTimes ω).filter (fun s => s < t), H s ω) := by
   classical
@@ -280,11 +279,10 @@ theorem Model.predictable_strictJumpIntegral (M : Model Ω μ)
     simpa only [Finset.mem_range] using hkc
   simp [F, hk]
 
-/-- Integrating a bounded predictable payoff against predictable intensity
+/-- Integrating a predictable payoff against predictable intensity
 from zero through the current time gives a predictable process. -/
 theorem Model.predictable_energyIntegral (M : Model Ω μ)
-    (H : ℝ → Ω → ℝ) (hH : M.Predictable H)
-    (hbound : ∃ C : ℝ, ∀ t ω, |H t ω| ≤ C) :
+    (H : ℝ → Ω → ℝ) (hH : M.Predictable H) :
     M.Predictable (M.energyIntegral H) := by
   /- The rate-weighted payoff is predictable. A predictable parameter-integral
      argument for the kernel 0 < s < t proves the conclusion. Alternatively

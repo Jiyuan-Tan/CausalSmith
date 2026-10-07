@@ -5,19 +5,16 @@ Authors: Jiyuan Tan
 
 # Vector convergence in distribution and vector Slutsky absorption
 
-Companion to `Causalean/Stat/Limit/Convergence.lean`.  The scalar `Tendsto_dist`
-predicate is hard-wired to `ℝ`-valued sequences; here we provide the
-vector analogue `Tendsto_dist_vec` for sequences valued in a metric space
+Companion to `Causalean/Stat/Limit/Convergence.lean` for convergence in law
+(`Modes.TendstoInLaw`) of sequences valued in a metric space
 `E` (typically `EuclideanSpace ℝ (Fin d)`), together with the vector
 Slutsky-absorption lemma needed by the multivariate Δ-method
 (`Causalean/Stat/Inference/DeltaMethod.lean`) and the vector
 asymptotic-normality corollary
 (`Causalean/Stat/CLT/AsymptoticLinearityVec.lean`).
 
-Mirrors `Tendsto_dist`, `Tendsto_dist.add_isLittleOp_one`, and
-`Tendsto_dist.congr_ae` from the scalar file, replacing `|·|` with `‖·‖`
-and `*` with `•` where needed.  The proofs port the scalar arguments
-verbatim using `tendsto_iff_forall_lipschitz_integral_tendsto`
+The general Slutsky and a.e.-congruence theorems apply to both real and vector
+sequences. Their proofs use `tendsto_iff_forall_lipschitz_integral_tendsto`
 (Mathlib's portmanteau characterization in any pseudo-metric space) and
 `tendstoInMeasure_iff_norm` (the `SeminormedAddCommGroup`-valued form of
 convergence in measure).
@@ -33,39 +30,21 @@ public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 # Vector convergence in distribution
 
 This module extends the scalar convergence-in-distribution interface to
-metric-space-valued random variables.  The definition `Tendsto_dist_vec`
-formulates weak convergence through pushforward probability measures, while
-`Tendsto_dist_vec.add_isLittleOp_one`, `Tendsto_dist_vec.congr_ae`, and
-`Tendsto_dist_vec.map_continuous` provide the vector Slutsky, a.e.-congruence,
+metric-space-valued random variables.  `Tendsto_dist_vec_iff` expresses convergence in law
+through pushforward probability measures, while
+`Modes.TendstoInLaw.add_isLittleOp_one`, `Modes.TendstoInLaw.congr_ae`, and
+`Modes.TendstoInLaw.map_continuous` provide the vector Slutsky, a.e.-congruence,
 and continuous-mapping rules used by multivariate CLT and delta-method
 arguments.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat
 
 open MeasureTheory Filter Topology
 
 /-! ## Vector convergence in distribution -/
-
-/-- For [a measurable sample space](hyp:Ω) and [a pseudo-metric outcome space whose open sets
-are measurable](hyp:E), [a sequence of random elements in the outcome space](hyp:Xn), [a
-probability measure on that outcome space](hyp:Q), [a probability measure on the sample
-space](hyp:μ), and
-[a measurability argument that the definition no longer uses](hyp:_hXn), [convergence
-in distribution of the sequence to the outcome-space probability measure](goal) means weak
-convergence of its induced distributions.
-
-Vector analogue of `Causalean.Stat.Tendsto_dist`; works for any pseudo-metric
-space `E` whose open sets are measurable. -/
-@[deprecated "Use Causalean.Stat.Modes.TendstoInLaw." (since := "2026-09-18")]
-abbrev Tendsto_dist_vec {Ω E : Type*} [MeasurableSpace Ω] [PseudoMetricSpace E]
-    [MeasurableSpace E] [OpensMeasurableSpace E]
-    (Xn : ℕ → Ω → E) (Q : Measure E) (μ : Measure Ω)
-    [IsProbabilityMeasure μ] [IsProbabilityMeasure Q]
-    (_hXn : ∀ n, AEMeasurable (Xn n) μ) : Prop :=
-  Modes.TendstoInLaw (fun _ => μ) Xn atTop Q
 
 /-- For [measurable row variables](hyp:Xn,hXn), [a target probability law](hyp:Q), and [a
 fixed probability measure](hyp:μ), [vector convergence in distribution is equivalent to weak
@@ -75,7 +54,7 @@ lemma Tendsto_dist_vec_iff {Ω E : Type*} [MeasurableSpace Ω] [PseudoMetricSpac
     (Xn : ℕ → Ω → E) (Q : Measure E) (μ : Measure Ω)
     [IsProbabilityMeasure μ] [IsProbabilityMeasure Q]
     (hXn : ∀ n, AEMeasurable (Xn n) μ) :
-    Tendsto_dist_vec Xn Q μ hXn ↔
+    Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q ↔
       Tendsto (β := ProbabilityMeasure E)
         (fun n => ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩) atTop
         (𝓝 ⟨Q, ‹IsProbabilityMeasure Q›⟩) := by
@@ -89,28 +68,27 @@ lemma Tendsto_dist_vec_iff {Ω E : Type*} [MeasurableSpace Ω] [PseudoMetricSpac
 /-! ## Vector Slutsky absorption
 
 If `Xn ⇒ Q` in distribution and `‖Yn − Xn‖ = o_p(1)`, then `Yn ⇒ Q`.
-This is the vector analogue of `Tendsto_dist.add_isLittleOp_one` in
-`AsymptoticLinearity.lean`; the proof ports verbatim using
+The perturbation is valued in the same normed space as the sequence;
+`IsLittleOp` already takes its norm. The proof uses
 `tendstoInMeasure_iff_norm` and the metric-space portmanteau
 characterization. -/
 
-/-- **Vector Slutsky absorption.** Suppose [`Xn` and `Yn` are `E`-valued sequences that are
-measurable at every sample size](hyp:hXn,hYn), [`Xn` converges in distribution to a probability
-measure `Q` on `E`](hyp:hX), and [the norm of the perturbation `‖Yn − Xn‖` is `o_p(1)`](hyp:hRem).
-Then [`Yn` also converges in distribution to `Q`](goal).
+/-- If [a sequence in a normed additive group converges in distribution](hyp:hX),
+[a second sequence is a.e. measurable at every sample size](hyp:hYn), and
+[their difference is negligible in probability at rate one](hyp:hRem), then
+[the second sequence converges in distribution to the same law](goal).
 
-Vector analogue of `Causalean.Stat.Tendsto_dist.add_isLittleOp_one` (file
-`Causalean/Stat/CLT/AsymptoticLinearity.lean`). Used by the multivariate Δ-method
+Applies to real and vector sequences. Used by the multivariate Δ-method
 and by `IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum`. -/
-theorem Tendsto_dist_vec.add_isLittleOp_one
+theorem Modes.TendstoInLaw.add_isLittleOp_one
     {Ω E : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     [NormedAddCommGroup E] [MeasurableSpace E] [OpensMeasurableSpace E]
     {Xn Yn : ℕ → Ω → E} {Q : Measure E} [IsProbabilityMeasure Q]
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q)
     (hYn : ∀ n, AEMeasurable (Yn n) μ)
-    (hX : Tendsto_dist_vec Xn Q μ hXn)
-    (hRem : IsLittleOp (fun n ω => ‖Yn n ω - Xn n ω‖) (fun _ => (1 : ℝ)) μ) :
-    Tendsto_dist_vec Yn Q μ hYn := by
+    (hRem : IsLittleOp (fun n ω => Yn n ω - Xn n ω) (fun _ => (1 : ℝ)) μ) :
+    Modes.TendstoInLaw (fun _ : ℕ => μ) Yn atTop Q := by
+  have hXn : ∀ n, AEMeasurable (Xn n) μ := hX.forall_aemeasurable
   refine ⟨hYn, by fun_prop, ?_⟩
   have hX_tendsto :
       Tendsto (β := ProbabilityMeasure E)
@@ -120,7 +98,7 @@ theorem Tendsto_dist_vec.add_isLittleOp_one
   have hXY : TendstoInMeasure μ (fun n ω => Yn n ω - Xn n ω) atTop (0 : Ω → E) := by
     rw [tendstoInMeasure_iff_norm]
     intro ε hε
-    simpa [abs_of_nonneg] using hRem ε hε
+    simpa only [Pi.zero_apply, sub_zero, mul_one] using hRem ε hε
   suffices ∀ (F : E → ℝ) (hF_bounded : ∃ (C : ℝ), ∀ x y, dist (F x) (F y) ≤ C)
       (hF_lip : ∃ L, LipschitzWith L F),
       Tendsto (fun n ↦ ∫ y, F y ∂(μ.map (Yn n))) atTop (𝓝 (∫ y, F y ∂Q)) by
@@ -230,47 +208,44 @@ theorem Tendsto_dist_vec.add_isLittleOp_one
       simpa only [Real.dist_eq] using hXF
   have h_lt : L * ε / 2 < L * ε := half_lt_self (by positivity)
   filter_upwards [h_tendsto.eventually_lt_const h_lt] with n hn using (h_le n).trans_lt hn
-
-/-- Vector convergence in distribution is invariant under eventual a.e.
-equality of the random variables.  Vector analogue of
-`Tendsto_dist.congr_ae`. -/
-theorem Tendsto_dist_vec.congr_ae
+/-- If [a sequence in a pseudo-metric space converges in distribution](hyp:hX),
+[a second sequence is a.e. measurable at every sample size](hyp:hYn), and
+[the sequences eventually agree almost everywhere](hyp:hXY), then
+[the second sequence converges in distribution to the same law](goal). -/
+theorem Modes.TendstoInLaw.congr_ae
     {Ω E : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     [PseudoMetricSpace E] [MeasurableSpace E] [OpensMeasurableSpace E]
     {Xn Yn : ℕ → Ω → E} {Q : Measure E} [IsProbabilityMeasure Q]
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q)
     (hYn : ∀ n, AEMeasurable (Yn n) μ)
-    (hX : Tendsto_dist_vec Xn Q μ hXn)
     (hXY : ∀ᶠ n in atTop, Xn n =ᵐ[μ] Yn n) :
-    Tendsto_dist_vec Yn Q μ hYn := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) Yn atTop Q := by
   refine ⟨hYn, by fun_prop, hX.tendsto.congr' ?_⟩
   filter_upwards [hXY] with n hn
   apply Subtype.ext
   exact Measure.map_congr hn
+/-- If [random elements converge in distribution](hyp:hX) and
+[the applied map is continuous](hyp:hg), then [the transformed laws converge
+weakly to the pushforward of the limiting law](goal).
 
-/-- Pushforward of `Tendsto_dist_vec` under a continuous map. Suppose [`Xn` is an `E`-valued
-sequence, measurable at every sample size](hyp:hXn), [converging in distribution to a
-probability measure `Q` on `E`](hyp:hX), and [`g : E → F` is continuous](hyp:hg). Then [the
-composed sequence `g ∘ Xn` converges in distribution to the pushforward measure `Q.map
-g`](goal).
-
-Vector analogue / wrapper around
+Uses
 `MeasureTheory.ProbabilityMeasure.tendsto_map_of_tendsto_of_continuous`. -/
-theorem Tendsto_dist_vec.map_continuous
+theorem Modes.TendstoInLaw.map_continuous
     {Ω E F : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     [PseudoMetricSpace E] [MeasurableSpace E] [OpensMeasurableSpace E]
     [PseudoMetricSpace F] [MeasurableSpace F] [BorelSpace F]
     {Xn : ℕ → Ω → E} {Q : Measure E} [IsProbabilityMeasure Q]
-    {g : E → F} (hg : Continuous g)
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hX : Tendsto_dist_vec Xn Q μ hXn) :
+    {g : E → F}
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q)
+    (hg : Continuous g) :
     Tendsto (β := ProbabilityMeasure F)
       (fun n =>
         ⟨μ.map (fun ω => g (Xn n ω)),
           Measure.isProbabilityMeasure_map
-            (hg.measurable.aemeasurable.comp_aemeasurable (hXn n))⟩)
+            (hg.measurable.aemeasurable.comp_aemeasurable (hX.forall_aemeasurable n))⟩)
       atTop
       (𝓝 ⟨Q.map g, Measure.isProbabilityMeasure_map hg.measurable.aemeasurable⟩) := by
+  have hXn : ∀ n, AEMeasurable (Xn n) μ := hX.forall_aemeasurable
   have hgXn : ∀ n, AEMeasurable (fun ω => g (Xn n ω)) μ := fun n =>
     hg.measurable.aemeasurable.comp_aemeasurable (hXn n)
   letI : IsProbabilityMeasure (Q.map g) :=
@@ -289,30 +264,29 @@ theorem Tendsto_dist_vec.map_continuous
   change Measure.map g (μ.map (Xn n)) = μ.map (fun ω => g (Xn n ω))
   rw [AEMeasurable.map_map_of_aemeasurable hg.measurable.aemeasurable (hXn n)]
   rfl
-
-/-- **Continuous mapping at limit-almost-everywhere continuity points.** Suppose [`Xn` is
-measurable at every sample size](hyp:hXn), [`Xn` converges in distribution to `Q`](hyp:hX),
-[`g` is measurable](hyp:hgmeas), and [`g` is continuous at `Q`-almost every point](hyp:hg).
-Then [the composed sequence `g ∘ Xn`
-converges in distribution to the pushforward law `Q.map g`](goal).
+/-- If [random elements converge in distribution](hyp:hX),
+[the applied map is measurable](hyp:hgmeas), and [it is continuous at almost
+every point under the limiting law](hyp:hg), then [the transformed laws
+converge weakly to the pushforward of the limiting law](goal).
 
 This is the almost-everywhere-continuity form of the continuous mapping theorem (van der
 Vaart, Theorem 2.3). -/
-theorem Tendsto_dist_vec.map_continuous_ae
+theorem Modes.TendstoInLaw.map_continuous_ae
     {Ω E F : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     [PseudoMetricSpace E] [MeasurableSpace E] [OpensMeasurableSpace E]
     [PseudoMetricSpace F] [MeasurableSpace F] [BorelSpace F]
     {Xn : ℕ → Ω → E} {Q : Measure E} [IsProbabilityMeasure Q]
-    {g : E → F} (hgmeas : Measurable g) (hg : ∀ᵐ x ∂Q, ContinuousAt g x)
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hX : Tendsto_dist_vec Xn Q μ hXn) :
+    {g : E → F}
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q)
+    (hgmeas : Measurable g) (hg : ∀ᵐ x ∂Q, ContinuousAt g x) :
     Tendsto (β := ProbabilityMeasure F)
       (fun n =>
         ⟨μ.map (fun ω => g (Xn n ω)),
           Measure.isProbabilityMeasure_map
-            (hgmeas.aemeasurable.comp_aemeasurable (hXn n))⟩)
+            (hgmeas.aemeasurable.comp_aemeasurable (hX.forall_aemeasurable n))⟩)
       atTop
       (𝓝 ⟨Q.map g, Measure.isProbabilityMeasure_map hgmeas.aemeasurable⟩) := by
+  have hXn : ∀ n, AEMeasurable (Xn n) μ := hX.forall_aemeasurable
   have hX_tendsto :
       Tendsto (β := ProbabilityMeasure E)
         (fun n => ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩) atTop
@@ -362,5 +336,4 @@ theorem Tendsto_dist_vec.map_continuous_ae
     _ = Q A := hQA
     _ = (Q.map g) C := by
       rw [Measure.map_apply hgmeas hC.measurableSet]
-
 end Causalean.Stat

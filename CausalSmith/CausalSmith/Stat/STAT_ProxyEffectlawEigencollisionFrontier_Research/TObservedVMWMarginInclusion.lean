@@ -31,7 +31,7 @@ lemma latentArmWeights_minSingular {k dx dz : ℕ} {pi0 : ℝ}
     (hk : 2 ≤ k) (hpi : 0 < pi0) (hpos : LatentArmPositivity (pi0 := pi0) P)
     (t : Bool) : pi0 ≤ signalMinSingular (latentArmWeights P t) := by
   apply le_singularValues_of_subspace
-      (Matrix.toEuclideanLin (latentArmWeights P t)) ⊤ hpi.le
+      (Matrix.toEuclideanLin (latentArmWeights P t)) ⊤
   · simp only [finrank_top, finrank_euclideanSpace, Fintype.card_fin]
     omega
   · intro x _hx
@@ -84,7 +84,7 @@ lemma observedProxyMoment_minSingular_of_factorization
   letI : Nonempty (Fin k) := ⟨⟨0, by omega⟩⟩
   have hprod := Matrix.singularValues_mul_mul_transpose_lower_bound
     (referenceFeature P t) (latentArmWeights P t) (targetFeature P)
-    hAinj hDinj hBinj
+    hBinj
   rw [hfac]
   have hA0 : 0 ≤ signalMinSingular (referenceFeature P t) :=
     (Matrix.toEuclideanLin (referenceFeature P t)).singularValues_nonneg _
@@ -305,7 +305,7 @@ lemma exists_reference_coordinate_positive_event
       _ ≤ ‖Matrix.toEuclideanLin (referenceFeature P t) e‖ := by
         simpa [signalMinSingular, singularValue, Fintype.card_fin] using
           least_singularValue_mul_norm_le
-            (Matrix.toEuclideanLin (referenceFeature P t)) hAinj e
+            (Matrix.toEuclideanLin (referenceFeature P t)) e
   have hcoord : ∃ j : Fin dz,
       sigma0 / Real.sqrt dz ≤ |referenceFeature P t j u| := by
     by_contra hnone
@@ -340,7 +340,7 @@ lemma exists_reference_coordinate_positive_event
   let μ := normalizedRestrict P C
   have hCpos := latentCell_pos_of_latentArmPositivity P hpi hM.latentArmPositivity u t
   let _ : IsProbabilityMeasure μ :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentCell u t) hCpos
+    normalizedRestrict_isProbabilityMeasure hCpos
   have hb := (proxy_coordinate_bounds_of_model P hk hkx hM).2.1
   have hZint : Integrable (fun w : FullData k dx dz => w.Z j) μ := by
     exact Integrable.of_bound
@@ -386,7 +386,7 @@ lemma ae_abs_observedOutcome_le_on_latentCell
   let μ := normalizedRestrict P C
   have hCpos := latentCell_pos_of_latentArmPositivity P hpi hM.latentArmPositivity u t
   let _ : IsProbabilityMeasure μ :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentCell u t) hCpos
+    normalizedRestrict_isProbabilityMeasure hCpos
   obtain ⟨j, hj⟩ :=
     exists_reference_coordinate_positive_event P hk hkx hkz hL hpi hsigma hM u t
   have hfac := referenceProxySeparation_to_normalizedFactorization
@@ -441,7 +441,7 @@ lemma ae_abs_potential_le_on_latentClass
     intro w hw
     exact hw.1
   let _ : IsProbabilityMeasure μ :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentClass u) hCpos
+    normalizedRestrict_isProbabilityMeasure hCpos
   have hfac := latentIgnorability_to_normalizedFactorization
     hM.latentIgnorability u t hCpos
   have hIndT : IndepFun (potential t) (fun w : FullData k dx dz => w.T) μ :=
@@ -456,7 +456,7 @@ lemma ae_abs_potential_le_on_latentClass
     rw [← heq]
     exact hc
   have hApos : 0 < μ A := by
-    rw [normalizedRestrict_apply hCpos (measurableSet_fullDataArm t)]
+    rw [normalizedRestrict_apply (measurableSet_fullDataArm t)]
     have hinter : A ∩ C = latentCell u t := by
       ext w
       simp [A, C, latentCell, latentClass, and_comm]
@@ -495,7 +495,7 @@ lemma latentMean_abs_le_of_model
     exact hw.1
   let mu := normalizedRestrict P (latentClass u)
   let _ : IsProbabilityMeasure mu :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentClass u) hclass
+    normalizedRestrict_isProbabilityMeasure hclass
   have hpot := ae_abs_potential_le_on_latentClass
     P hk hkx hkz hL hpi hsigma hM u t
   have hpotmu : ∀ᵐ w ∂mu, |potential t w| ≤ effectRadius dz L sigma0 / 2 :=
@@ -594,7 +594,7 @@ lemma conditionalMatrix_norm_le_of_ae_bound
   let C : Set (FullData k dx dz) := {w | w.T = t}
   let μ := normalizedRestrict P C
   let _ : IsProbabilityMeasure μ :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_fullDataArm t) hArm
+    normalizedRestrict_isProbabilityMeasure hArm
   have hboundμ : ∀ᵐ w ∂μ, ‖matrixCLM (A w)‖ ≤ L :=
     (ae_normalizedRestrict_iff hArm).mpr (ae_restrict_of_ae hbound)
   have hmap : Integrable (fun w => matrixCLM (A w)) μ :=
@@ -795,7 +795,6 @@ lemma stackedProxyMoment_minSingular
   have hDinj := latentArmWeights_injective P hpi hM.latentArmPositivity false
   apply le_singularValues_of_subspace
     (Matrix.toEuclideanLin (stackedProxyMoment (obsSummary P))) S
-      (mul_nonneg hpi.le (sq_nonneg sigma0))
   · dsimp [S]
     rw [B.finrank_range_of_inj hBinj, finrank_euclideanSpace]
     simp
@@ -807,7 +806,7 @@ lemma stackedProxyMoment_minSingular
           mul_le_mul_of_nonneg_right hM.proxyRankMargin.2.2 (norm_nonneg _)
         _ ≤ ‖B.adjoint x‖ := by
           simpa [B, S, Fintype.card_fin] using
-            least_singularValue_mul_norm_le_adjoint_on_range B hBinj x hx
+            least_singularValue_mul_norm_le_adjoint_on_range B x hx
     have hDmargin := latentArmWeights_minSingular P hk hpi hM.latentArmPositivity false
     have hDexp : pi0 * ‖B.adjoint x‖ ≤ ‖D (B.adjoint x)‖ := by
       calc
@@ -815,14 +814,14 @@ lemma stackedProxyMoment_minSingular
           mul_le_mul_of_nonneg_right hDmargin (norm_nonneg _)
         _ ≤ ‖D (B.adjoint x)‖ := by
           simpa [D, Fintype.card_fin] using
-            least_singularValue_mul_norm_le D hDinj (B.adjoint x)
+            least_singularValue_mul_norm_le D (B.adjoint x)
     have hAexp : sigma0 * ‖D (B.adjoint x)‖ ≤ ‖A (D (B.adjoint x))‖ := by
       calc
         sigma0 * ‖D (B.adjoint x)‖ ≤ A.singularValues (k - 1) * ‖D (B.adjoint x)‖ :=
           mul_le_mul_of_nonneg_right hM.proxyRankMargin.1 (norm_nonneg _)
         _ ≤ ‖A (D (B.adjoint x))‖ := by
           simpa [A, Fintype.card_fin] using
-            least_singularValue_mul_norm_le A hAinj (D (B.adjoint x))
+            least_singularValue_mul_norm_le A (D (B.adjoint x))
     have hchain : pi0 * sigma0 ^ 2 * ‖x‖ ≤ ‖A (D (B.adjoint x))‖ := by
       calc
         pi0 * sigma0 ^ 2 * ‖x‖ = sigma0 * pi0 * (sigma0 * ‖x‖) := by ring

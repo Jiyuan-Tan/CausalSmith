@@ -438,7 +438,7 @@ private lemma reindexed_rigidity {Z : Type*} [MeasurableSpace Z]
   by_contra hneq
   have hsing := Staircase.equality_rigidity Q (Real.exp eps) R (piTheta θ p)
     (piTheta_pos p θ hmodel)
-    (sum_piTheta p θ hmodel) (trialScore θ p) (direction t)
+    (trialScore θ p) (direction t)
     hgap (patternEquiv s) (patternEquiv u) hms hmu (by
       rw [releaseScore_reindex p θ R hmodel s t hs,
         releaseScore_reindex p θ R hmodel u t hu]
@@ -737,7 +737,7 @@ private lemma informationDifference_posSemidef {Z : Type*} [MeasurableSpace Z]
   · intro v
     have hgap := Staircase.fisher_gap_nonneg Q (Real.exp eps) R (piTheta θ p)
       (piTheta_pos p θ hmodel)
-      (sum_piTheta p θ hmodel) (trialScore θ p) v
+      (trialScore θ p) v
     rw [finiteFisher_reindex p θ R hmodel v,
       outputFisher_eq_informationQuadratic p θ hmodel eps Q hQ v]
       at hgap

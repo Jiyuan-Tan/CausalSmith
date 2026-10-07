@@ -20,39 +20,47 @@ open scoped BigOperators ENNReal Interval
 
 namespace AtomicLaw
 
-/-- The cumulative distribution function of a finite atomic representation. -/
+/-- The cumulative distribution function of a finite atomic representation: at a real point `x`,
+the total weight of the atoms located at or below `x`. -/
 noncomputable def cdf {ι : Type*} [Fintype ι] (μ : AtomicLaw ι) (x : ℝ) : ℝ :=
   ∑ i, if μ.atom i ≤ x then μ.weight i else 0
 
-/-- The pointwise difference of the two finite atomic cumulative distribution functions. -/
+/-- The pointwise difference of the two finite atomic cumulative distribution functions, the
+first minus the second. -/
 noncomputable def cdfGap {ι κ : Type*} [Fintype ι] [Fintype κ]
     (μ : AtomicLaw ι) (ν : AtomicLaw κ) (x : ℝ) : ℝ :=
   μ.cdf x - ν.cdf x
 
-/-- The signed amount of a transport plan crossing the cut at `x`, counted positively from the
-left side of the cut to the right side and negatively in the reverse direction. -/
+/-- The signed amount of a transport plan crossing the cut at `x`: mass moved from a source atom
+at or below `x` to a target atom strictly above `x` counts positively, mass moved from a source
+atom strictly above `x` to a target atom at or below `x` counts negatively, and all other mass
+counts zero. -/
 noncomputable def signedCrossing {ι κ : Type*} [Fintype ι] [Fintype κ]
     {μ : AtomicLaw ι} {ν : AtomicLaw κ} (π : TransportPlan μ ν) (x : ℝ) : ℝ :=
   ∑ i, ∑ j, π.mass i j *
     (if μ.atom i ≤ x ∧ x < ν.atom j then 1
       else if ν.atom j ≤ x ∧ x < μ.atom i then -1 else 0)
 
-/-- The unsigned amount of a transport plan crossing the cut at `x`, counting transport in both
-directions. -/
+/-- The unsigned amount of a transport plan crossing the cut at `x`: the total mass moved between
+an atom at or below `x` and an atom strictly above `x`, in either direction. -/
 noncomputable def crossingEnvelope {ι κ : Type*} [Fintype ι] [Fintype κ]
     {μ : AtomicLaw ι} {ν : AtomicLaw κ} (π : TransportPlan μ ν) (x : ℝ) : ℝ :=
   ∑ i, ∑ j, π.mass i j *
     (if μ.atom i ≤ x ∧ x < ν.atom j ∨ ν.atom j ≤ x ∧ x < μ.atom i then 1 else 0)
 
-/-- A transport plan has no counterflow when, at every real cut, mass crosses in at most one of
-the two possible directions. -/
+/-- A transport plan has no counterflow when, at every real cut `x`, mass crosses in at most one
+of the two possible directions: either no mass moves from a source atom at or below `x` to a
+target atom strictly above `x`, or no mass moves from a source atom strictly above `x` to a target
+atom at or below `x`. -/
 def CutMonotone {ι κ : Type*} [Fintype ι] [Fintype κ]
     {μ : AtomicLaw ι} {ν : AtomicLaw κ} (π : TransportPlan μ ν) : Prop :=
   ∀ x,
     (∑ i, ∑ j, if μ.atom i ≤ x ∧ x < ν.atom j then π.mass i j else 0) = 0 ∨
     (∑ i, ∑ j, if ν.atom j ≤ x ∧ x < μ.atom i then π.mass i j else 0) = 0
 
-/-- The sign selector used to build an attaining Kantorovich--Rubinstein potential. -/
+/-- The sign of the CDF gap of two finite atomic representations at a real point: one where the
+gap is positive, minus one where it is negative, and zero where it vanishes.  It is the
+derivative of the attaining Kantorovich--Rubinstein potential. -/
 noncomputable def cdfSign {ι κ : Type*} [Fintype ι] [Fintype κ]
     (μ : AtomicLaw ι) (ν : AtomicLaw κ) (x : ℝ) : ℝ :=
   if 0 < cdfGap μ ν x then 1 else if cdfGap μ ν x < 0 then -1 else 0
@@ -92,7 +100,8 @@ private theorem cdfSign_intervalIntegrable {ι κ : Type*} [Fintype ι] [Fintype
   · filter_upwards with x
     simpa [Real.norm_eq_abs] using abs_cdfSign_le_one μ ν x
 
-/-- The piecewise-linear primitive of the sign of the finite atomic CDF difference. -/
+/-- The piecewise-linear primitive of the sign of the finite atomic CDF difference: the integral
+of that sign from zero to `x`, so that it vanishes at zero. -/
 noncomputable def krPotential {ι κ : Type*} [Fintype ι] [Fintype κ]
     (μ : AtomicLaw ι) (ν : AtomicLaw κ) (x : ℝ) : ℝ :=
   ∫ t in (0 : ℝ)..x, cdfSign μ ν t
@@ -323,10 +332,10 @@ theorem integral_crossingEnvelope_eq_transportCost {ι κ : Type*}
     intro j hj
     exact unsignedPair_integrable (π.mass i j) (μ.atom i) (ν.atom j)
 
-/-- [Two finite atomic laws with finite slot types](hyp:ι,κ,μ,ν), [valid probability weights](hyp:hμ,hν), and [any transport plan between them](hyp:π) satisfy [the lower bound of transport cost by integrated absolute CDF gap](goal). -/
+/-- [Two finite atomic laws with finite slot types](hyp:ι,κ,μ,ν) and [any transport plan between them](hyp:π) satisfy [the lower bound of transport cost by integrated absolute CDF gap: the Lebesgue integral over the real line of the absolute difference of the two cumulative distribution functions is at most the absolute-distance cost of the plan](goal). -/
 theorem integral_abs_cdfGap_le_transportCost {ι κ : Type*}
     [Fintype ι] [Fintype κ] {μ : AtomicLaw ι} {ν : AtomicLaw κ}
-    (hμ : μ.Valid) (hν : ν.Valid) (π : TransportPlan μ ν) :
+    (π : TransportPlan μ ν) :
     (∫ x, |cdfGap μ ν x|) ≤ transportCost π := by
   rw [← integral_crossingEnvelope_eq_transportCost π]
   exact integral_abs_cdfGap_le_integral_crossingEnvelope π

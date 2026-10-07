@@ -3,9 +3,17 @@ public import Causalean.Mathlib.Analysis.Analytic.ParametricIntegral.Rational.Ma
 public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
 /-!
-# Examples of polynomial-over-affine integral analyticity
+# A worked example of parametric rational-integral analyticity
 
-This file verifies the API on a scalar integral over a compact real interval.
+The function t ↦ ∫₀¹ (1 + t·x) / (2 + t·x) dx is real analytic on the open interval (−1, 1). The
+integrand is a polynomial in the parameter divided by a denominator affine in the parameter, and
+the denominator stays at least 1 for |t| < 1 and x ∈ [0, 1], so the general theorem on integrals of
+polynomial-over-affine integrands applies.
+
+## Main results
+
+* `analyticOnNhd_integral_one_add_tx_div_two_add_tx` — analyticity of the integral above on (−1, 1),
+  obtained from `analyticOnNhd_setIntegral_polynomial_div_affine`.
 -/
 
 public section
@@ -25,7 +33,7 @@ theorem analyticOnNhd_integral_one_add_tx_div_two_add_tx :
     measurableSet_Icc measure_Icc_lt_top.ne
     1 c (fun _ ↦ 2) (fun x ↦ 2 + x)
     (Set.Ioo (-1 : ℝ) 1) 1 1 (fun _ ↦ 1)
-    isOpen_Ioo (by norm_num) (by norm_num)
+    (by norm_num) (by norm_num)
     (by
       intro i
       fin_cases i

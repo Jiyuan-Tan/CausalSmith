@@ -81,7 +81,7 @@ lemma reflection_kFunctionalSq_Lp_eq {S : Type} [MeasurableSpace S]
   · obtain ⟨g0, g1, hsum, hcost⟩ := exists_harmonic_minimizer μ
       (fun _ => 1) w measurable_const hw hweights t ht (f : S →ₘ[μ] ℂ)
     have hbound := harmonic_energy_le_cost μ (fun _ => 1) w
-      measurable_const hw hweights t ht (f : S →ₘ[μ] ℂ)
+      measurable_const hweights t ht (f : S →ₘ[μ] ℂ)
       (f : S →ₘ[μ] ℂ) 0 (by simp)
     have hzero := reflection_wNorm_zero μ w
     rw [hcost.symm, reflection_wNorm_one_eq_enorm, hzero, zero_pow (by decide),

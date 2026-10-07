@@ -69,11 +69,12 @@ private theorem condIndepFun_comp_of_map
   have hpair_meas : Measurable (fun b : β => (Z b, X b)) := hZ.prodMk hX
   have hpair_comp : (fun b : β => (Z b, X b)) ∘ φ =
       fun a : α => ((Z ∘ φ) a, (X ∘ φ) a) := rfl
-  have htr_pair := condDistrib_map_comp (𝒴 := δ) ν
-    (φ := φ) (g := Y) (f := fun b : β => (Z b, X b))
-    hφ hY hpair_meas
-  have htr_Z := condDistrib_map_comp (𝒴 := δ) ν
-    (φ := φ) (g := Y) (f := Z) hφ hY hZ
+  have htr_pair := ProbabilityTheory.condDistrib_map (ν := ν) (f := φ)
+    hpair_meas.aemeasurable hY.aemeasurable hφ.aemeasurable
+  rw [← MeasureTheory.Measure.map_map hpair_meas hφ] at htr_pair
+  have htr_Z := ProbabilityTheory.condDistrib_map (ν := ν) (f := φ)
+    hZ.aemeasurable hY.aemeasurable hφ.aemeasurable
+  rw [← MeasureTheory.Measure.map_map hZ hφ] at htr_Z
   rw [hpair_comp] at htr_pair
   have hmap_pair : (ν.map φ).map (fun b : β => (Z b, X b)) =
       ν.map (fun a : α => ((Z ∘ φ) a, (X ∘ φ) a)) := by
@@ -100,8 +101,7 @@ private theorem condIndepFun_comp_of_map
 
 /-- **SCM-to-PO conditional-independence bridge under d-separation.** Fix a
 structural causal model `M` with a fixed-value assignment `s`, and SWIG node
-sets that are [each contained in the model's random variables](hyp:hX,hY,hZ)
-and [pairwise disjoint from one another](hyp:hDisj_XY,hDisj_XZ,hDisj_YZ).
+sets that are [each contained in the model's random variables](hyp:hX,hY,hZ).
 Suppose [the first node set is d-separated from the second by the third in the model's DAG](hyp:hdSep). Suppose further that there is
 [a measurable value-space map `aMap` for the first node set](hyp:haMap) and
 [a measurable value-space map `BMap` for the second node set](hyp:BMap,hBMap)
@@ -111,9 +111,8 @@ such that, under the latent draw,
 [the conditioning value of a regimed variable `c` equals the projection onto the third node set](hyp:hc_value). Then, in the potential-outcome system induced by `M` at `s`,
 [`a` and `B` are conditionally independent given `c`](goal).
 
-The three separately supplied pairwise-disjointness hypotheses repeat facts
-already contained in `hdSep`; no additional disjointness beyond d-separation is
-needed for this result.
+Pairwise disjointness of the three node sets is part of d-separation, so it is
+not assumed separately.
 
 The hypotheses `ha_value`, `hB_value`, and `hc_value` are the explicit
 PO-to-SCM value correspondence: under latent draw `ℓ`, the PO value of `a`, the
@@ -128,7 +127,6 @@ theorem ofSCM_condIndepCF_of_dSep
     [∀ s' : M.FixedValues, IsFiniteMeasure (M.jointKernel s')]
     {X Y Z : Finset (SWIGNode N)}
     (hX : X ⊆ M.randomVars) (hY : Y ⊆ M.randomVars) (hZ : Z ⊆ M.randomVars)
-    (hDisj_XY : Disjoint X Y) (hDisj_XZ : Disjoint X Z) (hDisj_YZ : Disjoint Y Z)
     (hdSep : M.dag.dSep X Y Z)
     {α : Type*} [MeasurableSpace α] [StandardBorelSpace α] [Nonempty α]
     (a : RegimedVar (POSystem.ofSCM M s) α)

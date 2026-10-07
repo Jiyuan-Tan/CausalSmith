@@ -165,7 +165,7 @@ lemma canonicalNormalizedAggregateScore_memLp_two
         (poissonMeasure (m * q j).toNNReal) := by
       rw [← hmean j]
       exact (Causalean.Stat.Concentration.PoissonSelfNormalized.integrable_score_pow
-        (m.toNNReal * (q j).toNNReal) hL (t := 2) (by norm_num)).const_mul (1 / m ^ 2)
+        (m.toNNReal * (q j).toNNReal) hL (t := 2)).const_mul (1 / m ^ 2)
         |>.congr (Filter.Eventually.of_forall fun w => by dsimp [scalar]; ring)
     have hscalar : MemLp scalar 2 (poissonMeasure (m * q j).toNNReal) :=
       (memLp_two_iff_integrable_sq (by fun_prop)).2 hscalarSq

@@ -249,7 +249,6 @@ source law](hyp:hQ). If [every measurable source estimator has squared risk at l
 level for some parameter](hyp:hsource), then [every measurable target estimator has squared
 risk at least that level multiplied by the squared affine slope for some parameter](goal),
 where the target parameter is transformed by the same affine map. -/
-@[deprecated (since := "2026-09-17")]
 theorem forall_estimator_exists_sqRisk_ge_of_deterministic_affine_transport
     (P : Iota → Measure X) (Q : Iota → Measure Y)
     (theta : Iota → ℝ) (phi : X → Y) (a b L : ℝ)
@@ -279,12 +278,11 @@ for some parameter](hyp:hsource), then [every measurable estimator based on the 
 target product experiment has squared risk at least that level multiplied by the squared affine
 slope for some parameter](goal), including when the sample has no coordinates.
 
-This deprecated Bochner-risk transport is intended only for estimator classes whose squared
+This Bochner-risk transport is meant for estimator classes whose squared
 losses are known integrable (in particular, bounded estimator classes). For unrestricted
 estimators use `forall_estimator_exists_sqRiskLIntegral_ge_of_deterministic_affine_transport_pi`,
 whose extended risk cannot collapse to zero on a non-integrable loss.
 -/
-@[deprecated (since := "2026-09-17")]
 theorem forall_estimator_exists_sqRisk_ge_of_deterministic_affine_transport_pi
     (n : ℕ) (P : Iota → Measure X) (Q : Iota → Measure Y)
     [∀ j, IsProbabilityMeasure (P j)]

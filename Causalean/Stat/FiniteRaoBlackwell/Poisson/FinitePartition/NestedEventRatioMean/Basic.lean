@@ -22,19 +22,20 @@ variable {X : Type*} [MeasurableSpace X]
 noncomputable section
 
 /-- An [event](hyp:A) and [a fixed observation tuple](hyp:x) determine its [real-valued
-count](goal), given by summing the membership indicators (step:1). -/
+count](goal), given by [summing over the tuple's positions the zero-one indicators that the
+observation lies in the event](step:1). -/
 def iidEventCount (A : Set X) {n : ℕ} (x : Fin n → X) : ℝ := by
   classical
   exact ∑ i : Fin n, if x i ∈ A then (1 : ℝ) else 0
 
 /-- An [event](hyp:A) and [a finite sample](hyp:s) determine its [real-valued event
-count](goal), given by the count in the sample's observation tuple (step:1). -/
+count](goal), given by [the count in the sample's observation tuple](step:1). -/
 def eventCount (A : Set X) (s : FiniteSample X) : ℝ :=
   iidEventCount A s.points
 
 /-- Two [events](hyp:A,B) and [a finite sample](hyp:s) determine the [total success
-fraction](goal), given by the smaller-event count divided by the containing-event count
-when that count is nonzero and by zero otherwise (step:1). -/
+fraction](goal), given by [the first event's count divided by the second event's count
+when that count is nonzero and by zero otherwise](step:1). -/
 def successFraction (A B : Set X) (s : FiniteSample X) : ℝ := by
   classical
   exact if eventCount B s = 0 then 0 else eventCount A s / eventCount B s

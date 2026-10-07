@@ -4,7 +4,7 @@ public import Causalean.Stat.Minimax.Mixture.MomentMatched.Product
 
 /-! Testing estimates for the Bernoulli trial pair. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 namespace CausalSmith.PartialID.UnlinkedPropensityAte

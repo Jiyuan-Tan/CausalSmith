@@ -68,8 +68,10 @@ theorem map_orderedPrefix_finitePoissonSampleLaw
     Measure.map_add _ _ (measurable_orderedPrefix fallback), hgood, hbad]
 
 /-- For [a probability mark law](hyp:P), [a nonnegative intensity](hyp:lam), and
-[a fixed fallback array](hyp:fallback), [the TV discrepancy between its iid law
-and the retained finite-Poisson law is at most the short-count probability](goal).
+[a fixed fallback array](hyp:fallback), [the total-variation distance between the iid law of a
+fixed-length sample and the law of the ordered prefix of that length taken from a finite Poisson
+sample, with the fallback array substituted when the Poisson sample is too short, is at most the
+Poisson probability that the count is below that length](goal).
 
 This bound does not divide by the success probability, so it also covers zero
 intensity and a zero-length prefix. -/

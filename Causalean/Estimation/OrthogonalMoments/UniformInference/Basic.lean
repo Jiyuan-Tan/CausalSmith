@@ -16,10 +16,13 @@ namespace Causalean.Estimation.OrthogonalMoments.UniformInference
 
 open MeasureTheory ProbabilityTheory Filter Topology Causalean.Stat
 
-/-- A scalar cross-fitting problem consists of an i.i.d. sample under each law,
-a fixed-fold partition, a law-specific mean-zero oracle score, and a foldwise
-estimated score evaluated on held-out observations. The admissible laws may
-depend on sample size. -/
+/-- A scalar cross-fitting problem consists of a positive number of folds, an
+index set of data laws with an i.i.d. sample under each law, a fixed-fold
+partition, a law-specific target value, a law-specific oracle score, a foldwise
+estimated score evaluated on held-out observations, and a class of admissible
+laws that may depend on sample size. The structure carries only this data;
+mean-zero, moment, and rate requirements on the scores are separate
+assumptions imposed downstream. -/
 structure Family (ι Ω Z : Type*) [MeasurableSpace Ω] [MeasurableSpace Z]
     (K : ℕ) where
   K_pos : 0 < K
@@ -37,8 +40,9 @@ namespace Family
 variable {ι Ω Z : Type*} [MeasurableSpace Ω] [MeasurableSpace Z]
   {K : ℕ} (F : Family ι Ω Z K)
 
-/-- The oracle variance is the population second moment of the mean-zero
-influence score under the indexed law. -/
+/-- The oracle variance is the population second moment of the oracle
+score under the indexed law. It equals the variance of that score when the
+score has mean zero, as the downstream oracle conditions require. -/
 noncomputable def oracleVar (p : ι) : ℝ :=
   ∫ z, (F.oracle p z) ^ 2 ∂F.laws p
 

@@ -216,8 +216,8 @@ theorem olsHC0_entry_tendsto_inProb [IsProbabilityMeasure μ]
     (hx : Measurable x) (hy : Measurable y)
     (hraw : Integrable (olsRawMoment x y) P)
     (hQ : (olsQ P x y).PosDef) (i j : K) :
-    Tendsto_inProb (fun n ω => olsHC0 S x y n ω i j)
-      (fun _ => olsAsymptoticCovariance P x y i j) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => olsHC0 S x y n ω i j) atTop
+        (fun _ _ => olsAsymptoticCovariance P x y i j) := by
   letI : IsProbabilityMeasure P := by
     rw [← S.law]
     exact Measure.isProbabilityMeasure_map (S.meas 0).aemeasurable
@@ -247,9 +247,9 @@ theorem olsHC0_contrast_tendsto_inProb [IsProbabilityMeasure μ]
     (hx : Measurable x) (hy : Measurable y)
     (hraw : Integrable (olsRawMoment x y) P)
     (hQ : (olsQ P x y).PosDef) (c : EuclideanSpace ℝ K) :
-    Tendsto_inProb
-      (fun n ω => olsContrastVariance (olsHC0 S x y n ω) c)
-      (fun _ => olsContrastVariance (olsAsymptoticCovariance P x y) c) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ)
+        (fun n ω => olsContrastVariance (olsHC0 S x y n ω) c)
+        atTop (fun _ _ => olsContrastVariance (olsAsymptoticCovariance P x y) c) := by
   letI : IsProbabilityMeasure P := by
     rw [← S.law]
     exact Measure.isProbabilityMeasure_map (S.meas 0).aemeasurable
@@ -296,9 +296,9 @@ private theorem olsHC1_factor_tendsto :
 
 private theorem deterministic_mul_tendstoInMeasure
     {Xn : ℕ → Ω → ℝ} {c : ℝ} {a : ℕ → ℝ}
-    (hX : Tendsto_inProb Xn (fun _ => c) μ)
+    (hX : Modes.TendstoInProbability (fun _ : ℕ => μ) Xn atTop (fun _ _ => c))
     (ha : Tendsto a atTop (𝓝 1)) :
-    Tendsto_inProb (fun n ω => a n * Xn n ω) (fun _ => c) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => a n * Xn n ω) atTop (fun _ _ => c) := by
   rw [Tendsto_inProb_iff] at hX ⊢
   rw [tendstoInMeasure_iff_dist] at hX ⊢
   intro ε hε
@@ -363,8 +363,8 @@ theorem olsHC1_entry_tendsto_inProb [IsProbabilityMeasure μ]
     (hx : Measurable x) (hy : Measurable y)
     (hraw : Integrable (olsRawMoment x y) P)
     (hQ : (olsQ P x y).PosDef) (i j : K) :
-    Tendsto_inProb (fun n ω => olsHC1 S x y n ω i j)
-      (fun _ => olsAsymptoticCovariance P x y i j) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => olsHC1 S x y n ω i j) atTop
+        (fun _ _ => olsAsymptoticCovariance P x y i j) := by
   have h := deterministic_mul_tendstoInMeasure
     (olsHC0_entry_tendsto_inProb S hx hy hraw hQ i j)
     (olsHC1_factor_tendsto (K := K))
@@ -380,9 +380,9 @@ theorem olsHC1_contrast_tendsto_inProb [IsProbabilityMeasure μ]
     (hx : Measurable x) (hy : Measurable y)
     (hraw : Integrable (olsRawMoment x y) P)
     (hQ : (olsQ P x y).PosDef) (c : EuclideanSpace ℝ K) :
-    Tendsto_inProb
-      (fun n ω => olsContrastVariance (olsHC1 S x y n ω) c)
-      (fun _ => olsContrastVariance (olsAsymptoticCovariance P x y) c) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ)
+        (fun n ω => olsContrastVariance (olsHC1 S x y n ω) c)
+        atTop (fun _ _ => olsContrastVariance (olsAsymptoticCovariance P x y) c) := by
   have h := deterministic_mul_tendstoInMeasure
     (olsHC0_contrast_tendsto_inProb S hx hy hraw hQ c)
     (olsHC1_factor_tendsto (K := K))

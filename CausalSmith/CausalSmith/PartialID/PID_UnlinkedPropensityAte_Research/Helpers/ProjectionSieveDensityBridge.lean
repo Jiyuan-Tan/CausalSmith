@@ -227,8 +227,6 @@ lemma exists_synchronized_sieveLocations_cell_approx {ε : ℝ}
   exact Causalean.Stat.Quantile.AtomicApproximation.exists_synchronized_rational_equalAtom_approx
     μr νr 0 1 ε (1 - ε) (by norm_num) (by linarith [hOverlap.2])
     hμ hν hm outcomeSieveLocations (scoreSieveLocations hOverlap)
-    outcomeSieveLocations_subset (scoreSieveLocations_subset hOverlap)
-    outcomeSieveLocations_countable (scoreSieveLocations_countable hOverlap)
     outcomeSieveLocations_dense (scoreSieveLocations_dense hOverlap) η hη
 
 /-- Given [the stated mathematical inputs and assumptions](hyp:N,q,x,y), this result [establishes the stated mathematical conclusion](goal). -/

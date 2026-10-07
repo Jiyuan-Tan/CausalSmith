@@ -201,11 +201,9 @@ theorem QuantileRegularity.tendsto_normal {S : IIDSample Ω ℝ μ P} {qn : ℕ 
       (IsAsymLinear.rescaledEstimator qn q₀ (fun m => Finset.range m) n) μ)
     (_hSum_meas : ∀ n : ℕ, AEMeasurable
       (IsAsymLinear.normalizedSum S (quantileIF τ q₀ f₀) (fun m => Finset.range m) n) μ) :
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator qn q₀ (fun m => Finset.range m))
-      (gaussianMeasure 0 (τ * (1 - τ) / f₀ ^ 2))
-      μ
-      hθn_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (IsAsymLinear.rescaledEstimator qn q₀ (fun m => Finset.range m))
+        atTop (gaussianMeasure 0 (τ * (1 - τ) / f₀ ^ 2)) := by
   have hAL := h.isAsymLinear.tendsto_normal (measurable_quantileIF τ q₀ f₀) hθn_meas
   rwa [quantileIF_variance h.cdf_eq] at hAL
 

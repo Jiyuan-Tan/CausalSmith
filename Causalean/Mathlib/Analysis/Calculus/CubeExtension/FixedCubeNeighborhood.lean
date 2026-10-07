@@ -15,14 +15,14 @@ namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 open Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
 /-- In [dimension d](hyp:d), for [derivative order m](hyp:m) and [a Hölder
-exponent s](hyp:s) with [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1), [there are a
+exponent s](hyp:s) with [0 < s](hyp:hs), [there are a
 closed coordinate box strictly containing the normalized cube in every
 coordinate and a positive constant C such that every response in the intrinsic
 Hölder ball of radius L ≥ 0 on the cube agrees on the cube with a response in
 the intrinsic Hölder ball of radius C·L on that box](goal). The box and the
 constant depend only on d, m and s. -/
 theorem exists_fixedCubeNeighborhood_holder_constant
-    (d m : ℕ) (s : ℝ) (hs : 0 < s) (hs1 : s ≤ 1) :
+    (d m : ℕ) (s : ℝ) (hs : 0 < s) :
     ∃ (lo hi : Fin d → ℝ) (C : ℝ),
       (∀ i, lo i < -1 ∧ 1 < hi i) ∧ 0 < C ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (L : ℝ), 0 ≤ L →
@@ -56,7 +56,7 @@ theorem exists_fixedCubeNeighborhood_holder_constant
       have hj := hweak j
       linarith
     obtain ⟨D, hD, hreflect⟩ :=
-      exists_rectTwoFaceReflection_holder_constant lo hi m s hs hs1 hbox i
+      exists_rectTwoFaceReflection_holder_constant lo hi m s hs hbox i
     let lo' := rectLeftLower lo hi m i
     let hi' := rectRightUpper lo' hi m i
     refine ⟨lo', hi', D * C, ?_, ?_, mul_pos hD hC, ?_⟩

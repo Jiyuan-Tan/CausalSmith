@@ -9,7 +9,7 @@ first `k` coordinate vectors, the identity coordinate matrix, zero effects, and 
 weight vector with the required floor.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
@@ -49,7 +49,7 @@ private lemma canonicalGridBasis_signalMin {k dx : ℕ} (hk : 0 < k) (hkx : k �
     1 ≤ signalMinSingular (canonicalGridBasis hkx) := by
   let V := canonicalSignalBasis hkx
   apply le_singularValues_of_subspace
-      (Matrix.toEuclideanLin V.V) ⊤ (by norm_num)
+      (Matrix.toEuclideanLin V.V) ⊤
   · simpa using hk
   · intro x _hx
     have hn := (signalBasisLinearIsometry V).norm_map x
@@ -59,7 +59,7 @@ private lemma canonicalGridBasis_signalMin {k dx : ℕ} (hk : 0 < k) (hkx : k �
 private lemma identity_signalMin {k : ℕ} (hk : 0 < k) :
     1 ≤ signalMinSingular (1 : RectMatrix k k) := by
   apply le_singularValues_of_subspace
-      (Matrix.toEuclideanLin (1 : RectMatrix k k)) ⊤ (by norm_num)
+      (Matrix.toEuclideanLin (1 : RectMatrix k k)) ⊤
   · simpa using hk
   · intro x _hx
     simpa [Matrix.toEuclideanLin_apply]

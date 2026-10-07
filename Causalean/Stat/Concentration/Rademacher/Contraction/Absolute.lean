@@ -32,7 +32,7 @@ scaling and subtraction rules for empirical Rademacher complexity and the
 arbitrary-index contraction theorem under boundedness of the relevant
 suprema. -/
 
-@[expose] public section
+public section
 
 namespace Causalean
 namespace Stat
@@ -228,12 +228,12 @@ theorem rademacher_contraction_abs
   have h_contraction_pos :
       empiricalRademacherComplexity_without_abs n G0 S
         ≤ L * empiricalRademacherComplexity_without_abs n F0 S := by
-    simpa [G0] using rademacher_contraction_core φ hL hφ.2 F0 n S
+    simpa [G0] using rademacher_contraction φ hL hφ.2 F0 n S
   have h_contraction_neg :
       empiricalRademacherComplexity_without_abs n (fun i x => -G0 i x) S
         ≤ L * empiricalRademacherComplexity_without_abs n F0 S := by
     simpa [G0] using
-      rademacher_contraction_core (fun x => -φ x) hL (lipschitzAt0_neg φ hφ).2 F0 n S
+      rademacher_contraction (fun x => -φ x) hL (lipschitzAt0_neg φ hφ).2 F0 n S
   have hF0_le :
       empiricalRademacherComplexity_without_abs n F0 S
         ≤ empiricalRademacherComplexity n F S := by

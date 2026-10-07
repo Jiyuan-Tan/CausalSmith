@@ -53,7 +53,7 @@ lemma zeroInflated_polar_firstMoment
     let _ := C.zeroInflatedPrior_isProbabilityMeasure a kappa B ha hkappa hsupport
     apply Integrable.of_bound
       (measurable_id.mul C.measurable_polarSign).aestronglyMeasurable |B|
-    filter_upwards [C.zeroInflatedPrior_support a kappa B ha hkappa hsupport] with p hp
+    filter_upwards [C.zeroInflatedPrior_support a kappa B hsupport] with p hp
     rcases hp with rfl | hp
     · simp
     · change |p * C.polarSign p| ≤ |B|

@@ -195,7 +195,10 @@ def ExactInterpolationOperators : Sort 0 :=
 -- @node: exactInterpolationOperators
 theorem exactInterpolationOperators : ExactInterpolationOperators := by
   unfold ExactInterpolationOperators
+  intro E0 E1 G0 G1 V W _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ i0 i1 j0 j1 hi0 hi1 _ _ D A0 A1 hA0 hA1
+    h0 h1 θ hθ v _ hvfin
   exact Causalean.Mathlib.Analysis.RealInterpolation.exact_interpolation_operators
+    E0 E1 G0 G1 V W i0 i1 j0 j1 hi0 hi1 D A0 A1 hA0 hA1 h0 h1 θ hθ v hvfin
 
 /-- [ Weighted L² norm on measurable functions modulo null sets. -/
 def wNorm {S : Type} [MeasurableSpace S] (w : S → ℝ≥0∞) (μ : Measure S)

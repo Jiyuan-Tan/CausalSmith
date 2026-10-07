@@ -127,9 +127,9 @@ theorem standardizedIncrement_stronglyMeasurable (n k : ℕ) :
     StronglyMeasurable (M.standardizedIncrement n k) := by
   exact (measurable_of_finite _).stronglyMeasurable
 
-/-- Every active standardized coordinate score has a finite second moment under its row's
+/-- Every standardized coordinate score has a finite second moment under its row's
 product probability measure. -/
-theorem standardizedIncrement_memLp (n k : ℕ) (hk : k < M.N n) :
+theorem standardizedIncrement_memLp (n k : ℕ) :
     MemLp (M.standardizedIncrement n k) 2 (M.rowMeasure n) := by
   have : IsProbabilityMeasure (M.rowMeasure n) := by
     change IsProbabilityMeasure (M.productDesign n).toMeasure
@@ -264,7 +264,7 @@ noncomputable def standardizedArray :
     rowLength := M.N
     increment := M.standardizedIncrement
     measurable := M.standardizedIncrement_stronglyMeasurable
-    squareIntegrable := M.standardizedIncrement_memLp
+    squareIntegrable := fun n k _ => M.standardizedIncrement_memLp n k
     mean_zero := M.standardizedIncrement_mean_zero
     independent := M.standardizedIncrement_independent
   }

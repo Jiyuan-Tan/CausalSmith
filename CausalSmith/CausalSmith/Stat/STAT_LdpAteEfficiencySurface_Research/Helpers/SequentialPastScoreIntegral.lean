@@ -10,7 +10,7 @@ against the actual prefix law.  It uses only finite-mixture domination and does
 not invoke score projection.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

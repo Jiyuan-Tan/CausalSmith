@@ -345,7 +345,7 @@ noncomputable def gridCount (M : ℕ) (t δ l u : ℝ) : ℕ := by
 def coverageEvent {Ω : Type*} (L U : Ω → ℝ) (θ : ℝ) : Set Ω :=
   {x | θ ∈ Set.Icc (L x) (U x)}
 
-/-- The [nonnegative interval length](goal) associated with [a lower endpoint](hyp:l) and [an upper endpoint](hyp:u) is zero when the endpoints are reversed. -/
+/-- The [nonnegative interval length](goal) associated with [a lower endpoint](hyp:l) and [an upper endpoint](hyp:u) is the upper endpoint minus the lower endpoint when that difference is nonnegative, and zero when the endpoints are reversed. -/
 def intervalLength (l u : ℝ) : ℝ := max 0 (u - l)
 
 /-- [Measurable random lower and upper endpoints](hyp:hL,hU) make [each fixed-target coverage event measurable](goal). -/

@@ -107,9 +107,8 @@ private lemma klDiv_pi_const
   by_cases htop : InformationTheory.klDiv P Q = ∞
   · have hnpos : 0 < n := Nat.pos_of_ne_zero hn
     let i : Fin n := ⟨0, hnpos⟩
-    have hle := Causalean.Mathlib.InformationTheory.Measure.klDiv_map_le
-      (μ := Measure.pi fun _ : Fin n ↦ P)
-      (ν := Measure.pi fun _ : Fin n ↦ Q) (measurable_pi_apply i)
+    have hle := InformationTheory.klDiv_map_le (Measure.pi fun _ : Fin n ↦ P)
+      (Measure.pi fun _ : Fin n ↦ Q) (measurable_pi_apply i)
     rw [(measurePreserving_eval (fun _ : Fin n ↦ P) i).map_eq,
       (measurePreserving_eval (fun _ : Fin n ↦ Q) i).map_eq, htop] at hle
     have hpi : InformationTheory.klDiv
@@ -132,8 +131,7 @@ private lemma klDiv_prod_common_right
     InformationTheory.klDiv (P.prod R) (Q.prod R) =
       InformationTheory.klDiv P Q := by
   rw [← Measure.compProd_const, ← Measure.compProd_const]
-  exact Causalean.Mathlib.InformationTheory.Measure.klDiv_compProd_left
-    P Q (Kernel.const X R)
+  exact InformationTheory.klDiv_compProd_left P Q (Kernel.const X R)
 
 private lemma klDiv_finiteSampleKernel
     (n : ℕ) (P Q : Measure X) [IsProbabilityMeasure P] [IsProbabilityMeasure Q] :

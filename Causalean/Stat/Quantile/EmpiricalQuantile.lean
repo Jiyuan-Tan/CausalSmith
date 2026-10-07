@@ -169,8 +169,7 @@ lemma IIDSample.empiricalCDF_monotone (S : IIDSample Ω ℝ μ P) (n : ℕ) (ω 
 
 /-! ## Atom bound (locally tie-free near the population quantile) -/
 
-/-- **Local atom bound.** If [the radius around the target quantile is positive](hyp:hρ),
-[the population cdf is continuous on the corresponding closed neighborhood](hyp:hcont),
+/-- **Local atom bound.** If [the population cdf is continuous on a closed neighborhood of the target quantile](hyp:hcont),
 [the sample size is positive](hyp:hn), and [the quantile level is interior](hyp:hτ0,hτ1), then
 [almost surely, whenever the sample quantile lies in the open neighborhood, its empirical-cdf
 overshoot is at most one observation](goal).
@@ -178,7 +177,7 @@ overshoot is at most one observation](goal).
 Local continuity makes population singletons null inside the neighborhood, which is enough to
 exclude ties whenever the sample quantile lies there. -/
 lemma IIDSample.sampleQuantile_atom_bound [IsProbabilityMeasure μ] (S : IIDSample Ω ℝ μ P)
-    {q₀ ρ : ℝ} (hρ : 0 < ρ)
+    {q₀ ρ : ℝ}
     (hcont : ContinuousOn (fun y => cdf P y) (Set.Icc (q₀ - ρ) (q₀ + ρ)))
     {n : ℕ} (hn : 0 < n) {τ : ℝ} (hτ0 : 0 < τ) (hτ1 : τ < 1) :
     ∀ᵐ ω ∂μ, S.sampleQuantile τ n ω ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ) →

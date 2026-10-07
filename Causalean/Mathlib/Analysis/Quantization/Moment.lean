@@ -2,8 +2,9 @@ module
 public import Causalean.Mathlib.Analysis.Quantization.Core
 public import Mathlib.MeasureTheory.Integral.Layercake
 
-/-! Absolute-deviation moment inequalities for arbitrary bounded measurable
-sets. These lemmas do not require a cell to be connected. -/
+/-! Absolute-deviation moment inequalities for bounded sets: the tail bound holds for
+every subset of a bounded interval, the layer-cake and moment bounds for measurable
+subsets. These lemmas do not require a cell to be connected. -/
 
 public section
 
@@ -12,11 +13,12 @@ open scoped BigOperators
 
 namespace Causalean.Mathlib.Analysis.Quantization
 
-/-- For a bounded measurable cell, the mass at distance at least `r` from a
+/-- For a bounded cell, the mass at distance at least `r` from a
 point is at least the cell's mass minus the length `2*r` of the central band.
-The cell may be disconnected, and the point may lie outside it. -/
-theorem measurable_cell_tail_lower (a b z r : ℝ) (hab : a ≤ b)
-    (hr : 0 ≤ r) (E : Set ℝ) (hE : MeasurableSet E)
+The cell may be disconnected and need not be measurable, in which case its mass is its
+Lebesgue outer measure, and the point may lie outside it. -/
+theorem cell_tail_lower (a b z r : ℝ)
+    (hr : 0 ≤ r) (E : Set ℝ)
     (hsub : E ⊆ Set.Icc a b) :
     volume.real E ≤ 2 * r +
       volume.real (E ∩ {x : ℝ | r ≤ |x - z|}) := by
@@ -56,7 +58,7 @@ theorem measurable_cell_truncated_layer_cake (a b z : ℝ) (hab : a ≤ b)
     (E : Set ℝ) (hE : MeasurableSet E) (hsub : E ⊆ Set.Icc a b) :
     (∫ r in (0 : ℝ)..volume.real E / 2, (volume.real E - 2 * r)) ≤
       ∫ x in E, |x - z| := by
-  -- Use measurable_cell_tail_lower at each nonnegative radius, integrate
+  -- Use cell_tail_lower at each nonnegative radius, integrate
   -- in r, then Tonelli/layer cake to compare truncated tails with distance.
   let μ : Measure ℝ := volume.restrict E
   let m := volume.real E
@@ -128,7 +130,7 @@ theorem measurable_cell_truncated_layer_cake (a b z : ℝ) (hab : a ≤ b)
     hTint.mono_set (fun r hr => ⟨hr.1, hr.2.trans hmM⟩)
   have hpoint : ∀ r ∈ Ioc 0 (m / 2), m - 2 * r ≤ T r := by
     intro r hr
-    have h := measurable_cell_tail_lower a b z r hab hr.1.le E hE hsub
+    have h := cell_tail_lower a b z r hr.1.le E hsub
     dsimp [m, T]
     linarith
   have hfirst : (∫ r in Ioc 0 (m / 2), m - 2 * r) ≤

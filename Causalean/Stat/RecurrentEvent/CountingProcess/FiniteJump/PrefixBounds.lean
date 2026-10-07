@@ -90,7 +90,7 @@ theorem Model.abs_stochasticIntegral_le (M : Model Ω μ)
     simpa [Model.stochasticIntegral] using
       (abs_sub_le (M.jumpIntegral H M.horizon ω) 0 (M.energyIntegral H M.horizon ω))
   exact hab.trans
-    (add_le_add (M.abs_jumpIntegral_le_card H C hC hH ω)
+    (add_le_add (M.abs_jumpIntegral_le_card H C hH ω)
       (M.abs_energyIntegral_le_horizon H C R hC hR hH hr
         M.horizon ⟨M.horizon_pos.le, le_rfl⟩ ω))
 
@@ -120,7 +120,7 @@ on the horizon has an integrable intensity integral under a bounded rate. -/
 theorem Model.integrable_energy_of_envelope (M : Model Ω μ)
     (G : ℝ → Ω → ℝ) (hG : Measurable (fun p : ℝ × Ω => G p.1 p.2))
     (B : Ω → ℝ) (hB : Integrable B μ) (hBnonneg : ∀ ω, 0 ≤ B ω)
-    (R : ℝ) (hR : 0 ≤ R)
+    (R : ℝ)
     (hr : ∀ t ω, 0 ≤ t → t ≤ M.horizon →
       M.atRisk t ω * M.intensity t ω ≤ R)
     (hbound : ∀ t ω, 0 < t → t ≤ M.horizon → |G t ω| ≤ B ω) :

@@ -76,7 +76,7 @@ The finite-cell hypothesis is essential: an atomless cell law gives zero mass
 to every realized singleton. Prove the claim by taking the finite union of
 null cell events, then the finite union over sample coordinates. -/
 theorem usable_supported_ae (μ : Measure Ω) [IsProbabilityMeasure μ]
-    (X : Ω → κ) (A : Ω → Bool) (hX : Measurable X) (hA : Measurable A)
+    (X : Ω → κ) (A : Ω → Bool)
     (n : ℕ) :
     ∀ᵐ z ∂Measure.pi (fun _ : Fin n => μ),
       ∀ k, matchedCell X A z k → 0 < cellMass μ X k := by

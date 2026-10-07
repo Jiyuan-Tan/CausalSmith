@@ -228,7 +228,7 @@ theorem second_order_rate_and_certificate_frontier
         (fun n => secondOrderScale n * (C0 c / n - upper n))
         (fun n => secondOrderScale n * dN K c n)) ∧
     (∃ fullRule : Estimator 3 3 cDagger,
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun (p : Procedure 3 3 cDagger) (z : Schedule 3 3) => labeledRisk cDagger p z)
         (Causalean.Experimentation.DesignBased.prodDesign
           (fun _ : Unit 3 => qStarDesign cDagger), fullRule) <

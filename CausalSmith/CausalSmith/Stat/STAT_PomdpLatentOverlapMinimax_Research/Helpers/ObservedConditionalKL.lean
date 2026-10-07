@@ -140,7 +140,7 @@ lemma signedDepthConditionalEpoch_klDiv_eq {zeta m n : ℝ}
         (pmfOfRealWeight (signedDepthBehaviourWeight zeta)).toMeasure)) = _
   rw [Causalean.Mathlib.Probability.klDiv_map_measurableEquiv]
   rw [← Measure.compProd_const, ← Measure.compProd_const]
-  exact Causalean.Mathlib.InformationTheory.Measure.klDiv_compProd_left
+  exact InformationTheory.klDiv_compProd_left
     (signedMeanPMF m).toMeasure (signedMeanPMF n).toMeasure
     (Kernel.const Bool (pmfOfRealWeight (signedDepthBehaviourWeight zeta)).toMeasure)
 

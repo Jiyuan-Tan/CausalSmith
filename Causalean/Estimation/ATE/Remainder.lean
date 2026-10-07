@@ -14,13 +14,28 @@ module
 public import Causalean.Estimation.ATE.Remainder.Bound
 
 /-!
-Public entry point for the AIPW second-order remainder theory for back-door
-average treatment effect estimation.
+# The second-order remainder of the AIPW moment for the average treatment effect
 
-It re-exports the exact population identity `aipw_remainder_identity`, the
-plug-in bias bound `plugin_bias_le_eLpNorm`, the quantitative L² product bound
-`aipw_remainder_bound`, and the stochastic product-rate corollary
-`aipw_remainder_op` used in double machine learning.
+How far the population AIPW moment moves when the nuisance functions are wrong. For a candidate
+pair (μ̂, ê) in the overlap class, evaluated at the true effect θ₀, the population moment equals
+exactly
+
+    ∫ (ê(x) − e(x)) · [ (μ̂(1,x) − μ(1,x))/ê(x) + (μ̂(0,x) − μ(0,x))/(1 − ê(x)) ] dP_X(x),
+
+a product of propensity and outcome-regression errors with no first-order term. By
+Cauchy–Schwarz its absolute value is at most an overlap-dependent constant times the sum over
+arms of ‖μ̂(a,·) − μ(a,·)‖₂·‖ê − e‖₂ in L²(P_X), so a sequence of nuisance estimators whose error
+product is o_p(n^{-1/2}) in each arm has remainder o_p(n^{-1/2}). All three statements assume
+strict overlap of the true propensity, the back-door identification assumptions, and finite
+second moments of the observed and potential outcomes.
+
+## Main results
+
+* `aipw_remainder_identity` — the exact product-of-errors identity (`Remainder/Identity`).
+* `aipw_remainder_bound` — the L² product bound (`Remainder/Bound`).
+* `aipw_remainder_op` — the o_p(n^{-1/2}) remainder under the product-rate condition.
+* `plugin_bias_le_eLpNorm` — the integrated error of an outcome regression is at most its
+  L²(P_X) norm.
 -/
 
 public section

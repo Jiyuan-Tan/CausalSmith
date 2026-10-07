@@ -106,8 +106,9 @@ section Factorizations
 variable {X : Type uX} {Y : Type uY} {V : Type uV} {Z : Type uZ}
 variable [MeasurableSpace X] [MeasurableSpace Y] [MeasurableSpace V] [MeasurableSpace Z]
 
-/-- A density factors according to `X ⟂ Y | (Z,V)` when it is almost everywhere a product of
-one measurable factor depending on `(X,V,Z)` and another depending on `(Y,V,Z)`. -/
+/-- A density factors according to `X ⟂ Y | (Z,V)` when it equals, almost everywhere with respect
+to the product of the four reference measures, a product of one measurable nonnegative
+extended-real factor depending on `(X,V,Z)` and another depending on `(Y,V,Z)`. -/
 def FactorsXYGivenZV (μX : Measure X) (μY : Measure Y) (μV : Measure V) (μZ : Measure Z)
     (d : FourBlock X Y V Z → ℝ≥0∞) : Prop :=
   ∃ a : X × (V × Z) → ℝ≥0∞, ∃ b : Y × (V × Z) → ℝ≥0∞,
@@ -116,8 +117,9 @@ def FactorsXYGivenZV (μX : Measure X) (μY : Measure Y) (μV : Measure V) (μZ 
         (fun q => a (xCoord q, (vCoord q, zCoord q)) *
           b (yCoord q, (vCoord q, zCoord q)))
 
-/-- A density factors according to `X ⟂ V | (Z,Y)` when it is almost everywhere a product of
-one measurable factor depending on `(X,Y,Z)` and another depending on `(V,Y,Z)`. -/
+/-- A density factors according to `X ⟂ V | (Z,Y)` when it equals, almost everywhere with respect
+to the product of the four reference measures, a product of one measurable nonnegative
+extended-real factor depending on `(X,Y,Z)` and another depending on `(V,Y,Z)`. -/
 def FactorsXVGivenZY (μX : Measure X) (μY : Measure Y) (μV : Measure V) (μZ : Measure Z)
     (d : FourBlock X Y V Z → ℝ≥0∞) : Prop :=
   ∃ a : X × (Y × Z) → ℝ≥0∞, ∃ b : V × (Y × Z) → ℝ≥0∞,
@@ -126,8 +128,9 @@ def FactorsXVGivenZY (μX : Measure X) (μY : Measure Y) (μV : Measure V) (μZ 
         (fun q => a (xCoord q, (yCoord q, zCoord q)) *
           b (vCoord q, (yCoord q, zCoord q)))
 
-/-- A density factors according to `X ⟂ (Y,V) | Z` when it is almost everywhere a product of
-one measurable factor depending on `(X,Z)` and another depending on `(Y,V,Z)`. -/
+/-- A density factors according to `X ⟂ (Y,V) | Z` when it equals, almost everywhere with respect
+to the product of the four reference measures, a product of one measurable nonnegative
+extended-real factor depending on `(X,Z)` and another depending on `(Y,V,Z)`. -/
 def FactorsXYVGivenZ (μX : Measure X) (μY : Measure Y) (μV : Measure V) (μZ : Measure Z)
     (d : FourBlock X Y V Z → ℝ≥0∞) : Prop :=
   ∃ a : X × Z → ℝ≥0∞, ∃ b : (Y × V) × Z → ℝ≥0∞,
@@ -137,8 +140,8 @@ def FactorsXYVGivenZ (μX : Measure X) (μY : Measure Y) (μV : Measure V) (μZ 
 
 end Factorizations
 
-/-- Four finite index blocks determine the ambient index set on which the finite-coordinate
-specialization is stated. -/
+/-- The union of four finite index blocks, which is the ambient index set on which the
+finite-coordinate specialization is stated. -/
 def fourBlockIndices {M : Type uM} [DecidableEq M]
     (I J K L : Finset M) : Finset M := I ∪ J ∪ K ∪ L
 
@@ -166,8 +169,8 @@ theorem fourth_subset_fourBlock : L ⊆ fourBlockIndices I J K L := by
   intro i hi
   simp [fourBlockIndices, hi]
 
-/-- [Four finite coordinate blocks](hyp:I,J,K,L) determine [a union of the second and third
-blocks contained in their full union](goal). -/
+/-- For [four finite coordinate blocks](hyp:I,J,K,L), [the union of the second and third blocks
+is contained in the union of all four](goal). -/
 theorem secondThird_subset_fourBlock : J ∪ K ⊆ fourBlockIndices I J K L := by
   intro i hi
   simp only [fourBlockIndices, Finset.mem_union] at hi ⊢

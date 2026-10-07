@@ -140,11 +140,11 @@ lemma nextSymbolPMF_fullSupport {k : Nat} {p : PMF (Fin (k + 1) → Ω)}
   rw [nextSymbolPMF, dif_neg (ne_of_gt hprefix), PMF.ofFintype_apply]
   exact ENNReal.div_pos (ne_of_gt (hp (appendSymbol u x))) (PMF.apply_ne_top _ _)
 
-/-- Given [two strictly positive finite probability mass functions](hyp:hp,hq), [the first
+/-- Given two finite probability mass functions, [the second strictly positive](hyp:hq), [the first
 induced measure is absolutely continuous with respect to the second](goal). -/
 lemma absolutelyContinuous_of_strictlyPositivePMF {W : Type*} [Fintype W]
     [MeasurableSpace W] [MeasurableSingletonClass W] {p q : PMF W}
-    (hp : ∀ w, 0 < p w) (hq : ∀ w, 0 < q w) : p.toMeasure ≪ q.toMeasure := by
+    (hq : ∀ w, 0 < q w) : p.toMeasure ≪ q.toMeasure := by
   apply Measure.AbsolutelyContinuous.mk
   intro s _ hqs
   have hs_empty : s = ∅ := by
@@ -158,14 +158,14 @@ lemma absolutelyContinuous_of_strictlyPositivePMF {W : Type*} [Fintype W]
     exact (ne_of_gt (hq w)) hzero
   simp [hs_empty]
 
-/-- Given [two finite-word laws that are strictly positive everywhere](hyp:hp,hq), then for
+/-- Given two finite-word laws, [the second strictly positive everywhere](hyp:hq), then for
 [every strict prefix](hyp:u), [the first conditional last-symbol law is absolutely continuous
 with respect to the second](goal). -/
 lemma nextSymbolPMF_absolutelyContinuous {k : Nat}
-    {p q : PMF (Fin (k + 1) → Ω)} (hp : ∀ w, 0 < p w) (hq : ∀ w, 0 < q w)
+    {p q : PMF (Fin (k + 1) → Ω)} (hq : ∀ w, 0 < q w)
     (u : Fin k → Ω) :
     (nextSymbolPMF p u).toMeasure ≪ (nextSymbolPMF q u).toMeasure :=
-  absolutelyContinuous_of_strictlyPositivePMF (nextSymbolPMF_fullSupport hp u)
+  absolutelyContinuous_of_strictlyPositivePMF
     (nextSymbolPMF_fullSupport hq u)
 
 /-- Given [a finite-word law](hyp:p), [transport by the last-coordinate split equals the
@@ -254,18 +254,18 @@ lemma klDiv_lastCoordinate_eq_add_sum {k : Nat} (p q : PMF (Fin (k + 1) → Ω))
             (nextSymbolPMF q u).toMeasure := by
   rw [klDiv_lastCoordinate_eq_add, conditionalKL_eq_sum p q hac]
 
-/-- Given [two finite-word laws](hyp:p,q) that [have strictly positive mass at every word](hyp:hp,hq),
-[one chronological extension is the prefix KL plus the explicit average of pointwise conditional
-divergences](goal). -/
+/-- Given [two finite-word laws](hyp:p,q), the second of which [has strictly positive mass at every
+word](hyp:hq), [one chronological extension is the prefix KL plus the explicit average of
+pointwise conditional divergences](goal). -/
 lemma klDiv_lastCoordinate_eq_add_sum_of_fullSupport {k : Nat}
-    (p q : PMF (Fin (k + 1) → Ω)) (hp : ∀ w, 0 < p w) (hq : ∀ w, 0 < q w) :
+    (p q : PMF (Fin (k + 1) → Ω)) (hq : ∀ w, 0 < q w) :
     InformationTheory.klDiv p.toMeasure q.toMeasure =
       InformationTheory.klDiv (prefixPMF p).toMeasure (prefixPMF q).toMeasure +
         ∑ u : Fin k → Ω, prefixPMF p u *
           InformationTheory.klDiv (nextSymbolPMF p u).toMeasure
             (nextSymbolPMF q u).toMeasure :=
   klDiv_lastCoordinate_eq_add_sum p q
-    (fun u ↦ nextSymbolPMF_absolutelyContinuous hp hq u)
+    (fun u ↦ nextSymbolPMF_absolutelyContinuous hq u)
 
 /-- [The chronological conditional-KL sum](goal) recursively adds the shared-prefix conditional
 divergence of two finite-word laws at each word length. -/

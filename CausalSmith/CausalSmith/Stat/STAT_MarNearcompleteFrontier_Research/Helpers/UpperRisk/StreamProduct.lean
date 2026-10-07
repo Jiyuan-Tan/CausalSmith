@@ -8,7 +8,7 @@ These identities isolate the independence step in the heavy-cell variance
 calculation of the upper-risk proof.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.MarNearcompleteFrontier
 

@@ -11,7 +11,7 @@ public import Causalean.Stat.Concentration.Poisson.Threshold
 
 /-! # Basic for the paired count-mixture comparison -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.MarNearcompleteFrontier
 

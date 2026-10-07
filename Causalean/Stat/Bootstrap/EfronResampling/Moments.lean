@@ -11,7 +11,7 @@ This module computes the first moment of the bootstrap sample mean and the secon
 square-root-`n` centered version.  Both identities are exact finite-sample statements.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat
 
@@ -21,12 +21,6 @@ open scoped BigOperators
 noncomputable section
 
 variable {n : ℕ}
-
-/-- For [a real vector](hyp:x), its [scalar finite average](goal) is the canonical finite mean
-specialized to real-valued coordinates. -/
-@[deprecated finMean (since := "2026-09-19")]
-def finAverage (x : Fin n → ℝ) : ℝ :=
-  finMean x
 
 /-- For [real data](hyp:x) with [nonzero length](hyp:hn), [the bootstrap expectation of the
 resample mean equals the original data mean](goal). -/
@@ -49,7 +43,7 @@ theorem integral_finMean_bootstrapResample (x : Fin n → ℝ) (hn : n ≠ 0) :
     (empiricalMeasure x) n (Nat.pos_of_ne_zero hn) id hId]
   unfold empiricalMeasure
   rw [Causalean.Stat.Concentration.integral_finiteSampleMeasure
-    x (Nat.pos_of_ne_zero hn) measurable_id]
+    x measurable_id]
   simp [one_div]
 
 /-- For [real data](hyp:x) with [nonzero length](hyp:hn), [the bootstrap second moment of the
@@ -79,7 +73,7 @@ theorem integral_centered_finMean_sq_bootstrapResample (x : Fin n → ℝ) (hn :
   have hpopmean :
       ∫ z, z ∂empiricalMeasure x = finMean x := by
     have h := Causalean.Stat.Concentration.integral_finiteSampleMeasure
-      x (Nat.pos_of_ne_zero hn) measurable_id
+      x measurable_id
     simpa only [empiricalMeasure, id_eq, one_div, finMean, smul_eq_mul] using h
   calc
     ∫ y, (Real.sqrt n * (finMean y - finMean x)) ^ 2 ∂bootstrapResample x =
@@ -108,23 +102,8 @@ theorem integral_centered_finMean_sq_bootstrapResample (x : Fin n → ℝ) (hn :
     _ = (n : ℝ)⁻¹ * ∑ i, (x i - finMean x) ^ 2 := by
           have h := Causalean.Stat.Concentration.integral_finiteSampleMeasure
             (f := fun z : ℝ => (z - finMean x) ^ 2)
-            x (Nat.pos_of_ne_zero hn) (by fun_prop)
+            x (by fun_prop)
           simpa only [empiricalMeasure, one_div] using h
-
-/-- For [real data](hyp:x) with [nonzero length](hyp:hn), [the bootstrap expectation of the
-legacy scalar average equals the original data average](goal). -/
-@[deprecated integral_finMean_bootstrapResample (since := "2026-09-19")]
-theorem integral_finAverage_bootstrapResample (x : Fin n → ℝ) (hn : n ≠ 0) :
-    ∫ y, finAverage y ∂bootstrapResample x = finAverage x := by
-  simpa [finAverage] using integral_finMean_bootstrapResample x hn
-
-/-- For [real data](hyp:x) with [nonzero length](hyp:hn), [the bootstrap second moment of the
-legacy centered scalar average equals the empirical centered second moment](goal). -/
-@[deprecated integral_centered_finMean_sq_bootstrapResample (since := "2026-09-19")]
-theorem integral_centered_finAverage_sq_bootstrapResample (x : Fin n → ℝ) (hn : n ≠ 0) :
-    ∫ y, (Real.sqrt n * (finAverage y - finAverage x)) ^ 2 ∂bootstrapResample x =
-      (n : ℝ)⁻¹ * ∑ i, (x i - finAverage x) ^ 2 := by
-  simpa [finAverage] using integral_centered_finMean_sq_bootstrapResample x hn
 
 end
 

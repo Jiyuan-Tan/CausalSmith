@@ -19,10 +19,10 @@ i.i.d. sums.
 -/
 
 module
-public import Mathlib.Probability.CentralLimitTheorem
+public import Causalean.Stat.Limit.ConvergenceVec
 public import Causalean.Stat.Sample
-public import Causalean.Stat.Limit.Convergence
 public import Causalean.Tactic.Attr
+public import Mathlib.Probability.CentralLimitTheorem
 
 /-! # Scalar Asymptotic Linearity
 
@@ -35,7 +35,7 @@ finite index family.
 The namespace also exposes `IsAsymLinear.normalizedSum` and
 `IsAsymLinear.rescaledEstimator`. The main limit results are
 `IIDSample.clt_normalized_sum`, the CLT contact point for normalized i.i.d.
-sums, `Tendsto_dist.add_isLittleOp_one` and related Slutsky/congruence
+sums, `Modes.TendstoInLaw.add_isLittleOp_one` and related Slutsky/congruence
 wrappers, and `IsAsymLinear.tendsto_normal`, which turns full-sample scalar
 asymptotic linearity into asymptotic normality. -/
 
@@ -153,16 +153,11 @@ theorem IIDSample.clt_normalized_sum
     (hψ_meas : Measurable ψ)
     (hψ_mean : ∫ x, ψ x ∂P = 0)
     (hψ_sq_int : Integrable (fun x => (ψ x) ^ 2) P) :
-    @Tendsto_dist Ω _
-      (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m))
-      (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P)) μ
-      S.indep.isProbabilityMeasure
-      (instIsProbabilityMeasureGaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P))
-      (by
-        intro n
-        unfold IsAsymLinear.normalizedSum
-        exact ((Finset.measurable_sum _
-          (fun i _ => hψ_meas.comp (S.meas i))).const_mul _).aemeasurable) := by
+    @Modes.TendstoInLaw ℕ (fun _ => Ω) _ ℝ _ _ _ (fun _ => μ)
+      (fun _ => S.indep.isProbabilityMeasure)
+      (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m)) atTop
+      (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P))
+      (instIsProbabilityMeasureGaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P)) := by
   haveI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
   have hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m) n) μ := by
@@ -213,7 +208,7 @@ theorem IIDSample.clt_normalized_sum
     intro n
     funext ω
     simp [causal_defs_simps, hmean, Finset.card_range]
-  simp only [causal_defs_simps]
+  refine (Tendsto_dist_iff _ _ _ hSum_meas).2 ?_
   have htgt : (⟨gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P),
         instIsProbabilityMeasureGaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P)⟩ : ProbabilityMeasure ℝ)
       = ⟨(gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P)).map id,
@@ -224,165 +219,41 @@ theorem IIDSample.clt_normalized_sum
   filter_upwards with n
   exact Subtype.ext (congrArg (fun f : Ω → ℝ => Measure.map f μ) (hfun n))
 
-/-! ## Slutsky absorption at the `Tendsto_dist` level
-
-Adding an `o_p(1)` perturbation to a sequence converging in distribution
-preserves the limit.  Mathlib has the analogous fact for
-`MeasureTheory.TendstoInDistribution`
-(`tendstoInDistribution_of_tendstoInMeasure_sub`); here we restate it for
-our measure-level wrapper. -/
-
--- The same `set_option` guards Mathlib's `tendstoInDistribution_of_tendstoInMeasure_sub`, whose
--- proof this one mirrors: without it the rewrites by
--- `tendsto_iff_forall_lipschitz_integral_tendsto` fail to see through the `ProbabilityMeasure ℝ`
--- topology instance.
-set_option backward.isDefEq.respectTransparency.types false in
-/-- If `Xn ⇒ Q` in distribution and `Yn − Xn = o_p(1)`, then `Yn ⇒ Q`. -/
-theorem Tendsto_dist.add_isLittleOp_one
-    {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
-    {Xn Yn : ℕ → Ω → ℝ} {Q : Measure ℝ} [IsProbabilityMeasure Q]
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hYn : ∀ n, AEMeasurable (Yn n) μ)
-    (hX : Tendsto_dist Xn Q μ hXn)
-    (hRem : IsLittleOp (fun n ω => Yn n ω - Xn n ω) (fun _ => (1 : ℝ)) μ) :
-    Tendsto_dist Yn Q μ hYn := by
-  have hXY : TendstoInMeasure μ (fun n ω => Yn n ω - Xn n ω) atTop (0 : Ω → ℝ) := by
-    rw [tendstoInMeasure_iff_norm]
-    intro ε hε
-    simpa [Real.norm_eq_abs] using hRem ε hε
-  simp only [causal_defs_simps] at hX ⊢
-  suffices ∀ (F : ℝ → ℝ) (hF_bounded : ∃ (C : ℝ), ∀ x y, dist (F x) (F y) ≤ C)
-      (hF_lip : ∃ L, LipschitzWith L F),
-      Tendsto (fun n ↦ ∫ y, F y ∂(μ.map (Yn n))) atTop (𝓝 (∫ y, F y ∂Q)) by
-    rwa [tendsto_iff_forall_lipschitz_integral_tendsto]
-  rintro F ⟨M, hF_bounded⟩ ⟨L, hF_lip⟩
-  have hF_cont : Continuous F := hF_lip.continuous
-  obtain rfl | hL := eq_zero_or_pos L
-  · simp only [LipschitzWith.zero_iff] at hF_lip
-    specialize hF_lip (0 : ℝ)
-    simp only [← hF_lip, integral_const, smul_eq_mul]
-    have h_prob n : IsProbabilityMeasure (μ.map (Yn n)) := Measure.isProbabilityMeasure_map (hYn n)
-    simp
-  simp_rw [Metric.tendsto_nhds, Real.dist_eq]
-  suffices ∀ ε > 0, ∀ᶠ n in atTop, |∫ y, F y ∂(μ.map (Yn n)) - ∫ y, F y ∂Q| < L * ε by
-    intro ε hε
-    convert this (ε / L) (by positivity)
-    field_simp
-  intro ε hε
-  have h_le n : |∫ y, F y ∂(μ.map (Yn n)) - ∫ y, F y ∂Q|
-      ≤ L * (ε / 2) + M * μ.real {ω | ε / 2 ≤ ‖Yn n ω - Xn n ω‖}
-        + |∫ y, F y ∂(μ.map (Xn n)) - ∫ y, F y ∂Q| := by
-    refine (abs_sub_le (∫ y, F y ∂(μ.map (Yn n))) (∫ y, F y ∂(μ.map (Xn n)))
-      (∫ y, F y ∂Q)).trans ?_
-    gcongr
-    have h_int_Y : Integrable (fun x ↦ F (Yn n x)) μ := by
-      refine Integrable.of_bound (by fun_prop) (‖F (0 : ℝ)‖ + M) (ae_of_all _ fun a ↦ ?_)
-      specialize hF_bounded (Yn n a) 0
-      rw [← sub_le_iff_le_add']
-      exact (abs_sub_abs_le_abs_sub (F (Yn n a)) (F 0)).trans hF_bounded
-    have h_int_X : Integrable (fun x ↦ F (Xn n x)) μ := by
-      refine Integrable.of_bound (by fun_prop) (‖F (0 : ℝ)‖ + M) (ae_of_all _ fun a ↦ ?_)
-      specialize hF_bounded (Xn n a) 0
-      rw [← sub_le_iff_le_add']
-      exact (abs_sub_abs_le_abs_sub (F (Xn n a)) (F 0)).trans hF_bounded
-    have h_int_sub : Integrable (fun a ↦ ‖F (Yn n a) - F (Xn n a)‖) μ := by
-      rw [integrable_norm_iff (by fun_prop)]
-      exact h_int_Y.sub h_int_X
-    rw [integral_map (by fun_prop) (by fun_prop), integral_map (by fun_prop) (by fun_prop),
-      ← integral_sub h_int_Y h_int_X, ← Real.norm_eq_abs]
-    calc ‖∫ a, F (Yn n a) - F (Xn n a) ∂μ‖
-    _ ≤ ∫ a, ‖F (Yn n a) - F (Xn n a)‖ ∂μ := norm_integral_le_integral_norm _
-    _ = ∫ a in {x | ‖Yn n x - Xn n x‖ < ε / 2}, ‖F (Yn n a) - F (Xn n a)‖ ∂μ
-        + ∫ a in {x | ε / 2 ≤ ‖Yn n x - Xn n x‖}, ‖F (Yn n a) - F (Xn n a)‖ ∂μ := by
-      symm
-      simp_rw [← not_lt]
-      refine integral_add_compl₀ ?_ h_int_sub
-      exact nullMeasurableSet_lt (by fun_prop) (by fun_prop)
-    _ ≤ ∫ a in {x | ‖Yn n x - Xn n x‖ < ε / 2}, L * (ε / 2) ∂μ
-        + ∫ a in {x | ε / 2 ≤ ‖Yn n x - Xn n x‖}, M ∂μ := by
-      gcongr ?_ + ?_
-      · refine setIntegral_mono_on₀ h_int_sub.integrableOn integrableOn_const ?_ ?_
-        · exact nullMeasurableSet_lt (by fun_prop) (by fun_prop)
-        · exact fun x hx ↦ hF_lip.norm_sub_le_of_le hx.le
-      · refine setIntegral_mono h_int_sub.integrableOn integrableOn_const fun a ↦ ?_
-        rw [← dist_eq_norm]
-        convert hF_bounded _ _
-    _ = L * (ε / 2) * μ.real {x | ‖Yn n x - Xn n x‖ < ε / 2}
-        + M * μ.real {ω | ε / 2 ≤ ‖Yn n ω - Xn n ω‖} := by
-      simp only [integral_const, MeasurableSet.univ, measureReal_restrict_apply, Set.univ_inter,
-        smul_eq_mul]
-      ring
-    _ ≤ L * (ε / 2) + M * μ.real {ω | ε / 2 ≤ ‖Yn n ω - Xn n ω‖} := by
-      rw [mul_assoc]
-      gcongr
-      grw [measureReal_le_one, mul_one]
-  have h_tendsto :
-      Tendsto (fun n ↦ L * (ε / 2) + M * μ.real {ω | ε / 2 ≤ ‖Yn n ω - Xn n ω‖}
-        + |∫ y, F y ∂(μ.map (Xn n)) - ∫ y, F y ∂Q|) atTop (𝓝 (L * ε / 2)) := by
-    suffices Tendsto (fun n ↦ L * (ε / 2) + M * μ.real {ω | ε / 2 ≤ ‖Yn n ω - Xn n ω‖}
-        + |∫ y, F y ∂(μ.map (Xn n)) - ∫ y, F y ∂Q|) atTop (𝓝 (L * ε / 2 + M * 0 + 0)) by
-      simpa
-    refine (Tendsto.add ?_ (Tendsto.const_mul _ ?_)).add ?_
-    · rw [mul_div_assoc]
-      exact tendsto_const_nhds
-    · simp only [tendstoInMeasure_iff_measureReal_norm, Pi.zero_apply, sub_zero] at hXY
-      exact hXY (ε / 2) (by positivity)
-    · simp_rw [tendsto_iff_forall_lipschitz_integral_tendsto] at hX
-      simpa [tendsto_iff_dist_tendsto_zero, Real.dist_eq] using hX F ⟨M, hF_bounded⟩ ⟨L, hF_lip⟩
-  have h_lt : L * ε / 2 < L * ε := half_lt_self (by positivity)
-  filter_upwards [h_tendsto.eventually_lt_const h_lt] with n hn using (h_le n).trans_lt hn
-
-/-- Convergence in distribution is invariant under eventual a.e. equality of
-the random variables. -/
-theorem Tendsto_dist.congr_ae
-    {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
-    {Xn Yn : ℕ → Ω → ℝ} {Q : Measure ℝ} [IsProbabilityMeasure Q]
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hYn : ∀ n, AEMeasurable (Yn n) μ)
-    (hX : Tendsto_dist Xn Q μ hXn)
-    (hXY : ∀ᶠ n in atTop, Xn n =ᵐ[μ] Yn n) :
-    Tendsto_dist Yn Q μ hYn := by
-  simp only [causal_defs_simps] at hX ⊢
-  refine hX.congr' ?_
-  filter_upwards [hXY] with n hn
-  apply Subtype.ext
-  exact Measure.map_congr hn
-
-/-- Deterministic-scalar Slutsky for Gaussian limits, phrased for the
-project's measure-level `Tendsto_dist` wrapper.
+/-- If [a real sequence converges in distribution to a centered Gaussian law](hyp:hX)
+and [deterministic scalar multipliers converge to a constant](hyp:ha), then
+[the scaled sequence converges to the centered Gaussian law with variance
+multiplied by the square of that constant](goal).
 
 If `Xn ⇒ N(0, v)` and deterministic scalars `a n → a₀`, then
 `a n • Xn ⇒ N(0, a₀² v)`.  This is the Gaussian specialization of the
 measure-level deterministic-scalar Slutsky wrapper. -/
-theorem Tendsto_dist.const_mul_tendsto_gaussian
+theorem Modes.TendstoInLaw.const_mul_tendsto_gaussian
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     {Xn : ℕ → Ω → ℝ} {a : ℕ → ℝ} {a₀ v : ℝ}
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hX : Tendsto_dist Xn (gaussianMeasure 0 v) μ hXn)
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop (gaussianMeasure 0 v))
     (ha : Tendsto a atTop (𝓝 a₀)) :
-    Tendsto_dist (fun n ω => a n * Xn n ω)
-      (gaussianMeasure 0 (a₀ ^ 2 * v)) μ
-      (fun n => (measurable_const.mul measurable_id).aemeasurable.comp_aemeasurable (hXn n)) := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => a n * Xn n ω) atTop
+        (gaussianMeasure 0 (a₀ ^ 2 * v)) := by
+  have hXn : ∀ n, AEMeasurable (Xn n) μ := hX.forall_aemeasurable
   have hScaled : ∀ n, AEMeasurable (fun ω => a n * Xn n ω) μ := fun n =>
     (measurable_const.mul measurable_id).aemeasurable.comp_aemeasurable (hXn n)
   letI : IsProbabilityMeasure ((gaussianMeasure 0 v).map (fun x : ℝ => a₀ * x)) :=
     Measure.isProbabilityMeasure_map (by fun_prop)
   have hscaled_dist :
-      Tendsto_dist (fun n ω => a n * Xn n ω)
-        ((gaussianMeasure 0 v).map (fun x : ℝ => a₀ * x)) μ hScaled :=
+      Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => a n * Xn n ω) atTop
+          ((gaussianMeasure 0 v).map (fun x : ℝ => a₀ * x)) :=
     (Tendsto_dist_iff _ _ _ hScaled).2
-      (Tendsto_dist.const_mul_tendsto hXn hX ha)
+      (Modes.TendstoInLaw.const_mul_tendsto hX ha)
   have hmap :
       (gaussianMeasure 0 v).map (fun x : ℝ => a₀ * x)
         = gaussianMeasure 0 (a₀ ^ 2 * v) := by
     simp [gaussianMeasure, gaussianReal_map_const_mul, mul_zero,
       Real.toNNReal_mul (sq_nonneg a₀), Real.toNNReal_of_nonneg (sq_nonneg a₀)]
   simpa [hmap] using hscaled_dist
-
 /-! ## Asymptotic linearity ⇒ asymptotic normality
 
 The headline statement.  Combines `IIDSample.clt_normalized_sum` (the CLT
-contact point) with `Tendsto_dist.add_isLittleOp_one` (Slutsky). -/
+contact point) with `Modes.TendstoInLaw.add_isLittleOp_one` (Slutsky). -/
 
 variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X}
@@ -403,11 +274,11 @@ theorem IsAsymLinear.tendsto_normal
     (hψ_meas : Measurable ψ)
     (hθn_meas : ∀ n : ℕ, AEMeasurable
       (IsAsymLinear.rescaledEstimator θn θ₀ (fun m => Finset.range m) n) μ) :
-    @Tendsto_dist Ω _
-      (IsAsymLinear.rescaledEstimator θn θ₀ (fun m => Finset.range m))
-      (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P)) μ
-      S.indep.isProbabilityMeasure
-      (instIsProbabilityMeasureGaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P)) hθn_meas := by
+    @Modes.TendstoInLaw ℕ (fun _ => Ω) _ ℝ _ _ _ (fun _ => μ)
+      (fun _ => S.indep.isProbabilityMeasure)
+      (IsAsymLinear.rescaledEstimator θn θ₀ (fun m => Finset.range m)) atTop
+      (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P))
+      (instIsProbabilityMeasureGaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂P)) := by
   haveI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
   have hSum_meas : ∀ n : ℕ, AEMeasurable
       (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m) n) μ := by
@@ -417,7 +288,7 @@ theorem IsAsymLinear.tendsto_normal
       (fun i _ => hψ_meas.comp (S.meas i))).const_mul _).aemeasurable
   have hCLT :=
     IIDSample.clt_normalized_sum S hψ_meas h.mean_zero h.finite_var
-  refine Tendsto_dist.add_isLittleOp_one hSum_meas hθn_meas hCLT ?_
+  refine Modes.TendstoInLaw.add_isLittleOp_one hCLT hθn_meas ?_
   -- `IsAsymLinear.remainder` uses `(I n).card` with `I = Finset.range`, which
   -- equals `n`; the resulting `IsLittleOp` matches the Slutsky absorption form.
   have := h.remainder

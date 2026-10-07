@@ -187,15 +187,11 @@ private theorem markedPoissonLaw_singleton_eq_of_noLabeledTreated
 
 /-- The two branch-specific predictive laws from [a certificate with its node set and matching
 degree](hyp:C,ι,L) [agree after restriction to the event with no labeled treated
-count](goal), at [overlap, shift, intensities, support ratio, and support
-bound](hyp:ε,a,u,v,κ,B), provided [the shift is positive](hyp:ha), [the support ratio is
-positive](hyp:hκ), and [the certificate variation has the stated compact support](hyp:hsupp). -/
+count](goal), at every [overlap, shift, and pair of intensities](hyp:ε,a,u,v). -/
 theorem restrict_markedPoissonPredictive_noLabeledTreated_eq
     {ι : Type*} [Fintype ι] {L : ℕ}
     (C : NormalizedFiniteSignedMomentCertificate ι L)
-    (ε a u v κ B : ℝ)
-    (ha : 0 < a) (hκ : 0 < κ)
-    (hsupp : ∀ᵐ p ∂C.signedMeasure.variation, p ∈ Set.Icc (a / κ) B) :
+    (ε a u v : ℝ) :
     (C.markedPoissonPredictive ε a u v false).restrict noLabeledTreated =
       (C.markedPoissonPredictive ε a u v true).restrict noLabeledTreated := by
   apply Measure.ext_of_singleton
@@ -220,18 +216,6 @@ theorem restrict_markedPoissonPredictive_noLabeledTreated_eq
       Set.disjoint_iff_inter_eq_empty.mp (Set.disjoint_singleton_left.mpr hz)
     rw [hinter]
     simp
-
-/-- For [two probability measures](hyp:μ,ν), applying [a common Markov kernel](hyp:K)
-[cannot increase their total-variation distance](goal). This is a deprecated local forwarding
-name for the general data-processing theorem. -/
-@[deprecated Causalean.Stat.tvDist_bind_le (since := "2026-09-19")]
-theorem tvDist_bind_le
-    {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
-    (μ ν : Measure X) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    (K : Kernel X Y) [IsMarkovKernel K] :
-    Causalean.Stat.tvDist (K ∘ₘ μ) (K ∘ₘ ν) ≤
-      Causalean.Stat.tvDist μ ν :=
-  Causalean.Stat.tvDist_bind_le μ ν K
 
 /-- For [an extended-nonnegative scaling coefficient](hyp:c) that [is finite](hyp:hc), [the
 real-valued mass of a measure plus that coefficient times the sum of two finite measures equals
@@ -593,13 +577,12 @@ theorem markedPoissonLaw_real_target_sub
 
 /-- For [an overlap fraction, positive shift, labeled and auxiliary treated intensities, and
 latent mass](hyp:ε,a,u,v,p), if [both intensities are nonnegative](hyp:hu,hv), [their sum is
-positive](hyp:ht), [the treated rate is nonnegative](hyp:hr), and [the control rate is
-nonnegative](hyp:hc), then for [a selected outcome branch and three count
+positive](hyp:ht), and [the treated rate is nonnegative](hyp:hr), then for [a selected outcome branch and three count
 indices](hyp:first,k,s,t), [the Palm-split aggregate Poisson law assigns the target singleton
 the displayed inverse-size-biased product of three Poisson masses](goal). -/
 theorem palmSplit_aggregatePoissonLaw_real_target
     (ε a u v p : ℝ) (hu : 0 ≤ u) (hv : 0 ≤ v) (ht : 0 < u + v)
-    (hr : 0 ≤ ε * (p + a)) (hc : 0 ≤ controlMass ε a p)
+    (hr : 0 ≤ ε * (p + a))
     (first : Bool) (k s t : ℕ) :
     (palmSplitKernel
         (⟨u / (u + v), by

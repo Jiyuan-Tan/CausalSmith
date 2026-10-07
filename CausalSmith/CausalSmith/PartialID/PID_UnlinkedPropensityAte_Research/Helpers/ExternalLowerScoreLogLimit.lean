@@ -3,7 +3,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Transfer of eventual uniform log certificates through an infimum and liminf. -/
 
-@[expose] public section
+public section
 
 open Set Filter
 namespace CausalSmith.PartialID.UnlinkedPropensityAte

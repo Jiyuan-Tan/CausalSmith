@@ -2,10 +2,18 @@ module
 public import Causalean.Mathlib.Probability.Birthday.Concentration
 
 /-!
-# Comparison of birthday scales
+# The binomial pair scale is asymptotically half the squared mean
 
-The binomial pair scale is asymptotic to half the squared mean when the
-expected number of draws diverges.
+For T trials with success probability η, the expected number of unordered pairs of successes is
+C(T, 2)·η², and the mean number of successes is T·η. Along any sequence of trial counts and
+probabilities in [0, 1] whose mean T·η tends to infinity, the ratio of C(T, 2)·η² to (T·η)²/2
+tends to one, so the two normalizations of the birthday-collision scale are interchangeable in the
+limit.
+
+## Main results
+
+* `pairScale_div_half_mean_sq_tendsto_one` — the ratio of the pair scale to half the squared mean
+  converges to one when the mean diverges.
 -/
 
 public section

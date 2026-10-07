@@ -28,8 +28,9 @@ statistics. It defines
 `cellMass_nonneg`, `cellMass_sum_eq_one`, `cellShare_nonneg`, and
 `cellShare_le_one`. The membership lemmas `propensity_mem_saturatedClass` and
 `meanReg_mem_saturatedClass` supply the saturated-control pieces used by the
-residualization witnesses. The old `cellMass` name is retained only as a
-deprecated abbreviation of `CellBridge.cellMass`. -/
+residualization witnesses. The integral helpers identify cell-effect
+numerators and cell-wise representatives and establish integrability of
+products with treatment and cell indicators. -/
 
 @[expose] public section
 
@@ -60,14 +61,6 @@ noncomputable def saturatedClass {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype
     (μ : Measure Ω) [IsFiniteMeasure μ]
     (G : Ω → 𝒢) (G_meas : Measurable G) : LinearL2Class μ :=
   CellBridge.indicatorSpan μ G G_meas
-
-/-- For [a measure on a sample space](hyp:μ), [a covariate map](hyp:G), and
-[a covariate cell](hyp:g), the [cell mass](goal) is the real-valued measure of
-the event that the covariate map equals that cell. -/
-@[deprecated CellBridge.cellMass (since := "2026-09-19")]
-abbrev cellMass {Ω 𝒢 : Type*} [MeasurableSpace Ω]
-    (μ : Measure Ω) (G : Ω → 𝒢) (g : 𝒢) : ℝ :=
-  CellBridge.cellMass μ G g
 
 /-- For [a measure on a sample space](hyp:μ),
 [a treatment-valued function](hyp:D), [a covariate map](hyp:G), and
@@ -278,5 +271,88 @@ theorem meanReg_mem_saturatedClass {Ω 𝒢 : Type*} [MeasurableSpace Ω]
   exact Filter.EventuallyEq.rfl
 
 end CellHelpers
+
+/-! ### Finite-cell integral identities -/
+
+/-- Cell-effect numerator divided by cell mass and multiplied back recovers
+the raw effect numerator. -/
+theorem cellTau_mul_cellMass {Ω 𝒢 : Type*}
+    [MeasurableSpace Ω] (μ : Measure Ω) [IsFiniteMeasure μ]
+    (Y0 Y1 : Ω → ℝ) (G : Ω → 𝒢) (g : 𝒢) :
+    cellTau μ Y0 Y1 G g * CellBridge.cellMass μ G g =
+      ∫ ω, (Y1 ω - Y0 ω)
+        * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ := by
+  simpa [cellTau, CellBridge.cellMass] using
+    (CellBridge.cellMean_mul_cellMass μ (fun ω => Y1 ω - Y0 ω) G g)
+
+/-- Product of two singleton indicators against an `L²` function is
+integrable under a finite measure. -/
+@[fun_prop]
+theorem integrable_mul_indicator_D_G {Ω 𝒢 : Type*}
+    [MeasurableSpace Ω] [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
+    (μ : Measure Ω) [IsFiniteMeasure μ]
+    (F D : Ω → ℝ) (G : Ω → 𝒢)
+    (D_meas : Measurable D) (G_meas : Measurable G)
+    (F_memLp : MemLp F 2 μ) (d : ℝ) (g : 𝒢) :
+    Integrable
+      (fun ω => F ω
+        * Set.indicator {ω' | D ω' = d} (fun _ => (1 : ℝ)) ω
+        * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω) μ := by
+  let sD : Set Ω := {ω | D ω = d}
+  let sG : Set Ω := {ω | G ω = g}
+  have hsD : MeasurableSet sD := D_meas (measurableSet_singleton d)
+  have hsG : MeasurableSet sG := G_meas (measurableSet_singleton g)
+  have hmem :
+      MemLp (fun ω => Set.indicator sG (Set.indicator sD F) ω) 2 μ :=
+    (F_memLp.indicator hsD).indicator hsG
+  have hEq :
+      (fun ω => Set.indicator sG (Set.indicator sD F) ω) =
+        (fun ω => F ω
+          * Set.indicator sD (fun _ => (1 : ℝ)) ω
+          * Set.indicator sG (fun _ => (1 : ℝ)) ω) := by
+    funext ω
+    by_cases hG : ω ∈ sG
+    · by_cases hD : ω ∈ sD
+      · simp [sD, sG, Set.indicator, hD, hG]
+      · simp [sD, sG, Set.indicator, hD, hG]
+    · simp [sD, sG, Set.indicator, hG]
+  rw [← hEq]
+  exact hmem.integrable (by norm_num : (1 : ENNReal) ≤ 2)
+
+/-- On its own cell, the saturated propensity representative equals the
+corresponding cell share. -/
+theorem propensity_eq_cellShare_of_mem {Ω 𝒢 : Type*}
+    [MeasurableSpace Ω] [Fintype 𝒢]
+    (μ : Measure Ω)
+    (D : Ω → ℝ) (G : Ω → 𝒢) {g : 𝒢} {ω : Ω} (hG : G ω = g) :
+    propensity μ D G ω = cellShare μ D G g := by
+  classical
+  unfold propensity
+  rw [Finset.sum_eq_single g]
+  · simp [hG]
+  · intro b _ hbg
+    simp [Set.indicator, hG, hbg.symm]
+  · intro hg
+    simp at hg
+
+/-- On its own cell, the saturated mean-regression representative equals the
+corresponding cell mean. -/
+theorem meanReg_eq_cellMean_of_mem {Ω 𝒢 : Type*}
+    [MeasurableSpace Ω] [Fintype 𝒢]
+    (μ : Measure Ω)
+    (Y : Ω → ℝ) (G : Ω → 𝒢) {g : 𝒢} {ω : Ω} (hG : G ω = g) :
+    meanReg μ Y G ω =
+      (∫ ω', Y ω'
+        * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω' ∂μ)
+        / CellBridge.cellMass μ G g := by
+  classical
+  unfold meanReg
+  rw [Finset.sum_eq_single g]
+  · simp [hG]
+  · intro b _ hbg
+    simp [Set.indicator, hG, hbg.symm]
+  · intro hg
+    simp at hg
+
 
 end Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition

@@ -171,14 +171,12 @@ theorem diffInMeans_clt
         (((min (K n) (N n - K n) : ℕ) : ℝ) *
           popVar (diffInMeansTransformedOutcome (N n) (K n) (Y1 n) (Y0 n))))
       atTop (nhds 0)) :
-    TendstoInDistribution
-      (fun n => (completeRandomization (V := Fin (N n)) (K n)
-        (by simpa using (hKlt n).le)).toMeasure)
-      (fun n S =>
+    Modes.TendstoInLaw (fun n => (completeRandomization (V := Fin (N n)) (K n)
+        (by simpa using (hKlt n).le)).toMeasure) (fun n S =>
         (diffInMeans (K n) (Y1 n) (Y0 n) S - sateEstimand (Y1 n) (Y0 n)) /
           Real.sqrt ((completeRandomization (V := Fin (N n)) (K n)
-            (by simpa using (hKlt n).le)).Var (diffInMeans (K n) (Y1 n) (Y0 n))))
-      (gaussianReal 0 1) (fun _n => (measurable_of_finite _).aemeasurable) := by
+            (by simpa using (hKlt n).le)).Var (diffInMeans (K n) (Y1 n) (Y0 n)))) atTop
+                (gaussianReal 0 1) := by
   let w := fun n => diffInMeansTransformedOutcome (N n) (K n) (Y1 n) (Y0 n)
   have hclt := completeRandomization_sampleMean_clt N K hKpos hKlt w hvar hmax
   have hstat : ∀ n,

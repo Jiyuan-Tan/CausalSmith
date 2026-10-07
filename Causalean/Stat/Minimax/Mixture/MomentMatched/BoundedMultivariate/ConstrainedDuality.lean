@@ -23,9 +23,9 @@ namespace Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate
   coordinates separated by δ, separation of two disjoint translates gives
   an affine constraint approximant with uniform error below δ. -/
 
-/-- A [nondegenerate interval](hyp:hrs), [positive gap](hyp:hδ), [target function and finite constraint family](hyp:f,g), [their interval continuity](hyp:hf,hg), and [a uniform affine approximation gap](hyp:hgap) yield [two joint feature-hull points that match every constraint while separating the target by the gap](goal). -/
+/-- A [positive gap](hyp:hδ), [target function and finite constraint family](hyp:f,g), [their interval continuity](hyp:hf,hg), and [a uniform affine approximation gap](hyp:hgap) yield [two joint feature-hull points that match every constraint while separating the target by the gap](goal). -/
 theorem exists_matching_convexHull_features_of_gap
-    {m : ℕ} {r s δ : ℝ} (hrs : r < s) (hδ : 0 < δ)
+    {m : ℕ} {r s δ : ℝ} (hδ : 0 < δ)
     (f : ℝ → ℝ) (g : Fin m → ℝ → ℝ)
     (hf : ContinuousOn f (Set.Icc r s))
     (hg : ∀ i, ContinuousOn (g i) (Set.Icc r s))
@@ -119,9 +119,9 @@ theorem finitePrior_of_convexHull_features
   split its Jordan parts, then apply finite-dimensional convex-hull reduction
   to preserve the gᵢ and f integrals with finite support. -/
 
-/-- A [nondegenerate interval](hyp:hrs), [positive approximation gap](hyp:hδ), [target function](hyp:f), and [finite constraint family](hyp:g) whose [target is continuous](hyp:hf), [constraints are continuous](hyp:hg), and [affine constrained approximants miss the target by the stated gap](hyp:hgap) produce [finitely supported probability priors that match every constraint and retain that target separation](goal). -/
+/-- A [positive approximation gap](hyp:hδ), [target function](hyp:f), and [finite constraint family](hyp:g) whose [target is continuous on the interval](hyp:hf), whose [constraints are continuous on the interval](hyp:hg), and for which [every constant plus linear combination of the constraints differs from the target by at least the gap at some point of the interval](hyp:hgap) produce [two probability measures, each carried by a finite set and by the interval, under which every constraint function has the same integral and the integrals of the target differ in absolute value by at least the gap](goal). -/
 theorem exists_finitePriors_of_constrainedApproxGap
-    {m : ℕ} {r s δ : ℝ} (hrs : r < s) (hδ : 0 < δ)
+    {m : ℕ} {r s δ : ℝ} (hδ : 0 < δ)
     (f : ℝ → ℝ) (g : Fin m → ℝ → ℝ)
     (hf : ContinuousOn f (Set.Icc r s))
     (hg : ∀ i, ContinuousOn (g i) (Set.Icc r s))
@@ -136,7 +136,7 @@ theorem exists_finitePriors_of_constrainedApproxGap
       (∀ i, (∫ x, g i x ∂ω₀) = ∫ x, g i x ∂ω₁) ∧
       δ ≤ |(∫ x, f x ∂ω₀) - ∫ x, f x ∂ω₁| := by
   obtain ⟨y₀, y₁, hy₀, hy₁, hconstraint, hsep⟩ :=
-    exists_matching_convexHull_features_of_gap hrs hδ f g hf hg hgap
+    exists_matching_convexHull_features_of_gap hδ f g hf hg hgap
   obtain ⟨ω₀, hp₀, hfin₀, hs₀, hf₀, hg₀⟩ :=
     finitePrior_of_convexHull_features f g y₀ hy₀
   obtain ⟨ω₁, hp₁, hfin₁, hs₁, hf₁, hg₁⟩ :=

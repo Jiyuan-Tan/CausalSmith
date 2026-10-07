@@ -21,14 +21,15 @@ open scoped BigOperators
 
 variable {D Y C : Type*} {n : ℕ}
 
-/-- The [indicator](goal) of the [cell selected by a key map](hyp:key,c) at a
-[design point](hyp:d) takes real values zero and one. -/
+/-- The [cell indicator](goal) of the [cell selected by a key map and a cell label](hyp:key,c)
+at a [design point](hyp:d) is the real number one when the key of the point equals the
+label, and zero otherwise. -/
 def cellIndicator (key : D → C) (c : C) (d : D) : ℝ := by
   classical
   exact if key d = c then 1 else 0
 
 /-- The [real bin indicator](goal) for an [outcome set](hyp:bin) at an
-[outcome](hyp:y) takes values zero and one. -/
+[outcome](hyp:y) is the real number one when the outcome lies in the set, and zero otherwise. -/
 def binIndicator (bin : Set Y) (y : Y) : ℝ :=
   bin.indicator (fun _ => 1) y
 
@@ -38,8 +39,9 @@ def cellCount (key : D → C) (c : C) (x : Fin n → D) : ℕ := by
   classical
   exact ∑ i, if key (x i) = c then 1 else 0
 
-/-- The [joint count](goal) counts coordinates in the [design cell](hyp:key,c)
-whose [outcome vector](hyp:y) lies in the [bin](hyp:bin), for the [design vector](hyp:x). -/
+/-- The [joint count](goal) is the number of sample coordinates whose entry of the
+[design vector](hyp:x) lies in the [design cell given by the key map and cell label](hyp:key,c)
+and whose entry of the [outcome vector](hyp:y) lies in the [bin](hyp:bin). -/
 def jointCount (key : D → C) (bin : Set Y) (c : C)
     (x : Fin n → D) (y : Fin n → Y) : ℕ := by
   classical
@@ -58,9 +60,10 @@ def conditionalMean (key : D → C) (K : Kernel D Y) (bin : Set Y)
     (c : C) (x : Fin n → D) : ℝ :=
   ∑ i, cellIndicator key c (x i) * binProbability K bin (x i)
 
-/-- A [centered count summand](goal) for the [coordinate](hyp:i) of the [design and outcome
-vectors](hyp:x,y) subtracts its [conditional bin mean](hyp:K,bin), retaining only the
-[selected design cell](hyp:key,c). -/
+/-- The [centered count summand](goal) at a [coordinate](hyp:i) of the [design and outcome
+vectors](hyp:x,y) is the indicator that the design entry lies in the [selected design
+cell](hyp:key,c), multiplied by the indicator that the outcome entry lies in the bin minus
+the [kernel probability of the bin at that design entry](hyp:K,bin). -/
 def centeredSummand (key : D → C) (K : Kernel D Y) (bin : Set Y)
     (c : C) (x : Fin n → D) (i : Fin n) (y : Fin n → Y) : ℝ :=
   cellIndicator key c (x i) * (binIndicator bin (y i) - binProbability K bin (x i))
@@ -135,8 +138,9 @@ give [a measurable conditional count mean](goal). -/
     ((measurable_cellIndicator hcell).comp (measurable_pi_apply i)).mul
     ((measurable_binProbability K hbin).comp (measurable_pi_apply i)))
 
-/-- The [joint-count deviation](hyp:key,K,bin,c,x,y) is
-[the sum of its centered coordinate summands](goal). -/
+/-- For [any key map, outcome kernel, bin, cell label, design vector and outcome
+vector](hyp:key,K,bin,c,x,y), [the joint count minus the conditional joint-count mean equals
+the sum over sample coordinates of the centered count summands](goal). -/
 theorem jointCount_sub_conditionalMean (key : D → C) (K : Kernel D Y)
     (bin : Set Y) (c : C) (x : Fin n → D) (y : Fin n → Y) :
     (jointCount key bin c x y : ℝ) - conditionalMean key K bin c x =

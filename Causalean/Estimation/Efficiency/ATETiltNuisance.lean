@@ -19,7 +19,7 @@ regressions recomputed from a tilted observed law and bounds their changes by
 an explicit multiple of the perturbation size.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 
@@ -32,16 +32,13 @@ open scoped ENNReal
 
 variable {Z : Type*} [mZ : MeasurableSpace Z]
 
-/-- If [the conditioning σ-algebra is contained in the ambient σ-algebra](hyp:hm) and
-[two integrable functions `f` and `h`](hyp:hf,hh) satisfy [nonnegativity of
-`h`](hyp:hhnonneg) and [the pointwise domination `|f| ≤ K h`](hyp:hdom), then
-[the conditional expectation of `f` is dominated by `K` times the conditional
-expectation of `h`](goal). -/
+/-- If [two integrable functions `f` and `h`](hyp:hf,hh) satisfy [the pointwise domination
+`|f| ≤ K h`](hyp:hdom), then [the conditional expectation of `f` is dominated by `K` times
+the conditional expectation of `h`](goal). -/
 lemma abs_condExp_le_mul_condExp_of_abs_le
     {m₀ : MeasurableSpace Z} {P : @Measure Z m₀} [IsFiniteMeasure P]
-    {m : MeasurableSpace Z} (hm : m ≤ m₀) {f h : Z → ℝ} {K : ℝ}
+    {m : MeasurableSpace Z} {f h : Z → ℝ} {K : ℝ}
     (hf : Integrable f P) (hh : Integrable h P)
-    (hhnonneg : ∀ᵐ z ∂P, 0 ≤ h z)
     (hdom : ∀ᵐ z ∂P, |f z| ≤ K * h z) :
     ∀ᵐ z ∂P, |P[f | m] z| ≤ K * P[h | m] z := by
   have hnorm := norm_condExp_le (μ := P) (m := m) f
@@ -205,18 +202,17 @@ lemma abs_div_sub_div_le_of_relative_bounds
         _ ≤ (2 * K * δ / a) * (pt * p) :=
           mul_le_mul_of_nonneg_left this hfac
 
-/-- If [the conditioning σ-algebra is contained in the ambient σ-algebra](hyp:hm), [two
-functions are integrable](hyp:hf,hh), [the weight is measurable](hyp:hu_meas), [the envelope
-constant and perturbation size are nonnegative](hyp:hK,hδ), [the conditioning function is
+/-- If [two functions are integrable](hyp:hf,hh), [the weight is measurable](hyp:hu_meas),
+[the envelope constant is nonnegative](hyp:hK), [the conditioning function is
 nonnegative](hyp:hhnonneg), [a target `f` is dominated by `K h`](hyp:hdom), and [a weight `u`
 differs from one by at most `δ`](hyp:hu_bound), then [weighting changes the conditional
 expectation of `f` by at most `K δ` times the conditional expectation of `h`](goal). -/
 lemma abs_condExp_mul_sub_condExp_le
     {m₀ : MeasurableSpace Z} {P : @Measure Z m₀} [IsFiniteMeasure P]
-    {m : MeasurableSpace Z} (hm : m ≤ m₀) {f h u : Z → ℝ} {K δ : ℝ}
+    {m : MeasurableSpace Z} {f h u : Z → ℝ} {K δ : ℝ}
     (hf : Integrable f P) (hh : Integrable h P)
     (hu_meas : @Measurable Z ℝ m₀ _ u)
-    (hK : 0 ≤ K) (hδ : 0 ≤ δ) (hhnonneg : ∀ᵐ z ∂P, 0 ≤ h z)
+    (hK : 0 ≤ K) (hhnonneg : ∀ᵐ z ∂P, 0 ≤ h z)
     (hdom : ∀ᵐ z ∂P, |f z| ≤ K * h z)
     (hu_bound : ∀ z, |u z - 1| ≤ δ) :
     ∀ᵐ z ∂P, |P[fun y => f y * u y | m] z - P[f | m] z| ≤
@@ -243,15 +239,14 @@ lemma abs_condExp_mul_sub_condExp_le
       |f z| * |u z - 1| ≤ (K * h z) * δ :=
         mul_le_mul hfz (hu_bound z) (abs_nonneg _) (mul_nonneg hK hhz)
       _ = (K * δ) * h z := by ring
-  have hbound := abs_condExp_le_mul_condExp_of_abs_le hm hdiff hh hhnonneg hdiff_dom
+  have hbound := abs_condExp_le_mul_condExp_of_abs_le (m := m) hdiff hh hdiff_dom
   filter_upwards [hce_sub, hce_congr, hbound] with z hsub hcongr hboundz
   change P[(fun z => f z * u z) - f | m] z =
     P[fun z => f z * u z | m] z - P[f | m] z at hsub
   rw [← hsub, hcongr]
   exact hboundz
 
-/-- Suppose [the conditioning σ-algebra is contained in the ambient σ-algebra](hyp:hm),
-[the numerator and conditioning weight are integrable](hyp:hf,hh), [the envelope constant
+/-- Suppose [the numerator and conditioning weight are integrable](hyp:hf,hh), [the envelope constant
 and retained fraction have the required signs](hyp:hK,hδ,ha), [a nonnegative conditioning
 weight `h`](hyp:hhnonneg) has [positive conditional mean](hyp:hp), [a numerator `f` is
 bounded by `K h`](hyp:hdom), and [a measurable perturbation weight `u` within `δ` of one
@@ -259,7 +254,7 @@ and at least `a`](hyp:hu_meas,hu_bound,hu_lower). Then [the corresponding condit
 most `2 K δ / a`](goal). -/
 lemma abs_condExp_ratio_mul_sub_le
     {m₀ : MeasurableSpace Z} {P : @Measure Z m₀} [IsFiniteMeasure P]
-    {m : MeasurableSpace Z} (hm : m ≤ m₀) {f h u : Z → ℝ} {K δ a : ℝ}
+    {m : MeasurableSpace Z} {f h u : Z → ℝ} {K δ a : ℝ}
     (hf : Integrable f P) (hh : Integrable h P)
     (hu_meas : @Measurable Z ℝ m₀ _ u)
     (hK : 0 ≤ K) (hδ : 0 ≤ δ) (ha : 0 < a)
@@ -284,14 +279,14 @@ lemma abs_condExp_ratio_mul_sub_le
     hf.mul_bdd hu_meas.aestronglyMeasurable
       (Eventually.of_forall fun z => by
         simpa only [Real.norm_eq_abs] using hu_norm z)
-  have hAt := abs_condExp_mul_sub_condExp_le hm hf hh hu_meas hK hδ
+  have hAt := abs_condExp_mul_sub_condExp_le (m := m) hf hh hu_meas hK
     hhnonneg hdom hu_bound
   have hhdom : ∀ᵐ z ∂P, |h z| ≤ (1 : ℝ) * h z := by
     filter_upwards [hhnonneg] with z hz
     simp [abs_of_nonneg hz]
-  have hpt := abs_condExp_mul_sub_condExp_le hm hh hh hu_meas
-    (show 0 ≤ (1 : ℝ) by norm_num) hδ hhnonneg hhdom hu_bound
-  have hA := abs_condExp_le_mul_condExp_of_abs_le hm hf hh hhnonneg hdom
+  have hpt := abs_condExp_mul_sub_condExp_le (m := m) hh hh hu_meas
+    (show 0 ≤ (1 : ℝ) by norm_num) hhnonneg hhdom hu_bound
+  have hA := abs_condExp_le_mul_condExp_of_abs_le (m := m) hf hh hdom
   have hlower_raw : P[a • h | m] ≤ᵐ[P] P[fun z => h z * u z | m] :=
     condExp_mono (hh.smul a) hhu (by
       filter_upwards [hhnonneg] with z hz
@@ -409,7 +404,7 @@ theorem observedPropensity_tilt_firstOrder
   have ha : 0 < a := Real.exp_pos _
   have hi := integrable_observedArmIndicator P d
   have hone : Integrable (fun _ : γ × Bool × ℝ => (1 : ℝ)) P := integrable_const _
-  have hratio := abs_condExp_ratio_mul_sub_le observedCovariateSigma_le
+  have hratio := abs_condExp_ratio_mul_sub_le (m := observedCovariateSigma)
     hi hone (hg_meas.const_mul t).exp (show 0 ≤ (1 : ℝ) by norm_num) hδ ha
     (Eventually.of_forall fun _ => zero_le_one)
     (Eventually.of_forall fun z => by
@@ -511,7 +506,7 @@ theorem observedArmRegression_tilt_firstOrder
     by_cases hz : projA z = d
     · simpa [observedArmIndicator, hz] using hYz
     · simp [observedArmIndicator, hz, hB]
-  have hratio := abs_condExp_ratio_mul_sub_le observedCovariateSigma_le
+  have hratio := abs_condExp_ratio_mul_sub_le (m := observedCovariateSigma)
     hf hI (hg_meas.const_mul t).exp hB hδ ha
     (Eventually.of_forall fun z => by
       dsimp [I]
@@ -553,9 +548,8 @@ lemma observedArmRegression_abs_le
     by_cases hz : projA z = d
     · simpa [observedArmIndicator, hz] using hYz
     · simp [observedArmIndicator, hz]
-  have hnum := abs_condExp_le_mul_condExp_of_abs_le observedCovariateSigma_le
-    hYI hI (Eventually.of_forall fun z => by
-      by_cases hz : projA z = d <;> simp [observedArmIndicator, hz]) hdom
+  have hnum := abs_condExp_le_mul_condExp_of_abs_le (m := observedCovariateSigma)
+    hYI hI hdom
   filter_upwards [hnum, hp] with z hnumz hpz
   change 0 < Q[observedArmIndicator d | observedCovariateSigma] z at hpz
   rw [observedArmRegression, observedArmNumerator, observedPropensity, abs_div,

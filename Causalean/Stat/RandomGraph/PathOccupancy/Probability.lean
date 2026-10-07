@@ -71,8 +71,10 @@ theorem fixed_subset_assignment_probability {n K : ℕ} {μ : Measure Ω}
     Fintype.card_coe] using hp
 
 /-- In [the uniform marked model](hyp:h), [cell assignments on a fixed
-subset](hyp:s,a) and [mark assignments on any fixed subset](hyp:t,b) have
-[the reciprocal-power probability times the prescribed Bernoulli product](goal).
+subset](hyp:s,a) and [mark assignments on any fixed subset](hyp:t,b) hold
+jointly with [probability exactly 1/K to the power of the size of the first subset,
+times the product over the second subset of ε for each label prescribed a true
+mark and 1 − ε for each label prescribed a false mark](goal).
 The two subsets may overlap or be different.
 -/
 theorem fixed_subset_assignment_mark_probability {n K : ℕ} {μ : Measure Ω}

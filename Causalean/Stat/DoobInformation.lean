@@ -31,8 +31,10 @@ noncomputable def increment (μ : Measure Ω) (F : Filtration ℕ mΩ) (S : Ω �
 
 /-- A [probability law](hyp:μ), [filtration](hyp:F), [terminal score](hyp:S),
 [square-integrability certificate](hyp:hS), and [horizon](hyp:n) determine [the constant-row
-Doob martingale-difference array](goal), [given by Causalean's established finite-horizon
-Doob construction](step:1). -/
+Doob martingale-difference array](goal), [given by the Doob construction in which every row
+uses this same law, filtration, and score, has length equal to the horizon, and has as its entry
+at each stage the change in the score's conditional expectation between the two adjacent prefix
+σ-algebras](step:1). -/
 noncomputable def doobArray (μ : Measure Ω) [IsProbabilityMeasure μ]
     (F : Filtration ℕ mΩ) (S : Ω → ℝ) (hS : MemLp S 2 μ) (n : ℕ) :
     MartingaleDifferenceArray (fun _ : ℕ => Ω) (fun _ => μ) :=
@@ -135,8 +137,12 @@ theorem increment_orthogonal (hS : MemLp S 2 μ) {i j : ℕ} (hij : i ≠ j) :
 /-- Under [a probability law](hyp:μ) and [filtration](hyp:F), if a
 [square-integrable terminal score](hyp:S,hS) is [its terminal conditional expectation](hyp:hterminal)
 and has [zero initial conditional expectation](hyp:hinitial), then [its Fisher-information
-second moment equals the sum of the increment second moments](goal) at the given
-[horizon](hyp:n). -/
+second moment, the expectation of the squared score, equals the sum over the stages before the
+horizon of the increment second moments](goal) at the given [horizon](hyp:n).
+
+The terminal hypothesis says the score agrees almost surely with its conditional expectation given
+the σ-algebra at the horizon, and the initial hypothesis says its conditional expectation given
+the σ-algebra at stage zero vanishes almost surely. -/
 theorem fisher_eq_sum (hS : MemLp S 2 μ) (n : ℕ)
     (hterminal : μ[S | F n] =ᵐ[μ] S)
     (hinitial : μ[S | F 0] =ᵐ[μ] (0 : Ω → ℝ)) :
@@ -241,17 +247,20 @@ theorem fisher_le_mul (hS : MemLp S 2 μ) (n : ℕ) (B : ℝ)
 variable {ν : Measure Ω} [IsFiniteMeasure ν]
 
 /-- A [finite reference measure](hyp:ν), [probability law](hyp:μ), [density](hyp:q),
-[density derivative](hyp:qdot), and [score](hyp:S) with [measurable versions](hyp:hq,hqdot,hSmeas),
+[density derivative](hyp:qdot), and [score](hyp:S) with [a measurable density](hyp:hq),
 [the stated density representation](hyp:hμ), [almost-everywhere nonnegative density](hyp:hqnonneg),
-[almost-everywhere score identity](hyp:hscore), and [square-integrable score](hyp:hS) have [a
-guarded density Fisher integral equal to the score second moment](goal). -/
+and [almost-everywhere score identity](hyp:hscore) have [a
+guarded density Fisher integral equal to the score second moment](goal).
+
+Square integrability of the score is not assumed: when the squared score is not integrable under
+the probability law, both sides are zero by the convention that the integral of a non-integrable
+function is zero. -/
 theorem guarded_density_fisher_eq
     (q qdot S : Ω → ℝ)
-    (hq : Measurable q) (hqdot : Measurable qdot) (hSmeas : Measurable S)
+    (hq : Measurable q)
     (hμ : μ = ν.withDensity (fun ω => ENNReal.ofReal (q ω)))
     (hqnonneg : ∀ᵐ ω ∂ν, 0 ≤ q ω)
-    (hscore : ∀ᵐ ω ∂ν, qdot ω = q ω * S ω)
-    (hS : MemLp S 2 μ) :
+    (hscore : ∀ᵐ ω ∂ν, qdot ω = q ω * S ω) :
     (∫ ω, (if q ω = 0 then 0 else qdot ω ^ 2 / q ω) ∂ν) =
       ∫ ω, S ω ^ 2 ∂μ := by
   have hquot :
@@ -275,13 +284,19 @@ theorem guarded_density_fisher_eq
 
 /-- A [finite reference measure](hyp:ν), [probability law](hyp:μ), [filtration](hyp:F),
 [horizon](hyp:n), [density](hyp:q), [density derivative](hyp:qdot), and [score](hyp:S) with
-[measurable versions](hyp:hq,hqdot,hSmeas), [the stated density representation](hyp:hμ),
-[almost-everywhere nonnegative density](hyp:hqnonneg), [almost-everywhere score identity](hyp:hscore),
-[square-integrable score](hyp:hS), and [terminal and initial conditional-expectation identities](hyp:hterminal,hinitial)
-have [a guarded density Fisher integral equal to the Doob increment-information sum](goal). -/
+[a measurable density](hyp:hq), [the law having density q with respect to the
+reference measure](hyp:hμ), [almost-everywhere nonnegative density](hyp:hqnonneg), [the score
+identity that the density derivative equals the density times the score almost everywhere under
+the reference measure](hyp:hscore), [square-integrable score under the law](hyp:hS), and [the
+score agreeing almost surely with its conditional expectation at the horizon while its conditional
+expectation at stage zero vanishes almost surely](hyp:hterminal,hinitial)
+have [a guarded density Fisher integral, the reference-measure integral of the squared density
+derivative divided by the density with the integrand set to zero where the density vanishes, equal
+to the sum over the stages before the horizon of the second moments of the Doob score
+increments](goal). -/
 theorem guarded_density_fisher_eq_doob_sum
     (F : Filtration ℕ mΩ) (n : ℕ) (q qdot S : Ω → ℝ)
-    (hq : Measurable q) (hqdot : Measurable qdot) (hSmeas : Measurable S)
+    (hq : Measurable q)
     (hμ : μ = ν.withDensity (fun ω => ENNReal.ofReal (q ω)))
     (hqnonneg : ∀ᵐ ω ∂ν, 0 ≤ q ω)
     (hscore : ∀ᵐ ω ∂ν, qdot ω = q ω * S ω)
@@ -290,7 +305,7 @@ theorem guarded_density_fisher_eq_doob_sum
     (hinitial : μ[S | F 0] =ᵐ[μ] (0 : Ω → ℝ)) :
     (∫ ω, (if q ω = 0 then 0 else qdot ω ^ 2 / q ω) ∂ν) =
       ∑ k ∈ Finset.range n, ∫ ω, increment μ F S k ω ^ 2 ∂μ := by
-  rw [guarded_density_fisher_eq q qdot S hq hqdot hSmeas hμ hqnonneg hscore hS]
+  rw [guarded_density_fisher_eq q qdot S hq hμ hqnonneg hscore]
   exact fisher_eq_sum F S hS n hterminal hinitial
 
 end Causalean.Stat.DoobInformation

@@ -15,6 +15,25 @@ public import Causalean.Stat.Bootstrap.SmoothFunctionOfMeans.Uniformization
 public import Causalean.Stat.Bootstrap.SmoothFunctionOfMeans.WeakLaw
 public import Causalean.Stat.Bootstrap.SmoothFunctionOfMeans.WeakLawVector
 
-/-! `Stat.Bootstrap.SmoothFunctionOfMeans` directory barrel: the bootstrap weak law, resample
-tightness, the delta-method linearizations, and the `BootstrapAsymLinear` constructor for a smooth
-function of a vector mean. -/
+/-! # Bootstrap validity for smooth functions of sample means
+
+The bootstrap delta method. For an iid sample, a vector of moment functions m with E‖m(X)‖² < ∞
+and a scalar map g that is Fréchet differentiable at μ = E[m(X)], the estimator g of the sample
+mean of m is bootstrap asymptotically linear with influence function Dg(μ)(m(X) − μ), provided
+that influence function has positive variance. Hence Efron's bootstrap is consistent for it and
+the percentile interval has asymptotic coverage 1 − α. Only differentiability at μ is used. The
+ratio of two sample means, with nonzero denominator mean, is the worked example.
+
+## Main results
+
+* `bootstrapMean_sub_dataMean_tendsto_zero_ae`, `bootstrapMeanVec_sub_dataMean_tendsto_zero_ae`
+  — conditional bootstrap weak law: for almost every data sequence, the resample mean is close
+  to the sample mean with conditional probability tending to one (first moment only).
+* `bootstrapMean_chebyshev`, `scaledBootstrapMeanDifferenceVec_conditionallyBounded` —
+  conditional tightness of the √n-scaled centred bootstrap mean.
+* `samplingLinearization_smoothFunctionOfMeans`, `bootstrapLinearization_smoothFunctionOfMeans`
+  — the two first-order expansions.
+* `BootstrapAsymLinear.smoothFunctionOfMeans` — the estimator is bootstrap asymptotically
+  linear; `percentileCI_coverage_smoothFunctionOfMeans` is the coverage corollary.
+* `BootstrapAsymLinear.ratioOfMeans` — the ratio-of-means instance.
+-/

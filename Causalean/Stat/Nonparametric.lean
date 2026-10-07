@@ -14,18 +14,33 @@ public import Causalean.Stat.Nonparametric.SeriesSieve
 public import Causalean.Stat.Nonparametric.Specialization
 
 /-!
-# Nonparametric methods
+# Nonparametric regression and smoothing
 
-Top barrel for reusable nonparametric statistical methods: approximation theory, fixed-weight linear
-smoothers, local-polynomial and series/sieve estimators, and higher-order influence function (HOIF) projection-kernel risk building blocks.
-Organized into the following reusable layers:
+Finite-sample bias, variance and risk bounds for nonparametric estimators of a regression function
+under Hölder smoothness. A linear smoother whose weights reproduce polynomials of degree below `β`
+has bias at most a constant times `h^β` for a `β`-Hölder function, and variance at most
+`σ̄² ∑ᵢ Sᵢ²` under uncorrelated errors with variances bounded by `σ̄²`; these two facts are
+specialized to local-polynomial and series (sieve) least-squares estimators. The histogram
+regression estimator on a cubical partition of `[0,1]^d` attains integrated squared risk of order
+`m^(−2β/(2β+d))`, with explicit constants.
 
-* `LinearSmoother` — deterministic bias and generic variance bounds for fixed-weight linear
-  smoothers with uncorrelated heteroskedastic errors whose coordinate variances are uniformly
-  bounded, shared by local-polynomial and series/sieve estimators.
-* `Approximation` — deterministic approximation-theory bias primitives (Hölder–Taylor, kernel).
-* `LocalPoly` — the degree-`p` local-polynomial estimator substrate (weights, design positive
-  definiteness, bias, variance, rate, estimator risk).
-* `SeriesSieve` — the series/sieve `L²` approximation-and-prediction substrate.
-* `HigherOrderInfluence` — HOIF projection-kernel U-statistic variance and risk algebra.
+## Contents
+
+* `Approximation` — Hölder–Taylor remainders, the `O(h^β)` kernel-convolution bias, monomial
+  approximation in a multivariate Hölder ball, and a pointwise-to-local-L¹ interpolation
+  inequality.
+* `LinearSmoother` — `linearSmoother_bias_window` and `linearSmoother_variance_le`.
+* `LocalPoly` — design moment matrix and equivalent-kernel weights, positive definiteness, bias
+  and variance of the intercept, `O(1/(Nh))` leverage bounds, and conditional risk bounds with
+  generic lifts from a good-design event.
+* `SeriesSieve` — piecewise-Taylor (Jackson-type) approximation at rate `J^(−β)`, series
+  least-squares identities, and a conditional prediction oracle inequality.
+* `HistogramRegression` — `histogram_risk_le` for an arbitrary finite measurable partition and
+  `optimized_cubical_histogram_risk_le` for the Hölder cubical case.
+* `HigherOrderInfluence` — the projection kernel `⟨c(x), Σ⁻¹ c(y)⟩` has L² energy equal to its
+  dimension `J`; algebra combining assumed component bounds into a risk bound.
+* `GaussianTransfer`, `Specialization` — bounds on a Gaussian-shifted design variance integral by
+  weighted L² energies of the kernel, and its inverse-Gaussian-multiplier specialization.
+
+This file only gathers the modules above.
 -/

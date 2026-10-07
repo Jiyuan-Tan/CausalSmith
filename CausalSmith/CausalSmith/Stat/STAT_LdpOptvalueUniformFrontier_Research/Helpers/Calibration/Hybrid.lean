@@ -11,7 +11,7 @@ degree calibration (C2) are proved. Pilot tails (C4) and nonnegative inside-wind
 bias and variance assembly are proved. Outside-window estimates remain open.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 

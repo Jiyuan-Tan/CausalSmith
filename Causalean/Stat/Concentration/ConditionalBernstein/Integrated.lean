@@ -68,13 +68,15 @@ theorem attached_simultaneous_tail_le [Fintype C] [Fintype B]
   filter_upwards [ae_design_vector_envelope Q K key bins pMax henvelope] with x hx
   exact fibre_simultaneous_tail_le key K bins hbins x hpMax hu hx
 
-/-- An [IID sample from a joint design/outcome law represented by a probability design
-marginal and Markov outcome kernel](hyp:Q,K), with
-[finite measurable cells and bins](hyp:key,bins,hcell,hbins)
-and an [almost-everywhere nonnegative bin-probability envelope](hyp:henvelope,hpMax), has
-[simultaneous count deviations at most the cell-dependent Bernstein radius outside
-an event of probability at most twice the number of cell/bin pairs times the
-exponential tail](goal), for [nonnegative tail parameter](hyp:hu).
+/-- Draw an [IID sample of design/outcome pairs, each design from a probability law and
+each outcome from a Markov kernel at its design](hyp:Q,K), and fix [finitely many
+measurable design cells and finitely many measurable outcome bins](hyp:key,bins,hcell,hbins).
+Suppose [the kernel probability of every bin is at most a nonnegative number pMax at
+almost every design point](hyp:henvelope,hpMax) and the [tail parameter u is
+nonnegative](hyp:hu). Then [the probability that, for some cell and some bin, the joint
+count differs from its conditional mean given the designs by strictly more than
+√(2 · pMax · N_c · u) + u, where N_c is the number of sampled designs in the cell, is at
+most 2 · (number of cells) · (number of bins) · exp(−u)](goal).
 
 Transport `attached_simultaneous_tail_le` along `iid_joint_map_split`. The event is
 strict failure of the non-strict count bound, so it includes zero-count cells correctly.

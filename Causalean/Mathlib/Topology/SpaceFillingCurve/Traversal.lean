@@ -15,8 +15,13 @@ needed for coherence between levels.
 namespace Causalean.Mathlib.Topology.SpaceFillingCurve
 
 /-- A coherent face-adjacent order of all dyadic grids in dimension `d`.
-At level `n`, `cell n k i` is the `i`th integer coordinate of the `k`th
-visited cell in the grid with side length `2^n`. -/
+At every level `n` it lists the `2^(dn)` cells of the grid with `2^n` cells
+per side exactly once, consecutive cells in the list share a face, and each
+consecutive block of `2^d` cells at level `n+1` consists of the children of
+the corresponding level-`n` cell.
+
+Here `cell n k i` is the `i`th integer coordinate of the `k`th visited cell
+at level `n`. -/
 structure DyadicTraversal (d : ℕ) where
   cell : ∀ n : ℕ, Fin (2 ^ (d * n)) → Fin d → Fin (2 ^ n)
   bijective : ∀ n, Function.Bijective (cell n)
@@ -32,7 +37,7 @@ structure DyadicTraversal (d : ℕ) where
 /-- Coherent traversals of every finite depth yield one traversal of all
 dyadic grids. The proof extracts a consistent branch from the finitely
 branching tree of finite cell orders. -/
-theorem exists_dyadicTraversal_of_finite (d : ℕ) (hd : 0 < d)
+theorem exists_dyadicTraversal_of_finite (d : ℕ)
     (hfinite : ∀ n, Nonempty (FiniteDyadicTraversal d n)) :
     Nonempty (DyadicTraversal d) := by
   obtain ⟨F, hF⟩ := exists_coherent_finiteDyadicTraversals d hfinite
@@ -55,7 +60,7 @@ theorem exists_dyadicTraversal_of_finite (d : ℕ) (hd : 0 < d)
 /-- Given [a positive cube dimension](hyp:d,hd), [a coherent dyadic traversal exists](goal). -/
 theorem exists_dyadicTraversal (d : ℕ) (hd : 0 < d) :
     Nonempty (DyadicTraversal d) :=
-  exists_dyadicTraversal_of_finite d hd
+  exists_dyadicTraversal_of_finite d
     (fun n => exists_finiteDyadicTraversal d n hd)
 
 end Causalean.Mathlib.Topology.SpaceFillingCurve

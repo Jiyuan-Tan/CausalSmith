@@ -15,8 +15,24 @@ public import Causalean.Panel.FixedEffect.IndicatorClosedForms.Basic
 
 /-! # Cohort-Period Indicator Closed Forms
 
-This part defines generic cohort-period cells and proves the closed form for a single
-cohort-period cell indicator. -/
+The two-way fixed-effect residual of a single cohort-by-period cell indicator, in closed form.
+Take C cohorts with probabilities π(g) > 0 summing to one and S periods, every cohort-period cell
+observed with weight π(g)/S. Residualizing the indicator 1{g = g₀, t = t₀} on additive cohort and
+period effects leaves the product of the two centered indicators,
+(1{g = g₀} − π(g₀)) · (1{t = t₀} − 1/S), stated in the theorem in expanded form. This is the
+building block for closed-form regression weights in staggered-adoption designs.
+
+## Main definitions
+
+* `CohortLaw` — a probability mass function on finitely many cohorts.
+* `cohortPeriodCells` — the weighted cohort-period panel with cell weights π(g)/S.
+
+## Main results
+
+* `tildeX_cell_indicator_cohortPeriod` — the residual formula above, at every cell.
+* `cohort_sum_pi_centered_eq_zero` — a singleton indicator centered at its own weight has
+  weighted average zero.
+-/
 
 @[expose] public section
 

@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 -/
 
 module
-public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor
+public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor.Within
 
 /-!
 # Bias of a polynomial-reproducing linear smoother
@@ -29,6 +29,9 @@ The reproduction hypothesis is the property satisfied by local-polynomial equiva
 weights; the factors `∑ᵢ |Sᵢ| |aᵢ − t|^β` are later bounded via the design density. This lemma is
 thus the bias half of the interior local-polynomial estimator analysis
 (Fan–Gijbels 1996; Tsybakov 2009 Ch. 1), kept design-agnostic.
+
+`linearSmoother_bias_window_within` gives the same bound when `f` is smooth only on the window
+containing the design points, with derivatives taken within the window.
 -/
 
 public section
@@ -139,5 +142,67 @@ theorem linearSmoother_bias_window {f : ℝ → ℝ} {β M lo hi t h : ℝ} {N :
   refine Finset.sum_le_sum (fun i _ => ?_)
   exact mul_le_mul_of_nonneg_left
     (Real.rpow_le_rpow (abs_nonneg _) (hwin i) hβ.le) (abs_nonneg _)
+
+/-- **Bias of a polynomial-reproducing linear smoother for a function smooth only on a
+window.** Let `p` be the largest integer strictly below the smoothness index `β`. If [`β` is
+positive](hyp:hβ), [the Hölder constant `M` is nonnegative](hyp:hM), [the target point `t` lies
+in a window `[lo, hi]`](hyp:ht), [every design point `aᵢ` lies in the same window](hyp:ha) and
+[within bandwidth `h` of `t`](hyp:hwin), [`f` is `p` times continuously differentiable on the
+window](hyp:hf), [its `p`-th derivative within the window is `(β − p)`-Hölder there with
+constant `M`](hyp:hb), and [the smoother weights `S` reproduce polynomials of degree up to `p`
+at `t`](hyp:hrep), then [`|∑ᵢ Sᵢ f(aᵢ) − f(t)| ≤ (M/p!) · (∑ᵢ |Sᵢ|) · h^β`](goal).
+
+Nothing is assumed about `f` outside the window. The bound and its constant are those of the
+version for functions smooth on the whole line. -/
+theorem linearSmoother_bias_window_within {f : ℝ → ℝ} {β M lo hi t h : ℝ} {N : ℕ}
+    {a S : Fin N → ℝ}
+    (hβ : 0 < β) (hM : 0 ≤ M)
+    (ht : t ∈ Set.Icc lo hi) (ha : ∀ i, a i ∈ Set.Icc lo hi)
+    (hwin : ∀ i, |a i - t| ≤ h)
+    (hf : ContDiffOn ℝ (holderDerivOrder β) f (Set.Icc lo hi))
+    (hb : ∀ x ∈ Set.Icc lo hi, ∀ y ∈ Set.Icc lo hi,
+            |iteratedDerivWithin (holderDerivOrder β) f (Set.Icc lo hi) x -
+              iteratedDerivWithin (holderDerivOrder β) f (Set.Icc lo hi) y|
+              ≤ M * |x - y| ^ (β - ((holderDerivOrder β) : ℝ)))
+    (hrep : ∀ k : ℕ, k ≤ (holderDerivOrder β) →
+      (∑ i, S i * (a i - t) ^ k) = if k = 0 then 1 else 0) :
+    |∑ i, S i * f (a i) - f t|
+      ≤ (M / ((holderDerivOrder β)).factorial) * (∑ i, |S i|) * h ^ β := by
+  set p := holderDerivOrder β with hp
+  have hrep_tay : (∑ i, S i * taylorWithinEval f p (Set.Icc lo hi) t (a i)) = f t := by
+    have key : (∑ i, S i * taylorWithinEval f p (Set.Icc lo hi) t (a i))
+        = ∑ k ∈ Finset.range (p + 1),
+            ((k.factorial : ℝ)⁻¹ * iteratedDerivWithin k f (Set.Icc lo hi) t) *
+              (∑ i, S i * (a i - t) ^ k) := by
+      simp_rw [taylor_within_apply, smul_eq_mul, Finset.mul_sum]
+      rw [Finset.sum_comm]
+      refine Finset.sum_congr rfl (fun k _ => ?_)
+      refine Finset.sum_congr rfl (fun i _ => ?_)
+      ring
+    rw [key, Finset.sum_congr rfl (fun k hk => by
+      rw [hrep k (Nat.lt_succ_iff.mp (Finset.mem_range.mp hk))]),
+      Finset.sum_eq_single 0]
+    · simp [iteratedDerivWithin_zero]
+    · intro k _ hk0; simp [hk0]
+    · intro hmem; exact absurd (Finset.mem_range.mpr (Nat.succ_pos p)) hmem
+  have hdiff : (∑ i, S i * f (a i)) - f t
+      = ∑ i, S i * (f (a i) - taylorWithinEval f p (Set.Icc lo hi) t (a i)) := by
+    rw [← hrep_tay, ← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl (fun i _ => by rw [mul_sub])
+  rw [hdiff]
+  calc |∑ i, S i * (f (a i) - taylorWithinEval f p (Set.Icc lo hi) t (a i))|
+      ≤ ∑ i, |S i * (f (a i) - taylorWithinEval f p (Set.Icc lo hi) t (a i))| :=
+        Finset.abs_sum_le_sum_abs _ _
+    _ ≤ ∑ i, |S i| * (M / (p.factorial : ℝ) * h ^ β) := by
+        refine Finset.sum_le_sum (fun i _ => ?_)
+        rw [abs_mul]
+        exact mul_le_mul_of_nonneg_left
+          ((holder_taylor_remainder_within hβ hM ht (ha i) hf hb).trans
+            (mul_le_mul_of_nonneg_left
+              (Real.rpow_le_rpow (abs_nonneg _) (hwin i) hβ.le)
+              (div_nonneg hM (by positivity)))) (abs_nonneg _)
+    _ = (M / (p.factorial : ℝ)) * (∑ i, |S i|) * h ^ β := by
+        rw [← Finset.sum_mul]
+        ring
 
 end Causalean.Stat.Nonparametric

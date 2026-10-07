@@ -102,7 +102,7 @@ lemma minimaxEnvelopeBound_of_contrastWeightedProcedure (K : ℕ)
       simp [labeledRisk, Causalean.Experimentation.DesignBased.FiniteDesign.mse,
         tauC, contrastWeightedProcedure, centeredContrastScore, hclip]
     calc
-      rhoN K 0 c ≤ Causalean.Stat.worstCaseRisk
+      rhoN K 0 c ≤ Causalean.Stat.worstCaseRiskReal
           (fun (p : Procedure K 0 c) (z : Schedule K 0) => labeledRisk c p z)
           (contrastWeightedProcedure K 0 c) :=
         Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg
@@ -131,7 +131,7 @@ theorem universal_second_order_rate (K : ℕ) (c : Contrast ℝ K)
           Real.exp (-(m : ℝ) ^ (1 / 3 : ℝ) / 8) ≤
             Real.sqrt (lambdaC c) / 2 - lambdaC c / 16) ∧
       ∀ n ≥ N,
-        Causalean.Stat.worstCaseRisk
+        Causalean.Stat.worstCaseRiskReal
           (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z)
           (shrinkageProcedure K n c) ≤
             C0 c * ((n : ℝ)⁻¹ - kappaC c * (n : ℝ) ^ (-(4 / 3 : ℝ)))) ∧
@@ -162,7 +162,7 @@ theorem universal_second_order_rate (K : ℕ) (c : Contrast ℝ K)
   let N := max N0 1
   have hNpos : 0 < N := lt_of_lt_of_le Nat.zero_lt_one (le_max_right _ _)
   have hrisk : ∀ n ≥ N,
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z)
         (shrinkageProcedure K n c) ≤
           C0 c * ((n : ℝ)⁻¹ - kappaC c * (n : ℝ) ^ (-(4 / 3 : ℝ))) := by
@@ -175,7 +175,7 @@ theorem universal_second_order_rate (K : ℕ) (c : Contrast ℝ K)
           Real.exp (-(m : ℝ) ^ (1 / 3 : ℝ) / 8) ≤
             Real.sqrt (lambdaC c) / 2 - lambdaC c / 16) ∧
       ∀ n ≥ N,
-        Causalean.Stat.worstCaseRisk
+        Causalean.Stat.worstCaseRiskReal
           (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z)
           (shrinkageProcedure K n c) ≤
             C0 c * ((n : ℝ)⁻¹ - kappaC c * (n : ℝ) ^ (-(4 / 3 : ℝ))) := by

@@ -17,7 +17,7 @@ namespace Causalean.Mathlib.Analysis.SpecialFunctions.Jacobi
 open Filter
 open scoped Topology
 
-/-- A [degree](hyp:k), [shape parameter](hyp:α), and [evaluation point](hyp:x) determine [the weighted Rodrigues kernel](goal), [given by the product of a left power and a right power bump](step:1).
+/-- A [degree](hyp:k), [shape parameter](hyp:α), and [evaluation point](hyp:x) determine [the weighted Rodrigues kernel](goal), [given by the product x^(α+k)·(1−x)^k of a left power and a right power bump](step:1).
 
 The weighted power bump whose `k`th derivative represents a shifted
 Jacobi polynomial on the positive half-line. -/
@@ -127,12 +127,12 @@ theorem rodKernel_expansion_eq_h (k : ℕ) (α x : ℝ) (hα : 0 < α)
   rw [hpow]
   ring
 
-/-- A [degree](hyp:k), [derivative order](hyp:i), and [shape parameter](hyp:α), when [the derivative order is below the degree](hyp:hik) and [the parameter is positive](hyp:hα), give [a zero Rodrigues-kernel derivative at the right endpoint](goal).
+/-- A [degree](hyp:k), [derivative order](hyp:i), and [shape parameter](hyp:α), when [the derivative order is below the degree](hyp:hik), give [a zero Rodrigues-kernel derivative at the right endpoint](goal).
 
 Every derivative of order less than `k` of the Jacobi Rodrigues kernel
 vanishes at the right endpoint. -/
-theorem rodKernel_deriv_one (k i : ℕ) (α : ℝ) (hik : i < k)
-    (hα : 0 < α) : (deriv^[i] (rodKernel k α)) 1 = 0 := by
+theorem rodKernel_deriv_one (k i : ℕ) (α : ℝ) (hik : i < k) :
+    (deriv^[i] (rodKernel k α)) 1 = 0 := by
   change (deriv^[i] (fun x : ℝ => x ^ (α + (k : ℝ)) * (1 - x) ^ k)) 1 = 0
   apply iter_deriv_mul_one_sub_pow_at_one
   · exact Real.contDiffAt_rpow_const_of_ne (by norm_num)
@@ -173,7 +173,7 @@ theorem rodKernel_deriv_tendsto_zero (k i : ℕ) (α : ℝ)
   filter_upwards [self_mem_nhdsWithin] with x hx
   exact (rodKernel_deriv_expansion k i α x hx).symm
 
-/-- A [degree](hyp:k), [positive shape parameter](hyp:α), and [positive evaluation point](hyp:x), with [parameter positivity](hyp:hα) and [point positivity](hyp:hx), give [the normalized shifted Rodrigues formula](goal).
+/-- A [degree](hyp:k), [positive shape parameter](hyp:α), and [positive evaluation point](hyp:x), with [parameter positivity](hyp:hα) and [point positivity](hyp:hx), give [the normalized shifted Rodrigues formula: x^α times the shifted Jacobi perturbation of degree k at x equals the k-th derivative of the weighted Rodrigues kernel at x divided by the rising factorial (α+1)ₖ](goal).
 
 The shifted Rodrigues formula on positive arguments, with the exact
 rising-factorial normalization of `h`. -/

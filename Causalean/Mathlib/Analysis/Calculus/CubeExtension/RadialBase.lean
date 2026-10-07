@@ -20,8 +20,9 @@ namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 variable {E F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [NormedAddCommGroup F] [InnerProductSpace ℝ F] [FiniteDimensional ℝ F]
 
-/-- For [a continuous linear coordinate map](hyp:P), [the radial plateau](goal)
-at [a point](hyp:x) is [the exact scalar plateau of the projected Euclidean norm](step:1). -/
+/-- For [a continuous linear map P into an inner product space](hyp:P), [the
+radial plateau](goal) at [a point x](hyp:x) is [the scalar plateau evaluated at
+the norm of P x](step:1). -/
 noncomputable def radialPlateau (P : E →L[ℝ] F) (x : E) : ℝ := plateau ‖P x‖
 
 omit [FiniteDimensional ℝ F] in
@@ -42,8 +43,9 @@ theorem radialPlateau_eventually_one (P : E →L[ℝ] F) (x : E) (hx : ‖P x‖
   filter_upwards [h] with y hy
   exact plateau_eq_one _ hy.le
 
-/-- For [a continuous linear coordinate map](hyp:P), [the radial plateau is
-globally twice continuously differentiable](goal), including the projection kernel. -/
+/-- For [a continuous linear map P into a finite-dimensional inner product
+space](hyp:P), [the radial plateau is twice continuously differentiable on the
+whole space](goal), including at points that P sends to zero. -/
 -- Use `contDiff_iff_contDiffAt`. If P x = 0, `radialPlateau_eventually_one`
 -- identifies the germ with a constant. Otherwise `contDiffAt_norm ℝ` composed
 -- with P and `plateau_contDiff.contDiffAt` handles the ordinary chain rule.

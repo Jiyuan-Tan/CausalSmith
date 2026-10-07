@@ -23,7 +23,10 @@ variable {X : Type*} [MeasurableSpace X]
 /-- Under [an observation probability law](hyp:P), [a nonnegative Poisson intensity](hyp:lambda),
 two [events](hyp:A,B) with [measurable membership](hyp:hA,hB), and [containment of the first
 in the second](hyp:hAB), [containing-event probability times the expected total success
-fraction equals smaller-event probability times one minus the empty-count probability](goal). -/
+fraction equals smaller-event probability times one minus the probability that no sample point
+falls in the containing event, namely one minus the exponential of minus the intensity times the
+containing-event probability](goal). The success fraction is the smaller-event count divided by
+the containing-event count, set to zero when the latter count is zero. -/
 theorem finitePoisson_successFraction_mean_mul
     (P : Measure X) [IsProbabilityMeasure P] (lambda : ℝ≥0)
     {A B : Set X} (hA : MeasurableSet A) (hB : MeasurableSet B) (hAB : A ⊆ B) :
@@ -70,7 +73,7 @@ theorem finitePoisson_successFraction_mean_mul
     _ = P.real A * (∫ n : ℕ, (1 - (1 - P.real B) ^ n)
         ∂ProbabilityTheory.poissonMeasure lambda) := integral_const_mul _ _
     _ = P.real A * (1 - Real.exp (-(lambda : ℝ) * P.real B)) := by
-      rw [poisson_integral_one_sub_pow lambda (P.real B) hp0 hp1]
+      rw [poisson_integral_one_sub_pow lambda (P.real B)]
 
 /-- Under [an observation probability law](hyp:P), [a nonnegative Poisson intensity](hyp:lambda),
 two [events](hyp:A,B) with [measurable membership](hyp:hA,hB), [containment of the first in

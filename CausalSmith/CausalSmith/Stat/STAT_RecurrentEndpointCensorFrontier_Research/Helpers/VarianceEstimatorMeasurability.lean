@@ -9,7 +9,7 @@ subcritical variance analysis.  It also records that the estimated remaining
 mean decreases as its lower time threshold increases.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition

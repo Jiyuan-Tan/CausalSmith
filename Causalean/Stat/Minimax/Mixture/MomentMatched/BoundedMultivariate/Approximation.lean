@@ -44,7 +44,7 @@ private theorem poly_diff_bound (P : Polynomial ℝ) (n : ℕ)
   annihilate both a constant and the inverse basis function. Markov's
   inequality bounds the polynomial's variation across these points. -/
 
-/-- A [positive inverse coefficient no larger than one](hyp:q,hq₀,hq₁) admits [positive scale and error constants that force a uniform degree-`3K` inverse-rational approximation gap at every positive degree](goal). -/
+/-- For [a positive coefficient q no larger than one](hyp:q,hq₀,hq₁), [there are a scale constant c₀ strictly between zero and one and an error constant δ > 0 such that, for every positive integer K, every real number α, and every real polynomial P of degree at most 3K, the function x / (x + q·c₀/K²) differs in absolute value from α / x + P(x) by at least δ at some point x of the interval from c₀/K² to 1](goal). -/
 theorem exists_inverseRationalApproxGap (q : ℝ) (hq₀ : 0 < q) (hq₁ : q ≤ 1) :
     ∃ c₀ δ : ℝ, 0 < c₀ ∧ c₀ < 1 ∧ 0 < δ ∧
       ∀ K : ℕ, 1 ≤ K → ∀ α : ℝ, ∀ P : Polynomial ℝ,

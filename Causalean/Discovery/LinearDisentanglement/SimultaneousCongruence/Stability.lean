@@ -195,7 +195,7 @@ theorem opNorm_sub_le_condition_specialization {p : ℕ} {E : Type*}
         conditionRoot p κ ^ 3 * ε := by
   have hL : 1 ≤ conditionRoot p κ := one_le_conditionRoot hp hκ
   have hB₀ : ‖B₀‖ ≤ conditionRoot p κ :=
-    opNorm_le_conditionRoot B₀ hp hκ hcond
+    opNorm_le_conditionRoot B₀ hp hcond
   have hinv : ‖B₀⁻¹‖ ≤ κ :=
     invOpNorm_le_conditionEnvelope B₀ hp hdiag₀ hcond
   have hJ : 0 < κ := lt_of_lt_of_le zero_lt_one hκ

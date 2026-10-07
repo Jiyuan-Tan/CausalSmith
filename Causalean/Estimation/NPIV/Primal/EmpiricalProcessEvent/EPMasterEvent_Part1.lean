@@ -54,10 +54,11 @@ The hypothesis `1 ≤ split.n₁ n` excludes the degenerate case of an empty
 fold (where `(0:ℝ)⁻¹ = 0` and the bound is vacuous but doesn't reflect
 the inequality of interest).  By `split.grow` this hypothesis holds for
 all sufficiently large `n`. -/
-/-- Closedness witnesses attain the population adversarial value.  Local
-private copy used here to avoid importing `EPPerN.lean`, which depends on
-this master event. -/
-lemma population_inner_eq_closedness_witness
+/-- For [a candidate in the primal class](hyp:hh) and [a critic in the critic
+class](hyp:hf), if [the critic represents the image of the primal error under
+the inverse-problem operator](hyp:hcl), then [the population adversarial
+value equals the squared weak norm of that error](goal). -/
+lemma population_inner_eq_weakNorm_sq
     {S : OperatorSystem Ω μ} {TC : TRAEClasses S}
     [IsProbabilityMeasure μ]
     {h : S.𝒳 → ℝ} (hh : h ∈ TC.H)

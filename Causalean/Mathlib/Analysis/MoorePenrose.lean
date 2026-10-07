@@ -336,15 +336,13 @@ theorem rowProjection_norms_le_one {rows cols : ℕ} (A : RectMatrix rows cols) 
   exact symmetricIdempotent_norms_le_one (A† * A)
     (rowProjection_penrose A).1 (rowProjection_penrose A).2
 
-/-- Exact ambient Moore--Penrose difference identity.  It permits both ranges to move; the
-equal-rank hypothesis records the perturbative stratum used by the norm corollaries. -/
-theorem moorePenrose_sub_eq {rows cols : ℕ} (A B : RectMatrix rows cols)
-    (hrank : A.rank = B.rank) :
+/-- Exact ambient Moore--Penrose difference identity.  It permits both ranges to move and
+holds for every pair of rectangular matrices of the same shape. -/
+theorem moorePenrose_sub_eq {rows cols : ℕ} (A B : RectMatrix rows cols) :
     B† - A† =
       -B† * (B - A) * A† +
       B† * B†.transpose * (B - A).transpose * ((1 : RectMatrix rows rows) - A * A†) +
       ((1 : RectMatrix cols cols) - B† * B) * (B - A).transpose * A†.transpose * A† := by
-  clear hrank
   have hA := moorePenroseInverse_spec A
   have hB := moorePenroseInverse_spec B
   have hBBtBt : B† * B†.transpose * B.transpose = B† := by
@@ -428,10 +426,10 @@ theorem moorePenrose_sub_eq {rows cols : ℕ} (A B : RectMatrix rows cols)
   rw [hterm1, hcross]
   abel
 
-/-- Equal-rank Moore--Penrose inverses are Lipschitz with the explicit symmetric maximum of
-their squared inverse norms. -/
-theorem norm_moorePenrose_sub_le {rows cols : ℕ} (A B : RectMatrix rows cols)
-    (hrank : A.rank = B.rank) :
+/-- Moore--Penrose inverses are Lipschitz with the explicit symmetric maximum of their squared
+inverse norms: the inverses differ by at most three times that maximum times the difference of
+the matrices. -/
+theorem norm_moorePenrose_sub_le {rows cols : ℕ} (A B : RectMatrix rows cols) :
     ‖A† - B†‖ ≤
       3 * max (‖A†‖ ^ 2) (‖B†‖ ^ 2) * ‖A - B‖ := by
   let M := max (‖A†‖ ^ 2) (‖B†‖ ^ 2)
@@ -474,7 +472,7 @@ theorem norm_moorePenrose_sub_le {rows cols : ℕ} (A B : RectMatrix rows cols)
         exact (rowProjection_norms_le_one A).2
       _ = ‖B†‖ ^ 2 * d := by ring
       _ ≤ M * d := mul_le_mul_of_nonneg_right hBM hd
-  rw [moorePenrose_sub_eq B A hrank.symm]
+  rw [moorePenrose_sub_eq B A]
   calc
     _ ≤ ‖-A† * (A - B) * B† +
           A† * A†.transpose * (A - B).transpose *
@@ -551,7 +549,7 @@ theorem norm_moorePenrose_sub_le_of_singularMargin {rows cols r : ℕ}
     nlinarith [norm_nonneg B†]
   calc
     ‖A† - B†‖ ≤ 3 * max (‖A†‖ ^ 2) (‖B†‖ ^ 2) * ‖A - B‖ :=
-      norm_moorePenrose_sub_le A B (hrankA.trans hrankB.symm)
+      norm_moorePenrose_sub_le A B
     _ ≤ 3 * s⁻¹ ^ 2 * ‖A - B‖ := by
       gcongr
       exact max_le hAsq hBsq

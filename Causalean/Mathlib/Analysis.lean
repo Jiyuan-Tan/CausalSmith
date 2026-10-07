@@ -31,6 +31,7 @@ public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor.Product
 public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor.SurvivalDerivative
 public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor.SurvivalJetBound
 public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor.SurvivalTaylor
+public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor.Within
 public import Causalean.Mathlib.Analysis.Calculus.RectangularRemainder
 public import Causalean.Mathlib.Analysis.ClipInterval
 public import Causalean.Mathlib.Analysis.Complex

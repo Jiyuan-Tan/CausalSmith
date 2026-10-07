@@ -20,9 +20,11 @@ namespace Causalean.Mathlib.Probability.SubGaussian
 open MeasureTheory
 
 /-- For [a decay exponent](hyp:α) satisfying [strict positivity](hyp:hα), [there
-is a positive constant](goal) that bounds every integrable clipped Gaussian
-suffix with a positive starting index and scale by the square root of the
-logarithm of that starting index.
+is a positive constant depending only on the exponent such that, for every number of
+terms `N`, starting index `m ≥ 1` and scale `σ > 0`, the clipped suffix sum
+`min(1, Σ 2·exp(-t²/(2σ²(m/(k+1))^α)))` over the indices `k < N` with `k+1 ≥ m` is
+integrable in `t` over the positive half-line with integral at most the constant times
+`σ·√(1 + log m)`](goal).
 
 Proof strategy: split `k+1 ≥ m` into dyadic blocks
 `2^j m ≤ k+1 < 2^(j+1) m`.  Block `j` has at most `2^j m`

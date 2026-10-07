@@ -26,7 +26,10 @@ noncomputable def rising (a : ℝ) (n : ℕ) : ℝ :=
 /-- A [degree](hyp:k), [first shape parameter](hyp:α), [second shape parameter](hyp:β), and [evaluation point](hyp:x) determine [the normalized shifted Jacobi polynomial](goal), [given by its finite hypergeometric sum](step:1).
 
 The normalized Jacobi polynomial `Pₖ^(α,β)(1 - 2x) / Pₖ^(α,β)(1)`.
-This is the terminating hypergeometric expansion from DLMF 18.5.7. -/
+This is the terminating hypergeometric expansion from DLMF 18.5.7. Each term divides by a rising
+factorial of α + 1, so the formula is the Jacobi polynomial only when α + 1 is not a nonpositive
+integer (in particular for the standard range α > −1); otherwise a vanishing denominator makes
+the corresponding terms zero by the division-by-zero convention. -/
 noncomputable def jacobiShifted (k : ℕ) (α β x : ℝ) : ℝ :=
   ∑ m ∈ Finset.range (k + 1),
     (-1 : ℝ) ^ m * (k.choose m : ℝ) *

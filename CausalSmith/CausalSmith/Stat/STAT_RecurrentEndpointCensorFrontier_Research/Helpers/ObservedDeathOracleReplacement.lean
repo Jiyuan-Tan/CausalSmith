@@ -177,15 +177,15 @@ lemma deathOracleDifferenceIntegral_eq_scaled_difference_ae
     rw [Filter.eventually_all]
     intro i
     exact (subject_hazard_path_integrable_ae _ _ _
-      (armDeathFailureLaw_nonnegativeTimeLaw P a) (referenceDeathLaw_hasCensorHazard hP a)
+      (referenceDeathLaw_hasCensorHazard hP a)
       _ (deathCPIntegrand_jointMeasurable c P hP a (by norm_num) (by norm_num))
-      i 1 (by norm_num)
+      i 1
       (by simpa only [sub_zero] using (DeathCP.deathCPIntegrand_quadraticEnergyFinite
         c P hP a (h := 0) (by norm_num) (by norm_num)))).and
       (subject_hazard_path_integrable_ae _ _ _
-        (armDeathFailureLaw_nonnegativeTimeLaw P a) (referenceDeathLaw_hasCensorHazard hP a)
+        (referenceDeathLaw_hasCensorHazard hP a)
         _ ((measurable_subcriticalDeathOracleWeight c P hP a).comp measurable_fst)
-        i 1 (by norm_num) hq)
+        i 1 hq)
   filter_upwards [hp] with x hx
   unfold aggregateIntegral
   rw [Finset.mul_sum, Finset.sum_div, ← Finset.sum_sub_distrib]

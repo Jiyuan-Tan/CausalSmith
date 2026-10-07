@@ -16,13 +16,18 @@ namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
 open scoped Topology
 
-/-- At a point in the closure of the interior of a uniquely differentiable
-set, the order-`m` within-set jet of a `C^m` scalar function is invariant
-under every permutation of its
-direction slots. At interior points, use the finite-order ambient permutation theorem from
+/-- If [a set S in d-dimensional coordinate space](hyp:d,S) [has unique
+within-set derivatives](hyp:huniq), [a scalar function f](hyp:f) is [m times
+continuously differentiable within S](hyp:m,hf), and [a point x](hyp:x) [lies in
+S](hyp:hx) and [in the closure of the interior of S](hyp:hxcl), then for [every
+permutation σ of the m argument slots](hyp:σ) and [every choice of m directions
+v](hyp:v) [the order-m within-S derivative of f at x takes the same value on the
+permuted directions as on the original ones](goal).
+
+At interior points, use the finite-order ambient permutation theorem from
 `CubeInterpolation.JetSymmetry` and agreement of ambient and within-set jets.
 The within-set jet is continuous on `S`, so equality extends to points in the
-closure of its interior. The closure condition holds for rectangular boxes. Together, [the listed inputs and assumptions](hyp:d,m,S,huniq,f,hf,x,hx,hxcl,σ,v) establish [the stated conclusion](goal). -/
+closure of its interior. The closure condition holds for rectangular boxes. -/
 theorem iteratedFDerivWithin_comp_perm_of_contDiffOn
     {d m : ℕ} {S : Set (Fin d → ℝ)}
     (huniq : UniqueDiffOn ℝ S)

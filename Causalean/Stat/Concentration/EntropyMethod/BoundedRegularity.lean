@@ -16,7 +16,9 @@ public import Mathlib.Tactic.Linarith
 
 The real-valued entropy tensorization API records explicit Bochner and Fubini hypotheses.  This
 file discharges those hypotheses for measurable functions bounded between two positive finite
-constants, the situation needed for exponential tilts of bounded empirical suprema.
+constants, the situation needed for exponential tilts of bounded empirical suprema.  Measurability
+of the entropy section needs joint measurability alone; the bounds enter the entropy bound and the
+integrability statements.
 -/
 
 public section
@@ -61,16 +63,19 @@ private lemma integral_section_mem_Icc
   · have h := integral_mono (hf y) (integrable_const C) (fun x => hupper x y)
     simpa using h
 
-/-- If [a jointly measurable function `f`](hyp:hf) is [bounded below by a positive constant
-`c`](hyp:hc,hlower) and [above by `C`](hyp:hupper), then its [entropy in the first coordinate is
-measurable as a function of the second coordinate](goal) under [the probability law `mu`](hyp:mu). -/
+/-- For [a jointly measurable function `f`](hyp:hf), the [entropy in the first coordinate is
+measurable as a function of the second coordinate](goal) under [the probability law `mu`](hyp:mu).
+
+No bound or positivity is assumed: where a section, or the section times its logarithm, is not
+integrable, or where the section or its mean is not positive, the entropy takes the value given
+by the conventions that the integral of a non-integrable function is zero and that the logarithm
+of a non-positive number is the logarithm of its absolute value, zero at zero. -/
 @[fun_prop]
-theorem measurable_entropy_section_of_bounded_positive
+theorem measurable_entropy_section
     {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
     (mu : Measure X) [IsProbabilityMeasure mu]
-    {f : X × Y → ℝ} {c C : ℝ}
-    (hf : Measurable f) (hc : 0 < c)
-    (hlower : ∀ z, c ≤ f z) (hupper : ∀ z, f z ≤ C) :
+    {f : X × Y → ℝ}
+    (hf : Measurable f) :
     Measurable (fun y => entropy mu (fun x => f (x, y))) := by
   have hfStrong : StronglyMeasurable f := hf.stronglyMeasurable
   have hflogStrong : StronglyMeasurable (fun z => f z * Real.log (f z)) := by
@@ -197,8 +202,7 @@ theorem entropyTensorizationIntegrable_of_bounded_positive
       (abs_log_le_of_mem_Icc hratioLower (hratio z.2).1 (hratio z.2).2)
       (abs_nonneg _) hCpos.le
   have hfswap : Measurable (fun z : Y × X => f z.swap) := hf.comp measurable_swap
-  have hEntropyMeas := measurable_entropy_section_of_bounded_positive nu hfswap hc
-    (fun z => hlower z.swap) (fun z => hupper z.swap)
+  have hEntropyMeas := measurable_entropy_section nu hfswap
   have hEntropy : Integrable (fun x => entropy nu (fun y => f (x, y))) mu := by
     apply integrable_of_measurable_abs_le'' hEntropyMeas
     intro x
@@ -240,8 +244,8 @@ private theorem measurable_coordinateEntropySum_param
       have hheadUpper : ∀ z, headIntegrand z ≤ C := fun z => hupper _
       have hheadEntropy : Measurable (fun q : P × (Fin n → X) =>
           entropy (mu 0) (fun x => headIntegrand (x, q))) :=
-        measurable_entropy_section_of_bounded_positive (mu 0)
-          hheadMeas hc hheadLower hheadUpper
+        measurable_entropy_section (mu 0)
+          hheadMeas
       have hfirst : Measurable (fun p => ∫ rest,
           entropy (mu 0) (fun x => f (p, e.symm (x, rest))) ∂nu) := by
         exact hheadEntropy.stronglyMeasurable.integral_prod_right'.measurable
@@ -370,8 +374,7 @@ theorem finiteTensorizationRegularity_of_bounded_positive
         fun_prop
       have hEntropyMeas : Measurable (fun x => entropy nu
           (fun rest => f (e.symm (x, rest)))) :=
-        measurable_entropy_section_of_bounded_positive nu hgswap hc
-          (fun z => hlower _) (fun z => hupper _)
+        measurable_entropy_section nu hgswap
       have hEntropyInt : Integrable (fun x => entropy nu
           (fun rest => f (e.symm (x, rest)))) (mu 0) := by
         apply integrable_of_measurable_abs_le'' hEntropyMeas

@@ -28,15 +28,18 @@ variable {V : Type u} [Fintype V] [DecidableEq V]
 variable {r : V → ℕ}
 
 /-- A [kernel](hyp:q), [fixed and requested random coordinate sets](hyp:fixed,S), and [profile](hyp:x)
-determine [the corresponding fixed-row kernel marginal](goal) [by summing every coordinate not
-held at that profile](step:1). -/
+determine [the corresponding fixed-row kernel marginal](goal) [as the sum of the kernel over all
+complete profiles that agree with the given profile on every fixed and every requested
+coordinate](step:1). -/
 def fixedKernelMarginal (q : Kernel r) (fixed S : Finset V)
     (x : ProfileSpace r) : ℝ :=
   kernelMarginalMass q (fixed ∪ S) x
 
 /-- A [kernel](hyp:q), [fixed, two random, and conditioning coordinate sets](hyp:fixed,X,Y,Z), and
-[profile](hyp:x) determine [the fixed-row atomwise conditional-independence identity](goal)
-[by equating the joint-times-conditioning marginal with the two partial marginals](step:1). -/
+[profile](hyp:x) determine [the fixed-row atomwise conditional-independence identity](goal):
+[the fixed-row marginal over the two random sets and the conditioning set, times the fixed-row
+marginal over the conditioning set, equals the product of the fixed-row marginals over each
+random set joined with the conditioning set](step:1). -/
 def FixedKernelCondIndepAt (q : Kernel r) (fixed X Y Z : Finset V)
     (x : ProfileSpace r) : Prop :=
   fixedKernelMarginal q fixed (X ∪ Y ∪ Z) x *
@@ -156,10 +159,12 @@ private lemma condExp_indicator_finite_comap_local
     · exact hqm.aestronglyMeasurable
   exact hversion.symm
 
-/-- A [finite measure](hyp:mu), [three finite-valued random elements](hyp:f,g,c), [their
-measurability](hyp:hf,hg,hc), [conditional independence given the third](hyp:hci), and [three
-atom values](hyp:a,b,c₀) give [the real-valued cross-product equality in that conditioning
-fibre](goal). -/
+/-- On a standard Borel space with [a finite measure](hyp:mu), let [three random elements with
+finite value sets](hyp:f,g,c) be [measurable](hyp:hf,hg,hc), with [the first two conditionally
+independent given the third](hyp:hci). Then for [any three values](hyp:a,b,c₀), [the measure of
+the event that all three elements take these values, times the measure of the event that the
+third takes its value, equals the measure of the event that the first and third take their
+values times the measure of the event that the second and third take theirs](goal). -/
 theorem condIndepFun_finiteAtom_crossProduct
     {Ω : Type uΩ} {A : Type uA} {B : Type uB} {C : Type uC}
     [MeasurableSpace Ω] [StandardBorelSpace Ω]

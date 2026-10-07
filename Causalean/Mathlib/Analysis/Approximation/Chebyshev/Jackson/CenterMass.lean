@@ -64,7 +64,7 @@ theorem normalizedCoeff_l1_lower (N : ℕ) (hN : 2 ≤ N) :
       (∑' j : ℤ, |convolution N j|) / convolution N 0 := by
     simp_rw [normalizedCoeff, abs_div, abs_of_pos hpos, div_eq_mul_inv]
     rw [tsum_mul_right]
-  rw [hscale, hmass, convolution_zero N hNpos]
+  rw [hscale, hmass, convolution_zero N]
   have hn : (2 : ℝ) ≤ N := by exact_mod_cast hN
   have hd : 0 < (2 * (N : ℝ) ^ 3 + N) / 3 := by positivity
   apply (le_div_iff₀ hd).2

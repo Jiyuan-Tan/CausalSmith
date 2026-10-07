@@ -13,8 +13,10 @@ public section
 
 namespace Causalean.Mathlib.Topology.SpaceFillingCurve
 
-/-- Given [a dimension and level](hyp:d,n), [a dimension of at least two](hyp:hd), [a parent grid](hyp:parent),
-[its consecutive-face adjacency](hyp:hadj), and [an initial entry vertex](hyp:first), [compatible child-grid entry and exit gates exist](goal). -/
+/-- Given [a dimension d and level n](hyp:d,n), [a dimension of at least two](hyp:hd), [an ordered list of 2^(dn) integer grid cells](hyp:parent)
+in which [consecutive cells are face-adjacent](hyp:hadj), and [an initial binary entry vertex](hyp:first), [every listed cell can be given a binary
+entry vertex and a binary exit vertex such that the first cell's entry is the prescribed one, each cell's entry and exit differ in
+exactly one coordinate, and the exit child of each cell is face-adjacent to the entry child of the next cell](goal). -/
 theorem exists_compatible_child_gates (d n : ℕ) (hd : 2 ≤ d)
     (parent : Fin (2 ^ (d * n)) → Fin d → ℕ)
     (hadj : ∀ k l : Fin (2 ^ (d * n)), l.val = k.val + 1 →

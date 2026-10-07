@@ -263,10 +263,10 @@ theorem contractLast_decompositionTensor {p n d q : ℕ} (hq : 0 < q)
       ring
     _ = _ := by rw [hprobe]; ring
 
-/-- Unit columns have unit degree-`d` tensor lifts for every positive lifting degree. Under [the listed assumptions](hyp:hd,hunit), [the stated conclusion follows](goal). -/
+/-- Unit columns have unit degree-`d` tensor lifts for every lifting degree. Under [the listed assumptions](hyp:hunit), [the stated conclusion follows](goal). -/
 -- Proof route: square the norm, factor the sum over functions `Fin d → Fin p` as a product of
 -- coordinate sums, and use the unit-column hypothesis in every factor.
-theorem finiteFrobeniusNorm_liftedColumn_eq_one {p n d : ℕ} (hd : 0 < d)
+theorem finiteFrobeniusNorm_liftedColumn_eq_one {p n d : ℕ}
     (C : FactorMatrix p n) (hunit : ∀ j, finiteFrobeniusNorm (C.col j) = 1) (j : Fin n) :
     finiteFrobeniusNorm ((liftedDirections d C).col j) = 1 := by
   have hs : (∑ i, C i j ^ 2) = 1 := by
@@ -289,16 +289,16 @@ theorem finiteFrobeniusNorm_liftedColumn_eq_one {p n d : ℕ} (hd : 0 < d)
   simp
 
 /-- The Frobenius norm of a lifted factor matrix with unit original columns is the square root
-of the number of columns. Under [the listed assumptions](hyp:hd,hunit), [the stated conclusion follows](goal). -/
+of the number of columns. Under [the listed assumptions](hyp:hunit), [the stated conclusion follows](goal). -/
 -- Proof route: regroup the matrix sum by columns and use
 -- `finiteFrobeniusNorm_liftedColumn_eq_one`.
-theorem matrixFrobeniusNorm_liftedDirections {p n d : ℕ} (hd : 0 < d)
+theorem matrixFrobeniusNorm_liftedDirections {p n d : ℕ}
     (C : FactorMatrix p n) (hunit : ∀ j, finiteFrobeniusNorm (C.col j) = 1) :
     matrixFrobeniusNorm (liftedDirections d C) = Real.sqrt n := by
   have hcol (j : Fin n) :
       ∑ I : LiftIndex p d, (liftedDirections d C I j) ^ 2 = 1 := by
     have h := congrArg (fun z : ℝ => z ^ 2)
-      (finiteFrobeniusNorm_liftedColumn_eq_one hd C hunit j)
+      (finiteFrobeniusNorm_liftedColumn_eq_one (d := d) C hunit j)
     simpa [finiteFrobeniusNorm,
       Real.sq_sqrt (Finset.sum_nonneg fun _ _ => sq_nonneg _)] using h
   rw [matrixFrobeniusNorm, finiteFrobeniusNorm]

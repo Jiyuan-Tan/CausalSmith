@@ -156,8 +156,6 @@ theorem SampleModel.predictable_compensation (S : SampleModel n Ω μ)
       ∂finiteSampleLaw n μ := by
   have hp := S.process_predictable H hH i
   exact (S.process i).bounded_predictable_compensator H hp hbound
-    ((S.process i).integrable_jump H hp hbound)
-    ((S.process i).integrable_energy H hp hbound)
 
 /-- Subject integrals are centered for a bounded full-sample predictable
 payoff, by conditional-intensity compensation. -/

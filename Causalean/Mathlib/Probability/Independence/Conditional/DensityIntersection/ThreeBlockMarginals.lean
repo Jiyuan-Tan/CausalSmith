@@ -83,8 +83,9 @@ def densityConditioning (muA : Measure A) (muB : Measure B)
     (d : ThreeBlock A B C → ℝ≥0∞) : C → ℝ≥0∞ :=
   fun c ↦ ∫⁻ a, ∫⁻ b, d (a, (b, c)) ∂muB ∂muA
 
-/-- A three-block density factors given its third block when it is almost everywhere the product
-of measurable terms depending on `(A,C)` and `(B,C)`. -/
+/-- A three-block density factors given its third block when it equals, almost everywhere with
+respect to the product of the three reference measures, the product of two measurable nonnegative
+extended-real terms, one depending on `(A,C)` and the other on `(B,C)`. -/
 def ThreeBlockFactors (muA : Measure A) (muB : Measure B) (muC : Measure C)
     (d : ThreeBlock A B C → ℝ≥0∞) : Prop :=
   ∃ a : A × C → ℝ≥0∞, ∃ b : B × C → ℝ≥0∞,
@@ -93,8 +94,8 @@ def ThreeBlockFactors (muA : Measure A) (muB : Measure B) (muC : Measure C)
         (fun q ↦ a (q.1, q.2.2) * b (q.2.1, q.2.2))
 
 /-- The conditional-density identity says that the joint density times the conditioning marginal
-equals the product of the two random-block-with-conditioning marginal densities almost
-everywhere. -/
+density equals the product of the two random-block-with-conditioning marginal densities, almost
+everywhere with respect to the product of the three reference measures. -/
 def ThreeBlockDensityIdentity (muA : Measure A) (muB : Measure B) (muC : Measure C)
     (d : ThreeBlock A B C → ℝ≥0∞) : Prop :=
   ∀ᵐ q ∂threeBlockReference muA muB muC,
@@ -112,9 +113,10 @@ variable (muA : Measure A) (muB : Measure B) (muC : Measure C)
 variable [SigmaFinite muA] [SigmaFinite muB] [SigmaFinite muC]
 variable {d : ThreeBlock A B C → ℝ≥0∞}
 
-/-- For [three reference measures](hyp:muA,muB,muC) and [a measurable three-block density](hyp:hd),
-[pushing the density-weighted law to the conditioning coordinate gives its marginal density-weighted
-reference measure](goal). -/
+/-- For [three σ-finite reference measures](hyp:muA,muB,muC) and [a measurable three-block
+density](hyp:hd), [pushing the density-weighted product measure forward to the conditioning
+coordinate gives the conditioning reference measure weighted by the conditioning marginal
+density](goal). -/
 theorem map_thirdThreeCoord_withDensity (hd : Measurable d) :
     ((threeBlockReference muA muB muC).withDensity d).map
         (@thirdThreeCoord A B C) =

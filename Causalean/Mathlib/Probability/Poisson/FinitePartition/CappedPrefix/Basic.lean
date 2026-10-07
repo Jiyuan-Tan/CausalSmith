@@ -158,10 +158,16 @@ theorem poisson_prefix_mixture_integral
   exact (poisson_prefix_count_fibre_integral ν lam n M.val
     (Nat.le_of_lt_succ M.isLt) g hg).symm
 
-/-- For [an iid observation law](hyp:μ), [a Poisson mean](hyp:lam), [a sample size](hyp:n),
-[a finite-prefix statistic](hyp:g), and [an integrability condition](hyp:hg),
-[the explicitly normalized capped sample, permutation, and mark mixture equals
-the nonoverflow marked-Poisson prefix expectation](goal). -/
+/-- For [a probability observation law](hyp:μ), [a Poisson mean](hyp:lam),
+[a sample size](hyp:n), [a real statistic of finite fair-marked samples](hyp:g), and
+[its integrability under the Poisson finite-sample law of fair-marked
+observations](hyp:hg), [the expectation over an iid sample of size `n` of the mixture
+that draws a prefix length `M ≤ n` with its Poisson probability, a uniformly random
+ordering of the sample, and uniformly random Boolean marks, and evaluates the statistic
+at the length-`M` prefix of the reordered marked sample, equals the expectation of the
+statistic under the Poisson finite-sample law restricted to samples of at most `n`
+points](goal). The Poisson weights of lengths above `n` are dropped on both sides, so
+neither side is renormalized. -/
 theorem capped_marked_prefix_integral
     {X : Type*} [MeasurableSpace X]
     (μ : Measure X) [IsProbabilityMeasure μ] (lam : ℝ≥0) (n : ℕ)

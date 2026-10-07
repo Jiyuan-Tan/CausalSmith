@@ -66,16 +66,6 @@ lemma sigmaXY_le (d : Bool) : S.sigmaXY d ≤ (inferInstance : MeasurableSpace P
   · exact S.measurable_factualX.comap_le
   · exact (S.measurable_YofD d).comap_le
 
-/-- Deprecated treated-arm name for [the complete-information σ-algebra](goal) of
-[a binary-treatment backdoor system](hyp:S). -/
-@[deprecated "Use sigmaXY true." (since := "2026-09-17")]
-noncomputable abbrev sigmaXY1 : MeasurableSpace P.Ω := S.sigmaXY true
-
-/-- Deprecated treated-arm name for the ambient measurability bound. -/
-@[deprecated "Use sigmaXY_le true." (since := "2026-09-17")]
-lemma sigmaXY1_le : S.sigmaXY1 ≤ (inferInstance : MeasurableSpace P.Ω) :=
-  S.sigmaXY_le true
-
 /-- Given [a binary-treatment backdoor system](hyp:S) and [a treatment arm](hyp:d), the [complete propensity](goal) assigns each unit the conditional probability of receiving that arm given the factual covariate and potential outcome under that arm.
 
 It is `e₀,d(X, Y(d)) = P[D=d | σ(X, Y(d))]`: the conditional
@@ -105,11 +95,6 @@ lemma candMean_eq (d : Bool) (etilde : P.Ω → ℝ) :
 
 /-- Given [a binary-treatment backdoor system](hyp:S) and [a treatment arm](hyp:d), the [arm-specific potential-outcome mean](goal) is the population mean of the potential outcome under that arm. -/
 noncomputable def Ymean (d : Bool) : ℝ := ∫ ω, S.YofD d ω ∂P.μ
-
-/-- Deprecated treated-arm name for [the potential-outcome mean](goal) of
-[a binary-treatment backdoor system](hyp:S). -/
-@[deprecated "Use Ymean true." (since := "2026-09-17")]
-noncomputable abbrev Y1mean : ℝ := S.Ymean true
 
 /-- The [MSM ambiguity set](goal) for [a binary-treatment backdoor system](hyp:S),
 [a treatment arm](hyp:d), and [a sensitivity level](hyp:Λ) consists of candidate complete
@@ -147,9 +132,9 @@ noncomputable def msmLower (d : Bool) (Λ : ℝ) : ℝ :=
 
 /-- Inverse-probability weighting by the complete propensity [recovers the mean potential outcome
 for the selected arm](goal) in [a binary-treatment backdoor system](hyp:S) under
-[consistency](hyp:hcons), [positivity of that arm's complete propensity](hyp:hpos),
-[integrability of its potential outcome](hyp:hint), and [integrability of the corresponding
-weighted factual outcome](hyp:hcand_int), for [the selected arm](hyp:d).
+[consistency](hyp:hcons), [positivity of that arm's complete propensity](hyp:hpos), and
+[integrability of the corresponding weighted factual outcome](hyp:hcand_int), for
+[the selected arm](hyp:d).
 
 This is the inverse-probability-weighting identity at `e₀,d = P[D=d | σ(X,Y(d))]`. The ratio
 `Y(d) / e₀,d` is measurable with respect to `σ(X,Y(d))`; the tower property pulls it through
@@ -159,7 +144,6 @@ theorem candMean_completeProp_eq_Ymean
     (d : Bool)
     (hcons : P.Consistency)
     (hpos : ∀ᵐ ω ∂P.μ, 0 < S.completeProp d ω)
-    (hint : Integrable (S.YofD d) P.μ)
     (hcand_int :
       Integrable
         (fun ω => S.dVar.indicator d ω * S.factualY ω / S.completeProp d ω) P.μ) :
@@ -187,7 +171,7 @@ theorem candMean_completeProp_eq_Ymean
     simp only [hg_def, hf_def] at hcw ⊢
     rw [div_eq_mul_inv, div_eq_mul_inv]
     linear_combination (e ω)⁻¹ * hcw
-  -- (2) `g` is `sigmaXY1`-strongly measurable.
+  -- (2) `g` is `sigmaXY d`-strongly measurable.
   have hY1_meas : Measurable[S.sigmaXY d] (S.YofD d) := by
     have hle : MeasurableSpace.comap (S.YofD d) inferInstance ≤ S.sigmaXY d :=
       le_sup_right
@@ -226,7 +210,7 @@ theorem candMean_completeProp_eq_Ymean
       MeasureTheory.integral_condExp (S.sigmaXY_le d)
     rw [← h1]
     exact integral_congr_ae hpull
-  -- (4) Cancel: `∫ g * e = ∫ YofD d = Y1mean`.
+  -- (4) Cancel: `∫ g * e = ∫ YofD d = Ymean d`.
   have hcancel : ∫ ω, g ω * e ω ∂P.μ = S.Ymean d := by
     unfold POBackdoorSystem.Ymean
     refine integral_congr_ae ?_
@@ -234,18 +218,6 @@ theorem candMean_completeProp_eq_Ymean
     rw [hg_def]
     field_simp
   rw [hcandMean_eq, htower, hcancel]
-
-/-- Deprecated treated-arm specialization of the arm-uniform IPW/tower bridge. -/
-@[deprecated "Use candMean_completeProp_eq_Ymean true." (since := "2026-09-17")]
-theorem candMean_completeProp_eq_Y1mean
-    [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
-    (hcons : P.Consistency)
-    (hpos : ∀ᵐ ω ∂P.μ, 0 < S.completeProp true ω)
-    (hint : Integrable (S.YofD true) P.μ)
-    (hcand_int : Integrable
-      (fun ω => S.dVar.indicator true ω * S.factualY ω / S.completeProp true ω) P.μ) :
-    S.candMean true (S.completeProp true) = S.Y1mean :=
-  S.candMean_completeProp_eq_Ymean true hcons hpos hint hcand_int
 
 /-- **The MSM assumption: the truth lies in the ambiguity set.** The d complete
 propensity `e₀` belongs to `MSMSet Λ`, i.e. it is a.e. interior and its odds ratio
@@ -282,16 +254,6 @@ theorem Ymean_mem_Icc (d : Bool) (Λ : ℝ)
   refine ⟨?_, ?_⟩
   · exact csInf_le hbdd hmemImg
   · exact le_csSup hbdd' hmemImg
-
-/-- Deprecated treated-arm specialization of the arm-uniform MSM interval theorem. -/
-@[deprecated "Use Ymean_mem_Icc true." (since := "2026-09-17")]
-theorem Y1mean_mem_Icc (Λ : ℝ)
-    (hmem : S.completeProp true ∈ S.MSMSet true Λ)
-    (hbridge : S.candMean true (S.completeProp true) = S.Y1mean)
-    (hbdd : BddBelow (S.candMean true '' S.MSMSet true Λ))
-    (hbdd' : BddAbove (S.candMean true '' S.MSMSet true Λ)) :
-    S.Y1mean ∈ Set.Icc (S.msmLower true Λ) (S.msmUpper true Λ) :=
-  S.Ymean_mem_Icc true Λ hmem hbridge hbdd hbdd'
 
 /-- **Monotonicity of the ambiguity set in the sensitivity parameter.** A larger
 budget `Λ ≤ Λ'` (with `1 ≤ Λ`) contains every candidate allowed by the smaller budget:

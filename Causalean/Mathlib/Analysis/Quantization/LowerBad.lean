@@ -26,14 +26,17 @@ theorem badRegion_measurable (S k : ℕ) (δ : ℝ) (B : Fin k → Set ℝ)
   unfold badRegion
   measurability
 
-/-- On [a nondegenerate interval](hyp:a,b,hab), a [nonempty weight
-family](hyp:S,hS), [continuous positive weights](hyp:β,hcont,hpos),
-and [a positive-cell feasible partition](hyp:k,hk,B,z,hB,hz),
-together with [coefficient bounds](hyp:c,hc,hlower) and
-[diagonal-mass bounds](hyp:Q,δ,hQ,hδ,hupper),
-give [a distortion bound for the total bad-region square-root mass](goal). -/
+/-- On [a nondegenerate interval from a to b](hyp:a,b,hab), for a [nonempty weight
+family](hyp:S,hS) of [continuous positive weights](hyp:β,hcont,hpos)
+and [a measurable partition into k cells with reproduction points in the
+interval](hyp:k,B,z,hB,hz),
+if [every weight is at least a positive constant c on the square](hyp:c,hc,hlower) and
+[the square root of the diagonal weight is at most a nonnegative constant Q on the interval, and
+δ is a positive radius](hyp:Q,δ,hQ,hδ,hupper),
+then [c·δ times the total square-root diagonal mass of the radius-δ bad regions of all cells is
+at most Q times the paired weighted cost](goal). -/
 theorem bad_region_sqrt_mass_cost (a b : ℝ) (hab : a < b)
-    (S k : ℕ) (hS : 0 < S) (hk : 0 < k)
+    (S k : ℕ) (hS : 0 < S)
     (β : Fin S → ℝ → ℝ → ℝ)
     (hcont : ∀ s, ContinuousOn (fun p : ℝ × ℝ => β s p.1 p.2)
       (Set.Icc a b ×ˢ Set.Icc a b))
@@ -77,9 +80,9 @@ theorem bad_region_sqrt_mass_cost (a b : ℝ) (hab : a < b)
           rw [setIntegral_const, smul_eq_mul, mul_comm]
     have hIntCost (s : Fin S) : IntegrableOn
         (fun x => β s x (z j s) * |x - z j s|) (B j) volume :=
-      weighted_cell_integrable a b hab.le (β s) (hcont s)
-        (B j) (hB.1 j) (hsub j) (z j s) (hz j s)
-    have hcost := far_region_measure_cost a b hab.le S β (z j)
+      weighted_cell_integrable a b (β s) (hcont s)
+        (B j) (hsub j) (z j s) (hz j s)
+    have hcost := far_region_measure_cost a b S β (z j)
       (B j) G (hB.1 j) hG (hsub j) hGB c δ hc.le hδ.le
       (by intro x hx s; exact hlower s x (z j s) (hGsub hx) (hz j s))
       (by intro x hx s; exact (hlower s x (z j s) (hsub j hx) (hz j s)).trans' hc.le)
@@ -110,7 +113,7 @@ theorem bad_region_mass_small_of_scaled_cost_bound (a b : ℝ) (hab : a < b)
     (hcont : ∀ s, ContinuousOn (fun p : ℝ × ℝ => β s p.1 p.2)
       (Set.Icc a b ×ˢ Set.Icc a b))
     (hpos : ∀ s x z, x ∈ Set.Icc a b → z ∈ Set.Icc a b → 0 < β s x z)
-    (δ M ε : ℝ) (hδ : 0 < δ) (hM : 0 ≤ M) (hε : 0 < ε) :
+    (δ M ε : ℝ) (hδ : 0 < δ) (hε : 0 < ε) :
     ∃ K : ℕ, ∀ k : ℕ, K ≤ k → 0 < k →
       ∀ (B : Fin k → Set ℝ) (z : Fin k → Fin S → ℝ),
         IsMeasurablePartition a b k B →
@@ -141,7 +144,7 @@ theorem bad_region_mass_small_of_scaled_cost_bound (a b : ℝ) (hab : a < b)
     ∫ x in badRegion S k δ B z j,
       Real.sqrt (diagonalWeight S β x)
   have hbad : c * δ * bad ≤ Q * weightedCost S k β B z := by
-    exact bad_region_sqrt_mass_cost a b hab S k hS hk β hcont hpos
+    exact bad_region_sqrt_mass_cost a b hab S k hS β hcont hpos
       B z hB hz c Q δ hc hQ hδ
       (by intro s x y hx hy; exact (hcoeff s x hx y hy).1)
       hupper

@@ -373,7 +373,7 @@ theorem supEnclosure_sound {f : ℝ → ℝ} {nodes : ℕ → RatInterval}
 
 /-- The infimum enclosure width is at most one mesh error plus the uniform node-enclosure width. -/
 theorem width_infEnclosure {nodes : ℕ → RatInterval} {w L : ℚ}
-    (hw : 0 ≤ w) (hL : 0 ≤ L) {n : ℕ} (hn : 0 < n)
+    (hL : 0 ≤ L) {n : ℕ} (hn : 0 < n)
     (hnodes : ∀ k ≤ n, (nodes k).width ≤ w) :
     (infEnclosure nodes L hL n hn).width ≤ w + L / n := by
   obtain ⟨k, hk, heq⟩ := exists_minLoUpTo nodes n
@@ -386,7 +386,7 @@ theorem width_infEnclosure {nodes : ℕ → RatInterval} {w L : ℚ}
 
 /-- The supremum enclosure width is at most one mesh error plus the uniform node-enclosure width. -/
 theorem width_supEnclosure {nodes : ℕ → RatInterval} {w L : ℚ}
-    (hw : 0 ≤ w) (hL : 0 ≤ L) {n : ℕ} (hn : 0 < n)
+    (hL : 0 ≤ L) {n : ℕ} (hn : 0 < n)
     (hnodes : ∀ k ≤ n, (nodes k).width ≤ w) :
     (supEnclosure nodes L hL n hn).width ≤ w + L / n := by
   obtain ⟨k, hk, heq⟩ := exists_maxHiUpTo nodes n

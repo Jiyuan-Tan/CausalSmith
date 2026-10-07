@@ -51,8 +51,9 @@ def balancedDensity (Q : Kernel Bool Z) (z : Z) : ℝ :=
   (rowDensity Q true z + rowDensity Q false z) / 2
 
 /-- A [Boolean-input Markov kernel](hyp:Q) and [an output point](hyp:z) determine
-[the normalized density contrast](goal), [given as zero where both row densities
-vanish through real division](step:1). -/
+[the normalized density contrast](goal), [given by the positive-row density minus the
+negative-row density, divided by their sum, and read as zero where that sum
+vanishes](step:1). -/
 def contrast (Q : Kernel Bool Z) (z : Z) : ℝ :=
   (rowDensity Q true z - rowDensity Q false z) /
     (rowDensity Q true z + rowDensity Q false z)
@@ -65,8 +66,9 @@ def mixtureDensity (Q : Kernel Bool Z) (τ : ℝ) (z : Z) : ℝ :=
     (1 - τ) / 2 * rowDensity Q false z
 
 /-- A [Boolean-input Markov kernel](hyp:Q) and [a sign-family parameter](hyp:τ)
-determine [the Bernoulli-mixture output law](goal), [given by the convex mixture of
-its positive and negative rows](step:1). -/
+determine [the Bernoulli-mixture output law](goal), [given by the mixture of its positive
+and negative rows with weights `(1 + τ)/2` and `(1 - τ)/2`, each truncated at zero](step:1).
+It is a convex mixture exactly when the parameter lies between −1 and 1. -/
 def outputLaw (Q : Kernel Bool Z) (τ : ℝ) : Measure Z :=
   ENNReal.ofReal ((1 + τ) / 2) • Q true +
     ENNReal.ofReal ((1 - τ) / 2) • Q false
@@ -359,7 +361,10 @@ theorem information_eq_contrast_integral (Q : Kernel Bool Z)
 /-- A [Boolean-input Markov kernel](hyp:Q), [a positive privacy level](hyp:ε,hε),
 [an interior sign-family parameter](hyp:τ,hτ), and [setwise local privacy](hyp:hpriv)
 give [a scalar output Fisher-information bound equal to the randomized-response
-value](goal). -/
+value](goal): writing `c = (exp ε - 1)/(exp ε + 1)` for the contraction parameter, the
+Fisher information of the output about the sign-family parameter is at most
+`c² / (1 - c² τ²)`. This statement is the upper bound only; attainment by randomized
+response is a separate result. -/
 theorem information_le_sharp (Q : Kernel Bool Z) [IsMarkovKernel Q]
     (ε τ : ℝ) (hε : 0 < ε) (hτ : |τ| < 1)
     (hpriv : SetwisePrivate Q ε) :

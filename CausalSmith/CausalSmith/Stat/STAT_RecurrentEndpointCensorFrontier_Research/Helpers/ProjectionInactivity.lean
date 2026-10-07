@@ -11,7 +11,7 @@ arm estimators are closer to their targets than the corresponding distance to
 the boundary.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 

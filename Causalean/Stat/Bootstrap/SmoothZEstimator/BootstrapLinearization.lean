@@ -340,26 +340,24 @@ theorem zEstimator_bootstrapLinearization
         simp [U, IsAsymLinearVec.normalizedSum_def]]
     exact ((Finset.measurable_sum _
       (fun i _ ↦ reg.score_meas.comp (S.meas i))).const_smul _).aemeasurable
-  have hUclt : Tendsto_dist_vec U
-      (gaussianLimit reg.score_meas reg.score_finite_var) mu hUmeas := by
+  have hUclt : Modes.TendstoInLaw (fun _ : ℕ => mu) U atTop
+      (gaussianLimit reg.score_meas reg.score_finite_var) := by
     simpa only [U] using
       S.clt_normalizedSum_vec reg.score_meas reg.score_finite_var reg.identification
-  have hNormUclt := Tendsto_dist_vec.map_continuous continuous_norm hUmeas hUclt
+  have hNormUclt := Modes.TendstoInLaw.map_continuous hUclt continuous_norm
   have hUbig : IsBigOp (fun n omega ↦ ‖U n omega‖)
       (fun _ ↦ (1 : ℝ)) mu := by
     let _ : IsProbabilityMeasure
         ((gaussianLimit reg.score_meas reg.score_finite_var).map norm) :=
       Measure.isProbabilityMeasure_map continuous_norm.measurable.aemeasurable
-    exact Tendsto_dist.tightness
-      (fun n ↦ continuous_norm.measurable.comp_aemeasurable (hUmeas n))
-      ((Tendsto_dist_iff _ _ _ _).2 hNormUclt)
+    exact Modes.TendstoInLaw.tightness ((Tendsto_dist_iff _ _ _
+        (fun n ↦ continuous_norm.measurable.comp_aemeasurable (hUmeas n))).2 hNormUclt)
   have hSampling := zEstimator_samplingLinearization
     psi theta0 P reg S est hConsistent hSolve
-  have hJdata : Tendsto_inProb
-      (fun n omega ↦ ‖S.sampleMeanVec (reg.deriv theta0) n omega - reg.jacobian‖)
-      (fun _ ↦ 0) mu := by
-    rw [Tendsto_inProb_iff_hub,
-      Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
+  have hJdata : Modes.TendstoInProbability (fun _ : ℕ => mu)
+      (fun n omega ↦ ‖S.sampleMeanVec (reg.deriv theta0) n omega - reg.jacobian‖) atTop
+      (fun _ _ ↦ 0) := by
+    rw [Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
     simpa [IsLittleOp, SmoothZEstimatorRegularity.jacobian] using
       S.sampleMeanVec_norm_sub_isLittleOp reg.deriv_at_target_meas
         reg.deriv_at_target_integrable

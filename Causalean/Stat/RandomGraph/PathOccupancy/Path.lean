@@ -51,7 +51,7 @@ theorem connected_run_cover {K : ℕ} (s : Finset (Fin K))
   have hab := hmin b hb
   omega
 
-/-- [A connected relation on a nonempty labelled subset](hyp:s,hs,hconn)
+/-- [A connected relation on a labelled subset](hyp:s,hconn)
 whose [edges join equal or adjacent assigned cells](hyp:hlocal)
 has [connected occupied cells](goal) under the [given assignment](hyp:x).
 
@@ -60,7 +60,7 @@ leave the subset. One way to prove saturation is to cut the vertices at a missin
 intermediate cell; an eligible edge cannot cross that cut.
 -/
 theorem connected_image_of_local_relation {ι : Type*}
-    {K : ℕ} (s : Finset ι) (x : ι → Fin K) (hs : s.Nonempty)
+    {K : ℕ} (s : Finset ι) (x : ι → Fin K)
     (R : s → s → Prop)
     (hlocal : ∀ i j, R i j → Adjacent (x i) (x j))
     (hconn : ∀ i j, Relation.EqvGen R i j) : PathConnected (s.image x) := by

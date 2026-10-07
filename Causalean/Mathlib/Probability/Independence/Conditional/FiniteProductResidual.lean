@@ -221,9 +221,11 @@ variable (ρ : Measure A) (μ : Measure Z) [IsProbabilityMeasure ρ] [IsProbabil
 variable {X : Z → C} {r : Z → ℝ}
 
 /-- [A measurable covariate map and residual](hyp:hX,hr), [integrability of the
-residual](hyp:hir), [one-record conditional centering](hyp:hzero), [probability side
-and record laws](hyp:ρ,μ), and [a selected coordinate](hyp:i) imply [zero conditional
-mean of that residual given the selected covariate, the side variable, and all other
+residual](hyp:hir) under the record law, [zero conditional mean of the residual given the
+covariate under the record law](hyp:hzero), [probability side and record laws on standard Borel
+spaces](hyp:ρ,μ), and [a selected coordinate](hyp:i) imply that, under the joint law of an
+independent side variable and a finite iid record array, [the selected record's residual has
+zero conditional mean given the selected covariate, the side variable, and all other
 records](goal). -/
 theorem condExp_residual_eq_zero_of_leaveOne
     (hX : Measurable X) (hr : Measurable r) (hir : Integrable r μ)

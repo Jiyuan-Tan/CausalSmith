@@ -101,8 +101,9 @@ theorem optimized_power_identities (d : ℕ) (β : ℝ) (m : ℕ)
     field_simp [hden]
     ring
 
-/-- [Positive smoothness and sample size](hyp:hβ,hm) give [the optimized
-ceiling cell-count variance term at the exact minimax exponent](goal). -/
+/-- [Positive smoothness and sample size](hyp:hβ,hm) give [the bound `2^d · m^(-2β/(2β+d))` on the
+variance term: the number of cubical cells at the optimized bandwidth divided by the sample
+size plus one](goal). -/
 theorem optimized_mesh_variance_le (d : ℕ) (β : ℝ) (m : ℕ)
     (hβ : 0 < β) (hm : 1 ≤ m) :
     (meshCount (optimizedBandwidth d β m) : ℝ) ^ d / (m + 1 : ℝ) ≤

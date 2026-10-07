@@ -5,7 +5,7 @@ public import Causalean.Mathlib.Optimization.QuadraticSaddle.Selection
 
 /-! # Measurable finite-quadratic selector adapter -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

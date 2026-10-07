@@ -427,7 +427,7 @@ lemma thresholded_product_perturbation_le
       nlinarith)
   have hmp : ‖moorePenroseInverse T - moorePenroseInverse M‖ ≤
       16 / s0 ^ 2 * eM := by
-    have hraw := norm_moorePenrose_sub_le T M (hrankT.trans hrank.symm)
+    have hraw := norm_moorePenrose_sub_le T M
     calc
       _ ≤ 3 * max (‖moorePenroseInverse T‖ ^ 2)
           (‖moorePenroseInverse M‖ ^ 2) * ‖T - M‖ := hraw
@@ -658,7 +658,7 @@ lemma targetFeature_column_norm_le
       (MeasureTheory.measure_mono fun _ hw => hw.1)
   let mu := normalizedRestrict P (latentClass u)
   let _ : MeasureTheory.IsProbabilityMeasure mu :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentClass u) hclass
+    normalizedRestrict_isProbabilityMeasure hclass
   have hXMeas : Measurable (fun w : FullData k dx dz =>
       (WithLp.toLp 2 w.X : Euc dx)) :=
     (WithLp.measurable_toLp 2 (Fin dx → ℝ)).comp measurable_fullData_X
@@ -791,7 +791,7 @@ lemma thinSignalFactorization_coord_transpose_signalMinSingular
     rw [Matrix.mul_apply]
     simp [W, S, Matrix.diagonal_apply, mul_comm]
   apply Causalean.Mathlib.Analysis.le_singularValues_of_subspace
-      (Matrix.toEuclideanLin (thinSignalFactorization B hpos).coord.transpose) ⊤ hs
+      (Matrix.toEuclideanLin (thinSignalFactorization B hpos).coord.transpose) ⊤
   · simpa using hk
   · intro x _hx
     rw [hcoord]

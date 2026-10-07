@@ -73,7 +73,7 @@ lemma dualInterval_abs_dualTargetGap_le_one (n : ℕ) (rho : ℝ) :
           (dualInterval n rho) 1 (3 * dualDegree n rho)
         ≤ uniformApproxError (rationalTarget (dualInterval n rho))
             (dualInterval n rho) 1 0 :=
-      bestUniformApproxError_le ha1 hcont (by simp)
+      bestUniformApproxError_le (by simp)
     _ ≤ 1 := by
       unfold uniformApproxError
       apply (intervalSupNorm_le_iff (by simpa using hcont) ha1.le).2

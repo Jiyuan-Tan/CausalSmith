@@ -270,12 +270,12 @@ lemma evalObservedAuxOverride_agree_cutset (M : Causalean.SCM N Ω)
         · exact Or.inr (hEq ▸ DAG.isAncestorAvoiding.edge hedge)
         · exact Or.inr (DAG.isAncestorAvoiding.cons M.dag hedge hSelf hAv)
       by_cases huo : w.val ∈ M.unobserved
-      · rw [parentMapOverride_unobserved M hC s c ℓ₁ hn _ w huo,
-            parentMapOverride_unobserved M hC s c ℓ₂ hn _ w huo]
+      · rw [parentMapOverride_unobserved M s c ℓ₁ hn _ w huo,
+            parentMapOverride_unobserved M s c ℓ₂ hn _ w huo]
         exact hAgree w.val huo hReachW
       · by_cases hfix : w.val ∈ M.fixed
-        · rw [parentMapOverride_fixed M hC s c ℓ₁ hn _ w hfix,
-              parentMapOverride_fixed M hC s c ℓ₂ hn _ w hfix]
+        · rw [parentMapOverride_fixed M s c ℓ₁ hn _ w hfix,
+              parentMapOverride_fixed M s c ℓ₂ hn _ w hfix]
         · have hobs : w.val ∈ M.observed := by
             rcases Finset.mem_union.mp
                 (M.dag_edges_classified _ _ hedge).1 with h1' | h2'
@@ -286,8 +286,8 @@ lemma evalObservedAuxOverride_agree_cutset (M : Causalean.SCM N Ω)
           by_cases hcW : w.val ∈ C
           · rw [parentMapOverride_C M hC s c ℓ₁ hn _ w hcW,
                 parentMapOverride_C M hC s c ℓ₂ hn _ w hcW]
-          · rw [parentMapOverride_observed M hC s c ℓ₁ hn _ w hobs hcW,
-                parentMapOverride_observed M hC s c ℓ₂ hn _ w hobs hcW]
+          · rw [parentMapOverride_observed M s c ℓ₁ hn _ w hobs hcW,
+                parentMapOverride_observed M s c ℓ₂ hn _ w hobs hcW]
             have hj : (M.observedIndex ⟨w.val, hobs⟩).val < n :=
               M.observed_parent_index_lt hn hedge hobs
             congr 1

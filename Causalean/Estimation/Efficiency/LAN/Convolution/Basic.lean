@@ -56,18 +56,11 @@ theorem weaklyConverges_iff_tendstoInLaw [TopologicalSpace H] [MeasurableSpace H
     WeaklyConverges P X Q ↔ Causalean.Stat.Modes.TendstoInLaw P X atTop Q :=
   (Causalean.Stat.Modes.tendstoInLaw_iff_boundedContinuous P X atTop Q).symm
 
-/-- A real triangular array converges in probability to `c` when, for every positive tolerance,
-the probability of an absolute error at least that tolerance tends to zero. -/
-@[deprecated "Use Causalean.Stat.Modes.TendstoInProbability." (since := "2026-09-18")]
-abbrev TendstoInProbability
-    (P : (n : ℕ) → Measure (Ω n)) (X : (n : ℕ) → Ω n → ℝ) (c : ℝ) : Prop :=
-  Causalean.Stat.Modes.TendstoInProbability P X atTop (fun _ _ => c)
-
 /-- For [row measures](hyp:P), [real row variables](hyp:X), and [a constant target](hyp:c),
 [convergence in probability is equivalent to vanishing real absolute-error tails](goal). -/
 lemma tendstoInProbability_iff_real
     (P : (n : ℕ) → Measure (Ω n)) (X : (n : ℕ) → Ω n → ℝ) (c : ℝ) :
-    TendstoInProbability P X c ↔
+    Causalean.Stat.Modes.TendstoInProbability P X atTop (fun _ _ => c) ↔
       ∀ ε : ℝ, 0 < ε →
         Tendsto (fun n => P n {ω | ε ≤ |X n ω - c|}) atTop (𝓝 0) := by
   simpa only [Real.norm_eq_abs] using
@@ -126,9 +119,8 @@ structure IsLAN [FiniteDimensional ℝ H] [MeasurableSpace H] [BorelSpace H]
   central_converges : WeaklyConverges E.baseLaw centralSequence gaussianLimit
   /-- The LAN quadratic expansion holds in base-law probability for every fixed direction. -/
   expansion : ∀ h : H,
-    TendstoInProbability E.baseLaw
-      (fun n ω => E.logLikelihoodRatio n h ω -
-        inner ℝ h (centralSequence n ω) + (1 / 2 : ℝ) * information h h) 0
+    Causalean.Stat.Modes.TendstoInProbability E.baseLaw (fun n ω => E.logLikelihoodRatio n h ω -
+        inner ℝ h (centralSequence n ω) + (1 / 2 : ℝ) * information h h) atTop (fun _ _ => 0)
 
 /-- A scalar estimator has regular limit `limitLaw` with derivative `targetDerivative` when,
 under every fixed local direction `h`, its base-centered statistic minus the deterministic local

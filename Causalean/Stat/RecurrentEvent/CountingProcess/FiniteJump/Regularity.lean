@@ -28,19 +28,17 @@ theorem Model.predictable_quadratic (M : Model Ω μ) (H : ℝ → Ω → ℝ)
 /-- The strict-past compensated integral is predictable when its integrand
 and the at-risk intensity are predictable. -/
 theorem Model.predictable_prefix (M : Model Ω μ) (H : ℝ → Ω → ℝ)
-    (hH : M.Predictable H)
-    (hbound : ∃ C : ℝ, ∀ t ω, |H t ω| ≤ C) :
+    (hH : M.Predictable H) :
     M.Predictable (M.prefixIntegral H) := by
-  exact (M.predictable_strictJumpIntegral H hH hbound).sub
-    (M.predictable_energyIntegral H hH hbound)
+  exact (M.predictable_strictJumpIntegral H hH).sub
+    (M.predictable_energyIntegral H hH)
 
 /-- Twice the current predictable value times its strictly past compensated
 integral is predictable. -/
 theorem Model.predictable_prefix_payoff (M : Model Ω μ) (H : ℝ → Ω → ℝ)
-    (hH : M.Predictable H)
-    (hbound : ∃ C : ℝ, ∀ t ω, |H t ω| ≤ C) :
+    (hH : M.Predictable H) :
     M.Predictable (M.prefixPayoff H) := by
-  exact (measurable_const.mul hH).mul (M.predictable_prefix H hH hbound)
+  exact (measurable_const.mul hH).mul (M.predictable_prefix H hH)
 
 /-- The quadratic jump payoff is integrable for a bounded predictable
 integrand under the event-count second-moment bound. -/

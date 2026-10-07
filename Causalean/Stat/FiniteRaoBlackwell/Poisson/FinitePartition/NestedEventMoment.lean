@@ -52,9 +52,11 @@ theorem integrable_weightedFactorial (P : Measure X) [IsProbabilityMeasure P]
 
 /-- Under an [observation probability law](hyp:P), a [Poisson intensity](hyp:lam), two
 [events](hyp:A,B) with [measurable membership](hyp:hA,hB) and [the first contained in the
-second](hyp:hAB), and an [order](hyp:v) with [positive order](hyp:hv), the [joint factorial
-moment of their finite-Poisson event counts equals the intensity power times the smaller-event
-probability and the required larger-event probability power](goal). -/
+second](hyp:hAB), and an [order](hyp:v) with [positive order](hyp:hv), the [expectation, under the
+finite Poisson sample law, of the smaller-event count times the falling factorial of order one
+less than the given order of the larger-event count minus one equals the intensity raised to the
+order, times the smaller-event probability, times the larger-event probability raised to the
+order minus one](goal). -/
 theorem finitePoisson_nestedEvent_factorialMoment
     (P : Measure X) [IsProbabilityMeasure P] (lam : ℝ≥0)
     (A B : Set X) (hA : MeasurableSet A) (hB : MeasurableSet B)

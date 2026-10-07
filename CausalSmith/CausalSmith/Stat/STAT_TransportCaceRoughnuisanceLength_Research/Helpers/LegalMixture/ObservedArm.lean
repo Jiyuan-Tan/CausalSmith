@@ -112,7 +112,7 @@ lemma explicitSourceLaw_arm_setIntegral (a τ : ℝ) (u : ℝ → ℝ)
         Finset.sum_le_sum (fun c _ => mul_le_mul_of_nonneg_left (hbnd x c) (hw x c))
       _ = 1 := by simpa using hnorm x
   have h := Causalean.Mathlib.Probability.Kernel.FiniteAtomic.setIntegral_finiteAtomicKernel
-    (volume.restrict covariateSpace) κ atom weight hw hnorm hk Prod.fst measurable_fst
+    (volume.restrict covariateSpace) κ atom weight hw hk Prod.fst measurable_fst
     (fun _ _ => rfl) B hB f hint
   have hμ : κ ∘ₘ volume.restrict covariateSpace =
       explicitSourceLaw a u (fun x => τ * u x) := rfl

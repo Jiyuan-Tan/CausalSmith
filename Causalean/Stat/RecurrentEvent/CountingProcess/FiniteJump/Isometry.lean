@@ -144,8 +144,7 @@ theorem Model.stochasticIntegral_centered (M : Model Ω μ)
   unfold Model.stochasticIntegral
   rw [integral_sub (M.integrable_jump H hH hbound)
     (M.integrable_energy H hH hbound),
-    M.bounded_predictable_compensator H hH hbound
-      (M.integrable_jump H hH hbound) (M.integrable_energy H hH hbound)]
+    M.bounded_predictable_compensator H hH hbound]
   ring
 
 /-- The expected square of a bounded predictable compensated counting
@@ -169,11 +168,10 @@ theorem Model.stochasticIntegral_isometry (M : Model Ω μ)
     simpa [Model.quadraticPayoff, abs_pow] using
       (pow_le_pow_left₀ (abs_nonneg (H t ω)) (hC t ω) 2)
   have hcq := M.bounded_predictable_compensator (M.quadraticPayoff H)
-    (M.predictable_quadratic H hH) hquad hjq heq
+    (M.predictable_quadratic H hH) hquad
   have hcp := M.predictable_compensator (M.prefixPayoff H)
-    (M.predictable_prefix_payoff H hH hbound)
+    (M.predictable_prefix_payoff H hH)
     (M.integrable_prefix_jump_abs H hH hbound)
-    (M.integrable_prefix_energy_abs H hH hbound)
   calc
     (∫ ω, (M.stochasticIntegral H M.horizon ω) ^ 2 ∂μ) =
         ∫ ω, M.jumpIntegral (M.quadraticPayoff H) M.horizon ω +

@@ -8,7 +8,7 @@ Authors: Jiyuan Tan
 Consistency of empirical variance- and covariance-matrix estimators for the
 `Causalean.Stat.IIDSample` model, supplying the `σ̂ →ₚ σ₀` hypothesis consumed by
 the generic studentized CLT (`Causalean/Stat/Inference/Studentize.lean`,
-`Tendsto_dist.div_tendsto_inProb_gaussian`).
+`Modes.TendstoInLaw.div_tendsto_inProb_gaussian`).
 
 * `IIDSample.sampleMean_mul_tendsto_inProb` — empirical mean of an arbitrary
   product `g₁ · g₂` of two measurable, jointly-integrable statistics converges
@@ -27,10 +27,10 @@ the generic studentized CLT (`Causalean/Stat/Inference/Studentize.lean`,
 * `IIDSample.empiricalVar` — the plug-in variance `(1/n) Σ ψ(Zᵢ)² − ψ̄ₙ²` of a scalar
   statistic, with its centred form, nonnegativity, and consistency
   `empiricalVar_tendsto_inProb` (to `∫ ψ² dP` when `∫ ψ dP = 0`).
-* `sqrt_var_tendsto_inProb` (`Tendsto_inProb.sqrt`) — packaging for the
+* `sqrt_var_tendsto_inProb` (`Modes.TendstoInProbability.sqrt`) — packaging for the
   studentized layer: from `σ̂² →ₚ σ₀²` with `σ₀ > 0`, conclude
   `√(σ̂²) →ₚ σ₀`.  Continuous mapping with `Real.sqrt` (continuous everywhere),
-  reusing `Tendsto_inProb.comp_continuousAt`.
+  reusing `Modes.TendstoInProbability.comp_continuousAt`.
 -/
 
 module
@@ -50,7 +50,7 @@ pair of continuous linear coordinate functionals.
 centred form, nonnegativity, and consistency for a mean-zero square-integrable statistic.
 
 The helper `abs_apply_mul_le_norm_sq` supplies the domination bound needed for
-entrywise integrability.  The final packaging lemmas `Tendsto_inProb.sqrt` and
+entrywise integrability.  The final packaging lemmas `Modes.TendstoInProbability.sqrt` and
 `sqrt_var_tendsto_inProb` convert variance-estimator consistency into
 standard-error consistency, the input expected by the studentized CLT.
 -/
@@ -81,8 +81,8 @@ theorem sampleMean_mul_tendsto_inProb
     (S : IIDSample Ω X μ P) [IsProbabilityMeasure P] {g₁ g₂ : X → ℝ}
     (hg₁_meas : Measurable g₁) (hg₂_meas : Measurable g₂)
     (hint : Integrable (fun ω => g₁ (S.Z 0 ω) * g₂ (S.Z 0 ω)) μ) :
-    Tendsto_inProb (S.sampleMean (fun x => g₁ x * g₂ x))
-      (fun _ => ∫ x, g₁ x * g₂ x ∂P) μ :=
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (S.sampleMean (fun x => g₁ x * g₂ x)) atTop
+        (fun _ _ => ∫ x, g₁ x * g₂ x ∂P) :=
   have hintP : Integrable (fun x => g₁ x * g₂ x) P := by
     have hint_map : Integrable (fun x => g₁ x * g₂ x) (μ.map (S.Z 0)) :=
       (MeasureTheory.integrable_map_measure
@@ -152,9 +152,8 @@ theorem sampleCov_entry_tendsto_inProb
     (hψ_meas : Measurable ψ)
     (hψ_sq_int : Integrable (fun ω => ‖ψ (S.Z 0 ω)‖ ^ 2) μ)
     (φ φ' : E →L[ℝ] ℝ) :
-    Tendsto_inProb
-      (S.sampleMean (fun x => φ (ψ x) * φ' (ψ x)))
-      (fun _ => ∫ x, φ (ψ x) * φ' (ψ x) ∂P) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (S.sampleMean (fun x => φ (ψ x) * φ' (ψ x))) atTop
+        (fun _ _ => ∫ x, φ (ψ x) * φ' (ψ x) ∂P) := by
   -- coordinate measurability
   have hφ : Measurable (fun x => φ (ψ x)) := by fun_prop
   have hφ' : Measurable (fun x => φ' (ψ x)) := by fun_prop
@@ -241,14 +240,15 @@ empirical variance converges in probability to the population second moment $\in
 
     Proof: `S.sampleMean (ψ²) →ₚ ∫ ψ² dP` (second-moment WLLN) and
 `(S.sampleMean ψ)² →ₚ (∫ ψ dP)² = 0` (WLLN + continuous mapping); subtract via
-`Tendsto_inProb.sub` and use `∫ ψ dP = 0`. -/
+`Modes.TendstoInProbability.sub` and use `∫ ψ dP = 0`. -/
 theorem empiricalVar_tendsto_inProb (S : IIDSample Ω X μ P)
     [IsProbabilityMeasure P] {ψ : X → ℝ}
     (hψ_meas : Measurable ψ)
     (hψ_int : Integrable (fun ω => ψ (S.Z 0 ω)) μ)
     (hψ_sq_int : Integrable (fun ω => (ψ (S.Z 0 ω)) ^ 2) μ)
     (hmean : ∫ x, ψ x ∂P = 0) :
-    Tendsto_inProb (empiricalVar S ψ) (fun _ => ∫ x, (ψ x) ^ 2 ∂P) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (empiricalVar S ψ) atTop
+        (fun _ _ => ∫ x, (ψ x) ^ 2 ∂P) := by
   have hψ_int_P : Integrable ψ P := by
     have hψ_int_map : Integrable ψ (μ.map (S.Z 0)) :=
       (MeasureTheory.integrable_map_measure hψ_meas.aestronglyMeasurable
@@ -259,17 +259,19 @@ theorem empiricalVar_tendsto_inProb (S : IIDSample Ω X μ P)
       (MeasureTheory.integrable_map_measure (hψ_meas.pow_const 2).aestronglyMeasurable
         (S.meas 0).aemeasurable).mpr (by simpa [Function.comp_def] using hψ_sq_int)
     rwa [S.law] at hψ_sq_int_map
-  have h2 : Tendsto_inProb (S.sampleMean (fun x => (ψ x) ^ 2))
-      (fun _ => ∫ x, (ψ x) ^ 2 ∂P) μ :=
+  have h2 : Modes.TendstoInProbability (fun _ : ℕ => μ) (S.sampleMean (fun x => (ψ x) ^ 2)) atTop
+      (fun _ _ => ∫ x, (ψ x) ^ 2 ∂P) :=
     S.sampleSecondMoment_tendsto_inProb hψ_meas hψ_sq_int_P
-  have h1 : Tendsto_inProb (S.sampleMean ψ) (fun _ => ∫ x, ψ x ∂P) μ :=
+  have h1 : Modes.TendstoInProbability (fun _ : ℕ => μ) (S.sampleMean ψ) atTop
+      (fun _ _ => ∫ x, ψ x ∂P) :=
     S.sampleMean_tendsto_inProb hψ_meas hψ_int_P
-  have h1sq : Tendsto_inProb (fun n ω => (S.sampleMean ψ n ω) ^ 2)
-      (fun _ => (∫ x, ψ x ∂P) ^ 2) μ := by
+  have h1sq : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => (S.sampleMean ψ n ω) ^ 2)
+      atTop
+      (fun _ _ => (∫ x, ψ x ∂P) ^ 2) := by
     have hcont : ContinuousAt (fun x : ℝ => x ^ 2) (∫ x, ψ x ∂P) :=
       (continuous_pow 2).continuousAt
-    simpa using Tendsto_inProb.comp_continuousAt hcont h1
-  have hsub := Tendsto_inProb.sub h2 h1sq
+    simpa using Modes.TendstoInProbability.comp_continuousAt hcont h1
+  have hsub := Modes.TendstoInProbability.sub h2 h1sq
   have heq : (fun _ : Ω => (∫ x, (ψ x) ^ 2 ∂P) - (∫ x, ψ x ∂P) ^ 2)
       = (fun _ : Ω => ∫ x, (ψ x) ^ 2 ∂P) := by
     funext _; rw [hmean]; ring
@@ -282,28 +284,30 @@ end IIDSample
 
 /-- **Square root preserves convergence in probability.**  If `Vn →ₚ v₀`
 under `μ`, then `√Vn →ₚ √v₀`.  Continuous mapping with the (everywhere
-continuous) `Real.sqrt`, via `Tendsto_inProb.comp_continuousAt`. -/
-theorem Tendsto_inProb.sqrt
+continuous) `Real.sqrt`, via `Modes.TendstoInProbability.comp_continuousAt`. -/
+theorem Modes.TendstoInProbability.sqrt
     {Ω : Type*} [MeasurableSpace Ω] {Vn : ℕ → Ω → ℝ} {v₀ : ℝ} {μ : Measure Ω}
-    (h : Tendsto_inProb Vn (fun _ => v₀) μ) :
-    Tendsto_inProb (fun n ω => Real.sqrt (Vn n ω)) (fun _ => Real.sqrt v₀) μ :=
-  Tendsto_inProb.comp_continuousAt (Real.continuous_sqrt.continuousAt) h
+    (h : Modes.TendstoInProbability (fun _ : ℕ => μ) Vn atTop (fun _ _ => v₀)) :
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => Real.sqrt (Vn n ω)) atTop
+        (fun _ _ => Real.sqrt v₀) :=
+  Modes.TendstoInProbability.comp_continuousAt (Real.continuous_sqrt.continuousAt) h
 
 /-- **Standard-error consistency from variance consistency.**  Fix [a positive scale
 `σ₀`](hyp:hσ₀_pos). If [a variance-estimator sequence `varhat` converges in probability to
 `σ₀²`](hyp:h), then [the standard-error estimator `√varhat` converges in probability to
 `σ₀`](goal).  This is exactly the `σ̂ →ₚ σ₀` input required by the
-generic studentized CLT `Tendsto_dist.div_tendsto_inProb_gaussian`; callers feed
+generic studentized CLT `Modes.TendstoInLaw.div_tendsto_inProb_gaussian`; callers feed
 `fun N ω => Real.sqrt (varhat N ω)` to it.
 
 Proof: `√varhat →ₚ √(σ₀²) = |σ₀| = σ₀` by continuous mapping
-(`Tendsto_inProb.sqrt`) and `√(σ₀²) = σ₀` for `σ₀ ≥ 0`. -/
+(`Modes.TendstoInProbability.sqrt`) and `√(σ₀²) = σ₀` for `σ₀ ≥ 0`. -/
 theorem sqrt_var_tendsto_inProb
     {Ω : Type*} [MeasurableSpace Ω] {varhat : ℕ → Ω → ℝ} {σ₀ : ℝ}
     {μ : Measure Ω} (hσ₀_pos : 0 < σ₀)
-    (h : Tendsto_inProb varhat (fun _ => σ₀ ^ 2) μ) :
-    Tendsto_inProb (fun n ω => Real.sqrt (varhat n ω)) (fun _ => σ₀) μ := by
-  have hsqrt := Tendsto_inProb.sqrt h
+    (h : Modes.TendstoInProbability (fun _ : ℕ => μ) varhat atTop (fun _ _ => σ₀ ^ 2)) :
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => Real.sqrt (varhat n ω)) atTop
+        (fun _ _ => σ₀) := by
+  have hsqrt := Modes.TendstoInProbability.sqrt h
   have heq : Real.sqrt (σ₀ ^ 2) = σ₀ := by
     rw [Real.sqrt_sq (le_of_lt hσ₀_pos)]
   rwa [heq] at hsqrt

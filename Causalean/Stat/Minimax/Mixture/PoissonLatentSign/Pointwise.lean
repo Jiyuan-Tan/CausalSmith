@@ -44,7 +44,7 @@ def selected {m : ℕ} (c : Cell m) : Finset (Fin m) :=
 def Valid {m : ℕ} (c : Cell m) : Prop :=
   (∀ i, |c.1 i| ≤ 1) ∧ selected c ⊆ active c
 
-/-- The sign likelihood multiplies all record factors before mixing the shared sign. -/
+/-- The sign likelihood at a latent sign ℓ is the product over all records of 1 + τ · ℓ · uᵢ · sᵢ, where uᵢ is the record's score and sᵢ = ±1 its assignment sign. -/
 def signLikelihood {m : ℕ} (τ : ℝ) (c : Cell m) (ell : ℝ) : ℝ :=
   ∏ i, (1 + τ * ell * c.1 i * sign (c.2.1 i))
 
@@ -52,7 +52,7 @@ def signLikelihood {m : ℕ} (τ : ℝ) (c : Cell m) (ell : ℝ) : ℝ :=
 def denominator {m : ℕ} (τ : ℝ) (c : Cell m) : ℝ :=
   signLikelihood τ c 1 + signLikelihood τ c (-1)
 
-/-- The posterior coefficient averages the selected score fractions over the shared sign. -/
+/-- The posterior coefficient of a set S of records is the average over the shared sign, weighted by the two sign likelihoods and divided by their sum, of the product over S of uᵢ/(1 + τuᵢ) at sign +1 and of −uᵢ/(1 − τuᵢ) at sign −1, where uᵢ are the scores. -/
 def posterior {m : ℕ} (τ : ℝ) (c : Cell m) (S : Finset (Fin m)) : ℝ :=
   (signLikelihood τ c 1 * (∏ i ∈ S, c.1 i / (1 + τ * c.1 i)) +
     signLikelihood τ c (-1) * (∏ i ∈ S, (-c.1 i) / (1 - τ * c.1 i))) /
@@ -329,9 +329,9 @@ theorem subsetEnergy_le_choose {m : ℕ} {τ : ℝ} {c : Cell m}
       mul_le_mul_of_nonneg_right (by exact_mod_cast hcount) (by positivity)
     _ = (4 : ℝ) ^ d * (m.choose d : ℝ) := mul_comm _ _
 
-/-- Given [a bounded tilt](hyp:hτ) and [valid cell data](hyp:hc), [the singleton
-posterior subset energy is bounded by the tilt squared times the cell's double-collision
-polynomial](goal). -/
+/-- Given [a tilt τ of absolute value at most 1/4](hyp:hτ) and [valid cell data](hyp:hc)
+with m records, [the order-one posterior subset energy is at most
+τ² · m · (m − 1)² · (25/9)ᵐ](goal). -/
 theorem subsetEnergy_one_bound {m : ℕ} {τ : ℝ} {c : Cell m}
     (hτ : |τ| ≤ 1 / 4) (hc : Valid c) :
     subsetEnergy τ c 1 ≤ τ ^ 2 * (m : ℝ) * ((m - 1 : ℕ) : ℝ) ^ 2 *

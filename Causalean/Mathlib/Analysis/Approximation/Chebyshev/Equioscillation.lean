@@ -275,7 +275,7 @@ theorem exists_equioscillationWitness
         funext x
         simp [R, g]
         ring
-      have hRlower := bestUniformApproxError_le hrs hf hRdegree
+      have hRlower := bestUniformApproxError_le (f := f) (r := r) (s := s) hRdegree
       have hRstrict : uniformApproxError f r s R <
           bestUniformApproxError f r s L := by
         rw [hResidual, ← hgError]

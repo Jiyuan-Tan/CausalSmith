@@ -90,6 +90,51 @@ theorem localPoly_estimatorBias_window {N : ℕ} {β MH lo hi t h L : ℝ} {a w 
     _ ≤ (MH / ((holderDerivOrder β)).factorial) * L * h ^ β :=
         mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hsL hcoef_nn) hhb
 
+/-- **Interior local-polynomial estimator bias for a regression function smooth only on a
+window.** Let `ĉ₀` be the intercept of the degree-`p` weighted least-squares fit, `p` the
+largest integer strictly below `β`, where [the coefficient vector `c` minimizes the weighted sum
+of squared residuals](hyp:hmin) at the noise-free responses of [a function `f` that, for some
+`β > 0`, is `p` times continuously differentiable on a window `[lo, hi]`](hyp:hβ,hf) [with
+`p`-th within-window derivative `(β − p)`-Hölder there with constant `MH ≥ 0`](hyp:hMH,hb).
+Suppose [the weights are nonnegative](hyp:hw), [the target point `t` and every design point lie
+in the window](hyp:ht,ha), [every design point is within bandwidth `h ≥ 0` of
+`t`](hyp:hh,hwin), and [the design moment matrix `M` is invertible](hyp:hMdet). If
+[`√(M₀₀·(M⁻¹)₀₀) ≤ L`](hyp:hlev), then [`|ĉ₀ − f(t)| ≤ (MH/p!) · L · h^β`](goal).
+
+Nothing is assumed about `f` outside the window. -/
+theorem localPoly_estimatorBias_window_within {N : ℕ} {β MH lo hi t h L : ℝ} {a w : Fin N → ℝ}
+    {f : ℝ → ℝ} {c : Fin ((holderDerivOrder β) + 1) → ℝ}
+    (hβ : 0 < β) (hMH : 0 ≤ MH) (hh : 0 ≤ h) (hw : ∀ i, 0 ≤ w i)
+    (ht : t ∈ Set.Icc lo hi) (ha : ∀ i, a i ∈ Set.Icc lo hi)
+    (hwin : ∀ i, |a i - t| ≤ h)
+    (hf : ContDiffOn ℝ (holderDerivOrder β) f (Set.Icc lo hi))
+    (hb : ∀ x ∈ Set.Icc lo hi, ∀ y ∈ Set.Icc lo hi,
+            |iteratedDerivWithin (holderDerivOrder β) f (Set.Icc lo hi) x -
+              iteratedDerivWithin (holderDerivOrder β) f (Set.Icc lo hi) y|
+              ≤ MH * |x - y| ^ (β - ((holderDerivOrder β) : ℝ)))
+    (hMdet : IsUnit (designMatrix (holderDerivOrder β) (fun i => a i - t) w).det)
+    (hmin : ∀ c' : Fin ((holderDerivOrder β) + 1) → ℝ,
+        (∑ i, w i * (f (a i) - ∑ j, c j * (a i - t) ^ (j : ℕ)) ^ 2)
+          ≤ ∑ i, w i * (f (a i) - ∑ j, c' j * (a i - t) ^ (j : ℕ)) ^ 2)
+    (hlev : Real.sqrt ((designMatrix (holderDerivOrder β) (fun i => a i - t) w) 0 0
+        * (designMatrix (holderDerivOrder β) (fun i => a i - t) w)⁻¹ 0 0) ≤ L) :
+    |c 0 - f t| ≤ (MH / ((holderDerivOrder β)).factorial) * L * h ^ β := by
+  have hbias := localPoly_intercept_bias_within hβ hMH hw ht ha hwin hf hb hMdet hmin
+  set s := ∑ i, |equivKernelWeight (holderDerivOrder β) (fun i => a i - t) w i| with hs
+  have hs_nn : 0 ≤ s := Finset.sum_nonneg (fun i _ => abs_nonneg _)
+  have hsq : s ^ 2
+      ≤ (designMatrix (holderDerivOrder β) (fun i => a i - t) w) 0 0
+          * (designMatrix (holderDerivOrder β) (fun i => a i - t) w)⁻¹ 0 0 :=
+    equivKernelWeight_abs_sum_sq_le hMdet hw
+  have hsL : s ≤ L := by
+    rw [(Real.sqrt_sq hs_nn).symm]
+    exact le_trans (Real.sqrt_le_sqrt hsq) hlev
+  have hcoef_nn : 0 ≤ MH / ((holderDerivOrder β)).factorial := div_nonneg hMH (by positivity)
+  have hhb : 0 ≤ h ^ β := Real.rpow_nonneg hh β
+  calc |c 0 - f t| ≤ (MH / ((holderDerivOrder β)).factorial) * s * h ^ β := hbias
+    _ ≤ (MH / ((holderDerivOrder β)).factorial) * L * h ^ β :=
+        mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hsL hcoef_nn) hhb
+
 /-- **Interior local-polynomial estimator stochastic `L²` error `≤ Cvar · (Nh)^{-1/2}`.** The
 degree-`p` local-polynomial equivalent-kernel smoother `ĉ₀ = ∑ᵢ Sᵢ Yᵢ`, applied to [a family `Y` of
 square-integrable responses](hyp:hY) whose [distinct coordinates are uncorrelated and variances

@@ -74,7 +74,7 @@ theorem integral_designCenter_bias_sq_le {n : ℕ}
   have hpoint : ∀ᵐ z ∂ν,
       (designCenter X A center z - populationContrast μ X center) ^ 2 ≤
         M ^ 2 * rho ^ 2 + S.indicator (fun _ => 4 * M ^ 2) z := by
-    filter_upwards [usable_supported_ae μ X A h.X_measurable h.A_measurable n]
+    filter_upwards [usable_supported_ae μ X A n]
       with z hz
     have hb := designCenter_bias_sq_le μ X A Y center epsilon M rho h z hz
     by_cases hz0 : usableTotal X A z = 0
@@ -95,10 +95,18 @@ theorem integral_designCenter_bias_sq_le {n : ℕ}
     ring
   simpa only [ν, S, hright_integral] using hbound
 
-/-- An [overlap margin strictly between zero and one half](hyp:epsilon,hepsilon,hepsilon_half)
-gives [a uniform mean-square bound for the collision estimator with parametric,
-heterogeneity, and finite-dimension terms](goal) in every finite observed-data
-setting satisfying the stated observed-law conditions. -/
+/-- For an [overlap margin ε strictly between zero and one half](hyp:epsilon,hepsilon,hepsilon_half),
+[there is a positive constant C, depending only on ε, such that the following
+holds for every probability law with a label into a finite set of cells, a
+Boolean arm label, a real outcome, supplied arm-and-cell centres, an envelope M,
+a heterogeneity level ρ, and every positive sample size n: if the observed-law
+assumptions hold with these ε, M and ρ, then under n independent draws the
+expected squared difference between the cell-count-weighted collision estimator
+and the population contrast is at most C·M²·(1/n + ρ² + card(κ)/n²), where
+card(κ) is the number of cells](goal). The observed-law assumptions are
+occupied-cell overlap at margin ε, centres bounded by M, arm-cell residuals that
+are centred with second moment at most M², and occupied-cell contrasts within
+M·ρ of the population contrast. -/
 theorem observed_collision_mse_le (epsilon : ℝ)
     (hepsilon : 0 < epsilon) (hepsilon_half : epsilon < 1 / 2) :
     ∃ C_epsilon : ℝ, 0 < C_epsilon ∧

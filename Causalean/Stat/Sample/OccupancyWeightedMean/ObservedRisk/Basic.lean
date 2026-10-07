@@ -66,7 +66,8 @@ noncomputable def collisionEstimator {n : ℕ} (X : Ω → κ) (A : Ω → Bool)
         usableTotal X A z
     else 0
 
-/-- The population contrast averages the observed arm-cell centers using observed cell masses. -/
+/-- The population contrast is the sum over cells of the cell's observed mass times the
+difference between the supplied treated-arm centre and control-arm centre of that cell. -/
 noncomputable def populationContrast (μ : Measure Ω) (X : Ω → κ)
     (center : Bool → κ → ℝ) : ℝ :=
   ∑ k : κ, cellMass μ X k * (center true k - center false k)
@@ -82,9 +83,17 @@ noncomputable def designCenter {n : ℕ} (X : Ω → κ) (A : Ω → Bool)
         (center true k - center false k) else 0) / usableTotal X A z
     else 0
 
-/-- An observed-law model has arm-cell overlap, bounded observed centers, centered
-square-integrable residuals with a cellwise second-moment envelope, and approximate
-homogeneity of observed cell contrasts. -/
+/-- The observed-law assumptions on a probability law with a cell label, a Boolean arm label,
+a real outcome, supplied arm-and-cell centres, an overlap margin ε, an envelope M and a
+heterogeneity level ρ require all of the following. The margin ε is strictly between zero and
+one half, and the cell label, arm label and outcome are measurable. Overlap: in every cell of
+positive mass, each arm-cell pair has mass at least ε times the cell mass. Every centre is at
+most M in absolute value. On each arm-cell event the residual (outcome minus that arm-cell's
+centre) is square-integrable, integrates to zero, and has integral of its square at most the
+arm-cell mass times M². Approximate homogeneity: in every cell of positive mass, the
+treated-minus-control centre contrast differs from the population contrast by at most M·ρ in
+absolute value. Nothing is required of cells of zero mass beyond the centre bound and the
+(then trivial) residual conditions. -/
 structure ObservedAssumptions (μ : Measure Ω) [IsProbabilityMeasure μ]
     (X : Ω → κ) (A : Ω → Bool) (Y : Ω → ℝ)
     (center : Bool → κ → ℝ) (epsilon M rho : ℝ) : Prop where

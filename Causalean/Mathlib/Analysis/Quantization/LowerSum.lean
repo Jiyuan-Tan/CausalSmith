@@ -15,8 +15,12 @@ namespace Causalean.Mathlib.Analysis.Quantization
 
 /-- On [a nondegenerate interval](hyp:a,b,hab), [a nonempty finite
 weight family](hyp:S,hS) with [continuous strictly positive weights](hyp:β,hcont,hpos),
-each relative error below one gives [a uniform threshold and a sharp
-sum-of-good-cell-masses lower bound for every feasible partition](goal). -/
+[every relative error η strictly between zero and one admits a distance threshold δ > 0,
+the same for all partitions, such that for every positive number of cells, every measurable
+partition of the interval and every array of reproduction points in the interval, the
+paired weighted cost is at least (1 − η)/4 times the sum over cells of the squared integral
+of the square-root diagonal weight over the cell's good part, namely the points of the cell
+closer than δ to all of that cell's reproduction points](goal). -/
 theorem partition_good_square_sum_lower (a b : ℝ) (hab : a < b)
     (S : ℕ) (hS : 0 < S) (β : Fin S → ℝ → ℝ → ℝ)
     (hcont : ∀ s, ContinuousOn (fun p : ℝ × ℝ => β s p.1 p.2)

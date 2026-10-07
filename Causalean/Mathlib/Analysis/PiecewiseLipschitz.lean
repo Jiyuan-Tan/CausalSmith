@@ -24,15 +24,15 @@ public section
 
 namespace Causalean.Mathlib.Analysis
 
-/-- Given [a finite number of pieces](hyp:k), [a real-valued profile on each piece](hyp:F), and
-[a common Lipschitz constant](hyp:C), suppose [every active profile is Lipschitz on the unit
-interval](hyp:hlocal) and [consecutive profiles agree at their shared endpoints](hyp:hend). For
-[ordered piece indices](hyp:i,j) satisfying [the index order](hyp:hij) and [the upper range
-condition](hyp:hjk), and [unit-interval coordinates](hyp:u,v) satisfying [the first coordinate
-condition](hyp:hu), [the second coordinate condition](hyp:hv), and [the corresponding global
-order](hyp:horder),
-[the endpoint-telescoped profile difference is bounded by the common constant times the global
-coordinate distance](goal). -/
+/-- Given [a finite number k of pieces](hyp:k), [a real-valued profile F_j on each piece](hyp:F),
+and [a common Lipschitz constant C](hyp:C), suppose [each of the first k profiles is C-Lipschitz
+on the unit interval](hyp:hlocal) and [consecutive profiles among them agree at their shared
+endpoint, F_j(1) = F_(j+1)(0)](hyp:hend). For [piece indices i and j](hyp:i,j) with
+[i ≤ j](hyp:hij) and [j < k](hyp:hjk), and [local coordinates u and v](hyp:u,v) with
+[u in the unit interval](hyp:hu), [v in the unit interval](hyp:hv), and [global positions ordered
+as i + u ≤ j + v](hyp:horder),
+[the profile difference |F_i(u) − F_j(v)| is at most C times the global distance
+(j + v) − (i + u)](goal). -/
 theorem piecewiseLipschitz_chain_bound (k : ℕ) (F : ℕ → ℝ → ℝ) (C : ℝ)
     (hlocal : ∀ j < k, ∀ u ∈ Set.Icc (0 : ℝ) 1, ∀ v ∈ Set.Icc (0 : ℝ) 1,
       |F j u - F j v| ≤ C * |u - v|)

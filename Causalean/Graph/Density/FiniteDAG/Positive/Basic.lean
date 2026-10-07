@@ -254,16 +254,6 @@ structure UniformlyPositiveContinuousFactorization (G : DAG V) (X : V → Type u
   /-- Every local density is bounded below by the displayed common positive margin. -/
   lower_le_factor : ∀ i x, lower ≤ (toFactorization.factor i x).toReal
 
-/-- The [deprecated compatibility alias](goal) for a uniformly positive continuous factorization
-on a [finite DAG](hyp:G), [coordinate spaces](hyp:X), and [reference measures](hyp:μ).
-
-Despite its old name, this alias does not assert that the coordinate spaces are compact. -/
-@[deprecated UniformlyPositiveContinuousFactorization (since := "2026-09-20")]
-abbrev CompactPositiveFactorization (G : DAG V) (X : V → Type uX)
-    [∀ i, MeasurableSpace (X i)] [∀ i, TopologicalSpace (X i)]
-    (μ : ∀ i, Measure (X i)) [∀ i, SigmaFinite (μ i)] :=
-  UniformlyPositiveContinuousFactorization G X μ
-
 namespace UniformlyPositiveContinuousFactorization
 
 variable (M : UniformlyPositiveContinuousFactorization G X μ)
@@ -391,27 +381,5 @@ theorem condDistrib_child_given_parents (i : V) :
       · simp [Set.indicator, hp]
 
 end UniformlyPositiveContinuousFactorization
-
-namespace CompactPositiveFactorization
-
-variable (M : UniformlyPositiveContinuousFactorization G X μ)
-
-/-- A value under the [deprecated compatibility name](hyp:M) has [an observational law](goal)
-given by its uniformly positive continuous factorization. -/
-@[deprecated UniformlyPositiveContinuousFactorization.observationalMeasure
-  (since := "2026-09-20")]
-abbrev observationalMeasure : Measure (∀ i, X i) :=
-  UniformlyPositiveContinuousFactorization.observationalMeasure M
-
-/-- For a value under the [deprecated compatibility name](hyp:M), [coordinates](hyp:i,j), and
-[conditioning set](hyp:C), this defines [their coordinate conditional independence](goal).
-
-The compatibility name supplies no compactness assertion. -/
-@[deprecated UniformlyPositiveContinuousFactorization.CondIndepCoordinates
-  (since := "2026-09-20")]
-abbrev CondIndepCoordinates (i j : V) (C : Finset V) : Prop :=
-  UniformlyPositiveContinuousFactorization.CondIndepCoordinates M i j C
-
-end CompactPositiveFactorization
 
 end Causalean.Graph.FiniteDensity

@@ -120,7 +120,7 @@ theorem dgp_unconfoundedness :
         (dgpBackdoor m g).cfBundle c (dgpPO m g).μ := by
     refine POSystem.ofSCM_condIndepCF_of_dSep (M := dgpSCM m g) (s := dgpFixed m g)
       (X := X) (Y := Y) (Z := Z)
-      ?hX ?hY ?hZ ?hDisj_XY ?hDisj_XZ ?hDisj_YZ ?hdSep
+      ?hX ?hY ?hZ ?hdSep
       (RegimedVar.ofFactual (dgpBackdoor m g).dVar)
       (dgpBackdoor m g).cfBundle c aMap BMap ?haMap ?hBMap ?ha_value ?hB_value ?hc_value
     · intro v hv
@@ -135,9 +135,6 @@ theorem dgp_unconfoundedness :
       simp [Z] at hv
       subst v
       simp [SCM.randomVars, SWIGGraph.randomVars, dgpSCM, wSWIGGraph]
-    · decide
-    · decide
-    · decide
     · change (initialSWIG wDAG).dSep
         ({SWIGNode.random WNode.A} : Finset (SWIGNode WNode))
         ({SWIGNode.random WNode.Ey, SWIGNode.random WNode.Un} : Finset (SWIGNode WNode))

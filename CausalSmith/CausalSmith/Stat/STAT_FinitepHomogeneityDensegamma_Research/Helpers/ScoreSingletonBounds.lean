@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_FinitepHomogeneityDensegamma_Research.Helper
 public import CausalSmith.Stat.STAT_FinitepHomogeneityDensegamma_Research.Helpers.ScoreCovariance
 
 /-! Pointwise Hölder and clipping bounds used by the score singleton projections. -/
-@[expose] public section
+public section
 noncomputable section
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal

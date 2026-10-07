@@ -12,14 +12,12 @@ public section
 
 namespace Causalean.Stat.Concentration.BoundedVariation
 
-/-- If [a series of real functions on the sign patterns of length n is
-summable at every sign pattern](hyp:hF) and [the root sign-average second
+/-- If, for [a series of real functions on the sign patterns of length n](hyp:F), [the root sign-average second
 moments of its terms are summable](hyp:hR), then [the sign-average square
 of the series is at most the square of the sum of those root second
 moments](goal).
 -/
 theorem finite_sign_l2_tsum_le {n : ℕ} (F : ℕ → (Fin n → Bool) → ℝ)
-    (hF : ∀ σ, Summable (fun k => F k σ))
     (hR : Summable (fun k =>
       Real.sqrt ((∑ σ : Fin n → Bool, (F k σ) ^ 2) / (2 ^ n : ℝ)))) :
     (∑ σ : Fin n → Bool, (∑' k, F k σ) ^ 2) / (2 ^ n : ℝ) ≤

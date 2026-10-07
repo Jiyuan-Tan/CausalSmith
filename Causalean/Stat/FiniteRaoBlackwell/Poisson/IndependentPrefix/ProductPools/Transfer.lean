@@ -139,7 +139,9 @@ one](hyp:hTmem), [a target](hyp:theta), [a proposed risk bound](hyp:Ab), [the ta
 between minus one and one](hyp:htheta), and [the Poissonized squared-risk
 bound](hyp:hA), [finite independent prefix averaging at one-eighth intensities is measurable,
 remains between minus one and one, and has fixed-pool squared risk at most that bound plus the sum
-of negative-capacity exponentials](goal).
+over coordinates of the exponential of minus the pool capacity](goal). Here each coordinate's
+Poisson mean is one eighth of its pool capacity and the averaged statistic outputs zero whenever
+some Poisson count exceeds its capacity.
 -/
 theorem finite_prefix_transfer {I : Type*} [Fintype I]
     {X : I → Type*} [∀ i, MeasurableSpace (X i)]
@@ -166,7 +168,7 @@ theorem finite_prefix_transfer {I : Type*} [Fintype I]
   · fun_prop
   · intro s
     exact abs_le.mp (abs_kernelMean_le (independentPoissonCountKernel _)
-      (by norm_num : (0 : Real) ≤ 1) hCb s)
+      hCb s)
   · calc
       _ ≤ sqRisk (independentPoissonPrefixLaw P (fun i => (N i : NNReal) / 8)) T theta +
           ∑ i, (poissonMeasure ((N i : NNReal) / 8)).real (Set.Ioi (N i)) :=

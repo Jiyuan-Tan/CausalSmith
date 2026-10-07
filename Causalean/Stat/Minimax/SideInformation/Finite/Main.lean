@@ -55,7 +55,7 @@ theorem finiteSideInfo_minimax_tendsto
           BddAbove (Set.range (empiricalSideRisk p q hq tau m d)) := by
         refine ⟨(u - l) ^ 2, ?_⟩
         rintro _ ⟨theta, rfl⟩
-        exact empiricalSideRisk_le p q hp hq tau hlu htau_mem m d theta
+        exact empiricalSideRisk_le p q hp hq tau htau_mem m d theta
       have hbridge := minimaxValueENNRealOfReal_toReal_of_nonneg_of_bddAbove
         (hemp_nonneg m) hbdd
       unfold empiricalSideMinimaxValue
@@ -66,7 +66,7 @@ theorem finiteSideInfo_minimax_tendsto
             Causalean.Stat.worstCaseRiskReal (empiricalSideRisk p q hq tau m) d0 :=
           Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg (hemp_nonneg m) d0
         _ ≤ (u - l) ^ 2 := Causalean.Stat.worstCaseRisk_le fun theta ↦
-          empiricalSideRisk_le p q hp hq tau hlu htau_mem m d0 theta
+          empiricalSideRisk_le p q hp hq tau htau_mem m d0 theta
     have hbounded : Filter.IsBoundedUnder (fun x y : ℝ ↦ x ≤ y) atTop
         (fun m : ℕ ↦ empiricalSideMinimaxValue p q hq tau l u m) :=
       Filter.isBoundedUnder_of_eventually_le (Filter.Eventually.of_forall hminimax_le)

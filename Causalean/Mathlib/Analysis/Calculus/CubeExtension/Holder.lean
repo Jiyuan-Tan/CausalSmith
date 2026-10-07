@@ -80,7 +80,7 @@ theorem signedSum_first_bound {K : ι → Set E} {β h δ C : ℝ} {f : ι → E
       (not_exists.mp hx)).2.1, norm_zero]
     exact mul_nonneg hC (Real.rpow_nonneg hh.le _)
 
-/-- [A nonnegative quantity](hyp:ha) with [a scaled sup bound](hyp:haC) is
+/-- A quantity with [a scaled sup bound](hyp:haC) is
 [bounded by the separated-distance Hölder coefficient](goal) when
 [distance is at least δh](hyp:hsep), [bandwidth and separation factor are positive](hyp:hh,hδ),
 [the constant and distance are nonnegative](hyp:hC,hr), and
@@ -91,7 +91,7 @@ the factors. Bound (δ⁻¹)^s by 1+δ⁻¹, splitting δ⁻¹ ≤ 1 versus 1 �
 the first case uses `Real.rpow_le_one`, the second exponent monotonicity.
 The hypotheses give r>0 even at a support boundary point. -/
 theorem separated_distance_holder {a C h δ r s : ℝ}
-    (ha : 0 ≤ a) (hC : 0 ≤ C) (hh : 0 < h) (hδ : 0 < δ) (hr : 0 ≤ r)
+    (hC : 0 ≤ C) (hh : 0 < h) (hδ : 0 < δ) (hr : 0 ≤ r)
     (hs : 0 < s) (hs1 : s ≤ 1) (hsep : δ * h ≤ r)
     (haC : a ≤ 2 * C * h ^ s) :
     a ≤ (2 * C * (1 + δ⁻¹)) * r ^ s := by
@@ -163,7 +163,7 @@ theorem signedSum_value_holder {K : ι → Set E} {β h δ C : ℝ} {f : ι → 
       · subst j
         rw [heq i x hi, heq i y hj]
         exact hsingle i x y
-      · apply separated_distance_holder (norm_nonneg _) hC hh hδ (norm_nonneg _)
+      · apply separated_distance_holder hC hh hδ (norm_nonneg _)
           hβ hβ1 (hsep.separated i j hij x hi y hj)
         calc
           _ ≤ ‖signedSum σ f x‖ + ‖signedSum σ f y‖ := norm_sub_le _ _
@@ -230,7 +230,7 @@ theorem signedSum_first_holder {K : ι → Set E} {β h δ C : ℝ} {f : ι → 
       · subst j
         rw [heq i x hi, heq i y hj]
         exact hsingle i x y
-      · apply separated_distance_holder (norm_nonneg _) hC hh hδ (norm_nonneg _)
+      · apply separated_distance_holder hC hh hδ (norm_nonneg _)
           (by linarith : 0 < β - 1) (by linarith : β - 1 ≤ 1) (hsep.separated i j hij x hi y hj)
         calc
           _ ≤ ‖fderiv ℝ (signedSum σ f) x‖ + ‖fderiv ℝ (signedSum σ f) y‖ := norm_sub_le _ _
@@ -298,10 +298,13 @@ noncomputable def scaledSignedSum (β h : ℝ) (σ : ι → ℝ) (p : ι → E �
   h ^ β * signedSum σ p x
 
 /-- [The amplitude-scaled signed sum h^β·Σ_i σ_i p_i satisfies the uniform
-Hölder bounds of exponent β with radius 2C(1 + 1/δ)](goal) under [separation and
-locality](hyp:hsep,hloc), [unweighted bandwidth jet bounds](hyp:hbound),
-[a nonnegative profile constant](hyp:hC), [β in `(0,2]`](hyp:hβ,hβ2),
-[h in `(0,1]`](hyp:hh,hh1), [positive separation factor](hyp:hδ), and [bounded signs](hyp:hσ).
+Hölder bounds of exponent β with radius 2C(1 + 1/δ)](goal) provided [the supports K_i are closed
+and pairwise at distance at least δh, and each profile p_i and its first two derivatives vanish
+outside K_i](hyp:hsep,hloc), [each profile is twice continuously differentiable with value at most
+C, first derivative at most C/h and second derivative at most C/h² in norm
+everywhere](hyp:hbound), [C is nonnegative](hyp:hC), [β lies in `(0,2]`](hyp:hβ,hβ2),
+[h lies in `(0,1]`](hyp:hh,hh1), [δ is positive](hyp:hδ), and [every sign σ_i is at most one in
+absolute value](hyp:hσ).
 
 The exponent-zero single-profile hypothesis expresses value ≤ C,
 first jet ≤ C/h, and second jet ≤ C/h²; it is supplied by `scaledCopy_jetBounds`
@@ -373,7 +376,7 @@ theorem scaledSignedSum_uniform_holder {K : ι → Set E} {β h δ C : ℝ} {p :
 /-- [Ambient real uniform Hölder bounds of exponent β and radius R](hyp:hf)
 imply [membership in the intrinsic Hölder ball of radius R on the set, of order 0
 and exponent β when β ≤ 1 and of order 1 and exponent β − 1 otherwise](goal), on
-[a set with unique differentiability](hyp:hS), for [β in `(0,2]`](hyp:hβ,hβ2).
+[a set with unique differentiability](hyp:hS).
 
 The coordinate space uses its existing sup norm. For β ≤ 1 use order zero;
 otherwise use order one and exponent β-1. Unique differentiability identifies
@@ -384,7 +387,7 @@ at most one. The reference ambient bridge in ScaledProductBump assumes C∞,
 so its headline cannot be applied to the present C² profiles. -/
 theorem holderBallOn_of_uniformBounds {d : ℕ} {S : Set (Fin d → ℝ)}
     {β R : ℝ} {f : (Fin d → ℝ) → ℝ} (hS : UniqueDiffOn ℝ S)
-    (hf : UniformHolderBounds β R f) (hβ : 0 < β) (hβ2 : β ≤ 2) :
+    (hf : UniformHolderBounds β R f) :
     HolderBallOn S (if β ≤ 1 then 0 else 1)
       (if β ≤ 1 then β else β - 1) R f := by
   classical
@@ -426,15 +429,15 @@ theorem holderBallOn_of_uniformBounds {d : ℕ} {S : Set (Fin d → ℝ)}
       rw [hone v x hx, hone v y hy, ← sub_apply]
       exact (heval _ _).trans (hf.first_modulus hb1 x y)
 
-/-- [Ambient uniform Hölder bounds of exponent β and radius R](hyp:hf) for
-[β in `(0,2]`](hyp:hβ,hβ2) give [membership in the same-radius intrinsic Hölder
+/-- [Ambient uniform Hölder bounds of exponent β and radius R](hyp:hf)
+give [membership in the same-radius intrinsic Hölder
 ball on the normalized closed cube, of order 0 and exponent β when β ≤ 1 and of
 order 1 and exponent β − 1 otherwise](goal). -/
 theorem holderBallOn_cube_of_uniformBounds {d : ℕ} {β R : ℝ} {f : (Fin d → ℝ) → ℝ}
-    (hf : UniformHolderBounds β R f) (hβ : 0 < β) (hβ2 : β ≤ 2) :
+    (hf : UniformHolderBounds β R f) :
     HolderBallOn (cube d) (if β ≤ 1 then 0 else 1)
       (if β ≤ 1 then β else β - 1) R f := by
-  apply holderBallOn_of_uniformBounds (hf := hf) (hβ := hβ) (hβ2 := hβ2)
+  apply holderBallOn_of_uniformBounds (hf := hf)
   have hcube : cube d = Set.univ.pi (fun _ : Fin d => Set.Icc (-1 : ℝ) 1) := by
     ext x
     simp [cube, Causalean.Mathlib.Analysis.JacksonApproximation.normalizedCube,

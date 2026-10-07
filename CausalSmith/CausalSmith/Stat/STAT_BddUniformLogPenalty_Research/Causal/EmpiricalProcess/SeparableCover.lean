@@ -207,7 +207,7 @@ lemma separableWinsorizedScore_hasUniformPolynomialL2Cover
       have hM0 : 0 ≤ (2 : ℝ) ^ p := by positivity
       nlinarith [mul_nonneg hB0 hM0, mul_nonneg hpR hM0,
         mul_nonneg (add_nonneg hB0 hpR) (sq_nonneg ((2 : ℝ) ^ p))]
-    have hrelaxed := hsum.enlargeEnvelope henvLe
+    have hrelaxed := hsum.monoEnvelope henvLe
     have heq (i : SeparableWinsorizedScoreIndex P p h) (w : CausalObservation) :
         separableWinsorizedScoreFunction P p h B R i w =
           (radialResidualScore 2 p causalScore posArm response h 0 2 R

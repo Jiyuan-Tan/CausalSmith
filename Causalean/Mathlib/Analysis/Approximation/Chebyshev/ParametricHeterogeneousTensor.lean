@@ -22,7 +22,7 @@ namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev.HeterogeneousTensor
 variable {ι Ω : Type*} [Fintype ι] [DecidableEq ι] [MeasurableSpace Ω]
 
 /-- [A coordinate-specific order map](hyp:d), [a parameter-indexed target](hyp:g), and [a parameter value](hyp:ω) determine [the canonical heterogeneous Jackson polynomial](goal).
-[The polynomial](step:1) interpolates the heterogeneous convolution at a fixed finite tensor grid, without selecting an existential witness. -/
+[The polynomial](step:1) is the fixed tensor-grid interpolation polynomial built from the values, at the coordinatewise arccosines of the grid points, of the heterogeneous Jackson convolution of the target at that parameter value; it is an explicit formula, not an existentially chosen witness. -/
 def polynomial (d : ι → ℕ) (g : Ω → (ι → ℝ) → ℝ) (ω : Ω) :
     MvPolynomial ι ℝ :=
   interpolate d (fun b => convolution d (g ω)

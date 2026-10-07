@@ -3,10 +3,21 @@ public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor.Endpoint
 public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor.Product
 
 /-!
-# Uniform endpoint Taylor remainder for exponential integral products
+# Endpoint Taylor expansion of exp(−∫h)·g with a uniform constant
 
-The final theorem combines quantitative Hölder closure with the generic
-endpoint-within-interval Taylor theorem.
+For functions h and g that are k times continuously differentiable on an interval, bounded there,
+and whose k-th derivatives are Hölder with exponent α ∈ (0, 1], the survival-weighted product
+t ↦ exp(−∫_a^t h)·g(t) is approximated by a polynomial of degree at most k in the distance to the
+right endpoint b, with error at most C·(b − t)^(k + α) on the whole interval. The constant C
+depends only on k, α, the interval length and the sup and Hölder bounds on h and g, not on the
+functions themselves. The functional form is that of a survival function (the exponential of minus
+a cumulative hazard) times a second factor.
+
+## Main results
+
+* `survival_product_endpoint_taylor` — the expansion on [a, a + d], with C also independent of
+  the location a of the interval.
+* `survival_product_endpoint_taylor_Icc` — the same statement on a fixed interval [a, b].
 -/
 
 public section
@@ -56,7 +67,7 @@ theorem survival_product_endpoint_taylor
     survival_product_holder_closure k α d Mh Lh Mg Lg
       hα hα1 hd hMh hLh hMg hLg
   obtain ⟨C, hC, htaylor⟩ :=
-    endpoint_holder_taylor k α d B hα hα1 hd hB
+    endpoint_holder_taylor k α d B hα hd hB
   refine ⟨C, hC, ?_⟩
   intro a h g hh hg hMh' hMg' hLh' hLg'
   obtain ⟨hfc, _, hfh⟩ :=

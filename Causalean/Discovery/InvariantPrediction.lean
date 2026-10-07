@@ -9,15 +9,18 @@ public import Causalean.Discovery.InvariantPrediction.LinearGaussian
 public import Causalean.Discovery.InvariantPrediction.Soundness
 
 /-!
-# Invariant Causal Prediction — umbrella
+# Invariant Causal Prediction
 
-Entry point for the formalization of Peters, Bühlmann & Meinshausen, *Causal
-inference using invariant prediction: identification and confidence intervals*
-(JRSS-B 2016, `arXiv:1501.01332`).  Import this file to get the whole
-development.  This is the third identification engine in `Causalean.Discovery`,
-beside non-Gaussianity (`LiNGAM`) and interventions-plus-second-moments
-(`LinearDisentanglement`): here causal structure is identified from the
-**invariance of the causal mechanism across interventional environments**.
+Population identification of the direct causes of a target variable from the invariance of its
+conditional law across interventional environments, after Peters, Bühlmann & Meinshausen, *Causal
+inference using invariant prediction: identification and confidence intervals* (JRSS-B 2016,
+`arXiv:1501.01332`). For a finite family of structural causal models that share the target's
+mechanism, parent set and latent-noise law and satisfy an exogeneity condition on the target's
+latent parents, the target's observed parents form an invariant predictor set, so the intersection
+S(E) of all invariant predictor sets contains only observed parents of the target. In a separate
+linear-Gaussian model with do-interventions that shift every predictor away from its observational
+mean, and with target exogeneity assumed in every environment, S(E) equals the parent set of the
+target. The paper's finite-sample coverage guarantee is not formalized.
 
 ## Main results
 

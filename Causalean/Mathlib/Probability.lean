@@ -10,8 +10,8 @@ public import Causalean.Mathlib.Probability.Birthday
 public import Causalean.Mathlib.Probability.Certified
 public import Causalean.Mathlib.Probability.Certified
 public import Causalean.Mathlib.Probability.ConvergenceInDistribution
+public import Causalean.Mathlib.Probability.Distributions
 public import Causalean.Mathlib.Probability.CovarianceCauchySchwarz
-public import Causalean.Mathlib.Probability.DarmoisSkitovich
 public import Causalean.Mathlib.Probability.EventSelectedMixture
 public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
 public import Causalean.Mathlib.Probability.FiniteMarkovOscillation
@@ -29,6 +29,7 @@ public import Causalean.Mathlib.Probability.HermiteGenerating
 public import Causalean.Mathlib.Probability.IdentDistrib
 public import Causalean.Mathlib.Probability.IidMeanVariance
 public import Causalean.Mathlib.Probability.Independence
+public import Causalean.Mathlib.Probability.KacBernstein
 public import Causalean.Mathlib.Probability.Kernel
 public import Causalean.Mathlib.Probability.LimitTheorems
 public import Causalean.Mathlib.Probability.LimitTheorems.Approximation

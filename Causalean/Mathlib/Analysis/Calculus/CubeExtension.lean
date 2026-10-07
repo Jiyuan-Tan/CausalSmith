@@ -1,5 +1,6 @@
 module
 public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Affine
+public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.AmbientBridge
 public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Basic
 public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.Clamping
 public import Causalean.Mathlib.Analysis.Calculus.CubeExtension.ClosedPieceGluing

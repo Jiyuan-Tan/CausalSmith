@@ -5,6 +5,7 @@ import PaperEntry from "../components/PaperEntry.astro";
 import SeoHead from "../components/SeoHead.astro";
 import "katex/dist/katex.min.css";
 import "../styles/series.css";
+import "../styles/runs.css";
 
 const bundles = await loadBundles(bundleRoots());
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -88,6 +89,7 @@ const listed = flagship ? bundles.slice(1) : bundles;
       <div id="wp-list">
       {listed.map((b) => <PaperEntry bundle={b} />)}
       </div>
+      <nav class="run-pager" id="wp-pager" aria-label="Pages" hidden></nav>
 
       <footer class="site-footer">
         Statements are rendered from the verified Lean artifact at a pinned commit; the
@@ -104,10 +106,10 @@ const listed = flagship ? bundles.slice(1) : bundles;
       // detach them (see scripts/disclosures.ts).
       initDisclosures();
 
-      // Client-side reorder of the working-paper list. Server renders it score-desc
-      // (best first); "Cluster" regroups by area with a heading per cluster, score-desc
-      // within each. appendChild MOVES the existing nodes, so <details> open-state and
-      // any listeners survive the reorder.
+      // Client-side reorder and paging of the working-paper list. Server renders it
+      // score-desc (best first); "Cluster" regroups by area with a heading per cluster,
+      // score-desc within each. appendChild MOVES the existing nodes, so <details>
+      // open-state and any listeners survive the reorder.
       const list = document.getElementById("wp-list");
       if (list) {
         const entries = Array.from(list.querySelectorAll(".wp-entry"));
@@ -117,39 +119,26 @@ const listed = flagship ? bundles.slice(1) : bundles;
         const human = (el) => Number(el.getAttribute("data-human") ?? -1);
         const area = (el) => el.getAttribute("data-area") || "";
         const created = (el) => el.getAttribute("data-created") || "";
-        const clearHeads = () => list.querySelectorAll(".cluster-head").forEach((h) => h.remove());
-        const byScore = () => {
-          clearHeads();
-          entries
-            .slice()
-            .sort((a, b) => score(b) - score(a))
-            .forEach((e) => list.appendChild(e));
-        };
-        // Reader rating, best first; ties (and the unrated tail) fall back to AI score.
-        const byReaders = () => {
-          clearHeads();
-          entries
-            .slice()
-            .sort((a, b) => human(b) - human(a) || score(b) - score(a))
-            .forEach((e) => list.appendChild(e));
-        };
-        // Timeline: first-published (meta.created, an ISO date so string order is
-        // date order), newest first; same-day papers fall back to score.
-        const byDate = () => {
-          clearHeads();
-          entries
-            .slice()
-            .sort((a, b) => created(b).localeCompare(created(a)) || score(b) - score(a))
-            .forEach((e) => list.appendChild(e));
-        };
-        const byCluster = () => {
-          clearHeads();
-          const sorted = entries
-            .slice()
-            .sort((a, b) => area(a).localeCompare(area(b)) || score(b) - score(a));
+        // The list is paged: a sort orders ALL the papers, then one page of them is
+        // shown. Off-page entries stay in the document (hidden), so their open
+        // panels, listeners and rating badges survive both paging and re-sorting.
+        const PAGE = 20;
+        const pager = document.getElementById("wp-pager");
+        // The page number lives in the address (#p3), so back and shared links keep the place.
+        const pageFromHash = () => Math.max(1, Number(/^#p(\d+)$/.exec(location.hash)?.[1] ?? 1));
+        let page = pageFromHash();
+        let order = entries.slice();
+        let grouped = false;
+        const render = () => {
+          list.querySelectorAll(".cluster-head").forEach((h) => h.remove());
+          const pages = Math.max(1, Math.ceil(order.length / PAGE));
+          page = Math.min(page, pages);
           let cur = null;
-          for (const e of sorted) {
-            if (area(e) !== cur) {
+          order.forEach((e, i) => {
+            const shown = i >= (page - 1) * PAGE && i < page * PAGE;
+            e.hidden = !shown;
+            // "Cluster" puts a heading before each area's first paper on the page.
+            if (grouped && shown && area(e) !== cur) {
               cur = area(e);
               const h = document.createElement("h3");
               h.className = "cluster-head";
@@ -157,21 +146,55 @@ const listed = flagship ? bundles.slice(1) : bundles;
               list.appendChild(h);
             }
             list.appendChild(e);
-          }
+          });
+          if (!pager) return;
+          pager.hidden = pages <= 1;
+          // First, last, and a window around the current page; gaps shown as an ellipsis.
+          const nums = [...new Set([1, 2, page - 1, page, page + 1, pages - 1, pages])]
+            .filter((n) => n >= 1 && n <= pages)
+            .sort((a, b) => a - b);
+          const link = (n, label, off, isCur = false) =>
+            off
+              ? `<span class="off">${label}</span>`
+              : isCur
+                ? `<span class="cur" aria-current="page">${label}</span>`
+                : `<a href="#p${n}">${label}</a>`;
+          pager.innerHTML =
+            link(page - 1, "‹ Previous", page === 1) +
+            nums
+              .map((n, i) => (i > 0 && n - nums[i - 1] > 1 ? `<span class="gap">…</span>` : "") + link(n, String(n), false, n === page))
+              .join("") +
+            link(page + 1, "Next ›", page === pages);
+        };
+        const sorters = {
+          score: (a, b) => score(b) - score(a),
+          // Reader rating, best first; ties (and the unrated tail) fall back to AI score.
+          readers: (a, b) => human(b) - human(a) || score(b) - score(a),
+          // Timeline: first-published (meta.created, an ISO date so string order is
+          // date order), newest first; same-day papers fall back to score.
+          date: (a, b) => created(b).localeCompare(created(a)) || score(b) - score(a),
+          cluster: (a, b) => area(a).localeCompare(area(b)) || score(b) - score(a),
+        };
+        const sortBy = (mode) => {
+          grouped = mode === "cluster";
+          order = entries.slice().sort(sorters[mode] ?? sorters.score);
+          render();
         };
         for (const btn of btns) {
           btn.addEventListener("click", () => {
-            const mode = btn.getAttribute("data-sort");
             btns.forEach((b) => b.classList.toggle("is-active", b === btn));
-            mode === "cluster"
-              ? byCluster()
-              : mode === "date"
-                ? byDate()
-                : mode === "readers"
-                  ? byReaders()
-                  : byScore();
+            // A new order starts again at page 1.
+            page = 1;
+            history.replaceState(null, "", location.pathname + location.search);
+            sortBy(btn.getAttribute("data-sort"));
           });
         }
+        window.addEventListener("hashchange", () => {
+          page = pageFromHash();
+          render();
+          list.scrollIntoView({ block: "start" });
+        });
+        render();
       }
 
       // Reader-rating badges, filled from the worker after render. Static pages

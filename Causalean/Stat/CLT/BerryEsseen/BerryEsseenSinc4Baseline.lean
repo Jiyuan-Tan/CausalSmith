@@ -57,7 +57,7 @@ theorem normal_cdf_smoothing_sinc4_baseline
     exact sinc4_smoothed_cdf_fourier_bound μ (gaussianReal 0 1)
       hfirst hg T hT z
   have hsand := sinc4_cdf_sandwich μ (gaussianReal 0 1)
-    T L B hT hL hB hν hsmooth x
+    T L B hT hL hν hsmooth x
   calc
     _ ≤ 2 * B + 24 * L / T := hsand
     _ = (1 / Real.pi) *

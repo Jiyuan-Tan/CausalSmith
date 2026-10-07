@@ -127,8 +127,8 @@ outcome-regression error in `L²(P_X)`](hyp:hΔμ_memLp), [the population AIPW
 moment functional at `η` and the true ATE `θ₀`, integrated over the
 observed-data law `P_Z`, equals the covariate-law integral of `η`'s propensity
 error (its propensity estimate minus the truth) times the sum of each
-treatment-arm outcome-regression error divided by the corresponding true or
-complementary propensity](goal).
+treatment-arm outcome-regression error divided by `η`'s own propensity estimate
+(for the treated arm) or one minus that estimate (for the control arm)](goal).
 
 Expanding the population AIPW moment around the true nuisance `S.η₀` cancels
 the zeroth and first-order terms, leaving the two cross-products between the

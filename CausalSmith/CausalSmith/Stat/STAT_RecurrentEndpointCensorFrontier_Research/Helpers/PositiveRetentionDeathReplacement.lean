@@ -192,19 +192,17 @@ lemma positiveRetention_deathOracleDifferenceIntegral_eq_scaled_difference_ae
     rw [Filter.eventually_all]
     intro i
     exact (subject_hazard_path_integrable_ae _ _ _
-      (armDeathFailureLaw_nonnegativeTimeLaw P a)
         (DeathCP.positiveRetention_referenceDeathLaw_hasCensorHazard c P hDeath hDeathBounds a)
       _ (positiveRetention_deathCPIntegrand_jointMeasurable c P hPoisson hDeath hDeathBounds a (by
         norm_num) (by norm_num))
-      i 1 (by norm_num)
+      i 1
       (DeathCP.positiveRetention_referenceHazard_quadraticEnergyFinite
         c P hPoisson hDeath hRecurBounds hDeathBounds a)).and
       (subject_hazard_path_integrable_ae _ _ _
-        (armDeathFailureLaw_nonnegativeTimeLaw P a)
           (DeathCP.positiveRetention_referenceDeathLaw_hasCensorHazard c P hDeath hDeathBounds a)
         _ ((positiveRetention_measurable_deathOracleWeight c P hPoisson hDeath hDeathBounds
           a).comp measurable_fst)
-        i 1 (by norm_num) hq)
+        i 1 hq)
   filter_upwards [hp] with x hx
   unfold aggregateIntegral
   rw [Finset.mul_sum, Finset.sum_div, ← Finset.sum_sub_distrib]

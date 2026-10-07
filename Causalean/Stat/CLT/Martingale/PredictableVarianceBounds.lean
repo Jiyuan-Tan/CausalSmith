@@ -88,13 +88,13 @@ theorem conditionalSecondMoment_le_sq_add_lindebergTerm
   simpa only [Pi.add_apply, congrFun hconst ω] using hmonoω
 
 /-- If [the truncation threshold is positive](hyp:hη), [the row predictable quadratic variation is bounded](hyp:hVariance) and
-[its conditional Lindeberg sum is bounded](hyp:hLindeberg), with [nonnegative
-budgets](hyp:hK,hδ), then [the sum of squared conditional variance increments is
+[its conditional Lindeberg sum is bounded](hyp:hLindeberg), with [a nonnegative
+Lindeberg budget](hyp:hδ), then [the sum of squared conditional variance increments is
 at most `(η² + δ)K`](goal). -/
 theorem sum_sq_conditionalSecondMoment_le_of_budgets
     [∀ n, IsProbabilityMeasure (μ n)]
     (A : MartingaleDifferenceArray Ω μ) (n : ℕ) (η K δ : ℝ)
-    (hη : 0 < η) (hK : 0 ≤ K) (hδ : 0 ≤ δ)
+    (hη : 0 < η) (hδ : 0 ≤ δ)
     (hVariance : A.predictableQuadraticVariation n ≤ᵐ[μ n] fun _ => K)
     (hLindeberg : A.conditionalLindeberg η n ≤ᵐ[μ n] fun _ => δ) :
     (fun ω => ∑ k ∈ Finset.range (A.rowLength n),

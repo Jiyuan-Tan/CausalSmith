@@ -16,7 +16,7 @@ namespace Causalean.Stat.Minimax.Multinomial.TwoSampleL1
 
 open scoped BigOperators ENNReal
 
-/-- Select the scalar mass of a node from one of the two moment priors. -/
+/-- Select the scalar mass of a node from one of the two moment priors: the second prior's weight when the side flag is true, the first prior's weight otherwise. -/
 noncomputable def scalarPriorWeight {L : ℕ} (P : ScalarMomentPriors L)
     (side : Bool) (i : Fin P.m) : ℝ :=
   if side then P.w₁ i else P.w₀ i
@@ -63,7 +63,7 @@ theorem pairedProductWeight_sum {L : ℕ} (P : ScalarMomentPriors L)
           ENNReal.ofReal (scalarPriorWeight P side i))).symm
     _ = 1 := by simp [hsum]
 
-/-- Given [a scalar moment prior](hyp:P), [a positive balanced pair count](hyp:b,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [a prior side](hyp:side), [the paired-product mean L1 target equals the scalar absolute-moment expression](goal). -/
+/-- Given [a scalar moment prior](hyp:P), [a positive balanced pair count](hyp:b,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [a prior side](hyp:side), [the product-prior mean of the L1 distance between the uniform base vector and the tilted vector equals t times the mean absolute node value under the chosen scalar prior](goal). -/
 theorem pairedProductTarget_mean {L : ℕ} (P : ScalarMomentPriors L)
     (b : ℕ) (hb : 0 < b)
     (t : ℝ) (ht : 0 ≤ t) (ht1 : t ≤ 1) (side : Bool) :

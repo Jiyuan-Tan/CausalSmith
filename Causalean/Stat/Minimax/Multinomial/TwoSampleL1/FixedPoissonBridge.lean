@@ -21,7 +21,7 @@ namespace Causalean.Stat.Minimax.Multinomial.TwoSampleL1
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal NNReal
 
-/-- Given [fixed sample, alphabet, and mixture sizes with a nonempty alphabet and Poisson mean](hyp:n,k,m,hk,lam), [two normalized mixture weights](hyp:w₀,w₁,hw₀,hw₁), and [two collections of multinomial vectors](hyp:R₀,R₁), [the fixed-sample predictive distance is bounded by the Poisson predictive distance plus the common short-count loss](goal). -/
+/-- Given [fixed sample, alphabet, and mixture sizes with a nonempty alphabet and Poisson mean](hyp:n,k,m,hk,lam), [two normalized mixture weights](hyp:w₀,w₁,hw₀,hw₁), and [two collections of multinomial vectors](hyp:R₀,R₁), [the total variation distance between the two mixtures of fixed-size iid sample laws is at most the total variation distance between the corresponding mixtures of finite Poisson sample laws plus twice the probability that a Poisson count with the given mean falls below the fixed sample size](goal). -/
 theorem fixedSampleMixture_tv_le_finitePoisson
     (n k m : ℕ) (hk : 0 < k) (lam : ℝ≥0)
     (w₀ w₁ : Fin m → ℝ≥0∞)

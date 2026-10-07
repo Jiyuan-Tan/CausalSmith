@@ -5,7 +5,7 @@ public import Mathlib.Analysis.Fourier.Inversion
 /-! # Fourier bound for a band-limited convolution
 
 This is the Fourier inversion and Fubini step of one-sided Esseen smoothing.
-The kernel is supplied separately, so the sharp one-sided comparison can be
+The kernel is supplied separately, so the one-sided comparison can be
 studied without repeating the frequency-domain argument.
 -/
 
@@ -19,8 +19,7 @@ open MeasureTheory
 [a continuous integrable kernel K](hyp:hK,hKcont) whose
 [Fourier transform is integrable](hyp:hKhat),
 [vanishes outside (−T, T)](hyp:hsupp) for [a positive bandwidth T](hyp:hT),
-and [has magnitude at most one](hyp:hnorm), if [the convolution integrand at
-x is integrable](hyp:hconv), then [the convolution of H with K at x is
+and [has magnitude at most one](hyp:hnorm), [the convolution of H with K at x is
 bounded in absolute value by 1/(2π) times the integral over [−T, T] of the
 magnitude of the Fourier transform of H](goal). -/
 theorem bandlimited_convolution_fourier_bound
@@ -33,8 +32,7 @@ theorem bandlimited_convolution_fourier_bound
       (∫ y : ℝ, Complex.exp (((t * y : ℝ) : ℂ) * Complex.I) * (K y : ℂ)) = 0)
     (hnorm : ∀ t : ℝ,
       ‖∫ y : ℝ, Complex.exp (((t * y : ℝ) : ℂ) * Complex.I) * (K y : ℂ)‖ ≤ 1)
-    (x : ℝ)
-    (hconv : Integrable (fun y : ℝ => H (x - y) * K y) volume) :
+    (x : ℝ) :
     |∫ y : ℝ, H (x - y) * K y| ≤
       (1 / (2 * Real.pi)) *
         ∫ t in (-T)..T,

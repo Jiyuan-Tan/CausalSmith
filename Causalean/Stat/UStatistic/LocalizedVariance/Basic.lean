@@ -44,7 +44,8 @@ def pairIndices (n : ℕ) : Finset (Fin n × Fin n) :=
 
 /-- A [sample size](hyp:n), [two-observation kernel](hyp:H), and [realized sample](hyp:ω)
 determine [the unordered order-two U-statistic](goal), the average kernel value over distinct
-unordered pairs. -/
+unordered pairs of observations (each pair evaluated with the lower-indexed observation first).
+With fewer than two observations there are no pairs and the value is zero. -/
 noncomputable def uStatistic (n : ℕ) (H : X → X → ℝ) (ω : Fin n → X) : ℝ :=
   ((pairIndices n).card : ℝ)⁻¹ *
     ∑ p ∈ pairIndices n, H (ω p.1) (ω p.2)

@@ -4,7 +4,7 @@ public import CausalSmith.Experimentation.EXP_PilotscorePairingFrontier_Research
 
 /-! # Quantitative bounds for the full folded score density -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Experimentation.PilotscorePairingFrontier
 

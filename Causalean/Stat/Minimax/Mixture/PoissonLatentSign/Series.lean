@@ -27,7 +27,7 @@ def overlapSeries (t : ℕ → ℝ) (z : ℝ) : ℝ :=
 /-- An exponential majorant makes the cell overlap series absolutely convergent at every real
   argument. -/
 theorem overlapSeries_summable_abs {t : ℕ → ℝ} {b : ℝ}
-    (hb : 0 ≤ b) (ht : ∀ d, 1 ≤ d → 0 ≤ t d ∧ t d ≤ b ^ d / (d.factorial : ℝ))
+    (ht : ∀ d, 1 ≤ d → 0 ≤ t d ∧ t d ≤ b ^ d / (d.factorial : ℝ))
     (z : ℝ) : Summable (fun d : ℕ => |t (d + 1) * z ^ (d + 1)|) := by
   have hs := (summable_nat_add_iff 1).2 (Real.summable_pow_div_factorial (b * |z|))
   refine hs.of_nonneg_of_le (fun _ => abs_nonneg _) (fun d => ?_)
@@ -45,7 +45,7 @@ theorem overlapSeries_remainder {t : ℕ → ℝ} {b z : ℝ}
     (hr : b * |z| ≤ 1 / 2) :
     |overlapSeries t z - 1 - t 1 * z| ≤ b ^ 2 * z ^ 2 := by
   -- The d≥2 tail is at most r² ∑n r^n/(n+2)! ≤ r² for r≤1/2.
-  have hsabs := overlapSeries_summable_abs hb ht z
+  have hsabs := overlapSeries_summable_abs ht z
   have hs : Summable (fun d : ℕ => t (d + 1) * z ^ (d + 1)) := by
     exact (by simpa only [Real.norm_eq_abs] using hsabs :
       Summable (fun d : ℕ => ‖t (d + 1) * z ^ (d + 1)‖)).of_norm
@@ -108,10 +108,10 @@ theorem overlapSeries_pos {t : ℕ → ℝ} {b z : ℝ}
   rw [hsq] at hrem
   nlinarith
 
-/-- Given [a nonnegative exponential radius](hyp:hb), [nonnegative coefficients with
-the factorial majorant](hyp:ht), [a small absolute radius](hyp:hr), and [a natural
-power](hyp:k), [the overlap power is bounded by an exponential retaining its exact
-first coefficient](goal). -/
+/-- Given [a nonnegative exponential radius](hyp:hb) b, [coefficients with
+0 ≤ t_d ≤ bᵈ/d! for every d ≥ 1](hyp:ht), [an overlap z with b|z| ≤ 1/2](hyp:hr), and
+[a natural power](hyp:k) k, [the k-th power of the overlap series is at most
+exp(k·t₁·z + k·b²z²)](goal). -/
 theorem overlapSeries_pow_le_exp {t : ℕ → ℝ} {b z : ℝ}
     (hb : 0 ≤ b) (ht : ∀ d, 1 ≤ d → 0 ≤ t d ∧ t d ≤ b ^ d / (d.factorial : ℝ))
     (hr : b * |z| ≤ 1 / 2) (k : ℕ) :

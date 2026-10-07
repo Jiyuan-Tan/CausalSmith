@@ -37,9 +37,13 @@ structure FactorJets (ι : Type*) where
 
 /-- The [selected factor jet](goal) of [a supplied family](hyp:J) at
 [an index](hyp:i), [two derivative orders](hyp:p,q), and [a point](hyp:a,u)
-uses the seven supplied functions; affinity makes orders (0,2) and (1,2) zero.
-Orders outside the supported grid are also defined to be zero, but the calculus
-theorems only use first orders at most two and second orders at most two. -/
+is the supplied function for that pair of orders when the pair is one of (0,0), (1,0), (2,0),
+(0,1), (1,1), (2,1), (2,2), and zero for every other pair.
+
+The pairs (0,2) and (1,2) are zero because each factor is treated as affine in the second
+coordinate at first-coordinate orders zero and one. Pairs with an order above two are also
+defined to be zero, but the calculus theorems only use first orders at most two and second orders
+at most two. -/
 def factorJet (J : FactorJets ι) (i : ι) (p q : ℕ) (a u : ℝ) : ℝ :=
   match p, q with
   | 0, 0 => J.f00 i a u
@@ -53,8 +57,10 @@ def factorJet (J : FactorJets ι) (i : ι) (p q : ℕ) (a u : ℝ) : ℝ :=
 
 /-- An [ordered-hit Leibniz summand](goal) for [a finite set](hyp:I),
 [factor jets](hyp:J), [first and second coordinate hit lists](hyp:xs,ys),
-and [a point](hyp:a,u) multiplies the factor jet whose orders are the two
-occurrence counts. Thus the derivative assignments are inspectable factor by factor. -/
+and [a point](hyp:a,u) is the product, over the indices in the finite set, of each factor's
+jet at the point whose first- and second-coordinate orders are the numbers of times that index
+occurs in the first and second hit lists. Thus the derivative assignments are inspectable factor
+by factor. -/
 def leibnizTerm (I : Finset ι) (J : FactorJets ι) (xs ys : List ι)
     (a u : ℝ) : ℝ :=
   ∏ i ∈ I, factorJet J i (xs.count i) (ys.count i) a u

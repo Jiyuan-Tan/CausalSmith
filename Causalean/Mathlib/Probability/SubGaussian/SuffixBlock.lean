@@ -18,8 +18,11 @@ namespace Causalean.Mathlib.Probability.SubGaussian
 open MeasureTheory
 
 /-- For [a decay exponent](hyp:α) satisfying [strict positivity](hyp:hα), [there
-is a positive constant](goal) that bounds every integrable Gaussian tail block
-with a positive scale by its local scale and square-root logarithmic factor.
+is a positive constant such that, for every number of terms `N`, reference index
+`m ≥ 1`, block start `L ≥ m` and scale `σ > 0`, the clipped block sum
+`min(1, Σ 2·exp(-t²/(2σ²(m/(k+1))^α)))` over the indices `k < N` with `L ≤ k+1 < 2L` is
+integrable in `t` over the positive half-line with integral at most the constant times
+`σ·(m/L)^(α/2)·√(1 + log L)`](goal).
 
 Proof strategy: there are at most `L` indices in the block.  For each of them,
 `(m/(k+1))^α ≤ (m/L)^α`, so the sum is pointwise bounded by

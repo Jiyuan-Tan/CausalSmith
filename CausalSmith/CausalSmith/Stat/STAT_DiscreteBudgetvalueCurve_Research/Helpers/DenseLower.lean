@@ -4,7 +4,7 @@ public import CausalSmith.Stat.STAT_DiscreteBudgetvalueCurve_Research.Helpers.Mo
 
 /-! Dense moment-matching regime in the lower proof. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteBudgetvalueCurve
 

@@ -14,7 +14,10 @@ namespace Causalean.Stat.CLT.BerryEsseen
 
 open Finset
 
-/-- Integer Horner numerator of all sixteen Taylor terms. -/
+/-- The integer Taylor numerator at integers n and d is the sum over k from 0
+to 15 of (15!/k!)·nᵏ·d^(15−k), written in Horner form. For d ≠ 0 it equals
+15!·d¹⁵ times the sixteen-term Taylor polynomial of the exponential at
+n/d. -/
 def highTaylorNum (n d : ℤ) : ℤ :=
   (1307674368000 * d ^ 15 + n *
     (1307674368000 * d ^ 14 + n *
@@ -33,24 +36,35 @@ def highTaylorNum (n d : ℤ) : ℤ :=
     (15 * d ^ 1 + n *
     1)))))))))))))))
 
-/-- Integer cubic damping factor at a grid endpoint. -/
+/-- The integer cubic damping value at grid index i is 1800000·i² − 1728·i³.
+Divided by 625000000000 it equals 72a²/25 − 1728a³/625 at the kernel grid
+point a = i/1000. -/
 def highCubic (i : ℕ) : ℤ :=
   1800000 * (i : ℤ) ^ 2 - 1728 * (i : ℤ) ^ 3
 
-/-- Integer numerator of the damped high-cell exponent. -/
+/-- The integer numerator of the high-cell exponent for parameter cell j and
+frequency index i is the smaller of the cubic damping values at i and i + 1,
+multiplied by the square of the denominator of the cell's right endpoint. -/
 def highExponentNum (j i : ℕ) : ℤ :=
   min (highCubic i) (highCubic (i + 1)) *
     ((prawitzCompactRight j).den : ℤ) ^ 2
 
-/-- Integer denominator of the damped high-cell exponent. -/
+/-- The integer denominator of the high-cell exponent for parameter cell j is
+625000000000 times the square of the numerator of the cell's right endpoint.
+The exponent numerator over this denominator is the rational exponent used by
+the high cell bound. -/
 def highExponentDen (j : ℕ) : ℤ :=
   625000000000 * (prawitzCompactRight j).num ^ 2
 
-/-- Exact upward rounding of an integer fraction, using integer division. -/
+/-- The ceiling of the integer fraction n/d computed by integer division:
+−⌊−n/d⌋ when d ≥ 0 and −⌊n/(−d)⌋ when d < 0. A zero denominator gives zero. -/
 def highCeil (n d : ℤ) : ℤ :=
   if 0 ≤ d then -(-n / d) else -(n / -d)
 
-/-- The kernel magnitude table, cached in blocks of thirty-two entries. -/
+/-- The b-th block of thirty-two consecutive entries of the integer kernel
+magnitude table, for b from 0 to 31 (the last block holds eight entries);
+any other block number gives the empty array. The blocks are a copy of the
+table arranged for fast lookup. -/
 def highKernelBlock (b : ℕ) : Array ℕ :=
   match b with
   | 0 => #[
@@ -244,12 +258,20 @@ def highKernelBlock (b : ℕ) : Array ℕ :=
   ]
   | _ => #[]
 
-/-- Kernel magnitude lookup through the cached blocks. -/
+/-- The kernel magnitude entry at index i read from the cached blocks: entry
+i mod 32 of block ⌊i/32⌋ for i < 1000, and the original table's value for
+i ≥ 1000. -/
 def highKernelFast (i : ℕ) : ℕ :=
   if i < 1000 then (highKernelBlock (i / 32)).getD (i % 32) 0
   else prawitzKernelMagnitudeIndex i
 
-/-- The outward-rounded high-frequency cell as an integer ceiling of an integer fraction. -/
+/-- The integer high-frequency cell for parameter cell j and frequency index i
+is the ceiling of the integer fraction 6·M·den(r)·15!·d¹⁵ over
+25·num(r)·N. Here r is the left endpoint of the parameter cell, M the
+block-lookup kernel magnitude entry at i, d the high-cell exponent
+denominator and N the integer Taylor numerator at the high-cell exponent
+numerator and d. It is the integer-arithmetic form of the rational high cell
+bound multiplied by one hundred million and rounded up. -/
 def highCellInteger (j i : ℕ) : ℤ :=
   let r := prawitzCompactLeft j
   let n := highExponentNum j i
@@ -257,7 +279,9 @@ def highCellInteger (j i : ℕ) : ℤ :=
   highCeil (6 * (highKernelFast i : ℤ) * r.den *
     (1307674368000 * d ^ 15)) (25 * r.num * highTaylorNum n d)
 
-/-- Integer suffix sum of the rounded high cells, from the top grid index downward. -/
+/-- The integer suffix sum for parameter cell j and length n ≤ 1000 is the sum
+of the integer high-frequency cells at the top n grid indices, 1000 − n
+through 999; it is zero for n = 0. -/
 def highIntSuffix (j : ℕ) : ℕ → ℤ
   | 0 => 0
   | n + 1 => highIntSuffix j n + highCellInteger j (999 - n)

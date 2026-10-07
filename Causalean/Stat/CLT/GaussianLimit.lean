@@ -15,7 +15,7 @@ second-moment operator `Σ` of `ψ` (`Causalean/Stat/CLT/SecondMomentOperator.le
 is built as `(stdGaussian E).map √Σ` where `√Σ` is the positive operator square
 root (`Causalean/Mathlib/Analysis/InnerProductSpace/PosDef/Sqrt.lean`) and
 `stdGaussian E` is the standard Gaussian with identity covariance
-(`Causalean/Mathlib/StandardGaussian.lean`):
+(`Causalean/Mathlib/Probability/Distributions/Gaussian/Standard.lean`):
 
 * `IsGaussian (gaussianLimit ψ)` — pushforward of a Gaussian by a linear map;
 * `gaussianLimit_mean` — it is centered;
@@ -32,7 +32,7 @@ module
 public import Causalean.Stat.CLT.MultivariateCLT
 public import Causalean.Stat.CLT.SecondMomentOperator
 public import Causalean.Stat.CLT.GaussianCharFunBridge
-public import Causalean.Mathlib.StandardGaussian
+public import Causalean.Mathlib.Probability.Distributions.Gaussian.Standard
 
 /-! # Gaussian Limit Law
 
@@ -57,8 +57,6 @@ open scoped RealInnerProductSpace
 namespace Causalean.Stat
 
 local notation "stdGaussian" => Causalean.Mathlib.stdGaussian
-local notation "covarianceBilin_stdGaussian" =>
-  Causalean.Mathlib.covarianceBilin_stdGaussian
 
 variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X}
@@ -93,7 +91,7 @@ theorem gaussianLimit_mean : ∫ x, x ∂(gaussianLimit hψ hvar) = 0 := by
       = (secondMomentLM_isPositive hψ hvar).posSqrtCLM (∫ x, x ∂(stdGaussian E)) := by
     rw [gaussianLimit, integral_map (by fun_prop) (by fun_prop)]
     exact ContinuousLinearMap.integral_comp_comm _ IsGaussian.integrable_id
-  rw [hL, stdGaussian_mean, map_zero]
+  rw [hL, show ∫ x, x ∂(stdGaussian E) = 0 from integral_id_stdGaussian, map_zero]
 
 /-- The covariance form of the limiting Gaussian recovers the asymptotic-variance
 integral `∫⟪s,ψ⟫⟪t,ψ⟫ dP`. -/
@@ -112,7 +110,10 @@ theorem gaussianLimit_covarianceBilin (s t : E) :
     rw [(ContinuousLinearMap.adjoint_inner_right hpos.posSqrtCLM s (hpos.posSqrtCLM t)).symm,
       hpos.posSqrtCLM_adjoint, hcomp]
   rw [gaussianLimit, covarianceBilin_map IsGaussian.memLp_two_id hpos.posSqrtCLM,
-    hpos.posSqrtCLM_adjoint, covarianceBilin_stdGaussian, hsa,
+    hpos.posSqrtCLM_adjoint,
+    show covarianceBilin (stdGaussian E) = innerSL ℝ from
+      ProbabilityTheory.covarianceBilin_stdGaussian,
+    innerSL_apply_apply, hsa,
     show (⟪s, secondMomentLM hψ hvar t⟫ : ℝ) = ⟪secondMomentLM hψ hvar t, s⟫ from
       real_inner_comm _ _,
     secondMomentLM_inner hψ hvar t s]
@@ -135,15 +136,11 @@ theorem gaussianLimit_charFun (t : E) :
 operator of `ψ`](goal); no abstract target or characteristic-function hypothesis remains. -/
 theorem IIDSample.clt_normalizedSum_vec (S : IIDSample Ω X μ P)
     (hmean : ∫ x, ψ x ∂P = 0) :
-    @Tendsto_dist_vec Ω E _ _ _ _
-      (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m))
-      (gaussianLimit hψ hvar) μ S.indep.isProbabilityMeasure
-      (inferInstance : IsProbabilityMeasure (gaussianLimit hψ hvar))
-      (by
-        intro n
-        unfold IsAsymLinearVec.normalizedSum
-        exact ((Finset.measurable_sum _
-          (fun i _ => hψ.comp (S.meas i))).const_smul _).aemeasurable) := by
+    @Stat.Modes.TendstoInLaw ℕ (fun _ => Ω) _ E _ _ _ (fun _ => μ)
+      (fun _ => S.indep.isProbabilityMeasure)
+      (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m)) Filter.atTop
+      (gaussianLimit hψ hvar)
+      (inferInstance : IsProbabilityMeasure (gaussianLimit hψ hvar)) := by
   haveI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
   haveI : IsProbabilityMeasure P := by
     rw [← S.law]

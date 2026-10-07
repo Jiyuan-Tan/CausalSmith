@@ -20,19 +20,22 @@ contained in `[0,2]`; composition with a norm is treated in `Radial`.
 
 namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
-/-- At [a real radius](hyp:r), [the plateau](goal) is
-[one through radius one, the exact quintic until radius two, and zero thereafter](step:1). -/
+/-- At [a real radius r](hyp:r), [the plateau](goal) is
+[one for r ≤ 1, the quintic 1 − 10(r − 1)³ + 15(r − 1)⁴ − 6(r − 1)⁵ for
+1 < r < 2, and zero for r ≥ 2](step:1). -/
 noncomputable def plateau (r : ℝ) : ℝ :=
   if r ≤ 1 then 1 else
     if r < 2 then 1 - 10 * (r - 1) ^ 3 + 15 * (r - 1) ^ 4 - 6 * (r - 1) ^ 5 else 0
 
-/-- At [a real radius](hyp:r), [the first plateau jet](goal) is
-[the quintic derivative in the transition region and zero elsewhere](step:1). -/
+/-- At [a real radius r](hyp:r), [the first plateau jet](goal) is
+[the derivative −30(r − 1)² + 60(r − 1)³ − 30(r − 1)⁴ of the transition quintic
+for 1 < r < 2, and zero elsewhere](step:1). -/
 noncomputable def plateauD1 (r : ℝ) : ℝ :=
   if 1 < r ∧ r < 2 then -30 * (r - 1) ^ 2 + 60 * (r - 1) ^ 3 - 30 * (r - 1) ^ 4 else 0
 
-/-- At [a real radius](hyp:r), [the second plateau jet](goal) is
-[the second quintic derivative in the transition region and zero elsewhere](step:1). -/
+/-- At [a real radius r](hyp:r), [the second plateau jet](goal) is
+[the second derivative −60(r − 1) + 180(r − 1)² − 120(r − 1)³ of the transition
+quintic for 1 < r < 2, and zero elsewhere](step:1). -/
 noncomputable def plateauD2 (r : ℝ) : ℝ :=
   if 1 < r ∧ r < 2 then -60 * (r - 1) + 180 * (r - 1) ^ 2 - 120 * (r - 1) ^ 3 else 0
 

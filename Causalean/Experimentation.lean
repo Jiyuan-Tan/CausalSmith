@@ -19,10 +19,18 @@ public import Causalean.Experimentation.UnknownInterference
 /-!
 # Experimentation — randomization, sequential, and network inference
 
-Umbrella for the experimentation cluster: shared finite-design/randomization-inference
-substrates, anytime-valid sequential inference, interference-aware estimators, and
-super-population network asymptotics.  Paper-specific modules record their bibliographic
-attribution in their own docstrings.
+Inference for randomized experiments, in three probability models. In the design-based model
+the potential outcomes are fixed and the only randomness is the assignment drawn from a finite
+design: here the library proves unbiasedness and exact or bounded randomization variances of
+Horvitz–Thompson and difference-in-means estimators, including under interference between units
+(exposure mappings, two-stage designs, unknown interference with Bernoulli assignment, cluster and
+matched-pair designs), together with consistency results such as `htEst_consistent_eate`. In the
+sequential model the data arrive over time: Ville's inequality `ville_inequality` for test
+supermartingales gives tests valid under optional stopping and confidence sequences with
+time-uniform coverage, applied to betting confidence sequences for a bounded mean. In the
+super-population model units are random with dependence along a network: `networkSum_clt` is a
+central limit theorem for sums of locally dependent variables and `netHAC_consistent` gives
+consistency of the network-HAC variance estimator.
 
 * `DesignBased` — paper-agnostic substrate (`FiniteDesign` `E`/`Var`/`Cov`, exposure mappings,
   Horvitz–Thompson estimators, Chebyshev, the edge-sum variance bound, normal-CDF facts, the

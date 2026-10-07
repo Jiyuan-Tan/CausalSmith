@@ -117,8 +117,7 @@ noncomputable def ofTwoWayPanel
     intro h hh
     have horth : UniformTwoWayPanel.inner (ddot D) h = 0 :=
       UniformTwoWayPanel.ddot_orthogonal_unit_time
-        (lt_of_lt_of_le (by decide) balanced.unit_card_ge_two)
-        (lt_of_lt_of_le (by decide) balanced.time_card_ge_two) D h hh
+        (lt_of_lt_of_le (by decide) balanced.unit_card_ge_two) D h hh
     have : ∑ g, ∑ t, uniformWeight G T * ddot D g t * h g t
         = uniformWeight G T * inner (ddot D) h := by
       unfold UniformTwoWayPanel.inner

@@ -132,11 +132,10 @@ theorem pairShear_isUnit_det {d : ℕ} {i j : Fin d} (hij : i ≠ j)
 /- For the invertibility chain, either exhibit the inverse of the selected 2×2 block or
 prove injectivity of `mulVec`; then use Mathlib's matrix-is-unit/determinant bridges. -/
 
-/-- When [the selected coordinates are distinct](hyp:hij) and [both row-normalization
-denominators are nonzero](hyp:hfirst,hsecond), [the diagonal row normalizer is
-invertible](goal). -/
+/-- When [both row-normalization denominators are nonzero](hyp:hfirst,hsecond), [the diagonal
+row normalizer is invertible](goal). -/
 theorem pairRowNormalizer_isUnit_det {d : ℕ} (B : SqMatrix d) {i j : Fin d}
-    (hij : i ≠ j) {u v t : ℝ}
+    {u v t : ℝ}
     (hfirst : firstNormalizationDenom B i j v t ≠ 0)
     (hsecond : secondNormalizationDenom B i j u t ≠ 0) :
     IsUnit (pairRowNormalizer B i j u v t).det := by
@@ -158,7 +157,7 @@ theorem normalizedPairDeformation_isUnit_det {d : ℕ} (B : SqMatrix d)
     IsUnit (normalizedPairDeformation B i j u v t).det := by
   rw [normalizedPairDeformation, Matrix.det_mul]
   exact IsUnit.mul
-    (pairRowNormalizer_isUnit_det B hij hfirst hsecond)
+    (pairRowNormalizer_isUnit_det B hfirst hsecond)
     (pairShear_isUnit_det hij hdet)
 
 private theorem normalizedPairDeformation_apply {d : ℕ} (B : SqMatrix d)
@@ -633,12 +632,11 @@ theorem total_congruence_decomposition {d : ℕ} {E : Type*}
 /-- [The explicit pair deformation leaves every represented covariance unchanged](goal), proving
 observational equivalence for [diagonalizer `B`, invariant `Ω`, shifts `s`, certificate `cert`,
 parameter `t`, and environment `e`](hyp:B,Ω,s,cert,t,e) over [environment type `E`](hyp:E) in
-[dimension `d`](hyp:d), when [coordinates `i,j` are distinct](hyp:i,j,hij), [the reference is
-invertible](hyp:hB), and [the normalized deformation is invertible](hyp:hT). -/
+[dimension `d`](hyp:d), when [coordinates `i,j` are distinct](hyp:i,j,hij) and [the normalized
+deformation is invertible](hyp:hT). -/
 theorem representedCovariance_deformation_eq {d : ℕ} {E : Type*}
     (B Ω : SqMatrix d) {i j : Fin d} (hij : i ≠ j) (s : E → Fin d → ℝ)
     (cert : AffineLineCertificate s i j) (t : ℝ) (e : E)
-    (hB : IsUnit B.det)
     (hT : IsUnit (normalizedPairDeformation B i j cert.u cert.v t).det) :
     representedCovariance
         (deformedDiagonalizer B i j cert.u cert.v t)
@@ -680,10 +678,10 @@ theorem representedCovariance_posDef {d : ℕ} (B Ω : SqMatrix d)
     Matrix.vecMul_injective_iff_isUnit.mpr hBinv
   simpa [representedCovariance] using hsum.mul_mul_conjTranspose_same hinj
 
-/-- When [the selected coordinates are distinct](hyp:hij) and [the original invariant
-is symmetric](hyp:hΩ), [the deformed invariant is symmetric](goal). -/
+/-- When [the original invariant is symmetric](hyp:hΩ), [the deformed invariant is
+symmetric](goal). -/
 theorem deformedInvariant_isSymm {d : ℕ} (B Ω : SqMatrix d) {i j : Fin d}
-    (hij : i ≠ j) (hΩ : Ω.IsSymm) (u v c t : ℝ) :
+    (hΩ : Ω.IsSymm) (u v c t : ℝ) :
     (deformedInvariant B Ω i j u v c t).IsSymm := by
   unfold deformedInvariant
   apply Matrix.IsSymm.add

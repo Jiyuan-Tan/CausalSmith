@@ -16,10 +16,12 @@ namespace Causalean.Stat.Nonparametric.Approximation.Holder
 open Causalean.Mathlib.Analysis.Calculus.CubeExtension
 open Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- An intrinsic cube Hölder member with [positive smoothness](hyp:hβ) has an
-ambient representative, at a radius controlled uniformly by its [dimension](hyp:d),
-[smoothness index](hyp:β), which
-[agrees on the cube and belongs to the standard ambient Hölder ball](goal). -/
+/-- For a [dimension](hyp:d) and a [smoothness index](hyp:β) that is [positive](hyp:hβ),
+[there is a positive constant, depending only on the dimension and the smoothness index, such
+that every function in the intrinsic cube Hölder ball of that smoothness with any nonnegative
+radius has an ambient function that agrees with it on the cube and belongs to the standard
+ambient Hölder ball of the same smoothness on the cube, with radius the constant times the
+original radius](goal). -/
 theorem exists_holderBallStd_extension (d : ℕ) (β : ℝ) (hβ : 0 < β) :
     ∃ A : ℝ, 0 < A ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (L : ℝ), 0 ≤ L →

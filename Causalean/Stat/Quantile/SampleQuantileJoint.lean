@@ -168,29 +168,13 @@ lemma norm_eucl_le_sum_abs (v : Fin k → ℝ) : ‖eucl v‖ ≤ ∑ j, |v j| :
   exact le_of_pow_le_pow_left₀ (by norm_num) hnonneg hsq
 
 omit [IsProbabilityMeasure μ] in
-/-- The zero sequence is `o_p(1)`. -/
-lemma isLittleOp_zero_one' :
-    IsLittleOp (fun _ (_ : Ω) => (0 : ℝ)) (fun _ => (1 : ℝ)) μ := by
-  intro ε hε
-  have hempty : {ω : Ω | ε * (1 : ℝ) ≤ ‖(0 : ℝ)‖} = (∅ : Set Ω) := by
-    ext ω; simp only [norm_zero, mul_one, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
-    exact not_le_of_gt hε
-  have heq : (fun _ : ℕ => μ {ω : Ω | ε * (1 : ℝ) ≤ ‖(0 : ℝ)‖})
-      = fun _ : ℕ => (0 : ENNReal) := by
-    funext n; rw [hempty, measure_empty]
-  rw [show (fun n : ℕ => μ {ω : Ω | ε * (fun _ => (1 : ℝ)) n ≤
-        ‖(fun _ _ => (0 : ℝ)) n ω‖}) =
-        (fun _ : ℕ => μ {ω : Ω | ε * (1 : ℝ) ≤ ‖(0 : ℝ)‖}) from rfl, heq]
-  exact tendsto_const_nhds
-
-omit [IsProbabilityMeasure μ] in
 /-- A finite sum of `o_p(1)` sequences is `o_p(1)`. -/
 lemma isLittleOp_finset_sum_one {ι : Type*} (s : Finset ι) (g : ι → ℕ → Ω → ℝ)
     (h : ∀ i ∈ s, IsLittleOp (g i) (fun _ => (1 : ℝ)) μ) :
     IsLittleOp (fun n ω => ∑ i ∈ s, g i n ω) (fun _ => (1 : ℝ)) μ := by
   classical
   induction s using Finset.induction_on with
-  | empty => simpa using isLittleOp_zero_one' (μ := μ)
+  | empty => simpa using isLittleOp_zero (μ := μ)
   | insert a s has ih =>
       have ha := h a (Finset.mem_insert_self a s)
       have hs := ih (fun i hi => h i (Finset.mem_insert_of_mem hi))

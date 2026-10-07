@@ -206,7 +206,7 @@ lemma affineOutcomeKernel_kl_le {p : Parameters}
         InformationTheory.klDiv
           (gaussianReal 0 ⟨tau ^ 2, sq_nonneg tau⟩)
           (gaussianReal d ⟨tau ^ 2, sq_nonneg tau⟩) :=
-      Causalean.Mathlib.InformationTheory.Measure.klDiv_map_le
+      InformationTheory.klDiv_map_le _ _
         ((affineOutcomeMechanism_measurable base theta0).comp
           (measurable_const.prodMk measurable_id))
     _ = ENNReal.ofReal ((0 - d) ^ 2 / (2 * (⟨tau ^ 2, sq_nonneg tau⟩ : NNReal) : ℝ)) := by

@@ -6,7 +6,7 @@ public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Pil
 This file shows that the conditional cylinder factorization determines every
 finite transcript law uniquely. -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

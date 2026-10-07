@@ -21,11 +21,13 @@ namespace Causalean.Mathlib.Probability.Independence.Conditional.DensityIntersec
 
 universe uX uY uV uZ
 
-/-- For [four product reference measures](hyp:μX,μY,μV,μZ), [a measurable joint density](hyp:hd),
-[strict positivity of that density almost everywhere](hyp:hpos), and the [two conditional
-independence relations obtained by conditioning on the alternate blocks](hyp:hXY,hXV),
-[the first block is conditionally independent of the combined second and third blocks given the
-fourth](goal). -/
+/-- For [four σ-finite reference measures on standard Borel spaces](hyp:μX,μY,μV,μZ), [a
+measurable joint density](hyp:hd) whose weighting of the product reference measure has finite total
+mass, [strict positivity of that density almost everywhere for the product reference
+measure](hyp:hpos), and, under the density-weighted measure, [conditional independence of the first
+and second blocks given the fourth and third together, and of the first and third blocks given the
+fourth and second together](hyp:hXY,hXV), [the first block is conditionally independent of the
+combined second and third blocks given the fourth](goal). -/
 theorem condIndepFun_intersection_of_positiveDensity
     {X : Type uX} {Y : Type uY} {V : Type uV} {Z : Type uZ}
     [MeasurableSpace X] [MeasurableSpace Y] [MeasurableSpace V] [MeasurableSpace Z]

@@ -2,7 +2,7 @@ module
 public import CausalSmith.Stat.STAT_GlobaltailDesignrobustCate_Research.Helpers.HostileRayleigh
 
 /-! # Hostile thin-slab design and raw Gram degeneration -/
-@[expose] public section
+public section
 namespace CausalSmith.Stat.GlobalTailDesignRobustCate
 
 open MeasureTheory Filter

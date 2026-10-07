@@ -28,8 +28,10 @@ noncomputable def Model.recurrenceEventMeasure (M : Model A X) (a : A) : Measure
 
 /-- [A recurrent-event model](hyp:M), [an arm](hyp:a), [a requested time
 set](hyp:s), and [a primitive outcome](hyp:ω) determine [the retained
-primitive recurrence count in that set](goal), with points counted by
-multiplicity. -/
+primitive recurrence count in that set](goal): the number of recurrence points
+whose event time lies in the set and strictly before the stopping time, with
+points counted by multiplicity, and zero when the outcome's arm is not the
+given arm. -/
 noncomputable def Model.primitiveRecurrenceCountSet (M : Model A X)
     (a : A) (s : Set ℝ) (ω : Outcome A X) : ℝ≥0∞ := by
   classical

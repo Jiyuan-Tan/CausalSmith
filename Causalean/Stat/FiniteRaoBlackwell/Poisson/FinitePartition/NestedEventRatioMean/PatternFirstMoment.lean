@@ -21,12 +21,14 @@ namespace Causalean.Stat.FiniteRaoBlackwell.Poisson.FinitePartition.NestedEventR
 variable {X : Type*} [MeasurableSpace X]
 
 /-- Under [an observation probability law](hyp:P), [a tuple size](hyp:n), [a set of
-prescribed positions](hyp:U), two [events](hyp:A,B) with [measurable membership](hyp:hA,hB),
-and [containment of the first in the second](hyp:hAB), [the smaller-event count moment on
-the corresponding iid membership rectangle obeys the division-free identity](goal). -/
+prescribed positions](hyp:U), two [events](hyp:A,B) with [the first measurable](hyp:hA),
+and [containment of the first in the second](hyp:hAB), [containing-event probability times the iid
+integral of the smaller-event count over the rectangle on which exactly the prescribed positions
+fall in the containing event equals smaller-event probability times the number of prescribed
+positions times the iid probability of that rectangle](goal). -/
 theorem iid_nested_pattern_first_moment
     (P : Measure X) [IsProbabilityMeasure P] (n : ℕ) (U : Finset (Fin n))
-    {A B : Set X} (hA : MeasurableSet A) (hB : MeasurableSet B) (hAB : A ⊆ B) :
+    {A B : Set X} (hA : MeasurableSet A) (hAB : A ⊆ B) :
     P.real B *
         (∫ x : Fin n → X, iidEventCount A x
           ∂(Measure.pi (fun _ : Fin n => P)).restrict

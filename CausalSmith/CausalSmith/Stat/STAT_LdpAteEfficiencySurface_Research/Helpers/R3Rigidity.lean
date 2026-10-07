@@ -9,7 +9,7 @@ active masks.  At privacy level `log 3`, normalization then fixes all three
 weights to `1/5`.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

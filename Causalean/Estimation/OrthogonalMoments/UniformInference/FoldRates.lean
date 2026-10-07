@@ -104,8 +104,9 @@ theorem foldCentered_tail
     _ ≤ δ n + ENNReal.ofReal ((r n) ^ 2 / ε ^ 2) :=
         add_le_add (R.fail n p hp k) hmarkov
 
-/-- If [the foldwise L² score error and root-sample-size mean drift vanish uniformly over the law
-class](hyp:R), then [the root-sample-size-scaled cross-fitted estimator error equals the oracle
+/-- If [the foldwise rate conditions hold — on training-measurable good events whose failure
+probability vanishes uniformly over the law class, the L² score error and the root-sample-size-scaled
+mean drift are bounded by vanishing rates](hyp:R), then [the root-sample-size-scaled cross-fitted estimator error equals the oracle
 empirical score sum up to a remainder that is uniformly negligible in probability](goal). -/
 theorem uniform_asymptotic_linearity
     {r a b : ℕ → ℝ} {C : ℝ} {δ : ℕ → ℝ≥0∞}

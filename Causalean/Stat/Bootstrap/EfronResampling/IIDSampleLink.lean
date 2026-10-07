@@ -37,7 +37,7 @@ theorem variance_empiricalMeasure_eq_empiricalVar
         S.sampleMean ψ n ω := by
     unfold empiricalMeasure
     rw [Causalean.Stat.Concentration.integral_finiteSampleMeasure
-      (fun i : Fin n ↦ S.Z i ω) (Nat.pos_of_ne_zero hn) hψ]
+      (fun i : Fin n ↦ S.Z i ω) hψ]
     rw [Causalean.Stat.IIDSample.sampleMean,
       Fin.sum_univ_eq_sum_range (fun i ↦ ψ (S.Z i ω)) n]
     simp only [one_div]
@@ -45,7 +45,7 @@ theorem variance_empiricalMeasure_eq_empiricalVar
   unfold empiricalMeasure
   rw [Causalean.Stat.Concentration.integral_finiteSampleMeasure
     (f := fun x ↦ (ψ x - S.sampleMean ψ n ω) ^ 2)
-    (fun i : Fin n ↦ S.Z i ω) (Nat.pos_of_ne_zero hn)
+    (fun i : Fin n ↦ S.Z i ω)
     ((hψ.sub measurable_const).pow_const 2)]
   rw [Causalean.Stat.IIDSample.empiricalVar_eq_centered]
   rw [Fin.sum_univ_eq_sum_range

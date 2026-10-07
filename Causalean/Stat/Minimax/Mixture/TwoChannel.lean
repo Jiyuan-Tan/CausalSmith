@@ -64,7 +64,7 @@ theorem iid_pair_overlap_of_likelihood {Ω : Type*} [MeasurableSpace Ω] (μ Q R
     exact withDensity_absolutelyContinuous μ _
   have hint : Integrable (fun x => (Q.rnDeriv μ x).toReal *
       (R.rnDeriv μ x).toReal) μ := hpairInt.congr hprod.symm
-  rw [Causalean.Stat.Minimax.Mixture.iidPairOverlap μ Q R hacQ hacR hint n]
+  rw [Causalean.Stat.Minimax.Mixture.iidPairOverlap μ Q R hacQ hacR n]
   congr 1
   exact integral_congr_ae hprod
 /-- Given [two measurable sample spaces](hyp:Ω₁,Ω₂), [two reference laws](hyp:μ₁,μ₂),
@@ -101,7 +101,7 @@ theorem two_channel_pair_overlap {Ω₁ Ω₂ : Type*} [MeasurableSpace Ω₁] [
     (Measure.pi (fun _ : Fin n₂ => μ₂))
     (Measure.pi (fun _ : Fin n₂ => Q₂))
     (Measure.pi (fun _ : Fin n₂ => R₂))
-    hQ₁' hR₁' hQ₂' hR₂' hInt₁' hInt₂',
+    hQ₁' hR₁' hQ₂' hR₂',
     iid_pair_overlap_of_likelihood μ₁ Q₁ R₁ L₁ M₁
       hL₁ hM₁ hL₁0 hM₁0 hQ₁ hR₁ hInt₁ n₁,
     iid_pair_overlap_of_likelihood μ₂ Q₂ R₂ L₂ M₂
@@ -184,9 +184,12 @@ theorem one_add_chiSqDiv_uniformMixture_twoChannel_sign {Ω₁ Ω₂ : Type*} [M
 [two sign-indexed families of probability laws](hyp:Q₁,Q₂), [two likelihood
 families](hyp:L₁,L₂), [their measurability](hyp:hL₁,hL₂), [their nonnegativity](hyp:hL₁0,hL₂0),
 [their likelihood representations](hyp:hQ₁,hQ₂), [integrable pair products](hyp:hInt₁,hInt₂),
-[two overlap coefficients](hyp:ρ₁,ρ₂), and [their pairwise overlap identities](hyp:hPair₁,hPair₂),
-[one plus the chi-squared divergence of the uniform two-channel iid mixture is
-bounded by the corresponding Gaussian exponential moment](goal). -/
+[two overlap coefficients](hyp:ρ₁,ρ₂), and [pairwise overlap identities stating that in each
+channel the reference-law mean of the product of the likelihoods at sign vectors s and t is
+1 + ρ⟨s,t⟩/K, with ⟨s,t⟩ the inner sign product](hyp:hPair₁,hPair₂),
+[one plus the chi-squared divergence of the uniform mixture over sign vectors of the
+two-channel iid product laws, relative to the product of the iid reference laws, is at most
+exp((n₁ρ₁ + n₂ρ₂)² / (2K))](goal). -/
 theorem one_add_chiSqDiv_uniformMixture_twoChannel_sign_le_exp {Ω₁ Ω₂ : Type*} [MeasurableSpace Ω₁] [MeasurableSpace Ω₂]
     (K n₁ n₂ : ℕ) [NeZero K] (μ₁ : Measure Ω₁) (μ₂ : Measure Ω₂) (Q₁ : (Fin K → Bool) → Measure Ω₁) (Q₂ : (Fin K → Bool)
     → Measure Ω₂) [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂] [∀ s, IsProbabilityMeasure (Q₁ s)] [∀ s,

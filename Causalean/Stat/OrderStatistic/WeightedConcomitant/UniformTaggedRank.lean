@@ -199,7 +199,7 @@ theorem iid_uniform_relabel_law {N : ℕ} (σ : Equiv.Perm (Fin N)) :
 
 /-- For an iid uniform tuple, two tagged coordinates have the same probability
 of occupying any specified rank. -/
-theorem uniform_tagged_rank_mass_eq_of_tag {N : ℕ} (hN : 0 < N)
+theorem uniform_tagged_rank_mass_eq_of_tag {N : ℕ}
     (i k j : Fin N) :
     iidSample uniform01 N {u | (Tuple.sort u).symm i = j} =
       iidSample uniform01 N {u | (Tuple.sort u).symm k = j} := by
@@ -268,9 +268,9 @@ theorem uniform_tagged_rank_mass_eq_of_tag {N : ℕ} (hN : 0 < N)
       rw [hsort u hu]
       simp [σ]
 
-/-- For one rank of a positive iid uniform tuple, the masses of the events
+/-- For one rank of an iid uniform tuple, the masses of the events
 that each possible tag occupies that rank sum to one. -/
-theorem sum_uniform_tagged_rank_mass {N : ℕ} (hN : 0 < N)
+theorem sum_uniform_tagged_rank_mass {N : ℕ}
     (j : Fin N) :
     (∑ i : Fin N,
       iidSample uniform01 N {u | (Tuple.sort u).symm i = j}) = 1 := by
@@ -324,7 +324,8 @@ theorem sum_uniform_tagged_rank_mass {N : ℕ} (hN : 0 < N)
     _ = 1 := by rw [hcover]; exact measure_univ
 
 /-- A [positive sample size](hyp:hN), [tagged coordinate](hyp:i), and [rank](hyp:j)
-have [uniform rank mass under the iid unit-uniform law](goal). -/
+have [uniform rank mass under the iid unit-uniform law](goal): the probability that the
+tagged observation occupies that position in the sorted sample is one over the sample size. -/
 theorem uniform_tagged_rank_mass {N : ℕ} (hN : 0 < N)
     (i j : Fin N) :
     iidSample uniform01 N {u | (Tuple.sort u).symm i = j} =
@@ -337,8 +338,8 @@ theorem uniform_tagged_rank_mass {N : ℕ} (hN : 0 < N)
           iidSample uniform01 N {u | (Tuple.sort u).symm k = j} := by
         apply Finset.sum_congr rfl
         intro k _
-        simpa only [m] using uniform_tagged_rank_mass_eq_of_tag hN i k j
-      _ = 1 := sum_uniform_tagged_rank_mass hN j
+        simpa only [m] using uniform_tagged_rank_mass_eq_of_tag i k j
+      _ = 1 := sum_uniform_tagged_rank_mass j
   have hN0 : (N : ENNReal) ≠ 0 := by exact_mod_cast Nat.ne_of_gt hN
   have hNtop : (N : ENNReal) ≠ ⊤ := ENNReal.natCast_ne_top N
   have hm : (N : ENNReal) * m = 1 := by simpa [nsmul_eq_mul] using hsum
@@ -348,11 +349,10 @@ theorem uniform_tagged_rank_mass {N : ℕ} (hN : 0 < N)
   exact (ENNReal.mul_left_inj hN0 hNtop).mp (by
     simpa only [mul_comm] using hm.trans ht.symm)
 
-/-- For a tagged coordinate of an iid unit-uniform tuple with a
-[positive sample size](hyp:hN) and a point [inside the unit interval](hyp:hv),
+/-- For a tagged coordinate of an iid unit-uniform tuple and a point [inside the unit interval](hyp:hv),
 [the number of other coordinates below that point has the binomial mass with
 `N-1` trials](goal). -/
-theorem uniform_other_lt_count_mass {N : ℕ} (hN : 0 < N)
+theorem uniform_other_lt_count_mass {N : ℕ}
     (i j : Fin N) {v : ℝ} (hv : v ∈ Set.Icc (0 : ℝ) 1) :
     iidSample uniform01 N
       {u | (((Finset.univ : Finset (Fin N)).erase i).filter

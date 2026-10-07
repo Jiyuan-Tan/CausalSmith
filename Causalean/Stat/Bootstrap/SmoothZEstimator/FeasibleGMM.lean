@@ -48,9 +48,9 @@ theorem feasibleGMM
     (hConsistent : ∀ epsilon > 0,
       Tendsto (fun n ↦ mu {omega |
         epsilon < ‖est n (S.sampleVector n omega) - prob.θ₀‖}) atTop (nhds 0))
-    (hWeight : Tendsto_inProb
-      (fun n omega ↦ ‖weightEst n (S.sampleVector n omega) - prob.W‖)
-      (fun _ ↦ 0) mu)
+    (hWeight : Modes.TendstoInProbability (fun _ : ℕ => mu)
+        (fun n omega ↦ ‖weightEst n (S.sampleVector n omega) - prob.W‖) atTop
+        (fun _ _ ↦ 0))
     (hApproxFOC : IsLittleOp
       (fun n omega ↦ ‖feasibleGMMFOCResidualFn prob reg
         (est n (S.sampleVector n omega))
@@ -103,12 +103,11 @@ theorem feasibleGMM
     intro n omega
     simp [zEstimatorSamplingRemainder, IsAsymLinear.normalizedSum,
       IsAsymLinearVec.normalizedSum, influence, map_sub, map_smul, map_sum]
-  have hlinear : Tendsto_inProb
-      (fun n omega ↦
+  have hlinear : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega ↦
         Real.sqrt (n : ℝ) *
             (c (est n (S.sampleVector n omega)) - c prob.θ₀) -
-          IsAsymLinear.normalizedSum S influence (fun m ↦ Finset.range m) n omega)
-      (fun _ ↦ 0) mu := by
+          IsAsymLinear.normalizedSum S influence (fun m ↦ Finset.range m) n omega) atTop
+              (fun _ _ ↦ 0) := by
     have hjac (n : ℕ) (omega : Omega) :
         gmmSampleJacobianFn reg (est n (S.sampleVector n omega))
             (S.sampleVector n omega) =
@@ -128,12 +127,10 @@ theorem feasibleGMM
       prob reg S est (fun n omega ↦ weightEst n (S.sampleVector n omega))
       hConsistent hWeight (by
         simpa only [feasibleGMMFOCResidualFn, hjac, hmom] using hApproxFOC)
-    have hvec : Tendsto_inProb
-        (fun n omega ↦
-          ‖zEstimatorSamplingRemainder S est prob.θ₀ prob.influence n omega‖)
-        (fun _ ↦ 0) mu := by
-      rw [Tendsto_inProb_iff_hub,
-        Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
+    have hvec : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega ↦
+          ‖zEstimatorSamplingRemainder S est prob.θ₀ prob.influence n omega‖) atTop
+              (fun _ _ ↦ 0) := by
+      rw [Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
       simpa [IsLittleOp, zEstimatorSamplingRemainder,
         IsAsymLinearVec.normalizedSum] using hAL.remainder
     rw [Tendsto_inProb_iff] at hvec ⊢

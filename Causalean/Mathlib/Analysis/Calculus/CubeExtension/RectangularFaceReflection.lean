@@ -11,13 +11,13 @@ nondegenerate coordinate box. The first step extends across a lower face;
 upper faces and repeated reflection can be built from this result.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
 open Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- If [0 < s](hyp:hs) and [s ≤ 1](hyp:hs1) and [the box with corners lo, hi has
+/-- If [0 < s](hyp:hs) and [the box with corners lo, hi has
 positive side lengths](hyp:hbox), then for [derivative order m](hyp:m) and
 [coordinate i](hyp:i) [there is a positive constant C such that every response u
 in the intrinsic Hölder ball of order m, exponent s and radius L ≥ 0 on the box
@@ -26,7 +26,7 @@ the box's left collar in coordinate i](goal). The constant depends only on the
 box, m, s and i. -/
 theorem exists_rectLeftFaceReflection_holder_constant {d : ℕ}
     (lo hi : Fin d → ℝ) (m : ℕ) (s : ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1)
+    (hs : 0 < s)
     (hbox : ∀ j, lo j < hi j) (i : Fin d) :
     ∃ C : ℝ, 0 < C ∧
       ∀ (u : (Fin d → ℝ) → ℝ) (L : ℝ), 0 ≤ L →
@@ -76,7 +76,7 @@ theorem exists_rectLeftFaceReflection_holder_constant {d : ℕ}
       (by intro j; norm_num) hbox
   obtain ⟨a, ha⟩ := exists_reflection_coefficients m
   obtain ⟨Cr, hCr, hr⟩ :=
-    exists_leftFaceReflection_collar_holder_constant d m s hs hs1 i a ha
+    exists_leftFaceReflection_collar_holder_constant d m s hs i a ha
   obtain ⟨Cb, hCb, hb⟩ :=
     exists_rectAffine_holder_constant
       (rectLeftLower lo hi m i) hi lower (fun _ => 1) m s hsource htarget

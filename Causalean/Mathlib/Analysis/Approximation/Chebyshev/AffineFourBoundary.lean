@@ -304,10 +304,15 @@ theorem affineJackson_boundary_adaptive_four {K : ℕ} (hK : 0 < K)
       rw [← Finset.mul_sum]
       ring
 
-/-- A [positive Jackson order](hyp:hK), [a centered rectangle with positive
-coordinate radii](hyp:c,r,hr), and [a continuous physical-coordinate Lipschitz
-function](hyp:f,hf,L,hL,hlip) give [the canonical affine tensor Jackson polynomial
-with its evaluation and degree identities and a boundary-adaptive pointwise error bound](goal). -/
+/-- For a [positive Jackson order K](hyp:hK), [a four-dimensional rectangle with center c and
+positive coordinate radii r](hyp:c,r,hr), and [a function f that is continuous on the rectangle and
+Lipschitz there with a constant L ≥ 0 with respect to the sum of coordinate distances](hyp:f,hf,L,hL,hlip),
+[there are polynomials p and q in four variables such that: p at any point y equals q at the
+normalized coordinates (y − c)/r; q at the coordinatewise cosines of any angle vector equals the
+order-K tensor Jackson convolution of f composed with the affine map z ↦ c + r·z; every monomial
+of p has degree at most 2(K − 1) in each variable and p has total degree at most 8(K − 1); and at
+every point y of the rectangle, |p(y) − f(y)| is at most 32·L times the sum over the four
+coordinates i of √((y_i − (c_i − r_i))·((c_i + r_i) − y_i))/K + r_i/K²](goal). -/
 theorem affineJackson_boundary_exists_four {K : ℕ} (hK : 0 < K)
     (c r : Fin 4 → ℝ) (hr : ∀ i, 0 < r i)
     (f : (Fin 4 → ℝ) → ℝ) (hf : ContinuousOn f (centeredRectangle c r))

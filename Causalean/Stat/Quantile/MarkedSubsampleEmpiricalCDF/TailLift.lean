@@ -23,9 +23,10 @@ open Causalean.Stat.Quantile.VCMcDiarmid
 
 open Causalean.Mathlib.Probability (measure_le_of_cond_le_on_finite_partition)
 
-/-- For [a confidence level](hyp:α) and [a selected count](hyp:m), [the legacy sharp-Massart
-confidence radius](goal) is the square root of `log (4 / α) / (2m)`.  It remains available for
-the deprecated theorem whose caller supplies the sharp fixed-size bound. -/
+/-- For [a confidence level](hyp:α) and [a selected count](hyp:m), [the sharp-Massart
+confidence radius](goal) is the square root of `log (4 / α) / (2m)`.  It is used with
+`conditionalMarkedSubsample_empiricalCDF_tail` when the caller supplies the sharp fixed-size
+bound. -/
 noncomputable def dkwRadius (α : ℝ) (m : ℕ) : ℝ :=
   Real.sqrt (Real.log (4 / α) / (2 * (m : ℝ)))
 
@@ -140,30 +141,5 @@ theorem conditionalMarkedSubsample_vcMcDiarmidRadius
     (vcMcDiarmidRadius (α / 2)) (ENNReal.ofReal (α / 2))
   intro m hm
   exact empiricalCDF_vc_mcdiarmid_radius ρ hm hα_half hα_half_one
-
-/-- Given [a finite marked iid experiment](hyp:S), [a requested mark](hyp:a), [its mass](hyp:e),
-[a selected-outcome law](hyp:ρ), [a Boolean mark factorization](hyp:hfac), [a confidence parameter
-between zero and one](hyp:α,_hα,_hα_one), and [a legacy fixed-size DKW certificate](hyp:hDKW),
-[the selected-subsample empirical-CDF deviation at `dkwRadius` has probability at most
-`α / 2`](goal).
-
-This compatibility theorem retains the sharp-radius certificate because existing research callers
-unfold that radius. New code can use `conditionalMarkedSubsample_vcMcDiarmidRadius` without
-a theorem-valued certificate. -/
-@[deprecated "Use conditionalMarkedSubsample_vcMcDiarmidRadius for the proved non-sharp radius."
-  (since := "2026-09-17")]
-theorem conditionalMarkedSubsample_dkwRadius
-    {Ω : Type*} [MeasurableSpace Ω] {n : ℕ}
-    {μ : Measure Ω} {ν : Measure (Bool × ℝ)}
-    [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    (S : MarkedIID Ω n μ ν) (a : Bool) (e : ℝ≥0∞) (ρ : Measure ℝ)
-    [IsProbabilityMeasure ρ] (hfac : BooleanMarkFactorization ν a e ρ)
-    (α : ℝ) (_hα : 0 < α) (_hα_one : α ≤ 1)
-    (hDKW : ∀ m : ℕ, 0 < m →
-      (Measure.pi (fun _ : Fin m => ρ))
-          (fixedCDFBadSet ρ (dkwRadius α m)) ≤ ENNReal.ofReal (α / 2)) :
-    μ (selectedCDFBadEvent S.Z a ρ (dkwRadius α)) ≤ ENNReal.ofReal (α / 2) := by
-  exact conditionalMarkedSubsample_empiricalCDF_tail S a e ρ hfac
-    (dkwRadius α) (ENNReal.ofReal (α / 2)) hDKW
 
 end Causalean.Stat.Quantile.MarkedSubsampleEmpiricalCDF

@@ -22,13 +22,22 @@ namespace Causalean.Stat.RecurrentEvent
 variable {A X : Type*} [MeasurableSpace A] [MeasurableSpace X]
 
 /-- [A nonnegative hazard](hyp:h) and [a time](hyp:t) determine [the survival
-probability through that time](goal). -/
+probability through that time](goal): the exponential of minus the cumulative hazard,
+the integral of the hazard from time zero to that time. -/
 noncomputable def hazardSurvival (h : ℝ → ℝ≥0) (t : ℝ) : ℝ :=
   Real.exp (-(∫ u in (0 : ℝ)..t, (h u : ℝ)))
 
 /-- [An arm space](hyp:A) and [a recurrence-mark space](hyp:X) specify a
 finite-horizon Poisson recurrent-event model with independent assignment,
-death, and censoring blocks. -/
+death, and censoring blocks. The model consists of a probability law for the arm, a
+probability law for the recurrence marks together with a nonnegative Poisson rate, probability
+laws for the death and censoring times, a nonnegative horizon, a measurable map sending each
+mark to its event time, and measurable nonnegative hazard and intensity functions, the hazard
+being integrable from zero to the horizon. Two equations tie these together: the rate-scaled
+law of the event time has density equal to the intensity with respect to Lebesgue measure on the
+times from zero up to but excluding the horizon, and at every time between zero and the horizon
+the probability of death at or after that time equals the exponential of minus the cumulative
+hazard up to that time. -/
 structure Model (A X : Type*) [MeasurableSpace A] [MeasurableSpace X] where
   armLaw : Measure A
   armProb : IsProbabilityMeasure armLaw
@@ -57,7 +66,7 @@ structure Model (A X : Type*) [MeasurableSpace A] [MeasurableSpace X] where
 
 /-- [An arm space](hyp:A) and [a recurrence-mark space](hyp:X) determine [one
 primitive outcome](goal), consisting of an arm, a finite recurrence sample,
-a death time, and an independent censoring time. -/
+a death time, and a censoring time. -/
 abbrev Outcome (A X : Type*) [MeasurableSpace X] :=
   A × (Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.FiniteSample X × (ℝ × ℝ))
 

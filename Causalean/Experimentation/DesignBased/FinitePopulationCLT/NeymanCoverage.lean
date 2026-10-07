@@ -19,7 +19,7 @@ arm sample variances and the generic feasible Wald transfer theorem.  The result
 interval has asymptotic coverage at least its nominal level.
 -/
 
-@[expose] public section
+public section
 
 open scoped BigOperators Topology
 namespace Causalean.Experimentation.DesignBased
@@ -242,8 +242,7 @@ private lemma finiteDesign_cdf_of_tendstoInDistribution
     {Ω : ℕ → Type*} [∀ n, Fintype (Ω n)] [∀ n, MeasurableSpace (Ω n)]
     [∀ n, MeasurableSingletonClass (Ω n)]
     (D : ∀ n, FiniteDesign (Ω n)) (T : ∀ n, Ω n → ℝ)
-    (hT : TendstoInDistribution (fun n => (D n).toMeasure) T
-      (gaussianReal 0 1) (fun n => (measurable_of_finite (T n)).aemeasurable)) :
+    (hT : Modes.TendstoInLaw (fun n => (D n).toMeasure) T atTop (gaussianReal 0 1)) :
     ∀ t : ℝ, Tendsto (fun n => (D n).Pr (fun z => T n z ≤ t))
       atTop (nhds (stdNormalCdf t)) := by
   intro t

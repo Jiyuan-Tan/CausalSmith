@@ -28,7 +28,7 @@ noncomputable def pairedCountVector (b : ℕ)
       (Finset.univ.filter fun i : Fin s.count =>
         s.points i = finProdFinEquiv (j, 1)).card)
 
-/-- Given [a positive balanced pair count and a sample size](hyp:b,n,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [bounded cell directions](hyp:u,hu), [the paired count vector of the finite Poisson sample has the product scalar-Poisson law](goal). -/
+/-- Given [a positive balanced pair count and a sample size](hyp:b,n,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [bounded cell directions](hyp:u,hu), [the paired count vector of a finite Poisson sample with mean 2n drawn from the tilted vector consists of independent count pairs, the pair for cell pair j being two independent Poisson counts with rates (n/b)(1 + t·u_j) and (n/b)(1 − t·u_j)](goal). -/
 theorem pairedCountVector_map_finitePoissonSampleLaw
     (b n : ℕ) (hb : 0 < b) (t : ℝ) (ht : 0 ≤ t) (ht1 : t ≤ 1)
     (u : Fin b → ℝ) (hu : ∀ j, |u j| ≤ 1) :

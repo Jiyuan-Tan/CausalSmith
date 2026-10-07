@@ -3,8 +3,16 @@ public import Mathlib.Probability.CentralLimitTheorem
 
 /-! # Quadratic approximation of the Gaussian characteristic function
 
-This is the Gaussian half of the local characteristic-function estimate
-used in the scalar iid Berry–Esseen bound.
+The characteristic function exp(−t²/2) of the standard normal law differs from its second-order
+Taylor polynomial 1 − t²/2 by at most t⁴/8, for every real t. This is the Gaussian half of the
+local characteristic-function comparison in the Berry–Esseen proof: near the origin, both the
+characteristic function of a standardized law and that of the normal law are compared with the
+same quadratic.
+
+## Main results
+
+* `gaussian_charFun_quadratic_remainder` — the bound |exp(−t²/2) − (1 − t²/2)| ≤ t⁴/8, deduced
+  from |exp(−u) − (1 − u)| ≤ u²/2 for u ≥ 0.
 -/
 
 public section

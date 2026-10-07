@@ -39,11 +39,11 @@ def cellMean (μ : Measure Ω) (label : A → κ) (X : Ω → A)
   (∫ ω in cell label X k, Y ω ∂μ) / cellMass μ label X k
 
 /-- [A conditional-expectation equality](hyp:hcond) for [measurable covariates
-and regression function and integrable responses](hyp:hX,hg,hY) implies
+and integrable responses](hyp:hX,hY) implies
 [the conditional-mean relation](goal). -/
 theorem conditionalMean_of_condExp (μ : Measure Ω) [IsProbabilityMeasure μ]
     (X : Ω → A) (Y : Ω → ℝ) (g : A → ℝ)
-    (hX : Measurable X) (hg : Measurable g) (hY : Integrable Y μ)
+    (hX : Measurable X) (hY : Integrable Y μ)
     (hcond : μ[Y | MeasurableSpace.comap X inferInstance] =ᵐ[μ] fun ω => g (X ω)) :
     ConditionalMean μ X Y g := by
   have hm : MeasurableSpace.comap X inferInstance ≤ (inferInstance : MeasurableSpace Ω) :=
@@ -115,12 +115,12 @@ theorem cellMean_eq_regression (μ : Measure Ω) (label : A → κ)
   congr 1
   exact hmean.2.2 (label ⁻¹' {k}) ((measurableSet_singleton k).preimage hlabel)
 
-/-- [Measurable covariates, partition, and responses](hyp:hX,hlabel,hYm) and
+/-- [Measurable responses](hyp:hYm) and
 [bounded responses](hyp:hY)
 ensure [the totalized population cell mean belongs to the unit interval](goal). -/
 theorem cellMean_mem_Icc (μ : Measure Ω) [IsProbabilityMeasure μ]
     (label : A → κ) (X : Ω → A) (Y : Ω → ℝ) (k : κ)
-    (hlabel : Measurable label) (hX : Measurable X) (hYm : Measurable Y)
+    (hYm : Measurable Y)
     (hY : ∀ᵐ ω ∂μ, Y ω ∈ Set.Icc (0 : ℝ) 1) :
     cellMean μ label X Y k ∈ Set.Icc (0 : ℝ) 1 := by
   have hi : Integrable Y μ := (integrable_const (1 : ℝ)).mono' hYm.aestronglyMeasurable
@@ -185,7 +185,7 @@ theorem cell_bias_le (μ : Measure Ω) [IsProbabilityMeasure μ]
     have hb := regression_mem_Icc_ae μ X Y g hX hg hY hmean
     have hc : cellMean μ label X Y k ∈ Set.Icc (0 : ℝ) 1 := by
       rw [he]
-      exact cellMean_mem_Icc μ label X (fun ω => g (X ω)) k hlabel hX (hg.comp hX) hb
+      exact cellMean_mem_Icc μ label X (fun ω => g (X ω)) k (hg.comp hX) hb
     have hi : Integrable (fun ω => (cellMean μ label X Y k - g (X ω)) ^ 2) μ := by
       apply (integrable_const (1 : ℝ)).mono'
         ((measurable_const.sub (hg.comp hX)).pow_const 2).aestronglyMeasurable

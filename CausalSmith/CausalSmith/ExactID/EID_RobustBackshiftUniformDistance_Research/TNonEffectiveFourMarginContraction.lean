@@ -60,13 +60,13 @@ theorem non_effective_four_margin_contraction
   · let L := contractionL0 p (kappabar : ℝ)
     have hL : 1 ≤ L := one_le_conditionRoot hp0 hκ
     let ρ := pairwiseLocalRadius p (Mbar : ℝ) (gamma0 : ℝ) L (kappabar : ℝ)
-    have hρ : 0 < ρ := pairwiseLocalRadius_pos hp0 hM hγ hL
+    have hρ : 0 < ρ := pairwiseLocalRadius_pos hp0 hM
       (lt_of_lt_of_le zero_lt_one hκ)
     let R := contractionEmbeddingRadius p (kappabar : ℝ) (Mbar : ℝ)
     obtain ⟨ε₀, hε₀, htol⟩ := exists_uniformContractionLocalTolerance hp hc hcount
       (κ := (kappabar : ℝ)) (M := (Mbar : ℝ)) (R := R) hζ hγ hρ
     let q := pairwiseResidualRadius p (Mbar : ℝ) (gamma0 : ℝ) L
-    have hq : 0 < q := pairwiseResidualRadius_pos hM hγ hL
+    have hq : 0 < q := pairwiseResidualRadius_pos hM
     let r0 := min 1 (min (ε₀ / (m + 1 : ℝ)) (q / (2 * L ^ 2)))
     have hmden : 0 < (m + 1 : ℝ) := by positivity
     have hLpos : 0 < L := lt_of_lt_of_le zero_lt_one hL

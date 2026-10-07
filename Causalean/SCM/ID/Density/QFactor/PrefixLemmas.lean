@@ -142,63 +142,6 @@ lemma prefixIn_disjoint_singleton_next (H : SWIGGraph N) (D : Finset (SWIGNode N
   rw [Finset.disjoint_singleton_right]
   exact nodesAt_not_mem_prefixIn H D hn
 
-/-- For [a finite single-world intervention graph and node set](hyp:N,H,D), [the zero-length
-topological prefix is empty](goal). -/
-@[deprecated prefixIn_zero (since := "2026-09-19")]
-lemma prefixIn_zero_qfactor (H : SWIGGraph N) (D : Finset (SWIGNode N)) :
-    H.prefixIn D 0 = ∅ :=
-  prefixIn_zero H D
-
-/-- For [a finite single-world intervention graph, node set, prefix length, and valid node
-index](hyp:N,H,D,n,i), [the indexed node belongs to the prefix exactly when its index is below
-the prefix length](goal). -/
-@[deprecated nodesAt_mem_prefixIn_iff (since := "2026-09-19")]
-lemma nodesAt_mem_prefixIn_iff_qfactor (H : SWIGGraph N)
-    (D : Finset (SWIGNode N)) (n : ℕ) (i : Fin D.card) :
-    (H.nodesAt D i).val ∈ H.prefixIn D n ↔ i.val < n :=
-  nodesAt_mem_prefixIn_iff H D n i
-
-/-- For [a finite single-world intervention graph and node set](hyp:N,H,D), [the prefix whose
-length is the set's cardinality is the entire set](goal). -/
-@[deprecated prefixIn_card (since := "2026-09-19")]
-lemma prefixIn_card_qfactor (H : SWIGGraph N) (D : Finset (SWIGNode N)) :
-    H.prefixIn D D.card = D :=
-  prefixIn_card H D
-
-/-- For [a finite single-world intervention graph, node set, and two prefix lengths](hyp:N,H,D,m,k),
-if [the first length does not exceed the second](hyp:h), then [the first prefix is contained in
-the second](goal). -/
-@[deprecated prefixIn_mono (since := "2026-09-19")]
-lemma prefixIn_mono_qfactor (H : SWIGGraph N) (D : Finset (SWIGNode N))
-    {m k : ℕ} (h : m ≤ k) :
-    H.prefixIn D m ⊆ H.prefixIn D k :=
-  prefixIn_mono H D h
-
-/-- For [a finite single-world intervention graph, node set, and prefix length](hyp:N,H,D,n),
-if [the length is below the set's cardinality](hyp:hn), then [the next prefix is the current
-prefix with the next topologically ordered node inserted](goal). -/
-@[deprecated prefixIn_succ (since := "2026-09-19")]
-lemma prefixIn_succ_qfactor (H : SWIGGraph N) (D : Finset (SWIGNode N))
-    {n : ℕ} (hn : n < D.card) :
-    H.prefixIn D (n + 1) =
-      H.prefixIn D n ∪ {(H.nodesAt D ⟨n, hn⟩).val} :=
-  prefixIn_succ H D hn
-
-/-- Given [a finite structural causal model and an intervention set](hyp:N,Ω,M,X), if [every
-intervened random copy is observed](hyp:hObs), [no corresponding fixed copy is already fixed](hyp:hFix),
-and [the model is standard](hyp:hStd), then for [a node whose fixed copy is fixed after the
-intervention](hyp:n) and [any target node](hyp:v), [the intervened random copy has no outgoing
-edge to that target](goal). -/
-@[deprecated fixSet_fixed_random_edgeless (since := "2026-09-19")]
-lemma fixSet_fixed_random_edgeless_qfactor
-    (M : Causalean.SCM N Ω) (X : Finset N)
-    (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
-    (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
-    (hStd : M.isStandard) :
-    ∀ n : N, SWIGNode.fixed n ∈ (M.fixSet X hObs hFix).fixed →
-      ∀ v : SWIGNode N, ¬ (M.fixSet X hObs hFix).dag.edge (SWIGNode.random n) v :=
-  fixSet_fixed_random_edgeless M X hObs hFix hStd
-
 /-- In an induced set of observed variables, every topological prefix contains all parents
 within that set of each variable it contains. -/
 lemma prefixIn_parent_closed_induce_observed

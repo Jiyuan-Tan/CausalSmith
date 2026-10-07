@@ -187,12 +187,9 @@ theorem uStatistic_clt_of_symmetric_explicit_conditions_via_orderM
       (IsAsymLinear.rescaledEstimator (uStatistic S h) (uMean h P)
         (fun m => Finset.range m) n) μ) :
     letI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator (uStatistic S h) (uMean h P)
-        (fun m => Finset.range m))
-      (gaussianMeasure 0 (∫ x, ((fun x => 2 * uProj h P x) x) ^ 2 ∂P))
-      μ
-      hθn_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (IsAsymLinear.rescaledEstimator (uStatistic S h) (uMean h P)
+        (fun m => Finset.range m)) atTop
+            (gaussianMeasure 0 (∫ x, ((fun x => 2 * uProj h P x) x) ^ 2 ∂P)) := by
   letI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
   letI : IsProbabilityMeasure P := by
     rw [← S.law]

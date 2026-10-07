@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 -/
 
 module
-public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlCalibrated
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.Calibrated
 
 /-! # Marginal Sensitivity Model — control cutoff calibration
 
@@ -19,7 +19,10 @@ It defines the control endpoint weights `wMin0` and `wMax0`, the upper-cutoff
 candidate `cutoffProp0`, the survival target `survTarget0`, and the conditional
 survival functional `controlSurv`. The main theorems are the calibration
 bracket lemmas, `control_calibValue_eq`, `controlCutoffProp_calibrated_of_survival`,
-`cutoffProp0_mem_MSMSet0`, and `cutoffProp0_mem_MSMSetCalib0_of_survival`.
+`cutoffProp0_mem_MSMSet0`, and `cutoffProp0_mem_MSMSetCalib0_of_survival`. It ends with the
+integrability facts that follow from integrability of the control indicator times the largest
+weight: `integrable_control_gt_cutoff`, `integrable_control_wMin0_of_wMax0`, and
+`integrable_wDiff0_mul_control_gt_cutoff`.
 -/
 
 @[expose] public section
@@ -289,8 +292,7 @@ theorem controlCutoffProp_calibrated_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hdiff_int : Integrable (fun ω => (S.wMax0 Λ ω - S.wMin0 Λ ω) *
       (S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0))) P.μ)
     (hsurv : S.controlSurv c =ᵐ[P.μ] S.survTarget0 Λ) :
-    S.Calibrated0 (S.cutoffProp0 Λ c) := by
-  unfold POBackdoorSystem.Calibrated0
+    S.Calibrated false (S.cutoffProp0 Λ c) := by
   have hΛ0 : 0 < Λ := lt_trans zero_lt_one hΛ
   refine (S.control_calibValue_eq Λ c hint1 hmin_int hdiff_int).trans ?_
   filter_upwards [hoverlap, hsurv] with ω hω hsurvω
@@ -313,11 +315,11 @@ theorem controlCutoffProp_calibrated_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
 sensitivity parameter Λ at least 1](hyp:Λ,hΛ) and a cutoff function c. If [the control propensity
 `P[D=0∣X]` lies strictly between 0 and 1 almost everywhere (overlap)](hyp:hoverlap), then [the
 cutoff-calibration candidate propensity `cutoffProp0 Λ c` always belongs to the control
-marginal-sensitivity-model ambiguity set `MSMSet0 Λ`](goal). -/
+marginal-sensitivity-model ambiguity set `MSMSet false Λ`](goal). -/
 theorem cutoffProp0_mem_MSMSet0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
     (c : P.Ω → ℝ) :
-    S.cutoffProp0 Λ c ∈ S.MSMSet0 Λ := by
+    S.cutoffProp0 Λ c ∈ S.MSMSet false Λ := by
   classical
   have hΛ0 : (0 : ℝ) < Λ := lt_of_lt_of_le zero_lt_one hΛ
   have hOR_box : ∀ {e et : ℝ}, 0 < e → e < 1 → 0 < et → et < 1 →
@@ -408,7 +410,7 @@ indicator and the lower weight `wMin0 Λ` is integrable](hyp:hmin_int), [the pro
 spread with the control-indicator survival term is integrable](hyp:hdiff_int), and [the
 conditional control-survival functional at c equals, almost everywhere, the target survival value
 `survTarget0 Λ`](hyp:hsurv), then [the cutoff-calibration propensity `cutoffProp0 Λ c` belongs to
-the calibrated control MSM set `MSMSetCalib0 Λ`](goal). -/
+the calibrated control MSM set `MSMSetCalib false Λ`](goal). -/
 theorem cutoffProp0_mem_MSMSetCalib0_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
     (c : P.Ω → ℝ)
@@ -418,10 +420,111 @@ theorem cutoffProp0_mem_MSMSetCalib0_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hdiff_int : Integrable (fun ω => (S.wMax0 Λ ω - S.wMin0 Λ ω) *
       (S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0))) P.μ)
     (hsurv : S.controlSurv c =ᵐ[P.μ] S.survTarget0 Λ) :
-    S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ :=
+    S.cutoffProp0 Λ c ∈ S.MSMSetCalib false Λ :=
     ⟨S.cutoffProp0_mem_MSMSet0 Λ (le_of_lt hΛ) hoverlap c,
    S.controlCutoffProp_calibrated_of_survival Λ hΛ hoverlap c hint1
      hmin_int hdiff_int hsurv⟩
+
+/-- Fix [a sensitivity parameter Λ at least one](hyp:Λ,hΛ) and assume [the control propensity score
+lies strictly between 0 and 1 almost surely](hyp:hoverlap). Then [almost surely the smallest
+admissible control inverse-propensity weight exceeds one and is at most the largest admissible
+weight](goal). -/
+theorem ae_one_lt_wMin0_and_le_wMax0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
+    (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1) :
+    ∀ᵐ ω ∂P.μ, (1 : ℝ) < S.wMin0 Λ ω ∧ S.wMin0 Λ ω ≤ S.wMax0 Λ ω := by
+  have hΛ0 : (0 : ℝ) < Λ := lt_of_lt_of_le zero_lt_one hΛ
+  filter_upwards [hoverlap] with ω hω
+  set e : ℝ := S.propScore false ω with he_def
+  have he0 : 0 < e := by simpa [he_def] using hω.1
+  have he1 : e < 1 := by simpa [he_def] using hω.2
+  have h1e : 0 < 1 - e := by linarith
+  refine ⟨?_, ?_⟩
+  · have : 0 < (1 - e) / (Λ * e) := by positivity
+    simp only [POBackdoorSystem.wMin0, ← he_def]
+    linarith
+  · simp only [POBackdoorSystem.wMin0, POBackdoorSystem.wMax0, ← he_def]
+    have hd1 : (1 - e) / (Λ * e) ≤ Λ * (1 - e) / e := by
+      rw [div_le_div_iff₀ (by positivity) he0]
+      nlinarith [hΛ, mul_pos h1e he0, mul_pos hΛ0 he0,
+        mul_nonneg (mul_nonneg (le_of_lt h1e) (le_of_lt he0)) (sub_nonneg.mpr hΛ)]
+    linarith
+
+/-- Write D for the control-arm indicator and Y for the observed outcome. For [a measurable cutoff
+function c](hyp:c,hc), [the product D·1{Y > c} is integrable](goal): it is a measurable function
+bounded by D. -/
+theorem integrable_control_gt_cutoff (c : P.Ω → ℝ) (hc : Measurable c) :
+    Integrable (fun ω =>
+      S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ := by
+  have hite : Measurable (fun ω => if c ω < S.factualY ω then (1 : ℝ) else 0) :=
+    Measurable.ite (measurableSet_lt hc S.measurable_factualY) measurable_const measurable_const
+  have hD : Measurable (S.dVar.indicator false) :=
+    S.dVar.measurable_indicator false (MeasurableSet.singleton false)
+  refine (S.dVar.integrable_indicator false (MeasurableSet.singleton false)).mono
+    (hD.mul hite).aestronglyMeasurable (Filter.Eventually.of_forall fun ω => ?_)
+  by_cases h : c ω < S.factualY ω <;> simp [h]
+
+/-- Write D for the control-arm indicator and w_min, w_max for the smallest and largest admissible
+control inverse-propensity weights at [a sensitivity level Λ at least one](hyp:Λ,hΛ). If [the
+control propensity score lies strictly between 0 and 1 almost surely](hyp:hoverlap) and
+[D·w_max is integrable](hyp:hmax), then [D·w_min is integrable](goal), because
+0 ≤ D·w_min ≤ D·w_max almost surely. -/
+theorem integrable_control_wMin0_of_wMax0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
+    (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
+    (hmax : Integrable (fun ω => S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ) :
+    Integrable (fun ω => S.dVar.indicator false ω * S.wMin0 Λ ω) P.μ := by
+  have hD : Measurable (S.dVar.indicator false) :=
+    S.dVar.measurable_indicator false (MeasurableSet.singleton false)
+  have hp : Measurable (S.propScore false) := S.measurable_propScore false
+  have hwmin : Measurable (S.wMin0 Λ) := by
+    unfold POBackdoorSystem.wMin0
+    fun_prop
+  refine hmax.mono (hD.mul hwmin).aestronglyMeasurable ?_
+  filter_upwards [S.ae_one_lt_wMin0_and_le_wMax0 Λ hΛ hoverlap] with ω hω
+  have hD0 : 0 ≤ S.dVar.indicator false ω :=
+    Set.indicator_nonneg (fun _ _ => zero_le_one) ω
+  have hmin0 : 0 ≤ S.wMin0 Λ ω := by linarith [hω.1]
+  rw [Real.norm_of_nonneg (mul_nonneg hD0 hmin0),
+    Real.norm_of_nonneg (mul_nonneg hD0 (hmin0.trans hω.2))]
+  exact mul_le_mul_of_nonneg_left hω.2 hD0
+
+/-- Write D for the control-arm indicator, Y for the observed outcome, and w_min, w_max for the
+smallest and largest admissible control inverse-propensity weights at [a sensitivity level Λ at
+least one](hyp:Λ,hΛ). If [the control propensity score lies strictly between 0 and 1 almost
+surely](hyp:hoverlap), [c is a measurable cutoff function](hyp:c,hc), and
+[D·w_max is integrable](hyp:hmax), then [(w_max − w_min)·D·1{Y > c} is integrable](goal), because
+almost surely it lies between 0 and D·w_max. -/
+theorem integrable_wDiff0_mul_control_gt_cutoff (Λ : ℝ) (hΛ : 1 ≤ Λ)
+    (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
+    (c : P.Ω → ℝ) (hc : Measurable c)
+    (hmax : Integrable (fun ω => S.dVar.indicator false ω * S.wMax0 Λ ω) P.μ) :
+    Integrable (fun ω => (S.wMax0 Λ ω - S.wMin0 Λ ω) *
+      (S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0))) P.μ := by
+  have hite : Measurable (fun ω => if c ω < S.factualY ω then (1 : ℝ) else 0) :=
+    Measurable.ite (measurableSet_lt hc S.measurable_factualY) measurable_const measurable_const
+  have hD : Measurable (S.dVar.indicator false) :=
+    S.dVar.measurable_indicator false (MeasurableSet.singleton false)
+  have hp : Measurable (S.propScore false) := S.measurable_propScore false
+  have hwmin : Measurable (S.wMin0 Λ) := by
+    unfold POBackdoorSystem.wMin0
+    fun_prop
+  have hwmax : Measurable (S.wMax0 Λ) := by
+    unfold POBackdoorSystem.wMax0
+    fun_prop
+  refine hmax.mono
+    ((hwmax.sub hwmin).mul (hD.mul hite)).aestronglyMeasurable ?_
+  filter_upwards [S.ae_one_lt_wMin0_and_le_wMax0 Λ hΛ hoverlap] with ω hω
+  have hD0 : 0 ≤ S.dVar.indicator false ω :=
+    Set.indicator_nonneg (fun _ _ => zero_le_one) ω
+  have hmin0 : 0 ≤ S.wMin0 Λ ω := by linarith [hω.1]
+  have hmax0 : 0 ≤ S.wMax0 Λ ω := hmin0.trans hω.2
+  have hdiff0 : 0 ≤ S.wMax0 Λ ω - S.wMin0 Λ ω := sub_nonneg.mpr hω.2
+  rw [Real.norm_of_nonneg (mul_nonneg hD0 hmax0)]
+  by_cases h : c ω < S.factualY ω
+  · simp only [if_pos h, mul_one]
+    rw [Real.norm_of_nonneg (mul_nonneg hdiff0 hD0), mul_comm]
+    exact mul_le_mul_of_nonneg_left (by linarith) hD0
+  · simp only [if_neg h, mul_zero, norm_zero]
+    exact mul_nonneg hD0 hmax0
 
 end POBackdoorSystem
 

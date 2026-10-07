@@ -290,7 +290,7 @@ theorem cb_disj_XrZ : Disjoint (({Xidx} : Finset CBNode).image SWIGNode.random)
     [the two Rule-2 conditional kernels agree almost everywhere](goal).
 
     This is a sanity check confirming that the general toolkit lemma
-    `SCM.backdoor_rule2_ae` applies to the graphical criterion
+    `SCM.backdoor_rule2_ae_of_positivity` applies to the graphical criterion
     `cb_backdoor_criterion` on this concrete real-valued, degenerate example
     SCM: it verifies that the toolkit correctly handles the graph,
     non-descendance, kernel disintegration, and typeclass bookkeeping for
@@ -318,12 +318,8 @@ theorem cb_backdoor_rule2_ae
       = continuousBackdoorSCM.obsCondKernel {SWIGNode.random Yidx}
           (({Xidx} : Finset CBNode).image SWIGNode.random ∪ {SWIGNode.random Zidx})
           cb_Yobs cb_XrZ_obs (s0, valuesUnionMk p.1 p.2) :=
-  SCM.backdoor_rule2_ae continuousBackdoorSCM ({Xidx} : Finset CBNode)
+  SCM.backdoor_rule2_ae_of_positivity continuousBackdoorSCM ({Xidx} : Finset CBNode)
     cb_Xrand_obs cb_Xfixed {SWIGNode.random Yidx} {SWIGNode.random Zidx}
-    cb_Yobs cb_Zobs cb_Xr_obs cb_XrZ_obs cb_backdoor_criterion s0 hPositivity_ae
-
-/-- Deprecated former name of `cb_backdoor_rule2_ae`. -/
-@[deprecated cb_backdoor_rule2_ae (since := "2026-09-20")]
-alias cb_backdoor_identified := cb_backdoor_rule2_ae
+    cb_Yobs cb_Zobs cb_backdoor_criterion s0 hPositivity_ae
 
 end Causalean.SCM.Examples.ContinuousBackdoor

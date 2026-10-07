@@ -246,8 +246,11 @@ training-shift families](hyp:a,b), [measurability](hyp:hfmeas,hgmeas,hameas,hbme
 products](hyp:hfg), [square-integrable shifted scores](hyp:hflp,hglp), [integrable
 first shifted pairs](hyp:hf01,hg01), [an integrable first shifted cross pair](hyp:hcross01),
 and [square-integrable shifted three-block products](hyp:hflpProd,hglpProd) imply that
-[their conditional covariance equals the product of shifted blockwise cross moments minus
-the product of shifted conditional means](goal). -/
+[the conditional covariance of the two shifted three-block products given the training block
+almost surely equals the product over the three blocks of the blockwise covariance plus the product
+of the two shifted held-out means, minus the product over all blocks of both families' shifted
+held-out means, where a shifted held-out mean is the unconditional mean of a held-out score minus
+its training shift](goal). -/
 theorem condCov_shiftedThreeBlockProduct
     (μ : (i : ι) → Measure (Ω i)) [∀ i, IsProbabilityMeasure (μ i)]
     (B0 : Finset ι) (B : Fin 3 → Finset ι)

@@ -2,7 +2,7 @@ module
 public import Causalean.Stat.Concentration.VC.EmpiricalCover
 public import Causalean.Stat.Concentration.Covering.DudleyEntropy
 public import Causalean.Stat.Concentration.Covering.SqrtLogIntegral
-public import Causalean.Stat.Concentration.Covering.VCLocalizedRegime
+public import Causalean.Stat.Concentration.Covering.VCLocalizedRegime.RademacherBounds
 public import Causalean.Stat.Concentration.Rademacher.Contraction
 public import Causalean.Stat.Concentration.Rademacher.Symmetrization
 public import Causalean.Tactic.IntegralLinearity
@@ -63,11 +63,11 @@ lemma HasPolynomialEmpiricalL2Cover.anchoredClass
   intro i
   obtain ⟨j, hj, hij⟩ := hC i
   refine ⟨j, hj, ?_⟩
-  rw [measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hm
+  rw [measureL2Dist_finiteSampleMeasure_eq_empiricalDist S
       (anchoredClass_measurable F i₀ hmeas i)
       (anchoredClass_measurable F i₀ hmeas j),
     anchoredClass_empiricalDist]
-  rwa [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hm (hmeas i) (hmeas j)]
+  rwa [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S (hmeas i) (hmeas j)]
 
 /-- If a function class [has a polynomial empirical L2 covering bound](hyp:hcover) and [all of
 its functions are measurable](hyp:hmeas), then [negating every function preserves that covering
@@ -83,7 +83,7 @@ lemma HasPolynomialEmpiricalL2Cover.neg
   intro i
   obtain ⟨j, hj, hij⟩ := hC i
   refine ⟨j, hj, ?_⟩
-  rw [measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hm
+  rw [measureL2Dist_finiteSampleMeasure_eq_empiricalDist S
       (hmeas i).fun_neg (hmeas j).fun_neg]
   have heq : empiricalDist S (fun x => -F i x) (fun x => -F j x) =
       empiricalDist S (F i) (F j) := by
@@ -93,7 +93,7 @@ lemma HasPolynomialEmpiricalL2Cover.neg
     change (-F i (S k) - -F j (S k)) ^ 2 = (F i (S k) - F j (S k)) ^ 2
     ring
   rw [heq]
-  rwa [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hm (hmeas i) (hmeas j)]
+  rwa [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S (hmeas i) (hmeas j)]
 
 /-- If [the envelope level is nonnegative](hyp:hU) and [every function is pointwise bounded in
 absolute value by that level](hyp:henvelope), then [each function's empirical L2 norm is at most

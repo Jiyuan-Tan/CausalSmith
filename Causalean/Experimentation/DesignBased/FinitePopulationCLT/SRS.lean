@@ -17,7 +17,7 @@ maximal-deviation condition is the convenient sufficient condition used by Li an
 not Hájek's weaker necessary-and-sufficient Lindeberg criterion.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory
 open scoped BigOperators Topology
@@ -40,10 +40,9 @@ theorem srs_finitePopulation_clt
     (y : ∀ n, Fin (N n) → ℝ) (hvar : ∀ n, 0 < popVar (y n))
     (hmax : Tendsto (fun n => popMaxSqDev (y n) /
       (((min (K n) (N n - K n) : ℕ) : ℝ) * popVar (y n))) atTop (nhds 0)) :
-    TendstoInDistribution (fun n => (uniformPermutationDesign (N n)).toMeasure)
-      (fun n π => (permutationSampleMean (K n) (hKlt n).le (y n) π - popMean (y n)) /
-        Real.sqrt (srsSampleMeanVariance (N n) (K n) (y n)))
-      (gaussianReal 0 1) (fun _n => (measurable_of_finite _).aemeasurable) := by
+    Modes.TendstoInLaw (fun n => (uniformPermutationDesign (N n)).toMeasure)
+        (fun n π => (permutationSampleMean (K n) (hKlt n).le (y n) π - popMean (y n)) /
+        Real.sqrt (srsSampleMeanVariance (N n) (K n) (y n))) atTop (gaussianReal 0 1) := by
   let A := standardizedSrsPermutationHajekArray N K hKpos hKlt y
   have hclt := martingaleArrayCLT A
     (standardizedSrsPermutationHajekArray_predictableQuadraticVariation_tendstoInProbability
@@ -68,12 +67,10 @@ theorem completeRandomization_sampleMean_clt
     (y : ∀ n, Fin (N n) → ℝ) (hvar : ∀ n, 0 < popVar (y n))
     (hmax : Tendsto (fun n => popMaxSqDev (y n) /
       (((min (K n) (N n - K n) : ℕ) : ℝ) * popVar (y n))) atTop (nhds 0)) :
-    TendstoInDistribution
-      (fun n => (completeRandomization (V := Fin (N n)) (K n)
+    Modes.TendstoInLaw (fun n => (completeRandomization (V := Fin (N n)) (K n)
         (by simpa using (hKlt n).le)).toMeasure)
-      (fun n S => (sampleMean (K n) (y n) S - popMean (y n)) /
-        Real.sqrt (srsSampleMeanVariance (N n) (K n) (y n)))
-      (gaussianReal 0 1) (fun _n => (measurable_of_finite _).aemeasurable) := by
+            (fun n S => (sampleMean (K n) (y n) S - popMean (y n)) /
+        Real.sqrt (srsSampleMeanVariance (N n) (K n) (y n))) atTop (gaussianReal 0 1) := by
   have hclt := srs_finitePopulation_clt N K hKpos hKlt y hvar hmax
   have hrow : ∀ n,
       Measure.map

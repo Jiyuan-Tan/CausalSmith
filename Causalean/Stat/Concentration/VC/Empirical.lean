@@ -44,11 +44,11 @@ theorem finiteSampleMeasure_isProbabilityMeasure
     ENNReal.inv_mul_cancel (Nat.cast_ne_zero.mpr (Nat.ne_of_gt hn))
       (ENNReal.natCast_ne_top n)
 
-/-- For [a finite sample](hyp:S) of [positive size](hyp:hn) and
+/-- For [a finite sample](hyp:S) and
 [a measurable real-valued function](hyp:hf), [integration against the empirical
 law equals the function's arithmetic average over the sample](goal). -/
 theorem integral_finiteSampleMeasure
-    {n : ℕ} (S : Fin n → 𝒳) (hn : 0 < n)
+    {n : ℕ} (S : Fin n → 𝒳)
     {f : 𝒳 → ℝ} (hf : Measurable f) :
     ∫ x, f x ∂finiteSampleMeasure S =
       (1 / (n : ℝ)) * ∑ i : Fin n, f (S i) := by
@@ -60,15 +60,15 @@ theorem integral_finiteSampleMeasure
   · intro i hi
     exact integrable_dirac' hf.stronglyMeasurable (by simp)
 
-/-- For [a finite sample](hyp:S) of [positive size](hyp:hn) and
+/-- For [a finite sample](hyp:S) and
 [two measurable functions](hyp:hf,hg), [their distance under the empirical law
 equals their empirical root-mean-square distance](goal). -/
 theorem measureL2Dist_finiteSampleMeasure_eq_empiricalDist
-    {n : ℕ} (S : Fin n → 𝒳) (hn : 0 < n)
+    {n : ℕ} (S : Fin n → 𝒳)
     {f g : 𝒳 → ℝ} (hf : Measurable f) (hg : Measurable g) :
     measureL2Dist (finiteSampleMeasure S) f g = empiricalDist S f g := by
   rw [measureL2Dist, empiricalDist, empiricalNorm,
-    integral_finiteSampleMeasure S hn ((hf.fun_sub hg).pow_const 2)]
+    integral_finiteSampleMeasure S ((hf.fun_sub hg).pow_const 2)]
   simp only [Pi.sub_apply, one_div]
 
 /-- If [a class consists of measurable functions](hyp:hmeas), [has bounded
@@ -122,7 +122,7 @@ theorem real_vcSubgraph_empirical_totallyBounded
         mul_le_mul_of_nonneg_right (min_le_right _ _) (le_of_lt hU)
       _ = r := by field_simp
   have hj' : empiricalDist S (F q.index) (F j) < r := by
-    rw [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hn
+    rw [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S
       (hmeas q.index) (hmeas j)]
     exact lt_of_lt_of_le hj hεU
   refine Set.mem_iUnion_of_mem (⟨j⟩ : EmpiricalFunctionSpace F S) ?_
@@ -162,7 +162,7 @@ theorem real_vcSubgraph_empirical_coveringNumber_le
     intro q hq
     obtain ⟨j, hjC, hj⟩ := hCcover q.index
     have hj' : empiricalDist S (F q.index) (F j) < r := by
-      rw [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S hn
+      rw [← measureL2Dist_finiteSampleMeasure_eq_empiricalDist S
         (hmeas q.index) (hmeas j)]
       exact hj
     refine Set.mem_iUnion_of_mem (⟨j⟩ : EmpiricalFunctionSpace F S) ?_

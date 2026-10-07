@@ -181,16 +181,6 @@ theorem Ymean_mem_Icc_calib (d : Bool) (Λ : ℝ)
   · exact csInf_le hbdd hmemImg
   · exact le_csSup hbdd' hmemImg
 
-/-- Deprecated treated-arm specialization of calibrated MSM interval validity. -/
-@[deprecated "Use Ymean_mem_Icc_calib true." (since := "2026-09-17")]
-theorem Y1mean_mem_Icc_calib (Λ : ℝ)
-    (hmem : S.completeProp true ∈ S.MSMSetCalib true Λ)
-    (hbridge : S.candMean true (S.completeProp true) = S.Y1mean)
-    (hbdd : BddBelow (S.candMean true '' S.MSMSetCalib true Λ))
-    (hbdd' : BddAbove (S.candMean true '' S.MSMSetCalib true Λ)) :
-    S.Y1mean ∈ Set.Icc (S.msmLowerCalib true Λ) (S.msmUpperCalib true Λ) :=
-  S.Ymean_mem_Icc_calib true Λ hmem hbridge hbdd hbdd'
-
 /-- The calibrated set is a subset of the odds-ratio box. -/
 theorem MSMSetCalib_subset (d : Bool) (Λ : ℝ) : S.MSMSetCalib d Λ ⊆ S.MSMSet d Λ :=
   fun _ h => h.1

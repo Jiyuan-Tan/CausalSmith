@@ -5,7 +5,7 @@ public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSqOverlap
 
 /-! A two-cell parametric lower bound inside the capacity-active paired family. -/
 
-@[expose] public section
+public section
 namespace CausalSmith.Stat.DiscreteBudgetvalueCurve
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators

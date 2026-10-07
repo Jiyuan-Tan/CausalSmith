@@ -86,13 +86,11 @@ public import Causalean.PO.ID.Partial.Sensitivity.MSM.Bounds
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.Calibrated
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.Compatible
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.CompatibleRealization
-public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlCalibrated
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlCutoff
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlCutoffConstruct
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlLowerBound
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlObservedCandidates
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlQuantileBalance
-public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlSetup
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.Converse
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.ConverseObserved
 public import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffConstruct

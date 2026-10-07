@@ -4,7 +4,7 @@ public import Mathlib.Analysis.Convex.Integral
 
 /-! Aggregate centered risk of the bad-pilot cell paths. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteBudgetvalueCurve
 

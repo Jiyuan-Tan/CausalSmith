@@ -7,11 +7,27 @@ public import Causalean.Stat.Concentration.VC.Trace
 /-!
 # Euclidean radial-polynomial VC-subgraph classes
 
-This barrel exports finite-trace pseudo-dimension bounds and uniform polynomial
-`L²` covering certificates for compactly supported radial monomials with a
-moving finite-dimensional Euclidean center.  It also exports finite signed-arm,
-shared-center polynomial, and bounded residual-score closure certificates.
+Covering-number bounds for the function classes that appear in local-polynomial empirical-process
+arguments. The basic object is the compactly supported radial monomial `(dist(z, x)/q)^k` restricted
+to an annulus `a q ≤ dist(z, x) ≤ b q`, with the centre `x ∈ ℝ^d` and the degree `k ≤ p` both
+varying. This class has finite pseudo-dimension, bounded explicitly in `d` and `p` only, and hence
+polynomial L² covering numbers uniformly over all probability measures; the same holds after
+multiplying by finitely many bounded signed arms, forming bounded-coefficient polynomials with a
+shared centre, and multiplying by a bounded response residual.
 
-All covering statements are uniform over arbitrary probability measures, so
-they remain valid for atomic laws charging moving kernel boundaries.
+Because every covering statement is uniform over arbitrary probability measures, the bounds remain
+valid for atomic laws that charge the moving annulus boundaries.
+
+## Main results
+
+* `radialMonomialClass_hasPseudoDimAtMost` — pseudo-dimension at most `radialPseudoDimBound d p`
+  (explicit, non-optimized).
+* `radialMonomialClass_hasPolynomialL2Cover` — the uniform polynomial L² cover for the monomials.
+* `finiteSignedArmRadial_hasPolynomialL2Cover`, `boundedRadialPolynomialOn_hasPolynomialL2Cover` —
+  closure under a finite family of unit-bounded arms and under bounded-coefficient polynomials.
+* `radialResidualScore_hasPolynomialL2Cover`, `radialResidualScore_hasUniformPolynomialL2CoverWith`
+  — the bounded residual score class, with entropy constants depending only on `d`, `p` and the
+  arm type.
+* `linearSignClass_hasVCAtMost`, `booleanCombination_hasVCAtMost`, `finiteUnion_hasVCAtMost` — the
+  finite-trace VC tools behind these bounds (half-spaces, Boolean combinations, finite unions).
 -/

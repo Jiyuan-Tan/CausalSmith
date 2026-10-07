@@ -79,16 +79,6 @@ lemma mem_cComponent_iff_cComponentOf_eq
   · intro hcomp
     exact hcomp ▸ G.mem_cComponentOf_self hv
 
-/-- Given [a finite single-world intervention graph, an observed node, and a district](hyp:N,G,v,S),
-if [the node is observed](hyp:hv) and [the set is a district](hyp:hS), then [the node belongs to
-that district exactly when its assigned district is that set](goal). -/
-@[deprecated mem_cComponent_iff_cComponentOf_eq (since := "2026-09-19")]
-lemma mem_cComponent_iff_cComponentOf_eq_mech
-    (G : SWIGGraph N) {v : SWIGNode N} {S : Finset (SWIGNode N)}
-    (hv : v ∈ G.observed) (hS : S ∈ G.cComponentSet) :
-    v ∈ S ↔ G.cComponentOf v = S :=
-  mem_cComponent_iff_cComponentOf_eq G hv hS
-
 private lemma obsKernel_prefix_singleton_eq_prod_qLocalMass
     [∀ n, Fintype (Ω n)] [∀ n, MeasurableSingletonClass (Ω n)]
     (M : Causalean.SCM N Ω) (s : M.FixedValues) (k : ℕ)

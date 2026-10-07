@@ -19,7 +19,9 @@ variable {Θ ι κ : Type*} [MeasurableSpace Θ] [StandardBorelSpace Θ]
   [Fintype ι] [Fintype κ]
 
 /-- A [quadratic family](hyp:Q), [parameter](hyp:θ), [weight vector](hyp:α), and [scalar
-decision](hyp:t) determine the [scalar slope of the weighted objective](goal). -/
+decision](hyp:t) determine the [scalar slope of the weighted objective](goal): the sum over
+coordinates of the weight times 2·a·t + b, the derivative of the weighted quadratic objective
+in the scalar decision. -/
 def Quadratics.slope (Q : Quadratics Θ ι)
     (θ : Θ) (α : EuclideanSpace ℝ ι) (t : ℝ) : ℝ :=
   ∑ i, α i * (2 * Q.a i θ * t + Q.b i θ)
@@ -144,7 +146,7 @@ theorem exists_measurable_envelope_minimizer_on
       (fun x : D => (x.1, g n x)))
     exact (Q.measurable_envelope P).comp
       (measurable_subtype_coe.prodMk (hg n))
-  have hv : Measurable v := measurable_value_on P Q D hD hAttains
+  have hv : Measurable v := measurable_value_on P Q D hAttains
   let p : D → ℕ → Prop := fun x n => Q.envelope P x.1 (g n x) = v x
   have hpmeas (n : ℕ) : MeasurableSet {x : D | p x n} := by
     change MeasurableSet {x : D | Q.envelope P x.1 (g n x) = v x}
@@ -203,7 +205,7 @@ theorem exists_measurable_saddle_weight_on
     (measurable_subtype_coe.comp measurable_fst).prodMk
       (measurable_snd.prodMk (ht.comp measurable_fst))
   have hv : Measurable (fun x : D × EuclideanSpace ℝ ι => value P Q x.1.1) :=
-    (measurable_value_on P Q D hD hAttains).comp measurable_fst
+    (measurable_value_on P Q D hAttains).comp measurable_fst
   have hf : Measurable f :=
     ((Q.measurable_objective.comp harg).sub hv).abs.add
       ((Q.measurable_slope.comp harg).abs)
@@ -290,7 +292,7 @@ theorem exists_measurable_saddle_with_fallback
     if hθ : θ ∈ D then (α ⟨θ, hθ⟩, t ⟨θ, hθ⟩, value P Q θ)
     else fallback
   have hv : Measurable (fun θ : D => value P Q θ.1) :=
-    measurable_value_on P Q D hD hAttains
+    measurable_value_on P Q D hAttains
   have hp : Measurable policy := by
     change Measurable (fun θ : Θ =>
       if hθ : θ ∈ D then (α ⟨θ, hθ⟩, t ⟨θ, hθ⟩, value P Q θ)

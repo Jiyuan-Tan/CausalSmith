@@ -21,7 +21,7 @@ namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev.AbsoluteValue
 
 open Polynomial
 
-/-- [A truncation length](hyp:m) determines [the explicit even Chebyshev polynomial approximating absolute value](goal), [given by the existing exact Fourier truncation](step:1). -/
+/-- [A truncation length m](hyp:m) determines [the explicit even Chebyshev polynomial approximating absolute value on the interval from −1 to 1](goal): [the constant 2/π plus the sum over j from 1 to m of (4/π)·(−1)^(j+1)/(4j² − 1) times the first-kind Chebyshev polynomial of degree 2j, that is, the Chebyshev series of |x| truncated after m even modes](step:1). -/
 abbrev absChebPoly (m : ℕ) : Polynomial ℝ :=
   Causalean.Mathlib.Analysis.AbsoluteValueMomentPriorDuality.absChebPoly m
 
@@ -48,7 +48,7 @@ theorem absChebPoly_eval (m : ℕ) (x : ℝ) :
 theorem absChebPoly_natDegree_le (m : ℕ) : (absChebPoly m).natDegree ≤ 2 * m :=
   Causalean.Mathlib.Analysis.AbsoluteValueMomentPriorDuality.absChebPoly_natDegree_le m
 
-/-- [A truncation length](hyp:m), evaluated [at a point in the closed unit interval](hyp:hx), has [absolute approximation error at most two divided by π times twice the length plus one](goal). -/
+/-- For [a truncation length m](hyp:m) and [a point x in the closed interval from −1 to 1](hyp:hx), [the truncated Chebyshev polynomial for absolute value differs from |x| by at most 2/(π(2m + 1)) in absolute value](goal). -/
 theorem absChebPoly_error_le (m : ℕ) {x : ℝ} (hx : x ∈ Set.Icc (-1 : ℝ) 1) :
     abs ((absChebPoly m).eval x - abs x) ≤ 2 / (Real.pi * (2 * (m : ℝ) + 1)) := by
   rw [abs_sub_comm]
@@ -72,8 +72,8 @@ theorem absChebPoly_eq_sum_Icc (m : ℕ) :
       ring
     simp only [hsign]
 
-/-- [A positive truncation length](hyp:m,hm) gives [a polynomial whose monomial coefficient one-norm is at most two to the power three times that length](goal). -/
-theorem absChebPoly_coeffOneNorm_le (m : ℕ) (hm : 1 ≤ m) :
+/-- [Any truncation length](hyp:m) gives [a polynomial whose monomial coefficient one-norm is at most two to the power three times that length](goal). -/
+theorem absChebPoly_coeffOneNorm_le (m : ℕ) :
     polynomialCoeffOneNorm (absChebPoly m) ≤ (2 : ℝ) ^ (3 * m) := by
   classical
   have hadd (p q : Polynomial ℝ) :
@@ -163,8 +163,8 @@ theorem absChebPoly_coeffOneNorm_le (m : ℕ) (hm : 1 ≤ m) :
     polynomialCoeffOneNorm (absChebPoly m) ≤ (8 : ℝ) ^ m := hall m
     _ = (2 : ℝ) ^ (3 * m) := by rw [pow_mul]; norm_num
 
-/-- [A positive truncation length](hyp:m,hm) and [a monomial index](hyp:k) give [an absolute coefficient bound of two to the power three times the length](goal). -/
-theorem absChebPoly_coeff_le (m : ℕ) (hm : 1 ≤ m) (k : ℕ) :
+/-- [Any truncation length](hyp:m) and [a monomial index](hyp:k) give [an absolute coefficient bound of two to the power three times the length](goal). -/
+theorem absChebPoly_coeff_le (m : ℕ) (k : ℕ) :
     |(absChebPoly m).coeff k| ≤ (2 : ℝ) ^ (3 * m) := by
   classical
   have hb : |(absChebPoly m).coeff k| ≤ polynomialCoeffOneNorm (absChebPoly m) := by
@@ -176,7 +176,7 @@ theorem absChebPoly_coeff_le (m : ℕ) (hm : 1 ≤ m) (k : ℕ) :
         simpa only [Polynomial.mem_support_iff, not_not] using hk
       rw [hzero, abs_zero]
       exact Finset.sum_nonneg (fun j _ => abs_nonneg ((absChebPoly m).coeff j))
-  exact hb.trans (absChebPoly_coeffOneNorm_le m hm)
+  exact hb.trans (absChebPoly_coeffOneNorm_le m)
 
 /-- [An even natural degree](hyp:D,hD) has [degree equal to twice its half-degree](goal). -/
 theorem two_mul_halfDegree (D : ℕ) (hD : Even D) : 2 * (D / 2) = D := by
@@ -201,7 +201,7 @@ theorem absChebPoly_halfDegree_natDegree_le (D : ℕ) (hD : Even D) :
     (absChebPoly (D / 2)).natDegree ≤ D := by
   simpa only [two_mul_halfDegree D hD] using absChebPoly_natDegree_le (D / 2)
 
-/-- [An even natural degree](hyp:D,hD), evaluated [at a point in the closed unit interval](hyp:hx), has [absolute approximation error at most two divided by π times the degree plus one](goal). -/
+/-- For [an even natural degree D](hyp:D,hD) and [a point x in the closed interval from −1 to 1](hyp:hx), [the truncated Chebyshev polynomial for absolute value with D/2 even modes differs from |x| by at most 2/(π(D + 1)) in absolute value](goal). -/
 theorem absChebPoly_halfDegree_error_le (D : ℕ) (hD : Even D)
     {x : ℝ} (hx : x ∈ Set.Icc (-1 : ℝ) 1) :
     abs ((absChebPoly (D / 2)).eval x - abs x) ≤ 2 / (Real.pi * ((D : ℝ) + 1)) := by
@@ -209,10 +209,10 @@ theorem absChebPoly_halfDegree_error_le (D : ℕ) (hD : Even D)
     exact_mod_cast two_mul_halfDegree D hD
   simpa only [hr] using absChebPoly_error_le (D / 2) hx
 
-/-- [An even degree at least two](hyp:D,hD,hD2) and [a monomial index](hyp:k) give [an absolute coefficient bound with real-power exponent three halves of the degree](goal). -/
-theorem absChebPoly_halfDegree_coeff_le (D : ℕ) (hD : Even D) (hD2 : 2 ≤ D) (k : ℕ) :
+/-- For [an even degree D](hyp:D,hD) and [a monomial index k](hyp:k), [the k-th monomial coefficient of the truncated Chebyshev polynomial for absolute value with D/2 even modes is at most 2^(3D/2) in absolute value](goal). -/
+theorem absChebPoly_halfDegree_coeff_le (D : ℕ) (hD : Even D) (k : ℕ) :
     |(absChebPoly (D / 2)).coeff k| ≤ (2 : ℝ) ^ ((3 : ℝ) * (D : ℝ) / 2) := by
   rw [← coefficientConstant_eq_rpow D hD]
-  exact absChebPoly_coeff_le (D / 2) (halfDegree_pos D hD2) k
+  exact absChebPoly_coeff_le (D / 2) k
 
 end Causalean.Mathlib.Analysis.Approximation.Chebyshev.AbsoluteValue

@@ -142,9 +142,9 @@ theorem procedureSet_nonempty [Nonempty R] {l u : ℝ} (hlu : l ≤ u) :
   let q := Classical.choice (procedure_nonempty (X := X) hlu)
   exact ⟨q.toAmbient, q.toAmbient_mem⟩
 
-/-- [An action interval with ordered endpoints](hyp:hlu) makes [the feasible Euclidean
-procedure set convex](goal). -/
-theorem convex_procedureSet {l u : ℝ} (hlu : l ≤ u) :
+/-- For every action interval, [the feasible Euclidean
+procedure set is convex](goal). -/
+theorem convex_procedureSet {l u : ℝ} :
     Convex ℝ (procedureSet X l u) := by
   -- Intersect the convex standard simplex with coordinatewise convex intervals.
   intro z hz w hw a b ha hb hab

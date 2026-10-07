@@ -197,7 +197,7 @@ sample](goal). -/
   exact (measurable_const (a := -R)).max ((measurable_const (a := R)).min hr)
 
 omit [Fintype κ] [DecidableEq κ] [MeasurableSingletonClass κ] in
-/-- [A sample size and probability law](hyp:n,μ), together with [measurable cell and Boolean-treatment labels](hyp:X,A,hX,hA), give [the finite product law of the observed categorical design](goal).
+/-- For [n independent draws from a probability law](hyp:n,μ) carrying [measurable cell and Boolean-treatment labels](hyp:X,A,hX,hA), [the law of the observed design — the vector of the n cell-treatment pairs read off the draws — is the n-fold product of the joint law of one draw's cell and treatment](goal).
 
 Applying the cell and treatment coordinates to each iid observation gives
 the finite product of the observed cell-treatment marginal law. -/

@@ -18,8 +18,7 @@ noncomputable section
 namespace Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
 /-- Take [a cube with centre b and side length H](hyp:b,H) that is [positive](hyp:hH), [a real
-function u](hyp:u), and [constants L and s](hyp:L,s) with [L nonnegative](hyp:hL) and [s
-positive](hyp:hs). Suppose [u is m times continuously differentiable on the cube](hyp:hu) and
+function u](hyp:u), and [constants L and s](hyp:L,s) with [L nonnegative](hyp:hL). Suppose [u is m times continuously differentiable on the cube](hyp:hu) and
 [every sorted coordinate partial of total order m, taken within the cube, changes between any two
 cube points by at most L times their distance to the power s](hyp:hmod). Then for [two points x and
 z and a direction v](hyp:x,z,v) with [both points in the cube](hyp:hx,hz), [the order-m derivative
@@ -28,7 +27,7 @@ times L times the distance between the points to the power s times the length of
 m](goal). -/
 theorem within_diagonal_topHolder_from_sorted {d m : ℕ}
     (b : EuclideanSpace ℝ (Fin d)) (H : ℝ) (hH : 0 < H)
-    (u : EuclideanSpace ℝ (Fin d) → ℝ) (L s : ℝ) (hL : 0 ≤ L) (hs : 0 < s)
+    (u : EuclideanSpace ℝ (Fin d) → ℝ) (L s : ℝ) (hL : 0 ≤ L)
     (hu : ContDiffOn ℝ m u (centeredCube b H))
     (hmod : ∀ κ : ExactIndex d m, ∀ x ∈ centeredCube b H,
       ∀ z ∈ centeredCube b H,

@@ -35,7 +35,7 @@ theorem good_cell_uniform_freeze (a b : ℝ) (hab : a < b)
   -- their respective continuity radii.
   intro ε hε
   obtain ⟨δc, hδc, hc⟩ :=
-    coefficient_uniform_continuity a b hab S β hcont ε hε
+    coefficient_uniform_continuity a b S β hcont ε hε
   have hu := (isCompact_Icc.uniformContinuousOn_of_continuous
     (sqrt_mass_regular a b hab S hS β hcont hpos).1)
   obtain ⟨δr, hδr, hr⟩ := (Metric.uniformContinuousOn_iff.mp hu) ε hε
@@ -215,10 +215,13 @@ theorem good_cell_relative_freeze (a b : ℝ) (hab : a < b)
       have := (abs_lt.mp hq).2
       linarith
 
-/-- On [a nondegenerate interval](hyp:a,b,hab), [a nonempty finite
+/-- On [a nondegenerate interval from a to b](hyp:a,b,hab), for [a nonempty finite
 weight family](hyp:S,hS) with [continuous strictly positive weights](hyp:β,hcont,hpos),
-each relative error below one gives [a positive locality radius and
-the sharp quarter-factor good-cell lower bound](goal). -/
+[for every relative error η strictly between zero and one there is a positive radius δ such that,
+for every measurable cell B inside the interval, every measurable part G of B, and every family
+of reproduction points z_s in the interval all within δ of every point of G, the sum over s of
+the integral over B of β_s(x, z_s)·|x − z_s| is at least (1 − η)/4 times the square of the
+integral over G of the square root of the diagonal weight](goal). -/
 theorem good_cell_sqrt_mass_lower (a b : ℝ) (hab : a < b)
     (S : ℕ) (hS : 0 < S) (β : Fin S → ℝ → ℝ → ℝ)
     (hcont : ∀ s, ContinuousOn (fun p : ℝ × ℝ => β s p.1 p.2)
@@ -245,8 +248,8 @@ theorem good_cell_sqrt_mass_lower (a b : ℝ) (hab : a < b)
     exact (hpos s x (z s) (hsub hx) (hz s)).le
   have hInt : ∀ s, IntegrableOn (fun x => β s x (z s) * |x - z s|) B volume := by
     intro s
-    exact weighted_cell_integrable a b hab.le (β s) (hcont s)
-      B hB hsub (z s) (hz s)
+    exact weighted_cell_integrable a b (β s) (hcont s)
+      B hsub (z s) (hz s)
   by_cases hne : G.Nonempty
   · obtain ⟨y, hy⟩ := hne
     obtain ⟨γ, Q, hγ, hQ, hcoeff, hpoint⟩ :=

@@ -97,9 +97,8 @@ respect to a localization functional that is invariant under almost-everywhere m
 Rademacher upper bound on that dense indexed class](hyp:hLoss_cont,hclamp_minimizes,hψ,hnorm_ae,hψ_ub), together with [Lipschitz and diameter
 control of the centred loss increments — nonnegative Lipschitz constant L, a diameter bound Rmax
 and positive critical radii](hyp:hL_nonneg,hF_lip,hF_diam,hcrit_pos), [a nonnegative
-localization functional and its variance proxy](hyp:hnorm_nonneg,hvariance), plus [boundedness and
-integrability of the empirical star-hull Rademacher process needed by the localization
-bridge](hyp:hrad_bdd,hrad_int) and [a confidence level in $(0,1]$ together with the
+localization functional and its variance proxy](hyp:hnorm_nonneg,hvariance), plus [integrability of the empirical star-hull Rademacher process needed by the
+localization bridge](hyp:hrad_int) and [a confidence level in $(0,1]$ together with the
 Foster–Syrgkanis critical-radius domination inequality at one covering dyadic
 depth](hyp:hδ,hδ',hδ_dom). Then [there is a nonnegative envelope b such that the DR-Learner
 system satisfies the localized empirical-process modulus predicate at rate
@@ -204,17 +203,6 @@ theorem localEmpProcessModulus_localized_drLearner
                 (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
         norm S.toBackdoorEstimationSystem.P_Z
         (id : (γ × Bool × ℝ) → γ × Bool × ℝ) m (ψ m))
-    -- BddAbove hypothesis needed by the bridge lemma inside `localized_uniform_deviation`.
-    (hrad_bdd : ∀ m r, ∀ S_fin : Fin m → γ × Bool × ℝ, ∀ σ : Signs m,
-      BddAbove (Set.range fun p : starHullParam ℕ =>
-        |(m : ℝ)⁻¹ * ∑ k : Fin m, (σ k : ℝ) *
-          starHullZeroOut
-            (fun i
-              (z : γ × Bool × ℝ) =>
-              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z (idx i).val h
-                - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
-                    (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
-            norm r p (S_fin k)|))
     -- Integrability of the upper empirical Rademacher process (bridge prerequisite).
     (hrad_int : ∀ m r,
       Integrable
@@ -317,7 +305,7 @@ theorem localEmpProcessModulus_localized_drLearner
     (hnorm_nonneg := hnorm_nonneg) (hvariance := hvariance)
     (hℓ_meas := hℓ_meas_sys) (hℓ_int := hℓ_int_sys)
     (hF_diam := hF_diam) (hcrit_pos := hcrit_pos)
-    (hψ_ub := hψ_ub) (hrad_bdd := fun m r S_fin σ => hrad_bdd m r S_fin σ)
+    (hψ_ub := hψ_ub)
     (hrad_int := fun m r => hrad_int m r)
     (hclamp_minimizes := by
       simpa [Ssys, hb_loss_def] using hclamp_minimizes)

@@ -17,9 +17,11 @@ open scoped BigOperators
 
 variable {D Y C B : Type*} [MeasurableSpace D] [MeasurableSpace Y] {n : ℕ}
 
-/-- The [histogram failure event](goal) records an excessive joint-count deviation for
-some [design cell](hyp:key) and [outcome bin](hyp:bins), centered by the [outcome kernel](hyp:K)
-and using [the envelope and tail parameter](hyp:pMax,u). -/
+/-- The [histogram failure event](goal) is the set of design and outcome vectors for which,
+for some [design cell of the key map](hyp:key) and some [outcome bin of the family](hyp:bins),
+the joint count differs from its conditional mean under the [outcome kernel](hyp:K) by
+strictly more than √(2 · pMax · N_c · u) + u, where N_c is the number of design entries in
+the cell and [pMax and u are the probability envelope and tail parameter](hyp:pMax,u). -/
 def histogramBadEvent (key : D → C) (K : Kernel D Y) (bins : B → Set Y)
     (pMax u : ℝ) : Set ((Fin n → D) × (Fin n → Y)) :=
   {p | ∃ c b, bernsteinRadius (pMax * (cellCount key c p.1 : ℝ)) u <
@@ -45,11 +47,14 @@ theorem measurableSet_histogramBadEvent [Finite C] [Finite B]
     ((((hcount.const_mul pMax).const_mul 2).mul_const u).sqrt.add_const u)
     ((measurable_jointCount_real (n := n) (hcell c) (hbins b)).sub hmean).abs
 
-/-- Given a [complete design vector](hyp:x), [finite cells and measurable bins](hyp:key,bins,hbins),
-and a [Markov outcome kernel](hyp:K) with [bin probabilities bounded on active
-coordinates by a nonnegative envelope](hyp:hprob,hpMax), the [conditional probability of
-any count deviation exceeding its cell-dependent Bernstein radius is at most twice
-the number of pairs times the exponential tail](goal) at [nonnegative tail parameter](hyp:hu).
+/-- Fix a [complete design vector](hyp:x), [finitely many design cells and finitely many
+measurable outcome bins](hyp:key,bins,hbins), and draw the outcomes independently across
+coordinates from a [Markov outcome kernel](hyp:K) at the design entries. Suppose [the kernel
+probability of every bin is at most a nonnegative number pMax at every design
+entry](hyp:hprob,hpMax) and the [tail parameter u is nonnegative](hyp:hu). Then [the
+probability that, for some cell and some bin, the joint count differs from its conditional
+mean by strictly more than √(2 · pMax · N_c · u) + u, where N_c is the number of design
+entries in the cell, is at most 2 · (number of cells) · (number of bins) · exp(−u)](goal).
 
 Express the existential failure event as an indexed union over `C × B`, use
 Mathlib's `MeasureTheory.measureReal_iUnion_fintype_le`, then `fibre_pair_tail_le`.

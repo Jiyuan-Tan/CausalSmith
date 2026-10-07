@@ -24,7 +24,7 @@ open MeasureTheory
 /-- For [a moment ratio ρ above one hundredth and below one](hyp:ρ,hlarge,hρ1),
 with cutoffs U0 = max(3/2, √(4 log(1/ρ))) and U = 12/(5ρ),
 [the high-frequency Prawitz contribution (2/U)·∫ over [U0, U] of the Prawitz
-filter magnitude times the moment envelope is at most three twentieths of
+filter magnitude at t/U times the moment envelope is at most three twentieths of
 ρ](goal). -/
 theorem prawitz_budget_high_compact
     (ρ : ℝ) (hlarge : 1 / 100 < ρ) (hρ1 : ρ < 1) :

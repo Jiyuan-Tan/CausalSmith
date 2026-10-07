@@ -300,7 +300,7 @@ private lemma weaklyConverges_add_tendstoInProbability
     {Q : Measure ℝ}
     (hP : ∀ n, IsProbabilityMeasure (P n)) (hQ : IsProbabilityMeasure Q)
     (hX : WeaklyConverges P X Q)
-    (hR : TendstoInProbability P R 0)
+    (hR : Causalean.Stat.Modes.TendstoInProbability P R atTop (fun _ _ => 0))
     (hRmeas : ∀ n, AEMeasurable (R n) (P n)) :
     WeaklyConverges P (fun n ω => X n ω + R n ω) Q := by
   rw [tendstoInProbability_iff_real] at hR
@@ -645,7 +645,6 @@ theorem lan_likelihoodRatio_integral_tendsto_one
             (lt_of_le_of_ne ENNReal.toReal_nonneg (Ne.symm hz))]
         exact le_add_of_nonneg_right (Real.exp_pos _).le
   exact exp_integral_tendsto_one_of_weaklyConverges
-    E.base_probability hlimitProb
     (lan_logLikelihoodRatio_weaklyConverges lan h) hrowIntegrable
     (integral_exp_lanLogLikelihoodLimit lan.gaussian_probability lan.gaussian_charFun h)
     (fun n => integral_exp_logLikelihoodRatio_le E n h)

@@ -91,18 +91,18 @@ def conditionalMass (p : PositiveTable r) (v : V) (C : Finset V)
     (x : ProfileSpace r) (z : Fin (r v)) : ℝ :=
   kernelConditionalMass p.mass v C x z
 
-/-- For [a pointwise strictly positive kernel](hyp:q,hq), [a coordinate](hyp:v), [a conditioning
+/-- For [a pointwise strictly positive kernel](hyp:q,hq), [a conditioning
 set](hyp:C), and [a reference profile](hyp:x), [the conditional denominator is strictly
 positive](goal). -/
 theorem kernelConditionalMass_den_pos {q : Kernel r} (hq : q.IsStrictlyPositive)
-    (v : V) (C : Finset V) (x : ProfileSpace r) :
+    (C : Finset V) (x : ProfileSpace r) :
     0 < kernelMarginalMass q C x := by
   exact kernelMarginalMass_pos hq C x
 
-/-- For [a positive table](hyp:p), [a coordinate](hyp:v), [a conditioning set](hyp:C), and [a
+/-- For [a positive table](hyp:p), [a conditioning set](hyp:C), and [a
 reference profile](hyp:x), [the conditional denominator is nonzero](goal). -/
 theorem conditionalMass_den_ne_zero (p : PositiveTable r)
-    (v : V) (C : Finset V) (x : ProfileSpace r) :
+    (C : Finset V) (x : ProfileSpace r) :
     marginalMass p C x ≠ 0 := by
   exact marginalMass_ne_zero p C x
 

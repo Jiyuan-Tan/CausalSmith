@@ -353,8 +353,7 @@ theorem centered_score_mean_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × �
       have hk1 : Causalean.Stat.IsBigOp
           (fun n ω => S.sampleMean (g k) n ω - ∫ z, g k z ∂P)
           (fun n => (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹) μ := by
-        exact Causalean.Stat.IsBigOp.mono_rate
-          (fun n => Real.sqrt_nonneg (A / (n : ℝ))) hrate_le hk0
+        exact Causalean.Stat.IsBigOp.mono_rate hrate_le hk0
       exact Causalean.Stat.IsBigOp.scale_rate
         (rn := fun n => (Real.sqrt (n : ℝ))⁻¹)
         (by linarith [Real.sqrt_nonneg A]) hk1
@@ -524,8 +523,9 @@ theorem sampleRidgeCoef_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
       _ ≤ (a ^ 2 + b ^ 2) / 2 := hab_half
       _ ≤ s := hab_sum
   have hGram_entry : ∀ i j,
-      Tendsto_inProb (fun n ω => empiricalGram φ S.Z n ω i j)
-        (fun _ => populationGram φ P i j) μ := by
+      Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => empiricalGram φ S.Z n ω i j)
+          Filter.atTop
+          (fun _ _ => populationGram φ P i j) := by
     intro i j
     have hmean := S.sampleMean_tendsto_inProb
       ((hφ_prod i).mul (hφ_prod j)) (hprod_int i j)
@@ -538,16 +538,17 @@ theorem sampleRidgeCoef_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
     rw [hfun]
     -- `MemLp.mul` now concludes about the point-free product `f * g`; restate it
     -- in the (definitionally equal) lambda form the goal is phrased with.
-    have hmean' : Tendsto_inProb (S.sampleMean fun z : γ × ℝ => φ.φ z.1 i * φ.φ z.1 j)
-        (fun _ => ∫ z : γ × ℝ, φ.φ z.1 i * φ.φ z.1 j ∂P) μ := hmean
+    have hmean' : Modes.TendstoInProbability (fun _ : ℕ => μ)
+        (S.sampleMean fun z : γ × ℝ => φ.φ z.1 i * φ.φ z.1 j) Filter.atTop
+        (fun _ _ => ∫ z : γ × ℝ, φ.φ z.1 i * φ.φ z.1 j ∂P) := hmean
     simpa [populationGram] using hmean'
   have hInv_entry : ∀ k l,
       Causalean.Stat.IsBigOp (fun n ω => Inv n ω k l) (fun _ => (1 : ℝ)) μ := by
     intro k l
-    have hconv : Tendsto_inProb (fun n ω => Inv n ω k l)
-        (fun _ => ((populationGram φ P + lam • (1 : Matrix K K ℝ))⁻¹) k l) μ := by
+    have hconv : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => Inv n ω k l) Filter.atTop
+        (fun _ _ => ((populationGram φ P + lam • (1 : Matrix K K ℝ))⁻¹) k l) := by
       simpa [Inv] using
-        (Tendsto_inProb.matrix_comp_continuousAt
+        (Modes.TendstoInProbability.matrix_comp_continuousAt
           (Mn := fun n ω => empiricalGram φ S.Z n ω)
           (M₀ := populationGram φ P)
           (g := fun M : Matrix K K ℝ =>
@@ -567,7 +568,7 @@ theorem sampleRidgeCoef_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
                 (g := fun A : Matrix K K ℝ => (A⁻¹) k l)
                 hbase hshift))
           hGram_entry)
-    exact Tendsto_inProb.isBigOp_one hconv
+    exact Modes.TendstoInProbability.isBigOp_one hconv
   have hcoef_coord : ∀ k,
       Causalean.Stat.IsBigOp
         (fun n ω => (sampleRidgeCoef φ S.Z lam n ω - βstar) k) rn μ := by
@@ -578,7 +579,7 @@ theorem sampleRidgeCoef_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
       simpa [rn] using
         (IsBigOp.mul (μ := μ) (rn := fun _ => (1 : ℝ)) (sn := rn)
           (Xn := fun n ω => Inv n ω k l) (Yn := fun n ω => D n ω l)
-          (fun _ => zero_le_one) hrn_nonneg (hInv_entry k l) (hDcoord l))
+          (hInv_entry k l) (hDcoord l))
     have hsum : Causalean.Stat.IsBigOp
         (fun n ω => ∑ l ∈ (Finset.univ : Finset K), Inv n ω k l * D n ω l) rn μ :=
       IsBigOp.finset_sum (μ := μ) (s := (Finset.univ : Finset K))

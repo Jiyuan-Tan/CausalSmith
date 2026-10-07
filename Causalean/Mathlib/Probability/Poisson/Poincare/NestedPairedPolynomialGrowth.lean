@@ -190,7 +190,7 @@ theorem integrable_nestedPairedTotalCount_pow
 
 /-- Two [arrays of nonnegative Poisson rates](hyp:lambda₁,lambda₂), a
 [measurable real-valued nested-array statistic](hyp:F,hF), a
-[nonnegative growth constant](hyp:C,hC), and a [polynomial degree](hyp:degree) whose
+[growth constant](hyp:C), and a [polynomial degree](hyp:degree) whose
 [absolute value obeys the stated total-count growth bound](hyp:hbound) give
 [a square-integrable statistic under the nested paired-count law](goal). -/
 theorem memLp_nestedPairedPoisson_of_polynomial_bound
@@ -199,7 +199,6 @@ theorem memLp_nestedPairedPoisson_of_polynomial_bound
     (lambda₁ lambda₂ : iota → kappa → NNReal)
     (F : (iota → kappa → Nat × Nat) → Real)
     (hF : Measurable F) (C : Real) (degree : Nat)
-    (hC : 0 ≤ C)
     (hbound : ∀ x, |F x| ≤ C * (1 + (nestedPairedTotalCount x : Real)) ^ degree) :
     MemLp F 2 (nestedPairedPoissonMeasure lambda₁ lambda₂) := by
   let T : (iota → kappa → Nat × Nat) → Real :=
@@ -235,7 +234,7 @@ theorem memLp_nestedPairedPoisson_of_polynomial_bound
       simp [mul_pow, ← pow_mul, Nat.mul_comm]
 
 /-- Two [arrays of nonnegative Poisson rates](hyp:lambda₁,lambda₂), a
-[measurable real-valued nested-array statistic](hyp:F,hF), a
+[real-valued nested-array statistic](hyp:F), a
 [nonnegative growth constant](hyp:C,hC), a [polynomial degree](hyp:degree), its
 [total-count growth bound](hyp:hbound), and a [selected cell](hyp:i,j) give
 [a square-integrable first-count add-one increment](goal). -/
@@ -244,7 +243,7 @@ theorem memLp_nestedPairAddOneFst_of_polynomial_bound
     [Fintype iota] [DecidableEq iota] [Fintype kappa] [DecidableEq kappa]
     (lambda₁ lambda₂ : iota → kappa → NNReal)
     (F : (iota → kappa → Nat × Nat) → Real)
-    (hF : Measurable F) (C : Real) (degree : Nat)
+    (C : Real) (degree : Nat)
     (hC : 0 ≤ C)
     (hbound : ∀ x, |F x| ≤ C * (1 + (nestedPairedTotalCount x : Real)) ^ degree)
     (i : iota) (j : kappa) :
@@ -255,7 +254,7 @@ theorem memLp_nestedPairAddOneFst_of_polynomial_bound
       (Function.update (x i) j ((x i j).1 + 1, (x i j).2))
   apply memLp_nestedPairedPoisson_of_polynomial_bound lambda₁ lambda₂
     (nestedPairAddOneFst i j F) (measurable_of_countable _)
-    (2 * C * 2 ^ degree) degree (by positivity)
+    (2 * C * 2 ^ degree) degree
   intro x
   change |F (upd x) - F x| ≤
     (2 * C * 2 ^ degree) * (1 + (nestedPairedTotalCount x : Real)) ^ degree
@@ -286,7 +285,7 @@ theorem memLp_nestedPairAddOneFst_of_polynomial_bound
       ring
 
 /-- Two [arrays of nonnegative Poisson rates](hyp:lambda₁,lambda₂), a
-[measurable real-valued nested-array statistic](hyp:F,hF), a
+[real-valued nested-array statistic](hyp:F), a
 [nonnegative growth constant](hyp:C,hC), a [polynomial degree](hyp:degree), its
 [total-count growth bound](hyp:hbound), and a [selected cell](hyp:i,j) give
 [a square-integrable second-count add-one increment](goal). -/
@@ -295,7 +294,7 @@ theorem memLp_nestedPairAddOneSnd_of_polynomial_bound
     [Fintype iota] [DecidableEq iota] [Fintype kappa] [DecidableEq kappa]
     (lambda₁ lambda₂ : iota → kappa → NNReal)
     (F : (iota → kappa → Nat × Nat) → Real)
-    (hF : Measurable F) (C : Real) (degree : Nat)
+    (C : Real) (degree : Nat)
     (hC : 0 ≤ C)
     (hbound : ∀ x, |F x| ≤ C * (1 + (nestedPairedTotalCount x : Real)) ^ degree)
     (i : iota) (j : kappa) :
@@ -306,7 +305,7 @@ theorem memLp_nestedPairAddOneSnd_of_polynomial_bound
       (Function.update (x i) j ((x i j).1, (x i j).2 + 1))
   apply memLp_nestedPairedPoisson_of_polynomial_bound lambda₁ lambda₂
     (nestedPairAddOneSnd i j F) (measurable_of_countable _)
-    (2 * C * 2 ^ degree) degree (by positivity)
+    (2 * C * 2 ^ degree) degree
   intro x
   change |F (upd x) - F x| ≤
     (2 * C * 2 ^ degree) * (1 + (nestedPairedTotalCount x : Real)) ^ degree
@@ -339,8 +338,12 @@ theorem memLp_nestedPairAddOneSnd_of_polynomial_bound
 /-- Two [arrays of nonnegative Poisson rates](hyp:lambda₁,lambda₂), a
 [measurable real-valued nested-array statistic](hyp:F,hF), a
 [nonnegative growth constant](hyp:C,hC), a [polynomial degree](hyp:degree), and its
-[total-count growth bound](hyp:hbound) give
-[all square-integrability premises for the nested paired-Poisson Poincaré inequality](goal). -/
+[total-count growth bound](hyp:hbound), namely that the absolute statistic is at most the
+constant times one plus the total count raised to the degree, give
+[square integrability under the nested paired-Poisson law of the statistic itself and,
+in every cell, of its increment from adding one to the first count and of its increment
+from adding one to the second count](goal). These are the square-integrability premises
+of the nested paired-Poisson Poincaré inequality. -/
 theorem memLp_nestedPairedPoisson_and_addOne_of_polynomial_bound
     {iota kappa : Type*}
     [Fintype iota] [DecidableEq iota] [Fintype kappa] [DecidableEq kappa]
@@ -354,13 +357,13 @@ theorem memLp_nestedPairedPoisson_and_addOne_of_polynomial_bound
         (nestedPairedPoissonMeasure lambda₁ lambda₂)) ∧
       (∀ i j, MemLp (nestedPairAddOneSnd i j F) 2
         (nestedPairedPoissonMeasure lambda₁ lambda₂)) := by
-  refine ⟨memLp_nestedPairedPoisson_of_polynomial_bound lambda₁ lambda₂ F hF C degree hC
+  refine ⟨memLp_nestedPairedPoisson_of_polynomial_bound lambda₁ lambda₂ F hF C degree
     hbound, ?_, ?_⟩
   · intro i j
-    exact memLp_nestedPairAddOneFst_of_polynomial_bound lambda₁ lambda₂ F hF C degree hC
+    exact memLp_nestedPairAddOneFst_of_polynomial_bound lambda₁ lambda₂ F C degree hC
       hbound i j
   · intro i j
-    exact memLp_nestedPairAddOneSnd_of_polynomial_bound lambda₁ lambda₂ F hF C degree hC
+    exact memLp_nestedPairAddOneSnd_of_polynomial_bound lambda₁ lambda₂ F C degree hC
       hbound i j
 
 end

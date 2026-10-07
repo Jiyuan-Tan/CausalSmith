@@ -55,7 +55,7 @@ private lemma tendsto_inProb_of_chebyshev
     (hb : Tendsto b atTop atTop)
     (hcheb : ∀ ε : ℝ, 0 < ε → ∀ᶠ n in atTop,
         μ {ω | ε ≤ |Yn n ω - c|} ≤ ENNReal.ofReal (V / (ε ^ 2 * b n))) :
-    Tendsto_inProb Yn (fun _ => c) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ) Yn atTop (fun _ _ => c) := by
   rw [Tendsto_inProb_iff]
   rw [tendstoInMeasure_iff_dist]
   intro ε hε
@@ -98,9 +98,9 @@ theorem foldB_sampleMean_tendsto_inProb
     [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
     (S : IIDSample Ω X μ P) (split : OneShotSplit S) {g : X → ℝ}
     (hg_meas : Measurable g) (hg_memLp : MemLp g 2 P) :
-    Tendsto_inProb
-      (fun n ω => ((split.foldB n).card : ℝ)⁻¹ * ∑ i ∈ split.foldB n, g (S.Z i ω))
-      (fun _ => ∫ x, g x ∂P) μ := by
+    Modes.TendstoInProbability (fun _ : ℕ => μ)
+        (fun n ω => ((split.foldB n).card : ℝ)⁻¹ * ∑ i ∈ split.foldB n, g (S.Z i ω)) atTop
+        (fun _ _ => ∫ x, g x ∂P) := by
   set V : ℝ := variance g P with hV_def
   -- Per-index facts transported through `μ.map (Z i) = P`.
   have hmemLp_i : ∀ i, MemLp (fun ω => g (S.Z i ω)) 2 μ := by

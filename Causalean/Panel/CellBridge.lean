@@ -345,8 +345,10 @@ theorem cellMean_mul_cellMass {Ω 𝒢 : Type*}
         * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ := by
   simpa [cellMean] using cell_integral_div_mul_cellMass μ F G g hμ
 
-/-- If a square-integrable residual is orthogonal to every cell indicator,
-it is orthogonal to every finite indicator-span member. -/
+/-- For a finite measure, [a measurable finite cell label](hyp:G_meas) and
+[a square-integrable residual](hyp:V_memLp) that [is orthogonal to each cell
+indicator](hyp:hcell) give [zero integral of the residual against every
+finite linear combination of those indicators](goal). -/
 theorem integral_mul_indicatorSpan_eq_zero_of_cell {Ω 𝒢 : Type*}
     [MeasurableSpace Ω] [Fintype 𝒢]
     [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]

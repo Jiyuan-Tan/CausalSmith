@@ -13,7 +13,7 @@ This file recovers, with multiplicity, the finite forward and reverse loading
 slopes from the one-dimensional common apolar-contraction kernel.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

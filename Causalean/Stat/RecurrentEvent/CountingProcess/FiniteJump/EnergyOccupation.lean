@@ -17,8 +17,10 @@ namespace Causalean.Stat.RecurrentEvent.CountingProcess.FiniteJump
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 
-/-- The intensity occupation measure gives each time-sample point the
-nonnegative at-risk intensity within the horizon. -/
+/-- The intensity occupation measure is the measure on time-sample pairs
+whose density is the nonnegative at-risk intensity, relative to the product of
+Lebesgue measure on the horizon interval (zero excluded, horizon included) and
+the sample law. -/
 noncomputable def Model.energyOccupation (M : Model Ω μ) : Measure (ℝ × Ω) :=
   ((volume.restrict (Ioc 0 M.horizon)).prod μ).withDensity
     (fun p => ENNReal.ofReal (M.atRisk p.1 p.2 * M.intensity p.1 p.2))

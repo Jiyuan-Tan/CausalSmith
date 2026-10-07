@@ -73,7 +73,7 @@ lemma pairCosineExtension_fourier_endpoints {L : ℕ} (hL : 1 ≤ L)
       split_ifs <;> fun_prop
   have hb := energy_bounds_two_real_slices G D
     (hGcont.integrable_of_hasCompactSupport hGc) (hGcont.memLp_of_hasCompactSupport hGc)
-    hGc hD1 hD2 hDc hslice
+    hGc hD1 hD2 hslice
     (9 * ∑ α, h α ^ 2) ((36 + 36 * Real.pi ^ 2 * (L : ℝ) ^ 2) * ∑ α, h α ^ 2)
     (by positivity) (by positivity) hA hB
   have he : complexify G = cosinePairExtension (pairCosinePolynomial h) := by

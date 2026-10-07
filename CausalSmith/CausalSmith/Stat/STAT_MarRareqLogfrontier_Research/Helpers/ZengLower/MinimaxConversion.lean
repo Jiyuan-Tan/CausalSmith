@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_MarRareqLogfrontier_Research.Helpers.ZengLow
 
 /-! Conversion of pointwise and two-prior risk bounds to the zero-control minimax risk. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set
 

@@ -53,8 +53,9 @@ private lemma poisson_descFactorial_two_shift (rate : ℝ≥0) (k : ℕ) :
   field_simp [Nat.factorial_ne_zero]
   linear_combination ((rate : ℝ) ^ k * (rate : ℝ) ^ 2) * hfac
 
-/-- Under [a Poisson law with nonnegative rate](hyp:rate), [the expected
-ordered number of distinct count positions is the squared rate](goal). -/
+/-- Under [a Poisson law with nonnegative rate](hyp:rate), [the expected number
+of ordered pairs of distinct positions, the count times the count minus one, equals the
+squared rate](goal). -/
 theorem poisson_ordered_pairs_second_moment (rate : ℝ≥0) :
     (∫ n : ℕ, (n : ℝ) * ((n : ℝ) - 1) ∂poissonMeasure rate) =
       (rate : ℝ) ^ 2 := by

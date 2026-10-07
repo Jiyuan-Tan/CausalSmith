@@ -163,7 +163,7 @@ lemma fixedL1MinimaxRisk_mono_alphabet {n s d : ℕ} (hs : 1 ≤ s) (hsd : s ≤
     fixedL1Risk n estSmall PQ =
         fixedL1Risk n est (padSimplex hsd PQ.1, padSimplex hsd PQ.2) :=
       fixedL1Risk_padSimplex hsd est PQ.1 PQ.2
-    _ ≤ Causalean.Stat.worstCaseRisk (fixedL1Risk (d := d) n) est :=
+    _ ≤ Causalean.Stat.worstCaseRiskReal (fixedL1Risk (d := d) n) est :=
       Causalean.Stat.le_worstCaseRisk (fixedL1Risk_bddAbove est) _
 
 end CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched

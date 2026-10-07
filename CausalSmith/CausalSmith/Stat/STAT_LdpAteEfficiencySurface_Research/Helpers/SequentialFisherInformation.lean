@@ -5,7 +5,7 @@ public import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
 
 /-! # Square integrability and one-step Fisher information -/
 
-@[expose] public section
+public section
 noncomputable section
 namespace CausalSmith.Stat.LdpAteEfficiencySurface
 

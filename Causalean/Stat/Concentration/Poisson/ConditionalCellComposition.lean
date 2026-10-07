@@ -113,7 +113,7 @@ theorem poissonTable_cell_indicator_integral_le
       (fun pe => by simpa only [Real.norm_eq_abs] using hdom pe))
   exact integral_mono hprod.integral_prod_left hbound hsection
 
-/-- Given [pilot-cell rates](hyp:pilotRate), [evaluation-cell rates](hyp:evalRate), [a cell](hyp:j), [a measurable pilot indicator](hyp:good,hgood), [a jointly measurable nonnegative statistic](hyp:φ,hφ,hφ_nonneg), [integrable evaluation sections](hyp:hsection_int), and [an integrable pilot bound on those sections](hyp:bound,hbound,hsection_bound), [the joint expectation is bounded by the pilot expectation of that bound](goal). -/
+/-- Let a pilot table and an evaluation table of independent Poisson counts, four per cell, have [pilot-cell rates](hyp:pilotRate) and [evaluation-cell rates](hyp:evalRate), and be independent of each other. Fix [a cell](hyp:j), [a measurable yes/no indicator of that cell's four pilot counts](hyp:good,hgood), and [a jointly measurable nonnegative statistic of that cell's four pilot counts and four evaluation counts](hyp:φ,hφ,hφ_nonneg), and consider the statistic set to zero when the indicator fails. If, [for every fixed pilot table, this gated statistic is integrable over the evaluation table](hyp:hsection_int), and [its evaluation-table expectation is at most a function of the pilot table that is integrable under the pilot law](hyp:bound,hbound,hsection_bound), then [the joint expectation of the gated statistic over both tables is at most the pilot-table expectation of that bounding function](goal). -/
 -- Use `integrable_prod_iff` after proving the outer integral of the absolute
 -- value is dominated by `bound`; nonnegativity identifies that absolute value
 -- with the conditional integral already bounded by `hsection_bound`.

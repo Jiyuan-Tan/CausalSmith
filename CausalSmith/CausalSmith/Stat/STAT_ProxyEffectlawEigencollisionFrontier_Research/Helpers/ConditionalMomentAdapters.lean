@@ -144,7 +144,7 @@ theorem conditionalMean_eq_normalizedRestrictedIntegral
     {Omega : Type*} [MeasurableSpace Omega] {P : Measure Omega} [IsFiniteMeasure P]
     {C : Set Omega} (hCpos : 0 < P C) (f : Omega → ℝ) :
     conditionalMean P C f = normalizedRestrictedIntegral P C f := by
-  rw [normalizedRestrictedIntegral_eq hCpos]
+  rw [normalizedRestrictedIntegral_eq]
   rfl
 
 /-- Reference-proxy separation supplies the promoted bounded-test factorization on each positive

@@ -19,14 +19,14 @@ open scoped BigOperators
 
 namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev
 
-/-- [A tensor-grid index](hyp:b) determines [the corresponding point in the unit cube](goal).
+/-- [A tensor-grid index](hyp:b) determines [the corresponding point in the unit cube](goal), whose coordinate in each direction is the index's entry there divided by D + 1.
 
 The tensor grid point indexed by `b`, with each coordinate in the unit interval.
 -/
 def tensorGridPoint {d D : ℕ} (b : Fin d → Fin (D + 1)) : Fin d → ℝ :=
   fun i => equispacedLagrangeNode D (b i)
 
-/-- [a target coefficient index and a tensor-grid index](hyp:a,b) determine [the corresponding tensor interpolation weight](goal).
+/-- [A target coefficient index and a tensor-grid index](hyp:a,b) determine [the corresponding tensor interpolation weight](goal): the product, over coordinates, of the one-variable equispaced Lagrange coefficient-recovery weights for the two indices' entries in that coordinate.
 
 The tensor interpolation weight from grid point `b` to monomial coefficient `a`.
 -/

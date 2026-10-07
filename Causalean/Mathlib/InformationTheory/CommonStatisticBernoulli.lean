@@ -506,7 +506,7 @@ lemma clippedStatisticSuccessParameter_abs_sub_le_ae
     (hp0 : ∀ x, 1 / 4 ≤ p x) (hp1 : ∀ x, p x ≤ 3 / 4)
     (hp0' : ∀ x, 1 / 4 ≤ p' x) (hp1' : ∀ x, p' x ≤ 3 / 4)
     (hmap : Measure.map stat nu = Measure.map stat nu')
-    {D : ℝ} (hD : 0 ≤ D) {E : Set ℝ} (hE : MeasurableSet E)
+    {D : ℝ} {E : Set ℝ} (hE : MeasurableSet E)
     (hdiff : ∀ B : Set ℝ, MeasurableSet B →
       |(∫ x in {x | stat x ∈ B}, p x ∂nu) -
         ∫ x in {x | stat x ∈ B}, p' x ∂nu'| ≤
@@ -642,7 +642,7 @@ lemma statisticBernoulliOutcome_klDiv_le_of_localized_success_bound
   · exact hD
   · exact hE
   · exact clippedStatisticSuccessParameter_abs_sub_le_ae
-      nu nu' p p' stat hp hp' hstat hp0 hp1 hp0' hp1' hmap hD hE hdiff
+      nu nu' p p' stat hp hp' hstat hp0 hp1 hp0' hp1' hmap hE hdiff
 
 /-- Common statistic marginals and a localized setwise success-mass bound
 also imply exact agreement of the compressed outcome laws away from the
@@ -689,7 +689,7 @@ lemma statisticBernoulliOutcome_restrict_compl_eq_of_localized_success_bound
       (fun r => by dsimp [g']; linarith [
         (clippedStatisticSuccessParameter_mem_Icc nu' p' stat r).2])
   have hparam := clippedStatisticSuccessParameter_abs_sub_le_ae
-    nu nu' p p' stat hp hp' hstat hp0 hp1 hp0' hp1' hmap hD hE hdiff
+    nu nu' p p' stat hp hp' hstat hp0 hp1 hp0' hp1' hmap hE hdiff
   ext S hS
   have houtside : {z : ℝ × ℝ | z.2 ∉ E} = Prod.snd ⁻¹' Eᶜ := by
     ext z

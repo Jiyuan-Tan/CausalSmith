@@ -16,23 +16,30 @@ noncomputable section
 namespace Causalean.Mathlib.Probability.Kernel.ThreeBernoulli.SelectedLawKL
 
 /-- The [real Bernoulli KL expression](goal) compares a [success mean](hyp:p)
-with a [reference success mean](hyp:q) through its success and failure cells. -/
+with a [reference success mean](hyp:q) through its success and failure cells:
+`p · log(p/q) + (1 - p) · log((1 - p)/(1 - q))`, with the real logarithm.
+
+It is the Kullback–Leibler divergence of Bernoulli(`p`) from Bernoulli(`q`) when `q` lies
+strictly between zero and one and `p` lies in the unit interval. Outside that range the
+formula is only an algebraic expression: the real logarithm and real division return zero
+at zero, so a reference mean of zero or one gives a finite value where the divergence is
+infinite. -/
 def bernoulliKL (p q : ℝ) : ℝ :=
   p * Real.log (p / q) + (1 - p) * Real.log ((1 - p) / (1 - q))
 
 /-- [Bernoulli KL is at most the squared difference divided by the squared
-interior margin](goal) when [the margin is positive](hyp:hη0),
-[below one half](hyp:hηhalf), and [both means lie in the margin band](hyp:hp,hq).
+interior margin](goal) when [the margin is positive](hyp:hη0)
+and [both means lie in the margin band](hyp:hp,hq).
 
 The coefficient `η⁻²` is deliberately conservative: `log u ≤ u - 1` gives
 `KL(p‖q) ≤ (p-q)²/(q(1-q))`, and both denominator factors are at least `η`.
 -/
 theorem bernoulliKL_le_inv_margin_sq {η p q : ℝ}
-    (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    (hη0 : 0 < η)
     (hp : p ∈ Set.Icc η (1 - η)) (hq : q ∈ Set.Icc η (1 - η)) :
     bernoulliKL p q ≤ (p - q) ^ 2 / η ^ 2 := by
   have hp0 : 0 < p := lt_of_lt_of_le hη0 hp.1
-  have hp1 : 0 < 1 - p := by linarith [hp.2, hηhalf]
+  have hp1 : 0 < 1 - p := by linarith [hp.2]
   have hq0 : 0 < q := lt_of_lt_of_le hη0 hq.1
   have hq1 : 0 < 1 - q := by linarith [hq.2]
   have hlog₁ := Real.log_le_sub_one_of_pos (div_pos hp0 hq0)

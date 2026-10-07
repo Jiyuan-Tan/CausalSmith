@@ -29,9 +29,22 @@ def predictableCylinders {Ω : Type*} [MeasurableSpace Ω]
   MeasurableSpace.generateFrom (predictableCylinders ℱ)
 
 /-- A finite-horizon, simple counting process with an absolutely continuous
-intensity `atRisk × intensity` relative to a filtration. The conditional
-increment identity is stated against bounded past-measurable test functions;
-all event times lie strictly after zero and at or before the horizon. -/
+intensity, the product of an at-risk process and an intensity process, relative
+to a filtration. Each sample path carries a finite set of distinct event times,
+all strictly after zero and at or before a positive horizon; the set is
+measurable in the sense that the presence of an event at each fixed time is a
+measurable event, and the count of events up to each time is measurable for the
+history at that time. The filtration is increasing and contained in the ambient
+σ-algebra. The at-risk and intensity processes are nonnegative, jointly
+measurable, and predictable; their product is Lebesgue integrable over the
+horizon on every path and bounded above on the horizon by one constant common
+to all paths. The total event count has a finite second moment. The intensity
+premise is a conditional increment identity: for times a ≤ b between zero and
+the horizon and every bounded test function measurable for the history at a,
+the expectation of the test function times the number of events in the
+interval from a (exclusive) to b (inclusive) equals the expectation of the
+test function times the integral of the at-risk intensity over that interval,
+whenever both products are integrable. -/
 structure Model (Ω : Type*) [MeasurableSpace Ω] (μ : Measure Ω) where
   horizon : ℝ
   horizon_pos : 0 < horizon
@@ -135,7 +148,8 @@ noncomputable def Model.copyLaw {Ω : Type*} [MeasurableSpace Ω]
   Measure.pi (fun _ : Fin n => μ)
 
 /-- A subject-specific integral in a finite independent sample evaluates the
-single-subject integral at that subject's coordinate. -/
+single-subject compensated integral of that subject's own integrand, over the
+whole horizon, at that subject's coordinate of the sample. -/
 noncomputable def Model.copyIntegral {Ω : Type*} [MeasurableSpace Ω]
     {μ : Measure Ω} (M : Model Ω μ) {n : ℕ}
     (H : Fin n → ℝ → Ω → ℝ) (i : Fin n) (x : Fin n → Ω) : ℝ :=

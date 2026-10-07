@@ -3,9 +3,18 @@ public import Causalean.Mathlib.Analysis.Calculus.CubeInterpolation.Basic
 public import Mathlib.Analysis.Calculus.Taylor
 
 /-!
-# One-dimensional Taylor remainder with a top Hölder modulus
+# One-dimensional Taylor remainder under a Hölder condition on the top derivative
 
-This is the line-segment calculus step used by the multivariate remainder.
+If a function of one real variable is m times continuously differentiable on [a, b] and its m-th
+derivative is Hölder with exponent s ∈ (0, 1] and constant L, then at every y in [a, b] it differs
+from its degree-m Taylor polynomial centred at an interior point x by at most C·L·|y − x|^(m + s),
+with C depending only on m and s. Applied along line segments, this is the calculus step behind
+the multivariate Hölder–Taylor remainder on the cube.
+
+## Main results
+
+* `line_holder_taylor` — the Taylor remainder bound of order m + s with a constant uniform over
+  functions, intervals and expansion points.
 -/
 
 public section
@@ -14,14 +23,14 @@ open scoped BigOperators
 
 namespace Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- For [a derivative order m and an exponent s](hyp:m,s) with [s positive](hyp:hs) and [s at most
-one](hyp:hs1), [there is a positive constant C such that, for every function of one real variable
+/-- For [a derivative order m and an exponent s](hyp:m,s) with [s positive](hyp:hs),
+[there is a positive constant C such that, for every function of one real variable
 that is m times continuously differentiable on a nondegenerate closed interval and whose m-th
 derivative changes between any two points of the interval by at most a nonnegative L times their
 distance to the power s, the function at any point y of the interval differs from its order-m
 Taylor polynomial centred at any interior point x by at most C times L times the distance from x to
 y raised to the power m + s](goal). -/
-theorem line_holder_taylor (m : ℕ) (s : ℝ) (hs : 0 < s) (hs1 : s ≤ 1) :
+theorem line_holder_taylor (m : ℕ) (s : ℝ) (hs : 0 < s) :
     ∃ C : ℝ, 0 < C ∧
       ∀ (v : ℝ → ℝ) (a b L : ℝ),
         a < b → 0 ≤ L → ContDiffOn ℝ m v (Set.Icc a b) →

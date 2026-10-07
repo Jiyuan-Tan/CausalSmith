@@ -41,9 +41,14 @@ theorem poisson_usable_integral_eq_prod {d : ℕ}
       (fun _ (r : ℕ × ℕ) => Real.exp (-(usablePoissonPairCount r : ℝ)))
       (μ := fun k => (poissonMeasure (u k)).prod (poissonMeasure (v k))))
 
-/-- Given [two arm-intensity vectors, cell totals, and light and heavy
-exponents](hyp:u,v,x,a,b,hlight,hheavy), [the product of cell Laplace factors
-is bounded by the exponential of their aggregate exponent](goal). -/
+/-- Take [two vectors of Poisson arm intensities over finitely many cells, a real
+number x attached to each cell, and two real exponents a and b](hyp:u,v,x,a,b).
+If [every cell with x at most one has one-cell Laplace factor at most
+exp(−a·x²)](hyp:hlight) and [every cell with x above one has one-cell Laplace
+factor at most exp(−b·x)](hyp:hheavy), then [the product of the one-cell
+Laplace factors over all cells is at most exp(−(a·S₂ + b·S₁)), where S₂ is the
+sum of x² over the cells with x at most one and S₁ is the sum of x over the
+cells with x above one](goal). -/
 theorem poisson_cell_product_le_exp_sum {d : ℕ}
     (u v : Fin d → ℝ≥0) (x : Fin d → ℝ) (a b : ℝ)
     (hlight : ∀ k, x k ≤ 1 →

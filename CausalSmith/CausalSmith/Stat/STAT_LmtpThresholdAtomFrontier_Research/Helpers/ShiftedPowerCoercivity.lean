@@ -15,7 +15,7 @@ This module isolates the reusable compactification step behind the population
 Gram lower bound for polynomially thinned local designs.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

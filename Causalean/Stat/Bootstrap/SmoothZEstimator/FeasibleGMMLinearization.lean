@@ -45,9 +45,9 @@ theorem feasibleGMM_bootstrapLinearization_of_smoothMoment
     (hConsistent : ∀ epsilon > 0,
       Tendsto (fun n ↦ mu {omega |
         epsilon < ‖est n (S.sampleVector n omega) - prob.θ₀‖}) atTop (nhds 0))
-    (hWeight : Tendsto_inProb
-      (fun n omega ↦ ‖weightEst n (S.sampleVector n omega) - prob.W‖)
-      (fun _ ↦ 0) mu)
+    (hWeight : Modes.TendstoInProbability (fun _ : ℕ => mu)
+        (fun n omega ↦ ‖weightEst n (S.sampleVector n omega) - prob.W‖) atTop
+        (fun _ _ ↦ 0))
     (hApproxFOC : IsLittleOp
       (fun n omega ↦ ‖feasibleGMMFOCResidualFn prob reg
         (est n (S.sampleVector n omega))
@@ -123,19 +123,18 @@ theorem feasibleGMM_bootstrapLinearization_of_smoothMoment
         simp [U, IsAsymLinearVec.normalizedSum_def]]
     exact ((Finset.measurable_sum _
       (fun i _ ↦ prob.g_meas.comp (S.meas i))).const_smul _).aemeasurable
-  have hUclt : Tendsto_dist_vec U
-      (gaussianLimit prob.g_meas prob.finite_var) mu hUmeas := by
+  have hUclt : Modes.TendstoInLaw (fun _ : ℕ => mu) U atTop
+      (gaussianLimit prob.g_meas prob.finite_var) := by
     simpa only [U] using
       S.clt_normalizedSum_vec prob.g_meas prob.finite_var prob.identification
-  have hNormUclt := Tendsto_dist_vec.map_continuous continuous_norm hUmeas hUclt
+  have hNormUclt := Modes.TendstoInLaw.map_continuous hUclt continuous_norm
   have hUbig : IsBigOp (fun n omega ↦ ‖U n omega‖)
       (fun _ ↦ (1 : ℝ)) mu := by
     let _ : IsProbabilityMeasure
         ((gaussianLimit prob.g_meas prob.finite_var).map norm) :=
       Measure.isProbabilityMeasure_map continuous_norm.measurable.aemeasurable
-    exact Tendsto_dist.tightness
-      (fun n ↦ continuous_norm.measurable.comp_aemeasurable (hUmeas n))
-      ((Tendsto_dist_iff _ _ _ _).2 hNormUclt)
+    exact Modes.TendstoInLaw.tightness ((Tendsto_dist_iff _ _ _
+        (fun n ↦ continuous_norm.measurable.comp_aemeasurable (hUmeas n))).2 hNormUclt)
   have hjac (n : ℕ) (omega : Omega) (theta : E) :
       gmmSampleJacobianFn reg theta (S.sampleVector n omega) =
         gmmSampleJacobian reg S theta n omega := by
@@ -151,19 +150,15 @@ theorem feasibleGMM_bootstrapLinearization_of_smoothMoment
     prob reg S est (fun n omega ↦ weightEst n (S.sampleVector n omega))
     hConsistent hWeight (by
       simpa only [feasibleGMMFOCResidualFn, hjac, hmom] using hApproxFOC)
-  have hSampling : Tendsto_inProb
+  have hSampling : Modes.TendstoInProbability (fun _ : ℕ => mu)
       (fun n omega ↦ ‖zEstimatorSamplingRemainder
-        S est prob.θ₀ prob.influence n omega‖) (fun _ ↦ 0) mu := by
-    rw [Tendsto_inProb_iff_hub,
-      Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
+        S est prob.θ₀ prob.influence n omega‖) atTop (fun _ _ ↦ 0) := by
+    rw [Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
     simpa [IsLittleOp, zEstimatorSamplingRemainder,
       IsAsymLinearVec.normalizedSum] using hAL.remainder
-  have hJdata : Tendsto_inProb
-      (fun n omega ↦
-        ‖S.sampleMeanVec (reg.deriv prob.θ₀) n omega - prob.G‖)
-      (fun _ ↦ 0) mu := by
-    rw [Tendsto_inProb_iff_hub,
-      Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
+  have hJdata : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega ↦
+        ‖S.sampleMeanVec (reg.deriv prob.θ₀) n omega - prob.G‖) atTop (fun _ _ ↦ 0) := by
+    rw [Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
     simpa [IsLittleOp, reg.jacobian_eq] using
       S.sampleMeanVec_norm_sub_isLittleOp reg.deriv_at_target_meas
         reg.deriv_at_target_integrable

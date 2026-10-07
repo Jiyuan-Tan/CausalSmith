@@ -69,7 +69,7 @@ lemma publishedMomentIdentity_targetFeature_transpose_firstBasis
   have hanchor : ∀ᵐ w ∂P.restrict (latentClass u), w.X i0 = 1 :=
     ae_restrict_of_ae (hM.anchor.mono fun w hw => hw i0 rfl)
   let _ : IsProbabilityMeasure (normalizedRestrict P (latentClass u)) :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentClass u) hclass
+    normalizedRestrict_isProbabilityMeasure hclass
   have hmean : targetFeature P i0 u = 1 := by
     rw [targetFeature, conditionalMean_eq_normalizedRestrictedIntegral hclass]
     unfold normalizedRestrictedIntegral

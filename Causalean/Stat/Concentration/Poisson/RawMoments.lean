@@ -2,10 +2,21 @@ module
 public import Causalean.Stat.Concentration.Poisson.FactorialPolynomial
 public import Mathlib.Combinatorics.Enumerative.Stirling
 
-/-!
-# Raw moments of Poisson counts
+/-! # Raw moments of Poisson counts
 
-Power-to-falling-factorial expansions give exact and bounded raw Poisson moments.
+Exact formula and a simple bound for the raw moments of a Poisson variable N with rate λ ≥ 0.
+Writing an ordinary power as a combination of falling factorials with Stirling numbers of the
+second kind S(r, v), and using E[N(N−1)⋯(N−v+1)] = λ^v, gives E[N^r] = Σ over v ≤ r of S(r, v) λ^v
+(the Touchard polynomial), and hence E[N^r] ≤ (λ + r)^r.
+
+## Main results
+
+* `count_power_factorial_expansion`, `count_power_factorial_expansion_real` —
+  k^r = Σ over v ≤ r of S(r, v) · k(k−1)⋯(k−v+1).
+* `stirlingSecond_le_choose_mul_pow` — S(r, v) ≤ C(r, v) · R^(r−v) for v ≤ r ≤ R.
+* `poisson_power_integrable` — every power of a Poisson count is integrable.
+* `poisson_power_moment_eq` — E[N^r] = Σ over v ≤ r of S(r, v) λ^v.
+* `poisson_power_moment_le` — E[N^r] ≤ (λ + r)^r.
 -/
 
 public section

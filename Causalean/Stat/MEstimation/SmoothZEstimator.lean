@@ -347,24 +347,23 @@ theorem zEstimator_asymLinear_of_smoothScore
       ∑ i ∈ Finset.range n, ψ θ₀ (S.Z i ω) by funext ω; exact hU_def n ω]
     exact ((Finset.measurable_sum _
       (fun i _ => reg.score_meas.comp (S.meas i))).const_smul _).aemeasurable
-  have hUclt : Tendsto_dist_vec U
-      (gaussianLimit reg.score_meas reg.score_finite_var) μ hUmeas := by
+  have hUclt : Modes.TendstoInLaw (fun _ : ℕ => μ) U atTop
+      (gaussianLimit reg.score_meas reg.score_finite_var) := by
     exact S.clt_normalizedSum_vec reg.score_meas reg.score_finite_var
       reg.identification
-  have hNormUclt := Tendsto_dist_vec.map_continuous continuous_norm hUmeas hUclt
+  have hNormUclt := Modes.TendstoInLaw.map_continuous hUclt continuous_norm
   have hUbig : IsBigOp (fun n ω => ‖U n ω‖) (fun _ => (1 : ℝ)) μ := by
     let : IsProbabilityMeasure
         ((gaussianLimit reg.score_meas reg.score_finite_var).map norm) :=
       Measure.isProbabilityMeasure_map continuous_norm.measurable.aemeasurable
-    exact Tendsto_dist.tightness
-      (fun n => continuous_norm.measurable.comp_aemeasurable (hUmeas n))
-      ((Tendsto_dist_iff _ _ _ _).2 hNormUclt)
+    exact Modes.TendstoInLaw.tightness ((Tendsto_dist_iff _ _ _
+        (fun n => continuous_norm.measurable.comp_aemeasurable (hUmeas n))).2 hNormUclt)
   have hAlo : IsLittleOp A (fun _ => (1 : ℝ)) μ := by
     simpa [A, Jn, SmoothZEstimatorRegularity.jacobian] using
       S.sampleMeanVec_norm_sub_isLittleOp reg.deriv_at_target_meas
         reg.deriv_at_target_integrable
   have hLbig : IsBigOp Lbar (fun _ => (1 : ℝ)) μ := by
-    simpa [Lbar] using (S.sampleMean_tendsto_inProb hLmeas hLint).isBigOp_one
+    simpa [Lbar] using Modes.TendstoInProbability.isBigOp_one (S.sampleMean_tendsto_inProb hLmeas hLint)
   have hdlo : IsLittleOp d (fun _ => (1 : ℝ)) μ := by
     apply (Modes.isLittleOpF_iff_strict
       (fun _ => μ) d atTop (fun _ => (1 : ℝ))

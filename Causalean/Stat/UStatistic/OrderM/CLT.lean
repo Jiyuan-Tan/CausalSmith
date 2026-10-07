@@ -49,12 +49,10 @@ theorem uStatisticOrder_clt (S : IIDSample Ω X μ P)
     (hθn_meas : ∀ n : ℕ, AEMeasurable
       (IsAsymLinear.rescaledEstimator (uStatisticOrder S h) (uMeanOrder h P)
         (fun r => Finset.range r) n) μ) :
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator (uStatisticOrder S h) (uMeanOrder h P)
-        (fun r => Finset.range r))
-      (gaussianMeasure 0 (∫ x, (uInfluenceOrder h P x) ^ 2 ∂P))
-      μ
-      hθn_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (IsAsymLinear.rescaledEstimator (uStatisticOrder S h) (uMeanOrder h P)
+        (fun r => Finset.range r)) atTop
+            (gaussianMeasure 0 (∫ x, (uInfluenceOrder h P x) ^ 2 ∂P)) := by
   have hAL : IsAsymLinear (uStatisticOrder S h) (uMeanOrder h P)
       (uInfluenceOrder h P) S (fun r => Finset.range r) :=
     uStatisticOrder_isAsymLinear S h hψ_mean hψ_sq hneg
@@ -98,12 +96,10 @@ theorem uStatisticOrder_clt_of_explicit_conditions
     (hθn_meas : ∀ n : ℕ, AEMeasurable
       (IsAsymLinear.rescaledEstimator (uStatisticOrder S h) (uMeanOrder h P)
         (fun r => Finset.range r) n) μ) :
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator (uStatisticOrder S h) (uMeanOrder h P)
-        (fun r => Finset.range r))
-      (gaussianMeasure 0 (∫ x, (uInfluenceOrder h P x) ^ 2 ∂P))
-      μ
-      hθn_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (IsAsymLinear.rescaledEstimator (uStatisticOrder S h) (uMeanOrder h P)
+        (fun r => Finset.range r)) atTop
+            (gaussianMeasure 0 (∫ x, (uInfluenceOrder h P x) ^ 2 ∂P)) := by
   letI : IsProbabilityMeasure P := by
     rw [← S.law]
     exact Measure.isProbabilityMeasure_map (S.meas 0).aemeasurable

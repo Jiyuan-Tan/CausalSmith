@@ -4,7 +4,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Paper-specific endpoint-law instantiations for the score-log pair. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory
 namespace CausalSmith.PartialID.UnlinkedPropensityAte

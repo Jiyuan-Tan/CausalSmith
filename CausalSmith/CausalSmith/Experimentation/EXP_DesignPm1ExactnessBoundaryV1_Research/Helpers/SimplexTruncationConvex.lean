@@ -16,7 +16,7 @@ truncated simplex `K_d` any feasible point is dominated in objective value by a
 point of the truncation face `H_d`, once the relaxed global minimizer is known to
 be *infeasible* (`t_rel_y + t_rel_z < d`). -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

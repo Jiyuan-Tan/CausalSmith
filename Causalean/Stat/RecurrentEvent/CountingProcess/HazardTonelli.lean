@@ -18,8 +18,8 @@ namespace Causalean.Stat.RecurrentEvent.CountingProcess
 /-- Suppose subjects are drawn independently with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the payoff process be [jointly measurable in time and
-sample](hyp:hMeasurable) and [nonnegative](hyp:hNonnegative). For [a nonnegative horizon
-u](hyp:hu), [the expected payoff at subject i's observed censor event by u equals the expected
+sample](hyp:hMeasurable) and [nonnegative](hyp:hNonnegative). For a horizon
+u, [the expected payoff at subject i's observed censor event by u equals the expected
 Lebesgue integral, over times s from 0 to u strictly before the subject's failure time, of the
 payoff at s evaluated with that subject's censor time reset to s, times the hazard at s, times
 the probability of censoring at or after s](goal).
@@ -32,7 +32,7 @@ theorem predictable_censor_event_hazard_lintegral {n : ℕ}
     (H : ℝ → Sample n → ℝ)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
     (hNonnegative : ∀ s x, 0 ≤ H s x)
-    (i : Fin n) (u : ℝ) (hu : 0 ≤ u) :
+    (i : Fin n) (u : ℝ) :
     (∫⁻ x : Sample n,
       ENNReal.ofReal (if (x i).2 ≤ u ∧ (x i).2 < (x i).1
         then H (x i).2 x else 0)
@@ -57,8 +57,8 @@ theorem predictable_censor_event_hazard_lintegral {n : ℕ}
         (s, Function.update x i ((x i).1, s))) := by fun_prop
     simpa only [g, Function.comp_def] using hMeasurable.comp hp
   have hgn : ∀ s, 0 ≤ g s := fun s => hNonnegative s _
-  exact censor_event_hazard_lintegral censorLaw hazard g hHazard hg hgn
-    (x i).1 u hu
+  exact censor_event_hazard_lintegral censorLaw hazard g hHazard hg
+    (x i).1 u
 
 /-- Suppose subjects are drawn independently with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
@@ -169,7 +169,7 @@ theorem lintegral_failure_time_boundary {n : ℕ}
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the payoff process be [left predictable](hyp:hPredictable),
 [jointly measurable in time and sample](hyp:hMeasurable), and [nonnegative](hyp:hNonnegative).
-For [a nonnegative horizon u](hyp:hu), [the expected integral from 0 to u of the payoff times the
+For a horizon u, [the expected integral from 0 to u of the payoff times the
 hazard times subject i's at-risk indicator equals the expected integral, over times s before the
 subject's failure time, of the payoff with that subject's censor time reset to s, times the
 hazard at s, times the probability of censoring at or after s](goal).
@@ -183,7 +183,7 @@ theorem predictable_censor_atRisk_hazard_lintegral {n : ℕ}
     (H : ℝ → Sample n → ℝ) (hPredictable : LeftPredictable H)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
     (hNonnegative : ∀ s x, 0 ≤ H s x)
-    (i : Fin n) (u : ℝ) (hu : 0 ≤ u) :
+    (i : Fin n) (u : ℝ) :
     (∫⁻ x : Sample n, ∫⁻ s in Set.Icc 0 u,
       ENNReal.ofReal (H s x * hazard s * riskIndicator i s x)
         ∂volume ∂sampleLaw n failureLaw censorLaw) =
@@ -279,7 +279,7 @@ theorem predictable_censor_atRisk_hazard_lintegral {n : ℕ}
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the payoff process be [left predictable](hyp:hPredictable),
 [jointly measurable in time and sample](hyp:hMeasurable), and [nonnegative](hyp:hNonnegative).
-For [a nonnegative horizon u](hyp:hu), [the expected payoff at subject i's observed censor event
+For [any horizon u](hyp:u), [the expected payoff at subject i's observed censor event
 by u equals the expected integral from 0 to u of the payoff times the hazard times the subject's
 at-risk indicator](goal), as extended nonnegative integrals that may be infinite. -/
 theorem predictable_censor_compensator_lintegral {n : ℕ}
@@ -289,7 +289,7 @@ theorem predictable_censor_compensator_lintegral {n : ℕ}
     (H : ℝ → Sample n → ℝ) (hPredictable : LeftPredictable H)
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
     (hNonnegative : ∀ s x, 0 ≤ H s x)
-    (i : Fin n) (u : ℝ) (hu : 0 ≤ u) :
+    (i : Fin n) (u : ℝ) :
     (∫⁻ x : Sample n,
       ENNReal.ofReal (if (x i).2 ≤ u ∧ (x i).2 < (x i).1
         then H (x i).2 x else 0)
@@ -302,8 +302,8 @@ theorem predictable_censor_compensator_lintegral {n : ℕ}
      H across all censor times at or after `s`; the two preceding lemmas
      identify both sides with the same resampled time integral. -/
   exact (predictable_censor_event_hazard_lintegral failureLaw censorLaw hazard
-    hFailure hHazard H hMeasurable hNonnegative i u hu).trans
+    hFailure hHazard H hMeasurable hNonnegative i u).trans
     (predictable_censor_atRisk_hazard_lintegral failureLaw censorLaw hazard
-      hFailure hHazard H hPredictable hMeasurable hNonnegative i u hu).symm
+      hFailure hHazard H hPredictable hMeasurable hNonnegative i u).symm
 
 end Causalean.Stat.RecurrentEvent.CountingProcess

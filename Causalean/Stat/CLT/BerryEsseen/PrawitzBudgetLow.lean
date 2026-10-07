@@ -18,7 +18,7 @@ open MeasureTheory
 /-- For [a moment ratio ρ strictly between zero and one](hyp:ρ,hρ,hρ1), with
 cutoffs U0 = max(3/2, √(4 log(1/ρ))) and U = 12/(5ρ),
 [the low-frequency Fourier discrepancy contribution (2/U)·∫ over [0, U0] of
-the Prawitz filter magnitude times the discrepancy envelope is at most one
+the Prawitz filter magnitude at t/U times the discrepancy envelope is at most one
 quarter of ρ](goal). -/
 theorem prawitz_budget_low
     (ρ : ℝ) (hρ : 0 < ρ) (hρ1 : ρ < 1) :

@@ -200,7 +200,7 @@ set_option maxRecDepth 4096 in
 /-- For [a moment ratio ρ above one hundredth and below one](hyp:ρ,hlarge,hρ1),
 with cutoffs U0 = max(3/2, √(4 log(1/ρ))) and U = 12/(5ρ),
 [the low-frequency Prawitz contribution (2/U)·∫ over [0, U0] of the Prawitz
-filter magnitude times the minimum discrepancy envelope is at most one
+filter magnitude at t/U times the minimum discrepancy envelope is at most one
 quarter of ρ](goal). -/
 theorem prawitz_budget_low_compact
     (ρ : ℝ) (hlarge : 1 / 100 < ρ) (hρ1 : ρ < 1) :

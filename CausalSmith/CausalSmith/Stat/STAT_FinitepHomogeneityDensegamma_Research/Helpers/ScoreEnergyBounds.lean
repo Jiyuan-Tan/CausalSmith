@@ -2,7 +2,7 @@ module
 public import CausalSmith.Stat.STAT_FinitepHomogeneityDensegamma_Research.Helpers.ScoreConditionalProjection
 
 /-! Second-moment bounds for scalar score kernels and their singleton projections. -/
-@[expose] public section
+public section
 set_option linter.style.longLine false
 set_option linter.style.whitespace false
 set_option linter.unusedVariables false

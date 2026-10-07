@@ -71,7 +71,9 @@ theorem signLinear_sum {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → �
 
 /-- Over [any finite coordinate type](hyp:ι), the unnormalized [second moment
 of a real linear combination of Boolean signs](hyp:a) [equals the number of
-sign vectors times the coefficient energy](goal). -/
+sign vectors times the sum of squared coefficients](goal): the sum, over all
+Boolean sign vectors (true standing for +1, false for −1), of the squared
+signed sum of the coefficients. -/
 theorem signLinear_sq_sum {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℝ) :
     (∑ σ : ι → Bool, (∑ j, (if σ j then (1 : ℝ) else -1) * a j) ^ 2) =
       (Fintype.card (ι → Bool) : ℝ) * ∑ j, a j ^ 2 := by

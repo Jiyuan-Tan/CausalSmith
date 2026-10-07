@@ -4,7 +4,7 @@ public import CausalSmith.Stat.STAT_SparseheterogeneityCriticalRadius_Research.H
 /-! Conditional risk bounds for the ideal independently Poissonized selected
 correction. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SparseheterogeneityCriticalRadius
 

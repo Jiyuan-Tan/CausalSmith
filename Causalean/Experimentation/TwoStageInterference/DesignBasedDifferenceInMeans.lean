@@ -16,7 +16,7 @@ design-based difference-in-means estimator. Keeping this transport above both so
 an import from the design-based estimator layer into the interference-specific layer.
 -/
 
-@[expose] public section
+public section
 
 open scoped BigOperators
 open Finset

@@ -79,7 +79,7 @@ private theorem measurable_selectedCellRatio {X : Type u} [MeasurableSpace X]
 /-- [The logarithm of the positive cellwise density ratio is integrable](goal)
 under [the first selected law](hyp:μ,e,q₀,q₁) when [all five parameter
 functions are measurable](hyp:he,hq₀,hq₁,hq₀',hq₁') and
-[uniformly interior](hyp:hη0,hηhalf,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
+[uniformly interior](hyp:hη0,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
 
 For every selected cell, its mass under either law lies in `[η²,1]`.
 Consequently the real density ratio stays in `[η²,η⁻²]`; its logarithm is
@@ -90,7 +90,7 @@ theorem selectedCellRatio_log_integrable {X : Type u} [MeasurableSpace X]
     (e q₀ q₁ q₀' q₁' : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
     (hq₀' : Measurable q₀') (hq₁' : Measurable q₁')
-    {η : ℝ} (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    {η : ℝ} (hη0 : 0 < η)
     (heη : ∀ x, e x ∈ Set.Icc η (1 - η))
     (hq₀η : ∀ x, q₀ x ∈ Set.Icc η (1 - η))
     (hq₁η : ∀ x, q₁ x ∈ Set.Icc η (1 - η))
@@ -139,7 +139,7 @@ theorem selectedCellRatio_log_integrable {X : Type u} [MeasurableSpace X]
 /-- [The selected-law log likelihood equals the logarithm of the cellwise
 ratio almost everywhere under the first law](goal) for a [probability base](hyp:μ),
 [measurable parameters](hyp:he,hq₀,hq₁,hq₀',hq₁'), and
-[uniform interior bounds](hyp:hη0,hηhalf,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
+[uniform interior bounds on the propensity and target law](hyp:hη0,heη,hq₀'η,hq₁'η).
 
 Use `selectedLaw_eq_withDensity`, `rnDeriv_withDensity`, and absolute
 continuity to transfer the almost-everywhere identity to the first law.
@@ -149,10 +149,8 @@ theorem selectedLaw_llr_ae_eq_cell_log {X : Type u} [MeasurableSpace X]
     (e q₀ q₁ q₀' q₁' : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
     (hq₀' : Measurable q₀') (hq₁' : Measurable q₁')
-    {η : ℝ} (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    {η : ℝ} (hη0 : 0 < η)
     (heη : ∀ x, e x ∈ Set.Icc η (1 - η))
-    (hq₀η : ∀ x, q₀ x ∈ Set.Icc η (1 - η))
-    (hq₁η : ∀ x, q₁ x ∈ Set.Icc η (1 - η))
     (hq₀'η : ∀ x, q₀' x ∈ Set.Icc η (1 - η))
     (hq₁'η : ∀ x, q₁' x ∈ Set.Icc η (1 - η)) :
     llr (selectedLaw μ e q₀ q₁) (selectedLaw μ e q₀' q₁') =ᵐ[selectedLaw μ e q₀ q₁]
@@ -172,18 +170,18 @@ theorem selectedLaw_llr_ae_eq_cell_log {X : Type u} [MeasurableSpace X]
       (selectedLaw μ e q₀ q₁).rnDeriv (selectedLaw μ e q₀' q₁')
         =ᵐ[selectedLaw μ e q₀' q₁'] selectedCellRatio e q₀ q₁ q₀' q₁' := by
     conv_lhs => rw [selectedLaw_eq_withDensity μ e q₀ q₁ q₀' q₁'
-      he hq₀ hq₁ hq₀' hq₁' hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η]
+      he hq₀ hq₁ hq₀' hq₁' hη0 heη hq₀'η hq₁'η]
     exact Measure.rnDeriv_withDensity _
       (measurable_selectedCellRatio he hq₀ hq₁ hq₀' hq₁')
   have hac := selectedLaw_ac μ e q₀ q₁ q₀' q₁' he hq₀ hq₁ hq₀' hq₁'
-    hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η
+    hη0 heη hq₀'η hq₁'η
   filter_upwards [hac.ae_le hderiv] with z hz
   exact congrArg (fun (t : ENNReal) => Real.log t.toReal) hz
 
 /-- [The selected-law log likelihood ratio is integrable under the first
 selected law](goal) for a [probability base](hyp:μ),
 [measurable parameters](hyp:he,hq₀,hq₁,hq₀',hq₁'), and
-[uniform interior bounds](hyp:hη0,hηhalf,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
+[uniform interior bounds](hyp:hη0,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
 
 Apply `selectedCellRatio_log_integrable` and
 `selectedLaw_llr_ae_eq_cell_log`.
@@ -193,7 +191,7 @@ theorem selectedLaw_llr_integrable {X : Type u} [MeasurableSpace X]
     (e q₀ q₁ q₀' q₁' : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
     (hq₀' : Measurable q₀') (hq₁' : Measurable q₁')
-    {η : ℝ} (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    {η : ℝ} (hη0 : 0 < η)
     (heη : ∀ x, e x ∈ Set.Icc η (1 - η))
     (hq₀η : ∀ x, q₀ x ∈ Set.Icc η (1 - η))
     (hq₁η : ∀ x, q₁ x ∈ Set.Icc η (1 - η))
@@ -202,8 +200,8 @@ theorem selectedLaw_llr_integrable {X : Type u} [MeasurableSpace X]
     Integrable (llr (selectedLaw μ e q₀ q₁) (selectedLaw μ e q₀' q₁'))
       (selectedLaw μ e q₀ q₁) := by
   exact (selectedCellRatio_log_integrable μ e q₀ q₁ q₀' q₁'
-    he hq₀ hq₁ hq₀' hq₁' hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η).congr
+    he hq₀ hq₁ hq₀' hq₁' hη0 heη hq₀η hq₁η hq₀'η hq₁'η).congr
       (selectedLaw_llr_ae_eq_cell_log μ e q₀ q₁ q₀' q₁'
-        he hq₀ hq₁ hq₀' hq₁' hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η).symm
+        he hq₀ hq₁ hq₀' hq₁' hη0 heη hq₀'η hq₁'η).symm
 
 end Causalean.Mathlib.Probability.Kernel.ThreeBernoulli.SelectedLawKL

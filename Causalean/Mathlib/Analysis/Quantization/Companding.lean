@@ -181,10 +181,10 @@ def compandingMidpoint (a b : ℝ) (S k : ℕ)
     (β : Fin S → ℝ → ℝ → ℝ) (j : Fin k) (_s : Fin S) : ℝ :=
   (boundary a b S k j.val β + boundary a b S k (j.val + 1) β) / 2
 
-/-- On [a nondegenerate interval](hyp:a,b,hab), [a nonempty family](hyp:S,hS),
-[a positive number of cells](hyp:k,hk), and [jointly continuous strictly
-positive weights](hyp:β,hcont,hpos) give [a measurable disjoint
-companding partition with feasible midpoint reproductions](goal). -/
+/-- On [a nondegenerate interval from a to b](hyp:a,b,hab), for [a nonempty family](hyp:S,hS)
+of [jointly continuous strictly positive weights](hyp:β,hcont,hpos) and [a positive number of
+cells](hyp:k,hk), [the companding cells form a measurable partition of the interval, and every
+cell midpoint lies in the interval](goal). -/
 theorem companding_feasible (a b : ℝ) (hab : a < b)
     (S k : ℕ) (hS : 0 < S) (hk : 0 < k)
     (β : Fin S → ℝ → ℝ → ℝ)
@@ -356,8 +356,10 @@ theorem companding_length_bound (a b : ℝ) (hab : a < b)
   simpa only [smul_eq_mul, mul_comm] using
     (hmono.trans_eq (companding_interval_mass a b hab S k hS hk β hcont hpos j))
 
-/-- The midpoint diagonal-weight surrogate is the exact leading term obtained
-by replacing each cell's varying weights by their diagonal value at its midpoint. -/
+/-- The midpoint diagonal-weight surrogate cost of the k-cell companding partition is the sum
+over cells of the diagonal weight at the cell midpoint times the squared cell length divided by
+four. It is what the paired cost becomes when each cell's varying weights are replaced by their
+diagonal value at its midpoint. -/
 noncomputable def compandingSurrogateCost (a b : ℝ) (S k : ℕ)
     (β : Fin S → ℝ → ℝ → ℝ) : ℝ :=
   ∑ j : Fin k,
@@ -485,7 +487,7 @@ theorem companding_coefficient_error_eventually (a b : ℝ) (hab : a < b)
   -- Uniform continuity on the compact square controls the pairs (x,m)
   -- and (m,m); companding_length_bound makes their distance uniformly small.
   intro η hη
-  obtain ⟨δ, hδ, huc⟩ := coefficient_uniform_continuity a b hab S β hcont η hη
+  obtain ⟨δ, hδ, huc⟩ := coefficient_uniform_continuity a b S β hcont η hη
   obtain ⟨c, hc, hbound⟩ := companding_length_bound a b hab S hS β hcont hpos
   let M : ℝ := ∫ x in a..b, Real.sqrt (diagonalWeight S β x)
   obtain ⟨K, hK⟩ := exists_nat_gt (M / (c * δ))

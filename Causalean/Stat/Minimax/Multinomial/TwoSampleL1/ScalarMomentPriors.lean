@@ -18,8 +18,10 @@ open scoped BigOperators
 open Causalean.Mathlib.Analysis.FinitePolynomialAlternationDuality
   Causalean.Mathlib.Analysis.AbsoluteValueMomentPriorDuality
 
-/-- Two finite probability distributions on nodes in `[-1,1]` with matching
-moments through degree `L` and separated mean absolute values. -/
+/-- A pair of finitely supported probability distributions on a common nonempty set of
+nodes in `[-1,1]`: the two weight vectors are nonnegative and each sums to one, their moments
+agree through degree `L`, and the mean absolute value under the second distribution exceeds
+that under the first by at least `1/(50 L)` (for `L = 0` this reads as a nonnegative gap). -/
 structure ScalarMomentPriors (L : ℕ) where
   m : ℕ
   m_pos : 0 < m
@@ -36,7 +38,7 @@ structure ScalarMomentPriors (L : ℕ) where
   abs_gap : (1 / 50 : ℝ) / (L : ℝ) ≤
     (∑ i, w₁ i * |node i|) - (∑ i, w₀ i * |node i|)
 
-/-- Given [a positive moment degree](hyp:L,hL), [a pair of finite probability priors on the unit interval that match all moments through that degree but separate absolute moments](goal) exists. -/
+/-- Given [a positive moment degree](hyp:L,hL), there exists [a pair of finitely supported probability priors on common nodes in `[-1,1]` whose moments agree through that degree while the mean absolute value under the second exceeds that under the first by at least `1/(50 L)`](goal). -/
 theorem exists_scalarMomentPriors (L : ℕ) (hL : 0 < L) :
     Nonempty (ScalarMomentPriors L) := by
   classical

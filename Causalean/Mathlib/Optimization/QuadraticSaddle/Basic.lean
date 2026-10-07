@@ -50,7 +50,9 @@ structure Quadratics (Θ ι : Type*) [MeasurableSpace Θ] [Fintype ι] where
   nonneg_a : ∀ (θ : Θ) (i : ι), 0 ≤ a i θ
 
 /-- A [quadratic family](hyp:Q), [parameter](hyp:θ), [weight vector](hyp:α), and [scalar
-decision](hyp:t) determine the [finite weighted quadratic objective](goal). -/
+decision](hyp:t) determine the [finite weighted quadratic objective](goal): the sum over
+coordinates of the weight times that coordinate's quadratic a·t² + b·t + c evaluated at the
+parameter. -/
 def Quadratics.objective (Q : Quadratics Θ ι)
     (θ : Θ) (α : EuclideanSpace ℝ ι) (t : ℝ) : ℝ :=
   ∑ i, α i * (Q.a i θ * t ^ 2 + Q.b i θ * t + Q.c i θ)

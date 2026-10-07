@@ -17,8 +17,10 @@ public section
 namespace Causalean.Stat.RandomGraph.PathOccupancy
 
 /-- For [two nonempty labelled types](hyp:hm,hl) and [positive even coarse
-count dividing the fine count](hyp:hM,hK,heven,hdiv), [the connected assignment
-pairs sharing one coarse pair obey the anchor-times-offset count](goal).
+count dividing the fine count](hyp:hM,hK,heven,hdiv), [the coarse count M times
+the number of pairs of connected assignments, one from each labelled type, whose
+cells all lie in one common coarse pair is at most 2 K² m^m l^l](goal), where K is
+the fine count and m and l are the sizes of the two labelled types.
 
 Apply connected_assignment_encoding separately to each labelled type. Its
 occupied-anchor clause and SamePair place both anchors in the ordered_same_pair

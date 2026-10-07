@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_RecurrentEndpointCensorFrontier_Research.Hel
 
 /-! # Recurrence marginal bridge for arbitrary perturbations -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set Filter ProbabilityTheory
 

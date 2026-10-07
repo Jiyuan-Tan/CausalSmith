@@ -50,10 +50,10 @@ noncomputable def minimaxSquaredRisk (K : Kernel Θ X) (target : Θ → ℝ) : �
 
 /-- Given [two probability priors](hyp:π0,π1), [a probability experiment kernel](hyp:K,hK),
 [a measurable real-valued target](hyp:target,htarget), [a measurable estimator](hyp:estimator,hestimator),
-[two target centers](hyp:center0,center1), [a nonnegative center separation](hyp:Delta,hDelta),
-[a nonnegative concentration radius smaller than half the separation](hyp:r,hr,hrhalf),
-[the stated separation of the centers](hyp:hsep), [nonnegative prior-tail bounds](hyp:alpha0,alpha1,halpha0,halpha1),
-and [a nonnegative predictive-distance bound](hyp:beta,hbeta), if [the first prior concentrates
+[two target centers](hyp:center0,center1), [a center separation](hyp:Delta),
+[a concentration radius smaller than half the separation](hyp:r,hrhalf),
+[the stated separation of the centers](hyp:hsep), [prior-tail bounds](hyp:alpha0,alpha1),
+and [a predictive-distance bound](hyp:beta), if [the first prior concentrates
 around its center](hyp:hmass0), [the second prior concentrates around its center](hyp:hmass1), and
 [the predictive mixtures satisfy the distance bound](hyp:htv), then [the larger Bayes squared
 risk is at least half the squared residual separation times one minus the three error terms](goal). -/
@@ -63,9 +63,8 @@ theorem twoFuzzyHypotheses_bayesRisk_lower
     (hK : ∀ θ, IsProbabilityMeasure (K θ))
     (estimator : X → ℝ) (hestimator : Measurable estimator) (htarget : Measurable target)
     (center0 center1 Delta r alpha0 alpha1 beta : ℝ)
-    (hDelta : 0 ≤ Delta) (hr : 0 ≤ r) (hrhalf : r < Delta / 2)
+    (hrhalf : r < Delta / 2)
     (hsep : Delta ≤ center1 - center0)
-    (halpha0 : 0 ≤ alpha0) (halpha1 : 0 ≤ alpha1) (hbeta : 0 ≤ beta)
     (hmass0 : π0.real {θ | r < |target θ - center0|} ≤ alpha0)
     (hmass1 : π1.real {θ | r < |target θ - center1|} ≤ alpha1)
     (htv : Causalean.Stat.tvDist (Causalean.Stat.Minimax.MomentMatchedMixture.priorPredictive π0 K) (Causalean.Stat.Minimax.MomentMatchedMixture.priorPredictive π1 K) ≤ beta) :
@@ -256,8 +255,8 @@ theorem twoFuzzyHypotheses_worstCase_lower_standard
     ENNReal.ofReal (11 * Delta ^ 2 / 512) ≤ worstCaseSquaredRisk K target estimator := by
   have hbayes := twoFuzzyHypotheses_bayesRisk_lower π0 π1 K target hK
     estimator hestimator htarget center0 center1 Delta (Delta / 4) (1 / 8) (1 / 8)
-      (1 / 16) (le_of_lt hDelta) (by positivity) (by linarith) hsep
-      (by norm_num) (by norm_num) (by norm_num) hmass0 hmass1 htv
+      (1 / 16) (by linarith) hsep
+      hmass0 hmass1 htv
   have hconstant :
       (((Delta / 2 - Delta / 4) ^ 2 * (1 - (1 / 16 : ℝ) - 1 / 8 - 1 / 8)) / 2) =
         11 * Delta ^ 2 / 512 := by

@@ -133,7 +133,7 @@ lemma canonical_sample_variance (P : Measure Ω) [IsProbabilityMeasure P]
   simp only [zero_pow (by norm_num : 2 ≠ 0), sub_zero]
   exact Causalean.Stat.UStatistic.LocalizedVariance.integral_two_coordinates_integrable
     P hij (fun x y => canonicalProjection P g x y^2)
-    ((canonicalProjection_measurable P g hg).pow_const 2) hk.integrable_sq
+    ((canonicalProjection_measurable P g hg).pow_const 2)
 
 /-- Disjoint sample pairs are independent, hence their canonical covariance vanishes. This statement assumes [the hg condition](hyp:hg), [the hL2 condition](hyp:hL2), [the hij condition](hyp:hij), [the hkl condition](hyp:hkl), [the hik condition](hyp:hik), [the hil condition](hyp:hil), [the hjk condition](hyp:hjk), [the hjl condition](hyp:hjl). [This is the stated conclusion](goal). -/
 -- @node: canonical_sample_disjoint_covariance

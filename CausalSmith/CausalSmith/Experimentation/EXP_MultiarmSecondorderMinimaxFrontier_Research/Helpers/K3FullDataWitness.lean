@@ -58,7 +58,7 @@ lemma k3FullDataRule_boundary_risk :
 -- @node: k3FullDataRule_worstCaseRisk
 /-- [the three-arm full data rule worst case risk property holds](goal). -/
 lemma k3FullDataRule_worstCaseRisk :
-    Causalean.Stat.worstCaseRisk
+    Causalean.Stat.worstCaseRiskReal
       (fun (p : Procedure 3 3 cDagger) (z : Schedule 3 3) ↦ labeledRisk cDagger p z)
       (Causalean.Experimentation.DesignBased.prodDesign
         (fun _ : Unit 3 ↦ qStarDesign cDagger), k3FullDataRule) =

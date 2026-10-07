@@ -16,7 +16,7 @@ public import Mathlib.Topology.Instances.Real.Lemmas
 The centered family has a unique five-ray optimum; distinct projected scores
 prevent any attaining stationary channel from merging those rays. -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

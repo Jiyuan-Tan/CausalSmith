@@ -93,10 +93,15 @@ theorem signedSum_second_fderiv (σ : ι → ℝ) (f : ι → E → ℝ)
     (fun i _ => (hd i x).const_smul (σ i))]
   exact Finset.sum_congr rfl fun i _ => fderiv_fun_const_smul (hd i x) (σ i)
 
-/-- For [a separated family](hyp:hsep) at [positive scale and factor](hyp:hh,hδ)
-with [jet locality](hyp:hloc), [all signed-sum jets reduce to the unique contributing
-summand](goal) at [a point in a support](hyp:hx), assuming [global order-two
-regularity](hyp:hf) and [any coefficients](hyp:σ). -/
+/-- If [a family of supports is closed and pairwise separated by at least
+δh](hyp:hsep) with [h > 0](hyp:hh) and [δ > 0](hyp:hδ), [each function of the
+family vanishes together with its first and second derivatives off its own
+support](hyp:hloc), and [every function is twice continuously differentiable on
+the whole space](hyp:hf), then for [any coefficients σ](hyp:σ) and [any point x of
+the i-th support](hyp:hx) [the signed sum at x equals σ_i·f_i(x), its derivative
+at x equals σ_i times the derivative of f_i at x, and its second derivative at x
+equals σ_i times the second derivative of f_i at x](goal): only the i-th summand
+contributes. -/
 theorem signedSum_jets_eq {K : ι → Set E} {h δ : ℝ} {f : ι → E → ℝ}
     (hsep : SupportSeparation K h δ) (hh : 0 < h) (hδ : 0 < δ)
     (hloc : JetLocality f K) (hf : ∀ i, ContDiff ℝ 2 (f i))

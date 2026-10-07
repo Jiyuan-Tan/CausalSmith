@@ -240,7 +240,7 @@ private theorem ratMaxAbs_mono {I J : RatInterval} (hIJ : I.Subinterval J) :
 
 private theorem ratMaxAbs_le_of_contains {I : RatInterval} {x : ℝ} {C w : ℚ}
     (hx : I.Contains x) (hC : |x| ≤ (C : ℝ)) (hw : I.width ≤ w)
-    (hC0 : 0 ≤ C) (hw0 : 0 ≤ w) : I.maxAbs ≤ C + w := by
+    (hw0 : 0 ≤ w) : I.maxAbs ≤ C + w := by
   have hw' : ((I.hi : ℝ) - I.lo) ≤ w := by
     exact_mod_cast hw
   have hC' : -(C : ℝ) ≤ x ∧ x ≤ (C : ℝ) := (abs_le.mp hC)
@@ -497,7 +497,7 @@ theorem complexExpStage_width (z : CertifiedComplex) (n : ℕ) :
       (Real.exp_le_exp.mpr hvalM).trans hS0.2
     have h := ratMaxAbs_le_of_contains hEcontains
       (by rw [Real.abs_exp]; exact hexp.trans (by exact_mod_cast le_abs_self S0.hi))
-      hEw (abs_nonneg S0.hi) hτpos.le
+      hEw hτpos.le
     change E.maxAbs ≤ |S0.hi| + 2
     exact h.trans (by nlinarith [hτone])
   have hCcontains : C.Contains (Real.cos z.value.im) :=
@@ -507,11 +507,11 @@ theorem complexExpStage_width (z : CertifiedComplex) (n : ℕ) :
   have hCabs : C.maxAbs ≤ 2 := by
     exact (ratMaxAbs_le_of_contains (C := (1 : ℚ)) (w := τ)
       hCcontains (by simpa using Real.abs_cos_le_one z.value.im) hCw
-      (by norm_num) hτpos.le).trans (by nlinarith [hτone])
+      hτpos.le).trans (by nlinarith [hτone])
   have hSabs : S.maxAbs ≤ 2 := by
     exact (ratMaxAbs_le_of_contains (C := (1 : ℚ)) (w := τ)
       hScontains (by simpa using Real.abs_sin_le_one z.value.im) hSw
-      (by norm_num) hτpos.le).trans (by nlinarith [hτone])
+      hτpos.le).trans (by nlinarith [hτone])
   have hout := complexExp_width K N
   change ComplexRatInterval.width (complexExp K N) ≤ η
   have hEA0 : 0 ≤ E.maxAbs := (abs_nonneg E.lo).trans (le_max_left _ _)

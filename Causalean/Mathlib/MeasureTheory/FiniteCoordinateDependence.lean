@@ -35,13 +35,6 @@ variable {X : V → Type*} [∀ i, MeasurableSpace (X i)]
 abbrev DependsOn {Y : Type*} (S : Finset V) (f : (∀ i, X i) → Y) : Prop :=
   _root_.DependsOn f (S : Set V)
 
-/-- A function [depending on a smaller coordinate set](hyp:hf) and [that set's inclusion in a
-larger one](hyp:hST) [also depends only on the larger set](goal). -/
-@[deprecated _root_.DependsOn.mono (since := "2026-09-15")]
-theorem DependsOn.mono {Y : Type*} {S T : Finset V} {f : (∀ i, X i) → Y}
-    (hf : DependsOn S f) (hST : S ⊆ T) : DependsOn T f :=
-  _root_.DependsOn.mono (by simpa using hST) hf
-
 /-- A [chosen coordinate](hyp:i) [can be read from an assignment using only that coordinate](goal). -/
 theorem dependsOn_apply (i : V) :
     DependsOn (X := X) {i} (fun x : ∀ k, X k ↦ x i) :=

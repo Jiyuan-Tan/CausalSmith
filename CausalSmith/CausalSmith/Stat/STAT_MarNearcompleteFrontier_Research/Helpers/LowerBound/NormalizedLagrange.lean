@@ -8,7 +8,7 @@ public import Causalean.Mathlib.Analysis.Approximation.Chebyshev.LobattoLagrange
 
 /-! # Exterior Lagrange mass for the normalized paired prior -/
 
-@[expose] public section
+public section
 
 open Polynomial
 open scoped BigOperators

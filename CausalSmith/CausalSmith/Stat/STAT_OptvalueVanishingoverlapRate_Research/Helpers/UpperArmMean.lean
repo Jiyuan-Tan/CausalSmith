@@ -186,7 +186,7 @@ lemma empiricalArmCentered_mse_le_inverse {n d : ℕ} (P : DiscreteLaw d)
   have h := Causalean.Stat.Sample.Stratified.TreatmentRegression.integral_designWeightedResidual_sq_le
     n P.pmf.toMeasure Prod.fst (fun z : Obs d => z.2.1)
     (fun z : Obs d => if z.2.2 then 1 else 0) (outcomeMean P) (1 / 2)
-    (by fun_prop) (by fun_prop) (by fun_prop) hmem hc hs
+    (by fun_prop) (by fun_prop) hmem hc hs
     (fun D i => if (D i).1 = x ∧ (D i).2 = a then
       ((∑ j : Fin n, if (D j).1 = x ∧ (D j).2 = a then 1 else 0 : ℕ) : ℝ)⁻¹
       else 0) (fun _ => 1) (fun _ => by norm_num)

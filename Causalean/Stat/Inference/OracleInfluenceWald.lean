@@ -60,9 +60,9 @@ theorem oracleInfluenceSE_tendsto_inProb (S : IIDSample Ω X μ P)
     (hψ_int : Integrable (fun ω => ψ (S.Z 0 ω)) μ)
     (hψ_sq_int : Integrable (fun ω => (ψ (S.Z 0 ω)) ^ 2) μ)
     (hmean : ∫ x, ψ x ∂P = 0) :
-    Tendsto_inProb (oracleInfluenceSE S ψ)
-      (fun _ => Real.sqrt (∫ x, (ψ x) ^ 2 ∂P)) μ :=
-  Tendsto_inProb.sqrt
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (oracleInfluenceSE S ψ) atTop
+        (fun _ _ => Real.sqrt (∫ x, (ψ x) ^ 2 ∂P)) :=
+  Modes.TendstoInProbability.sqrt
     (empiricalVar_tendsto_inProb S hψ_meas hψ_int hψ_sq_int hmean)
 
 /-- For [a measurable sample space, measurable observation space, sample-space measure, and
@@ -99,7 +99,7 @@ influence-function standard error.
 
     Combines `IsAsymLinear.tendsto_normal` (numerator `⇒ N(0, ∫ ψ²)`),
 `oracleInfluenceSE_tendsto_inProb` (`σ̂ₙ →ₚ √(∫ ψ²)`), and the generic studentized CLT
-`Tendsto_dist.div_tendsto_inProb_gaussian`. -/
+`Modes.TendstoInLaw.div_tendsto_inProb_gaussian`. -/
 theorem oracleStudentized_tendsto
     (h : IsAsymLinear θn θ₀ ψ S (fun m => Finset.range m))
     (hψ_meas : Measurable ψ)
@@ -110,22 +110,24 @@ theorem oracleStudentized_tendsto
       (IsAsymLinear.rescaledEstimator θn θ₀ (fun m => Finset.range m) n) μ)
     (hStud_meas : ∀ n,
       AEMeasurable (IIDSample.oracleStudentized θn θ₀ S ψ n) μ) :
-    Tendsto_dist (IIDSample.oracleStudentized θn θ₀ S ψ)
-      (gaussianMeasure 0 1) μ hStud_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (IIDSample.oracleStudentized θn θ₀ S ψ) atTop
+        (gaussianMeasure 0 1) := by
   set σ₀ : ℝ := Real.sqrt (∫ x, (ψ x) ^ 2 ∂P) with hσ₀
   have hσ₀_pos : 0 < σ₀ := Real.sqrt_pos.mpr hpos
   have hσ₀sq : σ₀ ^ 2 = ∫ x, (ψ x) ^ 2 ∂P := Real.sq_sqrt (le_of_lt hpos)
   -- numerator ⇒ N(0, σ₀²)
   have hXn :
-      Tendsto_dist (IsAsymLinear.rescaledEstimator θn θ₀ (fun m => Finset.range m))
-        (gaussianMeasure 0 (σ₀ ^ 2)) μ hθn_meas := by
+      Modes.TendstoInLaw (fun _ : ℕ => μ)
+          (IsAsymLinear.rescaledEstimator θn θ₀ (fun m => Finset.range m)) atTop
+          (gaussianMeasure 0 (σ₀ ^ 2)) := by
     rw [hσ₀sq]
     exact IsAsymLinear.tendsto_normal h hψ_meas hθn_meas
   -- oracle SE ⇒ σ₀ in probability
-  have hSE : Tendsto_inProb (IIDSample.oracleInfluenceSE S ψ) (fun _ => σ₀) μ :=
+  have hSE : Modes.TendstoInProbability (fun _ : ℕ => μ) (IIDSample.oracleInfluenceSE S ψ) atTop
+      (fun _ _ => σ₀) :=
     IIDSample.oracleInfluenceSE_tendsto_inProb S hψ_meas hψ_int hψ_sq_int h.mean_zero
   -- generic studentized CLT
-  exact Tendsto_dist.div_tendsto_inProb_gaussian hσ₀_pos hθn_meas hXn hSE hStud_meas
+  exact Modes.TendstoInLaw.div_tendsto_inProb_gaussian hXn hσ₀_pos hSE hStud_meas
 
 /-- **Wald asymptotic coverage with the oracle standard error.** Under [the asymptotic-linearity
 hypothesis](hyp:h), [measurability](hyp:hψ_meas), [integrability](hyp:hψ_int), and
@@ -162,6 +164,6 @@ theorem oracle_wald_coverage
       (𝓝 ((gaussianMeasure 0 1) (Set.Icc (-z) z)).toReal) := by
   have hStud := oracleStudentized_tendsto h hψ_meas hψ_int hψ_sq_int hpos
     hθn_meas hStud_meas
-  exact Tendsto_dist.wald_coverage hStud_meas hStud hz coverProb h_bridge
+  exact Modes.TendstoInLaw.wald_coverage hStud hz coverProb h_bridge
 
 end Causalean.Stat

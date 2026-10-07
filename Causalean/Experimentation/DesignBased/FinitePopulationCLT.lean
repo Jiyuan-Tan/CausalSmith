@@ -551,9 +551,10 @@ theorem standardizedSrsPermutationHajekArray_conditionalLindeberg
     (hmax : Tendsto (fun n =>
       popMaxSqDev (y n) /
         (((min (K n) (N n - K n) : ℕ) : ℝ) * popVar (y n))) atTop (nhds 0)) :
-    ∀ ε : ℝ, 0 < ε → TendstoInProbability
-      (fun n => (uniformPermutationDesign (N n)).toMeasure)
-      ((standardizedSrsPermutationHajekArray N K hKpos hKlt y).conditionalLindeberg ε) 0 := by
+    ∀ ε : ℝ, 0 < ε → Modes.TendstoInProbability
+        (fun n => (uniformPermutationDesign (N n)).toMeasure)
+        ((standardizedSrsPermutationHajekArray N K hKpos hKlt y).conditionalLindeberg ε) atTop
+        (fun _ _ => 0) := by
   apply conditionalLindeberg_tendstoInProbability_of_eventually_uniformly_small
   intro ε hε
   filter_upwards [standardizedPermutationHajekIncrement_eventually_uniformly_small

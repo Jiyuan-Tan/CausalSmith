@@ -96,9 +96,11 @@ theorem zero_indicator_le_exp (m : ℕ) :
   · simp [hm]
   · simp [hm, Real.exp_nonneg]
 
-/-- A [positive birthday exponent](hyp:c,hc) gives [a guarded reciprocal
-occupancy rate with the uniform `1/n + d/n²` form](goal) across positive sample
-sizes and finite dimensions.
+/-- For [a positive exponent constant c](hyp:c,hc), [there is a positive constant
+B, depending only on c, such that for every positive sample size n and every
+cell count d, the scalar expression 2·max(n,d)/(c·n²) + 2·exp(−c·n²/(2·max(n,d)))
+is at most B·(1/n + d/n²)](goal). This is a purely numerical inequality: it
+converts a birthday-scale exponential bound into the `1/n + d/n²` rate.
 
 Proof route: apply `birthday_laplace_rate` with `c/2`, then use
 `max n d ≤ n + d` to bound the explicit reciprocal term. -/

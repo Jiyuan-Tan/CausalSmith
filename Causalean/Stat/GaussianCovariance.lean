@@ -376,10 +376,10 @@ noncomputable def covarianceModelLoss [Fintype V] [DecidableEq V]
   sInf ((fun K : PositiveCovariance V =>
     gaussianCovarianceDiscrepancy (K : Matrix V V ℝ) T) '' M)
 
-/-- Given [a compact covariance model](hyp:hM) that is [nonempty](hyp:hne), the [population
-loss is continuous in the target second-moment matrix](goal). -/
+/-- Given [a compact covariance model](hyp:hM), the [population loss is continuous in the target
+second-moment matrix](goal). -/
 theorem continuous_covarianceModelLoss [Fintype V] [DecidableEq V]
-    {M : Set (PositiveCovariance V)} (hM : IsCompact M) (hne : M.Nonempty) :
+    {M : Set (PositiveCovariance V)} (hM : IsCompact M) :
     Continuous (covarianceModelLoss M) := by
   unfold covarianceModelLoss
   have hjoint : Continuous (fun p : Matrix V V ℝ × PositiveCovariance V =>
@@ -511,11 +511,11 @@ theorem tendstoInProb_covarianceModelLoss [MeasurableSpace Ω]
     (models : I → Set (PositiveCovariance V))
     (hcompact : ∀ i, IsCompact (models i)) (hne : ∀ i, (models i).Nonempty)
     (Sn : ℕ → Ω → Matrix V V ℝ) (T : Matrix V V ℝ) (P : Measure Ω)
-    (hSn : ∀ a b, Causalean.Stat.Tendsto_inProb
-      (fun n ω => Sn n ω a b) (fun _ => T a b) P) :
-    ∀ i, Causalean.Stat.Tendsto_inProb
-      (fun n ω => covarianceModelLoss (models i) (Sn n ω))
-      (fun _ => covarianceModelLoss (models i) T) P := by
+    (hSn : ∀ a b, Causalean.Stat.Modes.TendstoInProbability (fun _ : ℕ => P) (fun n ω => Sn n ω a b)
+        atTop (fun _ _ => T a b)) :
+    ∀ i, Causalean.Stat.Modes.TendstoInProbability (fun _ : ℕ => P)
+        (fun n ω => covarianceModelLoss (models i) (Sn n ω)) atTop
+        (fun _ _ => covarianceModelLoss (models i) T) := by
   classical
   intro i
   let uncurryMatrix : ((V × V) → ℝ) → Matrix V V ℝ :=
@@ -527,13 +527,14 @@ theorem tendstoInProb_covarianceModelLoss [MeasurableSpace Ω]
   have huncurry : Continuous uncurryMatrix := by
     fun_prop
   have hg : ContinuousAt g c :=
-    ((continuous_covarianceModelLoss (hcompact i) (hne i)).comp huncurry).continuousAt
-  have hcoord : ∀ ab, Causalean.Stat.Tendsto_inProb
-      (fun n ω => Yn n ω ab) (fun _ => c ab) P := by
+    ((continuous_covarianceModelLoss (hcompact i)).comp huncurry).continuousAt
+  have hcoord : ∀ ab, Causalean.Stat.Modes.TendstoInProbability (fun _ : ℕ => P)
+      (fun n ω => Yn n ω ab)
+      atTop (fun _ _ => c ab) := by
     rintro ⟨a, b⟩
     exact hSn a b
   simpa [Yn, c, g, uncurryMatrix] using
-    Causalean.Stat.Tendsto_inProb.pi_comp_continuousAt hg hcoord
+    Causalean.Stat.Modes.TendstoInProbability.pi_comp_continuousAt hg hcoord
 
 
 end Causalean.Stat

@@ -30,7 +30,7 @@ variable {E F K : Type*}
   [NormedAddCommGroup K] [InnerProductSpace ℝ K] [FiniteDimensional ℝ K]
 
 /-- Given [a real linear map](hyp:T), [a candidate signal subspace](hyp:S), [a singular-value
-index](hyp:j), [a nonnegative expansion factor](hyp:c,hc), [a dimension condition putting that
+index](hyp:j), [an expansion factor](hyp:c), [a dimension condition putting that
 index below the signal-subspace dimension](hyp:hdim), and [a lower expansion bound on the signal
 subspace](hyp:hbound), [the indexed singular value is at least that factor](goal).
 
@@ -38,7 +38,7 @@ This is the lower-bound half of the singular-value min--max principle, stated so
 have a nontrivial kernel outside the specified subspace. -/
 theorem le_singularValues_of_subspace
     (T : E →ₗ[ℝ] F) (S : Submodule ℝ E) {j : ℕ} {c : ℝ}
-    (hc : 0 ≤ c) (hdim : j < finrank ℝ S)
+    (hdim : j < finrank ℝ S)
     (hbound : ∀ x : E, x ∈ S → c * ‖x‖ ≤ ‖T x‖) :
     c ≤ T.singularValues j := by
   have hj : j < finrank ℝ E :=
@@ -57,11 +57,11 @@ theorem le_singularValues_of_subspace
   have hxnorm : 0 < ‖x‖ := norm_pos_iff.mpr hx0
   nlinarith
 
-/-- Given [an injective finite-dimensional real linear map](hyp:T,hT) and [a vector in its
+/-- Given [a finite-dimensional real linear map](hyp:T) and [a vector in its
 domain](hyp:x), [the map expands that vector by at least its last domain-indexed singular
 value](goal). -/
 theorem least_singularValue_mul_norm_le
-    [Nontrivial E] (T : E →ₗ[ℝ] F) (hT : Function.Injective T) (x : E) :
+    [Nontrivial E] (T : E →ₗ[ℝ] F) (x : E) :
     T.singularValues (finrank ℝ E - 1) * ‖x‖ ≤ ‖T x‖ := by
   let hself := T.isSymmetric_adjoint_comp_self
   let b := hself.eigenvectorBasis rfl
@@ -104,20 +104,20 @@ theorem least_singularValue_mul_norm_le
   exact Finset.sum_le_sum fun i _ =>
     mul_le_mul_of_nonneg_right (hlam i) (sq_nonneg _)
 
-/-- Given [a full-column-rank real linear map](hyp:B,hB) and [a vector in its column
+/-- Given [a real linear map](hyp:B) and [a vector in its column
 space](hyp:y,hy), [the adjoint expands that signal vector by at least the map's least singular
 value](goal).
 
 No claim is made on the whole ambient codomain, where the adjoint can have a nontrivial kernel. -/
 theorem least_singularValue_mul_norm_le_adjoint_on_range
-    [Nontrivial K] (B : K →ₗ[ℝ] E) (hB : Function.Injective B)
+    [Nontrivial K] (B : K →ₗ[ℝ] E)
     (y : E) (hy : y ∈ B.range) :
     B.singularValues (finrank ℝ K - 1) * ‖y‖ ≤ ‖B.adjoint y‖ := by
   rcases hy with ⟨z, rfl⟩
   by_cases hz : z = 0
   · simp [hz]
   have hzpos : 0 < ‖z‖ := norm_pos_iff.mpr hz
-  have hleast := least_singularValue_mul_norm_le B hB z
+  have hleast := least_singularValue_mul_norm_le B z
   have hcs := real_inner_le_norm z (B.adjoint (B z))
   have hadj : inner ℝ z (B.adjoint (B z)) = ‖B z‖ ^ 2 := by
     calc
@@ -130,9 +130,9 @@ theorem least_singularValue_mul_norm_le_adjoint_on_range
   have hadjnorm := norm_nonneg (B.adjoint (B z))
   nlinarith
 
-/-- Given [a left rectangular factor](hyp:A), [an injective square core](hyp:D,hD), [a right
-rectangular factor](hyp:B), and [full-column-rank assumptions for the two rectangular
-factors](hyp:hA,hB), [the last signal singular value of their adjoint product is at least the
+/-- Given [a left rectangular factor](hyp:A), [a square core](hyp:D), [a right
+rectangular factor](hyp:B), and [a full-column-rank assumption for the right rectangular
+factor](hyp:hB), [the last signal singular value of their adjoint product is at least the
 product of the three least signal singular values](goal).
 
 The product is a map on the ambient domain of the right adjoint, but the proof uses only the
@@ -141,22 +141,18 @@ injective. -/
 theorem singularValues_product_adjoint_lower_bound
     [Nontrivial K]
     (A : K →ₗ[ℝ] F) (D : K →ₗ[ℝ] K) (B : K →ₗ[ℝ] E)
-    (hA : Function.Injective A) (hD : Function.Injective D)
     (hB : Function.Injective B) :
     A.singularValues (finrank ℝ K - 1) *
           D.singularValues (finrank ℝ K - 1) *
           B.singularValues (finrank ℝ K - 1) ≤
       (A ∘ₗ D ∘ₗ B.adjoint).singularValues (finrank ℝ K - 1) := by
   apply le_singularValues_of_subspace (A ∘ₗ D ∘ₗ B.adjoint) B.range
-  · exact mul_nonneg
-      (mul_nonneg (A.singularValues_nonneg _) (D.singularValues_nonneg _))
-      (B.singularValues_nonneg _)
   · rw [B.finrank_range_of_inj hB]
     exact Nat.sub_lt (Module.finrank_pos) (by omega)
   · intro y hy
-    have hBadj := least_singularValue_mul_norm_le_adjoint_on_range B hB y hy
-    have hDleast := least_singularValue_mul_norm_le D hD (B.adjoint y)
-    have hAleast := least_singularValue_mul_norm_le A hA (D (B.adjoint y))
+    have hBadj := least_singularValue_mul_norm_le_adjoint_on_range B y hy
+    have hDleast := least_singularValue_mul_norm_le D (B.adjoint y)
+    have hAleast := least_singularValue_mul_norm_le A (D (B.adjoint y))
     calc
       (A.singularValues (finrank ℝ K - 1) *
           D.singularValues (finrank ℝ K - 1) *
@@ -175,16 +171,14 @@ theorem singularValues_product_adjoint_lower_bound
       _ ≤ ‖A (D (B.adjoint y))‖ := hAleast
       _ = ‖(A ∘ₗ D ∘ₗ B.adjoint) y‖ := rfl
 
-/-- Given [finite real left and right matrices](hyp:A,B), [an injective finite real square
-core](hyp:D,hD), and [full-column-rank assumptions for the two rectangular matrices](hyp:hA,hB),
+/-- Given [finite real left and right matrices](hyp:A,B), [a finite real square
+core](hyp:D), and [a full-column-rank assumption for the right matrix](hyp:hB),
 [the last signal singular value of their transpose product is bounded below by the product of the
 three least signal singular values](goal). -/
 theorem Matrix.singularValues_mul_mul_transpose_lower_bound
     {m n k : Type*} [Fintype m] [Fintype n] [Fintype k]
     [DecidableEq n] [DecidableEq k] [Nonempty k]
     (A : Matrix m k ℝ) (D : Matrix k k ℝ) (B : Matrix n k ℝ)
-    (hA : Function.Injective A.toEuclideanLin)
-    (hD : Function.Injective D.toEuclideanLin)
     (hB : Function.Injective B.toEuclideanLin) :
     A.toEuclideanLin.singularValues (Fintype.card k - 1) *
           D.toEuclideanLin.singularValues (Fintype.card k - 1) *
@@ -205,7 +199,7 @@ theorem Matrix.singularValues_mul_mul_transpose_lower_bound
       Matrix.mulVec_mulVec]
     rw [Matrix.mul_assoc]
   have h := singularValues_product_adjoint_lower_bound
-    A.toEuclideanLin D.toEuclideanLin B.toEuclideanLin hA hD hB
+    A.toEuclideanLin D.toEuclideanLin B.toEuclideanLin hB
   simpa only [finrank_euclideanSpace, ← hlin] using h
 
 end Causalean.Mathlib.Analysis

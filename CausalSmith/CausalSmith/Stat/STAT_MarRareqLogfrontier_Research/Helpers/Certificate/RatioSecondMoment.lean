@@ -4,7 +4,7 @@ public import Mathlib.MeasureTheory.Integral.Pi
 
 /-! Second moments for the zero-safe marked Poisson ratio branch. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set Finset
 open scoped NNReal ENNReal

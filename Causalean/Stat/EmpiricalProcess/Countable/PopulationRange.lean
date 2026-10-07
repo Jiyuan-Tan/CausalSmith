@@ -19,7 +19,7 @@ open MeasureTheory Set
 namespace Causalean.Stat.EmpiricalProcess.Countable
 
 /-- Under [a finite measure μ](hyp:μ), if [a real function f](hyp:f) is
-[measurable](hyp:hf), [two constants satisfy l ≤ u](hyp:l,u,hlu), and [on
+[measurable](hyp:hf), [l and u are two constants](hyp:l,u), and [on
 every measurable set the integral of f lies between l and u times the
 set's mass](hyp:htest), then [f lies between l and u almost everywhere and
 is integrable](goal).
@@ -28,7 +28,7 @@ No integrability of f is assumed.
 -/
 theorem tested_integrals_ae_range {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) [IsFiniteMeasure μ] (f : Ω → ℝ) (hf : Measurable f)
-    (l u : ℝ) (hlu : l ≤ u)
+    (l u : ℝ)
     (htest : ∀ S : Set Ω, MeasurableSet S →
       l * μ.real S ≤ (∫ x in S, f x ∂μ) ∧
         (∫ x in S, f x ∂μ) ≤ u * μ.real S) :

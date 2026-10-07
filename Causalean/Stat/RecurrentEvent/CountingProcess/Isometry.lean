@@ -19,8 +19,7 @@ namespace Causalean.Stat.RecurrentEvent.CountingProcess
 law](hyp:hFailure) and independent [censor times whose law has the given censor
 hazard](hyp:hazard,hHazard), and let the integrand be [left predictable](hyp:hPredictable) and [jointly
 measurable in time and sample](hyp:hMeasurable). For [two different subjects](hyp:hij), [a
-nonnegative horizon u](hyp:hu), [finite expected quadratic energy](hyp:hQuadratic), and [an
-integrable predictable quadratic energy](hyp:hEnergy), [the expected product of the two
+nonnegative horizon u](hyp:hu), and [finite expected quadratic energy](hyp:hQuadratic), [the expected product of the two
 subjects' integrals against their compensated censor counts up to u is zero](goal). -/
 theorem distinct_subject_integrals_orthogonal {n : ℕ}
     (failureLaw censorLaw : Measure ℝ) (hazard : ℝ → ℝ)
@@ -30,8 +29,7 @@ theorem distinct_subject_integrals_orthogonal {n : ℕ}
     (hMeasurable : Measurable (fun p : ℝ × Sample n => H p.1 p.2))
     (i j : Fin n) (hij : i ≠ j) (u : ℝ) (hu : 0 ≤ u)
     (hQuadratic : QuadraticEnergyFinite failureLaw censorLaw hazard H u)
-    (hEnergy : Integrable (predictableEnergy hazard H u)
-      (sampleLaw n failureLaw censorLaw)) :
+    :
     (∫ x : Sample n,
       subjectIntegral hazard H i u x * subjectIntegral hazard H j u x
         ∂sampleLaw n failureLaw censorLaw) = 0 := by
@@ -94,11 +92,11 @@ theorem distinct_subject_integrals_orthogonal {n : ℕ}
     have hELp : MemLp E 2 μ :=
       (memLp_two_iff_integrable_sq hEmeas.aestronglyMeasurable).2
         (subject_event_payoff_square_integrable failureLaw censorLaw hazard
-          hFailure hHazard H hPredictable hMeasurable k u hu hQuadratic hEnergy)
+          hFailure hHazard H hPredictable hMeasurable k u hQuadratic)
     have hALp : MemLp A 2 μ :=
       (memLp_two_iff_integrable_sq hAmeas.aestronglyMeasurable).2
         (subject_hazard_square_integrable failureLaw censorLaw hazard
-          hFailure hHazard H hMeasurable k u hu hQuadratic)
+          hFailure hHazard H hMeasurable k u hQuadratic)
     constructor
     · change AEStronglyMeasurable (E - A) μ
       exact (hEmeas.sub hAmeas).aestronglyMeasurable
@@ -132,21 +130,16 @@ theorem distinct_subject_integrals_orthogonal {n : ℕ}
         if (x k).2 ≤ u ∧ (x k).2 < (x k).1 then
           H (x k).2 x * subjectIntegralBefore hazard H l (x k).2 x else 0) μ :=
       cross_prefix_event_integrable failureLaw censorLaw hazard hFailure hHazard
-        H hPredictable hMeasurable k l u hu hQuadratic hEnergy
+        H hPredictable hMeasurable k l u hQuadratic
     have hC : Integrable (fun x : Sample n =>
         ∫ s in Set.Icc 0 u,
           subjectIntegralBefore hazard H l s x * H s x * hazard s *
             riskIndicator k s x ∂volume) μ :=
       cross_prefix_compensator_integrable failureLaw censorLaw hazard
-        hFailure hHazard H hPredictable hMeasurable k l u hu hQuadratic hEnergy
+        hFailure hHazard H hPredictable hMeasurable k l u hQuadratic
     have hEq := predictable_censor_compensator failureLaw censorLaw hazard
       hFailure hHazard (fun s x => H s x * subjectIntegralBefore hazard H l s x)
-      hPpred hPmeas k u hu hE (by
-        convert hC using 1
-        funext x
-        apply integral_congr_ae
-        filter_upwards [] with s
-        ring)
+      hPpred hPmeas k u hE
     refine ⟨?_, ?_, ?_⟩
     · simpa [E, P] using hE
     · simpa [C] using hC
@@ -159,9 +152,9 @@ theorem distinct_subject_integrals_orthogonal {n : ℕ}
   have hi := hPair i j hij
   have hj := hPair j i (Ne.symm hij)
   have hPathi := subject_hazard_path_integrable_ae failureLaw censorLaw hazard
-    hFailure hHazard H hMeasurable i u hu hQuadratic
+    hHazard H hMeasurable i u hQuadratic
   have hPathj := subject_hazard_path_integrable_ae failureLaw censorLaw hazard
-    hFailure hHazard H hMeasurable j u hu hQuadratic
+    hHazard H hMeasurable j u hQuadratic
   have hCensori : ∀ᵐ x ∂μ, 0 ≤ (x i).2 := by
     have hC : ∀ᵐ c ∂censorLaw, 0 ≤ c :=
       (mem_ae_iff_prob_eq_one measurableSet_Ici).2 hHazard.1.2
@@ -245,7 +238,7 @@ theorem aggregate_integral_isometry {n : ℕ}
       (H s x) ^ 2 * hazard s * riskIndicator i s x ∂volume
   have hQ (i : Fin n) : Integrable (Q i) μ :=
     subject_energy_integrable failureLaw censorLaw hazard hFailure hHazard
-      H hMeasurable i u hu hQuadratic hEnergy
+      H hMeasurable i u hQuadratic hEnergy
   have hSquare (i : Fin n) : AEStronglyMeasurable (J i) μ ∧
       Integrable (fun x => (J i x) ^ 2) μ := by
     let E : Sample n → ℝ := fun x =>
@@ -281,11 +274,11 @@ theorem aggregate_integral_isometry {n : ℕ}
     have hELp : MemLp E 2 μ :=
       (memLp_two_iff_integrable_sq hEmeas.aestronglyMeasurable).2
         (subject_event_payoff_square_integrable failureLaw censorLaw hazard
-          hFailure hHazard H hPredictable hMeasurable i u hu hQuadratic hEnergy)
+          hFailure hHazard H hPredictable hMeasurable i u hQuadratic)
     have hALp : MemLp A 2 μ :=
       (memLp_two_iff_integrable_sq hAmeas.aestronglyMeasurable).2
         (subject_hazard_square_integrable failureLaw censorLaw hazard
-          hFailure hHazard H hMeasurable i u hu hQuadratic)
+          hFailure hHazard H hMeasurable i u hQuadratic)
     constructor
     · change AEStronglyMeasurable (E - A) μ
       exact (hEmeas.sub hAmeas).aestronglyMeasurable
@@ -296,11 +289,11 @@ theorem aggregate_integral_isometry {n : ℕ}
       ((memLp_two_iff_integrable_sq (hSquare j).1).2 (hSquare j).2)
   have hIso (i : Fin n) : (∫ x, (J i x) ^ 2 ∂μ) = ∫ x, Q i x ∂μ :=
     subject_integral_isometry failureLaw censorLaw hazard hFailure hHazard
-      H hPredictable hMeasurable i u hu hQuadratic (hQ i)
+      H hPredictable hMeasurable i u hu hQuadratic
   have hCross (i j : Fin n) (hij : i ≠ j) :
       (∫ x, J i x * J j x ∂μ) = 0 :=
     distinct_subject_integrals_orthogonal failureLaw censorLaw hazard
-      hFailure hHazard H hPredictable hMeasurable i j hij u hu hQuadratic hEnergy
+      hFailure hHazard H hPredictable hMeasurable i j hij u hu hQuadratic
   have hEnergyPath : ∀ᵐ x ∂μ,
       IntegrableOn (fun s => (H s x) ^ 2 * hazard s *
         (∑ i : Fin n, riskIndicator i s x)) (Set.Icc 0 u) volume := by

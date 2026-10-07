@@ -12,16 +12,15 @@ negative polynomial divided by the squared moment ratio. Its upper bound
 uses only the upper parameter endpoint, while the interval length uses the
 lower endpoint. These are analytic cell bounds, not numerical budgets.
 
-For the remaining high compact certificate, partition the kernel variable
-in [0,1] at rational points, with 1/2 an endpoint. The lower cutoff can be
-enclosed by (5*r/12)*max(3/2,sqrt(4*log(1/s))) on rho in [r,s].
-Choose a rational lower frequency endpoint below this expression. Extend
-the nonnegative integrand down to that endpoint and sum these cell bounds.
-Certify exp(-x) using Real.exp_neg and Real.sum_le_exp_of_nonneg;
-certify square roots by squaring a positive rational upper bound. A grid
-exploration of the limiting polynomial-kernel integral gives a maximum
-near rho=0.57 of about 0.171, below the unchanged raw allocation 9/50.
-That exploration is guidance only; the finite sums still need Lean proofs.
+The file proves three bounds: the moment envelope at a rescaled frequency
+is dominated by the two endpoint cubic exponents at the upper parameter
+(`prawitz_rescaled_moment_cell_bound`), and the lower-half and upper-half
+cell integrals of the high-frequency integrand are bounded by the cell
+length times an explicit polynomial bound on the filter times the endpoint
+exponential envelope (`prawitz_high_rescaled_lower_cell_integral_bound`,
+`prawitz_high_rescaled_upper_cell_integral_bound`). Summing these cell
+bounds over a rational grid into the numerical high-frequency budget is
+done downstream in `PrawitzBudgetHighCompact`, not here.
 -/
 
 public section
@@ -150,7 +149,8 @@ cutoff U = 12/(5ρ), [the integral over the moving frequency cell [Ua, Ub] of
 the Prawitz filter magnitude at t/U times the moment envelope is at most
 (12/(5r))·(b − a)·√Q·min(1, exp E)](goal), where
 Q = (1 − a)²/4 + π²(1 − a)⁴/16 is a reflected polynomial bound on the filter
-and E is the larger rescaled endpoint exponent; this includes cells ending at
+and E is the larger of the two rescaled endpoint exponents
+(−72c²/25 + 1728c³/625)/s² at c = a and c = b; this includes cells ending at
 the outer cutoff. -/
 theorem prawitz_high_rescaled_upper_cell_integral_bound
     (ρ r s a b : ℝ) (hr : 0 < r) (hrρ : r ≤ ρ) (hρs : ρ ≤ s)

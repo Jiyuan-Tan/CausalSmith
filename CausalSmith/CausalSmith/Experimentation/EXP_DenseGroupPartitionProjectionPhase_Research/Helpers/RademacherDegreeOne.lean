@@ -32,13 +32,13 @@ lemma mem_johnsonHarmonic_one_of_degreeOne_mean_zero {n M : ℕ}
   constructor
   · exact hf
   · intro g hg
-    obtain ⟨c, rfl⟩ := (mem_degreeAtMost_zero_iff hM _).1 hg
+    obtain ⟨c, rfl⟩ := (mem_degreeAtMost_zero_iff _).1 hg
     rw [PiLp.inner_apply]
     simp only [Real.inner_apply, constFn]
     unfold mean at hmean
     have hcard : (Fintype.card
         (Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega n M) : ℝ) ≠ 0 := by
-      rw [card_omega hM]
+      rw [card_omega]
       exact_mod_cast (Nat.choose_pos hM).ne'
     have hsum : ∑ A, f A = 0 := by
       apply (mul_eq_zero.mp hmean).resolve_left
@@ -125,7 +125,7 @@ lemma centeredSampleMean_mem_johnsonHarmonic_one {n M : ℕ}
   · apply Submodule.sub_mem
     · exact hf
     · apply degreeAtMost_mono (n := n) (M := M) (Nat.zero_le 1)
-      have hc := (mem_degreeAtMost_zero_iff hMn
+      have hc := (mem_degreeAtMost_zero_iff
         (constFn (n := n) (M := M) (mean f))).2 ⟨mean f, rfl⟩
       simpa [constFn,
         Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega] using hc

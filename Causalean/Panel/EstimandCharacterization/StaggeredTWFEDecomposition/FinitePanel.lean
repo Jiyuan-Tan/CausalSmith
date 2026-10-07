@@ -10,8 +10,7 @@ these definitions. Pure finite ℝ data — **no probability space, no potential
 outcomes**. See `StaggeredTWFEDecomposition.lean` for the folder layer-map.
 
 Layer A — pure finite-cell algebra. This file holds the cell-statistics record
-`CohortPanel`, compatibility aliases for the shared adoption-path predicates,
-the residualized treatment `Dtilde`,
+`CohortPanel`, the residualized treatment `Dtilde`,
 the residualized variance `VD`, the window mean `Ybar`, the three 2x2
 comparison contrasts `Δ_TN, Δ_EL, Δ_LE`, the raw and normalized weights
 (`λ_TN, λ_EL, λ_LE, w_TN, w_EL, w_LE`), and the comparison index set
@@ -84,44 +83,6 @@ structure CohortPanel (𝒢 : Type*) (T : ℕ) [Fintype 𝒢] where
   p_pos : ∀ g, 0 < p g
   /-- Cohort shares sum to one. -/
   p_sum_one : ∑ g, p g = 1
-
-namespace AdoptionDate
-
-/-- For [an adoption date](hyp:a) and [a panel period](hyp:t), [the adopted-by-period
-condition](goal) holds exactly when the adoption date is no later than that period; a
-never-adopting cohort does not satisfy it.
-
-Deprecated in favor of the paper-neutral `Causalean.Panel.AdoptionPath.le`. -/
-@[deprecated Causalean.Panel.AdoptionPath.le (since := "2026-09-19")]
-abbrev le {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) : Prop :=
-  Causalean.Panel.AdoptionPath.le a t
-
-/-- For [an adoption date](hyp:a) and [a panel period](hyp:t), [the untreated-at-period
-condition](goal) holds exactly when the period precedes the adoption date, including every
-period for a never-adopting cohort.
-
-Deprecated in favor of the paper-neutral `Causalean.Panel.AdoptionPath.lt`. -/
-@[deprecated Causalean.Panel.AdoptionPath.lt (since := "2026-09-19")]
-abbrev lt {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) : Prop :=
-  Causalean.Panel.AdoptionPath.lt a t
-
-/-- For [an adoption date](hyp:a), [the eventually-treated condition](goal) holds exactly when
-the date is a finite panel period rather than the never-adopting value.
-
-Deprecated in favor of the paper-neutral `Causalean.Panel.AdoptionPath.isFinite`. -/
-@[deprecated Causalean.Panel.AdoptionPath.isFinite (since := "2026-09-19")]
-abbrev isFin {T : ℕ} (a : WithTop (Fin T)) : Prop :=
-  Causalean.Panel.AdoptionPath.isFinite a
-
-/-- For [an adoption date](hyp:a), [the never-treated condition](goal) holds exactly when the
-date is the never-adopting value.
-
-Deprecated in favor of the paper-neutral `Causalean.Panel.AdoptionPath.isInfinite`. -/
-@[deprecated Causalean.Panel.AdoptionPath.isInfinite (since := "2026-09-19")]
-abbrev isInf {T : ℕ} (a : WithTop (Fin T)) : Prop :=
-  Causalean.Panel.AdoptionPath.isInfinite a
-
-end AdoptionDate
 
 variable {𝒢 : Type*} [Fintype 𝒢] [DecidableEq 𝒢] {T : ℕ}
 

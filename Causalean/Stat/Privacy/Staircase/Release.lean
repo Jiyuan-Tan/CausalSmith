@@ -8,7 +8,7 @@ The integrated coefficients define a probability distribution on the fourteen ra
 each input. This module isolates the finite release construction from output postprocessing.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal NNReal

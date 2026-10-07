@@ -29,14 +29,18 @@ theorem card_rayIndex : Fintype.card RayIndex = 14 := by
 def ray (r : ℝ) (S : RayIndex) (i : Fin 4) : ℝ :=
   if i ∈ S.val then r else 1
 
-/-- A vector belongs to the nonnegative four-input local-privacy cone at ratio `r`. -/
+/-- A vector of four real coordinates belongs to the nonnegative four-input local-privacy cone
+at ratio `r` when every coordinate is nonnegative and every coordinate is at most `r` times
+every other coordinate. -/
 def PrivateCone (r : ℝ) (f : Fin 4 → ℝ) : Prop :=
   (∀ i, 0 ≤ f i) ∧ ∀ i j, f i ≤ r * f j
 
-/-- The first fixed ray used to replace the two constant cube patterns. -/
+/-- The first fixed ray used to replace the two constant cube patterns: the ray indexed by
+the subset containing only the first of the four inputs. -/
 def distinguishedRay : RayIndex := ⟨{0}, by decide, by decide⟩
 
-/-- The complementary fixed ray used to replace the two constant cube patterns. -/
+/-- The complementary fixed ray used to replace the two constant cube patterns: the ray
+indexed by the subset of the last three of the four inputs. -/
 def complementaryRay : RayIndex := ⟨{1, 2, 3}, by decide, by decide⟩
 
 /-- The coefficient of a nonconstant ray in the product-weight cube expansion.
@@ -156,8 +160,10 @@ four-input local-privacy cone. -/
 def coneBase (f : Fin 4 → ℝ) : ℝ :=
   min (f 0) (min (f 1) (min (f 2) (f 3)))
 
-/-- Normalize a privacy-cone vector to a cube coordinate, using zero at the
-zero vector. The ratio is meaningful for arbitrary real vectors as well. -/
+/-- Normalize a privacy-cone vector to a cube coordinate: the coordinate divided by the least
+coordinate, minus one, all divided by `r - 1`; the value is zero whenever the least coordinate
+is zero, which for a vector in the cone happens only at the zero vector. The formula is
+evaluated for arbitrary real vectors as well. -/
 def coneCubeCoord (r : ℝ) (f : Fin 4 → ℝ) (i : Fin 4) : ℝ :=
   if coneBase f = 0 then 0 else (f i / coneBase f - 1) / (r - 1)
 
@@ -167,7 +173,7 @@ only when the whole vector vanishes.
 
 Proof plan: split the finite minimum into four cases; apply pairwise privacy
 with an input attaining the minimum. -/
-theorem coneBase_geometry (r : ℝ) (hr : 1 < r) (f : Fin 4 → ℝ)
+theorem coneBase_geometry (r : ℝ) (f : Fin 4 → ℝ)
     (hf : PrivateCone r f) :
     0 ≤ coneBase f ∧
       (∀ i, coneBase f ≤ f i ∧ f i ≤ r * coneBase f) ∧
@@ -201,7 +207,7 @@ two desired quotient inequalities by the positive base and by `r - 1`. -/
 theorem coneCubeCoord_bounds (r : ℝ) (hr : 1 < r) (f : Fin 4 → ℝ)
     (hf : PrivateCone r f) :
     ∀ i, 0 ≤ coneCubeCoord r f i ∧ coneCubeCoord r f i ≤ 1 := by
-  obtain ⟨hb0, hbounds, _⟩ := coneBase_geometry r hr f hf
+  obtain ⟨hb0, hbounds, _⟩ := coneBase_geometry r f hf
   intro i
   by_cases hbase : coneBase f = 0
   · simp [coneCubeCoord, hbase]
@@ -225,7 +231,7 @@ theorem coneCubeCoord_scale (r : ℝ) (hr : 1 < r) (f : Fin 4 → ℝ)
     (hf : PrivateCone r f) (i : Fin 4) :
     f i = coneBase f * (1 + (r - 1) * coneCubeCoord r f i) := by
   by_cases hbase : coneBase f = 0
-  · have hzero := (coneBase_geometry r hr f hf).2.2 hbase i
+  · have hzero := (coneBase_geometry r f hf).2.2 hbase i
     simp [coneCubeCoord, hbase, hzero]
   · have hrne : r - 1 ≠ 0 := by linarith
     simp only [coneCubeCoord, if_neg hbase]
@@ -286,7 +292,7 @@ theorem coneRayCoeff_decomposition (r : ℝ) (hr : 1 < r) (f : Fin 4 → ℝ)
   constructor
   · intro S
     unfold coneRayCoeff
-    exact mul_nonneg (coneBase_geometry r hr f hf).1
+    exact mul_nonneg (coneBase_geometry r f hf).1
       (cubeRayCoeff_nonneg r hr (coneCubeCoord r f)
         (coneCubeCoord_bounds r hr f hf) S)
   · intro i
@@ -303,8 +309,10 @@ theorem coneRayCoeff_decomposition (r : ℝ) (hr : 1 < r) (f : Fin 4 → ℝ)
         ring
 
 /-- With [a privacy ratio greater than one](hyp:hr) for [the supplied ratio](hyp:r), the
-[measurable ray selector](goal) writes every four-input private vector as a nonnegative
-combination of the fourteen nonconstant staircase rays.
+[measurable ray selector](goal) exists: a single rule assigning fourteen ray coefficients to
+every real four-vector, each coefficient a measurable function of the vector, such that for
+every vector in the four-input privacy cone the coefficients are nonnegative and the vector
+equals the corresponding combination of the fourteen nonconstant staircase rays.
 
 Every vector in the four-input privacy cone is a nonnegative combination of the
 fourteen nonconstant staircase rays. The coefficients can be selected measurably as a

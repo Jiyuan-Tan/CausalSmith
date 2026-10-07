@@ -7,7 +7,7 @@ public import Causalean.Stat.Coupling.FiniteAtomicWasserstein
 
 This module composes the two-diagonalizer functional-calculus estimate with attained finite-atomic
 Kantorovich--Rubinstein duality.  Its public theorem is entirely model-independent: a consumer only
-supplies positive normalized atomic laws whose Lipschitz tests are represented by left-right
+supplies valid (nonnegative, unit-mass) atomic laws whose Lipschitz tests are represented by left-right
 functional-calculus evaluations.
 -/
 
@@ -18,15 +18,21 @@ namespace Causalean.Stat.Coupling.AtomicSpectralLaw
 open Causalean.Mathlib.Analysis
 open scoped Matrix.Norms.L2Operator
 
-/-- A finite atomic law is represented by an anchored diagonalizable operator when every
-one-Lipschitz test normalized at zero equals the corresponding left-right functional-calculus
-evaluation. -/
+/-- A finite atomic law is represented by a diagonalized real square matrix together with a left
+and a right anchor vector when, for every one-Lipschitz real test function vanishing at zero, the
+law's weighted expectation of the test function equals the inner product of the left anchor with
+the image of the right anchor under the matrix function obtained by applying the test function to
+the eigenvalues of the diagonalization. -/
 def RepresentsAtomicLaw {ι : Type*} [Fintype ι] {n : ℕ} {A : RectMatrix n n}
     (D : RealDiagonalization A) (a c : Euc n) (μ : AtomicLaw ι) : Prop :=
   ∀ f : ℝ → ℝ, LipschitzWith 1 f → f 0 = 0 →
     μ.integral f = anchorEval a c (D.applyFunction f)
 
-/-- [Finite slot types](hyp:ι,κ), [a matrix dimension and two real matrices](hyp:n,A,B), [their real diagonalizations](hyp:DA,DB), [left and right anchor vectors](hyp:a,b,c,d), [finite atomic laws with valid probability weights](hyp:μ,ν,hμ,hν), [their anchored functional-calculus representations](hyp:hrepA,hrepB), [condition-number bounds](hyp:κA,κB,hκA,hκB), and [a nonnegative common spectral envelope](hyp:R,hR0,hRA,hRB) give [a collision-safe one-Wasserstein bound controlled only by operator and anchor perturbations](goal). -/
+/-- [Finite slot types](hyp:ι,κ), [a matrix dimension and two real matrices](hyp:n,A,B), [their real diagonalizations](hyp:DA,DB), [left and right anchor vectors](hyp:a,b,c,d), [finite atomic laws with valid probability weights](hyp:μ,ν,hμ,hν), [their anchored functional-calculus representations](hyp:hrepA,hrepB), [condition-number bounds](hyp:κA,κB,hκA,hκB), and [a nonnegative common spectral envelope](hyp:R,hR0,hRA,hRB) give [a collision-safe one-Wasserstein bound controlled only by operator and anchor perturbations: the one-Wasserstein distance between the two laws is at most ‖a − b‖·κA·R·‖c‖ + ‖b‖·n²·κA·κB·‖A − B‖·‖c‖ + ‖b‖·κB·R·‖c − d‖](goal).
+
+Here the condition number of a diagonalization is the product of the operator norms of its
+eigenvector matrix and of that matrix's inverse, the spectral envelope `R` bounds the absolute
+value of every eigenvalue of both diagonalizations, ‖A − B‖ is the spectral operator norm, and no eigenvalue-gap assumption is made. -/
 theorem atomicW1_le_operator_anchor_perturbation
     {ι κ : Type*} [Fintype ι] [Fintype κ]
     {n : ℕ} {A B : RectMatrix n n}

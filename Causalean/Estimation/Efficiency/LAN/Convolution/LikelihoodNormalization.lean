@@ -28,7 +28,6 @@ the row exponential expectations have asymptotic upper bound one, then those exp
 to one.  This is the nonnegative lower-semicontinuous Portmanteau step. -/
 theorem exp_integral_tendsto_one_of_weaklyConverges
     {P : (n : ℕ) → Measure (Ω n)} {X : (n : ℕ) → Ω n → ℝ} {Q : Measure ℝ}
-    (hP : ∀ n, IsProbabilityMeasure (P n)) (hQ : IsProbabilityMeasure Q)
     (hweak : WeaklyConverges P X Q)
     (hrowIntegrable : ∀ n, Integrable (fun ω => Real.exp (X n ω)) (P n))
     (hlimit : ∫ x, Real.exp x ∂Q = 1)

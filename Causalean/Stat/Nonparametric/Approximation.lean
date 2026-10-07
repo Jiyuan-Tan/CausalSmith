@@ -10,17 +10,27 @@ public import Causalean.Stat.Nonparametric.Approximation.Kernel
 
 
 /-!
-# Approximation substrate (shared deterministic approximation-theory layer)
+# Deterministic approximation bounds for Hölder functions
 
-Deterministic approximation-theory primitives for nonparametric bias analysis, including
-Hölder–Taylor remainder bounds and kernel smoothing bias estimates.
+Approximation-theoretic estimates behind the bias analysis of nonparametric estimators; nothing
+here is random. Convolving a `β`-Hölder function with a kernel of order `p` (the largest integer
+strictly below `β`) at bandwidth `h` changes it by at most `(M/p!) ∫|K| · h^β`. A function in a
+multivariate Hölder ball is approximated near any centre by an explicit monomial polynomial with a
+remainder constant uniform over the ball. A function in a Hölder ball of exponent `γ` on `ℝ^d`
+satisfies `c |g(x₀)|^(1 + d/γ) ≤ ∫ |g|` over a cube around `x₀`, an inequality used in two-point
+and Assouad lower-bound arguments.
 
-This barrel collects the deterministic approximation-theory primitives used on the bias side of
-both estimators:
+## Main results
 
-* `Causalean.Mathlib.Analysis.Calculus.HolderTaylor` — Hölder-class Taylor remainder bounds used by
-  this layer.
-* `Approximation/Holder/Interpolation.lean` — Hölder interpolation inequalities.
-* `Approximation/HolderTaylorMonomial.lean` — multivariate local monomial approximations.
-* `Approximation/Kernel.lean` — kernel moment / smoothing-bias primitives.
+* `kernelSmoothingBias_bound` (`Approximation/Kernel`) — the `O(h^β)` bound for the unnormalised
+  convolution difference `kernelSmoothingBias` under a kernel of order `p` (`KernelOrder`).
+* `holder_taylor_monomial_approx` (`Approximation/HolderTaylorMonomial`) — local monomial
+  approximation in the Hölder ball `HolderBallStd`.
+* `holder_point_l1_interpolation` (`Approximation/Holder/Interpolation`) — the pointwise-to-L¹
+  interpolation inequality.
+* `exists_holderBallStd_extension` (`Approximation/Holder/CubeExtension`) — extension of a function
+  in the cube Hölder ball to an ambient Hölder ball with a controlled radius.
+
+The one-dimensional Hölder–Taylor remainder bounds these rest on are in
+`Causalean.Mathlib.Analysis.Calculus.HolderTaylor`.
 -/

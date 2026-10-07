@@ -56,9 +56,11 @@ theorem reciprocalResidualPoly_bound {a b z : ℝ}
     (Real.cos (((m : ℝ) + 1) * θ / 2) -
       intervalDecay a b * Real.cos (((m : ℝ) - 1) * θ / 2))]
 
-/-- [Positive interval endpoints](hyp:a,b,ha,hab) and a [degree bound](hyp:m)
-imply [the existence of ordered interval points where the shifted residual
-attains alternating sharp values](goal). -/
+/-- For a [positive lower endpoint a and a strictly larger upper endpoint b](hyp:a,b,ha,hab) and a
+[degree bound m](hyp:m), [there are m + 2 strictly increasing points x of the interval from a to b
+such that, writing v for the interval shape parameter and t = v − 2x / (b − a) for the transformed
+point, the residual polynomial at t equals 2 (v − t) at the even-indexed points (counting from
+zero) and −2 (v − t) at the odd-indexed points](goal). -/
 theorem reciprocalResidualPoly_alternating_nodes {a b : ℝ}
     (ha : 0 < a) (hab : a < b) (m : ℕ) :
     ∃ nodes : Fin (m + 2) → ℝ,

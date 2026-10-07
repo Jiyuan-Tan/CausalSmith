@@ -11,7 +11,7 @@ bound for the norm of a finite-dimensional random vector.  It also supplies a
 dimension-only version by constructing a half-net in the supporting subspace.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Module ProbabilityTheory Set
 open scoped NNReal RealInnerProductSpace

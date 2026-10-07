@@ -58,7 +58,7 @@ theorem Model.integrable_eventCount (M : Model Ω μ) [IsProbabilityMeasure μ] 
 /-- A uniformly bounded event payoff has absolute finite sum at most its
 bound times the number of events in the horizon. -/
 theorem Model.abs_jumpIntegral_le_card (M : Model Ω μ)
-    (H : ℝ → Ω → ℝ) (C : ℝ) (hC : 0 ≤ C)
+    (H : ℝ → Ω → ℝ) (C : ℝ)
     (hbound : ∀ t ω, |H t ω| ≤ C) (ω : Ω) :
     |M.jumpIntegral H M.horizon ω| ≤ C * ((M.eventTimes ω).card : ℝ) := by
   classical
@@ -76,7 +76,7 @@ theorem Model.abs_jumpIntegral_le_card (M : Model Ω μ)
 /-- The absolute intensity integral of a uniformly bounded payoff is at
 most its bound times the nonnegative compensator at the horizon. -/
 theorem Model.abs_energyIntegral_le_compensator (M : Model Ω μ)
-    (H : ℝ → Ω → ℝ) (C : ℝ) (hC : 0 ≤ C)
+    (H : ℝ → Ω → ℝ) (C : ℝ)
     (hbound : ∀ t ω, |H t ω| ≤ C) (ω : Ω) :
     |M.energyIntegral H M.horizon ω| ≤ C * M.compensator M.horizon ω := by
   have hr_nonneg (t : ℝ) : 0 ≤ M.atRisk t ω * M.intensity t ω :=
@@ -110,7 +110,7 @@ theorem Model.integrable_jump (M : Model Ω μ) [IsProbabilityMeasure μ]
     (M.measurable_jumpIntegral H (M.predictable_joint_measurable H hH)).aestronglyMeasurable
   filter_upwards [] with ω
   simpa only [Real.norm_eq_abs] using
-    M.abs_jumpIntegral_le_card H |C| (abs_nonneg C)
+    M.abs_jumpIntegral_le_card H |C|
       (fun t ω => (hC t ω).trans (le_abs_self C)) ω
 
 /-- A bounded predictable integrand has an integrable time integral against
@@ -128,7 +128,7 @@ theorem Model.integrable_energy (M : Model Ω μ) [IsProbabilityMeasure μ]
   rw [Real.norm_eq_abs]
   calc
     |M.energyIntegral H M.horizon ω| ≤ |C| * M.compensator M.horizon ω :=
-      M.abs_energyIntegral_le_compensator H |C| (abs_nonneg C)
+      M.abs_energyIntegral_le_compensator H |C|
         (fun t ω => (hC t ω).trans (le_abs_self C)) ω
     _ ≤ |C| * (R * M.horizon) := by
       apply mul_le_mul_of_nonneg_left _ (abs_nonneg C)

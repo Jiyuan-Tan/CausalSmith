@@ -18,7 +18,7 @@ open scoped BigOperators
 noncomputable section
 namespace Causalean.Stat.Minimax.Mixture.PoissonLatentSign
 
-/-- The finite cell overlap polynomial is one plus the positive-order subset-energy terms. -/
+/-- The finite cell overlap polynomial of a cell with m records, at tilt τ, outcome amplitude γ, and overlap z, is 1 + Σ over d = 1, …, m of γ^(2d) · (order-d subset energy of the cell) · zᵈ. -/
 def cellOverlap {m : ℕ} (τ γ z : ℝ) (c : Cell m) : ℝ :=
   1 + ∑ d ∈ Finset.range m, γ ^ (2 * (d + 1)) *
     subsetEnergy τ c (d + 1) * z ^ (d + 1)
@@ -173,7 +173,7 @@ theorem integral_cellOverlap_eq_series (ν : ∀ m, Measure (Cell m))
   rw [integral_mul_const, integral_const_mul]
   rfl
 
-/-- The conditional cross moment integrates the two actual posterior outcome likelihoods. -/
+/-- The conditional cross moment of a cell is the integral, under that cell's outcome-score law, of the product of the two posterior outcome likelihoods evaluated at the two outcome-score families. -/
 def conditionalCrossMoment {Ω : Type*} [MeasurableSpace Ω]
     (ρ : ∀ m, Cell m → Measure Ω)
     (v w : ∀ m, Cell m → Fin m → Ω → ℝ) (τ γ : ℝ) (m : ℕ) (c : Cell m) : ℝ :=
@@ -225,10 +225,12 @@ theorem integrable_poisson_crossMoment {Ω : Type*} [MeasurableSpace Ω]
 
 /-- Given [conditional probability laws for cells](hyp:ν), [conditional probability
 laws for outcome scores](hyp:ρ), [two outcome-score families](hyp:v,w), [a Poisson
-mean](hyp:ξ), [a bounded tilt](hyp:hτ), [almost-surely valid cells](hyp:hν),
-[almost-surely centered independent outcome pairs](hyp:hout), and [an outcome
-amplitude](hyp:γ), [the Poisson-integrated posterior likelihood cross moment equals
-the coefficient overlap series](goal). -/
+mean](hyp:ξ) ξ, [a tilt of absolute value at most 1/4](hyp:hτ), [cells that are
+almost surely valid at every count](hyp:hν), [outcome-score pairs that are almost surely
+centered and independent across records with common overlap z](hyp:hout), and [an outcome
+amplitude](hyp:γ), [averaging the conditional cross moment over the cell law and then over
+a Poisson count with mean ξ gives the overlap series 1 + Σ over d ≥ 1 of (order-d Poisson
+coefficient) · zᵈ](goal). -/
 theorem poisson_crossMoment_eq_series {Ω : Type*} [MeasurableSpace Ω]
     (ν : ∀ m, Measure (Cell m)) [∀ m, IsProbabilityMeasure (ν m)]
     (ρ : ∀ m, Cell m → Measure Ω) [∀ m c, IsProbabilityMeasure (ρ m c)]

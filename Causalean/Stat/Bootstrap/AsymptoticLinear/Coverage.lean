@@ -57,7 +57,7 @@ theorem percentileCI_coverage (h : BootstrapAsymLinear S est theta0 psi)
   have hTMeas (n : ℕ) : AEMeasurable (T n) mu := by
     exact (measurable_const.mul
       (((h.meas.1 n).comp (hx n)).sub measurable_const)).aemeasurable
-  have hT : Tendsto_dist T (G : Measure ℝ) mu hTMeas := by
+  have hT : Modes.TendstoInLaw (fun _ : ℕ => mu) T atTop (G : Measure ℝ) := by
     apply (Tendsto_dist_iff _ _ _ hTMeas).2
     have hlaw : (fun n => (⟨mu.map (T n),
         Measure.isProbabilityMeasure_map (hTMeas n)⟩ : ProbabilityMeasure ℝ)) =
@@ -82,15 +82,17 @@ theorem percentileCI_coverage (h : BootstrapAsymLinear S est theta0 psi)
     (measurable_bootstrapQuantile est h.meas.1 n ha2_pos ha2_lt_one).comp (hx n)
   have hqhiMeas (n : ℕ) : Measurable (qhi n) :=
     (measurable_bootstrapQuantile est h.meas.1 n h1a2_pos h1a2_lt_one).comp (hx n)
-  have hqlo : Tendsto_inProb qlo (fun _ => alo) mu :=
+  have hqlo : Modes.TendstoInProbability (fun _ : ℕ => mu) qlo atTop (fun _ _ => alo) :=
     quantile_tendsto h ha2_pos ha2_lt_one
-  have hqhi : Tendsto_inProb qhi (fun _ => ahi) mu :=
+  have hqhi : Modes.TendstoInProbability (fun _ : ℕ => mu) qhi atTop (fun _ _ => ahi) :=
     quantile_tendsto h h1a2_pos h1a2_lt_one
-  have hnegqhi : Tendsto_inProb (fun n omega => -qhi n omega) (fun _ => -ahi) mu := by
-    simpa only [neg_zero] using Tendsto_inProb.comp_continuousAt
+  have hnegqhi : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega => -qhi n omega) atTop
+      (fun _ _ => -ahi) := by
+    simpa only [neg_zero] using Modes.TendstoInProbability.comp_continuousAt
       (g := fun x : ℝ => -x) continuousAt_neg hqhi
-  have hnegqlo : Tendsto_inProb (fun n omega => -qlo n omega) (fun _ => -alo) mu := by
-    simpa only [neg_zero] using Tendsto_inProb.comp_continuousAt
+  have hnegqlo : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega => -qlo n omega) atTop
+      (fun _ _ => -alo) := by
+    simpa only [neg_zero] using Modes.TendstoInProbability.comp_continuousAt
       (g := fun x : ℝ => -x) continuousAt_neg hqlo
   have hprobit : Causalean.Mathlib.probit (alpha / 2) ≤
       Causalean.Mathlib.probit (1 - alpha / 2) := by
@@ -188,7 +190,7 @@ theorem basicCI_coverage (h : BootstrapAsymLinear S est theta0 psi)
   have hTMeas (n : ℕ) : AEMeasurable (T n) mu := by
     exact (measurable_const.mul
       (((h.meas.1 n).comp (hx n)).sub measurable_const)).aemeasurable
-  have hT : Tendsto_dist T (G : Measure ℝ) mu hTMeas := by
+  have hT : Modes.TendstoInLaw (fun _ : ℕ => mu) T atTop (G : Measure ℝ) := by
     apply (Tendsto_dist_iff _ _ _ hTMeas).2
     have hlaw : (fun n => (⟨mu.map (T n),
         Measure.isProbabilityMeasure_map (hTMeas n)⟩ : ProbabilityMeasure ℝ)) =
@@ -213,9 +215,9 @@ theorem basicCI_coverage (h : BootstrapAsymLinear S est theta0 psi)
     (measurable_bootstrapQuantile est h.meas.1 n ha2_pos ha2_lt_one).comp (hx n)
   have hqhiMeas (n : ℕ) : Measurable (qhi n) :=
     (measurable_bootstrapQuantile est h.meas.1 n h1a2_pos h1a2_lt_one).comp (hx n)
-  have hqlo : Tendsto_inProb qlo (fun _ => alo) mu :=
+  have hqlo : Modes.TendstoInProbability (fun _ : ℕ => mu) qlo atTop (fun _ _ => alo) :=
     quantile_tendsto h ha2_pos ha2_lt_one
-  have hqhi : Tendsto_inProb qhi (fun _ => ahi) mu :=
+  have hqhi : Modes.TendstoInProbability (fun _ : ℕ => mu) qhi atTop (fun _ _ => ahi) :=
     quantile_tendsto h h1a2_pos h1a2_lt_one
   have hprobit : Causalean.Mathlib.probit (alpha / 2) ≤
       Causalean.Mathlib.probit (1 - alpha / 2) := by

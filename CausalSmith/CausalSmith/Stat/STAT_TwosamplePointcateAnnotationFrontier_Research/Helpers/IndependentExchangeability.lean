@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_TwosamplePointcateAnnotationFrontier_Researc
 
 /-! Conditional exchangeability for the explicit independent Bernoulli extension. -/
 
-@[expose] public section
+public section
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal
 noncomputable section

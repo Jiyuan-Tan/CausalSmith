@@ -2,10 +2,20 @@ module
 public import Causalean.Stat.Quantile.AtomicApproximation.Basic
 
 /-!
-# Moving finitely many interval atoms into a dense location set
+# Moving the atoms of a finite atomic measure into a dense set
 
-The atom weights and count stay fixed while the finitely many locations are
-perturbed inside the support interval.
+A measure with `N` equally weighted atoms in an interval `[a, b]` can be approximated, in the
+integrated-CDF distance, by one whose atoms lie in any prescribed dense subset of the interval,
+keeping the number of atoms and the weights fixed. The integrated-CDF distance between two such
+measures with total weight `w` and atom locations `x`, `y` is at most `(w/N) ∑ᵢ |xᵢ − yᵢ|`, so
+small displacements of the locations give a small distance.
+
+## Main results
+
+* `cdfDistance_equalAtomMeasure_locations_le` — the displacement bound
+  `cdfDistance ≤ (w/N) ∑ᵢ |xᵢ − yᵢ|` for two `equalAtomMeasure`s with atoms in `[a, b]`.
+* `equalAtomMeasure_dense_locations` — for every `ε > 0` and every set `D` dense within `[a, b]`,
+  there are locations in `D` whose equal-atom measure is within `ε` of the original.
 -/
 
 public section
@@ -94,12 +104,11 @@ theorem cdfDistance_equalAtomMeasure_locations_le
     equalAtomMeasure_mass N hN w hw (fun i => (y i : ℝ))]
   simpa [c] using hint
 
-/-- [An ordered interval](hyp:a,b,hab), [a location set contained in it](hyp:D,hD),
-[density of that set inside the interval](hyp:hDense), [an atom count](hyp:N) [that is positive](hyp:hN), [a nonnegative total weight](hyp:w,hw), [interval-valued source atoms]
-(hyp:x), and [a positive tolerance](hyp:ε,hε) give [equally weighted atoms in the
+/-- [An ordered interval](hyp:a,b,hab), [a location set](hyp:D),
+[density of that set inside the interval](hyp:hDense), [an atom count](hyp:N) [that is positive](hyp:hN), [a nonnegative total weight](hyp:w,hw), [interval-valued source atoms](hyp:x), and [a positive tolerance](hyp:ε,hε) give [equally weighted atoms in the
 dense set within that integrated-CDF tolerance](goal). -/
 theorem equalAtomMeasure_dense_locations
-    (a b : ℝ) (hab : a ≤ b) (D : Set ℝ) (hD : D ⊆ Set.Icc a b)
+    (a b : ℝ) (hab : a ≤ b) (D : Set ℝ)
     (hDense : Dense ((Subtype.val : Set.Icc a b → ℝ) ⁻¹' D))
     (N : ℕ) (hN : 0 < N) (w : ℝ) (hw : 0 ≤ w)
     (x : Fin N → Set.Icc a b) (ε : ℝ) (hε : 0 < ε) :

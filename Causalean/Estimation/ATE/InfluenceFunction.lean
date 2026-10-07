@@ -38,12 +38,28 @@ public import Causalean.Estimation.ATE.Score.ScorePullout
 public import Causalean.Estimation.ATE.Score.FiniteVar
 
 /-!
-This file collects the influence-function setup for augmented
-inverse-probability-weighted average-treatment-effect estimation. It re-exports
-the back-door estimation system and observed-data law, the AIPW moment and
-nuisance space, the mean-zero theorem for the score, the shared pull-out lemmas,
-and the finite-variance theorem used by plug-in and double-machine-learning
-results.
+# The AIPW influence function for the average treatment effect
+
+Population properties of the augmented inverse-probability-weighted (AIPW) score for the average
+treatment effect under back-door adjustment,
+
+    ψ(X, D, Y) = μ(1,X) − μ(0,X) + D·(Y − μ(1,X))/e(X) − (1 − D)·(Y − μ(0,X))/(1 − e(X)) − θ₀,
+
+evaluated at the true outcome regressions μ, propensity score e and effect θ₀. Under the
+back-door identification assumptions the score has mean zero under the law of the observed
+triple, provided the two inverse-propensity-weighted residual terms are integrable; under strict
+overlap, a finite second moment of the outcome and square-integrable outcome regressions it is
+square-integrable. These are the two facts that plug-in and double-machine-learning arguments
+need from the score.
+
+## Main results
+
+* `aipw_mean_zero` — the AIPW score has mean zero (`Score/MeanZero`; the estimation system,
+  observed-data law, moment `aipwMoment` and score `ψ_AIPW` come from `Score/AIPWMoment`).
+* `aipw_finite_var` — the AIPW score is square-integrable (`Score/FiniteVar`);
+  `aipw_finite_var_of_counterfactual_sq` derives the same from potential-outcome second moments.
+* `weighted_residual_integral_zero`, `indicator_to_propScore_integral` — the conditioning
+  identities that remove propensity-weighted residuals (`Score/ScorePullout`).
 -/
 
 public section

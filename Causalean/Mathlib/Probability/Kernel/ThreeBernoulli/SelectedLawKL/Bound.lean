@@ -20,10 +20,13 @@ open Causalean.Mathlib.Probability.Kernel.ThreeBernoulli
 
 universe u
 
-/-- [Selected-law KL is bounded by the covariate integral of propensity-weighted
-squared changes in outcome means](goal) for a [probability covariate law](hyp:μ),
+/-- [The real-valued KL divergence between two selected laws is at most the covariate
+integral of the propensity-weighted squared changes in the two outcome means, each
+divided by the squared interior margin](goal) (untreated change weighted by one minus
+the propensity, treated change by the propensity) for a
+[probability covariate law](hyp:μ),
 [measurable parameters](hyp:he,hq₀,hq₁,hq₀',hq₁'), and
-[uniform interior bounds](hyp:hη0,hηhalf,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
+[uniform interior bounds](hyp:hη0,heη,hq₀η,hq₁η,hq₀'η,hq₁'η).
 
 Apply the conditional KL identity and the scalar `η⁻²` Bernoulli bound
 pointwise. The square-bound integrand is measurable and uniformly bounded,
@@ -37,7 +40,7 @@ theorem selectedLaw_klDiv_toReal_le_integral_sq {X : Type u} [MeasurableSpace X]
     (e q₀ q₁ q₀' q₁' : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (hq₁ : Measurable q₁)
     (hq₀' : Measurable q₀') (hq₁' : Measurable q₁')
-    {η : ℝ} (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    {η : ℝ} (hη0 : 0 < η)
     (heη : ∀ x, e x ∈ Set.Icc η (1 - η))
     (hq₀η : ∀ x, q₀ x ∈ Set.Icc η (1 - η))
     (hq₁η : ∀ x, q₁ x ∈ Set.Icc η (1 - η))
@@ -48,7 +51,6 @@ theorem selectedLaw_klDiv_toReal_le_integral_sq {X : Type u} [MeasurableSpace X]
       ∫ x, (1 - e x) * ((q₀ x - q₀' x) ^ 2 / η ^ 2) +
         e x * ((q₁ x - q₁' x) ^ 2 / η ^ 2) ∂μ := by
   have hηsq : 0 < η ^ 2 := sq_pos_of_pos hη0
-  have hηle : η ≤ 1 - η := by linarith
   have hbound (p q : X → ℝ) (hp : ∀ x, p x ∈ Set.Icc η (1 - η))
       (hq : ∀ x, q x ∈ Set.Icc η (1 - η)) (x : X) :
       0 ≤ (p x - q x) ^ 2 / η ^ 2 ∧
@@ -92,7 +94,7 @@ theorem selectedLaw_klDiv_toReal_le_integral_sq {X : Type u} [MeasurableSpace X]
       _ ≤ 1 / η ^ 2 + 1 / η ^ 2 := add_le_add hA hB
       _ = 2 / η ^ 2 := by ring
   rw [selectedLaw_klDiv_toReal_eq_integral μ e q₀ q₁ q₀' q₁'
-    he hq₀ hq₁ hq₀' hq₁' hη0 hηhalf heη hq₀η hq₁η hq₀'η hq₁'η]
+    he hq₀ hq₁ hq₀' hq₁' hη0 heη hq₀η hq₁η hq₀'η hq₁'η]
   apply integral_mono_of_nonneg
   · filter_upwards [] with x
     have hpos (p q : ℝ) (hp : p ∈ Set.Icc η (1 - η))
@@ -109,17 +111,17 @@ theorem selectedLaw_klDiv_toReal_le_integral_sq {X : Type u} [MeasurableSpace X]
   · filter_upwards [] with x
     exact add_le_add
       (mul_le_mul_of_nonneg_left
-        (bernoulliKL_le_inv_margin_sq hη0 hηhalf (hq₀η x) (hq₀'η x))
+        (bernoulliKL_le_inv_margin_sq hη0 (hq₀η x) (hq₀'η x))
         (by linarith [(heη x).2]))
       (mul_le_mul_of_nonneg_left
-        (bernoulliKL_le_inv_margin_sq hη0 hηhalf (hq₁η x) (hq₁'η x))
+        (bernoulliKL_le_inv_margin_sq hη0 (hq₁η x) (hq₁'η x))
         (by linarith [(heη x).1]))
 
 /-- [When only the treated outcome mean changes symmetrically, selected-law KL
 is at most four times the propensity-weighted squared mean difference](goal)
 for a [probability covariate law](hyp:μ), [measurable propensity, common untreated
 mean, and displacement](hyp:he,hq₀,htm),
-[uniform interior bounds](hyp:hη0,hηhalf,heη,hq₀η,hplusη,hminusη), and
+[uniform interior bounds](hyp:hη0,heη,hq₀η,hplusη,hminusη), and
 [small displacement](hyp:ht).
 
 The common untreated term in the conditional KL identity vanishes because
@@ -134,7 +136,7 @@ theorem selectedLaw_klDiv_toReal_le_symmetric {X : Type u} [MeasurableSpace X]
     (μ : Measure X) [IsProbabilityMeasure μ]
     (e q₀ t : X → ℝ)
     (he : Measurable e) (hq₀ : Measurable q₀) (htm : Measurable t)
-    {η : ℝ} (hη0 : 0 < η) (hηhalf : η < 1 / 2)
+    {η : ℝ} (hη0 : 0 < η)
     (heη : ∀ x, e x ∈ Set.Icc η (1 - η))
     (hq₀η : ∀ x, q₀ x ∈ Set.Icc η (1 - η))
     (hplusη : ∀ x, 1 / 2 + t x ∈ Set.Icc η (1 - η))
@@ -167,7 +169,7 @@ theorem selectedLaw_klDiv_toReal_le_symmetric {X : Type u} [MeasurableSpace X]
   rw [selectedLaw_klDiv_toReal_eq_integral μ e q₀
     (fun x => 1 / 2 + t x) q₀ (fun x => 1 / 2 - t x)
     he hq₀ (by fun_prop) hq₀ (by fun_prop)
-    hη0 hηhalf heη hq₀η hplusη hq₀η hminusη]
+    hη0 heη hq₀η hplusη hq₀η hminusη]
   have hzero (x : X) : bernoulliKL (q₀ x) (q₀ x) = 0 := by
     have hp0 : q₀ x ≠ 0 := ne_of_gt (lt_of_lt_of_le hη0 (hq₀η x).1)
     have hp1 : 1 - q₀ x ≠ 0 := ne_of_gt (by linarith [(hq₀η x).2])

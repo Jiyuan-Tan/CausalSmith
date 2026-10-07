@@ -72,9 +72,12 @@ under every finite measure. -/
 
 variable [Countable ι] [Nonempty ι]
 
-/-- For [any sample size n](hyp:n), [the centered supremum of the class is
-a measurable function of the sample, lies between zero and twice the class
-bound, and has an integrable fourth power under the iid product law](goal). -/
+/-- For [a uniformly bounded measurable class](hyp:F) with a nonempty
+countable index set, [a probability measure μ](hyp:μ), and [any sample size
+n](hyp:n), [the centered supremum of the class relative to μ is a measurable
+function of the sample, lies between zero and twice the class bound at every
+sample, and has an integrable fourth power under the law of n independent
+draws from μ](goal). -/
 theorem centeredSup_legal (n : ℕ) :
     Measurable (centeredSup μ F.f (n := n)) ∧
     (∀ x : Fin n → Ω, 0 ≤ centeredSup μ F.f x ∧

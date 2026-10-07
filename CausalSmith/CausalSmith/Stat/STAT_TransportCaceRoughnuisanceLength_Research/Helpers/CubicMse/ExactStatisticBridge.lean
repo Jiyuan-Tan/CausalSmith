@@ -12,7 +12,7 @@ the clipped pilot and its Taylor coefficients are measurable with respect to the
 training block.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open Causalean.Mathlib.Probability.Independence

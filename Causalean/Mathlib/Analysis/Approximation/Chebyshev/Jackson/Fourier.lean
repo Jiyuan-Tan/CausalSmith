@@ -133,15 +133,6 @@ noncomputable def packetAntideriv (N : ℕ) (u : ℝ) : ℝ :=
       (packetCoeffPlus N j * Real.cos (((4 * (N : ℤ) + j : ℤ) : ℝ) * u) +
        packetCoeffMinus N j * Real.cos (((4 * (N : ℤ) - j : ℤ) : ℝ) * u))
 
-/-- For [an order N](hyp:N) that is [positive](hyp:hN) and [any angle u](hyp:u), [the scaled
-Jackson kernel equals the cosine series over frequencies j between −(2N − 2) and 2N − 2 with the
-normalized Jackson coefficients](goal). -/
-theorem packet_kernel_reconstruction (N : ℕ) (hN : 0 < N) (u : ℝ) :
-    kernel N u =
-      ∑ j ∈ Finset.Icc (-((2 * N - 2 : ℕ) : ℤ)) ((2 * N - 2 : ℕ) : ℤ),
-        normalizedCoeff N j * Real.cos ((j : ℝ) * u) :=
-  kernel_fourier N hN u
-
 /-- For [an order N](hyp:N) that is [at least two](hyp:hN), [the packet antiderivative integrates
 to zero over the period from −π to π](goal). -/
 theorem packet_zero_mean (N : ℕ) (hN : 2 ≤ N) :
@@ -178,4 +169,3 @@ theorem packet_zero_mean (N : ℕ) (hN : 2 ≤ N) :
     exact ((hInt _).const_mul _).add ((hInt _).const_mul _)
 
 end Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson
-

@@ -5,7 +5,7 @@ public import CausalSmith.Stat.STAT_MarRareqLogfrontier_Research.Helpers.ZengLow
 
 /-! Numerical TV bound for the conditioned relaxed iid experiment. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped NNReal ENNReal

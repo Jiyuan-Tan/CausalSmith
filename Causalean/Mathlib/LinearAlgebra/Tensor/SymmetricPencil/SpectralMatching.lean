@@ -39,12 +39,11 @@ noncomputable def coordinateProjector {n : ℕ} (S : Matrix (Fin n) (Fin n) ℝ)
   S * Matrix.diagonal (fun k => if k = j then 1 else 0) * S⁻¹
 
 /-- Every coordinate projector of a diagonalizer has Euclidean operator norm at most the
-declared condition-number envelope. Under [the listed assumptions](hyp:hS,hcondition), [the stated conclusion follows](goal). -/
+declared condition-number envelope. Under [the listed assumptions](hyp:hcondition), [the stated conclusion follows](goal). -/
 -- Proof route: use submultiplicativity twice, the fact that the one-coordinate diagonal
 -- projector has operator norm one, and the supplied bound on `‖S‖₂ ‖S⁻¹‖₂`.
 theorem coordinateProjector_operatorNorm_le {n : ℕ}
     (S : Matrix (Fin n) (Fin n) ℝ) (j : Fin n) {chi : ℝ}
-    (hS : IsUnit S.det)
     (hcondition : squareOperatorNorm S * squareOperatorNorm S⁻¹ ≤ chi) :
     squareOperatorNorm (coordinateProjector S j) ≤ chi := by
   let _ : Nonempty (Fin n) := ⟨j⟩
@@ -200,13 +199,13 @@ theorem diagonalizableMatrix_eigenvalue_localization {n : ℕ} [NeZero n]
 
 /-- One-sided localization between two equally sized finite scalar families becomes a
 permutation matching when the source family is separated by more than twice the localization
-radius. Under [the listed assumptions](hyp:hradius,hgap',hlocal,hsmall), [the stated conclusion follows](goal). -/
+radius. Under [the listed assumptions](hyp:hgap',hlocal,hsmall), [the stated conclusion follows](goal). -/
 -- Proof route: choose for every primed index one nearby unprimed index.  Two primed indices
 -- with the same choice would violate separation by the triangle inequality, so the choice map
 -- is injective, hence bijective on the finite type; its inverse is the required permutation.
 theorem exists_permutation_matching_of_localization {n : ℕ}
     (values values' : Fin n → ℝ) {gap radius : ℝ}
-    (hradius : 0 ≤ radius) (hgap' : PairwiseGap values' gap)
+    (hgap' : PairwiseGap values' gap)
     (hlocal : ∀ j', ∃ j, |values' j' - values j| ≤ radius)
     (hsmall : 2 * radius < gap) :
     ∃ pi : Equiv.Perm (Fin n), ∀ j, |values' (pi j) - values j| ≤ radius := by

@@ -28,8 +28,8 @@ theorem exists_dyadicScale (d : ℕ) (hd : 0 < d) {δ : ℝ}
     simp [one_div, inv_pow, ← pow_mul, mul_comm d k]
   exact ⟨n, (hw (n + 1)) ▸ hn.le, (hw n) ▸ hn'⟩
 
-/-- Given [a dimension and dyadic level](hyp:d,n), [a positive dimension](hyp:hd), and [a gap at least as large as the next time width](hyp:δ,hδ),
-[the squared spatial width is bounded by four times the fractional power of that gap](goal). -/
+/-- Given [a dimension d and dyadic level n](hyp:d,n), [a positive dimension](hyp:hd), and [a gap δ at least as large as the next time width 1/2^(d(n+1))](hyp:δ,hδ),
+[the squared spatial width (1/2^n)² is at most 4·δ^(2/d)](goal). -/
 theorem dyadicScale_sq_bound (d n : ℕ) (hd : 0 < d) {δ : ℝ}
     (hδ : (1 : ℝ) / (2 : ℝ) ^ (d * (n + 1)) ≤ δ) :
     ((1 : ℝ) / (2 : ℝ) ^ n) ^ 2 ≤

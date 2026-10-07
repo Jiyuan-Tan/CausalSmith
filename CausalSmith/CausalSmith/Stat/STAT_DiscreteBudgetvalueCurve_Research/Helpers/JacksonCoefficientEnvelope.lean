@@ -6,7 +6,7 @@ public import Mathlib.Analysis.Complex.ExponentialBounds
 
 /-! Jackson coefficient bounded-variation envelopes and their Poisson path consequences. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteBudgetvalueCurve
 
@@ -513,7 +513,7 @@ lemma jacksonCoefficientBV_le_of_cube_pathSize
     apply lt_top_iff_ne_top.mpr
     simpa [BoundedVariationOn, Function.comp_def] using
       hLip.comp_boundedVariationOn hid
-  have henv := tensorCoefficientPath_four_chebyshev_size_envelope hK p B hB
+  have henv := tensorCoefficientPath_four_chebyshev_size_envelope p B hB
     hdeg hgrid hcont hBV (by simpa [p, K, center, radius] using hbound)
   have hcoeff : jacksonCoefficientBV epsilon m d pilot ≤
       ∑ a, pathSize (tensorCoefficientPath p hdeg hgrid a) := by

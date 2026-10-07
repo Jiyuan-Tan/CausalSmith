@@ -502,8 +502,8 @@ theorem HasPolynomialL2CoverWith.forget
 /-- Given [named polynomial-cover witnesses](hyp:hF) and
 [an enlarged envelope](hyp:hUV), [the larger envelope preserves those
 witnesses](goal). -/
--- @node: HasPolynomialL2CoverWith.enlargeEnvelope
-theorem HasPolynomialL2CoverWith.enlargeEnvelope
+-- @node: HasPolynomialL2CoverWith.monoEnvelope
+theorem HasPolynomialL2CoverWith.monoEnvelope
     {ι : Type v} {F : ι → 𝒳 → ℝ} {U V A : ℝ} {p : ℕ}
     (hF : HasPolynomialL2CoverWith F U A p) (hUV : U ≤ V) :
     HasPolynomialL2CoverWith F V A p := by

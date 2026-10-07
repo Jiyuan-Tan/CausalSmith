@@ -14,7 +14,7 @@ using `lambda n`.  Its constants come from a uniform Tikhonov certificate and
 therefore do not depend on the selected regularization level.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean
 namespace Estimation
@@ -290,12 +290,10 @@ theorem primal_strongNorm_tendstoInProb_of_rates
     (hlambda_zero : Tendsto lambda_n atTop (nhds 0))
     (hdelta_sq_div_lambda_zero :
       Tendsto (fun n => (delta n) ^ 2 / lambda_n n) atTop (nhds 0)) :
-    Tendsto_inProb
-      (fun n omega =>
+    Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega =>
         S.strongNorm
           (S.hL2 (TC.H_subset (is_estimator.mem_H n omega))
-            - S.hL2 S.h₀_mem))
-      (fun _ => 0) mu := by
+            - S.hL2 S.h₀_mem)) atTop (fun _ _ => 0) := by
   have _hdelta_sq_zero :
       Tendsto (fun n => (delta n) ^ 2) atTop (nhds 0) := by
     simpa [pow_two] using hdelta_zero.mul hdelta_zero

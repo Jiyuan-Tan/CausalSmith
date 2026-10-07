@@ -18,12 +18,12 @@ open scoped BigOperators
 noncomputable section
 namespace Causalean.Stat.Minimax.Mixture.PoissonLatentSign
 
-/-- The conditional order-d energy averages squared coefficients at a fixed cell count. -/
+/-- The conditional order-d energy at a fixed cell count is the mean, under the cell law at that count, of the order-d subset energy at tilt τ. -/
 def conditionalEnergy (ν : ∀ m, Measure (Cell m)) (τ : ℝ) (m d : ℕ) : ℝ :=
   ∫ c, subsetEnergy τ c d ∂ν m
 
-/-- The Poisson coefficient is the averaged order-d energy times the even outcome amplitude power.
--/
+/-- The order-d Poisson coefficient is γ^(2d) times the mean, over a Poisson count with mean ξ,
+of the conditional order-d energy at that count. -/
 def coefficient (ν : ∀ m, Measure (Cell m)) (ξ : NNReal) (τ γ : ℝ) (d : ℕ) : ℝ :=
   γ ^ (2 * d) * ∫ m : ℕ, conditionalEnergy ν τ m d ∂poissonMeasure ξ
 
@@ -104,9 +104,9 @@ theorem coefficient_le_factorial (ν : ∀ m, Measure (Cell m))
     _ = _ := by rw [pow_mul, mul_pow, mul_pow]; ring
 
 /-- Given [conditional probability laws for cells](hyp:ν), [a Poisson mean at most
-one](hyp:hξ), [a bounded tilt](hyp:hτ), [almost-surely valid cells](hyp:hν), and
-[an outcome amplitude](hyp:γ), [the singleton Poisson coefficient has the explicit
-mean-squared, tilt-squared collision bound](goal). -/
+one](hyp:hξ) ξ, [a tilt τ of absolute value at most 1/4](hyp:hτ), [cells that are almost
+surely valid at every count](hyp:hν), and [an outcome amplitude](hyp:γ) γ, [the order-one
+Poisson coefficient is at most e^((5/3)² − 1) · ((5/3)⁶ + (5/3)⁴) · ξ² τ² γ²](goal). -/
 theorem coefficient_one_le (ν : ∀ m, Measure (Cell m))
     [∀ m, IsProbabilityMeasure (ν m)] {ξ : NNReal} (hξ : (ξ : ℝ) ≤ 1)
     {τ : ℝ} (hτ : |τ| ≤ 1 / 4) (hν : ∀ m, ∀ᵐ c ∂ν m, Valid c) (γ : ℝ) :
@@ -145,7 +145,7 @@ theorem coefficient_summable_abs (ν : ∀ m, Measure (Cell m))
     [∀ m, IsProbabilityMeasure (ν m)] (ξ : NNReal) {τ : ℝ}
     (hτ : |τ| ≤ 1 / 4) (hν : ∀ m, ∀ᵐ c ∂ν m, Valid c) (γ z : ℝ) :
     Summable (fun d : ℕ => |coefficient ν ξ τ γ (d + 1) * z ^ (d + 1)|) := by
-  exact overlapSeries_summable_abs (b := 4 * (ξ : ℝ) * γ ^ 2) (by positivity)
+  exact overlapSeries_summable_abs (b := 4 * (ξ : ℝ) * γ ^ 2)
     (fun d _ => ⟨coefficient_nonneg ν ξ τ γ d,
       coefficient_le_factorial ν ξ hτ hν γ d⟩) z
 
@@ -206,9 +206,10 @@ theorem poisson_overlap_pos (ν : ∀ m, Measure (Cell m))
       coefficient_le_factorial ν ξ hτ hν γ d⟩) hr
 
 /-- Given [conditional probability laws for cells](hyp:ν), [a Poisson mean](hyp:ξ),
-[a bounded tilt](hyp:hτ), [almost-surely valid cells](hyp:hν), [a small overlap
-radius](hyp:hr), and [a natural power](hyp:k), [the Poisson overlap power has an
-exponential envelope with its exact singleton coefficient](goal). -/
+[a tilt of absolute value at most 1/4](hyp:hτ), [cells that are almost surely valid at
+every count](hyp:hν), [an overlap z with 4ξγ²|z| ≤ 1/2](hyp:hr), and [a natural
+power](hyp:k) k, [the k-th power of the overlap series of the Poisson coefficients is at
+most exp(k·c₁·z + 16k·ξ²γ⁴z²), where c₁ is the order-one Poisson coefficient](goal). -/
 theorem poisson_overlap_pow_le_exp (ν : ∀ m, Measure (Cell m))
     [∀ m, IsProbabilityMeasure (ν m)] (ξ : NNReal) {τ γ z : ℝ}
     (hτ : |τ| ≤ 1 / 4) (hν : ∀ m, ∀ᵐ c ∂ν m, Valid c)

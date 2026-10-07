@@ -34,7 +34,8 @@ blocks](hyp:B0,B) with [training/evaluation disjointness](hyp:htrain) and [pairw
 evaluation disjointness](hyp:heval), [measurable joined-view scores](hyp:η,hηmeas),
 [integrable individual scores](hyp:hη), [an integrable first two-factor product](hyp:hη01),
 and [an integrable three-factor product](hyp:hηprod) imply that [the conditional mean
-of the joined three-block product is the product of its three conditional means](goal). -/
+of the joined three-block product given the training block is almost surely the product of the
+three scores' conditional means given the training block](goal). -/
 theorem condExp_joinedBlockProduct_of_integrable
     (μ : (i : ι) → Measure (Ω i)) [∀ i, IsProbabilityMeasure (μ i)]
     (B0 : Finset ι) (B : Fin 3 → Finset ι)

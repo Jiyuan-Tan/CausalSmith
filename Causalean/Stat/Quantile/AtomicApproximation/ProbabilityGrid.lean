@@ -17,13 +17,13 @@ noncomputable section
 
 namespace Causalean.Stat.Quantile.AtomicApproximation
 
-/-- [A probability measure](hyp:μ), [an ordered closed interval](hyp:a,b,hab),
+/-- [A probability measure](hyp:μ), [a closed interval](hyp:a,b),
 [concentration of that measure on the interval](hyp:hμ), and [a positive grid
 size](hyp:N,hN) give [interval-valued equally weighted atoms whose CDF error is at
 most one grid share at every threshold](goal). -/
 theorem exists_probability_equalAtom_interval_cdf_error_le
     (μ : Measure ℝ) [IsProbabilityMeasure μ]
-    (a b : ℝ) (hab : a ≤ b) (hμ : μ (Set.Icc a b)ᶜ = 0)
+    (a b : ℝ) (hμ : μ (Set.Icc a b)ᶜ = 0)
     (N : ℕ) (hN : 0 < N) :
     ∃ x : Fin N → Set.Icc a b,
       ∀ t : ℝ,

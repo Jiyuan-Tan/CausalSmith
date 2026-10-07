@@ -123,13 +123,13 @@ theorem empiricalSideRisk_nonneg (p : Theta → X → ℝ) (q : Theta → C → 
   intro z _
   exact mul_nonneg (productProbability_nonneg C (sidePmf q hq theta) z) (sq_nonneg _)
 
-/-- Under [probability-simplex label and side coordinates](hyp:hp,hq), with [ordered action
-bounds containing the target](hyp:hlu,htau), empirical-side [squared risk is at most the
+/-- Under [probability-simplex label and side coordinates](hyp:hp,hq), with [action
+bounds containing the target](hyp:htau), empirical-side [squared risk is at most the
 squared action width](goal). -/
 theorem empiricalSideRisk_le (p : Theta → X → ℝ) (q : Theta → C → ℝ)
     (hp : ∀ theta, p theta ∈ stdSimplex ℝ X)
     (hq : ∀ theta, q theta ∈ stdSimplex ℝ C) (tau : Theta → ℝ)
-    (hlu : l ≤ u) (htau : ∀ theta, tau theta ∈ Set.Icc l u) (m : ℕ)
+    (htau : ∀ theta, tau theta ∈ Set.Icc l u) (m : ℕ)
     (d : EmpiricalSideProcedure X C m l u) (theta : Theta) :
     empiricalSideRisk p q hq tau m d theta ≤ (u - l) ^ 2 := by
   unfold empiricalSideRisk
@@ -155,7 +155,7 @@ theorem empiricalSideRisk_le (p : Theta → X → ℝ) (q : Theta → C → ℝ)
             sub_le_sub hd.2 ht.1
           have hneg_diff_le : -(u - l) ≤ (d x z : ℝ) - tau theta := by
             linarith [hd.1, ht.2]
-          nlinarith [hlu, mul_nonneg (sub_nonneg.mpr hdiff_le)
+          nlinarith [mul_nonneg (sub_nonneg.mpr hdiff_le)
             (by linarith : 0 ≤ (u - l) + ((d x z : ℝ) - tau theta))]
         _ = (u - l) ^ 2 := by
           rw [← Finset.sum_mul, sum_productProbability]

@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_SemisupervisedDiscreteAteAnnotationFrontier_
 
 /-! Explicit evaluation of the paper's three-pool Rao--Blackwell statistic. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier
 

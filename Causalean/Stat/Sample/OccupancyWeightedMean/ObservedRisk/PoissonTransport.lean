@@ -20,9 +20,12 @@ open Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram
 open scoped NNReal
 
 /-- Given [a finite cell count](hyp:d), [an observed probability law](hyp:ν),
-and [a Poisson sample intensity](hyp:lam), [the vector of observed arm-cell
-counts has the corresponding independent Poisson product law](goal), including
-zero-mass arm-cells. -/
+and [a nonnegative Poisson mean λ](hyp:lam), draw a Poisson(λ) number of
+independent observations from the law. Then [the table of control and treated
+counts in each cell has independent entries across cells and arms, the count of
+each arm-cell pair being Poisson with mean λ times that pair's
+probability](goal); a pair of zero probability has the degenerate Poisson law
+with mean zero. -/
 theorem poisson_arm_cell_count_law {d : ℕ}
     (ν : Measure (Fin d × Bool)) [IsProbabilityMeasure ν]
     (lam : ℝ≥0) :

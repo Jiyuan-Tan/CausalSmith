@@ -33,7 +33,7 @@ at least an `epsilon` fraction, its usable-count Laplace factor loses at least
 a positive multiple of the squared total intensity. The coefficient depends
 only on `epsilon`, including the zero-intensity case. -/
 theorem poissonCellLaplace_light_rate (epsilon : ℝ)
-    (hepsilon : 0 < epsilon) (hepsilon_half : epsilon < 1 / 2) :
+    (hepsilon : 0 < epsilon) :
     ∃ c : ℝ, 0 < c ∧
       ∀ (u v : ℝ≥0) (x : ℝ),
         (u : ℝ) + (v : ℝ) = x →
@@ -146,9 +146,12 @@ theorem poissonCellLaplace_light_rate (epsilon : ℝ)
     _ ≤ 1 - c * x ^ 2 := by linarith
     _ ≤ Real.exp (-(c * x ^ 2)) := Real.one_sub_le_exp_neg _
 
-/-- Given [an overlap margin below one half](hyp:epsilon,hepsilon,hepsilon_half)
-and [two arm intensities with their total intensity](hyp:u,v,x), [the one-cell
-usable-count Laplace factor decays at a positive exponential rate](goal). -/
+/-- For an [overlap margin ε strictly between zero and one half](hyp:epsilon,hepsilon,hepsilon_half),
+[there is a positive constant c, depending only on ε, such that for any two
+nonnegative Poisson arm intensities with total x, if each intensity is at least
+ε·x and the total x is at least one, then the one-cell Laplace factor (the
+expectation of exp(−usable count) under independent Poisson arm counts with
+those intensities) is at most exp(−c·x)](goal). -/
 theorem poissonCellLaplace_heavy_rate (epsilon : ℝ)
     (hepsilon : 0 < epsilon) (hepsilon_half : epsilon < 1 / 2) :
     ∃ c : ℝ, 0 < c ∧

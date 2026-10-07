@@ -8,8 +8,8 @@ public import Mathlib.Tactic.Linarith
 # Scalar bounded marks and centered moments
 
 Bounded measurable marks are integrable to every natural power. A mark in [0,1] has a mean
-in [0,1] and a centered value of absolute magnitude at most one. Consequently every centered
-absolute moment of order at least two is bounded by the mark's variance.
+in [0,1] and a centered value of absolute magnitude at most one. Consequently the absolute
+value of every centered moment of order at least two is bounded by the mark's variance.
 
 The variance API is Mathlib's `ProbabilityTheory.variance`, with the bridge
 `ProbabilityTheory.variance_eq_integral`; no additional integrability hypothesis is imposed

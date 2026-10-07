@@ -18,7 +18,7 @@ namespace Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate
 /-- A [real rate](hyp:r) determines [its nonnegative Poisson rate](goal) by [clipping negative values to zero](step:1). -/
 noncomputable def nnRate (r : ℝ) : NNReal := Real.toNNReal r
 
-/-- An [experiment size](hyp:n) and [parameter triple](hyp:t) determine [the conditional three-mark Poisson law](goal) by [taking the product of its three marked Poisson count laws](step:1). -/
+/-- An [experiment size](hyp:n) and [parameter triple](hyp:t) of arrival mass p, propensity π, and conditional success probability μ determine [the conditional three-mark Poisson law](goal) as [the product of three independent Poisson count laws with rates npπμ, npπ(1−μ), and np(1−π), each negative rate clipped to zero](step:1). -/
 noncomputable def markedPoissonLaw (n : ℝ) (t : MarkedParam) : Measure ((ℕ × ℕ) × ℕ) :=
   ((poissonMeasure (nnRate (n * t.1 * t.2.1 * t.2.2))).prod
     (poissonMeasure (nnRate (n * t.1 * t.2.1 * (1 - t.2.2))))).prod
@@ -169,8 +169,8 @@ theorem predictiveLaw_singleton {n : ℝ} (hn : 0 ≤ n)
 noncomputable def unmatchedTail (K : ℕ) (n b : ℝ) : ℝ :=
   ∑' m : ℕ, if 3 * K < m then (2 * n * b) ^ m / (Nat.factorial m : ℝ) else 0
 
-/-- A [positive matching degree](hyp:K,hK), [nonnegative experiment size](hyp:hn), and [nonnegative support bound](hyp:hb) give [the stated first-omitted-term bound for the unmatched factorial tail](goal). -/
-theorem unmatchedTail_le_factorial (K : ℕ) (hK : 1 ≤ K)
+/-- A [matching degree](hyp:K), [nonnegative experiment size](hyp:hn), and [nonnegative support bound](hyp:hb) give [the stated first-omitted-term bound for the unmatched factorial tail](goal). -/
+theorem unmatchedTail_le_factorial (K : ℕ)
     {n b : ℝ} (hn : 0 ≤ n) (hb : 0 ≤ b) :
     unmatchedTail K n b ≤
       Real.exp (2 * n * b) * (2 * n * b) ^ (3 * K + 1) /
@@ -241,8 +241,8 @@ theorem unmatchedTail_le_factorial (K : ℕ) (hK : 1 ≤ K)
   values of total degree t+u+v+w. The same coefficients occur for both
   priors, so mixed_match cancels them term by term. -/
 
-/-- A [positive matching degree](hyp:hK), [bounded triple priors](hyp:T), and [four Taylor indices whose total degree is at most `3K`](hyp:t,u,v,w,hdegree) give [matching integrated marked-rate Taylor coefficients](goal). -/
-theorem integral_markedRateProduct_match {K : ℕ} (hK : 1 ≤ K)
+/-- [Bounded triple priors](hyp:T) and [four Taylor indices whose total degree is at most `3K`](hyp:t,u,v,w,hdegree) give [matching integrated marked-rate Taylor coefficients](goal). -/
+theorem integral_markedRateProduct_match {K : ℕ}
     {b ε gap : ℝ} (T : TriplePriors K b ε gap)
     (t u v w : ℕ) (hdegree : t + u + v + w ≤ 3 * K) :
     (∫ θ : MarkedParam, θ.1 ^ t *
@@ -361,7 +361,7 @@ theorem integral_markedRateProduct_match {K : ℕ} (hK : 1 ≤ K)
   Causalean's `exponentialPriorEnergy_eq_tsum`, with
   envelope `(n*b)^t/t!` times the bounded mark-rate factor. -/
 
-/-- A [nonnegative experiment size](hyp:hn), [finitely supported probability prior](hyp:ν,hfinite), [bounded support condition](hyp:hsupport), and [three observed count values](hyp:u,v,w) give [the predictive singleton mass as its convergent marked-rate Taylor series](goal). -/
+/-- A [nonnegative experiment size](hyp:hn), [finitely supported probability prior](hyp:ν,hfinite), [support on arrival mass between 0 and b and propensity and success probability between 0 and 1](hyp:hsupport), and [three observed count values](hyp:u,v,w) give [the predictive mass of the count triple (u, v, w) as the series Σ over t ≥ 0 of (−n)ᵗ · n^(u+v+w) / (t! u! v! w!) times the prior mean of pᵗ (pπμ)ᵘ (pπ(1−μ))ᵛ (p(1−π))ʷ](goal). -/
 theorem predictiveLaw_singleton_eq_tsum_markedRateProduct
     {n b : ℝ} (hn : 0 ≤ n) (ν : Measure MarkedParam)
     [IsProbabilityMeasure ν]

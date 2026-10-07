@@ -22,9 +22,9 @@ namespace Causalean.Stat.RandomGraph.PathOccupancy
 variable {Ω : Type*} [MeasurableSpace Ω]
 
 /-- In [the iid uniform marked model](hyp:h), for [a measurable random
-local subrelation](hyp:R,hR,hlocal), [the expected single score is bounded
-by the labelled-subset occupancy sum](goal), with [positive K and n at least
-two](hyp:hK,hn) and [coarse count M](hyp:M).
+local subrelation](hyp:R,hR,hlocal), [the expected single score is at most
+ε² K times the labelled-subset occupancy sum](goal), with [positive K](hyp:hK) and [coarse count M](hyp:M). The labelled-subset occupancy sum runs
+over sizes m from two through n and adds choose(n, m) · m^10 · 8^m · m^m / K^m.
 
 First apply the pointwise subset domination. Integrate the finite nonnegative
 sum, group by cardinality using the cardinality of powersetCard, and apply the
@@ -47,7 +47,7 @@ independence of the random relation or any extra measurable-event assumption.
 -/
 theorem single_expectation_labelled_le {n K : ℕ} {μ : Measure Ω}
     {X : Fin n → Ω → Fin K} {B : Fin n → Ω → Bool} {ε : ℝ}
-    (h : UniformMarkedSample μ X B ε) (M : ℕ) (hK : 0 < K) (hn : 2 ≤ n)
+    (h : UniformMarkedSample μ X B ε) (M : ℕ) (hK : 0 < K)
     (R : Ω → Fin n → Fin n → Prop)
     (hR : ∀ i j, MeasurableSet {ω | R ω i j})
     (hlocal : ∀ ω, Admissible M (fun i => X i ω) (R ω)) :

@@ -369,8 +369,7 @@ theorem regLogisticGrad_coord_isBigOp (φ : FeatureMap γ K) (P : Measure (γ ×
     have hk1 : Causalean.Stat.IsBigOp
         (fun n ω => S.sampleMean g n ω - ∫ z, g z ∂P)
         (fun n => (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹) μ := by
-      exact Causalean.Stat.IsBigOp.mono_rate
-        (fun n => Real.sqrt_nonneg (A / (n : ℝ))) hrate_le hk0
+      exact Causalean.Stat.IsBigOp.mono_rate hrate_le hk0
     exact Causalean.Stat.IsBigOp.scale_rate
       (rn := fun n => (Real.sqrt (n : ℝ))⁻¹)
       (by linarith [Real.sqrt_nonneg A]) hk1

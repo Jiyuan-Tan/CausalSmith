@@ -1,7 +1,7 @@
 module
 public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.UnitOverlapLower
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.PomdpStateauditMinimax
 

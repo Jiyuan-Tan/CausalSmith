@@ -13,8 +13,9 @@ namespace Causalean.Mathlib.Analysis.Quantization
 
 /-- On [a nondegenerate interval](hyp:a,b,hab), [a nonempty finite
 weight family](hyp:S,hS) with [jointly continuous](hyp:β,hcont) and
-[strictly positive](hyp:hpos) losses has [optimal paired L1 cost converging
-to the exact quarter-square high-resolution limit](goal). -/
+[strictly positive](hyp:hpos) losses satisfies the high-resolution limit: [the number of
+cells k times the optimal paired L1 cost with k cells converges, as k grows, to one quarter
+of the squared integral over the interval of the square root of the diagonal weight](goal). -/
 theorem optimal_scaled_cost_tendsto (a b : ℝ) (hab : a < b)
     (S : ℕ) (hS : 0 < S) (β : Fin S → ℝ → ℝ → ℝ)
     (hcont : ∀ s, ContinuousOn (fun p : ℝ × ℝ => β s p.1 p.2)

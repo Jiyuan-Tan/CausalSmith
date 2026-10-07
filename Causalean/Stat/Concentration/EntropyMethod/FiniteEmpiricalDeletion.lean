@@ -333,8 +333,7 @@ theorem finiteEmpiricalDeletionLogSobolevRegularity
       have hHeadEntropyMeas : Measurable (fun rest => entropy (mu 0)
           (fun x => Real.exp (lam * finiteEmpiricalSupremum I g (n + 1) offset
             (e.symm (x, rest))))) :=
-        measurable_entropy_section_of_bounded_positive (mu 0) (f := tiltJoint) htiltJoint
-          (Real.exp_pos _) htiltLower htiltUpper
+        measurable_entropy_section (mu 0) (f := tiltJoint) htiltJoint
       have hHeadEntropyInt : Integrable (fun rest => entropy (mu 0)
           (fun x => Real.exp (lam * finiteEmpiricalSupremum I g (n + 1) offset
             (e.symm (x, rest))))) nu := by

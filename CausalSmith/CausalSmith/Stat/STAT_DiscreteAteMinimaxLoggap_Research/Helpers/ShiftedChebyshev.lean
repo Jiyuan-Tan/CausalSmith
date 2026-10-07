@@ -4,7 +4,7 @@ public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.RootsExt
 public import Mathlib.Algebra.Polynomial.Taylor
 public import Mathlib.Data.Nat.Choose.Cast
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

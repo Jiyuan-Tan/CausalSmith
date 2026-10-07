@@ -61,7 +61,7 @@ theorem integrandNodes_sound (program : ContourProgram) (schedule : Schedule)
       (program.normalizedIntegrand schedule (CircleMesh.meshPoint schedule.mesh k)) := by
   have hnode : (program.nodeBox schedule k).Contains
       (exactCircleNode program.radius schedule k) := by
-    exact circleNode_sound program.radius schedule hk
+    exact circleNode_sound program.radius schedule
   have hnum := program.numerator.sound hnode schedule.fuel
   have hden := program.denominator.sound hnode schedule.fuel
   have hquot := ComplexRatInterval.div_sound (certificate.away k hk) hnum hden
@@ -101,7 +101,7 @@ theorem integrandNodes_width_le_propagation (program : ContourProgram)
     exact circleNode_width_at_selected_precision program.radius program.radius_pos.le
       schedule scheduled.target scheduled.inputPrecision_eq scheduled.circleFuel_le hk
   have hnodeContains : node.Contains (exactCircleNode program.radius schedule k) := by
-    exact circleNode_sound program.radius schedule hk
+    exact circleNode_sound program.radius schedule
   have hnumContains : numerator.Contains
       (program.numerator.value (exactCircleNode program.radius schedule k)) := by
     exact program.numerator.sound hnodeContains schedule.fuel
@@ -348,7 +348,7 @@ theorem denominator_ne_zero_at_nodes (program : ContourProgram) (schedule : Sche
     program.denominator.value (exactCircleNode program.radius schedule k) ≠ 0 := by
   have hnode : (program.nodeBox schedule k).Contains
       (exactCircleNode program.radius schedule k) := by
-    exact circleNode_sound program.radius schedule hk
+    exact circleNode_sound program.radius schedule
   have hden := program.denominator.sound hnode schedule.fuel
   have hnorm := ComplexRatInterval.normSq_sound hden
   have hnorm_ne : ‖program.denominator.value
@@ -392,7 +392,7 @@ theorem evaluate_width (program : ContourProgram)
     have h := (integrandNodes_width_le_propagation program bounds separation scheduled
       certificate hseparation hk).trans scheduled.propagation_le
     exact ⟨(le_max_left _ _).trans h, (le_max_right _ _).trans h⟩
-  have hbase := CircleMesh.integralEnclosure_width schedule.nodeBudget_nonneg
+  have hbase := CircleMesh.integralEnclosure_width
     schedule.lipschitzConstant_nonneg schedule.mesh_pos hcoordinate
   rw [ContourProgram.evaluate, ComplexRatInterval.width, ComplexRatInterval.expand,
     RatInterval.width_expand, RatInterval.width_expand]

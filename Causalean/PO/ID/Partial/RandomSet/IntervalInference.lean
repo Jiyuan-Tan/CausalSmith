@@ -188,13 +188,13 @@ theorem normalizedSum_dirStat_clt (S : IIDSample Ω X μ P)
     (hmean : ∫ x, ψ x ∂P = 0)
     (hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n) μ) :
-    Tendsto_dist_vec
-      (fun n ω => dirStat (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n ω))
-      ((gaussianLimit hψ hvar).map dirStat) μ
-      (fun n => measurable_dirStat.comp_aemeasurable (hSum_meas n)) := by
-  apply (Tendsto_dist_vec_iff _ _ _ _).2
-  exact Tendsto_dist_vec.map_continuous continuous_dirStat hSum_meas
-    (S.clt_normalizedSum_vec hψ hvar hmean)
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (fun n ω => dirStat (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n ω)) atTop
+        ((gaussianLimit hψ hvar).map dirStat) := by
+  apply (Tendsto_dist_vec_iff _ _ _
+    (fun n => continuous_dirStat.measurable.comp_aemeasurable (hSum_meas n))).2
+  exact Modes.TendstoInLaw.map_continuous (S.clt_normalizedSum_vec hψ hvar hmean)
+    continuous_dirStat
 
 end DirectedCLT
 
@@ -290,7 +290,7 @@ theorem directedRegion_coverage_at_fixed_cutoff (S : IIDSample Ω X μ P) (yL yU
         ⊆ dilate (Set.Icc (sampleMean S yL n ω) (sampleMean S yU n ω)) (c / Real.sqrt n)})
       atTop (𝓝 (((gaussianLimit hψ hvar).map dirStat) (Set.Iic c))) := by
   have hclt := normalizedSum_dirStat_clt hψ hvar S hmean hSum_meas
-  rw [Tendsto_dist_vec_iff] at hclt
+  rw [Tendsto_dist_vec_iff _ _ _ hclt.forall_aemeasurable] at hclt
   have hport := MeasureTheory.ProbabilityMeasure.tendsto_measure_of_null_frontier_of_tendsto'
     hclt (E := Set.Iic c) (by rw [frontier_Iic]; exact hfront)
   refine hport.congr' ?_

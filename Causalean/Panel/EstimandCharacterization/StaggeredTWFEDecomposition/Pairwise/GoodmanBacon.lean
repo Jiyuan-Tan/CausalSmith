@@ -321,7 +321,7 @@ private lemma TT_pre_mid_post_union
 
 open Classical in
 private lemma TT_post_window_card_ne_zero
-    (P : CohortPanel 𝒢 T) {e ℓ : 𝒢} (hℓ : AdoptionPath.isFinite (P.A ℓ)) :
+    (P : CohortPanel 𝒢 T) {ℓ : 𝒢} (hℓ : AdoptionPath.isFinite (P.A ℓ)) :
     (((S1_LE P ℓ).card : ℝ) ≠ 0) := by
   cases hA : P.A ℓ with
   | top =>
@@ -410,7 +410,7 @@ private lemma TT_mu_eq_pre_complement_share
   have hTne : (T : ℝ) ≠ 0 := by
     exact_mod_cast (ne_of_gt P.T_pos)
   have hBne : ((B.card : ℝ) ≠ 0) := by
-    simpa [B] using TT_post_window_card_ne_zero P (e := e) hℓ
+    simpa [B] using TT_post_window_card_ne_zero P hℓ
   have hABne : ((A.card : ℝ) + (B.card : ℝ)) ≠ 0 := by
     intro h
     have hb0 : (B.card : ℝ) = 0 := by
@@ -520,7 +520,7 @@ private lemma TT_time_cov_eq_lambda_delta_core
       simpa [p] using TT_middle_complement_eq_pre_union_post P e ℓ
     have hcomp_mean :=
       disjoint_union_mean_eq_card_weighted_mean (S0_EL P e) (S1_LE P ℓ) z
-        (TT_disjoint_pre_post P hord) (TT_post_window_card_ne_zero P (e := e) hℓ)
+        (TT_disjoint_pre_post P hord) (TT_post_window_card_ne_zero P hℓ)
     have hmu := TT_mu_eq_pre_complement_share P hord hℓ
     rw [hmid1, hcomp, hcomp_mean, hmu]
     unfold z Δ_EL Δ_LE Ybar

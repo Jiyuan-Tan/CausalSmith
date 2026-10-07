@@ -12,7 +12,8 @@ cube and doubles distances in the finite-product norm.
 
 namespace Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 
-/-- The coordinatewise affine map sends `[0,1]^d` to `[-1,1]^d`. -/
+/-- The coordinatewise affine map that sends a point x to the point whose every coordinate is
+2x − 1; it carries the unit cube `[0,1]^d` onto the normalized cube `[-1,1]^d`. -/
 def cubeAffine {d : ℕ} (x : Fin d → ℝ) : Fin d → ℝ :=
   fun i => 2 * x i - 1
 

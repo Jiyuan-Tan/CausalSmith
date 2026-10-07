@@ -159,8 +159,7 @@ lemma affineRawTaggedKernel_bayes_lower
     (affineRawTaggedKernel n m d eps hd sigma) target (fun _ => inferInstance)
     estimator hestimator (measurable_of_countable _)
     (t false) (t true) gap (gap / 8) (1 / 128) (1 / 128) (1 / 64)
-    hgap.le (by positivity) (by linarith) (le_refl _)
-    (by norm_num) (by norm_num) (by norm_num)
+    (by linarith) (le_refl _)
     (affineRawTaggedPrior_target_tail n m d eps hd sigma hn heps heps' hS hx false)
     (affineRawTaggedPrior_target_tail n m d eps hd sigma hn heps heps' hS hx true) htv
   apply le_trans (ENNReal.ofReal_le_ofReal ?_) hlower

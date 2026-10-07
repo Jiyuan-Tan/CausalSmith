@@ -19,10 +19,10 @@ open scoped BigOperators
 
 namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev
 
-/-- [A real polynomial](hyp:p) determines [its coefficient one-norm](goal).
+/-- [A real polynomial](hyp:p) determines [its coefficient one-norm](goal), the sum of the absolute
+values of all its monomial coefficients.
 
-The coefficient one-norm of a real polynomial is the sum of the absolute values of all
-its monomial coefficients, using the established Causalean definition.
+This is a local name for the library's established coefficient one-norm.
 -/
 abbrev polynomialCoeffOneNorm (p : Polynomial ℝ) : ℝ :=
   Causalean.Mathlib.Analysis.JacksonApproximation.polyCoeffL1 p
@@ -113,8 +113,9 @@ end Causalean.Mathlib.Analysis.Approximation.Chebyshev
 
 namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev
 
-/-- For a [natural degree](hyp:r), define the shifted first-kind Chebyshev
-polynomial by reflecting its argument from the unit interval. The result is [the shifted first-kind Chebyshev polynomial](goal). -/
+/-- For a [natural degree r](hyp:r), [the shifted first-kind Chebyshev polynomial](goal) is the
+degree-r Chebyshev polynomial of the first kind composed with the affine map x ↦ 1 − 2x, which
+carries the unit interval onto the interval from −1 to 1 with reversed orientation. -/
 noncomputable def shiftedCheb (r : ℕ) : ℝ[X] :=
   (Polynomial.Chebyshev.T ℝ (r : ℤ)).comp
     (1 - Polynomial.C (2 : ℝ) * Polynomial.X)
@@ -172,8 +173,8 @@ lemma shiftedCheb_recurrence (r : ℕ) :
   rw [Polynomial.Chebyshev.T_add_two, Polynomial.sub_comp, Polynomial.mul_comp]
   simp
 
-/-- For a [natural degree](hyp:r), the coefficient one-norm of the shifted
-Chebyshev polynomial is at most `7 ^ r`. The result is [the `7 ^ r` coefficient one-norm bound](goal). -/
+/-- For a [natural degree r](hyp:r), [the coefficient one-norm of the shifted first-kind Chebyshev
+polynomial of degree r is at most 7 to the power r](goal). -/
 lemma shiftedCheb_coeffL1_le (r : ℕ) :
     polynomialCoeffOneNorm (shiftedCheb r) ≤ (7 : ℝ) ^ r := by
   induction r using Nat.twoStepInduction with

@@ -11,7 +11,7 @@ bound to the centered adjacent-mixture moment bound. The endpoint and
 large-power cases use unit-density identities.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat.OrderStatistic.WeightedConcomitant
 
@@ -430,8 +430,9 @@ theorem powerCell_eq_sub_curvature_hinge_integral {N : ℕ}
       rw [integral_const_mul, hgeom]
 
 /-- For a [positive sample size](hyp:hN), [power strictly above one](hyp:hs), and [evaluation point](hyp:u),
- [the Bernstein power kernel is a constant minus the curvature-weighted
- Bernstein hinge kernel](goal). -/
+ [the Bernstein kernel of the power cell masses equals the power itself minus the integral,
+ over thresholds in the unit interval, of the curvature density times the Bernstein kernel of
+ the hinge-cell increments at that threshold](goal). -/
 theorem bernsteinCell_power_eq_sub_curvature_hinge_integral {N : ℕ}
     (hN : 0 < N) {s : ℝ} (hs : 1 < s) (u : ℝ) :
     bernsteinCell N (powerCell N s) u = s -

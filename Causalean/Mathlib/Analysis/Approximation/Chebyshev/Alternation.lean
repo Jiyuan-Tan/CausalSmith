@@ -318,7 +318,7 @@ noncomputable def AlternationDualCertificate.toFiniteMomentDual
       (A.nodes_mem (0 : Fin (L + 2))).2
   have hE : 0 ≤ bestUniformApproxError f r s L := by
     rw [← A.approximant_best]
-    exact uniformApproxError_nonneg hrs A.approximant
+    exact uniformApproxError_nonneg A.approximant
   refine
     { nodes := A.nodes
       nodes_strictMono := A.nodes_strictMono

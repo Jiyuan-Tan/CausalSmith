@@ -63,7 +63,7 @@ noncomputable def pairedTiltVector (b : ℕ) (hb : 0 < b)
             ring
           _ = 1 := by simp [hb']⟩
 
-/-- Given [a positive balanced pair count](hyp:b,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [bounded cell directions](hyp:u,hu), [the L1 distance from the balanced base vector equals its coordinatewise absolute tilt total](goal). -/
+/-- Given [a positive balanced pair count](hyp:b,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [bounded cell directions](hyp:u,hu), [the L1 distance between the uniform base vector and the tilted vector equals (t/b) · Σ over pairs j of |u_j|](goal). -/
 theorem pairedBase_tilt_l1 (b : ℕ) (hb : 0 < b)
     (t : ℝ) (ht : 0 ≤ t) (ht1 : t ≤ 1)
     (u : Fin b → ℝ) (hu : ∀ j, |u j| ≤ 1) :

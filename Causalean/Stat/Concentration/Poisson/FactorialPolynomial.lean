@@ -54,7 +54,7 @@ private lemma summable_poisson_descFactorial (rate : NNReal) (h : ℕ) :
     exact (poisson_descFactorial_shift rate h k).symm
   exact (summable_nat_add_iff h).mp hshift
 
-/-- [a normalization, center, natural count, and order](hyp:m,z,N,h) determine [the normalized centered falling-factorial lift](goal).
+/-- For [a normalization m, a center z, a natural count N, and an order h](hyp:m,z,N,h), [the normalized centered falling-factorial lift](goal) is the sum over t from 0 to h of the binomial coefficient h-choose-t times (−z)^(h−t) times the falling factorial N(N−1)⋯(N−t+1) divided by m^t; it is the expansion of (N/m − z)^h with each power N^t replaced by the falling factorial.
 
 The normalized falling-factorial lift of `(q-z)^h`, evaluated at a natural count.
 -/
@@ -256,7 +256,7 @@ theorem poisson_descFactorial_mixed (rate : NNReal) (h t : ℕ) :
 /-- A normalized centered factorial lift under a Poisson law has expectation `(rate/m-z)^h`.
 This is the exact unbiasedness identity for one coordinate.
 -/
-theorem poisson_factorialLift_mean (rate : NNReal) (m z : ℝ) (hm : m ≠ 0)
+theorem poisson_factorialLift_mean (rate : NNReal) (m z : ℝ)
     (h : ℕ) :
     (∫ N : ℕ, factorialLift m z N h ∂poissonMeasure rate) =
       ((rate : ℝ) / m - z) ^ h := by
@@ -561,7 +561,7 @@ theorem poisson_factorialLift_mixed_expansion (rate : NNReal) (m z : ℝ)
               ((rate : ℝ) ^ (j + k - r) / (m ^ j * m ^ k))) := by ring
         _ = _ := by rw [hnormalize j k r hr']; ring
 
-/-- [A Poisson rate](hyp:rate), [normalization and centering parameters](hyp:m,z), [a nonzero normalization](hyp:hm), and [two factorial orders](hyp:h,t) give [the exact overlap-sum formula for their centered factorial-lift mixed moment](goal).
+/-- For a Poisson count with [a given rate](hyp:rate), [a normalization m and a center z](hyp:m,z) with [m nonzero](hyp:hm), and [two orders h and t](hyp:h,t), [the expected product of the order-h and order-t centered factorial lifts equals the sum over r from 0 to min(h, t) of h-choose-r times t-choose-r times r! times (rate/m²)^r times (rate/m − z)^(h+t−2r)](goal).
 
 Two centered factorial lifts under one Poisson law have a mixed moment given by their
 overlap sum. It specializes to the exact square moment when `h=t`.

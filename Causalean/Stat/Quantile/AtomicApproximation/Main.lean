@@ -16,11 +16,14 @@ noncomputable section
 
 namespace Causalean.Stat.Quantile.AtomicApproximation
 
-/-- [Two finite real measures](hyp:μ₁,μ₂), [two ordered closed intervals]
-(hyp:a₁,b₁,a₂,b₂), [the first interval is ordered](hyp:hab₁), [the second interval is ordered](hyp:hab₂), [concentration of the first measure on its interval](hyp:hμ₁) and [concentration of the second measure on its interval](hyp:hμ₂), [equality of their total real masses](hyp:hmass), [two location
-sets contained in those intervals](hyp:D₁,D₂,hD₁,hD₂), [countability of both
-location sets](hyp:hcount₁,hcount₂), [density of each location set in its
-interval](hyp:hdense₁,hdense₂), and [a positive tolerance](hyp:η,hη) give
+/-- [Two finite real measures](hyp:μ₁,μ₂),
+[two ordered closed intervals](hyp:a₁,b₁,a₂,b₂),
+[the first interval is ordered](hyp:hab₁), [the second interval is ordered](hyp:hab₂),
+[concentration of the first measure on its interval](hyp:hμ₁) and
+[concentration of the second measure on its interval](hyp:hμ₂),
+[equality of their total real masses](hyp:hmass), [two location sets](hyp:D₁,D₂),
+[density of each location set in its interval](hyp:hdense₁,hdense₂), and
+[a positive tolerance](hyp:η,hη) give
 [a common positive atom count, nonnegative rational mass, and two equally weighted
 dense-location atomic approximations with exact mass and total error below the
 tolerance](goal). -/
@@ -31,8 +34,6 @@ theorem exists_synchronized_rational_equalAtom_approx
     (hμ₂ : μ₂ (Set.Icc a₂ b₂)ᶜ = 0)
     (hmass : μ₁.real Set.univ = μ₂.real Set.univ)
     (D₁ D₂ : Set ℝ)
-    (hD₁ : D₁ ⊆ Set.Icc a₁ b₁) (hD₂ : D₂ ⊆ Set.Icc a₂ b₂)
-    (hcount₁ : D₁.Countable) (hcount₂ : D₂.Countable)
     (hdense₁ : Dense ((Subtype.val : Set.Icc a₁ b₁ → ℝ) ⁻¹' D₁))
     (hdense₂ : Dense ((Subtype.val : Set.Icc a₂ b₂ → ℝ) ⁻¹' D₂))
     (η : ℝ) (hη : 0 < η) :
@@ -72,9 +73,9 @@ theorem exists_synchronized_rational_equalAtom_approx
         mul_lt_mul_of_pos_left hdiff hC
       _ = η / 2 := by field_simp
   obtain ⟨N₁, hN₁⟩ := eventually_equalAtomMeasure_approx
-    μ₁ a₁ b₁ hab₁ hμ₁ D₁ hD₁ hdense₁ (η / 4) (by linarith)
+    μ₁ a₁ b₁ hab₁ hμ₁ D₁ hdense₁ (η / 4) (by linarith)
   obtain ⟨N₂, hN₂⟩ := eventually_equalAtomMeasure_approx
-    μ₂ a₂ b₂ hab₂ hμ₂ D₂ hD₂ hdense₂ (η / 4) (by linarith)
+    μ₂ a₂ b₂ hab₂ hμ₂ D₂ hdense₂ (η / 4) (by linarith)
   let N := max N₁ N₂ + 1
   have hN : 0 < N := by dsimp [N]; omega
   have hN₁' : N₁ ≤ N := by dsimp [N]; omega

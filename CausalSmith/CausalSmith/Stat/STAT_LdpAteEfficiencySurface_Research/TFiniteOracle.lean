@@ -4,7 +4,7 @@ public import Mathlib.Topology.Sion
 
 /-! # Exact finite staircase oracle -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

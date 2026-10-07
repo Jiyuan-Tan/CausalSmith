@@ -110,17 +110,16 @@ theorem zEstimator_rootRate_of_scoreBound
         exact hU_def n ω]
     exact ((Finset.measurable_sum _
       (fun i _ => (reg.psi_meas θ₀).comp (S.meas i))).const_smul _).aemeasurable
-  have hUclt : Tendsto_dist_vec U
-      (gaussianLimit (reg.psi_meas θ₀) reg.finite_var) μ hUmeas := by
+  have hUclt : Modes.TendstoInLaw (fun _ : ℕ => μ) U atTop
+      (gaussianLimit (reg.psi_meas θ₀) reg.finite_var) := by
     exact S.clt_normalizedSum_vec (reg.psi_meas θ₀) reg.finite_var reg.identification
-  have hNormUclt := hUclt.map_continuous continuous_norm hUmeas
+  have hNormUclt := Modes.TendstoInLaw.map_continuous (hX := hUclt) continuous_norm
   have hUbig : IsBigOp (fun n ω => ‖U n ω‖) (fun _ => (1 : ℝ)) μ := by
     letI : IsProbabilityMeasure
         ((gaussianLimit (reg.psi_meas θ₀) reg.finite_var).map norm) :=
       Measure.isProbabilityMeasure_map continuous_norm.measurable.aemeasurable
-    exact Tendsto_dist.tightness
-      (fun n => continuous_norm.measurable.comp_aemeasurable (hUmeas n))
-      ((Tendsto_dist_iff _ _ _ _).2 hNormUclt)
+    exact Modes.TendstoInLaw.tightness ((Tendsto_dist_iff _ _ _
+        (fun n => continuous_norm.measurable.comp_aemeasurable (hUmeas n))).2 hNormUclt)
   have hQlittle : IsLittleOp (fun n ω => ‖Q n ω‖)
       (fun _ => (1 : ℝ)) μ := by
     simpa [Q] using

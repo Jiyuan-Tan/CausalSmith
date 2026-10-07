@@ -30,7 +30,7 @@ theorem uniform_overlap_frontier {t0 zeta : ℝ} (ht0 : 0 < t0) (hzeta : 0 < zet
       (∃ TStar : Nat, 1 ≤ TStar ∧ ∀ (C : ℝ), 1 ≤ C → ∀ T ≥ TStar,
           cLower * frontierRate T t0 zeta C ≤ minimaxRisk T t0 zeta C ∧
           minimaxRisk T t0 zeta C ≤ cUpper * frontierRate T t0 zeta C ∧
-          Causalean.Stat.worstCaseRisk
+          Causalean.Stat.worstCaseRiskReal
             (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := C))
             (phiwObservable (T := T) (radiusAdaptiveDepth T t0 zeta C)) ≤
               cUpper * frontierRate T t0 zeta C) ∧
@@ -39,7 +39,7 @@ theorem uniform_overlap_frontier {t0 zeta : ℝ} (ht0 : 0 < t0) (hzeta : 0 < zet
           (T : ℝ) * overlapRadius (Cregime T) ^ 2 ≤ D) →
         ∃ cImmediate : ℝ, 0 < cImmediate ∧
           ∀ᶠ (T : Nat) in atTop,
-            Causalean.Stat.worstCaseRisk
+            Causalean.Stat.worstCaseRiskReal
               (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := Cregime T))
               (phiwObservable (T := T) 0) ≤ cImmediate / T := by
   have halpha0 : 0 < mixingAlpha t0 := by unfold mixingAlpha; positivity
@@ -120,7 +120,7 @@ theorem uniform_overlap_frontier {t0 zeta : ℝ} (ht0 : 0 < t0) (hzeta : 0 < zet
         policyFactor zeta ^ k / (T : ℝ) ≤ cR * frontierRate T t0 zeta C at hrateT
     let m0 := parametricModel T t0 zeta C false hT1 ht0 hzeta hC
     letI : Nonempty (ModelIndex T t0 zeta C) := ⟨m0⟩
-    have hattain : Causalean.Stat.worstCaseRisk
+    have hattain : Causalean.Stat.worstCaseRiskReal
         (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := C))
         (phiwObservable (T := T) k) ≤ cUpper * frontierRate T t0 zeta C := by
       simp [phiwObservable, hkT]
@@ -183,7 +183,7 @@ theorem uniform_overlap_frontier {t0 zeta : ℝ} (ht0 : 0 < t0) (hzeta : 0 < zet
           gcongr
           exact le_max_left _ _
     have hminiUpper : minimaxRisk T t0 zeta C ≤
-        Causalean.Stat.worstCaseRisk
+        Causalean.Stat.worstCaseRiskReal
           (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := C))
           (phiwObservable (T := T) k) := by
       apply Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg

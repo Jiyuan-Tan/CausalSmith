@@ -81,7 +81,7 @@ theorem inverse_deriv_eq (G : ℝ → ℂ) (hG : Integrable G)
   simpa [smul_eq_mul, mul_neg, neg_mul] using
     congrFun (Real.fourier_deriv hG hdiff hD) (-v)
 
-/-- [A complex frequency multiplier](hyp:G) with [admissible compact inverse-Fourier data](hyp:hG) has [finite ordinary and quadratic physical-space energies with the stated frequency-space identities](goal). -/
+/-- For [a complex frequency multiplier G](hyp:G) with [admissible compact inverse-Fourier data](hyp:hG), writing g for its inverse Fourier transform, [|g|² and v²·|g(v)|² are integrable, the integral of |g|² equals the integral of |G|², and the integral of v²·|g(v)|² equals (2π)⁻² times the integral of |G′|²](goal). -/
 theorem inverse_energy_endpoints (G : ℝ → ℂ) (hG : CompactInverseData G) :
     Integrable (fun v => ‖𝓕⁻ G v‖ ^ 2) ∧
     Integrable (fun v => v ^ 2 * ‖𝓕⁻ G v‖ ^ 2) ∧

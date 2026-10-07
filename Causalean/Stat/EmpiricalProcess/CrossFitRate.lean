@@ -65,9 +65,9 @@ constant multiple through, and add two `O_p` bounds at the sum of their rates.
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 variable {Xn Yn : ℕ → Ω → ℝ} {rn sn : ℕ → ℝ}
 
-/-- **Weaken to a larger rate.**  `O_p(rₙ)` with `0 ≤ rₙ ≤ sₙ` is `O_p(sₙ)`:
+/-- **Weaken to a larger rate.**  `O_p(rₙ)` with `rₙ ≤ sₙ` is `O_p(sₙ)`:
 a larger envelope is a weaker statement. -/
-theorem IsBigOp.mono_rate (hrn : ∀ n, 0 ≤ rn n) (hle : ∀ n, rn n ≤ sn n)
+theorem IsBigOp.mono_rate (hle : ∀ n, rn n ≤ sn n)
     (h : IsBigOp Xn rn μ) : IsBigOp Xn sn μ := by
   intro δ hδ
   obtain ⟨M, hM, htail⟩ := h δ hδ
@@ -131,8 +131,8 @@ theorem IsBigOp.add' (hrn : ∀ n, 0 ≤ rn n) (hsn : ∀ n, 0 ≤ sn n)
     (hX : IsBigOp Xn rn μ) (hY : IsBigOp Yn sn μ) :
     IsBigOp (fun n ω => Xn n ω + Yn n ω) (fun n => rn n + sn n) μ := by
   apply Modes.BoundedInProbability.add
-  · exact IsBigOp.mono_rate hrn (fun n => by linarith [hsn n]) hX
-  · exact IsBigOp.mono_rate hsn (fun n => by linarith [hrn n]) hY
+  · exact IsBigOp.mono_rate (fun n => by linarith [hsn n]) hX
+  · exact IsBigOp.mono_rate (fun n => by linarith [hrn n]) hY
 
 /-- If `|Xₙ| ≤ |Yₙ|` pointwise and `Yₙ = O_p(rₙ)`, then `Xₙ = O_p(rₙ)`. -/
 theorem IsBigOp.of_abs_le (h : ∀ n ω, |Xn n ω| ≤ |Yn n ω|)
@@ -173,8 +173,8 @@ theorem IsBigOp.finset_sum {ι : Type*} (s : Finset ι) {X : ι → ℕ → Ω �
       rw [Finset.sum_insert hi]
 
 /-- **Product rule for stochastic big-O.**  If `Xₙ = O_p(rₙ)` and
-`Yₙ = O_p(sₙ)` for nonnegative rates, then `XₙYₙ = O_p(rₙsₙ)`. -/
-theorem IsBigOp.mul (hrn : ∀ n, 0 ≤ rn n) (hsn : ∀ n, 0 ≤ sn n)
+`Yₙ = O_p(sₙ)`, then `XₙYₙ = O_p(rₙsₙ)`. -/
+theorem IsBigOp.mul
     (hX : IsBigOp Xn rn μ) (hY : IsBigOp Yn sn μ) :
     IsBigOp (fun n ω => Xn n ω * Yn n ω) (fun n => rn n * sn n) μ := by
   intro δ hδ

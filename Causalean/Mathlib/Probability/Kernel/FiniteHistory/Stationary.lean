@@ -84,8 +84,7 @@ def pointVector {S : Type*} [Fintype S] [DecidableEq S] (s : S) : S → ℝ :=
 
 /-- Let [P be a row-stochastic transition matrix](hyp:P,hP) on a finite state space with
 [stationary distribution π](hyp:π,hπ), and suppose [one step of P contracts the ℓ¹ distance
-between probability vectors by a factor α](hyp:alpha,hcontract) with [0 ≤ α](hyp:halpha0)
-[< 1](hyp:halpha1). Then for [every starting state s](hyp:s) and [every number of steps
+between probability vectors by a factor α](hyp:alpha,hcontract) with [0 ≤ α](hyp:halpha0). Then for [every starting state s](hyp:s) and [every number of steps
 gap](hyp:gap), [the ℓ¹ distance between the distribution after gap steps from the point mass at s
 and π is at most 2·α^gap](goal). -/
 theorem markovIterate_point_stationary_bound
@@ -93,7 +92,7 @@ theorem markovIterate_point_stationary_bound
     (P : Matrix S S ℝ) (π : S → ℝ) (alpha : ℝ)
     (hP : IsStochasticMatrix P) (hπ : IsStationary P π)
     (hcontract : ContractsL1 P alpha)
-    (halpha0 : 0 ≤ alpha) (halpha1 : alpha < 1)
+    (halpha0 : 0 ≤ alpha)
     (gap : ℕ) (s : S) :
     l1Distance (markovIterate P (pointVector s) gap) π ≤ 2 * alpha ^ gap := by
   have hp : IsProbabilityVector (pointVector s) := by
@@ -125,20 +124,20 @@ theorem markovIterate_point_stationary_bound
       _ ≤ alpha * (2 * alpha ^ n) := mul_le_mul_of_nonneg_left ih halpha0
       _ = 2 * alpha ^ (n + 1) := by rw [pow_succ]; ring
 
-/-- A finite [transition matrix](hyp:P), [stationary distribution](hyp:π), [contraction coefficient](hyp:alpha), [stochasticity certificate](hyp:hP), [stationarity certificate](hyp:hπ), [ℓ¹ contraction certificate](hyp:hcontract), [nonnegative coefficient below one](hyp:halpha0,halpha1), [step gap](hyp:gap), [starting state](hyp:s), and [bounded score](hyp:v,Cv,hv) give [the geometric error bound for its Markov-row mean](goal). -/
+/-- A finite [transition matrix](hyp:P), [stationary distribution](hyp:π), [contraction coefficient](hyp:alpha), [stochasticity certificate](hyp:hP), [stationarity certificate](hyp:hπ), [ℓ¹ contraction certificate](hyp:hcontract), [nonnegative coefficient](hyp:halpha0), [step gap](hyp:gap), [starting state](hyp:s), and [bounded score](hyp:v,Cv,hv) give [the geometric error bound for its Markov-row mean](goal). -/
 theorem markov_row_score_bound
     {S : Type*} [Fintype S] [DecidableEq S]
     (P : Matrix S S ℝ) (π : S → ℝ) (alpha : ℝ)
     (hP : IsStochasticMatrix P) (hπ : IsStationary P π)
     (hcontract : ContractsL1 P alpha)
-    (halpha0 : 0 ≤ alpha) (halpha1 : alpha < 1)
+    (halpha0 : 0 ≤ alpha)
     (gap : ℕ) (s : S) (v : S → ℝ)
     (Cv : ℝ) (hv : ∀ t, |v t| ≤ Cv) :
     |(∑ t, markovIterate P (pointVector s) gap t * v t) -
         (∑ t, π t * v t)| ≤ 2 * Cv * alpha ^ gap := by
   have hCv : 0 ≤ Cv := le_trans (abs_nonneg _) (hv s)
   have hdist := markovIterate_point_stationary_bound P π alpha hP hπ hcontract
-    halpha0 halpha1 gap s
+    halpha0 gap s
   calc
     |(∑ t, markovIterate P (pointVector s) gap t * v t) -
       (∑ t, π t * v t)| ≤ Cv * l1Distance (markovIterate P (pointVector s) gap) π := by
@@ -165,12 +164,12 @@ theorem markov_row_score_bound
     _ ≤ Cv * (2 * alpha ^ gap) := mul_le_mul_of_nonneg_left hdist hCv
     _ = 2 * Cv * alpha ^ gap := by ring
 
-/-- A finite [transition matrix](hyp:P), [stationary distribution](hyp:π), [stochasticity and stationarity certificates](hyp:hP,hπ), [gap](hyp:gap), probability [past-window law](hyp:μ), measurable [last-state map](hyp:last,hlast_meas) with [stationary singleton masses](hyp:hlast), [stationary future kernel](hyp:Q), [conditional future kernel](hyp:future), [their supplied gap-kernel representation](hyp:hfuture), [joint law](hyp:ν) satisfying [the composition-product identity](hyp:hν), and a measurable normalized [future score](hyp:g,hg,hg_bound) give [the stationary-mixture formula for its marginal mean](goal). -/
+/-- A finite [transition matrix](hyp:P), [stationary distribution](hyp:π), [stationarity certificate](hyp:hπ), [gap](hyp:gap), probability [past-window law](hyp:μ), measurable [last-state map](hyp:last,hlast_meas) with [stationary singleton masses](hyp:hlast), [stationary future kernel](hyp:Q), [conditional future kernel](hyp:future), [their supplied gap-kernel representation](hyp:hfuture), [joint law](hyp:ν) satisfying [the composition-product identity](hyp:hν), and a measurable normalized [future score](hyp:g,hg,hg_bound) give [the stationary-mixture formula for its marginal mean](goal). -/
 theorem stationary_future_window_mean
     {S X Y : Type*} [Fintype S] [DecidableEq S]
     [MeasurableSpace S] [MeasurableSpace X] [MeasurableSpace Y]
     (P : Matrix S S ℝ) (π : S → ℝ)
-    (hP : IsStochasticMatrix P) (hπ : IsStationary P π)
+    (hπ : IsStationary P π)
     (gap : ℕ)
     (μ : Measure X) [IsProbabilityMeasure μ]
     (last : X → S) (hlast_meas : Measurable last)
@@ -311,8 +310,7 @@ theorem stationary_future_window_mean
 
 /-- Let [P be a row-stochastic transition matrix](hyp:P,hP) on a finite state space with
 [stationary distribution π](hyp:π,hπ), and suppose [one step of P contracts the ℓ¹ distance
-between probability vectors by a factor α](hyp:alpha,hcontract) with [0 ≤ α](hyp:halpha0)
-[< 1](hyp:halpha1). Let [a past window be drawn from a probability law μ](hyp:μ) whose
+between probability vectors by a factor α](hyp:alpha,hcontract) with [0 ≤ α](hyp:halpha0). Let [a past window be drawn from a probability law μ](hyp:μ) whose
 [measurable last state](hyp:last,hlast_meas) [has distribution π](hyp:hlast), and let
 [Q be a Markov kernel from states to future windows](hyp:Q) and [future a Markov kernel from past
 to future windows](hyp:future) such that [for every past window x, the future kernel's mean of
@@ -328,7 +326,7 @@ theorem separated_window_covariance
     (P : Matrix S S ℝ) (π : S → ℝ) (alpha : ℝ)
     (hP : IsStochasticMatrix P) (hπ : IsStationary P π)
     (hcontract : ContractsL1 P alpha)
-    (halpha0 : 0 ≤ alpha) (halpha1 : alpha < 1)
+    (halpha0 : 0 ≤ alpha)
     (gap : ℕ)
     (μ : Measure X) [IsProbabilityMeasure μ]
     (last : X → S) (hlast_meas : Measurable last)
@@ -405,7 +403,7 @@ theorem separated_window_covariance
       (∫ z, g z.2 ∂ν) = Cg * (∫ z, g z.2 / Cg ∂ν) :=
         by rw [integral_div]; exact (mul_div_cancel₀ _ hCg0).symm
       _ = Cg * ∑ s, π s * (∫ y, g y / Cg ∂Q s) := by
-        rw [stationary_future_window_mean P π hP hπ gap μ last hlast_meas
+        rw [stationary_future_window_mean P π hπ gap μ last hlast_meas
           hlast Q future hfuture ν hν (fun y => g y / Cg) hnorm_meas hnorm_bound]
       _ = ∑ s, π s * v s := by
         rw [Finset.mul_sum]
@@ -416,12 +414,10 @@ theorem separated_window_covariance
       |(∫ y, g y ∂future x) - (∫ z, g z.2 ∂ν)| ≤
         2 * Cg * alpha ^ gap := by
     rw [hfuture_scaled x, hmean]
-    exact markov_row_score_bound P π alpha hP hπ hcontract halpha0 halpha1
+    exact markov_row_score_bound P π alpha hP hπ hcontract halpha0
       gap (last x) v Cg hv
-  have hD : 0 ≤ 2 * Cg * alpha ^ gap := by
-    exact mul_nonneg (mul_nonneg (by norm_num) hCg) (pow_nonneg halpha0 _)
   convert covariance_compProd_of_centered_kernel_bound μ future ν hν f hf Cf hCf
-    hf_bound g hg Cg hCg hg_bound (2 * Cg * alpha ^ gap) hD hkernel using 1
+    hf_bound g hg Cg hg_bound (2 * Cg * alpha ^ gap) hkernel using 1
   ring
 
 end Causalean.Mathlib.Probability.Kernel.FiniteHistory

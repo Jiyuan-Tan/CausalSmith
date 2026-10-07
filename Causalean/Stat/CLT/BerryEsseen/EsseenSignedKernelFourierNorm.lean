@@ -4,8 +4,16 @@ public import Causalean.Stat.CLT.BerryEsseen.EsseenSinc4SecondMoment
 
 /-! # Fourier norm bound for the signed sinc-fourth kernel
 
-The absolute first moment of the shifted density bounds the magnitude
-of every Fourier integral of the signed kernel.
+The signed comparison kernel k(y) = −(y/8)·q(−y − 4), where q is the unit sinc-fourth probability
+density, has Fourier transform bounded by one in absolute value at every real frequency. The
+proof bounds the transform by the L¹ norm of k, uses |y|/8 ≤ (y² + 16)/64, and evaluates the
+resulting integral from the moments of q (mass one, first moment zero, second moment twelve),
+which gives an L¹ norm of at most 44/64. The bound is used in the one-sided Esseen comparison of
+distribution functions.
+
+## Main results
+
+* `esseenSignedSinc4Kernel_fourier_norm_le_one` — |∫ exp(i t y) k(y) dy| ≤ 1 for all real t.
 -/
 
 public section

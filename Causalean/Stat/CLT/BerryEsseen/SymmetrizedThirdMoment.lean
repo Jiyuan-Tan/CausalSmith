@@ -2,7 +2,7 @@ module
 public import Mathlib.MeasureTheory.Integral.Prod
 public import Mathlib.Probability.Moments.Basic
 
-/-! # Sharp cubic moment control for an independent difference
+/-! # Cubic moment control for an independent difference
 
 This leaf isolates the moment ingredient of Prawitz's modulus estimate.
 The independent difference is integrated against the product law explicitly.

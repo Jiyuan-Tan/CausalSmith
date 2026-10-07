@@ -247,7 +247,8 @@ theorem ghost_fourth_le_rademacher (n : ℕ) :
   rw [hconst, hlin] at havg
   exact havg
 
-/-- For a nonempty countable uniformly bounded measurable class and [a
+/-- For [a uniformly bounded measurable class](hyp:F) with a nonempty
+countable index set, [a probability measure μ](hyp:μ), and [a
 positive sample size n](hyp:n,hn), [the expected fourth power of the
 centered supremum over an iid sample from μ is at most sixteen times the
 expected sign-average fourth power of the signed supremum](goal): the

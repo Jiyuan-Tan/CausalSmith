@@ -167,13 +167,13 @@ theorem integral_sub_populationMean_eq_zero
   rw [integral_sub hf (integrable_const _)]
   simp [populationMean]
 
-/-- For [a probability law](hyp:P), [a strongly measurable square-integrable
-Hilbert-valued feature map](hyp:f,hf,hf_L2), and [a product coordinate](hyp:i),
+/-- For [a probability law](hyp:P), [a square-integrable
+Hilbert-valued feature map](hyp:f,hf_L2), and [a product coordinate](hyp:i),
 [the coordinate's centered second moment equals the population centered second
 moment](goal). -/
 theorem integral_norm_centered_coordinate_sq_eq
     (P : Measure X) [IsProbabilityMeasure P] (f : X → H)
-    (hf : StronglyMeasurable f) (hf_L2 : MemLp f 2 P)
+    (hf_L2 : MemLp f 2 P)
     {m : ℕ} (i : Fin m) :
     ∫ z : Fin m → X, ‖f (z i) - populationMean P f‖ ^ 2
         ∂(Measure.pi (fun _ : Fin m => P)) =
@@ -186,13 +186,13 @@ theorem integral_norm_centered_coordinate_sq_eq
   exact integral_comp_eval (μ := fun _ : Fin m => P) (i := i)
     hg_sq.aestronglyMeasurable
 
-/-- For [a probability law](hyp:P), [a strongly measurable square-integrable
-Hilbert-valued feature map](hyp:f,hf,hf_L2), and [two distinct product
+/-- For [a probability law](hyp:P), [a square-integrable
+Hilbert-valued feature map](hyp:f,hf_L2), and [two distinct product
 coordinates](hyp:i,j,hij), [the expected inner product of their centered
 values is zero](goal). -/
 theorem integral_inner_centered_coordinates_eq_zero
     (P : Measure X) [IsProbabilityMeasure P] (f : X → H)
-    (hf : StronglyMeasurable f) (hf_L2 : MemLp f 2 P)
+    (hf_L2 : MemLp f 2 P)
     {m : ℕ} {i j : Fin m} (hij : i ≠ j) :
     ∫ z : Fin m → X,
         inner ℝ (f (z i) - populationMean P f)
@@ -227,12 +227,12 @@ theorem integral_inner_centered_coordinates_eq_zero
   rw [integral_sub_populationMean_eq_zero P f (hf_L2.integrable (by norm_num))]
   simp
 
-/-- For [a probability law](hyp:P) and [a strongly measurable square-integrable
-Hilbert-valued feature map](hyp:f,hf,hf_L2), [centering does not increase its
+/-- For [a probability law](hyp:P) and [a square-integrable
+Hilbert-valued feature map](hyp:f,hf_L2), [centering does not increase its
 population second moment](goal). -/
 theorem population_centered_secondMoment_le
     (P : Measure X) [IsProbabilityMeasure P] (f : X → H)
-    (hf : StronglyMeasurable f) (hf_L2 : MemLp f 2 P) :
+    (hf_L2 : MemLp f 2 P) :
     ∫ x, ‖f x - populationMean P f‖ ^ 2 ∂P ≤
       ∫ x, ‖f x‖ ^ 2 ∂P := by
   have hfi : Integrable f P := hf_L2.integrable (by norm_num)
@@ -259,13 +259,12 @@ theorem population_centered_secondMoment_le
   rw [show ∫ x, f x ∂P = populationMean P f by rfl, real_inner_self_eq_norm_sq]
   nlinarith [sq_nonneg ‖populationMean P f‖]
 
-/-- For [a probability law](hyp:P), [a strongly measurable square-integrable
-Hilbert-valued feature map](hyp:f,hf,hf_L2), and [a sample size](hyp:m), [the
-second moment of the unscaled centered sum equals the sample size times the
+/-- For [a probability law](hyp:P), [a square-integrable Hilbert-valued feature
+map](hyp:f,hf_L2), and [a sample size](hyp:m), [the second moment of the unscaled centered sum equals the sample size times the
 population centered second moment](goal). -/
 theorem centeredSum_secondMoment_eq
     (P : Measure X) [IsProbabilityMeasure P] (f : X → H)
-    (hf : StronglyMeasurable f) (hf_L2 : MemLp f 2 P) (m : ℕ) :
+    (hf_L2 : MemLp f 2 P) (m : ℕ) :
     ∫ z : Fin m → X,
         ‖∑ r, (f (z r) - populationMean P f)‖ ^ 2
         ∂(Measure.pi (fun _ : Fin m => P)) =
@@ -299,10 +298,10 @@ theorem centeredSum_secondMoment_eq
     · subst j
       rw [if_pos rfl]
       simpa only [g, real_inner_self_eq_norm_sq] using
-        integral_norm_centered_coordinate_sq_eq P f hf hf_L2 i
+        integral_norm_centered_coordinate_sq_eq P f hf_L2 i
     · rw [if_neg hij]
       simpa only [g] using
-        integral_inner_centered_coordinates_eq_zero P f hf hf_L2 hij
+        integral_inner_centered_coordinates_eq_zero P f hf_L2 hij
   rw [show (fun z : Fin m → X =>
       ‖∑ r, (f (z r) - populationMean P f)‖ ^ 2) =
       fun z => ∑ i, ∑ j, inner ℝ (g (z i)) (g (z j)) by
@@ -335,7 +334,7 @@ theorem centeredEmpiricalMean_secondMoment_eq
     congr 2
     simp
   rw [integral_congr_ae (ae_of_all _ hpoint), integral_const_mul,
-    centeredSum_secondMoment_eq P f hf hf_L2 m]
+    centeredSum_secondMoment_eq P f hf_L2 m]
   field_simp
 
 /-- For [a probability law](hyp:P), [a strongly measurable square-integrable
@@ -351,6 +350,6 @@ theorem centeredEmpiricalMean_secondMoment_le
       (m : ℝ)⁻¹ * ∫ x, ‖f x‖ ^ 2 ∂P := by
   rw [centeredEmpiricalMean_secondMoment_eq P f hf hf_L2 hm]
   exact mul_le_mul_of_nonneg_left
-    (population_centered_secondMoment_le P f hf hf_L2) (by positivity)
+    (population_centered_secondMoment_le P f hf_L2) (by positivity)
 
 end Causalean.Stat.Concentration.HilbertEmpiricalMean

@@ -54,9 +54,9 @@ theorem affine_coordPartial {d j : ℕ} (u : (Fin d → ℝ) → ℝ)
   rw [ContinuousMultilinearMap.map_smul_univ]
   simp [hc, a]
 
-/-- [A finite dimension, derivative order, Hölder exponent, seminorm bound, response, closed-cube regularity, and top-order modulus](hyp:d,m,s,L,u,hu,hL) imply [the affine-scaled top-order Hölder modulus on the unit cube](goal). -/
+/-- [A finite dimension, derivative order, Hölder exponent, seminorm bound, response, and top-order modulus](hyp:d,m,s,L,u,hL) imply [the affine-scaled top-order Hölder modulus on the unit cube](goal). -/
 theorem affine_topHolder {d m : ℕ} {s L : ℝ} (u : (Fin d → ℝ) → ℝ)
-    (hu : ContDiffOn ℝ m u (cube d)) (hL : TopHolder d m s L u) :
+    (hL : TopHolder d m s L u) :
     ∀ f : Fin m → Fin d, ∀ x ∈ unitCube d, ∀ y ∈ unitCube d,
       |coordPartial m (fun z => u (cubeAffine z)) f x -
         coordPartial m (fun z => u (cubeAffine z)) f y| ≤
@@ -85,9 +85,16 @@ theorem affine_topHolder {d m : ℕ} {s L : ℝ} (u : (Fin d → ℝ) → ℝ)
             ((2 : ℝ) ^ m * (2 * ‖x - y‖) ^ s) * L := by ring
         _ = _ := by rw [hpow]; ring
 
-/-- [A finite dimension, derivative order, Hölder exponent, radius, response, exponent bounds, nonnegative radius, and fixed-cube Hölder ball](hyp:d,m,s,R,u,hs,hs1,hR,hu) imply [the affine-transported regularity, derivative bounds, and top-order modulus on the unit cube](goal). -/
+/-- If [a function u of d variables](hyp:d,u) lies in [the fixed-cube Hölder ball of derivative
+order m, exponent s, and radius R on the normalized cube](hyp:m,s,R,hu), then [its pullback
+z ↦ u(2z − 1) to the unit cube satisfies three things: it is m times continuously
+differentiable on the unit cube; each of
+its coordinate partial derivatives of order j at most m is at most 2^j times R in absolute value
+on the unit cube; and each of its order-m coordinate partials changes between any two points of
+the unit cube by at most 2^(m + s) times R times their distance to the power s](goal).
+
+Coordinate partials are taken in the whole space, as in the fixed-cube Hölder ball. -/
 theorem affine_holderBall {d m : ℕ} {s R : ℝ} (u : (Fin d → ℝ) → ℝ)
-    (hs : 0 < s) (hs1 : s ≤ 1) (hR : 0 ≤ R)
     (hu : HolderBall d m s R u) :
     ContDiffOn ℝ m (fun z => u (cubeAffine z)) (unitCube d) ∧
     (∀ j ≤ m, ∀ f : Fin j → Fin d, ∀ x ∈ unitCube d,
@@ -96,7 +103,7 @@ theorem affine_holderBall {d m : ℕ} {s R : ℝ} (u : (Fin d → ℝ) → ℝ)
       |coordPartial m (fun z => u (cubeAffine z)) f x -
         coordPartial m (fun z => u (cubeAffine z)) f y| ≤
           ((2 : ℝ) ^ ((m : ℝ) + s) * R) * ‖x - y‖ ^ s) := by
-  refine ⟨?_, ?_, affine_topHolder u hu.regularity hu.modulus⟩
+  refine ⟨?_, ?_, affine_topHolder u hu.modulus⟩
   · have hmap : Set.MapsTo (cubeAffine : (Fin d → ℝ) → (Fin d → ℝ))
         (unitCube d) (cube d) := fun _ hx => cubeAffine_mem_cube hx
     simpa only [Function.comp_def] using

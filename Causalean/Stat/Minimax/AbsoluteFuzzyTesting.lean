@@ -8,7 +8,7 @@ public import Mathlib.Tactic.Linarith
 /-!
 # Absolute-loss fuzzy testing
 
-This module gives a sharp common-prior fuzzy-testing lower bound for absolute loss. It supplies finite iid experiment kernels, threshold tests that do not require target measurability, and the corresponding model-supremum lower bound.
+This module gives a common-prior fuzzy-testing lower bound for absolute loss, with the constant inherited from the sharp Hellinger bound on total variation. It supplies finite iid experiment kernels, threshold tests that do not require target measurability, and the corresponding model-supremum lower bound.
 -/
 
 @[expose] public section
@@ -116,7 +116,7 @@ theorem measurableSet_threshold {t : X → ℝ} (ht : Measurable t) (a : ℝ) :
     MeasurableSet {x | t x < a} := by
   exact measurableSet_lt ht measurable_const
 
-/-- A [target at least δ above a threshold](hyp:hθ), with [δ nonnegative](hyp:hδ),
+/-- A [target at least δ above a threshold](hyp:hθ)
 has [absolute risk at least δ times the below-threshold error probability](goal)
 for a [measurable estimator](hyp:ht).
 
@@ -124,7 +124,7 @@ Bound the integrand below by the constant `ofReal δ` on the measurable event,
 then integrate its indicator. No integrability or finite-risk premise is needed. -/
 theorem threshold_error_mul_le_absolute_risk_above (P : Measure X)
     {t : X → ℝ} (ht : Measurable t) {a θ δ : ℝ}
-    (hδ : 0 ≤ δ) (hθ : a + δ ≤ θ) :
+    (hθ : a + δ ≤ θ) :
     ENNReal.ofReal δ * P {x | t x < a} ≤
       ∫⁻ x, ENNReal.ofReal |t x - θ| ∂P := by
   classical
@@ -140,12 +140,12 @@ theorem threshold_error_mul_le_absolute_risk_above (P : Measure X)
   · rw [Set.indicator_of_notMem hx]
     exact bot_le
 
-/-- A [target at least δ below a threshold](hyp:hθ), with [δ nonnegative](hyp:hδ),
+/-- A [target at least δ below a threshold](hyp:hθ)
 has [absolute risk at least δ times the complementary error probability](goal)
 for a [measurable estimator](hyp:ht). -/
 theorem threshold_error_mul_le_absolute_risk_below (P : Measure X)
     {t : X → ℝ} (ht : Measurable t) {a θ δ : ℝ}
-    (hδ : 0 ≤ δ) (hθ : θ ≤ a - δ) :
+    (hθ : θ ≤ a - δ) :
     ENNReal.ofReal δ * P {x | t x < a}ᶜ ≤
       ∫⁻ x, ENNReal.ofReal |t x - θ| ∂P := by
   classical
@@ -163,8 +163,7 @@ theorem threshold_error_mul_le_absolute_risk_below (P : Measure X)
 
 /-- For a probability prior and Markov experiment, [targets above a fixed threshold](hyp:hθ)
 and [a uniform component risk bound](hyp:hR) imply [the same bound on the scaled
-mixture error probability](goal) for a [measurable estimator](hyp:ht) and
-[nonnegative error scale](hyp:hδ), without measurability of targets.
+mixture error probability](goal) for a [measurable estimator](hyp:ht), without measurability of targets.
 
 Rewrite the bind event by `Measure.bind_apply`. Move its constant multiplier
 inside the prior lower integral and bound every integrand by R using the component
@@ -172,31 +171,30 @@ lemma. Integrate the constant against the probability prior. -/
 theorem mixture_threshold_error_le_of_component_risk_above
     (ω : Measure Z) [IsProbabilityMeasure ω] (K : Kernel Z X) [IsMarkovKernel K]
     (θ : Z → ℝ) {t : X → ℝ} (ht : Measurable t) {a δ : ℝ} {R : ℝ≥0∞}
-    (hδ : 0 ≤ δ) (hθ : ∀ z, a + δ ≤ θ z)
+    (hθ : ∀ z, a + δ ≤ θ z)
     (hR : ∀ z, (∫⁻ x, ENNReal.ofReal |t x - θ z| ∂K z) ≤ R) :
     ENNReal.ofReal δ * (ω.bind K) {x | t x < a} ≤ R := by
   rw [Measure.bind_apply (measurableSet_threshold ht a) K.aemeasurable,
     ← lintegral_const_mul _ (K.measurable_coe (measurableSet_threshold ht a))]
   calc
     _ ≤ ∫⁻ _ : Z, R ∂ω := lintegral_mono fun z =>
-      (threshold_error_mul_le_absolute_risk_above (K z) ht hδ (hθ z)).trans (hR z)
+      (threshold_error_mul_le_absolute_risk_above (K z) ht (hθ z)).trans (hR z)
     _ = R := by simp
 
 /-- For a probability prior and Markov experiment, [targets below a fixed threshold](hyp:hθ)
 and [a uniform component risk bound](hyp:hR) imply [the same bound on the scaled
-complementary mixture error](goal) for a [measurable estimator](hyp:ht) and
-[nonnegative error scale](hyp:hδ), without measurability of targets. -/
+complementary mixture error](goal) for a [measurable estimator](hyp:ht), without measurability of targets. -/
 theorem mixture_threshold_error_le_of_component_risk_below
     (ω : Measure Z) [IsProbabilityMeasure ω] (K : Kernel Z X) [IsMarkovKernel K]
     (θ : Z → ℝ) {t : X → ℝ} (ht : Measurable t) {a δ : ℝ} {R : ℝ≥0∞}
-    (hδ : 0 ≤ δ) (hθ : ∀ z, θ z ≤ a - δ)
+    (hθ : ∀ z, θ z ≤ a - δ)
     (hR : ∀ z, (∫⁻ x, ENNReal.ofReal |t x - θ z| ∂K z) ≤ R) :
     ENNReal.ofReal δ * (ω.bind K) {x | t x < a}ᶜ ≤ R := by
   rw [Measure.bind_apply (measurableSet_threshold ht a).compl K.aemeasurable,
     ← lintegral_const_mul _ (K.measurable_coe (measurableSet_threshold ht a).compl)]
   calc
     _ ≤ ∫⁻ _ : Z, R ∂ω := lintegral_mono fun z =>
-      (threshold_error_mul_le_absolute_risk_below (K z) ht hδ (hθ z)).trans (hR z)
+      (threshold_error_mul_le_absolute_risk_below (K z) ht (hθ z)).trans (hR z)
     _ = R := by simp
 
 variable {Θ Z X Ω : Type*} [MeasurableSpace Z] [MeasurableSpace X] [MeasurableSpace Ω]
@@ -234,13 +232,12 @@ theorem separated_mixture_errors_le_two_mul_sup
     ENNReal.ofReal (s / 2) *
         ((ω.bind K) {x | t x < a} + (ω.bind L) {x | t x < a}ᶜ) ≤
       2 * worstAbsoluteRisk M Q Ψ t := by
-  have hδ : 0 ≤ s / 2 := by positivity
   have hB := mixture_threshold_error_le_of_component_risk_above ω K
-    (fun z => Ψ (b z)) ht hδ ha (fun z => by
+    (fun z => Ψ (b z)) ht ha (fun z => by
       rw [hK z]
       exact absolute_risk_le_model_sup M Q Ψ t (hb z))
   have hC := mixture_threshold_error_le_of_component_risk_below ω L
-    (fun z => Ψ (c z)) ht hδ hbnd (fun z => by
+    (fun z => Ψ (c z)) ht hbnd (fun z => by
       rw [hL z]
       exact absolute_risk_le_model_sup M Q Ψ t (hc z))
   simpa only [mul_add, two_mul] using add_le_add hB hC
@@ -249,7 +246,6 @@ theorem separated_mixture_errors_le_two_mul_sup
 and [globally separated targets](hyp:hsep,hs) force [every measurable estimator](hyp:ht)
 to have [worst absolute risk at least the sharp separation/testing constant](goal), when
 [the common-prior mixtures satisfy a Hellinger budget below two](hyp:hu0,hu2,hH).
-The [model observation laws are probability laws](hyp:hQ).
 
 Obtain Nonempty Z from the probability prior, then call `exists_separating_threshold`
 on Ψ ∘ b and Ψ ∘ c. Use `isProbabilityMeasure_bind` for each mixture and the budget
@@ -261,7 +257,6 @@ theorem absolute_fuzzy_testing_lower_bound
     (ω : Measure Z) [IsProbabilityMeasure ω]
     (K L : Kernel Z X) [IsMarkovKernel K] [IsMarkovKernel L]
     (M : Set Θ) (Q : Θ → Measure X) (Ψ : Θ → ℝ) (b c : Z → Θ)
-    (hQ : ∀ θ ∈ M, IsProbabilityMeasure (Q θ))
     (hb : ∀ z, b z ∈ M) (hc : ∀ z, c z ∈ M)
     (hK : ∀ z, K z = Q (b z)) (hL : ∀ z, L z = Q (c z))
     {s u : ℝ} (hs : 0 < s) (hu0 : 0 ≤ u) (hu2 : u < 2)
@@ -290,11 +285,16 @@ theorem absolute_fuzzy_testing_lower_bound
   rw [hconstant] at hrisk
   exact (ENNReal.mul_le_mul_iff_right (by norm_num) (by norm_num)).mp hrisk
 
-/-- A [sample size](hyp:v), [probability prior](hyp:ω), [two Markov experiment families](hyp:B,C),
-[model](hyp:M), and [real functional](hyp:Ψ), whose [model laws are probabilities](hyp:hM)
-and whose [families belong to that model](hyp:hB,hC), impose [the exact sharp absolute-risk
-lower bound on the model supremum](goal) under a [positive global functional gap](hyp:hs,hsep),
-a [Hellinger budget from zero up to two](hyp:hu0,hu2,hH), and [a measurable finite-iid estimator](hyp:ht).
+/-- Take a [sample size](hyp:v), a [probability prior on latent indices](hyp:ω), [two Markov
+families of observation laws indexed by the latent index](hyp:B,C), a [model](hyp:M) [which
+contains every law of both families](hyp:hB,hC),
+and a [real functional](hyp:Ψ) [whose value at any law of the first family exceeds its value at
+any law of the second family by at least a positive gap](hyp:hs,hsep). If [the squared Hellinger
+distance between the two prior mixtures of the iid product laws is at most a budget that is
+nonnegative and strictly below two](hyp:hu0,hu2,hH), then for [any measurable estimator based on
+the iid sample](hyp:ht), [the supremum over the model of the expected absolute error under iid
+sampling is at least one quarter of the gap times one minus the square root of the budget times
+one minus a quarter of the budget](goal).
 
 This includes every positive sample size required by the consumer (and the empty experiment).
 The functional Ψ is arbitrary; neither measurability on laws nor on latent indices is assumed. -/
@@ -302,7 +302,6 @@ theorem absolute_fuzzy_testing_lower_bound_iid
     (v : ℕ) (ω : Measure Z) [IsProbabilityMeasure ω]
     (B C : Kernel Z Ω) [IsMarkovKernel B] [IsMarkovKernel C]
     (M : Set (Measure Ω)) (Ψ : Measure Ω → ℝ)
-    (hM : ∀ P ∈ M, IsProbabilityMeasure P)
     (hB : ∀ z, B z ∈ M) (hC : ∀ z, C z ∈ M)
     {s u : ℝ} (hs : 0 < s) (hu0 : 0 ≤ u) (hu2 : u < 2)
     (hsep : ∀ z z', s ≤ Ψ (B z) - Ψ (C z'))
@@ -313,17 +312,13 @@ theorem absolute_fuzzy_testing_lower_bound_iid
     ENNReal.ofReal ((s / 4) * (1 - Real.sqrt (u * (1 - u / 4)))) ≤
       ⨆ P : M, ∫⁻ sample, ENNReal.ofReal |t sample - Ψ P.val|
         ∂Measure.pi (fun _ : Fin v => P.val) := by
-  have hQ : ∀ P ∈ M, IsProbabilityMeasure (Measure.pi (fun _ : Fin v => P)) := by
-    intro P hP
-    let : IsProbabilityMeasure P := hM P hP
-    infer_instance
   have hbudget : hellingerSqMeasure (ω.bind (iidExperimentKernel v B))
       (ω.bind (iidExperimentKernel v C)) ≤ u := by
     simpa only [bind_iidExperimentKernel] using hH
   exact absolute_fuzzy_testing_lower_bound ω
     (iidExperimentKernel v B) (iidExperimentKernel v C) M
     (fun P => Measure.pi (fun _ : Fin v => P)) Ψ (fun z => B z) (fun z => C z)
-    hQ hB hC (iidExperimentKernel_apply v B) (iidExperimentKernel_apply v C)
+    hB hC (iidExperimentKernel_apply v B) (iidExperimentKernel_apply v C)
     hs hu0 hu2 hsep hbudget ht
 
 

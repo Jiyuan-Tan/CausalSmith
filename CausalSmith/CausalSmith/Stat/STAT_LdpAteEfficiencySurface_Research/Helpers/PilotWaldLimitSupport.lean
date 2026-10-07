@@ -10,7 +10,7 @@ change with the sample size, so this file supplies the corresponding CDF-level
 converging-together and interval-probability adapters.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

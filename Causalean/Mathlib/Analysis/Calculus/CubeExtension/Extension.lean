@@ -41,9 +41,9 @@ theorem exists_global_holder_extension (d m : ℕ) (s : ℝ)
               ≤ A * L * ‖x - y‖ ^ s) := by
   by_cases hm : m = 0
   · subst m
-    exact exists_global_holder_extension_order_zero d s hs hs1
+    exact exists_global_holder_extension_order_zero d s hs
   obtain ⟨lo, hi, B, hmargin, hB, hneighborhood⟩ :=
-    exists_fixedCubeNeighborhood_holder_constant d m s hs hs1
+    exists_fixedCubeNeighborhood_holder_constant d m s hs
   obtain ⟨C, hC, hcutoff⟩ :=
     exists_global_holder_cutoff_of_rectBox d m s hs hs1 lo hi hmargin
   refine ⟨C * B, mul_pos hC hB, ?_⟩

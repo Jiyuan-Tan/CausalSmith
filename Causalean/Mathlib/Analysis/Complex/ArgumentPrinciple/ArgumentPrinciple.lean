@@ -16,7 +16,7 @@ zeros strictly inside the disk. It also records its integrality and positivity
 consequences.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 

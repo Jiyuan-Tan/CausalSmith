@@ -47,7 +47,7 @@ theorem iid_eventCount_zero_probability
 
 /-- Under [an observation probability law](hyp:P), [a nonnegative Poisson intensity](hyp:lambda),
 and [an event with measurable membership](hyp:B,hB), [the probability of no sample point in
-the event equals the exponential of its negative intensity](goal). -/
+the event equals the exponential of minus the intensity times the event's probability](goal). -/
 theorem finitePoisson_eventCount_zero_probability
     (P : Measure X) [IsProbabilityMeasure P] (lambda : ℝ≥0)
     {B : Set X} (hB : MeasurableSet B) :
@@ -89,19 +89,18 @@ theorem finitePoisson_eventCount_zero_probability
       (Filter.Eventually.of_forall fun n => by
         rw [Real.norm_eq_abs, abs_of_nonneg (pow_nonneg (sub_nonneg.mpr hp1) n)]
         exact pow_le_one₀ (sub_nonneg.mpr hp1) (by linarith))
-  have hgen := poisson_integral_one_sub_pow lambda (P.real B) hp0 hp1
+  have hgen := poisson_integral_one_sub_pow lambda (P.real B)
   rw [integral_sub (integrable_const 1) hint] at hgen
   simp only [integral_const, probReal_univ, smul_eq_mul, one_mul] at hgen
   change (finitePoissonSampleLaw P lambda).real E = _
   linarith
 
 /-- Under [an observation probability law](hyp:P), [a nonnegative Poisson intensity](hyp:lambda),
-two [events](hyp:A,B) with [measurable membership](hyp:hA,hB), [containment of the first in
-the second](hyp:hAB), and [zero containing-event mass](hyp:hPB), [the total success
+two [events](hyp:A,B) with [the second measurable](hyp:hB) and [of zero mass](hyp:hPB), [the total success
 fraction is almost surely zero](goal). -/
 theorem successFraction_ae_zero_of_mass_zero
     (P : Measure X) [IsProbabilityMeasure P] (lambda : ℝ≥0)
-    {A B : Set X} (hA : MeasurableSet A) (hB : MeasurableSet B) (hAB : A ⊆ B)
+    {A B : Set X} (hB : MeasurableSet B)
     (hPB : P B = 0) :
     successFraction A B =ᵐ[finitePoissonSampleLaw P lambda] (fun _ => 0) := by
   /- Use finitePoisson_eventCount_zero_probability with P.real B=0 to show
@@ -122,23 +121,23 @@ theorem successFraction_ae_zero_of_mass_zero
   simp [successFraction, Set.mem_ofPred_eq.mp hs]
 
 /-- Under [an observation probability law](hyp:P), [a nonnegative Poisson intensity](hyp:lambda),
-two [events](hyp:A,B) with [measurable membership](hyp:hA,hB), [containment of the first in
-the second](hyp:hAB), and [zero containing-event mass](hyp:hPB), [the expected total
+two [events](hyp:A,B), [measurability of the second](hyp:hB), and [zero mass of the second
+event](hyp:hPB), [the expected total
 success fraction is zero](goal). -/
 theorem finitePoisson_successFraction_mean_of_mass_zero
     (P : Measure X) [IsProbabilityMeasure P] (lambda : ℝ≥0)
-    {A B : Set X} (hA : MeasurableSet A) (hB : MeasurableSet B) (hAB : A ⊆ B)
+    {A B : Set X} (hB : MeasurableSet B)
     (hPB : P B = 0) :
     (∫ s, successFraction A B s ∂finitePoissonSampleLaw P lambda) = 0 := by
-  rw [integral_congr_ae (successFraction_ae_zero_of_mass_zero P lambda hA hB hAB hPB)]
+  rw [integral_congr_ae (successFraction_ae_zero_of_mass_zero P lambda hB hPB)]
   simp
 
-/-- Under [an observation probability law](hyp:P), two [events](hyp:A,B) with [measurable
-membership](hyp:hA,hB) and [containment of the first in the second](hyp:hAB), [the expected
+/-- Under [an observation probability law](hyp:P), two [events](hyp:A,B) with [the second
+measurable](hyp:hB), [the expected
 total success fraction at zero Poisson intensity is zero](goal). -/
 theorem finitePoisson_successFraction_mean_zero_intensity
     (P : Measure X) [IsProbabilityMeasure P]
-    {A B : Set X} (hA : MeasurableSet A) (hB : MeasurableSet B) (hAB : A ⊆ B) :
+    {A B : Set X} (hB : MeasurableSet B) :
     (∫ s, successFraction A B s ∂finitePoissonSampleLaw P 0) = 0 := by
   /- finitePoisson_eventCount_zero_probability at rate zero gives probability
   one of zero B-count, irrespective of P(B). Conclude the integrand is ae zero

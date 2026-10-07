@@ -8,7 +8,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Honest excess-risk transfer from two endpoint-attaining external laws. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set Filter
 namespace CausalSmith.PartialID.UnlinkedPropensityAte

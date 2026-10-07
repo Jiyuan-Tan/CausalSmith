@@ -9,7 +9,9 @@ public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
 # Rank-weighted concomitant expectation
 
 Continuous CDF transport of iid sorting coordinates, almost-sure rank
-equivalence, and the Bernstein-kernel expectation of bounded marks.
+equivalence, and the conditional-mean and tagged-rank ingredients of the
+Bernstein-kernel expectation of bounded marks; the expectation formula itself
+is proved in `ConcomitantExpectation`.
 
 Proof route: apply `Measure.pi_map_pi` to the one-coordinate CDF transport.
 Uniform coordinates have no ties; strict ordering is therefore preserved by
@@ -271,7 +273,10 @@ theorem conditionalMean_mem_Icc_ae (μ : Measure (ℝ × ℝ))
 
 /-- For a [positive sample size](hyp:hN), a [tagged coordinate](hyp:i), a
  [rank](hyp:j), and an [almost-everywhere measurable bounded test function](hyp:f,hf,hbound),
- [the tagged uniform coordinate at that rank has the binomial cell density](goal). -/
+ [the iid unit-uniform expectation of the test function at the tagged coordinate, on the event
+ that this coordinate has that (zero-based) rank `j` in the sample, equals the integral over
+ the unit interval of the test function against the binomial weight
+ `C(N−1, j) v^j (1−v)^(N−1−j)`](goal). -/
 theorem uniform_tagged_rank_cell_integral {N : ℕ} (hN : 0 < N)
     (i j : Fin N) (f : ℝ → ℝ)
     (hf : AEMeasurable f uniform01)
@@ -372,7 +377,7 @@ theorem uniform_tagged_rank_cell_integral {N : ℕ} (hN : 0 < N)
           rw [Measure.prod_prod]
           simp [ρ]
         simpa [ν, ρ, B] using
-          hBmass.trans (uniform_other_lt_count_mass (Nat.succ_pos n) i j hv)
+          hBmass.trans (uniform_other_lt_count_mass i j hv)
       let F : (Fin (n + 1) → ℝ) → ℝ :=
         fun u => if u ∈ C then g (u i) else 0
       have hFmeas : Measurable F := by

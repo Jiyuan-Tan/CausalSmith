@@ -2,18 +2,24 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Balke-Pearl IV bounds: validity of the observed cell probabilities
-
-The attainment arguments need two facts about the observed data that are not part
-of `cellProb`'s definition: the cells are nonnegative, and for each instrument
-value they sum to one. Both are read off the realized latent table.
 -/
-
 module
 public import Causalean.PO.ID.Partial.BalkePearl.ClosedForm
 
-/-! # Observed cell probabilities form a distribution per instrument value -/
+/-! # Observed cell probabilities form a distribution per instrument value
+
+In the binary Balke–Pearl instrumental-variable model, the observed data are the eight cell
+probabilities p(y, d | z) of outcome y and treatment d given instrument value z. This file proves
+that these cells are nonnegative and that, under the Balke–Pearl base assumptions, the four cells
+at each instrument value sum to one. Both facts are read off the realized latent response-type
+table and are the arithmetic inputs for checking that explicit latent tables are feasible.
+
+## Main results
+
+* `POBalkePearlSystem.cellProb_nonneg` — every observed cell probability is nonnegative.
+* `POBalkePearlSystem.sum_cellProb_eq_one` — for each instrument value, the four
+  outcome–treatment cell probabilities sum to one (under the base assumptions).
+-/
 
 public section
 

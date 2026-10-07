@@ -8,7 +8,7 @@ These bounds turn a within-stream heavy-correction variance estimate into the
 cellwise and aggregate product-variance budget in equation (16).
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.MarNearcompleteFrontier
 

@@ -7,7 +7,7 @@ Authors: Jiyuan Tan
 
 The chi-squared distribution with `d` degrees of freedom is *defined* here as the
 law of `‖W‖²` where `W` is the standard `d`-dimensional Gaussian
-(`Causalean/Mathlib/StandardGaussian.lean`, `stdGaussian`).  This is the textbook
+(`Causalean/Mathlib/Probability/Distributions/Gaussian/Standard.lean`, `stdGaussian`).  This is the textbook
 definition (sum of `d` independent squared standard normals) and is exactly the
 target produced by whitening the multivariate-CLT Gaussian limit through a Wald
 quadratic form (`Causalean/Stat/Inference/ChiSquaredWald.lean`).
@@ -29,7 +29,7 @@ Key declarations:
 
 module
 public import Causalean.Stat.CLT.GaussianCharFunBridge
-public import Causalean.Mathlib.StandardGaussian
+public import Causalean.Mathlib.Probability.Distributions.Gaussian.Standard
 
 /-! # Chi-Squared Distribution
 
@@ -50,8 +50,6 @@ open scoped RealInnerProductSpace
 namespace Causalean.Stat
 
 local notation "stdGaussian" => Causalean.Mathlib.stdGaussian
-local notation "covarianceBilin_stdGaussian" =>
-  Causalean.Mathlib.covarianceBilin_stdGaussian
 
 /-- For [a nonnegative integer number of degrees of freedom](hyp:d), the
 [chi-squared distribution](goal) is the probability law on the real line of
@@ -88,17 +86,18 @@ theorem stdGaussian_map_linearIsometryEquiv
     have hstep : ∫ x, x ∂((stdGaussian E).map L) = L (∫ x, x ∂(stdGaussian E)) := by
       rw [integral_map (by fun_prop) (by fun_prop)]
       exact ContinuousLinearMap.integral_comp_comm L IsGaussian.integrable_id
-    rw [hstep, stdGaussian_mean, map_zero]
+    rw [hstep, show ∫ x, x ∂(stdGaussian E) = 0 from integral_id_stdGaussian, map_zero]
   refine Measure.ext_of_charFun ?_
   funext t
   have hmemLp : MemLp id 2 (stdGaussian E) := IsGaussian.memLp_two_id
   have hcoveq : covarianceBilin ((stdGaussian E).map L) t t
       = covarianceBilin (stdGaussian F) t t := by
-    rw [covarianceBilin_map hmemLp, ι.adjoint_eq_symm, covarianceBilin_stdGaussian,
-      covarianceBilin_stdGaussian]
+    rw [covarianceBilin_map hmemLp, ι.adjoint_eq_symm]
+    simp only [Causalean.Mathlib.stdGaussian, ProbabilityTheory.covarianceBilin_stdGaussian]
     exact ι.symm.inner_map_map t t
   rw [hmapL, charFun_isGaussian_centered _ hmean_map t,
-    charFun_isGaussian_centered _ stdGaussian_mean t, hcoveq]
+    charFun_isGaussian_centered _
+      (show ∫ x, x ∂(stdGaussian F) = 0 from integral_id_stdGaussian) t, hcoveq]
 
 /-- [The law of the squared norm under the standard Gaussian distribution on a
 finite-dimensional real inner product space equals the chi-squared distribution

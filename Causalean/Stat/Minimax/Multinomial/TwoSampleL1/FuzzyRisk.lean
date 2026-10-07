@@ -15,7 +15,7 @@ namespace Causalean.Stat.Minimax.Multinomial.TwoSampleL1
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal
 
-/-- Given [a sample size and alphabet size](hyp:n,k) and [a valid finite fuzzy certificate](hyp:W), [the certificate's squared target separation lower-bounds the exact minimax squared risk](goal). -/
+/-- Given [a sample size and alphabet size](hyp:n,k) and [a valid finite fuzzy certificate](hyp:W), [the minimax squared risk of estimating the L1 distance is at least 11δ²/512, where δ is the certificate's separation](goal). -/
 theorem FuzzyCertificate.minimax_lower {n k : ℕ}
     (W : FuzzyCertificate n k) :
     11 * W.delta ^ 2 / 512 ≤ twoSampleL1MinimaxRisk n k := by

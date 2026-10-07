@@ -146,8 +146,9 @@ theorem transcriptLaw_map_prefix (Q : KernelFamily X Z)
 
 /-- Given [a sequential kernel family](hyp:Q), [the condition that every stage kernel is
 Markov](hyp:hQ), [a fixed input vector](hyp:x), [a prefix length](hyp:k), and [a successor
-bound](hyp:hk), [the prefix jointly with its next output has the stated composition-product
-law](goal). -/
+bound](hyp:hk), [under the complete transcript law, the joint law of the prefix of that length
+and the next output is the composition-product of the prefix law with the next-stage kernel
+evaluated at the next input coordinate](goal). -/
 theorem transcriptLaw_map_take_next (Q : KernelFamily X Z)
     (hQ : ∀ i, IsMarkovKernel (Q i)) (x : Fin n → X)
     (k : ℕ) (hk : k + 1 ≤ n) :

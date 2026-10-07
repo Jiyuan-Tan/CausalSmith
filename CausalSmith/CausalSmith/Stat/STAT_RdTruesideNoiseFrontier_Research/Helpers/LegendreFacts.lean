@@ -9,7 +9,7 @@ This module discharges the run's cited Legendre interface from Mathlib's
 shifted Legendre polynomials and Causalean's Jacobi and Legendre identities.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 

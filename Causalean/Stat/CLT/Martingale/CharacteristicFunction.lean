@@ -49,7 +49,7 @@ private theorem stoppedArray_predictableQuadraticVariation_ae_eq_of_bounds
           (μ n)[fun ω => (A.increment n k ω) ^ 2 | A.filtration n k] ω := by
     let M := A.stopMultiplier η K δ n k
     have hsm : StronglyMeasurable[A.filtration n k] M :=
-      A.stopMultiplier_stronglyMeasurable η K δ n k hk
+      A.stopMultiplier_stronglyMeasurable η K δ n k
     have hsq : Integrable (fun ω => (A.increment n k ω) ^ 2) (μ n) :=
       (A.squareIntegrable n k hk).integrable_sq
     have hprod : Integrable (fun ω => M ω * (A.increment n k ω) ^ 2) (μ n) := by
@@ -211,7 +211,7 @@ theorem martingaleArrayCharFun_tendsto
     apply squeeze_zero (fun _ => measureReal_nonneg) (fun n => ?_) (hBad η δ hη hδ)
     rw [measureReal_def, measureReal_def]
     apply (ENNReal.toReal_le_toReal (measure_ne_top _ _) (measure_ne_top _ _)).2
-    exact A.measure_stoppedArray_rowSum_ne_le η 2 δ hη n
+    exact A.measure_stoppedArray_rowSum_ne_le η 2 δ n
   have hStoppedVariance (η δ : ℝ) (hη : 0 < η) (hδ : 0 < δ) :
       Modes.TendstoInProbability μ
         (A.stoppedArray η 2 δ).predictableQuadraticVariation
@@ -266,7 +266,7 @@ theorem martingaleArrayCharFun_tendsto
         atTop (𝓝 0) := by
     apply tendsto_integral_abs_sub_of_tendstoInProbability_of_ae_bound
       (fun n => (A.stoppedArray η 2 δ).predictableQuadraticVariation n) 1 3
-      (fun n => hPQVMeas (A.stoppedArray η 2 δ) n) (by norm_num) _
+      (fun n => hPQVMeas (A.stoppedArray η 2 δ) n) _
       (hStoppedVariance η δ hη hδ)
     intro n
     filter_upwards [hPQVNonneg (A.stoppedArray η 2 δ) n,
@@ -447,7 +447,7 @@ theorem martingaleArrayCharFun_tendsto
       n t η 2 δ hη htη (by norm_num) hδ.le
       (A.stoppedArray_predictableQuadraticVariation_le η 2 δ (by norm_num)
         hδ.le n)
-      (A.stoppedArray_conditionalLindeberg_le η 2 δ hη (by norm_num)
+      (A.stoppedArray_conditionalLindeberg_le η 2 δ (by norm_num)
         hδ.le n)
   have hBudget' : ‖
       (∫ ω, Complex.exp (Complex.I *

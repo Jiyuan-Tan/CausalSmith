@@ -35,8 +35,10 @@ theorem iid_prefix_map {Ω : Type} [MeasurableSpace Ω]
 
 /-- Given [an observed probability law and finite cell setting](hyp:Ω,κ,μ),
 [measurable cell, arm, and outcome maps with centers](hyp:X,A,Y,center,hX,hA,hY),
-and [a prefix contained in a larger sample](hyp:n,N,hnN), [the pilot-prefix
-squared error has the fresh-prefix expectation](goal). -/
+and [sample sizes n ≤ N](hyp:n,N,hnN), [the expected squared difference between
+the collision estimator and the population contrast is the same whether the
+estimator is computed from the first n observations of N independent draws or
+from n independent draws](goal). -/
 theorem integral_prefix_collision_error_sq
     {Ω κ : Type} [MeasurableSpace Ω] [Fintype κ] [DecidableEq κ]
     [MeasurableSpace κ] [MeasurableSingletonClass κ]

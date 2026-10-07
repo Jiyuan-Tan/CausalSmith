@@ -59,11 +59,11 @@ theorem scaledCopy_iteratedFDeriv (β h : ℝ) (z x : E) {f : E → ℝ}
   rw [iteratedFDeriv_comp_sub (f := fun y : E => f (h⁻¹ • y)) j z x]
   rw [iteratedFDeriv_comp_const_smul h⁻¹ hfj]
 
-/-- For [a globally order-two profile](hyp:hf), [a positive bandwidth](hyp:hh),
-and [an exponent, center, and point](hyp:β,h,z,x), [the ambient first derivative
+/-- For [a globally order-two profile](hyp:hf)
+and [an exponent, bandwidth, center, and point](hyp:β,h,z,x), [the ambient first derivative
 has the expected amplitude and inverse-bandwidth factor](goal). -/
 theorem scaledCopy_fderiv (β h : ℝ) (z x : E) {f : E → ℝ}
-    (hf : ContDiff ℝ 2 f) (hh : 0 < h) :
+    (hf : ContDiff ℝ 2 f) :
     fderiv ℝ (scaledCopy β h z f) x =
       (h ^ β * h⁻¹) • fderiv ℝ f (h⁻¹ • (x - z)) := by
   have ht : ContDiff ℝ 2 (fun y : E => f (h⁻¹ • (y - z))) :=
@@ -73,20 +73,20 @@ theorem scaledCopy_fderiv (β h : ℝ) (z x : E) {f : E → ℝ}
   rw [fderiv_comp_sub (f := fun y : E => f (h⁻¹ • y)) z, fderiv_comp_smul]
   rw [smul_smul]
 
-/-- For [a globally order-two profile](hyp:hf), [a positive bandwidth](hyp:hh),
-and [an exponent, center, and point](hyp:β,h,z,x), [the ambient second derivative
+/-- For [a globally order-two profile](hyp:hf)
+and [an exponent, bandwidth, center, and point](hyp:β,h,z,x), [the ambient second derivative
 has the expected amplitude and squared inverse-bandwidth factor](goal). -/
 -- First prove scaledCopy_fderiv as an equality of functions (funext).
 -- Differentiate that identity using C¹ regularity of fderiv f from hf.
 -- Constant scalar dilation contributes another h⁻¹; no third derivative is needed.
 theorem scaledCopy_second_fderiv (β h : ℝ) (z x : E) {f : E → ℝ}
-    (hf : ContDiff ℝ 2 f) (hh : 0 < h) :
+    (hf : ContDiff ℝ 2 f) :
     fderiv ℝ (fderiv ℝ (scaledCopy β h z f)) x =
       (h ^ β * (h⁻¹) ^ 2) • fderiv ℝ (fderiv ℝ f) (h⁻¹ • (x - z)) := by
   have heq : fderiv ℝ (scaledCopy β h z f) =
       fun y => (h ^ β * h⁻¹) • fderiv ℝ f (h⁻¹ • (y - z)) := by
     funext y
-    exact scaledCopy_fderiv β h z y hf hh
+    exact scaledCopy_fderiv β h z y hf
   have hdf : ContDiff ℝ 1 (fderiv ℝ f) :=
     (contDiff_succ_iff_fderiv.mp hf).2.2
   have ht : ContDiff ℝ 1 (fun y : E => fderiv ℝ f (h⁻¹ • (y - z))) :=
@@ -97,9 +97,12 @@ theorem scaledCopy_second_fderiv (β h : ℝ) (z x : E) {f : E → ℝ}
   congr 1
   ring
 
-/-- [Uniform normalized jet bounds](hyp:hf) yield [the expected three bandwidth-weighted
-bounds for a scaled copy](goal) with [a positive bandwidth](hyp:hh) and
-[any exponent and center](hyp:β,h,z). -/
+/-- If [a profile is twice continuously differentiable on the whole space with its values, first
+derivative, and second derivative all bounded in norm by a nonnegative constant C](hyp:hf), then
+for [a positive bandwidth](hyp:hh) and [any exponent β, bandwidth h, and center](hyp:β,h,z), [the
+scaled copy is twice continuously differentiable and its values, first derivative, and second
+derivative are bounded everywhere by C times h to the powers β, β − 1, and β − 2
+respectively](goal). -/
 -- Use the two exact ambient derivative identities and norm_smul. Positivity
 -- removes absolute values; `Real.rpow_sub hh`, `Real.rpow_one`, and
 -- `Real.rpow_natCast` identify powers β-1 and β-2. Keep all real exponents.
@@ -118,14 +121,14 @@ theorem scaledCopy_jetBounds (β h : ℝ) (z : E) {f : E → ℝ} {C : ℝ}
       _ ≤ h ^ β * C := mul_le_mul_of_nonneg_left (hf.value _) hp
       _ = C * h ^ β := mul_comm _ _
   · intro x
-    rw [scaledCopy_fderiv β h z x hf.regularity hh, norm_smul, h₁,
+    rw [scaledCopy_fderiv β h z x hf.regularity, norm_smul, h₁,
       Real.norm_eq_abs, abs_of_nonneg (Real.rpow_nonneg hh.le _)]
     calc
       h ^ (β - 1) * ‖fderiv ℝ f (h⁻¹ • (x - z))‖ ≤ h ^ (β - 1) * C :=
         mul_le_mul_of_nonneg_left (hf.first _) (Real.rpow_nonneg hh.le _)
       _ = C * h ^ (β - 1) := mul_comm _ _
   · intro x
-    rw [scaledCopy_second_fderiv β h z x hf.regularity hh, norm_smul, h₂,
+    rw [scaledCopy_second_fderiv β h z x hf.regularity, norm_smul, h₂,
       Real.norm_eq_abs, abs_of_nonneg (Real.rpow_nonneg hh.le _)]
     calc
       h ^ (β - 2) * ‖fderiv ℝ (fderiv ℝ f) (h⁻¹ • (x - z))‖ ≤ h ^ (β - 2) * C :=
@@ -133,12 +136,12 @@ theorem scaledCopy_jetBounds (β h : ℝ) (z : E) {f : E → ℝ} {C : ℝ}
       _ = C * h ^ (β - 2) := mul_comm _ _
 
 /-- If [a twice continuously differentiable profile](hyp:hf) has [value and
-first two derivatives vanishing off a set K](hyp:hzero), then for [a positive
-bandwidth](hyp:hh), [any exponent and center](hyp:β,h,z), and [a point](hyp:x)
+first two derivatives vanishing off a set K](hyp:hzero), then for [any exponent, bandwidth and
+center](hyp:β,h,z), and [a point](hyp:x)
 [outside the scaled support of K](hyp:hx), [the scaled copy and its first two
 derivatives vanish at that point](goal). -/
 theorem scaledCopy_jets_zero (β h : ℝ) (z : E) {f : E → ℝ} {K : Set E}
-    (hf : ContDiff ℝ 2 f) (hh : 0 < h)
+    (hf : ContDiff ℝ 2 f)
     (hzero : ∀ x ∉ K, f x = 0 ∧ fderiv ℝ f x = 0 ∧ fderiv ℝ (fderiv ℝ f) x = 0)
     (x : E) (hx : x ∉ scaledSupport h z K) :
     scaledCopy β h z f x = 0 ∧ fderiv ℝ (scaledCopy β h z f) x = 0 ∧
@@ -146,7 +149,7 @@ theorem scaledCopy_jets_zero (β h : ℝ) (z : E) {f : E → ℝ} {K : Set E}
   obtain ⟨hv, h₁, h₂⟩ := hzero (h⁻¹ • (x - z)) hx
   refine ⟨?_, ?_, ?_⟩
   · simp only [scaledCopy, hv, mul_zero]
-  · rw [scaledCopy_fderiv β h z x hf hh, h₁, smul_zero]
-  · rw [scaledCopy_second_fderiv β h z x hf hh, h₂, smul_zero]
+  · rw [scaledCopy_fderiv β h z x hf, h₁, smul_zero]
+  · rw [scaledCopy_second_fderiv β h z x hf, h₂, smul_zero]
 
 end Causalean.Mathlib.Analysis.Calculus.CubeExtension

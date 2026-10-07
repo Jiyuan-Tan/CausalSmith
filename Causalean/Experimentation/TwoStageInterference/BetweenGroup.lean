@@ -45,7 +45,7 @@ specializes the result to the completely randomized mixed two-stage design, usin
 inclusion and propensity lemmas rather than leaving those moments as assumptions.
 -/
 
-@[expose] public section
+public section
 
 open scoped BigOperators
 open Finset

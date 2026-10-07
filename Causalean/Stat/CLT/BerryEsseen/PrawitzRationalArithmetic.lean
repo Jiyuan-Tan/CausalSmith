@@ -23,14 +23,16 @@ def prawitzTaylor16 (x : ℚ) : ℚ :=
   ∑ m ∈ range 16, x ^ m / (m.factorial : ℚ)
 
 /-- The [rational upper enclosure of the exponential](goal) at
-[an argument](hyp:x) uses a Taylor remainder at one eighth of the argument,
-followed by an eighth power. Its analytic comparison requires 0 ≤ x ≤ 8. -/
+[a rational argument x](hyp:x) is the eighth power of the sixteen-term Taylor
+polynomial at x/8 plus the remainder term (x/8)¹⁶·17/(16!·16). It bounds
+exp(x) from above only for 0 ≤ x ≤ 8. -/
 def prawitzExpUpper8 (x : ℚ) : ℚ :=
   (prawitzTaylor16 (x / 8) +
     (x / 8) ^ 16 * 17 / ((Nat.factorial 16 : ℚ) * 16)) ^ 8
 
-/-- [Outward rounding](goal) of [a rational value](hyp:x) to the next
-multiple of one hundred millionth preserves an upper bound. -/
+/-- [Outward rounding](goal) of [a rational value](hyp:x) is the smallest
+integer multiple of one hundred millionth that is at least that value, so it
+preserves an upper bound. -/
 def prawitzRoundUp (x : ℚ) : ℚ :=
   (⌈100000000 * x⌉ : ℤ) / (100000000 : ℚ)
 

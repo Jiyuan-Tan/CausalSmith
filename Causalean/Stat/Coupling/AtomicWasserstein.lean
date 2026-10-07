@@ -4,12 +4,28 @@ public import Causalean.Stat.Coupling.AtomicCutMonotone
 /-!
 # Finite atomic one-dimensional Wasserstein duality
 
-This module proves the one-dimensional CDF formula for the finite-atomic one-Wasserstein
-distance, exact Kantorovich--Rubinstein duality, and an explicit attaining Lipschitz potential.
-The API is extensional in the represented measure, so permutations, zero slots, and atom splitting
-or merging do not affect the distance.  The atomic laws and transport plans, the CDF and potential
-calculus, and the cut-monotone plan it builds on live in `AtomicTransport`, `AtomicCdf` and
-`AtomicCutMonotone`, all re-exported from here.
+For two finitely supported probability laws on the real line, the one-Wasserstein distance (the
+least absolute-distance cost over transport plans) equals the integral of the absolute difference
+of the two distribution functions, and equals the supremum of `|E_μ f − E_ν f|` over 1-Lipschitz
+`f` (Kantorovich–Rubinstein duality). The supremum is attained by an explicit potential: the
+primitive of the sign of the CDF difference. The distance depends only on the represented
+measures, so permuting slots, adding zero-weight slots, and splitting or merging coincident atoms
+do not change it.
+
+## Main results
+
+* `AtomicLaw.w1_eq_integral_abs_cdfGap` — `W₁(μ, ν) = ∫ |F_μ − F_ν|`.
+* `AtomicLaw.lipschitz_integral_sub_le_w1` — weak duality: every 1-Lipschitz contrast is at most
+  `W₁`.
+* `AtomicLaw.krPotential_attains` — the CDF-sign potential is 1-Lipschitz and attains `W₁`.
+* `AtomicLaw.w1_eq_sSup_lipschitz` — exact Kantorovich–Rubinstein duality.
+* `AtomicLaw.w1_le_of_lipschitz_integral_sub_le` — a uniform bound on 1-Lipschitz contrasts
+  bounds `W₁`.
+* `AtomicLaw.w1_congr_toMeasure` — `W₁` depends only on the two represented measures.
+
+The atomic laws and transport plans, the CDF and potential calculus, and the cut-monotone plan
+these proofs use are defined in `AtomicTransport`, `AtomicCdf` and `AtomicCutMonotone`, which this
+file imports.
 -/
 
 public section
@@ -61,7 +77,7 @@ theorem w1_eq_integral_abs_cdfGap {ι κ : Type*} [Fintype ι] [Fintype κ]
   · rw [← hπcdf]
     exact w1_le_transportCost πcdf
   · rw [← hπopt]
-    exact integral_abs_cdfGap_le_transportCost hμ hν πopt
+    exact integral_abs_cdfGap_le_transportCost πopt
 
 /-- Transport cost weakly dominates the expectation contrast of every one-Lipschitz test
 function. -/

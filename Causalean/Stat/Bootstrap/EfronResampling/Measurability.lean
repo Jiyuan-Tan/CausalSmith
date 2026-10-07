@@ -28,10 +28,10 @@ def bootstrapCDF (T : (Fin n → X) → ℝ) (x : Fin n → X) (t : ℝ) : ℝ :
   (bootstrapLaw T x (Iic t)).toReal
 
 /-- For [a statistic](hyp:T), [observed data](hyp:x), and [a threshold](hyp:t), if [the statistic
-is measurable](hyp:hT) and [the sample size is nonzero](hyp:hn), [the bootstrap CDF is the
+is measurable](hyp:hT), [the bootstrap CDF is the
 average of the threshold indicators over all index resamples](goal). -/
 theorem bootstrapCDF_eq_average_indicators (T : (Fin n → X) → ℝ) (hT : Measurable T)
-    (x : Fin n → X) (t : ℝ) (hn : n ≠ 0) :
+    (x : Fin n → X) (t : ℝ) :
     bootstrapCDF T x t =
       ((n : ℝ) ^ n)⁻¹ *
         ∑ j : Fin n → Fin n, if T (x ∘ j) ≤ t then 1 else 0 := by
@@ -52,10 +52,10 @@ theorem bootstrapCDF_eq_average_indicators (T : (Fin n → X) → ℝ) (hT : Mea
   intro j hj
   by_cases h : T (x ∘ j) ≤ t <;> simp [Set.indicator, h]
 
-/-- For [a statistic](hyp:T) that [is measurable](hyp:hT), [a nonzero sample size](hyp:hn), and
+/-- For [a statistic](hyp:T) that [is measurable](hyp:hT) and
 [a fixed threshold](hyp:t), [the bootstrap CDF is measurable as a function of the data](goal). -/
 theorem measurable_bootstrapCDF (T : (Fin n → X) → ℝ) (hT : Measurable T)
-    (hn : n ≠ 0) (t : ℝ) :
+    (t : ℝ) :
     Measurable (fun x : Fin n → X ↦ bootstrapCDF T x t) := by
   -- Proof plan: rewrite by `bootstrapCDF_eq_average_indicators`; for fixed `j`, the map
   -- `x ↦ x ∘ j` is measurable coordinatewise, hence so is the threshold indicator.
@@ -64,7 +64,7 @@ theorem measurable_bootstrapCDF (T : (Fin n → X) → ℝ) (hT : Measurable T)
       ((n : ℝ) ^ n)⁻¹ *
         ∑ j : Fin n → Fin n, if T (x ∘ j) ≤ t then 1 else 0 by
     funext x
-    exact bootstrapCDF_eq_average_indicators T hT x t hn]
+    exact bootstrapCDF_eq_average_indicators T hT x t]
   apply Measurable.const_mul
   apply Finset.measurable_sum Finset.univ
   intro j hj
@@ -113,7 +113,7 @@ private lemma bootstrapCDF_reaches_one (T : (Fin n → X) → ℝ) (hT : Measura
   let M := Finset.univ.sup' Finset.univ_nonempty
     (fun j : Fin n → Fin n ↦ T (x ∘ j))
   refine ⟨M, ?_⟩
-  rw [bootstrapCDF_eq_average_indicators T hT x M hn]
+  rw [bootstrapCDF_eq_average_indicators T hT x M]
   simp only [M, if_pos (Finset.le_sup' (fun j : Fin n → Fin n ↦ T (x ∘ j))
     (Finset.mem_univ _)), Finset.sum_const, Finset.card_univ, nsmul_eq_mul, mul_one,
     Fintype.card_fun, Fintype.card_fin, Nat.cast_pow]
@@ -255,7 +255,7 @@ theorem measurable_bootstrapLowerQuantile (T : (Fin n → X) → ℝ) (hT : Meas
         ext x
         simp only [Set.mem_preimage, Set.mem_Iic, Set.mem_ofPred_eq]
         exact bootstrapLowerQuantile_le_iff T hT x hn β t hβ0' hβ1]
-      exact measurableSet_le measurable_const (measurable_bootstrapCDF T hT hn t)
+      exact measurableSet_le measurable_const (measurable_bootstrapCDF T hT t)
     · have hβ1' : 1 < β := lt_of_not_ge hβ1
       rw [show bootstrapLowerQuantile T β = fun _ ↦ 0 by
         funext x

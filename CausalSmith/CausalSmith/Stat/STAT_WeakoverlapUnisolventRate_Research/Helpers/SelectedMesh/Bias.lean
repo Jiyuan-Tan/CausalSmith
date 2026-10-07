@@ -8,7 +8,7 @@ public import CausalSmith.Stat.STAT_WeakoverlapUnisolventRate_Research.Helpers.S
 public import CausalSmith.Stat.STAT_WeakoverlapUnisolventRate_Research.Helpers.OrderedMass.Geometry
 
 /-! # Deterministic selected-cell bias bounds -/
-@[expose] public section
+public section
 namespace CausalSmith.Stat.WeakOverlap
 open Causalean.Stat.Nonparametric
 open MeasureTheory
@@ -223,7 +223,7 @@ theorem holder_taylor_monomial_approx_uniform_center {d p : ℕ}
                     ∑ k, θ k * ∏ j, (u j) ^ (expo k j)| ≤
                   Cb * L * h ^ β :=
   Causalean.Stat.Nonparametric.holder_taylor_monomial_approx_uniform_center
-    hβ hL hr expo hcover
+    hβ hL expo hcover
 
 /-- One approximation constant works for every response in the intrinsic
 Holder ball. [For the stated inputs and conditions](hyp:d,β,L,hβ,hL), [the asserted conclusion holds](goal). -/
@@ -251,7 +251,7 @@ lemma exists_uniform_holderBall_local_monoVec_approx (d : ℕ) {β L : ℝ}
     dsimp [s]
     rw [hmcast]
     linarith [Nat.le_ceil β]
-  obtain ⟨D, hD, htransport⟩ := unit_holder_affine_transport d m s hs hs1
+  obtain ⟨D, hD, htransport⟩ := unit_holder_affine_transport d m s hs
   obtain ⟨A, hA, hExt⟩ := exists_global_holder_extension d m s hs hs1
   let e : MonoIndex d m ≃ Fin (Fintype.card (MonoIndex d m)) := Fintype.equivFin _
   let expo : Fin (Fintype.card (MonoIndex d m)) → (Fin d → ℕ) :=
@@ -348,7 +348,7 @@ lemma holderBall_exists_local_monoVec_approx (d : ℕ) {β L : ℝ}
     rw [Nat.cast_sub hceil, Nat.cast_one]
   have hs : 0 < s := by dsimp [s]; rw [hmcast]; linarith [Nat.ceil_lt_add_one hβ.le]
   have hs1 : s ≤ 1 := by dsimp [s]; rw [hmcast]; linarith [Nat.le_ceil β]
-  obtain ⟨D, hD, htransport⟩ := unit_holder_affine_transport d m s hs hs1
+  obtain ⟨D, hD, htransport⟩ := unit_holder_affine_transport d m s hs
   have hμunit : Causalean.Mathlib.Analysis.Calculus.CubeExtension.HolderBallOn
       (Causalean.Mathlib.Analysis.Calculus.CubeInterpolation.unitCube d)
       m s L μ := by

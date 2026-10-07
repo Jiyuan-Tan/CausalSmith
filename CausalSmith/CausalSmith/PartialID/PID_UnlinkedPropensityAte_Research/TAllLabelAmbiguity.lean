@@ -5,7 +5,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.A
 
 /-! Exact worst-case ATE ambiguity for arbitrary measurable release cells. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal

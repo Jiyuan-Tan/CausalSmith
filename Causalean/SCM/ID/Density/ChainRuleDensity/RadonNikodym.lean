@@ -333,7 +333,7 @@ full observed-prefix chain with the recursive prefix density product.  Each
 successor step uses `jointRef_extendObsPrefix`, the measurable embedding
 transport for Radon--Nikodym derivatives, and the comp-product derivative rule,
 then the final prefix product is rewritten as `qFactorDensityProduct`. -/
-lemma obsChainKernel_card_rnDeriv_eq_qFactorDensityProduct_prefix_induction
+lemma obsChainKernel_card_rnDeriv_eq_qFactorDensityProduct_prefix
     (M : Causalean.SCM N Ω) (ref : ReferenceMeasures Ω)
     (hdom : DominatedObs M ref) (s : M.FixedValues)
     [∀ s' : M.FixedValues, MeasureTheory.IsFiniteMeasure (M.obsKernel s')]
@@ -359,35 +359,6 @@ lemma obsChainKernel_card_rnDeriv_eq_qFactorDensityProduct_prefix_induction
       M.observed.card (le_refl _)).trans
       (Filter.EventuallyEq.of_eq
         (funext (prefixDensityProduct_card_eq_qFactorDensityProduct M ref s)))
-
-/-- Prefix-level analytic chain rule at the full observed prefix.
-
-The right side is the full density product, read after transporting a full-prefix
-assignment to an observed assignment.  This wrapper exposes the completed prefix
-induction in the shape consumed by the final observed-coordinate transport. -/
-lemma obsChainKernel_card_rnDeriv_eq_qFactorDensityProduct_prefix
-    (M : Causalean.SCM N Ω) (ref : ReferenceMeasures Ω)
-    (hdom : DominatedObs M ref) (s : M.FixedValues)
-    [∀ s' : M.FixedValues, MeasureTheory.IsFiniteMeasure (M.obsKernel s')]
-    [∀ (k : ℕ) (hk : k < M.observed.card),
-      StandardBorelSpace
-        (ValuesOn ({(M.observedAt ⟨k, hk⟩).val} : Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ (k : ℕ) (hk : k < M.observed.card),
-      Nonempty
-        (ValuesOn ({(M.observedAt ⟨k, hk⟩).val} : Finset (SWIGNode N)) (swigΩ Ω))]
-    [∀ k : ℕ,
-      MeasurableSpace.CountableOrCountablyGenerated
-        M.FixedValues (ValuesOn (M.prefixNodes k) (swigΩ Ω))]
-    (hstep : ObsStepFiberRN M ref s) :
-    (M.obsChainKernel M.observed.card (le_refl _) s).rnDeriv
-        (jointRef ref (M.prefixNodes M.observed.card))
-      =ᵐ[jointRef ref (M.prefixNodes M.observed.card)]
-        fun y =>
-          M.qFactorDensityProduct ref s
-            ((valuesEquivOfEq (Ω := swigΩ Ω)
-              (M.prefixNodes_card M.observed.card (le_refl _))) y) := by
-  exact obsChainKernel_card_rnDeriv_eq_qFactorDensityProduct_prefix_induction
-    M ref hdom s hstep
 
 /-- Push the full-prefix a.e. density identity forward, assuming the reference
 transport and prefix-level chain rule. -/

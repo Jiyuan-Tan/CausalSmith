@@ -113,14 +113,13 @@ theorem uniformMixture_absolutelyContinuous {Ω S : Type*} [MeasurableSpace Ω]
             ((hac s).smul_left ((Fintype.card S : ℝ≥0∞)⁻¹)) ih
   exact h Finset.univ
 
-/-- Given [a finite nonempty family of probability laws](hyp:Q), [a reference
-probability law](hyp:P), and [componentwise domination](hyp:hac), [the
+/-- Given [a finite nonempty family of probability laws](hyp:Q) and [a reference
+probability law](hyp:P), [the
 real-valued density of the uniform mixture is almost everywhere the average of
 the component densities](goal). -/
 theorem uniformMixture_rnDeriv {Ω S : Type*} [MeasurableSpace Ω]
     [Fintype S] [Nonempty S] (Q : S → Measure Ω) (P : Measure Ω)
-    [IsProbabilityMeasure P] [∀ s, IsProbabilityMeasure (Q s)]
-    (hac : ∀ s, Q s ≪ P) :
+    [IsProbabilityMeasure P] [∀ s, IsProbabilityMeasure (Q s)] :
     (fun x => ((uniformMixture Q).rnDeriv P x).toReal) =ᵐ[P]
       (fun x => (∑ s, ((Q s).rnDeriv P x).toReal) / (Fintype.card S : ℝ)) := by
   classical
@@ -181,7 +180,7 @@ theorem one_add_chiSqDiv_uniformMixture {Ω S : Type*} [MeasurableSpace Ω]
     exact hpair s t
   have hpoint : ∀ᵐ x ∂P, p x ^ 2 =
       (∑ s : S, ∑ t : S, d s x * d t x) / n ^ 2 := by
-    filter_upwards [uniformMixture_rnDeriv Q P hac] with x hx
+    filter_upwards [uniformMixture_rnDeriv Q P] with x hx
     change p x = (∑ s : S, d s x) / n at hx
     rw [hx, div_pow, sq, Finset.sum_mul_sum]
   have hsq : Integrable (fun x => p x ^ 2) P := by
@@ -219,8 +218,8 @@ theorem one_add_chiSqDiv_uniformMixture {Ω S : Type*} [MeasurableSpace Ω]
   rw [hchi, hint]
   ring
 
-/-- Given [a reference probability law and two dominated probability laws]
-(hyp:P,Q,R), [domination of the two laws](hyp:hQ,hR), [an integrable
+/-- Given [a reference probability law and two dominated probability
+laws](hyp:P,Q,R), [domination of the two laws](hyp:hQ,hR), [an integrable
 one-observation density product](hyp:hint), and [a sample size](hyp:n), [the
 product of their iid sample densities is integrable](goal). -/
 theorem iidPairIntegrable {Ω : Type*} [MeasurableSpace Ω]
@@ -253,17 +252,19 @@ theorem iidPairIntegrable {Ω : Type*} [MeasurableSpace Ω]
     rw [hqx, hrx, ← Finset.prod_mul_distrib]
   exact hprod.congr heq.symm
 
-/-- Given [a reference probability law and two dominated probability laws]
-(hyp:P,Q,R), [domination of the two laws](hyp:hQ,hR), [an integrable
-one-observation density product](hyp:hint), and [a sample size](hyp:n), [the
+/-- Given [a reference probability law and two dominated probability
+laws](hyp:P,Q,R), [domination of the two laws](hyp:hQ,hR), and [a sample size](hyp:n), [the
 overlap of their iid sample laws is the corresponding power of the
-one-observation overlap](goal). -/
+one-observation overlap](goal).
+
+Integrability of the product of the two one-observation densities is not assumed: when it fails,
+the one-observation overlap is zero by the convention that the integral of a non-integrable
+function is zero, and for a positive sample size so is the overlap of the sample laws, although
+the true overlap is infinite. -/
 theorem iidPairOverlap {Ω : Type*} [MeasurableSpace Ω]
     (P Q R : Measure Ω) [IsProbabilityMeasure P]
     [IsProbabilityMeasure Q] [IsProbabilityMeasure R]
-    (hQ : Q ≪ P) (hR : R ≪ P)
-    (hint : Integrable (fun x => (Q.rnDeriv P x).toReal *
-      (R.rnDeriv P x).toReal) P) (n : ℕ) :
+    (hQ : Q ≪ P) (hR : R ≪ P) (n : ℕ) :
     (∫ x,
       (((Measure.pi (fun _ : Fin n => Q)).rnDeriv
         (Measure.pi (fun _ : Fin n => P)) x).toReal) *
@@ -289,9 +290,11 @@ theorem iidPairOverlap {Ω : Type*} [MeasurableSpace Ω]
 
 /-- Given [a finite nonempty family of probability laws](hyp:Q), [a reference
 probability law](hyp:P), [componentwise domination](hyp:hac), [integrable
-pairwise one-observation density products](hyp:hpair), and [a sample size]
-(hyp:n), [one plus the chi-squared divergence of the uniform iid mixture is
-the average of the pairwise overlap powers](goal). -/
+pairwise one-observation density products](hyp:hpair), and [a sample
+size](hyp:n), [one plus the chi-squared divergence, from the iid product of the reference law, of
+the uniform mixture of the components' iid product laws equals the average over all ordered pairs
+of components of the one-observation overlap raised to the sample size, where the overlap of two
+components is the reference-law integral of the product of their densities](goal). -/
 theorem one_add_chiSqDiv_uniformMixture_iid {Ω S : Type*} [MeasurableSpace Ω]
     [Fintype S] [Nonempty S] (Q : S → Measure Ω) (P : Measure Ω)
     [IsProbabilityMeasure P] [∀ s, IsProbabilityMeasure (Q s)]
@@ -324,7 +327,7 @@ theorem one_add_chiSqDiv_uniformMixture_iid {Ω S : Type*} [MeasurableSpace Ω]
   intro s _
   apply Finset.sum_congr rfl
   intro t _
-  exact iidPairOverlap P (Q s) (Q t) (hac s) (hac t) (hpair s t) n
+  exact iidPairOverlap P (Q s) (Q t) (hac s) (hac t) n
 
 end Causalean.Stat.Minimax.Mixture
 namespace Causalean.Stat.Minimax.Mixture
@@ -400,15 +403,18 @@ theorem product_pair_integrable {Ω₁ Ω₂ : Type*} [MeasurableSpace Ω₁] [M
   exact (Integrable.mul_prod hInt₁ hInt₂).congr hEq.symm
 /-- Given [the first channel sample space](hyp:Ω₁), [the second channel sample
 space](hyp:Ω₂), [the first channel's reference and component laws](hyp:P₁,Q₁,R₁),
-[the second channel's reference and component laws](hyp:P₂,Q₂,R₂),
-[domination in both channels](hyp:hQ₁,hR₁,hQ₂,hR₂), and [integrable component-density
-products in both channels](hyp:hInt₁,hInt₂), [the pairwise overlap of independent
-product channels is the product of their separate overlaps](goal). -/
+[the second channel's reference and component laws](hyp:P₂,Q₂,R₂), and
+[domination in both channels](hyp:hQ₁,hR₁,hQ₂,hR₂), [the overlap of the two product component
+laws, meaning the integral under the product reference law of the product of their densities,
+is the product of the two channels' separate overlaps](goal).
+
+Integrability of the density products is not assumed: when a channel's density product is not
+integrable, both sides are zero by the convention that the integral of a non-integrable function
+is zero. -/
 theorem product_pair_overlap {Ω₁ Ω₂ : Type*} [MeasurableSpace Ω₁] [MeasurableSpace Ω₂] (P₁ Q₁ R₁ : Measure Ω₁) (P₂ Q₂ R₂
     : Measure Ω₂) [IsProbabilityMeasure P₁] [IsProbabilityMeasure Q₁] [IsProbabilityMeasure R₁] [IsProbabilityMeasure
     P₂] [IsProbabilityMeasure Q₂] [IsProbabilityMeasure R₂] (hQ₁ : Q₁ ≪ P₁) (hR₁ : R₁ ≪ P₁) (hQ₂ : Q₂ ≪ P₂) (hR₂ : R₂ ≪
-    P₂) (hInt₁ : Integrable (fun x => (Q₁.rnDeriv P₁ x).toReal * (R₁.rnDeriv P₁ x).toReal) P₁) (hInt₂ : Integrable (fun
-    x => (Q₂.rnDeriv P₂ x).toReal * (R₂.rnDeriv P₂ x).toReal) P₂) : (∫ z, ((Q₁.prod Q₂).rnDeriv (P₁.prod P₂) z).toReal *
+    P₂) : (∫ z, ((Q₁.prod Q₂).rnDeriv (P₁.prod P₂) z).toReal *
     ((R₁.prod R₂).rnDeriv (P₁.prod P₂) z).toReal ∂(P₁.prod P₂)) = (∫ x, (Q₁.rnDeriv P₁ x).toReal * (R₁.rnDeriv P₁
     x).toReal ∂P₁) * (∫ x, (Q₂.rnDeriv P₂ x).toReal * (R₂.rnDeriv P₂ x).toReal ∂P₂) := by
   have hQ := Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.rnDeriv_prod_eq

@@ -100,9 +100,9 @@ theorem coordinateSphereRayleighValue_eq_iSupRayleighValue [Nonempty ι]
   exact (coordinateSphereRayleighValue_eq_sphereRayleighValue A).trans
     (sphereRayleighValue_eq_iSupRayleighValue A)
 
-/-- On a nonempty finite coordinate space, [a real symmetric matrix](hyp:A,hA) has [a unit vector attaining its Euclidean-sphere top Rayleigh value](goal). -/
+/-- On a nonempty finite coordinate space, [a real matrix](hyp:A) has [a unit vector attaining its Euclidean-sphere top Rayleigh value](goal). -/
 theorem exists_unit_isMaxOn_rayleighForm [Nonempty ι]
-    (A : Matrix ι ι ℝ) (hA : A.IsSymm) :
+    (A : Matrix ι ι ℝ) :
     ∃ x : EVec ι, ‖x‖ = 1 ∧
       IsMaxOn (rayleighForm A) (sphere (0 : EVec ι) 1) x ∧
       rayleighForm A x = sphereRayleighValue A := by
@@ -129,7 +129,7 @@ theorem exists_unit_eigenvector_sphereRayleighValue [Nonempty ι]
     ∃ x : EVec ι, ‖x‖ = 1 ∧
       A.mulVec x = sphereRayleighValue A • x ∧
       rayleighForm A x = sphereRayleighValue A := by
-  obtain ⟨x, hx, hmax, hval⟩ := exists_unit_isMaxOn_rayleighForm A hA
+  obtain ⟨x, hx, hmax, hval⟩ := exists_unit_isMaxOn_rayleighForm A
   let T := (Matrix.toEuclideanLin A).toContinuousLinearMap
   have hsym : (Matrix.toEuclideanLin A).IsSymmetric := by
     rw [Matrix.isSymmetric_toEuclideanLin_iff]

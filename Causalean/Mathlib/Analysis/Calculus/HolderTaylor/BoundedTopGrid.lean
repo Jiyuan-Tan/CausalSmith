@@ -40,7 +40,7 @@ theorem uniform_interior_ambient_jet_bound_of_top_bound
   | succ n =>
       obtain ⟨B, hB, hbound⟩ :=
         uniform_interior_ambient_jet_bound n 1 (d / 2) M T
-          (by norm_num) (by norm_num) (by linarith) hM hT
+          (by norm_num) (by linarith) hM hT
       refine ⟨max B T, le_max_of_le_left hB, ?_⟩
       intro a f hf hval htop j hj x hx
       have hab : a < a + d := by linarith

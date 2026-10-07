@@ -36,7 +36,7 @@ def integralEnclosure (nodes : ℕ → ComplexRatInterval) (L : ℚ) (hL : 0 ≤
 private theorem meshPoint_self {n : ℕ} (hn : 0 < n) : meshPoint n n = 1 := by
   simp [meshPoint, ne_of_gt (by exact_mod_cast hn : (0 : ℝ) < n)]
 
-private theorem meshPoint_mono {n k m : ℕ} (hn : 0 < n) (hkm : k ≤ m) :
+private theorem meshPoint_mono {n k m : ℕ} (hkm : k ≤ m) :
     meshPoint n k ≤ meshPoint n m := by
   exact div_le_div_of_nonneg_right (by exact_mod_cast hkm)
     (by exact_mod_cast (Nat.zero_le n) : (0 : ℝ) ≤ n)
@@ -58,7 +58,7 @@ private theorem sum_cell_integrals {g : ℝ → ℂ} {n : ℕ} (hn : 0 < n)
     have h0k : (0 : ℝ) ≤ meshPoint n k := (meshPoint_mem hn hk).1
     simp only [uIcc_of_le h0k]
     intro x hx
-    exact ⟨hx.1, hx.2.trans (meshPoint_self hn ▸ meshPoint_mono hn hk)⟩
+    exact ⟨hx.1, hx.2.trans (meshPoint_self hn ▸ meshPoint_mono hk)⟩
   have aux : ∀ m ≤ n, ∫ u in (0 : ℝ)..meshPoint n m, g u =
       ∑ k ∈ Finset.range m, ∫ u in meshPoint n k..meshPoint n (k + 1), g u := by
     intro m hm
@@ -69,7 +69,7 @@ private theorem sum_cell_integrals {g : ℝ → ℂ} {n : ℕ} (hn : 0 < n)
         exact (intervalIntegral.integral_add_adjacent_intervals
           (hcell m (Nat.le_of_succ_le hm))
           ((hg.mono (by
-            rw [uIcc_of_le (meshPoint_mono hn m.le_succ)]
+            rw [uIcc_of_le (meshPoint_mono m.le_succ)]
             intro x hx
             exact ⟨(meshPoint_mem hn (Nat.le_of_succ_le hm)).1.trans hx.1,
               hx.2.trans (meshPoint_mem hn hm).2⟩)).intervalIntegrable)).symm
@@ -97,7 +97,7 @@ theorem norm_integral_sub_trapezoid_le {g : ℝ → ℂ} {L : ℚ} (hL : 0 ≤ L
     let b := meshPoint n (k + 1)
     have hka : k ≤ n := (Nat.le_of_lt hk)
     have hkb : k + 1 ≤ n := hk
-    have hab : a ≤ b := meshPoint_mono hn k.le_succ
+    have hab : a ≤ b := meshPoint_mono k.le_succ
     have ha : a ∈ Icc (0 : ℝ) 1 := meshPoint_mem hn hka
     have hb : b ∈ Icc (0 : ℝ) 1 := meshPoint_mem hn hkb
     have hgi : IntervalIntegrable g volume a b :=
@@ -219,7 +219,7 @@ private theorem width_smulRat_of_nonneg (I : ComplexRatInterval) {q : ℚ} (hq :
     ring
 
 private theorem width_trapezoidSum {nodes : ℕ → ComplexRatInterval} {w : ℚ}
-    (hw : 0 ≤ w) (hnodes : ∀ k ≤ n,
+    (hnodes : ∀ k ≤ n,
       (nodes k).re.width ≤ w ∧ (nodes k).im.width ≤ w) :
     (trapezoidSum nodes n).re.width ≤ 2 * n * w ∧
       (trapezoidSum nodes n).im.width ≤ 2 * n * w := by
@@ -234,7 +234,7 @@ private theorem width_trapezoidSum {nodes : ℕ → ComplexRatInterval} {w : ℚ
       simp only [trapezoidSum, ComplexRatInterval.add, RatInterval.add,
         RatInterval.width]
       constructor <;> push_cast <;> ring_nf at * <;>
-        linarith [ih'.1, ih'.2, hn0.1, hn0.2, hn1.1, hn1.2, hw]
+        linarith [ih'.1, ih'.2, hn0.1, hn0.2, hn1.1, hn1.2]
 
 /-- **Certified trapezoidal enclosure of an integral.** Fix [a nonnegative Lipschitz
 constant](hyp:hL) and [a positive mesh-cell count](hyp:hn), and suppose [the complex-valued
@@ -264,11 +264,11 @@ theorem integralEnclosure_sound {g : ℝ → ℂ} {nodes : ℕ → ComplexRatInt
 /-- Each coordinate width of the certified integral is bounded by the uniform
 node width plus one mesh-scale Lipschitz allowance. -/
 theorem integralEnclosure_width {nodes : ℕ → ComplexRatInterval} {w L : ℚ}
-    (hw : 0 ≤ w) (hL : 0 ≤ L) {n : ℕ} (hn : 0 < n)
+    (hL : 0 ≤ L) {n : ℕ} (hn : 0 < n)
     (hnodes : ∀ k ≤ n, (nodes k).re.width ≤ w ∧ (nodes k).im.width ≤ w) :
     (integralEnclosure nodes L hL n hn).re.width ≤ w + L / n ∧
       (integralEnclosure nodes L hL n hn).im.width ≤ w + L / n := by
-  have hs := width_trapezoidSum hw hnodes
+  have hs := width_trapezoidSum hnodes
   have hq : (0 : ℚ) ≤ 1 / (2 * n : ℚ) := by positivity
   have hscale := width_smulRat_of_nonneg (trapezoidSum nodes n) hq
   have htre : (trapezoidEnclosure nodes n).re.width ≤ w := by

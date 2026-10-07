@@ -135,7 +135,7 @@ theorem iid_nested_count_fibre_first_moment
   apply Finset.sum_congr rfl
   intro U hU
   have hcard : U.card = k := (Finset.mem_filter.mp hU).2
-  simpa [R, hcard] using iid_nested_pattern_first_moment P n U hA hB hAB
+  simpa [R, hcard] using iid_nested_pattern_first_moment P n U hA hAB
 
 /-- Under [an observation probability law](hyp:P), [a tuple size](hyp:n), [a positive
 containing-event count](hyp:k,hk), two [events](hyp:A,B) with [measurable membership](hyp:hA,hB),
@@ -176,8 +176,9 @@ theorem iid_successFraction_count_fibre
 /-- Under [an observation probability law](hyp:P), [a fixed sample size](hyp:n), two
 [events](hyp:A,B) with [measurable membership](hyp:hA,hB), and [containment of the first
 in the second](hyp:hAB), [containing-event probability times the iid total
-success-fraction mean equals smaller-event probability times the nonempty-count
-probability](goal). -/
+success-fraction mean equals smaller-event probability times the probability that at
+least one observation falls in the containing event, namely one minus the complement probability
+of the containing event raised to the sample size](goal). -/
 theorem iid_successFraction_mean_mul
     (P : Measure X) [IsProbabilityMeasure P] (n : ℕ)
     {A B : Set X} (hA : MeasurableSet A) (hB : MeasurableSet B) (hAB : A ⊆ B) :

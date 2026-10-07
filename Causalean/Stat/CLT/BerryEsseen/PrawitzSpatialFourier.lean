@@ -7,8 +7,7 @@ public import Causalean.Stat.CLT.BerryEsseen.PrawitzSignComparison
 
 These atomic half-line sandwiches, integrability results, Fubini identities,
 and CDF reduction are proved independently of Gaussian sine inversion and
-the signed spectral comparison. Their proofs are extracted unchanged from
-PrawitzSmoothing so the two open analytic obligations form separate modules.
+the signed spectral comparison, which are proved in separate modules.
 -/
 
 public section

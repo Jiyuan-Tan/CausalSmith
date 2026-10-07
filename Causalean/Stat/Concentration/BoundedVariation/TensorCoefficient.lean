@@ -478,8 +478,7 @@ theorem tensorCoefficientPath_four_bv_envelope {K : ℕ} (hK : 0 < K)
   exact ⟨tensorCoefficientPath_bv_of_cube p hdeg hgrid hcont hBV,
     tensorCoefficientPath_four_size_envelope hK p B hB hdeg hgrid hcont hBV hbound⟩
 
-/-- Let K be [positive](hyp:hK) and let [a time-indexed family of
-four-variable polynomials](hyp:p) have [degree at most 2(K − 1) in each
+/-- Let [a time-indexed family of four-variable polynomials](hyp:p) have [degree at most 2(K − 1) in each
 variable](hyp:hdeg) and [grid evaluations continuous in time](hyp:hgrid).
 If [its evaluation at every point of the normalized cube is continuous in
 time](hyp:hcont), [of bounded variation](hyp:hBV), and [of path size at
@@ -496,7 +495,7 @@ one-norms of Chebyshev polynomials bounds conversion by
 `(D+1)^4 (1+sqrt 2)^(4D)` for `D=2(K-1)`. This is the quantitative form needed for the
 Jackson bounded-variation coefficient envelope, rather than the coarser finite-grid bound.
 -/
-theorem tensorCoefficientPath_four_chebyshev_size_envelope {K : ℕ} (hK : 0 < K)
+theorem tensorCoefficientPath_four_chebyshev_size_envelope {K : ℕ}
     (p : Time → MvPolynomial (Fin 4) ℝ) (B : ℝ) (hB : 0 ≤ B)
     (hdeg : ∀ t i, (p t).degreeOf i ≤ 2 * (K - 1))
     (hgrid : ∀ a : Fin 4 → Fin (2 * (K - 1) + 1),

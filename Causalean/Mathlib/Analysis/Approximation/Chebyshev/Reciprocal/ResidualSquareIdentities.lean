@@ -16,9 +16,10 @@ namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev.Reciprocal
 
 open Polynomial
 
-/-- [Positive interval endpoints](hyp:a,b,ha,hab), a [degree bound](hyp:m), and
-an [angle](hyp:θ) imply [the sine-square identity for the residual at that
-angle](goal). -/
+/-- For a [positive lower endpoint a and a strictly larger upper endpoint b](hyp:a,b,ha,hab), a
+[degree bound m](hyp:m), and an [angle θ](hyp:θ), [the residual polynomial evaluated at cos θ
+equals 2 (v − cos θ) minus 2 / ρ times the square of sin((m + 1)θ/2) − ρ sin((m − 1)θ/2), where v
+is the interval shape parameter and ρ the decay parameter](goal). -/
 theorem reciprocalResidualPoly_sin_square {a b : ℝ}
     (ha : 0 < a) (hab : a < b) (m : ℕ) (θ : ℝ) :
     (reciprocalResidualPoly a b m).eval (Real.cos θ) =

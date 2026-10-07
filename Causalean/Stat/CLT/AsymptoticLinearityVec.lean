@@ -19,7 +19,7 @@ multivariate CLT contact: the rescaled estimator converges in distribution
 to the pushforward of the target law `Q : ProbabilityMeasure E` (typically
 a multivariate Gaussian with covariance `J₀⁻¹ Σ J₀⁻ᵀ`).  Proved by
 absorbing the asymptotic-linearity remainder into the partial-sum CLT
-contact via `Tendsto_dist_vec.add_isLittleOp_one`.
+contact via `Modes.TendstoInLaw.add_isLittleOp_one`.
 
 Bridge `IsAsymLinearVec.toScalar`: when `E = ℝ`, the vector predicate
 reduces to the existing scalar `IsAsymLinear`.
@@ -175,7 +175,7 @@ theorem IsAsymLinear.toVec
 
 Multivariate analogue of `IsAsymLinear.tendsto_normal`: combines the
 caller-supplied vector CLT contact (`_hCLT`) with vector Slutsky absorption
-(`Tendsto_dist_vec.add_isLittleOp_one`) to push the rescaled estimator's
+(`Modes.TendstoInLaw.add_isLittleOp_one`) to push the rescaled estimator's
 pushforward to the target law `Q : ProbabilityMeasure E`. -/
 
 variable [MeasurableSpace E] [OpensMeasurableSpace E]
@@ -225,29 +225,21 @@ theorem IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum
         Q := by
     apply Subtype.ext
     simp
-  have hSum : Tendsto_dist_vec (IsAsymLinearVec.normalizedSum S ψ I)
-      Q.toMeasure μ _hSum_meas := by
+  have hSum : Modes.TendstoInLaw (fun _ : ℕ => μ) (IsAsymLinearVec.normalizedSum S ψ I) atTop
+      Q.toMeasure := by
     refine ⟨_hSum_meas, by fun_prop, ?_⟩
     rw [hQid]
     exact _hCLT
-  have hRes := Tendsto_dist_vec.add_isLittleOp_one
-    (Q := Q.toMeasure) (Xn := IsAsymLinearVec.normalizedSum S ψ I)
+  have hRes := Modes.TendstoInLaw.add_isLittleOp_one (Q := Q.toMeasure)
+    (Xn := IsAsymLinearVec.normalizedSum S ψ I)
     (Yn := IsAsymLinearVec.rescaledEstimator θn θ₀ I)
-    _hSum_meas _hθn_meas hSum (by
-      simpa [IsAsymLinearVec.normalizedSum, IsAsymLinearVec.rescaledEstimator] using hRem)
+    hSum
+    _hθn_meas (by
+      intro ε hε
+      simpa only [IsAsymLinearVec.normalizedSum, IsAsymLinearVec.rescaledEstimator, norm_norm]
+        using hRem ε hε)
   have ht := hRes.tendsto
   rw [hQid] at ht
   exact ht
-
-/-- If [the estimator has a negligible asymptotic-linear remainder](hyp:hRem), [its rescaled
-versions are almost-everywhere measurable](hyp:_hθn_meas), [the normalized influence-function
-sums are almost-everywhere measurable](hyp:_hSum_meas), and [those normalized sums converge in
-distribution to the stated law](hyp:_hCLT), then [the rescaled estimator converges in distribution
-to the same law](goal).
-
-Deprecated name for `IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum`. -/
-@[deprecated (since := "2026-09-17")]
-alias IsAsymLinearVec.tendsto_normal_vec :=
-  IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum
 
 end Causalean.Stat

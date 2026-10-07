@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_MarRareqLogfrontier_Research.Helpers.Certifi
 
 /-! Aggregate deterministic bounds for the empirical-ratio branch. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set Finset
 open scoped NNReal ENNReal

@@ -9,7 +9,7 @@ This module converts pointwise real squared-risk comparisons into the
 extended-real Bayes risks used by the fuzzy-hypothesis lower bound.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal

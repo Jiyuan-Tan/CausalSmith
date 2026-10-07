@@ -86,7 +86,7 @@ lemma firstOrderUnitScore_secondMoment (c : Contrast ℝ K) (t : RespType K) :
 -- @node: contrastWeightedProcedure_risk
 /-- [the population size is positive](hyp:hn), [the contrast weighted procedure risk property holds](goal). -/
 lemma contrastWeightedProcedure_risk (K n : ℕ) (c : Contrast ℝ K) (hn : 0 < n) :
-    Causalean.Stat.worstCaseRisk
+    Causalean.Stat.worstCaseRiskReal
       (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z)
       (contrastWeightedProcedure K n c) ≤ C0 c / n := by
   classical
@@ -207,7 +207,7 @@ lemma firstOrder_minimax_limit (K : ℕ) (c : Contrast ℝ K) :
 theorem first_order_saddle (K : ℕ) (c : Contrast ℝ K) :
     Tendsto (fun n : ℕ => (n : ℝ) * rhoN K n c) atTop (nhds (C0 c)) ∧
     (∀ n, 0 < n →
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z)
         (contrastWeightedProcedure K n c) ≤ C0 c / n) := by
   constructor

@@ -35,11 +35,10 @@ theorem hasHolderBound_seminorm {f : ℝ → ℝ} {γ : ℝ} (hγ : 0 < γ)
       le_iSup_of_le ⟨x, hx⟩ (le_iSup_of_le ⟨z, hz⟩ (le_iSup_of_le hne le_rfl))
     exact (div_le_iff₀ hdist).mp ((ENNReal.ofReal_le_iff_le_toReal hfinite).mp hle)
 
-/-- A [nonnegative constant](hyp:hH) satisfying [the Hölder increment
-inequality](hyp:hf) at a [positive exponent](hyp:hγ) bounds
-[the extended seminorm by that constant](goal). -/
+/-- A constant satisfying [the Hölder increment inequality](hyp:hf)
+bounds [the extended seminorm by that constant](goal). -/
 theorem holderSeminorm_le_of_bound {f : ℝ → ℝ} {γ H : ℝ}
-    (hγ : 0 < γ) (hH : 0 ≤ H) (hf : HasHolderBound f γ H) :
+    (hf : HasHolderBound f γ H) :
     holderSeminorm f γ ≤ ENNReal.ofReal H := by
   unfold holderSeminorm
   refine iSup_le fun x => iSup_le fun z => iSup_le fun hne => ?_
@@ -56,7 +55,8 @@ theorem rank_rpow_pos {k : ℕ} (hk : 1 ≤ k) (γ : ℝ) :
   exact Real.rpow_pos_of_pos (by exact_mod_cast (lt_of_lt_of_le Nat.zero_lt_one hk)) _
 
 /-- With [positive rank](hyp:hk), an [infinite Hölder seminorm](hyp:hseminorm)
-makes [the required extended error inequality automatic](goal).
+makes [the extended L² norm of any function at most five times that seminorm
+times k⁻γ, because the right-hand side is then infinite](goal).
 
 The rank factor is positive and finite, so multiplying the infinite seminorm
 does not encounter the zero-times-infinity convention.

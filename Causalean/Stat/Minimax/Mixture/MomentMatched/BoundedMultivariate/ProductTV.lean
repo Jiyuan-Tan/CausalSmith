@@ -20,7 +20,7 @@ namespace Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate
   coordinate mismatch probabilities. The archived implementation is not a
   permitted import, but its proof can guide this reusable theorem. -/
 
-/-- Two [finite families of coordinatewise probability laws](hyp:μ,ν) have [product total variation no larger than the sum of their coordinatewise total variations](goal). -/
+/-- Two [finite families of coordinatewise probability laws](hyp:μ,ν) on a countable outcome space with measurable equality have [product total variation no larger than the sum of their coordinatewise total variations](goal). -/
 theorem tvDist_pi_le_sum_heterogeneous
     {X : Type*} [MeasurableSpace X] [MeasurableEq X] [Countable X]
     {d : ℕ} (μ ν : Fin d → Measure X)

@@ -4,7 +4,7 @@ public import Mathlib.Analysis.Complex.ExponentialBounds
 
 /-! Paper-local aliases for the raw Poisson falling-factorial identities. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier
 

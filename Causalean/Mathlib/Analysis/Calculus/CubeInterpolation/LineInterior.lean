@@ -18,7 +18,7 @@ each closed initial subsegment ending strictly before the final endpoint. -/
 theorem segment_line_contDiffOn_before_endpoint {d m : ℕ}
     {u : (Fin d → ℝ) → ℝ} (hu : ContDiffOn ℝ m u (cube d))
     {x y : Fin d → ℝ} (hx : x ∈ openCube d) (hy : y ∈ cube d)
-    {t : ℝ} (ht0 : 0 ≤ t) (ht1 : t < 1) :
+    {t : ℝ} (ht1 : t < 1) :
     ContDiffOn ℝ m (fun r : ℝ => u (x + r • (y - x))) (Set.Icc 0 t) := by
   -- Compose `hu` with the affine line and use `segment_mem_openCube` on
   -- `Icc 0 t`; the line is smooth in an open neighborhood of every point.
@@ -38,7 +38,7 @@ theorem segment_line_contDiffOn_before_endpoint {d m : ℕ}
 cube](hyp:hu) and satisfies [the top-order Hölder condition with exponent s and constant
 L](hyp:hholder), where [s is positive](hyp:hs) and [L is nonnegative](hyp:hL), take [a starting
 point x in the open cube](hyp:hx), [an end point y in the closed cube](hyp:hy), and [a time t that
-is nonnegative and strictly less than one](hyp:ht0,ht1). Then for [any two times r and w between 0
+is strictly less than one](hyp:ht1). Then for [any two times r and w between 0
 and t](hyp:hr,hw), [the m-th derivative of the function restricted to the segment from x to y
 changes between those times by at most (d + 1)^m times L times the segment length to the power m +
 s times the time difference to the power s](goal). -/
@@ -46,7 +46,7 @@ theorem segment_line_topHolder_before_endpoint {d m : ℕ} {s L : ℝ}
     {u : (Fin d → ℝ) → ℝ} (hu : ContDiffOn ℝ m u (cube d))
     (hs : 0 < s) (hL : 0 ≤ L) (hholder : TopHolder d m s L u)
     {x y : Fin d → ℝ} (hx : x ∈ openCube d) (hy : y ∈ cube d)
-    {t : ℝ} (ht0 : 0 ≤ t) (ht1 : t < 1)
+    {t : ℝ} (ht1 : t < 1)
     {r w : ℝ} (hr : r ∈ Set.Icc 0 t) (hw : w ∈ Set.Icc 0 t) :
     |iteratedDeriv m (fun q : ℝ => u (x + q • (y - x))) r -
       iteratedDeriv m (fun q : ℝ => u (x + q • (y - x))) w| ≤
@@ -66,7 +66,7 @@ theorem segment_line_topHolder_before_endpoint {d m : ℕ} {s L : ℝ}
     have h := segment_mem_openCube hx hy hww
     intro i
     exact ⟨le_of_lt (h i (Set.mem_univ i)).1, le_of_lt (h i (Set.mem_univ i)).2⟩
-  have hbound := topHolder_diagonal_derivative u hs hL hholder
+  have hbound := topHolder_diagonal_derivative u hL hholder
     (x + r • (y - x)) (x + w • (y - x)) (y - x) hrc hwc
   have hdiff : (x + r • (y - x)) - (x + w • (y - x)) =
       (r - w) • (y - x) := by

@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Researc
 
 /-! # Ordered masses of locally separated finite atomic laws -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

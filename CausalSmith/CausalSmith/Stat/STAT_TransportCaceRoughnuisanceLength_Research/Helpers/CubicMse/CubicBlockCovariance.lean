@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_TransportCaceRoughnuisanceLength_Research.He
 
 /-! # Uniform covariance bounds for flattened histogram blocks -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory
 open Causalean.Mathlib.Probability.Independence

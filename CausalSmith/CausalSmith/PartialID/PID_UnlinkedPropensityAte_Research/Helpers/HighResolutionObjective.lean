@@ -5,7 +5,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.TAllLabel
 
 /-! The fixed-release ambiguity as a finite paired quantization objective. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal

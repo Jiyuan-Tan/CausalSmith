@@ -8,7 +8,7 @@ public import CausalSmith.Stat.STAT_MarRareqLogfrontier_Research.Helpers.ZengLow
 
 /-! Bayes and worst-case composition for the many-cell lower bound. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set Finset
 open scoped ENNReal NNReal

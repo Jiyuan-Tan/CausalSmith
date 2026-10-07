@@ -83,9 +83,9 @@ private theorem integral_cohort_sum_mul_cohort_indicator
   have hterm_int : ∀ g' ∈ (Finset.univ : Finset 𝒢), Integrable (term g') μ := by
     intro g' _
     have hI' : MemLp (I g') 2 μ := by
-      simpa [I] using indicator_cohort_memLp μ G G_meas g'
+      simpa [I] using CellBridge.indicator_cell_memLp μ G G_meas g'
     have hI : MemLp (I g) 2 μ := by
-      simpa [I] using indicator_cohort_memLp μ G G_meas g
+      simpa [I] using CellBridge.indicator_cell_memLp μ G G_meas g
     have haI' : MemLp (fun ω => a g' * I g' ω) 2 μ := by
       simpa using hI'.const_mul (a g')
     exact haI'.integrable_mul hI
@@ -230,7 +230,7 @@ private theorem integral_period_sum_mul_cohort_indicator
     have hIT : MemLp (IT t) 2 μ := by
       simpa [IT] using indicator_period_memLp μ T_rv T_meas t
     have hIG : MemLp IG 2 μ := by
-      simpa [IG] using indicator_cohort_memLp μ G G_meas g
+      simpa [IG] using CellBridge.indicator_cell_memLp μ G G_meas g
     have hbIT : MemLp (fun ω => b t * IT t ω) 2 μ := by
       simpa using hIT.const_mul (b t)
     exact hbIT.integrable_mul hIG
@@ -284,7 +284,7 @@ private theorem integral_cohort_sum_mul_period_indicator
   have hterm_int : ∀ g ∈ (Finset.univ : Finset 𝒢), Integrable (term g) μ := by
     intro g _
     have hIG : MemLp (IG g) 2 μ := by
-      simpa [IG] using indicator_cohort_memLp μ G G_meas g
+      simpa [IG] using CellBridge.indicator_cell_memLp μ G G_meas g
     have hIT : MemLp IT 2 μ := by
       simpa [IT] using indicator_period_memLp μ T_rv T_meas t
     have haIG : MemLp (fun ω => a g * IG g ω) 2 μ := by
@@ -397,7 +397,7 @@ theorem panelMeanReg_cohort_axis_orthogonal
   have hF_int : Integrable F μ :=
     F_memLp.integrable (by norm_num : (1 : ENNReal) ≤ 2)
   have hIG : MemLp (IG g) 2 μ := by
-    simpa [IG] using indicator_cohort_memLp μ G G_meas g
+    simpa [IG] using CellBridge.indicator_cell_memLp μ G G_meas g
   have hFI_int : Integrable (fun ω => F ω * IG g ω) μ :=
     F_memLp.integrable_mul hIG
   have hPanel_mem : MemLp (panelMeanReg μ F G T_rv) 2 μ :=
@@ -560,7 +560,7 @@ theorem panelMeanReg_period_axis_orthogonal
                     simpa [a, IG, mul_comm] using
                       (cohort_integral_div_mul_cohortMass μ F G g)
               _ = ∫ ω, F ω ∂μ := by
-                    rw [integral_eq_sum_cohort μ F G G_meas hF_int]
+                    rw [CellBridge.integral_eq_sum_cell μ F G G_meas hF_int]
   have hperiod :
       ∫ ω, (∑ t', b t' * IT t' ω) * IT t ω ∂μ =
         ∫ ω, F ω * IT t ω ∂μ - (∫ ω, F ω ∂μ) * periodMass μ T_rv t := by

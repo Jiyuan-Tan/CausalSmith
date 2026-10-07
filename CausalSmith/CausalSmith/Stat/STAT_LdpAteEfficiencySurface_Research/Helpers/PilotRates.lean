@@ -9,7 +9,7 @@ The integer square-root pilot size diverges, remains asymptotically negligible,
 and lies strictly between zero and the full sample size once `n ≥ 2`.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface
 

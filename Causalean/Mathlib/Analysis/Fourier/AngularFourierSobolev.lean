@@ -36,7 +36,7 @@ Rewrite the integrand as the squared norm of the derivative transform using
 square. Then apply `angular_plancherel D hD1 hD2`. No L2 premise on G is needed.
 -/
 theorem angular_coordinate_energy (G D : Space p → ℂ) (r : Fin p)
-    (hG1 : Integrable G volume) (hD1 : Integrable D volume)
+    (hD1 : Integrable D volume)
     (hD2 : MemLp D 2 volume) (hGc : HasCompactSupport G)
     (hweak : HasWeakCoordinateDerivative G D r) :
     (∫⁻ w, ENNReal.ofReal (‖angularFourier G w‖ ^ 2 * (w r) ^ 2)) = l2Energy D := by
@@ -45,7 +45,7 @@ theorem angular_coordinate_energy (G D : Space p → ℂ) (r : Fin p)
       apply lintegral_congr
       intro w
       congr 1
-      rw [angularFourier_weakDerivative G D r hG1 hD1 hGc hweak w]
+      rw [angularFourier_weakDerivative G D r hD1 hGc hweak w]
       simp only [norm_mul, Complex.norm_I, Complex.norm_real, one_mul, mul_pow,
         Real.norm_eq_abs, sq_abs]
       ring
@@ -95,7 +95,7 @@ theorem firstEnergy_eq_coordinate_sum (hp : 1 ≤ p) (G : Space p → ℂ)
 
 variable {p : ℕ}
 
-/-- [A positive dimension](hyp:hp), [an integrable square-integrable compactly supported complex function](hyp:hG1,hG2,hGc), and [integrable square-integrable weak coordinate derivatives](hyp:hD1,hD2,hweak) have [the exact first-order angular Fourier energy identity](goal).
+/-- In [a positive dimension p](hyp:hp), for [an integrable, square-integrable](hyp:hG1,hG2), [compactly supported](hyp:hGc) complex function G whose [weak coordinate derivatives D_r](hyp:hweak) are [integrable and square-integrable](hyp:hD1,hD2), [the first-order angular Fourier energy of G — the integral of |Ĝ(w)|²·(1 + ‖w‖²/p) — equals the squared L² energy of G plus 1/p times the sum over coordinates of the squared L² energies of the D_r](goal).
 
 The exact first-order angular Fourier energy of a compactly supported L1
 and L2 function with L1 and L2 weak coordinate derivatives equals its spatial
@@ -115,7 +115,7 @@ theorem angular_first_energy (hp : 1 ≤ p) (G : Space p → ℂ)
   have hc : ∀ r : Fin p,
       (∫⁻ w, ENNReal.ofReal (‖angularFourier G w‖ ^ 2 * (w r) ^ 2)) =
         l2Energy (D r) := fun r =>
-    angular_coordinate_energy G (D r) r hG1 (hD1 r) (hD2 r) hGc (hweak r)
+    angular_coordinate_energy G (D r) r (hD1 r) (hD2 r) hGc (hweak r)
   simp_rw [hc]
 
 /-- The exact first-order identity is also available as a literal nonnegative
@@ -193,14 +193,15 @@ theorem firstEnergy_le (hp : 1 ≤ p) (G : Space p → ℂ)
     ← ENNReal.ofReal_add hA0 (mul_nonneg (inv_nonneg.mpr (Nat.cast_nonneg p)) hB0)] at hb
   exact hb
 
-/-- Real compactly supported L1 and L2 data satisfying coordinate-slice
-integration by parts obey the exact complexified angular energy identity. -/
+/-- A real compactly supported L1 and L2 function with L1 and L2 proposed
+derivatives satisfying coordinate-slice integration by parts obeys the exact
+complexified angular energy identity. -/
 theorem angular_first_energy_of_real_slices (hp : 1 ≤ p) (G : Space p → ℝ)
     (D : Fin p → Space p → ℝ)
     (hG1 : Integrable G volume) (hG2 : MemLp G 2 volume)
     (hGc : HasCompactSupport G)
     (hD1 : ∀ r, Integrable (D r) volume) (hD2 : ∀ r, MemLp (D r) 2 volume)
-    (hDc : ∀ r, HasCompactSupport (D r)) (hslice : HasRealSliceIBP G D) :
+    (hslice : HasRealSliceIBP G D) :
     firstEnergy (complexify G) = l2Energy G + ENNReal.ofReal ((p : ℝ)⁻¹) *
       ∑ r, l2Energy (D r) := by
   have h := angular_first_energy hp (complexify G) (fun r => complexify (D r))
@@ -208,7 +209,7 @@ theorem angular_first_energy_of_real_slices (hp : 1 ≤ p) (G : Space p → ℝ)
     (hasCompactSupport_complexify G hGc)
     (fun r => integrable_complexify (D r) (hD1 r))
     (fun r => memLp_complexify (D r) (hD2 r))
-    (sliceIBP_to_weakDerivative G D hG1 hD1 hGc hDc hslice)
+    (sliceIBP_to_weakDerivative G D hG1 hD1 hslice)
   simpa only [l2Energy_complexify] using h
 
 /-- The complexified first-order angular energy from real coordinate-slice
@@ -218,9 +219,9 @@ theorem firstEnergy_lt_top_of_real_slices (hp : 1 ≤ p) (G : Space p → ℝ)
     (hG1 : Integrable G volume) (hG2 : MemLp G 2 volume)
     (hGc : HasCompactSupport G)
     (hD1 : ∀ r, Integrable (D r) volume) (hD2 : ∀ r, MemLp (D r) 2 volume)
-    (hDc : ∀ r, HasCompactSupport (D r)) (hslice : HasRealSliceIBP G D) :
+    (hslice : HasRealSliceIBP G D) :
     firstEnergy (complexify G) < ⊤ := by
-  rw [angular_first_energy_of_real_slices hp G D hG1 hG2 hGc hD1 hD2 hDc hslice]
+  rw [angular_first_energy_of_real_slices hp G D hG1 hG2 hGc hD1 hD2 hslice]
   exact ENNReal.add_lt_top.mpr ⟨l2Energy_lt_top_of_memLp G hG2,
     ENNReal.mul_lt_top ENNReal.ofReal_lt_top
       (ENNReal.sum_lt_top.mpr fun r _ => l2Energy_lt_top_of_memLp (D r) (hD2 r))⟩
@@ -232,7 +233,7 @@ theorem energy_bounds_of_real_slices (hp : 1 ≤ p) (G : Space p → ℝ)
     (hG1 : Integrable G volume) (hG2 : MemLp G 2 volume)
     (hGc : HasCompactSupport G)
     (hD1 : ∀ r, Integrable (D r) volume) (hD2 : ∀ r, MemLp (D r) 2 volume)
-    (hDc : ∀ r, HasCompactSupport (D r)) (hslice : HasRealSliceIBP G D)
+    (hslice : HasRealSliceIBP G D)
     (A B : ℝ) (hA0 : 0 ≤ A) (hB0 : 0 ≤ B)
     (hA : l2Energy G ≤ ENNReal.ofReal A)
     (hB : (∑ r, l2Energy (D r)) ≤ ENNReal.ofReal B) :
@@ -247,7 +248,7 @@ theorem energy_bounds_of_real_slices (hp : 1 ≤ p) (G : Space p → ℝ)
       (hasCompactSupport_complexify G hGc)
       (fun r => integrable_complexify (D r) (hD1 r))
       (fun r => memLp_complexify (D r) (hD2 r))
-      (sliceIBP_to_weakDerivative G D hG1 hD1 hGc hDc hslice) A B hA0 hB0
+      (sliceIBP_to_weakDerivative G D hG1 hD1 hslice) A B hA0 hB0
     · simpa only [l2Energy_complexify] using hA
     · simpa only [l2Energy_complexify] using hB
 
@@ -279,12 +280,12 @@ theorem angular_first_energy_two_real_slices (G : Space 2 → ℝ)
     (hG1 : Integrable G volume) (hG2 : MemLp G 2 volume)
     (hGc : HasCompactSupport G)
     (hD1 : ∀ r, Integrable (D r) volume) (hD2 : ∀ r, MemLp (D r) 2 volume)
-    (hDc : ∀ r, HasCompactSupport (D r)) (hslice : HasRealSliceIBP G D) :
+    (hslice : HasRealSliceIBP G D) :
     firstEnergy (complexify G) = l2Energy G + ENNReal.ofReal (1 / 2 : ℝ) *
       (l2Energy (D 0) + l2Energy (D 1)) := by
   simpa [Fin.sum_univ_two, one_div] using
     angular_first_energy_of_real_slices (p := 2) (by decide)
-      G D hG1 hG2 hGc hD1 hD2 hDc hslice
+      G D hG1 hG2 hGc hD1 hD2 hslice
 
 /-- In dimension two, spatial bounds A and B yield the exact angular upper
 bounds A and A plus one half B for real coordinate-slice data. -/
@@ -293,7 +294,7 @@ theorem energy_bounds_two_real_slices (G : Space 2 → ℝ)
     (hG1 : Integrable G volume) (hG2 : MemLp G 2 volume)
     (hGc : HasCompactSupport G)
     (hD1 : ∀ r, Integrable (D r) volume) (hD2 : ∀ r, MemLp (D r) 2 volume)
-    (hDc : ∀ r, HasCompactSupport (D r)) (hslice : HasRealSliceIBP G D)
+    (hslice : HasRealSliceIBP G D)
     (A B : ℝ) (hA0 : 0 ≤ A) (hB0 : 0 ≤ B)
     (hA : l2Energy G ≤ ENNReal.ofReal A)
     (hB : l2Energy (D 0) + l2Energy (D 1) ≤ ENNReal.ofReal B) :
@@ -302,6 +303,6 @@ theorem energy_bounds_two_real_slices (G : Space 2 → ℝ)
   have hB' : (∑ r, l2Energy (D r)) ≤ ENNReal.ofReal B := by
     simpa [Fin.sum_univ_two] using hB
   simpa [one_div] using energy_bounds_of_real_slices (p := 2) (by decide)
-    G D hG1 hG2 hGc hD1 hD2 hDc hslice A B hA0 hB0 hA hB'
+    G D hG1 hG2 hGc hD1 hD2 hslice A B hA0 hB0 hA hB'
 
 end Causalean.Mathlib.Analysis.Fourier

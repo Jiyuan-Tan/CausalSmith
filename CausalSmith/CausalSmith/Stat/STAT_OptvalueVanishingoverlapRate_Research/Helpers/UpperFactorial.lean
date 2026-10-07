@@ -210,7 +210,7 @@ lemma factorialCellValue_integral_eq {Ω : Type*} [MeasurableSpace Ω]
   simp only [Finset.prod_div_distrib]
   rw [integral_div]
   change (∫ ω, factorialProduct W m b (fun j => (α j).val) ω ∂μ) / _ = _
-  rw [factorialProduct_mean μ W rate hWlaw hind m hm]
+  rw [factorialProduct_mean μ W rate hWlaw hind m]
   simp only [Finset.prod_div_distrib, div_pow]
 
 -- @node: centeredClip_integral_sq_mean_le

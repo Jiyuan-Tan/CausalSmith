@@ -3,7 +3,7 @@ public import Mathlib
 
 /-! Arithmetic calibration for the scaled conditioning radii and fixed-sample transfer. -/
 
-@[expose] public section
+public section
 
 open Filter Asymptotics
 

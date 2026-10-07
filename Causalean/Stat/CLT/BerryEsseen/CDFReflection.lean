@@ -37,13 +37,13 @@ theorem reflected_charFun_discrepancy
   exact Complex.norm_conj _
 
 /-- If [a probability reference law ν assigns every interval at most L times its
-length](hyp:hν), for [a nonnegative constant L](hyp:hL), then
-[its reflection y ↦ −y satisfies the same interval bound](goal), and
-[the lower CDF discrepancy Fν(x) − Fμ(x) is at most the upper discrepancy of
+length](hyp:hν), then
+[its reflection y ↦ −y satisfies the same interval bound, and
+the lower CDF discrepancy Fν(x) − Fμ(x) is at most the upper discrepancy of
 the reflected laws at −x](goal), even when μ has an atom at x. -/
 theorem reflected_reference_interval_and_cdf
     (μ ν : Measure ℝ) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    (L : ℝ) (hL : 0 ≤ L)
+    (L : ℝ)
     (hν : ∀ a b : ℝ, a ≤ b →
       (ν (Set.Ioc a b)).toReal ≤ L * (b - a)) :
     (∀ a b : ℝ, a ≤ b →

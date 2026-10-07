@@ -11,7 +11,7 @@ weak convergence.  The paper-specific theorem below deliberately leaves the CDF
 convergence of the actual centered estimator as an explicit hypothesis.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

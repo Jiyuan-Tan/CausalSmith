@@ -19,7 +19,7 @@ Only the final represented-data execution clause is parameterized by a
 compiled implementation of the bounded certified complex arithmetic record.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 

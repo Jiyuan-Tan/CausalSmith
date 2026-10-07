@@ -34,7 +34,7 @@ theorem finite_path_average_sq_norm_le
     hconv.map_sum_le (t := Finset.univ) (w := weight) (p := Z)
       (fun a _ => hw_nonneg a) (by simpa using hw_sum) (fun _ _ => Set.mem_univ _)
 
-/-- Under [a probability law](hyp:μ), [measurable nonnegative auxiliary weights that sum to one](hyp:weight,hw_nonneg,hw_sum,hw_meas), [measurable continuous paths](hyp:Z,hZ_meas), and [an integrable weighted squared-path cost](hyp:hcost), [finite conditional averaging contracts expected squared supremum risk](goal). -/
+/-- Under [a probability law](hyp:μ), [measurable nonnegative auxiliary weights that sum to one](hyp:weight,hw_nonneg,hw_sum,hw_meas), [measurable continuous paths](hyp:Z,hZ_meas), and [an integrable weighted squared-path cost](hyp:hcost), [the expected squared supremum norm of the weighted average path Σ_a w_a(x)·Z_a(x) is at most the expected weighted average Σ_a w_a(x)·‖Z_a(x)‖² of the squared supremum norms](goal): finite conditional averaging contracts expected squared supremum risk. -/
 -- The observation space may be infinite (in particular, a table of Poisson
 -- counts). Prove measurability of the finite weighted sum from `hw_meas` and
 -- `hZ_meas`. Pointwise Jensen gives domination by the integrable right side;

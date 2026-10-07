@@ -158,14 +158,14 @@ dynamic-treatment-regime estimation system with strict two-stage propensity over
 the DTR identification assumptions](hyp:h_e_pointwise,h_overlap,hA), and suppose [the factual
 outcome and every counterfactual outcome under a fixed treatment history have finite second
 moment](hyp:h_y2,h_yd2). Given [an i.i.d. sample together with a one-shot cross-fitting split whose
-estimation-fold share converges to some constant strictly between $0$ and
-$1$](hyp:sample,split,c,hc_pos,_hc_lt,h_split_rate), and a sequence of nuisance estimators `η_hat`
+evaluation-fold share converges to a positive
+constant](hyp:sample,split,c,hc_pos,h_split_rate), and a sequence of nuisance estimators `η_hat`
 that [remain in the $ε$-overlap ball, with stagewise outcome-regression and propensity errors that
 are
 square-integrable](hyp:h_in_Hε,h_mu0_diff_memLp,h_mu1_diff_memLp,h_e0_diff_memLp,h_e1_diff_memLp),
-such that [the resulting moment function is measurable against the sample and each cross-fitting
-fold, and is both integrable and
-square-integrable](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry,h_m_int,h_m_sq_int), and such that [the
+such that [the resulting moment function is jointly measurable in the realization and the
+observation, measurable in the training fold jointly with the observation, and both integrable and
+square-integrable](hyp:h_m_meas,h_m_foldA_uncurry,h_m_int,h_m_sq_int), and such that [the
 four individual L² nuisance-error rates vanish](hyp:h_mu0_rate,h_mu1_rate,h_e0_rate,h_e1_rate)
 while [the sum of the two same-stage products is
 $o_P(n^{-1/2})$](hyp:h_product_rate), then [the resulting
@@ -202,7 +202,7 @@ theorem seqDR_dml_isAsymLinear
       Integrable (fun ω => (S.toPOLongitudinalPathSystem.Y_of dbar ω) ^ 2) P.μ)
     (sample : IIDSample P.Ω (γ 0 × δ × γ 1 × δ × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
-    {c : ℝ} (hc_pos : 0 < c) (_hc_lt : c < 1)
+    {c : ℝ} (hc_pos : 0 < c)
     (h_split_rate :
       Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
     (η_hat : ℕ → P.Ω → DTRNuisanceVec₂ δ γ)
@@ -218,11 +218,6 @@ theorem seqDR_dml_isAsymLinear
     (h_m_meas :
       ∀ n, Measurable (fun (p : P.Ω × (γ 0 × δ × γ 1 × δ × ℝ)) =>
         S.seqDRMomentFunctional (η_hat n p.1) p.2 S.θ₀))
-    (h_m_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (fun ω z => S.seqDRMomentFunctional (η_hat n ω) z S.θ₀))
     (h_m_foldA_uncurry :
       ∀ n,
         Measurable[(MeasurableSpace.comap
@@ -329,7 +324,7 @@ theorem seqDR_dml_isAsymLinear
       hMZ hFV
       sample split hc_pos h_split_rate
       η_hat (Crem := seqDR_rem_const ε) hBR_at
-      h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int h_m_sq_int
+      h_m_meas h_m_foldA_uncurry h_m_int h_m_sq_int
       h_score_diff_rate h_product_rate)
 
 end DTR

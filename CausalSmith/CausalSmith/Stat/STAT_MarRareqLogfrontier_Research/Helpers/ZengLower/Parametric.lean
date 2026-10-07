@@ -342,7 +342,7 @@ theorem zengParametricDecisionReduction_proved : ZengParametricDecisionReduction
   have hfbound : ∀ s, f s ∈ Icc (-1 : ℝ) 1 := by
     intro s
     rw [Set.mem_Icc, ← abs_le]
-    exact Causalean.Stat.abs_kernelMean_le T.1 (M := 1) (by norm_num)
+    exact Causalean.Stat.abs_kernelMean_le T.1 (M := 1)
       zengClip_abs_le s
   have hint₀ : Integrable (fun s ↦ (f s - θ₀) ^ 2) (zengSampleLaw n P₀) :=
     Causalean.Stat.mse_integrable_of_estimator_bound _ f hf (by norm_num) hfbound

@@ -205,9 +205,11 @@ theorem threeBlockFactors_of_densityIdentity (hd : Measurable d)
       _ = (d (a, (b, c)) * dC c) / dC c := by rw [hidc]
       _ = d (a, (b, c)) := ENNReal.mul_div_cancel_right hc0 hfin.ne
 
-/-- For [a measurable](hyp:hd) finite three-block density, [measurable factorization through the
-conditioning block is equivalent to the cross-multiplied identity between the joint density, its
-conditioning marginal, and its two block-with-conditioning marginals](goal). -/
+/-- For [a measurable](hyp:hd) three-block density against a product of three σ-finite reference
+measures, with finite total mass, [almost-everywhere factorization into a measurable term of the
+first and conditioning blocks times a measurable term of the second and conditioning blocks is
+equivalent to the almost-everywhere identity that the joint density times its conditioning marginal
+equals the product of its two block-with-conditioning marginals](goal). -/
 theorem threeBlockFactors_iff_densityIdentity (hd : Measurable d) :
     ThreeBlockFactors muA muB muC d ↔ ThreeBlockDensityIdentity muA muB muC d :=
   ⟨threeBlockDensityIdentity_of_factors muA muB muC hd,

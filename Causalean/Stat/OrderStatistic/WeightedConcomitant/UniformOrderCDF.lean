@@ -38,7 +38,7 @@ theorem sortedSample_le_iff_count_le {n : ℕ} (x : Fin n → ℝ)
 
 /-- In an iid sample of `n` unit uniforms, the number of coordinates at most
 `u` has the binomial mass with parameters `n` and `u`. -/
-theorem uniform_count_le_mass (n k : ℕ) (hk : k ≤ n)
+theorem uniform_count_le_mass (n k : ℕ)
     {u : ℝ} (hu : u ∈ Set.Icc (0 : ℝ) 1) :
     iidSample uniform01 n
       {x | ((Finset.univ : Finset (Fin n)).filter (fun i => x i ≤ u)).card = k} =
@@ -140,7 +140,7 @@ theorem uniform_sorted_cdf_eq_binomial_tail {n : ℕ} (r : Fin n)
           ENNReal.ofReal ((Nat.choose n k : ℝ) * u ^ k * (1 - u) ^ (n - k)) := by
       apply Finset.sum_congr rfl
       intro k hk
-      exact uniform_count_le_mass n k (Finset.mem_Icc.mp hk).2 hu
+      exact uniform_count_le_mass n k hu
     _ = _ := by
       rw [ENNReal.ofReal_sum_of_nonneg]
       intro k hk

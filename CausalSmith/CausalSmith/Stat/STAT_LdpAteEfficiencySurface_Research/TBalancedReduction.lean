@@ -248,7 +248,7 @@ lemma grouped_balancedRR_information_eq_randomizedResponse
     groupedChannel_markov _
   letI : IsMarkovKernel
       (Causalean.Stat.Privacy.Binary.randomizedResponse ε) :=
-    Causalean.Stat.Privacy.Binary.randomizedResponse_markov ε hε
+    Causalean.Stat.Privacy.Binary.randomizedResponse_markov ε
   have hτ := abs_contrast_lt_one θ hθ hbalance
   rw [Causalean.Stat.Privacy.Binary.information_eq_discrete _ _ hτ,
     Causalean.Stat.Privacy.Binary.information_eq_discrete _ _ hτ]

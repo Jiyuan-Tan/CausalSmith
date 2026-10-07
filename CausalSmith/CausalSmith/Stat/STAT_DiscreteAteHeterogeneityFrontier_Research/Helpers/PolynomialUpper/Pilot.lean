@@ -173,7 +173,7 @@ lemma polynomialPilotGood_compl_probability_le {n d : ℕ} (P : RealLaw d)
     (Causalean.Stat.iidSample_infinitePi P.observedLaw)
     (label := fun o : Obs d => o.x)
     (measurable_fst.comp (measurable_iff_comap_le.mpr le_rfl))
-    (Finset.range (n / 2)) (t := 256 * logEN n) ht lowerBand upperBand
+    (Finset.range (n / 2)) (t := 256 * logEN n) lowerBand upperBand
 
 -- @node: polynomialPilotGood_compl_probability_calibrated_le
 /-- If [the sample size satisfies the stated lower bound](hyp:hn), [at the declared pilot bands,

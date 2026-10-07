@@ -13,13 +13,14 @@ public section
 
 namespace Causalean.Mathlib.Analysis.Calculus.HolderTaylor
 
-/-- If all ambient derivatives through order `k` are bounded by the same
-constant in the interior of a nondegenerate compact interval, then all
-corresponding within derivatives have that bound throughout the closed
-interval, including both endpoints.
-[The derivative order, interval, bound, function, and regularity assumptions](hyp:k,a,b,B,hab,hB,f,hf,hinterior) yield [the stated closed-interval within-jet bound](goal). -/
+/-- If [a function f](hyp:f) is [k times continuously differentiable](hyp:k,hf) on [a compact
+interval from a to b](hyp:a,b) that is [nondegenerate](hyp:hab), and for [one constant B](hyp:B)
+[all its ordinary (ambient) derivatives of order at most k are bounded in absolute value by B at
+every interior point](hyp:hinterior), then [all its within-interval derivatives
+of order at most k are bounded in absolute value by B at every point of the closed interval,
+both endpoints included](goal). No smoothness outside the interval is assumed. -/
 theorem within_jet_bound_of_interior_ambient_bound
-    (k : ℕ) (a b B : ℝ) (hab : a < b) (hB : 0 ≤ B)
+    (k : ℕ) (a b B : ℝ) (hab : a < b)
     (f : ℝ → ℝ) (hf : ContDiffOn ℝ k f (Set.Icc a b))
     (hinterior : ∀ j ≤ k, ∀ x ∈ Set.Ioo a b,
       |iteratedDeriv j f x| ≤ B) :

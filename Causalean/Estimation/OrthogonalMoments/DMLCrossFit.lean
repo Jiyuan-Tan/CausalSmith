@@ -16,11 +16,28 @@ Reference: Chernozhukov et al. (2018), §3.2 (DML2).
 module
 public import Causalean.Estimation.OrthogonalMoments.DMLCrossFit.JacobianConsistency
 
-/-! # Cross-Fitted Double Machine Learning
+/-!
+# Cross-fitted double machine learning
 
-This barrel exports the estimator definitions, oracle linearization, feasible
-DML transfer, empirical-Jacobian consistency, and solved feasible DML2 results.
-The main results `feasibleCrossFitLinearDML_isAsymLinear` and
-`feasibleCrossFitLinearDML_tendstoStandardNormal` derive the reference
-influence-function expansion and true-standard-deviation `N(0,1)` limit from
-foldwise nuisance and coefficient rates. -/
+K-fold cross-fitted double machine learning (the DML2 estimator of Chernozhukov et al. 2018) for
+a scalar parameter defined by a score that is affine in the parameter. Each fold is evaluated
+with nuisance functions fitted on the other folds, and the estimator solves the fold-averaged
+empirical moment equation. Assuming a mean-zero, square-integrable score at the truth, a
+product-form bound on the population moment at a wrong nuisance, and foldwise rates — the score
+error vanishing in L², the nuisance error product of order o_p(n^{-1/2}), and the corresponding
+rates for the score coefficient — the estimator is asymptotically linear with influence function
+−J₀⁻¹·m(η₀, ·, θ₀), and after scaling by the true standard deviation it converges in
+distribution to N(0,1). The limit is pointwise in the data law; the measurability and
+integrability of the fitted scores are hypotheses.
+
+## Contents
+
+* `Estimator` — `crossFitOneStepOracleDML`, `feasibleLinearDML`, `feasibleCrossFitLinearDML`.
+* `Helpers`, `AsymptoticLinearity` — `crossFitOneStepOracleDML_isAsymLinear_of_goodSet`: the
+  oracle one-step estimator, which uses the true Jacobian, is asymptotically linear.
+* `Feasible` — the single-split feasible estimator: `feasibleLinearDML_isAsymLinear` and the
+  normal limit `feasibleLinearDML_tendstoStandardNormal_of_isAsymLinear`.
+* `JacobianConsistency` — `crossFitLinearDML_jacobianConsistency` (the fold-averaged empirical
+  coefficient is consistent) and the K-fold results `feasibleCrossFitLinearDML_isAsymLinear` and
+  `feasibleCrossFitLinearDML_tendstoStandardNormal`.
+-/

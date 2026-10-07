@@ -19,7 +19,7 @@ open MeasureTheory
 namespace Causalean.Stat.Concentration.BoundedVariation
 
 /-- For finitely many random continuous paths that are
-[measurable](hyp:hWmeas), [Bochner-integrable](hyp:hWint), and [have
+[Bochner-integrable](hyp:hWint) and [have
 integrable squared supremum norm](hyp:hWsq), [the expected squared supremum
 norm of the centered sum of the paths is at most the expected squared
 supremum norm of the summed differences between two independent draws of
@@ -30,7 +30,6 @@ Independence among the summands is not needed.
 theorem centered_path_sum_energy_le_copy
     {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω) [IsProbabilityMeasure μ]
     {n : ℕ} (W : Fin n → Ω → Path)
-    (hWmeas : ∀ j, Measurable (W j))
     (hWint : ∀ j, Integrable (W j) μ)
     (hWsq : ∀ j, Integrable (fun ω => ‖W j ω‖ ^ 2) μ) :
     (∫ ω, ‖∑ j, (W j ω - ∫ x, W j x ∂μ)‖ ^ 2 ∂μ) ≤

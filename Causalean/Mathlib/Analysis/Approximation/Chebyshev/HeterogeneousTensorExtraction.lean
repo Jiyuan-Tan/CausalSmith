@@ -152,13 +152,11 @@ theorem convolution_coord_trig (d : ι → ℕ) (hd : ∀ i, 0 < d i)
       · exact (hint _ (hq1 k)).mul_const _
       · exact (hint _ (hq2 k)).mul_const _
 
-/-- For [a coordinate-specific order map](hyp:d), [a measurable cube target](hyp:f,hf), [a real
-bound B](hyp:B) such that [the target is at most B in absolute value on the cube](hyp:hB), [a
+/-- For [a coordinate-specific order map](hyp:d), [a cube target](hyp:f), [a
 selected coordinate](hyp:i), and [a phase vector fixing the other coordinates](hyp:x), [the
 heterogeneous Jackson convolution is an even function of the selected coordinate](goal). -/
 theorem convolution_coord_even (d : ι → ℕ)
-    (f : (ι → ℝ) → ℝ) (hf : Measurable f)
-    (B : ℝ) (hB : ∀ x ∈ cube, |f x| ≤ B)
+    (f : (ι → ℝ) → ℝ)
     (i : ι) (x : ι → ℝ) :
     Function.Even (fun t => convolution d f (Function.update x i t)) := by
   classical
@@ -471,6 +469,6 @@ theorem convolution_exists_polynomial (d : ι → ℕ) (hd : ∀ i, 0 < d i)
       (∀ γ ∈ p.support, ∀ i, γ i ≤ 2 * (d i - 1)) := by
   exact polynomial_of_coord_even_trig d (convolution d f)
     (fun i x => convolution_coord_trig d hd f hf B hB i x)
-    (fun i x => convolution_coord_even d f hf B hB i x)
+    (fun i x => convolution_coord_even d f i x)
 
 end Causalean.Mathlib.Analysis.Approximation.Chebyshev.HeterogeneousTensor

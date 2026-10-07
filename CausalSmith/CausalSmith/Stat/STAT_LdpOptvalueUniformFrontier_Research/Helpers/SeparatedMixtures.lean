@@ -203,8 +203,8 @@ lemma separated_prior_squared_risk {n : ℕ} {α Ω : Type}
       hbind pi0 hSupport0, hbind pi1 hSupport1] using hTV
   have hbayes := Causalean.Stat.Minimax.FuzzyHypotheses.twoFuzzyHypotheses_bayesRisk_lower
     pi0 pi1 K target hK T.1 T.2 hTarget v0 v1 (v1-v0) ((v1-v0)/8)
-    eta0 eta0 omega (by linarith) (by linarith) (by linarith) le_rfl
-    heta heta homega hEscape0 hEscape1 htvK
+    eta0 eta0 omega (by linarith) le_rfl
+    hEscape0 hEscape1 htvK
   have hconst : (((v1-v0)/2 - (v1-v0)/8)^2 * (1-omega-eta0-eta0))/2 =
       9*(v1-v0)^2/128 * (1-omega-2*eta0) := by ring
   rw [hconst] at hbayes

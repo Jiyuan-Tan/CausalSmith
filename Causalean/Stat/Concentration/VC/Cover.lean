@@ -49,13 +49,12 @@ theorem radialAnnulusMonomial_measurable
       (measurableSet_le hd measurable_const)
 
 /-- For [a Euclidean dimension, envelope degree, and monomial degree](hyp:d,p,k),
-[a positive bandwidth](hyp:hq), [a nonnegative inner radius](hyp:ha),
-[an ordered annulus](hyp:hab), [a degree below the envelope degree](hyp:hk), and
+[a positive bandwidth](hyp:hq), [a degree below the envelope degree](hyp:hk), and
 [a center and evaluation point](hyp:x,z), [the radial monomial is bounded in
 absolute value by the radial-monomial envelope](goal). -/
 theorem abs_radialAnnulusMonomial_le
     (d p k : ℕ) {q a b : ℝ}
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) (hk : k ≤ p)
+    (hq : 0 < q) (hk : k ≤ p)
     (x z : EuclideanPoint d) :
     |radialAnnulusMonomial d q a b k x z| ≤
       radialMonomialEnvelope b p := by
@@ -264,23 +263,6 @@ theorem HasPolynomialL2Cover.monoEnvelope
   obtain ⟨j, hjC, hij⟩ := hCcover i
   exact ⟨j, hjC, hij.trans_le (mul_le_mul_of_nonneg_left hUV hε.le)⟩
 
-/-- Given [named polynomial-cover witnesses](hyp:hF) and
-[an enlarged envelope](hyp:hUV), [the larger envelope preserves the named
-witnesses](goal). -/
-theorem HasPolynomialL2CoverWith.monoEnvelope
-    {𝒳 : Type u} [MeasurableSpace 𝒳]
-    {ι : Type v} {F : ι → 𝒳 → ℝ} {U V A : ℝ} {p : ℕ}
-    (hF : HasPolynomialL2CoverWith F U A p) (hUV : U ≤ V) :
-    HasPolynomialL2CoverWith F V A p := by
-  refine ⟨Causalean.Stat.Concentration.HasPolynomialL2Cover.monoEnvelope
-    hF.forget hUV, hF.one_le_base, ?_⟩
-  intro Q hQ ε hε hε1
-  obtain ⟨C, hCcard, hCcover⟩ := hF.entropy Q hQ ε hε hε1
-  refine ⟨C, hCcard, ?_⟩
-  intro i
-  obtain ⟨j, hjC, hij⟩ := hCcover i
-  exact ⟨j, hjC, hij.trans_le (mul_le_mul_of_nonneg_left hUV hε.le)⟩
-
 /-- Given [uniform named cover witnesses](hyp:hF) and
 [parameterwise envelope enlargements](hyp:hUV), [the larger envelopes preserve
 the uniform named witnesses](goal). -/
@@ -362,38 +344,36 @@ theorem finiteClass_hasPolynomialL2CoverWith
 
 namespace EuclideanRadialPolynomial
 
-/-- For [a Euclidean dimension and maximal degree](hyp:d,p),
-[a positive bandwidth](hyp:hq), [a nonnegative inner radius](hyp:ha), and
-[an ordered annulus](hyp:hab), [the moving-center radial monomials through that
+/-- For [a Euclidean dimension and maximal degree](hyp:d,p)
+and [a positive bandwidth](hyp:hq), [the moving-center radial monomials through that
 degree have a uniform polynomial cover with the radial-monomial envelope](goal). -/
 theorem radialMonomialClass_hasPolynomialL2Cover
     (d p : ℕ) {q a b : ℝ}
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) :
+    (hq : 0 < q) :
     HasPolynomialL2Cover (radialMonomialClass d p q a b)
       (radialMonomialEnvelope b p) := by
-  apply (radialMonomialClass_hasPseudoDimAtMost d p hq ha hab).hasPolynomialL2Cover
+  apply (radialMonomialClass_hasPseudoDimAtMost d p hq).hasPolynomialL2Cover
   · intro θ
     exact radialAnnulusMonomial_measurable d θ.2.1 q a b θ.1
   · unfold radialMonomialEnvelope
     positivity
   · intro θ z
-    apply abs_radialAnnulusMonomial_le d p θ.2.1 hq ha hab
+    apply abs_radialAnnulusMonomial_le d p θ.2.1 hq
     exact Nat.le_of_lt_succ θ.2.2
 
 /-- For [a Euclidean dimension, maximal degree, and selected degree](hyp:d,p,k),
-[a positive bandwidth](hyp:hq), [a nonnegative inner radius](hyp:ha),
-[an ordered annulus](hyp:hab), and [a selected degree below the maximum](hyp:hk),
+[a positive bandwidth](hyp:hq), and [a selected degree below the maximum](hyp:hk),
 [the fixed-degree moving-center class has the full class's polynomial cover and
 envelope](goal). -/
 theorem radialAnnulusMonomial_hasPolynomialL2Cover
     (d p k : ℕ) {q a b : ℝ}
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) (hk : k ≤ p) :
+    (hq : 0 < q) (hk : k ≤ p) :
     HasPolynomialL2Cover
       (fun x : EuclideanPoint d => radialAnnulusMonomial d q a b k x)
       (radialMonomialEnvelope b p) := by
   let degree : Fin (p + 1) := ⟨k, Nat.lt_succ_iff.mpr hk⟩
   exact HasPolynomialL2Cover.pullback
-      (radialMonomialClass_hasPolynomialL2Cover d p hq ha hab)
+      (radialMonomialClass_hasPolynomialL2Cover d p hq)
       (fun x : EuclideanPoint d => (x, degree))
 
 /-- Given [an observation space $\Omega$](hyp:Ω), [a Euclidean dimension $d$](hyp:d),
@@ -410,56 +390,53 @@ noncomputable def radialMonomialOn
 
 /-- **Covering certificate transported through a location map.** For [a measurable map from the
 underlying observation space into `d`-dimensional Euclidean space](hyp:hloc), given [a positive
-bandwidth q](hyp:hq), [a nonnegative annulus inner radius a](hyp:ha), and [inner radius at most
-outer radius b](hyp:hab), [composing the moving-center radial-monomial class of degree at most p
+bandwidth q](hyp:hq), [composing the moving-center radial-monomial class of degree at most p
 with the location map still carries a uniform polynomial `L²` covering certificate at envelope
 `radialMonomialEnvelope b p`](goal). -/
 theorem radialMonomialOn_hasPolynomialL2Cover
     {Ω : Type u} [MeasurableSpace Ω]
     (d p : ℕ) (loc : Ω → EuclideanPoint d) {q a b : ℝ}
     (hloc : Measurable loc)
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) :
+    (hq : 0 < q) :
     HasPolynomialL2Cover (radialMonomialOn d p loc q a b)
       (radialMonomialEnvelope b p) := by
   apply (HasPseudoDimAtMost.compDomain
-    (radialMonomialClass_hasPseudoDimAtMost d p hq ha hab) loc).hasPolynomialL2Cover
+    (radialMonomialClass_hasPseudoDimAtMost d p hq) loc).hasPolynomialL2Cover
   · intro θ
     exact (radialAnnulusMonomial_measurable d θ.2.1 q a b θ.1).comp hloc
   · unfold radialMonomialEnvelope
     positivity
   · intro θ ω
-    apply abs_radialAnnulusMonomial_le d p θ.2.1 hq ha hab
+    apply abs_radialAnnulusMonomial_le d p θ.2.1 hq
     exact Nat.le_of_lt_succ θ.2.2
 
 /-- For [a Euclidean dimension and maximal degree](hyp:d,p),
-[a location map](hyp:loc), [measurability of that map](hyp:hloc),
-[a positive bandwidth](hyp:hq), [a nonnegative inner radius](hyp:ha), and
-[an ordered annulus](hyp:hab),
+[a location map](hyp:loc), [measurability of that map](hyp:hloc), and
+[a positive bandwidth](hyp:hq),
 [the observation-indexed radial class has explicit named entropy witnesses](goal). -/
 theorem radialMonomialOn_hasPolynomialL2CoverWith
     {Ω : Type u} [MeasurableSpace Ω]
     (d p : ℕ) (loc : Ω → EuclideanPoint d) {q a b : ℝ}
     (hloc : Measurable loc)
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) :
+    (hq : 0 < q) :
     HasPolynomialL2CoverWith (radialMonomialOn d p loc q a b)
       (radialMonomialEnvelope b p) 16
       (8 * (radialPseudoDimBound d p + 1)) := by
   apply (HasPseudoDimAtMost.compDomain
-    (radialMonomialClass_hasPseudoDimAtMost d p hq ha hab) loc).hasPolynomialL2CoverWith
+    (radialMonomialClass_hasPseudoDimAtMost d p hq) loc).hasPolynomialL2CoverWith
   · intro θ
     exact (radialAnnulusMonomial_measurable d θ.2.1 q a b θ.1).comp hloc
   · unfold radialMonomialEnvelope
     positivity
   · intro θ ω
-    apply abs_radialAnnulusMonomial_le d p θ.2.1 hq ha hab
+    apply abs_radialAnnulusMonomial_le d p θ.2.1 hq
     exact Nat.le_of_lt_succ θ.2.2
 
 /-- For [a Euclidean dimension and maximal degree](hyp:d,p),
 [a location map](hyp:loc), [a finite family of signed arms](hyp:arm),
 [measurability of the location map](hyp:hloc), [measurability of every
-arm](hyp:harmMeas), [a unit bound on every arm](hyp:harmBound),
-[a positive bandwidth](hyp:hq), [a nonnegative inner radius](hyp:ha), and
-[an ordered annulus](hyp:hab), [multiplying each moving-center radial monomial
+arm](hyp:harmMeas), [a unit bound on every arm](hyp:harmBound), and
+[a positive bandwidth](hyp:hq), [multiplying each moving-center radial monomial
 by an arm preserves a uniform polynomial cover](goal). -/
 theorem finiteSignedArmRadial_hasPolynomialL2Cover
     {Ω : Type u} [MeasurableSpace Ω]
@@ -469,7 +446,7 @@ theorem finiteSignedArmRadial_hasPolynomialL2Cover
     (hloc : Measurable loc)
     (harmMeas : ∀ s, Measurable (arm s))
     (harmBound : ∀ s ω, |arm s ω| ≤ 1)
-    (hq : 0 < q) (ha : 0 ≤ a) (hab : a ≤ b) :
+    (hq : 0 < q) :
     HasPolynomialL2Cover
       (fun θ : RadialMonomialParam d p × A => fun ω =>
         radialMonomialOn d p loc q a b θ.1 ω * arm θ.2 ω)
@@ -493,7 +470,7 @@ theorem finiteSignedArmRadial_hasPolynomialL2Cover
         exact isEmptyElim θ.2
   | inr hA =>
       letI : Nonempty A := hA
-      have hrad := radialMonomialOn_hasPolynomialL2Cover d p loc hloc hq ha hab
+      have hrad := radialMonomialOn_hasPolynomialL2Cover d p loc hloc (a := a) (b := b) hq
       have harm : HasPolynomialL2Cover arm 1 :=
         finiteClass_hasPolynomialL2Cover arm (by norm_num) harmMeas harmBound
       simpa using hrad.mul harm

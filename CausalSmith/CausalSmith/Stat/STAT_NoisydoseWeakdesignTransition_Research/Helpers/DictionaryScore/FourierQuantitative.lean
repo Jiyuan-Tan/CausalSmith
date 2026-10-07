@@ -319,7 +319,7 @@ lemma ellF_variance_bound (kappa : ℝ) (hkappa : kappa ∈ Icc (0 : ℝ) 2) :
   have hbound := Causalean.Stat.Nonparametric.inverseGaussian_shiftedVariance_le
     (𝓕 (fun t => (qF h t : ℂ))) kappa sigma h a b
     ((qF_fourier_contDiff h hh.1).of_le (by norm_num)) (qF_fourier_hasCompactSupport h hh.1)
-    hkappa.1 hkappa.2 hh.1 hh.2 hsigma.1 hsigma.2 ha hb
+    hkappa.1 hkappa.2 hh.1 hh.2 hsigma.1 ha hb
     (qF_fourier_support_radius h hh.1) (hprofile h hh.1).1 (hprofile h hh.1).2
     hinv hinvD (qF_inverseGaussian_joint_integrable kappa sigma h hkappa hh.1)
   apply (ellF_Vq_le_shiftedVariance kappa sigma h hkappa hh.1).trans (hbound.trans _)

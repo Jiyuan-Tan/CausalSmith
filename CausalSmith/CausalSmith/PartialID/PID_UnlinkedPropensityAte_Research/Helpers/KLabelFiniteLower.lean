@@ -10,7 +10,7 @@ public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 Measure geometry for finite-label lower bounds under arbitrary measurable cells.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set Filter
 open scoped BigOperators ENNReal

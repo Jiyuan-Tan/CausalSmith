@@ -71,7 +71,7 @@ theorem target_span_iff (PO : E → W → X → Y → ℝ) (bvec : W → ℝ)
     (M0 : LatentShiftSCM E U W X Y) (hM0 : M0 ∈ compatibleFiber PO bvec)
     (hinj : ProxyChannelInjectivity M0) (x : X) (y : Y) :
     ((Set.Subsingleton
-        (Causalean.Stat.AttainableSet.IdentifiedInterval
+        (Causalean.Stat.AttainableSet.IdentifiedSet
           (fun M : LatentShiftSCM E U W X Y => interventionalProb M x y)
           (fun M => M ∈ compatibleFiber PO bvec))) ↔
       (balancingFiber (condProxyMatrix M0 x) bvec).Nonempty) ∧

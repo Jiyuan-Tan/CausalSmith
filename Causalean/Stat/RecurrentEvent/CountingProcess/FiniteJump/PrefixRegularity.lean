@@ -206,7 +206,7 @@ theorem Model.integrable_prefix_energy (M : Model Ω μ) [IsProbabilityMeasure �
     dsimp [B]
     have hT := M.horizon_pos.le
     positivity
-  exact M.integrable_energy_of_envelope _ hpay B hi hnonneg R hR
+  exact M.integrable_energy_of_envelope _ hpay B hi hnonneg R
     (fun t ω ht hT => (hr t ω ht hT).2) hpaybound
 
 /-- The integral of the absolute mixed strict-past payoff against the
@@ -247,7 +247,7 @@ theorem Model.integrable_prefix_energy_abs (M : Model Ω μ)
     dsimp [B]
     have hT := M.horizon_pos.le
     positivity
-  exact M.integrable_energy_of_envelope _ hpay.abs B hi hnonneg R hR
+  exact M.integrable_energy_of_envelope _ hpay.abs B hi hnonneg R
     (fun t ω ht hT => (hr t ω ht hT).2)
     (fun t ω ht hT => by simpa only [abs_abs] using hpaybound t ω ht hT)
 

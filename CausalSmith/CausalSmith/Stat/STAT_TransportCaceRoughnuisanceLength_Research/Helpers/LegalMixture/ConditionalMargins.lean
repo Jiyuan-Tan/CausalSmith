@@ -122,7 +122,7 @@ lemma primitivePopulation_setIntegral (s : Bool) (density : ℝ → ℝ)
         exact mul_le_mul_of_nonneg_left (hbound x _ _ _ _) (hw x i)
       _ = bound := by rw [← Finset.sum_mul, hn]; simp
   have h := Causalean.Mathlib.Probability.Kernel.FiniteAtomic.setIntegral_finiteAtomicKernel
-    μ κ atom weight hw hn hk covariate (by unfold covariate; fun_prop)
+    μ κ atom weight hw hk covariate (by unfold covariate; fun_prop)
     (by intro x i; rfl) B hB f hint
   change (∫ o in {o | covariate o ∈ B}, f o ∂primitivePopulation s density mass) = _ at h
   simpa only [μ, weight, atom, Fintype.sum_prod_type] using h

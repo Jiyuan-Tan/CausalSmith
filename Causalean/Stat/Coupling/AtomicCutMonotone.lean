@@ -18,8 +18,9 @@ open scoped BigOperators ENNReal Interval
 
 namespace AtomicLaw
 
-/-- The quadratic displacement objective used only to select a no-counterflow plan from the
-finite transport polytope. -/
+/-- The quadratic displacement objective of a finite transport plan: the sum over slot pairs of
+the transported mass times the squared distance between the two atoms.  It is used only to select
+a no-counterflow plan from the finite transport polytope. -/
 def transportSqCost {ι κ : Type*} [Fintype ι] [Fintype κ]
     {μ : AtomicLaw ι} {ν : AtomicLaw κ} (π : TransportPlan μ ν) : ℝ :=
   ∑ i, ∑ j, π.mass i j * (μ.atom i - ν.atom j) ^ 2
@@ -310,7 +311,7 @@ theorem transportCost_eq_integral_abs_cdfGap_of_cutMonotone
   · change left = 0 at hleft_zero
     rw [hleft_zero, sub_zero, abs_of_nonneg hright, add_zero]
 
-/-- [Two finite atomic laws with finite slot types](hyp:ι,κ,μ,ν) and [nonnegative unit-mass weights](hyp:hμ,hν) have [a transport plan whose cost equals their integrated absolute CDF gap](goal). -/
+/-- [Two finite atomic laws with finite slot types](hyp:ι,κ,μ,ν) and [nonnegative unit-mass weights](hyp:hμ,hν) have [a transport plan whose absolute-distance cost equals their integrated absolute CDF gap, the Lebesgue integral over the real line of the absolute difference of the two cumulative distribution functions](goal). -/
 theorem exists_transportPlan_cost_eq_integral_abs_cdfGap
     {ι κ : Type*} [Fintype ι] [Fintype κ]
     (μ : AtomicLaw ι) (ν : AtomicLaw κ) (hμ : μ.Valid) (hν : ν.Valid) :

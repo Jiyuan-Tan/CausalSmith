@@ -41,7 +41,7 @@ lemma compressedCoordinateLaw_klDiv_le {Z S : Type*}
     InformationTheory.klDiv (compressedCoordinateLaw compress μ)
         (compressedCoordinateLaw compress ν) ≤
       InformationTheory.klDiv μ ν := by
-  exact Causalean.Mathlib.InformationTheory.Measure.klDiv_map_le hcompress
+  exact InformationTheory.klDiv_map_le μ ν hcompress
 
 /-- For [a nonnegative number of coordinates](hyp:M), measurable raw-observation
 and summary spaces at every coordinate, a measurable ancillary space, [two probability laws

@@ -22,7 +22,7 @@ open scoped BigOperators
 
 namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev
 
-/-- [A bounded tensor index](hyp:a) determines [its finitely supported monomial exponent](goal).
+/-- [A tensor index](hyp:a), assigning each of the d coordinates a degree between 0 and D, determines [its monomial exponent](goal): the exponent vector whose entry in each coordinate is the index's value there.
 
 The fixed monomial exponent associated with a tensor index of coordinatewise degree at most
 `D`.
@@ -30,14 +30,14 @@ The fixed monomial exponent associated with a tensor index of coordinatewise deg
 def tensorExponent {d D : ℕ} (a : Fin d → Fin (D + 1)) : Fin d →₀ ℕ :=
   Finsupp.equivFunOnFinite.symm (fun i => (a i : ℕ))
 
-/-- [A multivariate polynomial and tensor index](hyp:p,a) determine [the associated fixed-basis coefficient](goal).
+/-- [A multivariate polynomial and tensor index](hyp:p,a) determine [the associated fixed-basis coefficient](goal): the coefficient, in the polynomial, of the monomial whose exponent in each coordinate is the index's value there.
 
 A polynomial's coefficient vector in the fixed tensor monomial basis.
 -/
 def tensorCoeffs {d D : ℕ} (p : MvPolynomial (Fin d) ℝ)
     (a : Fin d → Fin (D + 1)) : ℝ := p.coeff (tensorExponent a)
 
-/-- [A finite tensor coefficient vector](hyp:c) determines [the multivariate polynomial synthesized in the fixed monomial basis](goal).
+/-- [A finite tensor coefficient vector](hyp:c) determines [the multivariate polynomial synthesized in the fixed monomial basis](goal): the sum, over all tensor indices with coordinatewise degrees at most D, of the vector's entry times the monomial with those exponents.
 
 The fixed-basis polynomial synthesized from a tensor coefficient vector.
 -/
@@ -167,7 +167,7 @@ private theorem tensorPolynomial_degreeOf_le {d D : ℕ}
     exact Nat.le_of_lt_succ (a i).isLt
   · exact (ha rfl).elim
 
-/-- [A parameter-indexed polynomial family](hyp:p), [a coordinatewise degree bound](hyp:hdeg), [continuous evaluations on a fixed tensor grid](hyp:hgrid), and [a coefficient index](hyp:a) give [a continuously varying recovered monomial coefficient](goal).
+/-- [A parameter-indexed polynomial family](hyp:p) [whose members all have degree at most D in each variable](hyp:hdeg), and [whose value at every point of the integer tensor grid with coordinates in 0, …, D is continuous in the parameter](hyp:hgrid), has, for [each coefficient index](hyp:a), [a monomial coefficient that varies continuously with the parameter](goal).
 
 A degree-bounded polynomial family has continuous coefficients whenever each value on the
 fixed integer tensor grid varies continuously with the parameter. The inverse of the finite

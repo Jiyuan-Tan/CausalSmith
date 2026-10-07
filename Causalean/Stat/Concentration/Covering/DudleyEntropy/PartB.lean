@@ -9,7 +9,7 @@ The finite-class construction and clean Massart reduction live in
 `PartBCore`; this module exposes the resulting chaining bound.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat.Concentration
 

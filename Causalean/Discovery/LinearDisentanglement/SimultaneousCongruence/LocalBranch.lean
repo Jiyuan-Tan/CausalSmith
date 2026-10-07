@@ -58,10 +58,10 @@ theorem transitionError_eq_sub_mul_inv {p : ℕ} (B₀ B : SqMatrix p)
 
 /-- [A local candidate neighborhood yields a quantitative transition-error bound](goal) for
 [reference and candidate matrices](hyp:B₀,B) in [dimension `p`](hyp:p), with [inverse envelope
-`J` and radius `ρ`](hyp:J,ρ), [positive dimension and nonnegative envelope](hyp:hp,hJ), [invertible
+`J` and radius `ρ`](hyp:J,ρ), [positive dimension](hyp:hp), [invertible
 reference](hyp:hunit), [bounded reference inverse](hyp:hinv), and [local proximity](hyp:hlocal). -/
 theorem transitionError_entryL2_le_of_neighborhood {p : ℕ} (B₀ B : SqMatrix p)
-    {J ρ : ℝ} (hp : 0 < p) (hJ : 0 ≤ J)
+    {J ρ : ℝ} (hp : 0 < p)
     (hunit : IsUnit B₀.det) (hinv : ‖B₀⁻¹‖ ≤ J)
     (hlocal : InReferenceNeighborhood ρ B₀ B) :
     entryL2 (transitionError B₀ B) ≤ (p : ℝ) * J * ρ := by
@@ -131,7 +131,7 @@ theorem inIdentityBranch_of_small_residual {p : ℕ} {E : Type*}
   have hu0 : 0 ≤ u := by
     exact entryL2_nonneg R
   have huLocal : u ≤ min 1 (3 / (8 * max 1 K * M)) := by
-    have h := transitionError_entryL2_le_of_neighborhood B₀ B hp hJ.le
+    have h := transitionError_entryL2_le_of_neighborhood B₀ B hp
       hunit hinv hlocal
     change u ≤ (p : ℝ) * J * pairwiseLocalRadius p M δ L J at h
     calc

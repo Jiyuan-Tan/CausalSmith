@@ -4,9 +4,10 @@ public import Mathlib.Probability.Kernel.Composition.IntegralCompProd
 /-!
 # Expectations from finite sequential kernel laws
 
-This module derives bounded real expectation and centered-covariance identities directly from
-composition-product laws. The identities integrate over kernels rather than conditioning on
-positive-probability history atoms.
+This module derives iterated-integral identities for bounded real expectations, and a covariance
+bound from a uniform bound on centered kernel means, directly from composition-product laws.
+The results integrate over kernels rather than conditioning on positive-probability history
+atoms.
 -/
 
 public section
@@ -92,9 +93,9 @@ theorem integral_action_transition
 probability law μ of the first window with a Markov kernel K](hyp:μ,K,hν). Let [f be a measurable
 function of the first window](hyp:f,hf) [bounded in absolute value by a nonnegative constant
 Cf](hyp:Cf,hCf,hf_bound), and [g a measurable function of the second window](hyp:g,hg)
-[bounded in absolute value by a nonnegative constant Cg](hyp:Cg,hCg,hg_bound). If [for every first
+[bounded in absolute value by a constant Cg](hyp:Cg,hg_bound). If [for every first
 window x the kernel mean of g given x differs from the overall mean of g under ν by at most a
-nonnegative constant D](hyp:D,hD,hkernel), then [the covariance of f and g under ν — the mean of
+constant D](hyp:D,hkernel), then [the covariance of f and g under ν — the mean of
 their product minus the product of their means — is at most Cf·D in absolute value](goal). -/
 theorem covariance_compProd_of_centered_kernel_bound
     {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
@@ -104,8 +105,8 @@ theorem covariance_compProd_of_centered_kernel_bound
     (f : X → ℝ) (hf : Measurable f)
     (Cf : ℝ) (hCf : 0 ≤ Cf) (hf_bound : ∀ x, |f x| ≤ Cf)
     (g : Y → ℝ) (hg : Measurable g)
-    (Cg : ℝ) (hCg : 0 ≤ Cg) (hg_bound : ∀ y, |g y| ≤ Cg)
-    (D : ℝ) (hD : 0 ≤ D)
+    (Cg : ℝ) (hg_bound : ∀ y, |g y| ≤ Cg)
+    (D : ℝ)
     (hkernel : ∀ x,
       |(∫ y, g y ∂K x) - (∫ z, g z.2 ∂ν)| ≤ D) :
     |(∫ z, f z.1 * g z.2 ∂ν) -

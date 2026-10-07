@@ -61,10 +61,10 @@ lemma polynomial_geometric_series_summable (r : ℕ) (z : ℝ) (hz : 0 ≤ z)
     (fun j => polynomial_geometric_term_le r j z hz)
     ((summable_geometric_of_abs_lt_one hratio).mul_left (2 ^ r * z ^ 2))
 
-/-- A polynomially weighted geometric series has the displayed quadratic bound when
+/-- For a natural exponent r and a real base z, when
 [the base is nonnegative](hyp:hz) and
-[the explicit geometric ratio is at most one half](hyp:hsmall).
-[The asserted series bound holds](goal). -/
+[2^r times the base is at most one half](hyp:hsmall),
+[the series of (j+2)^r·z^(j+2) over all natural j is at most 2^(r+1)·z²](goal). -/
 lemma polynomial_geometric_series_bound (r : ℕ) (z : ℝ) (hz : 0 ≤ z)
     (hsmall : 2 ^ r * z ≤ 1 / 2) :
     (∑' j : ℕ, (j + 2 : ℝ) ^ r * z ^ (j + 2)) ≤ 2 ^ (r + 1) * z ^ 2 := by

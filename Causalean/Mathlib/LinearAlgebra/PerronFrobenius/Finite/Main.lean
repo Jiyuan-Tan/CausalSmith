@@ -35,7 +35,7 @@ theorem finite_positive_perron_eigenvector
     exists_unit_eigenvector_sphereRayleighValue A hA_symm
   obtain ⟨habs_norm, habs_nonneg, habs_top, habs_eigen⟩ :=
     absVec_preserves_top_eigenvector A hA_symm hA_irred.nonneg
-      hx_norm hx_eigen hx_top
+      hx_norm hx_top
   refine ⟨absVec x, sphereRayleighValue A, habs_norm, ?_, habs_eigen,
     habs_top, rfl, ?_, ?_⟩
   · exact IsIrreducible.unit_eigenvector_pos hA_irred

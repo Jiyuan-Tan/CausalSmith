@@ -3,7 +3,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.F
 
 /-! Structural endpoint bridge for all-label ambiguity. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 namespace CausalSmith.PartialID.UnlinkedPropensityAte

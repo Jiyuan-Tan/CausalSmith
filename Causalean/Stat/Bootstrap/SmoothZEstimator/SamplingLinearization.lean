@@ -119,20 +119,17 @@ theorem zEstimator_samplingLinearization
           epsilon < ‖est n (S.sampleVector n omega) - theta0‖})
         atTop (nhds 0))
     (hSolve : SolvesEstimatingEquationInProbability S psi est) :
-    Tendsto_inProb
-      (fun n omega ↦ ‖zEstimatorSamplingRemainder
-        S est theta0 reg.influence n omega‖)
-      (fun _ ↦ 0) mu := by
+    Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega ↦ ‖zEstimatorSamplingRemainder
+        S est theta0 reg.influence n omega‖) atTop (fun _ _ ↦ 0) := by
   -- Apply the smooth-score theorem directly to the normalized-score hypothesis.  Its
   -- `IsLittleOp` remainder is exactly the norm of `zEstimatorSamplingRemainder`; convert it with
-  -- `Tendsto_inProb.of_isLittleOp_one`.
+  -- `Modes.TendstoInProbability.of_isLittleOp_one`.
   have hMoment :=
     hSolve
   have hLinear :=
     zEstimator_asymLinear_of_smoothScore_of_sampleFn
       psi theta0 P reg S est hConsistent hMoment
-  rw [Tendsto_inProb_iff_hub,
-    Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
+  rw [Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
   simpa [IsLittleOp, zEstimatorSamplingRemainder,
     IsAsymLinearVec.normalizedSum] using hLinear.remainder
 

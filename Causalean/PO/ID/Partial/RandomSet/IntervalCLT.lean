@@ -84,19 +84,19 @@ omit [IsProbabilityMeasure P] in
 converges in distribution to the pushforward `(gaussianLimit ψ).map maxAbs` — the
 law of `max(|z_L|, |z_U|)` for the bivariate Gaussian limit.  Immediate from the
 multivariate CLT (`clt_normalizedSum_vec`) and the continuous-mapping theorem
-(`Tendsto_dist_vec.map_continuous`). -/
+(`Modes.TendstoInLaw.map_continuous`). -/
 theorem normalizedSum_maxAbs_clt
     (S : IIDSample Ω X μ P)
     (hmean : ∫ x, ψ x ∂P = 0)
     (hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n) μ) :
-    Tendsto_dist_vec
-      (fun n ω => maxAbs (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n ω))
-      ((gaussianLimit hψ hvar).map maxAbs) μ
-      (fun n => measurable_maxAbs.comp_aemeasurable (hSum_meas n)) := by
-  apply (Tendsto_dist_vec_iff _ _ _ _).2
-  exact Tendsto_dist_vec.map_continuous continuous_maxAbs hSum_meas
-    (S.clt_normalizedSum_vec hψ hvar hmean)
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (fun n ω => maxAbs (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n ω)) atTop
+        ((gaussianLimit hψ hvar).map maxAbs) := by
+  apply (Tendsto_dist_vec_iff _ _ _
+    (fun n => continuous_maxAbs.measurable.comp_aemeasurable (hSum_meas n))).2
+  exact Modes.TendstoInLaw.map_continuous (S.clt_normalizedSum_vec hψ hvar hmean)
+    continuous_maxAbs
 
 end CLT
 
@@ -348,7 +348,7 @@ the bivariate Gaussian limit of the influence function](goal):
 
 Obtained by transporting the abstract continuous-mapping CLT
 (`normalizedSum_maxAbs_clt`) across the Hausdorff bridge
-(`maxAbs_normalizedSum_eq`) via `Tendsto_dist_vec.congr_ae`. -/
+(`maxAbs_normalizedSum_eq`) via `Modes.TendstoInLaw.congr_ae`. -/
 theorem interval_data_clt (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
     (hLU : ∀ z, yL z ≤ yU z) (hLint : Integrable yL P) (hUint : Integrable yU P)
     (hψ : Measurable (intervalIFVec yL yU P))
@@ -360,15 +360,11 @@ theorem interval_data_clt (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
       (fun ω => Real.sqrt n * hausdorffDist
         (Set.Icc (sampleMean S yL n ω) (sampleMean S yU n ω))
         (Set.Icc (∫ x, yL x ∂P) (∫ x, yU x ∂P))) μ) :
-    Tendsto_dist_vec
-      (fun n ω => Real.sqrt n * hausdorffDist
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => Real.sqrt n * hausdorffDist
         (Set.Icc (sampleMean S yL n ω) (sampleMean S yU n ω))
-        (Set.Icc (∫ x, yL x ∂P) (∫ x, yU x ∂P)))
-      ((gaussianLimit hψ hvar).map maxAbs) μ hHmeas :=
-  Tendsto_dist_vec.congr_ae
-    (fun n => measurable_maxAbs.comp_aemeasurable (hSum_meas n))
+        (Set.Icc (∫ x, yL x ∂P) (∫ x, yU x ∂P))) atTop ((gaussianLimit hψ hvar).map maxAbs) :=
+  Modes.TendstoInLaw.congr_ae (normalizedSum_maxAbs_clt hψ hvar S hmean hSum_meas)
     hHmeas
-    (normalizedSum_maxAbs_clt hψ hvar S hmean hSum_meas)
     (Filter.Eventually.of_forall fun n => Filter.Eventually.of_forall fun ω =>
       maxAbs_normalizedSum_eq S yL yU hLU hLint hUint n ω)
 
@@ -385,14 +381,11 @@ moment conditions on `yL`, `yU`. -/
 theorem interval_data_clt_of_memLp (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
     (hLU : ∀ z, yL z ≤ yU z) (hLmeas : Measurable yL) (hUmeas : Measurable yU)
     (hLsq : MemLp yL 2 P) (hUsq : MemLp yU 2 P) :
-    Tendsto_dist_vec
-      (fun n ω => Real.sqrt n * hausdorffDist
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => Real.sqrt n * hausdorffDist
         (Set.Icc (sampleMean S yL n ω) (sampleMean S yU n ω))
-        (Set.Icc (∫ x, yL x ∂P) (∫ x, yU x ∂P)))
-      ((gaussianLimit (measurable_intervalIFVec yL yU hLmeas hUmeas)
-        (intervalIFVec_var_integrable yL yU hLsq hUsq)).map maxAbs) μ
-      (intervalIFVec_hHmeas S yL yU hLU hLmeas hUmeas
-        (hLsq.integrable (by norm_num)) (hUsq.integrable (by norm_num))) :=
+        (Set.Icc (∫ x, yL x ∂P) (∫ x, yU x ∂P))) atTop
+            ((gaussianLimit (measurable_intervalIFVec yL yU hLmeas hUmeas)
+        (intervalIFVec_var_integrable yL yU hLsq hUsq)).map maxAbs) :=
   interval_data_clt S yL yU hLU
     (hLsq.integrable (by norm_num)) (hUsq.integrable (by norm_num))
     (measurable_intervalIFVec yL yU hLmeas hUmeas)

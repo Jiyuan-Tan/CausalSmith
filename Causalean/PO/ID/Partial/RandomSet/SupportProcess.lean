@@ -70,8 +70,9 @@ instance : IsProbabilityMeasure ((gaussianLimit hψ hvar).map maxAbsK) :=
 
 omit [IsProbabilityMeasure P] in
 /-- For a centered support process `ψ` on `k` fixed directions observed via an IID sample `S`, if
-[`ψ` is mean zero, `E[ψ] = 0`](hyp:hmean), and [the normalized partial sums built from `S` are
-almost-everywhere measurable at every sample size](hyp:hSum_meas), then [the grid supremum
+[`ψ` is measurable](hyp:hψ), [its squared norm is integrable](hyp:hvar), [`ψ` is mean zero,
+`E[ψ] = 0`](hyp:hmean), and [the normalized partial sums built from `S` are almost-everywhere
+measurable at every sample size](hyp:hSum_meas), then [the grid supremum
 statistic `maxAbsK` applied to those normalized sums converges in distribution to `maxAbsK`
 applied to the Gaussian limit of `ψ`](goal).
 
@@ -85,13 +86,13 @@ theorem supportProcess_sup_clt
     (hmean : ∫ x, ψ x ∂P = 0)
     (hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n) μ) :
-    Tendsto_dist_vec
-      (fun n ω => maxAbsK (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n ω))
-      ((gaussianLimit hψ hvar).map maxAbsK) μ
-      (fun n => measurable_maxAbsK.comp_aemeasurable (hSum_meas n)) := by
-  apply (Tendsto_dist_vec_iff _ _ _ _).2
-  exact Tendsto_dist_vec.map_continuous continuous_maxAbsK hSum_meas
-    (S.clt_normalizedSum_vec hψ hvar hmean)
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (fun n ω => maxAbsK (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n ω)) atTop
+        ((gaussianLimit hψ hvar).map maxAbsK) := by
+  apply (Tendsto_dist_vec_iff _ _ _
+    (fun n => continuous_maxAbsK.measurable.comp_aemeasurable (hSum_meas n))).2
+  exact Modes.TendstoInLaw.map_continuous (S.clt_normalizedSum_vec hψ hvar hmean)
+    continuous_maxAbsK
 
 end CLT
 
@@ -188,11 +189,9 @@ theorem setValued_supportProcess_clt
     (hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinearVec.normalizedSum S (supportProcess F EF p)
         (fun m => Finset.range m) n) μ) :
-    Tendsto_dist_vec
-      (fun n ω => maxAbsK (IsAsymLinearVec.normalizedSum S (supportProcess F EF p)
-        (fun m => Finset.range m) n ω))
-      ((gaussianLimit hψ hvar).map maxAbsK) μ
-      (fun n => measurable_maxAbsK.comp_aemeasurable (hSum_meas n)) :=
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (fun n ω => maxAbsK (IsAsymLinearVec.normalizedSum S (supportProcess F EF p)
+        (fun m => Finset.range m) n ω)) atTop ((gaussianLimit hψ hvar).map maxAbsK) :=
   supportProcess_sup_clt hψ hvar S hmean hSum_meas
 
 end SetValued

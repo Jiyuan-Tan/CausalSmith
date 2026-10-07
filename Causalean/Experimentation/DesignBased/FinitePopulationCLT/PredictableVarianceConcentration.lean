@@ -444,9 +444,11 @@ theorem srsPredictableVarianceExpression_tendstoInProbability
     (y : ∀ n, Fin (N n) → ℝ) (hvar : ∀ n, 0 < popVar (y n))
     (hmax : Tendsto (fun n => popMaxSqDev (y n) /
       (((min (K n) (N n - K n) : ℕ) : ℝ) * popVar (y n))) atTop (nhds 0)) :
-    TendstoInProbability (fun n => (uniformPermutationDesign (N n)).toMeasure)
-      (fun n => srsPredictableVarianceExpression (N n) (K n) (hKlt n) (y n)) 1 := by
-  rw [tendstoInProbability_iff_real]
+    Modes.TendstoInProbability (fun n => (uniformPermutationDesign (N n)).toMeasure)
+        (fun n => srsPredictableVarianceExpression (N n) (K n) (hKlt n) (y n)) atTop
+        (fun _ _ => 1) := by
+  rw [Modes.tendstoInProbability_iff_norm]
+  simp only [Real.norm_eq_abs]
   have hL1 := srsPredictableVarianceExpression_integral_abs_sub_one_tendsto_zero
     N K hKpos hKlt y hvar hmax
   intro ε hε
@@ -476,11 +478,12 @@ theorem standardizedSrsPermutationHajekArray_predictableQuadraticVariation_tends
     (y : ∀ n, Fin (N n) → ℝ) (hvar : ∀ n, 0 < popVar (y n))
     (hmax : Tendsto (fun n => popMaxSqDev (y n) /
       (((min (K n) (N n - K n) : ℕ) : ℝ) * popVar (y n))) atTop (nhds 0)) :
-    TendstoInProbability (fun n => (uniformPermutationDesign (N n)).toMeasure)
+    Modes.TendstoInProbability (fun n => (uniformPermutationDesign (N n)).toMeasure)
       (standardizedSrsPermutationHajekArray N K hKpos hKlt y).predictableQuadraticVariation
-      1 := by
+      atTop (fun _ _ => 1) := by
   have hexpr := srsPredictableVarianceExpression_tendstoInProbability N K hKpos hKlt y hvar hmax
-  rw [tendstoInProbability_iff_real] at hexpr ⊢
+  rw [Modes.tendstoInProbability_iff_norm] at hexpr ⊢
+  simp only [Real.norm_eq_abs] at hexpr ⊢
   intro ε hε
   have heq := standardizedSrsPermutationHajekArray_predictableQuadraticVariation_ae_eq_expression
     N K hKpos hKlt y hvar

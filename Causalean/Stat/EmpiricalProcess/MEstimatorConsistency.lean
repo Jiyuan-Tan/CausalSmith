@@ -69,7 +69,7 @@ theorem mEstimator_consistent_of_glivenkoCantelli
     (thetaHat : ℕ → Ω → Θ)
     (hGC : WeakGlivenkoCantelli S m)
     (slack : ℕ → Ω → ℝ)
-    (hSlack : Tendsto_inProb slack (fun _ => 0) μ)
+    (hSlack : Modes.TendstoInProbability (fun _ : ℕ => μ) slack atTop (fun _ _ => 0))
     (hApprox : ∀ n ω,
       S.sampleMean (m θ₀) n ω ≤ S.sampleMean (m (thetaHat n ω)) n ω + slack n ω)
     (hSep : ∀ ε : ℝ, 0 < ε → ∃ η : ℝ, 0 < η ∧
@@ -129,7 +129,7 @@ theorem mEstimator_consistent_of_bracketing
     (hmeas : ∀ θ, Measurable (m θ))
     (hbr : HasL1Bracketing m P)
     (slack : ℕ → Ω → ℝ)
-    (hSlack : Tendsto_inProb slack (fun _ => 0) μ)
+    (hSlack : Modes.TendstoInProbability (fun _ : ℕ => μ) slack atTop (fun _ _ => 0))
     (hApprox : ∀ n ω,
       S.sampleMean (m θ₀) n ω ≤ S.sampleMean (m (thetaHat n ω)) n ω + slack n ω)
     (hSep : ∀ ε : ℝ, 0 < ε → ∃ η : ℝ, 0 < η ∧

@@ -20,12 +20,12 @@ def InUnitCube {d : ℕ} (x : Fin d → ℝ) : Prop :=
 def sqEuclideanDist {d : ℕ} (x y : Fin d → ℝ) : ℝ :=
   ∑ i, (x i - y i) ^ 2
 
-/-- Given [a dimension, dyadic level, and cell index](hyp:d,n,k), [the dyadic time cell](goal) is [the corresponding closed parameter interval](step:1). -/
+/-- Given [a dimension d, dyadic level n, and cell index k](hyp:d,n,k), [the dyadic time cell](goal) is [the closed parameter interval from k/2^(dn) to (k+1)/2^(dn)](step:1). -/
 def dyadicTimeCell (d n : ℕ) (k : Fin (2 ^ (d * n))) : Set ℝ :=
   Set.Icc ((k.val : ℝ) / (2 ^ (d * n) : ℝ))
     (((k.val : ℝ) + 1) / (2 ^ (d * n) : ℝ))
 
-/-- Given [a traversal, level, cell index, and point](hyp:T,n,k,x), [membership in the dyadic cube cell](goal) is [coordinatewise membership in that closed geometric cube](step:1). -/
+/-- Given [a traversal, level n, cell index k, and point x](hyp:T,n,k,x), [membership in the dyadic cube cell](goal) is [the condition that each coordinate of x lies in the closed interval from c/2^n to (c+1)/2^n, where c is the matching integer coordinate of the k-th cell the traversal visits at level n](step:1). -/
 def dyadicCubeCell {d : ℕ} (T : DyadicTraversal d) (n : ℕ)
     (k : Fin (2 ^ (d * n))) (x : Fin d → ℝ) : Prop :=
   ∀ i, x i ∈ Set.Icc
@@ -316,9 +316,9 @@ structure LocalizedCubeMap (d : ℕ) (T : DyadicTraversal d) where
   localizes : ∀ (n : ℕ) (k : Fin (2 ^ (d * n))) (t : ℝ),
     t ∈ dyadicTimeCell d n k → dyadicCubeCell T n k (toFun t)
 
-/-- Given [a cube dimension](hyp:d) of [at least two](hyp:hd) and [a coherent dyadic traversal](hyp:T),
+/-- Given [a cube dimension](hyp:d) and [a coherent dyadic traversal](hyp:T),
 [a map localized to its matching dyadic cube cells exists](goal). -/
-theorem exists_localizedCubeMap_of_traversal (d : ℕ) (hd : 2 ≤ d)
+theorem exists_localizedCubeMap_of_traversal (d : ℕ)
     (T : DyadicTraversal d) : Nonempty (LocalizedCubeMap d T) := by
   let H : ℝ → Fin d → ℝ := fun t =>
     if ht : t ∈ Set.Icc (0 : ℝ) 1 then

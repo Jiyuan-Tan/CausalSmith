@@ -36,8 +36,9 @@ def CardinalitiesPositive (r : V → ℕ) : Prop := ∀ v, 0 < r v
 profiles](goal) [as a real-valued function on profiles](step:1). -/
 abbrev Kernel (r : V → ℕ) := ProfileSpace r → ℝ
 
-/-- The [coordinate cardinalities](hyp:r) determine a strictly positive normalized real table
-whose complete-profile masses are positive and sum to one. -/
+/-- The [coordinate cardinalities](hyp:r) determine a strictly positive normalized real table:
+a real mass for every complete profile, with every mass strictly positive and the masses summing
+to one. -/
 structure PositiveTable (r : V → ℕ) where
   /-- The table assigns a real mass to each complete profile. -/
   mass : ProfileSpace r → ℝ
@@ -116,7 +117,9 @@ theorem fiberSum_update_of_not_mem {M : Type uM} [AddCommMonoid M]
 
 /-- For [a profile function](hyp:f), [a fixed coordinate set](hyp:S), [a coordinate outside that
 set](hyp:v,hv), and [a reference profile](hyp:x), [partitioning its fibre by the coordinate
-value recovers the original fibre sum](goal). -/
+value recovers the original fibre sum: adding up, over every value of the outside coordinate, the
+fibre sum that additionally fixes that coordinate at that value gives the fibre sum that fixes
+only the original set](goal). -/
 theorem sum_fiberSum_insert_update {M : Type uM} [AddCommMonoid M]
     (f : ProfileSpace r → M) {S : Finset V} {v : V} (hv : v ∉ S)
     (x : ProfileSpace r) :

@@ -4,7 +4,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.E
 
 /-! Identification of the active released cell in the score-log full laws. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.PartialID.UnlinkedPropensityAte
 

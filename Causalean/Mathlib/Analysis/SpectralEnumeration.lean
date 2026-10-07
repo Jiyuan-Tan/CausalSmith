@@ -23,14 +23,18 @@ open scoped BigOperators
 def ComplexMatrixEigenvalue {n : ℕ} (A : RectMatrix n n) (z : ℂ) : Prop :=
   ∃ v : Fin n → ℂ, v ≠ 0 ∧ ∀ i, ∑ j, (A i j : ℂ) * v j = z * v i
 
-/-- The Lagrange matrix polynomial attached to one slot of a proposed spectral enumeration. -/
+/-- The Lagrange matrix polynomial attached to slot i of a proposed list of spectral values
+of a square matrix A: the product, over all slots j whose value differs from the value of
+slot i, of (A − valueⱼ·I)/(valueᵢ − valueⱼ). -/
 noncomputable def polynomialSpectralProjector {n : ℕ} (A : RectMatrix n n)
     (value : Fin n → ℝ) (i : Fin n) : RectMatrix n n :=
   (Finset.univ.filter (fun j => value j ≠ value i)).toList.foldl
     (fun E j => E * ((value i - value j)⁻¹ •
       (A - value j • (1 : RectMatrix n n)))) 1
 
-/-- The scalar Lagrange polynomial evaluated at `x`. -/
+/-- The scalar Lagrange polynomial of slot i of a list of real values, evaluated at a real
+point x: the product, over all slots j whose value differs from the value of slot i, of
+(x − valueⱼ)/(valueᵢ − valueⱼ). -/
 noncomputable def scalarLagrange {n : ℕ} (value : Fin n → ℝ) (i : Fin n)
     (x : ℝ) : ℝ :=
   ∏ j ∈ Finset.univ.filter (fun j => value j ≠ value i),
@@ -396,7 +400,7 @@ theorem anchor_projector_eq_clusterMass
   unfold dotProduct
   simp [Matrix.mulVec_diagonal]
 
-/-- [A matrix dimension, matrix, and real diagonalization](hyp:n,A,D), [a positive spectral radius](hyp:radius,hradius), [mass and left-right anchor data](hyp:mass,left,right,hmass,hbound,hleft,hright) yield [an injective bounded spectral enumeration with nonnegative normalized aggregate projector weights](goal). -/
+/-- [A real diagonalization of an n×n matrix](hyp:n,A,D) whose [eigenvalues all lie in the interval from −radius to radius](hyp:hbound) for [a positive radius](hyp:radius,hradius), together with [nonnegative masses summing to one](hyp:mass,hmass), [a left vector equal to the transposed inverse eigenbasis applied to the masses](hyp:left,hleft), and [a right vector that the inverse eigenbasis sends to the all-ones vector](hyp:right,hright), yields [a list of n pairwise distinct real values in that interval that contains every eigenvalue, such that the weights obtained by pairing the left vector with each slot's Lagrange matrix polynomial applied to the right vector are nonnegative and sum to one](goal). -/
 theorem exists_polynomialSpectralLaw
     {n : ℕ} {A : RectMatrix n n} (D : RealDiagonalization A)
     {radius : ℝ} (hradius : 0 < radius)

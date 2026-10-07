@@ -16,13 +16,19 @@ namespace Causalean.Mathlib.Analysis.Calculus.HolderTaylor
 open Causalean.Mathlib.Analysis.Calculus.CubeInterpolation
 open Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
-/-- Pulling a function back from a nondegenerate interval to the closed unit
-cube scales its order-`k` within-derivative Hölder constant by the `k+α`
-power of the affine slope.
-[The interval, derivative-order, function, and regularity inputs](hyp:k,α,a,d,L,hd,f,hf,hholder) yield [the stated affine Hölder transfer](goal). -/
+/-- Let [f be a function of one real variable](hyp:f) on [the closed interval from a to
+a + d, with a derivative order k](hyp:k,a), where [the length d is positive](hyp:d,hd),
+and suppose [its order-k derivative taken within that interval changes between any two points of
+the interval by at most L times their distance to the power α](hyp:α,L,hholder). Then [the rescaled
+function z ↦ f(a + d/2 + (d/2)·z) on the one-dimensional normalized cube, the interval from −1 to
+1, satisfies the intrinsic (within-cube) top-order Hölder condition of order k with exponent α and
+constant L·(d/2)^k·(d/2)^α](goal).
+
+Pulling back along the affine map thus scales the Hölder constant by the k + α power of the slope
+d/2. No sign condition on α or L is needed. -/
 theorem affine_cube_topHolderOn
     (k : ℕ) (α a d L : ℝ) (hd : 0 < d)
-    (f : ℝ → ℝ) (hf : ContDiffOn ℝ k f (Set.Icc a (a + d)))
+    (f : ℝ → ℝ)
     (hholder : ∀ x ∈ Set.Icc a (a + d), ∀ y ∈ Set.Icc a (a + d),
       |iteratedDerivWithin k f (Set.Icc a (a + d)) x -
         iteratedDerivWithin k f (Set.Icc a (a + d)) y| ≤
@@ -45,8 +51,8 @@ theorem affine_cube_topHolderOn
     have heq : (a + d / 2 + (d / 2) * x 0) -
         (a + d / 2 + (d / 2) * y 0) = (d / 2) * (x 0 - y 0) := by ring
     rw [heq, abs_mul, abs_of_pos hc]
-  rw [affine_cube_coordJetOn k a d hd f hf q x hx,
-    affine_cube_coordJetOn k a d hd f hf q y hy]
+  rw [affine_cube_coordJetOn k a d hd f q x hx,
+    affine_cube_coordJetOn k a d hd f q y hy]
   calc
     |(d / 2) ^ k * iteratedDerivWithin k f (Set.Icc a (a + d))
         (a + d / 2 + (d / 2) * x 0) -

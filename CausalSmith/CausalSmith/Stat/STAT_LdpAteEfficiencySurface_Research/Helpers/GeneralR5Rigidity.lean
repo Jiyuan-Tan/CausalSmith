@@ -6,7 +6,7 @@ public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.TFiveOutput
 
 /-! # General five-ray certificate rigidity -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

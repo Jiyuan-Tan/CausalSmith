@@ -149,8 +149,9 @@ theorem prawitz_high_compact_kernel_sq_lower
 
 /-- On [a frequency u in a positive cell [a, b] of the lower half-band
 b ≤ 1/2](hyp:u,a,b,ha,hat,htb,hb), [the squared Prawitz filter norm at u is
-at most an explicit rational polynomial expression in the cell endpoints a, b
-and π](goal). -/
+at most
+(1 − a)²/4 + (((1 − a)·(1 − (πa)²/2 + (πb)⁴/24)/(πa·(1 − (πb)²/6)) + 1/π)/2)²](goal),
+a bound that involves only the cell endpoints and π. -/
 theorem prawitzKernel_lower_cell_taylor_sq_bound
     (u a b : ℝ) (ha : 0 < a) (hat : a ≤ u) (htb : u ≤ b) (hb : b ≤ 1 / 2) :
     ‖prawitzKernel u‖ ^ 2 ≤ (1 - a) ^ 2 / 4 +

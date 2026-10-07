@@ -359,7 +359,7 @@ lemma targetFeature_transpose_firstBasis {k dx dz : ℕ} {L pi0 sigma0 : ℝ}
     MeasureTheory.ae_restrict_of_ae (hM.anchor.mono fun w hw => hw i0 rfl)
   let _ : MeasureTheory.IsProbabilityMeasure
       (normalizedRestrict P (latentClass u)) :=
-    normalizedRestrict_isProbabilityMeasure (measurableSet_latentClass u) hclass
+    normalizedRestrict_isProbabilityMeasure hclass
   have hmean : targetFeature P i0 u = 1 := by
     rw [targetFeature, conditionalMean_eq_normalizedRestrictedIntegral hclass]
     unfold normalizedRestrictedIntegral

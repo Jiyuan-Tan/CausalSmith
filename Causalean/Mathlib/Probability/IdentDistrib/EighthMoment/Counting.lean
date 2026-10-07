@@ -204,8 +204,9 @@ theorem polynomial_le_factorial (t : ℝ) (ht : 0 ≤ t) :
   norm_num [Nat.factorial] at *
   nlinarith [sq_nonneg (t ^ 2)]
 
-/-- For [a nonnegative weight](hyp:hv), the weighted number of surviving patterns on
-[a finite coordinate set](hyp:S) is [at most eight factorial times the sum of the first
+/-- For [a nonnegative weight](hyp:hv), the sum over surviving patterns on
+[a finite coordinate set](hyp:S) of the weight raised to the number of distinct coordinates
+the pattern uses is [at most eight factorial times the sum of the first
 and fourth powers of size times weight](goal). -/
 theorem weighted_survivingPatterns_le (S : Finset α) (v : ℝ) (hv : 0 ≤ v) :
     (∑ a ∈ survivingPatterns S, v ^ (patternImage a).card) ≤

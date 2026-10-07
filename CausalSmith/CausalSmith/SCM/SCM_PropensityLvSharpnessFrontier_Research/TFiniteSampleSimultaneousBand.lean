@@ -67,8 +67,8 @@ theorem honestBand_simultaneous_coverage
       exact hoeffdingGate_empiricalArmPropensity mu n hnpos a alpha e nu P Z hIID
         hFactor hHoeffding hPos hAlpha
     have hF : mu F ≤ ENNReal.ofReal (alpha / 2) := by
-      apply conditionalMarkedSubsample_dkwRadius S a (ENNReal.ofReal e) P hfac alpha
-        hAlpha.1 hAlpha.2.le
+      apply conditionalMarkedSubsample_empiricalCDF_tail S a (ENNReal.ofReal e) P hfac
+        (dkwRadius alpha) (ENNReal.ofReal (alpha / 2))
       exact dkwGate_fixedCDFBadSet hDkw P alpha hAlpha
     have hcover : Set.univ ⊆ C ∪ (E ∪ F) := by
       intro omega _

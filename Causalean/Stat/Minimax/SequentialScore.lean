@@ -40,7 +40,15 @@ def increment (D : (i : Fin n) → ℝ →
   D i u (take (Nat.succ_le_of_lt i.isLt) z)
 
 /-- A [finite horizon](hyp:n) and [measurable stage-output spaces](hyp:Z) determine the
-assumption bundle for a finite-horizon sequential score model. -/
+assumption bundle for a finite-horizon sequential score model: an open parameter domain; a
+parameter-indexed family of stage kernels that are Markov on the domain; a finite reference
+measure on transcripts together with a jointly measurable, strictly positive transcript
+density of the transcript law and its pointwise parameter derivative; and supplied
+measurable stage scores that are conditionally integrable, have square-integrable increments
+under the transcript law, give the parameter derivative of every stage-kernel event
+probability, and, as an assumption rather than a derived fact, satisfy the score bridge:
+the density derivative equals the density times the sum of the stage score increments,
+almost everywhere under the reference measure. -/
 structure Model (n : ℕ) (Z : Fin n → Type*) [∀ i, MeasurableSpace (Z i)] where
   domain : Set ℝ
   domain_open : IsOpen domain
@@ -120,7 +128,9 @@ theorem Model.stage_score_centered (M : Model n Z)
   simpa using hderiv.unique hzero
 
 /-- A [sequential score model](hyp:M) at [a parameter in its domain](hyp:hu) has [a transcript
-score equal almost everywhere to the sum of its stage score increments](goal). -/
+score, the density derivative divided by the density, equal almost everywhere under the
+reference measure to the sum of its stage score increments](goal). This is the model's
+assumed score bridge divided by the positive density. -/
 theorem Model.score_ae_eq_sum (M : Model n Z)
     {u : ℝ} (hu : u ∈ M.domain) :
     (fun z => M.qdot u z / M.q u z) =ᵐ[M.reference]
@@ -349,8 +359,10 @@ theorem Model.increment_second_moment_eq_prefix (M : Model n Z)
   · rfl
 
 /-- A [sequential score model](hyp:M) and [a parameter value](hyp:u) determine [the scalar
-Fisher information of its transcript](goal), [given by the existing likelihood-score
-information against the model's common reference measure](step:1). -/
+Fisher information of its transcript](goal), [given by the integral, against the model's common
+reference measure, of the transcript density times the squared guarded likelihood score (the
+density derivative divided by the density where the density is positive, zero
+otherwise)](step:1). -/
 noncomputable def Model.fisherInformation (M : Model n Z) (u : ℝ) : ℝ :=
   Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation
     M.reference M.q M.qdot u
@@ -373,7 +385,8 @@ theorem Model.fisher_eq_law_score_sq (M : Model n Z)
     M.q_positive u hu z, ENNReal.toReal_ofReal (le_of_lt (M.q_positive u hu z))]
 
 /-- A [sequential score model](hyp:M) at [a parameter in its domain](hyp:hu) has [transcript
-Fisher information equal to the sum of its stage score-increment second moments](goal). -/
+Fisher information equal to the sum over stages of the second moment of the stage score
+increment under the transcript law](goal). -/
 theorem Model.fisher_eq_sum_increment (M : Model n Z)
     {u : ℝ} (hu : u ∈ M.domain) :
     M.fisherInformation u =
@@ -434,8 +447,9 @@ theorem Model.fisher_eq_sum_increment (M : Model n Z)
         exact hcross i j (Ne.symm hji)
       · simp
 
-/-- A [sequential score model](hyp:M), [a parameter in its domain](hyp:hu), [a uniform
-conditional second-moment bound](hyp:B,hB) have [transcript Fisher information at most the
+/-- A [sequential score model](hyp:M), [a parameter in its domain](hyp:hu), and [a bound,
+uniform over stages and preceding histories, on the conditional second moment of the next
+stage score](hyp:B,hB) have [transcript Fisher information at most the
 horizon times that bound](goal). -/
 theorem Model.fisher_le_horizon_mul_bound (M : Model n Z)
     {u : ℝ} (hu : u ∈ M.domain) (B : ℝ)

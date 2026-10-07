@@ -37,15 +37,14 @@ theorem affine_cube_contDiffOn
     fun_prop
   exact hf.comp hinner.contDiffOn (fun z hz => hmap z hz)
 
-/-- If [a function f](hyp:f) is [j times continuously differentiable](hyp:j,hf) on [the closed
-interval from a to a + d](hyp:a,d) of [positive length](hyp:hd), then at [every point z of the
+/-- For [a function f](hyp:f), [a derivative order j](hyp:j), and [the closed
+interval from a to a + d](hyp:a,d) of [positive length](hyp:hd), at [every point z of the
 closed one-dimensional unit cube](hyp:z,hz) and for [every choice of j coordinate
 directions](hyp:q), [the order-j within-cube coordinate derivative of the affine pullback of f
 equals (d/2)^j times the order-j within-interval derivative of f at the image point](goal). This
 includes both endpoints and order zero. -/
 theorem affine_cube_coordJetOn
     (j : ℕ) (a d : ℝ) (hd : 0 < d) (f : ℝ → ℝ)
-    (hf : ContDiffOn ℝ j f (Set.Icc a (a + d)))
     (q : Fin j → Fin 1) (z : Fin 1 → ℝ) (hz : z ∈ cube 1) :
     coordJetOn (cube 1) j
       (fun w : Fin 1 → ℝ => f (a + d / 2 + (d / 2) * w 0)) q z =

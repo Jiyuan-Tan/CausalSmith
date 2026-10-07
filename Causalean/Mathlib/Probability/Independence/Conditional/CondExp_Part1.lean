@@ -29,7 +29,7 @@ variables, `condExp_mul_of_condIndep` for factoring a product's conditional
 expectation. `CondExp_Part2.lean` imports this module and adds weak union,
 measurable-coordinate extension, and semigraphoid contraction. -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Mathlib.Probability.Independence.Conditional
 open _root_.MeasureTheory

@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_MarRareqLogfrontier_Research.Helpers.ZengLow
 public import Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate.TripleConstruction
 public import Mathlib.Analysis.Complex.ExponentialBounds
 
-@[expose] public section
+public section
 
 open MeasureTheory Set Finset
 
@@ -46,7 +46,7 @@ private theorem exists_triplePriors_uniformScale (ε : ℝ)
     nlinarith [sq_nonneg ((K : ℝ) - 1)]
   obtain ⟨S⟩ := hscalar K hK
   obtain ⟨T, _, _, hmean⟩ :=
-    scalarPriors_to_triple hK ha0 ha1 rfl hε0 hε1 hb S
+    scalarPriors_to_triple hK ha0 rfl hε0 hε1 hb S
   exact ⟨T, hmean⟩
 
 /-- Given [a paper-local moment-prior pair](hyp:M), [a generic triple-prior certificate exists at the same scale and target gap](goal). -/

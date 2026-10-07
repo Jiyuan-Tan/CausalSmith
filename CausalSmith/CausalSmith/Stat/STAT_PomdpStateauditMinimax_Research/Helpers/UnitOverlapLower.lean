@@ -136,7 +136,7 @@ lemma parametricStateModel_audited_klDiv_le (T : Nat) (hT : 1 ≤ T)
   have hprod : InformationTheory.klDiv (M0.law.prod R) (M1.law.prod R) =
       InformationTheory.klDiv M0.law M1.law := by
     rw [← Measure.compProd_const, ← Measure.compProd_const]
-    exact Causalean.Mathlib.InformationTheory.Measure.klDiv_compProd_left
+    exact InformationTheory.klDiv_compProd_left
       M0.law M1.law (Kernel.const (FullPath T 1 1 2) R)
   unfold auditedLaw auditJointLaw
   calc

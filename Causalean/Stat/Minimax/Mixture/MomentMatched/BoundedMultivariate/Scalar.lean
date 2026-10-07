@@ -17,10 +17,10 @@ open MeasureTheory
 
 namespace Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate
 
-/-- A [scale constant](hyp:c₀) and [matching degree](hyp:K) determine [the positive endpoint scale](goal) by [dividing the constant by the squared degree](step:1). -/
+/-- A [scale constant](hyp:c₀) and [matching degree](hyp:K) determine [the endpoint scale](goal) by [dividing the constant by the squared degree](step:1); it is positive when the constant is positive and the degree is at least one. -/
 noncomputable def endpointScale (c₀ : ℝ) (K : ℕ) : ℝ := c₀ / (K : ℝ) ^ 2
 
-/-- A [matching degree](hyp:K), [support endpoint and inverse coefficient](hyp:a,q), and [target gap](hyp:gap) specify a scalar prior pair with the stated finite support, matched inverse and ordinary moments, and rational-target separation. -/
+/-- A [matching degree](hyp:K), [support endpoint and inverse coefficient](hyp:a,q), and [target gap](hyp:gap) specify a pair of scalar priors, for a matching degree K ≥ 1: both are probability measures carried by finitely many points and put all their mass on the interval from a to 1, they give the same mean to 1/x and to every power xᵐ with m ≤ 3K, and their means of the rational target x/(x + q·a) differ in absolute value by at least the target gap. -/
 structure ScalarPriors (K : ℕ) (a q gap : ℝ) where
   positive_degree : 1 ≤ K
   ω₀ : Measure ℝ
@@ -45,10 +45,10 @@ structure ScalarPriors (K : ℕ) (a q gap : ℝ) where
   ordinary, and target integrals.  The existing `FiniteMomentDual`
   annihilates only ordinary powers, so it is not enough by itself. -/
 
-/-- A [positive inverse coefficient](hyp:hq₀) bounded [above by one](hyp:hq₁), [positive scale and gap constants](hyp:hc₀,hδ) with [scale below one](hyp:hc₁), and [a uniform inverse-rational approximation gap](hyp:happrox) yield [finite scalar probability priors with matched inverse and degree-`3K` moments](goal). -/
+/-- A [positive inverse coefficient](hyp:hq₀), [positive scale and gap constants](hyp:hc₀,hδ), and [a uniform inverse-rational approximation gap](hyp:happrox) yield [finite scalar probability priors with matched inverse and degree-`3K` moments](goal). -/
 theorem exists_scalarPriors_of_inverseGap {q c₀ δ : ℝ}
-    (hq₀ : 0 < q) (hq₁ : q ≤ 1)
-    (hc₀ : 0 < c₀) (hc₁ : c₀ < 1) (hδ : 0 < δ)
+    (hq₀ : 0 < q)
+    (hc₀ : 0 < c₀) (hδ : 0 < δ)
     (happrox : ∀ K : ℕ, 1 ≤ K → ∀ α : ℝ, ∀ P : Polynomial ℝ,
       P.natDegree ≤ 3 * K →
         ∃ x ∈ Set.Icc (endpointScale c₀ K) 1,
@@ -63,12 +63,6 @@ theorem exists_scalarPriors_of_inverseGap {q c₀ δ : ℝ}
   have ha : 0 < a := by
     dsimp [a, endpointScale]
     positivity
-  have ha1 : a < 1 := by
-    dsimp [a, endpointScale]
-    have hKreal : (1 : ℝ) ≤ K := by exact_mod_cast hK
-    have hsq : (1 : ℝ) ≤ (K : ℝ) ^ 2 := by nlinarith
-    apply (div_lt_iff₀ (by positivity)).2
-    nlinarith
   let f : ℝ → ℝ := fun x => x / (x + q * a)
   let g : Fin (3 * K + 2) → ℝ → ℝ :=
     fun i x => if i = 0 then x⁻¹ else x ^ (i.val - 1)
@@ -120,7 +114,7 @@ theorem exists_scalarPriors_of_inverseGap {q c₀ δ : ℝ}
     rw [hform]
     simpa only [f, a] using hδx
   obtain ⟨ω₀, ω₁, hp₀, hp₁, hfin₀, hfin₁, hs₀, hs₁, hmatch, htarget⟩ :=
-    exists_finitePriors_of_constrainedApproxGap ha1 hδ f g hf hg hgap
+    exists_finitePriors_of_constrainedApproxGap hδ f g hf hg hgap
   refine ⟨{ positive_degree := hK,
              ω₀ := ω₀, ω₁ := ω₁,
              probability₀ := hp₀, probability₁ := hp₁,
@@ -135,7 +129,7 @@ theorem exists_scalarPriors_of_inverseGap {q c₀ δ : ℝ}
     have h := hmatch j.succ
     simpa [g, j] using h
 
-/-- A [positive inverse coefficient no larger than one](hyp:q,hq₀,hq₁) admits [positive constants that construct finite scalar priors at every positive degree with matched inverse and ordinary moments and a rational-target gap](goal). -/
+/-- A [positive inverse coefficient no larger than one](hyp:q,hq₀,hq₁) q admits [constants 0 < c₀ < 1 and gap > 0, not depending on the degree, such that for every degree K ≥ 1 there is a pair of finitely supported probability priors on the interval from c₀/K² to 1 that give the same mean to 1/x and to every power xᵐ with m ≤ 3K, while their means of x/(x + q·c₀/K²) differ in absolute value by at least gap](goal). -/
 theorem exists_scalarPriors (q : ℝ) (hq₀ : 0 < q) (hq₁ : q ≤ 1) :
     ∃ c₀ gap : ℝ, 0 < c₀ ∧ c₀ < 1 ∧ 0 < gap ∧
       ∀ K : ℕ, 1 ≤ K →
@@ -143,7 +137,7 @@ theorem exists_scalarPriors (q : ℝ) (hq₀ : 0 < q) (hq₁ : q ≤ 1) :
   obtain ⟨c₀, δ, hc₀, hc₁, hδ, happrox⟩ :=
     exists_inverseRationalApproxGap q hq₀ hq₁
   refine ⟨c₀, δ, hc₀, hc₁, hδ, ?_⟩
-  exact exists_scalarPriors_of_inverseGap hq₀ hq₁ hc₀ hc₁ hδ
+  exact exists_scalarPriors_of_inverseGap hq₀ hc₀ hδ
     (by simpa only [endpointScale] using happrox)
 
 end Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate

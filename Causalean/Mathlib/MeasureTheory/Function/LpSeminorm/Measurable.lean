@@ -76,20 +76,6 @@ lemma measurable_eLpNorm_toReal_of_uncurry
       (h_int.pow_const (1 / p.toReal))
   exact ENNReal.measurable_toReal.comp h_norm
 
-/-- Given [an exponent `p` that is neither zero](hyp:hp_zero) [nor infinite](hyp:hp_top) and
-[joint measurability of the parameterized function](hyp:hg), [its real-valued Lp norm is
-measurable in the parameter](goal). This is the deprecated `_two_` spelling, although `p` was
-never fixed to `2`. -/
-@[deprecated measurable_eLpNorm_toReal_of_uncurry (since := "2026-08-29")]
-lemma measurable_eLpNorm_two_toReal_of_uncurry
-    [MeasurableSpace Ω] {P : Measure X} [SFinite P]
-    {E : Type*} [MeasurableSpace E] [TopologicalSpace E] [ContinuousENorm E]
-    [OpensMeasurableSpace E]
-    {g : Ω → X → E} {p : ℝ≥0∞} (hp_zero : p ≠ 0) (hp_top : p ≠ ⊤)
-    (hg : Measurable (Function.uncurry g)) :
-    Measurable (fun ω => (eLpNorm (g ω) p P).toReal) :=
-  measurable_eLpNorm_toReal_of_uncurry hp_zero hp_top hg
-
 /-- **Lp-norm measurable with respect to a sub-σ-algebra.** For a σ-finite base measure `P` and
 [an exponent `p` that is neither zero](hyp:hp_zero) [nor infinite](hyp:hp_top), if [the map
 `(ω, x) ↦ g ω x` is jointly measurable with respect to the product of a sub-σ-algebra `mΩ` on `Ω`
@@ -119,23 +105,5 @@ lemma measurable_eLpNorm_toReal_of_uncurry_of_factor
         hp_zero hp_top] using
       (h_int.pow_const (1 / p.toReal))
   exact ENNReal.measurable_toReal.comp h_norm
-
-/-- Given [an exponent `p` that is neither zero](hyp:hp_zero) [nor infinite](hyp:hp_top) and
-[joint measurability for the product with a chosen parameter σ-algebra](hyp:hg_uncurry), [the
-real-valued Lp norm is measurable for that parameter σ-algebra](goal). This is the deprecated
-`_two_` spelling, although `p` was never fixed to `2`. -/
-@[deprecated measurable_eLpNorm_toReal_of_uncurry_of_factor (since := "2026-08-29")]
-lemma measurable_eLpNorm_two_toReal_of_uncurry_of_factor
-    {mΩ : MeasurableSpace Ω}
-    {P : Measure X} [SFinite P]
-    {E : Type*} [MeasurableSpace E] [TopologicalSpace E] [ContinuousENorm E]
-    [OpensMeasurableSpace E]
-    {g : Ω → X → E} {p : ℝ≥0∞} (hp_zero : p ≠ 0) (hp_top : p ≠ ⊤)
-    (hg_uncurry :
-      @Measurable (Ω × X) E
-        (@Prod.instMeasurableSpace Ω X mΩ inferInstance) inferInstance
-        (Function.uncurry g)) :
-    Measurable[mΩ] (fun ω => (eLpNorm (g ω) p P).toReal) :=
-  measurable_eLpNorm_toReal_of_uncurry_of_factor hp_zero hp_top hg_uncurry
 
 end Causalean.Mathlib.MeasureTheory.Function.LpSeminorm

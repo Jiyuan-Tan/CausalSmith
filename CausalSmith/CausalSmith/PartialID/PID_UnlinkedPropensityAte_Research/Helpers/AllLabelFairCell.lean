@@ -7,7 +7,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.A
 
 /-! Fair-outcome cell identities for the all-label ambiguity witness. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal BigOperators Pointwise

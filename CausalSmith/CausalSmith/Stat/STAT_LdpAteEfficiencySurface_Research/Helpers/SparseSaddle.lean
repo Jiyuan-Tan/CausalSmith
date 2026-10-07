@@ -11,7 +11,7 @@ stationarity moment, and the information value, leaving at most five active
 staircase rays.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

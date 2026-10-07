@@ -155,11 +155,10 @@ quadratic-form margin on the compact unit sphere).  Intersect this radius with e
 nonvanishing radii for the three polynomial denominators, then choose half of the minimum
 with the caller's positive bound. -/
 
-/-- When [the selected coordinates are distinct](hyp:hij) and [the original invariant
-is positive definite](hyp:hΩ), [some positive radius keeps every transformed invariant
-positive definite](goal). -/
+/-- When [the original invariant is positive definite](hyp:hΩ), [some positive radius keeps
+every transformed invariant positive definite](goal). -/
 theorem exists_deformedInvariant_posDef_radius {d : ℕ} (B Ω : SqMatrix d)
-    {i j : Fin d} (hij : i ≠ j) (hΩ : Ω.PosDef) (u v c : ℝ) :
+    {i j : Fin d} (hΩ : Ω.PosDef) (u v c : ℝ) :
     ∃ ρ > 0, ∀ t : ℝ, |t| < ρ →
       (deformedInvariant B Ω i j u v c t).PosDef := by
   have heventually : ∀ᶠ t in nhds 0,
@@ -229,7 +228,7 @@ theorem exists_small_admissible_parameter {d : ℕ} {E : Type*}
       deformedDiagonalizer B i j u v t ≠ B ∧
       (deformedInvariant B Ω i j u v c t).PosDef ∧
       ∀ e k, 0 ≤ deformedShift B i j u v t (s e) k := by
-  rcases exists_deformedInvariant_posDef_radius B Ω hij hΩ
+  rcases exists_deformedInvariant_posDef_radius B Ω hΩ
       u v c with ⟨ρp, hρp, hp⟩
   rcases exists_algebraic_admissibility_radius B i j u v with
     ⟨ρa, hρa, ha⟩

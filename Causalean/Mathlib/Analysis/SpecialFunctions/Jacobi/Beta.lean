@@ -14,7 +14,7 @@ namespace Causalean.Mathlib.Analysis.SpecialFunctions.Jacobi
 
 open MeasureTheory intervalIntegral
 
-/-- A [nonnegative integer power](hyp:k) and [positive real shape parameter](hyp:α), with [parameter positivity](hyp:hα), give [the exact beta integral for a left real-power weight and right polynomial bump](goal).
+/-- A [nonnegative integer power](hyp:k) and [positive real shape parameter](hyp:α), with [parameter positivity](hyp:hα), give [the beta integral identity: the integral of x^(α−1)·(1−x)^k over the unit interval equals k! divided by α times the rising factorial (α+1)ₖ](goal).
 
 For positive `α`, integrating `x^(α-1) (1-x)^k` over `[0,1]` gives
 `k! / (α (α+1)ₖ)`.  This is the real, integer-parameter beta identity. -/

@@ -21,14 +21,23 @@ open Matrix
 variable {ι : Type*} [Fintype ι]
 
 /-- A [real finite matrix](hyp:I) and [contrast](hyp:c) determine the
-[constrained quadratic information](goal), [given by its quadratic-form infimum over
-unit-contrast directions](step:1). -/
+[constrained quadratic information](goal), [given by the infimum of the quadratic form of the
+matrix over all directions whose inner product with the contrast equals one](step:1).
+
+The infimum is the real-number one with the convention that it is zero when the set of
+values is empty (the zero contrast) or unbounded below (possible only when the matrix is not
+positive semidefinite). -/
 def constrainedInformation (I : Matrix ι ι ℝ) (c : ι → ℝ) : ℝ :=
   sInf {r : ℝ | ∃ d : ι → ℝ, c ⬝ᵥ d = 1 ∧ r = d ⬝ᵥ I.mulVec d}
 
 /-- A [real finite matrix](hyp:I) and [contrast](hyp:c) determine the
-[generalized contrast variance](goal), [given by the least contrast pairing among solutions
-and by infinity when no solution exists](step:1). -/
+[generalized contrast variance](goal), [given, when the linear system with this matrix and
+the contrast as right-hand side has a solution, by the infimum over solutions of the inner
+product of the contrast with the solution, truncated below at zero, and by infinity when no
+solution exists](step:1).
+
+For a positive-semidefinite matrix every solution gives the same inner product, so this is
+the usual generalized-inverse quadratic form of the contrast. -/
 def generalizedContrastVariance (I : Matrix ι ι ℝ) (c : ι → ℝ) : ENNReal :=
   by
     classical
@@ -61,11 +70,11 @@ theorem constrainedInformation_nonneg {I : Matrix ι ι ℝ} (hI : I.PosSemidef)
   · rintro r ⟨d, -, rfl⟩
     simpa using hI.dotProduct_mulVec_nonneg d
 
-/-- A [positive-semidefinite matrix](hyp:hI), a [nonzero contrast](hyp:hc), and
-[a unit-contrast direction](hyp:hd) have [constrained information no larger than that
+/-- A [positive-semidefinite matrix](hyp:hI) and
+[a direction with unit pairing against the contrast](hyp:hd) have [constrained information no larger than that
 direction's quadratic energy](goal). -/
 theorem constrainedInformation_le_quad {I : Matrix ι ι ℝ} (hI : I.PosSemidef)
-    {c d : ι → ℝ} (hc : c ≠ 0) (hd : c ⬝ᵥ d = 1) :
+    {c d : ι → ℝ} (hd : c ⬝ᵥ d = 1) :
     constrainedInformation I c ≤ d ⬝ᵥ I.mulVec d := by
   unfold constrainedInformation
   apply csInf_le
@@ -74,11 +83,11 @@ theorem constrainedInformation_le_quad {I : Matrix ι ι ℝ} (hI : I.PosSemidef
     simpa using hI.dotProduct_mulVec_nonneg e
   · exact ⟨d, hd, rfl⟩
 
-/-- Two [positive-semidefinite matrices](hyp:hI,hJ) whose [difference in the stated
+/-- A [positive-semidefinite matrix](hyp:hI) and a second matrix whose [difference in the stated
 order is positive semidefinite](hyp:hIJ), at a [nonzero contrast](hyp:hc), have
 [ordered constrained information](goal). -/
 theorem constrainedInformation_mono {I J : Matrix ι ι ℝ} (hI : I.PosSemidef)
-    (hJ : J.PosSemidef) (hIJ : (J - I).PosSemidef)
+    (hIJ : (J - I).PosSemidef)
     {c : ι → ℝ} (hc : c ≠ 0) : constrainedInformation I c ≤ constrainedInformation J c := by
   unfold constrainedInformation
   apply le_csInf
@@ -142,7 +151,7 @@ theorem constrainedInformation_eq_zero_of_kernel {I : Matrix ι ι ℝ} (hI : I.
   have hId : I.mulVec d = 0 := by
     simp [d, mulVec_smul, hk]
   apply le_antisymm
-  · simpa [hId] using constrainedInformation_le_quad hI hc hd
+  · simpa [hId] using constrainedInformation_le_quad hI hd
   · exact constrainedInformation_nonneg hI hc
 
 /-- A [positive-semidefinite matrix](hyp:hI), [nonzero contrast](hyp:hc), and
@@ -179,11 +188,11 @@ theorem solution_dot_pos {I : Matrix ι ι ℝ} (hI : I.PosSemidef)
     exact False.elim (hc ((hI.dotProduct_mulVec_zero_iff v).mp hz' ▸ hv.symm))
   · exact hp
 
-/-- A [positive-semidefinite matrix](hyp:hI), [nonzero contrast](hyp:hc), and
+/-- A [positive-semidefinite matrix](hyp:hI) and a
 [solution to its contrast equation](hyp:hv) have [generalized contrast variance equal to
 that solution's contrast pairing](goal). -/
 theorem generalizedContrastVariance_eq_of_solution {I : Matrix ι ι ℝ} (hI : I.PosSemidef)
-    {c v : ι → ℝ} (hc : c ≠ 0) (hv : I.mulVec v = c) :
+    {c v : ι → ℝ} (hv : I.mulVec v = c) :
     generalizedContrastVariance I c = ENNReal.ofReal (c ⬝ᵥ v) := by
   unfold generalizedContrastVariance
   rw [if_pos ⟨v, hv⟩]
@@ -252,7 +261,7 @@ theorem constrainedInformation_eq_inv_of_solution {I : Matrix ι ι ℝ} (hI : I
   apply le_antisymm
   · obtain ⟨d, hd, he⟩ := exists_unitContrastDirection_energy_inv hI hc hv
     rw [← he]
-    exact constrainedInformation_le_quad hI hc hd
+    exact constrainedInformation_le_quad hI hd
   · unfold constrainedInformation
     apply le_csInf
     · obtain ⟨d, hd⟩ := exists_unitContrastDirection c hc
@@ -268,7 +277,7 @@ theorem generalizedContrastVariance_eq_inv_constrainedInformation {I : Matrix ι
   classical
   by_cases h : ∃ v : ι → ℝ, I.mulVec v = c
   · obtain ⟨v, hv⟩ := h
-    rw [generalizedContrastVariance_eq_of_solution hI hc hv,
+    rw [generalizedContrastVariance_eq_of_solution hI hv,
       constrainedInformation_eq_inv_of_solution hI hc hv,
       ENNReal.ofReal_inv_of_pos (solution_dot_pos hI hc hv), inv_inv]
   · simp [generalizedContrastVariance, h, constrainedInformation_eq_zero_of_no_solution hI hc h]
@@ -286,16 +295,16 @@ theorem constrainedInformation_pos_iff_solution {I : Matrix ι ι ℝ} (hI : I.P
     rw [constrainedInformation_eq_inv_of_solution hI hc hv]
     exact inv_pos.mpr (solution_dot_pos hI hc hv)
 
-/-- A [positive-semidefinite matrix](hyp:hI) and [nonzero contrast](hyp:hc) have
+/-- A [positive-semidefinite matrix](hyp:hI) and a contrast have
 [infinite generalized contrast variance exactly when their contrast equation has no solution](goal). -/
 theorem generalizedContrastVariance_eq_top_iff_no_solution {I : Matrix ι ι ℝ}
-    (hI : I.PosSemidef) {c : ι → ℝ} (hc : c ≠ 0) :
+    (hI : I.PosSemidef) {c : ι → ℝ} :
     generalizedContrastVariance I c = ⊤ ↔ ¬ ∃ v : ι → ℝ, I.mulVec v = c := by
   classical
   constructor
   · intro htop h
     obtain ⟨v, hv⟩ := h
-    rw [generalizedContrastVariance_eq_of_solution hI hc hv] at htop
+    rw [generalizedContrastVariance_eq_of_solution hI hv] at htop
     exact ENNReal.ofReal_ne_top htop
   · intro h
     simp [generalizedContrastVariance, h]
@@ -310,9 +319,9 @@ theorem generalizedContrastVariance_eq_ofReal_inv_of_constrainedInformation_pos
   rw [generalizedContrastVariance_eq_inv_constrainedInformation hI hc,
     ENNReal.ofReal_inv_of_pos hq]
 
-/-- Two [positive-semidefinite matrices](hyp:hI,hJ) whose [difference in the stated
-order is positive semidefinite](hyp:hIJ), at a [nonzero contrast](hyp:hc), have
-[generalized contrast variance antitone under that order](goal). -/
+/-- For two [positive-semidefinite matrices I and J](hyp:hI,hJ) such that [J minus I is
+positive semidefinite](hyp:hIJ), and a [nonzero contrast](hyp:hc), [the generalized contrast
+variance under J is at most the generalized contrast variance under I](goal). -/
 theorem generalizedContrastVariance_antitone {I J : Matrix ι ι ℝ} (hI : I.PosSemidef)
     (hJ : J.PosSemidef) (hIJ : (J - I).PosSemidef)
     {c : ι → ℝ} (hc : c ≠ 0) :
@@ -320,6 +329,6 @@ theorem generalizedContrastVariance_antitone {I J : Matrix ι ι ℝ} (hI : I.Po
   rw [generalizedContrastVariance_eq_inv_constrainedInformation hJ hc,
     generalizedContrastVariance_eq_inv_constrainedInformation hI hc]
   exact ENNReal.inv_le_inv'
-    (ENNReal.ofReal_le_ofReal (constrainedInformation_mono hI hJ hIJ hc))
+    (ENNReal.ofReal_le_ofReal (constrainedInformation_mono hI hIJ hc))
 
 end Causalean.Stat

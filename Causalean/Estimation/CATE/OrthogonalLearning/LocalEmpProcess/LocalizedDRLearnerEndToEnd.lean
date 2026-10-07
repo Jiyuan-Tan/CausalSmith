@@ -52,9 +52,8 @@ Rademacher complexity along a dense index sequence is controlled by a sub-root e
 respect to a localization functional invariant under almost-everywhere modification, with an explicit Rademacher
 upper bound on that dense indexed class](hyp:hLoss_cont,hclamp_minimizes,hψ,hnorm_ae,hψ_ub), together with [Lipschitz and diameter
 control of the centred loss increments — nonnegative Lipschitz constant L, a diameter bound Rmax
-and positive critical radii, with a nonnegative loss-difference functional whose variance is controlled by that functional squared](hyp:hL_nonneg,hF_lip,hF_diam,hcrit_pos,hnorm_nonneg,hvariance), plus [boundedness and
-integrability of the empirical star-hull Rademacher process needed by the localization
-bridge](hyp:hrad_bdd,hrad_int) and [a confidence level in $(0,1]$ together with the
+and positive critical radii, with a nonnegative loss-difference functional whose variance is controlled by that functional squared](hyp:hL_nonneg,hF_lip,hF_diam,hcrit_pos,hnorm_nonneg,hvariance), plus [integrability of the empirical star-hull Rademacher process needed by the
+localization bridge](hyp:hrad_int) and [a confidence level in $(0,1]$ together with the
 Foster–Syrgkanis critical-radius domination inequality at one covering dyadic
 depth](hyp:hδ,hδ',hδ_dom). Finally, suppose [the estimator sequence is an approximate
 sample-split plug-in empirical-risk minimizer at the fixed nuisance h (slack r_opt), whose excess
@@ -159,16 +158,6 @@ theorem oracle_inequality_localized_drLearner_highProb
                 (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
         norm S.toBackdoorEstimationSystem.P_Z
         (id : (γ × Bool × ℝ) → γ × Bool × ℝ) m (ψ m))
-    (hrad_bdd : ∀ m r, ∀ S_fin : Fin m → γ × Bool × ℝ, ∀ σ : Signs m,
-      BddAbove (Set.range fun p : starHullParam ℕ =>
-        |(m : ℝ)⁻¹ * ∑ k : Fin m, (σ k : ℝ) *
-          starHullZeroOut
-            (fun i
-              (z : γ × Bool × ℝ) =>
-              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z (idx i).val h
-                - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
-                    (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
-            norm r p (S_fin k)|))
     (hrad_int : ∀ m r,
       Integrable
         (fun ω : Fin m → γ × Bool × ℝ =>
@@ -238,7 +227,7 @@ theorem oracle_inequality_localized_drLearner_highProb
       (hL_nonneg := hL_nonneg) (hF_lip := hF_lip)
       (hnorm_nonneg := hnorm_nonneg) (hvariance := hvariance) (hF_diam := hF_diam)
       (hcrit_pos := hcrit_pos)
-      (hψ_ub := hψ_ub) (hrad_bdd := hrad_bdd) (hrad_int := hrad_int)
+      (hψ_ub := hψ_ub) (hrad_int := hrad_int)
       (hδ := hδ) (hδ' := hδ') (hδ_dom := hδ_dom) with
     ⟨b, hb_nonneg, hMod⟩
   refine ⟨b, hb_nonneg, ?_⟩

@@ -118,13 +118,13 @@ theorem poisson_label_word_coefficient_eq
   simp only [ENNReal.ofReal_coe_nnreal] at hof
   exact hof
 
-/-- Given [an iid observation law](hyp:P), [label masses](hyp:p) [summing to one](hyp:hp),
+/-- Given [an iid observation law](hyp:P), [label masses](hyp:p),
 [a Poisson mean](hyp:lambda), and [a prescribed label-count vector](hyp:c), [the
 independent finite-Poisson stream law on that count-vector fibre is the product
 of the count probabilities times independent fixed-length iid streams](goal). -/
 theorem independentStreamLaw_restrict_countVector_eq
     (P : Measure X) [IsProbabilityMeasure P]
-    (p : I → ℝ≥0) (hp : ∑ i, p i = 1) (lambda : ℝ≥0) (c : I → ℕ) :
+    (p : I → ℝ≥0) (lambda : ℝ≥0) (c : I → ℕ) :
     (Measure.pi (fun i : I => finitePoissonSampleLaw P (lambda * p i))).restrict
         {s | ∀ i, (s i).count = c i} =
       (∏ i, (poissonMeasure (lambda * p i)) ({c i} : Set ℕ)) •

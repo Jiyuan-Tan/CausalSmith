@@ -18,7 +18,7 @@ namespace Causalean.Stat.Minimax.Multinomial.TwoSampleL1
 open MeasureTheory ProbabilityTheory
 open scoped NNReal
 
-/-- The fixed two-sample predictive law under one balanced product prior. -/
+/-- The fixed two-sample predictive law under one side of the balanced product prior: the mixture, with that side's product-prior weights, of the two-sample laws whose first sample is drawn from the uniform base vector and whose second sample is drawn from the vector tilted by t in the selected node directions. -/
 noncomputable def pairedFixedPredictive {L : ℕ}
     (P : ScalarMomentPriors L) (b n : ℕ) (hb : 0 < b)
     (t : ℝ) (ht : 0 ≤ t) (ht1 : t ≤ 1) (side : Bool) :
@@ -29,9 +29,9 @@ noncomputable def pairedFixedPredictive {L : ℕ}
         pairedTiltVector b hb t ht ht1
           (pairedNodeVector P u) (pairedNodeVector_abs_le_one P u)))
 
-/-- Given [a moment-matched prior and its positive degree](hyp:P,hL), [a balanced pair count and sample size](hyp:b,n,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [the Poisson comparison scale budget](hyp:hscale), [the fixed-sample predictive distance is bounded by the explicit moment and count-tail terms](goal). -/
+/-- Given [a moment-matched prior](hyp:P), [a balanced pair count and sample size](hyp:b,n,hb), [a bounded nonnegative tilt](hyp:t,ht,ht1), and [the scale budget 100·(n/b)·t² ≤ L](hyp:hscale), [the total variation distance between the fixed two-sample predictive laws of the two prior sides is at most b · 2^(−L/4) plus twice the probability that a Poisson count with mean 2n falls below n](goal). -/
 theorem pairedFixedPredictive_tv_le {L : ℕ}
-    (P : ScalarMomentPriors L) (hL : 1 ≤ L)
+    (P : ScalarMomentPriors L)
     (b n : ℕ) (hb : 0 < b) (t : ℝ) (ht : 0 ≤ t) (ht1 : t ≤ 1)
     (hscale : 100 * ((n : ℝ) / (b : ℝ)) * t ^ 2 ≤ (L : ℝ)) :
     Causalean.Stat.tvDist
@@ -96,7 +96,7 @@ theorem pairedFixedPredictive_tv_le {L : ℕ}
     simpa only [ν, pairedFinitePoissonPredictive, Causalean.Stat.mixture,
       F, G, R] using h
   have hcount := pairedFinitePoissonPredictive_tv_le_counts P b n hb t ht ht1
-  have hpoisson := pairedPoissonPredictive_tv_le P hL b
+  have hpoisson := pairedPoissonPredictive_tv_le P b
     ((n : ℝ) / (b : ℝ)) t (div_nonneg (Nat.cast_nonneg _) (Nat.cast_nonneg _))
     ht ht1 hscale
   calc

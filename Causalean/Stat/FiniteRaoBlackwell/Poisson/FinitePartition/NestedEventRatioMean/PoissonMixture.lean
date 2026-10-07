@@ -49,11 +49,9 @@ theorem integral_finitePoissonSampleLaw_eq_integral_iid
   exact (integral_map (μ := iidStreamLaw P) hm.aemeasurable
     hfn.aestronglyMeasurable).symm
 
-/-- A [nonnegative Poisson intensity](hyp:lambda), [an event probability](hyp:p), and
-[its lower and upper probability bounds](hyp:hp0,hp1) give [the Poisson average of one
+/-- A [nonnegative Poisson intensity](hyp:lambda) and [a real number](hyp:p) give [the Poisson average of one
 minus its complement raised to the random sample size](goal). -/
-theorem poisson_integral_one_sub_pow (lambda : ℝ≥0) (p : ℝ)
-    (hp0 : 0 ≤ p) (hp1 : p ≤ 1) :
+theorem poisson_integral_one_sub_pow (lambda : ℝ≥0) (p : ℝ) :
     (∫ n : ℕ, (1 - (1 - p) ^ n) ∂poissonMeasure lambda) =
       1 - Real.exp (-(lambda : ℝ) * p) := by
   have hpow : HasSum

@@ -9,7 +9,7 @@ used in minimax lower bounds. It treats one reference law and `M` alternatives,
 retaining the square-root prefactor and correction in Tsybakov's theorem.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat
 
@@ -106,7 +106,7 @@ private lemma average_kl_tail_numeric
 /-- For a [measurable observation space and parameter space](hyp:Ω,Θ), a
 [number `M` of alternatives with `M ≥ 2`](hyp:M,hM), [probability laws](hyp:P),
 [parameter values](hyp:θ), a [radius and KL fraction](hyp:s,α) with
-[`0 < α < 1/8`](hyp:hα,hα8), [pairwise `2s` separation](hyp:hsep),
+[`α > 0`](hyp:hα), [pairwise `2s` separation](hyp:hsep),
 [finite KL divergence to the reference law](hyp:hfin), an
 [average KL budget `α log M`](hyp:havg), and a
 [measurable estimator](hyp:est,hest), [some law has radius-`s` error at least
@@ -119,7 +119,7 @@ theorem tsybakov_fano_exists_error
     [MeasurableSpace Θ] [OpensMeasurableSpace Θ]
     (M : ℕ) (hM : 2 ≤ M) (P : Fin (M + 1) → Measure Ω)
     [∀ i, IsProbabilityMeasure (P i)] (θ : Fin (M + 1) → Θ)
-    {s α : ℝ} (hα : 0 < α) (hα8 : α < 1 / 8)
+    {s α : ℝ} (hα : 0 < α)
     (hsep : ∀ i k, i ≠ k → 2 * s ≤ dist (θ i) (θ k))
     (hfin : ∀ j : Fin M, InformationTheory.klDiv (P j.succ) (P 0) ≠ ⊤)
     (havg : (M : ℝ)⁻¹ * ∑ j : Fin M,

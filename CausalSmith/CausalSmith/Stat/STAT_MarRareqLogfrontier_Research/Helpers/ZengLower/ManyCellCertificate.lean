@@ -6,7 +6,7 @@ public import Mathlib.Probability.Distributions.Gaussian.Real
 
 /-! The moment-certificate specialization of the many-cell fixed-risk bound. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set Finset
 open scoped ENNReal NNReal

@@ -17,7 +17,7 @@ prefix sums of a uniform permutation, together with the remaining-variance ident
 Hájek’s finite-population martingale.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory
 open scoped BigOperators

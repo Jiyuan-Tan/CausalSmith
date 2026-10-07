@@ -418,7 +418,7 @@ theorem norm_integral_compensatedWeight_succ_sub_le
   have hremNorm : ‖∫ ω, g ω * (μ n)[rem | A.filtration n k] ω ∂(μ n)‖ ≤
       B * ∫ ω, ‖rem ω‖ ∂(μ n) :=
     norm_integral_mul_condExp_le_of_ae_bound ((A.filtration n).le k)
-      rem g hrem hg B hB hgBound
+      rem g hrem hg B hgBound
   rw [A.integral_compensatedWeight_succ n k hk t K hQ]
   change ‖(∫ ω, w ω * (((Real.exp (c * v ω) : ℝ) : ℂ) *
         (1 - (((c * v ω : ℝ) : ℂ)) +

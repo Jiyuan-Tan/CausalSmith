@@ -44,7 +44,7 @@ Key declarations:
 * `inner_normalizedSum` : `⟪t, vecNS n ω⟫ = scalarNS_{⟪t,ψ⟫} n ω` (projection).
 * `IIDSample.normalizedSum_vec_charFun_tendsto` : the per-direction charFun
   limit.
-* `Tendsto_dist_vec.of_charFun_tendsto` : Cramér–Wold wrapper (pointwise
+* `Modes.TendstoInLaw.of_charFun_tendsto` : Cramér–Wold wrapper (pointwise
   charFun convergence ⇒ weak convergence).
 * `IIDSample.clt_normalizedSum_vec_of_charFun` : the multivariate CLT contact
   for an abstract Gaussian-charFun target `Q` (discharges `_hCLT`).
@@ -69,7 +69,7 @@ limit module.
 Important declarations include `inner_normalizedSum`, which identifies each
 projection of the vector normalized sum with a scalar normalized sum,
 `IIDSample.normalizedSum_vec_charFun_tendsto` for the per-direction
-characteristic-function limit, `Tendsto_dist_vec.of_charFun_tendsto` for the
+characteristic-function limit, `Modes.TendstoInLaw.of_charFun_tendsto` for the
 Cramér-Wold wrapper, `IIDSample.clt_normalizedSum_vec_of_charFun` for the
 abstract Gaussian-target CLT, and `IsAsymLinearVec.tendsto_normal_vec_clt` for
 end-to-end vector asymptotic normality. -/
@@ -148,7 +148,7 @@ theorem IIDSample.normalizedSum_vec_charFun_tendsto_of_proj_integrable
   -- scalar CLT for the projected influence function
   have h_scalar :=
     S.clt_normalized_sum hψt_meas hψt_mean hψt_var
-  rw [Tendsto_dist_iff] at h_scalar
+  replace h_scalar := (Tendsto_dist_iff _ _ _ h_scalar.forall_aemeasurable).1 h_scalar
   -- convert weak convergence to pointwise charFun convergence (Lévy, E = ℝ)
   have h_char1 :
       Tendsto
@@ -227,14 +227,14 @@ every point `t`, to the characteristic function of a probability measure `Q`](hy
 
     Restatement of
 `MeasureTheory.ProbabilityMeasure.tendsto_iff_tendsto_charFun` (`Clt` package)
-for the project's `Tendsto_dist_vec` wrapper. -/
-theorem Tendsto_dist_vec.of_charFun_tendsto
+for convergence in law of a vector-valued sequence. -/
+theorem Modes.TendstoInLaw.of_charFun_tendsto
     [IsProbabilityMeasure μ] {Xn : ℕ → Ω → E} {Q : Measure E} [IsProbabilityMeasure Q]
     (hXn : ∀ n, AEMeasurable (Xn n) μ)
     (hchar : ∀ t : E,
       Tendsto (fun n => charFun (μ.map (Xn n)) t) atTop (𝓝 (charFun Q t))) :
-    Tendsto_dist_vec Xn Q μ hXn := by
-  rw [Tendsto_dist_vec_iff]
+    Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q := by
+  rw [Tendsto_dist_vec_iff _ _ _ hXn]
   refine MeasureTheory.ProbabilityMeasure.tendsto_iff_tendsto_charFun.mpr fun t => ?_
   simpa [ProbabilityMeasure.coe_mk] using hchar t
 
@@ -255,13 +255,9 @@ theorem IIDSample.clt_normalizedSum_vec_of_charFun
     (Q : Measure E) [IsProbabilityMeasure Q]
     (hQ : ∀ t : E, charFun Q t
           = Complex.exp (-(((∫ x, (⟪t, ψ x⟫) ^ 2 ∂P : ℝ)) : ℂ) / 2)) :
-    @Tendsto_dist_vec Ω E _ _ _ _ (IsAsymLinearVec.normalizedSum S ψ rng) Q μ
-      S.indep.isProbabilityMeasure ‹IsProbabilityMeasure Q›
-      (by
-        intro n
-        unfold IsAsymLinearVec.normalizedSum
-        exact ((Finset.measurable_sum _
-          (fun i _ => hψ_meas.comp (S.meas i))).const_smul _).aemeasurable) := by
+    @Modes.TendstoInLaw ℕ (fun _ => Ω) _ E _ _ _ (fun _ => μ)
+      (fun _ => S.indep.isProbabilityMeasure)
+      (IsAsymLinearVec.normalizedSum S ψ rng) atTop Q ‹IsProbabilityMeasure Q› := by
   haveI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
   have hSum_meas : ∀ n, AEMeasurable (IsAsymLinearVec.normalizedSum S ψ rng n) μ := by
     intro n
@@ -275,7 +271,7 @@ theorem IIDSample.clt_normalizedSum_vec_of_charFun
     ((MeasureTheory.memLp_two_iff_integrable_sq_norm
       hψ_meas.aestronglyMeasurable).2 hvar).integrable
       (by norm_num)
-  refine Tendsto_dist_vec.of_charFun_tendsto (Q := Q) hSum_meas fun t => ?_
+  refine Modes.TendstoInLaw.of_charFun_tendsto (Q := Q) hSum_meas fun t => ?_
   rw [hQ t]
   apply S.normalizedSum_vec_charFun_tendsto hψ_meas hvar t
   have h := integral_inner (𝕜 := ℝ) hψ_int t

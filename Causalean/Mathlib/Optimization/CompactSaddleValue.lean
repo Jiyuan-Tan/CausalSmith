@@ -26,8 +26,9 @@ def envelope (S : Set A) (f : Θ → A → ℝ → ℝ) (θ : Θ) (t : ℝ) : �
   sSup ((fun a : A => f θ a t) '' S)
 
 /-- The [fixed action set](hyp:S), [objective family](hyp:f), and [parameter](hyp:θ) determine
-the [max-inf saddle value](goal), given by the infimum of the maximum envelope over all scalar
-decisions [as its defining equation](step:1). -/
+the [min-max saddle value](goal), given by the infimum over all real scalar decisions of the
+maximum envelope [as its defining equation](step:1): the action is maximized first and the
+scalar decision is minimized second. -/
 def value (S : Set A) (f : Θ → A → ℝ → ℝ) (θ : Θ) : ℝ :=
   sInf ((fun t : ℝ => envelope S f θ t) '' Set.univ)
 
@@ -76,8 +77,11 @@ theorem value_eq_compactMin_of_attained (S : Set A) (f : Θ → A → ℝ → �
   exact (hall.csInf_eq).trans hcompact.csInf_eq.symm
 
 /-- A [compact nonempty action set](hyp:S,hS,hSne), [objective family](hyp:f), [compact
-nonempty scalar set](hyp:K,hK,hKne), [parameter](hyp:θ₀), [joint continuity of the objective](hyp:hf), and [eventual attainment of scalar envelope minima in the compact set](hyp:hatt) give
-a [continuous max-inf saddle value at the parameter](goal). -/
+nonempty scalar set](hyp:K,hK,hKne), [parameter](hyp:θ₀),
+[joint continuity of the objective](hyp:hf), and [attainment, for every parameter near the given
+one, of the global scalar minimum of the envelope at a point of the compact set](hyp:hatt) give
+a [min-max saddle value (infimum over scalar decisions of the maximum over actions) that is
+continuous at the parameter](goal). -/
 theorem continuousAt_value (S : Set A) (hS : IsCompact S) (hSne : S.Nonempty)
     (f : Θ → A → ℝ → ℝ) (K : Set ℝ) (hK : IsCompact K) (hKne : K.Nonempty)
     (θ₀ : Θ)
@@ -107,8 +111,8 @@ theorem continuousAt_inv_value (S : Set A) (hS : IsCompact S) (hSne : S.Nonempty
 
 /-- A [compact nonempty action set](hyp:S,hS,hSne), [objective family](hyp:f), [compact
 nonempty scalar set](hyp:K,hK,hKne), [parameter](hyp:θ₀), [parameter neighborhood](hyp:U), [openness of that neighborhood](hyp:hUopen), and [membership of the parameter](hyp:hθU), [joint continuity of the objective on that neighborhood](hyp:hf), and
-[eventual attainment of scalar envelope minima in the compact set](hyp:hatt) give a [continuous
-max-inf saddle value at the parameter](goal). -/
+[eventual attainment of scalar envelope minima in the compact set](hyp:hatt) give a [min-max
+saddle value that is continuous at the parameter](goal). -/
 theorem continuousAt_value_of_continuousOn (S : Set A) (hS : IsCompact S)
     (hSne : S.Nonempty) (f : Θ → A → ℝ → ℝ) (K : Set ℝ)
     (hK : IsCompact K) (hKne : K.Nonempty) (θ₀ : Θ)

@@ -94,13 +94,15 @@ theorem integrableOn_tensorJackson (K d : ℕ) :
       Set.mem_Icc], volume_pi, Measure.restrict_pi_pi]
   exact Integrable.fintype_prod fun _ ↦ integrableOn_jackson K
 
-/-- Given [a finite dimension](hyp:d), [one integrand for each coordinate](hyp:g), and
-[integrability of every coordinate integrand over the standard period](hyp:hg), [the integral
+/-- Given [a finite dimension](hyp:d), [one integrand for each coordinate](hyp:g), [the integral
 of their product over the period box equals the product of their one-dimensional
 integrals](goal).
+
+No integrability is assumed: when some coordinate integrand is not integrable over the period
+interval, both sides are zero, by the convention that the integral of a non-integrable function
+is zero.
 -/
-theorem integral_periodBox_prod {d : ℕ} (g : Fin d → ℝ → ℝ)
-    (hg : ∀ i, IntegrableOn (g i) (Set.Icc (-Real.pi) Real.pi)) :
+theorem integral_periodBox_prod {d : ℕ} (g : Fin d → ℝ → ℝ) :
     (∫ u in periodBox d, ∏ i, g i (u i)) =
       ∏ i, ∫ t in Set.Icc (-Real.pi) Real.pi, g i t := by
   rw [show periodBox d = Set.univ.pi (fun _ ↦ Set.Icc (-Real.pi) Real.pi) by
@@ -115,7 +117,7 @@ positive](hyp:hK), [the tensor Jackson kernel has unit mass over the period box]
 theorem tensorJackson_integral_eq_one {d K : ℕ} (hK : 0 < K) :
     (∫ u in periodBox d, tensorJackson K d u) = 1 := by
   rw [show tensorJackson K d = fun u ↦ ∏ i, jackson K (u i) by rfl,
-    integral_periodBox_prod (fun _ ↦ jackson K) (fun _ ↦ integrableOn_jackson K)]
+    integral_periodBox_prod (fun _ ↦ jackson K)]
   simp [jackson_integral_eq_one K hK]
 
 /-- For [a finite dimension](hyp:d), [integer order K](hyp:K) that is [strictly positive](hyp:hK),
@@ -145,7 +147,7 @@ theorem tensorJackson_first_moment_eq {d K : ℕ} (hK : 0 < K) (i : Fin d) :
           (∏ j, if j = i then |u j| else 1) * ∏ j, jackson K (u j) := by
         simp only [g, Finset.prod_mul_distrib]
       _ = |u i| * tensorJackson K d u := by simp [tensorJackson],
-    integral_periodBox_prod g hg]
+    integral_periodBox_prod g]
   have hmass : (∫ t in Set.Icc (-Real.pi) Real.pi, jackson K t) = 1 :=
     jackson_integral_eq_one K hK
   have hcoord : ∀ j, (∫ t in Set.Icc (-Real.pi) Real.pi, g j t) =
@@ -185,7 +187,7 @@ theorem tensorJackson_second_moment_eq {d K : ℕ} (hK : 0 < K) (i : Fin d) :
           (∏ j, if j = i then (u j) ^ 2 else 1) * ∏ j, jackson K (u j) := by
         simp only [g, Finset.prod_mul_distrib]
       _ = (u i) ^ 2 * tensorJackson K d u := by simp [tensorJackson],
-    integral_periodBox_prod g hg]
+    integral_periodBox_prod g]
   have hmass : (∫ t in Set.Icc (-Real.pi) Real.pi, jackson K t) = 1 :=
     jackson_integral_eq_one K hK
   have hcoord : ∀ j, (∫ t in Set.Icc (-Real.pi) Real.pi, g j t) =

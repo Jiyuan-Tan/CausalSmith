@@ -3,10 +3,17 @@ public import Causalean.Stat.Minimax.TotalVariation
 public import Mathlib.Probability.Distributions.Poisson.Basic
 public import Mathlib.Probability.ProductMeasure
 
-/-!
-# Poisson count-vector series
+/-! # Poisson count-vector series
 
-Factorial-normalized product-Poisson coefficients form summable count-vector series.
+Summation identities for vectors of independent Poisson counts. For finitely many coordinates
+with rates λᵢ ≥ 0, summing over all count vectors k = (kᵢ) in ℕ^I:
+
+* `poissonFactorial_countVector_tsum_one` — Σ over k of Π over i of exp(−λᵢ) λᵢ^kᵢ / kᵢ! = 1,
+  i.e. the product Poisson probability mass function has total mass one;
+* `factorial_countVector_tsum_eq_exp_sum` — Σ over k of Π over i of λᵢ^kᵢ / kᵢ! = exp(Σ λᵢ);
+* `summable_poissonFactorial_countVector` — the first series is summable, zero rates included;
+* `tsum_le_one_of_le_poissonFactorial` — a nonnegative function of the count vector that is
+  dominated pointwise by the product Poisson mass function has total sum at most one.
 -/
 
 public section

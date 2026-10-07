@@ -138,8 +138,9 @@ theorem Factorization.targetRatio_map_eq
   -- Enlarge `targetRatio_dependsOn` to the ancestral closure, then use the dependent-map theorem.
   apply B.map_eq_of_dependsOn_nodeAncestralClosure hji hnotAncestor q
     (fun v : ∀ k, X k ↦ numerator (v i) / B.factor i v) hratio _ x₀
-  exact (B.targetRatio_dependsOn i numerator).mono
-    (selfParents_subset_nodeAncestralClosure i)
+  exact _root_.DependsOn.mono
+    (Finset.coe_subset.mpr (selfParents_subset_nodeAncestralClosure i))
+    (B.targetRatio_dependsOn i numerator)
 
 /-- A [DAG factorization](hyp:B), [distinct intervention and queried nodes](hyp:hji), evidence
 that [the intervention target is not an ancestor of the queried node](hyp:hnotAncestor), a

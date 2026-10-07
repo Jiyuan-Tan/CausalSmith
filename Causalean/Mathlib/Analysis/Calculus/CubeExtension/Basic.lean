@@ -43,9 +43,11 @@ def DerivBoundOn {d : ℕ} (S : Set (Fin d → ℝ)) (m : ℕ) (R : ℝ)
   ∀ j ≤ m, ∀ f : Fin j → Fin d, ∀ x ∈ S, |coordJetOn S j u f x| ≤ R
 
 /-- On [a set](hyp:S) in [dimension](hyp:d), a [response](hyp:u) with
-[derivative order](hyp:m), [Hölder exponent](hyp:s), and [radius](hyp:R)
-forms an intrinsic Hölder ball when it has [within-set regularity](hyp:regularity),
-[bounded coordinate jets](hyp:derivBound), and [a top-order Hölder modulus](hyp:modulus). -/
+[derivative order m](hyp:m), [Hölder exponent s](hyp:s), and [radius R](hyp:R)
+lies in the intrinsic Hölder ball when it [is m times continuously differentiable within the
+set](hyp:regularity), [all its intrinsic coordinate jets of order at most m are bounded by R in
+absolute value on the set](hyp:derivBound), and [its order-m intrinsic coordinate jets have an
+s-Hölder modulus with coefficient R on the set](hyp:modulus). -/
 structure HolderBallOn {d : ℕ} (S : Set (Fin d → ℝ)) (m : ℕ)
     (s R : ℝ) (u : (Fin d → ℝ) → ℝ) : Prop where
   regularity : ContDiffOn ℝ m u S

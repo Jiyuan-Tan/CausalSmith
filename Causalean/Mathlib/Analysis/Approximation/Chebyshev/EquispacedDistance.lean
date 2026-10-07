@@ -57,7 +57,7 @@ theorem equispacedDistance_upper_factorial (D : ℕ) (j : Fin (D + 1)) :
       norm_cast
       exact Finset.prod_range_add_one_eq_factorial _
 
-/-- [A grid order and a selected grid point](hyp:D,j) determine [a deleted-grid distance product that splits into its lower and upper factors](goal).
+/-- For [a grid order D and a grid index j between 0 and D](hyp:D,j), [the product of the distances |j − i| over all grid indices i other than j equals the product of j − i over i below j times the product of i − j over i from j + 1 to D](goal).
 
 Splitting the deleted finite grid at `j` expresses its absolute distance product as the
 product over the indices below `j` and the indices above `j`.

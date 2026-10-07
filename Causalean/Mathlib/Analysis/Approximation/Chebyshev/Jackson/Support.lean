@@ -71,7 +71,7 @@ theorem packet_shifted_support (N : ℕ) (hN : 2 ≤ N) (r : ℤ)
       ∑ j ∈ s, normalizedCoeff N j *
         ((Real.cos (((4 * (N : ℤ) + j : ℤ) : ℝ) * u) +
           Real.cos (((4 * (N : ℤ) - j : ℤ) : ℝ) * u)) / 2) := by
-    rw [packetOscillation, packet_kernel_reconstruction N (by omega : 0 < N) u]
+    rw [packetOscillation, kernel_fourier N (by omega : 0 < N) u]
     simp only [Finset.sum_mul]
     apply Finset.sum_congr rfl
     intro j hj
@@ -150,4 +150,3 @@ theorem packet_shifted_support (N : ℕ) (hN : 2 ≤ N) (r : ℤ)
     ring
 
 end Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson
-

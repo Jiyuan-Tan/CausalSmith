@@ -506,10 +506,9 @@ lemma scalarBayesRisk_le_rho2_of_scheduleKernel {n : ℕ} (nu : EffectPrior n)
         v = lift.E (fun z ↦ labeledRisk twoArmContrast (p.1, est) z)} ≤
         lift.E (fun z ↦ labeledRisk twoArmContrast p z) :=
       csInf_le hbdd ⟨p.2, rfl⟩
-    _ ≤ Causalean.Stat.worstCaseRisk
+    _ ≤ Causalean.Stat.worstCaseRiskReal
         (fun q z ↦ labeledRisk twoArmContrast q z) p :=
-      Causalean.Stat.finiteDesign_expectedLoss_le_worstCaseRisk lift
-        (fun q z ↦ labeledRisk twoArmContrast q z)
-        (fun q z ↦ q.1.mse_nonneg _ _) p
+      Causalean.Stat.finiteDesign_expectedLoss_le_worstCaseRiskReal lift
+        (fun q z ↦ labeledRisk twoArmContrast q z) p
 
 end CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier

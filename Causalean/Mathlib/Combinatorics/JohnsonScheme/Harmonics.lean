@@ -139,8 +139,8 @@ theorem johnsonHarmonic_pairwise_orthogonal (hMn : M ≤ n)
     sliceInner f g = 0 := by
   rw [sliceInner_eq hMn, johnsonHarmonic_inner_eq_zero hjk hf hg, mul_zero]
 
-/-- When [the requested slice size is feasible](hyp:hMn), [the given slice function equals the finite sum of its harmonic projections from degree zero through degree `M`](goal), for [the slice function](hyp:f). -/
-theorem sum_harmonicProjection_eq (hMn : M ≤ n) (f : SliceFn n M) :
+/-- [The given slice function equals the finite sum of its harmonic projections from degree zero through degree `M`](goal), for [every slice function](hyp:f). -/
+theorem sum_harmonicProjection_eq (f : SliceFn n M) :
     (∑ k : Fin (M + 1), harmonicProjection n M k f) = f := by
   let V : Fin (M + 1) → Submodule ℝ (SliceFn n M) :=
     fun k => johnsonHarmonic n M k.1
@@ -148,7 +148,7 @@ theorem sum_harmonicProjection_eq (hMn : M ≤ n) (f : SliceFn n M) :
     intro j k hjk x y
     exact johnsonHarmonic_inner_eq_zero hjk x.2 y.2
   have htop : iSup V = ⊤ := by
-    rw [← degreeAtMost_eq_iSup_harmonic, degreeAtMost_eq_top hMn]
+    rw [← degreeAtMost_eq_iSup_harmonic, degreeAtMost_eq_top]
   exact hV.sum_projection_of_mem_iSup f (by rw [htop]; trivial)
 
 /-- When [the requested slice size is feasible](hyp:hMn), [the degree-zero projection of the given slice function is the constant function at its uniform mean](goal), for [the slice function](hyp:f). -/
@@ -157,16 +157,16 @@ theorem harmonicProjection_zero_eq_mean (hMn : M ≤ n) (f : SliceFn n M) :
       constFn (mean f) := by
   change (degreeAtMost n M 0).starProjection f = constFn (mean f)
   apply Submodule.eq_starProjection_of_mem_of_inner_eq_zero
-  · exact (mem_degreeAtMost_zero_iff hMn _).2 ⟨mean f, rfl⟩
+  · exact (mem_degreeAtMost_zero_iff _).2 ⟨mean f, rfl⟩
   · intro g hg
-    obtain ⟨c, rfl⟩ := (mem_degreeAtMost_zero_iff hMn g).1 hg
+    obtain ⟨c, rfl⟩ := (mem_degreeAtMost_zero_iff g).1 hg
     rw [PiLp.inner_apply]
     simp only [Real.inner_apply, PiLp.sub_apply, constFn]
     rw [← Finset.sum_mul]
     simp only [Finset.sum_sub_distrib, Finset.sum_const, nsmul_eq_mul]
-    rw [mean, card_omega hMn]
+    rw [mean, card_omega]
     rw [show (Finset.univ : Finset (Omega n M)).card = n.choose M by
-      simpa using card_omega hMn]
+      simpa using card_omega (n := n) (M := M)]
     have hcard : (n.choose M : ℝ) ≠ 0 :=
       Nat.cast_ne_zero.mpr (Nat.ne_of_gt (Nat.choose_pos hMn))
     field_simp
@@ -194,7 +194,7 @@ theorem sum_positive_harmonicProjection_eq_center (hMn : M ≤ n)
     (Finset.univ : Finset (Fin (M + 1)))
     (fun k : Fin (M + 1) => 0 < k.1)
     (fun k => harmonicProjection n M k f)
-  rw [hnot, Finset.sum_singleton, sum_harmonicProjection_eq hMn f,
+  rw [hnot, Finset.sum_singleton, sum_harmonicProjection_eq f,
     harmonicProjection_zero_eq_mean hMn f] at hsplit
   rw [center]
   exact eq_sub_of_add_eq hsplit

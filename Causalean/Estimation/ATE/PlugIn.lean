@@ -116,11 +116,11 @@ noncomputable def ψ_plugin (S : BackdoorEstimationSystem P γ)
 /-- **Oracle asymptotic linearity of the plug-in ATE.** Fix
 [the back-door identification assumptions](hyp:hA) for `S`,
 [square-integrability of both potential outcomes](hyp:h_yd2), and a one-shot
-sample split whose evaluation-fold fraction [converges to some `c` with `0 < c <
-1`](hyp:hc_pos,hc_lt,h_split_rate). Suppose the outcome-regression learner `μ̂`
+sample split whose evaluation-fold fraction [converges to some `c > 0`](hyp:hc_pos,h_split_rate).
+Suppose the outcome-regression learner `μ̂`
 is [measurable](hyp:h_mu_meas), [lies in `L²(P_X)` at every
 realization](hyp:h_mu_memLp), and [depends only on the nuisance-training fold,
-marginally and jointly with the covariate](hyp:h_mu_foldA,h_mu_uncurry_foldA),
+jointly with the covariate](hyp:h_mu_uncurry_foldA),
 with [joint `L²(P_X)` estimation error at rate `o_p(n^{-1/2})`](hyp:h_rate).
 Then [the sample-split plug-in estimator of the back-door ATE is asymptotically
 linear at the true ATE `θ₀` with influence function `ψ_plugin` along fold B](goal).
@@ -136,7 +136,7 @@ hypothesis `|B(n)|/n → c`):
    overlap, integrabilities);
 2. square-integrability of the counterfactual outcomes, used to put the
    plug-in influence function in `L²`;
-3. one-shot split with `|B(n)|/n → c` for some `c ∈ (0, 1)`;
+3. one-shot split with `|B(n)|/n → c` for some `c > 0`;
 4. nuisance estimator `μ̂(n)` depends only on the nuisance fold and satisfies
    the joint `o_p(n^{-1/2})` rate
         ‖μ̂(n)(·, X) − μ_val(·, X)‖_{L²(P_X)} = o_p(n^{-1/2})
@@ -151,7 +151,7 @@ theorem plugInOracle_isAsymLinear
       (fun ω => (S.toPOBackdoorSystem.YofD d ω) ^ 2) P.μ)
     (sample : IIDSample P.Ω (γ × Bool × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
-    {c : ℝ} (hc_pos : 0 < c) (hc_lt : c < 1)
+    {c : ℝ} (hc_pos : 0 < c)
     (h_split_rate :
       Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
     (μ_hat : ℕ → P.Ω → (Bool → γ → ℝ))
@@ -159,11 +159,6 @@ theorem plugInOracle_isAsymLinear
       ∀ n a, Measurable (fun (p : P.Ω × γ) => μ_hat n p.1 a p.2))
     (h_mu_memLp :
       ∀ n ω a, MemLp (fun x => μ_hat n ω a x) 2 S.P_X)
-    (h_mu_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (μ_hat n))
     (h_mu_uncurry_foldA :
       ∀ n a,
         Measurable[(MeasurableSpace.comap
@@ -281,18 +276,6 @@ theorem plugInOracle_isAsymLinear
           ((S.μ_meas true).comp measurable_snd.fst)).sub
           (((h_mu_meas n false).comp hproj).sub
             ((S.μ_meas false).comp measurable_snd.fst))
-      have hf_foldA :
-          ∀ n,
-            Measurable[MeasurableSpace.comap
-              (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-              (fun ω => fZ n ω) := by
-        intro n
-        change Measurable[MeasurableSpace.comap
-              (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (fun ω (z : γ × Bool × ℝ) =>
-            (μ_hat n ω true z.1 - S.μ_val true z.1) -
-              (μ_hat n ω false z.1 - S.μ_val false z.1))
-        fun_prop
       have hf_uncurry_foldA :
           ∀ n,
             Measurable[(MeasurableSpace.comap
@@ -793,11 +776,10 @@ theorem plugInOracle_isAsymLinear
 /-- **Oracle asymptotic normality of the plug-in ATE.** Under [the back-door identification
 assumptions](hyp:hA) for `S`, [square-integrability of both potential
 outcomes](hyp:h_yd2), and a one-shot sample split whose evaluation-fold fraction
-[converges to some `c` with `0 < c < 1`](hyp:hc_pos,hc_lt,h_split_rate): suppose
+[converges to some `c > 0`](hyp:hc_pos,h_split_rate): suppose
 the learner `μ̂` is [measurable](hyp:h_mu_meas), [in `L²(P_X)` at every
 realization](hyp:h_mu_memLp), [depends only on the nuisance-training fold,
-marginally and jointly with the
-covariate](hyp:h_mu_foldA,h_mu_uncurry_foldA), with [joint `L²(P_X)` estimation
+jointly with the covariate](hyp:h_mu_uncurry_foldA), with [joint `L²(P_X)` estimation
 error at rate `o_p(n^{-1/2})`](hyp:h_rate) — the same hypotheses as
 `plugInOracle_isAsymLinear`. Given in addition [a.e. measurability of the rescaled
 estimator at every horizon](hyp:hθn_meas) and [a.e. measurability of the
@@ -805,7 +787,7 @@ normalized influence-sum at every horizon](hyp:hSum_meas), then [the rescaled
 estimator `√|B(n)| (θ̂ⁿ − θ₀)` converges in distribution to
 `N(0, ∫ ψ_plugin² dP_Z)`](goal).
 
-Together with `|B(n)|/n → c ∈ (0,1)`, Slutsky scaling gives the
+Together with `|B(n)|/n → c > 0`, Slutsky scaling gives the
 `√n`-rate form `√n (θ̂ⁿ − θ₀) ⇒ N(0, σ²/c)` (variance inflated by the
 sample-splitting cost `1/c`).  That last step is left to the caller. -/
 theorem plugInOracle_tendstoNormal
@@ -815,7 +797,7 @@ theorem plugInOracle_tendstoNormal
       (fun ω => (S.toPOBackdoorSystem.YofD d ω) ^ 2) P.μ)
     (sample : IIDSample P.Ω (γ × Bool × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
-    {c : ℝ} (hc_pos : 0 < c) (hc_lt : c < 1)
+    {c : ℝ} (hc_pos : 0 < c)
     (h_split_rate :
       Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
     (μ_hat : ℕ → P.Ω → (Bool → γ → ℝ))
@@ -823,11 +805,6 @@ theorem plugInOracle_tendstoNormal
       ∀ n a, Measurable (fun (p : P.Ω × γ) => μ_hat n p.1 a p.2))
     (h_mu_memLp :
       ∀ n ω a, MemLp (fun x => μ_hat n ω a x) 2 S.P_X)
-    (h_mu_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (μ_hat n))
     (h_mu_uncurry_foldA :
       ∀ n a,
         Measurable[(MeasurableSpace.comap
@@ -847,16 +824,13 @@ theorem plugInOracle_tendstoNormal
         (plugInEstimator S sample split μ_hat) S.θ₀ split.foldB n) P.μ)
     (hSum_meas : ∀ n : ℕ, AEMeasurable
       (IsAsymLinear.normalizedSum sample (ψ_plugin S) split.foldB n) P.μ) :
-    Tendsto_dist
-      (IsAsymLinear.rescaledEstimator
-        (plugInEstimator S sample split μ_hat) S.θ₀ split.foldB)
-      (gaussianMeasure 0 (∫ x, (ψ_plugin S x) ^ 2 ∂S.P_Z))
-      P.μ
-      hθn_meas := by
+    Modes.TendstoInLaw (fun _ : ℕ => P.μ) (IsAsymLinear.rescaledEstimator
+        (plugInEstimator S sample split μ_hat) S.θ₀ split.foldB) atTop
+            (gaussianMeasure 0 (∫ x, (ψ_plugin S x) ^ 2 ∂S.P_Z)) := by
   haveI : IsProbabilityMeasure P.μ := inferInstance
   have hAL :=
     plugInOracle_isAsymLinear S hA h_yd2 sample split
-      hc_pos hc_lt h_split_rate μ_hat h_mu_meas h_mu_memLp h_mu_foldA
+      hc_pos h_split_rate μ_hat h_mu_meas h_mu_memLp
       h_mu_uncurry_foldA h_rate
   have hψ_meas : Measurable (ψ_plugin S) := by
     unfold ψ_plugin

@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_MarRareqLogfrontier_Research.Helpers.Certifi
 
 /-! Transfer of ideal risk between a marked Poisson sample and independent streams. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set Finset
 open scoped NNReal ENNReal

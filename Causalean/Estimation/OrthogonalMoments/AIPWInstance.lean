@@ -150,9 +150,8 @@ nuisance estimators η̂ that [stay in the ε-ball at every fold and sample
 point](hyp:h_in_Hε) with [outcome-regression](hyp:h_mu_diff_memLp) and
 [propensity-score](hyp:h_e_diff_memLp) differences from the truth square-integrable in
 `S.P_X`. Assume the technical regularity package that [the AIPW moment functional at η̂
-is jointly and uncurried product-measurable](hyp:h_m_meas,h_m_foldA_uncurry),
-and supply [a curried fold-A witness retained for
-compatibility](hyp:h_m_foldA). At every fold and sample point it is
+is jointly and uncurried product-measurable](hyp:h_m_meas,h_m_foldA_uncurry).
+At every fold and sample point it is
 [integrable](hyp:h_m_int) and [square-integrable](hyp:h_m_sq_int) under `S.P_Z`. Finally
 suppose the two nuisance-error rates are individually negligible
 [`ρ₁(η̂, η₀) = o_P(1)`](hyp:h_indiv_rate_ρ₁),
@@ -161,9 +160,6 @@ rate [`ρ₁(η̂, η₀) · ρ₂(η̂, η₀) = o_P(n^{-1/2})`](hyp:h_product_
 Chernozhukov one-step AIPW-DML estimator is asymptotically linear at the true parameter
 `S.θ₀` with the standard AIPW influence function `ψ(z) = −J₀⁻¹ · ψ_AIPW(η₀, z)`, indexed
 over the fold-B subsample](goal).
-
-The abstract one-shot proof uses the uncurried product-measurability witness;
-the separate curried witness does not enter that argument.
 
 **Conclusion (Chernozhukov form):**  the Chernozhukov one-step estimator
 `θ̂_n = θ₀ − J₀⁻¹ · Pₙ m(η̂, ·, θ₀) = (1/|B|) Σ ψ_AIPW(η̂, Z_i)` (the last
@@ -210,11 +206,6 @@ theorem aipw_dml_isAsymLinear
     (h_m_meas :
       ∀ n, Measurable (fun (p : P.Ω × (γ × Bool × ℝ)) =>
         aipwMomentFunctional (η_hat n p.1) p.2 S.θ₀))
-    (h_m_foldA :
-      ∀ n,
-        Measurable[MeasurableSpace.comap
-          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
-          (fun ω z => aipwMomentFunctional (η_hat n ω) z S.θ₀))
     (h_m_foldA_uncurry :
       ∀ n,
         Measurable[(MeasurableSpace.comap
@@ -364,7 +355,7 @@ theorem aipw_dml_isAsymLinear
       hMZ hFV
       sample split hc_pos h_split_rate
       η_hat (Crem := aipw_rem_const ε) hBR_at
-      h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int h_m_sq_int
+      h_m_meas h_m_foldA_uncurry h_m_int h_m_sq_int
       h_score_diff_rate h_product_rate)
 
 end ATE

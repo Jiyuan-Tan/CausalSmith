@@ -126,7 +126,7 @@ lemma uniformMixture_likelihood_deviation_integrable {α S : Type*}
     exact hpair s t
   have hsq : Integrable (fun x => r x ^ 2) P := by
     apply (hsum.div_const ((Fintype.card S : ℝ) ^ 2)).congr
-    filter_upwards [Causalean.Stat.Minimax.Mixture.uniformMixture_rnDeriv Q P hac]
+    filter_upwards [Causalean.Stat.Minimax.Mixture.uniformMixture_rnDeriv Q P]
       with x hx
     change r x = (∑ s : S, d s x) / (Fintype.card S : ℝ) at hx
     rw [hx, div_pow]

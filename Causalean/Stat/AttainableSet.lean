@@ -27,9 +27,6 @@ all objective values attained by feasible parameters. -/
 noncomputable def IdentifiedSet {α : Type*} (obj : α → ℝ) (feasible : α → Prop) : Set ℝ :=
   Set.range (fun x : {x // feasible x} => obj x)
 
-/-- Deprecated former name of `IdentifiedSet`. -/
-@[deprecated (since := "2026-09-16")] alias IdentifiedInterval := IdentifiedSet
-
 end AttainableSet
 end Stat
 end Causalean

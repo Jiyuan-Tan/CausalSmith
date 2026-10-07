@@ -61,7 +61,8 @@ theorem sampleMean_tendsto_inProb
     (S : IIDSample Ω X μ P) {g : X → ℝ}
     (hg_meas : Measurable g)
     (hg_int : Integrable g P) :
-    Tendsto_inProb (S.sampleMean g) (fun _ => ∫ x, g x ∂P) μ := by
+    Modes.TendstoInProbability
+        (fun _ : ℕ => μ) (S.sampleMean g) atTop (fun _ _ => ∫ x, g x ∂P) := by
   haveI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
   have hg_int_sample : Integrable (fun ω => g (S.Z 0 ω)) μ := by
     have hg_int_map : Integrable g (μ.map (S.Z 0)) := by
@@ -92,7 +93,6 @@ theorem sampleMean_tendsto_inProb
     unfold IIDSample.sampleMean
     simpa [hint_eq, div_eq_mul_inv, mul_comm] using hω
   -- a.e. ⟹ in-measure on the finite (probability) space `μ`
-  unfold Tendsto_inProb
   refine tendstoInMeasure_of_tendsto_ae ?_ hae
   intro N
   exact (S.measurable_sampleMean hg_meas N).aestronglyMeasurable
@@ -105,8 +105,8 @@ theorem sampleSecondMoment_tendsto_inProb
     (S : IIDSample Ω X μ P) {ψ : X → ℝ}
     (hψ_meas : Measurable ψ)
     (hψ_sq_int : Integrable (fun x => (ψ x) ^ 2) P) :
-    Tendsto_inProb (S.sampleMean (fun x => (ψ x) ^ 2))
-      (fun _ => ∫ x, (ψ x) ^ 2 ∂P) μ :=
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (S.sampleMean (fun x => (ψ x) ^ 2)) atTop
+        (fun _ _ => ∫ x, (ψ x) ^ 2 ∂P) :=
   S.sampleMean_tendsto_inProb (hψ_meas.pow_const 2) hψ_sq_int
 
 end IIDSample

@@ -8,7 +8,7 @@ public import CausalSmith.Stat.STAT_RecurrentEndpointCensorFrontier_Research.Hel
 Integrability and quotient FTC facts for the remaining-target bridge.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open scoped ENNReal Interval

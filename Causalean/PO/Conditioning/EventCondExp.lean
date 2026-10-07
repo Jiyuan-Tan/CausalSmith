@@ -21,7 +21,7 @@ multiplied and quotient drop-of-conditioning identities under independence, a co
 identity, and an eventwise relabeling workhorse. The general measure-theoretic definition and
 algebra live in `Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge`. -/
 
-@[expose] public section
+public section
 
 namespace Causalean
 namespace PO

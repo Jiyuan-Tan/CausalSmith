@@ -16,7 +16,7 @@ moment by expected reciprocal usable occupancy. Outcomes need only supported
 arm/group second moments; all empirical zero-count cases are totalized.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat
 
@@ -403,7 +403,7 @@ theorem integral_occupancyWeightedResidual_sq_le_reciprocal
           ring
         _ = 0 := by rw [hzres]; ring
     · have hcross := integral_designWeight_residual_cross_coordinates_eq_zero
-        mu group arm Y center hgroup harm hY hmem hcenter
+        mu group arm Y center hgroup harm hmem hcenter
         (fun d => weight d t.2.1 t.1 * weight d u.2.1 u.1)
         t.2.2 u.2.2 hij t.2.1 u.2.1 t.1 u.1
       simpa [term, mul_assoc, mul_left_comm, mul_comm] using hcross
@@ -415,7 +415,7 @@ theorem integral_occupancyWeightedResidual_sq_le_reciprocal
               (fun _ => (1 : Real)) (z t.2.2)
           ∂(Measure.pi (fun _ : Fin n => mu)) := by
     have hdiag := integral_designWeight_residual_sq_le_indicator
-      mu group arm Y center V hgroup harm hY hmem hsq
+      mu group arm Y center V hgroup harm hmem hsq
       (fun d => weight d t.2.1 t.1 ^ 2) (fun d => sq_nonneg _) t.2.2 t.2.1 t.1
     simpa [term, pow_two, mul_assoc, mul_left_comm, mul_comm] using hdiag
   have hsum_bound :

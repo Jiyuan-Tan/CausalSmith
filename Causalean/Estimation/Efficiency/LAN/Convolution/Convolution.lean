@@ -142,7 +142,8 @@ theorem lan_tilted_charFun_tendsto_of_jointWeakSubsequence
     refine ⟨fun n => (hstatBase _).prodMk (lan.central_measurable _), ?_⟩
     intro g
     exact joint.converges g
-  have hR : TendstoInProbability (fun n => E.baseLaw (subsequence n)) R 0 := by
+  have hR : Causalean.Stat.Modes.TendstoInProbability (fun n => E.baseLaw (subsequence n)) R atTop
+      (fun _ _ => 0) := by
     intro ε hε
     exact (lan.expansion h ε hε).comp joint.subsequence_strictMono.tendsto_atTop
   have hllr (n : ℕ) :

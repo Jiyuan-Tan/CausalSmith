@@ -26,7 +26,9 @@ variable {Ω : Type*} [MeasurableSpace Ω]
 /-- In [the iid uniform marked model](hyp:h), for [a measurable local
 subrelation](hyp:R,hR,hlocal), [the expected distinct-component score is bounded
 by twice ε² K²/M times the square of the labelled-subset sum](goal), under
-[positive even coarse count, divisibility, and n at least two](hyp:hM,hK,heven,hdiv,hn).
+[positive even coarse count and divisibility](hyp:hM,hK,heven,hdiv).
+The labelled-subset sum runs over sizes m from two through n and adds
+choose(n, m) · m^5 · 8^m · m^m / K^m.
 
 The half ordered component sum allows a sharper factor, but discarding that
 half yields the requested convenient constant. Count disjoint labelled subsets
@@ -59,7 +61,7 @@ Algebra/BigOperators/Ring/Finset.lean (sum_mul_sum).
 theorem paired_expectation_labelled_le {n K : ℕ} {μ : Measure Ω}
     {X : Fin n → Ω → Fin K} {B : Fin n → Ω → Bool} {ε : ℝ}
     (h : UniformMarkedSample μ X B ε) (M : ℕ)
-    (hM : 0 < M) (hK : 0 < K) (heven : 2 ∣ M) (hdiv : M ∣ K) (hn : 2 ≤ n)
+    (hM : 0 < M) (hK : 0 < K) (heven : 2 ∣ M) (hdiv : M ∣ K)
     (R : Ω → Fin n → Fin n → Prop)
     (hR : ∀ i j, MeasurableSet {ω | R ω i j})
     (hlocal : ∀ ω, Admissible M (fun i => X i ω) (R ω)) :

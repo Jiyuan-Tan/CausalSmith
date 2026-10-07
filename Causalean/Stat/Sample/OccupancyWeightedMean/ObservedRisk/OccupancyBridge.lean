@@ -205,9 +205,11 @@ theorem poissonized_design_laplace_rate (epsilon : ℝ)
   exact le_trans hbound (Real.exp_le_exp.mpr (neg_le_neg hr))
 
 /-- Given [a finite cell count and sample size](hyp:d,n) and [an observed
-probability law](hyp:ν), [the fixed-size usable-occupancy Laplace transform is
-at most twice its half-intensity Poisson counterpart](goal), including zero
-totals. -/
+probability law on cell-arm pairs](hyp:ν), [the expectation of exp(−usable
+total) under n independent draws is at most twice the expectation of the same
+quantity for a Poissonized sample, in which the number of independent draws is
+itself Poisson with mean n/2](goal). The usable total is the number of
+observations in cells containing both arms; no overlap condition is assumed. -/
 theorem fixed_design_laplace_le_poisson {d n : ℕ}
     (ν : Measure (Fin d × Bool)) [IsProbabilityMeasure ν] :
     (∫ z : Fin n → Fin d × Bool,

@@ -23,6 +23,9 @@ variable {Theta X : Type*} [MeasurableSpace Theta] [MeasurableSpace X]
 
 /-- The [fixed-size predictive](goal) averages iid samples of [length n](hyp:n)
 from [a parameter-dependent mark kernel](hyp:P) over [a shared prior](hyp:pi).
+
+The average is the intended mixture when the map from parameters to iid sample laws is almost
+everywhere measurable under the prior; otherwise it is the zero measure by convention.
 -/
 noncomputable def fixedMixture (pi : Measure Theta) (P : Kernel Theta X)
     [∀ theta, IsProbabilityMeasure (P theta)] (n : ℕ) : Measure (Fin n → X) :=
@@ -31,6 +34,9 @@ noncomputable def fixedMixture (pi : Measure Theta) (P : Kernel Theta X)
 /-- The [raw finite-Poisson predictive](goal) averages [a mark kernel](hyp:P)
 over [a shared prior](hyp:pi), using [an intensity multiplier](hyp:u) times
 [the parameter's nonnegative scale](hyp:S) as its conditional intensity.
+
+The average is the intended mixture when the map from parameters to finite Poisson sample laws is
+almost everywhere measurable under the prior; otherwise it is the zero measure by convention.
 -/
 noncomputable def rawMixture (pi : Measure Theta) (P : Kernel Theta X)
     [∀ theta, IsProbabilityMeasure (P theta)] (S : Theta → ℝ≥0) (u : ℝ≥0) :
@@ -58,7 +64,7 @@ theorem map_orderedPrefix_rawMixture
   rfl
 
 /-- For [a probability prior](hyp:pi), [a probability mark kernel](hyp:P),
-[a measurable latent scale](hyp:S,hS), [a nonnegative multiplier](hyp:u),
+[a latent scale](hyp:S), [a nonnegative multiplier](hyp:u),
 [a sample size and fallback](hyp:n,fallback), and [measurable fixed and raw
 fibres](hyp:hfixed,hraw), [the fixed predictive differs from the retained raw
 predictive in TV by at most the prior-average short-count probability](goal).
@@ -66,7 +72,7 @@ predictive in TV by at most the prior-average short-count probability](goal).
 theorem tvDist_fixedMixture_map_rawMixture_le
     (pi : Measure Theta) [IsProbabilityMeasure pi]
     (P : Kernel Theta X) [∀ theta, IsProbabilityMeasure (P theta)]
-    (S : Theta → ℝ≥0) (hS : Measurable S) (u : ℝ≥0)
+    (S : Theta → ℝ≥0) (u : ℝ≥0)
     (n : ℕ) (fallback : Fin n → X)
     (hfixed : AEMeasurable
       (fun theta => Measure.pi (fun _ : Fin n => P theta)) pi)
@@ -146,8 +152,9 @@ theorem tvDist_fixedMixture_map_rawMixture_le
 prior](hyp:pi), [a measurable shared scale](hyp:S,hS), [an intensity
 multiplier](hyp:u), [a sample size and common fallback](hyp:n,fallback), and
 [measurable fixed and raw fibres on both sides](hyp:hfixed0,hfixed1,hraw0,hraw1),
-[the fixed predictive TV distance is at most the raw predictive TV distance
-plus twice the prior-average short-count probability](goal).
+[the total-variation distance between the two fixed-size predictives is at most
+the total-variation distance between the two raw finite-Poisson predictives plus twice the
+prior average of the Poisson probability that the count is below the sample size](goal).
 
 The same ordered-prefix map is used on both sides and remains valid at zero
 intensity and for a zero-length prefix. -/
@@ -187,8 +194,8 @@ theorem fixedMixture_tv_le_randomScalePoisson
     Measure.isProbabilityMeasure_map hf.aemeasurable
   let : IsProbabilityMeasure (Measure.map f rho1) :=
     Measure.isProbabilityMeasure_map hf.aemeasurable
-  have herr0 := tvDist_fixedMixture_map_rawMixture_le pi P0 S hS u n fallback hfixed0 hraw0
-  have herr1 := tvDist_fixedMixture_map_rawMixture_le pi P1 S hS u n fallback hfixed1 hraw1
+  have herr0 := tvDist_fixedMixture_map_rawMixture_le pi P0 S u n fallback hfixed0 hraw0
+  have herr1 := tvDist_fixedMixture_map_rawMixture_le pi P1 S u n fallback hfixed1 hraw1
   have hcontract : Causalean.Stat.tvDist (Measure.map f rho0) (Measure.map f rho1) ≤
       Causalean.Stat.tvDist rho0 rho1 := by
     simpa only [Measure.deterministic_comp_eq_map] using

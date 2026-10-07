@@ -24,7 +24,7 @@ public import Causalean.Stat.Concentration.Localization.CriticalRadius
 public import Causalean.Stat.Concentration.Rademacher.Contraction
 public import FoML.Massart
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Mathlib.Concentration
 

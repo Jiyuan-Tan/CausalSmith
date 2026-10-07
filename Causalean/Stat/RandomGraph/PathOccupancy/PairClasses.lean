@@ -13,12 +13,15 @@ interface. Divisibility and evenness are imposed by the counting theorems.
 
 namespace Causalean.Stat.RandomGraph.PathOccupancy
 
-/-- [A fine cell](hyp:a) belongs to [the consecutive coarse-cell pair](goal)
-determined by [the fine and coarse cell counts](hyp:K,M). -/
+/-- [The index of the consecutive coarse-cell pair](goal) containing [a fine
+cell](hyp:a), for [fine and coarse cell counts K and M](hyp:K,M), is the cell's
+position divided by twice the coarse-cell width K/M, both quotients rounded down
+(and equal to zero when the width K/M rounds down to zero). -/
 def pairClass (K M : ℕ) (a : Fin K) : ℕ := a.val / (2 * (K / M))
 
 /-- [Two labelled assignments](hyp:x,y) have [all their cells in one common
-consecutive coarse-cell pair](goal), for [the given cell counts](hyp:K,M). -/
+consecutive coarse-cell pair](goal), with pair index below half the coarse count,
+for [the given cell counts](hyp:K,M). -/
 def SamePair {ι κ : Type*} (K M : ℕ) (x : ι → Fin K) (y : κ → Fin K) : Prop :=
   ∃ p < M / 2, (∀ i, pairClass K M (x i) = p) ∧
     (∀ j, pairClass K M (y j) = p)

@@ -46,8 +46,7 @@ asymptotic (liminf) coverage at least `1 − α`](goal).
 The dominating conservative variance is what makes the interval *conservative*: replacing the true
 `v n` by the larger `v̂ n` only widens it, so the standard-normal coverage limit becomes a lower
 bound on the realized coverage. -/
-@[deprecated "Use the feasible random-variance coverage theorem." (since := "2026-09-17")]
-lemma conservative_wald_liminf_of_studentized_cdf
+theorem conservative_wald_liminf_of_studentized_cdf
     (D : ∀ n, FiniteDesign (Ω n))
     (est : ∀ n, Ω n → ℝ) (θ v vhat m : ℕ → ℝ)
     (hmpos : ∀ᶠ n in atTop, 0 < m n)

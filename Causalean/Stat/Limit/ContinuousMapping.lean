@@ -6,10 +6,10 @@ Authors: Jiyuan Tan
 # Continuous-mapping primitives for convergence in probability
 
 Reusable building blocks for Slutsky / continuous-mapping arguments at the
-estimation layer.  All statements are phrased over the project's
-`Tendsto_inProb` and `IsLittleOp` wrappers (`Causalean/Stat/Limit/Convergence.lean`).
+estimation layer.  All statements are phrased over convergence in probability
+(`Modes.TendstoInProbability`) and `IsLittleOp` (`Causalean/Stat/Limit/Convergence.lean`).
 
-The headline lemma is `Tendsto_inProb.comp_continuousAt`: if `Yn →_p c` and
+The headline lemma is `Modes.TendstoInProbability.comp_continuousAt`: if `Yn →_p c` and
 `g` is continuous at `c`, then `g ∘ Yn →_p g c`.  The remaining lemmas are
 specializations and bookkeeping helpers (`inv`, `sub_const`, `isLittleOp_one`).
 -/
@@ -26,12 +26,12 @@ convergence in probability. The lemmas cover composition with a function
 continuous at the probability limit, reciprocals at nonzero limits, centering by
 a constant, and small-order bookkeeping.
 
-The main scalar tools are `Tendsto_inProb.comp_continuousAt`,
-`Tendsto_inProb.inv`, `Tendsto_inProb.sub_const`, `Tendsto_inProb.sub`,
-`Tendsto_inProb.isLittleOp_one`, and `Tendsto_inProb.isBigOp_one`.  The file
+The main scalar tools are `Modes.TendstoInProbability.comp_continuousAt`,
+`Modes.TendstoInProbability.inv`, `Modes.TendstoInProbability.sub_const`, `Modes.TendstoInProbability.sub`,
+`Modes.TendstoInProbability.isLittleOp_one`, and `Modes.TendstoInProbability.isBigOp_one`.  The file
 also provides finite-dimensional continuous mapping principles
-`Tendsto_inProb.pi_comp_continuousAt` and
-`Tendsto_inProb.matrix_comp_continuousAt`, which lift entrywise convergence in
+`Modes.TendstoInProbability.pi_comp_continuousAt` and
+`Modes.TendstoInProbability.matrix_comp_continuousAt`, which lift entrywise convergence in
 probability to continuous functionals of vectors and square matrices. -/
 
 public section
@@ -43,13 +43,13 @@ open MeasureTheory Filter Topology
 /-- **Continuous mapping for convergence in probability at a point.**
 If [a real-valued sequence `Yn` converges in probability to a point `c`](hyp:h) under `μ`, and
 [a function `g` is continuous at `c`](hyp:hg), then [the composed sequence `g ∘ Yn` converges in
-probability to `g c`](goal).  Generalizes `Tendsto_inProb.inv` (the case
+probability to `g c`](goal).  Generalizes `Modes.TendstoInProbability.inv` (the case
 `g = fun x => 1/x` at a nonzero `c`). -/
-theorem Tendsto_inProb.comp_continuousAt
+theorem Modes.TendstoInProbability.comp_continuousAt
     {Ω : Type*} [MeasurableSpace Ω] {Yn : ℕ → Ω → ℝ} {c : ℝ} {μ : Measure Ω}
     {g : ℝ → ℝ} (hg : ContinuousAt g c)
-    (h : Tendsto_inProb Yn (fun _ => c) μ) :
-    Tendsto_inProb (fun n ω => g (Yn n ω)) (fun _ => g c) μ := by
+    (h : Modes.TendstoInProbability (fun _ : ℕ => μ) Yn atTop (fun _ _ => c)) :
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => g (Yn n ω)) atTop (fun _ _ => g c) := by
   simp only [causal_defs_simps] at h ⊢
   rw [tendstoInMeasure_iff_dist] at h ⊢
   intro ε hε
@@ -67,10 +67,11 @@ theorem Tendsto_inProb.comp_continuousAt
 
 /-- Reciprocal continuity for convergence in probability at a nonzero
 constant: if `Yn →_p Y₀` with `Y₀ ≠ 0`, then `1 / Yn →_p 1 / Y₀`. -/
-theorem Tendsto_inProb.inv
+theorem Modes.TendstoInProbability.inv
     {Ω : Type*} [MeasurableSpace Ω] {Yn : ℕ → Ω → ℝ} {Y₀ : ℝ} {μ : Measure Ω}
-    (h : Tendsto_inProb Yn (fun _ => Y₀) μ) (hY₀ : Y₀ ≠ 0) :
-    Tendsto_inProb (fun n ω => 1 / Yn n ω) (fun _ => 1 / Y₀) μ := by
+    (h : Modes.TendstoInProbability (fun _ : ℕ => μ) Yn atTop (fun _ _ => Y₀)) (hY₀ : Y₀ ≠ 0) :
+    Modes.TendstoInProbability
+        (fun _ : ℕ => μ) (fun n ω => 1 / Yn n ω) atTop (fun _ _ => 1 / Y₀) := by
   simp only [causal_defs_simps] at h ⊢
   rw [tendstoInMeasure_iff_dist] at h ⊢
   intro ε hε
@@ -90,10 +91,10 @@ theorem Tendsto_inProb.inv
 
 /-- Center a convergence-in-probability statement around a constant limit:
 if `Yn →_p Y₀`, then `Yn - Y₀ →_p 0`. -/
-theorem Tendsto_inProb.sub_const
+theorem Modes.TendstoInProbability.sub_const
     {Ω : Type*} [MeasurableSpace Ω] {Yn : ℕ → Ω → ℝ} {Y₀ : ℝ} {μ : Measure Ω}
-    (h : Tendsto_inProb Yn (fun _ => Y₀) μ) :
-    Tendsto_inProb (fun n ω => Yn n ω - Y₀) (fun _ => 0) μ := by
+    (h : Modes.TendstoInProbability (fun _ : ℕ => μ) Yn atTop (fun _ _ => Y₀)) :
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => Yn n ω - Y₀) atTop (fun _ _ => 0) := by
   simp only [causal_defs_simps] at h ⊢
   rw [tendstoInMeasure_iff_norm] at h ⊢
   intro ε hε
@@ -103,12 +104,13 @@ theorem Tendsto_inProb.sub_const
 `Yn →_p b` (both to constant limits), then `Xn − Yn →_p a − b`.  Standard
 ε/2-union-bound argument; the analogue of `TendstoInMeasure.sub`, which Mathlib
 does not currently provide for the constant-limit case. -/
-theorem Tendsto_inProb.sub
+theorem Modes.TendstoInProbability.sub
     {Ω : Type*} [MeasurableSpace Ω] {Xn Yn : ℕ → Ω → ℝ} {a b : ℝ}
     {μ : Measure Ω}
-    (hX : Tendsto_inProb Xn (fun _ => a) μ)
-    (hY : Tendsto_inProb Yn (fun _ => b) μ) :
-    Tendsto_inProb (fun n ω => Xn n ω - Yn n ω) (fun _ => a - b) μ := by
+    (hX : Modes.TendstoInProbability (fun _ : ℕ => μ) Xn atTop (fun _ _ => a))
+    (hY : Modes.TendstoInProbability (fun _ : ℕ => μ) Yn atTop (fun _ _ => b)) :
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => Xn n ω - Yn n ω) atTop
+        (fun _ _ => a - b) := by
   simp only [causal_defs_simps] at hX hY ⊢
   rw [tendstoInMeasure_iff_norm] at hX hY ⊢
   intro ε hε
@@ -141,18 +143,18 @@ theorem Tendsto_inProb.sub
 
 /-- Convergence in probability to zero implies `o_p(1)`: if `Yn →_p 0`,
 then `Yn` is `IsLittleOp` of the constant-one rate. -/
-theorem Tendsto_inProb.isLittleOp_one
+theorem Modes.TendstoInProbability.isLittleOp_one
     {Ω : Type*} [MeasurableSpace Ω] {Yn : ℕ → Ω → ℝ} {μ : Measure Ω}
-    (h : Tendsto_inProb Yn (fun _ => 0) μ) :
+    (h : Modes.TendstoInProbability (fun _ : ℕ => μ) Yn atTop (fun _ _ => 0)) :
     IsLittleOp Yn (fun _ => (1 : ℝ)) μ := by
   exact (Modes.tendstoInProbability_zero_iff_isLittleOpF_one
     (fun _ => μ) Yn atTop).mp h
 
 /-- **In-probability tightness.**  A sequence converging in probability to a
 constant is bounded in probability: `Xₙ →ₚ c ⟹ Xₙ = O_p(1)`. -/
-theorem Tendsto_inProb.isBigOp_one
+theorem Modes.TendstoInProbability.isBigOp_one
     {Ω : Type*} [MeasurableSpace Ω] {Xn : ℕ → Ω → ℝ} {c : ℝ} {μ : Measure Ω}
-    (h : Tendsto_inProb Xn (fun _ => c) μ) :
+    (h : Modes.TendstoInProbability (fun _ : ℕ => μ) Xn atTop (fun _ _ => c)) :
     IsBigOp Xn (fun _ => (1 : ℝ)) μ := by
   intro δ hδ
   refine ⟨|c| + 1, by positivity, ?_⟩
@@ -173,12 +175,13 @@ set_option linter.unusedFintypeInType false
 finite-dimensional random vector converges in probability to the corresponding
 constant coordinate, and `g` is continuous at the limiting vector, then
 `g(Yₙ) →ₚ g(c)`. -/
-theorem Tendsto_inProb.pi_comp_continuousAt
+theorem Modes.TendstoInProbability.pi_comp_continuousAt
     {Ω ι : Type*} [MeasurableSpace Ω] [Fintype ι] {μ : Measure Ω}
     {Yn : ℕ → Ω → (ι → ℝ)} {c : ι → ℝ} {g : (ι → ℝ) → ℝ}
     (hg : ContinuousAt g c)
-    (h : ∀ i, Tendsto_inProb (fun n ω => Yn n ω i) (fun _ => c i) μ) :
-    Tendsto_inProb (fun n ω => g (Yn n ω)) (fun _ => g c) μ := by
+    (h : ∀ i, Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => Yn n ω i) atTop
+        (fun _ _ => c i)) :
+    Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => g (Yn n ω)) atTop (fun _ _ => g c) := by
   classical
   simp only [causal_defs_simps]
   rw [tendstoInMeasure_iff_dist]
@@ -233,12 +236,14 @@ theorem Tendsto_inProb.pi_comp_continuousAt
 /-- **Matrix continuous mapping in probability.**  If every entry of the random
 matrix `Mₙ` converges in probability to the corresponding entry of `M₀`, and
 `g` is continuous at `M₀`, then `g(Mₙ) →ₚ g(M₀)`. -/
-theorem Tendsto_inProb.matrix_comp_continuousAt
+theorem Modes.TendstoInProbability.matrix_comp_continuousAt
     {Ω K : Type*} [MeasurableSpace Ω] [Fintype K] {μ : Measure Ω}
     {Mn : ℕ → Ω → Matrix K K ℝ} {M₀ : Matrix K K ℝ} {g : Matrix K K ℝ → ℝ}
     (hg : ContinuousAt g M₀)
-    (h : ∀ i j, Tendsto_inProb (fun n ω => Mn n ω i j) (fun _ => M₀ i j) μ) :
-    Tendsto_inProb (fun n ω => g (Mn n ω)) (fun _ => g M₀) μ := by
+    (h : ∀ i j, Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => Mn n ω i j) atTop
+        (fun _ _ => M₀ i j)) :
+    Modes.TendstoInProbability
+        (fun _ : ℕ => μ) (fun n ω => g (Mn n ω)) atTop (fun _ _ => g M₀) := by
   classical
   let reindex : ((K × K) → ℝ) → Matrix K K ℝ :=
     fun y => Matrix.of fun i j => y (i, j)
@@ -253,7 +258,7 @@ theorem Tendsto_inProb.matrix_comp_continuousAt
     have hg_at : ContinuousAt g (reindex (fun p : K × K => M₀ p.1 p.2)) := by
       simpa [hpoint] using hg
     exact hg_at.comp' hreindex_cont.continuousAt
-  have hpi := Tendsto_inProb.pi_comp_continuousAt
+  have hpi := Modes.TendstoInProbability.pi_comp_continuousAt
     (Ω := Ω) (ι := K × K) (μ := μ)
     (Yn := fun n ω p => Mn n ω p.1 p.2)
     (c := fun p => M₀ p.1 p.2)

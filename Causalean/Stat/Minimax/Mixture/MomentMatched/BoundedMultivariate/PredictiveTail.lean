@@ -117,7 +117,7 @@ theorem tsum_integral_unmatchedEnvelopeCoeff_le_tail
     (mem_ae_iff_prob_eq_one (by measurability : MeasurableSet G)).2 hsupport
   have hFsum (θ : MarkedParam) : Summable (fun q => F q θ) := by
     by_cases hθ : θ ∈ G
-    · exact (unmatchedEnvelopeCoeff_pointwise_le_tail hK hn hb θ
+    · exact (unmatchedEnvelopeCoeff_pointwise_le_tail hK hn θ
         hθ.1 hθ.2.1 hθ.2.2.1 hθ.2.2.2.1 hθ.2.2.2.2.1 hθ.2.2.2.2.2).1.congr
           (fun q => by simp [F, hθ])
     · simp [F, hθ]
@@ -142,7 +142,7 @@ theorem tsum_integral_unmatchedEnvelopeCoeff_le_tail
         · filter_upwards with θ
           by_cases hθ : θ ∈ G
           · simpa [F, hθ] using
-              (unmatchedEnvelopeCoeff_pointwise_le_tail hK hn hb θ
+              (unmatchedEnvelopeCoeff_pointwise_le_tail hK hn θ
                 hθ.1 hθ.2.1 hθ.2.2.1 hθ.2.2.2.1
                 hθ.2.2.2.2.1 hθ.2.2.2.2.2).2
           · simp [F, hθ]
@@ -150,7 +150,7 @@ theorem tsum_integral_unmatchedEnvelopeCoeff_le_tail
             exact tsum_nonneg fun m => by split_ifs <;> positivity
       _ = unmatchedTail K n b := by simp
 
-/-- A [positive matching degree](hyp:hK), [nonnegative experiment size and support bound](hyp:hn,hb), and a [finitely supported probability prior with the stated bounded support](hyp:ν,hfinite,hsupport) give [a summable count-indexed integrated envelope whose total is bounded by the factorial tail](goal). -/
+/-- A [positive matching degree](hyp:hK), [nonnegative experiment size and support bound](hyp:hn,hb), and a [finitely supported probability prior with arrival mass between 0 and b and propensity and success probability between 0 and 1](hyp:ν,hfinite,hsupport) give [that the prior-integrated envelope coefficients of total degree above 3K are summable in the Taylor index for each count triple, that their sums are summable over count triples, and that the total is at most the unmatched Taylor tail Σ over m > 3K of (2nb)ᵐ/m!](goal). -/
 theorem tsum_unmatchedEnvelope_integral_le_tail
     {K : ℕ} (hK : 1 ≤ K) {n b : ℝ} (hn : 0 ≤ n) (hb : 0 ≤ b)
     (ν : Measure MarkedParam) [IsProbabilityMeasure ν]

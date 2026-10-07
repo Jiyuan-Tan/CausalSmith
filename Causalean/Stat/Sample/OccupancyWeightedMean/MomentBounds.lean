@@ -225,7 +225,7 @@ private lemma setIntegral_supported_sq_le_indicator
       simp
     rw [hleft, hright]
 
-/-- If [group labels, arm labels, and outcomes are measurable](hyp:hgroup,harm,hY),
+/-- If [group labels and arm labels are measurable](hyp:hgroup,harm),
 [every supported residual has a finite second moment](hyp:hmem), [each residual
 is centered within its arm/group cell](hyp:hcenter), and [the two sample
 coordinates differ](hyp:hij), [any finite-design weight times their two
@@ -234,7 +234,7 @@ lemma integral_designWeight_residual_cross_coordinates_eq_zero
     {n : Nat} (mu : Measure Omega) [IsProbabilityMeasure mu]
     (group : Omega -> kappa) (arm : Omega -> Bool) (Y : Omega -> Real)
     (center : Bool -> kappa -> Real)
-    (hgroup : Measurable group) (harm : Measurable arm) (hY : Measurable Y)
+    (hgroup : Measurable group) (harm : Measurable arm)
     (hmem : ∀ a k,
       MemLp (supportedArmGroupResidual group arm Y center a k) 2 mu)
     (hcenter : ∀ a k,
@@ -317,7 +317,7 @@ lemma integral_designWeight_residual_cross_coordinates_eq_zero
         ∫ omega in armGroupEvent group arm (d q).2 (d q).1, f q omega ∂mu := hformula
     _ = 0 := hrhs
 
-/-- If [group labels, arm labels, and outcomes are measurable](hyp:hgroup,harm,hY),
+/-- If [group labels and arm labels are measurable](hyp:hgroup,harm),
 [every supported residual has a finite second moment](hyp:hmem), [each cell's
 residual second moment obeys the stated envelope](hyp:hsq), and [the design
 weight is nonnegative](hyp:hW), [the weighted residual square at one sample
@@ -327,7 +327,7 @@ lemma integral_designWeight_residual_sq_le_indicator
     {n : Nat} (mu : Measure Omega) [IsProbabilityMeasure mu]
     (group : Omega -> kappa) (arm : Omega -> Bool) (Y : Omega -> Real)
     (center : Bool -> kappa -> Real) (V : Real)
-    (hgroup : Measurable group) (harm : Measurable arm) (hY : Measurable Y)
+    (hgroup : Measurable group) (harm : Measurable arm)
     (hmem : ∀ a k,
       MemLp (supportedArmGroupResidual group arm Y center a k) 2 mu)
     (hsq : ∀ a k,

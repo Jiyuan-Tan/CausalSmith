@@ -111,7 +111,7 @@ noncomputable def parentMapOverride (M : Causalean.SCM N Ω)
 
 /-- The override parent-value tuple reads a latent parent directly from the latent assignment. -/
 lemma parentMapOverride_unobserved (M : Causalean.SCM N Ω)
-    {C : Finset (SWIGNode N)} (hC : C ⊆ M.observed)
+    {C : Finset (SWIGNode N)}
     (s : FixedValues M) (c : ValuesOn C (swigΩ Ω)) (ℓ : LatentValues M)
     {n : ℕ} (hn : n < M.observed.card)
     (prev : ∀ m : ℕ, m < n → ∀ hm : m < M.observed.card,
@@ -125,7 +125,7 @@ lemma parentMapOverride_unobserved (M : Causalean.SCM N Ω)
 /-- The override parent-value tuple reads a fixed parent directly from the fixed-value
 assignment. -/
 lemma parentMapOverride_fixed (M : Causalean.SCM N Ω)
-    {C : Finset (SWIGNode N)} (hC : C ⊆ M.observed)
+    {C : Finset (SWIGNode N)}
     (s : FixedValues M) (c : ValuesOn C (swigΩ Ω)) (ℓ : LatentValues M)
     {n : ℕ} (hn : n < M.observed.card)
     (prev : ∀ m : ℕ, m < n → ∀ hm : m < M.observed.card,
@@ -160,7 +160,7 @@ lemma parentMapOverride_C (M : Causalean.SCM N Ω)
 
 /-- The override parent-value tuple reads a non-overridden observed parent from the previous recursive values. -/
 lemma parentMapOverride_observed (M : Causalean.SCM N Ω)
-    {C : Finset (SWIGNode N)} (hC : C ⊆ M.observed)
+    {C : Finset (SWIGNode N)}
     (s : FixedValues M) (c : ValuesOn C (swigΩ Ω)) (ℓ : LatentValues M)
     {n : ℕ} (hn : n < M.observed.card)
     (prev : ∀ m : ℕ, m < n → ∀ hm : m < M.observed.card,
@@ -429,10 +429,10 @@ lemma evalObservedAuxOverride_eq_evalObservedAux_at_self
       have hedge : M.dag.edge w.val (M.observedAt ⟨n, hn⟩).val :=
         M.dag.mem_parents.mp w.property
       by_cases huo : w.val ∈ M.unobserved
-      · rw [parentMapOverride_unobserved M hC s _ _ _ _ _ huo,
+      · rw [parentMapOverride_unobserved M s _ _ _ _ _ huo,
             parentMap_unobserved _ _ _ _ _ _ huo]
       · by_cases hfix : w.val ∈ M.fixed
-        · rw [parentMapOverride_fixed M hC s _ _ _ _ _ hfix,
+        · rw [parentMapOverride_fixed M s _ _ _ _ _ hfix,
               parentMap_fixed _ _ _ _ _ _ hfix]
         · have hobs : w.val ∈ M.observed := by
             rcases Finset.mem_union.mp (M.dag_edges_classified _ _ hedge).1 with h1 | h2
@@ -447,7 +447,7 @@ lemma evalObservedAuxOverride_eq_evalObservedAux_at_self
             -- Goal: c ⟨w.val, hcW⟩ = parentMap s ℓ hn _ w
             -- The c-lambda body at w.val matches parentMap_observed's body (def. eq).
             rw [parentMap_observed _ _ _ _ _ _ hobs]
-          · rw [parentMapOverride_observed M hC s _ _ _ _ _ hobs hcW]
+          · rw [parentMapOverride_observed M s _ _ _ _ _ hobs hcW]
             rw [parentMap_observed _ _ _ _ _ _ hobs]
             congr 1
             exact ih _ hj _
@@ -533,7 +533,7 @@ lemma evalObservedAuxOverride_measurable
                     evalObservedAuxOverride M hC p.1.1 p.1.2 p.2 m hm_card) w) =
             (fun p => p.2 ⟨w.val, huo⟩) := by
           funext p
-          exact parentMapOverride_unobserved M hC p.1.1 p.1.2 p.2 hn _ w huo
+          exact parentMapOverride_unobserved M p.1.1 p.1.2 p.2 hn _ w huo
         rw [hfun]
         exact (measurable_pi_apply _).comp measurable_snd
       · by_cases hfix : w.val ∈ M.fixed
@@ -544,7 +544,7 @@ lemma evalObservedAuxOverride_measurable
                       evalObservedAuxOverride M hC p.1.1 p.1.2 p.2 m hm_card) w) =
               (fun p => p.1.1 ⟨w.val, hfix⟩) := by
             funext p
-            exact parentMapOverride_fixed M hC p.1.1 p.1.2 p.2 hn _ w hfix
+            exact parentMapOverride_fixed M p.1.1 p.1.2 p.2 hn _ w hfix
           rw [hfun]
           exact (measurable_pi_apply _).comp (measurable_fst.comp measurable_fst)
         · have hedge : M.dag.edge w.val (M.observedAt ⟨n, hn⟩).val :=
@@ -580,7 +580,7 @@ lemma evalObservedAuxOverride_measurable
                       (M.observedIndex ⟨w.val, hobs⟩).val
                       (M.observedIndex ⟨w.val, hobs⟩).isLt) := by
               funext p
-              exact parentMapOverride_observed M hC p.1.1 p.1.2 p.2 hn _ w hobs hcW
+              exact parentMapOverride_observed M p.1.1 p.1.2 p.2 hn _ w hobs hcW
             rw [hfun]
             exact measurable_family_cast _ (ih _ hj _)
 

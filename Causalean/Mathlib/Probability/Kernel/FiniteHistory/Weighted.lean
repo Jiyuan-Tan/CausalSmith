@@ -41,15 +41,14 @@ noncomputable def actionLikelihood
   exact Measurable.ite (hb (measurableSet_singleton 0)) measurable_const
     (ht.ennreal_toReal.div hb.ennreal_toReal)
 
-/-- Markov [behavior and target kernels](hyp:behavior,target) with [target absolute continuity relative to behavior](hyp:hAC) transform the bounded measurable [action score](hyp:g,hg,C,hg_bound) at [the selected state](hyp:s) into [the stated likelihood-weighted expectation identity](goal). -/
+/-- Markov [behavior and target kernels](hyp:behavior,target) with [target absolute continuity relative to behavior](hyp:hAC) transform the [action score](hyp:g) at [the selected state](hyp:s) into [the stated likelihood-weighted expectation identity](goal). -/
 theorem integral_actionLikelihood
     {S A : Type*} [MeasurableSpace S] [MeasurableSpace A]
     [MeasurableSingletonClass A] [Fintype A]
     (behavior target : Kernel S A)
     [IsMarkovKernel behavior] [IsMarkovKernel target]
     (hAC : ∀ s, target s ≪ behavior s)
-    (s : S) (g : A → ℝ) (hg : Measurable g)
-    (C : ℝ) (hg_bound : ∀ a, |g a| ≤ C) :
+    (s : S) (g : A → ℝ) :
     ∫ a, actionLikelihood behavior target s a * g a ∂behavior s =
       ∫ a, g a ∂target s := by
   -- Convert both integrals into finite sums of atom masses. On a behavior-null
@@ -274,21 +273,19 @@ theorem integral_weighted_history
   have hresult := hmain n 0 f hf Cf hf_bound
   simpa only [Nat.zero_add, hweight0, one_mul] using hresult
 
-/-- A Markov [kernel](hyp:K), measurable [append map](hyp:append,happend), measurable bounded [weight](hyp:w,hw,Cw,hw_bound), measurable [state projection](hyp:state,hstate), [target matrix](hyp:P), [supplied weighted action-kernel identity](hyp:hweighted), and measurable bounded [reward](hyp:reward,hreward,Cr,hreward_bound) identify [the weighted value after the selected number of steps](hyp:n) at [the selected history](hyp:h) with [the matrix value](goal). -/
+/-- A Markov [kernel](hyp:K), [append map](hyp:append), [weight](hyp:w), [state projection](hyp:state), [target matrix](hyp:P), [supplied weighted action-kernel identity](hyp:hweighted), and [reward](hyp:reward) identify [the weighted value after the selected number of steps](hyp:n) at [the selected history](hyp:h) with [the matrix value](goal). -/
 theorem weightedValue_eq_matrixValue
     {H B S : Type*} [MeasurableSpace H] [MeasurableSpace B]
     [MeasurableSpace S] [Fintype S] [MeasurableSingletonClass S]
     (K : Kernel H B) [IsMarkovKernel K]
-    (append : H → B → H) (happend : Measurable fun z : H × B => append z.1 z.2)
-    (w : H → B → ℝ) (hw : Measurable fun z : H × B => w z.1 z.2)
-    (Cw : ℝ) (hw_bound : ∀ h b, |w h b| ≤ Cw)
-    (state : H → S) (hstate : Measurable state)
+    (append : H → B → H)
+    (w : H → B → ℝ)
+    (state : H → S)
     (P : Matrix S S ℝ)
     (hweighted : ∀ (v : S → ℝ), Measurable v → ∀ h,
       (∫ b, w h b * v (state (append h b)) ∂K h) =
         ∑ s, P (state h) s * v s)
-    (reward : S → ℝ) (hreward : Measurable reward)
-    (Cr : ℝ) (hreward_bound : ∀ s, |reward s| ≤ Cr) (n : ℕ) (h : H) :
+    (reward : S → ℝ) (n : ℕ) (h : H) :
     weightedValue K append w n (reward ∘ state) h =
       matrixValue P n reward (state h) := by
   -- Induct on `n`, rewrite the recursive value using the induction hypothesis,
@@ -307,7 +304,7 @@ theorem weightedValue_eq_matrixValue
     rw [heq]
     exact hweighted (matrixValue P n reward) (hm n) h
 
-/-- A Markov [kernel](hyp:K), measurable [append map](hyp:append,happend), measurable bounded [weight](hyp:w,hw,Cw,hw_bound), a probability [history-law sequence](hyp:μ,hμprob) satisfying [its extension identity](hyp:hμ), measurable bounded [path weights](hyp:weight,hweight_meas,hweight_bound) satisfying [their initial and recursive identities](hyp:hweight0,hweight_step), measurable [state projection](hyp:state,hstate), [target matrix](hyp:P), [supplied weighted action-kernel identity](hyp:hweighted), and measurable bounded [reward](hyp:reward,hreward,Cr,hreward_bound) at [the selected horizon](hyp:n) identify [the weighted reward expectation](goal). -/
+/-- Let [K be a Markov kernel from histories to increments](hyp:K), with [a jointly measurable map appending an increment to a history](hyp:append,happend) and [a jointly measurable one-step weight bounded in absolute value by a constant](hyp:w,hw,Cw,hw_bound). Let [the step-indexed history laws be probability measures](hyp:μ,hμprob) such that [each next law is the law of the appended history when the history is drawn from the current law and the increment from K](hyp:hμ), and let [the step-indexed path weights be measurable and each bounded](hyp:weight,hweight_meas,hweight_bound), [equal to one at step zero and multiplied by the one-step weight whenever an increment is appended](hyp:hweight0,hweight_step). Suppose [a measurable map sends each history to its current state in a finite state space](hyp:state,hstate) and, for [a matrix P indexed by states](hyp:P), [the K-integral of the one-step weight times any function of the next state equals the P-row average of that function at the current state, for every history](hyp:hweighted). Then for [a reward on states bounded in absolute value by a constant](hyp:reward,hreward,Cr,hreward_bound) and [every number of steps n](hyp:n), [the step-n expectation of the path weight times the reward at the current state equals the step-zero expectation of the n-fold application of P to the reward, evaluated at the initial state](goal). -/
 theorem integral_weighted_reward_eq_matrix
     {H B S : Type*} [MeasurableSpace H] [MeasurableSpace B]
     [MeasurableSpace S] [Fintype S] [MeasurableSingletonClass S]
@@ -337,7 +334,7 @@ theorem integral_weighted_reward_eq_matrix
   rw [hhist]
   congr 1
   funext h
-  exact weightedValue_eq_matrixValue K append happend w hw Cw hw_bound
-    state hstate P hweighted reward hreward Cr hreward_bound n h
+  exact weightedValue_eq_matrixValue K append w
+    state P hweighted reward n h
 
 end Causalean.Mathlib.Probability.Kernel.FiniteHistory

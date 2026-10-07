@@ -116,8 +116,9 @@ selected vertex to the ambient population. -/
 def selectedEmbedding (S : Finset V) : S ↪ V := ⟨Subtype.val, Subtype.val_injective⟩
 
 /-- The [qualified component event](goal) for an [edge model](hyp:M), [distinguished roots](hyp:R),
-[coordinate root events](hyp:rootEvent), and [vertex set](hyp:S) requires a component containing
-at least one distinguished root whose root event occurs. -/
+[coordinate root events](hyp:rootEvent), and [vertex set](hyp:S) is the set of coordinate outcomes
+at which that vertex set is a component of the outcome's graph and contains at least one
+distinguished root whose root event occurs. -/
 def componentEvent (M : CoordinateGraph X) (R : Finset V)
     (rootEvent : ∀ r, Set (X r)) (S : Finset V) : Set (∀ i, X i) :=
   {x | IsComponent (M.graph x) S ∧ ∃ r ∈ R, r ∈ S ∧ x r ∈ rootEvent r}
@@ -131,9 +132,11 @@ def labeledComponentCount [Fintype V] (M : CoordinateGraph X) (R : Finset V)
   exact ∑ S ∈ (Finset.univ : Finset V).powersetCard p,
     if x ∈ componentEvent M R rootEvent S then (1 : ℝ) else 0
 
-/-- The [rooted witness count](goal) on a [root and completion set](hyp:r,T) sums the
-occurring valid parent-array events for an [edge model](hyp:M), [root events](hyp:rootEvent),
-and [outcome](hyp:x). -/
+/-- The [rooted witness count](goal) on a [root and completion set](hyp:r,T), for an
+[edge model](hyp:M), [root events](hyp:rootEvent), and [outcome](hyp:x), is the number of valid
+parent encodings of the root together with the completion set, rooted at that root, for which the
+root's event occurs at the outcome and so does the edge event joining every nonroot vertex to its
+chosen parent. -/
 def rootTreeWitnessCount (M : CoordinateGraph X) (rootEvent : ∀ r, Set (X r))
     (r : V) (T : Finset V) (x : ∀ i, X i) : ℝ := by
   classical
@@ -170,11 +173,11 @@ theorem component_event_parent_cover [DecidableEq V] (M : CoordinateGraph X) (R 
   exact (hadj v).2
 
 /-- For an [edge model](hyp:M), [distinguished roots](hyp:R), [root events](hyp:rootEvent), and a
-[component size](hyp:p) that is [at least one](hyp:hp), [the labeled component count is at most the
+[component size](hyp:p), [the labeled component count is at most the
 total rooted witness count](goal) at every [outcome](hyp:x). -/
 theorem labeledComponentCount_le_treeWitnessCount [Fintype V] [DecidableEq V]
     (M : CoordinateGraph X) (R : Finset V)
-    (rootEvent : ∀ r, Set (X r)) (p : ℕ) (hp : 1 ≤ p) (x : ∀ i, X i) :
+    (rootEvent : ∀ r, Set (X r)) (p : ℕ) (x : ∀ i, X i) :
     labeledComponentCount M R rootEvent p x ≤ treeWitnessCount M R rootEvent p x := by
   classical
   -- Use the same equality decision procedure as the dependent witness-count definition.

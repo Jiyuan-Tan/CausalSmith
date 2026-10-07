@@ -70,7 +70,7 @@ theorem exists_equalAtomMeasure_interval_cdf_error_le
     have hsupport : (μf.normalize : Measure ℝ) (Icc a b)ᶜ = 0 :=
       Causalean.Stat.Quantile.FiniteMassTransport.normalize_support_Icc μf hpos hμ
     obtain ⟨x, hx⟩ := exists_probability_equalAtom_interval_cdf_error_le
-      (μf.normalize : Measure ℝ) a b hab hsupport N hN
+      (μf.normalize : Measure ℝ) a b hsupport N hN
     refine ⟨x, ?_⟩
     intro t
     have hnorm := hx t

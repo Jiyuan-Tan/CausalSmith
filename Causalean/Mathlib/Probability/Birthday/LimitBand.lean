@@ -16,7 +16,7 @@ namespace Causalean.Mathlib.Probability.Birthday
 open Filter
 
 /-- For [valid success probabilities](hyp:heta), a [diverging mean](hyp:hmean),
-[positive alphabets](hyp:hm), and a [positive finite collision scale](hyp:hscale,hq),
+[positive alphabets](hyp:hm), and a [convergent collision scale](hyp:hscale),
 the [mean divided by the alphabet](goal) tends to zero. -/
 theorem mean_div_alphabet_tendsto_zero
     (Tseq mseq : ℕ → ℕ) (etaseq : ℕ → ℝ) {q : ℝ}
@@ -24,8 +24,7 @@ theorem mean_div_alphabet_tendsto_zero
     (hmean : Tendsto (fun j => mean (Tseq j) (etaseq j)) atTop atTop)
     (hm : ∀ j, 0 < mseq j)
     (hscale : Tendsto
-      (fun j => pairScale (Tseq j) (etaseq j) / (mseq j : ℝ)) atTop (nhds q))
-    (hq : 0 < q) :
+      (fun j => pairScale (Tseq j) (etaseq j) / (mseq j : ℝ)) atTop (nhds q)) :
     Tendsto (fun j => mean (Tseq j) (etaseq j) / (mseq j : ℝ))
       atTop (nhds 0) := by
   -- Factor μ/m as (A/m)·(μ/A); A/(μ²/2)→1 and μ→∞.
@@ -57,7 +56,7 @@ theorem mean_div_alphabet_tendsto_zero
   nlinarith [hident]
 
 /-- For [valid success probabilities](hyp:heta), a [diverging mean](hyp:hmean),
-[positive alphabets](hyp:hm), a [positive finite collision scale](hyp:hscale,hq),
+[positive alphabets](hyp:hm), a [convergent collision scale](hyp:hscale),
 and a [fixed relative band width](hyp:hε), draw counts in that band are
 [eventually below the alphabet](goal). -/
 theorem relative_band_below_alphabet
@@ -67,12 +66,12 @@ theorem relative_band_below_alphabet
     (hm : ∀ j, 0 < mseq j)
     (hscale : Tendsto
       (fun j => pairScale (Tseq j) (etaseq j) / (mseq j : ℝ)) atTop (nhds q))
-    (hq : 0 < q) (hε : 0 < ε) :
+    (hε : 0 < ε) :
     ∀ᶠ j in atTop, ∀ r : ℕ,
       |(r : ℝ) - mean (Tseq j) (etaseq j)| <
         ε * mean (Tseq j) (etaseq j) → r ≤ mseq j := by
   -- The band gives r < (1+ε)μ; μ/m→0 implies (1+ε)μ<m eventually.
-  have hzero := mean_div_alphabet_tendsto_zero Tseq mseq etaseq heta hmean hm hscale hq
+  have hzero := mean_div_alphabet_tendsto_zero Tseq mseq etaseq heta hmean hm hscale
   have hc : (0 : ℝ) < 1 / (1 + ε) := by positivity
   have hsmall := hzero.eventually (eventually_lt_nhds hc)
   have hpos := hmean.eventually_gt_atTop 0
@@ -123,7 +122,7 @@ theorem pairCount_div_alphabet_uniform_on_relative_band
         mul_le_mul_of_nonneg_right (min_le_right _ _) (le_of_lt hC)
       _ = δ / 12 := by field_simp
   refine ⟨ε, hε, ?_⟩
-  have hzero := mean_div_alphabet_tendsto_zero Tseq mseq etaseq heta hmean hm hscale hq
+  have hzero := mean_div_alphabet_tendsto_zero Tseq mseq etaseq heta hmean hm hscale
   have hsmall := hzero.eventually (eventually_lt_nhds (show (0 : ℝ) < δ / 12 by positivity))
   have hone := hzero.eventually (eventually_lt_nhds (show (0 : ℝ) < 1 by norm_num))
   have hμpos := hmean.eventually_gt_atTop 0
@@ -200,8 +199,10 @@ theorem pairCount_div_alphabet_uniform_on_relative_band
 
 /-- For [valid success probabilities](hyp:heta), a [diverging mean](hyp:hmean),
 [positive alphabets](hyp:hm), and a [positive finite collision scale](hyp:hscale,hq),
-the [pair count per remaining alphabet](goal) is uniformly close to that
-scale on a narrow relative mean band whenever the draw count fits. -/
+[for every tolerance there is a relative band width such that, eventually, every
+draw count r not exceeding the alphabet size m and within that relative band of
+the mean has its pair count divided by the remaining alphabet m + 1 − r within
+the tolerance of that scale](goal). -/
 theorem pairCount_div_remaining_uniform_on_relative_band
     (Tseq mseq : ℕ → ℕ) (etaseq : ℕ → ℝ) {q : ℝ}
     (heta : ∀ j, etaseq j ∈ Set.Icc (0 : ℝ) 1)
@@ -230,7 +231,7 @@ theorem pairCount_div_remaining_uniform_on_relative_band
   have hεb' : ε ≤ εb := le_trans (min_le_right _ _) (min_le_left _ _)
   have hεone : ε ≤ 1 := le_trans (min_le_right _ _) (min_le_right _ _)
   refine ⟨ε, hε, ?_⟩
-  have hzero := mean_div_alphabet_tendsto_zero Tseq mseq etaseq heta hmean hm hscale hq
+  have hzero := mean_div_alphabet_tendsto_zero Tseq mseq etaseq heta hmean hm hscale
   have hQ : 0 < q + 1 := by linarith
   have hc : 0 < min (1 / 4 : ℝ) (δ / (8 * (q + 1))) :=
     lt_min (by norm_num) (by positivity)

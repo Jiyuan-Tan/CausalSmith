@@ -62,19 +62,19 @@ theorem continuous_simultaneousCongruenceResidual {d : ℕ} {E : Type*}
 /-- [A unique exact diagonalizer is uniformly separated from all candidates outside its local
 chart](goal): for [observed matrices and shifts](hyp:A,s) over [finite environments](hyp:E) in
 [dimension `d`](hyp:d), [compact candidates](hyp:K,hK), [an open chart](hyp:U,hU), and [a
-reference candidate inside both](hyp:B₀,hB₀K,hB₀U) yield a positive attained residual whenever
+reference candidate inside the chart](hyp:B₀,hB₀U) yield a positive attained residual whenever
 [far candidates exist](hyp:hfar) and [zero residual identifies the reference](hyp:hzero). -/
 theorem exists_simultaneousCongruence_exclusionRadius {d : ℕ} {E : Type*}
     [Fintype E] [Nonempty E]
     (A : E → SqMatrix d) (s : E → Fin d → ℝ)
     (K U : Set (SqMatrix d)) (B₀ : SqMatrix d)
-    (hK : IsCompact K) (hU : IsOpen U) (hB₀K : B₀ ∈ K) (hB₀U : B₀ ∈ U)
+    (hK : IsCompact K) (hU : IsOpen U) (hB₀U : B₀ ∈ U)
     (hfar : (K \ U).Nonempty)
     (hzero : ∀ B ∈ K, simultaneousCongruenceResidual A s B = 0 → B = B₀) :
     Nonempty (PositiveExclusionRadius K U (simultaneousCongruenceResidual A s)) := by
   exact exists_positiveExclusionRadius K U
     (simultaneousCongruenceResidual A s) B₀
-    hK hU hB₀K hB₀U hfar
+    hK hU hB₀U hfar
     (continuous_simultaneousCongruenceResidual A s)
     (fun B _ => simultaneousCongruenceResidual_nonneg A s B)
     hzero

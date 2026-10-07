@@ -145,7 +145,7 @@ private theorem inverseRisk_hazard_integrable_prod {n : ℕ}
 
 /-- Under independent sampling with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
-hazard](hyp:hazard,hHazard), at [a nonnegative horizon u](hyp:hu) [the zero-safe inverse risk-set size
+hazard](hyp:hazard,hHazard), at a horizon u [the zero-safe inverse risk-set size
 has finite expected quadratic energy](goal).
 
 Its square weighted by the risk-set size is at most one, so the energy is bounded by the
@@ -154,7 +154,7 @@ theorem inverseRisk_quadratic_energy_finite {n : ℕ}
     (failureLaw censorLaw : Measure ℝ) (hazard : ℝ → ℝ)
     (hFailure : NonnegativeTimeLaw failureLaw)
     (hHazard : HasCensorHazard censorLaw hazard)
-    (u : ℝ) (hu : 0 ≤ u) :
+    (u : ℝ) :
     QuadraticEnergyFinite failureLaw censorLaw hazard (inverseRisk (n := n)) u := by
   let μ := sampleLaw n failureLaw censorLaw
   let ν := volume.restrict (Set.Icc 0 u)
@@ -186,14 +186,14 @@ theorem inverseRisk_quadratic_energy_finite {n : ℕ}
 
 /-- Under independent sampling with [failure times following a nonnegative time
 law](hyp:hFailure) and independent [censor times whose law has the given censor
-hazard](hyp:hazard,hHazard), at [a nonnegative horizon u](hyp:hu) [the predictable quadratic energy of
+hazard](hyp:hazard,hHazard), at a horizon u [the predictable quadratic energy of
 the zero-safe inverse risk-set size, the Nelson–Aalen integrand, is integrable over
 samples](goal). -/
 theorem inverseRisk_energy_integrable {n : ℕ}
     (failureLaw censorLaw : Measure ℝ) (hazard : ℝ → ℝ)
     (hFailure : NonnegativeTimeLaw failureLaw)
     (hHazard : HasCensorHazard censorLaw hazard)
-    (u : ℝ) (hu : 0 ≤ u) :
+    (u : ℝ) :
     Integrable (predictableEnergy hazard (inverseRisk (n := n)) u)
       (sampleLaw n failureLaw censorLaw) := by
   have h := (inverseRisk_hazard_integrable_prod (n := n) failureLaw censorLaw hazard
@@ -247,9 +247,9 @@ theorem nelsonAalen_squared_risk {n : ℕ}
           (inverseRisk (n := n)) inverseRisk_leftPredictable
           inverseRisk_jointMeasurable u hu
           (inverseRisk_quadratic_energy_finite failureLaw censorLaw hazard
-            hFailure hHazard u hu)
+            hFailure hHazard u)
           (inverseRisk_energy_integrable failureLaw censorLaw hazard
-            hFailure hHazard u hu)
+            hFailure hHazard u)
     _ = ∫ x : Sample n, ∫ s : ℝ, hazard s * inverseRisk s x ∂ν ∂μ := by
       simp_rw [predictableEnergy, hrewrite]
       rfl
@@ -356,14 +356,13 @@ theorem nelsonAalen_random_time_tonelli {n : ℕ}
     have hJ (i : Fin n) : Integrable (fun x : Sample n => (J i x) ^ 2) μ :=
       subject_event_payoff_square_integrable failureLaw censorLaw hazard hFailure
         hHazard inverseRisk inverseRisk_leftPredictable inverseRisk_jointMeasurable
-        i u hu (inverseRisk_quadratic_energy_finite failureLaw censorLaw hazard
-          hFailure hHazard u hu)
-        (inverseRisk_energy_integrable failureLaw censorLaw hazard hFailure hHazard u hu)
+        i u (inverseRisk_quadratic_energy_finite failureLaw censorLaw hazard
+          hFailure hHazard u)
     have hB (i : Fin n) : Integrable (fun x : Sample n => (B i u x) ^ 2) μ :=
       subject_hazard_square_integrable failureLaw censorLaw hazard hFailure
-        hHazard inverseRisk inverseRisk_jointMeasurable i u hu
+        hHazard inverseRisk inverseRisk_jointMeasurable i u
         (inverseRisk_quadratic_energy_finite failureLaw censorLaw hazard
-          hFailure hHazard u hu)
+          hFailure hHazard u)
     have hBound : Integrable (fun x : Sample n =>
         (n : ℝ) * ∑ i : Fin n, (2 * (J i x) ^ 2 + 2 * (B i u x) ^ 2)) μ := by
       apply Integrable.const_mul

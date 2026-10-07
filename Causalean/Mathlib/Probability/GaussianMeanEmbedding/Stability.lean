@@ -18,15 +18,15 @@ noncomputable section
 
 namespace Causalean.Mathlib.Probability.GaussianMeanEmbedding
 
-/-- Given [two probability measures](hyp:μ,ν), [a nonnegative support radius and
-nonnegative approximation error](hyp:R,ε,hR,hε), [a Taylor truncation order](hyp:N),
+/-- Given [two probability measures](hyp:μ,ν), [a support radius and
+an approximation error](hyp:R,ε), [a Taylor truncation order](hyp:N),
 [their concentration on the interval from zero to that radius](hyp:hμ,hν), and
 [a uniform approximation of the raw square by the weighted Taylor polynomial](hyp:happrox),
 [their raw second-moment difference is bounded by the recovery coefficient times
 their Gaussian embedding distance plus twice the approximation error](goal). -/
 theorem secondMoment_sub_le_of_taylor_error
     (μ ν : Measure ℝ) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    (R ε : ℝ) (N : ℕ) (hR : 0 ≤ R) (hε : 0 ≤ ε)
+    (R ε : ℝ) (N : ℕ)
     (hμ : μ (Icc (0 : ℝ) R)ᶜ = 0) (hν : ν (Icc (0 : ℝ) R)ᶜ = 0)
     (happrox : ∀ r ∈ Icc (0 : ℝ) R,
       |r ^ 2 - gaussianWeight r *
@@ -157,9 +157,7 @@ theorem gaussian_meanEmbedding_secondMoment_stability_Icc_zero_five
   let ε : ℝ :=
     25 * (25 ^ 101 / ((101 : ℕ).factorial : ℝ)) * (102 / 77)
   have hbound := secondMoment_sub_le_of_taylor_error
-    (R := 5) (N := 100) (ε := ε) μ ν (by norm_num) (by
-      dsimp [ε]
-      positivity) hμ hν (by
+    (R := 5) (N := 100) (ε := ε) μ ν hμ hν (by
         intro r hr
         dsimp [ε]
         simpa only [gaussianWeight] using

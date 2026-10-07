@@ -63,7 +63,7 @@ lemma reflectionInverseL2Representative_energy {p : ℕ}
       ∫⁻ ω, ENNReal.ofReal (‖ψ ω‖ ^ 2) := by
   let F := Lp.fourierTransformₗᵢ (EuclideanSpace ℝ (Fin p)) ℂ ψ
   have hd := Causalean.Mathlib.Analysis.Fourier.l2Energy_normalized_dilation
-    (fun u => F u) (Lp.aestronglyMeasurable F).aemeasurable
+    (fun u => F u)
   calc
     _ = ∫⁻ u, ENNReal.ofReal
         (‖Causalean.Mathlib.Analysis.Fourier.angularPrefactor p •

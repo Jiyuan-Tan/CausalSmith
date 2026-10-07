@@ -12,9 +12,9 @@ public import Causalean.Graph.DSep.Separation
 This file introduces the combinatorial vocabulary for the Verma–Pearl characterization of
 Markov equivalence. Two directed acyclic graphs on the same vertices are **Markov
 equivalent** when they encode exactly the same d-separation statements, i.e. the same
-conditional-independence constraints. The Verma–Pearl theorem (proved in the umbrella
-file) says this happens precisely when the graphs share a *skeleton* and the same
-*v-structures* (immoralities).
+conditional-independence constraints. The Verma–Pearl theorem (proved in
+`Causalean.Graph.MarkovEquiv`) says this happens precisely when the graphs share a *skeleton*
+and the same *v-structures* (immoralities).
 
 The definitions here are:
 

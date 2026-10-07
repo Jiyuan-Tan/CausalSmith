@@ -27,7 +27,7 @@ open scoped BigOperators
 
 namespace Causalean.Mathlib.Analysis.Approximation.Chebyshev
 
-/-- [A degree bound and tensor index](hyp:D,k) determine [the corresponding four-variable tensor Chebyshev basis polynomial](goal).
+/-- [A degree bound and tensor index](hyp:D,k) determine [the corresponding four-variable tensor Chebyshev basis polynomial](goal): the product, over the four variables, of the first-kind Chebyshev polynomial in that variable whose degree is the index's entry for that variable.
 
 The four-variable tensor product of first-kind Chebyshev polynomials at multi-index `k`.
 -/
@@ -36,7 +36,7 @@ def tensorChebyshevBasis (D : ℕ) (k : Fin 4 → Fin (D + 1)) :
   ∏ i : Fin 4,
     (Polynomial.Chebyshev.T ℝ ((k i : ℕ) : ℤ)).toMvPolynomial i
 
-/-- [A degree bound and tensor coefficient vector](hyp:D,c) determine [their tensor Chebyshev polynomial](goal).
+/-- [A degree bound and tensor coefficient vector](hyp:D,c) determine [their tensor Chebyshev polynomial](goal): the sum, over all tensor indices, of the vector's entry times the corresponding tensor Chebyshev basis polynomial.
 
 The polynomial obtained from a finite tensor Chebyshev coefficient vector.
 -/
@@ -44,7 +44,7 @@ def tensorChebyshevPolynomial (D : ℕ)
     (c : (Fin 4 → Fin (D + 1)) → ℝ) : MvPolynomial (Fin 4) ℝ :=
   ∑ k, MvPolynomial.C (c k) * tensorChebyshevBasis D k
 
-/-- [A degree bound, multivariate polynomial, and tensor index](hyp:D,p,k) determine [the matching product-cosine integral coefficient](goal).
+/-- [A degree bound, multivariate polynomial, and tensor index](hyp:D,p,k) determine [the matching product-cosine integral coefficient](goal): the integral, over the box of four angles each between −π and π, of the polynomial evaluated at the cosines of the angles times the product over coordinates of the cosine of the index entry times the angle, multiplied by a normalizing factor of 1/(2π) for each zero index entry and 1/π for each nonzero one.
 
 The tensor Chebyshev coefficient obtained by integrating a polynomial against the
 corresponding product cosine function on the four-dimensional period box.
@@ -160,13 +160,12 @@ theorem tensorChebyshevCoefficient_basis (D : ℕ)
         ∏ i : Fin 4,
           Polynomial.eval (Real.cos (u i)) (Polynomial.Chebyshev.T ℝ ((m i : ℕ) : ℤ)) := by
     simp [tensorChebyshevBasis, MvPolynomial.eval_toMvPolynomial]
-  have hcont (i : Fin 4) : Continuous (fun u : ℝ =>
-      Real.cos ((k i : ℕ) * u) *
-        Polynomial.eval (Real.cos u) (Polynomial.Chebyshev.T ℝ ((m i : ℕ) : ℤ))) := by
-    fun_prop
   unfold tensorChebyshevCoefficient
   simp_rw [heval, ← Finset.prod_mul_distrib]
-  rw [integral_periodBox_prod _ (fun i => (hcont i).integrableOn_Icc), ← Finset.prod_mul_distrib]
+  rw [integral_periodBox_prod (fun (i : Fin 4) (u : ℝ) =>
+      Real.cos ((k i : ℕ) * u) *
+        Polynomial.eval (Real.cos u) (Polynomial.Chebyshev.T ℝ ((m i : ℕ) : ℤ))),
+    ← Finset.prod_mul_distrib]
   simp_rw [chebyshev_one_variable_cosine_orthogonality]
   by_cases hkm : k = m
   · subst m

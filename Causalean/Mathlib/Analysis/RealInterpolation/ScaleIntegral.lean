@@ -19,7 +19,8 @@ noncomputable section
 namespace Causalean.Mathlib.Analysis.RealInterpolation
 
 /-- [A nonnegative extended measurable scale function](hyp:F,hF), [a positive
-dilation](hyp:c,hc), and [an exponent](hyp:θ) satisfy [the weighted dilation identity](goal).
+dilation](hyp:c,hc), and [an exponent](hyp:θ) satisfy [the dilation identity: the integral over positive t of t^(−1−2θ)·F(c·t) equals
+c^(2θ) times the integral over positive t of t^(−1−2θ)·F(t)](goal).
 Only measurability on the positive half-line is required; infinite integrals are allowed. -/
 theorem lintegral_weighted_dilation (F : ℝ → ℝ≥0∞)
     (hF : Measurable (Set.indicator (Ioi (0 : ℝ)) F))

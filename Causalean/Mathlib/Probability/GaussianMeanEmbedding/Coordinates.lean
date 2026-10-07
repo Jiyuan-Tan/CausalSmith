@@ -98,8 +98,8 @@ theorem abs_sum_gaussianWeightedMoment_sub_le
           rw [Finset.sum_mul]
 
 /-- Given [a truncation order](hyp:N), [the second-moment recovery coefficient](goal)
-is [the finite sum of reciprocal factorials divided by their Gaussian coordinate
-normalizations](step:1). -/
+is [the sum over k from 0 to N of the reciprocal factorial 1/k! divided by the Gaussian
+feature normalization at coordinate 2k + 2](step:1). -/
 def secondMomentRecoveryCoefficient (N : ℕ) : ℝ :=
   ∑ k ∈ Finset.range (N + 1),
     (1 / (k.factorial : ℝ)) /

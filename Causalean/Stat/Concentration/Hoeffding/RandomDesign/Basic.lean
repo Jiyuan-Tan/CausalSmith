@@ -174,19 +174,19 @@ theorem centered_condDistrib_mgf_le
   convert hmgf using 1 <;> norm_num <;> ring
 
 /-- Under a [probability design law](hyp:Q) and [Markov marking kernel](hyp:K) whose
-[conditional mean is the measurable regression](hyp:mD,hmD,hmean), whose [marks lie in the
-unit interval almost surely on almost every fibre](hyp:hbound), and whose [complete-design
-weight array is measurable](hyp:w,hw), [the weighted centered mark sum is sub-Gaussian on
+[conditional mean is the regression](hyp:mD,hmean) and whose [marks lie in the
+unit interval almost surely on almost every fibre](hyp:hbound), and for a [complete-design
+weight array](hyp:w), [the weighted centered mark sum is sub-Gaussian on
 almost every complete-design fibre with one quarter of its realized weight energy as variance
 proxy](goal). -/
 theorem product_weighted_centered_attachKernel_hasSubgaussianMGF
     {N : Nat} {D : Type*} [MeasurableSpace D]
     (Q : Measure D) [IsProbabilityMeasure Q]
     (K : Kernel D Real) [IsMarkovKernel K]
-    (mD : D -> Real) (hmD : Measurable mD)
+    (mD : D -> Real)
     (hmean : ∀ᵐ d ∂Q, ∫ y, y ∂K d = mD d)
     (hbound : ∀ᵐ d ∂Q, ∀ᵐ y ∂K d, y ∈ Set.Icc (0 : Real) 1)
-    (w : (Fin N -> D) -> Fin N -> Real) (hw : Measurable w) :
+    (w : (Fin N -> D) -> Fin N -> Real) :
     ∀ᵐ d ∂Measure.pi (fun _ : Fin N => Q),
       HasSubgaussianMGF (weightedCenteredMarkSum mD w d)
         (Real.toNNReal (realizedWeightEnergy w d / 4))
@@ -259,25 +259,24 @@ theorem product_weighted_centered_attachKernel_hasSubgaussianMGF
   simpa only [mu, X] using hsum
 
 /-- Under a [probability design law](hyp:Q) and [Markov marking kernel](hyp:K) whose [conditional
-mean is the measurable regression](hyp:mD,hmD,hmean), whose [marks lie in the unit interval
-almost surely on almost every fibre](hyp:hbound), and whose [complete-design weight array is
-measurable](hyp:w,hw),
+mean is the regression](hyp:mD,hmean) and whose [marks lie in the unit interval
+almost surely on almost every fibre](hyp:hbound), and for a [complete-design weight array](hyp:w),
 [the weighted centered sum has the conditional Hoeffding exponential-moment bound on almost
 every complete-design fibre](goal). -/
 theorem product_weighted_centered_attachKernel_conditional_mgf_le
     {N : Nat} {D : Type*} [MeasurableSpace D]
     (Q : Measure D) [IsProbabilityMeasure Q]
     (K : Kernel D Real) [IsMarkovKernel K]
-    (mD : D -> Real) (hmD : Measurable mD)
+    (mD : D -> Real)
     (hmean : ∀ᵐ d ∂Q, ∫ y, y ∂K d = mD d)
     (hbound : ∀ᵐ d ∂Q, ∀ᵐ y ∂K d, y ∈ Set.Icc (0 : Real) 1)
-    (w : (Fin N -> D) -> Fin N -> Real) (hw : Measurable w) :
+    (w : (Fin N -> D) -> Fin N -> Real) :
     ∀ᵐ d ∂Measure.pi (fun _ : Fin N => Q), ∀ s : Real,
       ∫ y, Real.exp (s * weightedCenteredMarkSum mD w d y)
           ∂Causalean.Stat.finProductKernel N K d <=
         Real.exp (s ^ 2 * realizedWeightEnergy w d / 8) := by
   filter_upwards [product_weighted_centered_attachKernel_hasSubgaussianMGF
-    Q K mD hmD hmean hbound w hw] with d hd
+    Q K mD hmean hbound w] with d hd
   intro s
   have hmgf := hd.mgf_le s
   have henergy_nonneg : 0 <= realizedWeightEnergy w d := by
@@ -291,7 +290,7 @@ theorem product_weighted_centered_attachKernel_conditional_mgf_le
 /-- A probability law [P](hyp:P), [measurable design](hyp:design,hdesign), and [measurable
 outcome](hyp:Y,hY) that is [almost surely in the unit interval](hyp:hY_nonneg,hY_le_one),
 together with a [measurable regression equal almost surely to the conditional expectation given
-the design](hyp:mD,hmD,hcond) and [measurable complete-design weights](hyp:w,hw), give [the
+the design](hyp:mD,hmD,hcond) and [complete-design weights](hyp:w), give [the
 conditional Hoeffding exponential-moment bound on
 almost every complete design vector](goal). -/
 theorem product_weighted_centered_conditional_mgf_le
@@ -304,7 +303,7 @@ theorem product_weighted_centered_conditional_mgf_le
     (mD : D -> Real) (hmD : Measurable mD)
     (hcond :
       P[Y | MeasurableSpace.comap design inferInstance] =ᵐ[P] mD ∘ design)
-    (w : (Fin N -> D) -> Fin N -> Real) (hw : Measurable w) :
+    (w : (Fin N -> D) -> Fin N -> Real) :
     ∀ᵐ d ∂Measure.pi (fun _ : Fin N => P.map design), ∀ s : Real,
       ∫ y, Real.exp (s * weightedCenteredMarkSum mD w d y)
           ∂Causalean.Stat.finProductKernel N (condDistrib Y design P) d <=
@@ -343,7 +342,7 @@ theorem product_weighted_centered_conditional_mgf_le
   letI : IsProbabilityMeasure (P.map design) :=
     Measure.isProbabilityMeasure_map hdesign.aemeasurable
   exact product_weighted_centered_attachKernel_conditional_mgf_le
-    (P.map design) (condDistrib Y design P) mD hmD hmean hrange w hw
+    (P.map design) (condDistrib Y design P) mD hmean hrange w
 
 
 end Causalean.Stat.Concentration.RandomDesignWeightedHoeffding

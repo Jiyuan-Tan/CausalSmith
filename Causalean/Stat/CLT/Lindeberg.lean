@@ -325,26 +325,6 @@ theorem charFun_pow_tendsto_gaussian
   congr 1
   ring
 
-/-- A [sequence of row probability laws](hyp:Q), [strictly positive target variance](hyp:σ2,hσ2),
-[square-integrable row draws](hyp:hQ2), [zero row means](hyp:hcenter), [convergent row
-variances](hyp:hsecond), and [vanishing Lindeberg tails](hyp:hlindeberg) ensure that [the laws
-of the i.i.d. row sums converge weakly to the centered Gaussian law](goal). -/
-theorem iidRowSumLaw_tendsto_gaussian_of_pos
-    (Q : ℕ → Measure ℝ) [∀ n, IsProbabilityMeasure (Q n)]
-    (σ2 : NNReal) (hσ2 : 0 < σ2)
-    (hQ2 : ∀ n, MemLp id 2 (Q n))
-    (hcenter : ∀ n, ∫ x, x ∂Q n = 0)
-    (hsecond : Tendsto (fun n : ℕ => (n : ℝ) * ∫ x, x ^ 2 ∂Q n)
-      atTop (𝓝 (σ2 : ℝ)))
-    (hlindeberg : ∀ ε : ℝ, 0 < ε →
-      Tendsto (fun n : ℕ => (n : ℝ) *
-        ∫ x in {x | ε ≤ |x|}, x ^ 2 ∂Q n) atTop (𝓝 0)) :
-    Tendsto (iidRowSumLaw Q) atTop
-      (𝓝 (⟨gaussianReal 0 σ2, inferInstance⟩ : ProbabilityMeasure ℝ)) := by
-  refine ProbabilityMeasure.tendsto_iff_tendsto_charFun.2 fun t => ?_
-  simpa only [charFun_iidRowSumLaw, ProbabilityMeasure.coe_mk] using
-    charFun_pow_tendsto_gaussian Q σ2 hQ2 hcenter hsecond hlindeberg t
-
 /-- A [sequence of row probability laws](hyp:Q), [target variance](hyp:σ2), [square-integrable
 row draws](hyp:hQ2), [zero row means](hyp:hcenter), [convergent row variances](hyp:hsecond), and
 [vanishing Lindeberg tails](hyp:hlindeberg) ensure that [the laws of the i.i.d. row sums converge
@@ -374,10 +354,10 @@ lemma memLp_id_scaledRowMeasure
   refine (memLp_map_measure_iff aestronglyMeasurable_id (by fun_prop)).2 ?_
   simpa [Function.comp_def] using hR2.const_mul ((Real.sqrt (n : ℝ))⁻¹)
 
-/-- A [sequence of row laws](hyp:R), [positive row index](hyp:n,hn), [square-integrable row
+/-- A [sequence of row laws](hyp:R), [row index](hyp:n), [square-integrable row
 draw](hyp:hR2), and [zero row mean](hyp:hcenter) ensure that [the scaled row mean is zero](goal). -/
 lemma integral_id_scaledRowMeasure_eq_zero
-    (R : ℕ → Measure ℝ) (n : ℕ) (hn : n ≠ 0)
+    (R : ℕ → Measure ℝ) (n : ℕ)
     (hR2 : MemLp id 2 (R n)) (hcenter : ∫ x, x ∂R n = 0) :
     ∫ x, x ∂scaledRowMeasure R n = 0 := by
   have hident := (memLp_id_scaledRowMeasure R n hR2).aestronglyMeasurable
@@ -413,12 +393,12 @@ lemma integral_sq_scaledRowMeasure
       rw [inv_pow, Real.sq_sqrt hnpos.le]
 
 /-- A [sequence of row laws](hyp:R), [positive row index](hyp:n,hn), [square-integrable row
-draw](hyp:hR2), and [positive threshold](hyp:ε,hε) ensure that [the scaled Lindeberg tail
+draw](hyp:hR2), and [threshold](hyp:ε) ensure that [the scaled Lindeberg tail
 moment is the original tail moment above the square-root-scaled threshold, divided by the row
 size](goal). -/
 lemma setIntegral_sq_scaledRowMeasure
     (R : ℕ → Measure ℝ) (n : ℕ) (hn : n ≠ 0) (hR2 : MemLp id 2 (R n))
-    (ε : ℝ) (hε : 0 < ε) :
+    (ε : ℝ) :
     ∫ x in {x | ε ≤ |x|}, x ^ 2 ∂scaledRowMeasure R n =
       (n : ℝ)⁻¹ * ∫ x in {x | ε * Real.sqrt (n : ℝ) ≤ |x|}, x ^ 2 ∂R n := by
   have hident := (memLp_id_scaledRowMeasure R n hR2).aestronglyMeasurable
@@ -456,8 +436,9 @@ lemma setIntegral_sq_scaledRowMeasure
 /-- A [sequence of row probability laws](hyp:R), [target variance](hyp:σ2), [square-integrable
 row draws](hyp:hR2), [zero row means](hyp:hcenter), [convergent row second moments](hyp:hsecond),
 and [vanishing square-root-scale Lindeberg tails](hyp:hlindeberg) ensure that [the normalized
-i.i.d. row-sum laws converge weakly to the centered Gaussian law](goal), including a
-zero-variance limit. -/
+i.i.d. row-sum laws converge weakly to the centered Gaussian law with the target
+variance](goal), including a zero-variance limit. The n-th row consists of n independent draws
+from the n-th row law, and its sum is divided by √n. -/
 theorem iidRowNormalizedSumLaw_tendsto_gaussian
     (R : ℕ → Measure ℝ) [∀ n, IsProbabilityMeasure (R n)]
     (σ2 : NNReal)
@@ -481,7 +462,7 @@ theorem iidRowNormalizedSumLaw_tendsto_gaussian
     by_cases hn : n = 0
     · subst n
       simp [Q, scaledRowMeasure]
-    · exact integral_id_scaledRowMeasure_eq_zero R n hn (hR2 n) (hcenter n)
+    · exact integral_id_scaledRowMeasure_eq_zero R n (hR2 n) (hcenter n)
   have hsecondQ :
       Tendsto (fun n : ℕ => (n : ℝ) * ∫ x, x ^ 2 ∂Q n)
         atTop (𝓝 (σ2 : ℝ)) := by
@@ -495,7 +476,7 @@ theorem iidRowNormalizedSumLaw_tendsto_gaussian
     intro ε hε
     apply Tendsto.congr' _ (hlindeberg ε hε)
     filter_upwards [Nat.eventually_pos] with n hn
-    rw [setIntegral_sq_scaledRowMeasure R n hn.ne' (hR2 n) ε hε]
+    rw [setIntegral_sq_scaledRowMeasure R n hn.ne' (hR2 n) ε]
     rw [← mul_assoc, mul_inv_cancel₀ (Nat.cast_ne_zero.mpr hn.ne'), one_mul]
   have hscaled :=
     @iidRowSumLaw_tendsto_gaussian Q hQprob σ2 hQ2 hcenterQ hsecondQ hlindebergQ

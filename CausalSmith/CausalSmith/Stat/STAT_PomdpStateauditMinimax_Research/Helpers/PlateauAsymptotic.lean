@@ -5,7 +5,7 @@ public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.TCloneBudget
 
 /-! # Analytic packaging for the high-cardinality plateau. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.PomdpStateauditMinimax
 

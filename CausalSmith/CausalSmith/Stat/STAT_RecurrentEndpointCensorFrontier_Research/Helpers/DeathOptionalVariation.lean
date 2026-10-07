@@ -46,7 +46,6 @@ lemma weightedInverseRiskSq_event_lintegral {n : ℕ}
   · exact (hW.comp measurable_fst).mul (inverseRisk_jointMeasurable.pow_const 2)
   · intro t x
     exact mul_nonneg (hW0 t) (sq_nonneg _)
-  · exact hU
 
 /-- Summing the subject compensators cancels one inverse-risk factor exactly.
 This is the optional-variation identity needed before terminal tail bounds. -/

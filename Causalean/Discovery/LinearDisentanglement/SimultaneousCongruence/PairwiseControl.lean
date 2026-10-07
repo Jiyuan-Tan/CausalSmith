@@ -277,15 +277,12 @@ theorem pairwise_offDiagonal_control {p : ℕ} {E : Type*}
 
 /-- [Unit-diagonal normalization turns off-diagonal transition control into diagonal
 control](goal), for [reference and candidate matrices](hyp:B₀,B) in [dimension `p`](hyp:p) with
-[entry bound `c`](hyp:c), [invertible reference](hyp:hunit),
-[both diagonals normalized](hyp:hdiag₀,hdiag),
-[nonnegative bound](hyp:hc), and [uniform off-diagonal control](hyp:hoff). -/
+[invertible reference](hyp:hunit) and [both diagonals normalized](hyp:hdiag₀,hdiag). -/
 -- Proof route: `B = (I+R)B₀`; comparing diagonal entries gives
 -- `R i i = -∑_{k≠i} R i k B₀ k i`, then apply Cauchy--Schwarz.
-theorem diagonalBranch_control {p : ℕ} (B₀ B : SqMatrix p) {c : ℝ}
+theorem diagonalBranch_control {p : ℕ} (B₀ B : SqMatrix p)
     (hunit : IsUnit B₀.det) (hdiag₀ : UnitDiagonal B₀)
-    (hdiag : UnitDiagonal B) (hc : 0 ≤ c)
-    (hoff : ∀ i j, i ≠ j → |transitionError B₀ B i j| ≤ c) :
+    (hdiag : UnitDiagonal B) :
     ∀ i,
       |transitionError B₀ B i i| ^ 2 ≤
         ‖B₀‖ ^ 2 * ∑ k ∈ (Finset.univ.erase i),
@@ -346,7 +343,7 @@ theorem entryL2_transitionError_le {p : ℕ} (B₀ B : SqMatrix p) {L c : ℝ}
       c * Real.sqrt ((p : ℝ) * (p - 1 : ℕ) * (1 + L ^ 2)) := by
   classical
   let R := transitionError B₀ B
-  have hdiagControl := diagonalBranch_control B₀ B hunit hdiag₀ hdiag hc hoff
+  have hdiagControl := diagonalBranch_control B₀ B hunit hdiag₀ hdiag
   have hnormsq : ‖B₀‖ ^ 2 ≤ L ^ 2 :=
     (sq_le_sq₀ (norm_nonneg _) hL).mpr hB₀
   have hoffSq (i k : Fin p) (hik : i ≠ k) : |R i k| ^ 2 ≤ c ^ 2 := by

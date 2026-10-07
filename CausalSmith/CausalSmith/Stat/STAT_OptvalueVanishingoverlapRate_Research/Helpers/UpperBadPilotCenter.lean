@@ -38,7 +38,7 @@ lemma pilotCoordinate_score_integral_pow_le {Ω : Type*} [MeasurableSpace Ω]
     dsimp [c]
     exact div_nonneg (div_nonneg (universalH_pos.le.trans hH) universalH_pos.le) m.coe_nonneg
   have hi : Integrable (fun ω => (score universalH L (m * q j) (W j ω)) ^ t) μ := by
-    have h := integrable_score_pow (m * q j) hL ht
+    have h := integrable_score_pow (m * q j) hL (t := t)
     rw [← (hlaw j).map_eq] at h
     exact h.comp_aemeasurable (hlaw j).aemeasurable
   have he := (hlaw j).integral_comp

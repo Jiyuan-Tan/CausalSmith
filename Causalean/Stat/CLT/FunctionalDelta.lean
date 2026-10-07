@@ -117,7 +117,7 @@ Fang--Santos (2019), Theorem 2.1. The directional derivative may be nonlinear,
 but this formal statement assumes its continuity separately. Van der Vaart
 (1998), Theorem 20.8 covers the fully Hadamard-differentiable linear special
 case, not this nonlinear extension. The conclusion is definitionally the
-library's `Tendsto_dist_vec` form, so it composes directly with Slutsky and
+library's `Modes.TendstoInLaw` form, so it composes directly with Slutsky and
 continuous-mapping results. -/
 theorem functionalDeltaMethod
     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
@@ -128,7 +128,7 @@ theorem functionalDeltaMethod
     (hTn : ∀ n, AEMeasurable (fun omega => r n • (Tn n omega - θ)) μ)
     (hφTn : ∀ n, AEMeasurable (fun omega => r n • (φ (Tn n omega) - φ θ)) μ)
     (hφ : HasHadamardDirDerivAt φ φ' θ) (hφ' : Continuous φ')
-    (hCLT : Tendsto_dist_vec (fun n omega => r n • (Tn n omega - θ)) Q μ hTn) :
+    (hCLT : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n omega => r n • (Tn n omega - θ)) atTop Q) :
     Tendsto (β := ProbabilityMeasure F)
       (fun n =>
         ⟨μ.map (fun omega => r n • (φ (Tn n omega) - φ θ)),
@@ -150,13 +150,14 @@ theorem functionalDeltaMethod
     (hφTn n).congr (ae_of_all _ fun omega => (hrecover n omega).symm)
   have hSn : ∀ n, AEMeasurable (Sn n) μ := by
     simpa [Sn] using hTn
-  have hSnCLT : Tendsto_dist_vec Sn Q μ hSn := by
+  have hSnCLT : Modes.TendstoInLaw (fun _ : ℕ => μ) Sn atTop Q := by
     simpa [Sn] using hCLT
   have hUniform : ∀ (M : ℝ) (epsilon : ℝ), 0 < epsilon →
       ∀ᶠ n in atTop, ∀ h : E, ‖h‖ ≤ M → ‖fn n h - φ' h‖ < epsilon := by
     simpa [fn] using hφ.uniform_on_bounded hφ' r hr
-  have hmap := Tendsto_dist_vec.map_varying_of_uniform_on_bounded
-    hφ' hSn hfnSn hSnCLT hUniform
+  have hmap := Modes.TendstoInLaw.map_varying_of_uniform_on_bounded hSnCLT
+    hφ'
+    hfnSn hUniform
   refine hmap.congr' ?_
   filter_upwards with n
   apply Subtype.ext
@@ -195,11 +196,11 @@ theorem deltaMethod_max_rate
       (fun omega => r n • ((an n omega, bn n omega) - (a, b))) μ)
     (hMax : ∀ n, AEMeasurable
       (fun omega => r n * (max (an n omega) (bn n omega) - max a b)) μ)
-    (hCLT : Tendsto_dist_vec
-      (fun n omega => r n • ((an n omega, bn n omega) - (a, b))) Q μ hSn) :
-    Tendsto_dist
-      (fun n omega => r n * (max (an n omega) (bn n omega) - max a b))
-      (Q.map (maxDirDeriv a b)) μ hMax := by
+    (hCLT : Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (fun n omega => r n • ((an n omega, bn n omega) - (a, b))) atTop Q) :
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (fun n omega => r n * (max (an n omega) (bn n omega) - max a b))
+        atTop (Q.map (maxDirDeriv a b)) := by
   apply (Tendsto_dist_iff _ _ _ hMax).2
   simpa [smul_eq_mul] using functionalDeltaMethod
     (Tn := fun n omega => (an n omega, bn n omega))
@@ -222,11 +223,11 @@ theorem deltaMethod_min_rate
       (fun omega => r n • ((an n omega, bn n omega) - (a, b))) μ)
     (hMin : ∀ n, AEMeasurable
       (fun omega => r n * (min (an n omega) (bn n omega) - min a b)) μ)
-    (hCLT : Tendsto_dist_vec
-      (fun n omega => r n • ((an n omega, bn n omega) - (a, b))) Q μ hSn) :
-    Tendsto_dist
-      (fun n omega => r n * (min (an n omega) (bn n omega) - min a b))
-      (Q.map (minDirDeriv a b)) μ hMin := by
+    (hCLT : Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (fun n omega => r n • ((an n omega, bn n omega) - (a, b))) atTop Q) :
+    Modes.TendstoInLaw (fun _ : ℕ => μ)
+        (fun n omega => r n * (min (an n omega) (bn n omega) - min a b))
+        atTop (Q.map (minDirDeriv a b)) := by
   apply (Tendsto_dist_iff _ _ _ hMin).2
   simpa [smul_eq_mul] using functionalDeltaMethod
     (Tn := fun n omega => (an n omega, bn n omega))
@@ -245,13 +246,11 @@ theorem deltaMethod_max
       (fun omega => Real.sqrt (n : ℝ) • ((an n omega, bn n omega) - (a, b))) μ)
     (hMax : ∀ (n : ℕ), AEMeasurable (fun omega =>
       Real.sqrt (n : ℝ) * (max (an n omega) (bn n omega) - max a b)) μ)
-    (hCLT : Tendsto_dist_vec
-      (fun (n : ℕ) omega =>
-        Real.sqrt (n : ℝ) • ((an n omega, bn n omega) - (a, b)))
-      Q μ hSn) :
-    Tendsto_dist (fun (n : ℕ) omega =>
-      Real.sqrt (n : ℝ) * (max (an n omega) (bn n omega) - max a b))
-      (Q.map (maxDirDeriv a b)) μ hMax := by
+    (hCLT : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun (n : ℕ) omega =>
+        Real.sqrt (n : ℝ) • ((an n omega, bn n omega) - (a, b))) atTop Q) :
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun (n : ℕ) omega =>
+      Real.sqrt (n : ℝ) * (max (an n omega) (bn n omega) - max a b)) atTop
+          (Q.map (maxDirDeriv a b)) := by
   exact deltaMethod_max_rate an bn a b (fun n => Real.sqrt (n : ℝ))
     (Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop) Q hSn hMax hCLT
 
@@ -266,13 +265,11 @@ theorem deltaMethod_min
       (fun omega => Real.sqrt (n : ℝ) • ((an n omega, bn n omega) - (a, b))) μ)
     (hMin : ∀ (n : ℕ), AEMeasurable (fun omega =>
       Real.sqrt (n : ℝ) * (min (an n omega) (bn n omega) - min a b)) μ)
-    (hCLT : Tendsto_dist_vec
-      (fun (n : ℕ) omega =>
-        Real.sqrt (n : ℝ) • ((an n omega, bn n omega) - (a, b)))
-      Q μ hSn) :
-    Tendsto_dist (fun (n : ℕ) omega =>
-      Real.sqrt (n : ℝ) * (min (an n omega) (bn n omega) - min a b))
-      (Q.map (minDirDeriv a b)) μ hMin := by
+    (hCLT : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun (n : ℕ) omega =>
+        Real.sqrt (n : ℝ) • ((an n omega, bn n omega) - (a, b))) atTop Q) :
+    Modes.TendstoInLaw (fun _ : ℕ => μ) (fun (n : ℕ) omega =>
+      Real.sqrt (n : ℝ) * (min (an n omega) (bn n omega) - min a b)) atTop
+          (Q.map (minDirDeriv a b)) := by
   exact deltaMethod_min_rate an bn a b (fun n => Real.sqrt (n : ℝ))
     (Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop) Q hSn hMin hCLT
 

@@ -158,7 +158,7 @@ theorem gmmSampleJacobian_norm_sub_isLittleOp
     intro ε hε
     simpa [D, abs_of_nonneg (norm_nonneg _)] using hConsistent ε hε
   have hLbig : IsBigOp Lbar (fun _ => (1 : ℝ)) μ := by
-    simpa [Lbar] using (S.sampleMean_tendsto_inProb hLmeas hLint).isBigOp_one
+    simpa [Lbar] using Modes.TendstoInProbability.isBigOp_one (S.sampleMean_tendsto_inProb hLmeas hLint)
   have hLD : IsLittleOp (fun n ω => Lbar n ω * D n ω)
       (fun _ => (1 : ℝ)) μ :=
     hLbig.mul_isLittleOp_one_isLittleOp hDbig
@@ -254,7 +254,7 @@ theorem exists_gmmNormalizedMoment_expansion_control
       S.sampleMeanVec_norm_sub_isLittleOp reg.deriv_at_target_meas
         reg.deriv_at_target_integrable
   have hLbig : IsBigOp Lbar (fun _ => (1 : ℝ)) μ := by
-    simpa [Lbar] using (S.sampleMean_tendsto_inProb hLmeas hLint).isBigOp_one
+    simpa [Lbar] using Modes.TendstoInProbability.isBigOp_one (S.sampleMean_tendsto_inProb hLmeas hLint)
   have hdlo : IsLittleOp d (fun _ => (1 : ℝ)) μ := by
     apply (Modes.isLittleOpF_iff_strict
       (fun _ => μ) d atTop (fun _ => (1 : ℝ))

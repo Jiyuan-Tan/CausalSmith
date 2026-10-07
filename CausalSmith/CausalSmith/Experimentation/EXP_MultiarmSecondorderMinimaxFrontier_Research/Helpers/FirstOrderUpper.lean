@@ -72,7 +72,7 @@ lemma upperUnitScore_secondMoment (c : Contrast ℝ K) (t : RespType K) :
 -- @node: contrastWeightedProcedure_upperRisk
 /-- [the population size is positive](hyp:hn), [the contrast weighted procedure upper risk property holds](goal). -/
 lemma contrastWeightedProcedure_upperRisk (K n : ℕ) (c : Contrast ℝ K) (hn : 0 < n) :
-    Causalean.Stat.worstCaseRisk
+    Causalean.Stat.worstCaseRiskReal
       (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z)
       (contrastWeightedProcedure K n c) ≤ C0 c / n := by
   classical

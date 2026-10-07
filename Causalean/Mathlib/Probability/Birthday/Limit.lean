@@ -52,7 +52,7 @@ theorem repeatKernel_uniform_on_relative_band
   let ε : ℝ := min εa εb
   have hε : 0 < ε := lt_min hεa hεb
   have hbelow := relative_band_below_alphabet Tseq mseq etaseq
-    heta hmean hm hscale hq hε
+    heta hmean hm hscale hε
   refine ⟨ε, hε, ?_⟩
   filter_upwards [ha, hb, hbelow, hmean.eventually_gt_atTop 0] with
     j haj hbj hjbelow hμ r hrT hrband
@@ -98,9 +98,9 @@ theorem repeatKernel_uniform_on_relative_band
 
 /-- For [valid success probabilities](hyp:heta), a
 [diverging expected draw count](hyp:hmean), [positive alphabets](hyp:hm), and
-[pair scale per label tending to a positive value](hyp:hscale,hq), the
-[binomially averaged repeat probability](goal) tends to one minus the
-corresponding Poisson no-collision probability. -/
+[pair scale per label tending to a positive value q](hyp:hscale,hq), the
+[binomially averaged repeat probability tends to 1 − exp(−q)](goal), one minus
+the Poisson no-collision probability at that limiting scale. -/
 theorem repeat_tendsto
     (Tseq mseq : ℕ → ℕ) (etaseq : ℕ → ℝ) {q : ℝ}
     (heta : ∀ j, etaseq j ∈ Set.Icc (0 : ℝ) 1)

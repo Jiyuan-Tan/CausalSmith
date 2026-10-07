@@ -452,7 +452,7 @@ theorem markedPredictive_real_target_sub
         rw [markedPoissonLaw_real_target_sub ε a u v (C.node i)
           (Real.sign (C.weight i)) hsign first k s t,
           palmSplit_aggregatePoissonLaw_real_target
-            ε a u v (C.node i) hu hv ht hr hc first k s t]
+            ε a u v (C.node i) hu hv ht hr first k s t]
         calc
           _ = |C.weight i| *
               (if first then -Real.sign (C.weight i) else Real.sign (C.weight i)) *

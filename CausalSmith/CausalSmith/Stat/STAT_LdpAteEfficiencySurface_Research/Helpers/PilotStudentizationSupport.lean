@@ -8,7 +8,7 @@ This file derives the Slutsky approximation required by the varying-law Wald
 adapter from the genuine CDF and plug-in variance consistency premises.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

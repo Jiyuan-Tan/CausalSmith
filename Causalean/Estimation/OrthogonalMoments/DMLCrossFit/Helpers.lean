@@ -23,7 +23,7 @@ This helper module proves fold-normalized sum bounds and closure properties for 
 little-o and big-O relations used in the K-fold asymptotic-linearity proof. The estimator-level
 assembly and headline theorem are in `AsymptoticLinearity.lean`. -/
 
-@[expose] public section
+public section
 namespace Causalean
 namespace Estimation
 namespace OrthogonalMoments

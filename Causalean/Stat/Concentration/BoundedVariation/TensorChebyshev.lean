@@ -11,7 +11,7 @@ continuous, of bounded variation, and of size at most `16 B`. The polynomial alg
 tensor Chebyshev basis lives in `Causalean.Mathlib.Analysis.Approximation.Chebyshev.TensorChebyshev`.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 
@@ -159,7 +159,7 @@ theorem tensorChebyshev_coefficientPath_size {D : ℕ}
         L⁻¹ * (L * A * I) = (L⁻¹ * L) * (A * I) := by ring
         _ = A * I := by rw [inv_mul_cancel₀ hL, one_mul]
 
-/-- [A four-variable polynomial path and a nonnegative envelope](hyp:p,B,hB), [a coordinatewise degree bound](hyp:hdeg), [continuous cube evaluations](hyp:hcont), [finite variation of those evaluations](hyp:hBV), and [their path-size bound](hyp:hbound) give [a tensor Chebyshev expansion with continuous bounded-variation coefficient paths of controlled size](goal).
+/-- Let [a time-indexed family of four-variable real polynomials and a nonnegative number B](hyp:p,B,hB) be given, with [degree at most D in each variable at every time](hyp:hdeg). If, at every point of the cube [−1, 1]^4, [the value of the polynomial is continuous in time](hyp:hcont), [has bounded variation in time](hyp:hBV), and [has supremum-plus-variation size at most B](hyp:hbound), then [there are continuous coefficient paths, one for each multi-index in {0, …, D}^4, such that at every time the polynomial equals the corresponding combination of products of first-kind Chebyshev polynomials, every coefficient path has bounded variation, and every coefficient path has size at most 16 B](goal).
 
 A continuous four-variable polynomial path of coordinatewise degree at most `D`, whose
 cube evaluations have bounded variation and path size at most `B`, has a tensor Chebyshev

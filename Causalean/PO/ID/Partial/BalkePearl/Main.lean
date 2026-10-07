@@ -109,7 +109,7 @@ theorem ATE_mem_BPIdentifiedInterval (hA : S.BaseAssumptions) :
     S.ATE ∈ S.BPIdentifiedInterval hA := by
   unfold BPIdentifiedInterval
   rw [S.ATE_eq_BPObjective]
-  exact PartialID.mem_identifiedInterval (S.latentProb_feasible hA)
+  exact PartialID.mem_identifiedSet (S.latentProb_feasible hA)
 
 /-! ### Sharpness — see `Sharp.lean` for the proof.
 

@@ -18,15 +18,17 @@ namespace Causalean.Stat.Minimax.Multinomial.TwoSampleL1
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal
 
-/-- The joint law of two independent Poisson counts whose rates are the
-opposite perturbations of a common nonnegative intensity. -/
+/-- The joint law of two independent Poisson counts with rates `lambda (1 + t u)` and
+`lambda (1 - t u)`, the opposite perturbations of a common intensity `lambda`; a negative
+rate is truncated to zero. -/
 noncomputable def scalarPoissonPairLaw (lambda t u : ℝ) : Measure (ℕ × ℕ) :=
   (poissonMeasure (Real.toNNReal (lambda * (1 + t * u)))).prod
     (poissonMeasure (Real.toNNReal (lambda * (1 - t * u))))
 
-/-- The likelihood of a balanced Poisson pair relative to the pair with
-equal rates; the two exponential factors cancel because the rates sum to a
-constant. -/
+/-- The function `(1 + t u)^z₁ · (1 - t u)^z₂` of a count pair `(z₁, z₂)`. When both
+perturbed rates are nonnegative it is the likelihood ratio of the balanced Poisson pair with
+rates `λ (1 + t u)`, `λ (1 - t u)` relative to the pair with equal rates `λ`; the two
+exponential factors cancel because the rates sum to a constant. -/
 noncomputable def scalarPoissonPairLikelihood (t u : ℝ) (z : ℕ × ℕ) : ℝ :=
   (1 + t * u) ^ z.1 * (1 - t * u) ^ z.2
 
@@ -93,7 +95,7 @@ theorem scalarPoissonPairLaw_eq_withDensity
         ring
     _ = _ := by rw [hexp]; ring
 
-/-- Given [a nonnegative Poisson intensity](hyp:lambda,hlambda) and [two scalar tilt coordinates](hyp:t,u,v), [the likelihood inner product under the untitled scalar-Poisson law equals the stated exponential expression](goal). -/
+/-- Given [a nonnegative Poisson intensity `λ`](hyp:lambda,hlambda) and [a tilt scale `t` with two tilt coordinates `u` and `v`](hyp:t,u,v), [the integral of the product of the pair likelihoods at `u` and at `v`, under the untilted Poisson pair law with both rates equal to `λ`, equals `exp(2 λ t² u v)`](goal). -/
 theorem scalarPoissonPairLikelihood_inner
     (lambda t u v : ℝ) (hlambda : 0 ≤ lambda) :
     (∫ z, scalarPoissonPairLikelihood t u z *

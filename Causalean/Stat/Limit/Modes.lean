@@ -319,8 +319,8 @@ theorem pair_tendstoInProbability
 [proof that each row is a coupling](hyp:hν), [the two row observables](hyp:U,V),
 [their constant limits](hyp:a,b), [an index filter](hyp:l), [a map continuous
 at the limiting pair](hyp:hf), and [the two marginal convergence-in-probability
-statements](hyp:hU,hV), [the mapped paired observable converges in probability
-under every row coupling](goal). -/
+statements](hyp:hU,hV), [the map applied to the paired observable converges in probability,
+along the filter and under the row couplings, to the map's value at the limiting pair](goal). -/
 theorem map_tendstoInProbability
     {ι : Type*} {X : ι → Type u} {Y : ι → Type v}
     [∀ i, MeasurableSpace (X i)] [∀ i, MeasurableSpace (Y i)]

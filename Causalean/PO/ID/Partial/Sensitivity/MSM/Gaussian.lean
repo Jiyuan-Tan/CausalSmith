@@ -155,15 +155,14 @@ strictly greater than 1](hyp:hΛ) and assume [the propensity score for treatment
 covariates lies strictly between 0 and 1 almost surely (overlap)](hyp:hoverlap). Under [the
 conditional-Gaussian treated-outcome model, i.e. the treated conditional law of the outcome given
 the covariates is Gaussian with mean `m` and standard deviation `σ`](hyp:hmodel), and assuming [the
-integrability conditions needed to make the candidate means, the
-survival decomposition, and the cutoff propensity well defined](hyp:hreg), [the calibrated (Dorn–Guo)
+integrability conditions needed to make the candidate means and the
+survival decomposition well defined](hyp:hreg), [the calibrated (Dorn–Guo)
 upper bound on `E[Y(1)]` equals the candidate IPW mean evaluated at the cutoff propensity built
 from the explicit Gaussian quantile cutoff `m(X) + σ(X)·Φ⁻¹(Λ/(Λ+1))`](goal). -/
 theorem msmUpperCalib_gaussian (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     {m σ : γ → ℝ} (hmodel : S.GaussianTreatedModel m σ)
     (hreg : Integrable (S.gaussianCutoff m σ Λ) P.μ ∧
-      Integrable (fun ω => S.dVar.indicator true ω / S.cutoffProp Λ (S.gaussianCutoff m σ Λ) ω) P.μ ∧
       Integrable (fun ω => S.dVar.indicator true ω *
         (if S.gaussianCutoff m σ Λ ω < S.factualY ω then (1 : ℝ) else 0)) P.μ ∧
       Integrable (fun ω => S.dVar.indicator true ω * S.wMin Λ ω) P.μ ∧
@@ -179,7 +178,7 @@ theorem msmUpperCalib_gaussian (Λ : ℝ) (hΛ : 1 < Λ)
     S.measurable_gaussianCutoff hmodel.measurable_m hmodel.measurable_σ Λ
   have hsurv : S.treatedSurv c =ᵐ[P.μ] S.survTarget Λ := by
     simpa [c] using S.gaussianCutoff_calibrates Λ hΛ hoverlap hmodel
-  obtain ⟨hc_int, _hint, hint1, hmin_int, hdiff_int,
+  obtain ⟨hc_int, hint1, hmin_int, hdiff_int,
     henv, hweight_env, hc_env⟩ := hreg
   have hcut_mem : S.cutoffProp Λ c ∈ S.MSMSetCalib true Λ :=
     S.cutoffProp_mem_MSMSetCalib_of_survival Λ hΛ hoverlap c

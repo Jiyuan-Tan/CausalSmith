@@ -4,7 +4,7 @@ public import CausalSmith.Stat.STAT_PomdpStateauditMinimax_Research.Helpers.Mini
 
 /-! # Cardinality-unrestricted audited minimax lower bound. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.PomdpStateauditMinimax
 

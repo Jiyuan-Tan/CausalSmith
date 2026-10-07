@@ -353,16 +353,6 @@ theorem Model.sInf_posteriorResidual_le_minimaxValueENNReal
     _ = Causalean.Stat.worstCaseRiskReal (risk M.P M.tau) q := by
       rw [← Finset.sum_mul, nu.p_sum, one_mul]
 
-/-- Deprecated real-valued form of `Model.sInf_posteriorResidual_le_minimaxValueENNReal`. -/
-@[deprecated Model.sInf_posteriorResidual_le_minimaxValueReal (since := "2026-09-17")]
-theorem Model.sInf_posteriorResidual_le_minimaxValue [Nonempty Theta] [Nonempty B]
-    (M : Model Theta B X) (nu : FiniteDesign Theta) {l u : ℝ} (hlu : l ≤ u) :
-    sInf (Set.range (M.posteriorResidual nu)) ≤
-      Causalean.Stat.minimaxValueReal (risk (l := l) (u := u) M.P M.tau) := by
-  simpa [Causalean.Stat.minimaxValueReal,
-    Causalean.Stat.worstCaseRiskReal] using
-    M.sInf_posteriorResidual_le_minimaxValueReal nu hlu
-
 open Causalean.Experimentation.DesignBased
 open Causalean.Stat
 open Causalean.Stat.Minimax.FiniteSquaredLoss

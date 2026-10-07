@@ -145,12 +145,12 @@ theorem integral_pattern_coordinate_sq {m : ℕ}
   rw [hgi, hT, hTc]
 
 omit [DecidableEq κ] in
-/-- [Two distinct selected coordinates](hyp:hi,hj,hij) with [centered cell
+/-- [Two distinct coordinates, the first of them selected](hyp:hi,hij), with [centered cell
 residuals](hyp:hcenter) have [zero cross moment on the fixed pattern](goal). -/
 theorem integral_pattern_cross_eq_zero {m : ℕ}
     (μ : Measure Ω) [IsProbabilityMeasure μ] (label : A → κ) (X : Ω → A)
     (Y : Ω → ℝ) (c : ℝ) (k : κ) (T : Finset (Fin m))
-    (i j : Fin m) (hi : i ∈ T) (hj : j ∈ T) (hij : i ≠ j)
+    (i j : Fin m) (hi : i ∈ T) (hij : i ≠ j)
     (hcenter : (∫ ω in cell label X k, (Y ω - c) ∂μ) = 0) :
     (∫ z in cellPattern label X k T, (Y (z i) - c) * (Y (z j) - c)
         ∂Measure.pi (fun _ : Fin m => μ)) = 0 := by
@@ -166,13 +166,16 @@ theorem integral_pattern_cross_eq_zero {m : ℕ}
   simpa [f, hi, hij] using hcenter
 
 omit [DecidableEq κ] in
-/-- [Measurable inputs and integrable first and second response moments](hyp:hlabel,hX,hY,hint,hsq),
-with [zero cell residual mean](hyp:hcenter), imply [the exact second moment
-of the selected residual sum on a fixed membership pattern](goal). -/
+/-- [Measurable inputs and integrable first and second response moments](hyp:hlabel,hX,hint,hsq),
+with [zero cell residual mean](hyp:hcenter), imply [that the iid-sample integral, over the event that exactly
+the selected positions fall in the cell, of the squared sum of the selected centered responses
+equals the number of selected positions, times the integral of the squared centered response
+over the cell, times the cell mass to the power of that number minus one, times the
+complementary mass to the power of the number of unselected positions](goal). -/
 theorem integral_centered_sum_sq_on_pattern {m : ℕ}
     (μ : Measure Ω) [IsProbabilityMeasure μ] (label : A → κ) (X : Ω → A)
     (Y : Ω → ℝ) (c : ℝ) (k : κ) (T : Finset (Fin m))
-    (hlabel : Measurable label) (hX : Measurable X) (hY : Measurable Y)
+    (hlabel : Measurable label) (hX : Measurable X)
     (hint : Integrable Y μ) (hsq : Integrable (fun ω => Y ω ^ 2) μ)
     (hcenter : (∫ ω in cell label X k, (Y ω - c) ∂μ) = 0) :
     (∫ z in cellPattern label X k T,
@@ -232,7 +235,7 @@ theorem integral_centered_sum_sq_on_pattern {m : ℕ}
       simpa only [ite_true, ← pow_two] using
         integral_pattern_coordinate_sq μ label X Y c k T hlabel hX i hi
     · simpa only [if_neg hji] using
-        integral_pattern_cross_eq_zero μ label X Y c k T i j hi hj (Ne.symm hji) hcenter
+        integral_pattern_cross_eq_zero μ label X Y c k T i j hi (Ne.symm hji) hcenter
   calc
     _ = ∑ i ∈ T,
         (∫ ω in cell label X k, (Y ω - c) ^ 2 ∂μ) *

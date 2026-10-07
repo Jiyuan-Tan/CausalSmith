@@ -26,7 +26,7 @@ noncomputable section
 
 open Causalean.Mathlib.Probability.PoissonAddOnePoincare
 
-/-- Two [finite index types](hyp:iota,kappa) determine
+/-- Two [index types](hyp:iota,kappa) determine
 [the coordinate labels for a flattened nested paired-count array](goal), given by
 [a cell label together with a tag for its first or second count](step:1). -/
 abbrev NestedPairedPoissonIndex (iota kappa : Type*) :=

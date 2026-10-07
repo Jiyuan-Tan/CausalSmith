@@ -91,8 +91,4 @@ noncomputable def compatibleIdentifiedSet (G : SWIGGraph N)
     (M₀ : Causalean.SCM N Ω) (obj : Causalean.SCM N Ω → ℝ) : Set ℝ :=
   Causalean.Stat.AttainableSet.IdentifiedSet obj (CompatibleSCM G As M₀)
 
-/-- Deprecated former name of `compatibleIdentifiedSet`. -/
-@[deprecated compatibleIdentifiedSet (since := "2026-09-20")]
-alias compatibleInterval := compatibleIdentifiedSet
-
 end Causalean.SCM.PartialID

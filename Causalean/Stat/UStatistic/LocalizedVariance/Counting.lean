@@ -209,9 +209,11 @@ theorem card_disjoint_pair_configurations (n : ℕ) :
     simpa [s, card_pairIndices] using hsum
   exact hcard.trans (choose_two_mul_choose_sub_two n)
 
-/-- Given [at least two observations](hyp:hn) and [nonnegative identical, pair, and row
-scales](hyp:ha,hp,hr), [the normalized identical and shared pair counts are bounded by the
-two-scale constant-sixteen expression](goal). -/
+/-- For [a sample size n of at least two](hyp:hn) and [nonnegative reals a, p and
+r](hyp:ha,hp,hr), with N = n(n − 1)/2 the number of unordered pairs, [the quantity
+N⁻²·(N·a·p + 2N(n − 2)·2a·r) is at most 16·a·(r/n + p/n²)](goal). This is the counting step of
+the U-statistic variance bound: N identical pairs each contribute a·p, and the 2N(n − 2)
+ordered pairs of pairs sharing exactly one index each contribute 2a·r. -/
 theorem normalized_pair_counts_le {n : ℕ} (hn : 2 ≤ n)
     {a p r : ℝ} (ha : 0 ≤ a) (hp : 0 ≤ p) (hr : 0 ≤ r) :
     ((n.choose 2 : ℝ)⁻¹) ^ 2 *

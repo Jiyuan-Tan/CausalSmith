@@ -104,11 +104,10 @@ theorem absVec_eigenvector_of_isMaxOn [Nonempty ι]
   rw [htop] at heig
   exact congrArg WithLp.ofLp heig.apply_eq_smul
 
-/-- On a nonempty finite coordinate space, an [entrywise nonnegative symmetric real matrix](hyp:A,hA_symm,hA_nonneg) and [a normalized top eigenvector](hyp:x,hx_norm,hx_eigen,hx_top) ensure [that coordinatewise absolute value is a normalized nonnegative top eigenvector with the same top value](goal). -/
+/-- On a nonempty finite coordinate space, an [entrywise nonnegative symmetric real matrix](hyp:A,hA_symm,hA_nonneg) and [a normalized vector attaining the top Rayleigh value](hyp:x,hx_norm,hx_top) ensure [that coordinatewise absolute value is a normalized nonnegative top eigenvector with the same top value](goal). -/
 theorem absVec_preserves_top_eigenvector [Nonempty ι]
     (A : Matrix ι ι ℝ) (hA_symm : A.IsSymm) (hA_nonneg : ∀ i j, 0 ≤ A i j)
     {x : EVec ι} (hx_norm : ‖x‖ = 1)
-    (hx_eigen : A.mulVec x = sphereRayleighValue A • x)
     (hx_top : rayleighForm A x = sphereRayleighValue A) :
     ‖absVec x‖ = 1 ∧
       (∀ i, 0 ≤ absVec x i) ∧
@@ -116,7 +115,7 @@ theorem absVec_preserves_top_eigenvector [Nonempty ι]
       A.mulVec (absVec x) = sphereRayleighValue A • absVec x := by
   have hx : x ∈ sphere (0 : EVec ι) 1 := by
     simpa [mem_sphere] using hx_norm
-  obtain ⟨y, hy_norm, hy_max, hy_value⟩ := exists_unit_isMaxOn_rayleighForm A hA_symm
+  obtain ⟨y, hy_norm, hy_max, hy_value⟩ := exists_unit_isMaxOn_rayleighForm A
   have hx_max : IsMaxOn (rayleighForm A) (sphere (0 : EVec ι) 1) x := by
     intro z hz
     calc

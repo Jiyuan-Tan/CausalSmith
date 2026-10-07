@@ -2,35 +2,38 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Balke-Pearl IV bounds: witnesses attaining the eight lower expressions
-
-Each witness is the primal optimum on the region where its expression is
-extremal among the eight. They were located by complementary slackness against
-the dual vertices; that derivation is offline scaffolding only, and no duality
-theory enters below. Every table is explicit and is checked directly against
-nonnegativity, normalization, and the eight marginal equations.
-
-Four of the eight carry a free direction along which the objective is constant.
-The free variable is pinned at the largest of its lower bounds, which is feasible
-whenever anything is, and is what produces the `max 0 _` in the `bpAux`/`bpUAux`
-definitions. Setting those free variables to zero instead yields negative entries
-and does not work.
-
-Feasibility is not derivable from the observed cells being nonnegative and summing
-to one per instrument value: one obligation is Pearl's instrumental inequality.
-The witness theorems therefore take a feasible table as a hypothesis, discharged
-at the call site by `latentProb_feasible`.
-
-The eight feasibility proofs share one uniform tactic block, so a given `simp` set
-is not exercised by every branch; the unused-argument linter is disabled here
-rather than hand-tuning eight copies apart.
 -/
-
 module
 public import Causalean.PO.ID.Partial.BalkePearl.Attainment.Basic
 
-/-! # Witnesses attaining the Balke-Pearl lower expressions -/
+/-! # Witnesses attaining the Balke–Pearl lower expressions
+
+The closed-form Balke–Pearl lower bound on the average treatment effect is the largest of eight
+affine expressions in the observed cell probabilities. For each of the eight, this file writes
+down an explicit latent response-type table and proves that its linear-program objective equals
+that expression and that it is feasible (nonnegative, total mass one, reproducing the observed
+cells) on the region where that expression is the largest of the eight. Consequently the
+closed-form lower bound is the average treatment effect of some feasible latent table, i.e. it
+belongs to the Balke–Pearl identified set.
+
+Feasibility of a witness is proved conditional on the existence of some feasible table (which
+encodes Pearl's instrumental inequality); the final theorem discharges that hypothesis with the
+realized latent table, so it needs only the base assumptions.
+
+## Main definitions
+
+* `bpLowerWitness0` … `bpLowerWitness7` — the eight explicit latent tables.
+* `bpAux0t`, `bpAux1v`, `bpAux2u`, `bpAux2v`, `bpAux3u`, `bpAux3v` — the free masses, each of
+  the form max(0, ·), entering the first four witnesses.
+
+## Main results
+
+* `bpLowerWitness0_objective` … `bpLowerWitness7_objective` — witness i has objective equal to
+  the i-th lower expression.
+* `bpLowerWitness0_feasible` … `bpLowerWitness7_feasible` — witness i is feasible when the i-th
+  expression is the largest and some feasible table exists.
+* `bpLower_mem_BPIdentifiedInterval` — the closed-form lower bound lies in the identified set.
+-/
 
 @[expose] public section
 
@@ -802,35 +805,35 @@ theorem bpLower_mem_BPIdentifiedInterval (hA : S.BaseAssumptions) :
   have hb : S.bpLower = S.bpLowerTerm i := hi
   rw [hb]
   fin_cases i
-  · have h := PartialID.mem_identifiedInterval (obj := BPObjective)
+  · have h := PartialID.mem_identifiedSet (obj := BPObjective)
       (S.bpLowerWitness0_feasible hA h₀ hreg)
     rw [S.bpLowerWitness0_objective hA] at h
     exact h
-  · have h := PartialID.mem_identifiedInterval (obj := BPObjective)
+  · have h := PartialID.mem_identifiedSet (obj := BPObjective)
       (S.bpLowerWitness1_feasible hA h₀ hreg)
     rw [S.bpLowerWitness1_objective hA] at h
     exact h
-  · have h := PartialID.mem_identifiedInterval (obj := BPObjective)
+  · have h := PartialID.mem_identifiedSet (obj := BPObjective)
       (S.bpLowerWitness2_feasible hA h₀ hreg)
     rw [S.bpLowerWitness2_objective hA] at h
     exact h
-  · have h := PartialID.mem_identifiedInterval (obj := BPObjective)
+  · have h := PartialID.mem_identifiedSet (obj := BPObjective)
       (S.bpLowerWitness3_feasible hA h₀ hreg)
     rw [S.bpLowerWitness3_objective hA] at h
     exact h
-  · have h := PartialID.mem_identifiedInterval (obj := BPObjective)
+  · have h := PartialID.mem_identifiedSet (obj := BPObjective)
       (S.bpLowerWitness4_feasible hA h₀ hreg)
     rw [S.bpLowerWitness4_objective hA] at h
     exact h
-  · have h := PartialID.mem_identifiedInterval (obj := BPObjective)
+  · have h := PartialID.mem_identifiedSet (obj := BPObjective)
       (S.bpLowerWitness5_feasible hA h₀ hreg)
     rw [S.bpLowerWitness5_objective hA] at h
     exact h
-  · have h := PartialID.mem_identifiedInterval (obj := BPObjective)
+  · have h := PartialID.mem_identifiedSet (obj := BPObjective)
       (S.bpLowerWitness6_feasible hA h₀ hreg)
     rw [S.bpLowerWitness6_objective hA] at h
     exact h
-  · have h := PartialID.mem_identifiedInterval (obj := BPObjective)
+  · have h := PartialID.mem_identifiedSet (obj := BPObjective)
       (S.bpLowerWitness7_feasible hA h₀ hreg)
     rw [S.bpLowerWitness7_objective hA] at h
     exact h

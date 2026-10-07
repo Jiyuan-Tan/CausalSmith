@@ -9,7 +9,7 @@ public import Mathlib.InformationTheory.KullbackLeibler.Basic
 
 /-! # Full-history KL transport for arbitrary admissible perturbations -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set Filter ProbabilityTheory
 open scoped Interval

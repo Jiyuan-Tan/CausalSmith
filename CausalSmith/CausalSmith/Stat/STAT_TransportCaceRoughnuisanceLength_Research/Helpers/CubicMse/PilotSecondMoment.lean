@@ -7,7 +7,7 @@ The exact bin variance and Hölder projection bias give equation (5)'s
 second-moment bound, with the constant A₂ used in the cubic projection bias.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open scoped BigOperators

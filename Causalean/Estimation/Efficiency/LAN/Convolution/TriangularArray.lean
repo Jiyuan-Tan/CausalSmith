@@ -30,7 +30,7 @@ condition of `S` to the Lindeberg tail condition for the row. -/
 theorem scaledL2Approx_lindeberg
     (P : Measure X) [IsProbabilityMeasure P]
     (W : ℕ → X → ℝ) (S : X → ℝ)
-    (hW : ∀ n, Measurable (W n)) (hW2 : ∀ n, MemLp (W n) 2 P)
+    (hW : ∀ n, Measurable (W n))
     (hS : MemLp S 2 P)
     (happrox : Tendsto (fun n : ℕ => (n : ℝ) * ∫ x,
       (W n x - (Real.sqrt (n : ℝ))⁻¹ * S x) ^ 2 ∂P) atTop (𝓝 0)) :
@@ -208,15 +208,15 @@ the stated deterministic limit. -/
 theorem iid_sum_approx_tendstoInProbability
     (P : Measure X) [IsProbabilityMeasure P]
     (W : ℕ → X → ℝ) (S : X → ℝ) (m : ℝ)
-    (hW : ∀ n, Measurable (W n)) (hW2 : ∀ n, MemLp (W n) 2 P)
+    (hW2 : ∀ n, MemLp (W n) 2 P)
     (hS : MemLp S 2 P)
     (hSmean : ∫ x, S x ∂P = 0)
     (happrox : Tendsto (fun n : ℕ => (n : ℝ) * ∫ x,
       (W n x - (Real.sqrt (n : ℝ))⁻¹ * S x) ^ 2 ∂P) atTop (𝓝 0))
     (hmean : Tendsto (fun n : ℕ => (n : ℝ) * ∫ x, W n x ∂P) atTop (𝓝 m)) :
-    TendstoInProbability (fun n => Measure.pi (fun _ : Fin n => P))
-      (fun n x => (∑ i, W n (x i)) -
-        (Real.sqrt (n : ℝ))⁻¹ * ∑ i, S (x i)) m := by
+    Causalean.Stat.Modes.TendstoInProbability (fun n => Measure.pi (fun _ : Fin n => P))
+        (fun n x => (∑ i, W n (x i)) -
+        (Real.sqrt (n : ℝ))⁻¹ * ∑ i, S (x i)) atTop (fun _ _ => m) := by
   rw [tendstoInProbability_iff_real]
   -- Apply Chebyshev to the sum of the independent coordinate errors.  Its variance is at most
   -- `n` times the one-coordinate second moment, while its expectation tends to `m`.  Rowwise
@@ -411,8 +411,8 @@ theorem iid_sum_sq_tendstoInProbability_of_lindeberg
       atTop (𝓝 q))
     (hlindeberg : ∀ ε : ℝ, 0 < ε → Tendsto (fun n : ℕ => (n : ℝ) *
       ∫ x in {x | ε ≤ |W n x|}, W n x ^ 2 ∂P) atTop (𝓝 0)) :
-    TendstoInProbability (fun n => Measure.pi (fun _ : Fin n => P))
-      (fun n x => (∑ i, W n (x i) ^ 2)) q := by
+    Causalean.Stat.Modes.TendstoInProbability (fun n => Measure.pi (fun _ : Fin n => P))
+        (fun n x => (∑ i, W n (x i) ^ 2)) atTop (fun _ _ => q) := by
   rw [tendstoInProbability_iff_real]
   -- Truncate `W²` at a fixed level, apply Chebyshev to the bounded independent summands, and
   -- remove the truncation with `hlindeberg`; then send the truncation level to zero.

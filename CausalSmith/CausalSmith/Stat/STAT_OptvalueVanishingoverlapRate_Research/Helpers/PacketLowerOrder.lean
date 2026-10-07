@@ -334,9 +334,9 @@ lemma packetOscillation_periodic {N : ℕ} (hN : 0 < N) :
       (t + 2 * Real.pi) * Real.cos (4 * (N : ℝ) * (t + 2 * Real.pi)) =
     Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson.kernel N t *
       Real.cos (4 * (N : ℝ) * t)
-  rw [Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson.packet_kernel_reconstruction
+  rw [Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson.kernel_fourier
       N hN (t + 2 * Real.pi),
-    Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson.packet_kernel_reconstruction
+    Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson.kernel_fourier
       N hN t]
   have hsum : (∑ j ∈ Finset.Icc (-((2 * N - 2 : ℕ) : ℤ)) ((2 * N - 2 : ℕ) : ℤ),
       Causalean.Mathlib.Analysis.Approximation.Chebyshev.Jackson.normalizedCoeff N j *

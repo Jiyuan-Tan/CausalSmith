@@ -408,8 +408,8 @@ noncomputable def exactCircleNode (radius : ℚ) (schedule : Schedule) (k : ℕ)
     (((2 : ℝ) * Real.pi * ((k : ℝ) / schedule.mesh)) * Complex.I)
 
 /-- The angle rectangle contains the exact pure-imaginary angle at every
-endpoint from zero through the terminal mesh endpoint. -/
-theorem circleAngle_sound (schedule : Schedule) {k : ℕ} (hk : k ≤ schedule.mesh) :
+endpoint index. -/
+theorem circleAngle_sound (schedule : Schedule) {k : ℕ} :
     (circleAngle schedule k).Contains
       (((2 : ℝ) * Real.pi * ((k : ℝ) / schedule.mesh)) * Complex.I) := by
   constructor
@@ -425,15 +425,13 @@ theorem circleAngle_sound (schedule : Schedule) {k : ℕ} (hk : k ≤ schedule.m
     rw [← heq]
     exact h
 
-/-- For a rational radius, a quadrature schedule, and a mesh index `k`, if [`k`
-does not exceed the schedule's mesh size](hyp:hk), then [the computed rational
+/-- For a rational radius, a quadrature schedule, and any index `k`, [the computed rational
 circle-node rectangle at index `k` contains the exact complex circle point
 `radius · exp(2πi · k / mesh)`](goal). -/
-theorem circleNode_sound (radius : ℚ) (schedule : Schedule) {k : ℕ}
-    (hk : k ≤ schedule.mesh) :
+theorem circleNode_sound (radius : ℚ) (schedule : Schedule) {k : ℕ} :
     (circleNode radius schedule k).Contains (exactCircleNode radius schedule k) := by
   exact ComplexRatInterval.smulRat_sound radius
-    (Transcendental.complexExp_sound (circleAngle_sound schedule hk) schedule.fuel)
+    (Transcendental.complexExp_sound (circleAngle_sound schedule) schedule.fuel)
 
 /-- The terminal endpoint `k = mesh`, which is explicitly used by the
 trapezoidal program, is certified and denotes the same point as endpoint zero. -/
@@ -448,7 +446,7 @@ theorem circleNode_endpoint (radius : ℚ) (schedule : Schedule) :
     simp [Complex.exp_two_pi_mul_I]
   constructor
   · rw [← hexact]
-    exact circleNode_sound radius schedule (le_refl schedule.mesh)
+    exact circleNode_sound radius schedule
   · exact hexact
 
 /-- Circle-node width propagation exposes radius scaling and the scheduled

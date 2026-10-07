@@ -17,7 +17,7 @@ constant-parameter sub-exponential proxy in `Bernstein`, the resulting upper tai
 constant `exp (-n * ε² / (2 * (σ² + bε/3)))`.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat.Concentration
 

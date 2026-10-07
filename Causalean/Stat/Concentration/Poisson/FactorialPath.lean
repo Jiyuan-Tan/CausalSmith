@@ -20,7 +20,7 @@ open scoped BigOperators
 
 namespace Causalean.Stat.Concentration.Poisson
 
-/-- [four count coordinates](hyp:W), [a normalization](hyp:m), [centers and radii](hyp:z,R), [a tensor degree index](hyp:a), and [a sample point](hyp:ω) determine [the normalized four-coordinate factorial monomial](goal).
+/-- For [four count coordinates](hyp:W), [a normalization](hyp:m), [centers and radii](hyp:z,R), [a multi-degree with one degree per coordinate](hyp:a), and [a sample point](hyp:ω), [the normalized four-coordinate factorial monomial](goal) is the product over the four coordinates of the centered factorial lift of that coordinate's count, of the coordinate's degree and with the coordinate's center, divided by the product of the radii raised to those degrees.
 
 The four-coordinate normalized centered factorial monomial indexed by a fixed tensor
 multi-degree.
@@ -31,7 +31,7 @@ def fourFactorialMonomial {Ω : Type*} {D : ℕ}
   factorialProduct W m z (fun i => (a i : ℕ)) ω /
     ∏ i, (R i) ^ (a i : ℕ)
 
-/-- [coefficient paths](hyp:c), [four count coordinates](hyp:W), [a normalization](hyp:m), [centers and radii](hyp:z,R), [a clipping radius](hyp:cap), and [a sample point](hyp:ω) determine [the clipped four-coordinate factorial path](goal).
+/-- For [coefficient paths indexed by multi-degrees](hyp:c), [four count coordinates](hyp:W), [a normalization](hyp:m), [centers and radii](hyp:z,R), [a clipping radius](hyp:cap), and [a sample point](hyp:ω), [the clipped four-coordinate factorial path](goal) is the continuous path whose value at each time is the sum over multi-degrees of the normalized factorial monomial at the sample point times the coefficient path at that time, clipped to the symmetric interval of the clipping radius.
 
 The clipped polynomial path in four independent Poisson factorial coordinates. Its finite
 coefficient family is a path indexed by the fixed tensor monomial basis.
@@ -42,7 +42,7 @@ def fourPoissonFactorialPath {Ω : Type*} {D : ℕ}
     (cap : ℝ) (ω : Ω) : Path :=
   clippedFinitePath c (fun ω a => fourFactorialMonomial W m z R a ω) cap ω
 
-/-- [A probability measure](hyp:μ), [coefficient paths with finite variation](hyp:c,hcBV), [four measurable independent Poisson counts and their rates](hyp:W,rate,hWmeas,hWlaw,hWindep), [positive normalization and scale parameters](hyp:m,L,hm,hL), [centers and positive radii](hyp:z,R,hR), [centering and variance conditions](hyp:hcenter,hvariance), and [a nonnegative clip radius](hyp:cap,hcap) give [a measurable square-integrable clipped factorial path with the stated exponential squared-size bound](goal).
+/-- Under [a probability measure](hyp:μ), take [coefficient paths of bounded variation, indexed by multi-degrees with each degree at most D](hyp:c,hcBV), [four measurable, mutually independent counts with Poisson laws of given rates](hyp:W,rate,hWmeas,hWlaw,hWindep), [a positive normalization m and a positive scale L](hyp:m,L,hm,hL), [centers and positive radii](hyp:z,R,hR) such that [each normalized mean rate/m is within its radius of its center and each rate/(m² R²) is at most 1/L](hyp:hcenter,hvariance), and [a nonnegative clipping radius](hyp:cap,hcap). Then [the clipped four-coordinate factorial path is a measurable random path, has bounded variation at every sample point, is Bochner-integrable, has integrable squared supremum-plus-variation size, and its expected squared size is at most the sum of the squared sizes of the coefficient paths times (D + 1)^4 exp(4D²/L)](goal).
 
 Four independent Poisson counts yield a measurable, bounded-variation clipped factorial
 polynomial path whose squared path size is integrable and bounded by the coefficient path-size

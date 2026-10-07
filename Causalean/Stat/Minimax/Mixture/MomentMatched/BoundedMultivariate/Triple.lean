@@ -18,14 +18,14 @@ namespace Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate
 /-- [The parameter triple](goal) stores arrival mass, propensity, and conditional success probability in that order. -/
 abbrev MarkedParam := ℝ × ℝ × ℝ
 
-/-- Three [monomial degrees](hyp:i,j,k) and [a parameter triple](hyp:t) determine [the mixed monomial](goal) by [multiplying the three corresponding powers](step:1). -/
+/-- Three [monomial degrees](hyp:i,j,k) and [a parameter triple](hyp:t) of arrival mass p, propensity π, and conditional success probability μ determine [the mixed monomial](goal) as [the product pⁱ · (pπ)ʲ · (pπμ)ᵏ](step:1). -/
 def mixedMonomial (i j k : ℕ) (t : MarkedParam) : ℝ :=
   t.1 ^ i * (t.1 * t.2.1) ^ j * (t.1 * t.2.1 * t.2.2) ^ k
 
 /-- A [parameter triple](hyp:t) determines [the target functional](goal) by [multiplying arrival mass and conditional success probability](step:1). -/
 def targetFunctional (t : MarkedParam) : ℝ := t.1 * t.2.2
 
-/-- A [matching degree](hyp:K), [arrival-mass bound and overlap margin](hyp:b,ε), and [target gap](hyp:gap) specify a bounded marked prior pair with finite probability support, matched mixed moments, and separated mean success mass. -/
+/-- A [matching degree](hyp:K), [arrival-mass bound and overlap margin](hyp:b,ε), and [target gap](hyp:gap) specify a pair of priors on parameter triples (arrival mass p, propensity π, conditional success probability μ), for a matching degree K ≥ 1: both are probability measures carried by finitely many points, both put all their mass on 0 ≤ p ≤ b, ε ≤ π ≤ 1 − ε, 0 ≤ μ ≤ 1, they give the same mean to every mixed monomial pⁱ(pπ)ʲ(pπμ)ᵏ of total degree i + j + k ≤ 3K and the same mean arrival mass, and their mean success masses ∫ pμ differ in absolute value by at least the target gap. -/
 structure TriplePriors (K : ℕ) (b ε gap : ℝ) where
   positive_degree : 1 ≤ K
   ν₀ : Measure MarkedParam
@@ -46,12 +46,14 @@ structure TriplePriors (K : ℕ) (b ε gap : ℝ) where
     |(∫ t, targetFunctional t ∂ν₀) -
       ∫ t, targetFunctional t ∂ν₁|
 
-/-- A [rescaling factor, scalar scale, and inverse coefficient](hyp:b,a,q) together with [a scalar atom](hyp:x) determine [the marked parameter triple](goal) by [using the stated positive-atom formula and a fixed zero atom](step:1). -/
+/-- A [rescaling factor, scalar scale, and inverse coefficient](hyp:b,a,q) together with [a scalar atom](hyp:x) determine [the marked parameter triple](goal) by [sending the atom x = 0 to (0, 1/2, 1) and every other atom x to (b·x, (1 + q·a/x)/2, x/(x + q·a))](step:1). -/
 noncomputable def scalarToTriple (b a q : ℝ) (x : ℝ) : MarkedParam :=
   if x = 0 then (0, 1 / 2, 1)
   else (b * x, (1 + q * a / x) / 2, x / (x + q * a))
 
-/-- A [scalar scale](hyp:a) and [scalar prior](hyp:ω) determine [the reweighted scalar measure](goal) by [adding a zero atom to the density tilted by the scale-to-atom ratio](step:1). -/
+/-- A [scalar scale](hyp:a) and [scalar prior](hyp:ω) determine [the reweighted scalar measure](goal) as [the prior reweighted by the density a/x (negative density values clipped to zero) plus an atom at zero of mass 1 − ∫ a/x dω (clipped at zero)](step:1).
+
+When the prior is a probability measure on the interval from a to 1 with a > 0, the density lies between 0 and 1 and the result is a probability measure. -/
 noncomputable def reweightedScalar (a : ℝ) (ω : Measure ℝ) : Measure ℝ :=
   ENNReal.ofReal (1 - ∫ x, a / x ∂ω) • Measure.dirac 0 +
     ω.withDensity (fun x => ENNReal.ofReal (a / x))
@@ -65,9 +67,9 @@ noncomputable def triplePrior (b a q : ℝ) (ω : Measure ℝ) :
   ∫ a/x and the added atom has its complementary mass. Finite support is
   preserved by weighting, adjoining zero, and mapping. -/
 
-/-- A [positive scale](hyp:ha₀) no larger than one [in its support endpoint](hyp:ha₁), [probability prior](hyp:ω), [finite support certificate](hyp:hfinite), and [interval support certificate](hyp:hsupport) give [a reweighted finite probability prior supported at zero and on the original interval](goal). -/
+/-- A [positive scale](hyp:ha₀), [probability prior](hyp:ω), [finite support certificate](hyp:hfinite), and [interval support certificate](hyp:hsupport) give [a reweighted finite probability prior supported at zero and on the original interval](goal). -/
 theorem reweightedScalar_probability_finite_supported
-    {a : ℝ} (ha₀ : 0 < a) (ha₁ : a ≤ 1) (ω : Measure ℝ)
+    {a : ℝ} (ha₀ : 0 < a) (ω : Measure ℝ)
     [IsProbabilityMeasure ω]
     (hfinite : ∃ s : Finset ℝ, ω (s : Set ℝ) = 1)
     (hsupport : ω (Set.Icc a 1) = 1) :
@@ -127,11 +129,11 @@ theorem reweightedScalar_probability_finite_supported
   positive branch, pπμ=bx/2 and pπ=b(x+qa)/2. Multiplication by the
   density a/x gives the displayed integrand, including exponent -1. -/
 
-/-- With a [positive reweighting scale](hyp:a,ha), [rescaling factor](hyp:b),
-[nonnegative inverse coefficient](hyp:q,hq), [probability prior supported on
-its positive interval](hyp:ω,hsupport), and [three degrees with positive total
-degree](hyp:i,j,k,hdegree), [the transported mixed moment has the stated
-scalar-integral formula](goal). -/
+/-- With a [positive reweighting scale](hyp:a,ha) a, [rescaling factor](hyp:b) b,
+[nonnegative inverse coefficient](hyp:q,hq) q, [probability prior ω putting all its
+mass on the interval from a to 1](hyp:ω,hsupport), and [three degrees with positive
+total degree](hyp:i,j,k,hdegree), [the mean of the mixed monomial pⁱ(pπ)ʲ(pπμ)ᵏ under
+the triple prior equals ∫ a · b^(i+j+k) / 2^(j+k) · x^(i+k) / x · (x + q·a)ʲ dω(x)](goal). -/
 theorem integral_mixedMonomial_triplePrior
     {a b q : ℝ} (ha : 0 < a) (hq : 0 ≤ q) (ω : Measure ℝ)
     [IsProbabilityMeasure ω] (hsupport : ω (Set.Icc a 1) = 1)

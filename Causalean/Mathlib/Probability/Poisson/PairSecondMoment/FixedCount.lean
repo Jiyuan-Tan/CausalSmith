@@ -114,7 +114,11 @@ theorem integral_fixedCount_sum_kernel_sq
 
 /-- Given [two probability laws](hyp:P,Q), [a measurable real kernel](hyp:K,hK),
 [an integrable kernel square](hyp:hK2), and [two fixed array lengths](hyp:m,n),
-[the squared bilinear sum has its exact four coincidence-class expectations](goal). -/
+[the expected squared bilinear sum over two independent iid arrays is the sum of four
+terms: `m·n` times the mean squared kernel; `m·n(n-1)` times the mean product of two
+kernel values sharing the left point with independent right points; `m(m-1)·n` times the
+mean product sharing the right point with independent left points; and `m(m-1)·n(n-1)`
+times the mean product at four independent points](goal). -/
 theorem integral_fixedCount_pairSum_sq
     (P : Measure X) [IsProbabilityMeasure P]
     (Q : Measure Y) [IsProbabilityMeasure Q]

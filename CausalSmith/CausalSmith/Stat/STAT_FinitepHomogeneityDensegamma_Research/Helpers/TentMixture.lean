@@ -28,7 +28,7 @@ lemma uniformMixture_sq_dev_integrable {Ω S : Type*} [MeasurableSpace Ω]
     exact hpair s t
   have hpoint : (fun x => p x^2) =ᵐ[P]
       (fun x => (∑ s : S, ∑ t : S, d s x*d t x)/(Fintype.card S:ℝ)^2) := by
-    filter_upwards [Causalean.Stat.Minimax.Mixture.uniformMixture_rnDeriv Q P hac] with x hx
+    filter_upwards [Causalean.Stat.Minimax.Mixture.uniformMixture_rnDeriv Q P] with x hx
     change p x = (∑ s : S, d s x)/(Fintype.card S:ℝ) at hx
     rw [hx, div_pow, sq, Finset.sum_mul_sum]
   have hsq : Integrable (fun x => p x^2) P :=

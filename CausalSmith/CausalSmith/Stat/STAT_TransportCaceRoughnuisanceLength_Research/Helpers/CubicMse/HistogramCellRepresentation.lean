@@ -3,7 +3,7 @@ public import CausalSmith.Stat.STAT_TransportCaceRoughnuisanceLength_Research.He
 
 /-! # Histogram cell heights as iid block averages -/
 
-@[expose] public section
+public section
 
 open Set
 open scoped BigOperators

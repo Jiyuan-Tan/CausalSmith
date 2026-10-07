@@ -12,9 +12,9 @@ public import Mathlib.Probability.Moments.CovarianceBilin
 public import Mathlib.Probability.Independence.Basic
 public import Mathlib.Probability.Distributions.Gaussian.Multivariate
 
-/-! # Standard Gaussian Measures
+/-! # Standard Gaussian measures
 
-This file retains compatibility names for Mathlib's standard Gaussian measure on a
+This file develops the coordinate-product representation of the standard Gaussian measure on a
 finite-dimensional real inner-product space. It also identifies the law of the squared norm with
 the sum of squared independent one-dimensional standard Gaussians.
 -/
@@ -33,11 +33,6 @@ section CompatibilityCoordinateModels
 variable (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 
-/-- The chosen orthonormal basis of `E`. -/
-@[deprecated stdOrthonormalBasis (since := "2026-09-15")]
-noncomputable def onb : OrthonormalBasis (Fin (Module.finrank ℝ E)) ℝ E :=
-  stdOrthonormalBasis ℝ E
-
 /-- For every [real normed inner-product space](hyp:E), the [coordinate product Gaussian
 measure](goal) is the product of independent standard normal laws, with one real-valued coordinate
 for every element of the finite index set whose size is the space's real rank.
@@ -47,18 +42,9 @@ for each dimension of a finite-dimensional real inner-product space. -/
 noncomputable def piGaussian : Measure (Fin (Module.finrank ℝ E) → ℝ) :=
   Measure.pi (fun _ : Fin (Module.finrank ℝ E) => gaussianReal 0 1)
 
-/-- The product standard Gaussian transported to `EuclideanSpace ℝ (Fin n)`. -/
-@[deprecated ProbabilityTheory.stdGaussian (since := "2026-09-15")]
-noncomputable def euclideanStdGaussian :
-    Measure (EuclideanSpace ℝ (Fin (Module.finrank ℝ E))) :=
-  ProbabilityTheory.stdGaussian (EuclideanSpace ℝ (Fin (Module.finrank ℝ E)))
-
 end CompatibilityCoordinateModels
 
-/-- The standard Gaussian measure on a finite-dimensional real inner-product space.
-
-This compatibility definition is retained because banked statements use its qualified name; its
-value is Mathlib's `ProbabilityTheory.stdGaussian`. -/
+/-- The standard Gaussian measure on a finite-dimensional real inner-product space. -/
 noncomputable def stdGaussian (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] : Measure E :=
   ProbabilityTheory.stdGaussian E
@@ -101,19 +87,6 @@ lemma memLp_eval (i : Fin (Module.finrank ℝ E)) :
   have h : MemLp id 2 (gaussianReal (0 : ℝ) 1) := memLp_id_gaussianReal' 2 (by simp)
   exact h.comp_measurePreserving (measurePreserving_eval _ i)
 
-/-- For every [real normed inner-product space](hyp:E), [the transported coordinate-product standard Gaussian law on the associated Euclidean space is a probability measure](goal). -/
-@[deprecated ProbabilityTheory.isProbabilityMeasure_stdGaussian (since := "2026-09-15")]
-instance isProbabilityMeasure_euclideanStdGaussian :
-    IsProbabilityMeasure (euclideanStdGaussian E) := by
-  rw [euclideanStdGaussian]
-  infer_instance
-
-/-- For every [real normed inner-product space](hyp:E), [the transported coordinate-product standard Gaussian law on the associated Euclidean space is a Gaussian probability law](goal). -/
-@[deprecated ProbabilityTheory.isGaussian_stdGaussian (since := "2026-09-15")]
-instance isGaussian_euclideanStdGaussian : IsGaussian (euclideanStdGaussian E) := by
-  rw [euclideanStdGaussian]
-  infer_instance
-
 /-- Transporting a measure through a continuous linear equivalence transports its vector integral
 through the same equivalence. -/
 lemma integral_id_map_equiv {F G : Type*}
@@ -127,30 +100,14 @@ lemma integral_id_map_equiv {F G : Type*}
   exact L.integral_comp_comm (fun x => x)
 
 /-- The standard Gaussian measure is a probability measure. -/
-@[deprecated ProbabilityTheory.isProbabilityMeasure_stdGaussian (since := "2026-09-15")]
 instance isProbabilityMeasure_stdGaussian : IsProbabilityMeasure (stdGaussian E) := by
   change IsProbabilityMeasure (ProbabilityTheory.stdGaussian E)
   infer_instance
 
 /-- The standard Gaussian measure is Gaussian. -/
-@[deprecated ProbabilityTheory.isGaussian_stdGaussian (since := "2026-09-15")]
 instance isGaussian_stdGaussian : IsGaussian (stdGaussian E) := by
   change IsGaussian (ProbabilityTheory.stdGaussian E)
   infer_instance
-
-/-- The standard Gaussian measure on a finite-dimensional real inner-product space has mean
-zero. -/
-@[deprecated ProbabilityTheory.integral_id_stdGaussian (since := "2026-09-15")]
-theorem stdGaussian_mean : ∫ x, x ∂(stdGaussian E) = 0 := by
-  simpa only [stdGaussian] using (ProbabilityTheory.integral_id_stdGaussian (E := E))
-
-/-- The covariance bilinear form of the standard Gaussian measure is the ambient inner
-product. -/
-@[deprecated ProbabilityTheory.covarianceBilin_stdGaussian (since := "2026-09-15")]
-theorem covarianceBilin_stdGaussian (u v : E) :
-    covarianceBilin (stdGaussian E) u v = (inner ℝ u v : ℝ) := by
-  rw [stdGaussian, ProbabilityTheory.covarianceBilin_stdGaussian]
-  rfl
 
 /-- **Product-of-1-D-Gaussians model for the squared norm.** [The law of the squared norm
 under the standard Gaussian measure on `E` equals the law of the sum of squared

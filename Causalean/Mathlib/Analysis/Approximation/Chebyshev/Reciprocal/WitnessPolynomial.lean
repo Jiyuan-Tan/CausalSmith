@@ -21,7 +21,8 @@ open Polynomial
 /-- The [interval endpoints](hyp:a,b) and [degree bound m](hyp:m) determine [the Chebyshev residual
 polynomial](goal), given by [the Chebyshev polynomial of degree m + 1 divided by the interval's
 decay parameter, minus twice the Chebyshev polynomial of degree m, plus the decay parameter times
-the Chebyshev polynomial of degree m − 1](step:1). -/
+the Chebyshev polynomial of degree m − 1](step:1); when m = 0 the last term uses index −1, which is
+the Chebyshev polynomial of degree one. -/
 noncomputable def reciprocalResidualPoly (a b : ℝ) (m : ℕ) : Polynomial ℝ :=
   C (intervalDecay a b)⁻¹ * Chebyshev.T ℝ ((m : ℤ) + 1) -
     C 2 * Chebyshev.T ℝ (m : ℤ) +
@@ -117,11 +118,10 @@ theorem reciprocalResidualPoly_at_shape {a b : ℝ}
       field_simp [hρ]
       ring
 
-/-- A [positive lower endpoint](hyp:a,ha), [strictly larger upper
-endpoint](hyp:b,hab), and [degree bound](hyp:m) imply [that the explicit
+/-- For any two endpoints and any [degree bound](hyp:m), [the explicit
 reciprocal approximant has degree at most that bound](goal). -/
 theorem reciprocalApproxPoly_degree_le {a b : ℝ}
-    (ha : 0 < a) (hab : a < b) (m : ℕ) :
+    (m : ℕ) :
     (reciprocalApproxPoly a b m).natDegree ≤ m := by
   let R := reciprocalResidualPoly a b m
   let Q := C (intervalShape a b) - C (2 / (b - a)) * X

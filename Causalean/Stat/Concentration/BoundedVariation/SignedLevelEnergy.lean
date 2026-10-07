@@ -71,8 +71,7 @@ theorem signed_grid_abs_max_energy_le {m n : ℕ}
   rw [heq]
   exact signed_grid_increment_max_energy_le w t δ hδ
 
-/-- Suppose a scalar control u is [nondecreasing](hyp:hmono), [zero at
-time zero](hyp:hzero), and [dominates the summed squared path increments
+/-- Suppose a scalar control u [dominates the summed squared path increments
 over every interval](hyp:henergy), and [the dyadic grids](hyp:grid) are
 [monotone at every level](hyp:hgridmono) and [place their i-th level-k
 point at control value i/2^k times the terminal value](hyp:hgridval). Then
@@ -80,7 +79,7 @@ at every level k [the sign-average of the squared maximal signed increment
 is at most 32 (1 + log 2^(k+1)) times u(1)/2^(k+1)](goal).
 -/
 theorem signedDyadicIncrementMax_energy_le {n : ℕ} (w : Fin n → Path)
-    (u : Path) (hmono : Monotone (u : Time → ℝ)) (hzero : u timeZero = 0)
+    (u : Path)
     (henergy : ∀ s t : Time, s ≤ t →
       (∑ j, (w j t - w j s) ^ 2) ≤ u t - u s)
     (grid : ∀ k : ℕ, Fin (2 ^ k + 1) → Time)

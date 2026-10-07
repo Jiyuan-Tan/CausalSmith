@@ -9,20 +9,28 @@ public import Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.Bounds
 public import Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.Attainment
 
 /-!
-# Bounded-outcome residual envelope: `IsLUB`
+# Sharp residual envelope for bounded outcomes
 
-This file assembles the bounded-outcome moment problem. For `v ∈ (0,1)`, the measure-level residual
-envelope `ρ(v) = rhoEnvelope v` is the least upper bound of the residual `l2ResidualQuadratic μ`
-over all admissible laws `μ` (probability measures on `[0,1]` with second moment `v²`), and it is
-*attained* by the extremal three-point law.
+Among all probability laws `μ` on `[0, 1]` with second moment `∫ y² dμ = v²`, how large can the
+residual variance of regressing `y²` on `(1, y)` be? For every `v ∈ (0, 1)` the supremum of this
+L² projection residual equals the closed form
 
-* `rho_envelope_isLUB` — `IsLUB (residualSet v) (rhoEnvelope v)`.
-* `rho_envelope_attained` — the extremal law realizing `ρ(v)` (re-exported from `Attainment`).
-* `interior_quartic_unique_root` — the unique interior root of the FOC quartic (from `QuarticRoot`).
+    ρ(v) = (μᵥ − v²)(v² − μᵥ²) / (4 μᵥ (1 − μᵥ)),
 
-The `IsLUB` combines the upper bound `l2ResidualQuadratic_le_rho` (every admissible residual is
-`≤ ρ(v)`) with attainment (`ρ(v)` itself is a realized residual), so any upper bound of the set is
-`≥ ρ(v)`.
+where `μᵥ` is the unique root in `(v², v)` of the first-order-condition quartic, and the supremum
+is attained by an extremal three-point law.
+
+## Main results
+
+* `rho_envelope_isLUB` — `rhoEnvelope v` is the least upper bound of `residualSet v`, the set of
+  residuals `l2ResidualQuadratic μ` over admissible laws `μ` (proved in this file).
+* `l2ResidualQuadratic_le_rho` — the upper bound: every admissible residual is at most `ρ(v)`.
+* `rho_envelope_attained` — an admissible law with residual exactly `ρ(v)`.
+* `interior_quartic_unique_root` — existence and uniqueness of `μᵥ`.
+
+The least-upper-bound statement combines the upper bound with attainment. The residual
+`l2ResidualQuadratic μ` is the closed-form expression in the first four raw moments; its
+identification with the minimized L² distance is in `ResidualQuadratic.MeasureBridge`.
 -/
 
 public section

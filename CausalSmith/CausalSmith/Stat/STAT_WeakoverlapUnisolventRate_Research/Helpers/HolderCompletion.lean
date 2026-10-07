@@ -40,8 +40,8 @@ lemma fixedCube_holder_completion (d : ℕ) (hd : 1 ≤ d) (β : ℝ) (hβ : 1 <
     have hceil : 1 ≤ ⌈β⌉₊ := Nat.one_le_ceil_iff.mpr (by linarith)
     rw [Nat.cast_sub hceil, Nat.cast_one]
     linarith [Nat.le_ceil β]
-  obtain ⟨K₀, hK₀, hcomplete⟩ := cube_holder_completion d m hd s hs hs1
-  obtain ⟨K₁, hK₁, haffine⟩ := cube_holder_affine_transport d m s hs hs1
+  obtain ⟨K₀, hK₀, hcomplete⟩ := cube_holder_completion d m s hs
+  obtain ⟨K₁, hK₁, haffine⟩ := cube_holder_affine_transport d m s hs1
   let C : ℝ := (Real.sqrt d) ^ s
   have hC : 0 < C := by
     dsimp [C]

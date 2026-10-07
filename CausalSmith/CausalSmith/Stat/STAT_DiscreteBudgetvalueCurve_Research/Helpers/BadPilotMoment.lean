@@ -4,7 +4,7 @@ public import Causalean.Stat.Concentration.Poisson.EmpiricalRadius.Product
 
 /-! Coordinatewise empirical-radius estimates for bad pilot cells. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.DiscreteBudgetvalueCurve
 
@@ -164,9 +164,9 @@ lemma pilotCell_universalBadScore_moment {d : ℕ} (P : DiscreteLaw d)
     dsimp [μ, poissonTableLaw]
     infer_instance
   have hWlaw (i : Fin 4) : HasLaw (W i) (poissonMeasure (rate i)) μ := by
-    simpa [W, μ] using poissonTable_eval_coordinate_law rate rate (fun _ => 0) i
+    simpa [W, μ] using poissonTable_eval_coordinate_law rate i
   have hWindep : iIndepFun W μ := by
-    simpa [W, μ] using poissonTable_eval_independent rate rate (fun _ => 0)
+    simpa [W, μ] using poissonTable_eval_independent rate
   have hraw := independent_poisson_badAny_moment_four μ W rate
     (fun _ => measurable_pi_apply _) hWlaw hWindep ht hL
   have hq (z : Cell) : 0 ≤ cellVector P j z := by
@@ -226,10 +226,10 @@ lemma pilotCell_empiricalBadScore_moment {n d : ℕ} (P : DiscreteLaw d)
     infer_instance
   have hWlaw (i : Fin 4) : HasLaw (W i) (poissonMeasure (mNN * q i)) μ := by
     simpa [W, μ] using poissonTable_eval_coordinate_law
-      (fun i => mNN * q i) (fun i => mNN * q i) (fun _ => 0) i
+      (fun i => mNN * q i) i
   have hWindep : iIndepFun W μ := by
     simpa [W, μ] using poissonTable_eval_independent
-      (fun i => mNN * q i) (fun i => mNN * q i) (fun _ => 0)
+      (fun i => mNN * q i)
   have hL : 1 ≤ logAlphabet d := by
     rw [logAlphabet, Real.log_mul (Real.exp_ne_zero 1) (by positivity),
       Real.log_exp]
@@ -286,7 +286,7 @@ lemma independent_poisson_empiricalBadScore_sq_integrable_four
     exact div_nonneg (div_nonneg hH0 universalH_pos.le) hmR.le
   have hscoreInt (i : Fin 4) :
       Integrable (fun ω => (score universalH L (lambda i) (W i ω)) ^ 2) μ := by
-    have h := integrable_score_pow (lambda i) hL (by norm_num : 2 ≤ 4)
+    have h := integrable_score_pow (lambda i) hL (t := 2)
     rw [← (hWlaw i).map_eq] at h
     exact h.comp_aemeasurable (hWlaw i).aemeasurable
   have hdomInt : Integrable (fun ω =>
@@ -376,7 +376,7 @@ lemma independent_poisson_empiricalAggregateScore_sq_integrable_four
   have hH0 : 0 ≤ H := le_trans universalH_pos.le hH
   have hscoreInt (i : Fin 4) :
       Integrable (fun ω => (score universalH L (lambda i) (W i ω)) ^ 2) μ := by
-    have h := integrable_score_pow (lambda i) hL (by norm_num : 2 ≤ 4)
+    have h := integrable_score_pow (lambda i) hL (t := 2)
     rw [← (hWlaw i).map_eq] at h
     exact h.comp_aemeasurable (hWlaw i).aemeasurable
   have hdomInt : Integrable (fun ω =>
@@ -577,7 +577,7 @@ lemma pilotCell_badScore_sq_integrable {n d : ℕ} (P : DiscreteLaw d)
     μ W q mNN hmNN (fun _ => measurable_pi_apply _)
     (fun i => by
       simpa [W, μ] using poissonTable_eval_coordinate_law
-        (fun i => mNN * q i) (fun i => mNN * q i) (fun _ => 0) i)
+        (fun i => mNN * q i) i)
     pilotRadiusConstant (logAlphabet d)
     (by unfold pilotRadiusConstant universalH; norm_num)
     (by
@@ -671,7 +671,7 @@ lemma pilotCell_score_sq_integrable {n d : ℕ} (P : DiscreteLaw d)
     μ W q mNN hmNN (fun _ => measurable_pi_apply _)
     (fun i => by
       simpa [W, μ] using poissonTable_eval_coordinate_law
-        (fun i => mNN * q i) (fun i => mNN * q i) (fun _ => 0) i)
+        (fun i => mNN * q i) i)
     pilotRadiusConstant (logAlphabet d)
     (by unfold pilotRadiusConstant universalH; norm_num)
     (by

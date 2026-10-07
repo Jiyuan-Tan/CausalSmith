@@ -24,7 +24,7 @@ at an [angle](hyp:θ) integrates their translated product over the principal per
 def angularConvolution (g h : ℝ → ℝ) (θ : ℝ) : ℝ :=
   ∫ t in Set.Icc (-Real.pi) Real.pi, g (θ - t) * h t
 
-/-- Two [continuous periodic functions](hyp:hg,hh,hgper,hhper) satisfy
+/-- Two [periodic functions](hyp:hgper,hhper) satisfy
 [the reversed angular convolution formula](goal) at every [angle](hyp:θ).
 
 Substitute t ↦ θ-t, then use invariance of the integral of a continuous
@@ -35,7 +35,6 @@ Search confirmed `intervalIntegral.integral_comp_sub_left` and
 the latter needs no integrability premise.
 -/
 theorem angularConvolution_reverse {g h : ℝ → ℝ}
-    (hg : Continuous g) (hh : Continuous h)
     (hgper : Function.Periodic g (2 * Real.pi))
     (hhper : Function.Periodic h (2 * Real.pi)) (θ : ℝ) :
     angularConvolution g h θ =
@@ -114,7 +113,7 @@ theorem angularConvolution_cosine_expansion {n : ℕ} {g h : ℝ → ℝ}
     apply Finset.sum_congr rfl
     intro j hj
     rw [mul_add, Real.cos_add_nat_mul_two_pi]
-  rw [angularConvolution_reverse hg hh hgper hhper θ]
+  rw [angularConvolution_reverse hgper hhper θ]
   have hle : -Real.pi ≤ Real.pi := by linarith [Real.pi_pos]
   simp only [integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hle]
   have hsine (j : ℕ) :

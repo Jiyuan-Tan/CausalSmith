@@ -57,21 +57,19 @@ theorem abs_two_mul_log_one_add_half_sub_quadratic_le_cube
           ring
     _ ≤ |w| ^ 3 := hscaled
 
-/-- If [each row is a probability law](hyp:hP), [its log likelihood has the stated coordinate representation on the small-increment event](hyp:hidentity), [its quadratic sum converges in probability](hyp:hquadratic), and [its largest coordinate vanishes in probability](hyp:hmax), [the summed quadratic Taylor remainder converges in probability to zero](goal). -/
+/-- If [each row log likelihood has the stated coordinate representation on the small-increment event](hyp:hidentity), [its quadratic sum converges in probability](hyp:hquadratic), and [its largest coordinate vanishes in probability](hyp:hmax), [the summed quadratic Taylor remainder converges in probability to zero](goal). -/
 theorem sum_log_taylor_remainder_tendstoInProbability
     {Ω : ℕ → Type*} [∀ n, MeasurableSpace (Ω n)]
     (P : (n : ℕ) → Measure (Ω n)) (L : (n : ℕ) → Ω n → ℝ)
     (W : (n : ℕ) → Ω n → Fin n → ℝ) (q : ℝ)
-    (hP : ∀ n, IsProbabilityMeasure (P n))
     (hidentity : ∀ n, ∀ᵐ x ∂P n, (∀ i, |W n x i| ≤ 1) →
       L n x = ∑ i, 2 * Real.log (1 + W n x i / 2))
-    (hquadratic : TendstoInProbability P
-      (fun n x => (∑ i, W n x i ^ 2)) q)
+    (hquadratic : Causalean.Stat.Modes.TendstoInProbability P (fun n x => (∑ i, W n x i ^ 2)) atTop
+        (fun _ _ => q))
     (hmax : ∀ ε : ℝ, 0 < ε → Tendsto (fun n => P n
       {x | ∃ i, ε ≤ |W n x i|}) atTop (𝓝 0)) :
-    TendstoInProbability P
-      (fun n x => L n x - (∑ i, W n x i) +
-        (1 / 4 : ℝ) * ∑ i, W n x i ^ 2) 0 := by
+    Causalean.Stat.Modes.TendstoInProbability P (fun n x => L n x - (∑ i, W n x i) +
+        (1 / 4 : ℝ) * ∑ i, W n x i ^ 2) atTop (fun _ _ => 0) := by
   rw [tendstoInProbability_iff_real] at hquadratic ⊢
   intro ε hε
   let K : ℝ := |q| + 1

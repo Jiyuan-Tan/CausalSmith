@@ -15,7 +15,7 @@ as functions of the observed `Fin n` sample vector, following the generic
 sample-function interface.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat
 

@@ -15,7 +15,7 @@ namespace Causalean.Mathlib.Analysis.SpecialFunctions.Jacobi
 
 open Filter
 
-/-- A [degree](hyp:k), [derivative index](hyp:i), and [positive shape parameter](hyp:α), with [parameter positivity](hyp:hα) and [the index below the degree](hyp:hik), give [vanishing of the reciprocal-weight boundary product at zero](goal).
+/-- A [degree](hyp:k), [derivative index](hyp:i), and [positive shape parameter](hyp:α), with [parameter positivity](hyp:hα) and [the index below the degree](hyp:hik), give [vanishing at zero of the reciprocal-weight boundary product: the i-th derivative of 1/x times the (k−1−i)-th derivative of the weighted Rodrigues kernel tends to zero as x decreases to zero](goal).
 
 For `i < k`, the product of the `i`th derivative of `x⁻¹` and the
 `(k-1-i)`th derivative of the Rodrigues kernel tends to zero as `x ↓ 0`. -/

@@ -4,7 +4,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.F
 
 /-! Point identification of the Bernoulli trial submodels at a Dirac score. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open scoped ENNReal

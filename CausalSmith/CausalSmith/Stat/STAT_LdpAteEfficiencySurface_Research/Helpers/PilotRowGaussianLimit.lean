@@ -11,7 +11,7 @@ the genuine adaptive main-release mass and centered score. It also transfers the
 row-length normalization to the paper's root-total-sample normalization.
 -/
 
-@[expose] public section
+public section
 noncomputable section
 
 namespace CausalSmith.Stat.LdpAteEfficiencySurface

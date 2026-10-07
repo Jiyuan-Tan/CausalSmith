@@ -43,7 +43,7 @@ lemma cateWitness_tv_product_le {d n : ℕ} (Q : CateLaw d) (e0 K : ℝ)
     ht.apply.trans (mul_le_mul_of_nonneg_left hsingle (Nat.cast_nonneg n))
   have hpinsker := pinskerBound_of_ac_of_ne_top
     (Measure.pi fun _ : Fin n => μ) (Measure.pi fun _ : Fin n => ν)
-    (Causalean.Mathlib.InformationTheory.pi_iid_absolutelyContinuous μ ν hac n)
+    (Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous μ ν hac n)
     ht.product_ne_top
   rw [tvDist_symm]
   calc

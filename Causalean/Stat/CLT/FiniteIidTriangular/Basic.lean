@@ -43,10 +43,12 @@ outcome vectors in the row. -/
 def expect (n : ℕ) (F : (Fin (M.N n) → Y) → ℝ) : ℝ :=
   ∑ ys, M.mass n ys * F ys
 
-/-- The mean score of one coordinate in a row is zero. -/
+/-- The one-coordinate mean score in a row is the mass-weighted sum of the scores. The
+centering condition of the row model makes it zero. -/
 def oneMean (n : ℕ) : ℝ := ∑ y, M.w n y * M.f n y
 
-/-- The one-coordinate second raw moment in a row is its variance. -/
+/-- The one-coordinate second raw moment in a row is the mass-weighted sum of the squared
+scores. Because the scores are centered, it is the one-coordinate variance. -/
 def oneSecond (n : ℕ) : ℝ := ∑ y, M.w n y * (M.f n y) ^ 2
 
 /-- The one-coordinate fourth raw moment in a row is the mass-weighted fourth score power. -/

@@ -291,7 +291,7 @@ theorem unit_beta_square_integral (n : ℕ) :
   rw [intervalIntegral.integral_ofReal] at heval
   exact Complex.ofReal_inj.mp (by simpa using heval)
 
-/-- Given [a finite dimension](hyp:n) and [a coordinate index](hyp:i), [the squared integral of that simplex coordinate equals the first-coordinate integral](goal). -/
+/-- Given [a finite dimension](hyp:n) and [a coordinate index](hyp:i), [the integral over the spacing simplex of the square of that coordinate equals the integral of the square of the first coordinate](goal). -/
 theorem simplex_coordinate_square_eq_first (n : ℕ) (i : Fin n) :
     (∫ z in spacingSimplex n, (z i) ^ 2 ∂volume) =
       ∫ z in spacingSimplex n,

@@ -91,7 +91,7 @@ theorem localMinimaxValue_tendsto_fiber (p : Theta → X → ℝ)
       0 ≤ finiteSquaredRisk p tau d theta ∧
         finiteSquaredRisk p tau d theta ≤ (u - l) ^ 2 :=
     finiteSquaredRisk_bounds p tau (fun theta x ↦ (hp theta).1 x)
-      (fun theta ↦ (hp theta).2) hlu htau_mem d theta
+      (fun theta ↦ (hp theta).2) htau_mem d theta
   have hfiber_le_local (r : ℝ) (hr : 0 ≤ r) :
       fiberMinimaxValue p tau q hq l u theta0 ≤
         localMinimaxValue p tau q hq l u r theta0 := by

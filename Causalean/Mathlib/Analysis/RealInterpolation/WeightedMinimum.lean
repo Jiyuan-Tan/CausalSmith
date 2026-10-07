@@ -47,15 +47,15 @@ private theorem cost_integral {S : Type*} [MeasurableSpace S]
     lintegral_const_mul' _ _ ENNReal.ofReal_ne_top]
   exact hw0.aemeasurable.mul (f0.aestronglyMeasurable.enorm.pow_const 2)
 
-/-- [Measurable weights](hyp:w0,w1,hw0,hw1) that are [positive finite almost
-everywhere](hyp:hw) give [a pointwise-minimum lower bound on each decomposition's
+/-- [Two weights](hyp:w0,w1), [the first of them measurable](hyp:hw0), that are [positive finite
+almost everywhere](hyp:hw) give [a pointwise-minimum lower bound on each decomposition's
 quadratic weighted energy](goal), at [a positive scale](hyp:t,ht) for
 [a decomposition modulo null sets](hyp:f,f0,f1,hf).
 Use wNorm_sq, the almost-everywhere addition rule, harmonic_quadratic_le,
 and monotonicity and addition of nonnegative integrals. -/
 theorem harmonic_energy_le_cost {S : Type*} [MeasurableSpace S]
     (μ : Measure S) (w0 w1 : S → ℝ≥0∞)
-    (hw0 : Measurable w0) (hw1 : Measurable w1)
+    (hw0 : Measurable w0)
     (hw : ∀ᵐ x ∂μ, 0 < w0 x ∧ w0 x < ⊤ ∧ 0 < w1 x ∧ w1 x < ⊤)
     (t : ℝ) (ht : 0 < t) (f f0 f1 : S →ₘ[μ] ℂ) (hf : f = f0 + f1) :
     (∫⁻ x, harmonicWeight (w0 x) (w1 x) t * (‖f x‖₊ : ℝ≥0∞) ^ 2 ∂μ) ≤
@@ -151,6 +151,6 @@ theorem kFunctionalSq_wNorm {S : Type*} [MeasurableSpace S]
     exact iInf_le_of_le f0 (iInf_le_of_le f1 (iInf_le_of_le hf he.le))
   · unfold kFunctionalSq
     refine le_iInf fun f0 => le_iInf fun f1 => le_iInf fun hf => ?_
-    exact harmonic_energy_le_cost μ w0 w1 hw0 hw1 hw t ht f f0 f1 hf
+    exact harmonic_energy_le_cost μ w0 w1 hw0 hw t ht f f0 f1 hf
 
 end Causalean.Mathlib.Analysis.RealInterpolation

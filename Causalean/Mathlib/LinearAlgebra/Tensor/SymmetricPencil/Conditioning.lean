@@ -87,15 +87,15 @@ private theorem rectangularOperatorNorm_le_matrixFrobenius {ι κ : Type*}
           Real.sqrt_eq_rpow, Fintype.sum_prod_type]
         simp only [Real.rpow_two, Real.norm_eq_abs, sq_abs]
 
-/-- Compressing a full-column-rank matrix in an orthonormal basis of its column space preserves
-its least column singular value. Under [the listed assumptions](hyp:horth,hspace,hinj), [the stated conclusion follows](goal). -/
+/-- Compressing a matrix in an orthonormal basis of its column space preserves
+its least column singular value. Under [the listed assumptions](hyp:horth,hspace), [the stated conclusion follows](goal). -/
 -- Proof route: turn `U` into a `LinearIsometry` using `UᵀU = I`, rewrite the transpose product
 -- as composition with that isometry, and apply
 -- `singularValues_comp_linearIsometry_last` to the adjoint/range equality induced by `hspace`.
 theorem leastColumnSingularValue_transpose_mul_eq {ι κ : Type*}
     [Fintype ι] [Fintype κ] [DecidableEq ι] [DecidableEq κ] [Nonempty κ]
     (U V : Matrix ι κ ℝ) (horth : OrthonormalColumns U)
-    (hspace : SameColumnSpace U V) (hinj : Function.Injective V.toEuclideanLin) :
+    (hspace : SameColumnSpace U V) :
     leastColumnSingularValue (U.transpose * V) = leastColumnSingularValue V := by
   let W := orthonormalColumnsLinearIsometry U horth
   let S := (U.transpose * V).toEuclideanLin
@@ -220,7 +220,7 @@ private theorem squareInverse_operatorNorm_le_reciprocal {κ : Type*}
     rw [← ContinuousLinearMap.mul_apply, ← map_mul, Matrix.mul_nonsing_inv A hdet,
       map_one, ContinuousLinearMap.one_apply]
   have hleast := Causalean.Mathlib.Analysis.least_singularValue_mul_norm_le
-    A.toEuclideanLin hinj (e A⁻¹ x)
+    A.toEuclideanLin (e A⁻¹ x)
   have hsigma_mul : sigma * ‖e A⁻¹ x‖ ≤ ‖x‖ := by
     calc
       sigma * ‖e A⁻¹ x‖ ≤ leastColumnSingularValue A * ‖e A⁻¹ x‖ :=
@@ -245,14 +245,14 @@ theorem compressedLift_leastSingularValue {p n d : ℕ} [NeZero n]
   have hinj := injective_of_pos_le_leastColumnSingularValue
     (liftedDirections d C) hsigma hlift
   rw [leastColumnSingularValue_transpose_mul_eq U (liftedDirections d C)
-    horth hspace hinj]
+    horth hspace]
   exact hlift
 
 /-- The square coordinate matrix of a degree lift with unit columns has operator norm at most
-the square root of the number of factor columns. Under [the listed assumptions](hyp:hd,horth,hunit), [the stated conclusion follows](goal). -/
+the square root of the number of factor columns. Under [the listed assumptions](hyp:horth,hunit), [the stated conclusion follows](goal). -/
 theorem compressedLift_operatorNorm_le_sqrt {p n d : ℕ}
     (C : FactorMatrix p n) (U : Matrix (LiftIndex p d) (Fin n) ℝ)
-    (hd : 0 < d) (horth : OrthonormalColumns U)
+    (horth : OrthonormalColumns U)
     (hunit : ∀ j, finiteFrobeniusNorm (C.col j) = 1) :
     squareOperatorNorm (U.transpose * liftedDirections d C) ≤ Real.sqrt n := by
   open scoped Matrix.Norms.L2Operator in
@@ -264,7 +264,7 @@ theorem compressedLift_operatorNorm_le_sqrt {p n d : ℕ}
       exact hU
     have hV : ‖liftedDirections d C‖ ≤ Real.sqrt n :=
       (rectangularOperatorNorm_le_matrixFrobenius (liftedDirections d C)).trans_eq
-        (matrixFrobeniusNorm_liftedDirections hd C hunit)
+        (matrixFrobeniusNorm_liftedDirections (d := d) C hunit)
     calc
       ‖U.transpose * liftedDirections d C‖ ≤
           ‖U.transpose‖ * ‖liftedDirections d C‖ := Matrix.l2_opNorm_mul _ _
@@ -284,10 +284,10 @@ theorem compressedLift_inverse_operatorNorm_le {p n d : ℕ} [NeZero n]
   exact compressedLift_leastSingularValue C U hsigma hlift horth hspace
 
 /-- A degree lift with unit columns and least singular value at least `sigma` has compressed
-diagonalizer condition number at most `sqrt n / sigma`. Under [the listed assumptions](hyp:hd,hsigma,hunit,hlift,horth,hspace), [the stated conclusion follows](goal). -/
+diagonalizer condition number at most `sqrt n / sigma`. Under [the listed assumptions](hyp:hsigma,hunit,hlift,horth,hspace), [the stated conclusion follows](goal). -/
 theorem compressedLift_condition_le {p n d : ℕ} [NeZero n]
     (C : FactorMatrix p n) (U : Matrix (LiftIndex p d) (Fin n) ℝ)
-    {sigma : ℝ} (hd : 0 < d) (hsigma : 0 < sigma)
+    {sigma : ℝ} (hsigma : 0 < sigma)
     (hunit : ∀ j, finiteFrobeniusNorm (C.col j) = 1)
     (hlift : sigma ≤ leastColumnSingularValue (liftedDirections d C))
     (horth : OrthonormalColumns U)
@@ -295,7 +295,7 @@ theorem compressedLift_condition_le {p n d : ℕ} [NeZero n]
     squareOperatorNorm (U.transpose * liftedDirections d C) *
     squareOperatorNorm (U.transpose * liftedDirections d C)⁻¹ ≤
       Real.sqrt n / sigma := by
-  have hop := compressedLift_operatorNorm_le_sqrt C U hd horth hunit
+  have hop := compressedLift_operatorNorm_le_sqrt C U horth hunit
   have hinv := compressedLift_inverse_operatorNorm_le C U hsigma hlift horth hspace
   calc
     squareOperatorNorm (U.transpose * liftedDirections d C) *
@@ -305,16 +305,16 @@ theorem compressedLift_condition_le {p n d : ℕ} [NeZero n]
     _ = Real.sqrt n / sigma := by rw [div_eq_mul_inv]
 
 /-- Given a factor matrix, its coefficients, a denominator probe,
-orthonormal lifted coordinates, positive degree and margins,
+orthonormal lifted coordinates, positive margins,
 a lifted singular-value margin, coefficient lower bounds, and
 probe-loading lower bounds, the compressed denominator contraction has least singular
-value at least the assembled margin. Under [the listed assumptions](hyp:hq,hsigma,hkappa,horth,hspace,hlift,hlam,hprobe), [the stated conclusion follows](goal). -/
+value at least the assembled margin. Under [the listed assumptions](hyp:hsigma,hkappa,horth,hspace,hlift,hlam,hprobe), [the stated conclusion follows](goal). -/
 -- Proof route: use `Matrix.singularValues_mul_mul_transpose_lower_bound`; the diagonal core
 -- expands by `kappa * sigma^q`, while each compressed lifted factor expands by `sigma`.
 theorem compressedDenominator_leastSingularValue {p n d q : ℕ} [NeZero n]
     (C : FactorMatrix p n) (lam : Fin n → ℝ) (u : Vec p)
     (U : Matrix (LiftIndex p d) (Fin n) ℝ) {sigma kappa : ℝ}
-    (hq : 0 < q) (hsigma : 0 < sigma) (hkappa : 0 < kappa)
+    (hsigma : 0 < sigma) (hkappa : 0 < kappa)
     (horth : OrthonormalColumns U)
     (hspace : SameColumnSpace U (liftedDirections d C))
     (hlift : sigma ≤ leastColumnSingularValue (liftedDirections d C))
@@ -355,7 +355,6 @@ theorem compressedDenominator_leastSingularValue {p n d q : ℕ} [NeZero n]
   have hDsv : kappa * sigma ^ q ≤ leastColumnSingularValue D := by
     apply Causalean.Mathlib.Analysis.le_singularValues_of_subspace
       D.toEuclideanLin ⊤
-    · exact mul_nonneg hkappa.le (pow_nonneg hsigma.le q)
     · simp only [finrank_euclideanSpace, finrank_top]
       exact Nat.sub_lt (Fintype.card_pos) (by omega)
     · intro x _hx
@@ -375,7 +374,7 @@ theorem compressedDenominator_leastSingularValue {p n d q : ℕ} [NeZero n]
           (abs_nonneg _)).2 (hload j)) (sq_nonneg (WithLp.ofLp x j)) using 1 <;>
         simp only [sq_abs] <;> ring
   have hprod := Causalean.Mathlib.Analysis.Matrix.singularValues_mul_mul_transpose_lower_bound
-    S D S hSinj hDinj hSinj
+    S D S hSinj
   have hS0 := S.toEuclideanLin.singularValues_nonneg (Fintype.card (Fin n) - 1)
   have hD0 := D.toEuclideanLin.singularValues_nonneg (Fintype.card (Fin n) - 1)
   calc
@@ -391,13 +390,13 @@ theorem compressedDenominator_leastSingularValue {p n d q : ℕ} [NeZero n]
       simpa [leastColumnSingularValue] using hprod
 
 /-- Every compressed numerator contraction has operator norm at most `n * Lambda` when the
-factor columns and the contraction probe are unit and the coefficients are bounded by `Lambda`. Under [the listed assumptions](hyp:hd,hq,hLambda,horth,hunitC,hu,hw,hlam), [the stated conclusion follows](goal). -/
+factor columns and the contraction probe are unit and the coefficients are bounded by `Lambda`. Under [the listed assumptions](hyp:hq,hLambda,horth,hunitC,hu,hw,hlam), [the stated conclusion follows](goal). -/
 -- Proof route: use the exact contraction factorization, Cauchy--Schwarz for both loadings,
 -- `‖S‖ ≤ ‖S‖F = sqrt n`, and submultiplicativity.
 theorem compressedNumerator_operatorNorm_le {p n d q : ℕ}
     (C : FactorMatrix p n) (lam : Fin n → ℝ) (u w : Vec p)
     (U : Matrix (LiftIndex p d) (Fin n) ℝ) {Lambda : ℝ}
-    (hd : 0 < d) (hq : 0 < q) (hLambda : 0 ≤ Lambda)
+    (hq : 0 < q) (hLambda : 0 ≤ Lambda)
     (horth : OrthonormalColumns U)
     (hunitC : ∀ j, finiteFrobeniusNorm (C.col j) = 1)
     (hu : finiteFrobeniusNorm u = 1) (hw : finiteFrobeniusNorm w = 1)
@@ -438,7 +437,7 @@ theorem compressedNumerator_operatorNorm_le {p n d q : ℕ}
   let D := Matrix.diagonal (fun j =>
     lam j * dot u (C.col j) ^ (q - 1) * dot w (C.col j))
   have hS : squareOperatorNorm S ≤ Real.sqrt n :=
-    compressedLift_operatorNorm_le_sqrt C U hd horth hunitC
+    compressedLift_operatorNorm_le_sqrt C U horth hunitC
   open scoped Matrix.Norms.L2Operator in
     change ‖S‖ ≤ Real.sqrt n at hS
     have hD : ‖D‖ ≤ Lambda := by

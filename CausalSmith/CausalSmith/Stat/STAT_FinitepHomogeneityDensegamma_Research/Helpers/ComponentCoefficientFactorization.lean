@@ -5,7 +5,7 @@ public import Causalean.Experimentation.DesignBased.ProductBlock
 
 /-! Finite coefficient averaging over disjoint blocks. The binary independence theorem
 is iterated here; the geometric localization of the actual likelihood remains a separate step. -/
-@[expose] public section
+public section
 noncomputable section
 open scoped BigOperators
 open Causalean.Experimentation.DesignBased

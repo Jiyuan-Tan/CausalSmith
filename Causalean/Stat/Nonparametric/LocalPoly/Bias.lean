@@ -83,4 +83,41 @@ theorem localPoly_intercept_bias {N : ℕ} {β M lo hi t h : ℝ} {a w : Fin N �
   rw [hc0]
   exact linearSmoother_bias_window hβ hM ht ha hwin hf hb hrep
 
+/-- **Interior local-polynomial bias for a regression function smooth only on a window.** Let
+`p` be the largest integer strictly below the smoothness index `β`. If [`β` is
+positive](hyp:hβ), [the Hölder constant `M` is nonnegative](hyp:hM), [the design weights `w`
+are nonnegative](hyp:hw), [the target point `t` lies in a window `[lo, hi]`](hyp:ht), [every
+design point `aᵢ` lies in the same window](hyp:ha) and [within bandwidth `h` of
+`t`](hyp:hwin), [the regression function `f` is `p` times continuously differentiable on the
+window](hyp:hf), [its `p`-th derivative within the window is `(β − p)`-Hölder there with
+constant `M`](hyp:hb), [the weighted design moment matrix is invertible](hyp:hMdet), and [`c`
+minimizes the weighted degree-`p` least-squares objective at the noise-free responses
+`f(aᵢ)`](hyp:hmin), then [the fitted intercept satisfies
+`|c₀ − f(t)| ≤ (M/p!) · (∑ᵢ |Sᵢ|) · h^β`, where `Sᵢ` are the local-polynomial
+equivalent-kernel weights](goal).
+
+Nothing is assumed about `f` outside the window. -/
+theorem localPoly_intercept_bias_within {N : ℕ} {β M lo hi t h : ℝ} {a w : Fin N → ℝ}
+    {f : ℝ → ℝ} {c : Fin ((holderDerivOrder β) + 1) → ℝ}
+    (hβ : 0 < β) (hM : 0 ≤ M)
+    (hw : ∀ i, 0 ≤ w i)
+    (ht : t ∈ Set.Icc lo hi) (ha : ∀ i, a i ∈ Set.Icc lo hi)
+    (hwin : ∀ i, |a i - t| ≤ h)
+    (hf : ContDiffOn ℝ (holderDerivOrder β) f (Set.Icc lo hi))
+    (hb : ∀ x ∈ Set.Icc lo hi, ∀ y ∈ Set.Icc lo hi,
+            |iteratedDerivWithin (holderDerivOrder β) f (Set.Icc lo hi) x -
+              iteratedDerivWithin (holderDerivOrder β) f (Set.Icc lo hi) y|
+              ≤ M * |x - y| ^ (β - ((holderDerivOrder β) : ℝ)))
+    (hMdet : IsUnit (designMatrix (holderDerivOrder β) (fun i => a i - t) w).det)
+    (hmin : ∀ c' : Fin ((holderDerivOrder β) + 1) → ℝ,
+        (∑ i, w i * (f (a i) - ∑ j, c j * (a i - t) ^ (j : ℕ)) ^ 2)
+          ≤ ∑ i, w i * (f (a i) - ∑ j, c' j * (a i - t) ^ (j : ℕ)) ^ 2) :
+    |c 0 - f t|
+      ≤ (M / ((holderDerivOrder β)).factorial)
+          * (∑ i, |equivKernelWeight (holderDerivOrder β) (fun i => a i - t) w i|) * h ^ β := by
+  rw [wls_intercept_eq_equivKernelSmoother (x := fun i => a i - t) (w := w)
+      (Y := fun i => f (a i)) hw hMdet hmin]
+  exact linearSmoother_bias_window_within hβ hM ht ha hwin hf hb
+    (equivKernelWeight_reproduces hMdet)
+
 end Causalean.Stat.Nonparametric

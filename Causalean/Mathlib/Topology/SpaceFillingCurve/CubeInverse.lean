@@ -69,7 +69,7 @@ private theorem dyadicCubeCell_parent' {d n : ℕ} (T : DyadicTraversal d)
     hp (by simpa only [Nat.cast_mul] using hinput)
 
 /-- Given [a cube dimension](hyp:d), [a dyadic traversal](hyp:T), and [a point certified to lie
-in the unit cube](hyp:x,hx), [a unit-interval parameter has compatible cells containing the point at every level](goal). -/
+in the unit cube](hyp:x,hx), [there is a parameter in the unit interval such that at every dyadic level some cell index has both its time interval containing the parameter and its cube cell containing the point](goal). -/
 theorem DyadicTraversal.exists_parameter_for_cubePoint {d : ℕ}
     (T : DyadicTraversal d) (x : Fin d → ℝ) (hx : InUnitCube x) :
     ∃ t : ℝ, t ∈ Set.Icc (0 : ℝ) 1 ∧

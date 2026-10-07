@@ -9,7 +9,7 @@ This module isolates the shifted Chebyshev recurrence and coefficient bound
 behind equation (6) of the upper-risk proof.
 -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.MarNearcompleteFrontier
 

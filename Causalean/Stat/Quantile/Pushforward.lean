@@ -264,14 +264,14 @@ lemma map_supported_in_lipschitz_range (μ : Measure ℝ)
   exact measure_mono_null hpre hμ
 
 /-- [A coupling of two probability laws](hyp:μ,ν,π,hπ) [concentrated on the
-ordered interval from `a` to `b`](hyp:a,b,hab,hμ,hν), mapped by [a measurable
-transformation](hyp:f,hf) with [a Lipschitz factor](hyp:L) [that is nonnegative](hyp:hL) [and controls the transformation there](hyp:hLip), has [image absolute cost at most that factor times its source
+interval from `a` to `b`](hyp:a,b,hμ,hν), mapped by [a measurable
+transformation](hyp:f,hf) with [a Lipschitz factor](hyp:L) [that controls the transformation there](hyp:hLip), has [image absolute cost at most that factor times its source
 cost](goal). -/
 lemma mapped_coupling_cost_le (μ ν : Measure ℝ)
     [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    {a b L : ℝ} (hab : a ≤ b)
+    {a b L : ℝ}
     (hμ : μ (Icc a b)ᶜ = 0) (hν : ν (Icc a b)ᶜ = 0)
-    (hL : 0 ≤ L) (f : ℝ → ℝ) (hf : Measurable f)
+    (f : ℝ → ℝ) (hf : Measurable f)
     (hLip : ∀ x ∈ Icc a b, ∀ y ∈ Icc a b,
       |f x - f y| ≤ L * |x - y|)
     {π : Measure (ℝ × ℝ)} (hπ : IsCoupling π μ ν) :
@@ -342,7 +342,7 @@ theorem quantile_pushforward_lipschitzOn (μ ν : Measure ℝ)
       (μ.map f) (ν.map f) := map_pair_isCoupling μ ν f hf hπ
   have hopt := quantile_cost_le_coupling_cost (μ.map f) (ν.map f)
     hcd hμ' hν' hπ'
-  have hcost := mapped_coupling_cost_le μ ν hab hμ hν hL f hf hLip hπ
+  have hcost := mapped_coupling_cost_le μ ν hμ hν f hf hLip hπ
   have hquant :
       (∫ z : ℝ × ℝ, |z.1 - z.2| ∂π) =
         ∫ u in (0 : ℝ)..1, |quantile μ u - quantile ν u| := by

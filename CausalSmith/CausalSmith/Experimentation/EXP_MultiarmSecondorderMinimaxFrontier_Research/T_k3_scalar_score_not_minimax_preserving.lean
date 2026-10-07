@@ -657,7 +657,7 @@ theorem k3_scalar_score_not_minimax_preserving :
     (fullDataRuleRiskBound : ℝ) < (scalarBayesCertificate : ℝ) ∧
     (scalarBayesCertificate : ℝ) < 1 - Real.sqrt 3 / 2 ∧
     (∃ fullRule : Estimator 3 3 cDagger,
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun (p : Procedure 3 3 cDagger) (z : Schedule 3 3) => labeledRisk cDagger p z)
         (Causalean.Experimentation.DesignBased.prodDesign
           (fun _ : Unit 3 => qStarDesign cDagger), fullRule) = fullDataRuleRiskBound) ∧

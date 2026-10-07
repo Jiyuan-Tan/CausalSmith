@@ -57,7 +57,7 @@ theorem inverse_operatorNorm_le_reciprocal {n : ℕ} [NeZero n]
     rw [← ContinuousLinearMap.mul_apply, ← map_mul, Matrix.mul_nonsing_inv A hdet,
       map_one, ContinuousLinearMap.one_apply]
   have hleast := Causalean.Mathlib.Analysis.least_singularValue_mul_norm_le
-    A.toEuclideanLin hinj (E A⁻¹ x)
+    A.toEuclideanLin (E A⁻¹ x)
   have heta_mul : eta * ‖E A⁻¹ x‖ ≤ ‖x‖ := by
     calc
       eta * ‖E A⁻¹ x‖ ≤ leastColumnSingularValue A * ‖E A⁻¹ x‖ :=

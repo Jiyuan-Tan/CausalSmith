@@ -15,7 +15,10 @@ namespace Causalean.Mathlib.Topology.SpaceFillingCurve
 
 /-- Given [a cube dimension and dyadic depth](hyp:d,n), [a dimension of at least two](hyp:hd),
 [a parent grid](hyp:parent), and [face adjacency of consecutive parent cells](hyp:hadj),
-[compatible reflected-Gray paths through all child grids exist](goal). -/
+[there is, for every parent cell, an ordering of its `2^d` binary child vertices that
+visits each vertex exactly once with consecutive vertices differing in exactly one
+coordinate, such that for consecutive parent cells the last child of the earlier parent
+and the first child of the later parent are face-adjacent cells of the refined grid](goal). -/
 theorem exists_compatible_child_paths (d n : ℕ) (hd : 2 ≤ d)
     (parent : Fin (2 ^ (d * n)) → Fin d → ℕ)
     (hadj : ∀ k l : Fin (2 ^ (d * n)), l.val = k.val + 1 →

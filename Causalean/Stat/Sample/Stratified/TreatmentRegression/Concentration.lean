@@ -4,18 +4,31 @@ public import Causalean.Stat.Sample.Stratified.TreatmentRegression.CategoricalLa
 public import Causalean.Stat.Sample.Stratified.TreatmentRegression.DesignAlgebra
 public import Causalean.Stat.Sample.Stratified.TreatmentRegression.Occupancy
 
-/-! # Uniform lower tail for within-cell treatment variation
+/-!
+# Lower-tail bound for within-cell treatment variation
 
-The conditional Gram identity and uniform occupancy bound imply mean Gram at
-least epsilon(1-epsilon)n/4 for n≥2 and at most n available cells. Replacing a
-coordinate changes the Gram by at most one. McDiarmid gives an exponential
-lower tail, weakened to an explicit 1/n bound valid for every positive n.
-The n=1 case uses probability≤1 and the explicit constant, since its Gram is zero.
+In a regression of an outcome on a binary treatment with cell fixed effects, the denominator of
+the treatment coefficient is the within-cell treatment variation `∑ₖ tₖ (mₖ − tₖ) / mₖ`, where
+cell `k` holds `mₖ` observations of which `tₖ` are treated. For `n` i.i.d. draws of (cell,
+treatment) with at most `n` cells and propensity in `[ε, 1 − ε]` in every cell of positive
+probability (`0 < ε ≤ 1/2`), this denominator has mean at least `ε(1 − ε) n / 4` when `n ≥ 2`, and
+falls below `ε(1 − ε) n / 8` with probability at most `exp(−2 (ε(1 − ε)/8)² n)`, hence at most
+`C(ε)/n` with `C(ε) = 1 / (2 (ε(1 − ε)/8)²)` for every `n ≥ 1`. The bounds are uniform over all
+such laws; the tail bound is McDiarmid's inequality, since replacing one observation changes the
+denominator by at most one.
 
-Primary formal reference: [FoML McDiarmid](https://github.com/auto-res/lean-rademacher/blob/main/FoML/Probability/McDiarmid.lean),
-re-exported by Causalean.Stat.Concentration.TailBounds.McDiarmid. Its lower-tail
-theorem uses a nonnegative deviation and t times the sum of squared oscillations
-at most one; here the oscillations are one and t=1/n.
+## Main definitions and results
+
+* `gramThreshold`, `gramTailConstant` — the constants `ε(1 − ε)/8` and `C(ε)`.
+* `integral_gram_lower` — the lower bound on the expected denominator (`n ≥ 2`).
+* `gram_lower_tail_exp` — the exponential lower-tail bound (`n ≥ 2`).
+* `gram_lower_tail` — the `C(ε)/n` bound for every `n ≥ 1`; at `n = 1` it holds because
+  `C(ε) ≥ 1`.
+* `observed_gram_lower_tail` — the same bound for the design observed from any i.i.d. sample with
+  a measurable cell label and Boolean treatment; no overlap condition is imposed on null cells.
+
+McDiarmid's inequality is taken from `Causalean.Stat.Concentration.TailBounds.McDiarmid`
+(formalized in FoML, github.com/auto-res/lean-rademacher).
 -/
 
 @[expose] public section
@@ -84,7 +97,7 @@ theorem integral_gram_lower (n : ℕ) (ν : Measure (κ × Bool)) [IsProbability
         ∫ d in labelFiber x, gram d ∂P := by
     have hw : 0 ≤ labelWeight ν x := Finset.prod_nonneg (fun _ _ => ENNReal.toReal_nonneg)
     by_cases hx : 0 < labelWeight ν x
-    · have h := conditional_gram_mean_lower n ν x hx epsilon hepsilon hhalf hoverlap
+    · have h := conditional_gram_mean_lower n ν x hx epsilon hoverlap
       have h' := (le_div_iff₀ hx).mp h
       simpa [P, mul_assoc, mul_left_comm, mul_comm] using h'
     · have hz : labelWeight ν x = 0 := le_antisymm (le_of_not_gt hx) hw

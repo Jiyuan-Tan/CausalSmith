@@ -116,7 +116,8 @@ theorem cube_label_card (d : ℕ) (b : ℝ) :
 
 /-- [A positive Hölder exponent and nonnegative constant](hyp:hβ,hC),
 [a Hölder regression function](hyp:hholder), [a bandwidth in `(0,1]`](hyp:hb,hb1),
-and [equal cell labels](hyp:hlabel) give [the cubical Hölder oscillation bound](goal). -/
+and [equal cell labels](hyp:hlabel) give [the oscillation bound `|g x − g y| ≤ C (√d)^β b^β`
+for two cube points in the same cell](goal). -/
 theorem cube_holder_oscillation {d : ℕ} (g : Cube d → ℝ) (β C b : ℝ)
     (hβ : 0 < β) (hC : 0 ≤ C) (hb : 0 < b) (hb1 : b ≤ 1)
     (hholder : ∀ x y, |g x - g y| ≤ C * (dist x y) ^ β)

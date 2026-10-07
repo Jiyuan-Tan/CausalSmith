@@ -122,12 +122,13 @@ theorem bestUniformApproxError_reciprocal {a b : ℝ}
     reciprocalApproxPoly_alternates ha hab m
   have hbest := (alternatingResidual_certifiesBest hab hf
     (le_of_lt (reciprocalError_pos ha hab m))
-    (reciprocalApproxPoly a b m) (reciprocalApproxPoly_degree_le ha hab m)
+    (reciprocalApproxPoly a b m) (reciprocalApproxPoly_degree_le m)
     hbound nodes hmono hmem halt).2
   exact hbest
 
-/-- A [natural number at least two](hyp:K,hK) implies [the exact degree-matched
-reciprocal approximation error on the interval from one to its square](goal). -/
+/-- For a [natural number K at least two](hyp:K,hK), [the best uniform error in approximating
+1 / z on the interval from one to K² by polynomials of degree at most K equals (K² − 1) / (2 K²)
+times the K-th power of (K − 1) / (K + 1)](goal). -/
 theorem bestUniformApproxError_reciprocal_one_sq
     (K : ℕ) (hK : 2 ≤ K) :
     bestUniformApproxError (fun z : ℝ => z⁻¹) 1 ((K : ℝ) ^ 2) K =

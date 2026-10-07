@@ -5,7 +5,7 @@ public import Mathlib.Algebra.Order.Chebyshev
 
 /-! Algebraic variance identities for the pilot-selected hybrid statistic. -/
 
-@[expose] public section
+public section
 
 namespace CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier
 

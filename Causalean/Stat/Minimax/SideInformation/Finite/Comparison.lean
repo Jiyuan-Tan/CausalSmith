@@ -47,13 +47,12 @@ noncomputable def conditionalAverageProcedure (l u : ℝ) (m : ℕ)
       _ = u := by
         rw [← Finset.sum_mul, sum_productProbability, one_mul]
 
-/-- Under [simplex-valid label and side coordinates](hyp:hp,hq) and [ordered action
-bounds](hyp:hlu), conditional averaging of an [empirical procedure](hyp:d)
+/-- Under [simplex-valid label and side coordinates](hyp:hp,hq), conditional averaging of an [empirical procedure](hyp:d)
 [cannot increase squared risk](goal) at any parameter. -/
 theorem exactSideRisk_conditionalAverage_le (p : Theta → X → ℝ)
     (q : Theta → C → ℝ) (tau : Theta → ℝ)
     (hp : ∀ theta, p theta ∈ stdSimplex ℝ X)
-    (hq : ∀ theta, q theta ∈ stdSimplex ℝ C) (hlu : l ≤ u) (m : ℕ)
+    (hq : ∀ theta, q theta ∈ stdSimplex ℝ C) (m : ℕ)
     (d : EmpiricalSideProcedure X C m l u) (theta : Theta) :
     exactSideRisk p q hq tau (conditionalAverageProcedure l u m d) theta ≤
       empiricalSideRisk p q hq tau m d theta := by
@@ -130,7 +129,7 @@ theorem exactSideMinimaxValue_le_empiricalSideMinimaxValue [Nonempty Theta]
       BddAbove (Set.range (empiricalSideRisk p q hq tau m d)) := by
     refine ⟨(u - l) ^ 2, ?_⟩
     rintro _ ⟨theta, rfl⟩
-    exact empiricalSideRisk_le p q hp hq tau hlu htau m d theta
+    exact empiricalSideRisk_le p q hp hq tau htau m d theta
   unfold exactSideMinimaxValue empiricalSideMinimaxValue
   change Causalean.Stat.minimaxValueReal (exactSideRisk p q hq tau) ≤
     Causalean.Stat.minimaxValueReal (empiricalSideRisk p q hq tau m)
@@ -140,22 +139,20 @@ theorem exactSideMinimaxValue_le_empiricalSideMinimaxValue [Nonempty Theta]
   refine ⟨conditionalAverageProcedure l u m d, ?_⟩
   apply Causalean.Stat.worstCaseRisk_le
   intro theta
-  refine (exactSideRisk_conditionalAverage_le p q tau hp hq hlu m d theta).trans ?_
+  refine (exactSideRisk_conditionalAverage_le p q tau hp hq m d theta).trans ?_
   apply Causalean.Stat.le_worstCaseRisk
   refine ⟨(u - l) ^ 2, ?_⟩
   rintro _ ⟨theta', rfl⟩
-  exact empiricalSideRisk_le p q hp hq tau hlu htau m d theta'
+  exact empiricalSideRisk_le p q hp hq tau htau m d theta'
 
-/-- On a [compact parameter space](hyp:Theta), under [continuous simplex-valid label and side
-coordinates and a continuous bounded target](hyp:hp,hq,hpcont,hqcont,htau,hlu,htau_mem), the
+/-- Under [simplex-valid label and side coordinates](hyp:hp,hq) and [a target bounded
+between two ordered endpoints](hyp:hlu,htau_mem), the
 [exact-side minimax value equals the supremum of its fiberwise minimax values](goal). -/
 theorem exactSideMinimaxValue_eq_iSup_fiber
-    [TopologicalSpace Theta] [CompactSpace Theta] [Nonempty Theta]
+    [Nonempty Theta]
     (p : Theta → X → ℝ) (q : Theta → C → ℝ) (tau : Theta → ℝ)
     (hp : ∀ theta, p theta ∈ stdSimplex ℝ X)
     (hq : ∀ theta, q theta ∈ stdSimplex ℝ C)
-    (hpcont : ∀ x, Continuous (fun theta ↦ p theta x))
-    (hqcont : ∀ c, Continuous (fun theta ↦ q theta c)) (htau : Continuous tau)
     (hlu : l ≤ u) (htau_mem : ∀ theta, tau theta ∈ Set.Icc l u) :
     exactSideMinimaxValue p q hq tau l u =
       ⨆ theta0 : Theta, fiberMinimaxValue p tau q hq l u theta0 := by
@@ -168,7 +165,7 @@ theorem exactSideMinimaxValue_eq_iSup_fiber
       0 ≤ finiteSquaredRisk p tau d theta ∧
         finiteSquaredRisk p tau d theta ≤ (u - l) ^ 2 :=
     finiteSquaredRisk_bounds p tau (fun theta x ↦ (hp theta).1 x)
-      (fun theta ↦ (hp theta).2) hlu htau_mem d theta
+      (fun theta ↦ (hp theta).2) htau_mem d theta
   have hexact_nonneg (d : ExactSideProcedure X C l u) (theta : Theta) :
       0 ≤ exactSideRisk p q hq tau d theta := by
     simpa [exactSideRisk, finiteSquaredRisk] using

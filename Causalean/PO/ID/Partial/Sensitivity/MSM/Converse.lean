@@ -30,11 +30,12 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable {S : POBackdoorSystem P γ} {Λ : ℝ}
 
-/-- Given [a positive sensitivity level](hyp:hΛ) and [two interior probabilities](hyp:hq0,hq1,hp0,hp1),
+/-- Given [a positive sensitivity level](hyp:hΛ), [an interior observed probability](hyp:hq0,hq1)
+and [a complete propensity below one](hyp:hp1),
 [Tan's odds-ratio interval is equivalent to the corresponding interval for the
 complete propensity itself](goal). -/
 theorem OR_box_iff_propensity_box {Λ q p : ℝ} (hΛ : 0 < Λ)
-    (hq0 : 0 < q) (hq1 : q < 1) (hp0 : 0 < p) (hp1 : p < 1) :
+    (hq0 : 0 < q) (hq1 : q < 1) (hp1 : p < 1) :
     (1 / Λ ≤ OR p q ∧ OR p q ≤ Λ) ↔
       (q / (Λ * (1 - q) + q) ≤ p ∧
         p ≤ Λ * q / ((1 - q) + Λ * q)) := by
@@ -101,12 +102,10 @@ theorem ae_propensityFactor_mem_Ioo
   simpa [pred, MSMDataCompatible.observedRecord, factualObservedRecord,
     Function.comp_apply, hfactor] using hω
 
-/-- If [the observed propensity has strict overlap](hyp:hoverlap), then [the
-`(X,Y(1))`-conditional propensity in a compatible model remains strictly between zero and one
-almost everywhere](goal). -/
-theorem ae_xyPropensity_mem_Ioo
-    (hoverlap : ∀ᵐ ω ∂P.μ,
-      0 < S.propScore true ω ∧ S.propScore true ω < 1) :
+/-- In a compatible model, whose complete propensity is bounded away from zero and one,
+[the `(X,Y(1))`-conditional propensity is strictly between zero and one almost
+everywhere](goal). -/
+theorem ae_xyPropensity_mem_Ioo :
     ∀ᵐ ω ∂M.Q, 0 < M.xyPropensity ω ∧ M.xyPropensity ω < 1 := by
   obtain ⟨ε, hε, hover⟩ := M.completeOverlap
   have hbounds := Mathlib.MeasureTheory.condExp_ae_mem_Icc M.sigmaXY1_le
@@ -205,16 +204,16 @@ theorem xyPropensity_odds (hΛ : 1 ≤ Λ)
       M.lowerPropensity ω ≤ M.completePropensity ω ∧
         M.completePropensity ω ≤ M.upperPropensity ω := by
     filter_upwards [hq, heIoo, M.completeOdds] with ω hqω heω hodds
-    exact (OR_box_iff_propensity_box hΛpos hqω.1 hqω.2 heω.1 heω.2).mp hodds
+    exact (OR_box_iff_propensity_box hΛpos hqω.1 hqω.2 heω.2).mp hodds
   have hcond := Mathlib.MeasureTheory.condExp_ae_mem_Icc_of_stronglyMeasurable
     M.sigmaXY1_le (M.integrable_lowerPropensity hΛpos hoverlap)
     M.integrable_completePropensity (M.integrable_upperPropensity hΛpos hoverlap)
     M.measurable_lowerPropensity_sigmaXY1.stronglyMeasurable
     M.measurable_upperPropensity_sigmaXY1.stronglyMeasurable
     (hbox.mono fun ω hω => hω.1) (hbox.mono fun ω hω => hω.2)
-  have hg := M.ae_xyPropensity_mem_Ioo hoverlap
+  have hg := M.ae_xyPropensity_mem_Ioo
   filter_upwards [hq, hg, hcond] with ω hqω hgω hcondω
-  exact (OR_box_iff_propensity_box hΛpos hqω.1 hqω.2 hgω.1 hgω.2).mpr hcondω
+  exact (OR_box_iff_propensity_box hΛpos hqω.1 hqω.2 hgω.2).mpr hcondω
 
 /-- For [a compatible model](hyp:M), the [inverse-propensity treatment weight](goal) is
 `1{Z=1}/g(X,Y(1))`. -/

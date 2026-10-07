@@ -132,7 +132,7 @@ theorem h_weighted_moment_zero (k j : ℕ) (α : ℝ) (hα : 0 < α)
       have hlt : k - 1 - i < k := by
         have hii : i < k := Finset.mem_range.mp hi
         omega
-      rw [rodKernel_deriv_one k (k - 1 - i) α hlt hα]
+      rw [rodKernel_deriv_one k (k - 1 - i) α hlt]
       ring
     rw [hright] at hibp
     calc
@@ -245,7 +245,7 @@ theorem h_zeroth_moment_rising (k : ℕ) (α : ℝ) (hα : 0 < α) :
       have hlt : k - 1 - i < k := by
         have hii : i < k := Finset.mem_range.mp hi
         omega
-      rw [show f = rodKernel k α from rfl, rodKernel_deriv_one k (k - 1 - i) α hlt hα]
+      rw [show f = rodKernel k α from rfl, rodKernel_deriv_one k (k - 1 - i) α hlt]
       ring
     rw [hright] at hibp
     calc
@@ -317,7 +317,7 @@ theorem rising_eq_gamma_ratio (k : ℕ) (α : ℝ) (hα : 0 < α) :
       rw [heq, hrec]
       ring
 
-/-- A [degree](hyp:k) and [positive shape parameter](hyp:α), with [parameter positivity](hyp:hα), give [the exact zeroth weighted moment as a squared Gamma-function ratio](goal).
+/-- A [degree](hyp:k) and [positive shape parameter](hyp:α), with [parameter positivity](hyp:hα), give [the exact zeroth weighted moment: α times the integral over the unit interval of x^(α−1) times the shifted Jacobi perturbation of degree k equals the square of Γ(α+1)·Γ(k+1)/Γ(k+α+1)](goal).
 
 The zeroth weighted moment is the square of the Gamma ratio
 `Γ(α+1)Γ(k+1)/Γ(k+α+1)`. -/

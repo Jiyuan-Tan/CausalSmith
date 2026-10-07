@@ -15,7 +15,7 @@ module
 public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.DirectLatentSwaps
 public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.SlopeUniqueness
 
-@[expose] public section
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

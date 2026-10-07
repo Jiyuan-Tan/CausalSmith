@@ -70,7 +70,7 @@ theorem exists_cosine_approximant {k : ℕ} {f : ℝ → ℝ} {γ H : ℝ}
       ∀ x ∈ Set.Icc (0 : ℝ) 1, |f x - p x| ≤ 5 * H * (k : ℝ) ^ (-γ) := by
   let K : ℕ := (k + 1) / 2
   have hK : 0 < K := (matchedOrder_bounds hk).1
-  refine ⟨jacksonApproximant K f, (continuous_jacksonApproximant hK hf).continuousOn,
+  refine ⟨jacksonApproximant K f, (continuous_jacksonApproximant hf).continuousOn,
     inCosineSpan_mono (by have := (matchedOrder_bounds hk).2; omega)
       (jacksonApproximant_mem_span hK hf), ?_⟩
   intro x hx

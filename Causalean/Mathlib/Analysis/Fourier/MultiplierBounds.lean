@@ -151,7 +151,7 @@ private theorem inverseGaussian_deriv (F : ℝ → ℂ) (σ x : ℝ)
   push_cast
   ring
 
-/-- [A complex frequency profile with one continuous derivative](hyp:F,hF), [a nonnegative Gaussian scale parameter and positive bandwidth](hyp:σ,h,hσ,hh), [nonnegative height constants](hyp:a,b,ha,hb), [sinc-six spectral support](hyp:hsupport), and [uniform profile and derivative bounds](hyp:hbound,hderiv) imply [the stated squared L² bound for the multiplier’s first derivative](goal). -/
+/-- For [a complex frequency profile F with one continuous derivative](hyp:F,hF), [a nonnegative Gaussian scale σ and positive bandwidth h](hyp:σ,h,hσ,hh), and [nonnegative height constants a and b](hyp:a,b,ha,hb), suppose [F vanishes outside the interval of radius 3/(πh) around zero](hyp:hsupport) and [|F| ≤ a·h and |F′| ≤ b·h² everywhere](hyp:hbound,hderiv). Then [the integral of the squared modulus of the derivative of the inverse-Gaussian multiplier of F is at most (6/π)·(b + 12π·a)²·h³·(1 + σ/h)⁴·exp(36·(σ/h)²)](goal). -/
 theorem inverseGaussian_deriv_energy_le (F : ℝ → ℂ) (σ h a b : ℝ)
     (hF : ContDiff ℝ 1 F) (hh : 0 < h) (hσ : 0 ≤ σ) (ha : 0 ≤ a) (hb : 0 ≤ b)
     (hsupport : Function.support F ⊆ Icc (-(3 / (Real.pi * h))) (3 / (Real.pi * h)))

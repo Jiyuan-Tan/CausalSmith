@@ -543,15 +543,12 @@ lemma oaRelease_clt {Ω : Type*} [MeasurableSpace Ω]
     simpa only [Function.comp_apply, A] using
       oaReleaseValue_centered_sq_integral hmodel hnoise hε 0
   have hclt0 := S.clt_normalized_sum (measurable_id.sub measurable_const) hmean hsq
-  have hclt : Tendsto_dist
-      (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m))
-      (gaussianMeasure 0 (VOA θ p ε)) μ (by
-        intro n
-        exact ((Finset.measurable_sum _ fun i _ =>
-          (measurable_id.sub measurable_const).comp (S.meas i)).const_mul _).aemeasurable) := by
-    change Tendsto_dist
-      (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m))
-      (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂(μ.map (A 0)))) μ _ at hclt0
+  have hclt : Modes.TendstoInLaw (fun _ : ℕ => μ)
+      (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m)) atTop
+      (gaussianMeasure 0 (VOA θ p ε)) := by
+    change Modes.TendstoInLaw (fun _ : ℕ => μ)
+      (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m)) atTop
+      (gaussianMeasure 0 (∫ x, (ψ x) ^ 2 ∂(μ.map (A 0)))) at hclt0
     rw [hvar] at hclt0
     exact hclt0
   have htargetMeas (n : ℕ) : AEMeasurable
@@ -575,7 +572,7 @@ lemma oaRelease_clt {Ω : Type*} [MeasurableSpace Ω]
       (IsAsymLinear.normalizedSum S ψ (fun m => Finset.range m) n) μ := by
     exact ((Finset.measurable_sum _ fun i _ =>
       (measurable_id.sub measurable_const).comp (S.meas i)).const_mul _).aemeasurable
-  apply Tendsto_dist.congr_ae hnormMeas htargetMeas hclt
+  apply Modes.TendstoInLaw.congr_ae hclt htargetMeas
   filter_upwards with n
   have hall : ∀ᵐ ω ∂μ, ∀ i ∈ Finset.range n, S.Z i ω = A i ω := by
     induction Finset.range n using Finset.induction_on with
@@ -694,8 +691,8 @@ lemma oaVariance_consistency {Ω : Type*} [MeasurableSpace Ω]
       oaReleaseValue_centered_sq_integral hmodel hnoise hε 0
   have hcons := S.empiricalVar_tendsto_inProb
     (measurable_id.sub measurable_const) hψint hψsq hψmean
-  change Tendsto_inProb (S.empiricalVar ψ)
-    (fun _ => ∫ x, (ψ x) ^ 2 ∂(μ.map (A 0))) μ at hcons
+  change Modes.TendstoInProbability (fun _ : ℕ => μ) (S.empiricalVar ψ) atTop
+    (fun _ _ => ∫ x, (ψ x) ^ 2 ∂(μ.map (A 0))) at hcons
   rw [hpop] at hcons
   have hemp (n : ℕ) : S.empiricalVar ψ n =ᵐ[μ] VhatOA W Y L p n := by
     have hall : ∀ᵐ ω ∂μ, ∀ i ∈ Finset.range n, S.Z i ω = A i ω := by

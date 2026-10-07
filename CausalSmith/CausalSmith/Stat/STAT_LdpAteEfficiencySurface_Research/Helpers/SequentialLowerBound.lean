@@ -6,7 +6,7 @@ public import CausalSmith.Stat.STAT_LdpAteEfficiencySurface_Research.Helpers.Seq
 
 /-! # Universal sequential local asymptotic lower bound -/
 
-@[expose] public section
+public section
 noncomputable section
 namespace CausalSmith.Stat.LdpAteEfficiencySurface
 

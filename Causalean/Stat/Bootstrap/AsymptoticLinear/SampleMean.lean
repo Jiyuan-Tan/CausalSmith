@@ -65,8 +65,7 @@ theorem BootstrapAsymLinear.sampleMean
         (X := fun x : ℝ => x) measurable_id.aemeasurable]
       exact hvar
     · exact hCenterL2.integrable_sq
-  · unfold Tendsto_inProb
-    refine TendstoInMeasure.congr'
+  · refine TendstoInMeasure.congr'
       (f := fun _ (_ : Omega) => (0 : ℝ))
       (f' := fun (n : ℕ) (omega : Omega) =>
         Real.sqrt (n : ℝ) *

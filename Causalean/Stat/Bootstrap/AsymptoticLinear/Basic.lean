@@ -93,8 +93,8 @@ theorem bootstrapQuantile_eq_affine
       bootstrapCDF (centeredEstimatorBootstrapStatistic est n x) x
           (Real.sqrt (n : ℝ) * (t - est n x)) =
         bootstrapCDF (est n) x t := by
-    rw [bootstrapCDF_eq_average_indicators _ hcenter x _ hn0,
-      bootstrapCDF_eq_average_indicators _ (hest n) x t hn0]
+    rw [bootstrapCDF_eq_average_indicators _ hcenter x _,
+      bootstrapCDF_eq_average_indicators _ (hest n) x t]
     congr 1
     apply Finset.sum_congr rfl
     intro j hj
@@ -237,11 +237,9 @@ structure BootstrapAsymLinear (S : IIDSample Omega X mu P)
   var_pos_finite :
     0 < (∫ x, (psi x) ^ 2 ∂P) ∧
       Integrable (fun x => (psi x) ^ 2) P
-  linear : Tendsto_inProb
-    (fun n omega =>
+  linear : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega =>
       Real.sqrt (n : ℝ) * (est n (S.sampleVector n omega) - theta0) -
-        IsAsymLinear.normalizedSum S psi (fun m => Finset.range m) n omega)
-    (fun _ => 0) mu
+        IsAsymLinear.normalizedSum S psi (fun m => Finset.range m) n omega) atTop (fun _ _ => 0)
   boot_linear : forall epsilon : ℝ, 0 < epsilon ->
     Tendsto
       (fun n => mu.real {omega |
@@ -274,10 +272,10 @@ theorem isAsymLinear (h : BootstrapAsymLinear S est theta0 psi) :
     IsAsymLinear (fun n omega => est n (S.sampleVector n omega)) theta0 psi S
       (fun m => Finset.range m) := by
   -- Reuse `mean_zero` and square integrability.  Convert `h.linear` to `IsLittleOp _ 1` with
-  -- `Tendsto_inProb.isLittleOp_one`, then simplify the range cardinality and the two existing
+  -- `Modes.TendstoInProbability.isLittleOp_one`, then simplify the range cardinality and the two existing
   -- normalized-sum/rescaled-estimator definitions.
   refine ⟨h.mean_zero, h.var_pos_finite.2, ?_⟩
-  simpa [IsAsymLinear.normalizedSum, Finset.card_range] using h.linear.isLittleOp_one
+  simpa [IsAsymLinear.normalizedSum, Finset.card_range] using Modes.TendstoInProbability.isLittleOp_one h.linear
 
 /-- [The percentile interval's coverage event is measurable under the sampling
 sigma-algebra](goal) for [a bootstrap-asymptotically-linear estimator](hyp:h) at [a sample

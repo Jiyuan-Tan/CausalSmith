@@ -7,7 +7,7 @@ public import CausalSmith.Stat.STAT_RecurrentEndpointCensorFrontier_Research.Hel
 Bounds, measurability, integrability, and event-sum normalization for the death KM product.
 -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 open scoped ENNReal Interval

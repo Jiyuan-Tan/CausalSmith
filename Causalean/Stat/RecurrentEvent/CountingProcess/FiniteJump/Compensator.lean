@@ -274,13 +274,11 @@ theorem Model.predictable_indicator_compensator (M : Model Ω μ)
     M.occupation_agree S hS]
 
 /-- A predictable payoff taking finitely many real values has equal expected
-event and intensity integrals whenever both pathwise integrals are integrable. -/
+event and intensity integrals. -/
 theorem Model.finiteRange_predictable_compensator (M : Model Ω μ)
     [IsProbabilityMeasure μ]
     (G : ℝ → Ω → ℝ) (hG : M.Predictable G)
-    (hfinite : Set.Finite (Set.range (fun p : ℝ × Ω => G p.1 p.2)))
-    (hjump : Integrable (M.jumpIntegral G M.horizon) μ)
-    (henergy : Integrable (M.energyIntegral G M.horizon) μ) :
+    (hfinite : Set.Finite (Set.range (fun p : ℝ × Ω => G p.1 p.2))) :
     (∫ ω, M.jumpIntegral G M.horizon ω ∂μ) =
       ∫ ω, M.energyIntegral G M.horizon ω ∂μ := by
   classical
@@ -354,9 +352,7 @@ predictable simple functions after proving the indicator identity. -/
 theorem Model.bounded_predictable_compensator (M : Model Ω μ)
     [IsProbabilityMeasure μ]
     (G : ℝ → Ω → ℝ) (hG : M.Predictable G)
-    (hbounded : ∃ C : ℝ, ∀ t ω, |G t ω| ≤ C)
-    (hjump : Integrable (M.jumpIntegral G M.horizon) μ)
-    (henergy : Integrable (M.energyIntegral G M.horizon) μ) :
+    (hbounded : ∃ C : ℝ, ∀ t ω, |G t ω| ≤ C) :
     (∫ ω, M.jumpIntegral G M.horizon ω ∂μ) =
       ∫ ω, M.energyIntegral G M.horizon ω ∂μ := by
   obtain ⟨C, hC⟩ := hbounded
@@ -364,16 +360,14 @@ theorem Model.bounded_predictable_compensator (M : Model Ω μ)
     fun t ω => (hC t ω).trans (le_abs_self C)
   obtain ⟨A, hA, hfinite, hAbound, hlim⟩ :=
     M.bounded_predictable_approximation G hG |C| (abs_nonneg C) hbound
-  have hj := M.tendsto_expected_jumpIntegral A G hA hG
-    |C| (abs_nonneg C) hAbound hlim
-  have he := M.tendsto_expected_energyIntegral A G hA hG
+  have hj := M.tendsto_expected_jumpIntegral A G hA
+    |C| hAbound hlim
+  have he := M.tendsto_expected_energyIntegral A G hA
     |C| (abs_nonneg C) hAbound hlim
   have heq (k : ℕ) :
       (∫ ω, M.jumpIntegral (A k) M.horizon ω ∂μ) =
         ∫ ω, M.energyIntegral (A k) M.horizon ω ∂μ :=
     M.finiteRange_predictable_compensator (A k) (hA k) (hfinite k)
-      (M.integrable_jump (A k) (hA k) ⟨|C|, hAbound k⟩)
-      (M.integrable_energy (A k) (hA k) ⟨|C|, hAbound k⟩)
   exact tendsto_nhds_unique hj (by simpa only [heq] using he)
 
 /-- An integrable absolute predictable event payoff has an absolutely
@@ -449,7 +443,7 @@ theorem Model.predictable_rate_product_integrable (M : Model Ω μ)
     rw [integral_prod_symm _ (hFi k)]
     change (∫ ω, M.energyIntegral (U k) M.horizon ω ∂μ) ≤ _
     rw [← M.bounded_predictable_compensator (U k) (hU k)
-      ⟨k, hUbound k⟩ (hj k) (he k)]
+      ⟨k, hUbound k⟩]
     apply integral_mono (hj k) hjumpAbs
     intro ω
     unfold Model.jumpIntegral
@@ -486,15 +480,13 @@ theorem Model.predictable_rate_product_integrable (M : Model Ω μ)
 equals expected compensator integral identity. Truncate an integrable payoff,
 apply the bounded formula, and pass to the limit in both expectations. [The
 model and payoff](hyp:M,G), [predictability](hyp:hG), and [absolute
-integrability of the event and compensator terms](hyp:hjumpAbs,henergyAbs) give
+integrability of the event term](hyp:hjumpAbs) give
 [the predictable-compensation identity](goal). -/
 theorem Model.predictable_compensator (M : Model Ω μ)
     [IsProbabilityMeasure μ]
     (G : ℝ → Ω → ℝ) (hG : M.Predictable G)
     (hjumpAbs : Integrable
-      (M.jumpIntegral (fun t ω => |G t ω|) M.horizon) μ)
-    (henergyAbs : Integrable
-      (M.energyIntegral (fun t ω => |G t ω|) M.horizon) μ) :
+      (M.jumpIntegral (fun t ω => |G t ω|) M.horizon) μ) :
     (∫ ω, M.jumpIntegral G M.horizon ω ∂μ) =
       ∫ ω, M.energyIntegral G M.horizon ω ∂μ := by
   /- Cutoffs are bounded and dominated by |G|. Absolute time-sample
@@ -526,7 +518,7 @@ theorem Model.predictable_compensator (M : Model Ω μ)
     apply tendsto_const_nhds.congr'
     filter_upwards [eventually_ge_atTop K] with k hk
     simp [A, hK.trans (Nat.cast_le.mpr hk)]
-  have hj := M.tendsto_expected_jumpIntegral_of_dominated A G hA hG
+  have hj := M.tendsto_expected_jumpIntegral_of_dominated A G hA
     hdom hjumpAbs hlim
   have he := M.tendsto_expected_energyIntegral_of_dominated A G hA hG
     hdom (M.predictable_rate_product_integrable G hG hjumpAbs) hlim
@@ -534,8 +526,6 @@ theorem Model.predictable_compensator (M : Model Ω μ)
       (∫ ω, M.jumpIntegral (A k) M.horizon ω ∂μ) =
         ∫ ω, M.energyIntegral (A k) M.horizon ω ∂μ :=
     M.bounded_predictable_compensator (A k) (hA k) (hbound k)
-      (M.integrable_jump (A k) (hA k) (hbound k))
-      (M.integrable_energy (A k) (hA k) (hbound k))
   exact tendsto_nhds_unique hj (by simpa only [heq] using he)
 
 end Causalean.Stat.RecurrentEvent.CountingProcess.FiniteJump

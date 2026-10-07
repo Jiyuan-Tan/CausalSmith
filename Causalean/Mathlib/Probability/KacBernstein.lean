@@ -757,11 +757,4 @@ theorem bernsteinCharacterization
   · rw [hμY]
     infer_instance
 
-/-- Compatibility alias for `bernsteinCharacterization`: if [the two random variables are
-measurable](hyp:mX,mY), [have finite second moments](hyp:hX2,hY2), [are
-independent](hyp:hXY), and [their sum and difference are independent](hyp:hUV), then [both
-pushforward laws are Gaussian](goal). -/
-@[deprecated bernsteinCharacterization (since := "2026-09-15")]
-alias bernstein := bernsteinCharacterization
-
 end Causalean.Mathlib.Probability

@@ -159,7 +159,7 @@ private lemma paired_poisson_tail (n : ℕ) (hn : 256 ≤ n) :
       rw [inv_eq_one_div]
       exact one_div_le_one_div_of_le (by norm_num) (by linarith)
 
-/-- [Universal large-alphabet balanced-prior parameters satisfying the comparison, concentration, and logarithmic separation budgets](goal) exist. -/
+/-- [There are a universal constant a > 0 and an alphabet threshold K ≥ 2 such that for every alphabet size k ≥ K and sample size n > k² there exist a pair count b ≥ 1 with 2b ≤ k, a moment degree L ≥ 1, a tilt t between 0 and 1, and a separation δ > 0 satisfying the comparison budget 100·(n/b)·t² ≤ L, the concentration budget 128·t² ≤ b·δ², the closeness budget b · 2^(−L/4) plus twice the probability that a Poisson count with mean 2n falls below n is at most 1/16, the separation bound δ ≤ t/(50L), and the rate bound δ² ≥ a · k / (n · log(e·k))](goal). -/
 theorem exists_pairedLargeParameters :
     ∃ a : ℝ, 0 < a ∧ ∃ K : ℕ, 2 ≤ K ∧
       ∀ k n : ℕ, K ≤ k → k ^ 2 < n →

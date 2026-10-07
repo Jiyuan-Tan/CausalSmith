@@ -21,10 +21,14 @@ set_option maxHeartbeats 4000000 in
 -- the kernel still checks every certificate.
 set_option maxRecDepth 10000 in
 /-- At [every cell j of the explicit 270-cell compact parameter grid](hyp:j),
-[the rational cutoff tables have endpoints 0 < r < s ≤ 1, a low cutoff index
-between 300 and 859 and a high cutoff index between 1 and 999, a low grid
-endpoint B inside the band 12/(5s), and rational certificates for both
-logarithmic cutoff enclosures](goal). -/
+with r and s the cell's left and right endpoints, B its low cutoff index over
+200, A its high cutoff index over 1000 and C = 12A/(5r),
+[the endpoints satisfy 0 < r < s ≤ 1, the low cutoff index lies between 300
+and 859 and the high cutoff index between 1 and 999, B is at most 12/(5s),
+the low certificate 1 ≤ r·T(B²/4) holds, and either C ≤ 3/2 or both
+0 ≤ C²/4 ≤ 8 and s·E(C²/4) ≤ 1](goal). Here T is the sixteen-term Taylor
+polynomial of the exponential and E the rational eighth-power upper enclosure
+of the exponential. -/
 theorem prawitz_compact_cutoff_rational_certificate (j : Fin 270) :
     let r := prawitzCompactLeft j.val
     let s := prawitzCompactRight j.val

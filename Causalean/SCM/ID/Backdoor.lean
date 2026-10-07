@@ -338,7 +338,7 @@ theorem backdoor_completeness_ae_compProd
         ≪ ((M.obsKernel s0).map (valuesProjection hXrZ)) := _hPositivity
   -- Rule 2 straight from the backdoor criterion: the applicator derives the
   -- d-separation + non-descendance premises internally.
-  have hR2 := SCM.obsCondKernel_fixSet_eq_ae_witness M X hObs hFix Y Z hY hZ hXr hXrZ
+  have hR2 := SCM.do_rule2_kernel_of_nondescendant_product_ae M X hObs hFix Y Z hY hZ hXr hXrZ
     (backdoorCriterion_dSep_fixSet M X hObs hFix Y Z hY hXr h_bd)
     (backdoorCriterion_W_nonDesc M X hObs hFix Y Z h_bd)
     (backdoorCriterion_W_nonDescM1 M X hObs hFix Y Z h_bd)

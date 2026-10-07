@@ -74,8 +74,8 @@ theorem disjointIndicator_eq_sum_powerset (S : Finset (Fin n)) :
     _ = ∑ T ∈ S.powerset, if T ⊆ A.1 then (-1 : ℝ) ^ T.card else 0 := by
       rw [Finset.sum_filter]
 
-/-- When [two disjoint slice-sized subsets can fit in the population](hyp:h2) and [the indexing set is no larger than the slice size](hyp:hSM), [Kneser adjacency maps the given inclusion monomial to its disjointness indicator times the number of compatible completions](goal), for [the indexing set](hyp:S). -/
-theorem kneserAdjacency_inclusionMonomial_eq (h2 : 2 * M ≤ n)
+/-- When [the indexing set is no larger than the slice size](hyp:hSM), [Kneser adjacency maps the given inclusion monomial to its disjointness indicator times the number of compatible completions](goal), for [the indexing set](hyp:S). -/
+theorem kneserAdjacency_inclusionMonomial_eq
     (S : Finset (Fin n)) (hSM : S.card ≤ M) :
     kneserAdjacency n M (inclusionMonomial (M := M) S) =
       ((n - M - S.card).choose (M - S.card) : ℝ) •
@@ -155,8 +155,8 @@ from generators with `Submodule.span_induction`; generators of cardinality
 strictly below `d` are already in the lower filtration.
 -/
 
-/-- When [two disjoint slice-sized subsets can fit in the population](hyp:h2), [the degree is positive](hyp:hd), [the indexing set](hyp:S) has [exactly that degree](hyp:hSd), and [the degree does not exceed the slice size](hyp:hdM), [Kneser adjacency differs from its classical degree eigenvalue times that monomial only by a lower-degree function](goal). -/
-theorem kneserAdjacency_inclusionMonomial_mod_lower (h2 : 2 * M ≤ n)
+/-- When [the degree is positive](hyp:hd), [the indexing set](hyp:S) has [exactly that degree](hyp:hSd), and [the degree does not exceed the slice size](hyp:hdM), [Kneser adjacency differs from its classical degree eigenvalue times that monomial only by a lower-degree function](goal). -/
+theorem kneserAdjacency_inclusionMonomial_mod_lower
     {d : ℕ} (hd : 0 < d) (S : Finset (Fin n))
     (hSd : S.card = d) (hdM : d ≤ M) :
     kneserAdjacency n M (inclusionMonomial (M := M) S) -
@@ -165,7 +165,7 @@ theorem kneserAdjacency_inclusionMonomial_mod_lower (h2 : 2 * M ≤ n)
       degreeAtMost n M (d - 1) := by
   subst d
   have hSM : S.card ≤ M := hdM
-  rw [kneserAdjacency_inclusionMonomial_eq h2 S hSM,
+  rw [kneserAdjacency_inclusionMonomial_eq S hSM,
     disjointIndicator_eq_sum_powerset]
   let c : ℝ := ((n - M - S.card).choose (M - S.card) : ℝ)
   have hSps : S ∈ S.powerset := by simp
@@ -189,8 +189,8 @@ theorem kneserAdjacency_inclusionMonomial_mod_lower (h2 : 2 * M ≤ n)
   dsimp only [c]
   module
 
-/-- When [two disjoint slice-sized subsets can fit in the population](hyp:h2), [the degree bound does not exceed the slice size](hyp:hdM), and [the given function belongs to that inclusion-degree subspace](hyp:hf), [Kneser adjacency remains in the same inclusion-degree subspace](goal), for [the slice function](hyp:f). -/
-theorem kneserAdjacency_mem_degreeAtMost (h2 : 2 * M ≤ n)
+/-- When [the degree bound does not exceed the slice size](hyp:hdM) and [the given function belongs to that inclusion-degree subspace](hyp:hf), [Kneser adjacency remains in the same inclusion-degree subspace](goal), for [the slice function](hyp:f). -/
+theorem kneserAdjacency_mem_degreeAtMost
     {d : ℕ} (hdM : d ≤ M) (f : SliceFn n M)
     (hf : f ∈ degreeAtMost n M d) :
     kneserAdjacency n M f ∈ degreeAtMost n M d := by
@@ -199,7 +199,7 @@ theorem kneserAdjacency_mem_degreeAtMost (h2 : 2 * M ≤ n)
   refine Submodule.span_induction
     (p := fun f _ => kneserAdjacency n M f ∈ degreeAtMost n M d) ?_ ?_ ?_ ?_ hf
   · rintro _ ⟨S, hSd, rfl⟩
-    rw [kneserAdjacency_inclusionMonomial_eq h2 S (hSd.trans hdM),
+    rw [kneserAdjacency_inclusionMonomial_eq S (hSd.trans hdM),
       disjointIndicator_eq_sum_powerset]
     apply Submodule.smul_mem
     apply Submodule.sum_mem
@@ -215,8 +215,8 @@ theorem kneserAdjacency_mem_degreeAtMost (h2 : 2 * M ≤ n)
     rw [map_smul]
     exact (degreeAtMost n M d).smul_mem c hx
 
-/-- When [two disjoint slice-sized subsets can fit in the population](hyp:h2), [the degree is positive](hyp:hd), [the degree does not exceed the slice size](hyp:hdM), and [the given function has inclusion degree at most that degree](hyp:hf), [subtracting the classical degree eigenvalue leaves a function one degree lower](goal), for [the slice function](hyp:f). -/
-theorem kneserAdjacency_sub_eigen_mem_lower (h2 : 2 * M ≤ n)
+/-- When [the degree is positive](hyp:hd), [the degree does not exceed the slice size](hyp:hdM), and [the given function has inclusion degree at most that degree](hyp:hf), [subtracting the classical degree eigenvalue leaves a function one degree lower](goal), for [the slice function](hyp:f). -/
+theorem kneserAdjacency_sub_eigen_mem_lower
     {d : ℕ} (hd : 0 < d) (hdM : d ≤ M) (f : SliceFn n M)
     (hf : f ∈ degreeAtMost n M d) :
     kneserAdjacency n M f -
@@ -232,12 +232,12 @@ theorem kneserAdjacency_sub_eigen_mem_lower (h2 : 2 * M ≤ n)
   · rintro _ ⟨S, hSd, rfl⟩
     by_cases hcard : S.card = d
     · dsimp only [eig]
-      exact kneserAdjacency_inclusionMonomial_mod_lower h2 hd S hcard hdM
+      exact kneserAdjacency_inclusionMonomial_mod_lower hd S hcard hdM
     · have hSlo : S.card ≤ d - 1 := by omega
       have hmono : inclusionMonomial (M := M) S ∈ degreeAtMost n M (d - 1) :=
         Submodule.subset_span ⟨S, hSlo, rfl⟩
       exact (degreeAtMost n M (d - 1)).sub_mem
-        (kneserAdjacency_mem_degreeAtMost h2 (by omega) _ hmono)
+        (kneserAdjacency_mem_degreeAtMost (by omega) _ hmono)
         ((degreeAtMost n M (d - 1)).smul_mem eig hmono)
   · simp
   · intro x y _ _ hx hy
@@ -290,14 +290,14 @@ theorem kneserAdjacency_eigen (h2 : 2 * M ≤ n) (k : Fin (M + 1))
   | zero =>
       have hf0 : f ∈ degreeAtMost n M 0 := by
         simpa [johnsonHarmonic, hk] using hf
-      obtain ⟨c, rfl⟩ := (mem_degreeAtMost_zero_iff hMn _).1 hf0
+      obtain ⟨c, rfl⟩ := (mem_degreeAtMost_zero_iff _).1 hf0
       have hconst :
           constFn (n := n) (M := M) c =
             c • inclusionMonomial (M := M) (∅ : Finset (Fin n)) := by
         ext A
         simp [constFn, inclusionMonomial]
       rw [hconst, map_smul,
-        kneserAdjacency_inclusionMonomial_eq h2 ∅ (by simp)]
+        kneserAdjacency_inclusionMonomial_eq ∅ (by simp)]
       ext A
       simp [disjointIndicator, inclusionMonomial, mul_comm]
   | succ d =>
@@ -311,7 +311,7 @@ theorem kneserAdjacency_eigen (h2 : 2 * M ≤ n) (k : Fin (M + 1))
         ((-1 : ℝ) ^ (d + 1)) * ((n - M - (d + 1)).choose (M - (d + 1)) : ℝ)
       let r : SliceFn n M := kneserAdjacency n M f - eig • f
       have hr : r ∈ degreeAtMost n M d := by
-        have h := kneserAdjacency_sub_eigen_mem_lower h2 (d := d + 1)
+        have h := kneserAdjacency_sub_eigen_mem_lower (d := d + 1)
           (by omega) hdM f hf'
         simpa [r, eig] using h
       have hforth : ∀ g ∈ degreeAtMost n M d, sliceInner f g = 0 := by
@@ -323,7 +323,7 @@ theorem kneserAdjacency_eigen (h2 : 2 * M ≤ n) (k : Fin (M + 1))
       have hrorth : ∀ g ∈ degreeAtMost n M d, sliceInner r g = 0 := by
         intro g hg
         have hAg : kneserAdjacency n M g ∈ degreeAtMost n M d :=
-          kneserAdjacency_mem_degreeAtMost h2 (by omega) g hg
+          kneserAdjacency_mem_degreeAtMost (by omega) g hg
         have hexpand :
             sliceInner r g = sliceInner (kneserAdjacency n M f) g -
               eig * sliceInner f g := by

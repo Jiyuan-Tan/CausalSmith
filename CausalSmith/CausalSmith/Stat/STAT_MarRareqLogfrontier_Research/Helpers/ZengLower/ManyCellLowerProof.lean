@@ -8,7 +8,7 @@ import all CausalSmith.Stat.STAT_MarRareqLogfrontier_Research.Helpers.ZengLower.
 
 /-! Completion of the paper-specific many-cell minimax lower bound. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory ProbabilityTheory Set
 

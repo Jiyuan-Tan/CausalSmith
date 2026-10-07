@@ -17,7 +17,7 @@ expectation is differentiated by the bounded-tilt theorem, yielding Hahn's
 covariance derivative without assuming it.
 -/
 
-@[expose] public section
+public section
 
 noncomputable section
 

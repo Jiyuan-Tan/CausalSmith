@@ -72,7 +72,9 @@ probability law on nonnegative times and [the hazard function](hyp:hazard) is me
 nonnegative, integrable on every interval from 0 to u, and the law has Lebesgue density equal at
 each time s to the hazard at s times the probability of censoring at or after s.
 
-Local integrability makes the finite-horizon compensator well defined. -/
+Local integrability makes the finite-horizon compensator well defined. Because the density
+equation holds on the whole real line while the law sits on nonnegative times, the condition
+forces the hazard to vanish at almost every negative time. -/
 def HasCensorHazard (censorLaw : Measure ℝ) (hazard : ℝ → ℝ) : Prop :=
   NonnegativeTimeLaw censorLaw ∧ Measurable hazard ∧ (∀ s, 0 ≤ hazard s) ∧
   (∀ u, Integrable hazard (volume.restrict (Set.Icc 0 u))) ∧

@@ -48,7 +48,7 @@ private theorem openCube_subset_cube (d : ℕ) : openCube d ⊆ cube d := by
 /-- An interior bound on a coordinate partial extends to the corresponding
 within derivative throughout the closed cube. -/
 theorem within_coordPartial_bound_extends {d m j : ℕ}
-    {u : (Fin d → ℝ) → ℝ} {B : ℝ} (hB : 0 ≤ B)
+    {u : (Fin d → ℝ) → ℝ} {B : ℝ}
     (hu : ContDiffOn ℝ m u (cube d)) (hj : j ≤ m)
     (f : Fin j → Fin d)
     (hinterior : ∀ x ∈ openCube d, |coordPartial j u f x| ≤ B) :

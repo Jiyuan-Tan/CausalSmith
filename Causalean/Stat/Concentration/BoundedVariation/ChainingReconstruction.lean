@@ -394,10 +394,9 @@ theorem control_value_unit_fraction (u : Path)
 
 /-- Suppose the control u is [nondecreasing](hyp:hmono), [zero at time
 zero](hyp:hzero), and [dominates the summed squared path increments over
-every interval](hyp:henergy), and [the dyadic grids](hyp:grid) are
-[monotone at every level](hyp:hgridmono), [place their i-th level-k point
-at control value i/2^k times the terminal value](hyp:hgridval), and [are
-compatible across levels](hyp:hgridcompat). If [the maximal signed
+every interval](hyp:henergy), and [the dyadic grids](hyp:grid) [place their i-th level-k point
+at control value i/2^k times the terminal value](hyp:hgridval) and [assign
+the same time to equal dyadic fractions at different levels](hyp:hgridcompat). If [the maximal signed
 increments over the levels are summable](hyp:hsum), then [the absolute
 σ-signed path sum at any time s is at most the absolute σ-signed sum at
 time zero plus the total of the maximal signed increments over all
@@ -410,7 +409,6 @@ theorem signed_path_le_dyadic_increment_series {n : ℕ} (w : Fin n → Path)
     (henergy : ∀ s t : Time, s ≤ t →
       (∑ j, (w j t - w j s) ^ 2) ≤ u t - u s)
     (grid : ∀ k : ℕ, Fin (2 ^ k + 1) → Time)
-    (hgridmono : ∀ k, Monotone (grid k))
     (hgridval : ∀ k i,
       u (grid k i) = ((i.val : ℝ) / (2 ^ k : ℝ)) * u timeOne)
     (hgridcompat : ∀ k i l j,

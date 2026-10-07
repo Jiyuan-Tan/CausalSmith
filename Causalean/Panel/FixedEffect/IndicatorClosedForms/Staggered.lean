@@ -18,7 +18,7 @@ public import Causalean.Panel.FixedEffect.IndicatorClosedForms.CohortPeriod
 This part proves closed forms for diagonal and triangular staggered-adoption
 indicators in generic cohort-period panels. -/
 
-@[expose] public section
+public section
 
 open scoped BigOperators
 

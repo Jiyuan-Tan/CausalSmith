@@ -56,7 +56,7 @@ theorem tvDist_predictiveLaw_le_unmatchedTail {K : ℕ} (hK : 1 ≤ K)
       _ ≤ ∑' t : ℕ, if 3 * K < t + u + v + w then
           (∫ θ, markedEnvelopeCoeff n θ t u v w ∂T.ν₀) +
           (∫ θ, markedEnvelopeCoeff n θ t u v w ∂T.ν₁) else 0 :=
-        abs_predictiveLaw_singleton_diff_le_unmatchedEnvelope hK hn hε T u v w
+        abs_predictiveLaw_singleton_diff_le_unmatchedEnvelope hn hε T u v w
       _ = ∑' t : ℕ, (
           (if 3 * K < t + u + v + w then
             ∫ θ, markedEnvelopeCoeff n θ t u v w ∂T.ν₀ else 0) +
@@ -101,7 +101,7 @@ theorem tvDist_predictiveLaw_le_factorial {K : ℕ} (hK : 1 ≤ K)
       Real.exp (2 * n * b) * (2 * n * b) ^ (3 * K + 1) /
         (Nat.factorial (3 * K + 1) : ℝ) := by
   exact (tvDist_predictiveLaw_le_unmatchedTail hK hn hb hε T).trans
-    (unmatchedTail_le_factorial K hK hn hb)
+    (unmatchedTail_le_factorial K hn hb)
 
 /-- A [positive matching degree](hyp:hK), [nonnegative experiment size and support bound](hyp:hn,hb), [nonnegative overlap margin](hyp:hε), and [a finite family of bounded triple priors](hyp:T) give [a finite-product predictive total-variation bound by the sum of one-cell unmatched tails](goal). -/
 theorem tvDist_productPredictive_le_sum {d K : ℕ} (hK : 1 ≤ K)
@@ -129,7 +129,7 @@ theorem tvDist_productPredictive_le_sum {d K : ℕ} (hK : 1 ≤ K)
       intro i hi
       exact tvDist_predictiveLaw_le_unmatchedTail hK hn hb hε (T i)
 
-/-- A [positive matching degree](hyp:hK), [nonnegative experiment size and support bound](hyp:hn,hb), [nonnegative overlap margin](hyp:hε), and [a finite family of bounded triple-prior pairs](hyp:T) have [independent marked-Poisson predictive laws whose total variation obeys the explicit factorial bound](goal). -/
+/-- A [positive matching degree](hyp:hK), [nonnegative experiment size and support bound](hyp:hn,hb), [nonnegative overlap margin](hyp:hε), and [a family of d bounded triple-prior pairs](hyp:T), one per cell, have [independent marked-Poisson predictive laws whose total variation distance is at most d · e^(2nb) · (2nb)^(3K+1) / (3K+1)!](goal). -/
 theorem tvDist_productPredictive_le_factorial {d K : ℕ} (hK : 1 ≤ K)
     {b ε gap n : ℝ} (hn : 0 ≤ n) (hb : 0 ≤ b) (hε : 0 ≤ ε)
     (T : Fin d → TriplePriors K b ε gap) :
@@ -146,7 +146,7 @@ theorem tvDist_productPredictive_le_factorial {d K : ℕ} (hK : 1 ≤ K)
     _ ≤ (d : ℝ) * (Real.exp (2 * n * b) *
           (2 * n * b) ^ (3 * K + 1) /
             (Nat.factorial (3 * K + 1) : ℝ)) :=
-      mul_le_mul_of_nonneg_left (unmatchedTail_le_factorial K hK hn hb)
+      mul_le_mul_of_nonneg_left (unmatchedTail_le_factorial K hn hb)
         (by positivity)
 
 end Causalean.Stat.Minimax.Mixture.MomentMatched.BoundedMultivariate

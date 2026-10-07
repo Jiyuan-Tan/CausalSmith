@@ -1037,7 +1037,7 @@ lemma certifiedRadiusNode_sound (radius : CertifiedReal) (precision : PosRat)
     (certifiedRadiusNode radius precision schedule k).Contains
       (CircleMesh.circleMap 0 radius.value (CircleMesh.meshPoint schedule.mesh k)) := by
   have hr := bankRadiusRect_sound radius precision
-  have hu := circleNode_sound 1 schedule hk
+  have hu := circleNode_sound 1 schedule (k := k)
   have hmul := ComplexRatInterval.mul_sound hr hu
   simpa [certifiedRadiusNode, exactCircleNode, CircleMesh.circleMap,
     circleMap_zero, CircleMesh.meshPoint] using hmul
@@ -1142,7 +1142,7 @@ lemma boundedContourEvaluate_width {box : ComplexRatInterval}
     intro k hk
     have hk' := hnode k hk
     exact ⟨(le_max_left _ _).trans hk', (le_max_right _ _).trans hk'⟩
-  have hwidth := CircleMesh.integralEnclosure_width hw ev.lipschitz_nonneg
+  have hwidth := CircleMesh.integralEnclosure_width ev.lipschitz_nonneg
     ev.schedule.mesh_pos hcoords
   unfold boundedContourEvaluate ComplexRatInterval.width
   exact max_le hwidth.1 hwidth.2

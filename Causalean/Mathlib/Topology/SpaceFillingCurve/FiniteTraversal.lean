@@ -33,8 +33,8 @@ structure FiniteDyadicTraversal (d n : ℕ) where
       (cell m (by omega) k i).val
 
 /-- At depth zero, the unique dyadic cell gives a finite coherent traversal
-in every positive dimension. -/
-theorem exists_finiteDyadicTraversal_zero (d : ℕ) (hd : 0 < d) :
+in every dimension. -/
+theorem exists_finiteDyadicTraversal_zero (d : ℕ) :
     Nonempty (FiniteDyadicTraversal d 0) := by
   refine ⟨{
     cell := fun m hm k i => ⟨0, by
@@ -160,7 +160,7 @@ theorem exists_finiteDyadicTraversal (d n : ℕ) (hd : 0 < d) :
     exact exists_finiteDyadicTraversal_one n
   · have hd2 : 2 ≤ d := by omega
     induction n with
-    | zero => exact exists_finiteDyadicTraversal_zero d hd
+    | zero => exact exists_finiteDyadicTraversal_zero d
     | succ n ih =>
         obtain ⟨T⟩ := ih
         exact exists_finiteDyadicTraversal_succ d n hd2 T

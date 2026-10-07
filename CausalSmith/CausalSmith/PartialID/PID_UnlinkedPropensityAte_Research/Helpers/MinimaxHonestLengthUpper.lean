@@ -5,7 +5,7 @@ public import CausalSmith.PartialID.PID_UnlinkedPropensityAte_Research.Helpers.C
 
 /-! Outer-infimum upper bound from the explicit midpoint interval. -/
 
-@[expose] public section
+public section
 
 open MeasureTheory Set
 

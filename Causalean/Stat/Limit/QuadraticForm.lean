@@ -90,45 +90,42 @@ theorem IsLittleOp.isBigOp_of_absorption
     _ ≤ δ / 2 + δ / 2 := add_le_add hAn hBn'
     _ = δ := ENNReal.add_halves δ
 
-/-- **Continuous mapping with an identified target.** If [the random-element sequence is
-measurable](hyp:hXn), [its elements converge weakly](hyp:hX), [the applied map is
-continuous](hyp:hg), and
-[the pushforward of the limiting law through that map is the named probability
-law](hyp:hmap), then [the mapped random elements converge weakly to that named
-law](goal). -/
-theorem Tendsto_dist_vec.map_continuous_of_map_eq
+/-- If [random elements converge in distribution](hyp:hX),
+[the applied map is continuous](hyp:hg), and [the pushforward of the limiting
+law is the named target law](hyp:hmap), then [the transformed laws converge
+weakly to that target law](goal). -/
+theorem Modes.TendstoInLaw.map_continuous_of_map_eq
     {Ω E F : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     [PseudoMetricSpace E] [MeasurableSpace E] [OpensMeasurableSpace E]
     [PseudoMetricSpace F] [MeasurableSpace F] [BorelSpace F]
     {Xn : ℕ → Ω → E} {Q : Measure E} [IsProbabilityMeasure Q]
     {R : Measure F} [IsProbabilityMeasure R]
-    {g : E → F} (hg : Continuous g)
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hX : Tendsto_dist_vec Xn Q μ hXn)
+    {g : E → F}
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q)
+    (hg : Continuous g)
     (hmap : Q.map g = R) :
     Tendsto (β := ProbabilityMeasure F)
       (fun n =>
         ⟨μ.map (fun ω => g (Xn n ω)),
           Measure.isProbabilityMeasure_map
-            (hg.measurable.aemeasurable.comp_aemeasurable (hXn n))⟩)
+            (hg.measurable.aemeasurable.comp_aemeasurable (hX.forall_aemeasurable n))⟩)
       atTop (𝓝 ⟨R, ‹IsProbabilityMeasure R›⟩) := by
-  simpa [hmap] using hX.map_continuous hg hXn
-
-/-- **Quadratic-form Slutsky theorem.** Suppose [a measurable vector sequence](hyp:hXn)
-[converges weakly](hyp:hX), [a random continuous-linear operator family](hyp:An)
-[converges in probability in operator norm](hyp:hA) to [a fixed operator](hyp:A), and [the random
-quadratic forms are measurable](hyp:hQuadraticMeas). Then [the random quadratic
-forms converge weakly to the pushforward of the vector limit through the fixed
-quadratic form](goal). -/
-theorem Tendsto_dist_vec.quadraticForm_of_operator_tendstoInProb
+  simpa [hmap] using Modes.TendstoInLaw.map_continuous hX hg
+/-- If [a vector sequence converges in distribution](hyp:hX),
+[a random continuous-linear operator family](hyp:An) [converges in
+probability in operator norm](hyp:hA) to [a fixed operator](hyp:A), and
+[the random quadratic forms are a.e. measurable](hyp:hQuadraticMeas), then
+[their laws converge weakly to the pushforward of the vector limit through
+the fixed quadratic form](goal). -/
+theorem Modes.TendstoInLaw.quadraticForm_of_operator_tendstoInProb
     {Ω E : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [MeasurableSpace E] [BorelSpace E]
     {Xn : ℕ → Ω → E} {Q : Measure E} [IsProbabilityMeasure Q]
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
-    (hX : Tendsto_dist_vec Xn Q μ hXn)
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q)
     (An : ℕ → Ω → (E →L[ℝ] E)) (A : E →L[ℝ] E)
-    (hA : Tendsto_inProb (fun n ω => ‖An n ω - A‖) (fun _ => 0) μ)
+    (hA : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω => ‖An n ω - A‖) atTop
+        (fun _ _ => 0))
     (hQuadraticMeas : ∀ n,
       AEMeasurable (fun ω => ⟪An n ω (Xn n ω), Xn n ω⟫) μ) :
     Tendsto (β := ProbabilityMeasure ℝ)
@@ -139,30 +136,32 @@ theorem Tendsto_dist_vec.quadraticForm_of_operator_tendstoInProb
       (𝓝 ⟨Q.map (fun x => ⟪A x, x⟫),
         Measure.isProbabilityMeasure_map
           ((A.continuous.inner continuous_id).measurable.aemeasurable)⟩) := by
+  have hXn : ∀ n, AEMeasurable (Xn n) μ := hX.forall_aemeasurable
   let q : E → ℝ := fun x => ⟪A x, x⟫
   have hq : Continuous q := A.continuous.inner continuous_id
   have hqXn : ∀ n, AEMeasurable (fun ω => q (Xn n ω)) μ := fun n =>
     hq.measurable.aemeasurable.comp_aemeasurable (hXn n)
   letI : IsProbabilityMeasure (Q.map q) :=
     Measure.isProbabilityMeasure_map hq.measurable.aemeasurable
-  have hfixed : Tendsto_dist (fun n ω => q (Xn n ω)) (Q.map q) μ hqXn := by
-    exact (Tendsto_dist_iff _ _ _ hqXn).2 (hX.map_continuous hq hXn)
+  have hfixed : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => q (Xn n ω)) atTop (Q.map q) := by
+    exact (Tendsto_dist_iff _ _ _ hqXn).2 (Modes.TendstoInLaw.map_continuous hX hq)
   have hnormMeas : ∀ n, AEMeasurable (fun ω => ‖Xn n ω‖) μ := fun n =>
     continuous_norm.measurable.aemeasurable.comp_aemeasurable (hXn n)
   letI : IsProbabilityMeasure (Q.map norm) :=
     Measure.isProbabilityMeasure_map continuous_norm.measurable.aemeasurable
-  have hnormDist : Tendsto_dist (fun n ω => ‖Xn n ω‖) (Q.map norm) μ hnormMeas := by
+  have hnormDist :
+      Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n ω => ‖Xn n ω‖) atTop (Q.map norm) := by
     exact (Tendsto_dist_iff _ _ _ hnormMeas).2
-      (hX.map_continuous continuous_norm hXn)
+      (Modes.TendstoInLaw.map_continuous hX continuous_norm)
   have hnormBig : IsBigOp (fun n ω => ‖Xn n ω‖) (fun _ => (1 : ℝ)) μ := by
-    exact Tendsto_dist.tightness hnormMeas hnormDist
+    exact Modes.TendstoInLaw.tightness hnormDist
   have hnormSqBig : IsBigOp (fun n ω => ‖Xn n ω‖ * ‖Xn n ω‖)
       (fun _ => (1 : ℝ)) μ := by
     simpa only [one_mul] using Modes.BoundedInProbability.mul hnormBig hnormBig
       (Eventually.of_forall fun _ => zero_lt_one)
       (Eventually.of_forall fun _ => zero_lt_one)
   have hdeltaLittle : IsLittleOp (fun n ω => ‖An n ω - A‖)
-      (fun _ => (1 : ℝ)) μ := hA.isLittleOp_one
+      (fun _ => (1 : ℝ)) μ := Modes.TendstoInProbability.isLittleOp_one hA
   have hproductLittle : IsLittleOp
       (fun n ω => ‖An n ω - A‖ * (‖Xn n ω‖ * ‖Xn n ω‖))
       (fun _ => (1 : ℝ)) μ := by
@@ -190,8 +189,5 @@ theorem Tendsto_dist_vec.quadraticForm_of_operator_tendstoInProb
                     exact (An n ω - A).le_opNorm (Xn n ω)
               _ = ‖An n ω - A‖ * (‖Xn n ω‖ * ‖Xn n ω‖) := by ring
   exact (Tendsto_dist_iff _ _ _ hQuadraticMeas).1
-    (Tendsto_dist_vec.add_isLittleOp_one hqXn hQuadraticMeas hfixed
-      (IsLittleOp.of_abs_le_const_mul_one (C := 1) one_pos hrem
-        (by intro n omega; simp [Real.norm_eq_abs])))
-
+    (Modes.TendstoInLaw.add_isLittleOp_one hfixed hQuadraticMeas hrem)
 end Causalean.Stat

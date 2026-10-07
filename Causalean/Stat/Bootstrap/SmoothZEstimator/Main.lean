@@ -86,12 +86,11 @@ theorem zEstimator
     intro n omega
     simp [zEstimatorSamplingRemainder, IsAsymLinear.normalizedSum,
       IsAsymLinearVec.normalizedSum, hinfluence, map_sub, map_smul, map_sum]
-  have hlinear : Tendsto_inProb
-      (fun n omega ↦
+  have hlinear : Modes.TendstoInProbability (fun _ : ℕ => mu) (fun n omega ↦
         Real.sqrt (n : ℝ) *
             (c (est n (S.sampleVector n omega)) - c theta0) -
-          IsAsymLinear.normalizedSum S influence (fun m ↦ Finset.range m) n omega)
-      (fun _ ↦ 0) mu := by
+          IsAsymLinear.normalizedSum S influence (fun m ↦ Finset.range m) n omega) atTop
+              (fun _ _ ↦ 0) := by
     have hvec := zEstimator_samplingLinearization
       psi theta0 P reg S est hConsistent hSolve
     rw [Tendsto_inProb_iff] at hvec ⊢

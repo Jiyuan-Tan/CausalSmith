@@ -114,7 +114,7 @@ the proof bounds the moving tail by a fixed Gaussian tail `N(0,1)((-∞,-R])` ma
 arbitrarily small via `finite_measure_halfline_tails_small`, then transported by portmanteau. -/
 theorem farEnd_vanishes_of_tendsto_atBot
     {Su : ℕ → Ω → ℝ} (hSu : ∀ n, Measurable (Su n))
-    (hSud : Tendsto_dist Su (gaussianMeasure 0 1) μ (fun n => (hSu n).aemeasurable))
+    (hSud : Modes.TendstoInLaw (fun _ : ℕ => μ) Su atTop (gaussianMeasure 0 1))
     {t : ℕ → ℝ} (ht : Tendsto t atTop atBot) :
     Tendsto (fun n => (μ {ω | Su n ω < t n}).toReal) atTop (𝓝 0) := by
   rw [Metric.tendsto_atTop]
@@ -124,7 +124,7 @@ theorem farEnd_vanishes_of_tendsto_atBot
   -- Portmanteau at the fixed continuity point `-R`: `P(Su,ₙ ≤ -R) → N(0,1)((-∞,-R])`.
   have hport : Tendsto (fun n => ((μ.map (Su n)) (Set.Iic (-R))).toReal) atTop
       (𝓝 ((gaussianMeasure 0 1) (Set.Iic (-R))).toReal) :=
-    Tendsto_dist.tendsto_measure_of_null_frontier (fun n => (hSu n).aemeasurable) hSud
+    Modes.TendstoInLaw.tendsto_measure_of_null_frontier hSud
       (gaussianMeasure_zero_one_frontier_Iic (-R))
   -- Rewrite the pushforward as a probability of `Su,ₙ ≤ -R`.
   have hmapeq : ∀ n, ((μ.map (Su n)) (Set.Iic (-R))).toReal
@@ -196,7 +196,7 @@ orientation only; it does not claim simultaneous coverage over the whole
 identified set or supply the symmetric upper-protected orientation. -/
 theorem imbensManski_pointwise_coverage
     {Sl Su : ℕ → Ω → ℝ} (hSl : ∀ n, Measurable (Sl n)) (hSu : ∀ n, Measurable (Su n))
-    (hSld : Tendsto_dist Sl (gaussianMeasure 0 1) μ (fun n => (hSl n).aemeasurable))
+    (hSld : Modes.TendstoInLaw (fun _ : ℕ => μ) Sl atTop (gaussianMeasure 0 1))
     (c : ℝ) {aL bU : ℕ → ℝ} (haL : ∀ n, 0 ≤ aL n)
     (hfar : Tendsto (fun n => (μ {ω | Su n ω < -(c + bU n)}).toReal) atTop (𝓝 0))
     {ε : ℝ} (hε : 0 < ε) :
@@ -206,7 +206,7 @@ theorem imbensManski_pointwise_coverage
   -- F1: portmanteau at the fixed lower threshold `c`.
   have hF1 : Tendsto (fun n => (μ {ω | Sl n ω ≤ c}).toReal) atTop (𝓝 g) := by
     have hport : Tendsto (fun n => ((μ.map (Sl n)) (Set.Iic c)).toReal) atTop (𝓝 g) :=
-      Tendsto_dist.tendsto_measure_of_null_frontier (fun n => (hSl n).aemeasurable) hSld
+      Modes.TendstoInLaw.tendsto_measure_of_null_frontier hSld
         (gaussianMeasure_zero_one_frontier_Iic c)
     refine hport.congr ?_
     intro n

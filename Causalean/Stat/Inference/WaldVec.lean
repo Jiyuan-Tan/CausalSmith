@@ -6,7 +6,7 @@ Authors: Jiyuan Tan
 # Multivariate Wald / confidence-ellipsoid coverage
 
 The vector analogue of the scalar Wald-coverage theorem
-`Tendsto_dist.wald_coverage` (`Causalean/Stat/Inference/Studentize.lean`).
+`Modes.TendstoInLaw.wald_coverage` (`Causalean/Stat/Inference/Studentize.lean`).
 
 For a multivariate estimator the Wald statistic is the quadratic form
 `Wₙ = (√n (θ̂ₙ − θ₀))ᵀ Σ̂ₙ⁻¹ (√n (θ̂ₙ − θ₀))`, an `ℝ`-valued random variable.
@@ -16,7 +16,7 @@ the rescaled estimator is asymptotically `N(0, Σ)` and `Σ̂ₙ →ₚ Σ` (so 
 `Σ̂ₙ⁻¹` whitens the Gaussian into a standard one whose squared norm is `χ²_d`).
 
 Because `Wₙ` is already scalar, the coverage statement reduces to the
-one-sided portmanteau on `Set.Iic c` (`Tendsto_dist.tendsto_measure_of_null_frontier`),
+one-sided portmanteau on `Set.Iic c` (`Modes.TendstoInLaw.tendsto_measure_of_null_frontier`),
 exactly mirroring the scalar `wald_coverage`.  This file provides that
 reduction; the *construction* of `Wₙ` from `(θ̂ₙ, Σ̂ₙ)` and the proof that
 `Wₙ ⇒ χ` (continuous mapping of the joint limit through `(t, S) ↦ tᵀS⁻¹t`) is
@@ -32,15 +32,15 @@ quadratic form `S ↦ Sᵀ Σ⁻¹ S` and recognising the result as `χ²_d`.  T
 is now **closed** in `Causalean/Stat/Inference/ChiSquaredWald.lean`
 (`gaussianLimit_waldForm_map`): under a non-degenerate asymptotic variance the
 whitened quadratic form has the χ²_d law `chiSqDist (finrank E)`
-(`Causalean/Stat/CLT/ChiSquared.lean`), and `Tendsto_dist.wald_coverage_chiSq`
+(`Causalean/Stat/CLT/ChiSquared.lean`), and `Modes.TendstoInLaw.wald_coverage_chiSq`
 specialises the coverage theorem below to that limit.  We still keep `χ` abstract
 *here* so that the reduction holds against an arbitrary limit law of `Wₙ`.
 
 Key declarations:
 
-* `Tendsto_dist.wald_coverage_Iic` : one-sided/ellipsoid coverage for a scalar
+* `Modes.TendstoInLaw.wald_coverage_Iic` : one-sided/ellipsoid coverage for a scalar
   statistic `Wₙ ⇒ χ` with `χ` null on the boundary `{c}`.
-* `Tendsto_dist.wald_coverage_Iic_of_noAtoms` : the boundary-null hypothesis is
+* `Modes.TendstoInLaw.wald_coverage_Iic_of_noAtoms` : the boundary-null hypothesis is
   automatic when the limit law `χ` has no atoms (e.g. any non-degenerate `χ²`).
 -/
 
@@ -51,12 +51,12 @@ public import Causalean.Stat.Inference.VarianceEstimation
 
 /-!
 This file reduces multivariate Wald ellipsoid coverage to scalar convergence of
-the Wald statistic.  The theorem `Tendsto_dist.wald_coverage_Iic` says that if
+the Wald statistic.  The theorem `Modes.TendstoInLaw.wald_coverage_Iic` says that if
 `Wn ⇒ χ`, the limit has zero mass on the boundary of `Iic c`, and a coverage
 sequence is asymptotically equivalent to the event `{ω | Wn n ω ≤ c}`, then the
 coverage sequence converges to `χ (Iic c)`.
 
-The variant `Tendsto_dist.wald_coverage_Iic_of_noAtoms` discharges the
+The variant `Modes.TendstoInLaw.wald_coverage_Iic_of_noAtoms` discharges the
 boundary-null hypothesis when the Wald-statistic limit law has no atoms.  The
 chi-squared specialization lives in `Causalean.Stat.Inference.ChiSquaredWald`,
 which identifies the Gaussian quadratic-form limit.
@@ -70,33 +70,35 @@ open MeasureTheory ProbabilityTheory Filter Topology
 
 /-! ## One-sided Wald / ellipsoid coverage -/
 
-/-- **Wald / confidence-ellipsoid asymptotic coverage.**
-Suppose [the scalar Wald statistic sequence `Wₙ` is measurable at every sample size](hyp:hWn)
-and [converges in distribution to a limit law `χ`](hyp:hW), and that [`χ` gives zero mass to the
-boundary `frontier (Iic c) = {c}`](hyp:hfront). If [a real sequence `coverProb` is asymptotically
-equivalent to the ellipsoid event `{ω | Wₙ ω ≤ c}`](hyp:h_bridge), then [`coverProb` converges
-to `χ(Iic c)`](goal).
+/-- If [a scalar Wald statistic converges in distribution](hyp:hW),
+[the limiting law gives zero mass to the frontier of the lower
+half-line](hyp:hfront), and [a coverage-probability sequence is
+asymptotically equivalent to the probability that the statistic lies in
+that half-line](hyp:h_bridge), then [coverage converges to the limiting
+law's probability of the half-line](goal).
 
 For `Wₙ = (√n(θ̂ₙ−θ₀))ᵀ Σ̂ₙ⁻¹ (√n(θ̂ₙ−θ₀)) ⇒ χ²_d` and `c = χ²_{d,1−α}` this is
 the `1 − α` asymptotic coverage of the Wald confidence ellipsoid.  Reduces the
 ellipsoid event to the one-sided portmanteau on `Set.Iic c`; vector analogue of
-`Tendsto_dist.wald_coverage`. -/
-theorem Tendsto_dist.wald_coverage_Iic
+`Modes.TendstoInLaw.wald_coverage`. -/
+theorem Modes.TendstoInLaw.wald_coverage_Iic
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
-    {Wn : ℕ → Ω → ℝ} (hWn : ∀ n, AEMeasurable (Wn n) μ)
+    {Wn : ℕ → Ω → ℝ}
     {χ : Measure ℝ} [IsProbabilityMeasure χ]
-    (hW : Tendsto_dist Wn χ μ hWn)
-    {c : ℝ} (hfront : χ (frontier (Set.Iic c)) = 0)
+    {c : ℝ}
+    (hW : Modes.TendstoInLaw (fun _ : ℕ => μ) Wn atTop χ)
+    (hfront : χ (frontier (Set.Iic c)) = 0)
     (coverProb : ℕ → ℝ)
     (h_bridge : Tendsto
       (fun n => coverProb n - (μ {ω | Wn n ω ≤ c}).toReal) atTop (𝓝 0)) :
     Tendsto coverProb atTop (𝓝 ((χ (Set.Iic c)).toReal)) := by
+  have hWn : ∀ n, AEMeasurable (Wn n) μ := hW.forall_aemeasurable
   let ellProb : ℕ → ℝ := fun n => (μ {ω | Wn n ω ≤ c}).toReal
   change Tendsto (fun n => coverProb n - ellProb n) atTop (𝓝 0) at h_bridge
   have hpm :
       Tendsto (fun n => ((μ.map (Wn n)) (Set.Iic c)).toReal) atTop
         (𝓝 ((χ (Set.Iic c)).toReal)) :=
-    Tendsto_dist.tendsto_measure_of_null_frontier hWn hW hfront
+    Modes.TendstoInLaw.tendsto_measure_of_null_frontier hW hfront
   have hell : Tendsto ellProb atTop (𝓝 ((χ (Set.Iic c)).toReal)) := by
     refine hpm.congr' ?_
     filter_upwards with n
@@ -109,26 +111,22 @@ theorem Tendsto_dist.wald_coverage_Iic
   refine hsum'.congr' ?_
   filter_upwards with n
   ring
-
-/-- **Wald / ellipsoid coverage with an atomless limit.** Suppose [the scalar Wald statistic
-sequence `Wₙ` is measurable at every sample size](hyp:hWn) and [converges in distribution to a
-limit law `χ` with no atoms](hyp:hW) (which holds for any non-degenerate `χ²_d`, and more
-generally for any continuous limit). If [a real sequence `coverProb` is asymptotically
-equivalent to the ellipsoid event `{ω | Wₙ ω ≤ c}`](hyp:h_bridge), then [`coverProb` converges
-to `χ(Iic c)`](goal). The boundary-null hypothesis of `wald_coverage_Iic` is automatic here:
-`frontier (Iic c) = {c}` and `χ {c} = 0`. -/
-theorem Tendsto_dist.wald_coverage_Iic_of_noAtoms
+/-- If [a scalar Wald statistic converges in distribution to an atomless
+probability law](hyp:hW) and [a coverage-probability sequence is
+asymptotically equivalent to the probability that the statistic lies in
+a lower half-line](hyp:h_bridge), then [coverage converges to the limiting
+law's probability of that half-line](goal). -/
+theorem Modes.TendstoInLaw.wald_coverage_Iic_of_noAtoms
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
-    {Wn : ℕ → Ω → ℝ} (hWn : ∀ n, AEMeasurable (Wn n) μ)
+    {Wn : ℕ → Ω → ℝ}
     {χ : Measure ℝ} [IsProbabilityMeasure χ] [NullSingletonClass χ]
-    (hW : Tendsto_dist Wn χ μ hWn)
+    (hW : Modes.TendstoInLaw (fun _ : ℕ => μ) Wn atTop χ)
     (c : ℝ)
     (coverProb : ℕ → ℝ)
     (h_bridge : Tendsto
       (fun n => coverProb n - (μ {ω | Wn n ω ≤ c}).toReal) atTop (𝓝 0)) :
     Tendsto coverProb atTop (𝓝 ((χ (Set.Iic c)).toReal)) := by
-  refine Tendsto_dist.wald_coverage_Iic hWn hW ?_ coverProb h_bridge
+  refine Modes.TendstoInLaw.wald_coverage_Iic hW ?_ coverProb h_bridge
   rw [frontier_Iic]
   exact measure_singleton c
-
 end Causalean.Stat

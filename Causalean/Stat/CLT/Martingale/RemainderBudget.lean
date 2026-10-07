@@ -27,14 +27,14 @@ variable {Ω : ℕ → Type*} {mΩ : (n : ℕ) → MeasurableSpace (Ω n)}
 namespace MartingaleDifferenceArray
 
 /-- If [the truncation threshold is positive](hyp:hη), [the frequency-threshold product is at
-most one](hyp:htη), [both budgets are nonnegative](hyp:hK,hδ), [a row has predictable variance
+most one](hyp:htη), [a row has predictable variance
 at most `K`](hyp:hVariance), and [conditional Lindeberg mass at most `δ`](hyp:hLindeberg), then [the sum of its
 integrated quadratic exponential remainders obeys the corresponding truncated
 Taylor bound](goal). -/
 theorem sum_integral_norm_expQuadraticRemainder_le_of_budgets
     [∀ n, IsProbabilityMeasure (μ n)]
     (A : MartingaleDifferenceArray Ω μ) (n : ℕ) (t η K δ : ℝ)
-    (hη : 0 < η) (htη : |t| * η ≤ 1) (hK : 0 ≤ K) (hδ : 0 ≤ δ)
+    (hη : 0 < η) (htη : |t| * η ≤ 1)
     (hVariance : A.predictableQuadraticVariation n ≤ᵐ[μ n] fun _ => K)
     (hLindeberg : A.conditionalLindeberg η n ≤ᵐ[μ n] fun _ => δ) :
     (∑ k ∈ Finset.range (A.rowLength n),

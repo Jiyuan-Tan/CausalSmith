@@ -54,15 +54,6 @@ lemma tendstoInMeasure_const_of_tendsto {E : Type*} [SeminormedAddCommGroup E]
   rw [hset]
   simp
 
-/-- Deprecated compatibility spelling for `tendstoInMeasure_const_of_tendsto`;
-the result is not specific to real-valued constants. -/
-@[deprecated tendstoInMeasure_const_of_tendsto (since := "2026-09-19")]
-lemma tendstoInMeasure_const_of_tendsto_real {E : Type*} [SeminormedAddCommGroup E]
-    {a : ι → E} {a₀ : E}
-    (ha : Tendsto a l (𝓝 a₀)) :
-    TendstoInMeasure μ (fun n => fun _ : Ω => a n) l (fun _ => a₀) :=
-  tendstoInMeasure_const_of_tendsto ha
-
 /-- **Deterministic-scalar Slutsky theorem for random variables.** If [a sequence of random
 variables `X n` converges in distribution to `Z`, all under the same probability measure
 `μ`](hyp:hXZ) and [a sequence of deterministic real scalars `a n` converges to a limit

@@ -23,26 +23,26 @@ namespace Causalean.Stat
 
 open Filter MeasureTheory Topology
 
-/-- Suppose [measurable random elements `Xn`](hyp:hXn) [converge weakly to `Q`](hyp:hX),
-[the limiting map `g` is continuous](hyp:hg), [the transformed random elements are
-measurable](hyp:hYn), and [the
-varying maps `fn n` approach `g` uniformly on every norm-bounded set](hyp:hUniform). Then
-[`fn n (Xn n)` converges weakly to the pushforward of `Q` under `g`](goal).
+/-- If [random elements converge in distribution](hyp:hX),
+[the limiting map is continuous](hyp:hg), [the transformed random elements
+are a.e. measurable](hyp:hYn), and [the varying maps approach the limiting
+map uniformly on every norm-bounded set](hyp:hUniform), then [the
+transformed laws converge weakly to the pushforward under the limiting
+map](goal).
 
 This is the extended continuous mapping theorem in the uniform-on-bounded-sets
 form. Weak convergence supplies tightness of `Xn`; on a sufficiently large
 ball the two transforms are uniformly close, and vector Slutsky absorbs the
 remaining error. -/
-theorem Tendsto_dist_vec.map_varying_of_uniform_on_bounded
+theorem Modes.TendstoInLaw.map_varying_of_uniform_on_bounded
     {Ω E F : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     [NormedAddCommGroup E] [MeasurableSpace E] [BorelSpace E]
     [NormedAddCommGroup F] [MeasurableSpace F] [BorelSpace F]
     {Xn : ℕ → Ω → E} {Q : Measure E} [IsProbabilityMeasure Q]
     {fn : ℕ → E → F} {g : E → F}
+    (hX : Modes.TendstoInLaw (fun _ : ℕ => μ) Xn atTop Q)
     (hg : Continuous g)
-    (hXn : ∀ n, AEMeasurable (Xn n) μ)
     (hYn : ∀ n, AEMeasurable (fun omega => fn n (Xn n omega)) μ)
-    (hX : Tendsto_dist_vec Xn Q μ hXn)
     (hUniform : ∀ (M : ℝ) (epsilon : ℝ), 0 < epsilon →
       ∀ᶠ n in atTop, ∀ x : E, ‖x‖ ≤ M → ‖fn n x - g x‖ < epsilon) :
     Tendsto (β := ProbabilityMeasure F)
@@ -52,6 +52,7 @@ theorem Tendsto_dist_vec.map_varying_of_uniform_on_bounded
       atTop
       (𝓝 ⟨Q.map g,
         Measure.isProbabilityMeasure_map hg.measurable.aemeasurable⟩) := by
+  have hXn : ∀ n, AEMeasurable (Xn n) μ := hX.forall_aemeasurable
   let Zn : ℕ → Ω → F := fun n omega => g (Xn n omega)
   let Yn : ℕ → Ω → F := fun n omega => fn n (Xn n omega)
   let _ : IsProbabilityMeasure (Q.map g) :=
@@ -62,13 +63,15 @@ theorem Tendsto_dist_vec.map_varying_of_uniform_on_bounded
     hg.measurable.comp_aemeasurable (hXn n)
   have hNormXn : ∀ n, AEMeasurable (fun omega => ‖Xn n omega‖) μ := fun n =>
     continuous_norm.measurable.comp_aemeasurable (hXn n)
-  have hNormDist : Tendsto_dist
-      (fun n omega => ‖Xn n omega‖) (Q.map fun x : E => ‖x‖) μ hNormXn := by
-    have hvec := Tendsto_dist_vec.map_continuous
-      (Q := Q) (g := fun x : E => ‖x‖) continuous_norm hXn hX
+  have hNormDist : Modes.TendstoInLaw (fun _ : ℕ => μ) (fun n omega => ‖Xn n omega‖) atTop
+      (Q.map fun x : E => ‖x‖) := by
+    have hvec := Modes.TendstoInLaw.map_continuous (Q := Q)
+      (g := fun x : E => ‖x‖)
+      hX
+      continuous_norm
     exact (Tendsto_dist_iff _ _ _ hNormXn).2 hvec
   have hTight : IsBigOp (fun n omega => ‖Xn n omega‖) (fun _ => (1 : ℝ)) μ :=
-    Tendsto_dist.tightness hNormXn hNormDist
+    Modes.TendstoInLaw.tightness hNormDist
   have hRem : IsLittleOp (fun n omega => ‖Yn n omega - Zn n omega‖)
       (fun _ => (1 : ℝ)) μ := by
     intro epsilon hepsilon
@@ -88,10 +91,11 @@ theorem Tendsto_dist_vec.map_varying_of_uniform_on_bounded
       exact (not_lt_of_ge homega) (hUn (Xn n omega) hbound)
     have hAn' : μ (A n) ≤ delta := by simpa [A, abs_of_nonneg] using hAn
     exact (measure_mono hsubset).trans hAn'
-  have hZdist : Tendsto_dist_vec Zn (Q.map g) μ hZn := by
+  have hZdist : Modes.TendstoInLaw (fun _ : ℕ => μ) Zn atTop (Q.map g) := by
     exact (Tendsto_dist_vec_iff _ _ _ hZn).2
-      (Tendsto_dist_vec.map_continuous hg hXn hX)
+      (Modes.TendstoInLaw.map_continuous hX hg)
   exact (Tendsto_dist_vec_iff _ _ _ hYn).1
-    (Tendsto_dist_vec.add_isLittleOp_one hZn hYn hZdist hRem)
-
+    (Modes.TendstoInLaw.add_isLittleOp_one hZdist hYn (by
+      intro ε hε
+      simpa only [norm_norm] using hRem ε hε))
 end Causalean.Stat

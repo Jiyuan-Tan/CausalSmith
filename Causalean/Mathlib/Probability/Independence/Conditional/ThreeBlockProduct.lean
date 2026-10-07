@@ -276,8 +276,10 @@ theorem condExp_threeBlockProduct_of_integrable
 /-- Under [a finite product probability law](hyp:μ), [a training block and three evaluation
 blocks](hyp:B0,B) with [training/evaluation disjointness](hyp:htrain), [pairwise evaluation
 disjointness](hyp:heval), [measurable left and right scores](hyp:η,ζ,hηmeas,hζmeas), and
-[square-integrability of every block score](hyp:hη,hζ), [the conditional cross moment of the
-two three-block products factors into three blockwise conditional cross moments](goal). -/
+[square-integrability of every block score](hyp:hη,hζ), [the conditional mean given the training
+block of the product of the two three-block products is almost surely the product, over the three
+blocks, of the conditional means given the training block of the blockwise left-times-right
+scores](goal). -/
 theorem condExp_threeBlockCross
     (B0 : Finset ι) (B : Fin 3 → Finset ι)
     (htrain : ∀ t, Disjoint B0 (B t))
@@ -329,8 +331,9 @@ theorem condExp_threeBlockCross
 /-- Under [a finite product probability law](hyp:μ), [a training block and three evaluation
 blocks](hyp:B0,B) with [training/evaluation disjointness](hyp:htrain), [pairwise evaluation
 disjointness](hyp:heval), [measurable square-integrable block scores](hyp:η,hηmeas,hη), and
-[conditional centering of every block score](hyp:hcenter), [the conditional mean of their
-three-block product is zero](goal). -/
+[zero conditional mean of every block score given the training block](hyp:hcenter), [the
+conditional mean of their three-block product given the training block is almost surely
+zero](goal). -/
 theorem condExp_threeBlockProduct_zero
     (B0 : Finset ι) (B : Fin 3 → Finset ι)
     (htrain : ∀ t, Disjoint B0 (B t))
@@ -367,9 +370,10 @@ theorem condExp_threeBlockProduct_zero
 blocks](hyp:B0,B) with [training/evaluation disjointness](hyp:htrain), [pairwise evaluation
 disjointness](hyp:heval), [measurable square-integrable left and right block
 scores](hyp:η,ζ,hηmeas,hζmeas,hη,hζ),
-and [conditional centering of both channels](hyp:hηcenter,hζcenter), [the conditional covariance
-of the two three-block products is the product of their three blockwise conditional cross
-moments](goal). -/
+and [zero conditional mean of every left and right block score given the training
+block](hyp:hηcenter,hζcenter), [the conditional covariance of the two three-block products given
+the training block is almost surely the product, over the three blocks, of the conditional means
+given the training block of the blockwise left-times-right scores](goal). -/
 theorem condCov_threeBlockProduct
     (B0 : Finset ι) (B : Fin 3 → Finset ι)
     (htrain : ∀ t, Disjoint B0 (B t))

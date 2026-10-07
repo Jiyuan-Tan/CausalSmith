@@ -9,7 +9,7 @@ The proof uses the common variation control to partition time by mass, then
 applies sub-Gaussian increment estimates and dyadic chaining.
 -/
 
-@[expose] public section
+public section
 
 namespace Causalean.Stat.Concentration.BoundedVariation
 

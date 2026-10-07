@@ -345,7 +345,7 @@ private lemma sum_flipSign (n : ℕ) (k : Fin n) (A : Signs n → ℝ) :
 
 private lemma hybridAverage_mono_step
     [Nonempty ι] [Finite ι]
-    (φ : ℝ → ℝ) {L : ℝ} (hL : 0 ≤ L)
+    (φ : ℝ → ℝ) {L : ℝ}
     (hφ : ∀ x y, |φ x - φ y| ≤ L * |x - y|)
     (F : ι → 𝒳 → ℝ) {n : ℕ} (S : Fin n → 𝒳)
     {m : ℕ} (hm : m < n) :
@@ -405,7 +405,7 @@ private lemma hybridAverage_full_eq_linear
 
 private lemma hybridAverage_zero_le_full
     [Nonempty ι] [Finite ι]
-    (φ : ℝ → ℝ) {L : ℝ} (hL : 0 ≤ L)
+    (φ : ℝ → ℝ) {L : ℝ}
     (hφ : ∀ x y, |φ x - φ y| ≤ L * |x - y|)
     (F : ι → 𝒳 → ℝ) (n : ℕ) (S : Fin n → 𝒳) :
     hybridAverage φ L F n S 0 ≤ hybridAverage φ L F n S n := by
@@ -419,7 +419,7 @@ private lemma hybridAverage_zero_le_full
     | succ m ih =>
         have hm_le : m ≤ n := Nat.le_trans (Nat.le_succ m) hm
         have hm_lt : m < n := Nat.lt_of_succ_le hm
-        exact le_trans (ih hm_le) (hybridAverage_mono_step φ hL hφ F S hm_lt)
+        exact le_trans (ih hm_le) (hybridAverage_mono_step φ hφ F S hm_lt)
   simpa [H] using hchain n le_rfl
 
 /-- Without-abs analogue of `empiricalRademacherComplexity_smul_class`:
@@ -470,7 +470,7 @@ theorem empiricalRademacherComplexity_without_abs_smul_class
 Lipschitz with that constant](hyp:hφ), then [the empirical Rademacher complexity without
 absolute values of the transformed class is at most that constant times the original
 complexity](goal). -/
-theorem rademacher_contraction_core
+theorem rademacher_contraction
     [Nonempty ι] [Finite ι]
     (φ : ℝ → ℝ) {L : ℝ} (hL : 0 ≤ L)
     (hφ : ∀ x y, |φ x - φ y| ≤ L * |x - y|)
@@ -483,28 +483,11 @@ theorem rademacher_contraction_core
         = hybridAverage φ L F n S 0 := by
           rw [hybridAverage_zero_eq]
     _ ≤ hybridAverage φ L F n S n :=
-          hybridAverage_zero_le_full φ hL hφ F n S
+          hybridAverage_zero_le_full φ hφ F n S
     _ = empiricalRademacherComplexity_without_abs n (fun i x => L * F i x) S := by
           rw [hybridAverage_full_eq_linear]
     _ = L * empiricalRademacherComplexity_without_abs n F S :=
           empiricalRademacherComplexity_without_abs_smul_class F L hL n S
-
-/-- **Ledoux–Talagrand contraction principle (signed form).** If [`L` is nonnegative](hyp:hL) and
-    [`φ : ℝ → ℝ` is `L`-Lipschitz, i.e. `|φ x - φ y| ≤ L * |x - y|` for all `x, y`](hyp:hLip),
-    then [composing each function of the family `F` with `φ` does not increase the signed
-    (without-abs) empirical Rademacher complexity on the sample `S` by more than the factor
-    `L`](goal). -/
-theorem rademacher_contraction
-    [Nonempty ι] [Finite ι]
-    (φ : ℝ → ℝ) {L : ℝ} (hL : 0 ≤ L)
-    (hLip : ∀ x y, |φ x - φ y| ≤ L * |x - y|)
-    (F : ι → 𝒳 → ℝ) (n : ℕ) (S : Fin n → 𝒳) :
-    empiricalRademacherComplexity_without_abs n
-        (fun i x => φ (F i x)) S
-      ≤ L * empiricalRademacherComplexity_without_abs n F S := by
-  classical
-  letI := Fintype.ofFinite ι
-  exact rademacher_contraction_core φ hL hLip F n S
 
 
 

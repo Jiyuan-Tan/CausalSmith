@@ -52,7 +52,7 @@ theorem poisson_quarter_mean_cap_tail (n : ℕ) :
         nlinarith
   exact (ENNReal.le_ofReal_iff_toReal_le (measure_ne_top _ _) (Real.exp_nonneg _)).mpr hp
 
-/-- Under [a probability law](hyp:μ), [a cap](hyp:n), [a count with the stated Poisson law](hyp:M,hM), [a random continuous path and target path](hyp:Z,F), [a unit supremum bound on the target](hyp:hF), and [integrability of the original and capped squared losses](hyp:hZ,hcap), [capping increases squared supremum risk by at most the exponential cap tail](goal). -/
+/-- Under [a probability law](hyp:μ), take [a natural-number cap n](hyp:n), [a random count that is Poisson with mean n/4](hyp:M,hM), and [a random continuous path together with a fixed target path](hyp:Z,F) whose [supremum norm is at most one](hyp:hF). Define the capped path to be the random path when the count is at most n and the zero path otherwise. If [the squared supremum distances to the target of the random path and of the capped path are integrable](hyp:hZ,hcap), then [the expected squared supremum distance of the capped path to the target is at most that of the random path plus exp(−n/2)](goal). -/
 -- Split on `M ω ≤ n` pointwise. On overflow the capped loss is `‖F‖² ≤ 1`.
 -- Integrate the pointwise comparison and transfer overflow probability using
 -- `hM.measureReal_eq` and `poisson_quarter_mean_cap_tail`.

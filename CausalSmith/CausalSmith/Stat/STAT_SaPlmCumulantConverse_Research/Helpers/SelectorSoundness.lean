@@ -1451,7 +1451,7 @@ private lemma circleNode_maxAbs_le_one_add_target
     {k : ℕ} (hk : k ≤ schedule.mesh) :
     (circleNode 1 schedule k).maxAbs ≤
       1 + (spectralNodeTarget schedule.tolerance).1 := by
-  have hc := circleNode_sound 1 schedule hk
+  have hc := circleNode_sound 1 schedule (k := k)
   have hnorm : ‖exactCircleNode 1 schedule k‖ = 1 := by
     simp [exactCircleNode, Complex.norm_exp]
   have hcoords : max |(exactCircleNode 1 schedule k).re|
@@ -5418,7 +5418,6 @@ private lemma pilotModulusSpecification_of_schedule
         schedule.fuel).width ≤ (pilotNodeTolerance B).1 :=
     fun k hk ↦ (hs.2.2.2.2.2 k hk).2.2.2.2.2
   have hwidth := CircleMesh.width_infEnclosure
-    (pilotNodeTolerance B).2.le
     (pilotCircleLipschitzBound_nonneg input (radiusUpper_nonneg B j))
     schedule.mesh_pos hnodeWidths
   have htol : schedule.tolerance.1 ≤ (pilotNodeTolerance B).1 := by

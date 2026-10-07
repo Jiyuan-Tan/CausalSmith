@@ -18,18 +18,20 @@ This file supplies the compactly supported scalar profile equal to
 
 namespace Causalean.Mathlib.Analysis.Calculus.CubeExtension
 
-/-- At [a scalar input](hyp:u), [the cutoff](goal) is
-[the exact cubic-power polynomial inside the unit interval and zero outside](step:1). -/
+/-- At [a scalar input u](hyp:u), [the cutoff](goal) is
+[(1 − u²)³ when u is at most one in absolute value, and zero otherwise](step:1). -/
 noncomputable def cutoff (u : ℝ) : ℝ :=
   if |u| ≤ 1 then (1 - u ^ 2) ^ 3 else 0
 
-/-- At [a scalar input](hyp:u), [the explicit first jet](goal) is
-[the polynomial derivative on the closed unit interval and zero outside](step:1). -/
+/-- At [a scalar input u](hyp:u), [the explicit first jet](goal) of the cutoff is
+[−6u(1 − u²)², the derivative of (1 − u²)³, when u is at most one in absolute value, and zero
+otherwise](step:1). -/
 noncomputable def cutoffD1 (u : ℝ) : ℝ :=
   if |u| ≤ 1 then -6 * u * (1 - u ^ 2) ^ 2 else 0
 
-/-- At [a scalar input](hyp:u), [the explicit second jet](goal) is
-[the second polynomial derivative on the closed unit interval and zero outside](step:1). -/
+/-- At [a scalar input u](hyp:u), [the explicit second jet](goal) of the cutoff is
+[−6(1 − u²)² + 24u²(1 − u²), the second derivative of (1 − u²)³, when u is at most one in absolute
+value, and zero otherwise](step:1). -/
 noncomputable def cutoffD2 (u : ℝ) : ℝ :=
   if |u| ≤ 1 then -6 * (1 - u ^ 2) ^ 2 + 24 * u ^ 2 * (1 - u ^ 2) else 0
 

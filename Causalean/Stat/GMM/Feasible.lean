@@ -163,9 +163,9 @@ theorem feasibleGMM_asymLinear
     (hConsistent : ∀ ε > 0,
       Tendsto (fun n => μ {ω | ε < ‖θn n ω - prob.θ₀‖}) atTop (𝓝 0))
     (hStochEquicont : StochEquicontAt prob.g prob.θ₀ P μ S θn)
-    (hCombined : Tendsto_inProb (fun n ω =>
+    (hCombined : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω =>
       ‖(adjoint (sampleG n ω (θn n ω)) ∘L sampleW n ω) -
-        (adjoint prob.G ∘L prob.W)‖) (fun _ => 0) μ)
+        (adjoint prob.G ∘L prob.W)‖) atTop (fun _ _ => 0))
     (hSampleFOC : IsLittleOp
       (fun n ω => ‖(Real.sqrt (n : ℝ))⁻¹ •
         feasibleGMMScoreSum sampleG sampleW S prob.g n ω (θn n ω)‖)
@@ -202,17 +202,16 @@ theorem feasibleGMM_asymLinear
     intro n
     exact ((Finset.measurable_sum _ (fun i _ => prob.g_meas.comp (S.meas i))).const_smul _)
       |>.aemeasurable
-  have hUclt : Tendsto_dist_vec U
-      (gaussianLimit prob.g_meas prob.finite_var) μ hUmeas := by
+  have hUclt : Modes.TendstoInLaw (fun _ : ℕ => μ) U atTop
+      (gaussianLimit prob.g_meas prob.finite_var) := by
     exact S.clt_normalizedSum_vec prob.g_meas prob.finite_var prob.identification
-  have hNormUclt := Tendsto_dist_vec.map_continuous continuous_norm hUmeas hUclt
+  have hNormUclt := Modes.TendstoInLaw.map_continuous hUclt continuous_norm
   have hNormUbig : IsBigOp (fun n ω => ‖U n ω‖) (fun _ => (1 : ℝ)) μ := by
     letI : IsProbabilityMeasure
         ((gaussianLimit prob.g_meas prob.finite_var).map norm) :=
       Measure.isProbabilityMeasure_map continuous_norm.measurable.aemeasurable
-    exact Tendsto_dist.tightness
-      (fun n => continuous_norm.measurable.comp_aemeasurable (hUmeas n))
-      ((Tendsto_dist_iff _ _ _ _).2 hNormUclt)
+    exact Modes.TendstoInLaw.tightness ((Tendsto_dist_iff _ _ _
+        (fun n => continuous_norm.measurable.comp_aemeasurable (hUmeas n))).2 hNormUclt)
   have hQmLittle : IsLittleOp (fun n ω => ‖Qm n ω‖)
       (fun _ => (1 : ℝ)) μ := by
     simpa [Qm] using empiricalScoreDiff_isLittleOp_sqrt prob.g prob.θ₀ P S θn
@@ -319,7 +318,7 @@ theorem feasibleGMM_asymLinear
     rw [hsplit]
     exact norm_add_le _ _
   have hdeltaLittle : IsLittleOp delta (fun _ => (1 : ℝ)) μ := by
-    simpa [delta, An, A0] using hCombined.isLittleOp_one
+    simpa [delta, An, A0] using Modes.TendstoInProbability.isLittleOp_one hCombined
   have hQlittle : IsLittleOp (fun n ω => ‖Q n ω‖)
       (fun _ => (1 : ℝ)) μ := by
     simpa [Q, An, V, feasibleGMMScoreSum, comp_apply, map_smul] using hSampleFOC
@@ -482,9 +481,9 @@ theorem feasibleGMM_tendsto_normal
     (hConsistent : ∀ ε > 0,
       Tendsto (fun n => μ {ω | ε < ‖θn n ω - prob.θ₀‖}) atTop (𝓝 0))
     (hStochEquicont : StochEquicontAt prob.g prob.θ₀ P μ S θn)
-    (hCombined : Tendsto_inProb (fun n ω =>
+    (hCombined : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω =>
       ‖(adjoint (sampleG n ω (θn n ω)) ∘L sampleW n ω) -
-        (adjoint prob.G ∘L prob.W)‖) (fun _ => 0) μ)
+        (adjoint prob.G ∘L prob.W)‖) atTop (fun _ _ => 0))
     (hSampleFOC : IsLittleOp
       (fun n ω => ‖(Real.sqrt (n : ℝ))⁻¹ •
         feasibleGMMScoreSum sampleG sampleW S prob.g n ω (θn n ω)‖)
@@ -524,9 +523,9 @@ theorem feasibleGMM_asymLinear_of_sampleFn
       μ {ω | ε < ‖est n (S.sampleVector n ω) - prob.θ₀‖}) atTop (𝓝 0))
     (hStochEquicont : StochEquicontAt prob.g prob.θ₀ P μ S
       (fun n ω => est n (S.sampleVector n ω)))
-    (hCombined : Tendsto_inProb (fun n ω =>
+    (hCombined : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω =>
       ‖(adjoint (sampleG n ω (est n (S.sampleVector n ω))) ∘L sampleW n ω) -
-        (adjoint prob.G ∘L prob.W)‖) (fun _ => 0) μ)
+        (adjoint prob.G ∘L prob.W)‖) atTop (fun _ _ => 0))
     (hSampleFOC : IsLittleOp (fun n ω =>
       ‖(Real.sqrt (n : ℝ))⁻¹ • feasibleGMMScoreSum sampleG sampleW S prob.g n ω
         (est n (S.sampleVector n ω))‖) (fun _ => (1 : ℝ)) μ) :
@@ -556,9 +555,9 @@ theorem feasibleGMM_tendsto_normal_of_sampleFn
       μ {ω | ε < ‖est n (S.sampleVector n ω) - prob.θ₀‖}) atTop (nhds 0))
     (hStochEquicont : StochEquicontAt prob.g prob.θ₀ P μ S
       (fun n ω => est n (S.sampleVector n ω)))
-    (hCombined : Tendsto_inProb (fun n ω =>
+    (hCombined : Modes.TendstoInProbability (fun _ : ℕ => μ) (fun n ω =>
       ‖(adjoint (sampleG n ω (est n (S.sampleVector n ω))) ∘L sampleW n ω) -
-        (adjoint prob.G ∘L prob.W)‖) (fun _ => 0) μ)
+        (adjoint prob.G ∘L prob.W)‖) atTop (fun _ _ => 0))
     (hSampleFOC : IsLittleOp (fun n ω =>
       ‖(Real.sqrt (n : ℝ))⁻¹ • feasibleGMMScoreSum sampleG sampleW S prob.g n ω
         (est n (S.sampleVector n ω))‖) (fun _ => (1 : ℝ)) μ)
