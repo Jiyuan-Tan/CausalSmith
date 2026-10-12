@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { dryRunBundle, findBundles, forbiddenCodex } from "../src/presentation/nl_links_dry.js";
+import { dryRunBundle, findBundles } from "../src/presentation/nl_links_dry.js";
 
 const BUNDLE_ROOT = path.join(import.meta.dirname, "..", "..", "doc", "presentation");
 
@@ -14,10 +14,6 @@ const BUNDLE_ROOT = path.join(import.meta.dirname, "..", "..", "doc", "presentat
  * through a paid run.
  */
 describe("nl-links free passes on every real bundle", () => {
-  it("has a codex double that refuses to be called", async () => {
-    await expect(forbiddenCodex.runCodex()).rejects.toThrow(/free pass is not free/);
-  });
-
   it("sweeps every bundle without an error or extraction failure", async () => {
     const dirs = await findBundles(BUNDLE_ROOT);
     if (dirs.length === 0) {

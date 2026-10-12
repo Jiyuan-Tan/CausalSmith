@@ -28,6 +28,48 @@ export function formalizationCoreContextValue(core: Core): Record<string, unknow
   return projected;
 }
 
+/** The F1 planner's core view on a re-plan: the slim view plus the bibliography entries a node
+ *  cites (F1 mints the plan's `citations[]` from them); the rest of the bibliography is positioning. */
+export function plannerCoreContextValue(core: Core): Record<string, unknown> {
+  const cited = new Set<string>();
+  for (const s of core.statements) if (s.source?.cite) cited.add(s.source.cite);
+  for (const a of core.assumptions) if (a.standard?.cite) cited.add(a.standard.cite);
+  const bibliography = (core.bibliography ?? []).filter((b) => cited.has(b.key));
+  const projected = formalizationCoreContextValue(core);
+  return bibliography.length > 0 ? { ...projected, bibliography } : projected;
+}
+
+/**
+ * The view cut down to the nodes in `ids`, with the symbols those nodes use: the ones their
+ * `free_symbols` declare and the symbols those are defined from (`refs`); every symbol when a
+ * kept node declares none (an absent declaration may use any). Settings and the bibliography
+ * stay on disk.
+ */
+export function restrictCoreContextValue(view: Record<string, unknown>, ids: ReadonlySet<string>): Record<string, unknown> {
+  type Node = { id?: unknown; free_symbols?: unknown };
+  type Sym = { name: string; refs?: string[] };
+  const keep = (list: unknown): Node[] =>
+    Array.isArray(list) ? (list as Node[]).filter((n) => ids.has(String(n.id))) : [];
+  const assumptions = keep(view.assumptions);
+  const definitions = keep(view.definitions);
+  const statements = keep(view.statements);
+  const all = Array.isArray(view.symbols) ? (view.symbols as Sym[]) : [];
+  const kept = [...assumptions, ...definitions, ...statements];
+  let symbols = all;
+  if (kept.every((n) => Array.isArray(n.free_symbols))) {
+    const used = new Set(kept.flatMap((n) => n.free_symbols as string[]));
+    for (let grew = true; grew; ) {
+      grew = false;
+      for (const s of all) {
+        if (!used.has(s.name)) continue;
+        for (const r of s.refs ?? []) if (!used.has(r)) { used.add(r); grew = true; }
+      }
+    }
+    symbols = all.filter((s) => used.has(s.name));
+  }
+  return { qid: view.qid, symbols, assumptions, definitions, statements };
+}
+
 /** Structural core view for F1.5 reuse-fit and F2 scaffolding. These stages
  * need exact declarations and dependency metadata, not the completed paper's
  * proof bodies, positioning prose (per-statement justification/gap/consumer,

@@ -64,23 +64,23 @@ describe("vcs pull requests", () => {
     expect((await listPrs(store, "open")).length).toBe(0);
   });
 
-  it("gives a solver-born proved lemma exhaustive durable symbol scope", () => {
+  it("keeps a solver-born proved lemma's explicit symbol scope", () => {
     const baseGraph = graphFromCore(openCore());
     const changed = applyUnitOutput(baseGraph, {
       unit: "u1", targets: ["lem:helper"], output: out({
         added_lemmas: [{
           id: "lem:new", kind: "lemma", statement: "A rate statement using $n$.",
-          depends_on: [], free_symbols: [], status: "proved", proof_tex: "Direct.",
+          depends_on: [], free_symbols: ["n"], status: "proved", proof_tex: "Direct.",
         }],
       }),
     });
-    expect(statementBlob(changed.graph, "lem:new")!.body.free_symbols).toEqual(["\\bar d", "n"]);
+    expect(statementBlob(changed.graph, "lem:new")!.body.free_symbols).toEqual(["n"]);
     expect(deriveStatus(changed.graph, "lem:new")).toBe("proved");
     const registeredCore = renderCore(changed.graph);
     registeredCore.symbols.push({ name: "\\eta", type: "scalar", def: "registered directly" });
     const registered = graphFromCore(registeredCore, changed.graph);
-    expect(statementBlob(registered, "lem:new")!.body.free_symbols).toEqual(["\\bar d", "n", "\\eta"]);
-    expect(deriveStatus(registered, "lem:new")).toBe("to-prove");
+    expect(statementBlob(registered, "lem:new")!.body.free_symbols).toEqual(["n"]);
+    expect(deriveStatus(registered, "lem:new")).toBe("proved");
     const editedCore = renderCore(changed.graph);
     editedCore.symbols.find((symbol) => symbol.name === "n")!.def = "changed sample size";
     expect(deriveStatus(graphFromCore(editedCore, changed.graph), "lem:new")).toBe("to-prove");
@@ -140,7 +140,7 @@ describe("vcs pull requests", () => {
       unit: "u1", targets: ["lem:helper"], output: out({
         added_lemmas: [{
           id: "lem:late", kind: "lemma", statement: "A later-proved result.",
-          depends_on: [], free_symbols: [], status: "to-prove",
+          depends_on: [], status: "to-prove",
         }],
       }),
     });
@@ -172,7 +172,7 @@ describe("vcs pull requests", () => {
       unit: "u1", targets: ["lem:helper"], output: out({
         added_lemmas: [{
           id: "lem:late", kind: "lemma", statement: "A latent $\\eta$ result.",
-          depends_on: [], free_symbols: [], status: "to-prove",
+          depends_on: [], status: "to-prove",
         }],
       }),
     }).graph;
@@ -193,8 +193,28 @@ describe("vcs pull requests", () => {
     });
     const registered = foldUnitHeads(proved, [symbolHead]).graph;
     expect(statementBlob(registered, "lem:late")!.body.free_symbols).toEqual(["\\bar d", "n", "\\eta"]);
-    expect(statementBlob(registered, "lem:late")!.body.proof_basis).toBeUndefined();
+    // The proof was not rewritten this round, so its basis stays as recorded; the
+    // basis rule marks it stale because \eta is now in scope and absent from the basis.
     expect(deriveStatus(registered, "lem:late")).toBe("to-prove");
+  });
+
+  it("a merge that wires a new node under an upstream node keeps an untouched downstream proof", () => {
+    const baseGraph = graphFromCore(fixtureCore());
+    expect(deriveStatus(baseGraph, "thm:main")).toBe("proved");
+    const core = renderCore(baseGraph);
+    core.statements.push({
+      id: "lem:aux", kind: "lemma", statement: "An auxiliary bound.", depends_on: [], free_symbols: ["n"],
+      status: "to-prove", justification: "j", gap: "g", consumer: "lem:helper",
+    } as Core["statements"][number]);
+    core.statements.find((s) => s.id === "lem:helper")!.depends_on.push("lem:aux"); // rewire only
+    const rewired = graphFromCore(core, baseGraph);
+    const head = { ...applyUnitOutput(baseGraph, { unit: "u1", targets: ["lem:helper"], output: out({}) }), graph: rewired };
+    const folded = foldUnitHeads(baseGraph, [head]).graph;
+    // Both closures now reach lem:aux, which neither basis saw; neither proof was rewritten.
+    expect(statementBlob(folded, "lem:helper")!.body.proof_basis).toBeDefined();
+    expect(deriveStatus(folded, "lem:helper")).toBe("proved");
+    expect(statementBlob(folded, "thm:main")!.body.proof_basis).toBeDefined();
+    expect(deriveStatus(folded, "thm:main")).toBe("proved");
   });
 
   it("recognizes normalized spellings as exhaustive when the symbol table grows", () => {

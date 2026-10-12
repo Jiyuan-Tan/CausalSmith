@@ -380,7 +380,7 @@ async function emitBundle(io: StageIO, seriesPrefix: string): Promise<void> {
   // This runs BEFORE the compile because both of its outputs are compile inputs: the pinned
   // `\date` lives in paper.tex's preamble, and the page-1 stamp reads `paper_stamp.tex`.
   // The bundle id IS the directory name (`<qid>_<spec>`) — that is what the tracked registry
-  // and the backfill are keyed by, so there is exactly one notion of "which paper is this".
+  // is keyed by, so there is exactly one notion of "which paper is this".
   const bundleId = basename(io.outDir);
   // Read the previous meta once, here: every field P4 must CARRY FORWARD rather than recompute
   // (created, tldr, the P5 score, the WP-C DOIs) comes out of it, and the emit below reuses it.
@@ -859,9 +859,8 @@ async function emitBundle(io: StageIO, seriesPrefix: string): Promise<void> {
     /* no notation_review.json (dry run / legacy dir) — skip */
   }
 
-  // assumption-faithfulness table (totality is a hard gate)
+  // assumption-faithfulness totality (a hard gate)
   const table = assumptionTable(blocks, envs, bundle.snippets.snippets);
-  await writeFile(join(io.outDir, "assumption_table.md"), table.md, "utf8");
   if (table.problems.length > 0) {
     throw new Error(`P4 assumption-table totality failed: ${table.problems.join("; ")}`);
   }
@@ -910,7 +909,7 @@ async function emitBundle(io: StageIO, seriesPrefix: string): Promise<void> {
   let tldr = typeof priorMeta.tldr === "string" && priorMeta.tldr.trim() ? priorMeta.tldr.trim() : "";
   // P5 injects the overall score into meta.json AFTER P4 emits it. Carry a prior
   // score/rationale forward so a `--from P4` re-emit that has not yet re-run P5
-  // does not blank the badge. P4 no longer WRITES them (see the merge below) — they are only
+  // does not blank the badge. P4 does not write them (see the merge below) — they are only
   // read here so the schema validation has the whole object to check.
   // A stale TL;DR written before the prose contract should be regenerated rather than carried into
   // a fresh P4 bundle. The regenerated text is checked again below.

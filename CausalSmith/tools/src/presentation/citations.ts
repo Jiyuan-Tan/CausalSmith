@@ -48,52 +48,6 @@ function fromOpenAlex(item: OpenAlexItem | undefined): ExternalRecord | null {
   };
 }
 
-/** Rewrite only identity-confirmed bibliographic fields. The citation key, type, DOI/eprint,
- * and all unrelated fields are preserved. Title-query records are intentionally ineligible. */
-export function canonicalizeBibEntry(bib: string, key: string, rec: ExternalRecord): string | null {
-  if (!rec.authoritative) return null;
-  // NB the escaper class: `[.*+?^${}()|[\]\\]` — the earlier spelling closed the
-  // class one char early, so NO special char was escaped unless followed by `]`,
-  // and a bib key containing `.`/`+` built a wrong regex that silently no-oped
-  // the canonicalization.
-  const startRe = new RegExp(`@([A-Za-z]+)\\s*\\{\\s*${key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*,`, "i");
-  const match = startRe.exec(bib);
-  if (!match) return null;
-  const start = match.index;
-  const brace = bib.indexOf("{", start);
-  let depth = 0;
-  let end = -1;
-  for (let i = brace; i < bib.length; i++) {
-    if (bib[i] === "{") depth++;
-    else if (bib[i] === "}" && --depth === 0) { end = i + 1; break; }
-  }
-  if (end < 0) return null;
-  let block = bib.slice(start, end);
-  const values: Record<string, string | undefined> = {
-    title: rec.title || undefined,
-    author: rec.author,
-    year: rec.year > 0 ? String(rec.year) : undefined,
-  };
-  for (const [field, value] of Object.entries(values)) {
-    if (!value) continue;
-    const safe = value
-      .replace(/[{}]/g, "")
-      // Crossref occasionally returns HTML entities in titles. A literal `&`
-      // is an alignment token in TeX, so canonical metadata must remain valid
-      // BibTeX after normalization.
-      .replace(/&amp;/gi, "&")
-      .replace(/(?<!\\)&/g, "\\&");
-    // Function replacements ONLY: `safe` is external registry text and titles
-    // like "Sharp $1$-Wasserstein bounds" contain `$1`/`$&`, which a STRING
-    // replacement expands as capture references — silently corrupting the
-    // written references.bib.
-    const fieldRe = new RegExp(`(\\b${field}\\s*=\\s*)(?:\\{(?:[^{}]|\\{[^{}]*\\})*\\}|\"[^\"]*\"|[^,}]+)`, "i");
-    if (fieldRe.test(block)) block = block.replace(fieldRe, (_m, lead: string) => `${lead}{${safe}}`);
-    else block = block.replace(/}\s*$/, () => `,\n  ${field} = {${safe}}\n}`);
-  }
-  return bib.slice(0, start) + block + bib.slice(end);
-}
-
 /**
  * Sentinel: the external registry could not be reached (transient 429/5xx/network
  * failure), as opposed to `null` which means "reached, but no matching record".

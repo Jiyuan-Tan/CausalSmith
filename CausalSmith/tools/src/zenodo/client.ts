@@ -80,10 +80,6 @@ export const PRODUCTION: ZenodoEnvironment = {
  *  user's decision, never a tool default. */
 export const DEFAULT_ENVIRONMENT: ZenodoEnvironment = SANDBOX;
 
-export function environmentByName(name: ZenodoEnvironmentName): ZenodoEnvironment {
-  return name === "production" ? PRODUCTION : SANDBOX;
-}
-
 /** True for a DOI minted by the sandbox. Such a DOI resolves to nothing and must never
  *  reach a real bundle's `meta.json` or the live site. */
 export function isSandboxDoi(doi: string | null | undefined): boolean {

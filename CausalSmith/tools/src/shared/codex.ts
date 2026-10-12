@@ -15,12 +15,7 @@ import {
 import { MODELS } from "../models.js";
 import type { ModelTokenUsage } from "../token_usage.js";
 
-/**
- * Canonical codex dispatcher. Used by every research stage today and (per
- * spec §8.2) the future study pipeline as well. Logic is verbatim from the
- * prior `workers/codex.ts`; that path is now a re-export shim so existing
- * imports continue to work.
- */
+/** The codex dispatcher every pipeline stage calls. */
 /**
  * Absolute path to the shared Node resolver sourced by every codex shell.
  * Forward slashes so the string survives bash on Windows too.
@@ -474,10 +469,9 @@ export async function runCodex(input: CodexRunInput): Promise<{ stdout: string; 
     // codex's native sub-agent fan-out (`spawn_agent`, a SERVER-SIDE thread inside ONE
     // `codex exec` session — distinct from the pipeline's OWN fan-out of N independent
     // `codex exec` processes via mapLimit, which is where the per-object accuracy comes
-    // from and is unaffected by this flag). DORMANT in practice: NO prompt invokes
-    // `spawn_agent` — the only mention is the reviewer prompt telling codex NOT to spawn —
-    // so enabling it adds a multi-agent session to the shared app-server daemon for no
-    // benefit. Under the pipeline's concurrent dispatch (×6) those idle sessions DEADLOCK
+    // from and is unaffected by this flag). The D-1.1 scout requests helper
+    // sub-agents and falls back to a serial walk; D-1.2 may use them. Enabling the flag
+    // here adds a multi-agent session to the shared app-server daemon. Under the pipeline's concurrent dispatch (×6) those idle sessions DEADLOCK
     // the daemon (2026-06-28): one client parks in `futex_wait` forever while still emitting
     // liveness pings, so the 20-min inactivity timeout below never fires and the run hangs
     // (seen 2× — 6h41m and 29m). Gated OFF by default (OPT-IN): the pipeline already fans out N

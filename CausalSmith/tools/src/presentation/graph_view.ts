@@ -1,7 +1,7 @@
 // The single seam between the formalization graph and causalsmith. Imports ONLY
 // graph/types.ts (schema) + graph/store.ts (read-only IO) — never the graph
 // engine (cli/mutate/skeleton/from_note), so an in-flight causalsmith edit can never
-// crash a paper run. See doc/presentation/2026-06-17-causalsmith-graph-simplification-design.md.
+// crash a paper run.
 import { loadGraph, graphPath } from "../graph/store.js";
 import { isUndeliveredNode, type FormalizationGraph, type GraphNode, type NodeKind } from "../graph/types.js";
 

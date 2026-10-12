@@ -1,13 +1,13 @@
 // Stage 0.R (core revise) — the in-place editor of the typed core.
 //
-// D0.R holds the core + the D0.5 findings and edits the CORE in place (directed
-// floor + holistic freedom). It edits only core.json. The source preview remains
+// D0.R holds the core + the D0.5 findings and edits the CORE in place (every finding
+// is must-fix, inside the flagged nodes and their prerequisites). It edits only core.json. The source preview remains
 // the last authoritative D0 render while the edit is provisional; the caller
 // publishes a fresh preview only after the complete D0.5 gate passes. The edit
 // is bounded by the structural gate, which must re-pass with full discharge.
 // Prompt derived from stage0_directed + stage0_salvage.
 import { existsSync } from "node:fs";
-import { readFile, writeFile, appendFile } from "node:fs/promises";
+import { readFile, appendFile } from "node:fs/promises";
 import path from "node:path";
 import { MODEL_PLAN } from "../../constants.js";
 import {
@@ -17,7 +17,6 @@ import {
   type StageDeps,
 } from "../../pipeline_support.js";
 import type { PipelineContext, StateJson } from "../../types.js";
-import { resolveInDir } from "../../paths.js";
 import { coreJsonPath } from "./d0_core.js";
 import { writeJsonAtomic } from "../../shared/json_atomic.js";
 import { dispatchAgent } from "../../framework/agent_dispatch.js";
@@ -29,7 +28,6 @@ import {
 } from "../core/latex_serialization.js";
 import { loadPaperView, logPaperView } from "../core/paper_view.js";
 import { jsonForModelPrompt } from "../core/prompt_serialization.js";
-import { diffCoreProse, type ProseUpdates } from "../core/assemble.js";
 import { runGates } from "../framework/gates.js";
 import { structuralGate } from "../framework/gate_registrations.js";
 import type { Stage0_5CoreResult } from "./d0_5_core.js";
@@ -38,9 +36,6 @@ import { reachableFrom } from "../core/graph_walk.js";
 export interface Stage0RCoreResult {
   message: string;
   coreJsonPath: string;
-  /** Prose-only delta produced by this provisional edit. The caller promotes it
-   *  only after the next panel clears every finding this edit was asked to fix. */
-  proseUpdates?: ProseUpdates;
   /** Set when D0.R determines a finding cannot be fixed by an in-place edit (it needs
    *  real math / a re-derivation / new substrate, or would force weakening the result).
    *  The typed D0.5 loop turns this into an immediate checkpoint — escalate BEFORE the
@@ -161,11 +156,11 @@ export async function runStage0RCore(args: {
     jsonForModelPrompt(findings),
     "",
     `CORE_FILE: ${corePath}`,
-    "YOUR EDIT SCOPE is the whole CORE EXCEPT a node's STATEMENT/CONCLUSION (the asserted claim). You have FULL freedom over the proof DAG and wiring: `depends_on` edges — ADD a dependency the proof actually uses, DROP a redundant/unused one, re-route edges; added lemmas (incl. classical-source citation-lemmas and derived glue); `proof_tex`; the prose fields; AND — when a finding's honest fix requires it — provisional assumption/DEFINITION alignment (incl. the model class def:law-class, APPLIED PROVISIONALLY + recorded pending-approval, vetted by the orchestrator + next D0.5). MAKE dependency-graph / wiring / redundant-assumption-declaration / faithful def-alignment fixes DIRECTLY — never escalate one of those; they are exactly what you own and they land durably (a passed D0.5 advances without a re-solve).",
-    "HARD LIMIT — you MUST NOT change any THEOREM/PROPOSITION/LEMMA STATEMENT or its CONCLUSION: what it asserts, its target object/type, its quantifiers, or its premise-strength. A statement-level finding — ill-typed target, overclaim/positioning, a claim needing narrowing or restating — is NOT yours to fix: a core-JSON statement edit is DISCARDED when the orchestrator re-solves from the proto, so statement changes must land in the proto, which the ORCHESTRATOR owns. Escalate those (do not burn a round editing a statement in place).",
+    "YOUR EDIT SCOPE: an existing statement node may change only if it is a flagged node or a prerequisite of one (reached from a flagged statement through `depends_on`), and never in its STATEMENT/CONCLUSION (the asserted claim); every other existing statement stays byte-identical, or the whole edit is discarded. Inside that region you own the wiring: `depends_on` edges — ADD a dependency the proof actually uses, DROP a redundant/unused one, re-route edges; `proof_tex`; the per-statement prose. Anywhere, you may add lemmas (incl. classical-source citation-lemmas and derived glue), edit the top-level prose fields, AND — when a finding's honest fix requires it — make a provisional assumption/DEFINITION alignment (incl. the model class def:law-class; recorded in the run's design decisions and re-read by the next D0.5). MAKE in-region dependency-graph / wiring / faithful def-alignment fixes DIRECTLY — they are exactly what you own and they land durably (a passed D0.5 advances without a re-solve).",
+    "HARD LIMIT — you MUST NOT change any THEOREM/PROPOSITION/LEMMA STATEMENT or its CONCLUSION: what it asserts, its target object/type, its quantifiers, or its premise-strength. A statement-level finding — ill-typed target, overclaim/positioning, a claim needing narrowing or restating — is NOT yours to fix: statement changes are the ORCHESTRATOR's, and an in-place one is rejected. Escalate those (do not burn a round editing a statement in place).",
     "DIRECTION-OF-TRUTH on any def/assumption change (the laundering guard): only ALIGN (bring the class/assumption into agreement with what the proofs already use — e.g. add a law-side condition that BOTH sides' objects satisfy, so the converse and the achievability quantify over the SAME class), CORRECT a mis-specified constructed-object formula, or DISCHARGE a dischargeable premise. NEVER NARROW a class to a subclass to force a proof through, never add a hypothesis that assumes the crux or buys a rate — that is laundering and will be rejected. When you ALIGN the class by adding a condition, you MUST re-prove the converse witness / construction still lies in the changed class (update its membership lemma); if it does not, the alignment is invalid — escalate instead.",
-    "ESCALATE (status:failed) for a finding whose honest fix needs GENUINELY NEW MATH / substrate the proposal cannot support, OR that requires changing a node's STATEMENT/CONCLUSION (the orchestrator owns statement changes via the proto — see the HARD LIMIT above). Both need an orchestrator rewind. Do NOT escalate — and do NOT burn a round thrashing on — a graph-dependency / wiring / redundant-assumption-declaration / faithful def-alignment fix; make it in place.",
-    'Return only JSON on stdout: EITHER {"status":"completed","message":"...","artifacts":["<core.json>"]} when you resolved EVERY finding (by a core edit and/or a faithful provisional def/assumption change), OR {"status":"failed","message":"<list each finding outside in-place core-edit scope>"} to ESCALATE. Use "failed" for a true new-math/statement gap or a durable proposal-topic mismatch — not for a graph, wiring, redundant-assumption-declaration, or faithful def/assumption change you can make directly.',
+    "ESCALATE (status:failed) for a finding whose honest fix needs GENUINELY NEW MATH / substrate the proposal cannot support, OR that requires changing a node's STATEMENT/CONCLUSION (the orchestrator owns statement changes — see the HARD LIMIT above), OR that requires editing an existing statement outside your edit scope. Do NOT escalate — and do NOT burn a round thrashing on — an in-scope graph-dependency / wiring / faithful def-alignment fix; make it in place.",
+    'Return only JSON on stdout: EITHER {"status":"completed","message":"...","artifacts":["<core.json>"]} when you resolved EVERY finding (by a core edit and/or a faithful provisional def/assumption change), OR {"status":"failed","message":"<list each finding outside in-place core-edit scope>"} to ESCALATE. Use "failed" for a true new-math/statement gap or a durable proposal-topic mismatch — not for an in-scope graph, wiring, or faithful def/assumption change you can make directly.',
   ].join("\n");
 
   const out = await dispatchAgent({
@@ -188,7 +183,7 @@ export async function runStage0RCore(args: {
       stdout: out.stdout,
     };
     await appendFile(
-      resolveInDir(path.dirname(corePath), "d0r_raw.jsonl", [`${args.ctx.qid}_d0r_raw.jsonl`]),
+      path.join(path.dirname(corePath), "d0r_raw.jsonl"),
       JSON.stringify(rec) + "\n",
       "utf8",
     );
@@ -219,8 +214,8 @@ export async function runStage0RCore(args: {
     };
   }
 
-  // Re-check the edited core: the gate must re-pass (this is what makes holistic
-  // freedom safe), with full discharge required. A gate failure here means the in-place
+  // Re-check the edited core: the gate must re-pass (this is what makes an in-place
+  // edit safe), with full discharge required. A gate failure here means the in-place
   // edit could not produce a discharged core — escalate rather than throw (the loop
   // surfaces it as a checkpoint for the orchestrator, BEFORE the revise cap).
   //
@@ -335,7 +330,7 @@ export async function runStage0RCore(args: {
   });
   const deletedProtectedStatements = [...preProtectedClaims.keys()].filter((id) => !editedStatements.has(id));
   if (illegalStatementEdits.length > 0 || deletedProtectedStatements.length > 0) {
-    // why: D0.R may fix proof/DAG content, but statement changes must go through orchestrator-owned proto.
+    // why: D0.R may fix proof/DAG content; statement changes are the orchestrator's.
     await restoreProtectedCore();
     const protectedIds = [...illegalStatementEdits.map((s) => s.id), ...deletedProtectedStatements];
     return {
@@ -367,43 +362,17 @@ export async function runStage0RCore(args: {
   const changedAss = edited.assumptions.filter((a) => JSON.stringify(preAss.get(a.id)) !== JSON.stringify(a));
   const removedAss = core.assumptions.filter((a) => !editedAssumptionIds.has(a.id));
   const changedDef = edited.definitions.filter((d) => preDef.get(d.id) !== d.construction);
-  const pendingChanges = [
-    ...changedAss.map((a) => ({
-      kind: "assumption" as const,
-      id: a.id,
-      from: preAss.get(a.id) ?? null,
-      to: a,
-    })),
-    ...removedAss.map((a) => ({
-      kind: "assumption" as const,
-      id: a.id,
-      from: a,
-      to: null,
-    })),
-    ...changedDef.map((d) => ({
-      kind: "definition" as const,
-      id: d.id,
-      from: preDef.get(d.id) ?? null,
-      to: d.construction,
-    })),
-  ];
   for (const a of changedAss) {
     if (!args.state.added_assumptions.some((x) => x.label === a.id)) {
       args.state.added_assumptions.push({
         label: a.id,
         statement: a.condition,
-        user_approved: false,
         source: "D0.R provisional (pending approval)",
         classification: "faithful-refinement",
       });
     }
   }
   if (changedAss.length > 0 || removedAss.length > 0 || changedDef.length > 0) {
-    const pendingPath = resolveInDir(path.dirname(corePath), "d0r_pending_changes.json", [
-      `${args.ctx.qid}_d0r_pending_changes.json`,
-    ]);
-    // why: structured from/to diffs survive rewinds better than a free-form design note.
-    await writeFile(pendingPath, JSON.stringify({ changes: pendingChanges }, null, 2), "utf8");
     args.state.design_decisions["d0r_pending_approval"] =
       `D0.R made ${changedAss.length + removedAss.length} assumption + ${changedDef.length} definition change(s) PROVISIONALLY ` +
       `(pending approval, direction-of-truth align/correct/discharge): ` +
@@ -411,10 +380,8 @@ export async function runStage0RCore(args: {
     console.warn(`[D0.R] ${args.state.design_decisions["d0r_pending_approval"]}`);
   }
 
-  const proseUpdates = diffCoreProse(core, edited);
   return {
     message: parsedOut.message ?? "Stage 0.R revised core.json provisionally",
     coreJsonPath: corePath,
-    ...(proseUpdates ? { proseUpdates } : {}),
   };
 }

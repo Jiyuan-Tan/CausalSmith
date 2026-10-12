@@ -8,8 +8,8 @@
 // solver round; entries at or above it are pending and pull a resume back to D0.
 //
 // Legacy rows (applied-change receipts, mandates, cancellations) are read
-// tolerantly and rendered as history; nothing in them is actionable any more —
-// an exact edit is now a direct commit on the graph, not a mandate.
+// tolerantly and never rendered or acted on: an exact edit is a direct commit
+// on the graph, not a mandate.
 import { existsSync } from "node:fs";
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -26,10 +26,6 @@ export interface EscalationLogEntry {
    * target still requires a mathematical edit. */
   required_prose_targets?: Array<{ id: string; field: "gap" }>;
   provenance_only?: boolean;
-  /** Legacy applied-change receipt rows. Rendered as history only. */
-  changed?: Array<{ id: string; kind: string; from: string; to: string; reason: string }>;
-  /** Idempotency key of a legacy apply transaction. */
-  transaction_id?: string;
   [legacy: string]: unknown;
 }
 

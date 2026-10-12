@@ -32,7 +32,7 @@ function makeState(): StateJson {
     from_question_oq_id: null,
     method_id: null,
     closed_oq: null,
-    flags: { local_fix_from_4d: false, missing_architecture: false },
+    flags: { missing_architecture: false },
     proposed_from: { chosen_qid: QID, chosen_specialization: SPEC, cluster: "stat" },
   } as unknown as StateJson;
 }

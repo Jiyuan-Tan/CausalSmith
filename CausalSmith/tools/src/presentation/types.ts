@@ -30,7 +30,6 @@ export const PaperState = z.object({
   stage_completed: PaperStage.nullable(),
   checkpoint_pending: z.enum(["outline", "draft"]).nullable(),
   pinned_commit: z.string().nullable(),
-  revision_round: z.number().int(),
   /**
    * P2 promotion rounds already spent in this bundle.
    *

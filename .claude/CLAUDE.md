@@ -168,7 +168,7 @@ translator broke.
   theorem outputs per cluster. The `Stat/` cluster (`stat_*` qids) targets a
   minimax rate / efficiency bound / limit law for a *causal* estimand, where the
   rate/efficiency/limit IS the kernel; a matching minimax converse is one
-  eligible frontier advance, not a requirement or default.
+  of the eligible frontier advances.
 - `CausalSmith/tools/` — TS infrastructure: `bin/` (entry points),
   `src/pipeline_stages.ts` + `src/pipeline_support.ts` (dispatcher),
   `src/discovery/` (D-stage), `src/formalization/` (F-stage), `src/shared/`,

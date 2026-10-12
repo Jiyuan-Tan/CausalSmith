@@ -2,16 +2,16 @@
 //
 // The D0 typed core (`<qid>_core.json`) is the machine-readable structural source
 // of truth (symbols, atomic assumptions, class/construction definitions, statements,
-// dep-DAG). F1 no longer re-extracts structure from the prose .tex: it authors the
+// dep-DAG). F1 does not re-extract structure from the prose .tex: it authors the
 // per-node formalization PLAN (`<qid>_<spec>_plan.json`) that maps every core node +
 // ambient world to a Lean object, maximizing reuse of Causalean substrate. F2 then
-// implements that plan. See CausalSmith/doc/research/F1_F2_PLAN_REDESIGN.md.
+// implements that plan.
 
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { MODEL_PLAN } from "../constants.js";
-import type { Intervention, ReviewResult } from "../judgment.js";
+import type { ReviewResult } from "../judgment.js";
 import type { PipelineContext, StageResult, StateJson } from "../types.js";
 import {
   artifactPaths,
@@ -24,24 +24,26 @@ import {
   readRequired,
   type StageDeps,
 } from "../pipeline_support.js";
-import { interventionBlock } from "../shared/intervention_routing.js";
 import { writeLeanLspMcpConfig } from "../workers/claude.js";
 import { dispatchClaudeAgent } from "../framework/agent_dispatch.js";
 import { buildGraphFromCorePlan } from "../graph/from_core.js";
 import { renderBridgeNote } from "../graph/render_note.js";
 import { graphPath, loadGraph, saveGraph } from "../graph/store.js";
 import { mergeStage1RevisionGraph } from "../graph/revise_merge.js";
-import {
-} from "../shared/missing_architecture_ledger.js";
 import { coreJsonPath } from "../discovery/stages/d0_core.js";
 import { type Core } from "../discovery/core/schema.js";
 import { parseTypedCore } from "../discovery/core/core_io.js";
 import { runPlanGate } from "../formalization/plan/plan_gate.js";
-import { PlanSchema, deriveFeasibility, resolveNodeCitation } from "../formalization/plan/schema.js";
+import { PlanSchema, deriveFeasibility, resolveNodeCitation, type Plan } from "../formalization/plan/schema.js";
 import { createRetrieval } from "../formalization/reuse_retrieval.js";
 import { coreReuseCandidateBlock } from "../formalization/reuse_render.js";
 import { laterStageEverRan } from "../shared/resume_mode.js";
-import { parseJsonWithEscapeRepairStatus } from "../shared/codex_json.js";
+import { parseJsonWithEscapeRepair, parseJsonWithEscapeRepairStatus } from "../shared/codex_json.js";
+import { planCorePath } from "../paths.js";
+import { appendPipelineLog } from "../log.js";
+import { plannerCoreContextValue, restrictCoreContextValue } from "./core_context.js";
+import { whatChangedBlock } from "./core_delta.js";
+import { BEYOND_SCOPE_KEY, coreChangeSeeds, namedNodeIds, nodeReferenceIndex, reviseAffectedNodeIds, reviseLookupBlock } from "./revise_scope.js";
 
 /** Copy D0.5's verified cited source-of-record into the F1 plan in place. */
 export function copyVerifiedCitedSourcesToPlan(
@@ -173,14 +175,58 @@ export function copyVerifiedCitedSourcesToPlan(
   return copied;
 }
 
-/** True when the plan has a statement node realizing this `theorem_local_id`
- *  (the rescue for a manifest that dropped a theorem the plan actually covers). */
-function planCoversLocalId(planObj: unknown, localId: string): boolean {
-  const r = PlanSchema.safeParse(planObj);
-  if (!r.success) return false;
-  return Object.values(r.data.nodes).some((n) =>
-    n.local_id === localId && !n.gate && (n.lean_kind === "theorem" || n.lean_kind === "lemma")
-  );
+/** `text` without its indentation; unchanged when it is not plain JSON. */
+function compactJson(text: string): string {
+  try {
+    return JSON.stringify(JSON.parse(text));
+  } catch {
+    return text;
+  }
+}
+
+/** The planner's view of the core the plan on disk was written from, or null when none was
+ *  recorded (a plan older than the record) or it is unreadable. */
+async function readPlanCore(p: string): Promise<Record<string, unknown> | null> {
+  if (!existsSync(p)) return null;
+  try {
+    const v = JSON.parse(await readFile(p, "utf8")) as Record<string, unknown>;
+    return v && typeof v === "object" && Array.isArray(v.statements) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The plan on disk as a revise reads it: what the schema parses, or null (absent, unparseable). */
+async function readPlanOnDisk(p: string): Promise<Plan | null> {
+  if (!existsSync(p)) return null;
+  try {
+    const parsed = PlanSchema.safeParse(parseJsonWithEscapeRepair(await readFile(p, "utf8")));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The seeds of an F1 revise (`reviseAffectedNodeIds` closes them): the nodes the correction or
+ * the directive names, and the nodes that moved since the plan was written. Pure; exported
+ * for tests.
+ */
+export function stage1ReviseSeeds(
+  core: Core,
+  args: {
+    planCore: unknown | null;
+    coreView: unknown;
+    prior: ReviewResult | null;
+    directive: string | null;
+  },
+): string[] {
+  const texts: Array<string | undefined> = [args.directive ?? undefined];
+  if (args.prior && args.prior.status !== "pass" && args.prior.status !== "accept") {
+    for (const f of args.prior.perItemFindings) texts.push(f.label, f.one_line);
+    texts.push(args.prior.verbatim_critique);
+  }
+  return [...new Set([...namedNodeIds(core, texts), ...(args.planCore ? coreChangeSeeds(args.planCore, args.coreView).nodes : [])])];
 }
 
 /** Locate the first bracket mismatch in a JSON text, ignoring brackets inside strings:
@@ -218,7 +264,6 @@ export async function runStage1(args: {
   state: StateJson;
   deps: StageDeps;
   priorReview?: ReviewResult | null;
-  intervention?: Intervention | null;
   attempt?: number;
   /** Set on the ONE bounded re-dispatch after the planner wrote a plan.json that is not
    *  valid JSON: the parser's message plus a bracket diagnosis, for an in-place fix. */
@@ -240,78 +285,92 @@ export async function runStage1(args: {
   }
 
   // REVISE MODE (token-saver, drift-guard). F1 re-runs on two paths: the F1.5
-  // boundary loop (carries `priorReview`) and a cross-stage fix-locus rewind from
-  // F2.5 (carries no priorReview, but the critique was parked on
-  // `flags.f1_revise_directive`). In either case the prior plan is on disk and only
-  // the flagged nodes need to change — point the worker at it and Edit in place.
+  // boundary loop (carries `priorReview`) and an orchestrator re-entry with a
+  // directive parked on `flags.f1_revise_directive` (`bin/f1_directive.ts`). In either
+  // case the prior plan is on disk and only the flagged nodes need to change — point
+  // the worker at it and Edit in place.
   const f1Directive = args.state.flags.f1_revise_directive ?? null;
-  // SUBSTRATE-BUILT channel (build→F1): decls the orchestrator built since the last
-  // F1 run, to discharge the matching gate nodes against (see the discharge directive
-  // block below). A substrate-built rerun is a PATCH (only the discharged gates + their
-  // closure change) — preserve the rest of the plan, exactly like an F1.5/F2.5 revise.
-  const builtDecls = args.state.flags.substrate_built ?? [];
   const hasLaterStageHistory = await laterStageEverRan(args.ctx, args.state, "1");
-  // Post-pivot cold start: a stage_neg1 pivot retired the on-disk plan (it describes the
-  // ABANDONED angle). `hasLaterStageHistory` reads an append-only log — monotone for the
-  // run's lifetime — so without this marker F1 would stay in patch mode forever, editing
-  // the new angle's mathematics into the dead angle's node entries. The marker is cleared
-  // below once a schema-valid plan for the CURRENT angle is on disk, so F1.5 revise
-  // rounds on the new plan patch normally.
-  const planRetired = args.state.flags.f1_plan_retired === true;
   const isRevise =
-    !planRetired &&
-    (args.priorReview?.status === "revise" ||
-      !!f1Directive ||
-      builtDecls.length > 0 ||
-      hasLaterStageHistory);
+    args.priorReview?.status === "revise" ||
+    !!f1Directive ||
+    hasLaterStageHistory;
+  const patching = isRevise && existsSync(paths.plan);
+  // The core as a re-plan reads it: the slim view (no proof bodies or positioning prose) with the
+  // cited bibliography entries. A first plan reads the whole core.
+  const coreView = plannerCoreContextValue(core);
   let reviseBlock = "";
-  if (isRevise && existsSync(paths.plan)) {
+  /** The nodes a patch is about (`reviseAffectedNodeIds`), shown in full. */
+  let affected = new Set<string>();
+  let planOnDisk: Plan | null = null;
+  if (patching) {
+    // What moved since the plan was written. A plan with no record of its core, and a change
+    // that names no node, get the whole view (`scoped` below).
+    const planCore = await readPlanCore(planCorePath(args.ctx.repoRoot, args.ctx.qid));
+    planOnDisk = await readPlanOnDisk(paths.plan);
+    if (planCore) {
+      affected = reviseAffectedNodeIds(
+        core,
+        planOnDisk,
+        stage1ReviseSeeds(core, {
+          planCore,
+          coreView,
+          prior: args.priorReview ?? null,
+          directive: f1Directive,
+        }),
+      );
+    }
+    // With no record of the plan's core, the comparison is asked for only when nothing above
+    // names the change instead.
+    const named = (args.priorReview != null && args.priorReview.status !== "pass" && args.priorReview.status !== "accept")
+      || !!f1Directive;
     reviseBlock = [
+      planCore || !named ? whatChangedBlock(planCore, coreView) : "",
       await readPrompt(args.ctx, "stage1_head_revise.txt"),
       "",
       f1Directive
-        ? `UPSTREAM DIRECTIVE (F2.5 fix-locus triage — the Lean scaffolder rooted the defect in the FORMALIZATION PLAN, not the Lean. Fix the plan so the scaffold can succeed):\n${f1Directive}\n`
+        ? `ORCHESTRATOR DIRECTIVE (the defect is in the FORMALIZATION PLAN. Fix the plan as directed):\n${f1Directive}\n`
         : "",
-      builtDecls.length > 0
-        ? "SUBSTRATE-BUILT rerun: PATCH the plan — edit ONLY the discharged gate node(s) named in the SUBSTRATE-BUILT block below and their dependency closure (consumers that referenced them as hyps). Leave every other node entry intact.\n"
-        : "",
-      `Prior plan to patch (Read, then Edit in place): ${paths.plan}`,
+      `Prior plan to patch (Edit in place): ${paths.plan}`,
       "",
     ].filter(Boolean).join("\n");
   }
+  const nodeCount = core.assumptions.length + core.definitions.length + core.statements.length;
+  // A plan the schema does not parse gives no reference lines, and a change that reaches every
+  // node is no scope: both read the whole view.
+  const scoped = patching && planOnDisk != null && affected.size > 0 && affected.size < nodeCount;
+  const coreBlock = !patching
+    ? `Typed core JSON (the structural source of truth — map EVERY node; do NOT re-derive structure from prose):\n${compactJson(coreText)}`
+    : !scoped
+      ? `Typed core JSON (the structural source of truth; proof bodies and positioning prose omitted, the full file is at ${corePath}):\n${JSON.stringify(coreView)}`
+      : [
+          `Typed core — the ${affected.size} of ${nodeCount} nodes this revise affects, in full, with the symbols they use (settings, the bibliography, proof bodies and the remaining symbols are in the core file):\n${JSON.stringify(restrictCoreContextValue(coreView, affected))}`,
+          "",
+          reviseLookupBlock({
+            index: nodeReferenceIndex(core, planOnDisk, affected),
+            shown: affected.size,
+            total: nodeCount,
+            corePath,
+            planPath: paths.plan,
+            replyField: `\`${BEYOND_SCOPE_KEY}\``,
+          }),
+        ].join("\n");
+  if (patching) {
+    const scopeLine = scoped
+      ? `F1 revise carries ${affected.size} of ${nodeCount} core nodes in full`
+      : "F1 revise carries the whole core view (no record of the plan's core, an unreadable plan, or a change that names no node or reaches all)";
+    console.warn(`[causalsmith] ${scopeLine}`);
+    await appendPipelineLog(args.ctx, { stage: "1", status: "revise-scope", duration_ms: 0, message: scopeLine });
+  }
 
   const cluster = clusterFromLeanSubdir(args.state.lean_subdir) ?? core.cluster ?? null;
-  const reuseBlock = isRevise && existsSync(paths.plan)
-    ? [
-        "=== REVISE REUSE SCOPE ===",
-        "Keep every settled reuse/define-local decision in the existing plan. Re-search only reviewer-flagged nodes,",
-        "substrate-built gates, and their dependency closure; do not repeat the all-node cold-start candidate survey.",
-      ].join("\n")
+  const reuseBlock = patching
+    ? ""
     : coreReuseCandidateBlock(args.ctx.repoRoot, core, cluster, {
         // Semantic blend ON by default: pure-lexical ranking surfaced surface-token matches
         // over concept-correct declarations. Degrades to lexical-only if embeddings are stale.
         semantic: process.env.RETRIEVAL_SEMANTIC_PUSH !== "off",
       });
-
-  // SUBSTRATE-BUILT channel (build→F1): if the orchestrator built a Defer-item's
-  // crux substrate since the last F1 run, it left the new decl(s) on
-  // `flags.substrate_built` (read into `builtDecls` above). Inject them as a discharge
-  // directive so this rerun un-defers/un-assumes the matching gate node(s).
-  const substrateBuiltBlock = builtDecls.length
-    ? [
-        "=== SUBSTRATE-BUILT (discharge directive — these gates are now PROVEN upstream) ===",
-        "The meta-orchestrator has BUILT the following substrate 0-sorry in Causalean.",
-        "For EACH listed gate node you MUST now DISCHARGE it (not re-defer, not re-assume):",
-        "set `lean_kind:\"lemma\"`, `disposition:\"reuse\"`, `reuse` = the decl's fully-qualified",
-        "name, `module` = its module, DROP it from every statement's `hyps`, and set",
-        "`defer_tier:false`. Confirm the decl's NL statement type-fits the node before reuse.",
-        ...builtDecls.map(
-          (d) =>
-            `  - gate ${d.gate_id} → reuse ${d.decl_name} (module ${d.module}) : ${d.nl_statement}`,
-        ),
-        "",
-      ].join("\n")
-    : "";
 
   const syntaxFixBlock = args.planSyntaxError
     ? [
@@ -325,12 +384,9 @@ export async function runStage1(args: {
 
   const prompt = [
     syntaxFixBlock,
-    correctionBlock(args.priorReview ?? null, args.attempt ?? 1, {
-      manifestContract: (args.state.theorems?.length ?? 0) > 0,
-    }),
-    substrateBuiltBlock,
+    correctionBlock(args.priorReview ?? null, args.attempt ?? 1),
+    "",
     reviseBlock,
-    interventionBlock(args.intervention),
     (await readPrompt(args.ctx, "stage1_template.txt")).replaceAll(
       "{{HEADER_CONTRACT}}",
       [
@@ -341,12 +397,12 @@ export async function runStage1(args: {
     "",
     baseBrief(args.ctx, args.state),
     "",
-    `Typed core JSON (the structural source of truth — map EVERY node; do NOT re-derive structure from prose):\n${coreText}`,
+    coreBlock,
     "",
     reuseBlock,
     "",
-    isRevise && existsSync(paths.plan)
-      ? `Patch the existing plan at ${paths.plan} per REVISE MODE above — Edit every node entry AFFECTED by the correction (the flagged nodes AND their dependency closure), leave the rest intact (do NOT blind-regenerate).`
+    patching
+      ? `Patch the existing plan at ${paths.plan} per REVISE MODE above.`
       : `Write the formalization plan JSON to ${paths.plan}.`,
     "Return only the JSON object specified in the prompt's `=== OUTPUT JSON ===` block.",
   ].join("\n");
@@ -364,7 +420,11 @@ export async function runStage1(args: {
       mcpConfigPath: writeLeanLspMcpConfig(args.ctx.repoRoot),
       allowedTools: [
         "Read", "Write", "Edit", "Grep", "Glob",
-        // Substrate survey for the per-node reuse decisions.
+        // Substrate survey for the per-node reuse decisions. The ranked library
+        // search is the one shell command granted (cwd is the CausalSmith
+        // package root); it replaces reading `doc/API.md` section by section.
+        // A single command, no `&&`: permission rules match each `&&` segment.
+        "Bash(npm --prefix tools run search:*)",
         "mcp__lean-lsp__lean_leansearch",
         "mcp__lean-lsp__lean_loogle",
         "mcp__lean-lsp__lean_local_search",
@@ -379,6 +439,13 @@ export async function runStage1(args: {
     throw new Error("Stage 1: F1 worker output did not parse (parse_failed) - refusing to advance on unparseable output");
   }
   const p = parsed as Record<string, unknown>;
+  // The mechanical affected set under-reached: say where, so the rule can be widened.
+  const beyond = scoped && Array.isArray(p[BEYOND_SCOPE_KEY]) ? (p[BEYOND_SCOPE_KEY] as unknown[]).map(String) : [];
+  if (beyond.length > 0) {
+    const message = `F1 revise looked up ${beyond.length} node(s) beyond the affected set (${affected.size}): ${beyond.join(", ")}`;
+    await appendPipelineLog(args.ctx, { stage: "1", status: "revise-scope", duration_ms: 0, message });
+    console.warn(`[causalsmith] ${message}`);
+  }
 
   // Read the just-written plan (if any) and run the deterministic gate as a
   // best-effort self-check — log violations. The F1.5 boundary enforces them as a
@@ -422,41 +489,6 @@ export async function runStage1(args: {
     if (copied > 0) {
       await writeFile(paths.plan, JSON.stringify(planObj, null, 2), "utf8");
       console.warn(`[causalsmith] F1 copied ${copied} D0.5-verified cited source-of-record entr${copied === 1 ? "y" : "ies"} into the plan.`);
-    }
-  }
-  // DETERMINISTIC discharge application (substrate-built channel). The channel is an
-  // orchestrator→pipeline directive: the orchestrator BUILT these decls and knows the
-  // exact discharge. Rather than rely on F1's (unreliable) LLM patch, APPLY the discharge
-  // mechanically so the plan is always consistent — `lean_kind:"lemma"`, `disposition:
-  // "reuse"`, the reuse decl + module, `defer_tier:false`, and dropped from every
-  // statement's `hyps`. (F1 still authors everything else; this is bookkeeping the
-  // channel fully determines.)
-  if (builtDecls.length && planObj && typeof planObj === "object") {
-    const pj = planObj as { nodes?: Record<string, Record<string, unknown>> };
-    if (pj.nodes) {
-      for (const d of builtDecls) {
-        const node = pj.nodes[d.gate_id];
-        if (node) {
-          // A built gate is no longer a gate: clear the gate keys so P9/P-gate rules see a
-          // proved reuse lemma, and stamp a cited discharge (the only other writer is gate.ts).
-          if (node.gate_class === "cited") node.citation_discharged = true;
-          delete node.gate;
-          delete node.gate_class;
-          node.lean_kind = "lemma";
-          node.disposition = "reuse";
-          node.reuse = d.decl_name;
-          node.lean_name = d.decl_name;
-          const mods = Array.isArray(node.modules) ? (node.modules as string[]) : [];
-          node.modules = mods.includes(d.module) ? mods : [...mods, d.module];
-          node.defer_tier = false;
-        }
-        // Drop the discharged gate from every node's `hyps` (it is a proved lemma now).
-        for (const n of Object.values(pj.nodes)) {
-          if (Array.isArray(n.hyps)) n.hyps = (n.hyps as string[]).filter((h) => h !== d.gate_id);
-        }
-      }
-      await writeFile(paths.plan, JSON.stringify(planObj, null, 2), "utf8");
-      console.warn(`[causalsmith] substrate-built: deterministically discharged ${builtDecls.map((d) => d.gate_id).join(", ")} in the plan.`);
     }
   }
   if (planObj && typeof planObj === "object") {
@@ -503,17 +535,16 @@ export async function runStage1(args: {
     parsed.status === "completed" &&
     !!parsedPlan?.success &&
     planGateOk;
-  // A schema-valid plan for the CURRENT angle is now on disk, so the post-pivot
-  // retirement marker is consumed: later F1 passes patch THIS plan. Deliberately NOT
-  // gated on `planGateOk` — a plan with gate violations is still the new angle's plan
-  // (the F1.5 boundary bounces it back as a revise of the new plan, not a cold start).
-  if (parsed.status === "completed" && parsedPlan?.success && args.state.flags.f1_plan_retired) {
-    delete args.state.flags.f1_plan_retired;
+  // The core view this plan was written from: the next re-plan's WHAT CHANGED block diffs against
+  // it. Only a completed pass records it — a blocked one left the plan on disk for the older core.
+  if (parsed.status === "completed" && parsedPlan?.success) {
+    const record = planCorePath(args.ctx.repoRoot, args.ctx.qid);
+    await mkdir(path.dirname(record), { recursive: true });
+    await writeFile(record, JSON.stringify(coreView), "utf8");
   }
   if (planGateClean) {
     // why: keep retry directives until F1 completed with a parsed, gate-clean plan.
     if (f1Directive) args.state.flags.f1_revise_directive = null;
-    if (builtDecls.length) args.state.flags.substrate_built = null;
   }
 
   // Emit the formalization graph from core + plan (the graph is the interchange the
@@ -523,7 +554,6 @@ export async function runStage1(args: {
   // nodes; rebuilding from an empty graph here would silently destroy all of them.
   // Best-effort: never blocks the stage. A failed revise merge leaves the existing
   // artifacts untouched rather than falling back to a destructive fresh write.
-  let emittedGraphAndNote = false;
   try {
     // A malformed/partial revise must not replace valid downstream artifacts
     // with the builder's plan=null fallback.
@@ -540,7 +570,6 @@ export async function runStage1(args: {
     // nodes belong in graph.json but must not leak into the paper-facing note.
     await mkdir(path.dirname(paths.md), { recursive: true });
     await writeFile(paths.md, renderBridgeNote(rebuilt), "utf8");
-    emittedGraphAndNote = true;
   } catch (err) {
     console.warn(`[graph] F1 core+plan emission skipped: ${err instanceof Error ? err.message : String(err)}`);
   }
@@ -561,11 +590,6 @@ export async function runStage1(args: {
   const gateIds = new Set(
     parsedPlan?.success
       ? Object.entries(parsedPlan.data.nodes).filter(([, n]) => n.gate).map(([id]) => id)
-      : [],
-  );
-  const gateNames = new Set(
-    parsedPlan?.success
-      ? Object.values(parsedPlan.data.nodes).filter((n) => n.gate).map((n) => n.lean_name)
       : [],
   );
   if (parsedPlan?.success && gateIds.size > 0) {
@@ -606,54 +630,23 @@ export async function runStage1(args: {
       console.warn(`[causalsmith] substrate-debt gate ledger write failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
-  // F1 never halts for substrate: it has no frozen provenance for an uncited
+  // F1 does not halt for substrate: it has no frozen provenance for an uncited
   // external theorem, so build/citation classification belongs to F1.5.
-  if (args.state.flags.substrate_build_required) {
-    // A rerun-F1 (after the orchestrator built the crux substrate) produced a plan
-    // with no remaining Defer-item: clear the stale gate so `--resume` proceeds.
-    args.state.flags.substrate_build_required = null;
-  }
-
-  // Paper-scoped: walk the theorem manifest. A theorem is covered if the worker's
-  // `theorems[]` manifest lists it OR (rescue) the plan has a statement node whose
-  // `local_id` realizes it. Falls back to legacy single-theorem behavior when absent.
-  if (args.state.theorems && args.state.theorems.length > 0) {
-    const manifest = parsed.theorems ?? [];
-    const covered = new Set(manifest.map((m) => m.theorem_local_id));
-    for (const entry of args.state.theorems) {
-      if (entry.status === "failed" || entry.status === "stuck") continue;
-      if (covered.has(entry.theorem_local_id)) {
-        entry.stage_completed = "1";
-      } else if (planObj && planCoversLocalId(planObj, entry.theorem_local_id)) {
-        console.warn(
-          `[causalsmith] Stage 1 manifest dropped ${entry.theorem_local_id} but the plan covers it; repairing manifest.`,
-        );
-        entry.stage_completed = "1";
-      } else {
-        entry.status = "stuck";
-        entry.failure_reason = "Stage 1 did not produce an NL block for this theorem";
-      }
-    }
-  }
-
-  // The plan-audit checkpoint (CKPT 1) moved DOWNSTREAM to F1.5: when F1 produced
-  // a usable plan it advances STRAIGHT into the F1.5 reuse-soundness review, so
-  // F1 + F1.5 halt together at ONE consolidated CKPT 1 (fewer recall events for
-  // the orchestrator). F1 still halts on its own when no usable plan was
-  // parsed (blocked-infeasible / parse failure) — there is nothing for F1.5 to
-  // review, so surface the artifact to the human now.
+  //
+  // The plan audit (CKPT 1) is at F1.5: when F1 produced a usable plan it advances
+  // straight into the F1.5 reuse-soundness review, so F1 + F1.5 halt together at ONE
+  // consolidated CKPT 1. F1 halts on its own only when no usable plan was parsed
+  // (blocked-infeasible / parse failure) — there is nothing for F1.5 to review.
   if (!parsedPlan?.success) {
     return {
       stage: "1",
       status: "checkpoint",
       message: parsed.message ?? "F1 produced no usable plan; inspect the artifact before resume.",
-      artifacts: [...new Set([...(parsed.artifacts ?? [paths.plan]), ...(emittedGraphAndNote ? [graphPath(paths.formalizationDir, args.ctx.qid, args.ctx.specialization), paths.md] : [])])],
     };
   }
   return {
     stage: "1",
     status: "completed",
     message: parsed.message ?? "F1 plan authored; advancing to F1.5 reuse-soundness review (consolidated CKPT 1).",
-    artifacts: [...new Set([...(parsed.artifacts ?? [paths.plan]), ...(emittedGraphAndNote ? [graphPath(paths.formalizationDir, args.ctx.qid, args.ctx.specialization), paths.md] : [])])],
   };
 }

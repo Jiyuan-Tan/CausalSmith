@@ -37,10 +37,9 @@ export const proposalGate = defineGate<unknown>({
   check: (core) => toViolations("proposal-gate", runProposalGate(core).violations),
 });
 
-// (Retired, Phase 1 of the store consolidation: the `proposal-closure` gate.
-// The published core is `assembleCore(proto, working)`, so
-// `ids(core) ⊆ ids(proto) ∪ ids(working)` holds by construction — the state the
-// gate policed is unrepresentable. See test/discovery/assemble.test.ts.)
+// No `proposal-closure` gate: the published core is `assembleCore(proto, working)`, so
+// `ids(core) ⊆ ids(proto) ∪ ids(working)` holds by construction.
+// See test/discovery/assemble.test.ts.
 
 /** Prose↔formal drift lint (PROSE-DANGLING-REF / PROSE-OPEN-OVERCLAIM). */
 export const proseConsistencyGate = defineGate<Core>({

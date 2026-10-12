@@ -24,7 +24,6 @@ export interface ClaudeRunInput {
   webSearch?: boolean;
   mcpConfigPath?: string;
   jsonSchema?: object;
-  systemPromptFile?: string;
   inactivityTimeoutMs?: number;
   /**
    * Called with the RESOLVED model id (e.g. "claude-opus-4-8-20260115") parsed
@@ -187,12 +186,6 @@ export function writeLeanLspSharedConfig(sharedUrl: string): string {
   return out;
 }
 
-export interface ClaudeRunDiagnostic {
-  rawStdout: string;
-  rawStderr: string;
-  parsedText: string;
-}
-
 export class ClaudeRunError extends Error {
   constructor(
     message: string,
@@ -257,8 +250,11 @@ export async function runClaude(input: ClaudeRunInput): Promise<string> {
     "--verbose",
     ...claudeAuthArgs(auth.mode),
     "--disable-slash-commands",
+    // `--tools` takes bare tool names; a permission rule such as
+    // `Bash(npm run search:*)` advertises `Bash` here and is granted as the
+    // narrow rule via `--allowedTools` below.
     "--tools",
-    allowedTools.join(","),
+    Array.from(new Set(allowedTools.map((t) => t.replace(/\(.*\)$/, "")))).join(","),
     // `--tools` only advertises tools; it does not grant permission to invoke
     // them.  Headless (`-p`) workers cannot answer permission prompts, so grant
     // exactly the same narrow allow-list explicitly.  This keeps Bash/Edit out
@@ -290,7 +286,6 @@ export async function runClaude(input: ClaudeRunInput): Promise<string> {
       : EMPTY_MCP_CONFIG_PATH);
   args.push("--strict-mcp-config", "--mcp-config", mcpConfigPath);
   if (input.jsonSchema) args.push("--json-schema", JSON.stringify(input.jsonSchema));
-  if (input.systemPromptFile) args.push("--system-prompt-file", input.systemPromptFile);
 
   const result = await spawnWithInactivityTimeout("claude", args, {
     cwd: input.cwd,
@@ -316,11 +311,6 @@ export async function runClaude(input: ClaudeRunInput): Promise<string> {
         : null);
   if (killed || result.exitCode === null || result.exitCode !== 0) {
     // why: a crashed/killed Claude stream may contain partial JSON that must not count as success.
-    lastDiagnostic = {
-      rawStdout: result.stdout,
-      rawStderr: result.stderr,
-      parsedText: "",
-    };
     const reason = killed ?? `exit ${result.exitCode}`;
     // Redact BEFORE slicing: in api mode the key is in the child's env, and a CLI
     // that echoes a rejected credential would otherwise persist it to the run log.
@@ -334,21 +324,7 @@ export async function runClaude(input: ClaudeRunInput): Promise<string> {
     const resolved = extractResolvedModel(result.stdout);
     if (resolved) input.onResolvedModel(resolved);
   }
-  const parsed = parseStreamJson(result.stdout);
-  // Stash diagnostics on the function so callers can inspect after the fact
-  // when the parsed text is unexpectedly empty (Bug B follow-up — see
-  // PIPELINE_NOTES). This is opt-in: only `runIntervention` reads it.
-  lastDiagnostic = {
-    rawStdout: result.stdout,
-    rawStderr: result.stderr,
-    parsedText: parsed,
-  };
-  return parsed;
-}
-
-let lastDiagnostic: ClaudeRunDiagnostic | null = null;
-export function getLastClaudeDiagnostic(): ClaudeRunDiagnostic | null {
-  return lastDiagnostic;
+  return parseStreamJson(result.stdout);
 }
 
 /**
@@ -386,8 +362,7 @@ export function extractResolvedModel(stdout: string | undefined | null): string 
 export function parseStreamJson(stdout: string | undefined | null): string {
   const texts: string[] = [];
   // Defensive: a failed/timed-out `claude` spawn can yield undefined stdout.
-  // Returning "" lets callers (runIntervention) fall into their deterministic
-  // synthesis fallback and checkpoint cleanly instead of crashing on `.split`.
+  // Returning "" lets callers treat it as an empty reply instead of crashing on `.split`.
   if (typeof stdout !== "string" || stdout.length === 0) return "";
   for (const line of stdout.split(/\r?\n/)) {
     if (!line.trim()) continue;
@@ -402,7 +377,7 @@ export function parseStreamJson(stdout: string | undefined | null): string {
           // When --json-schema is passed, Claude emits the payload via the
           // StructuredOutput tool rather than as a text block. The result-event
           // `result` field is empty in that mode, so without this branch
-          // downstream `parseIntervention` / `parseReview` see "" and treat a
+          // downstream `parseReview` sees "" and treats a
           // perfectly valid structured emit as parse_failure.
           if (
             block.type === "tool_use" &&

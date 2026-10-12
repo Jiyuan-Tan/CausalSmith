@@ -81,16 +81,10 @@ function crefWords(parts: ObjLabelPart[], link: (p: ObjLabelPart) => string): st
 
 /** Resolve cleveref references for page metadata, where hyperlinks are unavailable. */
 export function resolveObjCrefsPlain(tex: string, labels: ReadonlyMap<string, string>): string {
-  let out = tex.replace(/\\(Cref|cref)\{([^}]+)\}/g, (whole, _command: string, raw: string) => {
+  return tex.replace(/\\(Cref|cref)\{([^}]+)\}/g, (whole, _command: string, raw: string) => {
     const parts = objLabelParts(raw, labels);
     return parts ? crefWords(parts, (p) => p.number) : whole;
   });
-  // Legacy bundles remain readable while the pipeline gate requires new prose to use cleveref.
-  out = out.replace(/\\ref\{([^}]+)\}/g, (_whole, raw: string) => {
-    const id = raw.startsWith("obj:") ? raw.slice(4) : raw;
-    return labels.get(id)?.split(" ").pop() ?? id;
-  });
-  return out;
 }
 
 /**
@@ -169,19 +163,6 @@ export async function tex2html(
         raw.split(",").map((x) => x.trim()).find((x) => (x.startsWith("obj:") ? x.slice(4) : x) === p.id)?.startsWith("obj:")
           ? `<a class="objref" href="#obj-${esc(p.id)}">${esc(p.number)}</a>`
           : esc(p.number)),
-    });
-    return token;
-  });
-  // Legacy \ref remains renderable for accepted bundles created before the cleveref migration.
-  tex = tex.replace(/\\ref\{([^}]+)\}/g, (_, rawLabel: string) => {
-    const isObj = rawLabel.startsWith("obj:");
-    const id = isObj ? rawLabel.slice(4) : rawLabel;
-    const label = refLabels.get(id);
-    const num = label?.split(" ").pop() ?? id;
-    const token = `PSMITHREF${refTokens.length}X`;
-    refTokens.push({
-      token,
-      html: isObj ? `<a class="objref" href="#obj-${esc(id)}">${esc(num)}</a>` : esc(num),
     });
     return token;
   });
@@ -339,17 +320,12 @@ function readBalancedBraceGroup(tex: string, open: number): { content: string; e
 }
 
 function replaceVerificationFootnotes(tex: string, render: (inner: string) => string): string {
-  // Longest first: the legacy macro name is a prefix of the split `...footnotetext` macro.
-  const needles = ["\\verificationfootnotetext", "\\verificationfootnote"];
+  const needle = "\\verificationfootnotetext";
   let out = "";
   let cursor = 0;
   while (true) {
-    const candidates = needles
-      .map((needle) => ({ needle, idx: tex.indexOf(needle, cursor) }))
-      .filter(({ idx }) => idx >= 0)
-      .sort((a, b) => a.idx - b.idx || b.needle.length - a.needle.length);
-    if (candidates.length === 0) break;
-    const { needle, idx } = candidates[0];
+    const idx = tex.indexOf(needle, cursor);
+    if (idx < 0) break;
     const group = readBalancedBraceGroup(tex, idx + needle.length);
     if (!group) break;
     out += tex.slice(cursor, idx) + render(group.content);

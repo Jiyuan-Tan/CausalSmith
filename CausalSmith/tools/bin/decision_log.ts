@@ -2,7 +2,7 @@
 /**
  * Orchestrator-only: append to / read the hierarchical orchestrator's judgment log at
  * `<run dir>/orchestrator/decision_log.jsonl`. This is the durable working memory of the
- * main / D-stage / F-stage orchestrators (see the causalsmith-main skill). Entry types:
+ * main / D-stage / F-stage orchestrators (see the causalsmith skill). Entry types:
  * judgment | escalation | command | terminal | dispatch.
  *
  * Usage:

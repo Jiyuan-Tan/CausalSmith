@@ -25,7 +25,6 @@ export async function laterStageEverRan(
   target: Stage,
 ): Promise<boolean> {
   if (isLaterStage(state.stage_completed, target)) return true;
-  if (state.theorems?.some((entry) => isLaterStage(entry.stage_completed, target))) return true;
 
   let raw: string;
   try {

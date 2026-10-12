@@ -1,4 +1,4 @@
-// Node-addressable review verdicts for the D0.5 panel (D0_CORE_REDESIGN.md §6).
+// Node-addressable review verdicts for the D0.5 panel.
 //
 // The referees receive the full deterministic paper plus its typed CORE and emit
 // findings keyed by core node id. This module defines

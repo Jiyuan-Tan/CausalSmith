@@ -89,9 +89,6 @@ function makeState(overrides: Partial<NonNullable<StateJson["proposed_from"]>> =
     method_id: null,
     closed_oq: null,
     flags: {
-      rewound_from_stage0: null,
-      rewound_from_stage4d: null,
-      local_fix_from_4d: false,
       missing_architecture: false,
       scaffold_redirect: null,
       scaffold_redirect_count: 0,
@@ -145,7 +142,6 @@ function makeDeps(
     runClaude: async () => {
       throw new Error("runClaude should not be called by Stage -0.5");
     },
-    lean: undefined as never,
   } as unknown as StageDeps;
 }
 

@@ -53,6 +53,5 @@ A run is one phase sequence; each stage is owned by a module under `src/`. Disco
 Routing lives in `discovery/dispatcher.ts` + `formalization/dispatcher.ts`. Stages
 3/3.5/4 remain as no-op pass-throughs (the proof-review loop in the F2.5 slot owns
 that work). Shared discovery helper: `discovery/cluster_setup.ts` (cluster routing + setup
-blocks). Per-theorem review propagation lives on the formalization side, in
-`formalization/theorem_review.ts` (used by F1.5).
+blocks).
 

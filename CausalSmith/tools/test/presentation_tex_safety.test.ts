@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeSymbolLeanrefs, fixOverEscapedTex, promoteSymbolLeanrefs, repairSymbolLeanrefTargets } from "../src/presentation/emit.js";
+import { normalizeSymbolLeanrefs, promoteSymbolLeanrefs, repairSymbolLeanrefTargets } from "../src/presentation/emit.js";
 
 describe("normalizeSymbolLeanrefs", () => {
   it("wraps a $…$ symbol display in \\ensuremath (math-safe in any mode)", () => {
@@ -88,30 +88,3 @@ describe("repairSymbolLeanrefTargets", () => {
   });
 });
 
-describe("fixOverEscapedTex", () => {
-  it("de-doubles backslashes when \\\\( signals an over-escape", () => {
-    expect(fixOverEscapedTex("\\\\(0\\le \\gamma\\\\) and \\\\mathrm{x}")).toBe(
-      "\\(0\\le \\gamma\\) and \\mathrm{x}",
-    );
-  });
-  it("is a no-op on a correctly-escaped body (no \\\\( present)", () => {
-    const ok = "\\(x\\) holds, with a line break \\\\ here";
-    expect(fixOverEscapedTex(ok)).toBe(ok);
-  });
-  it("does not touch a legit \\\\ line break that follows whitespace", () => {
-    // the guard fires (has \\( ), but \\<space> is left alone (only \\<non-space-non-digit> collapses)
-    expect(fixOverEscapedTex("\\\\(a\\\\) \\\\ \nb")).toBe("\\(a\\) \\\\ \nb");
-  });
-  it("leaves a table row break directly before inline math alone (no doubled CLOSER)", () => {
-    // 2026-08-01 TeX audit: `a \\\(x\)` is a row separator followed by a real
-    // `\(` — a single-token `\\(` trigger collapsed EVERY `\\` in the body,
-    // destroying row separators document-wide. The repair now requires a
-    // doubled OPEN *and* CLOSE pair as evidence.
-    const tabular = "\\begin{tabular}{ll} a \\\\\\(x\\) & b \\\\ c \\end{tabular}";
-    expect(fixOverEscapedTex(tabular)).toBe(tabular);
-  });
-  it("does not read \\\\[1em] vertical spacing as a doubled display opener", () => {
-    const body = "row one \\\\[1em] row two \\\\] tail";
-    expect(fixOverEscapedTex(body)).toBe(body);
-  });
-});

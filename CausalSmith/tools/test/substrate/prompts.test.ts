@@ -68,20 +68,20 @@ describe("substrate prompts", () => {
     expect(p).toContain("CausalSmith.Substrate.X.*");
     expect(p).toMatch(/helpers from other runs are forbidden/i);
   });
-  it("coordinator requires a headline anchor for every theorem-bearing promoted file", () => {
-    const p = buildCoordinatorPrompt({
-      requirement: "R", leanDir: "/d", modulePrefix: "M",
-      leanFiles: ["/d/Main.lean", "/d/Support.lean"], stagingDir: "/stage",
-      lastFailureLog: null,
-    });
-    expect(p).toMatch(/audit EVERY promoted Lean file/i);
-    expect(p).toMatch(/every promoted file containing a public `theorem` or `lemma`/i);
-    // scoped to promotions: files that stay under CausalSmith/ get no Causalean sidecar entry
-    expect(p).toMatch(/Files that remain under `CausalSmith\/` get NO sidecar entry/i);
-    expect(p).toMatch(/single required headline anchor/i);
-    expect(p).toMatch(/Preserve every existing sidecar entry/i);
-    expect(p).toMatch(/existing top-level subject area/i);
-    expect(p).toMatch(/no `CausalSmith` import or qualified reference/i);
-    expect(p).not.toMatch(/LAST RESORT/i);
+  it("leaves no unreplaced header-contract placeholder in any study prompt", () => {
+    const prompts = [
+      buildCoordinatorPrompt({
+        requirement: "R", leanDir: "/d", modulePrefix: "M", leanFiles: ["/d/Main.lean"],
+        stagingDir: "/stage", lastFailureLog: null,
+      }),
+      buildScaffolderPrompt({
+        slug: "x", requirement: "R", leanDir: "/d", modulePrefix: "M",
+        planMarkdown: null, lastReport: null, lastReview: null, buildRounds: 0, buildCap: 1,
+      }),
+      buildFillerPrompt({
+        leanDir: "/d", modulePrefix: "M", prompt: { id: "p", target_decls: [], prompt: "P" },
+      }),
+    ];
+    for (const prompt of prompts) expect(prompt).not.toContain("{{HEADER_CONTRACT}}");
   });
 });

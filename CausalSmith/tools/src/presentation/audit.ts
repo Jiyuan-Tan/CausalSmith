@@ -6,7 +6,7 @@ import type { StageIO } from "./pipeline.js";
 import { PRESENTATION_PROSE_POLICY_VERSION, presentationPrompt } from "./prompt_io.js";
 import { notationForArtifact, parseOutline } from "./stage_util.js";
 import { canonicalizeProofTitle, hashEnvBody, repairObjRefs, type AnchoredEnv, type LintProblem } from "./tex_anchors.js";
-import { FormalLayerSource, type FormalBlock } from "./formal_layer.js";
+import type { FormalBlock } from "./formal_layer.js";
 import { bankAcceptedDir } from "./paths.js";
 import { saveGraph, graphPath } from "../graph/store.js";
 import { extractDeclSnippet, extractFullDeclSource } from "./lean_extract.js";
@@ -18,7 +18,6 @@ import { writeJsonAtomic, writeTextAtomic } from "./json_io.js";
 import { loadJsonCache } from "./cache.js";
 import { proofFilePath } from "./proof_files.js";
 import { resolveLeanDeclaration, resolvedLeanAbsolutePath } from "./declaration_resolver.js";
-export { resolveLeanDeclaration } from "./declaration_resolver.js";
 import { parseJsonLoose, mapLimit, type StatementCheck } from "./gates.js";
 import { EQUIVALENCE_BATCH_REPLY, EQUIVALENCE_REPLY, PROOF_AUDIT_REPLY } from "./reply_schemas.js";
 
@@ -62,10 +61,8 @@ export function equivalenceAuditKey(parts: {
   // a statement. Keep existing faithful receipts under the same acceptance criterion.
   // equivalence-v3: the statement auditor now receives the contract DIGEST instead of
   // the full authoring contracts (with a small added flag-in-schema remit) — a
-  // deliberate one-time re-audit sweep per bundle at its next P1 entry. This key has
-  // NO prompt fingerprint: future contract_digest.txt edits self-invalidate only
-  // proof_audit and the P1 notation cache; statement-equivalence (and the P3 gate
-  // caches, which deliberately did not sweep for this change) need a hand bump here.
+  // deliberate one-time re-audit sweep per bundle at its next P1 entry. No key hashes
+  // prompt or contract text: a change to what the auditor is asked needs a hand bump here.
   return hashEnvBody(`${parts.envBody}|${parts.mapping}|${parts.leanStatement}|${parts.refDefs}|citation-erasure-v1|equivalence-v3|${parts.citedDependencies}|${parts.notationContext}`);
 }
 
@@ -239,32 +236,6 @@ export async function persistFrozenBodies(
     io.state.notes.push(`P1: persisted ${n} audit-faithful statement body/bodies to the bank graph (nl.frozen_body) — a re-run reuses them verbatim instead of re-rendering.`);
   }
   return n;
-}
-
-/** Judge the persisted layer, freeze what is faithful, report drift (P1 internals and tests). */
-export async function runStatementAudit(io: StageIO): Promise<LintProblem[]> {
-  const out = await auditStatements(io);
-  await persistFrozenBodies(io, out.faithful);
-  return out.problems;
-}
-
-/** Judge `formal_layer.json` as it stands: drift verdicts as `equivalence` problems, faithful
- *  bodies as freeze candidates. Read-only on the layer. */
-export async function auditStatements(io: StageIO): Promise<{ problems: LintProblem[]; faithful: Map<string, { body: string; title: string | null }> }> {
-  const layer = FormalLayerSource.parse(JSON.parse(await readFile(join(io.outDir, "formal_layer.json"), "utf8")));
-  const { verdicts } = await judgeStatements(io, layer.blocks);
-  const problems: LintProblem[] = [];
-  const faithful = new Map<string, { body: string; title: string | null }>();
-  for (const b of layer.blocks) {
-    const v = verdicts.get(b.obj_id);
-    if (!v) continue;
-    if (v.verdict === "faithful") faithful.set(b.obj_id, { body: b.body.trim(), title: b.title ?? null });
-    else problems.push({ gate: v.verdict === "missing-coverage" ? "lean-coverage" : "equivalence",
-      objId: b.obj_id, detail: `${b.obj_id}: ${v.detail ?? v.verdict}` });
-  }
-  await mkdir(join(io.outDir, "logs"), { recursive: true });
-  await appendFile(join(io.outDir, "logs", "reviews.jsonl"), JSON.stringify({ kind: "equivalence", problems }) + "\n", "utf8");
-  return { problems, faithful };
 }
 
 /**

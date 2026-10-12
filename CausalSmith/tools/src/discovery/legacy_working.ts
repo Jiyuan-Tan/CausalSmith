@@ -15,7 +15,7 @@ import type { ProseOverlay } from "./core/assemble.js";
 /** The content a member statement was last solved against — change ⟹ invalidate. */
 export interface MemberSnapshot {
   stmt: string; // the member's own statement text
-  /** Edge set at solve time. PROVENANCE ONLY — no longer part of validity: a proof's
+  /** Edge set at solve time. PROVENANCE ONLY — not part of validity: a proof's
    *  soundness rests on its statement plus the CONTENT it was solved against (`defs`/
    *  `assumptions` below, which are captured post-auto-wiring and therefore cover every
    *  def/ass the proof text cites), not on the edge list. Comparing the edge set made a

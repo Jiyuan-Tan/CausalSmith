@@ -188,11 +188,11 @@ describe("vcs validity", () => {
     expect(deriveStatus(reopened, "oeq:reopen")).toBe("to-prove");
   });
 
-  it("treats a direct whole-core addition as exhaustive and defers its proof", () => {
+  it("treats a direct whole-core addition without a manifest as exhaustive and defers its proof", () => {
     const addedCore = renderCore(base);
     addedCore.statements.push({
       id: "lem:direct-new", kind: "lemma", statement: "The new claim uses $n$.",
-      depends_on: [], free_symbols: [], status: "proved", proof_tex: "A same-action proof.",
+      depends_on: [], status: "proved", proof_tex: "A same-action proof.",
       justification: "j", gap: "g", consumer: "c",
     });
     const added = graphFromCore(addedCore, base);

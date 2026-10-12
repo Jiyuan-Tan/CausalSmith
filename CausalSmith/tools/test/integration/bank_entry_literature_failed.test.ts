@@ -73,8 +73,7 @@ function baseState(qid: string): Record<string, unknown> {
     from_question_oq_id: null,
     method_id: null,
     closed_oq: null,
-    flags: { local_fix_from_4d: false, missing_architecture: false },
-    theorems: [],
+    flags: { missing_architecture: false },
   };
 }
 

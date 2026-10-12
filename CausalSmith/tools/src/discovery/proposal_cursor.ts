@@ -236,21 +236,9 @@ export async function resetProposalCursor(
     // Return to the durable D-1.1 boundary. `state.gaps` and gaps.json are
     // intentionally untouched; a plain --resume therefore begins at D-1.2.
     state.stage_completed = "-1.1";
-    // Never REGRANT pivot budget. `pivot_budget_used = angle` meant that resetting
-    // angle 0 after angles 1..N had already been burned silently reset the counter to
-    // 0, handing the run a fresh pivot budget it had already spent.
-    const priorBudgetUsed = pf.pivot_budget_used ?? 0;
-    pf.pivot_budget_used = Math.max(priorBudgetUsed, angle);
-    if (priorBudgetUsed > angle) {
-      console.warn(
-        `[reset_proposal_cursor] keeping pivot_budget_used=${priorBudgetUsed} (not lowering it to ${angle}): ` +
-          `angles beyond ${angle} were already burned and that budget is not refundable.`,
-      );
-    }
     pf.iterations = (pf.iterations ?? []).filter((it) => it.angle !== angle);
     pf.last_draft_status = undefined;
     pf.last_reviewer_verdict = "";
-    pf.accepted_scope_caveats = undefined;
     pf.seed_list = [];
     pf.seed_details = [];
     pf.literature_map = undefined;
@@ -313,11 +301,9 @@ export async function resetProposalCursor(
     // Single-artifact regime: the proto core IS the proposal. Restore the
     // angle's archived core over whatever dead needs-pivot record the pivot
     // left behind, CONSUMING the archive — the restored content is live, so
-    // there is nothing left to restore. (The paired legacy `proposal.tex`
-    // restore leg was removed in the 2026-07-31 dead-code sweep: no code has
-    // written content into a .tex since the single-artifact rollout, and the
-    // asymmetric two-artifact restore was itself an incident class — a run-1
-    // .tex silently paired with a run-2 core.)
+    // there is nothing left to restore. Only the core is restored: no code
+    // writes proposal content into a .tex, and pairing a .tex with a core is
+    // itself an incident class (a run-1 .tex silently paired with a run-2 core).
     const protoCore = path.join(dir, "proto_core.json");
     const protoArchive = path.join(dir, `proto_core_angle${angle}_rejected.json`);
     if (await fileExists(protoArchive)) {

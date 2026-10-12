@@ -103,7 +103,7 @@ receipt to the user and stop; their topic is never silently changed. Skip on `--
 
 ## Handling escalations
 
-Every escalation carries **verbatim receipts** (the reviewer phrase, the `.tex` line). Missing receipts
+Every escalation carries **verbatim receipts** (the reviewer phrase, the core node). Missing receipts
 → send it back.
 
 | Escalation | By | Action |
@@ -113,11 +113,11 @@ Every escalation carries **verbatim receipts** (the reviewer phrase, the `.tex` 
 | `dispatch-request` | D/F | Dispatch the Claude subagent, wait, warm-send the result, re-grant. |
 | `codex-blocked` | D/F | Hard user stop even in `--auto`: quote the denial, exact command, impact. Harness-level permission is required; once granted, re-grant and re-issue the SAME command. Never accept a hand-proof or weakened-gate workaround. |
 | `citation-verification` | D | Obtain lawful verbatim source evidence per node, then from the CausalSmith root: `npx --prefix tools tsx tools/bin/d0_attest_cited_source.ts <qid> <spec> --id <id> --expect-locator <locator> --verbatim <statement> --note <provenance> (--upstream <primary-citation> [--upstream-locator <text>] [--upstream-cite <bibkey>] \| --upstream-none)`. Re-grant D; plain `--resume` re-checks it. Never invent source text. |
-| `terminal:tex-claim-wrong` / `terminal:laundering` | D/F | Codex-validity-gate → bank `failed`. |
+| `terminal:tex-claim-wrong` / `terminal:laundering` / `terminal:proposal-no-pass` | D/F | Codex-validity-gate → bank `failed`. |
 | `terminal:below-floor` | D | Codex-validity-gate, then surface the achieved tier to the user (never silently lower `--novelty`): bank `downgraded`, or continue to F via `causalsmith research --downgrade-tier <achieved-tier> <qid> <spec>`. |
 | `rewind:fix-source` | F | Verify necessity (§ "Cross-boundary rewind"), then dispatch a D-orch to execute it. |
 | `cap-block` / `substrate-unbuildable` | D/F | Only main resets caps (exception: the D-1 leaseholder's persisted `--angle-action retry --extra-revisions N` lane). Diagnose the root first: scaffolder drift → `bin/f2_directive.ts`; reviewer wrong → `pipeline-bug`; plan wrong → rewind. `--clear-gate` only after a root change, and log it. Same defect after two resets → validity-gate, then user. |
-| `build-substrate` (a.k.a. `substrate-build:study`) | F | The proof needs a lemma that does not exist. Never bank `failed` for this — route by REUSE: generally reusable (a Mathlib-shaped fact any run could want) → `--study` side-run (§ "study"), relay the Causalean path back; specific to this model and of manageable size → dispatch a subagent to build it under the run's own `Helpers/`. Escalate only if it is neither. A study halted at `BUILD_CAP` is out of ROUNDS, not necessarily out of reach — judge the final round's receipt and grant one more window with `--resume --clear-build-cap` when it is close (few sorries, shrinking). If that second window also halts, bank `failed`. |
+| `build-substrate` (a.k.a. `substrate-build:study`) | F | The proof needs a lemma that does not exist. Never bank `failed` for this — route by REUSE: generally reusable (a Mathlib-shaped fact any run could want) → `causalsmith study` side-run (§ "study"), relay the Causalean path back; specific to this model and of manageable size → dispatch a subagent to build it under the run's own `Helpers/`. Escalate only if it is neither. A study halted at `BUILD_CAP` is out of ROUNDS, not necessarily out of reach — judge the final round's receipt and grant one more window with `--resume --clear-build-cap` when it is close (few sorries, shrinking). If that second window also halts, bank `failed`. |
 | `citation-instantiation-overflow` | F | Apply the citation invariant. Source mismatch → correct the source; new reusable infrastructure → build/study; paper-specific residual → prove or correct the headline. F4 must still run. |
 | `f5-clean` | F | Verify F4 ran (a this-round `stage 4 … dual-model convergence review completed` line in `pipeline.jsonl` plus one current receipt from each peer in `state.delivery_review_receipts` / `state.cited_review_receipts`; a loop escalation followed by stages 3/3.5/4 `skipped` voids it → send back to re-enter F2.5). Then run S6 for remaining `gated` debt, then CKPT 2 user stop with Lean/API/assumptions/F4/tier receipts and the planned F7 reusable-helper closure. One explicit acceptance authorizes the whole standard post-checkpoint sequence: accepted bank, scoped commit, F7, verification, and final scoped commit; do not ask again between those steps. |
 | `reviewer-dispute` | F | Reproduce independently. Reviewer right → comply. Reviewer wrong → `pipeline-bug`: propose a concise GENERAL reviewer-prompt rule, ask the user before editing (hard stop 8), record in `PIPELINE_NOTES.md`, re-enter F2.5/F4. Never instance-exempt a node. Undecidable math → user. |
@@ -125,7 +125,7 @@ Every escalation carries **verbatim receipts** (the reviewer phrase, the `.tex` 
 | `verdict-appeal` | P | Check the quoted judge issue against the proof/env and the writer contract yourself. Judge wrong → flip that obj_id's `verdict` to `"faithful"` in the bundle's cache (keep `key`), record it in the bank adjudication file, re-grant; the same wrong issue twice → a concise GENERAL judge-prompt rule (ask the user first, hard stop 8), `PIPELINE_NOTES.md`. Judge right → send back with the reason; the orchestrator repairs the source. |
 
 **Codex-validity-gate** (for `terminal:*` and `cap-block` only): before banking or a user escalation,
-consult `gpt-5.6-sol` high (`CAUSALEAN_MODEL_CODEX_CONSULT`) with the raw halt, verbatim receipts, and a
+consult `gpt-6.1-sol` high (`CAUSALEAN_MODEL_CODEX_CONSULT`) with the raw halt, verbatim receipts, and a
 neutral terminal-vs-fixable prompt that states the case to continue. Different load-bearing defects
 resolving across rounds = keep going; the same recurring defect, laundering, or a wrong-direction pivot
 may stop. A lower tier is not hopelessness — converge and bank `downgraded`. A concrete fix becomes a
@@ -167,8 +167,9 @@ No progress across successive resumes ⇒ terminal. An `⚙ AUTO MODE` banner on
 
 ## Cross-boundary rewind
 
-On `rewind:fix-source` from F: reproduce the Lean↔`.tex` conflict yourself (reference § "Rewind
-verification"). False → send it back (restore + fix reviewer/scaffolder is the sub's job). Real → log
+On `rewind:fix-source` from F: reproduce the Lean↔core conflict yourself (reference § "Rewind
+verification"); from CKPT 1 there is no Lean yet, so check the plan-review verdict against the core
+node. False → send it back (restore + fix reviewer/scaffolder is the sub's job). Real → log
 `{type:"command",cmd:"rewind-D0",target:<node>,note:"incremental — patch the node + dependents, keep the
 sound rest, re-validate"}` and dispatch a D-orch. Never re-derive the whole discovery. Rewind only for a
 mathematical defect; every other mechanical error the D-orch fixes in place
@@ -179,7 +180,7 @@ mathematical defect; every other mechanical error the D-orch fixes in place
 Always use `bank_entry.ts` (reference § "Bank"). `accepted` only after clean F5 + explicit CKPT 2
 approval, and before F7. That one approval also covers the run-scoped acceptance commit and the ensuing
 F7 promotion and final scoped commit; proceed continuously without asking again. Other tiers only on a
-terminal outcome (hard REJECT, revise-exhausted NO-PASS,
+terminal outcome (hard REJECT, a D-0.5 give-up NO-PASS,
 validity-gate-confirmed hopeless topic) — never mid-pipeline. `failed` = math claim wrong;
 `downgraded` = sound but not novel. Pass `--reraise-status` from the sub's receipts, `--achieved-tier` on
 a below-floor bank, and `--orchestrator-tokens <exact cumulative host total>` when the host exposes it
@@ -201,7 +202,7 @@ unconditional headline; skip secondary-only and `oeq:`/deliberately-open gates u
 them, and disclose at CKPT 2. Do not send a source-matched cited theorem to S6; do send every
 paper-owned bridge to the normal proof/build path.
 
-Per gate choose a dedicated `gpt-5.6-sol` agent (run-specific) or `--study <slug>` (substantial reusable
+Per gate choose a dedicated `gpt-6.1-sol` agent (run-specific) or `causalsmith study <slug>` (substantial reusable
 primitive). One agent per gate, grouped by difficulty, separate `TMPDIR`/Codex sessions, no worktrees,
 coupled import closures serialized. In `--auto` dispatch without asking. Each agent builds a general,
 axiom-clean, zero-sorry lemma (leaves first; `lake build <module>` green), then
@@ -280,7 +281,7 @@ decision-log entry.
   ordering, or store state; the D-orch edits `core.json` and commits it (`bin/d0_vc.ts commit`), or
   resets `main` to a known-good commit (`bin/d0_vc.ts reset`). Re-dispatch D0 only when content,
   authorship, or proof changes.
-- **Independent audit before trusting any fix:** dispatch a fresh `gpt-5.6-sol` high read-only JSON
+- **Independent audit before trusting any fix:** dispatch a fresh `gpt-6.1-sol` high read-only JSON
   audit on the changed artifact asking how someone obeying it exactly could still pass a wrong result;
   require per hole the quoted clause, a failing scenario, and a general fix. A not-sound verdict blocks:
   fix and re-audit until sound. Never carry a `false` verdict forward.
@@ -312,12 +313,11 @@ Pass-through flags: `--auto`; `--novelty <incremental|subfield|field|flagship>` 
 `field`; legacy `relative-to-repo`→`incremental`, `relative-to-literature`→`subfield`); `--upgrade
 <parent>` + `--upgrade-axis <computation|estimation|generalization|mechanism>`; `--stop-after <stage>` and
 `--from-stage <stage>` (stages `D-1.1`,`D-1.2`,`D-0.5`,`D0`,`D0.5`,`F1`,`F1.5`,`F2`,`F2.5`,`F3`,`F3.5`,`F4`,`F5`);
-`--clear-gate <flag>` (resume-only, repeatable; flags `substrate_build_required`,
-`scaffold_redirect_cap_hit`, `stage1_rewinds_cap_hit`, `theorem_splits_cap_hit`,
-`stage0_budget_exhausted`, `general_review_halt`, `stage_neg1_fallback`, `d0_loop_cap_hit`,
+`--clear-gate <flag>` (resume-only, repeatable; flags
+`stage_neg1_fallback`, `d0_loop_cap_hit`,
 `proof_loop_cap_hit` — the last covers every proof-review-loop budget in
 `state.flags.proof_loop_counters`; clearing any cap is main's authority and legitimate only after the
-root cause changed); `--proposer <codex|claude>`; `--dry-run` (state-machine
+root cause changed); `--dry-run` (state-machine
 mechanics only — never on a live run: it fast-forwards `stage_completed`). Parsing failure → stop and
 report; never invent a qid. Arguments that name no qid are the topic-selection entry above,
 not a parsing failure.
@@ -343,7 +343,7 @@ reviews under `reviews/`, D0 artifacts under `discovery/`, the decision log unde
 
 After every exit (full run, `--stop-after`, crash): read `state.json` + the LAST `pipeline.jsonl` line
 (the checkpoint signal; on a halt it carries `next_step_guidance`). Classify from `stage_completed`
-(bare number), `next_action`, `flags.*`, `banked` (reference § "state.json" + recognition table). A halt
+(bare number), `flags.*`, `banked` (reference § "state.json" + recognition table). A halt
 is not a clean result — a review-gated stage can dead-end (D-0.5 NO-PASS, D0.5 terminal REJECT) looking
 identical to "stopped" until the verdict body is read; a single F1.5/F4 reject is iteration. Route to the
 phase sub to read the verdict; bank unrecoverable terminations.

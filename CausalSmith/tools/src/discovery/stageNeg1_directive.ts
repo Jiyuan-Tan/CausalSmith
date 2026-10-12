@@ -31,9 +31,7 @@ export interface Neg1EscalationLogEntry {
 }
 
 export function neg1EscalationLogPath(ctx: PipelineContext): string {
-  return artifactPath(ctx.repoRoot, ctx.qid, "discovery", "dneg1_escalation_log.jsonl", [
-    `${ctx.qid}_dneg1_escalation_log.jsonl`,
-  ]);
+  return artifactPath(ctx.repoRoot, ctx.qid, "discovery", "dneg1_escalation_log.jsonl");
 }
 
 export async function appendNeg1EscalationLog(

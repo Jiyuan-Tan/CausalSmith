@@ -1,7 +1,6 @@
 // F5 bank-soundness gate: text-based (no LSP) scan of a banked artifact subdir plus
 // its reachable CausalSmith/Mathlib closure for real `sorry` tokens and cheat tokens.
-// Extracted from the retired stage3.ts (F3) so the kept F5 bank keeps its mechanical
-// soundness check. Pure scanning — no Lean elaboration.
+// It is the F5 bank's mechanical soundness check. Pure scanning — no Lean elaboration.
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -61,7 +60,7 @@ function reachableFileClosure(researchFiles: string[], repoRoot: string): string
 }
 
 /** Scan the artifact + its reachable closure for cheat tokens (axiom/opaque/unsafe/admit/sorry).
- *  `native_decide` was removed from this list on 2026-09-04 (operator call) — do not re-add;
+ *  `native_decide` is deliberately absent from this list (operator call, 2026-09-04) — do not add it;
  *  keep aligned with `scanResearchCheatTokens` in `proof_review_loop.ts`. */
 async function scanCheatTokens(
   researchFiles: string[],

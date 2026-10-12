@@ -32,7 +32,7 @@ describe("buildDeclList (discovery prompt pool)", () => {
     title: obj_id,
     tex: { label: `obj:${obj_id}`, line_range: "1" },
     lean: decl == null ? null : { file, decl, decl_kind: "def", line: 1 },
-    verdict: "exact",
+    verdict: "equivalent",
   });
 
   it("includes crosswalk decls + def/abbrev/structure module decls, dedups, drops non-def kinds", () => {
@@ -140,7 +140,7 @@ describe("ensureComponentsForEnvs cache validation", () => {
       const baseCrosswalk: CrosswalkEntry[] = [
         { obj_id: "A-1", kind: "assumption", title: "A", tex: { label: "A-1", line_range: "" }, lean: null, verdict: "unmatched" },
         { obj_id: "T-1", kind: "theorem", title: "T", tex: { label: "T-1", line_range: "" },
-          lean: { file: "Theorem.lean", decl: "SourceThm", decl_kind: "theorem", line: 1 }, verdict: "exact" },
+          lean: { file: "Theorem.lean", decl: "SourceThm", decl_kind: "theorem", line: 1 }, verdict: "equivalent" },
       ];
       const baseGraph = { qid: "q", specialization: "s", nodes: [{
         id: "A-1", kind: "assumption", provenance: "from-note",

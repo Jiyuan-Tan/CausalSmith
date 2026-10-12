@@ -7,10 +7,10 @@ import {
   createRetrieval,
   fuseRankedListsRrf,
   rankPremisesFromProofRefs,
-  parseF1Items,
   expandQuery,
 } from "../src/formalization/reuse_retrieval.js";
-import { reuseCandidateBlock } from "../src/formalization/reuse_render.js";
+import { coreReuseCandidateBlock } from "../src/formalization/reuse_render.js";
+import type { Core } from "../src/discovery/core/schema.js";
 
 /** A fixture Causalean root with a hand-built index covering the cases we care about. */
 function fixtureRoot(): string {
@@ -323,73 +323,32 @@ describe("cluster filter", () => {
   });
 });
 
-describe("F1 plan parser", () => {
-  it("extracts P-/L- items with titles and bodies, stopping at the next header", () => {
-    const md = [
-      "## 4. P-block",
-      "### P-1: TwoCellSetup at `x`",
-      "Some body text.",
-      "### P-2: ConditionalExchangeability",
-      "Independence of outcomes.",
-      "## 5. L-block",
-      "### L-3a: Rectangle minimization",
-      "Affine functional.",
-      "### T-2 — main theorem",
-      "not an item",
-    ].join("\n");
-    const items = parseF1Items(md);
-    expect(items.map((i) => i.label)).toEqual(["P-1", "P-2", "L-3a"]);
-    expect(items[1].title).toBe("ConditionalExchangeability");
-    expect(items[0].body).toContain("Some body text");
-  });
-
-  it("parses the bold-inline research dialect (P/L/A on one line)", () => {
-    const md = [
-      "## 4. P-block",
-      "**P-1 (Propensity clip).** `e_λ(x)=e(x)∨λ`. Depends on S-3.",
-      "## 4a. Assumption blocks (A-k)",
-      "**A-1 (Identification).** Consistency and conditional exchangeability.",
-      "## 5. L-block",
-      "**L-2 (Rectangle minimization).** Affine functional argmin.",
-    ].join("\n");
-    const items = parseF1Items(md);
-    expect(items.map((i) => i.label)).toEqual(["P-1", "A-1", "L-2"]);
-    expect(items[0].title).toBe("Propensity clip");
-    expect(items[1].title).toBe("Identification");
-    expect(items[1].body).toContain("conditional exchangeability");
-  });
-
-  it("does not mistake inline math parens for the title (em-dash dialect)", () => {
-    const items = parseF1Items("- **L-4 — Description of `H_a(B)` via the ball.** body");
-    expect(items[0].label).toBe("L-4");
-    expect(items[0].title).toBe("Description of H_a(B) via the ball");
-  });
-
-  it("returns [] when there are no P/L headers", () => {
-    expect(parseF1Items("# Title\n\nNo blocks here.")).toEqual([]);
-  });
-});
+/** A typed core holding only the given definitions (the fields the candidate block reads). */
+const coreOf = (defs: Array<{ id: string; name: string; construction: string }>): Core =>
+  ({ assumptions: [], definitions: defs, statements: [] }) as unknown as Core;
 
 describe("brief candidate block", () => {
-  it("renders the contract + candidates for F1 items", () => {
+  it("renders the contract + candidates for a core node", () => {
     const root = fixtureRoot();
-    const md = ["### P-1: Ignorability of potential outcomes", "Independence given covariates."].join("\n");
-    const mdPath = join(root, "plan.md");
-    writeFileSync(mdPath, md);
-    const block = reuseCandidateBlock(root, mdPath, null);
+    const block = coreReuseCandidateBlock(
+      root,
+      coreOf([{ id: "def:ignorability-of-potential-outcomes", name: "Ignorability", construction: "Independence given covariates." }]),
+      null,
+    );
     expect(block).toContain("CAUSALEAN REUSE CANDIDATES");
     expect(block).toContain("CONTRACT");
     expect(block).toContain("Causalean.PO.ID.ConditionalExchangeability");
-    expect(block).toContain("P-1 — Ignorability of potential outcomes");
+    expect(block).toContain("def:ignorability-of-potential-outcomes — ignorability of potential outcomes Ignorability");
   });
 
   it("type-signature pass surfaces a symbol-shaped fit that concept mode misses", () => {
     // Prose words (lattice/join/family) match nothing; the backtick operators ⨆ ∈ ⊥ do.
     const root = fixtureRoot();
-    const md = ["### P-1: Lattice join", "The join `⨆ i ∈ s, f i ⊥ g` of the family."].join("\n");
-    const mdPath = join(root, "sym.md");
-    writeFileSync(mdPath, md);
-    const block = reuseCandidateBlock(root, mdPath, null);
+    const block = coreReuseCandidateBlock(
+      root,
+      coreOf([{ id: "def:lattice-join", name: "Lattice join", construction: "The join `⨆ i ∈ s, f i ⊥ g` of the family." }]),
+      null,
+    );
     // the rendered section header (distinct from the CONTRACT's mention of the tier)
     expect(block).toContain("(vocabulary-independent — confirm the shape fits)");
     expect(block).toContain("Causalean.Geo.bigsup_perp");
@@ -397,26 +356,30 @@ describe("brief candidate block", () => {
 
   it("no type-signature section for an item without Lean/math backticks", () => {
     const root = fixtureRoot();
-    const md = ["### P-1: Ignorability", "Independence given covariates, no symbols here."].join("\n");
-    const mdPath = join(root, "prose.md");
-    writeFileSync(mdPath, md);
-    const block = reuseCandidateBlock(root, mdPath, null);
+    const block = coreReuseCandidateBlock(
+      root,
+      coreOf([{ id: "def:ignorability", name: "Ignorability", construction: "Independence given covariates, no symbols here." }]),
+      null,
+    );
     expect(block).not.toContain("(vocabulary-independent — confirm the shape fits)");
   });
 
-  it("a large plan never starves later items on a hard cap", () => {
-    // A 30-item plan must give EVERY item a line, not exhaust a fixed budget on the first few.
+  it("a large core never starves later items on a hard cap", () => {
+    // A 30-node core must give EVERY node a line, not exhaust a fixed budget on the first few.
     const root = fixtureRoot();
-    const md = Array.from({ length: 30 }, (_, i) =>
-      `### P-${i + 1}: Overlap positivity item ${i + 1}\nThe propensity score is bounded.`,
-    ).join("\n");
-    const mdPath = join(root, "big.md");
-    writeFileSync(mdPath, md);
-    const block = reuseCandidateBlock(root, mdPath, null);
+    const block = coreReuseCandidateBlock(
+      root,
+      coreOf(Array.from({ length: 30 }, (_, i) => ({
+        id: `def:overlap-positivity-item-${i + 1}`,
+        name: "Overlap positivity",
+        construction: "The propensity score is bounded.",
+      }))),
+      null,
+    );
     expect(block).not.toContain("cap"); // no "candidate cap … reached" message
     // the final item is present AND received a real candidate, not a starvation note
-    expect(block).toContain("P-30 — Overlap positivity item 30");
-    const tail = block.slice(block.indexOf("P-30 —"));
+    expect(block).toContain("def:overlap-positivity-item-30 —");
+    const tail = block.slice(block.indexOf("def:overlap-positivity-item-30 —"));
     expect(tail).toContain("Causalean.PO.ID.Overlap");
   });
 });
@@ -429,7 +392,8 @@ describe("graceful degradation", () => {
     expect(r.get("Whatever")).toBeNull();
   });
 
-  it("missing F1 artifact / index → empty candidate block", () => {
-    expect(reuseCandidateBlock(join(tmpdir(), "nope-root"), join(tmpdir(), "nope.md"), null)).toBe("");
+  it("missing index → empty candidate block", () => {
+    const core = coreOf([{ id: "def:ignorability", name: "Ignorability", construction: "Independence." }]);
+    expect(coreReuseCandidateBlock(join(tmpdir(), "nope-root"), core, null)).toBe("");
   });
 });

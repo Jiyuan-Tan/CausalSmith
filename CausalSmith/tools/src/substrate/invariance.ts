@@ -45,6 +45,8 @@ export interface TreeScan {
   decls: Map<string, string>;
   /** Declaration → the scanned declarations its statement reads by name. */
   deps: Map<string, string[]>;
+  /** Declaration → the modules declaring it (several for same-named private declarations). */
+  modules: Map<string, string[]>;
   /** The declarations of the run's own modules. */
   runDecls: string[];
 }
@@ -53,15 +55,18 @@ export interface TreeScan {
 export function readScan(text: string, ownModules: ReadonlySet<string>): TreeScan {
   const hashes = new Map<string, string[]>();
   const deps = new Map<string, Set<string>>();
+  const modules = new Map<string, Set<string>>();
   const run = new Set<string>();
   for (const r of parseScan(text)) {
     hashes.set(r.name, [...(hashes.get(r.name) ?? []), r.stmt_hash]);
     deps.set(r.name, new Set([...(deps.get(r.name) ?? []), ...r.deps]));
+    modules.set(r.name, new Set([...(modules.get(r.name) ?? []), r.module]));
     if (ownModules.has(r.module)) run.add(r.name);
   }
   return {
     decls: new Map([...hashes].map(([name, hs]) => [name, hs.sort().join("+")])),
     deps: new Map([...deps].map(([name, ds]) => [name, [...ds].sort()])),
+    modules: new Map([...modules].map(([name, ms]) => [name, [...ms].sort()])),
     runDecls: [...run],
   };
 }

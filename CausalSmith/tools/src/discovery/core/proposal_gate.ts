@@ -1,4 +1,4 @@
-// The D-1.2 proposal gate (D0_CORE_REDESIGN.md §12).
+// The D-1.2 proposal gate.
 //
 // Mechanical, no LLM. Runs the D0 structural gate (G1–G7, requireDischarged:false
 // — a proto_core proves nothing yet) and adds the proposal-specific extensions
@@ -31,7 +31,7 @@ export interface ProposalGateResult {
  * - GP2 all-to-prove: D-1 authors claims, not proofs — every statement is
  *   status:"to-prove" with no route/proof_tex filled (those are D0's).
  * - GP3 prose-field presence: the proposal narrative is present (tldr,
- *   project_justification {gap,niche,fill}, related_work, an SC6 comparator
+ *   project_justification {gap,niche,fill}, related_work, a comparator
  *   promise table) and every statement
  *   carries non-empty justification + gap + consumer. The prose lives in the core
  *   (single source of truth); the .tex is rendered deterministically from it, so
@@ -74,14 +74,14 @@ export function runProposalGate(coreInput: unknown): ProposalGateResult {
       violations.push({
         code: "GP2",
         where: s.id,
-        message: "statement must leave 'route' empty at D-1 — D0-CORE fills the proof strategy",
+        message: "statement must leave 'route' empty at D-1",
       });
     }
     if (s.proof_tex !== undefined && s.proof_tex.trim() !== "") {
       violations.push({
         code: "GP2",
         where: s.id,
-        message: "statement must leave 'proof_tex' empty at D-1 — D0-PROVE fills the proof",
+        message: "statement must leave 'proof_tex' empty at D-1 — D0 fills the proof",
       });
     }
   }
@@ -105,7 +105,7 @@ export function runProposalGate(coreInput: unknown): ProposalGateResult {
   if (blank(core.related_work)) {
     violations.push({ code: "GP3", where: "<core>", message: "missing related_work" });
   }
-  if (!Array.isArray(core.comparator_promise_table ?? core.comparator_promises)) {
+  if (!Array.isArray(core.comparator_promise_table)) {
     violations.push({
       code: "GP3",
       where: "<core>",

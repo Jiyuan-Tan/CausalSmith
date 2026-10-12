@@ -1,5 +1,4 @@
 import type { STAGE_ORDER } from "./constants.js";
-import type { DraftRunner } from "./workers/draftAdapter.js";
 import type { NoveltyTarget } from "./novelty.js";
 
 export type Stage = (typeof STAGE_ORDER)[number];
@@ -16,45 +15,19 @@ export interface UpgradeFrom {
   upgrade_axis: UpgradeAxis;
 }
 
-export interface PendingSorry {
-  file: string;
-  line: number;
-  label?: string;
-  goal?: string;
-  suggestions?: string[];
-  bucket?: "1" | "2" | "3" | "4" | null;
-  attempts?: number;
-  codex_diagnosis?: string;
-  // Per-sorry convergence memory (Stage 3 state-machine). Persisted so the
-  // committed remediation track and progress survive rewind/resume — without
-  // this the classifier re-rolls the bucket from scratch on every resume.
-  /** Committed remediation track (bucket family). */
-  track?: "1" | "2" | "3" | "4" | "5" | null;
-  /** Times escalated one rung (telemetry). */
-  escalations?: number;
-  /** Whether the Bucket-4 decomposition burst already fired. */
-  bursted?: boolean;
-}
-
 export interface AddedAssumption {
   label: string;
   statement: string;
-  user_approved?: boolean;
   source?: string;
-  /** `.tex`/`.md` anchor the premise is claimed to match (F3-localPatch adds). */
+  /** The node the premise attaches to (`bin/gate.ts` records the gate's parent or consumer). */
   anchor?: string;
   /**
    * Faithfulness class of the premise, on the invariant-#10 crux-vs-gate axis:
-   *  - `faithful-refinement`: the .tex already states/implies it in this setting.
+   *  - `faithful-refinement`: the paper already states/implies it in this setting.
    *  - `regularity-bookkeeping`: a measurability/integrability/finiteness side-condition.
    *  - `substrate-gate`: a genuinely classical, dischargeable fact (must be built before banking).
    */
   classification?: "faithful-refinement" | "regularity-bookkeeping" | "substrate-gate";
-  /**
-   * For automated F3-localPatch adds: whether the F2.5 delta re-review has cleared
-   * this premise. `false` (or absent) after a localPatch add → triggers the rewind.
-   */
-  reviewed?: boolean;
 }
 
 export interface MissingItem {
@@ -67,119 +40,18 @@ export interface MissingItem {
 }
 
 /**
- * Loop tag (Phase 2 study-pipeline addition).
+ * `StateJson` is the intersection of three interfaces:
  *
- *   - `"research"`: the existing /causalsmith pipeline (Stages -1.2 → 5). This is
- *     the default for any state file that does not declare `loop`.
- *   - `"study"`: the retired study pipeline (Stages S-1 → S3). Its
- *     compatibility runs use a separate state file under `doc/study/runs/<run_id>/state.json` and a
- *     distinct shape (`StudyStateJson` in `study/state.ts`); the field is
- *     declared on `StateJson` only to keep loop dispatch uniform when
- *     pipeline.ts inspects a generic state blob.
- */
-export type Loop = "research" | "study";
-
-/** Phase 2 lineage marker shared by every pipeline. */
-export interface StateLineage {
-  parent_run_id?: string;
-  parent_kind?: Loop;
-}
-
-/**
- * Step 2.1 namespacing — `StateJson` is split into three conceptual
- * interfaces:
+ *   • `SharedState` — the stage cursor, the Lean directory and the run coordinates.
+ *   • `DiscoveryState` — literature gaps and proposer state.
+ *   • `FormalizationState` — design decisions, added assumptions and F4 receipts.
  *
- *   • `SharedState` — fields read or written by both phases (orchestrator
- *     bookkeeping, paper-batching coordinates, loop tag, lineage).
- *   • `DiscoveryState` — fields owned by Stages −1.1 … 1.5 (gap intake,
- *     proposer state).
- *   • `FormalizationState` — fields owned by Stages 2 … 5 (pending sorries,
- *     design decisions, added assumptions).
- *
- * The on-disk JSON shape is unchanged; `StateJson` is the intersection. Step 2
- * code lives under `src/discovery/` and `src/formalization/`, each consuming
- * its namespaced half via `StateJson` (the union remains the canonical type
- * for I/O — see `src/state.ts::stateSchema`).
- *
- * The `flags` object is similarly split into `SharedFlags`, `DiscoveryFlags`,
- * `FormalizationFlags` and intersected on `StateJson.flags`.
+ * `StateJson` is the type for I/O (see `src/state.ts::stateSchema`). Its `flags`
+ * object is `DiscoveryFlags & FormalizationFlags`.
  */
 
-/** Flag fields read or written by both phases (paper batching). */
-export interface SharedFlags {
-  theorem_splits?: number;
-  theorem_splits_cap_hit?: string;
-}
-
-/** One built substrate decl, recorded by the meta-orchestrator on the
- *  `substrate_built` channel for F1 to discharge against. */
-export interface SubstrateBuiltDecl {
-  /** The plan/core gate node id this decl discharges (e.g. `ass:vc-localized-envelope`). */
-  gate_id: string;
-  /** Fully-qualified Lean name of the built theorem (e.g.
-   *  `Causalean.Stat.Concentration.localized_uniform_deviation_expectation`). */
-  decl_name: string;
-  /** Module path hosting the decl (for the plan's reuse `module`/import). */
-  module: string;
-  /** One-line NL statement of what was proven (so F1 can confirm type-fit before reuse). */
-  nl_statement: string;
-}
-
-/** Flag fields owned by the discovery half (Stages −1.1 … 1.5). */
 export interface DiscoveryFlags {
-  rewound_from_stage0?: string | null;
-  rewound_from_stage0_5_pivot?: string | null;
   stage_neg1_fallback?: string | null;
-  stage0_budget_exhausted?: string;
-  /** Typed F→D0 rewind intent; consumed by D0 or retained as a replacement receipt. */
-  d0_cross_boundary_rewind?: {
-    intent: "incremental_repair" | "extension" | "replacement";
-    status: "pending" | "rebased" | "retired";
-    source_stage: Stage;
-    source_revision: string;
-    reason: string;
-    source_core_sha256?: string;
-    source_ids?: string[];
-  };
-  /** Fail-closed diagnostic for a stage_0 request lacking typed intent. */
-  stage0_rewind_intent_required?: string;
-  stage1_rewinds?: number;
-  stage1_rewinds_cap_hit?: string;
-  /**
-   * Set by `runReviewBoundary` when the D0.5.G cold general referee judges the
-   * accepted note below the novelty floor AND not salvageable. Carries the
-   * referee's critique; the run halts at a checkpoint with this reason.
-   */
-  general_review_halt?: string | null;
-  /**
-   * Substrate-build seam. Set by F1 (stage1) when the plan's feasibility verdict
-   * is `needs-new-infrastructure` with Defer-items; F1 self-halts here (a halt
-   * distinct from the F1.5 CKPT 1). Carries an infra-item summary, and BLOCKS
-   * `--resume` (via a resume gate) until the orchestrator deals with it. The
-   * model: dispatch BACKGROUND builder subagents for the Defer-items, then CLEAR
-   * this flag and resume so the run proceeds with the gates ASSUMED (does not
-   * stall). Each landed build is discharged later (at the next checkpoint) by
-   * codex wiring the lemma into the theorem's Lean and a rewind to F2.5 to
-   * re-review — NOT a rewind to F1, since the plan and scaffold are unchanged.
-   * (The `substrate_built` → F1 re-plan channel below, or consciously clearing
-   * to gate/defer, remain alternatives.)
-   */
-  substrate_build_required?: string | null;
-  /**
-   * Substrate-built channel (the build→F1 communication seam, the dual of
-   * `substrate_build_required`). After the meta-orchestrator builds a Defer-item's
-   * crux substrate 0-sorry in Causalean, it records the new decl(s) HERE and reruns
-   * F1. F1 reads this manifest as a directive: each listed gate node is now PROVEN
-   * upstream, so F1 must DISCHARGE it — reclassify the matching `ass:*`/gate node to
-   * `lean_kind:"lemma"`, `disposition:"reuse"` from `decl_name`, and drop it from
-   * `hyps` — instead of re-deferring or re-assuming it. Cleared once F1 has consumed
-   * it (the rerun produced a plan with no remaining matching Defer-item). This is
-   * the F1-RE-PLAN discharge alternative; the PREFERRED discharge wires the lemma
-   * into the Lean directly and rewinds to F2.5 (no re-plan). Either way the
-   * discharge changes the proof, so the chain re-runs through F4 and MUST re-pass
-   * F4 before banking.
-   */
-  substrate_built?: SubstrateBuiltDecl[] | null;
   /**
    * D0.5.G directed-reroute counter. Incremented when a below-floor note is offered a
    * reroute — sent back to D0 with a bounded improvement directive (better estimator /
@@ -191,33 +63,6 @@ export interface DiscoveryFlags {
    * process — an in-process bound would reset on every `--resume` and never bind.
    */
   general_reroute_count?: number;
-  /**
-   * D0.R loop state. `d0r_human_directive`: an optional operator/orchestrator
-   * injection consumed by the next D0.R round (the strategic flip the reviewer
-   * can't generate), cleared after use. `d0r_flagship_rounds`: flagship-upside
-   * attempts used (cap 2) after a field accept with flagship potential.
-   * `d0r_best_tier`/`d0r_best_note_path`: the highest-tier accepted note seen
-   * across rounds/runs — the deliverable is the BEST, not the last (guards the
-   * round-5→round-6 framing regression).
-   */
-  d0r_human_directive?: string | null;
-  d0r_flagship_rounds?: number;
-  d0r_best_tier?: string | null;
-  d0r_best_note_path?: string | null;
-  /**
-   * Set by the intervention router on an `action_kind: "statement_correction"`
-   * stage_0 rewind. Carries the corrected, standard-form restatement of the
-   * over-precise headline object (e.g. closure / inf-sup form where the draft
-   * over-claimed pointwise extremum attainment). The rewound proposer reads it
-   * via `buildStage0_5RejectionContext` and must restate the SAME focal object
-   * in this form WITHOUT demoting to a conjecture or adding an assumption
-   * (distinguishes a true over-precision fix from a regime-defining split).
-   * Cleared (or replaced) by the NEXT stage_0 / stage_neg1 rewind, so each rewind's
-   * rejection context reflects that rewind — a stale correction would otherwise
-   * displace every later critique (`buildStage0_5RejectionContext` returns its
-   * branch early, before the generic rejection block).
-   */
-  statement_correction_directive?: string | null;
   /**
    * F3 phase-B proof-fill directive. An optional load-bearing PROOF hint the
    * orchestrator injects for the filler agent (lemma names / tactic strategy /
@@ -233,51 +78,18 @@ export interface DiscoveryFlags {
    *  read on every scaffold/revise pass as a top-priority faithfulness constraint,
    *  persists across resumes until cleared via `bin/f2_directive.ts`. */
   f2_scaffold_directive?: string | null;
-  /**
-   * Set by the Stage 0.5 boundary when a review marked a finding as not fixable
-   * by a D0 re-solve (needs a proposal restructure / new math). Persists the
-   * proposer-redraft reason so the escalation intent survives a --resume (the
-   * `escalate_to_proposer` flag lives only on the in-memory ReviewResult).
-   */
-  escalate_to_proposer?: string | null;
-  /** Set when proposal §8 has more than the 4-conjecture cap; surfaced to the user. */
-  stage0_too_many_conjectures?: string;
 }
 
 /**
- * One drift verdict for a definition/assumption clause inside a CrosswalkEntry.
- * `src` is the .md signature clause; `lean` is how the Lean def encodes it (or
- * "absent"); `v` is the per-clause verdict from the same vocabulary as the
- * entry verdict.
+ * Crosswalk verdict vocabulary: `equivalent` passes, `drift` blocks, and
+ * `unmatched` marks a row the reviewer has not judged.
  */
-export interface CrosswalkClause {
-  src: string;
-  lean: string;
-  v: CrosswalkVerdict;
-}
+export type CrosswalkVerdict = "equivalent" | "drift" | "unmatched";
 
 /**
- * Drift verdict vocabulary, shared with the H.1 hypothesis matrix. `exact` /
- * `equivalent` pass; everything else is a blocking drift the F2.5 gate folds
- * into its findings.
- */
-export type CrosswalkVerdict =
-  | "exact"
-  | "equivalent"
-  | "stronger-in-Lean"
-  | "weaker-in-Lean"
-  | "missing-in-Lean"
-  | "extra-in-Lean"
-  | "encoding-drift"
-  | "drift"
-  | "unmatched"; // skeleton-only placeholder before the reviewer assigns a verdict
-
-/**
- * One object in the F2.5 tex↔Lean crosswalk. The deterministic skeleton builder
- * fills every field EXCEPT `verdict`/`clauses[].v`/`note`/`fix_locus` (left as
- * `unmatched`/empty); the codex reviewer fills those, keyed by `obj_id`. Durable
- * anchors are `obj_id` (.md/.tex side) and `(lean.file, lean.decl)` (Lean side);
- * `lean.line` and `tex.line_range` are convenience and re-derivable.
+ * One row of the paper↔Lean crosswalk, projected from the graph. Durable anchors
+ * are `obj_id` (paper side) and `(lean.file, lean.decl)` (Lean side); `lean.line`
+ * and `tex.line_range` are convenience and re-derivable.
  */
 export interface CrosswalkEntry {
   obj_id: string;
@@ -286,24 +98,14 @@ export interface CrosswalkEntry {
   tex: { label: string; line_range: string };
   lean: { file: string; decl: string; decl_kind: string; line: number } | null;
   verdict: CrosswalkVerdict;
-  clauses?: CrosswalkClause[];
-  fix_locus?: "lean-scaffold" | "nl-plan" | "math-source";
   note?: string;
 }
 
-/** Flag fields owned by the formalization half (Stages 2 … 5). */
 export interface FormalizationFlags {
-  rewound_from_stage4d?: string | null;
-  local_fix_from_4d: boolean;
   missing_architecture: boolean;
   missing_architecture_items?: MissingItem[];
-  stage4d_misrouted?: string;
-  /** Verbatim directive from the intervention judge when route=stage_2; consumed by runStage2 then cleared on success. */
+  /** One-shot re-scaffold directive from the proof-review loop; consumed by runStage2 then cleared on success. */
   scaffold_redirect?: string | null;
-  /** Loop guard counter; accumulates across the run. */
-  scaffold_redirect_count?: number;
-  /** Mirrors `theorem_splits_cap_hit`: populated when the legacy stage_2 redirect cap is exceeded. */
-  scaffold_redirect_cap_hit?: string;
   /** The proof-review loop's iteration budgets, PERSISTED across resumes. These used to be
    * in-process locals, so every `--resume` silently handed the loop a fresh budget — an
    * orchestrator could re-roll the (non-deterministic) reviewer indefinitely with no flag, no
@@ -362,24 +164,8 @@ export interface FormalizationFlags {
     route: string;
     reason: string;
   } | null;
-  /** F4 localized-repair rounds used (cap `F4_LOCALPATCH_CAP`). Each round runs the
-   * flavor-(e) localPatch+codex lane on the F4 reject flags (fix the statement toward the
-   * `.tex` + re-prove in place) instead of a full stage_2 re-scaffold, then rewinds to F3.5
-   * to re-verify. A residual `BLOCKER: needs-substrate` sorry or an exhausted budget
-   * escalates to the orchestrator. */
-  f4_localpatch_rounds?: number;
-  /** Verbatim F2.5 fix-locus critique when an `nl-plan` finding routes to stage_1 (F1); consumed by runStage1's revise mode then cleared. Carries the upstream reason across the cross-stage rewind (priorReview is absent on a rewind dispatch). */
+  /** One-shot orchestrator directive for the F1 planner (`bin/f1_directive.ts`); consumed by runStage1's revise mode, then cleared once the plan is gate-clean. */
   f1_revise_directive?: string | null;
-  /** Set by a stage_neg1 PIVOT: `plan.json` on disk describes the ABANDONED angle, so F1
-   *  must cold-start instead of patching it (`laterStageEverRan` is monotone and would keep
-   *  it in patch mode forever). Cleared by F1 once a schema-valid plan for the new angle is
-   *  on disk — later F1.5 revise rounds on the NEW plan then patch normally. */
-  f1_plan_retired?: boolean;
-  /** Set by a stage_neg1 PIVOT: the `.lean` tree on disk realizes the ABANDONED angle, so F2
-   *  must cold-scaffold instead of patching it in place ("preserve existing proof bodies"
-   *  would graft the new angle's mathematics onto dead work). Cleared by F2 on the first
-   *  completed scaffold after the pivot. */
-  f2_scaffold_retired?: boolean;
   /** F3→D0 rewind counter, keyed by the broken node's obj_id (cap `REDO_MATH_MAX`). Bumped each time
    * a witnessed `statement-wrong` bounces that node back to D0-solve; a node exceeding the cap (or one
    * whose re-solve would invalidate already-PROVEN dependents) checkpoints for orchestrator approval
@@ -389,48 +175,11 @@ export interface FormalizationFlags {
    * `dependents` (never from scratch) treating the obstruction as a hard constraint, so the re-solve
    * cannot regenerate the same refuted claim. Cleared by D0-solve once consumed. */
   redo_math_witness?: { obj_id: string; type: string; detail: string; dependents: string[] };
-  /** Stage 3.5: human-readable lines describing advisory unused-hypothesis findings forwarded to Stage 4. */
-  stage3_5_advisory_unused?: string[];
-  /** Stage 3.5: stamped when Codex pruning broke `lake build` and the edits were reverted. */
-  stage3_5_build_failed?: string;
-  /**
-   * F3→F2.5 assumption delta re-review counter (cap `MAX_ASSUMPTION_REVIEWS`).
-   * Bumped each time an F3 localPatch adds a premise and rewinds to F2.5 to
-   * re-audit it. Kept SEPARATE from `scaffold_redirect_count` so an assumption
-   * re-review never consumes the encoding-drift redirect budget; folded into the
-   * reported `scaffold_redirects` only so the G.ii/G.iii relaxation fires over the
-   * F3-filled proofs being re-reviewed.
-   */
-  assumption_review_count?: number;
-  /** Populated when `MAX_ASSUMPTION_REVIEWS` is exceeded; the residual premises fall through to the F4 backstop. */
-  assumption_review_cap_hit?: string;
-  /**
-   * Verbatim directive surfaced to the F2.5 reviewer when a localPatch added a
-   * premise: the new premise labels to audit on the crux-vs-gate axis. Set on the
-   * rewind, consumed (and the premises marked `reviewed`) on re-entry to F3.
-   */
-  assumption_delta_review?: string | null;
-  /** Authoritative, orchestrator-recorded incremental source correction.  While
-   * `status === "applied"`, F2 must invalidate exactly `dirty_nodes` even when
-   * their Lean signature/hidden-definition hashes already changed before the
-   * revise snapshot.  After persisting that invalidation F2 advances the receipt
-   * to `f2_revised`; the graph then carries the delta through F2.5. */
-  source_rewind?: {
-    status: string;
-    command_ts?: string;
-    target?: string;
-    subtype?: string;
-    reentry_stage?: string;
-    reentry_mode?: string;
-    dirty_nodes: string[];
-    review_scope?: string;
-    f2_revised_at?: string;
-  };
 }
 
 /**
- * Cross-phase fields: stage cursor, target Lean directory, loop tag, lineage,
- * paper-batching coordinates. Touched by orchestrator and both submodules.
+ * Cross-phase fields: stage cursor, target Lean directory, run coordinates.
+ * Touched by orchestrator and both submodules.
  */
 export interface SharedState {
   stage_completed: Stage;
@@ -444,11 +193,6 @@ export interface SharedState {
   qid?: string;
   specialization?: string;
   /**
-   * Loop tag — `"research"` for /causalsmith. Defaulted to `"research"` on load
-   * for backward compatibility with state files written before Phase 2.
-   */
-  loop?: Loop;
-  /**
    * Auto mode — set by `--auto` (cold start or any `--resume`). When true the
    * meta-orchestrator makes every checkpoint decision itself per the skill and
    * `--resume`s WITHOUT asking the user; it stops only on a terminal failure or
@@ -458,42 +202,12 @@ export interface SharedState {
    * the orchestrator does not forget it is autonomous and revert to asking.
    */
   auto_mode?: boolean;
-  /** `"pending_checkpoint" | "user_chose:<command>" | null`. */
-  next_action?: string | null;
-  lineage?: StateLineage | null;
-  /**
-   * Phase-A (paper batching) — per-theorem sub-states for runs dispatched
-   * from the study pipeline with multiple Theorems. Absent on legacy single-theorem
-   * runs; the pipeline treats `theorems === undefined` as "act as if there is
-   * one implicit theorem corresponding to the qid root."
-   */
-  theorems?: import("./shared/paper_batch_types.js").TheoremEntry[];
-  /**
-   * Phase-A (paper batching) — index into `theorems` for the per-theorem
-   * stage currently running. Used by Stages 0, 0.5, 1, 1.5, 3, 4 to resume
-   * after a checkpoint or failure. Paper-wide stages (2, 5) do not consult
-   * this. Absent iff `theorems` is absent.
-   */
-  current_theorem_index?: number;
 }
 
 /**
  * Discovery-phase fields (Stages −1.1 … 1.5): literature gaps, proposer state.
  */
 export interface DiscoveryState {
-  /**
-   * Retired knowledge-graph fields (`--from-question` wiring, the post-F5
-   * OpenQuestion close hook, Stage-0 OEQ banking). Kept in the schema so banked
-   * state files that carry them still load; nothing reads or writes them any
-   * more.
-   */
-  from_question_oq_id?: string | null;
-  method_id?: string | null;
-  closed_oq?: {
-    oq_id: string;
-    bt_id: string;
-  } | null;
-  banked_open_ended_question_ids?: string[];
   /** The proposal invocation, persisted at init so a bare `--resume` after a halt
    * still knows the topic / tier / upgrade lineage (stage numbers alone cannot
    * say that). `scout_refresh` marks a deliberate D-1.1 re-entry. */
@@ -530,20 +244,12 @@ export interface DiscoveryState {
   proposed_from?: {
     topic: string;
     novelty_target: NoveltyTarget;
-    pivot_budget_used: number;
     final_verdict: string | null;
     proposal_path: string;
     novelty_justification: string;
     chosen_qid: string;
     chosen_specialization: string;
     cluster?: "panel" | "exactid" | "partialid" | "stat" | "experimentation" | "scm";
-    /**
-     * Scope caveats the D-0.5 proposal review ACCEPTED as conditional claims
-     * ("sharp UNDER the saturation convention"). Persisted from the D-0.5 review
-     * and surfaced to the Stage 0.5 derivation reviewer so it treats them as
-     * settled scope rather than relitigating them as fresh correctness defects.
-     */
-    accepted_scope_caveats?: Array<{ label: string; caveat: string; bound_claim: string }>;
     seed_list?: string[];
     seed_details?: Array<Record<string, unknown>>;
     literature_map?: string;
@@ -591,12 +297,6 @@ export interface DiscoveryState {
   };
 }
 
-/**
- * Formalization-phase fields (Stages 2 … 5): scaffold/proof bookkeeping,
- * assumption accumulation, free-form design notes. `design_decisions` is
- * formally cross-phase but in practice every writer lives in formalization
- * code paths, so it is owned here.
- */
 /** One cited node's persisted F4 source-match verdict. See {@link FormalizationState.cited_checks}. */
 export interface CitedCheck {
   name: string;
@@ -628,8 +328,8 @@ export interface DeliveryReviewReceipt {
   note?: string;
 }
 
+/** Formalization-phase fields: free-form design notes, disclosed added assumptions, F4 receipts. */
 export interface FormalizationState {
-  pending_sorries: PendingSorry[];
   design_decisions: Record<string, string>;
   added_assumptions: AddedAssumption[];
   /**
@@ -649,7 +349,7 @@ export interface StateJson
   extends SharedState,
     DiscoveryState,
     FormalizationState {
-  flags: SharedFlags & DiscoveryFlags & FormalizationFlags;
+  flags: DiscoveryFlags & FormalizationFlags;
 }
 
 export interface PipelineContext {
@@ -663,13 +363,6 @@ export interface PipelineContext {
   proposeTopic?: string;
   noveltyTarget?: NoveltyTarget;
   upgradeFrom?: UpgradeFrom;
-  /**
-   * Optional override for Stage -1.2's draft runner. Selects between the
-   * Codex (default) and Claude transports declared in
-   * MODEL_PLAN.stageNeg1_2_draft. Both consume the same prompt text. Other
-   * stages are unaffected.
-   */
-  proposerOverride?: DraftRunner;
 }
 
 export interface StageResult {
@@ -677,13 +370,12 @@ export interface StageResult {
   /**
    * Loop-control semantics:
    *  - `completed` / `skipped`: pipeline advances to `nextStage(stage)`.
-   *  - `checkpoint`: pipeline halts; user must `--resume`. Use when human input is needed before the next stage can run (genuine CKPTs, NO-PASS-with-user-action, route=user interventions).
+   *  - `checkpoint`: pipeline halts; user must `--resume`. Use when the orchestrator must decide before the next stage can run (the CKPTs, a NO-PASS, a proof-review escalation).
    *  - `blocked`: pipeline halts; `state.flags` carries the block reason. Used for missing-architecture and pre-Stage-(-1) gates.
-   *  - `rewound`: handler programmatically reset `state.stage_completed` to an earlier marker; pipeline continues from `nextStage(state.stage_completed)`. Use when an intervention/escalation routes back to an earlier stage WITHOUT needing user input. `advance: false` MUST be set so the loop does not overwrite the handler's reset.
+   *  - `rewound`: handler programmatically reset `state.stage_completed` to an earlier marker; pipeline continues from `nextStage(state.stage_completed)`. Use when an escalation routes back to an earlier stage WITHOUT needing a decision (the witnessed F3→D0 rewind). `advance: false` MUST be set so the loop does not overwrite the handler's reset.
    */
   status: "completed" | "checkpoint" | "blocked" | "skipped" | "rewound";
   message: string;
-  artifacts?: string[];
   advance?: boolean;
   completedStage?: Stage;
 }

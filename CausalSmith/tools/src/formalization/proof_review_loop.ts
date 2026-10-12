@@ -5,6 +5,7 @@ import { frozenClosuresComplete, frozenTheoremsProven, progressed } from "../gra
 import { hasRealSorry, stripLeanComments } from "../graph/extractor.js";
 import { runFiller, type FillerEscalation, type FillerResult } from "./proof_filler.js";
 import { runReviewer, type ReviewerResult, type ReviewerEscalation, type StatementWitness } from "./proof_reviewer.js";
+import { takeStatementFingerprints, type StatementFingerprints } from "./statement_fingerprints.js";
 import { lintUnusedHypotheses } from "./unused_hypothesis_lint.js";
 import { refreshGraphForGate } from "../graph/refresh.js";
 import { graphPath, saveGraph } from "../graph/store.js";
@@ -60,7 +61,7 @@ async function defaultUnusedHypGate(leanDir: string): Promise<UnusedHypGateResul
   return { blocking, advisory };
 }
 
-/** The orchestrator escalation menu (Claude meta handles these via runIntervention). */
+/** The orchestrator escalation menu. */
 export type EscalationRoute = "hint" | "build-substrate" | "fix-source" | "unclear" | "bank-partial" | "abandon" | "redo-math";
 export type ProofReviewPhase = "2.5" | "3" | "3.5" | "4";
 
@@ -79,6 +80,11 @@ interface RefreshState {
   skeleton: GraphSkeletonRow[];
   dirty: string[];
   hashes: Record<string, string>;
+  /** The statement fingerprints of the tree this state was refreshed from, and the nodes' keys
+   *  under them; null/empty when the tree was not built from its sources at refresh time, so
+   *  the source-text hashes decide. */
+  fingerprints?: StatementFingerprints | null;
+  fingerprintKeys?: Record<string, string>;
 }
 
 function fillerRoute(e: FillerEscalation): EscalationRoute {
@@ -135,8 +141,8 @@ function planRedoMath(graph: FormalizationGraph, brokenId: string): { dependents
 
 /** Research-file forbidden proof cheats (comment-stripped). The filler is FORBIDDEN to
  *  axiomatize/admit or use opaque/unsafe escapes: those assert claims UNPROVEN while
- *  evading the real-sorry completion check and faking node `complete`. `native_decide` was
- *  removed from this list on 2026-09-04 (operator call) — do not re-add. Keep aligned with
+ *  evading the real-sorry completion check and faking node `complete`. `native_decide` is
+ *  deliberately absent from this list (operator call, 2026-09-04) — do not add it. Keep aligned with
  *  the bank gate. */
 async function scanResearchCheatTokens(leanDir: string): Promise<string[]> {
   const out: string[] = [];
@@ -392,8 +398,6 @@ export async function runProofReviewLoop(args: {
   };
   formalizationDir?: string;
   leanDir?: string;
-  // AUDIT-FORM: texPath is a dead pass-through kept because bin callers outside formalization still pass it.
-  texPath?: string;
   corePath?: string;
   noProgressK?: number;
   /** Initial load-bearing orchestrator PROOF hint for phase B (lemma names / tactic strategy /
@@ -408,6 +412,10 @@ export async function runProofReviewLoop(args: {
    *  build gate finds a red tree after the model claimed completion. */
   fill?: (graph: FormalizationGraph, directive?: string, priorSessions?: string) => Promise<FillerResult>;
   review?: (s: RefreshState, mode: "delta" | "convergence") => Promise<ReviewerResult>;
+  /** The statement fingerprints of the built tree (injectable for tests; defaults to one
+   *  `statement_scan` per graph refresh and per F4 entry): the dirty frontier and the F4 receipts
+   *  are keyed by what Lean elaborated, and by source text when the scan cannot be had. */
+  fingerprints?: (leanDir: string) => Promise<StatementFingerprints | null>;
   /** Phase-A re-scaffold (F2 revise-mode). Given a directive + the flagged target obj_ids, edit
    *  the Lean statements in place to match the note, preserving existing proofs. When absent, a
    *  scaffold-mismatch can't be auto-fixed and Phase A escalates instead. */
@@ -483,7 +491,7 @@ export async function runProofReviewLoop(args: {
   let counters = zeroCounters();
   try {
     // Prefer the shared object (what the pipeline will save); fall back to disk when running
-    // standalone (bin/f3_loop.ts, tests).
+    // without one (tests).
     const seed = args.state?.flags.proof_loop_counters ?? (await readState()).flags.proof_loop_counters;
     counters = { ...zeroCounters(), ...(seed ?? {}) };
   } catch { /* no state yet (tests / cold start): start from zero */ }
@@ -521,11 +529,15 @@ export async function runProofReviewLoop(args: {
   const refresh: () => Promise<RefreshState> =
     args.refresh ??
     (async () => {
-      const r = await refreshGraphForGate({ formalizationDir, qid: args.ctx.qid, spec: args.ctx.specialization, leanDir });
+      // One scan of the built tree per refresh: a target is then dirty exactly when a statement
+      // its own reaches changed in meaning, not when a comment, a tag or a neighbouring docstring
+      // moved. An unbuilt or stale tree yields null and the source-text hashes.
+      const fingerprints = await (args.fingerprints ?? takeStatementFingerprints)(leanDir);
+      const r = await refreshGraphForGate({ formalizationDir, qid: args.ctx.qid, spec: args.ctx.specialization, leanDir, fingerprints });
       // why: surface the refresh diagnostic (e.g. duplicate @node) as the blocking reason instead
       // of a generic "no graph" — r.error distinguishes corrupt/invalid state from an absent graph.
       if (!r.graph) throw new Error(r.error ? `proof-review loop: graph refresh failed — ${r.error}` : "proof-review loop: no graph to refresh");
-      return { graph: r.graph, skeleton: r.skeleton, dirty: r.dirty, hashes: r.hashes };
+      return { graph: r.graph, skeleton: r.skeleton, dirty: r.dirty, hashes: r.hashes, fingerprints, fingerprintKeys: r.fingerprintKeys };
     });
   const fill: (g: FormalizationGraph, directive?: string, priorSessions?: string) => Promise<FillerResult> =
     args.fill ?? (async (graph, directive, priorSessions) => {
@@ -539,7 +551,6 @@ export async function runProofReviewLoop(args: {
         deps: args.deps,
         graph,
         leanDir,
-        texPath: args.texPath,
         corePath: args.corePath,
         directive: [liveDirective, directive].filter((x): x is string => !!x?.trim()).join("\n\n") || null,
         priorSessions: priorSessions ?? null,
@@ -547,7 +558,8 @@ export async function runProofReviewLoop(args: {
     });
   const review: (s: RefreshState, mode: "delta" | "convergence") => Promise<ReviewerResult> =
     args.review ??
-    ((s, mode) => runReviewer({ ctx: args.ctx, deps: args.deps, graph: s.graph, skeleton: s.skeleton, dirty: s.dirty, hashes: s.hashes, mode, leanDir, texPath: args.texPath, corePath: args.corePath, debugLogDir: logDir || undefined }));
+    ((s, mode) => runReviewer({ ctx: args.ctx, deps: args.deps, graph: s.graph, skeleton: s.skeleton, dirty: s.dirty, hashes: s.hashes, mode, leanDir, corePath: args.corePath, // a scan the refresh took stands for the F4 entry too: non-null means the tree was built from these sources
+      fingerprints: s.fingerprints ? async () => s.fingerprints! : args.fingerprints, treeFingerprints: s.fingerprints ?? null, fingerprintKeys: s.fingerprintKeys ?? {}, debugLogDir: logDir || undefined }));
 
   const persist = async (g: FormalizationGraph) => {
     if (formalizationDir) await saveGraph(graphPath(formalizationDir, args.ctx.qid, args.ctx.specialization), g);
@@ -804,6 +816,14 @@ export async function runProofReviewLoop(args: {
       `[causalsmith] restored ${restored.count} signature-matched carry-over proof(s) before F3; ` +
         "the filler will see only changed/new obligations.",
     );
+    // the restored proofs are source edits: build before the refresh so its scan reflects them;
+    // a red build or a busy lake lock only means the refresh compares source text
+    try {
+      const built = await buildGate();
+      if (!built.ok) console.warn(`[causalsmith] build after carry-over restore is red; the refresh compares source text:\n${built.errors}`);
+    } catch (err) {
+      console.warn(`[causalsmith] build after carry-over restore did not run; the refresh compares source text: ${err instanceof Error ? err.message : String(err)}`);
+    }
     state = await refresh();
     await persist(state.graph);
   }

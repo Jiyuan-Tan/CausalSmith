@@ -34,4 +34,10 @@ describe("solvedStatus", () => {
     expect(solvedStatus({ status: "to-prove" })).toBe("proved");
     expect(warn).not.toHaveBeenCalled();
   });
+
+  it("marks a record carrying neither a status nor a proof field as proved", () => {
+    // This helper answers "what status does a SOLVED record get", not "is this record
+    // finished"; a caller holding a possibly-unfinished record must decide that itself.
+    expect(solvedStatus({ id: "lem:x" })).toBe("proved");
+  });
 });

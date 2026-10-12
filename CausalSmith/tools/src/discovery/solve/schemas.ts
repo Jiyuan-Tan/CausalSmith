@@ -81,7 +81,7 @@ export interface ProposedAssumption {
   not_crux?: unknown;
   /** Symbol-table names the `condition` uses. Optional so an older payload still parses,
    *  but it is what carries a symbol into the invalidation scope of every statement that
-   *  reaches that symbol only through this assumption — `d0_apply` used to stub `[]`. */
+   *  reaches that symbol only through this assumption. */
   free_symbols?: string[];
 }
 

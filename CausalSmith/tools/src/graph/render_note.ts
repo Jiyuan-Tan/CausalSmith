@@ -1,6 +1,6 @@
 // Render a bridge `.md` note from the (core-keyed, obj_id-aliased) formalization
 // graph — the banked human-readable record + causalsmith input + F5 premise-check
-// source. The plan-driven pipeline no longer hand-writes a `.md`; this reconstructs
+// source. The plan-driven pipeline does not hand-write a `.md`; this reconstructs
 // one deterministically so the bank loader (which requires a note) and causalsmith
 // (which `parseNoteBlocks` the P/L/T blocks) keep working unchanged.
 //

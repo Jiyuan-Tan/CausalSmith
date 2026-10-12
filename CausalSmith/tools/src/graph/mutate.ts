@@ -96,17 +96,19 @@ export function setProof(g: FormalizationGraph, id: string, state: ProofState, s
   return updateNode(g, id, (n) => ({ ...n, proof: { state, sorry_count: sorryCount } }));
 }
 
-/** Set a node's review verdict + the statement hash it was reviewed at. */
+/** Set a node's review verdict + the statement hash it was reviewed at, and the fingerprint key
+ *  when the tree's fingerprints were at hand (a verdict without one carries no key). */
 export function setNodeReview(
   g: FormalizationGraph,
   id: string,
   status: ReviewStatus,
   hash: string,
   note?: string,
+  fingerprint: string | null = null,
 ): FormalizationGraph {
   return updateNode(g, id, (n) => ({
     ...n,
-    review: { status, passed_hash: hash, ...(note ? { note } : {}) },
+    review: { status, passed_hash: hash, ...(fingerprint ? { passed_fingerprint: fingerprint } : {}), ...(note ? { note } : {}) },
   }));
 }
 

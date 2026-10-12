@@ -16,7 +16,6 @@ import { hasValidD05AcceptanceReceipt } from "./discovery/stages/d0_acceptance.j
 import { proposalRevision } from "./discovery/proposal_revision.js";
 import { directivesConsumed, pendingDirectives, readEscalationLog } from "./discovery/escalation_log.js";
 import type { PipelineContext, Stage, StateJson } from "./types.js";
-import { legacyCrossBoundaryRewindGuard } from "./discovery/stages/d0_cross_boundary_rewind.js";
 import { clearOrphanSolvePathLeases } from "./discovery/solve/unit_io.js";
 import { MAIN_REF } from "./discovery/vcs/store.js";
 import { ensureStore } from "./discovery/vcs/round.js";
@@ -136,29 +135,6 @@ export interface RunPipelineOptions {
   clearGates?: string[];
 }
 
-/**
- * Reconciles per-theorem status in a paper-scoped run. Returns counts of
- * theorems by status. Paper-wide or legacy single-theorem runs return all zeros.
- *
- * Does not halt the pipeline — stuck/failed entries are allowed to flow through
- * subsequent stages and are filtered at Stage 5 (banking) and study-pipeline S5
- * (reconciliation).
- */
-export function reconcilePaperStatus(state: StateJson): {
-  completed: number;
-  in_progress: number;
-  pending: number;
-  stuck: number;
-  failed: number;
-} {
-  const counts = { completed: 0, in_progress: 0, pending: 0, stuck: 0, failed: 0 };
-  if (!state.theorems || state.theorems.length === 0) return counts;
-  for (const entry of state.theorems) {
-    counts[entry.status] += 1;
-  }
-  return counts;
-}
-
 export async function initializeOrLoadState(ctx: PipelineContext): Promise<StateJson> {
   // Per-qid concurrency is enforced by `withRunHeartbeat` in `runPipeline`.
   // This helper only handles state-file lifecycle.
@@ -225,16 +201,6 @@ async function runPipelineInner(
 
   const state = await initializeOrLoadState(ctx);
   const hasPreD0Intent = await ensurePreD0Intent(ctx, state);
-
-  // Pre-fix F→D rewinds carry only `rewound_from_stage0`; that does not prove
-  // whether the operator intended an incremental repair, additive extension,
-  // or replacement. Stop before stage selection: both draftIncomplete and a
-  // forced --from-stage D-1.2 can otherwise dispatch the author against the
-  // ordinary pre-D0 proto before the D-0.5 local guard ever runs.
-  if (ctx.resume) {
-    const legacyRewindBlock = legacyCrossBoundaryRewindGuard(state);
-    if (legacyRewindBlock) throw new Error(legacyRewindBlock);
-  }
 
   // Check both forced and natural forward entry before any resume-preflight
   // mutation can be persisted. A pending D0 directive legitimately reroutes a
@@ -371,9 +337,7 @@ async function runPipelineInner(
   // Resume safety: if Stage -1.2 was last completed but the drafter never
   // actually wrote a proposal to disk (e.g. crashed mid-draft on a pivot),
   // re-enter -1.2 instead of advancing into the Stage -0.5 reviewer with a
-  // missing or stale .tex. The reviewer would otherwise fall back to reading
-  // the archived `_angle{N-1}_rejected.tex` and emit a confusing v0 review
-  // for the new angle.
+  // missing proposal.
   const proposalPathFromState = state.proposed_from?.proposal_path;
   const draftIncomplete =
     state.stage_completed === "-1.2" &&
@@ -449,7 +413,7 @@ async function runPipelineInner(
     // On a halt, re-surface the orchestrator playbook (it drifts out of
     // attention over a long run) — both on the checkpoint line it reads and on
     // the console it sees after `--resume`.
-    const guidance = checkpointGuidance(stage, result.status, state.flags, state.auto_mode, result.message);
+    const guidance = checkpointGuidance(stage, result.status, state.auto_mode, result.message);
     await appendPipelineLog(ctx, {
       stage: loggedStage,
       status: result.status,
@@ -472,21 +436,6 @@ async function runPipelineInner(
       state.stage_completed = result.completedStage ?? stage;
     }
     await saveState(ctx.repoRoot, ctx.qid, ctx.specialization, state);
-
-    // Paper-scoped run status reconciliation hook: log per-theorem progress
-    // after each successful stage. Does not halt the pipeline.
-    if (result.status === "completed") {
-      const summary = reconcilePaperStatus(state);
-      if (state.theorems && state.theorems.length > 0) {
-        const parts: string[] = [];
-        if (summary.completed) parts.push(`${summary.completed} completed`);
-        if (summary.in_progress) parts.push(`${summary.in_progress} in_progress`);
-        if (summary.pending) parts.push(`${summary.pending} pending`);
-        if (summary.stuck) parts.push(`${summary.stuck} stuck`);
-        if (summary.failed) parts.push(`${summary.failed} failed`);
-        console.warn(`[paper] stage ${formatStageLabel(stage)}: ${parts.join(", ")}`);
-      }
-    }
 
     if (stage === "5" && result.advance !== false) break;
     if (result.status === "checkpoint") {
@@ -565,18 +514,10 @@ async function resolveResumeGates(
       };
     }
   }
-  // Gate: pivot-budget-exhausted fallback. When intervention_routing decides
-  // to route a D0.5 reject to D-1 (pivot to new angle) but the pivot budget
-  // is already spent, it sets `flags.stage_neg1_fallback` with the full
-  // reviewer reason and returns control. The current `stage_completed`
-  // still points at the producing stage (e.g. "0"), so a naive `--resume`
-  // would otherwise re-enter D0.5 and reproduce the same reject indefinitely.
-  // Refuse to resume until the operator either banks the run or hand-clears
-  // the flag (i.e. acknowledges the pivot-exhaustion verdict).
-  // Gates: cap-hit / halt flags. These were previously WRITE-ONLY — a naive
-  // `--resume` re-ran the full producer+reviewer+judge cycle (hours of codex),
-  // hit the same persisted cap, and checkpointed again with no exit
-  // instructions. Refuse up front with the reason + the deliberate clear step.
+  // Gates: cap-hit / halt flags (`flags.stage_neg1_fallback` among them). A naive
+  // `--resume` would re-run the full producer+reviewer cycle (hours of codex), hit
+  // the same persisted cap, and checkpoint again with no exit instructions. Refuse
+  // up front with the reason + the deliberate clear step.
   // The set + clear semantics live in `CAP_GATES` (cap_gates.ts), shared with the
   // `--clear-gate <flag>` CLI so the orchestrator clears them via the CLI, never a
   // hand-edit of state.json.
@@ -629,15 +570,14 @@ async function declarationExists(
 ): Promise<boolean> {
   const causalSmithRoot = path.join(repoRoot, "CausalSmith");
   const causaleanRoot = path.join(repoRoot, "..", "Causalean");
-  const legacyCausaleanRoot = path.join(repoRoot, "Causalean");
   const suggestedRoot = suggestedLocation
     ? suggestedLocation.split(/[\\/]/)[0] === "Causalean"
-      ? path.join(repoRoot, "..", suggestedLocation) // why: Causalean is a sibling package after the split.
+      ? path.join(repoRoot, "..", suggestedLocation) // why: Causalean is a sibling package.
       : path.join(repoRoot, suggestedLocation)
     : undefined;
   const roots = suggestedLocation
-    ? [suggestedRoot!, causalSmithRoot, causaleanRoot, legacyCausaleanRoot]
-    : [causalSmithRoot, causaleanRoot, legacyCausaleanRoot];
+    ? [suggestedRoot!, causalSmithRoot, causaleanRoot]
+    : [causalSmithRoot, causaleanRoot];
   for (const root of roots) {
     if (await fileOrTreeContains(root, name)) return true;
   }

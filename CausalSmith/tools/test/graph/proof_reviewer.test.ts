@@ -14,11 +14,31 @@ import { PlanSchema } from "../../src/formalization/plan/schema.js";
 import { buildSymbolClusters } from "../../src/formalization/crosswalk.js";
 import { statementHash } from "../../src/graph/hash.js";
 import {
-  buildLeanEvidenceIndex,
   buildSymbolReviewRows,
   nodeConvergenceEvidence,
   REVIEW_STANDARD,
 } from "../../src/formalization/convergence_evidence.js";
+import { buildLeanEvidenceIndex, legacyNodeEvidence } from "../../src/formalization/convergence_evidence_legacy.js";
+import { statementFingerprints, type StatementFingerprints } from "../../src/formalization/statement_fingerprints.js";
+import { readScan } from "../../src/substrate/invariance.js";
+import { readdir } from "node:fs/promises";
+
+/** The statement fingerprints a scan of `leanDir` would report, read off its text: one row per
+ *  declaration, fingerprinted by its text, reading by name every other declaration it mentions. */
+async function fakeFingerprints(leanDir: string): Promise<StatementFingerprints> {
+  const decls: { name: string; text: string; module: string }[] = [];
+  for (const f of (await readdir(leanDir)).filter((f) => f.endsWith(".lean")).sort()) {
+    for (const part of (await readFile(join(leanDir, f), "utf8")).split(/\n(?=(?:def|theorem|lemma|structure|instance) )/)) {
+      const m = part.match(/^(?:def|theorem|lemma|structure|instance) (\S+)/);
+      if (m) decls.push({ name: m[1], text: part, module: `Run.${f.slice(0, -".lean".length)}` });
+    }
+  }
+  const rows = decls.map((d) => JSON.stringify({
+    name: d.name, kind: "def", stmt_hash: statementHash(d.text), module: d.module,
+    deps: decls.filter((o) => o !== d && new RegExp(`\\b${o.name}\\b`).test(d.text)).map((o) => o.name),
+  }));
+  return statementFingerprints(readScan(rows.join("\n"), new Set()), "Run", { toolchain: "t", mathlib: "m" });
+}
 
 function fixture() {
   let g = createEmptyGraph("q", "v1");
@@ -537,30 +557,6 @@ describe("runReviewer", () => {
   });
 
   it("writes matched/drift back and reports a content-gate as blocking", async () => {
-    const reviewerPrompt = await readFile(sharedPromptPath, "utf8");
-    const scaffoldPrompt = await readFile(
-      join(process.cwd(), "src/formalization/prompts/F2/stage2_scaffold.txt"),
-      "utf8",
-    );
-
-    expect(scaffoldPrompt).toContain("exactly equivalent to the frozen core statement");
-    expect(scaffoldPrompt).toContain("fetched/attested source logically entails that exact consequence");
-    expect(scaffoldPrompt).toContain('lean_kind:"def"');
-    expect(scaffoldPrompt).toContain("CLOSED NON-PROP bibliographic metadata carrier");
-    expect(scaffoldPrompt).toContain("never thread it as a hypothesis");
-    expect(reviewerPrompt).toContain("source to that exact frozen consequence");
-    // Prompt paragraphs are hard-wrapped; assert on the sentence, not on its line breaks.
-    expect(reviewerPrompt).toMatch(/First\s+require Lean to be equivalent to the\s+frozen paper\/core node/);
-    expect(reviewerPrompt).toContain('A `lean_kind:"def"`');
-    expect(reviewerPrompt).toContain("Do NOT require such metadata to");
-
-    for (const prompt of [reviewerPrompt, scaffoldPrompt]) {
-      expect(prompt).toMatch(/Do NOT require the consequence to imply the whole\s+source theorem/);
-      expect(prompt).toContain("unused source conjuncts");
-      expect(prompt).toMatch(/quantifier order, constants,.*domain/s);
-      expect(prompt).toMatch(/Lean-only (?:assumption|premise)/);
-    }
-
     const g = fixture();
     const r = await runReviewer({
       ctx,
@@ -674,6 +670,7 @@ describe("runReviewer", () => {
       dirty: ["t1", "l1", "d1"],
       hashes: { t1: "h1", l1: "h2", d1: "h3" },
       mode: "convergence",
+      fingerprints: fakeFingerprints,
       corePath: sharedCorePath,
       promptPath: sharedPromptPath,
       leanDir: sharedCoreRoot,
@@ -763,15 +760,13 @@ describe("runReviewer", () => {
         dirty: ["thm:atlas"],
         hashes: {},
         mode: "convergence",
+        fingerprints: fakeFingerprints,
         corePath: corePath,
         promptPath: sharedPromptPath,
       });
 
       expect(prompts).toHaveLength(2);
       for (const prompt of prompts) {
-        expect(prompt).toContain("undelivered-delivery-role audit");
-        expect(prompt).toContain("DO NOT trust as the verdict");
-        expect(prompt).toContain("DELIVERED REVERSE USES-CLOSURE");
         expect(prompt).toContain("The headline is theorem t1");
         expect(prompt).toContain("Recover the causal arrow generically");
       }
@@ -870,9 +865,6 @@ describe("runReviewer", () => {
 
       expect(prompts).toHaveLength(1);
       expect(prompts[0]).toContain("CARRIER CONTRACT — BIBLIOGRAPHIC METADATA");
-      expect(prompts[0]).toContain("intentionally a closed NON-PROP payload");
-      expect(prompts[0]).toContain("Do NOT demand that this payload logically imply a proposition");
-      expect(prompts[0]).toContain("CLOSEDNESS: the metadata payload must be fixed");
       expect(result.ok).toBe(true);
       expect(result.citedReviewReceipts?.[0]?.check_status).toBe("cited-verified-attested");
     } finally {
@@ -936,6 +928,7 @@ describe("runReviewer", () => {
         dirty: ["gate:source"],
         hashes: { "gate:source": "h" },
         mode: "convergence",
+        fingerprints: fakeFingerprints,
         leanDir: root,
         corePath: sharedCorePath,
         promptPath: sharedPromptPath,
@@ -1000,6 +993,7 @@ describe("runReviewer", () => {
         dirty: ["gate:source"],
         hashes: { "gate:source": "current-hash" },
         mode: "convergence",
+        fingerprints: fakeFingerprints,
         leanDir: root,
         corePath: sharedCorePath,
         promptPath: sharedPromptPath,
@@ -1015,7 +1009,7 @@ describe("runReviewer", () => {
         core: parsedCore,
         plan: parsedPlan,
         graph: result.graph,
-        leanEvidence: await citedLeanEvidence(root, parsedPlan, result.graph),
+        leanEvidence: await citedLeanEvidence(root, parsedPlan),
         receipts: result.citedReviewReceipts,
       })).toEqual([]);
     } finally {
@@ -1061,9 +1055,8 @@ describe("runReviewer", () => {
     g = setLean(g, "lem:source", "sourceLemma", "Basic.lean");
     g.nodes[0].review = { status: "matched", passed_hash: "prior" };
     const core = await readTypedCore(corePath);
-    const index = await buildLeanEvidenceIndex(root);
     const rubricHash = REVIEW_STANDARD;
-    const evidence = nodeConvergenceEvidence({ graph: g, index, core, rubricHash, nodeId: "lem:source" });
+    const evidence = nodeConvergenceEvidence({ graph: g, fingerprints: await fakeFingerprints(root), core, rubricHash, nodeId: "lem:source" })!;
     g.convergenceReview = {
       "lem:source": {
         codex: { verdict: "matched", evidence_hash: evidence },
@@ -1096,6 +1089,7 @@ describe("runReviewer", () => {
         dirty: [],
         hashes: { "lem:source": "prior" },
         mode: "convergence",
+        fingerprints: fakeFingerprints,
         leanDir: root,
         corePath,
         promptPath: sharedPromptPath,
@@ -1153,6 +1147,7 @@ describe("runReviewer", () => {
         dirty: [],
         hashes: {},
         mode: "convergence",
+        fingerprints: fakeFingerprints,
         leanDir: root,
         corePath,
         promptPath: sharedPromptPath,
@@ -1226,6 +1221,7 @@ describe("runReviewer", () => {
         dirty: [],
         hashes: {},
         mode: "convergence",
+        fingerprints: fakeFingerprints,
         leanDir: root,
         corePath,
         promptPath: sharedPromptPath,
@@ -1266,6 +1262,7 @@ describe("runReviewer", () => {
         dirty: [],
         hashes: {},
         mode: "convergence",
+        fingerprints: fakeFingerprints,
         corePath: corePath,
         leanDir: root,
         promptPath: sharedPromptPath,
@@ -1460,7 +1457,7 @@ describe("F4 convergence receipts", () => {
     g = setLean(g, "d1", "d1_def", "T1.lean");
     return g;
   }
-  async function round(g: ReturnType<typeof graph>, root: string, verdict: (prompt: string, peer: "codex" | "claude") => string = okVerdict) {
+  async function round(g: ReturnType<typeof graph>, root: string, verdict: (prompt: string, peer: "codex" | "claude") => string = okVerdict, fingerprints: (leanDir: string) => Promise<StatementFingerprints | null> = fakeFingerprints) {
     const seen: string[] = [];
     const r = await runReviewer({
       ctx: { repoRoot: root, qid: "q", specialization: "v1" },
@@ -1473,6 +1470,7 @@ describe("F4 convergence receipts", () => {
       dirty: [],
       hashes: { t1: "h1", l1: "h2", d1: "h3" },
       mode: "convergence",
+      fingerprints,
       corePath: join(root, "core.json"),
       promptPath: sharedPromptPath,
       leanDir: root,
@@ -1554,33 +1552,46 @@ describe("F4 convergence receipts", () => {
     expect(mixed.r.graph.convergenceReview).toEqual(full);
   });
 
-  it("receipts issued on the command text of the whole run clear the same targets at the narrower evidence: no model call, and the graph holds them re-issued", async () => {
+  it("receipts issued under the textual scheme clear the same targets at the fingerprint evidence while their text stands: no model call, and the graph holds them re-issued", async () => {
     await writeFile(join(root, "T1.lean"), LEAN);
-    // a second file T1 does not import: the whole run's command text now differs from T1's own
-    await writeFile(join(root, "Aside.lean"), "open Nat\n");
     const done = await round(graph(), root);
     const current = done.r.graph.convergenceReview!;
     const index = await buildLeanEvidenceIndex(root);
     const core = await readTypedCore(join(root, "core.json"));
-    const earlier = Object.fromEntries(Object.entries(current).map(([id, entry]) => {
-      const evidence_hash = nodeConvergenceEvidence({ graph: done.r.graph, index, core, rubricHash: REVIEW_STANDARD, nodeId: id, wholeRunCommands: true });
+    const textual = (g: typeof done.r.graph, form: 0 | 1) => Object.fromEntries(Object.entries(current).map(([id, entry]) => {
+      const evidence_hash = legacyNodeEvidence({ graph: g, index, core, rubricHash: REVIEW_STANDARD, nodeId: id })[form];
       return [id, { codex: { ...entry.codex!, evidence_hash }, claude: { ...entry.claude!, evidence_hash } }];
     }));
-    expect(earlier.t1.codex.evidence_hash).not.toBe(current.t1.codex!.evidence_hash);
-    const next = await round({ ...done.r.graph, convergenceReview: earlier }, root);
-    expect(next.seen).toEqual([]);
-    expect(next.r.ok).toBe(true);
-    expect(next.r.graph.convergenceReview).toEqual(current);
-    // one target with no receipt beside two re-issued ones: only it is reviewed
-    const { t1: _t1, ...rest } = earlier;
-    const mixed = await round({ ...done.r.graph, convergenceReview: rest }, root);
-    expect(mixed.seen).toEqual(["claude:T-1", "codex:T-1"]);
-    expect(mixed.r.graph.convergenceReview).toEqual(current);
-    // a statement that changed since is not cleared by either evidence
+    for (const form of [0, 1] as const) {
+      const earlier = textual(done.r.graph, form);
+      expect(earlier.t1.codex.evidence_hash).not.toBe(current.t1.codex!.evidence_hash);
+      const next = await round({ ...done.r.graph, convergenceReview: earlier }, root);
+      expect(next.seen).toEqual([]);
+      expect(next.r.ok).toBe(true);
+      expect(next.r.graph.convergenceReview).toEqual(current);
+      // one target with no receipt beside two re-issued ones: only it is reviewed
+      const { t1: _t1, ...rest } = earlier;
+      const mixed = await round({ ...done.r.graph, convergenceReview: rest }, root);
+      expect(mixed.seen).toEqual(["claude:T-1", "codex:T-1"]);
+      expect(mixed.r.graph.convergenceReview).toEqual(current);
+    }
+    // a statement that changed since is cleared by neither evidence
+    const earlier = textual(done.r.graph, 0);
     await writeFile(join(root, "T1.lean"), LEAN.replace("helperBound n = n + 1", "helperBound n = 1 + n"));
     const changed = await round({ ...done.r.graph, convergenceReview: earlier }, root);
     expect(changed.seen).toContain("codex:T-1");
-    await rm(join(root, "Aside.lean"));
+  });
+
+  it("with no fingerprints every target is reviewed, none is receipted, and the ledger stands", async () => {
+    await writeFile(join(root, "T1.lean"), LEAN);
+    const done = await round(graph(), root);
+    const blind = await round(done.r.graph, root, okVerdict, async () => null);
+    expect(blind.seen).toHaveLength(6);
+    expect(blind.r.ok).toBe(true);
+    expect(blind.r.graph.convergenceReview).toEqual(done.r.graph.convergenceReview);
+    expect((await round(blind.r.graph, root)).seen).toEqual([]);
+    const cold = await round(graph(), root, okVerdict, async () => null);
+    expect(cold.r.graph.convergenceReview ?? {}).toEqual({});
   });
 
   it("a target one peer flagged is re-reviewed next round; a delta `matched` with no ledger never clears", async () => {

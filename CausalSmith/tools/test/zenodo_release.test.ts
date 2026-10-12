@@ -18,17 +18,22 @@
 // Everything runs against a fake `fetch` and a temp bundle: no network, no clock, no TeX.
 
 import { describe, it, expect, beforeEach } from "vitest";
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { multiPagePdf, pdfPageTexts } from "./zenodo_fixtures.js";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+import { makeBundleDir, multiPagePdf, pdfPageTexts } from "./zenodo_fixtures.js";
 import { PRODUCTION, SANDBOX, ZenodoClient, type ZenodoEnvironment } from "../src/zenodo/client.js";
 import { release } from "../src/zenodo/release.js";
 import { restampBundle, type RestampOptions } from "../src/presentation/restamp.js";
 import { LatexCompileError } from "../src/presentation/paper_compile.js";
 import { reserve, type DepositContext } from "../src/zenodo/deposit.js";
-import { SUBCOMMANDS, parseStrict } from "../bin/zenodo_deposit.js";
+import { SUBCOMMANDS, parseStrict, resolveEnvironment } from "../bin/zenodo_deposit.js";
+
+const execFileAsync = promisify(execFile);
 
 const TOKEN = "zEn0d0TESTtoken_DO_NOT_LEAK_9f3a2b1c";
 const BUNDLE_ID = "stat_demo_release_v1";
@@ -304,8 +309,10 @@ describe("release --dry-run", () => {
   });
 });
 
-describe("the release subcommand's argv contract", () => {
-  it("is in the strict allowlist and accepts only its own flags", () => {
+describe("the deposit CLI's strict argv parser and production gate", () => {
+  const B = "/some/bundle";
+
+  it("has release in the strict allowlist, accepting only its own flags", () => {
     expect(SUBCOMMANDS).toContain("release");
     const parsed = parseStrict("release", ["--publish", "--allow-unstamped", "/b"]);
     expect(parsed.bundleDir).toBe("/b");
@@ -314,4 +321,102 @@ describe("the release subcommand's argv contract", () => {
     expect(() => parseStrict("publish", ["--publish", "/b"])).toThrow(/Unknown flag '--publish'/);
     expect(() => parseStrict("release", ["--repair", "/b"])).toThrow(/Unknown flag '--repair'/);
   });
+
+  it("rejects a mistyped production flag rather than silently using sandbox", () => {
+    expect(() => parseStrict("reserve", [B, "--productoin", "--i-understand-this-is-permanent"]))
+      .toThrow(/Unknown flag '--productoin'/);
+  });
+
+  it("requires BOTH production flags", () => {
+    expect(resolveEnvironment(parseStrict("reserve", [B])).name).toBe("sandbox");
+    expect(() => resolveEnvironment(parseStrict("reserve", [B, "--production"])))
+      .toThrow(/--i-understand-this-is-permanent/);
+    expect(resolveEnvironment(parseStrict("reserve", [B, "--production", "--i-understand-this-is-permanent"])).name)
+      .toBe("production");
+    expect(resolveEnvironment(parseStrict("reserve", [B])).apiBase).toBe(SANDBOX.apiBase);
+    expect(resolveEnvironment(parseStrict("reserve", [B, "--production", "--i-understand-this-is-permanent"])).apiBase)
+      .toBe(PRODUCTION.apiBase);
+  });
+
+  // A flag may legitimately belong to more than one subcommand — `release` publishes, so it
+  // takes the same --allow-unstamped escape hatch `publish` does — but every subcommand NOT
+  // in the list must still refuse it rather than ignore it.
+  it.each<[string, string[]]>([
+    ["--allow-unstamped", ["publish", "release"]],
+    ["--publish", ["release"]],
+    ["--force", ["new-version"]],
+    ["--repair", ["status"]],
+    ["--discard-stamped-doi", ["abandon"]],
+    ["--confirm-no-remote-draft", ["reserve"]],
+  ])("scopes %s to %j", (flag, owners) => {
+    for (const owner of owners) expect(() => parseStrict(owner as never, [B, flag])).not.toThrow();
+    for (const other of SUBCOMMANDS) {
+      if (owners.includes(other)) continue;
+      expect(() => parseStrict(other, [B, flag])).toThrow(/Unknown flag/);
+    }
+  });
+
+  it.each<[string, string[], RegExp]>([
+    ["--flag=value", [B, "--license=cc-zero"], /--flag=value/],
+    ["a missing value", [B, "--license"], /requires a value/],
+    ["a duplicate flag", [B, "--dry-run", "--dry-run"], /more than once/],
+    ["a surplus positional", [B, "extra"], /exactly one bundle directory/],
+    ["a missing bundle directory", [], /needs a bundle directory/],
+  ])("rejects %s", (_what, argv, pattern) => {
+    expect(() => parseStrict("reserve", argv)).toThrow(pattern);
+  });
+
+  it("rejects --write-meta together with --no-write-meta", () => {
+    expect(() => parseStrict("reserve", ["/b", "--write-meta", "--no-write-meta"]))
+      .toThrow(/--write-meta.*--no-write-meta|contradict|both/i);
+  });
+
+  it("parses a boolean flag placed before the bundle directory", () => {
+    expect(parseStrict("reserve", ["--dry-run", B]).bundleDir).toBe(B);
+  });
+
+  it("allows --community to repeat and returns every value", () => {
+    const a = parseStrict("reserve", [B, "--community", "one", "--community", "two"]);
+    expect(a.values.get("--community")).toEqual(["one", "two"]);
+  });
+});
+
+describe("the CLI entry guard survives a symlinked invocation", () => {
+  const CLI = path.resolve(fileURLToPath(import.meta.url), "../../bin/zenodo_deposit.ts");
+
+  let dir: string;
+  beforeEach(async () => {
+    dir = await makeBundleDir();
+  });
+
+  it("runs, rather than exiting 0 having done nothing", async () => {
+    // Comparing raw paths instead of realpathSync makes this print nothing and exit 0.
+    const linkDir = await mkdtemp(path.join(os.tmpdir(), "zenodo-link-"));
+    const link = path.join(linkDir, "zenodo_deposit.ts");
+    await symlink(CLI, link);
+    const run = await execFileAsync(
+      process.execPath,
+      [path.resolve(fileURLToPath(import.meta.url), "../../node_modules/tsx/dist/cli.mjs"), link, "status", dir],
+      { timeout: 120_000 },
+    ).catch((e: { stdout?: string; stderr?: string; code?: number }) => e);
+    const out = `${run.stdout ?? ""}${run.stderr ?? ""}`;
+    expect(out).toMatch(/No sandbox deposit recorded|environment\s+sandbox/);
+    expect(out).not.toBe("");
+    await rm(linkDir, { recursive: true, force: true });
+  }, 180_000);
+
+  it("reports a bad flag through the symlink too, with a non-zero exit", async () => {
+    const linkDir = await mkdtemp(path.join(os.tmpdir(), "zenodo-link-"));
+    const link = path.join(linkDir, "zenodo_deposit.ts");
+    await symlink(CLI, link);
+    const run = await execFileAsync(
+      process.execPath,
+      [path.resolve(fileURLToPath(import.meta.url), "../../node_modules/tsx/dist/cli.mjs"), link, "reserve", dir, "--productoin"],
+      { timeout: 120_000 },
+    ).then(() => ({ code: 0, stdout: "", stderr: "" }))
+      .catch((e: { stdout?: string; stderr?: string; code?: number }) => e);
+    expect(run.code).not.toBe(0);
+    expect(`${run.stdout ?? ""}${run.stderr ?? ""}`).toMatch(/Unknown flag '--productoin'/);
+    await rm(linkDir, { recursive: true, force: true });
+  }, 180_000);
 });

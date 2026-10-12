@@ -27,13 +27,9 @@ export const MODEL_PLAN = {
   // D-1.1 literature scout: search/read and gap synthesis on the kernel tier.
   // Env: CAUSALEAN_MODEL_CODEX_KERNEL.
   stageNeg1_1_litReview: { runner: "codex", model: MODELS.codexKernel, effort: "high" },
-  // Stage -1.2 draft is the only producer with a runtime-switchable runner
-  // (--proposer claude|codex). Both candidates are listed; `default` picks one
-  // when --proposer is absent. See workers/draftAdapter.ts.
+  // D-1.2 proposal author.
   stageNeg1_2_draft: {
-    default: "codex",
     codex: { runner: "codex", model: MODELS.codexDiscovery, effort: "high" },
-    claude: { runner: "claude", model: MODELS.claudeMain },
   },
   // D-0.5 proposal review. On the mechanical tier (gpt-5.6-terra) per operator call;
   // was codexKernel. Kept at `high` effort. Env: CAUSALEAN_MODEL_CODEX_MECH.
@@ -42,31 +38,16 @@ export const MODEL_PLAN = {
   // NOT a stage — the D0.5 core review and D0.R directed revision pass
   // `MODEL_PLAN.mechanicalTier.model`. D-1.2 uses its stage-specific kernel/Sol
   // author configuration above. The HARD D0 derivation is
-  // `stage0_solve` on the kernel tier, not this. (Formerly `stage0_0`, named after the removed
-  // legacy D0.0 setup pass — see doc/API.md §4.0.)
+  // `stage0_solve` on the kernel tier, not this.
   mechanicalTier: { runner: "codex", model: MODELS.codexMechanical, effort: "high" },
-  // Typed D0-SOLVE (runStage0Solve) does the HARD derivation in one stage. It must
+  // Typed D0-SOLVE does the HARD derivation in one stage. It must
   // run at a kernel-math model (the discovery tier); on gpt-5.4 it missed a standard step (clip =
   // 1-Lipschitz projection ⟹ compare ê_q to the TRUE-clipped e_q, not to ê) that
   // gpt-5.5 cleared, and punted a derivable upper bound to an open obligation.
   stage0_solve: { runner: "codex", model: MODELS.codexDiscovery, effort: "xhigh" },
-  // Stage 0.5 is SPLIT into two referees that fill disjoint regions of ONE
-  // ReviewResult — no TS stitch:
-  //   D0.5.1 `stage0_5_math` — the correctness leg, runs FIRST. A clean-context
-  //     referee that RE-DERIVES the note's load-bearing steps from definitions
-  //     and diffs its term list against the note's (reproduce, don't
-  //     check-along). Isolated from the tiering / novelty / JSON overhead that
-  //     diluted the old monolith (a rubric-free web model caught a dropped
-  //     first-order term the medium monolith missed). Emits a lean correctness
-  //     verdict; does NOT decide accept/revise/reject. Runs at `high` (dialed
-  //     from xhigh for cost; the focused reproduce-don't-check protocol caught
-  //     the load-bearing omissions at `high` in live validation).
-  //   D0.5.2 `stage0_5`      — structure + novelty + tier + journal + routing,
-  //     runs SECOND. ADOPTS D0.5.1's injected correctness verdict and makes the
-  //     single final accept/revise/reject decision. `high` suffices — it no
-  //     longer re-derives math.
+  // The one-shot D0.5 rubric harness (`bin/oneshot_stage0_5_field.ts`). The pipeline's D0.5
+  // core review runs on `mechanicalTier`.
   stage0_5: { runner: "codex", model: MODELS.codexDiscovery, effort: "high" },
-  stage0_5_math: { runner: "codex", model: MODELS.codexDiscovery, effort: "high" },
   // D0.5.G — the COLD general referee. Runs THIRD, only after D0.5.2 reaches
   // ACCEPT and a novelty target is set. Rubric-free by design (anti-Goodhart):
   // it is given only the paper + plain tier definitions, NOT the flagship rubric
@@ -100,36 +81,20 @@ export const MODEL_PLAN = {
   //
   // NOTE the known bias direction of this referee class: it over-rejects complete
   // work, and `decideTriageKill` is deliberately narrow because of it — keep it narrow.
-  //
-  // To revert to opus: set runner "claude" + MODELS.claudeMain, and restore an
-  // `unavailableFallback: { runner: "codex", model: MODELS.codexKernel, reasoningEffort:
-  // "high" }` plus its `claudeUnavailableFallback` pass-through in runGeneralReview. Both
-  // were dropped here rather than left inert, since a claude-only fallback under a codex
-  // primary is config that reads live and never fires.
   stage0_5_general: { runner: "codex", model: MODELS.codexDiscovery, effort: "high" },
   stage1: { runner: "claude", model: MODELS.claudeMain },
-  // F1.5 review (via REVIEW_MODEL_PLAN["1.5"]): plan DEPTH + REUSE + statement-vs-math
-  // fidelity audit. On the mechanical tier (gpt-5.6-terra) per operator call; was
-  // codexKernel/medium — effort bumped medium→high to offset the cheaper model.
-  // Env: CAUSALEAN_MODEL_CODEX_MECH.
+  // F1.5 review (`review_codex.ts`): the plan's reuse soundness. On the mechanical tier at
+  // `high` effort. Env: CAUSALEAN_MODEL_CODEX_MECH.
   stage1_5: { runner: "codex", model: MODELS.codexMechanical, effort: "high" },
   stage2: { runner: "codex", model: MODELS.codexKernel, effort: "high" },
-  // Compatibility plan for the isolated `review_codex.ts` helper. The live unified
-  // F2.5/F4 path is `proof_reviewer.ts::runUnit`, which uses codexKernel with
-  // per-target high/medium effort; do not infer its runtime routing from this entry.
-  stage2_5: { runner: "codex", model: MODELS.codexMechanical, effort: "medium" },
-  // Stages 3/3.5/4 are no-op pass-throughs (the proof-review loop in the F2.5
-  // slot owns their work, including statement reconciliation); their old per-stage model configs were removed
-  // with the retired split-stage system. No LLM call runs at those slots.
+  // The proof-review loop in the F2.5 slot owns F2.5–F4; `proof_reviewer.ts::runUnit` and
+  // the filler choose their own model and effort, so those slots carry no entry here.
   // F5 (API.md / doc-generation pass): clerical → mechanical tier (gpt-5.6-terra).
   stage5: { runner: "codex", model: MODELS.codexMechanical, effort: "medium" },
 } as const;
 
 /**
- * Display/CLI-facing stage IDs with D (discovery) / F (formalization) prefixes.
- * Includes umbrella stages AND first-class substage halt points (F3.group/fill,
- * F4.codex/claude/d — not yet wired). The active typed D0 has no substages (the
- * legacy D0.0/k/M per-conjecture split was removed, see doc/API.md §4.0). Used by
+ * Display/CLI-facing stage IDs with D (discovery) / F (formalization) prefixes. Used by
  * `--stop-after`, log strings, and
  * cross-pipeline coordination. The internal `Stage` literal in STAGE_ORDER
  * stays in bare-number form so on-disk state JSON keys remain stable; this
@@ -146,23 +111,14 @@ export const STAGE_HALT_IDS = [
   "F2",
   "F2.5",
   "F3",
-  "F3.group",
-  "F3.fill",
   "F3.5",
   "F4",
-  "F4.codex",
-  "F4.claude",
-  "F4.d",
   "F5",
 ] as const;
 
 export type StageHaltId = (typeof STAGE_HALT_IDS)[number];
 
-/**
- * Maps the internal `Stage` (bare-number) → new umbrella `StageHaltId`.
- * One-to-one for umbrella stages; substages don't appear here (they're not
- * in STAGE_ORDER).
- */
+/** Maps the internal `Stage` (bare-number) → its `StageHaltId`, one-to-one. */
 export const STAGE_TO_HALT_ID: Record<
   (typeof STAGE_ORDER)[number],
   StageHaltId
@@ -183,15 +139,10 @@ export const STAGE_TO_HALT_ID: Record<
 };
 
 /**
- * Translation map: new umbrella StageHaltId → internal Stage. Used at the
- * CLI / dispatch boundary to bridge the new prefixed surface to the
- * existing pipeline halt mechanism. Substage halt IDs (F3.group/fill,
- * F4.codex/claude/d) are intentionally absent: substage halts are not yet
- * wired into runPipeline (Phase 3 work).
+ * Translation map: StageHaltId → internal Stage. Used at the CLI / dispatch
+ * boundary to bridge the prefixed surface to the pipeline halt mechanism.
  */
-export const STAGE_HALT_ID_TO_INTERNAL: Partial<
-  Record<StageHaltId, (typeof STAGE_ORDER)[number]>
-> = {
+export const STAGE_HALT_ID_TO_INTERNAL: Record<StageHaltId, (typeof STAGE_ORDER)[number]> = {
   "D-1.1": "-1.1",
   "D-1.2": "-1.2",
   "D-0.5": "-0.5",
@@ -210,9 +161,7 @@ export const STAGE_HALT_ID_TO_INTERNAL: Partial<
 /**
  * Deprecated → canonical mapping for the CLI compat layer.
  *
- * Accepts the old bare-number forms (`"3"`, `"-0.5"`, `"0"`) AND legacy
- * substage spellings (e.g. `"3.group"`, `"3.fill"`, `"4d"`, `"4.codex"`,
- * `"4.claude"`). CLI callers should look
+ * Accepts the old bare-number forms (`"3"`, `"-0.5"`, `"0"`). CLI callers should look
  * up `--stop-after` values here BEFORE validating against STAGE_HALT_IDS;
  * if the input matches a key here, emit a stderr deprecation warning and
  * use the mapped value.
@@ -228,42 +177,21 @@ export const LEGACY_STAGE_ALIASES: Record<string, StageHaltId> = {
   "2": "F2",
   "2.5": "F2.5",
   "3": "F3",
-  "3.group": "F3.group",
-  "3.fill": "F3.fill",
   "3.5": "F3.5",
   "4": "F4",
-  "4.codex": "F4.codex",
-  "4.claude": "F4.claude",
-  "4.d": "F4.d",
-  "4d": "F4.d",
   "5": "F5",
 };
 
 /**
- * Format an internal Stage (and optional substage marker) as the new
- * display ID. Use this in log strings instead of interpolating raw stage
- * literals. For substage logging, pass the substage suffix exactly as it
- * appears in STAGE_HALT_IDS (e.g. `"group"` for F3.group, `"d"` for F4.d).
+ * Format an internal Stage as its display ID. Use this in log strings instead
+ * of interpolating raw stage literals.
  *
  * Examples:
- *   formatStageLabel("3")           → "F3"
- *   formatStageLabel("3", "group")  → "F3.group"
- *   formatStageLabel("4", "d")      → "F4.d"
- *   formatStageLabel("-0.5")        → "D-0.5"
+ *   formatStageLabel("3")     → "F3"
+ *   formatStageLabel("-0.5")  → "D-0.5"
  */
-export function formatStageLabel(
-  stage: (typeof STAGE_ORDER)[number],
-  substage?: string,
-): StageHaltId {
-  const base = STAGE_TO_HALT_ID[stage];
-  if (substage === undefined) return base;
-  const composed = `${base}.${substage}` as StageHaltId;
-  if (!(STAGE_HALT_IDS as readonly string[]).includes(composed)) {
-    throw new Error(
-      `formatStageLabel: ${stage} + substage="${substage}" → ${composed} is not in STAGE_HALT_IDS`,
-    );
-  }
-  return composed;
+export function formatStageLabel(stage: (typeof STAGE_ORDER)[number]): StageHaltId {
+  return STAGE_TO_HALT_ID[stage];
 }
 
 /**

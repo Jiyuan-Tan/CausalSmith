@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PROOF_AUDIT_STANDARD, PROOF_REPAIR_STANDARD, proofAuditCacheKey, proofAuditFormalContext, proofAuditSemanticNotation, runProofAudit } from "../src/presentation/audit.js";
-import { parseAnchoredEnvs } from "../src/presentation/tex_anchors.js";
+import { canonicalizeProofTitle, parseAnchoredEnvs } from "../src/presentation/tex_anchors.js";
 import type { StageIO } from "../src/presentation/pipeline.js";
 
 /**
@@ -16,7 +16,7 @@ import type { StageIO } from "../src/presentation/pipeline.js";
  *   • thm_bad — unfaithful even after repair            → last attempt persisted, one problem
  */
 
-import { canonicalizeProofTitle, existingProofForP2 } from "../src/presentation/stages/p2_draft.js";
+import { existingProofForP2 } from "../src/presentation/stages/p2_draft.js";
 
 describe("audit standards are hand-bumped content-independent tokens", () => {
   // Frozen at the prompt fingerprints the keys carried on 2026-09-12, so the change that

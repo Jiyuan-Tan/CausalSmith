@@ -4,8 +4,8 @@
 // node-addressable verdict; the cold general referee runs separately after this
 // panel passes. The structural gate has already verified well-formedness, so the
 // panel focuses on the math/decision rubric. Verdicts are combined worst-of, and
-// a finding citing a nonexistent node is rejected mechanically (D0_CORE_REDESIGN.md §6).
-// Prompts are derived from stage0_5_{math_review,rubric_review}.txt + a core-review adapter (§11).
+// a finding citing a nonexistent node is rejected mechanically.
+// Prompts are derived from stage0_5_{math_review,rubric_review}.txt + a core-review adapter.
 import { existsSync } from "node:fs";
 import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";

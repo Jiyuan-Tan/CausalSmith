@@ -55,6 +55,25 @@ theorem finite_diagonal_square_integral {ι Ω : Type*}
   intro a _
   ring
 
+/-- Given [an index type](hyp:ι), [a measurable space](hyp:Ω), [a measure](hyp:μ),
+[a finite set of indices](hyp:s), [a family of real functions](hyp:u), and [their diagonal
+energies](hyp:e), if [every indexed cross-product is
+integrable](hyp:hi) and [its integral is the prescribed energy on the diagonal and zero off the
+diagonal](hyp:ho), then [the squared integral of the finite sum equals the sum of its diagonal
+energies](goal). -/
+theorem finite_orthogonal_sum_integral_sq {ι Ω : Type*} [DecidableEq ι]
+    [MeasurableSpace Ω] (μ : Measure Ω) (s : Finset ι) (u : ι → Ω → ℝ) (e : ι → ℝ)
+    (hi : ∀ i ∈ s, ∀ j ∈ s, Integrable (fun x => u i x * u j x) μ)
+    (ho : ∀ i ∈ s, ∀ j ∈ s, (∫ x, u i x * u j x ∂μ) = if i = j then e i else 0) :
+    (∫ x, (∑ i ∈ s, u i x) ^ 2 ∂μ) = ∑ i ∈ s, e i := by
+  simp_rw [sq, Finset.sum_mul, Finset.mul_sum]
+  rw [integral_finsetSum s (fun i hi' => integrable_finsetSum _ (fun j hj => hi i hi' j hj))]
+  apply Finset.sum_congr rfl
+  intro i hi'
+  rw [integral_finsetSum s (fun j hj => hi i hi' j hj)]
+  rw [Finset.sum_congr rfl (fun j hj => ho i hi' j hj)]
+  simp [hi']
+
 /-- Given [a measurable space](hyp:Ω), [a finite index type](hyp:ι), [a measure](hyp:μ),
 [a finite family of real functions](hyp:b), [square integrability of every family
 member](hyp:hb), [orthonormality through their raw integrals](hyp:hortho), [a target

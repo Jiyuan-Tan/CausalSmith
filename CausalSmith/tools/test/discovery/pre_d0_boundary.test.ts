@@ -36,7 +36,7 @@ describe("pre-D0 intent", () => {
     await expect(ensurePreD0Intent(ctx, state)).rejects.toThrow(/no durable pre_d0_intent/);
 
     state.proposed_from = {
-      topic: "legacy topic", novelty_target: "field", pivot_budget_used: 0, final_verdict: "pending",
+      topic: "legacy topic", novelty_target: "field", final_verdict: "pending",
       proposal_path: "/x/proto_core.json", novelty_justification: "", chosen_qid: "stat_legacy",
       chosen_specialization: "v1", iterations: [],
     };

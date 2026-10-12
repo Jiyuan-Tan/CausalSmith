@@ -11,8 +11,8 @@ import { CoreSchema } from "../../src/discovery/core/schema.js";
 import { modeUsesGapsContext, runStageNeg1_2Dual } from "../../src/discovery/stages/neg1_2.js";
 import { formatNeg1EscalationContext } from "../../src/discovery/stageNeg1_directive.js";
 import { MODEL_PLAN } from "../../src/constants.js";
-import { artifactPaths, type StageDeps } from "../../src/pipeline_support.js";
-import { promptPath } from "../../src/paths.js";
+import type { StageDeps } from "../../src/pipeline_support.js";
+import { pipelineLogPath, promptPath, proposalTexPath } from "../../src/paths.js";
 import type { CodexRunInput } from "../../src/shared/codex.js";
 import type { PipelineContext, StateJson } from "../../src/types.js";
 
@@ -29,6 +29,7 @@ async function stubPrompts(root: string): Promise<void> {
     await writeFile(target, body, "utf8");
   };
   await stub("stage_neg1_2_proto_core.txt", "stub proposal author (formal + prose contract)");
+  await stub("cluster_definitions.txt", "stub cluster definitions");
   // The author now composes a mode head + the body; stub every mode head.
   for (const m of ["cold_start", "revise", "pivot", "kernel_replace", "draft_rebuild"]) {
     await stub(`stage_neg1_2_proto_head_${m}.txt`, `stub ${m} head`);
@@ -52,7 +53,7 @@ function makeState(): StateJson {
     from_question_oq_id: null,
     method_id: null,
     closed_oq: null,
-    flags: { local_fix_from_4d: false, missing_architecture: false },
+    flags: { missing_architecture: false },
     proposed_from: {
       topic: "test",
       novelty_target: "field",
@@ -107,7 +108,6 @@ function authorDeps(
     runClaude: async () => {
       throw new Error("runClaude not expected");
     },
-    lean: undefined as never,
   };
 }
 
@@ -128,7 +128,6 @@ function needsPivotDeps(coreBody: string): StageDeps {
     runClaude: async () => {
       throw new Error("runClaude not expected");
     },
-    lean: undefined as never,
   };
 }
 
@@ -284,23 +283,13 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
     ], 1)).toContain("carry this repaired kernel into angle one");
   });
 
-  it("makes standalone orchestrator directives outrank an ACCEPT with no reviewer flags", async () => {
-    const prompt = await readFile(
-      new URL("../../src/discovery/prompts/D-1/stage_neg1_2_proto_head_revise.txt", import.meta.url),
-      "utf8",
-    );
-    expect(prompt).toContain("overrides this mode's reviewer-flags-only / kernel-preserved scope");
-    expect(prompt).toContain("prior verdict is `ACCEPT` with empty S / N / C flags");
-    expect(prompt).toContain("Empty reviewer flags never authorize a no-op");
-  });
-
   it("writes the core, passes the gate, and renders NO proposal .tex", async () => {
     const ctx = makeCtx(repoRoot);
     const state = makeState();
     const res = await runStageNeg1_2ProtoCore({ ctx, state, mode: "cold-start", deps: authorDeps(goldenCore) });
     expect(existsSync(res.protoCoreJsonPath)).toBe(true);
     // The proto_core JSON is the sole discovery artifact; no proposal .tex is rendered.
-    expect(existsSync(artifactPaths(ctx, state).proposalTex)).toBe(false);
+    expect(existsSync(proposalTexPath(ctx.repoRoot, ctx.qid, ctx.specialization))).toBe(false);
   });
 
   it("preserves the SC6 comparator promise table across schema canonicalization", async () => {
@@ -406,7 +395,6 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
       runClaude: async () => {
         throw new Error("unused");
       },
-      lean: undefined as never,
     };
     await expect(runStageNeg1_2ProtoCore({ ctx, state: makeState(), mode: "cold-start", deps })).rejects.toThrow(/failed/);
   });
@@ -426,7 +414,6 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
         return { stdout: '{"status":"completed","message":"core",,"artifacts":[]}', stderr: "" };
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     };
 
     await expect(runStageNeg1_2ProtoCore({
@@ -451,7 +438,6 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
         };
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     };
     await expect(runStageNeg1_2ProtoCore({
       ctx: makeCtx(repoRoot), state: makeState(), mode: "revise", deps,
@@ -472,7 +458,6 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
         return { stdout: '{"status":"completed"}', stderr: "" };
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     };
     await expect(runStageNeg1_2ProtoCore({
       ctx,
@@ -511,12 +496,60 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
         };
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     };
     const result = await runStageNeg1_2ProtoCore({ ctx: makeCtx(repoRoot), state: makeState(), mode: "revise", deps });
     expect(result.status).toBe("completed");
     expect(attempt).toBe(2);
     expect(prompts[1]).toMatch(/\[RECEIPT\]/);
+  });
+
+  it("keeps a gate-rejected draft for the retry to edit, logs the feedback, and never re-offers a stale draft", async () => {
+    const good = JSON.parse(goldenCore) as Record<string, unknown>;
+    const bad = JSON.parse(goldenCore) as Record<string, unknown>;
+    // A statement marked proved with no proof fails the proposal gate.
+    (bad.statements as Array<Record<string, unknown>>)[0].status = "proved";
+    const badText = JSON.stringify(bad);
+    let attempt = 0;
+    const prompts: string[] = [];
+    const rejectedSeen: Array<string | null> = [];
+    const deps: StageDeps = {
+      runCodex: async ({ prompt }: { prompt: string }) => {
+        attempt++;
+        prompts.push(prompt);
+        const m = prompt.match(/proposal core JSON to this path \(create it\): (.+)/);
+        if (!m) throw new Error("retry deps: no core path in prompt");
+        const target = m[1].trim();
+        const rejected = `${protoCoreJsonPath(makeCtx(repoRoot))}.rejected`;
+        rejectedSeen.push(existsSync(rejected) ? await readFile(rejected, "utf8") : null);
+        await mkdir(path.dirname(target), { recursive: true });
+        if (attempt === 1) await writeFile(target, badText, "utf8");
+        if (attempt === 3) await writeFile(target, JSON.stringify(good), "utf8");
+        return { stdout: JSON.stringify({ status: "completed", message: "ok" }), stderr: "" };
+      },
+      runClaude: async () => { throw new Error("unused"); },
+    };
+    const ctx = makeCtx(repoRoot);
+    const logPath = pipelineLogPath(ctx.repoRoot, ctx.qid, ctx.specialization);
+    const priorRows = existsSync(logPath) ? (await readFile(logPath, "utf8")).trim().split("\n").filter(Boolean).length : 0;
+    const result = await runStageNeg1_2ProtoCore({ ctx, state: makeState(), mode: "revise", deps });
+    expect(result.status).toBe("completed");
+    expect(attempt).toBe(3);
+    const rejectedPath = `${result.protoCoreJsonPath}.rejected`;
+    // Attempt 2 starts from the kept gate-rejected draft and is told so.
+    expect(rejectedSeen[1]).toBe(badText);
+    expect(prompts[1]).toContain(rejectedPath);
+    expect(prompts[1]).toMatch(/\[schema\] statements\.0/);
+    // Attempt 2 wrote nothing: attempt 3 must not be offered the stale draft.
+    expect(rejectedSeen[2]).toBeNull();
+    expect(prompts[2]).toMatch(/\[WRITE\]/);
+    expect(prompts[2]).not.toContain(rejectedPath);
+    expect(existsSync(rejectedPath)).toBe(false);
+    const rows = (await readFile(logPath, "utf8")).trim().split("\n").filter(Boolean).slice(priorRows).map((l) => JSON.parse(l));
+    const feedback = rows.filter((r) => r.stage === "-1.2" && r.status === "gate-feedback");
+    expect(feedback).toHaveLength(2);
+    expect(feedback[0].message).toMatch(/edits the kept draft/);
+    expect(feedback[0].message).toMatch(/\[schema\] statements\.0/);
+    expect(feedback[1].message).toMatch(/re-authors/);
   });
 
   it("binds a mistyped completed-receipt path to the validated canonical core", async () => {
@@ -539,15 +572,19 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
     expect(existsSync(`${result.protoCoreJsonPath}.next`)).toBe(false);
   });
 
-  it("rejects an authored core from a different valid cluster", async () => {
+  it("stamps run identity from the run context, overwriting what the author wrote", async () => {
     const core = JSON.parse(goldenCore) as Record<string, unknown>;
     core.cluster = "scm";
-    await expect(runStageNeg1_2ProtoCore({
+    core.qid = "stat_other";
+    delete core.specialization;
+    const result = await runStageNeg1_2ProtoCore({
       ctx: makeCtx(repoRoot),
       state: makeState(),
       mode: "revise",
       deps: authorDeps(JSON.stringify(core)),
-    })).rejects.toThrow(/cluster must equal run cluster stat/);
+    });
+    const persisted = JSON.parse(await readFile(result.protoCoreJsonPath, "utf8"));
+    expect([persisted.qid, persisted.specialization, persisted.cluster]).toEqual([QID, SPEC, "stat"]);
   });
 
   it.each(["seeds", "seed_details", "literature_map"])(
@@ -617,17 +654,51 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
     })).rejects.toThrow(/seed_details: Expected array/);
   });
 
-  it.each([
-    ["qid", "stat_other", /qid must equal/],
-    ["specialization", undefined, /specialization must equal/],
-    ["cluster", undefined, /must declare cluster/],
-  ] as const)("rejects a completed core with invalid run identity field %s", async (field, value, expected) => {
+  it("stamps upgrade provenance from the run context, whatever the draft carried", async () => {
+    await installUpgradeParent();
+    const ctx = {
+      ...makeCtx(repoRoot),
+      upgradeFrom: {
+        parent_qid: "stat_parent", parent_spec: "v1", parent_tier: "accepted" as const,
+        upgrade_axis: "estimation" as const,
+      },
+    };
     const core = JSON.parse(goldenCore) as Record<string, unknown>;
-    if (value === undefined) delete core[field];
-    else core[field] = value;
-    await expect(runStageNeg1_2ProtoCore({
+    Object.assign(core, {
+      parent_qid: "stat_wrong", upgrade_axis: "mechanism",
+      delta_summary: "A concrete estimation delta.",
+      reused_bibkeys: ["ImbensRubin2015", "RosenbaumRubin1983", "Kennedy2024"],
+      new_bibkeys: ["Tsybakov2009"],
+    });
+    const result = await runStageNeg1_2ProtoCore({
+      ctx, state: makeState(), mode: "revise", deps: authorDeps(JSON.stringify(core)),
+    });
+    const persisted = JSON.parse(await readFile(result.protoCoreJsonPath, "utf8"));
+    expect([persisted.upgrade_mode, persisted.parent_qid, persisted.parent_spec, persisted.upgrade_axis])
+      .toEqual([true, "stat_parent", "v1", "estimation"]);
+  });
+
+  it("logs an identity-stamp row when the draft carried another run's qid", async () => {
+    const ctx = makeCtx(repoRoot);
+    const logPath = pipelineLogPath(ctx.repoRoot, ctx.qid, ctx.specialization);
+    const priorRows = existsSync(logPath) ? (await readFile(logPath, "utf8")).trim().split("\n").filter(Boolean).length : 0;
+    const core = JSON.parse(goldenCore) as Record<string, unknown>;
+    core.qid = "stat_other";
+    await runStageNeg1_2ProtoCore({ ctx, state: makeState(), mode: "revise", deps: authorDeps(JSON.stringify(core)) });
+    const rows = (await readFile(logPath, "utf8")).trim().split("\n").filter(Boolean).slice(priorRows).map((l) => JSON.parse(l));
+    const stamps = rows.filter((r) => r.stage === "-1.2" && r.status === "identity-stamp");
+    expect(stamps).toHaveLength(1);
+    expect(stamps[0].message).toMatch(/qid="stat_other"/);
+  });
+
+  it("accepts a core that carries no run identity fields and stamps them", async () => {
+    const core = JSON.parse(goldenCore) as Record<string, unknown>;
+    for (const field of ["qid", "specialization", "cluster"]) delete core[field];
+    const result = await runStageNeg1_2ProtoCore({
       ctx: makeCtx(repoRoot), state: makeState(), mode: "revise", deps: authorDeps(JSON.stringify(core)),
-    })).rejects.toThrow(expected);
+    });
+    const persisted = JSON.parse(await readFile(result.protoCoreJsonPath, "utf8"));
+    expect([persisted.qid, persisted.specialization, persisted.cluster]).toEqual([QID, SPEC, "stat"]);
   });
 
   it.each([
@@ -708,7 +779,6 @@ describe("Stage -1.2 author (single artifact: formal + prose → gate → schema
     const deps: StageDeps = {
       runCodex: async () => ({ stdout: '{"status":"completed",,}', stderr: "" }),
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     };
     await expect(runStageNeg1_2ProtoCore({
       ctx: makeCtx(repoRoot),
@@ -791,7 +861,6 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
         };
       },
       runClaude: async () => { throw new Error("runClaude not expected"); },
-      lean: undefined as never,
     };
 
     const res = await runStageNeg1_2Dual({
@@ -807,7 +876,6 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
     const deps: StageDeps = {
       runCodex: async () => ({ stdout: '{"status":"needs-pivot",,}', stderr: "" }),
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     };
     await expect(runStageNeg1_2Dual({
       ctx, state, deps, mode: "revise", nextVersion: 1, angleIndex: 0,
@@ -822,7 +890,6 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
         stderr: "",
       }),
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     };
     await runStageNeg1_2Dual({
       ctx: makeCtx(repoRoot), state, deps, mode: "revise", nextVersion: 1, angleIndex: 0,
@@ -852,7 +919,7 @@ describe("runStageNeg1_2Dual (rollout step 5 — one author + render + harvest)"
     expect(res.status).toBe("completed");
     expect(existsSync(protoCoreJsonPath(ctx))).toBe(true);
     // No proposal .tex; proposal_path points at the proto_core JSON (the sole artifact).
-    expect(existsSync(artifactPaths(ctx, state).proposalTex)).toBe(false);
+    expect(existsSync(proposalTexPath(ctx.repoRoot, ctx.qid, ctx.specialization))).toBe(false);
 
     const pf = state.proposed_from as Record<string, unknown>;
     expect(pf.proposal_path).toBe(protoCoreJsonPath(ctx));

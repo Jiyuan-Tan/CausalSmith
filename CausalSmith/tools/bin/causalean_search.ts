@@ -1,7 +1,6 @@
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
 import { createRetrieval, applyRerank, type Query } from "../src/formalization/reuse_retrieval.js";
-import { reuseCandidateBlock } from "../src/formalization/reuse_render.js";
 import { loadSemanticTier, embedQueries } from "../src/formalization/semantic_tier.js";
 import { poolModules } from "../src/formalization/module_tier.js";
 import { rerankBatch, rerankerAvailable, loadRerankerMeta } from "../src/formalization/reranker_tier.js";
@@ -16,12 +15,11 @@ const SCOPE_LINE =
 
 /**
  * Interactive CLI for the Causalean reuse/lemma search engine (reuse_retrieval.ts).
- * Lets a human exercise the same retrieval the Stage 2 scaffold brief uses.
+ * Lets a human or an agent exercise the same retrieval the F1 planning brief uses.
  *
  *   npx tsx bin/causalean_search.ts <concept words...>      # concept mode (default)
  *   npx tsx bin/causalean_search.ts --type "<pattern>"      # loogle-style symbol match
  *   npx tsx bin/causalean_search.ts --goal "<goal type>"    # goal-directed (F3 mode)
- *   npx tsx bin/causalean_search.ts --block <f1.md>         # render the scaffold candidate block
  *   npx tsx bin/causalean_search.ts --scope module "<words>" # module/file-level orientation search
  *
  * Flags: --cluster <panel|exactid|partialid|stat>  --k <N>  --root <causaleanRoot>
@@ -68,7 +66,6 @@ if (!Number.isInteger(k) || k < 1) {
   console.error(`--k must be a positive integer (got "${kRaw}").`);
   process.exit(1);
 }
-const block = flag("--block");
 const typePattern = flag("--type");
 const goal = flag("--goal");
 
@@ -155,12 +152,6 @@ if (scopeArg === "module" || scopeArg === "file") {
   process.exit(0);
 }
 
-if (block) {
-  const out = reuseCandidateBlock(root, resolve(block), cluster, { semantic: useSemantic });
-  console.log(out || "(empty — index/F1 artifact unavailable, or no P-/L- items in the file)");
-  process.exit(0);
-}
-
 const r = createRetrieval(root);
 if (!r.library) {
   console.error(`No usable index at ${root}/doc/library_index.json (run \`lake exe library_index\`).`);
@@ -172,7 +163,7 @@ if (typePattern !== undefined) q = { mode: "typePattern", pattern: typePattern }
 else if (goal !== undefined) q = { mode: "goal", goalType: goal };
 else if (positional) q = { mode: "concept", title: positional };
 else {
-  console.error('usage: causalean_search [<concept words> | --type "<pat>" | --goal "<type>" | --block <f1.md> | --scope module "<words>"] [--cluster X] [--k N] [--semantic] [--fusion rrf|weighted] [--rerank]');
+  console.error('usage: causalean_search [<concept words> | --type "<pat>" | --goal "<type>" | --scope module "<words>"] [--cluster X] [--k N] [--semantic] [--fusion rrf|weighted] [--rerank]');
   process.exit(1);
 }
 

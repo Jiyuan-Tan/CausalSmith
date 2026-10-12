@@ -4,12 +4,10 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   assertFStageDStoreCoherence,
-  initializeOrLoadState,
   nextStage,
-  reconcilePaperStatus,
   runPipeline,
 } from "../src/pipeline.js";
-import type { PipelineContext, StateJson } from "../src/types.js";
+import type { PipelineContext } from "../src/types.js";
 import { canonicalLeanSubdir, pipelineLogPath, statePath } from "../src/paths.js";
 import { createInitialState, loadState, saveState } from "../src/state.js";
 import { CoreSchema } from "../src/discovery/core/schema.js";
@@ -119,18 +117,18 @@ describe("pipeline", () => {
     const spec = "v1";
     const state = createInitialState(qid);
     state.stage_completed = "0";
-    (state.flags as unknown as Record<string, unknown>).stage0_budget_exhausted = "old cap";
+    state.flags.proof_loop_cap_hit = "old gate";
     await saveState(repoRoot, qid, spec, state);
 
     await expect(runPipeline(
       { repoRoot, qid, specialization: spec, resume: true, dryRun: true, auto: true },
       async () => { throw new Error("simulated stage crash"); },
-      { clearGates: ["stage0_budget_exhausted"] },
+      { clearGates: ["proof_loop_cap_hit"] },
     )).rejects.toThrow(/simulated stage crash/);
 
     const onDisk = await loadState(repoRoot, qid, spec);
     expect(onDisk.auto_mode).toBe(true);
-    expect((onDisk.flags as unknown as Record<string, unknown>).stage0_budget_exhausted).toBeUndefined();
+    expect(onDisk.flags.proof_loop_cap_hit).toBeUndefined();
   });
 
   it("plain resume re-enters D0 when durable escalation entries are still unconsumed", async () => {
@@ -214,7 +212,7 @@ describe("pipeline", () => {
     const state = createInitialState(qid);
     state.stage_completed = "0.5";
     state.proposed_from = {
-      topic: "uniform boundary log penalty", novelty_target: "flagship", pivot_budget_used: 0, final_verdict: "ACCEPT",
+      topic: "uniform boundary log penalty", novelty_target: "flagship", final_verdict: "ACCEPT",
       proposal_path: protoCoreJsonPath(ctx), novelty_justification: "fixture", chosen_qid: qid, chosen_specialization: spec,
       current_angle_index: 0, current_version: 8, last_draft_version: 8, last_draft_status: "completed",
       iterations: [{ angle: 0, version: 8, mode: "revise", verdict: "ACCEPT" }],
@@ -252,7 +250,6 @@ describe("pipeline", () => {
     state.proposed_from = {
       topic: "fixture",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: null,
       proposal_path: protoCoreJsonPath(ctx),
       novelty_justification: "fixture",
@@ -298,7 +295,6 @@ describe("pipeline", () => {
     state.proposed_from = {
       topic: "fixture",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: null,
       proposal_path: protoCoreJsonPath(ctx),
       novelty_justification: "fixture",
@@ -336,7 +332,7 @@ describe("pipeline", () => {
     const state = createInitialState(qid);
     state.stage_completed = "0.5";
     state.proposed_from = {
-      topic: "fixture", novelty_target: "field", pivot_budget_used: 0, final_verdict: null,
+      topic: "fixture", novelty_target: "field", final_verdict: null,
       proposal_path: protoCoreJsonPath(ctx), novelty_justification: "fixture", chosen_qid: qid, chosen_specialization: "v1",
       current_angle_index: 0, current_version: 8,
     };
@@ -430,7 +426,6 @@ describe("pipeline", () => {
     state.proposed_from = {
       topic: "review the repaired persisted draft",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: "pending",
       proposal_path: proposalPath,
       novelty_justification: "test",
@@ -488,7 +483,6 @@ describe("pipeline", () => {
     state.proposed_from = {
       topic: "guard selective review",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: "pending",
       proposal_path: proposalPath,
       novelty_justification: "test",
@@ -553,7 +547,6 @@ describe("pipeline", () => {
       state.proposed_from = {
         topic: base.proposeTopic!,
         novelty_target: "field",
-        pivot_budget_used: 0,
         final_verdict: "pending",
         proposal_path: path.join(repoRoot, "stale-proposal.tex"),
         novelty_justification: "",
@@ -594,7 +587,6 @@ describe("pipeline", () => {
     state.proposed_from = {
       topic: "persisted causal topic",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: "pending",
       proposal_path: "stale-proposal",
       novelty_justification: "stale",
@@ -629,7 +621,6 @@ describe("pipeline", () => {
     state.proposed_from = {
       topic: "recoverable topic",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: "pending",
       proposal_path: "prior-proposal",
       novelty_justification: "prior",
@@ -659,7 +650,6 @@ describe("pipeline", () => {
     state.proposed_from = {
       topic: "test topic",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: "pending",
       proposal_path: path.join(repoRoot, "proto_core.json"),
       novelty_justification: "test",
@@ -680,71 +670,6 @@ describe("pipeline", () => {
       async ({ stage }) => ({ stage, status: "checkpoint", message: "must not run" }),
       { startStage: "-1.2" },
     )).rejects.toThrow(/authored but unreviewed/);
-  });
-
-  it("blocks a legacy untyped rewind before draftIncomplete can dispatch D-1.2", async () => {
-    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-legacy-draft-incomplete-"));
-    const qid = "stat_legacy_draft_incomplete";
-    const spec = "v1";
-    const state = createInitialState(qid);
-    // Empty is a real legacy marker value, not absence. Truthiness-based guards
-    // used to let this exact state dispatch the stale proto.
-    state.flags.rewound_from_stage0 = "";
-    state.proposed_from = {
-      topic: "extension topic",
-      novelty_target: "field",
-      pivot_budget_used: 0,
-      final_verdict: "pending",
-      proposal_path: path.join(repoRoot, "missing-proto-core.json"),
-      novelty_justification: "test",
-      chosen_qid: qid,
-      chosen_specialization: spec,
-      current_angle_index: 0,
-      current_version: 2,
-      current_mode: "revise",
-    };
-    await saveState(repoRoot, qid, spec, state);
-    let dispatched = false;
-    await expect(runPipeline(
-      { repoRoot, qid, specialization: spec, resume: true, dryRun: true },
-      async ({ stage }) => {
-        dispatched = true;
-        return { stage, status: "checkpoint", message: "must not dispatch" };
-      },
-    )).rejects.toThrow(/legacy cross-boundary stage_0 rewind has no typed intent/);
-    expect(dispatched).toBe(false);
-  });
-
-  it("blocks a legacy untyped rewind before forced --from-stage D-1.2 dispatch", async () => {
-    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-legacy-forced-draft-"));
-    const qid = "stat_legacy_forced_draft";
-    const spec = "v1";
-    const state = createInitialState(qid);
-    state.flags.rewound_from_stage0 = "pre-fix cross-boundary rewind";
-    state.proposed_from = {
-      topic: "replacement-or-extension unknown",
-      novelty_target: "field",
-      pivot_budget_used: 0,
-      final_verdict: "pending",
-      proposal_path: path.join(repoRoot, "proto-core.json"),
-      novelty_justification: "test",
-      chosen_qid: qid,
-      chosen_specialization: spec,
-      current_angle_index: 0,
-      current_version: 0,
-      current_mode: "revise",
-    };
-    await saveState(repoRoot, qid, spec, state);
-    let dispatched = false;
-    await expect(runPipeline(
-      { repoRoot, qid, specialization: spec, resume: true, dryRun: true },
-      async ({ stage }) => {
-        dispatched = true;
-        return { stage, status: "checkpoint", message: "must not dispatch" };
-      },
-      { startStage: "-1.2" },
-    )).rejects.toThrow(/legacy cross-boundary stage_0 rewind has no typed intent/);
-    expect(dispatched).toBe(false);
   });
 
   it("rejects cold start when the same state is already active", async () => {
@@ -832,10 +757,8 @@ describe("pipeline", () => {
   });
 
   it("blocks resume when flags.stage_neg1_fallback is set", async () => {
-    // After a D0.5 reject routes to D-1 (pivot fast-path) and the pivot
-    // budget is already exhausted, `intervention_routing` records the
-    // verdict in `flags.stage_neg1_fallback`. The pipeline must refuse to
-    // resume — otherwise `nextStage("0")` re-enters D0.5 and reproduces
+    // `flags.stage_neg1_fallback` records a spent D-1 budget. The pipeline must
+    // refuse to resume — otherwise `nextStage("0")` re-enters D0.5 and reproduces
     // the same reject indefinitely.
     const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-neg1-fallback-"));
     const qid = "eid_foo";
@@ -849,7 +772,6 @@ describe("pipeline", () => {
       design_decisions: {},
       added_assumptions: [],
       flags: {
-        local_fix_from_4d: false,
         missing_architecture: false,
         stage_neg1_fallback: "pivot budget exhausted: kernel below flagship",
       },
@@ -898,207 +820,5 @@ describe("pipeline", () => {
     expect(seen).toEqual(["1"]);
     expect(replayed.flags.missing_architecture).toBe(false);
     expect(replayed.flags.missing_architecture_items).toBeUndefined();
-  });
-
-  it("initializeOrLoadState preserves seed theorems[] and current_theorem_index on --resume", async () => {
-    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-paper-seed-"));
-    const qid = "ins1";
-    const spec = "v1";
-
-    // Mimic paper_dispatcher's seed write:
-    //   <repoRoot>/doc/study/runs/<qid>/<qid>_<spec>_state.json
-    // (qid "ins1" is insight-style → routes under study/) with the lean_subdir
-    // invariant that loadState enforces.
-    const dir = path.join(repoRoot, "doc", "study", "runs", qid);
-    await mkdir(dir, { recursive: true });
-    const seed = {
-      stage_completed: "0.5",
-      lean_subdir: canonicalLeanSubdir(qid),
-      pending_sorries: [],
-      design_decisions: {},
-      added_assumptions: [],
-      flags: { local_fix_from_4d: false, missing_architecture: false },
-      theorems: [
-        {
-          theorem_local_id: "t1",
-          origin_theorem_id: "ins1_t1",
-          statement: "If A then B.",
-          proof_sketch: "Apply L.",
-          status: "pending",
-          stage_completed: null,
-          lean_file_relpath: null,
-        },
-        {
-          theorem_local_id: "t2",
-          origin_theorem_id: "ins1_t2",
-          statement: "If B then C.",
-          proof_sketch: "Apply L2.",
-          status: "pending",
-          stage_completed: null,
-          lean_file_relpath: null,
-        },
-      ],
-      current_theorem_index: 0,
-    };
-    await writeFile(path.join(dir, `${qid}_${spec}_state.json`), JSON.stringify(seed), "utf8");
-
-    const ctx: PipelineContext = {
-      repoRoot,
-      qid,
-      specialization: spec,
-      dryRun: true,
-      resume: true,
-    };
-    const state = await initializeOrLoadState(ctx);
-    expect(state.theorems).toHaveLength(2);
-    expect(state.theorems?.[0]).toMatchObject({
-      theorem_local_id: "t1",
-      origin_theorem_id: "ins1_t1",
-      status: "pending",
-      stage_completed: null,
-    });
-    expect(state.theorems?.[1]).toMatchObject({
-      theorem_local_id: "t2",
-      origin_theorem_id: "ins1_t2",
-      status: "pending",
-      stage_completed: null,
-    });
-    expect(state.current_theorem_index).toBe(0);
-  });
-});
-
-describe("reconcilePaperStatus", () => {
-  it("returns zero counts when state.theorems is undefined", () => {
-    const state = {} as StateJson;
-    expect(reconcilePaperStatus(state)).toEqual({
-      completed: 0,
-      in_progress: 0,
-      pending: 0,
-      stuck: 0,
-      failed: 0,
-    });
-  });
-
-  it("returns zero counts when state.theorems is empty", () => {
-    const state = { theorems: [] } as unknown as StateJson;
-    expect(reconcilePaperStatus(state)).toEqual({
-      completed: 0,
-      in_progress: 0,
-      pending: 0,
-      stuck: 0,
-      failed: 0,
-    });
-  });
-
-  it("counts by status correctly", () => {
-    const state = {
-      theorems: [
-        {
-          theorem_local_id: "t1",
-          origin_theorem_id: "ins1_t1",
-          statement: "If A then B.",
-          proof_sketch: "Apply L.",
-          status: "completed",
-          stage_completed: "3",
-          lean_file_relpath: "Theorem_t1.lean",
-        },
-        {
-          theorem_local_id: "t2",
-          origin_theorem_id: "ins1_t2",
-          statement: "If B then C.",
-          proof_sketch: "Apply L2.",
-          status: "completed",
-          stage_completed: "3",
-          lean_file_relpath: "Theorem_t2.lean",
-        },
-        {
-          theorem_local_id: "t3",
-          origin_theorem_id: "ins1_t3",
-          statement: "If C then D.",
-          proof_sketch: "Apply L3.",
-          status: "stuck",
-          stage_completed: "1",
-          lean_file_relpath: null,
-          failure_reason: "No matching lemma",
-        },
-        {
-          theorem_local_id: "t4",
-          origin_theorem_id: "ins1_t4",
-          statement: "If D then E.",
-          proof_sketch: null,
-          status: "pending",
-          stage_completed: null,
-          lean_file_relpath: null,
-        },
-      ],
-    } as StateJson;
-    expect(reconcilePaperStatus(state)).toEqual({
-      completed: 2,
-      in_progress: 0,
-      pending: 1,
-      stuck: 1,
-      failed: 0,
-    });
-  });
-
-  it("handles all 5 status values", () => {
-    const state = {
-      theorems: [
-        {
-          theorem_local_id: "t1",
-          origin_theorem_id: "ins1_t1",
-          statement: "A.",
-          proof_sketch: null,
-          status: "pending",
-          stage_completed: null,
-          lean_file_relpath: null,
-        },
-        {
-          theorem_local_id: "t2",
-          origin_theorem_id: "ins1_t2",
-          statement: "B.",
-          proof_sketch: null,
-          status: "in_progress",
-          stage_completed: "0",
-          lean_file_relpath: null,
-        },
-        {
-          theorem_local_id: "t3",
-          origin_theorem_id: "ins1_t3",
-          statement: "C.",
-          proof_sketch: null,
-          status: "completed",
-          stage_completed: "5",
-          lean_file_relpath: "Theorem_t3.lean",
-        },
-        {
-          theorem_local_id: "t4",
-          origin_theorem_id: "ins1_t4",
-          statement: "D.",
-          proof_sketch: null,
-          status: "stuck",
-          stage_completed: "2",
-          lean_file_relpath: null,
-          failure_reason: "Stuck at stage 2",
-        },
-        {
-          theorem_local_id: "t5",
-          origin_theorem_id: "ins1_t5",
-          statement: "E.",
-          proof_sketch: null,
-          status: "failed",
-          stage_completed: "3",
-          lean_file_relpath: null,
-          failure_reason: "Failed at stage 3",
-        },
-      ],
-    } as StateJson;
-    expect(reconcilePaperStatus(state)).toEqual({
-      pending: 1,
-      in_progress: 1,
-      completed: 1,
-      stuck: 1,
-      failed: 1,
-    });
   });
 });

@@ -1,14 +1,6 @@
 // CausalSmith/tools/src/substrate/types.ts
 import { z } from "zod";
 
-export type SubstratePhase =
-  // `coordinate` is the intelligent successor of the mechanical `promote` phase:
-  // on reviewer PASS a codex coordinator places + dedups + records the substrate
-  // into Causalean, then the deterministic verify-or-rollback gate runs. The
-  // legacy `promote` value is retained so an in-flight run's state.json still
-  // parses (the pipeline treats it as `coordinate`).
-  | "build" | "fill" | "review" | "coordinate" | "promote" | "done" | "escalated" | "halted";
-
 export const codexPromptSchema = z.object({
   id: z.string(),
   // Models occasionally summarize a declaration set as one string even though
@@ -176,7 +168,6 @@ export const coordOpSchema = z.discriminatedUnion("kind", [
     from: z.string(),
   }),
 ]);
-export type CoordOp = z.infer<typeof coordOpSchema>;
 
 export const coordinationManifestSchema = z.object({
   ops: z.array(coordOpSchema).min(1),

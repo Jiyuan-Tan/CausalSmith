@@ -1,21 +1,11 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { GraphSchema, type FormalizationGraph } from "./types.js";
 
-/**
- * Per-question graph artifact path, parallel to the state JSON naming. New runs
- * write the bare `graph.json`; pre-rename runs and un-migrated banked entries
- * carry the legacy `<qid>_<spec>_graph.json`, which is returned when it (and not
- * the bare name) exists.
- */
-export function graphPath(formalizationDir: string, qid: string, specialization: string): string {
-  const bare = path.join(formalizationDir, "graph.json");
-  if (existsSync(bare)) return bare;
-  const legacy = path.join(formalizationDir, `${qid}_${specialization}_graph.json`);
-  if (existsSync(legacy)) return legacy;
-  return bare;
+/** The run's graph artifact: `graph.json` in the run directory. */
+export function graphPath(formalizationDir: string, _qid: string, _specialization: string): string {
+  return path.join(formalizationDir, "graph.json");
 }
 
 export function createEmptyGraph(qid: string, specialization: string): FormalizationGraph {

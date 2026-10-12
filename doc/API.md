@@ -10010,7 +10010,18 @@ space projection.
 | Decl | Signature | Description |
 |---|---|---|
 | `Mathlib.MeasureTheory.finite_diagonal_square_integral` | `(∀ (a b : ι), MeasureTheory.Integrable (fun x => f a x * f b x) μ) → (∀ (a b : ι), ∫ (x : Ω), f a x * f b x ∂μ = if a = b then A else 0) → ∫ (x : Ω), (∑ a, c a * f a x) ^ 2 ∂μ = A * ∑ a, c a ^ 2` | For a measure, a common diagonal energy, a finite family of real functions, and real coefficients, if every pairwise product is integrable and the pairwise integrals equal the common energy on the diagonal and vanish off it, then the integral of the square of the finite linear combination is the common energy times the sum of squared coefficients. |
+| `Mathlib.MeasureTheory.finite_orthogonal_sum_integral_sq` | `(∀ i ∈ s, ∀ j ∈ s, MeasureTheory.Integrable (fun x => u i x * u j x) μ) → (∀ i ∈ s, ∀ j ∈ s, ∫ (x : Ω), u i x * u j x ∂μ = if i = j then e i else 0) → ∫ (x : Ω), (∑ i ∈ s, u i x) ^ 2 ∂μ = ∑ i ∈ s, e i` | Given an index type, a measurable space, a measure, a finite set of indices, a family of real functions, and their diagonal energies, if every indexed cross-product is integrable and its integral is the prescribed energy on the diagonal and zero off the diagonal, then the squared integral of the finite sum equals the sum of its diagonal energies. |
 | `Mathlib.MeasureTheory.finite_orthonormal_pythagoras` | `(∀ (i : ι), MeasureTheory.MemLp (b i) 2 μ) → (∀ (i j : ι), ∫ (x : Ω), b i x * b j x ∂μ = if i = j then 1 else 0) → ∀ (f : Ω → ℝ), MeasureTheory.MemLp f 2 μ → have g := fun x => ∑ i, b i x * ∫ (y : Ω), b i y * f y ∂μ; ∫ (x : Ω), f x ^ 2 ∂μ = ∫ (x : Ω), g x ^ 2 ∂μ + ∫ (x : Ω), (f x - g x) ^ 2 ∂μ` | Given a measurable space, a finite index type, a measure, a finite family of real functions, square integrability of every family member, orthonormality through their raw integrals, a target function, and its square integrability, the integral of the target's square splits into the integral of the square of its finite orthonormal projection plus the integral of the square of the residual. |
+<!-- /GEN -->
+
+### `Mathlib/MeasureTheory/Integral/FiniteProductOrthogonality.lean`
+
+Orthogonality of centered coordinate subset-products under heterogeneous finite product laws.
+
+<!-- GEN:Causalean.Mathlib.MeasureTheory.Integral.FiniteProductOrthogonality -->
+| Decl | Signature | Description |
+|---|---|---|
+| `Mathlib.MeasureTheory.subset_product_integral_orthogonality` | `(∀ (i : ι), ∫ (x : Ω i), w i x ∂μ i = 0) → ∀ (γ : ι → ℝ), (∀ (i : ι), ∫ (x : Ω i), w i x ^ 2 ∂μ i = γ i) → ∀ (S T : Finset ι), ∫ (x : (i : ι) → Ω i), (∏ i ∈ S, w i (x i)) * ∏ i ∈ T, w i (x i) ∂MeasureTheory.Measure.pi μ = if S = T then ∏ i ∈ S, γ i else 0` | Given a finite coordinate type, measurable coordinate spaces, probability measures on those spaces, real coordinate functions, zero first moments, specified coordinate second moments, and the corresponding second-moment identities, for two finite coordinate subsets, the cross-moment of their products vanishes unless the subsets agree, in which case it is the product of their coordinate second moments. |
 <!-- /GEN -->
 
 ### `Mathlib/MeasureTheory/UnitInterval/OpenPos.lean`

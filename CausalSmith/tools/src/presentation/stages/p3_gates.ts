@@ -7,7 +7,6 @@ import { CITATION_SUPPORT_REPLY, OVERCLAIM_REPLY, REPLACEMENTS_REPLY, RUBRIC_REP
 import { canonicalizeObjRefs, lintAnchors, lintEnvOrder, hashEnvBody, normalizeCrefs, parseAnchoredEnvs, repairObjRefs, reviewerTexFor } from "../tex_anchors.js";
 import { FormalLayerSource, blocksToTex } from "../formal_layer.js";
 import { applyProseRevision, proofBlocks, applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
-export { applyTargetedReplacements, type TextReplacement } from "../prose_revision.js";
 import { assertP2AssemblyFresh, recordP2Assembly, texFilesUnder } from "../assembly_freshness.js";
 import { parseBib } from "../citations.js";
 import { savePaperState } from "../state.js";
@@ -93,11 +92,10 @@ export function claimUnits(tex: string): string[] {
   return parts.map((s) => s.trim()).filter((s) => /[A-Za-z]/.test(s));
 }
 
-function contextualClaimUnits(tex: string): { sentence: string; context: string; ordinal: number }[] {
+function contextualClaimUnits(tex: string): { sentence: string; context: string }[] {
   const units = claimUnits(tex);
   return units.map((sentence, i) => ({
     sentence,
-    ordinal: i,
     context: [units[i - 1] ?? "(start)", sentence, units[i + 1] ?? "(end)"].join("\n"),
   }));
 }
@@ -174,10 +172,7 @@ export async function stageP3(io: StageIO): Promise<void> {
     return;
   }
   const { deps } = io.ctx;
-  // `state.revision_round` is a pipeline-wide counter: each P3 revision pass increments it,
-  // and prior P3 invocations may already have revised the
-  // paper.  P3's two-round budget is per invocation, so never use that durable
-  // counter as the local gate-loop cursor.
+  // P3's two-round revision budget is per invocation.
   let p3RevisionRound = 0;
   /**
    * Persist state, THEN throw.
@@ -280,12 +275,9 @@ export async function stageP3(io: StageIO): Promise<void> {
       const units = contextualClaimUnits(auditFrontMatter);
       const flags: { sentence: string; fix?: string }[] = [];
       const misses: { id: number; sentence: string; context: string; key: string }[] = [];
-      units.forEach(({ sentence, context, ordinal }, id) => {
-        // Key on the sentence + its neighbour context, NOT the absolute `ordinal`:
-        // with the ordinal in the key, inserting or deleting a single sentence
-        // invalidates every later sentence and forces a whole-document re-audit
-        // (measured: 6 such full re-audits in one run at ~75-80k chars each).
-        void ordinal;
+      units.forEach(({ sentence, context }, id) => {
+        // Key on the sentence + its neighbour context, never its position: a positional key
+        // makes one inserted or deleted sentence invalidate every later one.
         const key = hashEnvBody(`${sentence}|${context}|${envKey}`);
         const hit = gateCache.overclaimUnits[key];
         if (hit) {
@@ -294,7 +286,7 @@ export async function stageP3(io: StageIO): Promise<void> {
       });
       if (misses.length === 0) return { clean: flags.length === 0, flags };
       const v = (await ask(
-        deps.runCodex({ multiAgent: false, // keep codex sub-agents off in gate audits (concurrent multi-agent deadlocks the daemon)
+        deps.runCodex({
           prompt: await presentationPrompt("p3_overclaim", {
             front_matter_tex: misses
               .map((m) => `[CLAIM ${m.id}]\nNeighbor context:\n${m.context}\nSentence to classify:\n${m.sentence}`)
@@ -392,7 +384,7 @@ export async function stageP3(io: StageIO): Promise<void> {
             .join("\n\n");
           try {
             const parsed = (await ask(
-              deps.runCodex({ multiAgent: false, // keep codex sub-agents off in gate audits (concurrent multi-agent deadlocks the daemon)
+              deps.runCodex({
                 model: MODELS.codexCitationSupport,
                 prompt: await presentationPrompt("p3_citation_support_batch", {
                   items_block: items,
@@ -513,7 +505,6 @@ export async function stageP3(io: StageIO): Promise<void> {
       throw new Error(`P3 revision round ${round} has no prose-repairable findings`);
     }
     const { stdout } = await deps.runCodex({
-      multiAgent: false, // P3
       prompt: await presentationPrompt("p3_revision_patch", {
         problems: proseProblems.map((p) => `- [${p.gate}] ${p.detail}`).join("\n"),
         paper_excerpt: revisionContext(stripFrozenEnvs(before), proseProblems.map((p) => p.detail)),
@@ -648,7 +639,6 @@ export async function stageP3(io: StageIO): Promise<void> {
     // assembled) that the P4 assert exists to catch.
     if (propagated) await recordP2Assembly(io.outDir);
     p3RevisionRound = round;
-    io.state.revision_round += 1;
     return true;
   };
 
@@ -723,7 +713,7 @@ export async function stageP3(io: StageIO): Promise<void> {
       reviews = [];
       const rubricRuns = [
         () => deps.runClaude({ prompt: rubricPrompt, model: MODELS.claudeMain, cwd: io.ctx.repoRoot, jsonSchema: RUBRIC_REPLY }),
-        () => deps.runCodex({ prompt: rubricPrompt, cwd: io.ctx.repoRoot, reasoningEffort: "medium" as const, leanLsp: false, multiAgent: false, outputSchema: RUBRIC_REPLY }),
+        () => deps.runCodex({ prompt: rubricPrompt, cwd: io.ctx.repoRoot, reasoningEffort: "medium" as const, leanLsp: false, outputSchema: RUBRIC_REPLY }),
       ];
       for (const run of rubricRuns) {
         const v = parseRubricReview(await ask(run()));

@@ -3,12 +3,10 @@ import { mkdtemp, mkdir, writeFile, readFile, rm, symlink } from "node:fs/promis
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  resolveLeanDeclaration,
   requiresIndividualStatementAudit,
-  runStatementAudit,
   judgeStatements,
 } from "../src/presentation/audit.js";
-import { fullyQualifiedSourceDecls } from "../src/presentation/declaration_resolver.js";
+import { fullyQualifiedSourceDecls, resolveLeanDeclaration } from "../src/presentation/declaration_resolver.js";
 import { extractFullDeclSource } from "../src/presentation/lean_extract.js";
 import { FormalLayerSource } from "../src/presentation/formal_layer.js";
 import type { StageIO } from "../src/presentation/pipeline.js";
@@ -20,11 +18,11 @@ import { canCreateSymlink } from "./helpers.js";
 const CAN_SYMLINK = canCreateSymlink();
 
 /**
- * Mechanical-layer test for the P1 statement equivalence judge (runStatementAudit → judgeStatements).
+ * Mechanical-layer test for the P1 statement equivalence judge (judgeStatements).
  * It sources the env body from formal_layer.json, resolves the Lean via the crosswalk decl (a tiny
  * real Lean file) and judges with a STUB codex. The judge is verdict-only: it never rewrites the
- * layer (P1's render loop repairs drift). Covers the faithful path (cached verdict, [] returned)
- * and the drift path (one `equivalence` problem, body untouched, verdict cached as drift).
+ * layer (P1's render loop repairs drift). Covers the faithful path (cached verdict) and the
+ * drift path (body untouched, verdict cached as drift).
  */
 
 const BODY = "The claim holds.";
@@ -86,7 +84,13 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-describe("runStatementAudit / judgeStatements (P1 statement equivalence)", () => {
+/** Judge the layer as persisted on disk; returns the verdict per object id. */
+async function judgeLayer(io: StageIO) {
+  const layer = FormalLayerSource.parse(JSON.parse(await readFile(join(io.outDir, "formal_layer.json"), "utf8")));
+  return (await judgeStatements(io, layer.blocks)).verdicts;
+}
+
+describe("judgeStatements (P1 statement equivalence)", () => {
   it("extracts the declaration below multiline attributes and retains its authenticated line", async () => {
     const source = "namespace N\n@[simp]\n@[aesop safe]\ntheorem foo : True := by trivial\nend N\nnamespace Other\ntheorem foo : False := by sorry\nend Other\n";
     await writeFile(join(dir, "Lean", "Attrs.lean"), source);
@@ -449,15 +453,14 @@ end N
     expect(requiresIndividualStatementAudit("The estimator equals the displayed clamped sum.")).toBe(false);
   });
 
-  it("returns no problems and caches a faithful verdict when the body matches Lean", async () => {
+  it("judges faithful and caches the verdict when the body matches Lean", async () => {
     mode = "faithful";
-    const problems = await runStatementAudit(makeIO());
-    expect(problems).toEqual([]);
+    expect((await judgeLayer(makeIO())).get("thm1")?.verdict).toBe("faithful");
     const cache = JSON.parse(await readFile(join(dir, "equivalence_cache.json"), "utf8"));
     expect(cache.thm1.verdict).toBe("faithful");
     const warm = makeIO();
     warm.ctx.deps.runCodex = async () => { throw new Error("Existing faithful receipt must remain reusable"); };
-    expect(await runStatementAudit(warm)).toEqual([]);
+    expect((await judgeLayer(warm)).get("thm1")?.verdict).toBe("faithful");
     // formal_layer.json body is unchanged (no refinement).
     const layer = FormalLayerSource.parse(JSON.parse(await readFile(join(dir, "formal_layer.json"), "utf8")));
     expect(layer.blocks[0].body).toBe(BODY);
@@ -469,7 +472,7 @@ end N
     const io = makeIO();
     let prompt = "";
     io.ctx.deps.runCodex = async (args) => { prompt = args.prompt; return stubRunCodex(args); };
-    await runStatementAudit(io);
+    await judgeLayer(io);
     expect(prompt).toContain("Referenced definitions and section context");
     expect(prompt).toContain("variable (n : Nat)");
     expect(prompt).toContain("def foo : Nat := 1");
@@ -482,7 +485,7 @@ end N
     const io = makeIO();
     let prompt = "";
     io.ctx.deps.runCodex = async (args) => { prompt = args.prompt; return stubRunCodex(args); };
-    await runStatementAudit(io);
+    await judgeLayer(io);
     const cachePath = join(dir, "equivalence_cache.json");
     const cache = JSON.parse(await readFile(cachePath, "utf8"));
     const current = cache.thm1.key;
@@ -499,7 +502,7 @@ end N
     await writeFile(cachePath, JSON.stringify(cache));
     const warm = makeIO();
     warm.ctx.deps.runCodex = async () => { throw new Error("a legacy-keyed faithful receipt must be reused"); };
-    expect(await runStatementAudit(warm)).toEqual([]);
+    expect((await judgeLayer(warm)).get("thm1")?.verdict).toBe("faithful");
     expect(JSON.parse(await readFile(cachePath, "utf8")).thm1.key).toBe(current);
   });
 
@@ -511,15 +514,14 @@ end N
       if (prompt.includes("components")) return { stdout: JSON.stringify({ components: [] }), stderr: "" };
       return { stdout: JSON.stringify({ obj_id: "thm1", verdict: "faithful" }), stderr: "" };
     };
-    await expect(runStatementAudit(io)).rejects.toThrow(/neither a resolved Lean declaration nor nonempty resolved components/);
+    await expect(judgeLayer(io)).rejects.toThrow(/neither a resolved Lean declaration nor nonempty resolved components/);
   });
 
-  it("returns one problem on drift, leaves the layer untouched, and caches the drift verdict", async () => {
+  it("judges drift with its detail, leaves the layer untouched, and caches the drift verdict", async () => {
     mode = "drift";
-    const problems = await runStatementAudit(makeIO());
-    expect(problems).toHaveLength(1);
-    expect(problems[0]).toMatchObject({ gate: "equivalence", objId: "thm1" });
-    expect(problems[0].detail).toContain("omits the hypothesis h");
+    const verdict = (await judgeLayer(makeIO())).get("thm1");
+    expect(verdict?.verdict).toBe("drift");
+    expect(verdict?.detail).toContain("omits the hypothesis h");
     const layer = FormalLayerSource.parse(JSON.parse(await readFile(join(dir, "formal_layer.json"), "utf8")));
     expect(layer.blocks[0].body).toBe(BODY);
     // A drift verdict is cached (and re-asked on a rerun, never short-circuited like faithful).
@@ -568,7 +570,7 @@ end N
     expect((await judgeStatements(io, layer.blocks, memo)).verdicts.get("thm1"))
       .toEqual({ verdict: "missing-coverage", detail });
     await judgeStatements(io, layer.blocks, memo);
-    expect(await runStatementAudit(io)).toEqual([{ gate: "lean-coverage", objId: "thm1", detail: `thm1: ${detail}` }]);
+    expect((await judgeLayer(io)).get("thm1")).toEqual({ verdict: "missing-coverage", detail });
     expect(calls).toBe(1); // A fresh memo/process still stops without another paid judgment.
     expect(await readFile(join(dir, "formal_layer.json"), "utf8")).toBe(before);
     const cache = JSON.parse(await readFile(join(dir, "equivalence_cache.json"), "utf8"));

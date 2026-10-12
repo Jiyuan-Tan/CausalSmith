@@ -106,7 +106,7 @@ describe("decideTierSaturationPromote", () => {
     ).toBe(false);
     expect(
       decideTierSaturationPromote({
-        verdict: "REVISE", tier: "not-publishable", cleanSubstance: true,
+        verdict: "REVISE", tier: "incremental", cleanSubstance: true,
         iterations: [clean, clean, clean], angle: 0, noveltyTarget: "field",
       }),
     ).toBe(false);
@@ -130,7 +130,7 @@ describe("decideReviseOutcome", () => {
     expect(
       decideReviseOutcome({
         version: 3,
-        iterations: [{ ...floorRow, tier: "letter" }],
+        iterations: [{ ...floorRow, tier: "subfield" }],
         angle: 0,
         noveltyTarget: "field",
         reviseCap: 5,

@@ -2,24 +2,19 @@ import { describe, it, expect } from "vitest";
 import { mkdtemp, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {
-  collectSubstrateGates,
-  recordGateNodes,
-  recordSubstrateGateList,
-} from "../src/pipeline_support.js";
+import { recordGateNodes, recordSubstrateGateList } from "../src/pipeline_support.js";
 import { substrateDebtPath } from "../src/paths.js";
-import type { ReviewResult } from "../src/judgment.js";
+import type { SubstrateGate } from "../src/judgment.js";
 import type { PipelineContext } from "../src/types.js";
 
 const ctx = (repoRoot: string): PipelineContext =>
   ({ repoRoot, qid: "stat_demo", specialization: "v1" } as PipelineContext);
 
-/** The old `recordSubstrateGates(ctx, reviews)` wrapper, inlined: the pipeline now parses the
- *  reviewer's gates once and passes them straight to `recordSubstrateGateList`. */
-const recordFromReviews = (repoRoot: string, reviews: ReviewResult[]) =>
-  recordSubstrateGateList(ctx(repoRoot), reviews.flatMap(collectSubstrateGates));
+/** Record the gates each reviewer reported, as the proof-review loop does. */
+const recordFromReviews = (repoRoot: string, reviews: SubstrateGate[][]) =>
+  recordSubstrateGateList(ctx(repoRoot), reviews.flat());
 
-const gate = {
+const gate: SubstrateGate = {
   name: "h : PinskerBound P₀ P₁",
   statement: "tvDist μ ν ≤ √(KL/2)",
   classical_fact: "Pinsker's inequality",
@@ -27,24 +22,9 @@ const gate = {
 };
 
 describe("substrate-debt ledger", () => {
-  it("collects only well-formed gates from a review", () => {
-    const review = {
-      status: "pass",
-      substrate_gates: [gate, { name: "bad" }],
-    } as unknown as ReviewResult;
-    expect(collectSubstrateGates(review)).toEqual([gate]);
-  });
-
-  it("returns [] when the review reports no gates", () => {
-    expect(collectSubstrateGates({ status: "pass" } as ReviewResult)).toEqual([]);
-  });
-
   it("appends a row, unions across reviewers, and dedups on re-run", async () => {
     const tmp = await mkdtemp(path.join(os.tmpdir(), "causalsmith-substrate-"));
-    const reviews = [
-      { status: "pass", substrate_gates: [gate] } as unknown as ReviewResult,
-      { status: "pass", substrate_gates: [gate] } as unknown as ReviewResult,
-    ];
+    const reviews = [[gate], [gate]];
     const file = await recordFromReviews(tmp, reviews);
     expect(file).toBe(substrateDebtPath(tmp));
     const first = await readFile(substrateDebtPath(tmp), "utf8");
@@ -61,7 +41,7 @@ describe("substrate-debt ledger", () => {
 
   it("no-ops (no file) when there are no gates", async () => {
     const tmp = await mkdtemp(path.join(os.tmpdir(), "causalsmith-substrate-"));
-    const file = await recordFromReviews(tmp, [{ status: "pass" } as ReviewResult]);
+    const file = await recordFromReviews(tmp, [[]]);
     expect(file).toBeUndefined();
   });
 

@@ -5,7 +5,6 @@ import {
   verifyEntry,
   defaultLookup,
   UNREACHABLE,
-  canonicalizeBibEntry,
   type BibEntry,
 } from "../src/presentation/citations.js";
 
@@ -288,24 +287,6 @@ describe("citations", () => {
     const v = await verifyEntry(entry, async () => UNREACHABLE);
     expect(v.verdict).toBe("minor");
     expect(v.detail).toMatch(/unreachable/i);
-  });
-
-  it("normalizes fields only from an authoritative id record", () => {
-    const rec = { title: "Canonical Title", authorFamily: "Robins", author: "Robins, James", year: 1995, authoritative: true };
-    const fixed = canonicalizeBibEntry(BIB, "robins1994", rec)!;
-    const entry = parseBib(fixed)[0];
-    expect(entry.fields.title).toBe("Canonical Title");
-    expect(entry.fields.author).toBe("Robins, James");
-    expect(entry.fields.year).toBe("1995");
-    expect(entry.fields.doi).toBe("10.1080/01621459.1994.10476818");
-    expect(canonicalizeBibEntry(BIB, "robins1994", { ...rec, authoritative: false })).toBeNull();
-  });
-
-  it("decodes and TeX-escapes ampersands in authoritative metadata", () => {
-    const rec = { title: "Patents-R &amp; D Relationship", authorFamily: "Hausman", year: 1984, authoritative: true };
-    const fixed = canonicalizeBibEntry(BIB, "robins1994", rec)!;
-    expect(fixed).toContain("Patents-R \\& D Relationship");
-    expect(fixed).not.toContain("&amp;");
   });
 });
 

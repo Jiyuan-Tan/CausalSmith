@@ -25,7 +25,7 @@ export interface ParentEntry {
   derivation_tex: string;
   /** Banked README.md, verbatim (small file). */
   readme_md: string;
-  /** Parent's Step 0a literature map, if recorded in state.json. */
+  /** Parent's breadth literature map, if recorded in state.json. */
   literature_map: string;
 }
 
@@ -316,7 +316,7 @@ export function renderUpgradeContextBlock(args: {
     `parent_banked_novelty_tier: ${parent.banked_novelty_tier}`,
     `upgrade_target_tier: ${targetTier ?? "(validated by orchestrator)"}`,
     `parent_topic: ${parent.topic}`,
-    `parent_cluster: ${parent.cluster ?? "(unknown — recover from §2)"}`,
+    `parent_cluster: ${parent.cluster ?? "(unknown — recover from the parent proposal)"}`,
     `upgrade_axis: ${upgradeFrom.upgrade_axis}`,
     `axis_rubric: ${UPGRADE_AXIS_RUBRIC[upgradeFrom.upgrade_axis]}`,
     "",
@@ -338,8 +338,8 @@ export function renderUpgradeContextBlock(args: {
         ]
       : []),
     "",
-    "You SHOULD reuse the parent's literature_map (already loaded below) as Step 0a",
-    "substrate; add at least one new published anchor that pins the upgrade axis to the",
+    "You SHOULD reuse the parent's literature_map (already loaded below) as the breadth",
+    "literature substrate; add at least one new published anchor that pins the upgrade axis to the",
     "frontier (an open problem in the literature that the upgrade resolves, a tension the",
     "parent did not address, or a recent paper whose claim the upgrade refines).",
     "",
@@ -366,7 +366,7 @@ export function renderUpgradeContextBlock(args: {
   if (parent.literature_map) {
     lines.push(
       "",
-      "=== PARENT LITERATURE MAP (Step 0a substrate; verify bibkeys, add ≥1 new anchor) ===",
+      "=== PARENT LITERATURE MAP (breadth substrate; verify bibkeys, add ≥1 new anchor) ===",
       parent.literature_map,
       "=== END PARENT LITERATURE MAP ===",
     );

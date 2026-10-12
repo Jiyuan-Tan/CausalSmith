@@ -3,7 +3,6 @@ import {
   actionForFinding,
   renderRoutingPlan,
   KIND_ACTION,
-  partitionFindings,
   findingFingerprint,
   requiresNewResearch,
 } from "../src/presentation/revision_routing.js";
@@ -39,9 +38,8 @@ describe("hand revision routing", () => {
     expect(md).toMatch(/your call|decide/i);
   });
   it("routes only rewrite findings to the hand-revision bucket", () => {
-    const p = partitionFindings([f("prose"), f("structure"), f("statement"), f("citation"), f("other")]);
-    expect(p.repairable).toHaveLength(2);
-    expect(p.blocked).toHaveLength(3);
+    const kinds = [f("prose"), f("structure"), f("statement"), f("citation"), f("other")];
+    expect(kinds.map((k) => actionForFinding(k).type === "revise")).toEqual([true, true, false, false, false]);
   });
   it("routes local and paper-wide structure findings alike to hand revision", () => {
     const local = { ...f("structure", "Discussion"), issue: "paragraph is hard to follow" };

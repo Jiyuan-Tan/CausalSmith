@@ -8,7 +8,7 @@
  * Use when the F2.5 faithfulness loop keeps escalating a STATEMENT-SHAPE drift the scaffolder
  * re-introduces every pass (an over-assumed premise the note DERIVES; a universal constant
  * quantified after the model parameters; a missing mechanical domain hypothesis; a weakened
- * conclusion). Unlike `scaffold_redirect` — which is one-shot, capped at 2 attempts, review-loop
+ * conclusion). Unlike `scaffold_redirect` — which is one-shot, review-loop
  * driven, and self-clears — this directive PERSISTS across resumes and steers EVERY F2 pass
  * until you clear it, so a fix cannot be silently reverted by the next re-scaffold.
  *

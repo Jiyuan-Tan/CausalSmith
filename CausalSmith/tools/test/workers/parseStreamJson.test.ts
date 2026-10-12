@@ -17,7 +17,7 @@ describe("parseStreamJson", () => {
 
   // Regression: with --json-schema, Claude emits structured payloads via the
   // StructuredOutput tool (not as a text block). Without this branch the
-  // intervention judge sees "" and treats valid output as parse_failure.
+  // caller sees "" and treats valid output as parse_failure.
   it("surfaces StructuredOutput tool_use input as JSON text", () => {
     const line = JSON.stringify({
       type: "assistant",

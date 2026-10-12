@@ -422,23 +422,6 @@ function makeCitedPlan() {
 }
 
 describe("F1 plan gate — P9 cited mapping", () => {
-  it("the F1 prompt separates borrowed cited inputs from paper-owned proof work", () => {
-    const prompt = readFileSync(
-      new URL("../../src/formalization/prompts/F1/stage1_template.txt", import.meta.url),
-      "utf8",
-    );
-    expect(prompt).toMatch(/supported citation-discharge path/);
-    expect(prompt).toMatch(/source-matched result outside this paper's contribution may remain cited even when a delivered headline invokes it/);
-    expect(prompt).toMatch(/Every paper-owned\/new adaptation, embedding, normalization or experiment transfer, regime splice, and theorem step MUST be formalized/);
-    expect(prompt).toMatch(/proof difficulty never makes it cited/);
-    expect(prompt).toContain('source.carrier:"bibliographic-metadata"');
-    expect(prompt).toContain('lean_kind:"def"');
-    expect(prompt).toContain("NEVER threaded into `hyps`");
-    expect(prompt).toContain("plan cannot relabel one as metadata");
-    expect(prompt).not.toMatch(/status:"cited"[^\n]*encode the statement as a named Prop, and thread it into every consumer/);
-    expect(prompt).not.toMatch(/Headline carve-out/);
-  });
-
   it("a faithful cited mapping passes every check", () => {
     const res = runPlanGate(makeCitedPlan(), makeCitedCore());
     expect(res.violations).toEqual([]);

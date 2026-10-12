@@ -8,7 +8,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { isPaperTmpPath } from "../paths.js";
 import { statementHash } from "../graph/hash.js";
-import { extractLeanCommentText, maskLeanCommentsAndStrings } from "../graph/extractor.js";
+import { extractLeanCommentText, maskLeanCommentsAndStrings, stripLeanComments } from "../graph/extractor.js";
 import {
   classifyComment,
   DECL_HEADER_SCAN_RE,
@@ -479,6 +479,31 @@ export async function buildSymbolClusters(
       const source = await readFile(path.join(leanDir, rel), "utf8");
       const lines = source.split(/\r?\n/);
       const commentLines = extractLeanCommentText(source).split(/\r?\n/);
+      // An actual declaration docstring starts that declaration's metadata prefix.
+      // A trailing tag before that boundary cannot be claimed by the next declaration.
+      const docstringTags = new Set<number>();
+      const docstringStarts = new Set<number>();
+      let commentDepth = 0;
+      let inDocstring = false;
+      for (let L = 0; L < commentLines.length; L++) {
+        const text = commentLines[L];
+        for (let p = 0; p < text.length; p++) {
+          if (commentDepth === 0 && text.startsWith("--", p)) break;
+          if (text.startsWith("/-", p)) {
+            if (commentDepth === 0) {
+              inDocstring = text.startsWith("/--", p);
+              if (inDocstring) docstringStarts.add(L);
+            }
+            commentDepth++;
+            p++;
+          } else if (text.startsWith("-/", p) && commentDepth > 0) {
+            if (--commentDepth === 0) inDocstring = false;
+            p++;
+          } else if (inDocstring && text.startsWith("@realizes", p)) {
+            docstringTags.add(L);
+          }
+        }
+      }
       const masked = maskLeanCommentsAndStrings(source);
       const maskedLines = masked.split(/\r?\n/);
       const comment = classifyComment(source);
@@ -515,23 +540,22 @@ export async function buildSymbolClusters(
         };
         owner = variableAt(L);
         if (!owner && comment[L]) {
-          let prior = L - 1;
-          while (prior >= 0 && comment[prior] && lines[prior].trim() !== "") prior--;
-          owner = variableAt(prior);
-        }
-        if (!owner && comment[L]) {
-          const nextIdx = headers.findIndex((h) => h.line > L);
-          if (nextIdx !== -1) {
-            let allComment = true;
-            // A docstring block ABOVE the next decl is a CONTIGUOUS run of comment lines. A BLANK line
-            // between the tag and that decl breaks contiguity → the tag is a TRAILING comment of the
-            // ENCLOSING (preceding) decl (e.g. `-- @realizes X` on the line just after a def body,
-            // separated from the next def by a blank), NOT a docstring for the following decl.
-            for (let k = L + 1; k < headers[nextIdx].line; k++) {
-              if (!comment[k] || lines[k].trim() === "") { allComment = false; break; }
+          const next = headers.find((h) => h.line > L);
+          let prefixStart = next?.line ?? lines.length;
+          if (next) {
+            while (prefixStart > 0 && comment[prefixStart - 1] && lines[prefixStart - 1].trim() !== "") {
+              prefixStart--;
+              if (docstringStarts.has(prefixStart)) break;
             }
-            if (allComment) owner = headers[nextIdx]; // docstring above this decl
+            if ((docstringTags.has(L) && maskedLines.slice(L, next.line).every((line) => line.trim() === "")) ||
+                (L >= prefixStart && docstringStarts.has(prefixStart))) owner = next;
           }
+          if (!owner) {
+            let prior = L - 1;
+            while (prior >= 0 && comment[prior] && lines[prior].trim() !== "") prior--;
+            owner = variableAt(prior);
+          }
+          if (!owner && next && L >= prefixStart) owner = next;
         }
         // A `@realizes` trailing a standalone `variable` command anchors to THAT
         // binder (its type realizes the symbol), never the preceding closed decl.
@@ -654,7 +678,9 @@ export async function findStatementSemanticDefs(leanDir: string): Promise<Statem
       line: d.line,
       kind: d.kind,
       reachedFrom: [...tids].sort(),
-      contentHash: statementHash(d.text),
+      // The text runs to the next header, so it carries line comments, `@realizes`/`@node` tags
+      // and the next declaration's docstring; none of those is meaning, so none moves the hash.
+      contentHash: statementHash(stripLeanComments(d.text)),
     });
   }
   out.sort((a, b) => a.name.localeCompare(b.name));

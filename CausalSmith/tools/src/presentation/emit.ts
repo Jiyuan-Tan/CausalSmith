@@ -51,9 +51,7 @@ function makeSrcReader(repoRoot: string, leanSubdir: string) {
   return { readSrc, missing };
 }
 
-// ComponentSpec moved to components.ts (shared by P3 verify + P4 emit); re-exported here for back-compat.
 import type { ComponentSpec } from "./components.js";
-export type { ComponentSpec };
 
 const DISPLAY: Record<AnchoredEnv["env"], string> = {
   theoremv: "Theorem",
@@ -429,26 +427,6 @@ export function withArmGenerics(clusters: SymbolCluster[]): SymbolCluster[] {
 function isMergedArm(name: string, withGenerics: SymbolCluster[]): boolean {
   const base = armBaseOf(name);
   return base != null && withGenerics.some((c) => c.symbol === `${base}_a`);
-}
-
-/**
- * Undo a model's JSON over-escaping of LaTeX backslashes. A codex refiner that emits a body inside a
- * JSON string sometimes doubles backslashes (`\(` → `\\(`, `\mathrm` → `\\mathrm`); `JSON.parse`
- * preserves that, yielding a body that fails to compile ("Missing $ inserted" → emergency stop).
- * `\\(`/`\\)` never occur in valid LaTeX, so their presence is a reliable over-escape signal — when
- * seen, collapse every `\\` that precedes a non-space, non-digit char back to a single `\`. No-op on a
- * correctly-escaped body (the common case), so it is safe to wrap every refiner output.
- */
-export function fixOverEscapedTex(s: string): string {
-  // A PAIR of doubled delimiters is required, not a lone token: `\\(` alone
-  // legitimately occurs in valid LaTeX — a table/array row break directly
-  // before inline math (`a \\\(x\)`) — and the old single-token trigger then
-  // collapsed EVERY `\\` in the body, destroying row separators document-wide.
-  // (Unlike `repairSerializedLatex`, canonical single backslashes do NOT veto:
-  // refiners partially over-escape, doubling delimiters but not every command.)
-  const pairedDoubledDelims = (/\\\\\(/.test(s) && /\\\\\)/.test(s)) || (/\\\\\[(?![0-9])/.test(s) && /\\\\\]/.test(s));
-  if (!pairedDoubledDelims) return s;
-  return s.replace(/\\\\(?=[^\s\d])/g, "\\");
 }
 
 /** Read one TeX braced argument, including nested groups and literal escaped braces. */

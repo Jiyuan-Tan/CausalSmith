@@ -82,8 +82,8 @@ export function unitOutPath(ctx: PipelineContext, label: string): string {
   return artifactPath(ctx.repoRoot, ctx.qid, "discovery", `solve_${slug}.json`, [`${ctx.qid}_solve_${slug}.json`]);
 }
 
-/** Round-scoped reuse receipts: a validated output bound to the exact prompt that
- * produced it, so a resume with a byte-identical prompt does not re-pay the model. */
+/** Round-scoped reuse receipts: a validated output bound to the content it solved
+ * (not the instruction text), so a resume on unchanged content does not re-pay the model. */
 export function solveReuseReceiptsDir(ctx: PipelineContext): string {
   return path.join(path.dirname(unitOutPath(ctx, "snapshot")), "solve_receipts");
 }

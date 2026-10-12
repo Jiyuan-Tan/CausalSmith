@@ -163,8 +163,8 @@ export function resolveSeriesPrefix(
 /**
  * The configured working-paper series prefix.
  *
- * Called exactly TWICE in the tree — at the top of `stageP4` and at the top of the backfill's
- * `main` — and the resulting string is then threaded as a required parameter through everything
+ * Called once at the entry point of each operation (`stageP4`, the restamp and Zenodo CLIs),
+ * and the resulting string is then threaded as a required parameter through everything
  * that formats, parses, allocates or validates a number. That is why none of those functions
  * takes a default: one operation resolves the series once, so no mid-operation environment change
  * can make two halves of the same write disagree about which series they belong to, and the type

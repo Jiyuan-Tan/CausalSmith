@@ -90,6 +90,24 @@ describe("runFiller", () => {
     expect(prompt).toContain("Do not replace it with repeated `lake env lean`/`lake build` probes");
   });
 
+  it("leaves no unreplaced placeholder in the rendered prompt", async () => {
+    let prompt = "";
+    await runFiller({
+      ctx,
+      promptPath: realPromptPath,
+      leanDir: "/repo/lean",
+      graph: createEmptyGraph("q", "v1"),
+      deps: {
+        runCodex: async (input) => {
+          prompt = input.prompt;
+          return { stdout: JSON.stringify({ summary: "no work" }), stderr: "" };
+        },
+      },
+    });
+    expect(prompt.length).toBeGreaterThan(0);
+    expect(prompt).not.toMatch(/\{\{[A-Z_]+\}\}/);
+  });
+
   it("uses medium reasoning effort for F3 proof filling", async () => {
     let received: { reasoningEffort?: string } | undefined;
     await runFiller({

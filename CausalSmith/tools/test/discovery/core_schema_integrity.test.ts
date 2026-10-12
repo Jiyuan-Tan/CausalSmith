@@ -11,7 +11,7 @@ const stmt = (over: Record<string, unknown> = {}) => ({
 
 describe("a headline-shaped id must not carry kind lemma", () => {
   // Deliberately NARROW. Reachability keys on `kind`: non-lemma nodes are ROOTS and
-  // unreachable kind:"lemma" nodes are PRUNED (stage0_working.ts:398). So the destructive
+  // unreachable kind:"lemma" nodes are PRUNED. So the destructive
   // case is a headline-shaped id carrying kind "lemma" -- it is not a root, and once
   // unreferenced it is DELETED. Other mismatches merely mis-root a node, which is
   // recoverable, and outlawing them would break legitimate patterns.
@@ -79,6 +79,13 @@ describe("statement ids must be unique", () => {
 
   it("accepts distinct ids", () => {
     expect(CoreSchema.safeParse(core([stmt({ id: "lem:a" }), stmt({ id: "lem:b" })])).success).toBe(true);
+  });
+
+  it("parses a saved core that carries keys outside the schema", () => {
+    const row = { comparator_bibkey: "k", comparator_claim: "c", matched_by: "Theorem 1", match_kind: "equivalence" };
+    const r = CoreSchema.safeParse({ ...core([stmt()]), comparator_promises: [row], comparator_promise_table: [row] });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.comparator_promise_table).toEqual([row]);
   });
 });
 

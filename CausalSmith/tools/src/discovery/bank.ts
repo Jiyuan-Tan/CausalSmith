@@ -1,9 +1,6 @@
 /**
- * Bank vocabulary shared by `bin/bank_entry.ts`.
- *
- * The former seed-burn filter and reusable-artifact loader that lived here
- * were never wired into a stage (cold-start D-1 reads the bank through the
- * D-1.1 literature scout instead) and were removed on 2026-08-21.
+ * Bank vocabulary shared by `bin/bank_entry.ts`. Cold-start D-1 reads the bank
+ * through the D-1.1 literature scout.
  */
 /**
  * Study-mode failure reason taxonomy for `--tier failed` entries in the

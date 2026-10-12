@@ -12,7 +12,6 @@ export function freshPaperState(qid: string, spec: string): PaperState {
     stage_completed: null,
     checkpoint_pending: null,
     pinned_commit: null,
-    revision_round: 0,
     promotion_rounds: 0,
     hard_gate_failures: [],
     notes: [],

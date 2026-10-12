@@ -11,7 +11,8 @@ import { coreJsonPath } from "../../../src/discovery/stages/d0_core.js";
 import { runStage0Typed } from "../../../src/discovery/stages/d0.js";
 import { protoCoreJsonPath } from "../../../src/discovery/stages/neg1_2_author.js";
 import { appendEscalationLog } from "../../../src/discovery/escalation_log.js";
-import { headGraph } from "../../../src/discovery/vcs/commit.js";
+import { commitGraph, headGraph, publishCore } from "../../../src/discovery/vcs/commit.js";
+import { graphFromCore, renderCore } from "../../../src/discovery/vcs/render.js";
 import { listPrs, mergePr, readPr } from "../../../src/discovery/vcs/pr.js";
 import { runVcsSolveRound } from "../../../src/discovery/vcs/round.js";
 import type { SolveUnitOutput } from "../../../src/discovery/solve/schemas.js";
@@ -23,7 +24,7 @@ import { fixtureCore } from "./fixture.js";
 // A D0 round end to end with a scripted solver: store auto-initialized from the
 // proto, units dispatched for what is open, outputs folded into a PR, additive
 // rounds merged, claim changes halted for a verdict, directives dispatched, and
-// a resume with an unchanged prompt costing no model call.
+// a resume on unchanged content costing no model call.
 
 type Script = (targets: string[], prompt: string) => Record<string, unknown>;
 
@@ -71,7 +72,6 @@ function scriptedSolver(script: Script): StageDeps & { calls: string[][] } {
       return { stdout: JSON.stringify({ status: "completed", message: "ok", artifacts: [outPath] }), stderr: "" };
     },
     runClaude: async () => { throw new Error("unused"); },
-    lean: undefined as never,
   } as StageDeps & { calls: string[][] };
 }
 
@@ -150,7 +150,6 @@ describe("vcs solve round", () => {
         return { stdout: JSON.stringify({ status: "completed", message: "ok", artifacts: [outPath] }), stderr: "" };
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     } as StageDeps;
     const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
     expect(outcome.kind).toBe("incomplete");
@@ -165,7 +164,6 @@ describe("vcs solve round", () => {
     const deps = {
       runCodex: async () => { throw new Error("sole directive unit failed"); },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     } as StageDeps;
     const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
     expect(outcome.kind).toBe("blocked");
@@ -184,7 +182,6 @@ describe("vcs solve round", () => {
         throw new Error("codex exited 1. stderr-tail= models: request timed out\nERROR: Selected model is at capacity. Please try a different model.");
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     } as StageDeps;
     const result = await runStage0Typed({ ctx, state, deps });
     expect(result.status).toBe("checkpoint");
@@ -207,7 +204,6 @@ describe("vcs solve round", () => {
         return { stdout: JSON.stringify({ status: "failed", message: "The declared dependencies do not imply the target." }), stderr: "" };
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     } as StageDeps;
     const result = await runStage0Typed({ ctx, state, deps });
     expect(result.status).toBe("checkpoint");
@@ -230,7 +226,6 @@ describe("vcs solve round", () => {
         return { stdout: JSON.stringify({ status: "completed", message: "written", artifacts: [outPath] }), stderr: "" };
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     } as StageDeps;
     const result = await runStage0Typed({ ctx, state, deps });
     expect(result.status).toBe("checkpoint");
@@ -280,7 +275,6 @@ describe("vcs solve round", () => {
         throw new Error("codex killed: inactivity timeout after artifact write");
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     } as StageDeps;
 
     const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
@@ -684,23 +678,162 @@ describe("vcs solve round", () => {
     expect(state.flags.d0_directives_consumed).toBe(1);
   });
 
-  it("reuses a persisted validated output when the prompt is unchanged (no model call on resume)", async () => {
-    const deps = scriptedSolver((targets) => ({ proofs: targets.filter((id) => id === "lem:helper").map((id) => ({ id, proof_tex: "x" })) }));
-    const first = await runVcsSolveRound({ ctx, state, deps, round: 1 });
-    expect(first.kind).toBe("incomplete"); // thm:main still open
-    // Simulate a crash after the model wrote its output but before the merge: the
-    // receipt is deleted by a successful merge, so restore the pre-merge situation.
-    const store = VcsStore.at(ctx);
-    const { head } = await headGraph(store);
-    const receiptsDir = path.join(path.dirname(coreJsonPath(ctx)), "solve_receipts");
-    expect(existsSync(receiptsDir)).toBe(false);
-    void head;
-    // A second round with the same open target and an unchanged prompt calls the model again
-    // only because main moved (the prompt embeds the core); the reuse lane is exercised by
-    // repeating a round on an unchanged main.
-    const deps2 = scriptedSolver(() => ({ open_obligations: [{ node_id: "thm:main", what_is_open: "x", obstruction: "y", attempted: "z" }] }));
-    const second = await runVcsSolveRound({ ctx, state, deps: deps2, round: 2 });
-    expect(second.kind).toBe("open-gap");
-    expect(deps2.calls.length).toBe(1);
+  // The reuse lane. A directive round is atomic: when one unit fails, no PR opens and the
+  // unit that did return keeps its output and receipt. `interruptedRound` leaves that state;
+  // `resume` repeats the round and reports which units paid for a model call.
+  describe("solve receipt reuse", () => {
+    const targetsOf = (prompt: string): string[] => {
+      const segment = (prompt.split("TARGET STATEMENT(S) TO SOLVE")[1] ?? "[]").split("SOLVE_OUTPUT_PATH")[0];
+      return (JSON.parse(segment.slice(segment.indexOf("["), segment.lastIndexOf("]") + 1)) as Array<{ id: string }>).map((t) => t.id);
+    };
+    const solver = (failHelper: boolean): StageDeps & { prompts: string[] } => {
+      const prompts: string[] = [];
+      return {
+        prompts,
+        runCodex: async ({ prompt }: { prompt: string }) => {
+          prompts.push(prompt);
+          const targets = targetsOf(prompt);
+          if (failHelper && targets.includes("lem:helper")) throw new Error("owner unit failed");
+          const outPath = /SOLVE_OUTPUT_PATH:\s*(\S+)/.exec(prompt)![1];
+          const companionPath = /SOLVE_COMPANION_PATH:\s*(\S+)/.exec(prompt)![1];
+          const output = companionize({ proofs: targets.map((id) => ({ id, proof_tex: `Proof of ${id}.` })) });
+          await mkdir(path.dirname(companionPath), { recursive: true });
+          await writeFile(companionPath, output.companion, "utf8");
+          await writeFile(outPath, JSON.stringify(output.payload), "utf8");
+          return { stdout: JSON.stringify({ status: "completed", message: "ok", artifacts: [outPath] }), stderr: "" };
+        },
+        runClaude: async () => { throw new Error("unused"); },
+      } as StageDeps & { prompts: string[] };
+    };
+    const receiptPath = (): string =>
+      path.join(path.dirname(coreJsonPath(ctx)), "solve_receipts", "solve_lem_unrelated.json.receipt");
+    const interruptedRound = async (): Promise<void> => {
+      const mixed = proto();
+      mixed.statements.push({
+        id: "lem:unrelated", kind: "lemma", statement: "An unrelated finite-sample fact.",
+        depends_on: [], free_symbols: ["n"], status: "to-prove",
+        justification: "j", gap: "g", consumer: "c",
+      });
+      await writeFile(protoCoreJsonPath(ctx), JSON.stringify(mixed), "utf8");
+      await appendEscalationLog(ctx, { round: 1, directive: "Revalidate the whole paper." });
+      const first = solver(true);
+      const outcome = await runVcsSolveRound({ ctx, state, deps: first, round: 1 });
+      expect(outcome.message).toMatch(/directive round 1 is atomic/);
+      expect(first.prompts.some((prompt) => targetsOf(prompt).includes("lem:unrelated"))).toBe(true);
+      const receipt = JSON.parse(await readFile(receiptPath(), "utf8")) as Record<string, unknown>;
+      expect(receipt.format).toBe("v3");
+      expect(receipt.content_sha256).toMatch(/^[0-9a-f]{64}$/);
+      expect(typeof receipt.standard).toBe("string");
+      expect(receipt).not.toHaveProperty("prompt_sha256");
+    };
+    /** Repeat the round; true when the unit holding a receipt was dispatched to the model again. */
+    const resumeRepaysUnrelated = async (): Promise<{ repaid: boolean; prompts: string[] }> => {
+      const again = solver(true);
+      await runVcsSolveRound({ ctx, state, deps: again, round: 1 });
+      // The failed unit never has a receipt, so it is dispatched on every resume.
+      expect(again.prompts.some((prompt) => targetsOf(prompt).includes("lem:helper"))).toBe(true);
+      return { repaid: again.prompts.some((prompt) => targetsOf(prompt).includes("lem:unrelated")), prompts: again.prompts };
+    };
+
+    it("reuses the persisted output on a resume, also after the instruction text was edited", async () => {
+      await interruptedRound();
+      expect((await resumeRepaysUnrelated()).repaid).toBe(false);
+      for (const name of ["stage0_common_discovery.txt", "stage0_setup_stat.txt", "stage0_solve.txt"]) {
+        await writeFile(promptPath(repoRoot, name), `REWORDED INSTRUCTIONS ${name}`, "utf8");
+      }
+      const resumed = await resumeRepaysUnrelated();
+      expect(resumed.prompts[0]).toContain("REWORDED INSTRUCTIONS stage0_solve.txt");
+      expect(resumed.repaid).toBe(false);
+    });
+
+    it("solves again when the target's core content changed", async () => {
+      await interruptedRound();
+      const store = VcsStore.at(ctx);
+      const { head, graph } = await headGraph(store);
+      const core = renderCore(graph);
+      core.statements.find((s) => s.id === "lem:unrelated")!.statement = "A different finite-sample fact.";
+      const committed = await commitGraph({
+        store, graph: graphFromCore(core, graph), parents: [head], author: "test", kind: "direct",
+        message: "restate the lemma", expectedHead: head,
+      });
+      expect(committed.ok).toBe(true);
+      await publishCore(ctx, store);
+      expect(existsSync(receiptPath())).toBe(true);
+      expect((await resumeRepaysUnrelated()).repaid).toBe(true);
+    });
+
+    it("solves again when the run brief changed", async () => {
+      await interruptedRound();
+      state.design_decisions = { estimand: "restricted to the overlap population" } as StateJson["design_decisions"];
+      expect((await resumeRepaysUnrelated()).repaid).toBe(true);
+    });
+
+    it("solves again when the receipt was written under another standard or an earlier format", async () => {
+      await interruptedRound();
+      const receipt = JSON.parse(await readFile(receiptPath(), "utf8")) as Record<string, unknown>;
+      await writeFile(receiptPath(), JSON.stringify({ ...receipt, standard: "d0-solve-v0" }), "utf8");
+      expect((await resumeRepaysUnrelated()).repaid).toBe(true);
+      // The fresh solve rewrote a current receipt; an earlier-format record keyed on the prompt is not reused.
+      const { standard: _standard, content_sha256, ...rest } = JSON.parse(await readFile(receiptPath(), "utf8")) as Record<string, unknown>;
+      await writeFile(receiptPath(), JSON.stringify({ ...rest, format: "v2", prompt_sha256: content_sha256 }), "utf8");
+      expect((await resumeRepaysUnrelated()).repaid).toBe(true);
+    });
+  });
+
+  // In-place repair of a carrier-defective artifact (round.ts repairInPlace).
+  type Scripted = (kind: "full" | "repair", targets: string[]) => Record<string, unknown> | { inlineProof: string };
+  function repairAwareSolver(script: Scripted): StageDeps & { kinds: string[] } {
+    const kinds: string[] = [];
+    return {
+      kinds,
+      runCodex: async ({ prompt }: { prompt: string }) => {
+        const kind = prompt.startsWith("=== ARTIFACT REPAIR") ? "repair" : "full";
+        const outPath = /SOLVE_OUTPUT_PATH:\s*(\S+)/.exec(prompt)![1];
+        const companionPath = /SOLVE_COMPANION_PATH:\s*(\S+)/.exec(prompt)![1];
+        const segment = (prompt.split("TARGET STATEMENT(S) TO SOLVE")[1] ?? "[]").split("SOLVE_OUTPUT_PATH")[0];
+        const targets = kind === "full"
+          ? (JSON.parse(segment.slice(segment.indexOf("["), segment.lastIndexOf("]") + 1)) as Array<{ id: string }>).map((t) => t.id)
+          : [];
+        kinds.push(kind);
+        const scripted = script(kind, targets);
+        if ("inlineProof" in scripted) {
+          // Carrier defect: a long TeX field inline instead of in the companion.
+          await writeFile(outPath, JSON.stringify({ proofs: [{ id: "lem:helper", proof_tex: scripted.inlineProof }] }), "utf8");
+        } else {
+          const output = companionize(scripted);
+          if (output.companion.length > 0) await writeFile(companionPath, output.companion, "utf8");
+          else await rm(companionPath, { force: true });
+          await writeFile(outPath, JSON.stringify(output.payload), "utf8");
+        }
+        return { stdout: JSON.stringify({ status: "completed", message: "ok", artifacts: [outPath] }), stderr: "" };
+      },
+      runClaude: async () => { throw new Error("unused"); },
+    } as StageDeps & { kinds: string[] };
+  }
+
+  it("rejects a readable artifact with a schema defect after exactly one dispatch (no repair)", async () => {
+    const deps = repairAwareSolver(() => ({ proofs: [{ id: "lem:helper" }] }));
+    const result = await runVcsSolveRound({ ctx, state, deps, round: 1 }).catch((e: unknown) => e);
+    expect(deps.kinds).toEqual(["full"]);
+    const text = result instanceof Error ? result.message : JSON.stringify(result);
+    expect(text).toMatch(/invalid solve JSON/);
+  });
+
+  it("re-derives once when the in-place repair of a carrier defect yields a non-carrier defect", async () => {
+    const deps = repairAwareSolver((kind) =>
+      kind === "repair" ? { proofs: [{ id: "lem:helper" }] } : (deps.kinds.length === 1 ? { inlineProof: "x" } : { proofs: [{ id: "lem:helper", proof_tex: "x" }] }));
+    const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
+    expect(deps.kinds).toEqual(["full", "repair", "full"]);
+    expect(outcome.kind).toBe("incomplete");
+  });
+
+  it("accepts a carrier-defective artifact repaired in place: two dispatches, no re-derivation", async () => {
+    const deps = repairAwareSolver((kind) =>
+      kind === "repair" ? { proofs: [{ id: "lem:helper", proof_tex: "x" }] } : { inlineProof: "x" });
+    const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
+    expect(deps.kinds).toEqual(["full", "repair"]);
+    expect(outcome.kind).toBe("incomplete");
+    const { graph } = await headGraph(VcsStore.at(ctx));
+    expect(deriveStatus(graph, "lem:helper")).toBe("proved");
   });
 });

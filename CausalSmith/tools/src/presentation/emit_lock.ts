@@ -5,13 +5,14 @@
  *
  * `meta_store.ts` serialises writes to `meta.json`. That is not enough, because the thing those
  * writes DESCRIBE — `paper.tex` — is rewritten outside any shared lock. P4 pins the date, repairs
- * cleveref ids and stamps commit ids into the manuscript; the backfill records the manuscript's
- * hash. Hashing inside the metadata lock closed the window where the file changed while the
- * backfill waited for that lock, but not the one where it changes while the backfill is writing:
- * a concurrent P4 can rewrite the manuscript and then fail before its own metadata write, leaving
- * a recorded hash that matches no version of the file. Nothing detects that afterwards — the next
- * otherwise-identical emit simply sees a hash mismatch and bumps the version over a paper nobody
- * revised, and a version number that reached a reader cannot be taken back.
+ * cleveref ids and stamps commit ids into the manuscript; another writer (the restamp, a Zenodo
+ * release) reads the paper files and records a hash of them. Hashing inside the metadata lock
+ * closes the window where a file changes while that writer waits for the lock, but not the one
+ * where it changes while the writer is writing: a concurrent P4 can rewrite the manuscript and
+ * then fail before its own metadata write, leaving a recorded hash that matches no version of the
+ * file. Nothing detects that afterwards — the next otherwise-identical emit simply sees a hash
+ * mismatch and bumps the version over a paper nobody revised, and a version number that reached a
+ * reader cannot be taken back.
  *
  * So the manuscript gets a lock of its own, and everything that rewrites a bundle's paper files
  * or reads them to make a durable record holds it for the whole operation.
@@ -153,11 +154,6 @@ function lockIdentity(bundleDir: string): string {
 export function isHoldingBundleEmitLock(bundleDir: string): boolean {
   const token = holdingEmitLock.getStore();
   return token?.active === true && token.bundleDir === lockIdentity(bundleDir);
-}
-
-/** The error that compromised the caller's emit lock, or null while it is healthy. */
-export function bundleEmitLockCompromise(): unknown {
-  return holdingEmitLock.getStore()?.compromised ?? null;
 }
 
 /**

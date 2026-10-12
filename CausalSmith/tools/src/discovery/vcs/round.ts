@@ -31,10 +31,12 @@ import {
   acquireSolvePathLease,
   clearOrphanSolvePathLeases,
   groupToProveByComponent,
+  healSolveUnitIds,
   readSolveUnitOutput,
   solveReuseReceiptsDir,
   unitOutPath,
 } from "../solve/unit_io.js";
+import { normalizeRawModelJson } from "../core/latex_serialization.js";
 import { headGraph, publishCore } from "./commit.js";
 import { carryLegacyLeftovers, initStoreFromRun, recordProposalRevision, reinitializeOnReproposal } from "./convert.js";
 import { diffGraphs, loadGraph, nodesOfType, statementBlob, type Graph } from "./graph.js";
@@ -43,6 +45,9 @@ import { listPrs, mergePr, openPr, prLosses, scopeSubmissionProse, type PrRecord
 import { renderCore } from "./render.js";
 import { MAIN_REF, VcsStore } from "./store.js";
 import { deriveStatus, openStatements, proofCoversCurrentClosure, proofVerdict } from "./validity.js";
+
+/** Bump when the D0 solver's standard tightens, so persisted solve outputs are re-solved. */
+const D0_SOLVE_STANDARD = "d0-solve-v1";
 
 const METADATA_TARGET_FIELDS: Record<string, string> = {
   "metadata:target-estimand": "target_estimand",
@@ -113,7 +118,6 @@ function outputTargetReceipt(output: SolveUnitOutput, id: string): TargetReceipt
           : output.prose_updates?.[field as keyof NonNullable<SolveUnitOutput["prose_updates"]>] !== undefined;
     if (!present) return null;
     fields.add(field);
-    if (field === "comparator_promise_table") fields.add("comparator_promises");
     return { fields, removal, diffFree };
   }
   if (id === "meta") {
@@ -213,8 +217,7 @@ export async function ensureStore(ctx: PipelineContext, state: StateJson): Promi
     console.warn("[D0] converted the D0.5 acceptance receipt to the graph store (the pass stands)");
   }
   // A D-1.2 re-proposal replaces the paper on main.
-  const extensionPending = state.flags.d0_cross_boundary_rewind?.intent === "extension" && state.flags.d0_cross_boundary_rewind.status === "pending";
-  const reinit = extensionPending ? null : await reinitializeOnReproposal(ctx, state, store);
+  const reinit = await reinitializeOnReproposal(ctx, state, store);
   if (reinit !== null) {
     await publishCore(ctx, store);
     console.warn(`[D0] proposal revision moved: main re-initialized from the new proto (${reinit.slice(0, 12)})`);
@@ -403,12 +406,13 @@ async function solveUnit(args: {
         ?? args.core.symbols.find((entry) => `sym:${entry.name}` === id);
       if (catalog !== undefined) targetReceipts.push(catalog);
     }
+    const solvePromptText = await readPrompt(ctx, "stage0_solve.txt");
     const prompt = [
       await readPrompt(ctx, "stage0_common_discovery.txt"),
       "",
       args.clusterSetupBlock,
       "",
-      await readPrompt(ctx, "stage0_solve.txt"),
+      solvePromptText,
       "",
       discoveryBrief(ctx, args.state),
       ...(redoMathWitnessBlock(args.state) ? ["", redoMathWitnessBlock(args.state)] : []),
@@ -445,7 +449,23 @@ async function solveUnit(args: {
       "D-orchestration validates and mechanically normalizes the artifact after this call; spend this call on the mathematics.",
       'Return only JSON on stdout: {"status":"completed","message":"...","artifacts":["<solve.json>"]}.',
     ].join("\n");
-    const promptSha = sha256Hex(prompt);
+    // The receipt binds an output to the content it solved, not to the instruction text.
+    // The cluster is run data that selects which setup instructions apply, so it is bound;
+    // the frozen core as a whole is bound through its content-addressed snapshot path.
+    const contentSha = sha256Hex(JSON.stringify({
+      cluster: clusterFor(ctx, args.state),
+      brief: discoveryBrief(ctx, args.state),
+      redo_math_witness: redoMathWitnessBlock(args.state),
+      inline: projected.inline,
+      manifest: projected.manifest,
+      snapshot_path: args.snapshotPath,
+      prior_context: plan.priorContext,
+      prose_role: plan.proseRole,
+      unit: label,
+      targets: targetReceipts,
+      out_path: outPath,
+      companion_path: companionPath,
+    }));
     const receiptPath = path.join(solveReuseReceiptsDir(ctx), `${path.basename(outPath)}.receipt`);
 
     const readValidated = (): Promise<SolveUnitOutput> =>
@@ -461,23 +481,23 @@ async function solveUnit(args: {
     const writeReceipt = async (): Promise<void> => {
       await mkdir(path.dirname(receiptPath), { recursive: true });
       await writeFile(receiptPath, `${JSON.stringify({
-        format: "v2", unit: label, created: new Date().toISOString(),
+        format: "v3", unit: label, created: new Date().toISOString(),
         model: MODEL_PLAN.stage0_solve.model, effort: MODEL_PLAN.stage0_solve.effort,
-        prompt_sha256: promptSha, output_sha256: sha256Hex(await readFile(outPath, "utf8")),
+        standard: D0_SOLVE_STANDARD, content_sha256: contentSha, output_sha256: sha256Hex(await readFile(outPath, "utf8")),
         companion_sha256: await companionSha(),
       }, null, 2)}\n`, "utf8");
     };
-    // Reuse lane: a validated output bound to this exact prompt is not re-paid.
+    // Reuse lane: a validated output bound to this exact content is not re-paid.
     if (!ambiguousExistingCompanions && process.env.CAUSALSMITH_D0_REUSE !== "0" && existsSync(receiptPath) && existsSync(outPath)) {
       try {
         const r = JSON.parse(await readFile(receiptPath, "utf8")) as Record<string, unknown>;
-        if (r.format === "v2" && r.model === MODEL_PLAN.stage0_solve.model && r.effort === MODEL_PLAN.stage0_solve.effort &&
-            r.prompt_sha256 === promptSha && r.output_sha256 === sha256Hex(await readFile(outPath, "utf8")) &&
+        if (r.format === "v3" && r.model === MODEL_PLAN.stage0_solve.model && r.effort === MODEL_PLAN.stage0_solve.effort &&
+            r.standard === D0_SOLVE_STANDARD && r.content_sha256 === contentSha && r.output_sha256 === sha256Hex(await readFile(outPath, "utf8")) &&
             (r.companion_sha256 ?? undefined) === (await companionSha())) {
           const reused = (scopeSubmissionProse({
         unit: plan.label, targets: plan.targetIds, output: await readValidated(),
           }, plan.proseRole)).output;
-          console.warn(`[D0-SOLVE] unit ${label}: reusing the persisted validated output (prompt unchanged) — no model call.`);
+          console.warn(`[D0-SOLVE] unit ${label}: reusing the persisted validated output (content unchanged) — no model call.`);
           await writeReceipt();
           return reused;
         }
@@ -531,14 +551,120 @@ async function solveUnit(args: {
         throw new SolveUnitMechanicalReadError(err instanceof Error ? err.message : String(err), { cause: err });
       }
     };
+    // Repair lane: the worker's artifact exists but its TeX carrier (companion refs/blocks,
+    // long-field placement, escaping) fails validation. The mathematics in it is paid for;
+    // a short prompt — the output contract, the validator's exact findings and the file
+    // paths — has the worker edit its own files in place, and the result passes through
+    // the same validator. The repair stands in for the one fresh re-derivation a carrier
+    // defect is allowed: if it does not validate, that re-derivation follows as before.
+    // A readable artifact with a schema/meaning defect is not repaired here: no mechanical
+    // rewrite may guess intent (unit_io.ts), so it throws exactly as it did.
+    const outputContract = (): string => {
+      const marker = "=== OUTPUT ===";
+      const at = solvePromptText.indexOf(marker);
+      return at < 0 ? solvePromptText : solvePromptText.slice(at);
+    };
+    // Ids the rejected artifact carries, after the same raw normalization and id healing the
+    // validator applies; null when the artifact does not parse at all.
+    const carriedIds = (raw: string): Set<string> | null => {
+      try {
+        const body = JSON.parse(normalizeRawModelJson(raw)) as Record<string, unknown>;
+        healSolveUnitIds(body);
+        const ids = new Set<string>();
+        for (const key of ["proofs", "added_lemmas"]) {
+          for (const row of Array.isArray(body[key]) ? body[key] as unknown[] : []) {
+            const id = (row as { id?: unknown })?.id;
+            if (typeof id === "string") ids.add(`${key}:${id}`);
+          }
+        }
+        for (const row of Array.isArray(body.resolved_oeqs) ? body.resolved_oeqs as unknown[] : []) {
+          const id = (row as { source_id?: unknown })?.source_id;
+          if (typeof id === "string") ids.add(`resolved_oeqs:${id}`);
+        }
+        return ids;
+      } catch {
+        return null;
+      }
+    };
+    /** One in-place repair of a carrier-defective artifact. Throws SolveUnitMechanicalReadError
+     *  carrying the ORIGINAL failure's cause whenever the repair cannot be accepted, so the
+     *  caller's carrier branch and retry note see the original defect. */
+    const repairInPlace = async (failure: SolveUnitMechanicalReadError): Promise<SolveUnitOutput> => {
+      const findings = failure.message;
+      const refuse = (why: string): SolveUnitMechanicalReadError =>
+        new SolveUnitMechanicalReadError(`${findings} (${why})`, { cause: failure.cause });
+      const before = carriedIds(await readFile(outPath, "utf8"));
+      if (before === null) throw refuse("artifact is not parseable JSON; no in-place repair");
+      let out;
+      try {
+        out = await dispatchAgent({
+          ctx, deps: args.deps, stage: "0",
+          label: `D0-SOLVE unit ${label} (artifact repair)`,
+          prompt: [
+            `=== ARTIFACT REPAIR — unit ${label} ===`,
+            "Your solve artifact for this unit was written but D-orchestration's mechanical validation rejected it.",
+            "Edit the existing files IN PLACE to fix only the defect(s) listed below. Do not change the mathematics:",
+            "every proof, statement, construction and proposed change keeps its content; only the carrier (JSON shape,",
+            "field placement, TeX companion refs/blocks, escaping) is corrected.",
+            "",
+            "=== VALIDATION FINDINGS ===",
+            findings,
+            "",
+            outputContract(),
+            "",
+            `SOLVE_OUTPUT_PATH: ${outPath}`,
+            `SOLVE_COMPANION_PATH: ${companionPath}`,
+            "Both paths above are already absolute and already hold your artifact. Read them, fix the listed defect(s), write them back.",
+            'Return only JSON on stdout: {"status":"completed","message":"...","artifacts":["<solve.json>"]}.',
+          ].join("\n"),
+          promptSources: ["prompts/D0/stage0_solve.txt#OUTPUT", `unit:${label}`, "validator findings"],
+          model: MODEL_PLAN.stage0_solve.model,
+          reasoningEffort: MODEL_PLAN.stage0_solve.effort,
+          inactivityTimeoutMs: 10 * 60 * 1000,
+        });
+      } catch (dispatchErr) {
+        throw refuse(`repair call failed: ${dispatchErr instanceof Error ? dispatchErr.message : String(dispatchErr)}`);
+      }
+      const receipt = parseStageOutput(out.stdout);
+      if (receipt.status === "failed") throw refuse(`repair reported failed: ${receipt.message ?? "(no message)"}`);
+      let repaired: SolveUnitOutput;
+      try {
+        repaired = await readValidated();
+      } catch (err) {
+        throw refuse(`repair did not validate: ${err instanceof Error ? err.message : String(err)}`);
+      }
+      const after = new Set<string>([
+        ...repaired.proofs.map((p) => `proofs:${p.id}`),
+        ...repaired.added_lemmas.map((l) => `added_lemmas:${l.id}`),
+        ...repaired.resolved_oeqs.map((r) => `resolved_oeqs:${r.source_id}`),
+      ]);
+      const dropped = [...before].filter((id) => !after.has(id));
+      if (dropped.length > 0) throw refuse(`repair dropped ${dropped.join(", ")}; refusing a repair that changes the content`);
+      return repaired;
+    };
     let output: SolveUnitOutput;
     try {
       output = (scopeSubmissionProse({
         unit: plan.label, targets: plan.targetIds, output: await attempt(),
       }, plan.proseRole)).output;
-    } catch (err) {
-      if (!(err instanceof SolveUnitMechanicalReadError)) throw err;
+    } catch (firstErr) {
+      if (!(firstErr instanceof SolveUnitMechanicalReadError)) throw firstErr;
+      const err: SolveUnitMechanicalReadError = firstErr;
       if (existsSync(outPath) && !(err.cause instanceof SolveUnitCarrierError)) throw err;
+      if (existsSync(outPath)) {
+        console.warn(`[D0-SOLVE] unit ${label} wrote an artifact with a TeX carrier defect; repairing it in place: ${err.message}`);
+        try {
+          output = (scopeSubmissionProse({
+            unit: plan.label, targets: plan.targetIds, output: await repairInPlace(err),
+          }, plan.proseRole)).output;
+          await writeReceipt();
+          return output;
+        } catch (repairErr) {
+          if (!(repairErr instanceof SolveUnitMechanicalReadError)) throw repairErr;
+          console.warn(`[D0-SOLVE] unit ${label}: in-place repair not accepted: ${repairErr.message}`);
+        }
+      }
+      // The retry note carries the ORIGINAL defect, as when no repair lane ran.
       console.warn(`[D0-SOLVE] unit ${label} wrote no trustworthy solve artifact; repeating this unit once: ${err.message}`);
       await rm(outPath, { force: true });
       await Promise.all([

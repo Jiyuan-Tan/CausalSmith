@@ -29,10 +29,10 @@ tools/bin/x.ts`. `{resume-from}` means you resume that stage yourself.
   `pipeline-bug`.
 - At every halt: apply the lever, log a `judgment`, resume, re-arm. Paths are writable at a halt; always
   diff EMITTED vs PERSISTED.
-- Resume freely within F, including the work-owed `--clear-gate substrate_build_required`. **Never
-  clear an iteration/round/budget cap** (F2.5 scaffold-redirect, F1.5 rewinds, theorem splits,
-  proof-loop bounds, per-node strikes, filler budgets, any `*_cap_hit`): escalate `cap-block` with the
-  node, the recurring verdict across rounds, and what you changed each round; main resets.
+- Resume freely within F. **Never clear an iteration/round/budget cap** (the proof-loop budgets in
+  `proof_loop_counters` — scaffold rounds, per-node strikes, filler budgets — and any `*_cap_hit`):
+  escalate `cap-block` with the node, the recurring verdict across rounds, and what you changed each
+  round; main resets.
 
 ## Statements are yours; proofs go to codex
 
@@ -40,9 +40,9 @@ You hand-edit statements, `def`s, scaffolding, imports, and namespaces at halts 
 de-laundering a narrowed definition or weakened T-block). You never hand-write a proof, tactic,
 substrate lemma, or compile repair. Loop: diagnose → author statement → codex proves → verify.
 
-- **Workers:** under Codex, managed subagents (`spawn_agent` / warm follow-up), `gpt-5.6-sol` medium.
+- **Workers:** under Codex, managed subagents (`spawn_agent` / warm follow-up), `gpt-6.1-sol` medium.
   Under Claude Code, the canonical `codex exec` invocation from CLAUDE.md (stdin prompt, lean-lsp
-  injected, `run_in_background: true`), `gpt-5.6-sol` medium. Never duplicate a pipeline worker by hand.
+  injected, `run_in_background: true`), `gpt-6.1-sol` medium. Never duplicate a pipeline worker by hand.
 - Prompts decompose leaves-first, name the statement/helpers, and require `lake build <module>` green
   with zero sorry and no new axioms. Never overlap worker edit scopes; parallelize only disjoint import
   closures.
@@ -61,27 +61,51 @@ never weaken the consumer or silently leave it conditional.
 
 ## Per-stage event → action
 
-**F1 plan** (`stage_1`) halts only for no usable plan; a `needs-new-infrastructure` verdict is
-recorded to the missing-architecture ledger and classified at F1.5, not halted on. No plan → inspect the artifact. Gates → build per § "Substrate building",
-clear the work-owed flag on resume, discharge later via F2.5 (not a re-plan).
+**F1 plan** (`stage_1`) halts only for no usable plan; a `needs-new-infrastructure` plan records its
+gate nodes in `SUBSTRATE_DEBT.md` / `CITED_DEPENDENCIES.md` and is classified at F1.5, not halted on. No plan → inspect the artifact. Gates → build per § "Substrate building",
+discharge later via F2.5 (not a re-plan).
 
-**F1.5 / CKPT 1** (`stage_1.5_to_1`) — audit reuse, role, depth, size, fidelity before F2:
+**F1.5 / CKPT 1** (`stage_1.5_to_1`) — one checkpoint, two outcomes; the `pipeline.jsonl` message names
+which.
+
+*`CONSOLIDATED CKPT 1 — PASSED`* (`stage_completed:"1.5"`) — audit reuse, role, depth, size, fidelity
+before F2:
 - Search Mathlib/Causalean (absolute paths — reference § "Substrate search") for every assumed/gated
   hypothesis and ad-hoc `def`; import and derive existing primitives, never reinvent them.
 - Classify each promised theorem as `headline`, `headline-support`, or `secondary` from contribution +
   consumers (`crux:true` is not headline); classify dependencies by provenance: source-owned,
   source-matched facts are `cited`; uncited reusable external debt is `gated`. An uncited paper-specific
   step is never relabeled cited.
-- Require every §11 primitive, the full L-block decomposition, and construction hypotheses. Size and
+- Require every core definition, the full lemma decomposition, and construction hypotheses. Size and
   unbundle each gate: bounded build → minimal `gated` debt; a whole absent named theory → thread only
   its irreducible core as `lean_kind:"assumption"` on every consumer. Prove note-derived reductions; if
   unsure, thread.
 - For cited input make one focused application attempt, splitting the generic paper-agnostic bridge from
   paper-specific construction/witness/completeness work. If it becomes citation implementation, new
   general theory, helper clusters, or an unshrinking extra round → `citation-instantiation-overflow`;
-  never `--study` it.
+  never send it to a `causalsmith study` run.
 - Restate statement/spec mismatch; on `missing_architecture`, build gates and proceed conditional.
   Scaffold post-proof modules topic-split under `Helpers/<Topic>.lean` + barrel.
+
+*`CONSOLIDATED CKPT 1 — NOT PASSED`* (`stage_completed` stays `"1"`) — the plan was rejected, or still
+fails after the planner's retries. A plain `--resume` only re-reviews the same plan; F2 waits for a
+pass. Read every verdict of this boundary in the review log, find the earliest wrong artifact, and
+reroute:
+- Plan wrong, core right (gate violation, reuse candidate that does not type-fit, wrong abstraction
+  level, entry naming a different object than its core node) →
+  `bin/f1_directive.ts <qid> <spec> --directive "<nodes + the fix>"`, then resume `--from-stage F1`;
+  the planner patches those entries and F1.5 reviews again.
+- Core wrong or under-specified (a statement false or ill-scoped as written, an undefined object, a
+  hypothesis the result needs and the core lacks, a node whose kind or status makes the gate's and the
+  reviewer's demands jointly unsatisfiable) → `rewind:fix-source`, with the core node, the plan entry
+  and the verdict line as receipts. A missing hypothesis enters only through the core, never the plan
+  or the Lean. Name which repair the defect calls for: restating the same object in its standard true
+  form (no new hypothesis), or a hypothesis that narrows the regime the result is about (the original
+  claim stays as a conjecture) — the second changes the headline and is main's call.
+- Library lacks the architecture → a plan fix when the parent abstraction carries the statement through
+  local hypotheses and definitions; otherwise size the gate as above and § "Substrate building".
+- The same finding every round although the planner reports fixing it, with the core right →
+  `pipeline-bug`.
 
 **F2–F4 proof-review loop** (`PROOF-REVIEW LOOP ESCALATION [<route>]` in `pipeline.jsonl`). The loop
 self-heals; act per route:
@@ -92,8 +116,8 @@ self-heals; act per route:
   (`@[…]`-attributed, `instance`, graph-node, and `-- keep:`-marked decls are exempt). Verify with your
   own grep, then DELETE it (default; rebuild after) or add `-- keep: <reason>` directly above it when it
   is deliberate reusable substrate. Never keep silently; never manufacture a use.
-- `fix-source` otherwise → reproduce the Lean↔`.tex` conflict yourself (reference § "Rewind
-  verification"). A false conflict (the reviewer misread the Lean or the `.tex`) → persist an
+- `fix-source` otherwise → reproduce the Lean↔core conflict yourself (reference § "Rewind
+  verification"). A false conflict (the reviewer misread the Lean or the core node) → persist an
   accept-review whose note is your reproduction; never edit a reviewer prompt to settle a live dispute
   (prompt rules are offline, user-approved changes), and a repeated flag after an accept-review
   escalates to main with both reproductions. Scaffold-side drift the F2.5 loop cannot converge →
@@ -104,7 +128,7 @@ self-heals; act per route:
     owns the claim. If the node is referenced, after unfolding, by a headline or headline-support
     theorem statement, is an assumption of one, is a cited premise, or is an OEQ node →
     `rewind:fix-source` (the user picks the reading). Otherwise (proof-internal lemma, construction
-    handle, gate, helper def) pin the reading the Lean realizes in the `.tex`/core NL yourself, log it
+    handle, gate, helper def) pin the reading the Lean realizes in the core NL yourself, log it
     in the decision log, re-review that node, and confirm no main-result statement hash changed.
   - F2.5 is incremental: a `scaffold-mismatch` reroute patches only the drifted decl; do not rewind to
     F1.5 for a per-node fix. Reserve a full F1.5 rewind for a genuine plan change.
@@ -115,9 +139,17 @@ self-heals; act per route:
   reasoning, reproduce the conflict or its absence, then route to `fix-source`, an in-place patch, or
   escalate to main with your finding. Never default to "the note is wrong".
 - `bank-partial` / `abandon` → escalate (terminal).
-- **Strengthen-if-dischargeable:** if an assumed hypothesis is provable from the construction / §6
-  primitives, discharge it as a lemma, drop it, edit the `.tex` upward, re-gate F3.5→F5. Weakening the
-  `.tex` to match a degraded proof is forbidden.
+- `PROOF-REVIEW LOOP → AUTO D0 REWIND [<node>]` (status `rewound`, no halt) → the loop refuted a step
+  with a witness and the run re-entered D0 on the core statements that rest on it; hand the lease back
+  to main with that line. `PROOF-REVIEW LOOP → D0 REWIND NEEDS APPROVAL [<node>]` (checkpoint: proven
+  dependents, the per-node rewind cap, or no core statement to target) → `rewind:fix-source` with the
+  witness line.
+- `PROOF-REVIEW ESCALATION UNRESOLVED [<route>]` → a later stage was entered past an unresolved loop
+  escalation; the run is back at F2. Act on the named route, then resume into F2.5.
+- **Strengthen-if-dischargeable:** if an assumed hypothesis is provable from the construction / the
+  core's definitions, discharge it as a lemma, drop it, and re-enter F2.5 so the loop re-reviews
+  through F4; the stronger claim enters the core through `rewind:fix-source`. Weakening the core claim
+  to match a degraded proof is forbidden.
 
 **The loop (F2.5 → F3 → F3.5 → F4) is never skipped.** F3.5 and the dual-model F4 review fire
 only at the loop's done-gate (zero real `sorry` and a settled frozen graph). An escalation means F4 did
@@ -140,15 +172,15 @@ crosswalk emit. A residual undocumented or crosslink-defective decl blocks F5.
 
 ## Faithfulness
 
-Audit every filler statement/`def` edit and `state.added_assumptions` against the `.tex` for
+Audit every filler statement/`def` edit and `state.added_assumptions` against the core for
 crux-as-bookkeeping, narrowed defs, weakened T-blocks, vacuous witnesses. Reject/reroute drift, inject
-`f2_directive`, or hand-de-launder then re-gate F3.5→F5. Disclose every added assumption with
+`f2_directive`, or hand-de-launder then re-enter F2.5. Disclose every added assumption with
 `bin/add_assumption.ts <qid> <spec> --label "…" --statement "…" --classification
 faithful-refinement|regularity-bookkeeping [--decision "<key>=<note>"]`, then resume `--stop-after F4`
-and confirm `laundering_count` is zero. Never hand-edit the array; `add_assumption.ts` refuses a
-substrate gate — use `bin/gate.ts`.
+and confirm the loop's F4 convergence review completes. Never hand-edit the array; `add_assumption.ts`
+refuses a substrate gate — use `bin/gate.ts`.
 
-Escalate only a `.tex` claim that is actually wrong (`terminal:tex-claim-wrong`) or a fix that changes
+Escalate only a core claim that is actually wrong (`terminal:tex-claim-wrong`) or a fix that changes
 the claim and needs D0/F1 (`rewind:fix-source`). Sync every Lean statement change to the note/JSON NL:
 regularity side conditions and lemma statements may refine NL directly; a load-bearing hypothesis,
 narrowed class, or weaker bound requires `rewind:fix-source`. Re-render a Lean-hostile definition to a
@@ -162,7 +194,7 @@ the note's conclusion. If proving the gate alone yields the headline/converse/id
 is contribution laundering: attack the core and halt honestly if it fails. `undelivered` is fail-closed
 (main skill § "UNDELIVERED safeguard").
 
-**Route:** assume small until proved otherwise. Default: `gpt-5.6-sol` medium proof workers with
+**Route:** assume small until proved otherwise. Default: `gpt-6.1-sol` medium proof workers with
 lean-lsp and disjoint leaves-first scopes build an in-place research/`Helpers`/`CausalSmith/Mathlib`
 lemma. Verify zero sorry, axiom cleanliness, and statement/NL match yourself. Escalate
 `substrate-build:study` only for a substantial reusable standard primitive (requirement + slug, proposed
@@ -178,9 +210,8 @@ inspects. For prose-only debt mint a node with `--statement "<Lean premise>"` an
 F2.5 so the `_of_gate` conditional is reviewed.
 
 **Discharge with the CLI:** `npx tsx tools/bin/gate.ts <qid> <spec> <node_id> --discharge [--lean-name
-<Name>]` (`--ungate`/`--unset`) clears plan/graph/debt and reopens consumers; then resume F2.5. Resume
-after a build with `--resume --from-stage F1.5 --clear-gate substrate_build_required`; later wire the
-lemma, replace `_of_gate`, and re-enter F2.5 (not F1). Every discharge re-passes F4.
+<Name>]` (`--ungate`/`--unset`) clears plan/graph/debt and reopens consumers; then resume F2.5. After a
+build, wire the lemma, replace `_of_gate`, and re-enter F2.5 (not F1). Every discharge re-passes F4.
 
 Before banking run `npx tsx tools/bin/gate.ts <qid> <spec> --audit` (0 clean). `accepted` is refused for
 an unregistered substrate disclosure or `cited-mismatch`/`cited-underspecified`. Split a compound gate
@@ -195,8 +226,8 @@ resuming. `request-reseed` only for a concrete context-capacity problem.
 
 | Escalation | Receipts |
 |---|---|
-| `terminal:tex-claim-wrong` / `terminal:laundering` | the `.tex` line + the reviewer phrase naming the collapsed conjecture |
-| `rewind:fix-source` | the Lean↔note conflict, independently reproduced (`.tex` line + Lean line + why) |
+| `terminal:tex-claim-wrong` / `terminal:laundering` | the core node + the reviewer phrase naming the collapsed conjecture |
+| `rewind:fix-source` | the Lean↔core conflict, independently reproduced (core node + Lean line + why); from CKPT 1, the core node + plan entry + verdict line; from a D0 REWIND NEEDS APPROVAL halt, the witness line |
 | `cap-block` / `substrate-unbuildable` | the halt + what a real build attempt showed |
 | `citation-instantiation-overflow` | consumer node + role; cited interface/source; the focused attempt; residual split generic vs paper-specific; downstream consumer graph; evidence further work implements the citation or builds substantial theory |
 | `codex-blocked` | verbatim denial + exact worker request + purpose |

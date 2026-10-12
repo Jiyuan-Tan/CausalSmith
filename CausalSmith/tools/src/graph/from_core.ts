@@ -2,7 +2,7 @@
 // replacement for `buildGraphFromMd`). The graph is the universal interchange the
 // proof loop (F3/F4), the crosswalk, and the bank all hang off — keying its nodes by
 // CORE node ids (`ass:…`, `def:…`, `thm:…`) so the `-- @node: <core id>` tags F2
-// emits link straight to graph nodes. See CausalSmith/doc/research/F1_F2_PLAN_REDESIGN.md.
+// emits link straight to graph nodes.
 import { createEmptyGraph } from "./store.js";
 import { addEdge, addNode, withSetup, withExternalLean } from "./mutate.js";
 import type { FormalizationGraph, NodeKind } from "./types.js";

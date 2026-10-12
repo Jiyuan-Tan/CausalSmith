@@ -4,14 +4,12 @@ import path from "node:path";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { MODEL_PLAN } from "../constants.js";
-import type { Intervention, ReviewResult } from "../judgment.js";
+import { appendPipelineLog } from "../log.js";
 import type { PipelineContext, StageResult, StateJson } from "../types.js";
 import {
   artifactPaths,
   baseBrief,
   bookkeepingPolicyBlock,
-  correctionBlock,
-  findLeanDeclByLocalId,
   parseStageOutput,
   readIfExists,
   readPrompt,
@@ -21,19 +19,32 @@ import {
 import { createRetrieval } from "./reuse_retrieval.js";
 import { resolveLibraryDeclaration } from "../presentation/declaration_resolver.js";
 import { coreJsonPath } from "../discovery/stages/d0_core.js";
-import { formalizationKind } from "../paths.js";
-import { readFormalizationCoreContext } from "./core_context.js";
+import { formalizationKind, scaffoldBasisPath } from "../paths.js";
+import { formalizationCoreContextValue, readFormalizationCoreContext } from "./core_context.js";
 import { readTypedCore } from "../discovery/core/core_io.js";
 import type { Core } from "../discovery/core/schema.js";
 import { runPlanGate, type PlanGateViolation } from "./plan/plan_gate.js";
 import { PlanSchema, type Plan } from "./plan/schema.js";
 import {
   buildF2RevisionContext,
-  hasCompleteScaffoldCoverage,
+  envReferenceIndex,
   revisionTargetsFromRedirect,
+  scaffoldCoverageGaps,
+  type F2RevisionContext,
 } from "./f2_revision_context.js";
-import { PROOF_SCAFFOLD_MAX, STAGE2_REDIRECT_MAX } from "./loop_limits.js";
-import { interventionBlock } from "../shared/intervention_routing.js";
+import {
+  BEYOND_SCOPE_KEY,
+  beyondScopeReported,
+  coreChangeSeeds,
+  movedBeyondNodes,
+  nodeReferenceIndex,
+  planChangeSeeds,
+  readReviseBasis,
+  reviseLookupBlock,
+  writeReviseBasis,
+} from "./revise_scope.js";
+import { coreDeltaLines } from "./core_delta.js";
+import { PROOF_SCAFFOLD_MAX } from "./loop_limits.js";
 import { writeLeanLspMcpConfig } from "../workers/claude.js";
 import { dispatchAgent, dispatchClaudeAgent } from "../framework/agent_dispatch.js";
 import {
@@ -45,7 +56,6 @@ import {
   recordMissingArchitecture,
   missingArchitectureLedgerPath,
 } from "../shared/missing_architecture_ledger.js";
-import { seedAnnotations } from "../graph/annotate.js";
 import { extractFromLean, parseAnnotatedDecls } from "../graph/extractor.js";
 import { graphPath, loadGraph, saveGraph } from "../graph/store.js";
 import { buildGraphFromCorePlan } from "../graph/from_core.js";
@@ -63,7 +73,6 @@ import {
 import { laterStageEverRan } from "../shared/resume_mode.js";
 import { parseJsonWithEscapeRepair } from "../shared/codex_json.js";
 import { buildRunModules } from "./proof_review_loop.js";
-import { LEAN_ATTRS_PREFIX_SRC, LEAN_MODIFIERS_PREFIX_SRC } from "../shared/lean_syntax.js";
 import { copyVerifiedCitedSourcesToPlan } from "./stage1.js";
 
 /** Headline nodes whose statement meaning changed through an untagged inline
@@ -88,15 +97,6 @@ export function hiddenDefinitionChangeTargets(
     }
   }
   return [...targets].sort();
-}
-
-/** A source correction can be applied manually before F2 starts, so comparing
- * only the pre/post-F2 snapshots cannot discover it.  Consume the authoritative
- * receipt once and force its declared delta back into the graph review frontier. */
-export function pendingSourceRewindDirtyNodeIds(state: StateJson): string[] {
-  const rewind = state.flags.source_rewind;
-  if (rewind?.status !== "applied") return [];
-  return [...new Set(rewind.dirty_nodes)].sort();
 }
 
 /** Reconcile a post-F1 source correction without discarding later Lean/proof work. */
@@ -278,16 +278,6 @@ function parsePlanForDirective(planText: string, directive: string): PlanShape |
   return parsed.data;
 }
 
-function nonEmittedLocalIdsFromPlan(planText: string): Set<string> {
-  const plan = parsePlanForDirective(planText, "non-emitted local ids");
-  if (!plan) return new Set();
-  return new Set(
-    Object.values(plan.nodes)
-      .filter((n) => (n.gate || n.delivery_status === "undelivered") && n.local_id)
-      .map((n) => n.local_id!),
-  );
-}
-
 /** Durable F2 instruction for disclosed non-delivery. These nodes remain in the
  * core/plan/graph, but must have no Lean declaration or @node anchor. */
 export function undeliveredBlockFromPlan(planText: string): string {
@@ -351,13 +341,9 @@ function gatedHypsBlockFromPlan(planText: string): string {
   ].join("\n");
 }
 
-function declNameRegex(name: string): RegExp {
-  return new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:theorem|lemma|def|abbrev|structure|class|instance)\s+${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\b`, "m");
-}
-
-/** Best-effort F2 graph link: seed `-- @node:` annotations from the obj_id
- *  convention, extract the Lean side into the graph (links, proof state,
- *  statement-uses edges), persist, and return advisory validation findings.
+/** Best-effort F2 graph link: extract the Lean side into the graph through the
+ *  scaffold's own `-- @node:` anchors (links, proof state, statement-uses edges),
+ *  persist, and return advisory validation findings, unlinked anchors first.
  *  Never throws, never blocks the scaffold; no gate depends on the graph yet. */
 export async function linkGraphFromStage2(a: {
   qid: string;
@@ -371,7 +357,6 @@ export async function linkGraphFromStage2(a: {
   try {
     const p = graphPath(a.formalizationDir, a.qid, a.spec);
     if (!existsSync(p)) return { graph: null, findings: [] };
-    await seedAnnotations(a.leanDir);
     const g = await loadGraph(p);
     const extracted = await extractFromLean(g, a.leanDir);
     let graph = extracted.graph;
@@ -380,7 +365,15 @@ export async function linkGraphFromStage2(a: {
       if (node?.provenance === "from-note") graph = markUnreviewed(graph, id);
     }
     await saveGraph(p, graph);
-    return { graph, findings: validate(graph).findings };
+    // An anchor the extractor could not bind (a duplicate `@node` tag, or a tag naming no
+    // graph node) is reported, as the graph refresh does, rather than left to surface later.
+    const unlinked: Finding[] = extracted.unlinked.map((u) => ({
+      invariant: "lean-anchor-linked",
+      severity: "error",
+      node: u.id,
+      message: `Lean anchor '${u.id}' on ${u.decl_name} (${u.file}) could not be linked`,
+    }));
+    return { graph, findings: [...unlinked, ...validate(graph).findings] };
   } catch {
     return { graph: null, findings: [] };
   }
@@ -398,14 +391,10 @@ export async function runStage2(args: {
   ctx: PipelineContext;
   state: StateJson;
   deps: StageDeps;
-  priorReview?: ReviewResult | null;
-  intervention?: Intervention | null;
-  attempt?: number;
-  /** Exact proof-review targets. Absent/unknown targets deliberately retain full context. */
+  /** The declarations the proof review flagged. With none, or none naming a core node, the prompt keeps the whole plan and core. */
   revisionTargets?: string[];
 }): Promise<StageResult> {
   const paths = artifactPaths(args.ctx, args.state);
-  const sourceRewindDirtyTargets = pendingSourceRewindDirtyNodeIds(args.state);
   // The core⊕plan structural gate only runs POST-dispatch: an absent plan.json beside a
   // surviving core.json (rewind/manual surgery) sailed through `readIfExists`'s "" and
   // burned a full high-effort scaffold call before that gate threw (audit, 2026-08-26).
@@ -414,11 +403,10 @@ export async function runStage2(args: {
     throw new Error("F2: core.json exists but plan.json is missing — restore the F1 plan (or rewind F1) before scaffolding");
   }
   const planText = await readIfExists(paths.plan);
-  const nonEmittedLocalIds = nonEmittedLocalIdsFromPlan(planText);
   const redirectBlock =
     args.state.flags.scaffold_redirect
       ? [
-          "=== SCAFFOLD REDIRECT DIRECTIVE (from prior Stage 3 intervention) ===",
+          "=== SCAFFOLD REDIRECT DIRECTIVE ===",
           "",
           "Apply this directive verbatim as a top-priority constraint on top of the typed core + plan contract.",
           "Do NOT interpret it loosely; do NOT negotiate it.",
@@ -432,17 +420,16 @@ export async function runStage2(args: {
           "",
           args.state.flags.scaffold_redirect,
           "",
-          args.state.flags.proof_loop_counters
-            ? `Proof-loop scaffold attempt: ${args.state.flags.proof_loop_counters.scaffold_rounds} of ${PROOF_SCAFFOLD_MAX} max.`
-            : `Stage-2 redirect attempt: ${args.state.flags.scaffold_redirect_count ?? 1} of ${STAGE2_REDIRECT_MAX} max.`,
-          "",
+          ...(args.state.flags.proof_loop_counters
+            ? [`Proof-loop scaffold attempt: ${args.state.flags.proof_loop_counters.scaffold_rounds} of ${PROOF_SCAFFOLD_MAX} max.`, ""]
+            : []),
           "=== END SCAFFOLD REDIRECT DIRECTIVE ===",
           "",
         ].join("\n")
       : "";
   // REVISE / PATCH-IN-PLACE MODE (token-saver, drift-guard, proof-preserver). When
-  // a prior scaffold is ALREADY on disk — an in-loop F2.5 revise OR a Stage-3
-  // scaffold_redirect rewind — only the flagged/directed declarations (plus their
+  // a prior scaffold is ALREADY on disk — a proof-review-loop scaffold redirect or a
+  // re-entry after a later stage ran — only the flagged/directed declarations (plus their
   // consistency ripples) need to change. Regenerating every file from the full contract is
   // slow, burns tokens, drifts on declarations that already passed, AND DISCARDS any
   // real proof bodies Stage 3 already filled (and the carry-over comments that
@@ -455,18 +442,9 @@ export async function runStage2(args: {
   // (Not used on a true attempt 1, where there is no prior scaffold to patch.)
   let reviseBlock = "";
   const hasLaterStageHistory = await laterStageEverRan(args.ctx, args.state, "2");
-  // Post-pivot cold start: a stage_neg1 pivot retired the on-disk `.lean` tree (it
-  // realizes the ABANDONED angle). `hasLaterStageHistory` is monotone (append-only log),
-  // so without this marker F2 would patch the dead angle's files in place — "preserve
-  // existing proof bodies" grafts the new angle's mathematics onto dead work. Cleared on
-  // the first completed post-pivot scaffold below, so later revise/redirect rounds on
-  // the NEW scaffold patch normally.
-  const scaffoldRetired = args.state.flags.f2_scaffold_retired === true;
   const patchInPlace =
-    !scaffoldRetired &&
-    (args.priorReview?.status === "revise" ||
-      !!args.state.flags.scaffold_redirect ||
-      hasLaterStageHistory);
+    !!args.state.flags.scaffold_redirect ||
+    hasLaterStageHistory;
   let existingScaffoldFiles: string[] = [];
   if (patchInPlace && existsSync(paths.leanDir)) {
     existingScaffoldFiles = (await listLeanFiles(paths.leanDir)).sort();
@@ -475,7 +453,7 @@ export async function runStage2(args: {
         await readPrompt(args.ctx, "stage2_head_revise.txt"),
         "",
         args.state.flags.scaffold_redirect
-          ? "Apply the SCAFFOLD REDIRECT DIRECTIVE above. You MAY re-render the named target(s) however is needed for a faithful fix — a faithful equivalent formulation, new auxiliary defs, or restructuring — you are NOT limited to a byte-for-byte in-place edit (F2.5 re-reviews only the dirty/not-cleared frontier). Preserve existing proof bodies and `/-! PRIOR PROOF (carry-over…) -/` comments wherever the statement is unchanged, and leave UNRELATED declarations intact — don't churn them. When editing a named target is a SHARED env/structure declaration (e.g. retyping/constraining a structure field like `Observation.A` to match a core symbol's space) and the change FORCES dependent declarations to change in order to recompile (signatures, call sites), you MUST re-sync exactly those forced dependents — but still leave every UNRELATED declaration byte-for-byte. (Ripple that the edit makes mandatory is allowed; gratuitous edits are not.) A redirect target of the form `sym:<symbol>` denotes a SETUP/ENVIRONMENT symbol whose space (e.g. `propensity ∈ (0,1)`) is realized by a CLUSTER of decls — the carrier-type structure field PLUS the predicate(s) that pin its range. The cluster IS the affected region: grep the files for `@realizes <symbol>` to find every member, then make the symbol's space hold across their CONJUNCTION (constrain the field, add/repair an a.s. invariant or well-formedness clause, or retype only if a finite/discrete space like `{0,1}` warrants it — prefer carrier-type-`ℝ` + a predicate clause when witness measures need `ℝ`). Keep each member's `@realizes <symbol>(<clause hint>)` tag accurate, and add the tag to any decl you newly make load-bearing for that symbol."
+          ? "Apply the SCAFFOLD REDIRECT DIRECTIVE above. You MAY re-render the named target(s) however is needed for a faithful fix — a faithful equivalent formulation, new auxiliary defs, or restructuring — you are NOT limited to a byte-for-byte in-place edit. Preserve existing proof bodies and `/-! PRIOR PROOF (carry-over…) -/` comments wherever the statement is unchanged, and leave UNRELATED declarations intact — don't churn them. When editing a named target is a SHARED env/structure declaration (e.g. retyping/constraining a structure field like `Observation.A` to match a core symbol's space) and the change FORCES dependent declarations to change in order to recompile (signatures, call sites), you MUST re-sync exactly those forced dependents — but still leave every UNRELATED declaration byte-for-byte. (Ripple that the edit makes mandatory is allowed; gratuitous edits are not.) A redirect target of the form `sym:<symbol>` denotes a SETUP/ENVIRONMENT symbol whose space (e.g. `propensity ∈ (0,1)`) is realized by a CLUSTER of decls — the carrier-type structure field PLUS the predicate(s) that pin its range. The cluster IS the affected region: grep the files for `@realizes <symbol>` to find every member, then make the symbol's space hold across their CONJUNCTION (constrain the field, add/repair an a.s. invariant or well-formedness clause, or retype only if a finite/discrete space like `{0,1}` warrants it — prefer carrier-type-`ℝ` + a predicate clause when witness measures need `ℝ`). Keep each member's `@realizes <symbol>(<clause hint>)` tag accurate, and add the tag to any decl you newly make load-bearing for that symbol."
           : "",
         "On-disk files to patch (Read first, then Edit):",
         ...existingScaffoldFiles.map((f) => `  - ${f}`),
@@ -506,38 +484,89 @@ export async function runStage2(args: {
         ].join("\n")
       : "";
   const scaffoldCorePath = coreJsonPath(args.ctx);
-  const revisionTargets = args.revisionTargets?.length
+  // What this revise is about. The proof review names its targets; a re-scaffold without them
+  // (after a re-plan or a source correction) gets what moved since the scaffold on disk was made
+  // (`scaffoldBasisPath`). Every gap in the scaffold's coverage joins them, so a node the scaffold
+  // lacks is always carried. The whole plan and core are kept when a redirect's subject is not
+  // among the nodes (no target, or none resolving), when the persistent directive is not the one
+  // the scaffold was made under and nothing is flagged, and when nothing is recorded as moved.
+  const flaggedTargets = args.revisionTargets?.length
     ? args.revisionTargets
     : revisionTargetsFromRedirect(args.state.flags.scaffold_redirect);
-  let revisionContext = null;
-  if (patchInPlace && revisionTargets.length > 0 && existsSync(scaffoldCorePath)) {
+  let revisionTargets: string[] = [];
+  let revisionContext: F2RevisionContext | null = null;
+  let scopeCore: Core | null = null;
+  let scopePlan: Plan | null = null;
+  let movedBlock = "";
+  let targetSources = "";
+  let wholeContextReason = "";
+  let hadScaffoldRecord = false;
+  if (patchInPlace && existingScaffoldFiles.length > 0 && existsSync(scaffoldCorePath)) {
     try {
-      const parsedPlan = PlanSchema.safeParse(parseJsonWithEscapeRepair(planText));
-      const completePriorScaffold = parsedPlan.success
-        && existingScaffoldFiles.length > 0
-        && hasCompleteScaffoldCoverage(parsedPlan.data as Plan, await parseLeanNodeTags(paths.leanDir));
-      if (parsedPlan.success && completePriorScaffold) {
-        revisionContext = buildF2RevisionContext(
-          await readTypedCore(scaffoldCorePath),
-          parsedPlan.data as Plan,
-          revisionTargets,
-        );
+      const planRaw = parseJsonWithEscapeRepair(planText);
+      const parsedPlan = PlanSchema.safeParse(planRaw);
+      if (!parsedPlan.success) wholeContextReason = "the plan is not schema-valid";
+      else {
+        scopeCore = await readTypedCore(scaffoldCorePath);
+        scopePlan = parsedPlan.data as Plan;
+        const view = formalizationCoreContextValue(scopeCore);
+        const basis = await readReviseBasis(scaffoldBasisPath(args.ctx.repoRoot, args.ctx.qid));
+        hadScaffoldRecord = basis != null;
+        const replanned = basis ? planChangeSeeds(basis.plan, planRaw) : { nodes: [], envs: [] };
+        const moved = basis ? coreChangeSeeds(basis.core, view) : { nodes: [], symbols: [] };
+        const movedTargets = basis
+          ? [...new Set([...replanned.nodes, ...replanned.envs, ...moved.nodes, ...moved.symbols.map((name) => `sym:${name}`)])]
+          : [];
+        const redirect = args.state.flags.scaffold_redirect;
+        const directive = args.state.flags.f2_scaffold_directive ?? null;
+        if (basis && movedBeyondNodes(basis, planRaw, view)) {
+          wholeContextReason = "a plan-level field, a removed entry or a setting of the core moved since the scaffold";
+        } else if (redirect && !buildF2RevisionContext(scopeCore, scopePlan, flaggedTargets)) {
+          wholeContextReason = "the redirect has no target naming a core node (or its targets reach every node)";
+        } else if (flaggedTargets.length === 0 && directive !== (basis?.directive ?? null)) {
+          wholeContextReason = "the persistent directive is not the one the scaffold on disk was made under";
+        } else if (flaggedTargets.length + movedTargets.length === 0) {
+          wholeContextReason = basis
+            ? "no flagged target, and nothing moved since the scaffold"
+            : "no flagged target, and no record of the plan and core the scaffold was made from";
+        } else {
+          const gaps = scaffoldCoverageGaps(scopePlan, await parseLeanNodeTags(paths.leanDir));
+          revisionTargets = [...new Set([...flaggedTargets, ...movedTargets, ...gaps])];
+          targetSources = `flagged: ${flaggedTargets.join(", ") || "none"}; moved since the scaffold: ${movedTargets.join(", ") || "none"}; not covered by the scaffold: ${gaps.join(", ") || "none"}`;
+          revisionContext = buildF2RevisionContext(scopeCore, scopePlan, revisionTargets, [redirect, directive]);
+          if (!revisionContext) wholeContextReason = "no target names a core node, or the change reaches every node";
+          else if (movedTargets.length > 0) {
+            const coreLines = coreDeltaLines(basis!.core, view);
+            movedBlock = [
+              "=== WHAT MOVED SINCE THE SCAFFOLD ON DISK WAS MADE ===",
+              "The Lean files realize an earlier plan and core. Bring the declarations of what moved in line with",
+              "the plan entries and core records below, together with whatever must change with them to recompile.",
+              ...(replanned.nodes.length + replanned.envs.length > 0
+                ? [`Plan entries added or changed: ${[...replanned.nodes, ...replanned.envs].join(", ")}`]
+                : []),
+              ...(coreLines.length > 0 ? ["Typed core (old → new):", ...coreLines] : []),
+              "=== END WHAT MOVED ===",
+              "",
+            ].join("\n");
+          }
+        }
       }
     } catch (err) {
-      console.warn(
-        `[causalsmith] F2 local revision context unavailable; retaining full context: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      revisionContext = null;
+      wholeContextReason = `the scope could not be computed (${err instanceof Error ? err.message : String(err)})`;
     }
-    if (!revisionContext) {
-      console.warn(
-        `[causalsmith] F2 local context is unsafe or unavailable for revision target(s) (${revisionTargets.join(", ")}) ` +
-          "(prior scaffold missing or without complete delivered @node/@env coverage, or projection failed); retaining full plan/core context.",
-      );
-    }
+    if (!revisionContext) console.warn(`[causalsmith] F2 revise keeps the whole plan and core: ${wholeContextReason}`);
+  }
+  if (patchInPlace && existingScaffoldFiles.length > 0) {
+    const scopeLine = revisionContext
+      ? `F2 revise carries ${revisionContext.shown_nodes.length} of ${scopeCore!.assumptions.length + scopeCore!.definitions.length + scopeCore!.statements.length} core nodes in full (${targetSources}; resolved: ${revisionContext.resolved_targets.join(", ")})`
+      : `F2 revise carries the whole plan and core (${wholeContextReason})`;
+    await appendPipelineLog(args.ctx, { stage: "2", status: "revise-scope", duration_ms: 0, message: scopeLine });
   }
   const promptPlanText = revisionContext ? JSON.stringify(revisionContext.plan) : planText;
-  const gatedHypsBlock = gatedHypsBlockFromPlan(promptPlanText);
-  const undeliveredBlock = undeliveredBlockFromPlan(promptPlanText);
+  // Both directives read the whole plan: a carried consumer may thread a gate the packet omits.
+  const gatedHypsBlock = gatedHypsBlockFromPlan(planText);
+  const undeliveredBlock = undeliveredBlockFromPlan(planText);
   // Legacy study-pipeline scaffolds can predate typed discovery cores. Preserve
   // that supported empty-context path; modern research runs validate/project.
   const scaffoldCoreContext = revisionContext
@@ -547,32 +576,43 @@ export async function runStage2(args: {
     : formalizationKind(args.ctx.qid) === "study"
       ? ""
       : await readFormalizationCoreContext(scaffoldCorePath, "F2 scaffold");
-  const revisionScopeBlock = revisionContext
+  // A scoped revise ends its context with one reference line per node and S-block it does not
+  // carry, where the whole plan and core are, and the duty to report what it had to look up.
+  const revisionLookupBlock = revisionContext && scopeCore && scopePlan
     ? [
-        "=== LOCAL F2 REVISION CONTEXT ===",
-        "This is a deterministic closure around the requested edit targets: their prerequisites and",
-        "the declarations whose signatures are forced downstream. Unrelated records are omitted on purpose.",
-        `Requested/resolved targets: ${revisionContext.resolved_targets.join(", ")}`,
-        `Omitted record counts: ${JSON.stringify(revisionContext.omitted_counts)}`,
-        `Full authoritative plan (read exact extra records only if a forced ripple leaves this packet): ${paths.plan}`,
-        `Full authoritative typed core (READ-ONLY; same selective escape hatch): ${scaffoldCorePath}`,
-        "Do not scan either full artifact by default. Do not infer that an omitted object is absent from the project.",
-        "If the implementation must deviate, sync back only the affected plan entries under the existing F2 contract.",
-        "=== END LOCAL F2 REVISION CONTEXT ===",
-        "",
+        ...(revisionContext.omitted_counts.env_entries > 0
+          ? [
+              "=== EVERY OTHER S-BLOCK (reference only) ===",
+              "Unchanged, and not shown in full: `<id> | <world> | binds <symbols> | <reuse>`.",
+              ...envReferenceIndex(scopePlan, new Set((revisionContext.plan.env as Array<{ id: string }>).map((e) => e.id))),
+              "=== END EVERY OTHER S-BLOCK ===",
+              "",
+            ]
+          : []),
+        reviseLookupBlock({
+          index: nodeReferenceIndex(scopeCore, scopePlan, new Set(revisionContext.shown_nodes)),
+          shown: revisionContext.shown_nodes.length,
+          total: scopeCore.assumptions.length + scopeCore.definitions.length + scopeCore.statements.length,
+          corePath: scaffoldCorePath,
+          planPath: paths.plan,
+          replyField: `\`${BEYOND_SCOPE_KEY}\` of your returned JSON`,
+        }),
       ].join("\n")
     : "";
+  // The core as this pass reads it: what the completed scaffold is recorded as realizing.
+  const coreViewAtPrompt = scopeCore
+    ? formalizationCoreContextValue(scopeCore)
+    : existsSync(scaffoldCorePath)
+      ? formalizationCoreContextValue(await readTypedCore(scaffoldCorePath))
+      : null;
   const prompt = [
     persistentDirectiveBlock,
     undeliveredBlock,
     gatedHypsBlock,
     redirectBlock,
-    revisionScopeBlock,
-    correctionBlock(args.priorReview ?? null, args.attempt ?? 1, {
-      manifestContract: (args.state.theorems?.length ?? 0) > 0,
-    }),
+    movedBlock,
+    "",
     reviseBlock,
-    interventionBlock(args.intervention),
     (await readPrompt(args.ctx, "stage2_scaffold.txt")).replaceAll(
       "{{HEADER_CONTRACT}}",
       [
@@ -589,10 +629,11 @@ export async function runStage2(args: {
     // decisions, the env world, the node→Lean mapping. The reuse SEARCH happened at
     // F1; F2 does not re-run retrieval. The typed core is the ground truth for the
     // node statements/conditions the plan maps.
-    `Formalization plan${revisionContext ? " (localized affected-region projection)" : ""} (plan.json — the contract you implement; for every DELIVERED node, tag EXACTLY ONE canonical primary declaration with "-- @node: <id>"; leave companion/auxiliary declarations untagged; an UNDELIVERED node emits no declaration and no tag; tag the S-block with "-- @env: <id>"). Additionally, for the SETUP/ENVIRONMENT symbols: tag EVERY Lean location that helps realize a core symbol's space with "@realizes <core-symbol-name>(<short clause hint>)" — using the EXACT core symbol name (e.g. mu_0, tau_P, e_P, pi, Pi; case-sensitive, NOT the Lean field name mu0/contrast). Put the tag at the most SPECIFIC location: for a structure FIELD, an INLINE trailing comment on that field line (e.g. 'propensity : 𝒳 → ℝ -- @realizes e_P(carrier 𝒳→ℝ; range via WellFormedLaw)'), NOT lumped on the structure docstring; for a MULTI-clause predicate (a Prop def of the form A and B and …), an INLINE comment on the SPECIFIC conjunct line that pins each symbol (e.g. in WellFormedLaw, the 'contrast x = mu1 x - mu0 x' conjunct line gets '-- @realizes tau_P(contrast = mu1 - mu0)' and the 'propensity x ∈ Icc 0 1' conjunct line gets '-- @realizes e_P(propensity ∈ Icc 0 1)'); a SINGLE-clause predicate may use its docstring (e.g. Positivity gets '@realizes e_P(a.s. 0<e<1)'). A symbol's space is normally carried by the CONJUNCTION of its carrier-type field PLUS the predicate(s) that pin its range, so the SAME symbol gets tagged on several locations (the field line AND each constraining predicate); the reviewer grades that whole cluster together. Tag EVERY core symbol in the JSON — not only setup-world ones — so the symbol→Lean crosswalk is COMPLETE: a primitive on its carrier field + constraining predicate; a quantity the paper DEFINES by a formula on the \`def\` that computes it; a symbol introduced only inside a theorem statement (e.g. an existential multiplier) on the clause that pins its range. Never tag a decl that merely USES a symbol without introducing it:\n${promptPlanText}`,
+    `Formalization plan${revisionContext ? " — the entries this revise affects; every other entry is unchanged, on disk, and realized by the Lean files. To sync a deviation back, edit that entry in the plan file; never rewrite the file from this excerpt" : ""} (plan.json — the contract you implement). For the SETUP/ENVIRONMENT symbols: tag EVERY Lean location that helps realize a core symbol's space with "@realizes <core-symbol-name>(<short clause hint>)" — using the EXACT core symbol name (e.g. mu_0, tau_P, e_P, pi, Pi; case-sensitive, NOT the Lean field name mu0/contrast). Put the tag at the most SPECIFIC location: for a structure FIELD, an INLINE trailing comment on that field line (e.g. 'propensity : 𝒳 → ℝ -- @realizes e_P(carrier 𝒳→ℝ; range via WellFormedLaw)'), NOT lumped on the structure docstring; for a MULTI-clause predicate (a Prop def of the form A and B and …), an INLINE comment on the SPECIFIC conjunct line that pins each symbol (e.g. in WellFormedLaw, the 'contrast x = mu1 x - mu0 x' conjunct line gets '-- @realizes tau_P(contrast = mu1 - mu0)' and the 'propensity x ∈ Icc 0 1' conjunct line gets '-- @realizes e_P(propensity ∈ Icc 0 1)'); a SINGLE-clause predicate may use its docstring (e.g. Positivity gets '@realizes e_P(a.s. 0<e<1)'). A symbol's space is normally carried by the CONJUNCTION of its carrier-type field PLUS the predicate(s) that pin its range, so the SAME symbol gets tagged on several locations (the field line AND each constraining predicate); the reviewer grades that whole cluster together. Tag EVERY core symbol in the JSON — not only setup-world ones — so the symbol→Lean crosswalk is COMPLETE: a primitive on its carrier field + constraining predicate; a quantity the paper DEFINES by a formula on the \`def\` that computes it; a symbol introduced only inside a theorem statement (e.g. an existential multiplier) on the clause that pins its range. Never tag a decl that merely USES a symbol without introducing it:\n${promptPlanText}`,
     "",
-    `Typed core JSON${revisionContext ? " (localized affected-region projection)" : ""} (structural ground truth for each node's statement / condition; proof/publication prose omitted):\n${scaffoldCoreContext}`,
+    `Typed core JSON${revisionContext ? " — the nodes this revise affects, in full, with the symbols they use" : ""} (structural ground truth for each node's statement / condition; proof/publication prose omitted):\n${scaffoldCoreContext}`,
     "",
+    revisionLookupBlock,
     "Return JSON. If blocked-missing-architecture, include missing_items exactly.",
   ].join("\n");
   // Rewind proof-preservation: snapshot the real proof bodies currently on disk
@@ -707,6 +748,16 @@ export async function runStage2(args: {
     );
   }
   const parsed = parseStageOutput(out);
+  // The mechanical affected set under-reached: say where, so the rule can be widened.
+  const beyond = revisionContext ? beyondScopeReported(out) : [];
+  if (beyond.length > 0) {
+    await appendPipelineLog(args.ctx, {
+      stage: "2",
+      status: "revise-scope",
+      duration_ms: 0,
+      message: `F2 revise looked up ${beyond.length} node(s) beyond the affected set (${revisionContext!.shown_nodes.length}): ${beyond.join(", ")}`,
+    });
+  }
   if (parsed.status === "blocked-missing-architecture") {
     args.state.flags.missing_architecture = true;
     args.state.flags.missing_architecture_items = parsed.missing_items ?? [];
@@ -737,7 +788,6 @@ export async function runStage2(args: {
       status: "blocked",
       advance: false,
       message: parsed.message ?? "MISSING ARCHITECTURE BLOCKED",
-      artifacts: parsed.artifacts,
     };
   }
   if (parsed.status !== "completed") {
@@ -747,7 +797,6 @@ export async function runStage2(args: {
       status: "blocked",
       advance: false,
       message: parsed.message ?? "F2 did not complete",
-      artifacts: parsed.artifacts ?? [],
     };
   }
 
@@ -791,60 +840,10 @@ export async function runStage2(args: {
     );
   }
 
-  // Paper-scoped: if state.theorems is present, walk the manifest and update
-  // each entry. Falls back to legacy single-theorem behavior when absent.
-  if (args.state.theorems && args.state.theorems.length > 0) {
-    const manifest = (parsed.theorems ?? []).filter((m) => !nonEmittedLocalIds.has(m.theorem_local_id));
-    const byLocal = new Map(manifest.map((m) => [m.theorem_local_id, m]));
-    const artifactIndex = new Map<string, { decl: string; relpath: string }>();
-    const leanArtifacts = (parsed.artifacts ?? []).filter((f) => f.endsWith(".lean"));
-    for (const leanFile of leanArtifacts) {
-      const leanSource = await readIfExists(leanFile);
-      const relpath = path.relative(paths.leanDir, leanFile);
-      for (const entry of args.state.theorems) {
-        if (artifactIndex.has(entry.theorem_local_id)) continue;
-        const recovered = findLeanDeclByLocalId(leanSource, entry.theorem_local_id);
-        if (recovered) artifactIndex.set(entry.theorem_local_id, { decl: recovered, relpath });
-      }
-      for (const m of manifest) {
-        if (!m.lean_decl_name || artifactIndex.has(m.theorem_local_id)) continue;
-        if (declNameRegex(m.lean_decl_name).test(leanSource)) artifactIndex.set(m.theorem_local_id, { decl: m.lean_decl_name, relpath });
-      }
-    }
-    for (const entry of args.state.theorems) {
-      if (nonEmittedLocalIds.has(entry.theorem_local_id)) continue;
-      let m = byLocal.get(entry.theorem_local_id);
-      let loc = m?.lean_decl_name ? artifactIndex.get(entry.theorem_local_id) : undefined;
-      if (!m?.lean_decl_name) {
-        const recovered = artifactIndex.get(entry.theorem_local_id);
-        if (recovered) {
-          console.warn(
-            `[causalsmith] Stage 2 manifest dropped ${entry.theorem_local_id} but .lean body has decl ${recovered.decl}; repairing manifest.`,
-          );
-          m = { theorem_local_id: entry.theorem_local_id, lean_decl_name: recovered.decl };
-          loc = recovered;
-        }
-      }
-      if (m?.lean_decl_name && loc) {
-        entry.lean_decl_name = m.lean_decl_name;
-        entry.lean_file_relpath = loc.relpath; // why: multi-artifact paper scaffolds must point each theorem at the file containing its decl.
-        entry.stage_completed = "2";
-        entry.status = "in_progress";
-      } else {
-        entry.status = "stuck";
-        entry.failure_reason = "Stage 2 did not produce a Lean declaration for this theorem";
-      }
-    }
-  }
   // After Stage 2 produces sorry-only output successfully, the redirect has been
-  // honored. Clear it so Stage 2.5 / Stage 3 see a clean slate for re-review.
-  // Do NOT clear `scaffold_redirect_count` — that's the loop guard counter,
-  // accumulates over the run.
+  // honored. Clear it so the proof-review loop sees a clean slate for re-review.
   if (parsed.status === "completed") {
     args.state.flags.scaffold_redirect = null;
-    // A fresh scaffold for the CURRENT angle now exists on disk; the post-pivot
-    // retirement marker is consumed (later F2 passes patch THIS scaffold).
-    if (args.state.flags.f2_scaffold_retired) delete args.state.flags.f2_scaffold_retired;
   }
   // Sync-back check. The worker may have updated plan.json on
   // deviation (a planned reuse that did not type-fit; an atom better as a named def);
@@ -951,8 +950,8 @@ export async function runStage2(args: {
       );
     }
   }
-  // Graph link (best-effort, advisory): seed `-- @node:` annotations + extract the
-  // Lean side into the formalization graph. No gate depends on it yet.
+  // Graph link (best-effort, advisory): extract the Lean side into the formalization
+  // graph through the scaffold's `-- @node:` anchors. No gate depends on it yet.
   let hiddenChangedTargets: string[] = [];
   if (patchInPlace) {
     try {
@@ -972,10 +971,7 @@ export async function runStage2(args: {
       );
     }
   }
-  const invalidateReviewNodeIds = [...new Set([
-    ...sourceRewindDirtyTargets,
-    ...hiddenChangedTargets,
-  ])].sort();
+  const invalidateReviewNodeIds = [...new Set(hiddenChangedTargets)].sort();
   const graphLink = await linkGraphFromStage2({
     qid: args.ctx.qid,
     spec: args.ctx.specialization,
@@ -984,16 +980,11 @@ export async function runStage2(args: {
     invalidateReviewNodeIds,
   });
   if (graphLink.graph) {
-    if (sourceRewindDirtyTargets.length > 0 && args.state.flags.source_rewind?.status === "applied") {
-      args.state.flags.source_rewind.status = "f2_revised";
-      args.state.flags.source_rewind.f2_revised_at = new Date().toISOString();
-      console.warn(
-        `[causalsmith] Stage 2 source-rewind invalidation: reset cached F2.5 review for ` +
-          `${sourceRewindDirtyTargets.join(", ")}.`,
-      );
-    }
     const errs = graphLink.findings.filter((f) => f.severity === "error").length;
     console.warn(`[graph] F2 linked ${graphLink.graph.nodes.length} nodes; ${errs} advisory invariant error(s)`);
+    for (const f of graphLink.findings) {
+      if (f.invariant === "lean-anchor-linked") console.warn(`[graph] ${f.message}`);
+    }
   }
   // Do not trust the producer's `compiled sorry-only` self-report.  A revised
   // helper can be outside the producer's narrow target even though it is in the
@@ -1007,10 +998,22 @@ export async function runStage2(args: {
     }
     console.warn("[causalsmith] F2 run compile gate passed");
   }
+  // The plan and core this scaffold realizes: the next re-scaffold covers what moved since.
+  // A scoped pass with no record shows only its targets, so it does not vouch for the rest.
+  try {
+    if (coreViewAtPrompt && existsSync(paths.plan) && (!revisionContext || hadScaffoldRecord)) {
+      await writeReviseBasis(scaffoldBasisPath(args.ctx.repoRoot, args.ctx.qid), {
+        plan: parseJsonWithEscapeRepair(await readFile(paths.plan, "utf8")),
+        core: coreViewAtPrompt,
+        directive: args.state.flags.f2_scaffold_directive ?? null,
+      });
+    }
+  } catch (err) {
+    console.warn(`[causalsmith] F2 scaffold record not written (the next re-scaffold keeps the whole plan and core): ${err instanceof Error ? err.message : String(err)}`);
+  }
   return {
     stage: "2",
     status: "completed",
     message: parsed.message ?? "Stage 2 Lean scaffold completed",
-    artifacts: parsed.artifacts ?? [paths.leanDir],
   };
 }

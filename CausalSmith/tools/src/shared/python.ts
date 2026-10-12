@@ -99,8 +99,3 @@ export function pythonArgs(script: string, args: string[] = []): [string, string
   const cmd = pythonCommand();
   return [cmd.bin, [...cmd.prefixArgs, script, ...args]];
 }
-
-/** Test seam: drop the memoized interpreter so a later call re-probes. */
-export function resetPythonCache(): void {
-  cached = undefined;
-}

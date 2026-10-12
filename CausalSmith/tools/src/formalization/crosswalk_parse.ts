@@ -1,6 +1,5 @@
-// F2.5 tex↔Lean crosswalk — parse layer: deterministic .md block parsing and
-// Lean declaration scanning/primitives, consumed by crosswalk_semantics.ts and
-// crosswalk.ts. See crosswalk.ts for the module-level design note.
+// tex↔Lean crosswalk — parse layer: Lean declaration scanning/primitives,
+// consumed by crosswalk_semantics.ts, crosswalk.ts and the presentation stages. See crosswalk.ts for the module-level design note.
 
 import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
@@ -8,83 +7,10 @@ import path from "node:path";
 import { isPaperTmpPath } from "../paths.js";
 import { maskLeanCommentsAndStrings } from "../graph/extractor.js";
 import { LEAN_ATTRS_PREFIX_SRC, LEAN_DECL_KEYWORDS, LEAN_MODIFIERS_PREFIX_SRC } from "../shared/lean_syntax.js";
-import type { CrosswalkEntry } from "../types.js";
 
-// ---------------------------------------------------------------------------
-// .md parsing
-// ---------------------------------------------------------------------------
-
-/** Options shared by the parsers / builder. `includeLemmas` switches on the
- *  full-mode F5 behavior (L-blocks + Lean `lemma` decls). */
+/** Options shared by the Lean parsers. `includeLemmas` also collects Lean `lemma` decls. */
 export interface CrosswalkOpts {
   includeLemmas?: boolean;
-}
-
-interface MdBlock {
-  objId: string; // normalized: "P-10", "P-1b", "T-1", "L-7"
-  kind: CrosswalkEntry["kind"];
-  title: string;
-  texLineRange: string;
-  texLabel: string;
-}
-
-/**
- * Parse the F1 .md for P-/T-/L- block headers (`### P-10. <title>`, `### T-1. …`,
- * `### L-7. …`). `kind`: T-* → theorem; L-* → lemma (or proposition when the
- * title says so); P-* → assumption when the title marks it a "(P-form of A_n)" /
- * assumption encoding, else definition. `texLabel` is the quoted ".tex line range"
- * string if present (durable anchor), else the title; `texLineRange` is the raw
- * field text (convenience). L-blocks are emitted unconditionally and filtered by
- * the builder when `includeLemmas` is off.
- */
-export async function parseMdBlocks(mdPath: string): Promise<MdBlock[]> {
-  if (!existsSync(mdPath)) return [];
-  const lines = (await readFile(mdPath, "utf8")).split(/\r?\n/);
-  const headerRe = /^#{2,4}\s+(P-\d+[a-z]?|T-\d+|L-\d+[a-z]?)\.\s*(.*)$/;
-  const blocks: MdBlock[] = [];
-  type Region = { objId: string; title: string; body: string[] };
-  let cur: Region | null = null;
-  const flush = () => {
-    if (!cur) return;
-    const bodyText = cur.body.join("\n");
-    const title = cur.title.trim().replace(/\.$/, "");
-    const isThm = cur.objId.startsWith("T-");
-    const isLem = cur.objId.startsWith("L-");
-    const isProp = /\bproposition\b/i.test(title);
-    // `(?<![\\{])` — a `\` or `{` boundary let the word fire inside TeX
-    // (`\begin{assumption}` in a title reclassified a definition block).
-    const isAssumption = /\(P-form of\s+A\d|(?<![\\{])\bassumption\b/i.test(title);
-    const kind: CrosswalkEntry["kind"] = isThm
-      ? "theorem"
-      : isLem
-        ? isProp
-          ? "proposition"
-          : "lemma"
-        : isAssumption
-          ? "assumption"
-          : "definition";
-    const texFieldMatch = bodyText.match(/\*\*\.tex line range\.\*\*\s*([^\n]*)/i);
-    const texLineRange = (texFieldMatch?.[1] ?? "").trim();
-    const quoted = texLineRange.match(/"([^"]+)"/);
-    blocks.push({ objId: cur.objId, kind, title, texLineRange, texLabel: quoted?.[1] ?? title });
-    cur = null;
-  };
-  for (const ln of lines) {
-    const m = ln.match(headerRe);
-    if (m) {
-      flush();
-      cur = { objId: m[1], title: m[2], body: [] };
-      continue;
-    }
-    // A non-P/T header (any `#`-level) ends the current block region.
-    if (/^#{1,6}\s/.test(ln)) {
-      flush();
-      continue;
-    }
-    if (cur) cur.body.push(ln);
-  }
-  flush();
-  return blocks;
 }
 
 // ---------------------------------------------------------------------------
@@ -187,19 +113,6 @@ export function deriveObjId(declKind: string, name: string, commentAbove: string
   const sm = name.match(/^s(\d+)/i);
   if (sm) return `S-${sm[1]}`;
   return objIdScanText(commentAbove).match(/\bP-\d+[a-z]?\b/)?.[0] ?? null;
-}
-
-/**
- * The canonical headline decl for a T-obj_id is exactly `t<n>_thm`. A
- * same-prefixed helper / bridge / aggregate (`t1_thm_bridge`, `t5_geometry`)
- * also derives the same `T-n` from its `t<n>_` name but is NOT the paper's
- * theorem — used by the skeleton dedup to pick the real headline when several
- * decls claim one T-obj_id. Returns false for non-theorem obj_ids (so P-/L-
- * keep first-wins).
- */
-export function isCanonicalHeadline(objId: string, name: string): boolean {
-  const t = objId.match(/^T-(\d+)$/);
-  return t ? name.toLowerCase() === `t${t[1]}_thm` : false;
 }
 
 /**

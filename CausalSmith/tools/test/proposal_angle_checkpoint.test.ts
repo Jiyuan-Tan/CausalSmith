@@ -18,7 +18,6 @@ async function seed(kind: "revise" | "angle-boundary") {
   state.proposed_from = {
     topic: "test",
     novelty_target: "field",
-    pivot_budget_used: 0,
     final_verdict: "pending",
     proposal_path: proposal,
     novelty_justification: "test",

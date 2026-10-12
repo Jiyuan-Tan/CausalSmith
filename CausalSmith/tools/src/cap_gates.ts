@@ -36,56 +36,6 @@ export const CAP_GATES: CapGate[] = [
       "bank the run (`bank_entry.ts --tier downgraded|failed`), or — after an out-of-band proposal revision — resume with `--clear-gate stage_neg1_fallback`",
   },
   {
-    flag: "general_review_halt",
-    clear: (f) => {
-      f.general_review_halt = null;
-    },
-    guidance:
-      "revise the proposal out-of-band, then resume with `--clear-gate general_review_halt`; or bank the run",
-  },
-  {
-    flag: "substrate_build_required",
-    clear: (f) => {
-      f.substrate_build_required = null;
-    },
-    guidance:
-      "build the Defer-item gates (cheapest route that unblocks), then resume with `--clear-gate substrate_build_required` to proceed with the gates assumed (discharge each landed build at the next checkpoint: wire the lemma into the Lean and rewind to F2.5 to re-review — NOT F1, since the plan/scaffold are unchanged — re-passing F4 before banking); OR clear it to proceed with the deferral as-is",
-  },
-  {
-    flag: "theorem_splits_cap_hit",
-    clear: (f) => {
-      f.theorem_splits_cap_hit = undefined;
-    },
-    guidance:
-      "decide split-vs-bank (review flags.theorem_splits), then resume with `--clear-gate theorem_splits_cap_hit`",
-  },
-  {
-    flag: "stage0_budget_exhausted",
-    clear: (f) => {
-      f.stage0_budget_exhausted = undefined;
-    },
-    guidance:
-      "grant more budget, then resume with `--clear-gate stage0_budget_exhausted`; or bank the run",
-  },
-  {
-    flag: "stage1_rewinds_cap_hit",
-    clear: (f) => {
-      f.stage1_rewinds_cap_hit = undefined;
-      f.stage1_rewinds = 0;
-    },
-    guidance:
-      "fix the root cause, then resume with `--clear-gate stage1_rewinds_cap_hit` (also resets flags.stage1_rewinds)",
-  },
-  {
-    flag: "scaffold_redirect_cap_hit",
-    clear: (f) => {
-      f.scaffold_redirect_cap_hit = undefined;
-      f.scaffold_redirect_count = 0;
-    },
-    guidance:
-      "fix the root cause, then resume with `--clear-gate scaffold_redirect_cap_hit` (also resets flags.scaffold_redirect_count — grants more in-place F2.5 reroute attempts)",
-  },
-  {
     // Covers EVERY proof-review-loop iteration budget: total iters, Phase-A scaffold-reroute
     // rounds, per-node strikes, tag reroutes, and the no-progress bound. These were in-process
     // locals, so a plain `--resume` reset them all silently — unbounded, unaudited re-rolls of a

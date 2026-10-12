@@ -1,9 +1,7 @@
-// Orchestrator-owned routing from a P5 finding to either the holistic manuscript
-// reviser or an explicit halt. The P5 referee remains pipeline-stage-independent.
+// Routing from a P5 finding to who acts on it: the orchestrator's hand revision, an
+// escalation, or its own call. The P5 referee remains pipeline-stage-independent.
 import type { FindingKind, ReviewFinding, PriorReview } from "./revision_brief.js";
 
-/** One unattended pass: it fixes sentence-level findings; what a referee repeats afterwards is
- * structural (frozen placement, definitions, literature comparison) and is revised by hand. */
 export type RevisionAction =
   | { type: "revise" } // prose or structure the orchestrator rewrites by hand in the sources
   | { type: "escalate" } // the math/statement itself — out of causalsmith scope
@@ -62,21 +60,6 @@ export function findingFingerprint(f: ReviewFinding): string {
     .slice(0, 18)
     .join(" ");
   return `${f.kind ?? "other"}|${norm(f.section)}|${issue}`;
-}
-
-/** Only prose/structure rewrite findings are the orchestrator's to rewrite in the sources. Everything
- * else is persisted for adjudication instead of being silently weakened or citation-laundered. */
-export function partitionFindings(findings: ReviewFinding[]): {
-  repairable: ReviewFinding[];
-  blocked: ReviewFinding[];
-} {
-  const repairable: ReviewFinding[] = [];
-  const blocked: ReviewFinding[] = [];
-  for (const finding of findings) {
-    const action = actionForFinding(finding);
-    (action.type === "revise" ? repairable : blocked).push(finding);
-  }
-  return { repairable, blocked };
 }
 
 /** A human-readable routing plan grouped by who acts: the orchestrator's hand revision of the

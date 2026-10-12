@@ -5,9 +5,7 @@ import path from "node:path";
 import {
   hiddenDefinitionChangeTargets,
   linkGraphFromStage2,
-  pendingSourceRewindDirtyNodeIds,
 } from "../../src/formalization/stage2.js";
-import type { StateJson } from "../../src/types.js";
 import { createEmptyGraph, graphPath, saveGraph } from "../../src/graph/store.js";
 import { addNode, markPassed } from "../../src/graph/mutate.js";
 import { buildGraphFromMd } from "../../src/graph/from_note.js";
@@ -30,14 +28,32 @@ describe("F2 graph link + extract", () => {
 
     const leanDir = path.join(dir, "lean");
     await mkdir(leanDir, { recursive: true });
-    // scaffold with NO annotation — seedAnnotations adds `-- @node: t1` from the t<n>_thm convention
-    await writeFile(path.join(leanDir, "T1.lean"), "theorem t1_thm : True := by\n  sorry\n", "utf8");
+    // the scaffold writes the anchor itself; nothing derives one from the decl name
+    await writeFile(path.join(leanDir, "T1.lean"), "-- @node: t1\ntheorem t1_thm : True := by\n  sorry\n", "utf8");
 
     const result = await linkGraphFromStage2({ qid: "q", spec: "v1", formalizationDir: dir, leanDir });
     const t1 = result.graph!.nodes.find((n) => n.id === "t1")!;
     expect(t1.lean.decl_name).toBe("t1_thm");
     expect(t1.proof).toEqual({ state: "sorry", sorry_count: 1 });
     expect(Array.isArray(result.findings)).toBe(true);
+  });
+
+  it("reports a duplicate anchor as an error finding instead of linking silently", async () => {
+    const mdPath = path.join(dir, "q2_v1.md");
+    await writeFile(mdPath, MD, "utf8");
+    await saveGraph(graphPath(dir, "q2", "v1"), await buildGraphFromMd("q2", "v1", mdPath));
+    const leanDir = path.join(dir, "lean-dup");
+    await mkdir(leanDir, { recursive: true });
+    await writeFile(
+      path.join(leanDir, "T1.lean"),
+      "-- @node: t1\ntheorem t1_thm_shadow : True := by\n  sorry\n\n-- @node: t1\ntheorem t1_thm : True := by\n  sorry\n",
+      "utf8",
+    );
+    const result = await linkGraphFromStage2({ qid: "q2", spec: "v1", formalizationDir: dir, leanDir });
+    expect(result.graph).not.toBeNull();
+    const anchorFindings = result.findings.filter((f) => f.invariant === "lean-anchor-linked");
+    expect(anchorFindings.length).toBeGreaterThan(0);
+    expect(anchorFindings.every((f) => f.severity === "error" && f.node === "t1")).toBe(true);
   });
 
   it("is best-effort: a missing graph file yields {graph:null}", async () => {
@@ -108,19 +124,5 @@ describe("F2 hidden semantic dependency invalidation", () => {
       "thm:exact-atlas",
       "thm:new",
     ]);
-  });
-
-  it("consumes an applied source-rewind receipt as an explicit delta frontier", () => {
-    const state = {
-      flags: {
-        source_rewind: {
-          status: "applied",
-          dirty_nodes: ["thm:atlas", "def:effective", "thm:atlas"],
-        },
-      },
-    } as unknown as StateJson;
-    expect(pendingSourceRewindDirtyNodeIds(state)).toEqual(["def:effective", "thm:atlas"]);
-    state.flags.source_rewind!.status = "f2_revised";
-    expect(pendingSourceRewindDirtyNodeIds(state)).toEqual([]);
   });
 });

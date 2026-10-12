@@ -39,7 +39,7 @@ function makeState(): StateJson {
     from_question_oq_id: null,
     method_id: null,
     closed_oq: null,
-    flags: { local_fix_from_4d: false, missing_architecture: false },
+    flags: { missing_architecture: false },
     proposed_from: { chosen_qid: QID, chosen_specialization: SPEC, cluster: "stat" },
   } as unknown as StateJson;
 }
@@ -70,7 +70,6 @@ function makeDeps(coreBody: string): StageDeps {
     runClaude: async () => {
       throw new Error("runClaude not expected at Stage 0.R");
     },
-    lean: undefined as never,
   };
 }
 
@@ -150,7 +149,6 @@ describe("runStage0RCore (D0.R provisional core-only editor)", () => {
     const failDeps = {
       runCodex: async () => ({ stdout: JSON.stringify({ status: "failed", message: "open converse needs real math, cannot edit in place" }), stderr: "" }),
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     };
     const res = await runStage0RCore({ ctx, state: makeState(), deps: failDeps, review });
     expect(res.escalate).toBeDefined();
@@ -183,7 +181,6 @@ describe("runStage0RCore (D0.R provisional core-only editor)", () => {
         throw new Error("D0.R must not be dispatched for a state-topic mismatch");
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     };
 
     const res = await runStage0RCore({ ctx, state: makeState(), deps, review: proposalReview });

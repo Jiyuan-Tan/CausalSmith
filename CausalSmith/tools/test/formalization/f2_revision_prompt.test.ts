@@ -5,7 +5,10 @@ import path from "node:path";
 import { coreJsonPath } from "../../src/discovery/stages/d0_core.js";
 import { runStage2 } from "../../src/formalization/stage2.js";
 import { artifactPaths, type StageDeps } from "../../src/pipeline_support.js";
-import { promptPath } from "../../src/paths.js";
+import { promptPath, scaffoldBasisPath } from "../../src/paths.js";
+import { readTypedCore } from "../../src/discovery/core/core_io.js";
+import { formalizationCoreContextValue } from "../../src/formalization/core_context.js";
+import { readFile } from "node:fs/promises";
 import type { PipelineContext, StateJson } from "../../src/types.js";
 
 let repoRoot = "";
@@ -24,9 +27,6 @@ function state(redirect: boolean): StateJson {
     method_id: null,
     closed_oq: null,
     flags: {
-      rewound_from_stage0: null,
-      rewound_from_stage4d: null,
-      local_fix_from_4d: false,
       missing_architecture: false,
       scaffold_redirect: redirect
         ? "Fix target.\n\nDeclarations to edit (one obj_id per line, verbatim):\n- thm:target"
@@ -126,14 +126,16 @@ describe("F2 revision prompt localization", () => {
         return { stdout: blocked, stderr: "" };
       },
       runClaude: async () => blocked,
-      lean: undefined,
     } as unknown as StageDeps;
     await runStage2({ ctx, state: runState, deps });
-    expect(prompt).toContain("LOCAL F2 REVISION CONTEXT");
+    expect(prompt).toContain("BEYOND THE AFFECTED SET");
     expect(prompt).toContain('"thm:target"');
-    expect(prompt).toContain('"ass:shared"');
+    // A prerequisite is a reference line, not a record.
+    expect(prompt).not.toContain('"id":"ass:shared"');
+    expect(prompt).toContain("ass:shared | assumption | assumption ");
+    expect(prompt).toContain("S1 | local | binds x");
     expect(prompt).not.toContain("UNRELATED_CORE_SENTINEL");
-    expect(prompt).not.toContain("UNRELATED_PLAN_SENTINEL");
+    expect(prompt).not.toContain('"lean_name":"UNRELATED_PLAN_SENTINEL"');
   });
 
   it("keeps the complete plan/core on a cold scaffold", async () => {
@@ -150,15 +152,14 @@ describe("F2 revision prompt localization", () => {
         return { stdout: blocked, stderr: "" };
       },
       runClaude: async () => blocked,
-      lean: undefined,
     } as unknown as StageDeps;
     await runStage2({ ctx, state: runState, deps });
-    expect(prompt).not.toContain("LOCAL F2 REVISION CONTEXT");
+    expect(prompt).not.toContain("BEYOND THE AFFECTED SET");
     expect(prompt).toContain("UNRELATED_CORE_SENTINEL");
     expect(prompt).toContain("UNRELATED_PLAN_SENTINEL");
   });
 
-  it("falls back to full context when a prior scaffold is incomplete", async () => {
+  it("keeps the whole context when the scaffold's coverage gaps reach every node", async () => {
     const { ctx, runState } = await arrange(true);
     const paths = artifactPaths(ctx, runState);
     await writeFile(
@@ -177,11 +178,62 @@ describe("F2 revision prompt localization", () => {
         return { stdout: blocked, stderr: "" };
       },
       runClaude: async () => blocked,
-      lean: undefined,
     } as unknown as StageDeps;
     await runStage2({ ctx, state: runState, deps });
-    expect(prompt).not.toContain("LOCAL F2 REVISION CONTEXT");
+    expect(prompt).not.toContain("BEYOND THE AFFECTED SET");
     expect(prompt).toContain("UNRELATED_CORE_SENTINEL");
     expect(prompt).toContain("UNRELATED_PLAN_SENTINEL");
+  });
+
+  it("scopes a re-scaffold with no flagged target to what moved since the recorded scaffold", async () => {
+    const { ctx, runState } = await arrange(false);
+    runState.stage_completed = "3";
+    const paths = artifactPaths(ctx, runState);
+    const blocked = JSON.stringify({
+      status: "blocked-missing-architecture",
+      message: "stop after prompt capture",
+      missing_items: [{ kind: "definition", name_suggestion: "Fixture", purpose: "test", why_substantial: "test" }],
+    });
+    const run = async (): Promise<string> => {
+      let prompt = "";
+      const deps = {
+        runCodex: async (opts: { prompt: string }) => {
+          prompt = opts.prompt;
+          return { stdout: blocked, stderr: "" };
+        },
+        runClaude: async () => blocked,
+      } as unknown as StageDeps;
+      await runStage2({ ctx, state: runState, deps });
+      return prompt;
+    };
+    // No record: nothing says what moved.
+    expect(await run()).not.toContain("BEYOND THE AFFECTED SET");
+
+    const plan = JSON.parse(await readFile(paths.plan, "utf8"));
+    const core = formalizationCoreContextValue(await readTypedCore(coreJsonPath(ctx)));
+    const record = (basisPlan: unknown) => writeFile(scaffoldBasisPath(ctx.repoRoot, ctx.qid), JSON.stringify({ plan: basisPlan, core }));
+    const earlier = structuredClone(plan);
+    earlier.nodes["thm:target"].lean_name = "targetBeforeReplan";
+    await record(earlier);
+    const scoped = await run();
+    expect(scoped).toContain("WHAT MOVED SINCE THE SCAFFOLD ON DISK WAS MADE");
+    expect(scoped).toContain("Plan entries added or changed: thm:target");
+    expect(scoped).toContain("BEYOND THE AFFECTED SET");
+    expect(scoped).not.toContain("UNRELATED_CORE_SENTINEL");
+
+    // Nothing moved, and a change no entry carries, both keep the whole plan and core.
+    await record(plan);
+    expect(await run()).toContain("UNRELATED_CORE_SENTINEL");
+    await record({ ...earlier, feasibility: "needs-new-infrastructure" });
+    expect(await run()).toContain("UNRELATED_CORE_SENTINEL");
+
+    // A redirect whose subject is not among the nodes, and a directive the scaffold was not made
+    // under, are not scoped to what happens to have moved.
+    await record(earlier);
+    runState.flags.scaffold_redirect = "Fix aux_helper.";
+    expect(await run()).toContain("UNRELATED_CORE_SENTINEL");
+    runState.flags.scaffold_redirect = null;
+    runState.flags.f2_scaffold_directive = "Drop the continuity premise everywhere.";
+    expect(await run()).toContain("UNRELATED_CORE_SENTINEL");
   });
 });

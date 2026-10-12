@@ -185,3 +185,111 @@ describe("buildZenodoMetadata", () => {
     expect(paperUrl("https://causalsmith.org/", "abc_def")).toBe("https://causalsmith.org/papers/abc_def");
   });
 });
+
+// An approximation that turns one symbol into a different symbol reads as correct, so a
+// construct is either mapped to its exact Unicode form or preserved as its source.
+describe("TeX conversion fails closed: exact Unicode or visible source, never a guess", () => {
+  it.each([
+    // A fraction is parenthesized whenever either side is more than one token.
+    ["\\(\\frac{ab}{cd}\\)", "(ab)/(cd)"],
+    ["\\(\\frac{a+b}{c}\\)", "(a+b)/c"],
+    // …and whenever a multi-character fraction or root sits next to another atom.
+    ["\\(\\frac{1}{2}n\\)", "(1/2)n"],
+    ["\\(a/\\frac{b}{c}\\)", "a/(b/c)"],
+    ["\\(\\frac{a}{b}^2\\)", "(a/b)²"],
+    ["\\(\\sqrt{2}n\\)", "(√2)n"],
+    ["\\(\\sqrt{n}\\)", "√n"],
+    // The infix `\over` divides its enclosing group.
+    ["\\({\\log n\\over n}\\)", "(log n)/n"],
+    ["\\(\\binom{n}{k}\\)", "C(n, k)"],
+    // Delimiters and accents.
+    ["\\(\\|x\\|\\)", "‖x‖"],
+    ["\\(\\hat{x}\\)", "x̂"],
+    // Font macros map to their exact Unicode forms; upright text stays text.
+    ["\\(\\mathsf{A}\\mathfrak{B}\\)", "\u{1D5A0}\u{1D505}"],
+    ["\\(\\mathbb{R}\\)", "ℝ"],
+    ["\\(\\mathbb{F}\\)", "𝔽"],
+    ["\\(\\mathcal{F}\\)", "ℱ"],
+    ["\\(\\mathfrak{g}\\)", "𝔤"],
+    ["\\(\\mathrm{Var}\\)", "Var"],
+    ["\\(\\operatorname{supp}\\)", "supp"],
+    // Variant Greek letters are different characters from their base letters.
+    ["\\(\\epsilon\\)", "ϵ"],
+    ["\\(\\varepsilon\\)", "ε"],
+    ["\\(\\theta\\vartheta\\)", "θϑ"],
+    ["\\(\\rho\\varrho\\)", "ρϱ"],
+    ["\\(\\sigma\\varsigma\\)", "σς"],
+    ["\\(\\pi\\varpi\\)", "πϖ"],
+    ["\\(\\kappa\\varkappa\\)", "κϰ"],
+  ])("texToPlainText renders %s as %s", (tex, expected) => {
+    expect(texToPlainText(tex)).toBe(expected);
+  });
+
+  // No double-struck Greek and no calligraphic `+` exist; an accent over several atoms has
+  // no single combining form.
+  it.each([
+    "\\(\\mathbb{\\alpha}\\)",
+    "\\(\\mathcal{+}\\)",
+    "\\(\\mathnormal{+}\\)",
+    "\\(\\overline{A\\cup B}\\)",
+    "\\(\\hat{x y}\\)",
+  ])("texToHtml preserves %s as source", (tex) => {
+    expect(texToHtml(tex)).toContain("<code>");
+  });
+
+  it("preserves an unknown macro as its source rather than dropping the backslash", async () => {
+    expect(texToHtml("\\(\\foo{y}\\)")).toContain("<code>\\foo{y}</code>");
+    expect(texToPlainText("\\(\\foo{y}\\)")).toContain("\\foo{y}");
+    expect(texToPlainText("\\(\\foo{y}\\)")).not.toBe("fooy");
+  });
+
+  it("preserves an optional argument rather than silently reinterpreting it", async () => {
+    expect(texToHtml("\\(\\sqrt[3]{x}\\)")).toContain("<code>\\sqrt[3]{x}</code>");
+    expect(texToHtml("\\(\\sqrt[3]{x}\\)")).not.toContain("√[3]");
+  });
+
+  it("treats a bracket after \\left as a delimiter, not an optional argument", () => {
+    // `\left[x\right]` is ordinary mathematics; an earlier optional-argument check
+    // preserved it as unreadable source across five of the real bundles.
+    expect(texToPlainText("\\(\\left[x\\right]\\)")).toBe("[x]");
+    expect(texToHtml("\\(\\left[x\\right]\\)")).not.toContain("<code>");
+  });
+
+  it("preserves a whole environment, never just its \\begin token", () => {
+    // Converting the BODY while preserving only the delimiters would flatten `&` and
+    // `\\` into spaces and silently turn a piecewise definition into one expression.
+    const html = texToHtml("\\(\\begin{cases} 0,&a=0,\\\\ 1,&a>0. \\end{cases}\\)");
+    const codes = [...html.matchAll(/<code>([\s\S]*?)<\/code>/g)].map((m) => m[1]);
+    expect(codes).toHaveLength(1);
+    expect(codes[0]).toContain("\\begin{cases}");
+    expect(codes[0]).toContain("\\end{cases}");
+    expect(codes[0]).toContain("a=0");
+  });
+
+  it("keeps a bold or calligraphic letter distinct from the plain one", () => {
+    expect(texToPlainText("\\(\\mathbf{x}=x\\)")).not.toBe("x=x");
+    expect(texToPlainText("\\(\\mathcal{F}=F\\)")).not.toBe("F=F");
+  });
+
+  it("renders \\phi and \\varphi as different characters", () => {
+    expect(texToPlainText("\\(\\phi\\)")).toBe("ϕ");
+    expect(texToPlainText("\\(\\varphi\\)")).toBe("φ");
+    expect(texToPlainText("\\(\\phi\\ne\\varphi\\)")).not.toBe("φ ≠ φ");
+  });
+
+  it("maps \\mathnormal to the mathematical italic alphabet, not to upright text", () => {
+    expect(texToPlainText("\\(\\mathnormal{x}\\)")).toBe("\u{1D465}");
+    expect(texToPlainText("\\(\\mathnormal{x}\\)")).not.toBe(texToPlainText("\\(\\mathrm{x}\\)"));
+  });
+
+  it("handles or preserves \\left. and \\right|", () => {
+    const html = texToHtml("\\(\\left.\\frac{a}{b}\\right|_0\\)");
+    expect(html).not.toContain("left");
+    expect(html).not.toContain("right");
+  });
+
+  it("does not double-escape inside \\mathrm", () => {
+    expect(texToHtml("\\(\\mathrm{A\\&B}\\)")).toContain("A&amp;B");
+    expect(texToHtml("\\(\\mathrm{A\\&B}\\)")).not.toContain("&amp;amp;");
+  });
+});

@@ -7,15 +7,14 @@ description: Generate search-grounded, human-aligned topic anchors for CausalSmi
 
 Produce candidate `--propose <topic>` anchors matching the user's taste. A "topic" is the anchor string
 in `causalsmith research --propose "<topic>" <qid> <spec>`; D-1.1 turns it into `gaps.json`. Deliverable:
-a small slate the user picks from, then a ready-to-run command. The 17 principles below are the rubric —
-apply every one.
+a small slate the user picks from, then a ready-to-run command.
 
 ## Runtime
 
 Three steps spawn helpers: the deep-read pass (step 3 / A3), the adversarial gate, and the presolve.
 - **Claude Code:** deep reads via the Agent tool (`general-purpose`, one batch per message). The gate
   shells out to codex (cross-model adversary): `codex exec --sandbox read-only -C <cwd>
-  --skip-git-repo-check -c windows.sandbox=unelevated -c model=gpt-5.6-sol -c model_reasoning_effort=high`,
+  --skip-git-repo-check -c windows.sandbox=unelevated -c model=gpt-6.1-sol -c model_reasoning_effort=high`,
   prompt on stdin, `timeout 1200`, run FOREGROUND in one call. Presolve the same way with `gpt-6-astra`,
   `xhigh`.
 - **Codex:** spawn review/presolve agents natively (never `codex exec` yourself); instruct the reviewer
@@ -41,40 +40,15 @@ Git ignores `_topics/`; name the round folder in the hand-back.
 
 
 1. **Scope.** Take the user's area/seed, else span the six clusters (no cluster preference, #11).
-   Cluster = what kind of claim the kernel is; the qid prefix in parentheses is the one you emit in
-   step 9 (`CausalSmith/doc/qid-naming.md`):
-   - `panel` (`panel_`) — causal inference with panel / longitudinal data: any method exploiting
-     repeated observations of units over time (DiD, event studies, TWFE, synthetic control, factor /
-     interactive-effects models, dynamic panels) — identification, estimand characterization, or
-     inference.
-   - `exactid` (`eid_`) — point identification: showing a causal quantity (an effect, parameter,
-     distributional feature, or the causal structure itself, M18) is a unique functional of the
-     observed data distribution, under any assumption framework (unconfoundedness, IV, RDD, proxies,
-     monotonicity, shape/parametric restrictions, …).
-   - `partialid` (`pid_`) — partial identification: the identified set or bounds for a causal
-     quantity when assumptions do not pin it down — sharp/valid bounds, sensitivity and breakdown
-     analysis, robustness to assumption relaxation.
-   - `stat` (`stat_`) — statistical theory of causal estimation and inference: estimators and their
-     properties (consistency, rates, minimax, efficiency bounds, limit laws), confidence procedures,
-     policy learning / regret, uncertainty quantification.
-   - `experimentation` (`exp_`) — design and analysis of experiments: randomized / design-based
-     inference, optimal and adaptive designs, interference and spillovers, finite-population and
-     randomization-based methods.
-   - `scm` (`scm_`) — structural causal models and graphical causal inference: identification,
-     bounds, and counterfactual reasoning over DAGs / ADMGs / selection diagrams, do-calculus,
-     transportability and data fusion, mediation and path-specific effects.
-   Tie-breakers the pipeline enforces (D-1.1 G5, D0 setup prompts): a new identification or bound
-   claim routes to `exactid` / `partialid` / `scm` even if it carries an estimator; a result stated
-   purely in potential-outcome language with no graph is `exactid` / `partialid`, not `scm`; plain
-   i.i.d. super-population inference is `stat`, while design randomness, an adaptive design, or
-   network / spatial dependence from an experiment is `experimentation`.
+   Cluster = what kind of claim the kernel is; the qid prefix is the one you emit in step 9
+   (`CausalSmith/doc/qid-naming.md`). Read the six definitions and their tie-breakers in
+   `CausalSmith/tools/src/discovery/prompts/_shared/cluster_definitions.txt` (the same block the
+   D-1 stages read).
    Read the flagship rubric
    (`CausalSmith/tools/src/discovery/prompts/_shared/stage_flagship_rubric.txt`) and the motif library
-   (`.../prompts/D-1/stage_neg1_2_motif_library.txt`) so each candidate maps to an axis (a)–(i) and a
-   motif (M1–M20); the library defines each cluster's admissible shapes — never narrow a cluster to its
-   default shape. **Choose a stance:** *exploit* (extend a banked result or a cluster with a high
-   accepted-to-attempted ratio in `_bank/`) or *explore* (a cluster/area with few acceptances); state it
-   in one line. The stance steers drafting only, not ranking or the gate.
+   (`.../prompts/D-1/stage_neg1_2_motif_library.txt`) so each candidate maps to an axis (a)–(j) and a
+   motif (M1–M20, or `none`); the library is a repertoire of examples, not a list of admissible shapes —
+   never narrow a cluster to its default shape.
 2. **Search FIRST** (#8, #2). Websearch each area for work from the last 1–5 years; select 1–2
    theorem-bearing anchor papers, preferring highly-cited authors with a strong track record (search
    steer only; never enters ranking). For each anchor inspect the theorem's scope/proof boundary and
@@ -89,7 +63,7 @@ Git ignores `_topics/`; name the round folder in the hand-back.
    `README.md` + `discovery/writeup.tex` and run the same external search.
 4. **Draft ~5 candidates** (#12) from both opportunity kinds. Rank by
    evidence, mathematical depth, novelty, feasibility, and consumer value. Each carries a named focal object, a computation method if
-   it is a bound (#3), the estimation rung for ID/partial-ID (#9), and the tier-justifying hard theorem
+   it is a bound (#3), the estimation rung for ID/partial-ID (#9, when needed), and the tier-justifying hard theorem
    in the kernel (#15). For an open characterization problem make the kernel problem-closed and
    answer-open: fix model, information regime, target, criterion, deliverable, consumer, scope; leave
    the exact rate/formula/threshold open unless derived; record a conjectured answer as presolve
@@ -127,8 +101,7 @@ entry's scope/proof boundary; identify the blocking step, search subsequent work
 **technique-derived lead** (the entry's method on another target/model/setting; identify the first
 non-verbatim proof step, search prior art; for a new application domain also apply gate A4). The bank
 grounds the MATH only — the formalized-substrate advantage may be noted but never ranks. A lead does
-not collide with its own parent but must differ from the parent's banked theorem. Bank leads compete on
-the same slate with no bonus.
+not collide with its own parent but must differ from the parent's banked theorem.
 
 ## Apply mode (--apply)
 
@@ -221,7 +194,9 @@ Bridge payoff: <what the bridge computes that one side alone could not>
    a load-bearing proof step.
 8. **Generate at the live-opportunity altitude.** Search first; never re-propose an occupied headline;
    rank by the step-4 criteria, not opportunity origin.
-9. **ID/partial-ID topics carry the estimation rung in the kernel.**
+9. **Include the estimation rung when the claimed contribution needs it** (an identification or bound
+   result whose value lies in estimating the object carries the estimator; one that opens a regime, a
+   target, or an object stands on its own).
 10. **Default to positive constructive results.** A necessity/impossibility result only when surprising
     or quantitatively sharp.
 11. **No cluster preference; crowdedness never disqualifies.** Neither collision density nor a missing
@@ -232,18 +207,24 @@ Bridge payoff: <what the bridge computes that one side alone could not>
     "partial ID of ATE under weak overlap" — point-identified whenever `0<e(X)<1` a.e.). Self-test: is
     the focal object a function of P alone, and does the advertised difficulty actually bite? Repair by
     reframing to the difficulty that bites, or drop.
-14. **Tier honesty.** Ladder `flagship > field > subfield > incremental`: flagship = a first sharp
-    boundary, a new estimand-defining object, or a method carried into a setting where it changes what
-    can be learned; field = a genuinely new scalar/regime/threshold nontrivially extending named prior
-    art; subfield = generic machinery on a new instance, or a single counterexample/reduction;
-    incremental = reparametrization. Each candidate carries `Target tier` and `Est. achievable tier`;
-    achievable < target fails — strengthen the kernel or re-pitch honestly. The emitted command sets
-    `--novelty <target>`.
-15. **Put the hard theorem in the KERNEL** as a precise conjecture. If the stated kernel reduces to a
-    routine step (a continuous-mapping image of a known limit, a known optimization, a verbatim
+14. **Tier honesty.** Ladder `flagship > field > subfield > incremental`, defined by publication venue
+    (the same definitions the D0.5 reviewer grades by): flagship = a top-venue headline result
+    (Econometrica / Annals of Statistics / JASA / JRSS-B level) — resolves a recognized open problem or
+    introduces a method/framework others will adopt broadly; field = a solid, genuine contribution
+    publishable at a good field venue (J. Econometrics / Econometric Theory / Biometrika level) — a new
+    identification result, sharp bound, limit law, or rate practitioners would use and cite; subfield =
+    worthwhile but narrow — a specialized-venue result, a setup/companion note, or a modest extension;
+    incremental = a restatement, a routine special case, a definitional unfold, or a setup whose
+    load-bearing result is deferred to an open conjecture / unproved assumption. The
+    tier follows what the result settles and who would cite it, whatever form (rate, limit law, bound,
+    test, characterization, …) it takes. Each candidate carries `Target tier` and `Est. achievable tier`;
+    achievable < target fails — strengthen the kernel or re-pitch honestly.
+15. **Put the hard theorem in the KERNEL** as a precise question (object pinned, answer open). If the
+    stated kernel reduces to a routine step (a continuous-mapping image of a known limit, a known optimization, a verbatim
     transfer) while the depth sits in an unstated follow-on, the gate grades the routine kernel
-    subfield. Promote the hard object (nuisance-robust inference theorem, characterization / optimal
-    value, sharp converse, completeness proof) to be the kernel; the routine half becomes a lemma.
+    subfield. Promote the hard object (nuisance-robust inference theorem, derived limit law or
+    efficiency bound, characterization / optimal value, matched rate, size–power theorem, regret bound,
+    completeness proof) to be the kernel; the routine half becomes a lemma.
 16. **Specify the OBJECT; delegate the MECHANICS.** Under-specifying the object (target, model, domain,
     quantifiers, comparison class, finite-sample scope) → `kernel_is_precise_conjecture:false`.
     Over-specifying mechanics (normalizations, constants, splitting schemes, class margins) → free
@@ -253,19 +234,20 @@ Bridge payoff: <what the bridge computes that one side alone could not>
     clause's full domain. `refutation_found` + `derivation_step` + `tier_if_true >= target` on rotating
     slips means the drafting is the bottleneck: strip back to object + verified instance + tier argument
     and re-gate; if that still fails, it is a launch decision, not another gate round.
-17. **Name the consumer.** ≥1 specific published applied work, software default, or named empirical
-    literature whose conclusions or practice would CHANGE if the kernel is true, plus what changes.
-    "The theory literature on X" is not a consumer. Consumer strength weighs equally with tier.
+17. **Name the consumer.** ≥1 specific published applied work, software default, named empirical
+    literature, named open problem, or published result whose conclusions, practice, or status would
+    CHANGE if the kernel is true, plus what changes. "The theory literature on X" is not a
+    consumer. Consumer strength weighs equally with tier.
 
 ## Slate row format
 
 ```
-<anchor phrase>  ·  cluster  ·  axis (a)-(i)  ·  motif (M1-M20)
+<anchor phrase>  ·  cluster  ·  axis (a)-(j)  ·  motif (M1-M20 | none)
 Live opportunity: <unresolved question | technique-derived direction, and the occupied result it avoids>
 Grounding: <anchor paper> Thm <n> — <the proof-structure fact the niche rests on>
 Closest recent work: <bibkey/arXiv> — differs by: <one line> (#2)
 Focal object: <named object>          Computation: <closed form | algorithm | finite instance>  (#3)
-Estimation rung: <estimator + inference over the set>  (#9)
+Estimation rung: <estimator + inference over the set | stands alone: reason>  (#9)
 Consumer: <who (≥1 citation or software default) + what changes in their practice>  (#17)
 Target tier: <…>   Est. achievable tier: <…> — ceiling reason: <the strongest honest result a full D0 solve yields, and why>  (#14)
 Likely D0.5 death: <where it would collapse>
@@ -299,10 +281,10 @@ strengthening → repair and re-gate the same candidate; (b) no strengthening re
 missing theorem) and re-gate the SAME candidate, up to 3 re-gates; a #15 kernel-pivot is a NEW candidate
 with its own budget. After 3 failed re-gates: one #15 pivot if the gate named an adjacent hard kernel,
 else the candidate is subfield-terminal (hold as the tier-honest fallback). `topic_death` → drop and
-advance. Never surface a mid-loop `worthy:false` to the user.
+advance.
 
-**Kernel-pivot (#15).** A `derivation_step` verdict with `is_relabeling:false`, direction OPEN, and a
-named hard theorem as the missing content, yet `repairable_by_reframing:false`, means the field object
+**Kernel-pivot (#15).** A `derivation_step` verdict whose `reframe_suggestion` names a hard theorem as
+the missing content, yet `repairable_by_reframing:false`, means the field object
 is an ADJACENT kernel: promote that theorem to be the kernel as a fresh candidate and gate it before
 accepting a subfield ceiling. A pivot or estimand re-anchor invalidates the consumer line — re-verify
 #17. A direction is subfield-terminal only when no adjacent hard kernel exists or it is vacuous /
@@ -376,8 +358,3 @@ STRONGEST-FORM DRAFT (unverified, gaps listed inside): <absolute path>.
 The draft stays in the file; D-1/D0 reads it from the path and must independently verify every listed
 gap. Preserve the candidate's original assumptions; theorem status is reserved for D-1/D0 verification.
 
-
-## What this skill does NOT do
-
-- Launch CausalSmith research (emit the command; the caller runs it).
-- Filter on Causalean infra availability (#1).

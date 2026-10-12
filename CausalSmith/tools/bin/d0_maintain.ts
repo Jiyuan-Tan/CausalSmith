@@ -4,7 +4,7 @@
  * high-level condition the note is stated CONDITIONAL on and does not derive (the
  * legitimate slot for "proved under condition A, where verifying A is itself the
  * open object", cf. a DML nuisance-rate condition). D0.5 checks the condition's
- * soundness and separateness and caps the tier one notch.
+ * soundness and separateness.
  *
  * Writes one direct commit (the tag + an honest_scope disclosure), then a directive
  * requiring every proved consumer to be restated explicitly conditional, and pins
@@ -82,7 +82,7 @@ async function main(): Promise<void> {
         `the note is stated CONDITIONAL on and does NOT derive (open object: "${openObject}"; separate object: "${separateObject}"). ` +
         `RESTATE every headline theorem that consumes ${assId} to read EXPLICITLY "under ${assId}, ..."; ensure ${assId} is ` +
         `surfaced in honest_scope and posed as an oeq. Do NOT try to derive ${assId} or re-classify it standard/novel — it is a ` +
-        `granted maintained condition; the result is honestly CONDITIONAL on it (tier capped one notch).`,
+        `granted maintained condition; the result is honestly CONDITIONAL on it.`,
       note: `orchestrator maintained-sanction: ${assId}`,
       ...(affected.length > 0 ? { required_core_targets: affected } : {}),
     });

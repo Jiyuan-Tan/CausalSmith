@@ -23,7 +23,7 @@ interface Review {
   reviewed_at: string;
   /** sha256 of the ON-DISK `paper.tex` at review time — the exact value
    *  `meta.json`'s `versions[].paper_sha256` records, so the site can say which version was
-   *  reviewed. Note the referee is SENT `refereeTexFor(paperTex)` (a reviewer copy with the
+   *  reviewed. Note the referee is SENT `reviewerTexFor(paperTex)` (a reviewer copy with the
    *  build-only anchors stripped); hashing that instead would produce a digest matching nothing
    *  else in the bundle. */
   manuscript_sha256: string;
@@ -71,17 +71,13 @@ const ReviewSchema = z.object({
 });
 
 /**
- * P5 — submission referee review. Sends the FINAL paper (paper.tex, post-P4
- * latex-fix) to codex as a journal referee. The formal layer is machine-verified
+ * P5 — submission referee review. Sends the FINAL paper (paper.tex as P4
+ * emitted it) to codex as a journal referee. The formal layer is machine-verified
  * (P3), so the referee does not re-derive proofs — it judges contribution, claim
  * fidelity to the verified statements, exposition, clarity, and positioning. The
- * review is returned as structured JSON/Markdown. The pipeline may automatically
- * re-draft safe prose/structure findings, but never statement/citation/source-truth
- * findings; those are routed to an explicit adjudication halt.
+ * review is returned as structured JSON/Markdown, and every finding is routed in
+ * p5_revision_routing.md for the orchestrator's hand revision.
  */
-/** Back-compat alias: the reviewer-copy strip now lives in `tex_anchors` because the P3
- *  rubric reviewer needs it too (same reasoning — a scorer reads the paper, not the build). */
-export const refereeTexFor = reviewerTexFor;
 
 export async function stageP5(io: StageIO): Promise<void> {
   if (io.ctx.deps.dryRun) {
@@ -122,7 +118,7 @@ export async function stageP5(io: StageIO): Promise<void> {
   // authors' own framing.
   const narrative = await loadBankNarrative(io.ctx.repoRoot, io.ctx.qid, io.ctx.spec);
   const prompt = await presentationPrompt("p5_review", {
-    paper_tex: refereeTexFor(paperTex),
+    paper_tex: reviewerTexFor(paperTex),
     related_work_brief: relatedWork,
     honest_scope: narrative.honestScope || "(none recorded)",
     verification_contract: JSON.stringify(verificationContract),

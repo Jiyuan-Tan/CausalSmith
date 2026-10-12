@@ -4,19 +4,20 @@
 // assumptions, class/construction definitions, to-prove statements) AND prose fields
 // (tldr, project_justification gap→niche→fill, related_work, per-statement
 // justification/gap/consumer). The core is the single source of truth AND the sole
-// artifact: discovery consumers (the D-0.5 reviewer, D0-CORE) read the proto_core JSON
+// artifact: discovery consumers (the D-0.5 reviewer, D0) read the proto_core JSON
 // directly, so NO proposal .tex is rendered here (the D0 derivation .tex — F3 roadmap —
 // is rendered later by D0-RENDER). Flow: dispatch → write core.json → proposal gate
 // (G1–G7 + GP1/GP2/GP3) → schema-validate. Proposal metadata is harvested from
 // that core into the -0.5 handoff. Stdout is only a disposition receipt; it is
-// never a second authority for proposal metadata. See D0_CORE_REDESIGN.md §12.
+// never a second authority for proposal metadata.
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rm } from "node:fs/promises";
+import { mkdir, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import { MODEL_PLAN } from "../../constants.js";
+import { appendPipelineLog } from "../../log.js";
 import { artifactPath } from "../../paths.js";
-import { discoveryBrief, readPrompt, type StageDeps } from "../../pipeline_support.js";
+import { clusterFromLeanSubdir, discoveryBrief, readPrompt, type StageDeps } from "../../pipeline_support.js";
 import type { PipelineContext, StateJson } from "../../types.js";
 import { clusterFor } from "../cluster_setup.js";
 import { CoreSchema } from "../core/schema.js";
@@ -32,12 +33,9 @@ import { proposalGate } from "../framework/gate_registrations.js";
 import { writeJsonAtomic } from "../../shared/json_atomic.js";
 import { stableJson } from "../../shared/stable_json.js";
 import { loadParentEntry } from "../../upgrade.js";
-import {
-  extensionEditBasePath,
-  sealPendingExtensionSource,
-} from "./d0_cross_boundary_rewind.js";
 
-/** Filesystem path for `<qid>_proto_core.json` (the D-1-authored proposal core). */
+/** Filesystem path for `proto_core.json` (the D-1-authored proposal core); a run saved
+ *  under the `<qid>_proto_core.json` name resolves to that file. */
 export function protoCoreJsonPath(ctx: PipelineContext): string {
   return artifactPath(ctx.repoRoot, ctx.qid, "discovery", "proto_core.json", [`${ctx.qid}_proto_core.json`]);
 }
@@ -159,17 +157,6 @@ function authoredMetadataSchema(
       }
     }
     if (!upgrade) return;
-    const expected: Record<string, unknown> = {
-      upgrade_mode: true,
-      parent_qid: upgrade.parent_qid,
-      parent_spec: upgrade.parent_spec,
-      upgrade_axis: upgrade.upgrade_axis,
-    };
-    for (const [key, value] of Object.entries(expected)) {
-      if (metadata[key as keyof typeof metadata] !== value) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [key], message: `must equal ${JSON.stringify(value)}` });
-      }
-    }
     for (const key of ["delta_summary", "reused_bibkeys", "new_bibkeys"] as const) {
       if (metadata[key] === undefined) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: [key], message: "required in upgrade mode" });
@@ -228,7 +215,7 @@ function parseAuthorReceipt(
  * reused keys, all keys present in the current bibliography, reused/new
  * disjoint) and skips only the parent-membership join. Halting an upgrade run
  * over bank-side metadata would make every legacy parent un-upgradable. */
-async function loadParentContract(
+export async function loadParentContract(
   repoRoot: string,
   upgradeFrom: NonNullable<NonNullable<StateJson["proposed_from"]>["upgrade_from"]>,
 ): Promise<{ bibliography: Set<string>; cluster: string } | null> {
@@ -267,6 +254,8 @@ export function assembleNeg1_2AuthorPrompt(parts: {
   contextBlocks?: string;
   modeBlock?: string;
   corePath: string;
+  /** When given, the prompt names the one self-check command to run before the receipt. */
+  mode?: Neg1_2Mode;
 }): string {
   return [
     parts.head,
@@ -278,6 +267,13 @@ export function assembleNeg1_2AuthorPrompt(parts: {
     parts.modeBlock ? `\n${parts.modeBlock}` : "",
     "",
     `Write the typed proposal core JSON to this path (create it): ${parts.corePath}`,
+    ...(parts.mode
+      ? [
+        `Before printing the receipt, run once from the package root: \`${proposalCheckCommand(parts.mode, parts.corePath)}\` — ` +
+        `it reports exactly the structural, schema, TeX and metadata findings the pipeline gate will, so fix what it lists ` +
+        `instead of writing your own jq/sed probes.`,
+      ]
+      : []),
     'Return only the disposition receipt on stdout: {"status":"completed"|"needs-pivot","message":"...","artifacts":["<proto_core.json>"]}. Put all proposal, literature, novelty, and upgrade metadata in the typed proposal core, never in this receipt.',
   ].join("\n");
 }
@@ -334,6 +330,27 @@ function projectStdoutReceipt(stdoutHandoff: Record<string, unknown>): Record<st
   return receipt;
 }
 
+/** Flatten a prose field spelled as a list of strings, or as a one-level record
+ * of strings (`key: text` paragraphs), into one string. Returns null for any
+ * other shape so the caller leaves the value untouched. */
+function flattenProseField(value: unknown): string | null {
+  const text = (v: unknown): string | null =>
+    typeof v === "string" && v.trim().length > 0 ? v.trim() : null;
+  if (Array.isArray(value)) {
+    if (value.length === 0) return null;
+    const parts = value.map(text);
+    return parts.every((p): p is string => p !== null) ? parts.join("\n\n") : null;
+  }
+  if (value === null || typeof value !== "object") return null;
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length === 0) return null;
+  const paragraphs = entries.map(([key, v]) => {
+    const body = text(v);
+    return key.trim().length > 0 && body !== null ? `${key.trim()}: ${body}` : null;
+  });
+  return paragraphs.every((p): p is string => p !== null) ? paragraphs.join("\n\n") : null;
+}
+
 /** Canonicalize harmless model spellings before the typed proposal gate.
  *
  * `IdeationMetadataSchema.seeds` is the compact string catalogue while
@@ -363,6 +380,15 @@ export function canonicalizeAuthoredCoreShape(value: unknown): unknown {
     )
   ) {
     core.seeds = core.seeds.map((seed) => ((seed as Record<string, unknown>).title as string).trim());
+  }
+  // `honest_scope` is a prose string in CoreSchema (rendered as the paper's
+  // "Honest scope" section). Authors asked for a per-result accounting sometimes
+  // spell it as a list of strings or a `{ result: verdict }` record of strings;
+  // those are joined into paragraphs (`key: text`) so every author sentence is
+  // kept verbatim. Any other shape is left for the schema gate to reject loudly.
+  if (core.honest_scope !== undefined && typeof core.honest_scope !== "string") {
+    const flat = flattenProseField(core.honest_scope);
+    if (flat !== null) core.honest_scope = flat;
   }
   if (!Array.isArray(core.assumptions)) return value;
   for (const assumption of core.assumptions) {
@@ -394,6 +420,207 @@ export function canonicalizeAuthoredCoreShape(value: unknown): unknown {
     }
   }
   return value;
+}
+
+/** Run identity, fixed by the orchestrator and stamped onto the authored core. */
+export interface DraftAuditIdentity {
+  qid: string;
+  specialization: string;
+  /** `clusterFor(ctx, state)`; null when the run has no fixed cluster yet. */
+  expectedCluster: string | null | undefined;
+  upgradeFrom: NonNullable<StateJson["proposed_from"]>["upgrade_from"] | undefined;
+  parentContract: { bibliography: Set<string>; cluster: string } | null;
+}
+
+export type DraftAuditFailureKind = "json" | "gate" | "schema" | "escape" | "metadata";
+
+/** The run determines `qid`, `specialization` and `cluster`; the author is not asked
+ * for them. Whatever the draft carries is overwritten from the run context (the
+ * parent's cluster in upgrade mode). Returns the fields whose authored value was
+ * present and different — a sign the draft came from another run. */
+function stampRunIdentity(core: unknown, identity: DraftAuditIdentity): string[] {
+  if (typeof core !== "object" || core === null || Array.isArray(core)) return [];
+  const record = core as Record<string, unknown>;
+  const stamped: Record<string, unknown> = {
+    qid: identity.qid,
+    specialization: identity.specialization,
+    cluster: identity.parentContract?.cluster ?? identity.expectedCluster,
+  };
+  const foreign: string[] = [];
+  for (const [key, value] of Object.entries(stamped)) {
+    if (value === undefined || value === null) continue;
+    if (record[key] !== undefined && record[key] !== value) foreign.push(`${key}=${JSON.stringify(record[key])}`);
+    record[key] = value;
+  }
+  return foreign;
+}
+
+export type DraftAudit =
+  | {
+    ok: true;
+    typedCore: z.infer<typeof CoreSchema>;
+    rawCore: Record<string, unknown>;
+    authoredMetadata: Record<string, unknown>;
+    /** Authored keys with no persistence home (dropped at the persist boundary). */
+    droppedKeys: string[];
+    warnings: string[];
+  }
+  | {
+    ok: false;
+    kind: DraftAuditFailureKind;
+    /** Gate-feedback lines, indented like every other feedback block. */
+    feedback: string;
+    /** The thrown error for `schema` / `escape` (the loop re-throws it on the last attempt). */
+    error?: unknown;
+    warnings: string[];
+  };
+
+/**
+ * The producer-boundary check of an authored draft, in the order the pipeline
+ * applies it: JSON parse + shape canonicalization → run identity stamp → proposal
+ * gate (G1–G7, GP1–GP3) → schema canonicalization → TeX sealability → authored metadata.
+ * One function so the author can run exactly this check itself
+ * (`bin/dneg1_check_draft.ts`) before handing the draft to the pipeline.
+ */
+export function auditAuthoredDraft(args: {
+  rawText: string;
+  draftPath: string;
+  mode: Neg1_2Mode;
+  identity: DraftAuditIdentity;
+  /** `state.proposed_from` seed catalogue a non-cold-start mode may inherit. */
+  inherited?: { seed_list?: unknown; seed_details?: unknown };
+}): DraftAudit {
+  const warnings: string[] = [];
+  let core: unknown;
+  try {
+    // Pre-parse raw-byte normalization: repair under-escaped TeX backslashes
+    // while the raw bytes still distinguish them from intended control escapes.
+    core = JSON.parse(normalizeRawModelJson(args.rawText));
+    core = canonicalizeAuthoredCoreShape(core);
+    const foreign = stampRunIdentity(core, args.identity);
+    if (foreign.length > 0) warnings.push(`[D-1.2] draft carried another run's identity, overwritten: ${foreign.join(", ")}`);
+  } catch (e) {
+    return { ok: false, kind: "json", feedback: `  [JSON] ${args.draftPath}: not valid JSON (${String(e)})`, error: e, warnings };
+  }
+
+  // Proposal gate: G1–G7 + GP1 (tag content) + GP2 (nothing proven) + GP3 (prose
+  // fields present). One call — the prose lives in the core, so there is no second
+  // artifact and no \coreref coverage to check.
+  const gateViolations = runGates([proposalGate], core).hard;
+  if (gateViolations.length > 0) {
+    return { ok: false, kind: "gate", feedback: gateViolations.map((v) => `  ${v.detail}`).join("\n"), warnings };
+  }
+
+  // Schema-validate and canonicalize at the producer boundary. Leaving decoded
+  // JSON control escapes in proto_core makes every later exact-echo comparison
+  // disagree with a solver that correctly re-emits the intended LaTeX.
+  // No .tex is rendered: the proto_core JSON is the sole discovery artifact.
+  let typedCore: z.infer<typeof CoreSchema>;
+  try {
+    typedCore = CoreSchema.parse(core);
+  } catch (e) {
+    return { ok: false, kind: "schema", feedback: `  [SCHEMA] ${e instanceof Error ? e.message : String(e)}`, error: e, warnings };
+  }
+  const { identity } = args;
+  repairCoreLatexSerialization(typedCore);
+  // Backstop: any control character or malformed TeX (unbalanced delimiters /
+  // environments) surviving normalization + repair is an error the model must
+  // fix; feed it back as a re-author round instead of persisting corrupted TeX.
+  try {
+    assertNoDecodedControlChars(typedCore, "Stage -1.2 proposal core");
+    assertSealableLatexPayload(typedCore, "Stage -1.2 proposal core");
+  } catch (e) {
+    return { ok: false, kind: "escape", feedback: `  [ESCAPE] ${e instanceof Error ? e.message : String(e)}`, error: e, warnings };
+  }
+  CoreSchema.parse(typedCore);
+  // Persist the canonicalized core plus ONLY the allowlisted authored metadata
+  // (seeds, literature metadata, upgrade metadata): CoreSchema strips unknown keys,
+  // and both the cold-start harvest and post-interrupt rehydration read those
+  // keys from this object / the persisted file. A blanket raw-core spread would
+  // let the author persist arbitrary non-schema keys that later flow verbatim
+  // into the D-0.5 reviewer prompt (audit finding: prompt injection / payload
+  // bloat), so everything outside the allowlist is dropped at the persist boundary.
+  const rawCore = core as Record<string, unknown>;
+  // Later modes can reuse the validated cold-start seed catalogue. A pivot
+  // sometimes emits a prose diagnostic here; restore the inherited list and
+  // details together so they cannot become a hybrid of two catalogues.
+  // Without both validated components, leave the authored value for feedback.
+  if (args.mode !== "cold-start" && rawCore.seed_details !== undefined && !Array.isArray(rawCore.seed_details)) {
+    const inheritedSeeds = IdeationMetadataSchema.shape.seeds.safeParse(args.inherited?.seed_list);
+    const inheritedDetails = IdeationMetadataSchema.shape.seed_details.safeParse(args.inherited?.seed_details);
+    if (inheritedSeeds.success && inheritedDetails.success) {
+      rawCore.seeds = inheritedSeeds.data;
+      rawCore.seed_details = inheritedDetails.data;
+    }
+  }
+  if (!identity.upgradeFrom) {
+    // Stray upgrade keys outside an upgrade run carry no meaning downstream;
+    // strip them (visibly) instead of failing a core that is otherwise valid.
+    const stray = UPGRADE_CORE_KEYS.filter((key) => rawCore[key] !== undefined);
+    if (stray.length > 0) {
+      warnings.push(`[D-1.2] dropped upgrade metadata authored outside upgrade mode: ${stray.join(", ")}`);
+      for (const key of stray) delete rawCore[key];
+    }
+  }
+  if (identity.upgradeFrom) {
+    // Upgrade provenance is run context, stamped like the run identity.
+    rawCore.upgrade_mode = true;
+    rawCore.parent_qid = identity.upgradeFrom.parent_qid;
+    rawCore.parent_spec = identity.upgradeFrom.parent_spec;
+    rawCore.upgrade_axis = identity.upgradeFrom.upgrade_axis;
+  }
+  const metadataParse = authoredMetadataSchema(identity.upgradeFrom, rawCore, args.mode === "cold-start").safeParse(rawCore);
+  const metadataViolations: string[] = metadataParse.success
+    ? []
+    : metadataParse.error.issues.map((issue) => {
+      // A union failure hides the branch messages (e.g. the substantive-text
+      // refinement) behind "Invalid input"; surface them so the feedback is actionable.
+      const nested = issue.code === z.ZodIssueCode.invalid_union
+        ? issue.unionErrors.flatMap((e) => e.issues.map((i) => i.message))
+        : [];
+      const detail = nested.length > 0 ? `${issue.message} (${[...new Set(nested)].join("; ")})` : issue.message;
+      return `  [METADATA] ${issue.path.join(".")}: ${detail}`;
+    });
+  if (metadataParse.success && identity.parentContract) {
+    // Parent-membership join. Citation TEXT is deliberately not compared: a
+    // reformatted citation under a reused key is not a provenance defect.
+    const parentContract = identity.parentContract;
+    const reused = metadataParse.data.reused_bibkeys ?? [];
+    const added = metadataParse.data.new_bibkeys ?? [];
+    const mislabeledReused = reused.filter((key) => !parentContract.bibliography.has(key));
+    const mislabeledNew = added.filter((key) => parentContract.bibliography.has(key));
+    if (mislabeledReused.length > 0 || mislabeledNew.length > 0) {
+      metadataViolations.push(
+        `  [METADATA] upgrade provenance does not match the banked parent bibliography: ` +
+          `reused-not-parent=[${mislabeledReused.join(", ")}], new-already-parent=[${mislabeledNew.join(", ")}]`,
+      );
+    }
+  }
+  if (metadataViolations.length > 0 || !metadataParse.success) {
+    return { ok: false, kind: "metadata", feedback: metadataViolations.join("\n"), warnings };
+  }
+  const authoredMetadata = metadataParse.data as Record<string, unknown>;
+  const persistedCore: Record<string, unknown> = { ...typedCore, ...authoredMetadata };
+  // Emitted-vs-persisted visibility (computed AFTER the folds so a key with a
+  // persistence home is never falsely reported): the drop is intentional, but
+  // it must never be SILENT — a prompt-mandated field missing from every
+  // allowlist otherwise vanishes here and is only discovered rounds later as
+  // a reviewer <MISSING> (the comparator_promise_table incident).
+  const droppedKeys = Object.keys(rawCore).filter(
+    (key) => !Object.prototype.hasOwnProperty.call(persistedCore, key),
+  );
+  return { ok: true, typedCore, rawCore, authoredMetadata, droppedKeys, warnings };
+}
+
+/** Path where the latest gate-rejected draft is kept for the retry to edit. */
+export function rejectedDraftPath(corePath: string): string {
+  return `${corePath}.rejected`;
+}
+
+/** `cd tools && npm run proposal:check -- …` — the one command that runs
+ * `auditAuthoredDraft` on a draft, printed into the author prompt. */
+export function proposalCheckCommand(mode: Neg1_2Mode, draftPath: string): string {
+  return `cd tools && npm run proposal:check -- --mode ${mode} ${draftPath}`;
 }
 
 /**
@@ -449,19 +676,8 @@ export async function runStageNeg1_2ProtoCore(args: {
   const attemptPath = `${corePath}.next`;
   await mkdir(path.dirname(corePath), { recursive: true });
 
-  // An additive F→D extension is based on the accepted D0 core, which may
-  // contain nodes D0 added after the original proposal. Seal that source before
-  // dispatch and use it for the first draft only; later revisions edit the
-  // immediately prior extension proto in the ordinary way.
-  await sealPendingExtensionSource({ ctx: args.ctx, state: args.state });
-  const editBasePath = extensionEditBasePath({
-    ctx: args.ctx,
-    state: args.state,
-    ordinaryProtoPath: corePath,
-  });
-
   const headName = `stage_neg1_2_proto_head_${args.mode.replace(/-/g, "_")}.txt`;
-  const modeBlock = await modeInputBlock(args.mode, args.state, editBasePath);
+  const modeBlock = await modeInputBlock(args.mode, args.state, corePath);
 
   const basePrompt = assembleNeg1_2AuthorPrompt({
     head: await readPrompt(args.ctx, headName),
@@ -470,6 +686,7 @@ export async function runStageNeg1_2ProtoCore(args: {
     contextBlocks: args.contextBlocks,
     modeBlock,
     corePath: attemptPath,
+    mode: args.mode,
   });
   const upgradeFrom = args.state.pre_d0_intent?.upgrade_from ?? args.state.proposed_from?.upgrade_from ?? args.ctx.upgradeFrom;
   const parentContract = upgradeFrom ? await loadParentContract(args.ctx.repoRoot, upgradeFrom) : null;
@@ -480,22 +697,53 @@ export async function runStageNeg1_2ProtoCore(args: {
   // miss (this is the "fix and re-author" path the gate throw-site names).
   const REAUTHOR_BUDGET = 3;
   let lastGateFeedback = "";
+  // A rejected draft is kept here so the retry edits it instead of re-deriving
+  // the proposal; the gate still judges only what the retry writes to attemptPath.
+  const rejectedPath = rejectedDraftPath(corePath);
+  await rm(rejectedPath, { force: true });
 
   for (let attempt = 1; attempt <= REAUTHOR_BUDGET; attempt++) {
+    // The staging path is fixed, so a leftover from a declined / failed / killed
+    // earlier attempt must never pass for this author's output. A draft this
+    // loop rejected is moved aside for the retry to start from.
+    let hasRejectedDraft = false;
+    if (lastGateFeedback) {
+      try {
+        await rename(attemptPath, rejectedPath);
+        hasRejectedDraft = true;
+      } catch (e) {
+        // No draft from the rejected attempt (it wrote nothing): a kept draft
+        // from an earlier attempt does not match this feedback, so drop it.
+        if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+        await rm(rejectedPath, { force: true });
+      }
+    }
+    await rm(attemptPath, { force: true });
     const prompt = lastGateFeedback
       ? `${basePrompt}\n\n── PRIOR ATTEMPT REJECTED BY THE PROPOSAL GATE ──\n` +
         `Your previous core failed these structural checks:\n${lastGateFeedback}\n` +
-        `Fix every listed structural violation and re-author the COMPLETE corrected core JSON. ` +
+        (hasRejectedDraft
+          ? `Your previous draft is kept at ${rejectedPath}. Start from it: copy it to ${attemptPath} ` +
+            `and edit it to fix the listed violations — do not redo the literature search or re-derive ` +
+            `the proposal. `
+          : `Fix every listed structural violation and re-author the COMPLETE corrected core JSON. `) +
         `Then re-audit the original reviewer flags and orchestrator directives: a structural-gate ` +
         `repair does not discharge or narrow those substantive obligations. Atomic ` +
         `fields (an assumption \`condition\`, formal target/objective expressions) must ` +
         `hold ONLY formal symbolic content — move any explanatory prose into the ` +
         `designated prose/description fields.`
       : basePrompt;
-
-    // The staging path is fixed, so a leftover from a declined / failed / killed
-    // earlier attempt must never pass for this author's output.
-    await rm(attemptPath, { force: true });
+    if (lastGateFeedback) {
+      // Make every gate rejection inspectable from the run record, not only
+      // from inside the next prompt.
+      await appendPipelineLog(args.ctx, {
+        stage: "-1.2",
+        status: "gate-feedback",
+        duration_ms: 0,
+        message: `D-1.2 attempt ${attempt - 1}/${REAUTHOR_BUDGET} (mode=${args.mode}) rejected; ` +
+          `attempt ${attempt} ${hasRejectedDraft ? "edits the kept draft" : "re-authors"}:\n${lastGateFeedback}`,
+      }).catch((err) => console.warn(`[D-1.2] could not log gate feedback: ${String(err)}`));
+    }
     const out = await dispatchAgent({
       ctx: args.ctx,
       deps: args.deps,
@@ -549,12 +797,9 @@ export async function runStageNeg1_2ProtoCore(args: {
       continue;
     }
 
-    let core: unknown;
+    let rawText: string;
     try {
-      // Pre-parse raw-byte normalization: repair under-escaped TeX backslashes
-      // while the raw bytes still distinguish them from intended control escapes.
-      core = JSON.parse(normalizeRawModelJson(await readFile(attemptPath, "utf8")));
-      core = canonicalizeAuthoredCoreShape(core);
+      rawText = await readFile(attemptPath, "utf8");
     } catch (e) {
       if (attempt === REAUTHOR_BUDGET) {
         throw new Error(`Stage -1.2 author wrote a core at ${attemptPath} that is not valid JSON: ${String(e)}`);
@@ -562,143 +807,61 @@ export async function runStageNeg1_2ProtoCore(args: {
       lastGateFeedback = `  [JSON] ${attemptPath}: not valid JSON (${String(e)})`;
       continue;
     }
-
-    // Proposal gate: G1–G7 + GP1 (tag content) + GP2 (nothing proven) + GP3 (prose
-    // fields present). One call — the prose lives in the core, so there is no second
-    // artifact and no \coreref coverage to check.
-    const gateViolations = runGates([proposalGate], core).hard;
-    if (gateViolations.length > 0) {
-      lastGateFeedback = gateViolations.map((v) => `  ${v.detail}`).join("\n");
+    const audit = auditAuthoredDraft({
+      rawText,
+      draftPath: attemptPath,
+      mode: args.mode,
+      identity: {
+        qid: args.ctx.qid,
+        specialization: args.ctx.specialization,
+        expectedCluster: clusterFor(args.ctx, args.state) ?? clusterFromLeanSubdir(args.state.lean_subdir),
+        upgradeFrom,
+        parentContract,
+      },
+      inherited: {
+        seed_list: args.state.proposed_from?.seed_list,
+        seed_details: args.state.proposed_from?.seed_details,
+      },
+    });
+    for (const warning of audit.warnings) {
+      console.warn(warning);
+      if (warning.includes("another run's identity")) {
+        await appendPipelineLog(args.ctx, { stage: "-1.2", status: "identity-stamp", duration_ms: 0, message: warning })
+          .catch((err) => console.warn(`[D-1.2] could not log identity stamp: ${String(err)}`));
+      }
+    }
+    if (!audit.ok) {
+      // A schema failure after the proposal gate passed is a pipeline defect,
+      // not an authoring slip: surface it at once rather than spending a round.
+      if (audit.kind === "schema") throw audit.error;
       if (attempt === REAUTHOR_BUDGET) {
-        throw new Error(
-          `Stage -1.2 author fails the proposal gate after ${REAUTHOR_BUDGET} attempts — last violations:\n${lastGateFeedback}`,
-        );
+        switch (audit.kind) {
+          case "json":
+            throw new Error(`Stage -1.2 author wrote a core at ${attemptPath} that is not valid JSON: ${String(audit.error)}`);
+          case "gate":
+            throw new Error(
+              `Stage -1.2 author fails the proposal gate after ${REAUTHOR_BUDGET} attempts — last violations:\n${audit.feedback}`,
+            );
+          case "escape":
+            throw audit.error;
+          case "metadata":
+            throw new Error(`Stage -1.2 authored metadata is invalid:\n${audit.feedback}`);
+        }
       }
+      lastGateFeedback = audit.feedback;
       continue;
     }
-
-    // Schema-validate and canonicalize at the producer boundary. Leaving decoded
-    // JSON control escapes in proto_core makes every later exact-echo comparison
-    // disagree with a solver that correctly re-emits the intended LaTeX.
-    // No .tex is rendered: the proto_core JSON is the sole discovery artifact.
-    const typedCore = CoreSchema.parse(core);
-    // Run identity and cluster are fixed by the orchestrator (the brief names
-    // them). A mismatch is a model slip the author can correct, so it is fed
-    // back like a gate violation rather than halting the run.
-    const identityViolations: string[] = [];
-    if (typedCore.qid !== args.ctx.qid) {
-      identityViolations.push(`  [IDENTITY] Stage -1.2 authored core qid must equal ${args.ctx.qid}`);
-    }
-    if (typedCore.specialization !== args.ctx.specialization) {
-      identityViolations.push(`  [IDENTITY] Stage -1.2 authored core specialization must equal ${args.ctx.specialization}`);
-    }
-    const expectedCluster = clusterFor(args.ctx, args.state);
-    if (!typedCore.cluster) {
-      identityViolations.push("  [IDENTITY] Stage -1.2 authored core must declare cluster");
-    } else if (expectedCluster && typedCore.cluster !== expectedCluster) {
-      identityViolations.push(`  [IDENTITY] Stage -1.2 authored core cluster must equal run cluster ${expectedCluster}`);
-    } else if (parentContract && typedCore.cluster !== parentContract.cluster) {
-      identityViolations.push(`  [IDENTITY] Stage -1.2 upgrade core cluster must equal parent cluster ${parentContract.cluster}`);
-    }
-    if (identityViolations.length > 0) {
-      if (attempt === REAUTHOR_BUDGET) throw new Error(identityViolations.join("\n").trim());
-      lastGateFeedback = identityViolations.join("\n");
-      continue;
-    }
-    repairCoreLatexSerialization(typedCore);
-    // Backstop: any control character or malformed TeX (unbalanced delimiters /
-    // environments) surviving normalization + repair is an error the model must
-    // fix; feed it back as a re-author round instead of persisting corrupted TeX.
-    try {
-      assertNoDecodedControlChars(typedCore, "Stage -1.2 proposal core");
-      assertSealableLatexPayload(typedCore, "Stage -1.2 proposal core");
-    } catch (e) {
-      if (attempt === REAUTHOR_BUDGET) throw e;
-      lastGateFeedback = `  [ESCAPE] ${e instanceof Error ? e.message : String(e)}`;
-      continue;
-    }
-    CoreSchema.parse(typedCore);
-    // Persist the canonicalized core plus ONLY the allowlisted authored metadata
-    // (seeds, literature metadata, upgrade metadata): CoreSchema strips unknown keys,
-    // and both the cold-start harvest below and post-interrupt rehydration read
-    // those keys from this object / the persisted file. A blanket raw-core spread
-    // would let the author persist arbitrary non-schema keys that later flow
-    // verbatim into the D-0.5 reviewer prompt (audit finding: prompt injection /
-    // payload bloat), so everything outside the allowlist is dropped here.
-    const rawCore = core as Record<string, unknown>;
-    // Later modes can reuse the validated cold-start seed catalogue. A pivot
-    // sometimes emits a prose diagnostic here; restore the inherited list and
-    // details together so they cannot become a hybrid of two catalogues.
-    // Without both validated components, leave the authored value for feedback.
-    if (args.mode !== "cold-start" && rawCore.seed_details !== undefined && !Array.isArray(rawCore.seed_details)) {
-      const inheritedSeeds = IdeationMetadataSchema.shape.seeds.safeParse(args.state.proposed_from?.seed_list);
-      const inheritedDetails = IdeationMetadataSchema.shape.seed_details.safeParse(args.state.proposed_from?.seed_details);
-      if (inheritedSeeds.success && inheritedDetails.success) {
-        rawCore.seeds = inheritedSeeds.data;
-        rawCore.seed_details = inheritedDetails.data;
-      }
-    }
-    if (!upgradeFrom) {
-      // Stray upgrade keys outside an upgrade run carry no meaning downstream;
-      // strip them (visibly) instead of failing a core that is otherwise valid.
-      const stray = UPGRADE_CORE_KEYS.filter((key) => rawCore[key] !== undefined);
-      if (stray.length > 0) {
-        console.warn(`[D-1.2] dropped upgrade metadata authored outside upgrade mode: ${stray.join(", ")}`);
-        for (const key of stray) delete rawCore[key];
-      }
-    }
-    const metadataParse = authoredMetadataSchema(upgradeFrom, rawCore, args.mode === "cold-start").safeParse(rawCore);
-    const metadataViolations: string[] = metadataParse.success
-      ? []
-      : metadataParse.error.issues.map((issue) => {
-        // A union failure hides the branch messages (e.g. the substantive-text
-        // refinement) behind "Invalid input"; surface them so the feedback is actionable.
-        const nested = issue.code === z.ZodIssueCode.invalid_union
-          ? issue.unionErrors.flatMap((e) => e.issues.map((i) => i.message))
-          : [];
-        const detail = nested.length > 0 ? `${issue.message} (${[...new Set(nested)].join("; ")})` : issue.message;
-        return `  [METADATA] ${issue.path.join(".")}: ${detail}`;
-      });
-    if (metadataParse.success && parentContract) {
-      // Parent-membership join. Citation TEXT is deliberately not compared: a
-      // reformatted citation under a reused key is not a provenance defect.
-      const reused = metadataParse.data.reused_bibkeys ?? [];
-      const added = metadataParse.data.new_bibkeys ?? [];
-      const mislabeledReused = reused.filter((key) => !parentContract.bibliography.has(key));
-      const mislabeledNew = added.filter((key) => parentContract.bibliography.has(key));
-      if (mislabeledReused.length > 0 || mislabeledNew.length > 0) {
-        metadataViolations.push(
-          `  [METADATA] upgrade provenance does not match the banked parent bibliography: ` +
-            `reused-not-parent=[${mislabeledReused.join(", ")}], new-already-parent=[${mislabeledNew.join(", ")}]`,
-        );
-      }
-    }
-    if (metadataViolations.length > 0) {
-      const summary = `Stage -1.2 authored metadata is invalid:\n${metadataViolations.join("\n")}`;
-      if (attempt === REAUTHOR_BUDGET) throw new Error(summary);
-      lastGateFeedback = metadataViolations.join("\n");
-      continue;
-    }
-    if (!metadataParse.success) throw new Error("unreachable: metadata violations were handled above");
-    const authoredMetadata = metadataParse.data;
+    const { typedCore, authoredMetadata, droppedKeys } = audit;
     const persistedCore: Record<string, unknown> = { ...typedCore, ...authoredMetadata };
     // The filesystem path is orchestrator-owned and already fixed in the author
     // prompt. Treat stdout only as a disposition/message receipt: a model typo in
     // its echoed path must not reject a valid artifact or leak the deleted staging
-    // path into downstream state. Existence, JSON, gates, schema, and run identity
-    // above are the authority; publish the canonical path deterministically.
+    // path into downstream state. Existence, JSON, gates and schema (the audit
+    // above) are the authority; publish the canonical path deterministically.
     const stdoutHandoff = { ...parsedOut, artifacts: [corePath] };
     // The authored artifact is the sole authority for every reviewer metadata
     // field. The stdout object is merely a disposition/message/artifact receipt:
     // even a well-formed conflicting value must not rewrite validated core data.
-    // Emitted-vs-persisted visibility (computed AFTER the folds so a key with a
-    // persistence home is never falsely reported): the drop is intentional, but
-    // it must never be SILENT — a prompt-mandated field missing from every
-    // allowlist otherwise vanishes here and is only discovered rounds later as
-    // a reviewer <MISSING> (the comparator_promise_table incident).
-    const droppedKeys = Object.keys(rawCore).filter(
-      (key) => !Object.prototype.hasOwnProperty.call(persistedCore, key),
-    );
     if (droppedKeys.length > 0) {
       console.warn(
         `[D-1.2] persist boundary dropped non-schema key(s) from the authored core: ` +
@@ -708,9 +871,10 @@ export async function runStageNeg1_2ProtoCore(args: {
     }
     await writeJsonAtomic(corePath, persistedCore);
     await rm(attemptPath, { force: true });
-    core = persistedCore;
+    await rm(rejectedPath, { force: true });
+    const core: Record<string, unknown> = persistedCore;
 
-    const handoff = mergeCoreHandoff(core as Record<string, unknown>, stdoutHandoff);
+    const handoff = mergeCoreHandoff(core, stdoutHandoff);
 
     return {
       status: "completed",

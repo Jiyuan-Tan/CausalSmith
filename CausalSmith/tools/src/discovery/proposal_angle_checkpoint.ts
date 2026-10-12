@@ -185,7 +185,6 @@ export async function applyProposalAngleAction(
   if (options.action === "give-up") {
     pf.angle_checkpoint = undefined;
     pf.final_verdict = "NO-PASS";
-    pf.pivot_budget_used = angle;
     state.flags.stage_neg1_fallback =
       `D-0.5 angle ${angle} ended by explicit --angle-action give-up: ${checkpoint.reason}`;
     await saveState(options.repoRoot, options.qid, options.specialization, state);
@@ -209,7 +208,6 @@ export async function applyProposalAngleAction(
   pf.current_angle_index = nextAngle;
   pf.current_version = 0;
   pf.current_mode = "pivot";
-  pf.pivot_budget_used = nextAngle;
   resetForProducer(state);
   await saveState(options.repoRoot, options.qid, options.specialization, state);
   return {

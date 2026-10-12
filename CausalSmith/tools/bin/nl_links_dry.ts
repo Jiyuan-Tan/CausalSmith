@@ -4,8 +4,8 @@
  *
  * Runs every FREE pass of the sub-step — selection, block extraction, Lean
  * pieces and their reference closure, both prompt renderings, the cache read
- * side, the artifact read side — against real bundle data, with a runCodex that
- * throws if anything tries to spend a call. Exits nonzero on any error or
+ * side, the artifact read side — against real bundle data, with no model runner
+ * in scope. Exits nonzero on any error or
  * extraction failure, so an operator learns about a bundle shape the sub-step
  * cannot handle BEFORE paying for a run rather than halfway through one.
  *

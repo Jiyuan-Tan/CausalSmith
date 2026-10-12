@@ -354,4 +354,54 @@ lemma densityAffinity_pi
   exact MeasureTheory.integral_fintype_prod_eq_prod
     (fun i u => Real.sqrt (f i u * g i u))
 
+/-- Given [a finite coordinate type](hyp:ι), [measurable coordinate spaces](hyp:E),
+[sigma-finite coordinate measures](hyp:μ), [two coordinatewise families of
+densities](hyp:f,g), [integrability of both families](hyp:hf,hg), [pointwise
+nonnegativity of both families](hyp:hf0,hg0), and [unit integral of every density in
+both families](hyp:hf1,hg1), [the squared Hellinger discrepancy between the two product
+densities is at most the sum of the coordinate discrepancies](goal). -/
+lemma hellingerSqDensity_pi_le_sum
+    {ι : Type*} [Fintype ι] {E : ι → Type*} [∀ i, MeasurableSpace (E i)]
+    (μ : ∀ i, Measure (E i)) [∀ i, SigmaFinite (μ i)]
+    (f g : ∀ i, E i → ℝ)
+    (hf : ∀ i, Integrable (f i) (μ i)) (hg : ∀ i, Integrable (g i) (μ i))
+    (hf0 : ∀ i x, 0 ≤ f i x) (hg0 : ∀ i x, 0 ≤ g i x)
+    (hf1 : ∀ i, ∫ x, f i x ∂μ i = 1) (hg1 : ∀ i, ∫ x, g i x ∂μ i = 1) :
+    hellingerSqDensity (Measure.pi μ)
+        (fun x : ∀ i, E i => ∏ i, f i (x i))
+        (fun x => ∏ i, g i (x i)) ≤
+      ∑ i, hellingerSqDensity (μ i) (f i) (g i) := by
+  have hFp : Integrable (fun x : ∀ i, E i => ∏ i, f i (x i)) (Measure.pi μ) :=
+    Integrable.fintype_prod_dep hf
+  have hGp : Integrable (fun x : ∀ i, E i => ∏ i, g i (x i)) (Measure.pi μ) :=
+    Integrable.fintype_prod_dep hg
+  have hF0 : ∀ x : ∀ i, E i, 0 ≤ ∏ i, f i (x i) :=
+    fun x => Finset.prod_nonneg (fun i _ => hf0 i (x i))
+  have hG0 : ∀ x : ∀ i, E i, 0 ≤ ∏ i, g i (x i) :=
+    fun x => Finset.prod_nonneg (fun i _ => hg0 i (x i))
+  have hF1 : (∫ x : ∀ i, E i, ∏ i, f i (x i) ∂Measure.pi μ) = 1 := by
+    rw [integral_fintype_prod_eq_prod]
+    simp [hf1]
+  have hG1 : (∫ x : ∀ i, E i, ∏ i, g i (x i) ∂Measure.pi μ) = 1 := by
+    rw [integral_fintype_prod_eq_prod]
+    simp [hg1]
+  have hE (i : ι) :
+      hellingerSqDensity (μ i) (f i) (g i) =
+        2 * (1 - densityAffinity (μ i) (f i) (g i)) :=
+    hellingerSqDensity_eq_two_mul_one_sub_affinity
+      (μ i) (f i) (g i) (hf i) (hg i) (hf0 i) (hg0 i) (hf1 i) (hg1 i)
+  have ha0 (i : ι) : 0 ≤ densityAffinity (μ i) (f i) (g i) :=
+    integral_nonneg (fun _ => Real.sqrt_nonneg _)
+  have ha1 (i : ι) : densityAffinity (μ i) (f i) (g i) ≤ 1 := by
+    have hn : 0 ≤ hellingerSqDensity (μ i) (f i) (g i) :=
+      integral_nonneg (fun _ => sq_nonneg _)
+    rw [hE i] at hn
+    linarith
+  rw [hellingerSqDensity_eq_two_mul_one_sub_affinity
+    (Measure.pi μ) _ _ hFp hGp hF0 hG0 hF1 hG1]
+  rw [densityAffinity_pi μ f g hf0 hg0]
+  simp_rw [hE]
+  rw [← Finset.mul_sum]
+  exact mul_le_mul_of_nonneg_left (one_sub_prod_le_sum _ ha0 ha1) (by norm_num)
+
 end Causalean.Stat

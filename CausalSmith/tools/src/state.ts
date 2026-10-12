@@ -16,22 +16,17 @@ import { normalizeNoveltyTarget } from "./novelty.js";
 const stageSchema = z.enum(STAGE_ORDER);
 
 /**
- * Legacy stage labels accepted on read for backward compatibility. The Stage -1
- * → -1.2 rename (with a new Stage -1.1 inserted before it) made any state file
- * written by an older pipeline carry `stage_completed: "-1"`; the retired F3.7
- * slot made some carry `"3.7"`. Normalize on load so in-flight runs can resume
- * after upgrade without manual editing. New states always use the new labels.
+ * Legacy stage labels accepted on read: banked state files written before the
+ * proposer stage was labelled `"-1.2"` carry `stage_completed: "-1"`. Normalized
+ * on load; states are always saved with the current labels.
  */
 const LEGACY_STAGE_REMAP: Record<string, (typeof STAGE_ORDER)[number]> = {
   "-1": "-1.2",
-  // An old F3.7 completion was immediately followed by F4. Map it to its
-  // predecessor so `nextStage` resumes at F4 after the retired slot disappears.
-  "3.7": "3.5",
 };
 
 /**
  * Legacy-aware stage schema: remaps old stage strings to new ones, then parses
- * the result as a valid stage. Used in both top-level and per-theorem entries.
+ * the result as a valid stage.
  */
 const legacyAwareStageSchema = z
   .union([stageSchema, z.string()])
@@ -49,19 +44,6 @@ const gapsSchema = z
     status: z.enum(["completed", "needs-pivot"]),
   })
   .passthrough();
-
-const pendingSorrySchema = z.object({
-  file: z.string(),
-  line: z.number().int().nonnegative(),
-  label: z.string().optional(),
-  goal: z.string().optional(),
-  suggestions: z.array(z.string()).optional(),
-  // Per-sorry convergence memory (Stage 3); all optional + backward compatible.
-  track: z.union([z.enum(["1", "2", "3", "4", "5"]), z.null()]).optional(),
-  attempts: z.number().int().nonnegative().optional(),
-  escalations: z.number().int().nonnegative().optional(),
-  bursted: z.boolean().optional(),
-}).passthrough();
 
 /** One cited node's F2.5/F4 source-match verdict, persisted so `bankEntry` can enforce it. */
 const citedCheckSchema = z.object({
@@ -92,13 +74,11 @@ const deliveryReviewReceiptSchema = z.object({
 const addedAssumptionSchema = z.object({
   label: z.string(),
   statement: z.string(),
-  user_approved: z.boolean().optional(),
   source: z.string().optional(),
   anchor: z.string().optional(),
   classification: z
     .enum(["faithful-refinement", "regularity-bookkeeping", "substrate-gate"])
     .optional(),
-  reviewed: z.boolean().optional(),
 }).passthrough();
 
 const missingItemSchema = z.object({
@@ -110,33 +90,8 @@ const missingItemSchema = z.object({
   suggested_location: z.string().optional(),
 }).passthrough();
 
-const loopSchema = z.enum(["research", "study"]);
-const lineageSchema = z
-  .object({
-    parent_run_id: z.string().optional(),
-    parent_kind: loopSchema.optional(),
-  })
-  .passthrough();
-
-const theoremEntrySchema = z.object({
-  theorem_local_id: z.string(),
-  origin_theorem_id: z.string(),
-  statement: z.string(),
-  proof_sketch: z.string().nullable(),
-  status: z.enum(["pending", "in_progress", "completed", "stuck", "failed"]),
-  stage_completed: legacyAwareStageSchema.nullable(),
-  lean_file_relpath: z.string().nullable(),
-  failure_reason: z.string().optional(),
-  lean_decl_name: z.string().optional(),
-  bt_id: z.string().optional(),
-  /**
-   * Set by `mintFailedTheoremOpenQuestion` at bank time on `status: "failed"`
-   * entries. Points to the OpenQuestion node minted at
-   * `doc/study/nodes/open_question/<minted_oq_id>.json`.
-   */
-  minted_oq_id: z.string().optional(),
-}).passthrough();
-
+// Every object level below that carries run data is `.passthrough()`: a key this schema does
+// not declare (one written by an earlier pipeline) loads and re-saves untouched.
 export const stateSchema = z
   .object({
     stage_completed: legacyAwareStageSchema,
@@ -149,7 +104,6 @@ export const stateSchema = z
     // with pre-rename state files (whose spec is still in their filename).
     qid: z.string().optional(),
     specialization: z.string().optional(),
-    pending_sorries: z.array(pendingSorrySchema).default([]),
     design_decisions: z.record(z.string()).default({}),
     added_assumptions: z.array(addedAssumptionSchema).default([]),
     /**
@@ -164,41 +118,14 @@ export const stateSchema = z
     cited_checks: z.array(citedCheckSchema).default([]),
     cited_review_receipts: z.array(citedReviewReceiptSchema).default([]),
     delivery_review_receipts: z.array(deliveryReviewReceiptSchema).default([]),
-    // Phase 2 additions; all optional + backward compatible.
-    loop: loopSchema.default("research"),
     // `--auto`: persisted autonomy flag (see SharedState.auto_mode).
     auto_mode: z.boolean().default(false),
-    next_action: z.union([z.string(), z.null()]).default(null),
-    lineage: z.union([lineageSchema, z.null()]).default(null),
-    // Phase 3 additions; all optional + backward compatible.
-    from_question_oq_id: z.union([z.string(), z.null()]).default(null),
-    method_id: z.union([z.string(), z.null()]).default(null),
-    closed_oq: z
-      .union([
-        z
-          .object({ oq_id: z.string(), bt_id: z.string() })
-          .passthrough(),
-        z.null(),
-      ])
-      .default(null),
     gaps: gapsSchema.optional(),
     flags: z.object({
-      rewound_from_stage0: z.string().nullable().optional(),
-      rewound_from_stage4d: z.string().nullable().optional(),
-      rewound_from_stage0_5_pivot: z.string().nullable().optional(),
       stage_neg1_fallback: z.string().nullable().optional(),
-      local_fix_from_4d: z.boolean().default(false),
       missing_architecture: z.boolean().default(false),
       missing_architecture_items: z.array(missingItemSchema).optional(),
-      theorem_splits: z.number().int().nonnegative().optional(),
       scaffold_redirect: z.string().nullable().optional(),
-      scaffold_redirect_count: z.number().int().nonnegative().optional(),
-      scaffold_redirect_cap_hit: z.string().optional(),
-      // Post-pivot F-era retirement markers (see types.ts): set together by a stage_neg1
-      // pivot; F1 clears its own once a new-angle plan is on disk, F2 clears its own on
-      // the first completed post-pivot scaffold.
-      f1_plan_retired: z.boolean().optional(),
-      f2_scaffold_retired: z.boolean().optional(),
       // Proof-review loop iteration budgets — persisted so a `--resume` cannot silently
       // hand the loop a fresh budget (see types.ts).
       proof_loop_counters: z
@@ -235,21 +162,6 @@ export const stateSchema = z
         .optional(),
       d0_loop_cap_hit: z.string().optional(),
       d0_directives_consumed: z.number().int().nonnegative().optional(),
-      // Typed cross-boundary D0 rewind receipt.  It distinguishes a local
-      // re-solve from an additive proposal extension and an explicit paper
-      // replacement; D0 consumes the first two fail-closed.
-      d0_cross_boundary_rewind: z
-        .object({
-          intent: z.enum(["incremental_repair", "extension", "replacement"]),
-          status: z.enum(["pending", "rebased", "retired"]),
-          source_stage: stageSchema,
-          source_revision: z.string(),
-          reason: z.string(),
-          source_core_sha256: z.string().optional(),
-          source_ids: z.array(z.string()).optional(),
-        })
-        .optional(),
-      stage0_rewind_intent_required: z.string().optional(),
       neg1_env_failure_retries: z.number().int().nonnegative().optional(),
       proof_review_escalation_pending: z
         .object({
@@ -258,35 +170,10 @@ export const stateSchema = z
         })
         .nullable()
         .default(null),
-      // D0.5.G cold-referee below-floor-not-salvageable halt reason.
-      general_review_halt: z.string().nullable().optional(),
-      // Build-first substrate seam (F1.5→F2): set by F1 on needs-new-infrastructure;
-      // blocks --resume until the orchestrator builds the crux substrate + reruns F1.
-      substrate_build_required: z.string().nullable().optional(),
-      // Substrate-built channel (build→F1): orchestrator records the freshly-built
-      // 0-sorry Causalean decl(s) here; F1 reads it as a discharge directive for the
-      // matching gate node(s) and the gate is cleared once consumed.
-      substrate_built: z
-        .array(
-          z.object({
-            gate_id: z.string(),
-            decl_name: z.string(),
-            module: z.string(),
-            nl_statement: z.string(),
-          }),
-        )
-        .nullable()
-        .optional(),
       // D0.5.G directed-reroute counter (below-floor but bounded-fix salvageable →
       // re-run D0 with the directive); gated on GENERAL_REROUTE_CAP in runStage0_5Typed,
       // so a stuck topic stops being offered re-solves. Persisted across `--resume`.
       general_reroute_count: z.number().int().nonnegative().optional(),
-      // D0.R loop: operator injection (cleared after use), flagship-upside counter,
-      // and best-note-by-tier tracking (deliverable = best, not last).
-      d0r_human_directive: z.string().nullable().optional(),
-      d0r_flagship_rounds: z.number().int().nonnegative().optional(),
-      d0r_best_tier: z.string().nullable().optional(),
-      d0r_best_note_path: z.string().nullable().optional(),
       // F3 phase-B proof-fill directive (build→resume): a load-bearing PROOF hint the
       // orchestrator injects for the filler (lemma names / tactic strategy / Mathlib API)
       // when the fill loop is stuck. Loop-wide + persistent — injected into every filler
@@ -296,27 +183,11 @@ export const stateSchema = z
       f3_filler_directive: z.string().nullable().optional(),
       // Persistent orchestrator SCAFFOLD directive for F2 (analogue of `f3_filler_directive`):
       // read by `runStage2` on every scaffold/revise pass and injected verbatim as a
-      // top-priority faithfulness constraint. Unlike `scaffold_redirect` (one-shot, capped,
+      // top-priority faithfulness constraint. Unlike `scaffold_redirect` (one-shot,
       // self-clearing, review-loop-driven) this PERSISTS across resumes until the orchestrator
       // clears it (via `bin/f2_directive.ts`). A faithfulness/statement-shape steer only — the
       // F2.5 review + anti-laundering gates still apply.
       f2_scaffold_directive: z.string().nullable().optional(),
-      // Statement-correction rewind (over-precise headline → standard true form).
-      statement_correction_directive: z.string().nullable().optional(),
-      source_rewind: z
-        .object({
-          status: z.string(),
-          command_ts: z.string().optional(),
-          target: z.string().optional(),
-          subtype: z.string().optional(),
-          reentry_stage: z.string().optional(),
-          reentry_mode: z.string().optional(),
-          dirty_nodes: z.array(z.string()).default([]),
-          review_scope: z.string().optional(),
-          f2_revised_at: z.string().optional(),
-        })
-        .optional(),
-      stage0_too_many_conjectures: z.string().optional(),
     }).passthrough(),
     proposed_from: z
       .object({
@@ -334,7 +205,6 @@ export const stateSchema = z
             "relative-to-literature",
           ])
           .transform((v) => normalizeNoveltyTarget(v)!),
-        pivot_budget_used: z.number().int().nonnegative(),
         // Nullable so manual state edits can clear the verdict between
         // resume attempts (e.g. operator wants to re-run D0 without
         // re-running D-0.5 on the same proposal). Live writers only emit
@@ -427,42 +297,22 @@ export const stateSchema = z
         scout_refresh: z.boolean().optional(),
       })
       .optional(),
-    theorems: z.array(theoremEntrySchema).optional(),
-    current_theorem_index: z.number().int().min(0).optional(),
   })
   .passthrough()
-  .transform((raw) => {
-    const copy = { ...raw } as Record<string, unknown>;
-    delete copy.ckpt_pending;
-    if (copy.flags && typeof copy.flags === "object") {
-      delete (copy.flags as Record<string, unknown>).bucket_a_blocked;
-    }
-    return copy as unknown as StateJson;
-  });
+  .transform((raw) => raw as unknown as StateJson);
 
 export function createInitialState(qid: string): StateJson {
   return {
     stage_completed: "-1.2",
     lean_subdir: canonicalLeanSubdir(qid),
-    pending_sorries: [],
     design_decisions: {},
     added_assumptions: [],
     cited_checks: [],
     delivery_review_receipts: [],
-    loop: "research",
-    next_action: null,
-    lineage: null,
-    from_question_oq_id: null,
-    method_id: null,
-    closed_oq: null,
     flags: {
-      rewound_from_stage0: null,
-      rewound_from_stage4d: null,
-      local_fix_from_4d: false,
       missing_architecture: false,
       scaffold_redirect: null,
       f2_scaffold_directive: null,
-      scaffold_redirect_count: 0,
       d0_loop_counters: { solve_rounds: 0, revise_rounds: 0, consistency_heals: 0 },
       proof_review_escalation_pending: null,
     },

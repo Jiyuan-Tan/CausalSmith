@@ -43,8 +43,6 @@ export interface PaperDeps {
     model?: string;
     /** Narrow this call to a read-only or cwd-scoped writable sandbox. */
     sandboxMode?: "read-only" | "workspace-write";
-    /** Codex native sub-agents — default-off (opt-in); set true only for a lone low-concurrency call whose prompt uses spawn_agent (see CodexRunInput.multiAgent). */
-    multiAgent?: boolean;
     /** Exact cumulative usage from this Codex session, including native subagents. */
     onUsage?: (usage: ModelTokenUsage) => void;
     /** Strict JSON Schema for the reply (see CodexRunInput.outputSchema). */
@@ -65,8 +63,8 @@ export interface PaperCtx {
    * hand-revision halt are unchanged. */
   auto?: boolean;
   stopAfter?: PaperStage;
-  /** Re-enter the pipeline at this stage (e.g. `--from P4` to re-emit + re-review
-   * after the orchestrator edits paper.tex per the P5 referee report). Loads
+  /** Re-enter the pipeline at this stage (e.g. `--from P2` to reassemble, re-emit and
+   * re-review after the orchestrator hand-revises the authored sources). Loads
    * prior state and runs forward from here, ignoring stage_completed. */
   from?: PaperStage;
   /** Output dir override (tests MUST set this — the default is the live run dir). */
@@ -133,7 +131,7 @@ export async function runPaperPipeline(ctx: PaperCtx): Promise<{ halt: string }>
   let bank = await loadBankEntry(ctx.repoRoot, ctx.qid, ctx.spec);
   const prior = await loadPaperState(outDir, ctx.qid, ctx.spec);
   // A bundle with recorded state is continued, never silently restarted: a fresh state would
-  // discard the promotion budget, the P5 pass count and every note, and re-pay P0.
+  // discard the promotion budget and every note, and re-pay P0.
   if (prior && !ctx.resume && !ctx.from && !ctx.auto && !ctx.deps.dryRun) {
     throw new Error(
       `presentation state for ${ctx.qid}/${ctx.spec} already exists (stage_completed ${prior.stage_completed ?? "none"}): ` +
@@ -241,8 +239,7 @@ export async function runPaperPipeline(ctx: PaperCtx): Promise<{ halt: string }>
   }
   // The referee's findings are the orchestrator's to fix by hand: a review that is not a clean
   // accept halts with its routing plan (fix-by-hand / adjudication / user-scope) already written
-  // by P5. There is no unattended reviser pass — on three papers hand rounds moved the score and
-  // the reviser never did (2026-09-10).
+  // by P5. Hand rounds are what move the score (measured on three papers, 2026-09-10).
   if (!ctx.deps.dryRun) {
     const review = await loadPriorReview(outDir);
     if (review && !(review.recommendation === "accept" && review.findings.length === 0)) {

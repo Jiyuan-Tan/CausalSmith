@@ -1,5 +1,5 @@
 // Typed schema for the D0 "core" — the machine-checkable logical skeleton of a
-// theorem note (see CausalSmith/doc/research/D0_CORE_REDESIGN.md §3).
+// theorem note.
 //
 // `proto_core` (the D-1 subset) and `core` (the D0 extension) share this one
 // schema; the difference is enforced by the structural gate (gate.ts), not by a
@@ -7,24 +7,6 @@
 // every stage binds to it, so changing a producer never re-tests a consumer as
 // long as the file still validates.
 import { z } from "zod";
-
-// SUGGESTED assumption-kind tags (NOT a closed enum — `assumption.kind` is a
-// free-form optional string, since the space of real assumption kinds is open).
-// These are example labels an author may reuse for skimmability; any other tag is
-// equally valid. Nothing consumes `kind` mechanically.
-export const SUGGESTED_ASSUMPTION_KINDS = [
-  "causal-structural", // consistency, (conditional) ignorability/exchangeability, SUTVA
-  "support", // positivity, overlap, boundedness
-  "tail-rate", // overlap decay / margin
-  "smoothness", // Hölder / boundary extrapolation
-  "empirical-process", // Lindeberg / concentration
-  "regularity", // measurability / integrability
-  "exclusion", // IV exclusion / mean-independence
-  "monotonicity", // LATE monotonicity / MTR
-  "shape-restriction", // MTR / MTS / MIV
-  "sensitivity", // bounded log-odds / marginal sensitivity Λ
-  "rank", // rank / identification / Panel basis conditions
-] as const;
 
 // `openendedquestion` is the first-class OPEN/CONSTRUCT-question kind: it poses a
 // question + a HANDLE (technique + target object), and the SOLVER derives the
@@ -65,8 +47,7 @@ export const NovelTagSchema = z.object({ flag: z.literal(true), justification: z
  * `open_object` is the OEQ it surfaces; `separate_object` justifies that A constrains a SEPARATE
  * object (a functional property / an estimator-/nuisance-side rate) and NOT the target estimand's
  * own asymptotics at the conclusion scale — the D0.5 math referee re-checks this and flags
- * `maintained_is_crux` (BLOCKING) if it fails. A `maintained`-dependent headline is CONDITIONAL and
- * tier-capped one notch (never flagship). */
+ * `maintained_is_crux` (BLOCKING) if it fails. A `maintained`-dependent headline is CONDITIONAL. */
 export const MaintainedTagSchema = z.object({
   flag: z.literal(true),
   reason: z.string(),
@@ -80,7 +61,7 @@ export const MaintainedTagSchema = z.object({
 export const AssumptionSchema = z
   .object({
     id: z.string().regex(idRe("ass")),
-    kind: z.string().optional(), // free-form tag (open set); see SUGGESTED_ASSUMPTION_KINDS
+    kind: z.string().optional(), // free-form tag (open set); nothing consumes it mechanically
     condition: z.string(),
     // `.optional()`, NOT `.default([])` — the same load-bearing distinction as on
     // StatementSchema/DefinitionSchema below. `undefined` = NEVER DECLARED = "may use any
@@ -207,12 +188,12 @@ export const StatementSchema = z
     // Consumed by `vcs/validity.contentClosure`.
     free_symbols: z.array(z.string()).optional(),
     depends_on: z.array(z.string()).default([]),
-    route: z.string().optional(), // proof strategy — D0-CORE fills (statement + strategy)
+    route: z.string().optional(), // proof strategy
     // JSON-producing agents commonly spell an inapplicable optional field as
     // `null`.  For cited leaves the citation is the justification, so normalize
     // that representation to the canonical absence used by the rest of the
     // pipeline.  Non-null, non-string values remain validation errors.
-    proof_tex: z.preprocess((value) => value === null ? undefined : value, z.string().optional()), // D0-PROVE fills; absent at CORE time
+    proof_tex: z.preprocess((value) => value === null ? undefined : value, z.string().optional()), // the D0 solver fills; absent on a proposal
     // `cited` = a result the note INVOKES rather than DERIVES (a published theorem
     // we use for completeness). Its justification IS the citation, so it is NOT
     // `proved` by us — marking such a result `proved` (with the citation as its
@@ -285,12 +266,11 @@ export const StatementSchema = z
     },
   )
   .refine(
-    // The id PREFIX and the `kind` were validated independently, so `{id:"thm:headline",
-    // kind:"lemma"}` was accepted. That is not cosmetic: reachability keys on `kind`, not
-    // on the prefix. Non-lemma nodes are roots (stage0_working.ts:369) and unreachable
-    // `kind:"lemma"` nodes are PRUNED (stage0_working.ts:398), so a headline mislabelled
-    // as a lemma is silently deleted from the core; the re-derive frontier keys on `kind`
-    // the same way (stage0_solve.ts:746).
+    // The id PREFIX and the `kind` are validated independently, so without this refine
+    // `{id:"thm:headline", kind:"lemma"}` is accepted. That is not cosmetic: reachability
+    // keys on `kind`, not on the prefix. Non-lemma nodes are roots and unreachable
+    // `kind:"lemma"` nodes are PRUNED (`vcs/hygiene.ts::orphanLemmas`), so a headline
+    // mislabelled as a lemma is silently deleted from the core.
     //
     // Deliberately NARROW rather than a prefix↔kind bijection. A bijection would outlaw a
     // legitimate pattern: `thm:` with kind `conjecture`, a conjectured headline posed at
@@ -308,16 +288,14 @@ export const StatementSchema = z
     {
       message:
         "a thm:/prop:/oeq:/conj: node must not have kind `lemma` — orphan-pruning keys on `kind` and " +
-        "DELETES unreferenced lemmas (stage0_working.ts:398), so a headline mislabelled this way is " +
+        "DELETES unreferenced lemmas, so a headline mislabelled this way is " +
         "silently removed from the core. Give it its real kind, or use a lem: id.",
     },
   );
 
 export const BibEntrySchema = z.object({ key: z.string(), citation: z.string().optional() });
 
-/** SC6's auditable mapping from published comparator claims to proposal nodes.
- * Both top-level spellings remain supported because early proto producers used
- * `comparator_promises`; new prompts emit `comparator_promise_table`. */
+/** The auditable mapping from published comparator claims to proposal nodes. */
 export const ComparatorPromiseSchema = z.object({
   comparator_bibkey: z.string().min(1),
   comparator_claim: z.string().min(1),
@@ -331,7 +309,6 @@ export const ComparatorPromiseSchema = z.object({
     "dropped_from_abstract",
   ]),
 });
-export type ComparatorPromise = z.infer<typeof ComparatorPromiseSchema>;
 
 /** The project-level justification (replaces a free-prose intro): the literature
  * GAP, the NICHE that gap opens, and how this project FILLS it. */
@@ -378,7 +355,6 @@ export const CoreSchema = z.object({
   target_estimand: z.string(),
   bibliography: z.array(BibEntrySchema).default([]),
   comparator_promise_table: z.array(ComparatorPromiseSchema).optional(),
-  comparator_promises: z.array(ComparatorPromiseSchema).optional(),
   // Proposal-specific executable artifacts. These are deliberately typed as
   // JSON containers rather than flattened into prose: D-0.5 must inspect the
   // exact rule table and regression records that proposal definitions name.
@@ -387,7 +363,7 @@ export const CoreSchema = z.object({
   fixtures: z.array(z.record(z.unknown())).optional(),
   // Top-level prose (motivation/narrative). Optional so a D0 core validates without
   // them; the PROPOSAL gate (GP3) requires tldr/project_justification/related_work at
-  // D-1, and D0-CORE may fill project_justification/related_work/interpretation for its
+  // D-1, and D0 may fill project_justification/related_work/interpretation for its
   // rendered note. All rendered deterministically — no separate prose/render agent.
   tldr: z.string().optional(), // a one-paragraph summary of the whole proposal
   project_justification: ProjectJustificationSchema.optional(), // gap → niche → fill
@@ -421,7 +397,6 @@ export const CoreSchema = z.object({
   );
 
 export type CoreSymbol = z.infer<typeof SymbolSchema>;
-export type CitedSource = z.infer<typeof CitedSourceSchema>;
 export type CoreAssumption = z.infer<typeof AssumptionSchema>;
 export type CoreDefinition = z.infer<typeof DefinitionSchema>;
 export type CoreStatement = z.infer<typeof StatementSchema>;

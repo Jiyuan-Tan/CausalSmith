@@ -1164,11 +1164,3 @@ export function structureRecordSource(rawSource: string): StructuredStatement | 
     conclusion: [],
   };
 }
-
-/** Dispatches to the theorem/lemma or structure/class parser by decl kind. */
-export function structureDeclSource(rawSource: string, kind: string): StructuredStatement | null {
-  if (kind === "theorem" || kind === "lemma") return structureTheoremSource(rawSource);
-  if (kind === "structure" || kind === "class") return structureRecordSource(rawSource);
-  return null;
-}
-

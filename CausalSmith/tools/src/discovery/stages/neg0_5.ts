@@ -1,10 +1,7 @@
 // Discovery Stage -0.5 (proposal reviewer + angle/revise/pivot loop).
 // Extracted from pipeline_stages.ts in Step 2.2 of the three-submodules refactor.
 
-import path from "node:path";
-import { readdir, readFile } from "node:fs/promises";
 import { MODEL_PLAN } from "../../constants.js";
-import { formalizationDir, resolveInDir } from "../../paths.js";
 import { saveState } from "../../state.js";
 import type { PipelineContext, StageResult, StateJson } from "../../types.js";
 import {
@@ -14,8 +11,7 @@ import {
   readPrompt,
   type StageDeps,
 } from "../../pipeline_support.js";
-import { tierFloorBlock } from "../../pipeline_stages.js";
-import type { NoveltyTarget } from "../../novelty.js";
+import { normalizeReviewerTier, tierFloorBlock, type NoveltyTarget } from "../../novelty.js";
 import {
   runStageNeg1_2,
   logNeg1Review,
@@ -34,10 +30,9 @@ import {
 } from "./neg0_5_decision.js";
 import { renderRefereeTemplate, runReferee } from "../framework/referee.js";
 import { parseRepairedModelJson } from "../core/core_io.js";
-import { legacyCrossBoundaryRewindGuard } from "./d0_cross_boundary_rewind.js";
 
 /**
- * Single-artifact review block for the D-0.5 reviewer (D0_CORE_REDESIGN.md §12.5).
+ * Single-artifact review block for the D-0.5 reviewer.
  *
  * The reviewer judges ONE artifact: the typed proto_core (the authoritative
  * formal content and prose), inlined canonically. Its absence is a plumbing
@@ -48,10 +43,7 @@ export async function buildProtoCoreReviewBlock(ctx: PipelineContext): Promise<s
   if (!src) {
     // Single-artifact regime: the proto core IS the proposal, and the producer
     // either writes it or halts before the review boundary. Its absence here is
-    // a plumbing failure, never a review verdict. (The legacy monolithic-.tex
-    // review path this used to fall back to was removed in the 2026-07-31
-    // dead-code sweep — it had been unreachable since the single-artifact
-    // rollout, and its rubric referenced a prompt file that no longer exists.)
+    // a plumbing failure, never a review verdict, and there is no .tex fallback.
     throw new Error(
       `D-0.5 cannot review: proto_core.json is absent or empty at ${protoCoreJsonPath(ctx)}. ` +
         `Re-run the D-1.2 producer before the review boundary.`,
@@ -135,15 +127,6 @@ export async function runStageNeg0_5(args: {
   state: StateJson;
   deps: StageDeps;
 }): Promise<StageResult> {
-  const legacyRewindBlock = legacyCrossBoundaryRewindGuard(args.state);
-  if (legacyRewindBlock) {
-    return {
-      stage: "-0.5",
-      status: "checkpoint",
-      advance: false,
-      message: legacyRewindBlock,
-    };
-  }
   // Stage -0.5 runs whenever the state carries a `proposed_from` record,
   // regardless of whether --propose was passed on this invocation. This makes
   // resumes after a programmatic rewind (e.g. Stage 0.5 boundary routing back
@@ -165,13 +148,10 @@ export async function runStageNeg0_5(args: {
   const paths = artifactPaths(args.ctx, args.state);
   const currentProposalArtifact = (): string => protoCoreJsonPath(args.ctx);
   // The flagship rubric (regime axes (a)–(j), soft tier-movers, hard caps) is
-  // a single shared block injected into BOTH the -0.5 and 0.5 reviewers so the
-  // two stages key off the same definitions (prevents the proposal/derivation
-  // calibration drift). The review prompt keeps only its stage-specific routing.
-  // Single-artifact regime: the self-contained core reviewer rubric, always —
-  // the legacy monolithic-.tex rubric (and the per-attempt rubric re-resolution
-  // that kept the two from mismatching mid-loop) was removed in the 2026-07-31
-  // dead-code sweep; the producer either writes the core or halts pre-review.
+  // the proposal reviewer's standard, kept as its own block so the review
+  // prompt holds only the stage-specific routing.
+  // Single-artifact regime: the self-contained core reviewer rubric, always,
+  // resolved once per loop; the producer either writes the core or halts pre-review.
   const reviewPromptOnce = (async () => {
     const [neg1ReviewBody, flagshipRubric] = await Promise.all([
       readPrompt(args.ctx, "stage_neg1_review_core.txt"),
@@ -181,16 +161,7 @@ export async function runStageNeg0_5(args: {
   })();
   const resolveReviewPrompt = (): Promise<string> => reviewPromptOnce;
 
-  // Stage 0.5 rejection context (load-bearing on resume after rewound_from_stage0).
-  // Built once per Stage -0.5 entry so each reviewer attempt sees the same evidence.
-  const stage0_5RejectionBlock = await buildStage0_5RejectionContext({
-    ctx: args.ctx,
-    state: args.state,
-  });
-
   const iterations = pf.iterations ?? [];
-  const archivedProposals = pf.archived_proposals ?? [];
-  const exhaustedAngles = pf.exhausted_angles ?? [];
   // The run's ambition floor. Both the tier-saturation auto-promote and the
   // early angle-kill below gate on "reached this floor tier" rather than the
   // literal "flagship", so a nonflagship target gets the full revise runway
@@ -207,8 +178,6 @@ export async function runStageNeg0_5(args: {
   const checkpointAngle = async (checkpoint: NonNullable<typeof pf.angle_checkpoint>): Promise<StageResult> => {
     pf.angle_checkpoint = checkpoint;
     pf.iterations = iterations;
-    pf.archived_proposals = archivedProposals;
-    pf.exhausted_angles = exhaustedAngles;
     await persistState();
     const actions = checkpoint.kind === "revise"
       ? "continue"
@@ -222,7 +191,6 @@ export async function runStageNeg0_5(args: {
         `${checkpoint.reason}. Resolve atomically with ` +
         `\`causalsmith research --angle-action ${actions} <qid> <spec> ` +
         `[--angle-directive <text|->] --auto\`. No next proposer has started.`,
-      artifacts: [currentProposalArtifact()],
     };
   };
 
@@ -272,7 +240,6 @@ export async function runStageNeg0_5(args: {
             `write sandbox (apply_patch), then resume with ` +
             `\`--clear-gate stage_neg1_fallback\` to retry this draft (a plain ` +
             `--resume cannot clear the exhausted retry counter).`,
-          artifacts: [currentProposalArtifact()],
         };
       }
       // eslint-disable-next-line no-console
@@ -308,9 +275,8 @@ export async function runStageNeg0_5(args: {
     // revise/pivot mode with no fresh draft version, drive the producer once
     // before reviewing — otherwise we would either (a) burn a Codex call
     // re-reviewing the already-judged proposal, or (b) push an iteration row
-    // with version=0 (cross-stage pivot path, where intervention_routing
-    // wipes last_reviewer_verdict and resets current_version=0 expecting
-    // stageNeg1_2 to bump it before the next review).
+    // with version=0 (an angle switch wipes last_reviewer_verdict and resets
+    // current_version=0, expecting stageNeg1_2 to bump it before the next review).
     const hasFreshDraft = pf.last_draft_version === (pf.current_version ?? 0);
     if (!hasFreshDraft && (mode === "revise" || mode === "pivot")) {
       await runStageNeg1_2({ ctx: args.ctx, state: args.state, deps: args.deps });
@@ -340,14 +306,6 @@ export async function runStageNeg0_5(args: {
         draftJson = {};
       }
     }
-    // Orchestrator-known identity rows the stdout handoff used to carry.
-    draftJson = {
-      ...draftJson,
-      chosen_qid: args.ctx.qid,
-      chosen_specialization: args.ctx.specialization,
-      version: pf.current_version ?? 0,
-      mode: pf.current_mode ?? "cold-start",
-    };
     // Resolve this per attempt: a proto core can first appear during the loop.
     // In single-artifact mode every reviewer-facing path must name the core,
     // never a possibly stale legacy proposal.tex.
@@ -365,7 +323,6 @@ export async function runStageNeg0_5(args: {
       reviewOutputJsonPath: paths.proposalReviewOutputJson,
       draftJson,
       noveltyTarget: pf.novelty_target,
-      stage0_5RejectionBlock,
     });
     // A reviewer whose output could not be parsed has NOT reviewed anything. Halt on
     // it rather than letting the `?? "REVISE"` default below burn a revise round (cap
@@ -412,34 +369,11 @@ export async function runStageNeg0_5(args: {
     const reviewJson = reviewOut.json as Record<string, unknown>;
     const tierStr =
       typeof reviewJson.publishability_tier === "string"
-        ? reviewJson.publishability_tier
+        ? normalizeReviewerTier(reviewJson.publishability_tier)
         : undefined;
     const novelArr = Array.isArray(reviewJson.novelty_flags) ? reviewJson.novelty_flags : [];
     const soundArr = Array.isArray(reviewJson.soundness_flags) ? reviewJson.soundness_flags : [];
     const cleanSubstance = novelArr.length === 0 && soundArr.length === 0;
-    // Persist accepted scope caveats so the downstream Stage 0.5 derivation
-    // reviewer treats them as settled (does not relitigate "assumed not proved").
-    // Validate the shape (the field rides outside the zod ReviewResult via
-    // .passthrough()); a mis-keyed object would otherwise render as
-    // `undefined → undefined` in the D0.5 injection and silently un-suppress
-    // relitigation. Keep only well-formed entries; log if any were dropped.
-    if (Array.isArray(reviewJson.accepted_scope_caveats)) {
-      const raw = reviewJson.accepted_scope_caveats;
-      const valid = raw.filter(
-        (c): c is { label: string; caveat: string; bound_claim: string } =>
-          !!c &&
-          typeof c === "object" &&
-          typeof (c as { label?: unknown }).label === "string" &&
-          typeof (c as { caveat?: unknown }).caveat === "string" &&
-          typeof (c as { bound_claim?: unknown }).bound_claim === "string",
-      );
-      if (valid.length < raw.length) {
-        console.warn(
-          `[causalsmith] Stage -0.5: dropped ${raw.length - valid.length} malformed accepted_scope_caveats entry(ies) (need string label/caveat/bound_claim).`,
-        );
-      }
-      pf.accepted_scope_caveats = valid;
-    }
     iterations.push({ angle, version, mode, verdict, tier: tierStr, clean_substance: cleanSubstance });
 
     // Stage -0.5 tier-saturation auto-promote (safe here because Stage -0.5
@@ -486,20 +420,14 @@ export async function runStageNeg0_5(args: {
 
     if (verdict === "ACCEPT") {
       pf.iterations = iterations;
-      pf.archived_proposals = archivedProposals;
-      pf.exhausted_angles = exhaustedAngles;
       pf.final_verdict = "ACCEPT";
-      pf.pivot_budget_used = angle;
-      // Recomputed at accept time (was a stage-entry snapshot): a proto core that
-      // appeared mid-loop must not be recorded as a legacy .tex accept path.
-      const acceptedProposalPath = currentProposalArtifact();
-      pf.proposal_path = acceptedProposalPath; // why: single-artifact proto-core runs must not resume against the stale legacy .tex path.
+      // Resolved at accept time: the accepted proposal is the proto core on disk now.
+      pf.proposal_path = currentProposalArtifact();
       await persistState();
       return {
         stage: "-0.5",
         status: "completed",
         message: `Stage -0.5 ACCEPT on angle ${angle} v${version}`,
-        artifacts: [acceptedProposalPath],
       };
     }
 
@@ -569,8 +497,6 @@ export async function runStageNeg0_5(args: {
     }
     pf.current_mode = "revise";
     pf.iterations = iterations;
-    pf.archived_proposals = archivedProposals;
-    pf.exhausted_angles = exhaustedAngles;
     return checkpointAngle({
       kind: "revise",
       angle,
@@ -581,23 +507,11 @@ export async function runStageNeg0_5(args: {
     });
   }
 
-  pf.iterations = iterations;
-  pf.archived_proposals = archivedProposals;
-  pf.exhausted_angles = exhaustedAngles;
-  pf.final_verdict = "NO-PASS";
-  pf.pivot_budget_used = NEG1_PIVOT_BUDGET - 1;
-  pf.proposal_path = currentProposalArtifact();
-  await persistState();
-  // advance:false keeps stage_completed at "-1.2" so `--resume` re-enters -0.5
-  // (the reviewer-loop) once the user has reset/extended the iteration cursor
-  // in state.proposed_from. Without this, nextStage would jump to "0".
-  return {
-    stage: "-0.5",
-    status: "checkpoint",
-    advance: false,
-    message: `Stage -0.5 NO-PASS — pivot budget exhausted (${NEG1_PIVOT_BUDGET} angles tried)`,
-    artifacts: [currentProposalArtifact(), ...archivedProposals],
-  };
+  // Every angle the cursor can hold is below the budget: `--angle-action switch` and the
+  // cursor reset both refuse an angle at or past it.
+  throw new Error(
+    `D-0.5: proposal cursor angle ${pf.current_angle_index} is outside the pivot budget ${NEG1_PIVOT_BUDGET}`,
+  );
 }
 
 /**
@@ -675,14 +589,13 @@ export async function runNeg1Review(args: {
   reviewOutputJsonPath: string;
   draftJson: Record<string, unknown>;
   noveltyTarget: NoveltyTarget;
-  stage0_5RejectionBlock?: string;
 }): Promise<{ raw: string; verdict: string | null; json: Record<string, unknown>; parseError: string | null }> {
   // (Fail-closed on the proposal source lives in `buildProtoCoreReviewBlock`
   // below: absent/empty/torn proto core throws a plumbing error there, never a
   // review verdict — the class of fault that fabricated a novelty tier at
   // D0.5.G.)
   // (The comparator backfill is retired: `draftJson` IS the raw proto core,
-  // which carries `comparator_promises` and the checklist directly — there is
+  // which carries `comparator_promise_table` and the checklist directly — there is
   // no second copy left to reconcile.)
   const upgradeMode = args.draftJson.upgrade_mode === true;
   const upgradeDirective = upgradeMode
@@ -705,9 +618,6 @@ export async function runNeg1Review(args: {
     "",
     tierFloorBlock(args.noveltyTarget),
   );
-  if (args.stage0_5RejectionBlock && args.stage0_5RejectionBlock.length > 0) {
-    parts.push("", args.stage0_5RejectionBlock);
-  }
   const prompt = parts.join("\n");
   // Referee harness: dispatch + parse + scaffolding-strip + verdict extraction.
   // A parse failure surfaces as parseError and must never masquerade as a
@@ -732,118 +642,3 @@ export async function runNeg1Review(args: {
   return { raw: result.raw, verdict: result.verdict, json: result.json, parseError: result.parseError };
 }
 
-/**
- * Build the Stage 0.5 rejection context block injected into Stage -1.2 / -0.5
- * prompts on resume after a `rewound_from_stage0` event. Returns "" when no
- * such rewind is on file (i.e. cold-start or fresh post-pivot Stage -0.5
- * entries should see no block).
- *
- * Contents (when present): verbatim rewind reason from the intervention judge,
- * the auto-granted Bucket A assumption(s) recorded against the rewind, and the
- * most recent `stage_0.5_to_0_attempt*.json` review so the producer/reviewer
- * can decide whether the kernel novelty critique requires a real revise/pivot
- * or whether the new Bucket A patch already addressed the gap.
- */
-export async function buildStage0_5RejectionContext(args: {
-  ctx: PipelineContext;
-  state: StateJson;
-}): Promise<string> {
-  const rewind = args.state.flags.rewound_from_stage0;
-  if (!rewind) return "";
-  const correction = args.state.flags.statement_correction_directive;
-  const approved = args.state.added_assumptions.filter((a) => a.user_approved === true);
-  let latestReview = "";
-  try {
-    const reviewsDir = resolveInDir(formalizationDir(args.ctx.repoRoot, args.ctx.qid), "reviews", [
-      `${args.ctx.qid}_${args.ctx.specialization}_reviews`,
-    ]);
-    const names = await readdir(reviewsDir).catch(() => [] as string[]);
-    const candidates = names
-      .filter((n) => n.startsWith("stage_0.5_to_0_attempt") && n.endsWith(".json"))
-      .sort();
-    const latest = candidates[candidates.length - 1];
-    if (latest) {
-      latestReview = await readFile(path.join(reviewsDir, latest), "utf8").catch(() => "");
-    }
-  } catch {
-    // ignore — block still surfaces the rewind reason even without the JSON.
-  }
-  if (correction) {
-    // Statement-correction rewind: the headline OBJECT was over-precise (e.g.
-    // claimed pointwise extremum attainment / exactness where the standard true
-    // statement is the closure / inf-sup / a.e. form). This is NOT a novelty
-    // failure and NOT a regime restriction — do not pivot, do not demote to a
-    // conjecture, do not add an assumption. Restate the SAME object in the
-    // corrected standard form below; it then holds unconditionally.
-    const cLines: string[] = [
-      "=== STAGE 0.5 STATEMENT-CORRECTION DIRECTIVE (load-bearing — this OVERRIDES the generic revise/pivot framing) ===",
-      "Stage 0.5 found the derivation could not close ONLY because the headline",
-      "statement is OVER-PRECISE relative to the standard true form of the SAME",
-      "focal object (the intervention judge classified this as an over-precision",
-      "artifact, NOT a regime-defining gap). The fix is a faithful RESTATEMENT,",
-      "not a revise/pivot/reject and not a theorem-split:",
-      "",
-      "- Restate the affected theorem's focal object in the corrected standard",
-      "  form given below. Keep the SAME object and the SAME §3/§4 novelty pitch.",
-      "- Do NOT demote the claim to a Conjecture, do NOT add a new Assumption,",
-      "  and do NOT pivot to a different angle. The corrected statement holds",
-      "  UNCONDITIONALLY under the existing §6/§7 assumptions.",
-      "- If — and only if — you find the corrected standard form is already",
-      "  established by a named §4 comparator (novelty collapses), THEN this is not",
-      "  a correction: emit REJECT so the loop pivots. Otherwise apply the",
-      "  restatement and keep the contribution.",
-      "",
-      "Corrected statement (verbatim from the intervention judge):",
-      correction,
-      "",
-    ];
-    if (latestReview) {
-      cLines.push(
-        "Most recent Stage 0.5 review (verbatim JSON — for the precise step that",
-        "failed; the corrected statement above is the intended fix):",
-        latestReview,
-        "",
-      );
-    }
-    cLines.push("=== END STAGE 0.5 STATEMENT-CORRECTION DIRECTIVE ===");
-    return cLines.join("\n");
-  }
-  const lines: string[] = [
-    "=== STAGE 0.5 REJECTION CONTEXT (load-bearing — read before any revise/accept/pivot decision) ===",
-    "This proposal previously passed Stage -0.5 and reached Stage 0 derivation,",
-    "but Stage 0.5 (post-derivation novelty/structure/correctness boundary review)",
-    "routed it back to the proposal loop because the derivation did not clear the",
-    "novelty floor or otherwise failed at the kernel level. Treat this as a",
-    "directive that the *prior accept may have been over-optimistic*: revise the",
-    "kernel, pivot to a different surviving seed, or — if the angle is provably",
-    "blocked — emit REJECT so the next loop pivots.",
-    "",
-    "Stage 0.5 rewind directive (verbatim from the intervention judge):",
-    rewind,
-    "",
-  ];
-  if (approved.length > 0) {
-    lines.push(
-      "Auto-granted Bucket A assumption(s) — already added to §7 of the .tex.",
-      "These patch a specific local proof step flagged by the Stage 0.5 reviewer.",
-      "They do NOT by themselves answer the kernel-novelty critique unless that",
-      "critique was a pure caveat-class assumption gap:",
-    );
-    for (const a of approved) {
-      lines.push(`- [${a.label}] ${a.statement}`);
-      if (a.source) lines.push(`  source: ${a.source}`);
-    }
-    lines.push("");
-  }
-  if (latestReview) {
-    lines.push(
-      "Most recent Stage 0.5 review (verbatim JSON — the per-item structure/",
-      "novelty/correctness verdicts and the verbatim_critique field are the",
-      "authoritative reading of what failed):",
-      latestReview,
-      "",
-    );
-  }
-  lines.push("=== END STAGE 0.5 REJECTION CONTEXT ===");
-  return lines.join("\n");
-}

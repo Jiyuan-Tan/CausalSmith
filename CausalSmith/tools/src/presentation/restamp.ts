@@ -356,13 +356,13 @@ async function restampInScratch(bundleDir: string, opts: RestampOptions): Promis
   // A dry run must have NO durable effect, and `resolveWpNumber` allocates and persists a number
   // when the registry has none for this bundle. That allocation is permanent — numbers are never
   // reissued — so a preview is not allowed to cause it. A bundle in that state has never been
-  // emitted with an identity; P4 or the backfill is what settles it.
+  // emitted with an identity; P4 is what settles it.
   if (!opts.write) {
     const registry = await readWpRegistry(opts.repoRoot, opts.seriesPrefix);
     if (registry[bundleId] === undefined) {
       return blocked(
         `no working-paper number is recorded for ${bundleId} in the registry. Restamping it would ` +
-          `MINT one, which is permanent, so the dry run refuses. Run the backfill (or P4) first.`,
+          `MINT one, which is permanent, so the dry run refuses. Run P4 first.`,
       );
     }
   }
@@ -449,7 +449,7 @@ async function restampInScratch(bundleDir: string, opts: RestampOptions): Promis
         : `it has 0 pages (read via ${shipped.method})`;
       // SELF-HEAL, or at least name the cure. An unreadable shipped PDF beside a perfectly
       // readable committed one is the signature of a copy-back that was interrupted mid-write
-      // (the reason this tool no longer uses `copyFile`), and the repair is one git command —
+      // (the reason this tool does not use `copyFile`), and the repair is one git command —
       // not the "recompile and investigate" a generic verify-failure sends the operator to.
       const head = await (opts.headPaperPdf ?? gitHeadPaperPdf)(bundleDir);
       const detail = head !== null && looksLikePdf(head)

@@ -349,16 +349,3 @@ export async function persistCodexRaw(
     return null;
   }
 }
-
-/**
- * Convenience: persist stdout, then parse. Use this at every codex call
- * site so the raw response is on disk before any parse error throws.
- */
-export async function parseAndPersist(
-  stdout: string,
-  runDir: string,
-  tag: string,
-): Promise<unknown> {
-  await persistCodexRaw(runDir, tag, stdout);
-  return expectStringJsonOutput(stdout);
-}

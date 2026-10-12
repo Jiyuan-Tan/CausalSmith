@@ -351,8 +351,9 @@ ${FROZEN_ENV}
       }))).rejects.toThrow(/reviser deleted or renamed the required .*Introduction/);
       expect(await readFile(join(dir, "paper.tex"), "utf8")).toBe(paper);
       expect(await readFile(join(dir, "front_matter.tex"), "utf8")).toBe("STALE FRONT\n");
+      // The failure exit persists the state it diagnosed.
       const persisted = await readFile(join(dir, "q_front_sync_v1_paper_state.json"), "utf8");
-      expect(JSON.parse(persisted).revision_round).toBe(0);
+      expect(Array.isArray(JSON.parse(persisted).notes)).toBe(true);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

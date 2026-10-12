@@ -750,75 +750,18 @@ export function createRetrieval(rootIn: string): Retrieval {
   };
 }
 
-// ─── F1 plan parsing ────────────────────────────────────────────────────────
+// ─── retrieval items ─────────────────────────────────────────────────────────
 
+/** One item a reuse-candidate block queries for: a core node, by kind. */
 export interface F1Item {
-  /** P (primitive/definition), L (lemma/helper), or A (assumption). */
+  /** P (definition), L (statement), or A (assumption). */
   kind: "P" | "L" | "A";
-  /** e.g. "P-2", "L-3a", "A-1". */
+  /** The core node id. */
   label: string;
-  /** Concept title after the label, e.g. "Propensity clip". */
+  /** Concept title, e.g. "propensity clip". */
   title: string;
-  /** The block body text, for extra query terms (often where the concept actually is). */
+  /** The node's text, for extra query terms (often where the concept actually is). */
   body: string;
-}
-
-/**
- * Extract the P- / L- / A-block items from an F1 NL artifact. Handles BOTH artifact
- * dialects: header style (`### P-2: Title`, the literature bank) and bold-inline style
- * (`**P-2 (Title).** body…`, the causalsmith research output, where label, title, and
- * body share one line). A block's body runs to the next labeled block or markdown
- * header. Tolerant: returns [] when neither dialect's labels are present.
- */
-export function parseF1Items(md: string): F1Item[] {
-  // Require an emphasis marker (header `##`, bold `**`, optionally after a `-`/`*`
-  // bullet) so an in-text reference like "P-3 holds for every v" is not captured.
-  const startRe = /^\s{0,3}(?:[-*+]\s+)?(#{2,5}\s*|\*\*)\s*([PLA])-(\d+)([a-z]?)\b(.*)$/;
-  const items: F1Item[] = [];
-  let cur: F1Item | null = null;
-  let buf: string[] = [];
-  const flush = () => {
-    if (cur) {
-      cur.body = buf.join(" ").replace(/\s+/g, " ").trim().slice(0, 400);
-      items.push(cur);
-    }
-    cur = null;
-    buf = [];
-  };
-  for (const ln of md.split(/\r?\n/)) {
-    const m = startRe.exec(ln);
-    if (m) {
-      flush();
-      const kind = m[2] as "P" | "L" | "A";
-      const rest = m[5] ?? "";
-      // Bold dialect packs `(Title).** body…` after the label; split title from body
-      // at the closing `**`. Header dialect has only the title on the line.
-      let span = rest;
-      let bodyOnLine = "";
-      if (m[1].includes("**")) {
-        const i = rest.indexOf("**");
-        span = i >= 0 ? rest.slice(0, i) : rest;
-        bodyOnLine = i >= 0 ? rest.slice(i + 2) : "";
-      }
-      // Only a LEADING paren is the title (`**P-1 (Title).**`); a mid-text paren is
-      // usually inline math (`… H_a(B) …`), not the title.
-      const paren = span.match(/^\s*\(([^)]+)\)/);
-      let title = paren ? paren[1] : span.replace(/^[\s:.\-–—]+/, "");
-      title = title.replace(/[`*]/g, "").replace(/[.\s]+$/, "").trim();
-      if (!title) {
-        // label-only-bold dialect (`**P-1** (Title; …)`): title sits in the body paren.
-        const p2 = bodyOnLine.match(/^\s*\(([^;)]+)/);
-        if (p2) title = p2[1].replace(/[`*]/g, "").trim();
-      }
-      cur = { kind, label: `${kind}-${m[3]}${m[4]}`, title, body: "" };
-      buf = [bodyOnLine.replace(/\*\*/g, "")];
-    } else if (cur) {
-      if (/^\s{0,3}#{1,5}\s/.test(ln)) flush(); // a section header ends the block
-      else buf.push(ln);
-    }
-  }
-  flush();
-  return items;
 }
 
 // re-export so consumers (brief renderer, tests) have one import surface.

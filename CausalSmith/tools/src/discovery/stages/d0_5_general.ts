@@ -1,8 +1,7 @@
 // D0.5.G — the COLD general referee (rubric-free, fresh eyes).
 //
 // Anti-Goodhart: the rubric became the producer's optimization
-// target (and the statement_correction route literally rewrites the headline
-// until the rubric is satisfied), so rubric-compliance stopped measuring
+// target, so rubric-compliance stopped measuring
 // quality. This referee is given ONLY the paper + plain tier definitions — never
 // the flagship rubric — so it reproduces the "paste into a fresh model, does it
 // actually clear the bar?" check the user does by hand.
@@ -12,9 +11,8 @@
 //   tier < floor, salvageable → ACCEPT downgraded to REVISE; the D0.5 boundary
 //                               re-runs runStage0 (re-derive at D0) carrying the
 //                               critique + flagged targets.
-//   tier < floor, NOT salvageable → ACCEPT downgraded to REJECT + `halt_reason`,
-//                               which runReviewBoundary short-circuits to a clean
-//                               checkpoint (pipeline halts for the user).
+//   tier < floor, NOT salvageable → ACCEPT downgraded to REJECT; the pipeline
+//                               halts at a checkpoint for the user.
 //
 // TWO CALL ROLES (see runStage0_5Typed). The AUTHORITATIVE call is the one on the
 // round the core panel passes — it decides the accept, exactly as above. A second
@@ -24,11 +22,13 @@
 // to a D0 re-solve, the priciest step in the pipeline, and used to do so blind to
 // whether the note could ever clear the floor. `decideTriageKill` below is the ONLY
 // authority a triage read has to end a run early, and it is deliberately narrow.
+import { existsSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import { D0_5_TRIAGE_MARKER, MODEL_PLAN } from "../../constants.js";
-import { runReferee } from "../framework/referee.js";
+import { runReferee, type RefereeResult } from "../framework/referee.js";
 import type { ReviewResult } from "../../judgment.js";
 import { formalizationDir, researchBankRoot, resolveInDir } from "../../paths.js";
 import {
@@ -86,8 +86,8 @@ export interface GeneralReviewResult {
   critique: string;
   /**
    * Flagship-upside: true when the note CLEARS its floor (accepted) but is below
-   * flagship with a concrete bounded path up. Drives up to 2 bonus D0.R rounds
-   * AFTER an accept — never loses the accepted result. Independent of `salvageable`.
+   * flagship with a concrete bounded path up. Reported on the D0.5 pass checkpoint;
+   * nothing pursues it automatically. Independent of `salvageable`.
    */
   flagship_potential?: boolean;
   /** When `flagship_potential`, the one bounded step to attempt for flagship. */
@@ -361,12 +361,13 @@ export async function runGeneralReview(args: {
       return view.tex;
     },
   });
+  const brief = discoveryBrief(args.ctx, args.state);
   const prompt = [
     await readPrompt(args.ctx, "stage0_5_general_review.txt"),
     "",
     await loadPaperScoreAnchors(args.ctx.repoRoot),
     "",
-    discoveryBrief(args.ctx, args.state),
+    brief,
     "",
     `novelty_target: ${target}  (floor tier you must clear: ${floor})`,
     "",
@@ -375,6 +376,24 @@ export async function runGeneralReview(args: {
     "RETURN ONLY the JSON described above.",
   ].join("\n");
   const plan = MODEL_PLAN.stage0_5_general;
+  // Replay lane: `review_general.json` records the inputs of the verdict it holds —
+  // the reviewed content (note, brief and floor, as sha256), the referee standard, model
+  // and effort. The instruction text is not hashed. When this call's inputs are the
+  // same, e.g. a D0.5 re-entry after a cited source was attested (which changes core
+  // fields the rendered note does not show), the recorded verdict is replayed without
+  // re-paying the run's priciest model. `CAUSALSMITH_D05_REUSE=0` turns the lane off.
+  const inputs: GeneralReviewInputs = {
+    content_sha256: createHash("sha256").update(JSON.stringify({ note: noteText, brief, target, floor }), "utf8").digest("hex"),
+    standard: D05_GENERAL_STANDARD,
+    model: plan.model,
+    effort: plan.effort,
+  };
+  const recorded = await readRecordedGeneralReview(args.ctx, inputs);
+  if (recorded !== null) {
+    console.warn(`[D0.5.G] replaying the recorded verdict (content ${inputs.content_sha256.slice(0, 12)}, same standard/model/effort) — no model call.`);
+    await persistGeneralReviewJson(args.ctx, args.attempt ?? 1, recorded.gen, floor, recorded.provenance, inputs, true);
+    return recorded.gen;
+  }
   // Referee harness (stdout mode): dispatch + parse + scaffolding-strip. An
   // unparseable stdout throws here exactly as the old inline extractJsonObject
   // did — a mechanical failure, never a tier verdict.
@@ -385,13 +404,9 @@ export async function runGeneralReview(args: {
     label: "D0.5.G general referee",
     prompt,
     promptSources: ["prompts/D0.5/stage0_5_general_review.txt", "stitched note (inline)"],
-    runner: plan.runner,
-    // The one tool this referee gets. It grades the note against PUBLISHED work, and what
-    // a named comparator actually states is not in the note; without the source it can
-    // only mark such claims unverified and guess at the rest. Set explicitly rather than
-    // left to the runner default, so the grant survives a change of runner or of codex's
-    // own default. Filesystem access stays denied either way — this reaches the
-    // literature, not the run.
+    // It grades the note against PUBLISHED work, and what a named comparator actually
+    // states is not in the note; without the source it can only mark such claims
+    // unverified and guess at the rest. Set explicitly rather than left to codex's default.
     webSearch: true,
     model: plan.model,
     reasoningEffort: plan.effort,
@@ -406,8 +421,58 @@ export async function runGeneralReview(args: {
   // D0.5 boundary attempts are saved. Unlike the boundary verdict (only emitted
   // when the tier falls below the floor), this captures the D0.5.G review on
   // EVERY run — including a pass — so the tier/critique is greppable history.
-  await persistGeneralReviewJson(args.ctx, args.attempt ?? 1, gen, floor, result.provenance);
+  await persistGeneralReviewJson(args.ctx, args.attempt ?? 1, gen, floor, result.provenance, inputs, false);
   return gen;
+}
+
+/** Bump when the D0.5.G referee's standard tightens, so recorded verdicts are re-judged. */
+const D05_GENERAL_STANDARD = "d05-general-v1";
+
+/** The inputs a recorded D0.5.G verdict answered: reviewed content (sha256), referee standard, model, effort. */
+interface GeneralReviewInputs {
+  content_sha256: string;
+  standard: string;
+  model: string;
+  effort: string;
+}
+
+function generalReviewFile(ctx: PipelineContext): string {
+  const dir = resolveInDir(formalizationDir(ctx.repoRoot, ctx.qid), "reviews", [
+    `${ctx.qid}_${ctx.specialization}_reviews`,
+  ]);
+  return path.join(dir, "review_general.json");
+}
+
+/** The verdict recorded in `review_general.json` when it answered exactly these inputs; null otherwise. */
+async function readRecordedGeneralReview(
+  ctx: PipelineContext,
+  inputs: GeneralReviewInputs,
+): Promise<{ gen: GeneralReviewResult; provenance: RefereeResult["provenance"] } | null> {
+  if (process.env.CAUSALSMITH_D05_REUSE === "0") return null;
+  const file = generalReviewFile(ctx);
+  if (!existsSync(file)) return null;
+  try {
+    const r = JSON.parse(await readFile(file, "utf8")) as Record<string, unknown>;
+    const rec = r.inputs as Partial<GeneralReviewInputs> | undefined;
+    if (!rec || rec.content_sha256 !== inputs.content_sha256 || rec.standard !== inputs.standard || rec.model !== inputs.model || rec.effort !== inputs.effort) return null;
+    if (typeof r.raw !== "string" || typeof r.critique !== "string" || typeof r.tier !== "string") return null;
+    const opt = <T>(v: unknown): T | undefined => (v === null || v === undefined ? undefined : v as T);
+    const gen: GeneralReviewResult = {
+      tier: r.tier as GeneralTier,
+      salvageable: Boolean(r.salvageable),
+      improvement_directive: opt<string>(r.improvement_directive),
+      flagged_conjecture_labels: Array.isArray(r.flagged_conjecture_labels) ? r.flagged_conjecture_labels as string[] : [],
+      critique: r.critique,
+      flagship_potential: opt<boolean>(r.flagship_potential),
+      flagship_directive: opt<string>(r.flagship_directive),
+      paper_score_ceiling: opt<number>(r.paper_score_ceiling),
+      ceiling_directive: opt<string>(r.ceiling_directive),
+      raw: r.raw,
+    };
+    return { gen, provenance: r.provenance as RefereeResult["provenance"] };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -417,7 +482,7 @@ export async function runGeneralReview(args: {
  * The `attempt` and `stage` fields are kept inside the record. Best-effort: errors
  * are logged but never block the pipeline.
  *
- * READERS: this file EXISTING no longer means D0.5 passed — the triage call writes it on
+ * READERS: this file EXISTING does not mean D0.5 passed — the triage call writes it on
  * non-passing rounds too. `meets_floor` is the pass signal.
  */
 async function persistGeneralReviewJson(
@@ -432,16 +497,18 @@ async function persistGeneralReviewJson(
     fallback_kind: string | null;
     quorum: number;
   },
+  inputs: GeneralReviewInputs,
+  reusedFromReceipt: boolean,
 ): Promise<void> {
   try {
-    const dir = resolveInDir(formalizationDir(ctx.repoRoot, ctx.qid), "reviews", [
-      `${ctx.qid}_${ctx.specialization}_reviews`,
-    ]);
-    await mkdir(dir, { recursive: true });
-    const file = path.join(dir, "review_general.json");
+    const file = generalReviewFile(ctx);
+    await mkdir(path.dirname(file), { recursive: true });
     const record = {
       stage: "0.5.G",
       attempt,
+      // The inputs this verdict answered; a later call with the same inputs replays it.
+      inputs,
+      reused_from_receipt: reusedFromReceipt,
       novelty_target: ctx.noveltyTarget,
       floor,
       meets_floor: tierRank(gen.tier) >= tierRank(floor),
@@ -583,8 +650,8 @@ export function normalizeGeneralReview(
       : undefined;
   return {
     tier,
-    // When the score caps the tier, retain the existing routing policy: in [6.5, 7.8)
-    // a bounded directive permits revision; below 6.5 this gate rejects.
+    // When the score caps the tier: at or above CEILING_FOR_SUBFIELD a bounded directive
+    // permits revision; below it this gate rejects.
     // Uncapped notes keep the referee's salvageability judgment.
     salvageable: paper_score_ceiling !== undefined && paper_score_ceiling < CEILING_FOR_SUBFIELD
       ? false
@@ -613,8 +680,7 @@ export function normalizeGeneralReview(
 /**
  * Transcribe a below-floor general verdict into the {@link ReviewResult} the
  * D0.5 boundary already knows how to route. Salvageable → `revise` (the boundary
- * re-runs runStage0); not salvageable → `reject` carrying a `halt_reason` that
- * runReviewBoundary short-circuits to a clean checkpoint. A deterministic
+ * re-runs runStage0); not salvageable → `reject`, which halts at a checkpoint. A deterministic
  * transcription of referee findings into a revise/reject verdict, same pattern
  * used elsewhere for other typed panel outputs.
  */
@@ -649,12 +715,11 @@ export function buildGeneralTierVerdict(
         },
       ],
       verbatim_critique,
-      flagged_conjecture_labels: gen.flagged_conjecture_labels,
     } as ReviewResult;
   }
   // Halt: either genuinely unsalvageable (dead object / open-ended new idea), or the
   // directed-reroute budget is exhausted (the bounded fixes were tried and did not
-  // lift it). Deterministic halt (no judge, no pivot) — hand to the operator.
+  // lift it). Deterministic halt — hand to the operator.
   const haltCritique =
     verbatim_critique +
     (capExhausted
@@ -674,7 +739,5 @@ export function buildGeneralTierVerdict(
       },
     ],
     verbatim_critique: haltCritique,
-    // Read by runReviewBoundary BEFORE the reject fast-path → deterministic halt.
-    halt_reason: haltCritique,
   } as ReviewResult;
 }

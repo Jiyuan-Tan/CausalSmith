@@ -107,6 +107,22 @@ describe("incrementalSymbolRows — symbol-tier incremental review", () => {
     ]);
   });
 
+  it("compares by fingerprint key only when both the verdict and the row carry one", () => {
+    const rows = [
+      { id: "sym:Y", hash: "hY", fingerprintHash: "fpY" },
+      { id: "sym:Z", hash: "hZ", fingerprintHash: "fpZ" },
+      { id: "sym:W", hash: "hW-new", fingerprintHash: "fpW" },
+      { id: "sym:V", hash: "hV" },
+    ];
+    const prior = {
+      "sym:Y": { verdict: "matched", hash: "hY" }, // no stored key → member-list hash decides → skip
+      "sym:Z": { verdict: "matched", hash: "hZ", fingerprint: "fpZ-old" }, // key moved (a member's body) → review
+      "sym:W": { verdict: "matched", hash: "hW", fingerprint: "fpW" }, // key unchanged, only the list text moved → skip
+      "sym:V": { verdict: "matched", hash: "hV", fingerprint: "fpV" }, // no scan now → hash decides → skip
+    };
+    expect(incrementalSymbolRows(rows, prior, isPass).map((s) => s.id)).toEqual(["sym:Z"]);
+  });
+
   it("delta skips a symbol whose cluster is UNCHANGED and last verdict PASSED", () => {
     const prior = {
       "sym:Y": { verdict: "matched", hash: "hY" }, // pass + same hash → skip

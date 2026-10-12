@@ -3,7 +3,7 @@ import { CoreSchema } from "../../src/discovery/core/schema.js";
 import {
   buildF2RevisionContext,
   F2_REVISION_TARGETS_HEADER,
-  hasCompleteScaffoldCoverage,
+  scaffoldCoverageGaps,
   revisionTargetsFromRedirect,
 } from "../../src/formalization/f2_revision_context.js";
 import { PlanSchema } from "../../src/formalization/plan/schema.js";
@@ -117,67 +117,58 @@ function fixture() {
 }
 
 describe("F2 local revision context", () => {
-  it("keeps the target, prerequisites, and forced downstream consumers without sibling churn", () => {
+  const shown = (packet: ReturnType<typeof buildF2RevisionContext>) =>
+    Object.keys(packet!.plan.nodes as Record<string, unknown>);
+
+  it("carries a flagged statement and the entries citing it, not its prerequisites or siblings", () => {
     const { core, plan } = fixture();
     const packet = buildF2RevisionContext(core, plan, ["thm:target"]);
-    expect(packet).not.toBeNull();
-    const ids = Object.keys(packet!.plan.nodes as Record<string, unknown>);
-    expect(ids).toEqual(["ass:shared", "def:shared", "thm:target", "lem:consumer"]);
-    expect(ids).not.toContain("lem:sibling");
-    expect(ids).not.toContain("lem:unrelated");
-    expect(packet!.plan.env).toEqual([expect.objectContaining({ id: "S1" })]);
+    expect(shown(packet)).toEqual(["thm:target", "lem:consumer"]);
+    expect(packet!.plan.env).toEqual([]);
+    expect(packet!.core.symbols).toEqual([expect.objectContaining({ name: "x" })]);
     expect(JSON.stringify(packet!.core)).not.toContain("PROOF_SENTINEL");
     expect(JSON.stringify(packet!.core)).not.toContain("PROSE_SENTINEL");
   });
 
-  it("expands a shared symbol target to every declaration that uses that symbol", () => {
+  it("carries the users of a flagged premise", () => {
     const { core, plan } = fixture();
-    const packet = buildF2RevisionContext(core, plan, ["sym:x"]);
-    const ids = Object.keys(packet!.plan.nodes as Record<string, unknown>);
-    expect(ids).toContain("lem:sibling");
-    expect(ids).toContain("def:derived");
-    expect(ids).not.toContain("lem:unrelated");
-    expect(packet!.resolved_targets).toEqual(["sym:x"]);
-    expect(packet!.core.symbols).toEqual(expect.arrayContaining([
-      expect.objectContaining({ name: "x" }),
-      expect.objectContaining({ name: "y" }),
-    ]));
+    const packet = buildF2RevisionContext(core, plan, ["ass:shared"]);
+    expect(shown(packet).sort()).toEqual(["ass:shared", "def:shared", "lem:consumer", "lem:sibling", "thm:target"]);
   });
 
-  it("falls back to full context for a shared-symbol edit with undeclared symbol scope", () => {
+  it("carries a flagged symbol's realizing cluster, not every declaration using the symbol", () => {
     const { core, plan } = fixture();
-    delete core.statements[0].free_symbols;
-    expect(buildF2RevisionContext(core, plan, ["sym:x"])).toBeNull();
+    const packet = buildF2RevisionContext(core, plan, ["sym:y"]);
+    expect(shown(packet)).toEqual(["def:derived"]);
+    expect(packet!.resolved_targets).toEqual(["sym:y"]);
+    expect((packet!.core.symbols as Array<{ name: string }>).map((s) => s.name)).toEqual(["x", "y"]);
+    const bound = buildF2RevisionContext(core, plan, ["sym:x"]);
+    expect(shown(bound)).toEqual([]);
+    expect(bound!.plan.env).toEqual([expect.objectContaining({ id: "S1" })]);
   });
 
-  it("includes an ordinary target symbol's explicit ref definition as upstream context", () => {
+  it("resolves a target that is no core node through the core nodes its id names", () => {
     const { core, plan } = fixture();
-    core.symbols.push({ name: "K", type: "Type", ref: "def:k" });
-    core.definitions.push({
-      id: "def:k",
-      name: "KDefinition",
-      construction: "the carrier realizing K",
-      free_symbols: ["K"],
-      inputs: ["K"],
-    });
-    plan.nodes["def:k"] = {
-      lean_kind: "def",
-      lean_name: "KDefinition",
-      disposition: "define-local",
-      reuse: null,
-      modules: [],
-      gate: false,
-      defer_tier: false,
-      delivery_status: "deliver",
-    };
-    core.statements[0].free_symbols!.push("K");
-    const packet = buildF2RevisionContext(core, plan, ["thm:target"]);
-    expect(Object.keys(packet!.plan.nodes as Record<string, unknown>)).toContain("def:k");
+    const packet = buildF2RevisionContext(core, plan, ["ass:filler:3:lem:unrelated:7:h_gate"]);
+    expect(packet!.resolved_targets).toEqual(["lem:unrelated"]);
+    expect(shown(packet)).toEqual(["lem:unrelated"]);
+    // An unresolvable target beside a resolvable one does not widen the packet.
+    expect(shown(buildF2RevisionContext(core, plan, ["lem:unrelated", "aux_helper"]))).toEqual(["lem:unrelated"]);
   });
 
-  it("fails closed to full context when any requested target is unknown", () => {
+  it("carries a flagged S-block, the nodes the redirect names, and the users of an unbound symbol", () => {
     const { core, plan } = fixture();
-    expect(buildF2RevisionContext(core, plan, ["thm:target", "missing:node"])).toBeNull();
+    const block = buildF2RevisionContext(core, plan, ["S-2"], ["the Lean drops ass:unrelated"]);
+    expect(block!.plan.env).toEqual([expect.objectContaining({ id: "S2" })]);
+    expect(shown(block)).toEqual(["ass:unrelated"]);
+    plan.env[1].binds_symbols = [];
+    expect(shown(buildF2RevisionContext(core, plan, ["sym:z"])).sort()).toEqual(["ass:unrelated", "lem:unrelated"]);
+  });
+
+  it("keeps the whole context when no target resolves or the change reaches every node", () => {
+    const { core, plan } = fixture();
+    expect(buildF2RevisionContext(core, plan, ["aux_helper"])).toBeNull();
+    expect(buildF2RevisionContext(core, plan, Object.keys(plan.nodes))).toBeNull();
   });
 
   it("recovers only the exact persisted dispatcher target block", () => {
@@ -186,13 +177,13 @@ describe("F2 local revision context", () => {
     expect(revisionTargetsFromRedirect("Please edit thm:target")).toEqual([]);
   });
 
-  it("requires complete delivered node and environment coverage before localization", () => {
+  it("lists the delivered nodes and S-blocks the scaffold does not cover", () => {
     const { plan } = fixture();
     const delivered = new Set(Object.keys(plan.nodes));
     const envs = new Set(plan.env.map((env) => env.id));
-    expect(hasCompleteScaffoldCoverage(plan, { nodes: delivered, envs })).toBe(true);
+    expect(scaffoldCoverageGaps(plan, { nodes: delivered, envs })).toEqual([]);
     delivered.delete("lem:unrelated");
-    expect(hasCompleteScaffoldCoverage(plan, { nodes: delivered, envs })).toBe(false);
+    expect(scaffoldCoverageGaps(plan, { nodes: delivered, envs })).toEqual(["lem:unrelated"]);
   });
 
   it("does not require a local scaffold tag for a library reuse node", () => {
@@ -204,6 +195,6 @@ describe("F2 local revision context", () => {
     });
     const delivered = new Set(Object.keys(plan.nodes).filter((id) => id !== "lem:sibling"));
     const envs = new Set(plan.env.map((env) => env.id));
-    expect(hasCompleteScaffoldCoverage(plan, { nodes: delivered, envs })).toBe(true);
+    expect(scaffoldCoverageGaps(plan, { nodes: delivered, envs })).toEqual([]);
   });
 });

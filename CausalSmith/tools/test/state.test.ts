@@ -6,24 +6,99 @@ import { canonicalLeanSubdir, qidToCamel, statePath } from "../src/paths.js";
 import { createInitialState, findActiveStates, loadState, saveState, stateSchema } from "../src/state.js";
 
 describe("state schema", () => {
-  it("normalizes legacy hook fields without preserving them", () => {
+  it("defaults the flags a minimal state omits", () => {
     const parsed = stateSchema.parse({
       stage_completed: "0.5",
-      ckpt_pending: false,
       lean_subdir: "CausalSmith/Panel/Q1_GenericMinimality",
-      pending_sorries: [],
       design_decisions: {},
       added_assumptions: [],
-      flags: {
-        rewound_from_stage4d: null,
-        local_fix_from_4d: false,
-        bucket_a_blocked: false,
-      },
+      flags: {},
     });
 
-    expect("ckpt_pending" in parsed).toBe(false);
-    expect("bucket_a_blocked" in parsed.flags).toBe(false);
     expect(parsed.flags.missing_architecture).toBe(false);
+  });
+
+  it("loads and re-saves a state written by an older pipeline without dropping its undeclared keys", async () => {
+    const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-legacy-keys-"));
+    const qid = "panel_minimal_basis";
+    const spec = "p1_bernoulli";
+    const legacyFlags = {
+      rewound_from_stage0: "old rewind reason",
+      rewound_from_stage0_5_pivot: "old pivot",
+      rewound_from_stage4d: "round-2",
+      local_fix_from_4d: true,
+      theorem_splits: 2,
+      theorem_splits_cap_hit: "cap",
+      stage1_rewinds: 3,
+      stage1_rewinds_cap_hit: "cap",
+      stage0_budget_exhausted: "spent",
+      scaffold_redirect_cap_hit: "cap",
+      general_review_halt: "below floor",
+      statement_correction_directive: "restated",
+      stage0_rewind_intent_required: "untyped",
+      escalate_to_proposer: "redraft",
+      d0_cross_boundary_rewind: { intent: "extension", status: "pending" },
+      scaffold_redirect_count: 4,
+      source_rewind: { status: "applied", dirty_nodes: ["thm:main"], target: "D0 main abc" },
+      substrate_build_required: "gate X",
+      substrate_built: [{ gate_id: "lem:g", decl_name: "Causalean.G", module: "Causalean.M", nl_statement: "g" }],
+      stage0_too_many_conjectures: "five",
+      f4_localpatch_rounds: 1,
+      assumption_review_count: 2,
+      assumption_review_cap_hit: "cap",
+      bucket_a_blocked: false,
+      d0r_human_directive: "flip the framing",
+      d0r_flagship_rounds: 1,
+      d0r_best_tier: "field",
+      d0r_best_note_path: "discovery/d0r_best.tex",
+    };
+    const legacyProposal = {
+      topic: "legacy topic",
+      novelty_target: "field",
+      pivot_budget_used: 2,
+      final_verdict: "ACCEPT",
+      proposal_path: "discovery/proto_core.json",
+      novelty_justification: "n",
+      chosen_qid: qid,
+      chosen_specialization: spec,
+      accepted_scope_caveats: [{ label: "ass:a", caveat: "assumed", bound_claim: "sharp under A" }],
+    };
+    const legacyTop = {
+      pending_sorries: [{ file: "Basic.lean", line: 12, track: "2", bursted: true }],
+      loop: "research",
+      next_action: "pending_checkpoint",
+      lineage: { parent_run_id: "r0", parent_kind: "study" },
+      from_question_oq_id: "oq-1",
+      method_id: "did",
+      closed_oq: { oq_id: "oq-1", bt_id: "bt-1" },
+      ckpt_pending: false,
+    };
+    const onDisk = {
+      ...createInitialState(qid),
+      ...legacyTop,
+      proposed_from: legacyProposal,
+      stage_completed: "0",
+      added_assumptions: [{ label: "A1", statement: "s", user_approved: true, reviewed: false }],
+    } as unknown as Record<string, unknown>;
+    onDisk.flags = { ...(onDisk.flags as Record<string, unknown>), ...legacyFlags };
+    const file = statePath(repoRoot, qid, spec);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, `${JSON.stringify(onDisk, null, 2)}\n`, "utf8");
+
+    const loaded = await loadState(repoRoot, qid, spec);
+    expect(loaded.flags).toMatchObject(legacyFlags);
+    expect(loaded).toMatchObject(legacyTop);
+    expect(loaded.proposed_from).toMatchObject(legacyProposal);
+    await saveState(repoRoot, qid, spec, loaded);
+
+    const resaved = JSON.parse(await readFile(file, "utf8")) as Record<string, unknown> & {
+      flags: Record<string, unknown>;
+      added_assumptions: Array<Record<string, unknown>>;
+    };
+    expect(resaved.flags).toMatchObject(legacyFlags);
+    expect(resaved).toMatchObject(legacyTop);
+    expect(resaved.proposed_from).toMatchObject(legacyProposal);
+    expect(resaved.added_assumptions[0]).toMatchObject({ user_approved: true, reviewed: false });
   });
 
   it("round-trips a valid state and enforces qid/lean_subdir", async () => {
@@ -45,7 +120,6 @@ describe("state schema", () => {
     state.proposed_from = {
       topic: "test",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: "pending",
       proposal_path: "proto_core.json",
       novelty_justification: "test",
@@ -90,7 +164,6 @@ describe("state schema", () => {
     state.proposed_from = {
       topic: "test",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: "ACCEPT",
       proposal_path: "proto_core.json",
       novelty_justification: "test",
@@ -115,7 +188,6 @@ describe("state schema", () => {
     base.proposed_from = {
       topic: "test",
       novelty_target: "field",
-      pivot_budget_used: 0,
       final_verdict: "ACCEPT",
       proposal_path: "proto_core.json",
       novelty_justification: "test",
@@ -149,7 +221,7 @@ describe("state schema", () => {
       pending_sorries: [],
       design_decisions: {},
       added_assumptions: [],
-      flags: { local_fix_from_4d: false, missing_architecture: false },
+      flags: { missing_architecture: false },
       proposed_from: {
         topic: "t",
         novelty_target: "flagship",
@@ -173,7 +245,7 @@ describe("state schema", () => {
       pending_sorries: [],
       design_decisions: {},
       added_assumptions: [],
-      flags: { local_fix_from_4d: false, missing_architecture: false },
+      flags: { missing_architecture: false },
       proposed_from: {
         topic: "t",
         novelty_target: "flagship",
@@ -222,135 +294,15 @@ describe("state schema", () => {
   });
 });
 
-describe("StateJson — paper-scoped fields", () => {
-  it("stateSchema accepts theorems[] and current_theorem_index", () => {
+describe("state schema — stage migration", () => {
+  it("loads a banked state whose proposer stage is labelled -1", () => {
     const parsed = stateSchema.parse({
-      stage_completed: "0.5",
-      lean_subdir: "CausalSmith/PartialID/Manski1990",
-      pending_sorries: [],
+      stage_completed: "-1",
+      lean_subdir: "CausalSmith/Stat",
       design_decisions: {},
-      added_assumptions: [],
-      flags: { local_fix_from_4d: false, missing_architecture: false },
-      theorems: [
-        {
-          theorem_local_id: "t1",
-          origin_theorem_id: "ins1_t1",
-          statement: "If A then B.",
-          proof_sketch: "Apply L.",
-          status: "pending",
-          stage_completed: null,
-          lean_file_relpath: null,
-        },
-      ],
-      current_theorem_index: 0,
+      flags: { missing_architecture: false },
     });
-    expect(parsed.theorems).toHaveLength(1);
-    expect(parsed.theorems?.[0].theorem_local_id).toBe("t1");
-    expect(parsed.current_theorem_index).toBe(0);
-  });
 
-  it("stateSchema accepts a state with no theorems[] (legacy single-theorem)", () => {
-    const parsed = stateSchema.parse({
-      stage_completed: "0.5",
-      lean_subdir: "CausalSmith/Foo/Bar",
-      pending_sorries: [],
-      design_decisions: {},
-      added_assumptions: [],
-      flags: { local_fix_from_4d: false, missing_architecture: false },
-    });
-    expect(parsed.theorems).toBeUndefined();
-    expect(parsed.current_theorem_index).toBeUndefined();
-  });
-
-  it("remaps legacy stage strings inside theoremEntrySchema.stage_completed", () => {
-    const parsed = stateSchema.parse({
-      stage_completed: "0.5",
-      lean_subdir: "CausalSmith/PartialID/Manski1990",
-      pending_sorries: [],
-      design_decisions: {},
-      added_assumptions: [],
-      flags: { local_fix_from_4d: false, missing_architecture: false },
-      theorems: [
-        {
-          theorem_local_id: "t1",
-          origin_theorem_id: "ins1_t1",
-          statement: "S",
-          proof_sketch: null,
-          status: "pending",
-          stage_completed: "-1",
-          lean_file_relpath: null,
-        },
-      ],
-      current_theorem_index: 0,
-    });
-    expect(parsed.theorems?.[0].stage_completed).toBe("-1.2");
-  });
-
-  it("stateSchema accepts bt_id on a theorems[] entry", () => {
-    const parsed = stateSchema.parse({
-      stage_completed: "5",
-      lean_subdir: "CausalSmith/PartialID/Manski1990",
-      pending_sorries: [],
-      design_decisions: {},
-      added_assumptions: [],
-      flags: { local_fix_from_4d: false, missing_architecture: false },
-      theorems: [
-        {
-          theorem_local_id: "t1",
-          origin_theorem_id: "manski1990_t1",
-          statement: "If A then B.",
-          proof_sketch: null,
-          status: "completed",
-          stage_completed: "5",
-          lean_file_relpath: "Theorem_t1.lean",
-          bt_id: "manski1990_t1_v1",
-        },
-      ],
-      current_theorem_index: 0,
-    });
-    expect(parsed.theorems?.[0].bt_id).toBe("manski1990_t1_v1");
-  });
-});
-
-describe("theoremEntry.minted_oq_id", () => {
-  it("round-trips a failed theorem entry with a minted_oq_id", () => {
-    const raw = {
-      ...createInitialState("panel_minimal_basis"),
-      stage_completed: "5",
-      theorems: [{
-        theorem_local_id: "t1",
-        origin_theorem_id: "panel_minimal_basis_t1",
-        statement: "...",
-        proof_sketch: null,
-        status: "failed",
-        stage_completed: "3",
-        lean_file_relpath: "CausalSmith/Panel/Q1_MinimalBasis/T1.lean",
-        failure_reason: "stuck",
-        minted_oq_id: "oq_failed_panel_minimal_basis_bernoulli_t1",
-      }],
-    };
-    const parsed = stateSchema.parse(raw);
-    expect(parsed.theorems?.[0]?.minted_oq_id).toBe(
-      "oq_failed_panel_minimal_basis_bernoulli_t1",
-    );
-  });
-
-  it("accepts a theorem entry without minted_oq_id (back-compat)", () => {
-    const raw = {
-      ...createInitialState("panel_minimal_basis"),
-      stage_completed: "5",
-      theorems: [{
-        theorem_local_id: "t1",
-        origin_theorem_id: "panel_minimal_basis_t1",
-        statement: "...",
-        proof_sketch: null,
-        status: "completed",
-        stage_completed: "5",
-        lean_file_relpath: "CausalSmith/Panel/Q1_MinimalBasis/T1.lean",
-        bt_id: "panel_minimal_basis_bernoulli",
-      }],
-    };
-    const parsed = stateSchema.parse(raw);
-    expect(parsed.theorems?.[0]?.minted_oq_id).toBeUndefined();
+    expect(parsed.stage_completed).toBe("-1.2");
   });
 });

@@ -1,7 +1,6 @@
 // Permanent, append-only ledger of infrastructure that pipeline runs NEEDED but
-// that does not yet exist in Causalean / Mathlib. Two writers:
-//   * F1 (stage1) on `needs-new-infrastructure` — records `infrastructure_needed`.
-//   * F2 (stage2) on `blocked-missing-architecture` — records `missing_items`.
+// that does not yet exist in Causalean / Mathlib. Its writer is F2 (stage2), which
+// records `missing_items` on `blocked-missing-architecture`.
 // Entries are keyed by `qid:spec:source` and REPLACED in place on re-run, so
 // repeated runs of the same qid update rather than duplicate. Human-readable so
 // a maintainer can scan it, land an item, then re-run the qid.
@@ -20,13 +19,11 @@ export interface MissingArchItem {
 export interface MissingArchEntry {
   qid: string;
   spec: string;
-  /** e.g. "F1 needs-new-infrastructure" | "F2 missing-architecture". */
+  /** e.g. "F2 missing-architecture". */
   source: string;
   /** YYYY-MM-DD; caller supplies (keeps this module clock-free / testable). */
   date: string;
   items: MissingArchItem[];
-  /** The .tex claim left unformalized (F1 deferred_conjecture), if any. */
-  deferred?: string;
 }
 
 const HEADER = `# Missing Architecture Ledger
@@ -117,7 +114,6 @@ function recordMissingArchitectureUnlocked(
   const block = [
     begin,
     `## ${entry.qid} ${entry.spec} — ${entry.source} (${entry.date})`,
-    entry.deferred ? `\n**Deferred:** ${entry.deferred.replace(/\n/g, " ").trim()}\n` : "",
     "| id | kind | description | effort |",
     "|----|------|-------------|--------|",
     rows,

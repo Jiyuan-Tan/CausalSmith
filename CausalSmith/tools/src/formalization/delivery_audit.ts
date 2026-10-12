@@ -61,7 +61,6 @@ export function citedEvidenceHash(
 export async function citedLeanEvidence(
   leanDir: string,
   plan: Plan,
-  graph: FormalizationGraph,
   repoRoot?: string,
 ): Promise<Record<string, string>> {
   const evidence: Record<string, string> = {};

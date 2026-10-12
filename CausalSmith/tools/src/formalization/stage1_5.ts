@@ -1,22 +1,19 @@
-// Discovery Stage 1.5 (F1.5) — the REUSE-SOUNDNESS review boundary.
+// F1.5 — the REUSE-SOUNDNESS review boundary.
 //
 // The deterministic plan gate (plan_gate.ts) owns one-to-one coverage / kind /
-// member / hyp-closure / reuse-existence / module checks — it replaces the prose-
-// faithfulness checks (F/Q/N/L/P) the old F1.5 ran against the .tex. F1.5 now runs
-// that gate as a pre-lint (a violation routes straight back to F1, no LLM spent),
-// then an LLM reviews only the genuinely hard judgment: does each chosen reuse decl
-// actually type-fit at the right abstraction level, and is each define-local
-// justified. See CausalSmith/doc/research/F1_F2_PLAN_REDESIGN.md §9.
+// member / hyp-closure / reuse-existence / module checks. F1.5 runs that gate as a
+// pre-lint (a violation routes straight back to F1, no LLM spent), then an LLM
+// reviews the judgment the gate cannot make: does each chosen reuse decl type-fit
+// at the right abstraction level, and is each define-local justified.
 
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import type { PipelineContext, StageResult, StateJson } from "../types.js";
 import type { ReviewResult } from "../judgment.js";
 import { type StageDeps, artifactPaths, readRequired } from "../pipeline_support.js";
-import { reviewWithCodex } from "../pipeline_stages.js";
-import { runReviewBoundary } from "../shared/intervention_routing.js";
+import { reviewWithCodex } from "./review_codex.js";
+import { runReviewBoundary } from "../shared/review_boundary.js";
 import { runStage1 } from "./stage1.js";
-import { propagateTheoremReview } from "./theorem_review.js";
 import { coreJsonPath } from "../discovery/stages/d0_core.js";
 import { parseTypedCore } from "../discovery/core/core_io.js";
 import { runPlanGate } from "../formalization/plan/plan_gate.js";
@@ -96,37 +93,23 @@ export async function runStage1_5(args: {
 }): Promise<StageResult> {
   return runReviewBoundary({
     ctx: args.ctx,
-    state: args.state,
-    deps: args.deps,
     boundary: "stage_1.5_to_1",
     stage: "1.5",
     cap: 3,
-    // The F1 plan + F1.5 reuse-soundness review settle into ONE consolidated
-    // CKPT 1: a PASS halts here for the orchestrator's DEPTH + REUSE + fidelity
-    // audit, rather than flowing straight into F2 scaffolding.
-    checkpointOnPass:
-      "CONSOLIDATED CKPT 1 (F1 plan + F1.5 reuse-soundness passed). Audit DEPTH + REUSE + statement-vs-math fidelity before --resume into F2.",
-    heuristic:
-      "plan_gate violations + reuse-fit / abstraction-level flags route to stage_1 (re-plan the flagged nodes); a defect rooted in the core's math routes to stage_0; unresolved ambiguity routes to user.",
-    producer: (prior, attempt, intervention) =>
-      runStage1({ ...args, priorReview: prior, attempt, intervention }),
+    // The F1 plan and its F1.5 review settle into ONE consolidated CKPT 1. Passed: the
+    // orchestrator audits before F2 scaffolds. Not passed: it reroutes; F2 stays unreachable.
+    checkpoint: {
+      name: "CONSOLIDATED CKPT 1",
+      passed: "Audit depth, reuse and statement-vs-math fidelity of the F1 plan before --resume into F2.",
+    },
+    producer: (prior, attempt) => runStage1({ ...args, priorReview: prior, attempt }),
     reviewer: async () => {
       const paths = artifactPaths(args.ctx, args.state);
       // 1. Deterministic gate pre-lint — must pass before the LLM runs.
       const gateReview = await planGatePrelint(args, paths.plan);
-      if (gateReview) {
-        propagateTheoremReview(args.state, gateReview, "1.5");
-        return gateReview;
-      }
+      if (gateReview) return gateReview;
       // 2. LLM reuse-soundness review over the gate-clean plan.
-      const review = await reviewWithCodex(
-        args,
-        "stage1_5_reuse_soundness.txt",
-        "1.5",
-        "Review the plan's per-node reuse decisions for type-fit and abstraction level; the deterministic gate has already passed (coverage/kind/member/hyp/reuse-existence/module are settled — do NOT re-litigate them).",
-      );
-      propagateTheoremReview(args.state, review, "1.5");
-      return review;
+      return reviewWithCodex(args);
     },
   });
 }

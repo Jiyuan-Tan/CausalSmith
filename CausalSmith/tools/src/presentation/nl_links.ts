@@ -589,11 +589,6 @@ export function resolveDeclName(index: DeclIndex, decl: string): string | null {
   return matches.length === 1 ? matches[0] : null;
 }
 
-/** Does this name identify a declaration of the paper's Lean development? */
-export function declIsKnown(index: DeclIndex, decl: string): boolean {
-  return resolveDeclName(index, decl) !== null;
-}
-
 /** Content key: block HTML, the enumerated rows and segments, and the Lean
  *  material. Packaging (which chunk a block lands in) is deliberately not part
  *  of it, so re-batching never re-bills. */
@@ -760,10 +755,6 @@ export function chunkBySize<T extends { objId: string }>(
   if (current.length > 0) chunks.push(current);
   return chunks;
 }
-
-/** Claims one block puts to the verifier: one per row, one per display. */
-export const claimCount = (input: VerifyInput): number =>
-  input.block.rows.length + input.block.segments.filter((s) => s.kind === "display").length;
 
 // ---------------------------------------------------------------------------
 // Pass 1 — assignment

@@ -17,7 +17,6 @@ import {
   type StageHaltId,
 } from "./constants.js";
 import type { UpgradeFrom } from "./types.js";
-import { isDraftRunner, type DraftRunner } from "./workers/draftAdapter.js";
 import { normalizeNoveltyTarget, REVIEWER_TIER_RANK, type NoveltyTarget } from "./novelty.js";
 import { isInsightStyleQid } from "./paths.js";
 import type { ProposalAngleAction } from "./discovery/proposal_angle_checkpoint.js";
@@ -81,7 +80,6 @@ interface CliArgs {
   proposeTopic?: string;
   noveltyTarget?: NoveltyTarget;
   upgradeFrom?: UpgradeFrom;
-  proposerOverride?: DraftRunner;
   /** Debugging knob: halt the pipeline immediately after this stage completes.
    * Pre-existing as the `CAUSALSMITH_STOP_AFTER` env var; the flag is the
    * preferred surface and overrides the env var when both are set. */
@@ -140,14 +138,7 @@ function parseStopAfterToken(token: string): StageHaltId {
 }
 
 function toInternalStopAfter(id: StageHaltId): (typeof STAGE_ORDER)[number] {
-  const internal = STAGE_HALT_ID_TO_INTERNAL[id];
-  if (internal === undefined) {
-    // TODO(stage-rename-phase-3): wire substage halt IDs through runPipeline.
-    throw new Error(
-      `--stop-after ${id}: substage halt points (F3.group/fill, F4.codex/claude/d) are not yet supported in this release; use the umbrella stage (e.g. F3, F4) instead.`,
-    );
-  }
-  return internal;
+  return STAGE_HALT_ID_TO_INTERNAL[id];
 }
 
 /** Pipeline options for a tier-downgrade resume. Intentionally omits
@@ -211,16 +202,6 @@ export function parseArgs(argv: string[]): CliArgs {
     noveltyTarget = norm;
   }
 
-  const proposerIndex = args.indexOf("--proposer");
-  let proposerOverride: DraftRunner | undefined;
-  if (proposerIndex !== -1) {
-    const raw = args[proposerIndex + 1];
-    args.splice(proposerIndex, 2);
-    if (!raw || !isDraftRunner(raw)) {
-      throw new Error("Usage: --proposer <codex|claude>");
-    }
-    proposerOverride = raw;
-  }
 
   const upgradeIndex = args.indexOf("--upgrade");
   let upgradeParent: { parent_qid: string; parent_spec: string } | undefined;
@@ -267,8 +248,7 @@ export function parseArgs(argv: string[]): CliArgs {
 
   // Debugging knob: halt right after the named stage completes. The CLI
   // surface accepts canonical prefixed halt IDs and deprecated bare-number
-  // aliases; substages are parsed here but rejected at the dispatch bridge
-  // until Phase 3 wires them into runPipeline.
+  // aliases.
   const stopAfterIndex = args.indexOf("--stop-after");
   let stopAfter: CliArgs["stopAfter"];
   if (stopAfterIndex !== -1) {
@@ -483,7 +463,7 @@ export function parseArgs(argv: string[]): CliArgs {
   const [qid, specialization, extra] = args;
   if (!qid || !specialization || extra !== undefined) {
     throw new Error(
-      "Usage: causalsmith research [--resume] [--auto] [--propose <topic>] [--proposer <codex|claude>] [--novelty <incremental|subfield|field|flagship>] [--upgrade <parent_qid>_<parent_spec> --upgrade-axis <axis>] [--stop-after <stage>] [--from-stage <stage>] [--clear-gate <flag>] <qid> <specialization> [--dry-run]\n" +
+      "Usage: causalsmith research [--resume] [--auto] [--propose <topic>] [--novelty <incremental|subfield|field|flagship>] [--upgrade <parent_qid>_<parent_spec> --upgrade-axis <axis>] [--stop-after <stage>] [--from-stage <stage>] [--clear-gate <flag>] <qid> <specialization> [--dry-run]\n" +
         "  or: causalsmith research --reopen <qid> <spec> [--dry-run]   (pull a banked entry back to its working dir)\n" +
         "  or: causalsmith research --discharge-gate <qid> <spec> <node_id> [--from-stage <stage>] [--auto] [--dry-run]   (reopen, ungate, re-verify F2.5→F5, re-bank)\n" +
         "  or: causalsmith research --downgrade-tier <incremental|subfield|field|flagship> <qid> <spec> [--auto] [--stop-after <stage>] [--dry-run]   (accept an achieved lower tier: lower the novelty floor and re-pass D0.5)\n" +
@@ -512,7 +492,6 @@ export function parseArgs(argv: string[]): CliArgs {
     proposeTopic,
     noveltyTarget,
     upgradeFrom,
-    proposerOverride,
     stopAfter,
     fromStage,
     clearGates: clearGates.length > 0 ? clearGates : undefined,
@@ -903,7 +882,7 @@ export async function runCli(argv: string[]): Promise<void> {
   if (!parsed.reopenMode && isInsightStyleQid(parsed.qid)) {
     throw new Error(
       `Research qid '${parsed.qid}' is an insight-style legacy id. ` +
-        "Use a research-prefixed qid (eid_, pid_, stat_, panel_, exp_, scm_, q_, or q<digits>_); " +
+        "Use a research-prefixed qid (eid_, pid_, stat_, panel_, exp_, or scm_); " +
         "doc/study/runs is reserved for retired study-run compatibility.",
     );
   }
@@ -980,7 +959,6 @@ export async function runCli(argv: string[]): Promise<void> {
       proposeTopic: parsed.proposeTopic,
       noveltyTarget: parsed.noveltyTarget,
       upgradeFrom: parsed.upgradeFrom,
-      proposerOverride: parsed.proposerOverride,
     },
     undefined,
     { stopAfterStage, startStage, clearGates: parsed.clearGates },

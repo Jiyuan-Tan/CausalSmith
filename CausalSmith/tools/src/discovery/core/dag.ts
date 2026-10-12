@@ -4,7 +4,7 @@
 // proof DAG, `definition.by_member_properties` carves a class out of member-atoms,
 // and `assumption.used_by` is the reverse edge. This module turns those fields into
 // the explicit graph object the F-stages consume — so F1/F2 never re-extract
-// structure from prose. See CausalSmith/doc/research/F1_F2_PLAN_REDESIGN.md §2.
+// structure from prose.
 import { coreNodeIds, type Core } from "./schema.js";
 
 export type CoreNodeKind =

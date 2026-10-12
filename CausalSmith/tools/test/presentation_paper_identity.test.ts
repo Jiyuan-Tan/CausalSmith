@@ -11,7 +11,6 @@ import {
   nextWpNumber,
   parseWpNumber,
   parseWpRegistry,
-  rankWpNumbers,
   readWpRegistry,
   resolveWpNumber,
   validateClaimedWpNumber,
@@ -25,7 +24,6 @@ import {
   nextVersionState,
   paperSiteUrl,
   pinDateCommand,
-  unpinDateCommand,
   renderStampTex,
   stampDate,
   titleDate,
@@ -50,22 +48,6 @@ async function tempRepo(): Promise<string> {
 }
 
 describe("working-paper registry", () => {
-  it("ranks the initial assignment by (created, bundle id) within each created year", () => {
-    expect(
-      rankWpNumbers([
-        { id: "b_later_same_day", created: "2026-07-02" },
-        { id: "a_earliest", created: "2026-06-13" },
-        { id: "a_later_same_day", created: "2026-07-02" },
-        { id: "z_next_year", created: "2027-01-04" },
-      ], "CSWP"),
-    ).toEqual({
-      a_earliest: "CSWP-2026-001",
-      a_later_same_day: "CSWP-2026-002",
-      b_later_same_day: "CSWP-2026-003",
-      z_next_year: "CSWP-2027-001",
-    });
-  });
-
   it("gives a new paper max+1 for ITS year and never renumbers an existing entry", async () => {
     const root = await tempRepo();
     await writeWpRegistry(root, { old_a: "CSWP-2026-001", old_b: "CSWP-2026-007", other_year: "CSWP-2025-004" });
@@ -533,12 +515,6 @@ describe("r2: lock ordering is registry then meta, never the reverse", () => {
       withBundleMetaLock(root, () => resolveWpNumber(root, "b1", "2026-05-05", null, "CSWP")),
     ).rejects.toThrow(/lock order/i);
   });
-
-  it("allows the documented order", async () => {
-    const root = await tempRepo();
-    const number = await resolveWpNumber(root, "b1", "2026-05-05", null, "CSWP");
-    await withBundleMetaLock(root, async () => { expect(number).toBe("CSWP-2026-001"); });
-  });
 });
 
 describe("r2: the tightened validator accepts every bundle already shipped", () => {
@@ -591,7 +567,6 @@ describe("the working-paper series prefix is configurable", () => {
     expect(await resolveWpNumber(root, "b1", "2026-05-05", null, prefix)).toBe("AIWP7-2026-001");
     expect(await resolveWpNumber(root, "b2", "2026-05-06", "AIWP7-2026-009", prefix)).toBe("AIWP7-2026-009");
     expect(nextWpNumber(await readWpRegistry(root, prefix), 2026, prefix)).toBe("AIWP7-2026-010");
-    expect(rankWpNumbers([{ id: "x", created: "2026-01-01" }], prefix)).toEqual({ x: "AIWP7-2026-001" });
     // ...and the number reaches page 1 through the stamp unchanged
     expect(renderStampTex({ wpNumber: "AIWP7-2026-009", version: 2, area: "Stat", revised: "2026-05-06" }))
       .toContain("\\renewcommand*{\\csstampid}{AIWP7-2026-009v2}");
@@ -693,12 +668,6 @@ describe("r3: the lock-order marker tracks the lock, not the async context", () 
     // the lock is gone, so this legal acquisition must not be refused
     expect(await resolveWpNumber(root, "b1", "2026-05-05", null, "CSWP")).toBe("CSWP-2026-001");
   });
-
-  it("still refuses an acquisition while the lock is actually held", async () => {
-    const root = await tempRepo();
-    await expect(withBundleMetaLock(root, () => resolveWpNumber(root, "b1", "2026-05-05", null, "CSWP")))
-      .rejects.toThrow(/lock order/i);
-  });
 });
 
 describe("r6: the date pin is equivalent to the unpinned manuscript, in any run", () => {
@@ -748,15 +717,6 @@ describe("r6: the date pin is equivalent to the unpinned manuscript, in any run"
     const next = await emit(a, a.meta, "2026-09-21");
     expect(next.version).toBe(2);
     expect(next.revised).toBe("2026-09-21");
-  });
-
-  it("maps a pinned date back exactly, so the two directions cannot drift", () => {
-    const unpinned = "x\n\\date{\\today}\ny\n";
-    expect(unpinDateCommand(pinDateCommand(unpinned))).toBe(unpinned);
-    expect(pinDateCommand(unpinDateCommand(pinDateCommand(unpinned)))).toBe(pinDateCommand(unpinned));
-    // neither direction touches anything else
-    expect(unpinDateCommand("\\date{1 Jan 2026}")).toBe("\\date{1 Jan 2026}");
-    expect(unpinDateCommand(unpinned)).toBe(unpinned);
   });
 });
 

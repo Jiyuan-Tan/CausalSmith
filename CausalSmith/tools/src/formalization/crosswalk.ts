@@ -1,42 +1,29 @@
-// F2.5 tex↔Lean crosswalk: deterministic anchor skeleton + reviewer-verdict
-// merge + drift→finding folding. Design: code owns anchors (LLMs are unreliable
-// at line numbers, which the future paper↔Lean click-to-jump view needs); the
-// codex reviewer owns only the semantic drift verdict, keyed by obj_id. Mirrors
-// the "code routes, reviewer tags" + deterministic-floor pattern already in
-// stage2_5.ts. At F2.5 (default mode) it covers definitions (P-blocks → Lean
-// def/structure) and theorem statements (T-blocks); LEMMAS ARE EXCLUDED — they
-// churn in F3 so their names / anchors are unstable there, whereas defs and
-// theorem statements are frozen by the F2.5 PASS gate and are the stable-named
-// set worth gating. At F5 (full mode, `includeLemmas`) the proofs are filled and
-// the lemma set is final, so `buildCompleteCrosswalkFromGraph` ALSO anchors L-block lemmas
-// / propositions and re-stamps line numbers from the final files — the complete
-// tex↔Lean correspondence backbone for the visualization (descriptive, not a
-// gate: F3 restructuring makes paper↔Lean lemmas many-to-many).
+// tex↔Lean crosswalk: deterministic anchors + reviewer-verdict merge +
+// drift→finding folding. Design: code owns anchors (LLMs are unreliable at line
+// numbers, which the paper↔Lean click-to-jump view needs); the reviewer owns only
+// the semantic drift verdict, keyed by obj_id. `buildCompleteCrosswalkFromGraph`
+// is the F5 builder: one row per content node of the formalization graph
+// (definition / assumption / theorem / lemma) with line numbers re-stamped from
+// the final files — the complete tex↔Lean correspondence backbone for the
+// visualization (descriptive, not a gate: F3 restructuring makes paper↔Lean
+// lemmas many-to-many).
 
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { CrosswalkEntry, CrosswalkVerdict } from "../types.js";
 import { isUndeliveredNode, type FormalizationGraph } from "../graph/types.js";
-import {
-  parseMdBlocks,
-  type CrosswalkOpts,
-  type LeanDecl,
-  parseLeanDecls,
-  isCanonicalHeadline,
-  parseAllDecls,
-} from "./crosswalk_parse.js";
-import { findHiddenStatementDefs, type HiddenDefFlavor } from "./crosswalk_semantics.js";
+import { parseAllDecls } from "./crosswalk_parse.js";
 
 export * from "./crosswalk_parse.js";
 export * from "./crosswalk_semantics.js";
 
 
 /** Verdicts that ASSERT the paper object was verified to MATCH a Lean decl. A
- *  `lean: null` anchor under one of these is contradictory — equivalence/exactness
+ *  `lean: null` anchor under one of these is contradictory — equivalence
  *  verified against nothing — the cheap invariant that catches a stale or
  *  disconnected anchor (`unmatched` is the honest verdict for a genuinely
  *  unanchored paper object, so it is NOT in this set). */
-export const VERIFIED_MATCH_VERDICTS = new Set<CrosswalkVerdict>(["exact", "equivalent"]);
+export const VERIFIED_MATCH_VERDICTS = new Set<CrosswalkVerdict>(["equivalent"]);
 
 /** Self-consistency lint: entries whose verdict claims a verified Lean match but
  *  carry no anchor. A consumer's equivalence gate SKIPS `lean: null` rows, so such
@@ -73,107 +60,8 @@ export function anchorDriftFindings(
   return out;
 }
 
-// ---------------------------------------------------------------------------
-// Skeleton build (anchors only — no verdicts)
-// ---------------------------------------------------------------------------
-
-/**
- * Build the deterministic crosswalk skeleton: one entry per paper object (union
- * of .md P-/T- blocks and Lean decls carrying an obj_id), matched by obj_id.
- * Every field EXCEPT verdict/clauses/note/fix_locus is filled here; verdict is
- * left `unmatched` for the reviewer. A .md block with no Lean decl gets
- * `lean: null`; a Lean decl whose obj_id has no .md block gets empty `tex`.
- */
-export async function buildCrosswalkSkeleton(
-  leanDir: string,
-  mdPath: string,
-  opts: CrosswalkOpts = {},
-): Promise<CrosswalkEntry[]> {
-  const allMd = await parseMdBlocks(mdPath);
-  // Default (F2.5) mode excludes lemmas — they churn in F3. Full (F5) mode keeps
-  // them: by then the proofs are filled and the lemma set is final.
-  const mdBlocks = opts.includeLemmas
-    ? allMd
-    : allMd.filter((b) => b.kind !== "lemma" && b.kind !== "proposition");
-  const leanDecls = await parseLeanDecls(leanDir, opts);
-  const leanByObjId = new Map<string, LeanDecl>();
-  for (const d of leanDecls) {
-    if (!d.objId) continue;
-    const cur = leanByObjId.get(d.objId);
-    // Prefer the canonical headline decl `t<n>_thm` over a same-prefixed helper /
-    // bridge / aggregate (`t1_thm_bridge`, `t1_thm_random_aggregate_from_pieces`,
-    // `t5_geometry`) that ALSO derives the T-obj_id from its `t<n>_` name. Without
-    // this, an earlier-in-file helper shadows the real headline in the crosswalk
-    // and the paper would verify the wrong decl. First-wins for non-theorem
-    // obj_ids (P-/L-) and when no canonical headline is present.
-    if (!cur) leanByObjId.set(d.objId, d);
-    else if (isCanonicalHeadline(d.objId, d.name) && !isCanonicalHeadline(d.objId, cur.name))
-      leanByObjId.set(d.objId, d);
-  }
-  const entries: CrosswalkEntry[] = [];
-  const seen = new Set<string>();
-  for (const b of mdBlocks) {
-    seen.add(b.objId);
-    const d = leanByObjId.get(b.objId);
-    entries.push({
-      obj_id: b.objId,
-      kind: b.kind,
-      title: b.title,
-      tex: { label: b.texLabel, line_range: b.texLineRange },
-      lean: d ? { file: d.file, decl: d.name, decl_kind: d.declKind, line: d.line } : null,
-      verdict: "unmatched",
-    });
-  }
-  // Lean decls with an obj_id that has no matching .md block (possible fabricated
-  // block or a stale id) — surface them so the reviewer can flag or dismiss.
-  for (const d of leanDecls) {
-    if (!d.objId || seen.has(d.objId)) continue;
-    seen.add(d.objId);
-    entries.push({
-      obj_id: d.objId,
-      kind: d.declKind === "theorem" ? "theorem" : "definition",
-      title: `(Lean-only: ${d.name})`,
-      tex: { label: "", line_range: "" },
-      lean: { file: d.file, decl: d.name, decl_kind: d.declKind, line: d.line },
-      verdict: "unmatched",
-    });
-  }
-  // Hidden-statement-def augmentation: build-inline Prop-valued / ∃-real-constant
-  // defs reached from a T-block STATEMENT but carrying no obj_id are invisible to
-  // BOTH the obj_id skeleton (no P-row) and the per-hypothesis matrix (not a named
-  // hypothesis), so any dropped/weakened clause inside them makes Lean certify a
-  // different statement than the paper. Surface each as its own row so check K is
-  // forced to unfold and compare it. Applies in both F2.5 (gate) and F5
-  // (descriptive) modes.
-  const hidden = await findHiddenStatementDefs(leanDir);
-  for (const m of hidden) {
-    if (entries.some((e) => e.lean?.decl === m.name)) continue; // already represented
-    entries.push({
-      obj_id: `AUX-${m.name}`,
-      kind: "definition",
-      title: `Build-inline ${HIDDEN_FLAVOR_BLURB[m.flavor]}; reached from ${m.reachedFrom.join(", ")} (check K)`,
-      tex: { label: "", line_range: "" },
-      lean: { file: m.file, decl: m.name, decl_kind: m.kind, line: m.line },
-      verdict: "unmatched",
-    });
-  }
-  return sortCrosswalkEntries(entries);
-}
-
-/** Per-flavor reviewer instruction for an `AUX-` hidden-def row. */
-const HIDDEN_FLAVOR_BLURB: Record<HiddenDefFlavor, string> = {
-  "const-exist":
-    "∃-real-constant membership predicate — audit uniform-constant laundering on the converse",
-  structure:
-    "assumption-bundle structure — verify every field matches its .tex condition (no dropped or weakened field)",
-  predicate:
-    "inline predicate / assumption — verify it faithfully encodes its .tex condition (no dropped or weakened clause)",
-  quantity:
-    "ℝ-valued computational quantity — verify the formula (rate exponent / estimand / threshold) matches the paper exactly (no altered constant, exponent, or sign)",
-};
-
-/** Stable crosswalk order: P-blocks, then T-blocks, then L-blocks, then AUX
- *  hidden-def rows; numeric within a kind, lexical for AUX. */
+/** Stable crosswalk order: P-blocks, then T-blocks, then L-blocks, then `AUX-`
+ *  ids, then everything else; numeric within a kind, lexical for AUX. */
 export function sortCrosswalkEntries(entries: CrosswalkEntry[]): CrosswalkEntry[] {
   const rank = (id: string) => {
     const m = id.match(/^([PTL])-(\d+)([a-z]?)$/);
@@ -200,10 +88,9 @@ const GRAPH_DECL_KIND: Record<string, string> = {
 
 /**
  * Build the complete crosswalk directly from the (core-keyed) formalization graph —
- * the only F5 builder since the legacy .md-driven one was removed. The
- * graph already carries every paper object (NL statement, Lean link from F2/F3
- * extraction, review verdict) and a causalsmith-compatible `obj_id` alias, so F5 no
- * longer parses the `.md`. One row per content node (definition / assumption /
+ * the F5 builder. The graph already carries every paper object (NL statement, Lean
+ * link from F2/F3 extraction, review verdict) and a causalsmith-compatible `obj_id`
+ * alias, so F5 does not parse the `.md`. One row per content node (definition / assumption /
  * theorem / lemma); setup and gate nodes are not crosswalk rows.
  */
 export async function buildCompleteCrosswalkFromGraph(graph: FormalizationGraph, leanDir?: string): Promise<CrosswalkEntry[]> {
@@ -306,19 +193,10 @@ export function renderCrosswalkMd(entries: CrosswalkEntry[]): string {
       `| ${mdCell(e.obj_id)} | ${e.kind} | \`${mdCell(lean)}\` | ${mdCell(tex)} | ${e.verdict} | ${mdCell(e.note ?? "")} |`,
     );
   }
-  // Per-definition clause breakdowns (only where the reviewer supplied them).
-  for (const e of entries) {
-    if (!e.clauses || e.clauses.length === 0) continue;
-    lines.push("", `### ${e.obj_id} clause matrix`, "", "| .md clause | Lean | verdict |", "|---|---|---|");
-    for (const c of e.clauses) {
-      lines.push(`| ${c.src.replace(/\|/g, "\\|")} | ${c.lean.replace(/\|/g, "\\|")} | ${c.v} |`);
-    }
-  }
   return lines.join("\n") + "\n";
 }
 
-/** Persist the merged crosswalk: JSON backbone (future view reads this) + the
- *  human-readable .md rendering. Written on EVERY F2.5 outcome. */
+/** Persist the crosswalk: JSON backbone + the human-readable .md rendering. F5 writes it. */
 export async function persistCrosswalk(
   jsonPath: string,
   mdPath: string,

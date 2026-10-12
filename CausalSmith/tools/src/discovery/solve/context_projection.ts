@@ -13,7 +13,7 @@ import type {
   CoreSymbol,
 } from "../core/schema.js";
 import { extractNodeRefs } from "../core/node_ids.js";
-import { normalizeSymbol } from "../core/symbol_names.js";
+import { normalizeSymbol, symbolOccursIn } from "../core/symbol_names.js";
 
 type FrozenStatement = Pick<CoreStatement, "id" | "kind" | "statement" | "depends_on">;
 
@@ -135,17 +135,9 @@ export function projectFrozenCore(
   // `free_symbols` is warn-tier and legacy nodes may omit it. Conservatively
   // recover visibly used declarations from the authored text instead of paying
   // to inline the whole paper-wide symbol table in every local solve unit.
-  // A one- or two-letter alphanumeric name (`n`, `p`, `X1`) occurs inside almost
-  // any TeX string, which would silently re-inline the whole symbol table; match
-  // those only as a standalone token (a following `_` subscript still counts).
-  const occurs = (text: string, needle: string): boolean => {
-    if (needle.length === 0) return false;
-    if (needle.length > 2 || !/^[A-Za-z0-9]+$/.test(needle)) return text.includes(needle);
-    return new RegExp(`(?<![A-Za-z0-9\\\\])${needle}(?![A-Za-z0-9])`).test(text);
-  };
   const collectTextSymbols = (text: string): void => {
     for (const name of symbolByName.keys()) {
-      if (occurs(text, name) || occurs(text, normalizeSymbol(name))) symbolNames.add(name);
+      if (symbolOccursIn(text, name)) symbolNames.add(name);
     }
   };
 

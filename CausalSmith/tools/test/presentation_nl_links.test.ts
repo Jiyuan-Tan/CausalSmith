@@ -10,9 +10,7 @@ import {
   buildBlockInput,
   buildDeclIndex,
   chunkBySize,
-  claimCount,
   coerceDisplayLinks,
-  declIsKnown,
   declVocabularyAppendix,
   chunkClaims,
   closurePieces,
@@ -42,12 +40,16 @@ import {
   STATEMENT_PART,
   type BlockInput,
   type IndexedLeanDecl,
-  type NlLinkSelectable, assignReplyFromStrict,
+  type NlLinkSelectable, type VerifyInput, assignReplyFromStrict,
 } from "../src/presentation/nl_links.js";
 import { displayRanges, openStacks, segmentBlock, segmentText, segmentationProblems } from "../src/presentation/nl_segments.js";
 import { hashEnvBody } from "../src/presentation/tex_anchors.js";
 import { assignRowIds, structureStatementView } from "../src/presentation/lean_structure.js";
 import type { LeanSnippet } from "../src/presentation/types.js";
+
+/** Claims one block puts to the verifier: one per row, one per display. */
+const claimCount = (input: VerifyInput): number =>
+  input.block.rows.length + input.block.segments.filter((s) => s.kind === "display").length;
 
 const DISPLAY = (inner: string) => `<span class="math display">${inner}</span>`;
 const INLINE = (inner: string) => `<span class="math inline">${inner}</span>`;
@@ -845,14 +847,14 @@ describe("display vocabulary is the whole development, not the block's window", 
     expect(i.vocabulary).not.toContain("Ns.farAway"); // outside the closure window
     expect(assignmentProblems(i, linkTo(i, "Ns.farAway"))).toEqual([]);
     expect(assignmentProblems(i, linkTo(i, "farAway"))).toEqual([]); // unambiguous short name
-    expect(declIsKnown(i.index, "Ns.farAway")).toBe(true);
+    expect(resolveDeclName(i.index, "Ns.farAway")).not.toBeNull();
   });
 
   it("refuses a declaration the development does not have", () => {
     const i = input();
     expect(assignmentProblems(i, linkTo(i, "NotADecl"))[0])
       .toMatch(/no declaration of this paper's\s*Lean development matches/);
-    expect(declIsKnown(i.index, "NotADecl")).toBe(false);
+    expect(resolveDeclName(i.index, "NotADecl")).toBeNull();
   });
 
   it("normalizes an accepted decl to its fully-qualified name", () => {
@@ -873,7 +875,7 @@ describe("display vocabulary is the whole development, not the block's window", 
     // not, or it hands the consumer a string its own resolver rejects.
     expect(resolveIndexed(i.index, "Bogus.farAway")?.name).toBe("Ns.farAway"); // the looser helper
     expect(resolveDeclName(i.index, "Bogus.farAway")).toBeNull();              // the strict one
-    expect(declIsKnown(i.index, "Bogus.farAway")).toBe(false);
+    expect(resolveDeclName(i.index, "Bogus.farAway")).toBeNull();
     expect(assignmentProblems(i, linkTo(i, "Bogus.farAway"))[0])
       .toMatch(/prefix contradicts the declaration it would\s*resolve to/);
     // a genuine dotted SUFFIX is fine, and normalizes
@@ -887,9 +889,9 @@ describe("display vocabulary is the whole development, not the block's window", 
 
   it("refuses a short name two declarations share, rather than guessing", () => {
     const i = input();
-    expect(declIsKnown(i.index, "shared")).toBe(false);
+    expect(resolveDeclName(i.index, "shared")).toBeNull();
     expect(assignmentProblems(i, linkTo(i, "shared"))[0]).toMatch(/refused rather than guessed/);
-    expect(declIsKnown(i.index, "A.shared")).toBe(true); // qualified is fine
+    expect(resolveDeclName(i.index, "A.shared")).not.toBeNull(); // qualified is fine
   });
 
   it("accepts several declarations for one display, and refuses a repeat or a mix", () => {
@@ -1028,7 +1030,7 @@ describe("display vocabulary is the whole development, not the block's window", 
     // the shapes seen live: structure-field-like inventions for real decls that
     // exist under quite different names
     for (const fake of ["RealLaw.propensity", "A1A2Law.muPO", "Ns.farAwayHelper"]) {
-      expect(declIsKnown(i.index, fake)).toBe(false);
+      expect(resolveDeclName(i.index, fake)).toBeNull();
       expect(assignmentProblems(i, linkTo(i, fake))[0])
         .toMatch(/no declaration of this paper's\s*Lean development matches/);
       expect(declVocabularyAppendix(i.index)).not.toContain(fake);
@@ -1066,7 +1068,7 @@ describe("display vocabulary is the whole development, not the block's window", 
     })!;
     expect(i.vocabulary).toContain("Ns.near");            // own def: pulled in
     expect(i.vocabulary).not.toContain("Upstream.far");   // external: nameable, not a piece
-    expect(declIsKnown(i.index, "Upstream.far")).toBe(true);
+    expect(resolveDeclName(i.index, "Upstream.far")).not.toBeNull();
   });
 
   it("applies the same rule to a verifier correction", () => {
@@ -1993,7 +1995,7 @@ describe("splitting a block that is too big for one verification request", () =>
 });
 
 describe("prompts", () => {
-  it("states the closed-world assignment contract and renders every placeholder", async () => {
+  it("renders the assignment payload with every placeholder replaced", async () => {
     const { presentationPrompt } = await import("../src/presentation/prompt_io.js");
     const input = inputFor();
     const prompt = await presentationPrompt("p4_nl_links", { objects_payload: assignSection(input) });
@@ -2001,23 +2003,10 @@ describe("prompts", () => {
     expect(prompt).toContain("### a1");
     expect(prompt).toContain("LEAN ROWS:");
     expect(prompt).toContain("PAPER SEGMENTS:");
-    expect(prompt).toMatch(/You choose only among these ids and names; you never quote, rewrite, or compose text/);
-    expect(prompt).toMatch(/The answer must be TOTAL/);
-    expect(prompt).toMatch(/every row\s*id appears exactly once/);
-    expect(prompt).toMatch(/either with one or more entries whose\s*`decl` names a declaration/);
-    expect(prompt).toMatch(/never the same declaration twice for one segment/);
-    expect(prompt).toMatch(/realizes one declaration per quantity: give an entry for each/);
-    // the borderline that stopped a live rollout: notation AND realized is realized
-    expect(prompt).toMatch(/Mark a display `presentationOnly` only\s*when NO declaration realizes it/);
-    expect(prompt).toMatch(/A display that introduces notation is not presentation-only if some\s*declaration realizes it anyway/);
-    expect(prompt).toMatch(/the two\s*forms are never given together for one segment/);
-    expect(prompt).toMatch(/Mark a row `unstated` when the block does not state it/);
-    expect(prompt).toMatch(/that is the\s*declaration for the whole quantity, not a helper/);
-    expect(prompt).toMatch(/any declaration of the development may be named/);
     expect(prompt).not.toContain("GLOBAL READER-FACING PROSE CONTRACT"); // verdict-only
   });
 
-  it("asks the verifier to audit negative claims too, and to correct in place", async () => {
+  it("renders the verifier payload with every placeholder replaced", async () => {
     const { presentationPrompt } = await import("../src/presentation/prompt_io.js");
     const block = inputFor();
     const prompt = await presentationPrompt("p4_nl_links_verify", {
@@ -2030,11 +2019,6 @@ describe("prompts", () => {
     });
     expect(prompt.match(/\{\{[a-z_]+\}\}/g)).toBeNull();
     expect(prompt).toContain("CLAIMS TO AUDIT:");
-    expect(prompt).toMatch(/Assume some are wrong/);
-    expect(prompt).toMatch(/This is the claim most often\s*wrong, so check it directly/);
-    expect(prompt).toMatch(/including when the display also introduces\s*notation, since realizing a declaration settles it either way/);
-    expect(prompt).toMatch(/Every claim above must be judged exactly once/);
-    expect(prompt).toMatch(/you\s*must give the replacement in the same verdict/);
     expect(prompt).not.toContain("GLOBAL READER-FACING PROSE CONTRACT");
   });
 });

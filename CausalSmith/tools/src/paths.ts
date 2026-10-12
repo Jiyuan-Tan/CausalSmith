@@ -18,9 +18,9 @@ import { existsSync, mkdirSync } from "node:fs";
  *   doc/research/_bank/                   Research-mode result bank (proposer-output, novelty-tiered)
  *   doc/study/runs/<qid>/                 Legacy study-mode formalization runs (insight-id qids)
  *   doc/study/_literature_bank/           Legacy study-mode result bank (paper-extracted, flat — no novelty tiers)
- *   tools/src/discovery/prompts/          Discovery-phase prompts (Stages −1, 0, 0.5, 1)
- *   tools/src/formalization/prompts/      Formalization-phase prompts (Stages 2, 3, 4, 5; intervention)
- *   tools/src/templates/                  Jinja templates (LaTeX skeletons)
+ *   tools/src/discovery/prompts/          Discovery-phase prompts (D-1, D-0.5, D0, D0.5)
+ *   tools/src/formalization/prompts/      Formalization-phase prompts (F1, F1.5, F2, F4, F5)
+ *   tools/src/templates/                  Reviewer output templates (JSON)
  *
  * Research vs study split: research-mode qids carry a known prefix (panel_, eid_,
  * pid_, stat_, exp_, or scm_) chosen by the proposer; study-mode qids are raw insight ids
@@ -190,11 +190,6 @@ export function allowedLeanSubdirs(qid: string): string[] {
  */
 export function researchRoot(repoRoot: string): string {
   return path.join(repoRoot, "doc", "research");
-}
-
-/** @deprecated Use `researchRoot`; retained for research-only compatibility. */
-export function formalizationRoot(repoRoot: string): string {
-  return researchRoot(repoRoot);
 }
 
 /**
@@ -369,7 +364,7 @@ export function proposalTexPath(repoRoot: string, qid: string, specialization: s
  * outstanding infrastructure to build is tracked in one place.
  */
 export function substrateDebtPath(repoRoot: string): string {
-  return path.join(formalizationRoot(repoRoot), "SUBSTRATE_DEBT.md");
+  return path.join(researchRoot(repoRoot), "SUBSTRATE_DEBT.md");
 }
 
 /**
@@ -380,22 +375,11 @@ export function substrateDebtPath(repoRoot: string): string {
  * never "owed a build"; they may graduate to a real lemma in a future run.
  */
 export function citedDependenciesPath(repoRoot: string): string {
-  return path.join(formalizationRoot(repoRoot), "CITED_DEPENDENCIES.md");
+  return path.join(researchRoot(repoRoot), "CITED_DEPENDENCIES.md");
 }
 
-export function proposalReviewOutputJsonPath(
-  repoRoot: string,
-  qid: string,
-  specialization: string,
-): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(
-    repoRoot,
-    qid,
-    "discovery",
-    "proposal_review_output_template.json",
-    [`${prefix}_proposal_review_output_template.json`],
-  );
+export function proposalReviewOutputJsonPath(repoRoot: string, qid: string): string {
+  return artifactPath(repoRoot, qid, "discovery", "proposal_review_output_template.json");
 }
 
 export function gapsJsonPath(repoRoot: string, qid: string, specialization: string): string {
@@ -403,92 +387,56 @@ export function gapsJsonPath(repoRoot: string, qid: string, specialization: stri
   return artifactPath(repoRoot, qid, "discovery", "gaps.json", [`${prefix}_gaps.json`]);
 }
 
-export function mdPath(repoRoot: string, qid: string, specialization: string): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(repoRoot, qid, "formalization", "formalization.md", [`${prefix}.md`]);
+/** The bridge note: the graph rendered as the run's human-readable record (F1 and F2 write it). */
+export function mdPath(repoRoot: string, qid: string, _specialization: string): string {
+  return artifactPath(repoRoot, qid, "formalization", "formalization.md");
 }
 
 /**
  * F1 formalization plan: the machine-checkable map from every typed-core node to
- * the Lean object that realizes it (CausalSmith/doc/research/F1_F2_PLAN_REDESIGN.md
- * §4). Replaces the `.md` as the F1→F2 handoff. F1 authors it, F2 syncs deviations back.
+ * the Lean object that realizes it. It is the F1→F2 handoff. F1 authors it, F2 syncs deviations back.
  */
-export function planPath(repoRoot: string, qid: string, specialization: string): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(repoRoot, qid, "formalization", "plan.json", [`${prefix}_plan.json`]);
+export function planPath(repoRoot: string, qid: string, _specialization: string): string {
+  return artifactPath(repoRoot, qid, "formalization", "plan.json");
 }
 
-export function sorriesPath(repoRoot: string, qid: string, specialization: string): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(repoRoot, qid, "formalization", "sorries.md", [`${prefix}_sorries.md`]);
+/** The planner's view of the typed core the plan on disk was written from (F1 records it with
+ *  every completed plan), so a re-plan is told what moved since (`formalization/core_delta.ts`). */
+export function planCorePath(repoRoot: string, qid: string): string {
+  return artifactPath(repoRoot, qid, "formalization", "plan_core.json");
 }
 
-export function assumptionTablePath(
-  repoRoot: string,
-  qid: string,
-  specialization: string,
-): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(repoRoot, qid, "formalization", "assumption_table.md", [
-    `${prefix}_assumption_table.md`,
-  ]);
+/** The plan and core view F1.5 last passed: the review of a re-plan covers what moved since. */
+export function planReviewedPath(repoRoot: string, qid: string): string {
+  return artifactPath(repoRoot, qid, "formalization", "plan_reviewed.json");
+}
+
+/** The plan and core view the scaffold on disk realizes (F2 records it with every completed
+ *  scaffold): a re-scaffold with no flagged targets covers what moved since. */
+export function scaffoldBasisPath(repoRoot: string, qid: string): string {
+  return artifactPath(repoRoot, qid, "formalization", "plan_scaffolded.json");
 }
 
 /**
- * F2.5 tex↔Lean crosswalk: machine-readable correspondence backbone keyed by
- * stable .md block id (P-/T-). Read by the future paper↔Lean linked view and
- * by the F2.5 PASS snapshot.
- */
-export function crosswalkJsonPath(
-  repoRoot: string,
-  qid: string,
-  specialization: string,
-): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(repoRoot, qid, "formalization", "crosswalk.json", [
-    `${prefix}_crosswalk.json`,
-  ]);
-}
-
-/** Human-readable rendering of the F2.5 crosswalk (sibling of the JSON). */
-export function crosswalkMdPath(
-  repoRoot: string,
-  qid: string,
-  specialization: string,
-): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(repoRoot, qid, "formalization", "crosswalk.md", [
-    `${prefix}_crosswalk.md`,
-  ]);
-}
-
-/**
- * F5 COMPLETE crosswalk: the lemma-inclusive, line-final tex↔Lean correspondence
- * emitted at end of pipeline (proofs done). Distinct from the F2.5 `_crosswalk`
- * gate snapshot — this is the descriptive visualization backbone covering
- * definitions, assumptions, theorems, lemmas, and propositions.
+ * F5 crosswalk: the lemma-inclusive, line-final paper↔Lean correspondence emitted
+ * once proofs are done, covering definitions, assumptions, theorems, lemmas, and
+ * propositions.
  */
 export function crosswalkFullJsonPath(
   repoRoot: string,
   qid: string,
-  specialization: string,
+  _specialization: string,
 ): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(repoRoot, qid, "formalization", "crosswalk_full.json", [
-    `${prefix}_crosswalk_full.json`,
-  ]);
+  return artifactPath(repoRoot, qid, "formalization", "crosswalk_full.json");
 }
 
-/** Human-readable rendering of the F5 complete crosswalk (sibling of the JSON). */
+/** Human-readable rendering of the F5 crosswalk (sibling of the JSON). */
 export function crosswalkFullMdPath(
   repoRoot: string,
   qid: string,
-  specialization: string,
+  _specialization: string,
 ): string {
-  const prefix = legacyRunPrefix(qid, specialization);
-  return artifactPath(repoRoot, qid, "formalization", "crosswalk_full.md", [
-    `${prefix}_crosswalk_full.md`,
-  ]);
+  return artifactPath(repoRoot, qid, "formalization", "crosswalk_full.md");
 }
 
 export function leanTheoremDir(repoRoot: string, leanSubdir: string): string {
@@ -544,23 +492,23 @@ export function literatureBankRoot(repoRoot: string): string {
 }
 
 /**
- * Phase a prompt belongs to. The pipeline used to bundle every prompt under
- * `tools/src/research/prompts/`; after the discovery/formalization split,
- * each prompt lives in the subdir for its phase. Routing is by filename prefix
- * so adding a new stage-N prompt does not require touching this table.
+ * Phase a prompt belongs to: each prompt lives in the subdir for its phase.
+ * Routing is by filename prefix so adding a new stage-N prompt does not require
+ * touching this table.
  *
- *   stage_neg1_*, stage0_*   → discovery     (Stages −1, 0, 0.5 — math claim only)
- *   stage1_*, stage2_*, stage5_*, intervention*
- *                            → formalization (Stage 1 is the NL formalization plan;
- *                                             1.5 reviews it; 2–5 are Lean.)
+ *   stage_neg1_*, stage0_*   → discovery     (D-1, D-0.5, D0, D0.5 — math claim only)
+ *   stage1_*, stage2_*, stage5_*, proof_*
+ *                            → formalization (F1 is the formalization plan;
+ *                                             F1.5 reviews it; F2–F5 are Lean.)
  */
 export function promptPhase(name: string): "discovery" | "formalization" {
-  // `stage_flagship_rubric.txt` is a shared block injected into BOTH discovery
-  // reviewers (-0.5 / 0.5); it physically lives under discovery/prompts.
+  // `_shared/` discovery blocks: the Stage -0.5 reviewer's rubric and the cluster
+  // definitions the D-1 stages read.
   if (
     name.startsWith("stage_neg1") ||
     name.startsWith("stage0") ||
-    name === "stage_flagship_rubric.txt"
+    name === "stage_flagship_rubric.txt" ||
+    name === "cluster_definitions.txt"
   ) {
     return "discovery";
   }
@@ -575,7 +523,7 @@ export function promptPhase(name: string): "discovery" | "formalization" {
  */
 export function promptSubfolder(name: string): string {
   // Discovery (D stages)
-  if (name === "stage_flagship_rubric.txt") return "_shared"; // D-0.5 + D0.5
+  if (name === "stage_flagship_rubric.txt" || name === "cluster_definitions.txt") return "_shared";
   if (name.startsWith("stage_neg1_1") || name.startsWith("stage_neg1_2")) return "D-1";
   if (name.startsWith("stage_neg1_review")) return "D-0.5";
   if (name.startsWith("stage0_5") || name.startsWith("stage0_R")) return "D0.5";
@@ -585,7 +533,7 @@ export function promptSubfolder(name: string): string {
   if (name.startsWith("stage1")) return "F1";
   if (name.startsWith("stage2")) return "F2";
   if (name.startsWith("stage5")) return "F5";
-  if (name.startsWith("proof_") || name.startsWith("intervention")) {
+  if (name.startsWith("proof_")) {
     return "F4";
   }
   return "";

@@ -16,7 +16,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { updateBundleMeta as updateViaZenodo, readSidecar, writeDepositRecord, bundleMarker, withCommandLock } from "../src/zenodo/bundle.js";
+import { updateBundleMeta as updateViaZenodo, withCommandLock } from "../src/zenodo/bundle.js";
 import { updateBundleMeta as updateViaPipeline, withBundleMetaLock } from "../src/presentation/meta_store.js";
 
 const META = {
@@ -172,28 +172,5 @@ describe("meta.json under two concurrent writers", () => {
     const keys = Object.keys(await meta());
     expect(keys.slice(0, Object.keys(META).length)).toEqual(Object.keys(META));
     expect(keys).toContain("doi");
-  });
-
-  it("serializes sidecar writes against the same lock", async () => {
-    const base = {
-      environment: "sandbox" as const,
-      api_base: "https://sandbox.zenodo.org/api",
-      conceptrecid: 99,
-      concept_doi: "10.5072/zenodo.99",
-      marker: bundleMarker(dir, "sandbox"),
-      published: null,
-      draft: null,
-      pending_reserve: null,
-      publishing: null,
-      updated_at: "2026-09-21T00:00:00.000Z",
-    };
-    await Promise.all([
-      writeDepositRecord(dir, base),
-      updateViaPipeline(dir, (m) => { m.wp_number = "CSWP-2026-008"; }),
-      writeDepositRecord(dir, { ...base, conceptrecid: 99 }),
-    ]);
-    const s = await readSidecar(dir);
-    expect(s.sandbox?.concept_doi).toBe("10.5072/zenodo.99");
-    expect((await meta()).wp_number).toBe("CSWP-2026-008");
   });
 });

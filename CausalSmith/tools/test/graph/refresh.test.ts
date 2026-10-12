@@ -2,8 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm, writeFile, mkdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { refreshGraphForGate, applyVerdictsToGraph } from "../../src/graph/refresh.js";
-import { createEmptyGraph } from "../../src/graph/store.js";
+import { refreshGraphForGate, applyVerdictsToGraph, fingerprintKeys, carryOverFingerprints } from "../../src/graph/refresh.js";
+import { statementFingerprints } from "../../src/formalization/statement_fingerprints.js";
+import { readScan } from "../../src/substrate/invariance.js";
+import { dirtyFrontier } from "../../src/graph/diff.js";
+import { createEmptyGraph, graphPath, saveGraph } from "../../src/graph/store.js";
+import { buildGraphFromMd } from "../../src/graph/from_note.js";
 import { addNode } from "../../src/graph/mutate.js";
 
 let dir: string;
@@ -22,6 +26,7 @@ theorem t1_thm : rateBound = 1 := by sorry
 
 async function scaffold() {
   await writeFile(path.join(dir, "q_v1.md"), MD, "utf8");
+  await saveGraph(graphPath(dir, "q", "v1"), await buildGraphFromMd("q", "v1", path.join(dir, "q_v1.md")));
   const leanDir = path.join(dir, "lean");
   await mkdir(leanDir, { recursive: true });
   await writeFile(path.join(leanDir, "T1.lean"), LEAN, "utf8");
@@ -29,9 +34,9 @@ async function scaffold() {
 }
 
 describe("refreshGraphForGate", () => {
-  it("builds from .md (no graph yet), extracts, mints hidden defs, returns skeleton+dirty+coverage", async () => {
+  it("loads the graph, extracts, mints hidden defs, returns skeleton+dirty+coverage", async () => {
     const leanDir = await scaffold();
-    const r = await refreshGraphForGate({ formalizationDir: dir, qid: "q", spec: "v1", leanDir, mdPath: path.join(dir, "q_v1.md") });
+    const r = await refreshGraphForGate({ formalizationDir: dir, qid: "q", spec: "v1", leanDir });
     expect(r.graph).not.toBeNull();
     const t1 = r.graph!.nodes.find((n) => n.id === "t1")!;
     expect(t1.lean.decl_name).toBe("t1_thm");
@@ -41,7 +46,7 @@ describe("refreshGraphForGate", () => {
     expect(r.coverage).not.toBeNull();
   });
 
-  it("returns {graph:null} when neither graph JSON nor .md exists", async () => {
+  it("returns {graph:null} when no graph JSON exists", async () => {
     const leanDir = path.join(dir, "lean2");
     await mkdir(leanDir, { recursive: true });
     const r = await refreshGraphForGate({ formalizationDir: dir, qid: "none", spec: "v1", leanDir });
@@ -68,7 +73,6 @@ describe("refreshGraphForGate", () => {
       qid: "q",
       spec: "v1",
       leanDir,
-      mdPath: path.join(dir, "q_v1.md"),
     });
 
     expect(r.graph).toBeNull();
@@ -88,7 +92,7 @@ describe("refreshGraphForGate", () => {
       "lemma helper_first : True := by trivial",
     ].join("\n"), "utf8");
     const first = await refreshGraphForGate({
-      formalizationDir: dir, qid: "q", spec: "v1", leanDir, mdPath: path.join(dir, "q_v1.md"),
+      formalizationDir: dir, qid: "q", spec: "v1", leanDir,
     });
     expect(first.graph?.nodes.find((n) => n.id === "l1")?.provenance).toBe("agent-introduced");
 
@@ -115,12 +119,12 @@ const cw = (obj_id: string, verdict: string) =>
   ({ obj_id, kind: "theorem", title: "", tex: { label: "", line_range: "" }, lean: null, verdict }) as any;
 
 describe("applyVerdictsToGraph", () => {
-  it("maps verdicts → node status (exact/equivalent→matched, drift family→drift, unmatched→skip)", () => {
+  it("maps verdicts → node status (equivalent→matched, drift→drift, unmatched→skip)", () => {
     let g = createEmptyGraph("q", "v1");
     g = addNode(g, { id: "t1", kind: "theorem", provenance: "from-note", nl_statement: "m", tex_anchor: "" });
     g = addNode(g, { id: "p2", kind: "definition", provenance: "from-note", nl_statement: "d", tex_anchor: "" });
     g = addNode(g, { id: "l3", kind: "lemma", provenance: "from-note", nl_statement: "h", tex_anchor: "" });
-    g = applyVerdictsToGraph(g, [cw("T-1", "equivalent"), cw("P-2", "weaker-in-Lean"), cw("L-3", "unmatched")], { t1: "h1" });
+    g = applyVerdictsToGraph(g, [cw("T-1", "equivalent"), cw("P-2", "drift"), cw("L-3", "unmatched")], { t1: "h1" });
     expect(g.nodes.find((n) => n.id === "t1")!.review).toEqual({ status: "matched", passed_hash: "h1" });
     expect(g.nodes.find((n) => n.id === "p2")!.review.status).toBe("drift");
     expect(g.nodes.find((n) => n.id === "l3")!.review.status).toBe("unreviewed"); // unmatched → skipped
@@ -142,7 +146,7 @@ describe("applyVerdictsToGraph", () => {
     g = addNode(g, { id: "thm:case-sensitive", kind: "theorem", provenance: "from-note", nl_statement: "core theorem", tex_anchor: "" });
     g = addNode(g, { id: "t1", kind: "theorem", provenance: "from-note", nl_statement: "legacy theorem", tex_anchor: "" });
 
-    g = applyVerdictsToGraph(g, [cw("thm:case-sensitive", "exact"), cw("T-1", "equivalent")], {
+    g = applyVerdictsToGraph(g, [cw("thm:case-sensitive", "equivalent"), cw("T-1", "equivalent")], {
       "thm:case-sensitive": "core-hash",
       t1: "legacy-hash",
     });
@@ -200,5 +204,83 @@ describe("applyVerdictsToGraph", () => {
       owners,
     )).toThrow('review verdict target resolution failed for "missing": bound graph node "does-not-exist" is missing');
     expect(g.nodes[0].review.status).toBe("unreviewed");
+  });
+});
+
+describe("fingerprintKeys / carryOverFingerprints / dirtyFrontier with fingerprints", () => {
+  const basis = { toolchain: "leanprover/lean4:v4.0", mathlib: "abc" };
+  const fp = (t1Stmt: string, rateStmt: string) =>
+    statementFingerprints(
+      readScan(
+        [
+          JSON.stringify({ name: "t1_thm", kind: "theorem", stmt_hash: t1Stmt, module: "Run.T1", deps: ["rateBound"] }),
+          JSON.stringify({ name: "rateBound", kind: "def", stmt_hash: rateStmt, module: "Run.T1", deps: [] }),
+        ].join("\n"),
+        new Set(["Run.T1"]),
+      ),
+      "Run",
+      basis,
+    );
+  const graphWith = (passed: string | null, passedFingerprint: string | null = null) => {
+    let g = createEmptyGraph("q", "v1");
+    g = addNode(g, { id: "t1", kind: "theorem", provenance: "from-note", nl_statement: "the rate bound holds.", tex_anchor: "" });
+    g = addNode(g, { id: "aux_other", kind: "definition", provenance: "agent-introduced", nl_statement: "other", tex_anchor: "" });
+    return {
+      ...g,
+      nodes: g.nodes.map((n) =>
+        n.id === "t1"
+          ? { ...n, lean: { decl_name: "t1_thm", file: "T1.lean" }, review: { status: passed ? "matched" : "unreviewed", passed_hash: passed, passed_fingerprint: passedFingerprint } }
+          : { ...n, lean: { decl_name: "unknownDecl", file: "T1.lean" } }),
+    } as typeof g;
+  };
+  const text = { t1: "text-t1", aux_other: "text-aux" };
+
+  it("keys a known anchor by its closure and gives an unknown one no key", () => {
+    const keys = fingerprintKeys(graphWith("text-t1"), fp("s1", "r1"), text);
+    expect(keys.t1).toMatch(/^fp:/);
+    expect(keys.aux_other).toBeUndefined();
+  });
+
+  it("carries the key onto a verdict issued at the current text, not onto a stale one", () => {
+    const keys = fingerprintKeys(graphWith("text-t1"), fp("s1", "r1"), text);
+    const current = carryOverFingerprints(graphWith("text-t1"), text, keys);
+    expect(current.nodes.find((n) => n.id === "t1")!.review.passed_fingerprint).toBe(keys.t1);
+    expect(dirtyFrontier(current, text, keys)).toEqual([]);
+    const stale = carryOverFingerprints(graphWith("stale-text"), text, keys);
+    expect(stale.nodes.find((n) => n.id === "t1")!.review.passed_fingerprint).toBeNull(); // the fixture's own null
+    expect(dirtyFrontier(stale, text, keys)).toEqual(["t1"]);
+  });
+
+  it("with a scan: a text-only change is clean, a reached definition's change is dirty", () => {
+    const keys = fingerprintKeys(graphWith("text-t1"), fp("s1", "r1"), text);
+    const g = carryOverFingerprints(graphWith("text-t1"), text, keys);
+    expect(dirtyFrontier(g, { ...text, t1: "text-t1-with-comment" }, keys)).toEqual([]);
+    expect(dirtyFrontier(g, text, fingerprintKeys(g, fp("s1", "r2"), text))).toEqual(["t1"]);
+  });
+
+  it("a keyed node whose @node tag is gone from the Lean has no key and is dirty under a scan", () => {
+    const keys = fingerprintKeys(graphWith("text-t1"), fp("s1", "r1"), text);
+    const g = carryOverFingerprints(graphWith("text-t1"), text, keys);
+    const untagged = { aux_other: "text-aux" }; // no fresh hash for t1: its tag was removed
+    const later = fingerprintKeys(g, fp("s1", "r1"), untagged);
+    expect(later.t1).toBeUndefined();
+    expect(dirtyFrontier(g, untagged, later)).toEqual(["t1"]);
+  });
+
+  it("without a scan, a fingerprint-keyed verdict is compared by source text exactly as before", () => {
+    const keys = fingerprintKeys(graphWith("text-t1"), fp("s1", "r1"), text);
+    const g = carryOverFingerprints(graphWith("text-t1"), text, keys);
+    expect(dirtyFrontier(g, text)).toEqual([]);
+    expect(dirtyFrontier(g, { ...text, t1: "text-t1-changed" })).toEqual(["t1"]);
+  });
+
+  it("applyVerdictsToGraph records the fingerprint key beside the text hash, and no key without one", () => {
+    const g0 = graphWith(null);
+    const keys = fingerprintKeys(g0, fp("s1", "r1"), text);
+    const row = { obj_id: "t1", verdict: "equivalent" } as never;
+    const withKey = applyVerdictsToGraph(g0, [row], text, undefined, keys).nodes.find((n) => n.id === "t1")!.review;
+    expect(withKey).toMatchObject({ passed_hash: "text-t1", passed_fingerprint: keys.t1 });
+    const without = applyVerdictsToGraph(g0, [row], text).nodes.find((n) => n.id === "t1")!.review;
+    expect(without).toEqual({ status: "matched", passed_hash: "text-t1" });
   });
 });

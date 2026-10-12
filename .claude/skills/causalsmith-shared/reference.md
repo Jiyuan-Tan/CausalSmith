@@ -16,8 +16,7 @@ rewinds) lives in the TS pipeline at [`CausalSmith/tools/`](../../../CausalSmith
   orphaned `codex exec`), then relaunch. A lease-holding sub never SIGINTs. On Windows `TaskStop` kills
   only the wrapper: kill the `Local\OpenAI\Codex\bin` codex tree and any `*sandbox-setup*` process (an
   orphaned one breaks the next run), sparing the desktop `Codex.exe`, `.vscode` Codex, and your harness.
-- **Triage a halt** from the last line of `pipeline.jsonl`. If the intervention judge itself failed to
-  parse, its raw dump is the newest `intervention_raw_<timestamp>.txt` at the run-dir root.
+- **Triage a halt** from the last line of `pipeline.jsonl`.
 - **Watcher ownership.** The current lease holder arms the watcher for its whole phase, including the
   cold-start→first-halt window. Exactly one watcher per qid; different qids are independent.
 - **Subs stay in their turn.** A dispatched sub that starts a `run_in_background` task and ends its
@@ -60,7 +59,7 @@ watcher (`run_in_background`; exits on bank / checkpoint / process exit):
     d=json.load(open('$STATE'))
     try: last=json.loads(open('$PLOG').read().strip().splitlines()[-1])
     except Exception: last={}
-    sys.exit(0 if (d.get('banked') or d.get('next_action')=='pending_checkpoint' or last.get('status')=='checkpoint') else 1)"; do
+    sys.exit(0 if (d.get('banked') or last.get('status')=='checkpoint') else 1)"; do
       sleep 15
     done
 
@@ -97,20 +96,21 @@ codex). Never force-kill mid-`codex`. Reaping keeps the cluster under its proces
   definitions often sidestep the general theorem.
 - **Side-conditions are discovered by building.** Sanity-check a gate is true as stated before assuming
   it; attempt the build to surface its hypotheses. Gates are tracked debt (`SUBSTRATE_DEBT.md`).
-- `--study` PASS ends in `coordinate`: a codex coordinator merges the substrate into its topical
+- A `causalsmith study` PASS ends in `coordinate`: a codex coordinator merges the substrate into its topical
   Causalean home, dedups, documents it docstring-canonically, under the verify-or-rollback gate.
 
 ## Proof-review loop — when to intervene
 
 Default: let it run; act per the checkpoint route (`hint` / `build-substrate` / `fix-source` / `unclear` /
-`bank-partial` / `abandon`). Intervene when the faithful fix is one the loop's lanes structurally
+`bank-partial` / `abandon`; a witnessed refutation rewinds to D0 by itself, or halts as `D0 REWIND
+NEEDS APPROVAL`). Intervene when the faithful fix is one the loop's lanes structurally
 cannot make: a decl loops with no goal movement because its fix needs a frozen-theorem-meaning change or
 a core-`def` strengthen, or the reviewer keeps flagging drift the filler cannot resolve without changing
-the spec. A `fix-source`/`user` checkpoint whose diagnosis points at an internal helper needing only a
+the spec. A `fix-source` checkpoint whose diagnosis points at an internal helper needing only a
 T-block-preserving fix (a sign correction, a bookkeeping premise threadable from an existing ledger) is
 yours to audit and fix in place.
 
-How: (1) act at the halt; (2) patch faithfully — confirm the `.tex`/`.md` defines or uses the thing,
+How: (1) act at the halt; (2) patch faithfully — confirm the core defines or uses the thing,
 derive the correct statement from the definitions, correct the helper, cascade through dependent signed
 helpers up to the first sign-insensitive consumer, document the derivation, and `lake -d CausalSmith
 build <module>` the chain green (sorries OK); (3) leave it compiling with `BLOCKER` hints for the filler,
@@ -129,16 +129,14 @@ Schema: [`tools/src/state.ts`](../../../CausalSmith/tools/src/state.ts).
 
 | Field | Meaning |
 |-------|---------|
-| `stage_completed` | Bare number on disk, order `"-1.1","-1.2","-0.5","0","0.5","1","1.5","2","2.5","3","3.5","4","5"` (a legacy on-disk `"3.7"` is remapped to `"3.5"` on load); cold-start sentinel `"-1.2"`. F5 ≡ `"5"`, D0 ≡ `"0"`, D0.5 ≡ `"0.5"`, D-1 ≡ `"-1.2"`. |
-| `next_action` | `"pending_checkpoint"` after a clean F5, `"user_chose:<command>"` once acted on, else `null`. No `ckpt_pending` field exists. |
+| `stage_completed` | Bare number on disk, order `"-1.1","-1.2","-0.5","0","0.5","1","1.5","2","2.5","3","3.5","4","5"`; cold-start sentinel `"-1.2"`. F5 ≡ `"5"`, D0 ≡ `"0"`, D0.5 ≡ `"0.5"`, D-1 ≡ `"-1.2"`. |
 | `flags.missing_architecture` (+`_items`) | Scaffolder reported `blocked-missing-architecture`; resume blocks until each item exists. |
-| `flags.stage_neg1_fallback` | D-1 budget spent without an acceptable proposal. Bank, or `--resume --clear-gate stage_neg1_fallback` after an out-of-band revision. |
-| `flags.general_review_halt` | General-reviewer halt with reason; clear via `--clear-gate` after addressing it. |
-| `flags.theorem_splits_cap_hit`, `stage1_rewinds_cap_hit`, `scaffold_redirect_cap_hit`, `stage0_budget_exhausted`, `d0_loop_cap_hit`, `proof_loop_cap_hit` | Cap/budget exceeded (reason in value). Clear only via `--resume --clear-gate <flag>` (registry in `tools/src/cap_gates.ts`); clearing resets the paired counters. |
+| `flags.stage_neg1_fallback` | D-1 stopped: an explicit `--angle-action give-up`, or the producer environment failed repeatedly (reason in the value). Bank, or `--resume --clear-gate stage_neg1_fallback` after an out-of-band revision. |
+| `flags.d0_loop_cap_hit`, `proof_loop_cap_hit` | Cap/budget exceeded (reason in value). Clear only via `--resume --clear-gate <flag>` (registry in `tools/src/cap_gates.ts`); clearing resets the paired counters. |
 | `flags.f2_scaffold_directive` | Persistent F2 scaffold-faithfulness directive (`bin/f2_directive.ts --directive "…" \| --directive - \| --clear \| --show`), injected on every scaffold pass until cleared. Statement-shape steer only. F3 analogue: `flags.f3_filler_directive` (`bin/f3_directive.ts`), a proof hint. |
 | `banked` (+`banked_tier`, `banked_on`, `banked_reason`) | Run retired into `_bank/<tier>/`; inert. |
 | `proposed_from` | `--propose` runs: `topic`, `final_verdict`, `iterations[]`, `seed_list`. |
-| `design_decisions`, `added_assumptions`, `pending_sorries` | Relayed at checkpoints. Add an assumption only via `bin/add_assumption.ts` (re-using a `label` replaces; `--show` lists; refuses `substrate-gate` — use `bin/gate.ts`). |
+| `design_decisions`, `added_assumptions` | Relayed at checkpoints. Add an assumption only via `bin/add_assumption.ts` (re-using a `label` replaces; `--show` lists; refuses `substrate-gate` — use `bin/gate.ts`). |
 | `cited_checks` | F4 cited source-match verdicts; `cited-mismatch`/`cited-underspecified` make `bank_entry.ts` refuse `accepted`. |
 
 **Never hand-edit `state.json`.** Every mutation has a CLI: cap clears → `--resume --clear-gate`;
@@ -153,21 +151,26 @@ it and commits it to the graph's `main`; `discovery/vcs/` is never hand-edited.
 ## Checkpoint recognition
 
 The authoritative signal is the **last line of `pipeline.jsonl`**: `"status":"checkpoint"` with a
-`message` and, on a halt, `next_step_guidance` (post-F5 also `next_action:"pending_checkpoint"`). Never
+`message` and, on a halt, `next_step_guidance`. Never
 classify from stdout (the CLI always prints `finished at stage <N>`). In auto mode, "ask/offer/wait"
 actions collapse to "decide per the rule, then `--resume`" except the main skill's hard stops.
 
 | Observed | Meaning | Action |
 |----------|---------|--------|
-| `stage_completed:"5"` + checkpoint line / `next_action:"pending_checkpoint"` | CKPT 2 | Print Lean file list, API.md diff path, `added_assumptions`, and planned F7 closure; ask once to accept the continuous bank → scoped commit → F7 → verification → final scoped commit sequence. |
-| `stage_completed:"5"`, no pending signal | CKPT 2 already acted on | Nothing to resume. |
-| `stage_completed:"1.5"` + `CONSOLIDATED CKPT 1` | CKPT 1 | Depth/reuse/fidelity audit (F skill § "F1.5"); wait for user unless auto. |
-| `stage_completed:"1"` + no-usable-plan | F1 self-halt (its only one — F1 no longer halts for substrate) | Inspect `plan.json`; substrate gates are classified at F1.5. |
+| `stage_completed:"5"` + checkpoint line, not `banked` | CKPT 2 | Print Lean file list, API.md diff path, `added_assumptions`, and planned F7 closure; ask once to accept the continuous bank → scoped commit → F7 → verification → final scoped commit sequence. |
+| `PROOF-REVIEW LOOP ESCALATION [<route>]` (`stage_completed:"2"`) | The proof-review loop halted without converging | Act per route (F skill § "F2–F4 proof-review loop"); a plain `--resume` re-enters F2.5. |
+| `PROOF-REVIEW LOOP → D0 REWIND NEEDS APPROVAL [<node>]` | A witnessed refutation the loop will not rewind for by itself (proven dependents, the per-node rewind cap, or no core statement to target) | `rewind:fix-source` with the witness line. |
+| `PROOF-REVIEW LOOP → AUTO D0 REWIND [<node>]` (status `rewound`) | A witnessed refutation; the run re-entered D0 on the targeted core statements | No action in F; the run continues in D. |
+| `PROOF-REVIEW ESCALATION UNRESOLVED [<route>]` | A later stage was entered past an unresolved loop escalation; the run is back at F2 | Act on the named route, then resume into F2.5. |
+| `stage_completed:"1.5"` + `CONSOLIDATED CKPT 1 — PASSED` | CKPT 1, plan passed | Depth/reuse/fidelity audit (F skill § "F1.5"); wait for user unless auto. |
+| `stage_completed:"1"` + `CONSOLIDATED CKPT 1 — NOT PASSED` | CKPT 1, plan rejected or still failing | Reroute from the review verdicts (F skill § "F1.5"); a plain `--resume` re-reviews the same plan. |
+| `stage_completed:"1"` + no-usable-plan | F1 self-halt (its only one — F1 does not halt for substrate) | Inspect `plan.json`; substrate gates are classified at F1.5. |
 | `flags.missing_architecture:true` | Resume blocked | Build each listed item, clear, resume gated. |
-| `flags.stage_neg1_fallback` | D-1 budget spent | Bank `downgraded|failed`, or clear deliberately to retry. |
-| `flags.general_review_halt` / a cap flag | Halt / cap | Address the cause, then `--clear-gate`. |
-| `stage_completed:"-1.2"` + `proposed_from.final_verdict=="NO-PASS"` | D-0.5 NO-PASS, revises exhausted | Bank `failed`. |
-| `stage_completed:"0.5"` + terminal REJECT in `reviews.jsonl` | D0.5 terminal reject | Bank `failed` (correctness) or `downgraded` (sound, over-framed). A mid-stage `revise` is iteration. |
+| `flags.stage_neg1_fallback` | D-1 stopped (give-up, or repeated producer environment failure) | Bank `downgraded|failed`, or clear deliberately to retry. |
+| a cap flag (`*_cap_hit`) | Cap | Address the cause, then `--clear-gate`. |
+| `proposed_from.angle_checkpoint` set (`kind` `revise` or `angle-boundary`); a plain `--resume` logs `D-0.5 ANGLE CHECKPOINT BLOCKED` | D-0.5 waits for a decision | `--angle-action …` (D skill § "D-0.5 CLI checkpoints"). |
+| `stage_completed:"-1.2"` + `proposed_from.final_verdict=="NO-PASS"` | D-0.5 ended by `--angle-action give-up` | Bank `failed`. |
+| `stage_completed:"0"` + a D0.5 checkpoint line `BELOW NOVELTY FLOOR … Not salvageable` or a `fail` verdict in `reviews/` | D0.5 terminal reject | Bank `failed` (correctness) or `downgraded` (sound, over-framed). A mid-stage `revise` is iteration. |
 | `banked:true` | Already banked | Do not re-enter. |
 | stderr error, `state.json` unchanged | Crash | Print stderr tail; do not auto-retry. |
 
@@ -175,11 +178,11 @@ actions collapse to "decide per the rule, then `--resume`" except the main skill
 
 Read the rewind verdict (the `PROOF-REVIEW LOOP ESCALATION [fix-source]` line in `pipeline.jsonl`
 and the reviewer reasoning in `logs/_reviewer_calls.log`), locate the flagged declaration, and independently reproduce the conflict against the
-`.md`/`.tex` (the verdict must cite the spec line, the Lean line, and why they conflict). Drift
+core node (the verdict must cite the core node, the Lean line, and why they conflict). Drift
 signatures: a hypothesis over-quantified to unsatisfiability (`∀ n` where the spec says *eventually*),
-a dropped/extra term, a wrong sign, a `def` gerrymandered to the proof's objects. Legitimate → let the
-re-scaffold run, then re-read the patched declaration and confirm 0-sorry. False → restore the
-pre-rewind state (`state.json` `.bak` + `git restore` of only the rewound files) and carry on.
+a dropped/extra term, a wrong sign, a `def` gerrymandered to the proof's objects. Legitimate → act per
+the route, then re-read the patched declaration and confirm 0-sorry. False → persist an accept-review
+carrying your reproduction (F skill § "F2–F4 proof-review loop") and resume.
 
 ## Bank
 

@@ -2,7 +2,7 @@ import { mkdir, appendFile } from "node:fs/promises";
 import path from "node:path";
 import { pipelineLogPath, reviewsLogPath } from "./paths.js";
 import type { PipelineContext, PipelineLogEntry } from "./types.js";
-import type { Intervention, ReviewResult } from "./judgment.js";
+import type { ReviewResult } from "./judgment.js";
 
 export async function appendPipelineLog(
   ctx: Pick<PipelineContext, "repoRoot" | "qid" | "specialization">,
@@ -27,17 +27,6 @@ export type ReviewLogEntry =
       /** D-1 proposal angle (stage_neg1 rows). Structured so `--fresh-angle`
        *  row removal never has to parse it back out of `report_summary` prose. */
       angle?: number;
-    }
-  | {
-      timestamp: string;
-      stage: string;
-      kind: "intervention";
-      attempt?: number;
-      route: Intervention["route"];
-      reason: string;
-      proposed_action?: string;
-      cite?: string;
-      intervention: Intervention;
     };
 
 export async function appendReviewLog(

@@ -49,27 +49,22 @@ function autoBanner(stage: Stage): string {
 export function checkpointGuidance(
   stage: Stage,
   status: string,
-  flags: { substrate_build_required?: string | null } = {},
   autoMode = false,
   message = "",
 ): string | undefined {
   // Only checkpoints and blocks hand control back to the orchestrator.
   if (status !== "checkpoint" && status !== "blocked") return undefined;
 
-  const base = perStageGuidance(stage, flags, message);
+  const base = perStageGuidance(stage, message);
   if (base === undefined) return undefined;
   return autoMode ? autoBanner(stage) + base : base;
 }
 
-function perStageGuidance(
-  stage: Stage,
-  flags: { substrate_build_required?: string | null },
-  message = "",
-): string | undefined {
+function perStageGuidance(stage: Stage, message = ""): string | undefined {
   switch (stage) {
     case "-0.5":
       return (
-        "D-0.5: NO-PASS is terminal, not merely stopped — read its verdict. If it passed, next is D0 solve. " +
+        "D-0.5: a `revise` or `angle-boundary` checkpoint needs `--angle-action`; an unparseable review needs a plain `--resume`; only give-up is terminal. " +
         "causalsmith-d SKILL §'Per-stage event → action', D-0.5."
       );
 
@@ -107,8 +102,8 @@ function perStageGuidance(
       if (!negativePass && explicitPass && (m.includes("floor") || m.includes("go/no-go"))) {
         // why: "did not pass the floor" must not route to PASS guidance.
         return (
-          // The general referee now also runs as a concurrent TRIAGE read on non-passing
-          // rounds, so `review_general.json` EXISTING no longer implies a pass — its
+          // The general referee also runs as a concurrent TRIAGE read on non-passing
+          // rounds, so `review_general.json` EXISTING does not imply a pass — its
           // `meets_floor` field does. Confirming existence alone would read a below-floor
           // triage halt as a pass.
           "D0.5 PASS: confirm stage_completed=\"0.5\" and reviews/review_general.json with meets_floor:true, then decide whether to enter F1–F5. " +
@@ -118,25 +113,22 @@ function perStageGuidance(
       // Unknown D0.5 halt shape — do NOT assume pass; force a verdict-body read.
       return (
         "D0.5 halt: read its message and stage_completed. Only stage \"0.5\" plus reviews/review_general.json with meets_floor:true is PASS (the file alone is NOT — the tier referee also runs as a triage read on non-passing rounds); stage \"0\" means repair findings / lift tier and rerun D0.5. " +
-        "Never infer PASS from the stage alone. causalsmith-d SKILL §'Per-stage event → action', D0.5."
+        "Never infer PASS from the stage alone. causalsmith-d SKILL §'D0: the theorem graph is under version control', D0.5 review."
       );
     }
 
-    case "1":
-      // F1 no longer halts for substrate (gates are classified at F1.5); the flag can
-      // still be set on a run resumed from an older state file, so keep the guidance.
-      if (flags.substrate_build_required) {
+    case "1.5":
+      // One checkpoint, two outcomes; the halt message says which.
+      if (message.includes("NOT PASSED")) {
         return (
-          "SUBSTRATE-BUILD: build each paper-owned Defer item. A genuinely published, source-matched input may remain cited even when a headline invokes it, but every new adaptation, bridge, and theorem step must be formalized. Gate only irreducible theory absent from Mathlib. " +
-          "Verify each build (0-sorry, axiom-clean, statement-match), clear the flag, and resume. At the next checkpoint replace each gate, rewind F2.5 (not F1), and re-pass F4 before banking; never hand-patch the plan. causalsmith-f SKILL §'Substrate building (`gated` only)'."
+          "CONSOLIDATED CKPT 1 — plan NOT passed (stage stays \"1\"; F2 waits for a pass). Read every verdict of this boundary and fix the earliest wrong artifact: " +
+          "a plan defect via bin/f1_directive.ts then --resume --from-stage F1; a core defect or missing hypothesis via rewind:fix-source (never added in the plan or Lean); missing architecture via substrate building. " +
+          "causalsmith-f SKILL §'Per-stage event → action', F1.5 / CKPT 1."
         );
       }
-      return undefined;
-
-    case "1.5":
       return (
         "CONSOLIDATED CKPT 1: audit depth, reuse, fidelity, and contribution ownership. A genuinely published source-matched input may remain cited even when a headline invokes it; formalize every paper-owned/new step, including adaptations, embeddings, and splices. Never relabel difficult new work as cited or hand-patch the plan. " +
-        "Then F2–F4 follows its route; reject laundering, and edit .tex only by upward, dischargeable strengthening. causalsmith-f SKILL §'Per-stage event → action', F2–F4 proof-review loop."
+        "Then F2–F4 follows its route; reject laundering, and change a claim only upward, through the core. causalsmith-f SKILL §'Per-stage event → action', F2–F4 proof-review loop."
       );
 
     case "2.5":
@@ -144,8 +136,8 @@ function perStageGuidance(
     case "3.5":
     case "4":
       return (
-        "F2–F4: follow the checkpoint route (hint / build-substrate / fix-source—verify rewind / unclear / bank-partial / abandon); keep running while revisions converge. " +
-        "Use fix-source/failed only when .tex is wrong; unclear is undetermined, so investigate. After hand de-laundering, run F3.5→F5, record added_assumptions, restore laundering_count=0, and make the bank call. causalsmith-f SKILL §'Per-stage event → action', F2–F4 proof-review loop."
+        "F2–F4: follow the checkpoint route (hint / build-substrate / fix-source—verify rewind / unclear / bank-partial / abandon; a D0 REWIND NEEDS APPROVAL halt is main's call); keep running while revisions converge. " +
+        "Use fix-source/failed only when the core claim is wrong; unclear is undetermined, so investigate. After hand de-laundering, record added_assumptions, resume from F2.5 so the loop re-reviews through F4, and make the bank call. causalsmith-f SKILL §'Per-stage event → action', F2–F4 proof-review loop."
       );
 
     case "5":

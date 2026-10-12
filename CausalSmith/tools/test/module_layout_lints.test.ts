@@ -16,7 +16,7 @@ async function moduleFilesUnder(dir: string): Promise<string[]> {
   const out: string[] = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...await moduleFilesUnder(full));
+    if (entry.isDirectory()) { if (entry.name !== "tmp") out.push(...await moduleFilesUnder(full)); } // run-local scratch is not a pilot
     else if (entry.isFile() && entry.name.endsWith(".lean") && /^module\r?$/m.test(await readFile(full, "utf8"))) out.push(full);
   }
   return out;

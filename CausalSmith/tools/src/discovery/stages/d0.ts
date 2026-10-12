@@ -6,12 +6,10 @@
 // Maps each to a StageResult the pipeline loop understands. A D0-SOLVE proposed
 // statement change, or a D0.5 `fail` / revise-cap exhaustion, surfaces as a
 // checkpoint (advance:false) — the human/orchestrator resolves it.
-import { existsSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { readFile, rm } from "node:fs/promises";
-import path from "node:path";
+import { rm } from "node:fs/promises";
 import type { PipelineContext, StageResult, StateJson } from "../../types.js";
-import { appendReview, artifactPaths, type StageDeps } from "../../pipeline_support.js";
+import { appendReview, type StageDeps } from "../../pipeline_support.js";
 import { runStage0Render } from "./d0_render.js";
 import { runStage0_5Core } from "./d0_5_core.js";
 import type { Stage0_5CoreResult } from "./d0_5_core.js";
@@ -32,13 +30,6 @@ import { d05AcceptanceReceiptPath, writeD05AcceptanceReceipt } from "./d0_accept
 import { saveState } from "../../state.js";
 import { appendEscalationLog, readEscalationLog } from "../escalation_log.js";
 import { readTypedCore } from "../core/core_io.js";
-import { writeTextAtomic } from "../../shared/json_atomic.js";
-import { resolveInDir } from "../../paths.js";
-import {
-  loadSemanticManifest,
-  validateCoreManifest,
-  validateRenderedManifest,
-} from "../semantic_manifest.js";
 import { runVcsSolveRound, ensureStore } from "../vcs/round.js";
 import { commitGraph, headGraph, publishCore } from "../vcs/commit.js";
 import { graphFromCore } from "../vcs/render.js";
@@ -46,10 +37,6 @@ import { blobId } from "../vcs/node.js";
 import { orphanLemmas, danglingCitations } from "../vcs/hygiene.js";
 import { formatViolations } from "../vcs/checks.js";
 import { loadGraph } from "../vcs/graph.js";
-import {
-  consumePendingIncrementalRewind,
-  finalizePendingExtensionRebase,
-} from "./d0_cross_boundary_rewind.js";
 
 export function citationVerificationCheckpoint(review: Stage0_5CoreResult): StageResult | null {
   if (review.citation_verification_required.length === 0) return null;
@@ -67,14 +54,13 @@ export function citationVerificationCheckpoint(review: Stage0_5CoreResult): Stag
 }
 
 /** Max directed D0.R revise rounds before the typed D0.5 loop checkpoints.
- *  Default 3: D0.R now OWNS the dependency graph / wiring (add/drop `depends_on` edges,
- *  re-route lemmas, faithful def-alignment) and fixes those in place durably — a passed
- *  D0.5 advances with no re-solve (see stage0_R_core prompt). So the common trailing
- *  D0.5-referee class (redundant/hidden dependency, redundant-assumption-declaration) is
- *  genuinely in-place-fixable, and the extra round closes the graph-hygiene tail instead
- *  of escalating. STATEMENT/CONCLUSION findings (overclaim / ill-typed target / narrow-a-
- *  premise) stay OUT of D0.R scope — it escalates those to the orchestrator (a proto edit),
- *  so they do not thrash the revise budget. The no-net-progress / persistent-finding
+ *  Default 3: D0.R owns the dependency graph / wiring (add/drop `depends_on` edges,
+ *  re-route lemmas, faithful def-alignment) of the flagged nodes and their prerequisites and
+ *  fixes those in place durably — a passed D0.5 advances with no re-solve (see stage0_R_core
+ *  prompt). So a redundant/hidden-dependency finding on a statement is in-place-fixable, and
+ *  the extra round closes the graph-hygiene tail instead of escalating. STATEMENT/CONCLUSION
+ *  findings (overclaim / ill-typed target / narrow-a-premise) stay OUT of D0.R scope — it
+ *  escalates those to the orchestrator, so they do not thrash the revise budget. The no-net-progress / persistent-finding
  *  backstops still escalate immediately when a round makes no headway (see the loop in
  *  runStage0_5Typed). Override via `CAUSALSMITH_D0_REVISE_CAP`. */
 export const D0_REVISE_CAP = (() => {
@@ -259,7 +245,6 @@ async function renderAndComplete(args: { ctx: PipelineContext; state: StateJson;
     message:
       `${args.message}; ${rendered.message}.${pruneNote}\nD0 MAXIMALITY CHECKPOINT — the paper is fully proved/discharged (main ${head.slice(0, 12)}). ` +
       `Review whether the WHOLE paper is maximized BEFORE D0.5; iterate D0 if not, else --resume to proceed to the D0.5 review.`,
-    artifacts: [coreJsonPath(args.ctx), rendered.texPath],
   };
 }
 
@@ -271,8 +256,6 @@ export async function runStage0Typed(args: {
   state: StateJson;
   deps: StageDeps;
 }): Promise<StageResult> {
-  await consumePendingIncrementalRewind({ ctx: args.ctx, state: args.state });
-  await finalizePendingExtensionRebase({ ctx: args.ctx, state: args.state });
   // A D0 round after an interrupted D0.5 means the orchestrator moved on: D0.R's
   // commits are part of history now, not a pending rollback.
   delete args.state.flags.d0_5_head_before;
@@ -346,17 +329,6 @@ export async function runStage0_5Typed(args: {
   // durable and in-memory state field D0.R may mutate so a non-converging/failing
   // review cannot contaminate the authoritative D0 package or a same-revision resume.
   const corePath = coreJsonPath(args.ctx);
-  const texPath = artifactPaths(args.ctx, args.state).tex;
-  const pendingPath = resolveInDir(path.dirname(corePath), "d0r_pending_changes.json", [
-    `${args.ctx.qid}_d0r_pending_changes.json`,
-  ]);
-  const semanticManifest = await loadSemanticManifest(args.ctx);
-  if (semanticManifest) {
-    const core = await readTypedCore(corePath);
-    validateCoreManifest(semanticManifest, "core", core);
-    if (!existsSync(texPath)) throw new Error("Stage 0 semantic manifest render: writeup.tex is absent");
-    validateRenderedManifest(semanticManifest, await readFile(texPath, "utf8"));
-  }
   // D0.R edits are provisional until a subsequent core panel passes. They are
   // committed to main as they are made (so history keeps them); a D0.5 exit
   // without PASS resets main to the head this invocation started from.
@@ -387,7 +359,6 @@ export async function runStage0_5Typed(args: {
   args.state.flags.d0_5_head_before = headBefore;
   await saveState(args.ctx.repoRoot, args.ctx.qid, args.ctx.specialization, args.state);
   const transaction = {
-    pending: existsSync(pendingPath) ? await readFile(pendingPath, "utf8") : null,
     designDecisions: structuredClone(args.state.design_decisions),
     addedAssumptions: structuredClone(args.state.added_assumptions),
   };
@@ -406,8 +377,6 @@ export async function runStage0_5Typed(args: {
     }
     await publishCore(args.ctx, store);
     delete args.state.flags.d0_5_head_before;
-    if (transaction.pending === null) await rm(pendingPath, { force: true });
-    else await writeTextAtomic(pendingPath, transaction.pending);
     args.state.design_decisions = transaction.designDecisions;
     args.state.added_assumptions = transaction.addedAssumptions;
   };
@@ -444,7 +413,7 @@ export async function runStage0_5Typed(args: {
     // path of an invocation that reaches here — fail, both backstops, D0.R escalation, cap
     // exhaustion, citation halt, and revise-then-pass (which re-reads authoritatively on the
     // later round) — pays one extra call of the run's priciest model
-    // (MODEL_PLAN.stage0_5_general is claude/opus vs the panel's codex mechanicalTier).
+    // (MODEL_PLAN.stage0_5_general is the discovery tier vs the panel's mechanicalTier).
     //
     // In aggregate that is roughly an EIGHTFOLD increase in cold-referee calls, not a
     // rounding error: measured over the 47 pipeline.jsonl histories under doc/research as of
@@ -489,10 +458,6 @@ export async function runStage0_5Typed(args: {
     const roundTriage = genSettled.status === "fulfilled" ? genSettled.value : null;
     lastReview = review;
     const curKeys = findingKeys(review.verdicts);
-    // The first complete panel after a D0.R edit is the authority for whether
-    // that edit cleared its assigned findings. Bank cleared prose before ANY
-    // panel-result branch can return (citation, pass/tier, fail, proposal route,
-    // or convergence), while formal bytes remain inside the transaction.
     const citationCheckpoint = citationVerificationCheckpoint(review);
     if (citationCheckpoint) {
       // Source access failure is not evidence that the cited claim is false and
@@ -504,16 +469,19 @@ export async function runStage0_5Typed(args: {
       // Record the panel's verdicts before returning. This checkpoint fires on a
       // SOURCE-ACCESS problem, but `review` is a fully-paid panel result that may also
       // carry genuine math findings (including the cited-* findings synthesized into
-      // math.findings). Returning without an escalation entry discarded all of them:
-      // recoverable only because a rerun re-executes the whole panel — i.e. by paying
-      // for it twice. The entry is provenance, not a re-solve directive, so it carries
-      // no targets.
+      // math.findings). The entry is provenance for the escalation log (greppable
+      // history), not a re-solve directive, so it carries no targets; the resume does
+      // not read it back. What the resume replays is the cold general referee's verdict
+      // in review_general.json (d0_5_general.ts): its recorded inputs — reviewed note,
+      // brief, floor, standard, model, effort — do not show cited source fields, so an attestation leaves them
+      // unchanged. The panel's prompts carry the core's source fields and the math
+      // referee's source-of-record block, so both panel referees run again.
       await injectD0ReviewDirective({
         ctx: args.ctx,
         state: args.state,
         reason:
           "D0.5 halted on citation source-access, not on mathematics. These panel verdicts are recorded for " +
-          "provenance so a resume does not re-pay for them; do not re-solve on this entry alone.",
+          "provenance; do not re-solve on this entry alone.",
         payload: { stage: "D0.5.citation", overall: review.overall, verdicts: review.verdicts },
         targetIds: [],
         provenanceOnly: true,
@@ -764,19 +732,14 @@ export async function runStage0_5Typed(args: {
       // decision tree reads a novelty reject as "still mathematically sound → bank
       // downgraded". That does NOT hold here: the panel returned `revise` and its findings
       // are unrepaired, so soundness is simply unknown. Say so in the critique the
-      // orchestrator reads, or a defective note gets banked as merely under-novel. It goes on
-      // BOTH `verbatim_critique` and `halt_reason`: they are separate fields of the same
-      // serialized verdict, so caveating only one leaves the other reading clean.
+      // orchestrator reads, or a defective note gets banked as merely under-novel.
       const verdict = buildGeneralTierVerdict(roundTriage, target, false);
       const caveat =
         `\n\nHALTED AT TRIAGE: the math panel returned \`revise\` and its findings were never repaired, ` +
         `so this note is NOT established as mathematically sound — do not bank it as downgraded on this ` +
         `verdict alone. Open findings: ${summarize(review.verdicts)}`;
-      // `halt_reason` is written by buildGeneralTierVerdict through a cast and is not on the
-      // declared union, so reach both fields through one view of the freshly-built local.
-      const text = verdict as { verbatim_critique?: string; halt_reason?: string };
+      const text = verdict as { verbatim_critique?: string };
       text.verbatim_critique = `${text.verbatim_critique ?? ""}${caveat}`;
-      text.halt_reason = `${text.halt_reason ?? ""}${caveat}`;
       // Drop the routing field for the same reason. `tier_genuinely_below` is what
       // bank_entry's `reusableFromGap` maps to `not_reusable` ("not worth retrying with a
       // stronger solver") when the operator gives no explicit --reusable. That is far too

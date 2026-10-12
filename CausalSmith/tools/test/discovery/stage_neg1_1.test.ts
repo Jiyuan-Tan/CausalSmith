@@ -36,7 +36,7 @@ function makeState(): StateJson {
     from_question_oq_id: null,
     method_id: null,
     closed_oq: null,
-    flags: { local_fix_from_4d: false, missing_architecture: false },
+    flags: { missing_architecture: false },
   } as unknown as StateJson;
 }
 
@@ -98,6 +98,17 @@ describe("runStageNeg1_1", () => {
     if (parsed.ok) {
       expect(parsed.json.open_problems[0].exemplars.method_exemplars).toEqual([]);
     }
+  });
+
+  it("binds the run's topic when the scout omits the topic echo", () => {
+    const gapsPath = "/tmp/current/gaps.json";
+    const payload = makeGapsPayload(gapsPath, 3);
+    delete payload.topic;
+
+    const parsed = parseStrictScoutStdout(JSON.stringify(payload), "thin topic", gapsPath);
+
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) expect(parsed.json.topic).toBe("thin topic");
   });
 
   it("strips harmless extra fields from method exemplars", () => {
@@ -213,6 +224,9 @@ describe("runStageNeg1_1", () => {
       const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
       await mkdir(path.dirname(p), { recursive: true });
       await writeFile(p, "stub lit review prompt", "utf8");
+      const cd = promptPath(repoRoot, "cluster_definitions.txt");
+      await mkdir(path.dirname(cd), { recursive: true });
+      await writeFile(cd, "stub cluster definitions", "utf8");
       const gapsPath = gapsJsonPath(repoRoot, "thin_lit_review", "v1");
       let model: string | undefined;
       const deps = {
@@ -226,7 +240,6 @@ describe("runStageNeg1_1", () => {
         runClaude: async () => {
           throw new Error("unused");
         },
-        lean: undefined as never,
       } as unknown as StageDeps;
 
       await runStageNeg1_1({ ctx: makeCtx(repoRoot), state: makeState(), deps });
@@ -244,6 +257,9 @@ describe("runStageNeg1_1", () => {
       const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
       await mkdir(path.dirname(p), { recursive: true });
       await writeFile(p, "stub lit review prompt", "utf8");
+      const cd = promptPath(repoRoot, "cluster_definitions.txt");
+      await mkdir(path.dirname(cd), { recursive: true });
+      await writeFile(cd, "stub cluster definitions", "utf8");
       const state = makeState();
       const deps = {
         runCodex: async ({ prompt }: { prompt: string }) => {
@@ -254,7 +270,6 @@ describe("runStageNeg1_1", () => {
         runClaude: async () => {
           throw new Error("unused");
         },
-        lean: undefined as never,
       } as unknown as StageDeps;
 
       const result = await runStageNeg1_1({ ctx: makeCtx(repoRoot), state, deps });
@@ -274,6 +289,9 @@ describe("runStageNeg1_1", () => {
       const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
       await mkdir(path.dirname(p), { recursive: true });
       await writeFile(p, "stub lit review prompt", "utf8");
+      const cd = promptPath(repoRoot, "cluster_definitions.txt");
+      await mkdir(path.dirname(cd), { recursive: true });
+      await writeFile(cd, "stub cluster definitions", "utf8");
       const state = makeState();
       const deps = {
         runCodex: async () => {
@@ -283,7 +301,6 @@ describe("runStageNeg1_1", () => {
           return { stdout: '{"status":"completed"', stderr: "" };
         },
         runClaude: async () => { throw new Error("unused"); },
-        lean: undefined as never,
       } as unknown as StageDeps;
 
       const result = await runStageNeg1_1({ ctx: makeCtx(repoRoot), state, deps });
@@ -303,6 +320,9 @@ describe("runStageNeg1_1", () => {
       const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
       await mkdir(path.dirname(p), { recursive: true });
       await writeFile(p, "stub lit review prompt", "utf8");
+      const cd = promptPath(repoRoot, "cluster_definitions.txt");
+      await mkdir(path.dirname(cd), { recursive: true });
+      await writeFile(cd, "stub cluster definitions", "utf8");
       const state = makeState();
       const deps = {
         runCodex: async ({ prompt }: { prompt: string }) => {
@@ -312,7 +332,6 @@ describe("runStageNeg1_1", () => {
           return { stdout: JSON.stringify(makeGapsPayload(target, 4)), stderr: "" };
         },
         runClaude: async () => { throw new Error("unused"); },
-        lean: undefined as never,
       } as unknown as StageDeps;
 
       const result = await runStageNeg1_1({ ctx: makeCtx(repoRoot), state, deps });
@@ -333,6 +352,9 @@ describe("runStageNeg1_1", () => {
       const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
       await mkdir(path.dirname(p), { recursive: true });
       await writeFile(p, "stub lit review prompt", "utf8");
+      const cd = promptPath(repoRoot, "cluster_definitions.txt");
+      await mkdir(path.dirname(cd), { recursive: true });
+      await writeFile(cd, "stub cluster definitions", "utf8");
       await writeGapsPayload(gapsPath, JSON.stringify(makeGapsPayload(gapsPath, 3)), "utf8");
       let dispatched = false;
       const deps = {
@@ -344,7 +366,6 @@ describe("runStageNeg1_1", () => {
           return { stdout: JSON.stringify(payload), stderr: "" };
         },
         runClaude: async () => { throw new Error("unused"); },
-        lean: undefined as never,
       } as unknown as StageDeps;
 
       const result = await runStageNeg1_1({ ctx: makeCtx(repoRoot), state: makeState(), deps });
@@ -362,12 +383,14 @@ describe("runStageNeg1_1", () => {
       const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
       await mkdir(path.dirname(p), { recursive: true });
       await writeFile(p, "stub lit review prompt", "utf8");
+      const cd = promptPath(repoRoot, "cluster_definitions.txt");
+      await mkdir(path.dirname(cd), { recursive: true });
+      await writeFile(cd, "stub cluster definitions", "utf8");
       await writeGapsPayload(gapsPath, JSON.stringify(makeGapsPayload(gapsPath, 3)));
       const state = makeState();
       const deps = {
         runCodex: async () => ({ stdout: '{"status":"completed"', stderr: "" }),
         runClaude: async () => { throw new Error("unused"); },
-        lean: undefined as never,
       } as unknown as StageDeps;
 
       const result = await runStageNeg1_1({ ctx: makeCtx(repoRoot), state, deps });
@@ -388,6 +411,9 @@ describe("runStageNeg1_1", () => {
       const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
       await mkdir(path.dirname(p), { recursive: true });
       await writeFile(p, "stub lit review prompt", "utf8");
+      const cd = promptPath(repoRoot, "cluster_definitions.txt");
+      await mkdir(path.dirname(cd), { recursive: true });
+      await writeFile(cd, "stub cluster definitions", "utf8");
       const state = makeState();
       const ctx = makeCtx(repoRoot);
       ctx.proposeTopic = "  thin topic with appendix\n";
@@ -400,7 +426,6 @@ describe("runStageNeg1_1", () => {
           return { stdout: JSON.stringify(payload), stderr: "" };
         },
         runClaude: async () => { throw new Error("unused"); },
-        lean: undefined as never,
       } as unknown as StageDeps;
 
       const result = await runStageNeg1_1({ ctx, state, deps });
@@ -420,6 +445,9 @@ describe("runStageNeg1_1", () => {
       const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
       await mkdir(path.dirname(p), { recursive: true });
       await writeFile(p, "stub lit review prompt", "utf8");
+      const cd = promptPath(repoRoot, "cluster_definitions.txt");
+      await mkdir(path.dirname(cd), { recursive: true });
+      await writeFile(cd, "stub cluster definitions", "utf8");
       const state = makeState();
       const deps = {
         runCodex: async ({ prompt }: { prompt: string }) => {
@@ -430,7 +458,6 @@ describe("runStageNeg1_1", () => {
           return { stdout: JSON.stringify(reversed), stderr: "" };
         },
         runClaude: async () => { throw new Error("unused"); },
-        lean: undefined as never,
       } as unknown as StageDeps;
 
       const result = await runStageNeg1_1({ ctx: makeCtx(repoRoot), state, deps });
@@ -452,11 +479,13 @@ describe("runStageNeg1_1", () => {
         const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
         await mkdir(path.dirname(p), { recursive: true });
         await writeFile(p, "stub lit review prompt", "utf8");
+        const cd = promptPath(repoRoot, "cluster_definitions.txt");
+        await mkdir(path.dirname(cd), { recursive: true });
+        await writeFile(cd, "stub cluster definitions", "utf8");
         const state = makeState();
         const deps = {
           runCodex: async () => ({ stdout: stdoutOf(makeGapsPayload(gapsPath, 3)), stderr: "" }),
           runClaude: async () => { throw new Error("unused"); },
-          lean: undefined as never,
         } as unknown as StageDeps;
 
         const result = await runStageNeg1_1({ ctx: makeCtx(repoRoot), state, deps });
@@ -487,6 +516,9 @@ describe("runStageNeg1_1", () => {
         const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
         await mkdir(path.dirname(p), { recursive: true });
         await writeFile(p, "stub lit review prompt", "utf8");
+        const cd = promptPath(repoRoot, "cluster_definitions.txt");
+        await mkdir(path.dirname(cd), { recursive: true });
+        await writeFile(cd, "stub cluster definitions", "utf8");
         const state = makeState();
         const deps = {
           runCodex: async () => {
@@ -495,7 +527,6 @@ describe("runStageNeg1_1", () => {
             return { stdout: JSON.stringify(payload), stderr: "" };
           },
           runClaude: async () => { throw new Error("unused"); },
-          lean: undefined as never,
         } as unknown as StageDeps;
 
         const result = await runStageNeg1_1({ ctx: makeCtx(repoRoot), state, deps });
@@ -514,21 +545,15 @@ describe("runStageNeg1_1", () => {
       }
     }
   });
-  it("routes structure and mechanism recovery to exactid", async () => {
-    const prompt = await readFile(
-      path.join(process.cwd(), "src/discovery/prompts/D-1/stage_neg1_1_lit_review.txt"),
-      "utf8",
-    );
-    expect(prompt).toMatch(/Use `exactid`[\s\S]*structure\/mechanism recovery map/);
-    expect(prompt).toMatch(/structure-identification kernel in `exactid`/);
-  });
-
   it("checkpoints instead of completing when fewer than three open problems are emitted", async () => {
     const repoRoot = await mkdtemp(path.join(tmpdir(), "stage-neg11-"));
     try {
       const p = promptPath(repoRoot, "stage_neg1_1_lit_review.txt");
       await mkdir(path.dirname(p), { recursive: true });
       await writeFile(p, "stub lit review prompt", "utf8");
+      const cd = promptPath(repoRoot, "cluster_definitions.txt");
+      await mkdir(path.dirname(cd), { recursive: true });
+      await writeFile(cd, "stub cluster definitions", "utf8");
       const gapsPath = gapsJsonPath(repoRoot, "thin_lit_review", "v1");
       const state = makeState();
       const deps = {
@@ -541,7 +566,6 @@ describe("runStageNeg1_1", () => {
         runClaude: async () => {
           throw new Error("unused");
         },
-        lean: undefined as never,
       } as unknown as StageDeps;
 
       const result = await runStageNeg1_1({ ctx: makeCtx(repoRoot), state, deps });

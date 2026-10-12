@@ -35,6 +35,19 @@ describe("D-1.2 authored-core shape normalization", () => {
     });
   });
 
+  it("flattens a list or record spelling of honest_scope into paragraphs and leaves other shapes alone", () => {
+    expect(canonicalizeAuthoredCoreShape({ honest_scope: ["Result A retained.", "Result B deferred."] }))
+      .toEqual({ honest_scope: "Result A retained.\n\nResult B deferred." });
+    expect(canonicalizeAuthoredCoreShape({ honest_scope: { "thm:a": "retained", "thm:b": "rejected, see §2" } }))
+      .toEqual({ honest_scope: "thm:a: retained\n\nthm:b: rejected, see §2" });
+    expect(canonicalizeAuthoredCoreShape({ honest_scope: { "thm:b": ["rejected", "see §2"] } }))
+      .toEqual({ honest_scope: { "thm:b": ["rejected", "see §2"] } });
+    expect(canonicalizeAuthoredCoreShape({ honest_scope: "already prose" })).toEqual({ honest_scope: "already prose" });
+    expect(canonicalizeAuthoredCoreShape({ honest_scope: { nested: { deep: "x" } } }))
+      .toEqual({ honest_scope: { nested: { deep: "x" } } });
+    expect(canonicalizeAuthoredCoreShape({ honest_scope: [] })).toEqual({ honest_scope: [] });
+  });
+
   it("leaves an already-valid previously passing core unchanged", () => {
     const fixture = JSON.parse(readFileSync(
       new URL("../fixtures/stat_ate_overlap_decay_proto_core.json", import.meta.url),

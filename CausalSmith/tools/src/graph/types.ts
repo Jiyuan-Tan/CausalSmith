@@ -24,10 +24,8 @@ export const ASSUMPTION_CLASSES = [
 export type AssumptionClass = (typeof ASSUMPTION_CLASSES)[number];
 
 export const EDGE_KINDS = ["statement-uses", "proof-uses", "setup-of"] as const;
-export type EdgeKind = (typeof EDGE_KINDS)[number];
 
 export const EDGE_SOURCES = ["extracted", "declared"] as const;
-export type EdgeSource = (typeof EDGE_SOURCES)[number];
 
 const NlSchema = z.object({
   statement: z.string(),
@@ -57,6 +55,10 @@ const ReviewSchema = z.object({
   // nothing writes `derived` any more, and it must never resolve to a passing status.
   status: z.preprocess((s) => (s === "derived" ? "drift" : s), z.enum(REVIEW_STATUSES)),
   passed_hash: z.string().nullable(),
+  /** The statement-fingerprint key (`graph/refresh.ts` `fingerprintKeys`) the verdict was issued
+   *  at, when the tree was built then: compared instead of `passed_hash` by a refresh that has the
+   *  tree's fingerprints too; absent or null, `passed_hash` decides as it always has. */
+  passed_fingerprint: z.string().nullable().optional(),
   /** The reviewer's one-line reason for the current verdict (esp. why a `drift`). Persisted so
    *  an escalation surfaces WHICH hypothesis/term diverged, not just that the node is flagged. */
   note: z.string().optional(),
@@ -159,7 +161,7 @@ export const GraphSchema = z
      *  changed) re-reviews. Convergence (F4) additionally requires a current dual receipt
      *  (`convergenceReview`) before it skips a symbol. */
     symbolReview: z
-      .record(z.string(), z.object({ verdict: z.string(), hash: z.string() }))
+      .record(z.string(), z.object({ verdict: z.string(), hash: z.string(), fingerprint: z.string().optional() }))
       .optional(),
     /** F4 convergence receipts, keyed by review target (graph node id, or `sym:<symbol>`): each
      *  peer's verdict bound to the evidence hash it was judged at (target NL + Lean + the transitive

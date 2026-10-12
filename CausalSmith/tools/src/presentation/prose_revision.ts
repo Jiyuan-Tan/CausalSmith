@@ -3,8 +3,7 @@ import { normalizeFrozenEnvs, parseAnchoredEnvs } from "./tex_anchors.js";
 
 /**
  * ONE applicator for "let a model rewrite prose, then guarantee the frozen layer
- * is byte-identical afterwards" — shared by the P3 revise loop and the P5
- * holistic reviser (which each used to hand-roll an overlapping guard stack).
+ * is byte-identical afterwards" — used by the P3 revise loop.
  * P2 final assembly also passes through this boundary with before === revised,
  * so downstream guards receive the same canonical frozen bodies and scope notes.
  * The model owns prose, never the P1-frozen formal layer or P2-audited proofs:

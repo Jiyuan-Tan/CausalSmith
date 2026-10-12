@@ -2,7 +2,7 @@
  * Cross-process mutex around `lake build` for the CausalSmith package.
  *
  * Once per-qid parallel runs are allowed (see `shared/run_heartbeat.ts`), two
- * concurrent pipelines can independently call `LeanLspClient.build()`. Both
+ * concurrent pipelines can independently run `lake build`. Both
  * invocations target the same `.lake/build` directory, which is not safe under
  * parallel lake invocations — `.olean` writes race and the cache can end up
  * inconsistent. Wrap `lake build` in an exclusive file lock so the LLM stages
@@ -72,8 +72,9 @@ export async function withFileLock<T>(
 export async function withLakeBuildLock<T>(
   repoRoot: string,
   action: () => Promise<T>,
+  retries: Retries = RETRIES,
 ): Promise<T> {
-  return withFileLock(path.join(repoRoot, ".lake-build.lock"), RETRIES, action);
+  return withFileLock(path.join(repoRoot, ".lake-build.lock"), retries, action);
 }
 
 // Promotion holds the lock across a full build + library_index + embed + doc:gen
@@ -81,7 +82,7 @@ export async function withLakeBuildLock<T>(
 // far more patient retry budget than the per-command lake lock (worst case ≈ 1h of
 // waiting, comfortably longer than any single promotion) so a queued promotion
 // waits its turn instead of erroring out.
-const PROMOTE_RETRIES = { retries: 300, factor: 1.3, minTimeout: 1_000, maxTimeout: 30_000 };
+export const PROMOTE_RETRIES = { retries: 300, factor: 1.3, minTimeout: 1_000, maxTimeout: 30_000 };
 
 /**
  * Cross-process mutex serializing the WHOLE substrate-promotion step across

@@ -573,7 +573,6 @@ export async function stageP2(io: StageIO): Promise<void> {
         cited_dependencies: citedDependencyPromptFor(objId),
         informal_derivation: informalDerivationFor(objId),
         notation_table: notationForArtifact(outline.notation, `${envText.get(objId)!}\n${helperTex}`),
-        revision_brief: FIRST_DRAFT_BRIEF,
         prior_and_defects: repair
           ? `prior_proof:\n${repair.priorProof}\n\nCurrent defects to repair:\n${repair.defects.map((d) => `- ${d}`).join("\n")}\n\nEarlier findings (retain their corrections; check against current source if still relevant):\n${repair.previousIssues.map(d => `- ${d}`).join("\n") || "(none)"}`
           : "(first render — none)",
@@ -587,7 +586,7 @@ export async function stageP2(io: StageIO): Promise<void> {
     return stdout;
   };
   /** The proof judge's repair channel: re-render with the issues as defects; `null` when the
-   *  renderer reports UNCLEAR or emits an invalid patch (the prior proof then stands and halts). */
+   *  renderer emits an invalid patch (the prior proof then stands and halts). */
   const repairProof: ProofRenderHook = async (objId, priorProof, issues, previousIssues) => {
     const lean = leanPointer(io.bank.graph, objId);
     if (!lean) return null;
@@ -888,8 +887,6 @@ export function lintProofsReachedPaper(paperTex: string, renderedProofIds: Itera
 export function isMainProofEnv(env: string): boolean {
   return env === "theoremv" || env === "propositionv";
 }
-
-export { canonicalizeProofTitle };
 
 /** Parse a complete proof block from the first draft or an applied repair. */
 export function parseProofRender(stdout: string, objId: string): string | null {

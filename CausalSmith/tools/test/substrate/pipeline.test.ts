@@ -1,11 +1,11 @@
 // CausalSmith/tools/test/substrate/pipeline.test.ts
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, mkdir, writeFile, readFile, readdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { existsSync } from "node:fs";
 import { runSubstratePipeline, BUILD_CAP, StudyLockWaitError } from "../../src/substrate/pipeline.js";
-import { requirementPath, causaleanRoot, slugToPascal, substrateLeanDir, substrateModulePrefix } from "../../src/substrate/paths.js";
+import { requirementPath, causaleanRoot, slugToPascal, substrateLeanDir, substrateModulePrefix, substrateRunDir } from "../../src/substrate/paths.js";
 import { createInitialSubstrateState, loadSubstrateState, saveSubstrateState } from "../../src/substrate/state.js";
 import { LockAcquireError } from "../../src/shared/build_mutex.js";
 
@@ -57,6 +57,11 @@ describe("runSubstratePipeline (fakes)", () => {
     };
     const s = await runSubstratePipeline({ repoRoot: root, slug: "x", resume: false }, deps as any);
     expect(s.phase).toBe("done");
+    const runDir = substrateRunDir(root, "x");
+    expect(await readFile(path.join(runDir, "plan.md"), "utf8")).toBe("P");
+    const files = await readdir(runDir);
+    expect(files).toContain("round_1.json");
+    expect(files).toContain("state.json");
   });
 
   it("treats the sibling <leanDir>.lean as a substrate source: built and handed to coordinate", async () => {

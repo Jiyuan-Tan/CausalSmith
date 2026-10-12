@@ -6,6 +6,7 @@ Authors: Jiyuan Tan
 
 module
 public import Causalean.Mathlib.MeasureTheory.Integral.FiniteOrthonormal
+public import Causalean.Mathlib.MeasureTheory.Integral.FiniteProductOrthogonality
 public import Causalean.Mathlib.MeasureTheory.Integral.LikelihoodRatio
 public import Causalean.Mathlib.MeasureTheory.Integral.UniformConvergence
 

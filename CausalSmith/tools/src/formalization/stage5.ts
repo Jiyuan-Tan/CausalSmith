@@ -1,6 +1,5 @@
 // Formalization Stage 5. Extracted from pipeline_stages.ts in Step 2.3 of the three-submodules refactor.
 
-import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { MODEL_PLAN } from "../constants.js";
 import type { AddedAssumption, PipelineContext, StageResult, StateJson } from "../types.js";
@@ -20,6 +19,7 @@ import { coreJsonPath } from "../discovery/stages/d0_core.js";
 import { PlanSchema } from "./plan/schema.js";
 import { auditCitedReview, auditDelivery, citedLeanEvidence } from "./delivery_audit.js";
 import { auditConvergenceReview } from "./convergence_evidence.js";
+import { takeStatementFingerprints } from "./statement_fingerprints.js";
 import { promptPath } from "../paths.js";
 import { parseAnnotatedDecls } from "../graph/extractor.js";
 import { dispatchAgent } from "../framework/agent_dispatch.js";
@@ -123,7 +123,7 @@ export async function runStage5(args: {
       const graph = await loadGraph(gp);
       const declNames = (await parseLeanDecls(paths.leanDir, { includeLemmas: true })).map((decl) => decl.name);
       const annotatedDecls = await parseAnnotatedDecls(paths.leanDir);
-      const leanEvidence = await citedLeanEvidence(paths.leanDir, plan, graph, args.ctx.repoRoot);
+      const leanEvidence = await citedLeanEvidence(paths.leanDir, plan, args.ctx.repoRoot);
       const verifiedCitedReuse = new Set(Object.values(plan.nodes).flatMap((node) => {
         const decl = externalCitationReuse(node);
         return decl ? [decl] : [];
@@ -150,6 +150,7 @@ export async function runStage5(args: {
         leanDir: paths.leanDir,
         core,
         promptFile: promptPath(args.ctx.repoRoot, "proof_reviewer.txt"),
+        fingerprints: () => takeStatementFingerprints(paths.leanDir),
       }));
       if (findings.length > 0) {
         return {
@@ -157,7 +158,6 @@ export async function runStage5(args: {
           status: "checkpoint",
           advance: false,
           message: `F5 delivery audit REFUSED: ${findings.map((f) => `${f.code}${f.node_id ? ` @ ${f.node_id}` : ""}: ${f.message}`).join("; ")}`,
-          artifacts: [],
         };
       }
     } catch (err) {
@@ -166,7 +166,6 @@ export async function runStage5(args: {
         status: "checkpoint",
         advance: false,
         message: `F5 delivery audit could not validate the artifacts: ${err instanceof Error ? err.message : String(err)}`,
-        artifacts: [],
       };
     }
   }
@@ -179,7 +178,7 @@ export async function runStage5(args: {
   {
     const docstringBlock = await ensureDocstringCoverage(args);
     if (docstringBlock) {
-      return { stage: "5", status: "checkpoint", advance: false, message: docstringBlock, artifacts: [] };
+      return { stage: "5", status: "checkpoint", advance: false, message: docstringBlock };
     }
   }
   // Bank-soundness gate: refuse to reach CKPT 2 while the artifact (or any
@@ -200,7 +199,6 @@ export async function runStage5(args: {
           `F5 bank-soundness gate REFUSED: ${issues.slice(0, 10).join("; ")}` +
           (issues.length > 10 ? ` (+${issues.length - 10} more)` : "") +
           ". Resolve (prove the stubs / remove the cheat tokens) then resume; do NOT bank.",
-        artifacts: [],
       };
     }
   }
@@ -225,7 +223,6 @@ export async function runStage5(args: {
           `F5 cannot read the formalization note at ${paths.md} ` +
           `(${e instanceof Error ? e.message : String(e)}). causalsmith consumes this note when ` +
           `banking, and the F3→note premise-sync check cannot run without it.`,
-        artifacts: [],
       };
     }
     for (const a of unsyncedLoadBearingAssumptions(args.state, noteMd)) {
@@ -240,15 +237,14 @@ export async function runStage5(args: {
 
   const crosswalkBlock = await emitCompleteCrosswalk(args);
   if (crosswalkBlock) {
-    return { stage: "5", status: "checkpoint", advance: false, message: crosswalkBlock, artifacts: [] };
+    return { stage: "5", status: "checkpoint", advance: false, message: crosswalkBlock };
   }
   const prompt = [
     await readPrompt(args.ctx, "stage5_apiMd.txt"),
     "",
     baseBrief(args.ctx, args.state),
     "",
-    "Update doc/API.md only in the cluster's Theorems subsection (one of Panel/Theorems, ExactID/Theorems, PartialID/Theorems, Stat/Theorems — pick using the brief's Cluster line / Lean target subdirectory). Every row must include a description.",
-    "Return JSON with artifacts.",
+    "Return JSON.",
   ].join("\n");
   const out = await dispatchAgent({
     ctx: args.ctx,
@@ -268,7 +264,6 @@ export async function runStage5(args: {
       status: "blocked",
       advance: false,
       message: parsed.message ?? "F5 did not complete",
-      artifacts: parsed.artifacts ?? [],
     };
   }
   const baseMsg = parsed.message ?? "CHECKPOINT 2 reached; API.md updated";
@@ -280,6 +275,5 @@ export async function runStage5(args: {
     stage: "5",
     status: "checkpoint",
     message,
-    artifacts: parsed.artifacts ?? [path.join(args.ctx.repoRoot, "doc", "API.md")],
   };
 }

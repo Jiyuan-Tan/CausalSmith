@@ -29,8 +29,6 @@ import { assertCalendarIsoDate, isCalendarIsoDate, isoParts, utcToday } from "./
 import { resolveWpNumber } from "./wp_registry.js";
 import { writeTextAtomic } from "../shared/json_atomic.js";
 
-export { utcToday } from "./iso_date.js";
-
 /** sha256 of a file's exact bytes. This is what `versions[].paper_sha256` records and what
  *  P5's `manuscript_sha256` must agree with, so the site can match a review to a version. */
 export async function fileSha256(path: string): Promise<string> {
@@ -80,7 +78,7 @@ export type VersionState = { version: number; revised: string; versions: Version
  *
  * A bump happens only when the manuscript actually changed: a `--from P4` re-emit that
  * recompiles the same bytes must not invent a v4. The comparison is against the LAST recorded
- * entry's hash; a history whose last entry has no hash yet (the backfill can only recover a
+ * entry's hash; a history whose last entry has no hash (a backfilled entry carries only a
  * date from git, not the historical bytes of earlier rounds) adopts `sha` in place rather than
  * bumping, because "unknown" is not evidence of a change.
  *
@@ -330,13 +328,12 @@ export function renderStampTex(v: StampValues): string {
  * preamble token here is in keeping, and it means a legacy bundle gets a pinned date from a plain
  * recompile instead of a reassembly that would drop its paper.tex-only revisions.
  *
- * The two directions are generated from ONE token pair so they cannot drift apart, and
- * `unpinDateCommand` is the exact inverse. That matters: the inverse is what lets any later run
- * recognise a pinned manuscript as the same paper as the unpinned bytes a previous record was
- * hashed from, WITHOUT having to know whether this run is the one that did the pinning. See
- * `manuscriptEquivalentShas`.
+ * The pin and its inverse (`manuscriptEquivalentShas`) are generated from ONE token pair so they
+ * cannot drift apart. The inverse is what lets any later run recognise a pinned manuscript as the
+ * same paper as the unpinned bytes a previous record was hashed from, WITHOUT having to know
+ * whether this run is the one that did the pinning.
  *
- * Both are idempotent and neither touches a date pinned some other way.
+ * The pin is idempotent and does not touch a date pinned some other way.
  */
 const DATE_UNPINNED = "\\date{\\today}";
 const DATE_PINNED = "\\date{\\cspaperdate}";
@@ -345,16 +342,11 @@ export function pinDateCommand(tex: string): string {
   return tex.split(DATE_UNPINNED).join(DATE_PINNED);
 }
 
-/** The exact inverse of `pinDateCommand`. */
-export function unpinDateCommand(tex: string): string {
-  return tex.split(DATE_PINNED).join(DATE_UNPINNED);
-}
-
 /**
  * Every hash that identifies this manuscript as THIS manuscript.
  *
  * `canonical` is the hash of the FILE BYTES as they now sit on disk — never of a re-encoded
- * string. That matters because P5's `manuscript_sha256` and the backfill both hash the raw file:
+ * string. That matters because P5's `manuscript_sha256` hashes the raw file, as every backfilled record did:
  * a `readFile(..., "utf8")` round-trip replaces any byte that is not valid UTF-8 with U+FFFD, so
  * a string-derived digest would silently disagree with every other record of the same file.
  *

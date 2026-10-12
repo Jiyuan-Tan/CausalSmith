@@ -11,27 +11,13 @@ import type { StateJson } from "../src/types.js";
 describe("cap_gates registry", () => {
   it("clears each flag and resets its paired counter", () => {
     const flags = {
-      scaffold_redirect_cap_hit: "cap reached (3)",
-      scaffold_redirect_count: 3,
-      stage1_rewinds_cap_hit: "rewind cap",
-      stage1_rewinds: 2,
-      substrate_build_required: "gate X",
       stage_neg1_fallback: "pivot exhausted",
+      neg1_env_failure_retries: 3,
     } as unknown as StateJson["flags"];
-
-    clearCapGate(flags, "scaffold_redirect_cap_hit");
-    expect(flags.scaffold_redirect_cap_hit).toBeUndefined();
-    expect(flags.scaffold_redirect_count).toBe(0);
-
-    clearCapGate(flags, "stage1_rewinds_cap_hit");
-    expect(flags.stage1_rewinds_cap_hit).toBeUndefined();
-    expect(flags.stage1_rewinds).toBe(0);
-
-    clearCapGate(flags, "substrate_build_required");
-    expect(flags.substrate_build_required).toBeNull();
 
     clearCapGate(flags, "stage_neg1_fallback");
     expect(flags.stage_neg1_fallback).toBeNull();
+    expect(flags.neg1_env_failure_retries).toBe(0);
   });
 
   it("throws on an unknown gate name", () => {
@@ -39,8 +25,7 @@ describe("cap_gates registry", () => {
   });
 
   it("exposes every known gate flag", () => {
-    expect(CAP_GATE_FLAGS).toContain("substrate_build_required");
-    expect(CAP_GATE_FLAGS).toContain("scaffold_redirect_cap_hit");
+    expect([...CAP_GATE_FLAGS].sort()).toEqual(["d0_loop_cap_hit", "proof_loop_cap_hit", "stage_neg1_fallback"]);
   });
 });
 
@@ -49,17 +34,17 @@ describe("parseArgs --clear-gate", () => {
     const a = parseArgsForTest([
       "--resume",
       "--clear-gate",
-      "scaffold_redirect_cap_hit",
+      "stage_neg1_fallback",
       "--clear-gate",
-      "substrate_build_required",
+      "proof_loop_cap_hit",
       "pid_foo",
       "v1",
     ]);
-    expect(a.clearGates).toEqual(["scaffold_redirect_cap_hit", "substrate_build_required"]);
+    expect(a.clearGates).toEqual(["stage_neg1_fallback", "proof_loop_cap_hit"]);
   });
 
   it("rejects --clear-gate without --resume", () => {
-    expect(() => parseArgsForTest(["--clear-gate", "substrate_build_required", "pid_foo", "v1"])).toThrow(
+    expect(() => parseArgsForTest(["--clear-gate", "proof_loop_cap_hit", "pid_foo", "v1"])).toThrow(
       /requires --resume/,
     );
   });
@@ -82,8 +67,8 @@ describe("runPipeline resume-time cap-gate clear", () => {
     const repoRoot = await mkdtemp(path.join(os.tmpdir(), "causalsmith-capgate-"));
     const state = createInitialState(qid);
     state.stage_completed = "2";
-    (state.flags as unknown as Record<string, unknown>).scaffold_redirect_cap_hit = "cap reached (3)";
-    state.flags.scaffold_redirect_count = 3;
+    state.flags.stage_neg1_fallback = "pivot exhausted";
+    state.flags.neg1_env_failure_retries = 3;
     await saveState(repoRoot, qid, spec, state);
     return repoRoot;
   }
@@ -93,7 +78,7 @@ describe("runPipeline resume-time cap-gate clear", () => {
     const blocked = await runPipeline({ repoRoot, qid, specialization: spec, resume: true, dryRun: true });
     // Gate closed → stage does not advance, flag persists.
     expect(blocked.stage_completed).toBe("2");
-    expect((blocked.flags as unknown as Record<string, unknown>).scaffold_redirect_cap_hit).toBeTruthy();
+    expect(blocked.flags.stage_neg1_fallback).toBeTruthy();
   });
 
   it("clears the flag + resets the counter and proceeds when --clear-gate is passed", async () => {
@@ -101,14 +86,14 @@ describe("runPipeline resume-time cap-gate clear", () => {
     const cleared = await runPipeline(
       { repoRoot, qid, specialization: spec, resume: true, dryRun: true },
       undefined,
-      { clearGates: ["scaffold_redirect_cap_hit"] },
+      { clearGates: ["stage_neg1_fallback"] },
     );
-    expect((cleared.flags as unknown as Record<string, unknown>).scaffold_redirect_cap_hit).toBeUndefined();
-    expect(cleared.flags.scaffold_redirect_count).toBe(0);
+    expect(cleared.flags.stage_neg1_fallback).toBeNull();
+    expect(cleared.flags.neg1_env_failure_retries).toBe(0);
     expect(cleared.stage_completed).toBe("5");
 
     // Persisted, not just in-memory.
     const onDisk = await loadState(repoRoot, qid, spec);
-    expect((onDisk.flags as unknown as Record<string, unknown>).scaffold_redirect_cap_hit).toBeUndefined();
+    expect(onDisk.flags.stage_neg1_fallback).toBeNull();
   });
 });

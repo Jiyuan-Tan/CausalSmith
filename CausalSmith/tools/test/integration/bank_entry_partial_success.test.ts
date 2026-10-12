@@ -1,13 +1,11 @@
 /**
- * End-to-end integration test for bin/bank_entry.ts with mixed theorem outcomes.
- *
- * Fixture: 2 completed + 1 failed-post-0.5 (t2, stage_completed="3") +
- *          1 failed-at-0.5 (t4, stage_completed="0.5").
+ * End-to-end integration test for bin/bank_entry.ts and the statement snapshot
+ * it records for an accepted run.
  *
  * Asserts:
- *   1. Bank dir is created at _bank/accepted/<qid>_<spec>/.
- *   2. Patched state.json records the failures; nothing is minted.
- *   3. README frontmatter + body reference both failures.
+ *   1. An accepted run is banked at _bank/accepted/<qid>_<spec>/ with its snapshot.
+ *   2. A run banked below the accepted tier carries no snapshot.
+ *   3. Banking fails, run untouched, when a snapshot exists or cannot be taken.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -67,49 +65,7 @@ beforeEach(async () => {
     from_question_oq_id: null,
     method_id: null,
     closed_oq: null,
-    flags: { local_fix_from_4d: false, missing_architecture: false },
-    theorems: [
-      {
-        theorem_local_id: "t1",
-        origin_theorem_id: `${QID}_t1`,
-        statement: "T1 statement.",
-        proof_sketch: null,
-        status: "completed",
-        stage_completed: "5",
-        lean_file_relpath: `CausalSmith/Panel/${QID}/T1.lean`,
-        bt_id: `${QID}_${SPEC}_t1`,
-      },
-      {
-        theorem_local_id: "t2",
-        origin_theorem_id: `${QID}_t2`,
-        statement: "T2 statement (the one we could not prove; passed 0.5, failed at Stage 3).",
-        proof_sketch: null,
-        status: "failed",
-        stage_completed: "3",
-        lean_file_relpath: `CausalSmith/Panel/${QID}/T2.lean`,
-        failure_reason: "stuck at lemma X",
-      },
-      {
-        theorem_local_id: "t3",
-        origin_theorem_id: `${QID}_t3`,
-        statement: "T3 statement.",
-        proof_sketch: null,
-        status: "completed",
-        stage_completed: "5",
-        lean_file_relpath: `CausalSmith/Panel/${QID}/T3.lean`,
-        bt_id: `${QID}_${SPEC}_t3`,
-      },
-      {
-        theorem_local_id: "t4",
-        origin_theorem_id: `${QID}_t4`,
-        statement: "T4 statement (math reviewer rejected at Stage 0.5; should NOT mint OQ).",
-        proof_sketch: null,
-        status: "failed",
-        stage_completed: "0.5",
-        lean_file_relpath: null,
-        failure_reason: "Stage 0.5 REJECT: counterexample in §3",
-      },
-    ],
+    flags: { missing_architecture: false },
   };
   await writeFile(
     path.join(repoRoot, "doc", "research", "active", QID, `${QID}_${SPEC}_state.json`),
@@ -136,8 +92,8 @@ async function withFakeLake(upToDate = true): Promise<NodeJS.ProcessEnv> {
 }
 const SNAPSHOT = "promotion_snapshot.json";
 
-describe("bank_entry.ts partial-success integration", () => {
-  it("banks a partial-success run and records both failed theorems", async () => {
+describe("bank_entry.ts banking integration", () => {
+  it("banks an accepted run with its statement snapshot", async () => {
     const bankEntryPath = path.resolve(
       __dirname,
       "..",
@@ -153,7 +109,7 @@ describe("bank_entry.ts partial-success integration", () => {
         "--qid", QID,
         "--spec", SPEC,
         "--tier", "accepted",
-        "--reason", "test partial success",
+        "--reason", "test accepted banking",
       ],
       { cwd: repoRoot, env: await withFakeLake() },
     );
@@ -164,23 +120,7 @@ describe("bank_entry.ts partial-success integration", () => {
     );
     expect(existsSync(bankedDir)).toBe(true);
 
-    // 2. Patched state.json records the failed theorems without minting anything
-    //    (OpenQuestion minting retired with the knowledge graph, 2026-08-21).
-    const patched = JSON.parse(
-      await readFile(path.join(bankedDir, `${QID}_${SPEC}_state.json`), "utf8"),
-    );
-    for (const t of patched.theorems) expect(t.minted_oq_id).toBeUndefined();
-    expect(existsSync(path.join(repoRoot, "doc", "study", "nodes", "open_question", `oq_failed_${QID}_${SPEC}_t2.json`))).toBe(false);
-
-    // 3. README frontmatter + body reference BOTH failures.
-    const readme = await readFile(path.join(bankedDir, "README.md"), "utf8");
-    expect(readme).toMatch(/failed_theorems:/);
-    expect(readme).toMatch(/stage_at_failure:\s*"?0\.5"?/);
-    expect(readme).toMatch(/## Failed theorems/);
-    expect(readme).toMatch(/\bt2\b/);
-    expect(readme).toMatch(/t4.*skipped/);
-
-    // 4. The accepted entry carries the statement snapshot taken at banking.
+    // 2. The accepted entry carries the statement snapshot taken at banking.
     const snap = JSON.parse(await readFile(path.join(bankedDir, SNAPSHOT), "utf8"));
     expect(snap).toMatchObject({ schema: 2, lean_subdir: `CausalSmith/Panel/${QID}`, run: { "Test.x": "1" }, used: {} });
     expect(Object.keys(snap.files)).toEqual([`CausalSmith/Panel/${QID}/Basic.lean`]);

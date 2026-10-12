@@ -24,7 +24,6 @@ import { parseSynthReply } from "../synth_reply.js";
 import { buildLeanContextIndex, type LeanContext } from "../lean_context.js";
 import { citedDependencies, renderedNodes, topoOrder, refTargets, envForNode, isCitedNode } from "../graph_view.js";
 import { citedCiteKey, indexBib } from "../assumption_citations.js";
-import { FIRST_DRAFT_BRIEF } from "../revision_brief.js";
 import { blocksFromGraph, blocksToTex, FormalLayerSource, type FormalBlock } from "../formal_layer.js";
 import {
   runP1Loop,
@@ -108,16 +107,6 @@ export function undeliveredRemarkBody(statement: string, reason: string, candida
   ];
   const variant = [...claim].reduce((sum, ch) => sum + ch.codePointAt(0)!, 0) % variants.length;
   return variants[variant];
-}
-
-/** Select the final JSON/TeX body without letting a stale theorem freeze override a newly
- * undelivered remark. Kept pure so the final-emission boundary has direct regression coverage. */
-export function presentedBody(
-  deliveryStatus: string | undefined,
-  frozenBody: string | undefined,
-  loopBody: string | undefined,
-): string {
-  return deliveryStatus === "undelivered" ? (loopBody ?? "") : (frozenBody ?? loopBody ?? "");
 }
 
 /** Outline must place every graph env exactly once and cite only pool keys. Synth ids may appear
@@ -416,11 +405,6 @@ export async function stageP1(io: StageIO): Promise<void> {
     );
   }
 
-  // P5 revision is owned by the single holistic reviser. P1 is initial planning
-  // only and must not independently reinterpret a prior referee report, so the
-  // outline prompt's revision slot always carries the inert first-draft brief.
-  const outlineBrief = FIRST_DRAFT_BRIEF;
-
   const t0 = Date.now();
   const log = (m: string) => console.error(`[causalsmith P1] +${Math.round((Date.now() - t0) / 1000)}s ${m}`);
   log(`graph: ${nodes.length} frozen paper-env nodes → ${nodeIds.join(", ")}`);
@@ -472,8 +456,7 @@ export async function stageP1(io: StageIO): Promise<void> {
         related_work_brief: brief,
         frozen_layer_tex: mechanical,
         pool_keys: [...poolKeys].join(", "),
-        revision_brief: outlineBrief,
-        // why: reruns with a valid existing outline must preserve structure unless a structural P5 brief requested movement.
+        // why: a regenerated outline keeps the prior structure wherever the current env set allows.
         prior_outline: existingOutline || "(first draft — no prior structure to preserve)",
       });
     let outlineProblems: string[] = [];

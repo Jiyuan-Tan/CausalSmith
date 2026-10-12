@@ -2,11 +2,10 @@
  * Scaffold-brief rendering over the reuse-retrieval engine (`reuse_retrieval.ts`).
  *
  * This file is downstream of the engine: it turns ranked candidates into the
- * "Causalean reuse candidates" text block injected into the Stage 2 scaffold brief
- * (concept mode), for both the F1 markdown artifact path and the typed-core path.
+ * "Causalean reuse candidates" text block injected into the F1 planning brief
+ * (concept mode), one query per typed-core node.
  */
 
-import { existsSync, readFileSync } from "node:fs";
 import type { ClusterKey } from "../constants.js";
 import type { Core } from "../discovery/core/schema.js";
 import { expandQuery } from "./causal_aliases.js";
@@ -14,7 +13,6 @@ import { loadSemanticTier, embedQueries, type SemanticTier } from "./semantic_ti
 import { poolModules } from "./module_tier.js";
 import {
   createRetrieval,
-  parseF1Items,
   symbolSet,
   backtickSpans,
   type Candidate,
@@ -40,44 +38,11 @@ export interface CandidateBlockOpts {
 const SYMBOL_MIN_SCORE = 12;
 
 /**
- * Render the per-F1-item "Causalean reuse candidates" block injected into the Stage 2
- * scaffold brief. Reads the F1 artifact at `mdPath`, runs concept-mode retrieval for
- * each P-/L- item, and emits a candidate table + the per-item reuse/bypass contract.
- * Returns "" (so the brief is unchanged) when the index or F1 artifact is unavailable,
- * unparseable, or empty — retrieval must never break dispatch.
- */
-export function reuseCandidateBlock(
-  root: string,
-  mdPath: string,
-  cluster: ClusterKey | null,
-  opts: CandidateBlockOpts = {},
-): string {
-  if (!existsSync(mdPath)) return "";
-  const r = createRetrieval(root);
-  if (!r.library) {
-    // Fail-open by design (retrieval must never break dispatch) but never silently: an
-    // F1 brief with ZERO reuse candidates makes downstream stages re-prove substrate the
-    // library already owns, and the only prior trace fired post-dispatch (audit, 2026-08-26).
-    console.error("[reuse] library_index.json missing/unreadable — F1 brief gets ZERO reuse candidates; run `lake build && lake exe library_index`");
-    return "";
-  }
-  let md: string;
-  try {
-    md = readFileSync(mdPath, "utf8");
-  } catch {
-    return "";
-  }
-  const items = parseF1Items(md);
-  if (items.length === 0) return "";
-  return renderReuseCandidates(r, items, cluster, root, opts);
-}
-
-/**
- * Build the candidate block directly from a typed core (the F1 plan stage): one
- * retrieval query per core node (assumption / definition / statement), reusing the
- * same ranking engine and output format as the markdown path. The S-block world
+ * Build the candidate block from a typed core (the F1 plan stage): one retrieval
+ * query per core node (assumption / definition / statement). The S-block world
  * choice has no dedicated core node, so it is left to the agent's CLI / lean-lsp
- * search. Returns "" when the index is unavailable or the core has no nodes.
+ * search. Returns "" when the index is unavailable or the core has no nodes —
+ * retrieval must never break dispatch, and says so on stderr.
  */
 export function coreReuseCandidateBlock(
   root: string,
@@ -104,11 +69,7 @@ export function coreReuseCandidateBlock(
   return renderReuseCandidates(r, items, cluster, root, opts);
 }
 
-/**
- * Shared renderer: rank + format candidates for a list of items, whether parsed from
- * the F1 markdown or derived from a typed core. Extracted so both entry points share
- * one ranking + output-format path.
- */
+/** Rank + format candidates for a list of items. */
 function renderReuseCandidates(
   r: Retrieval,
   items: F1Item[],
@@ -147,8 +108,8 @@ function renderReuseCandidates(
     `Source: doc/library_index.json @ ${r.library.commit}. The existing Causalean ` +
       `declarations most likely to fit each F1 item — so you confront real candidates ` +
       `instead of relying on a search you might not think to run.`,
-    "CONTRACT: in your Stage-2 Causalean survey table give EACH item below a verdict — " +
-      "`reuse <name>` | `bypass-justified: <reason>` | `no-candidate-fits`. Prefer reuse " +
+    "CONTRACT: decide EACH item's plan `disposition` against its candidates below — " +
+      "`reuse` naming the decl, or `define-local` with the search trace in `notes`. Prefer reuse " +
       "when a candidate fits the artifact's abstraction; verify the chosen decl's signature " +
       "with lean_hover_info before building on it. A `⚠usesSorry` candidate carries debt — " +
       "reuse only deliberately.",
@@ -163,8 +124,8 @@ function renderReuseCandidates(
       "NOTE: `lean_loogle`/`lean_leansearch` index MATHLIB ONLY — they do not see " +
       "Causalean declarations; use them for Mathlib lemmas, the CLI for Causalean. " +
       "The converse holds too: this block and the CLI cover CAUSALEAN ONLY — no candidate " +
-      "below is NOT evidence a fact is absent, so before a `no-candidate-fits` verdict (or " +
-      "planning to build) on a plausibly-standard fact, search Mathlib (lean_leansearch / " +
+      "below is NOT evidence a fact is absent, so before a `define-local` decision " +
+      "on a plausibly-standard fact, search Mathlib (lean_leansearch / " +
       "lean_loogle) as well.",
   ];
   const symbolTopK = Math.min(2, perItem);

@@ -132,6 +132,64 @@ describe("parseRealizesTags (@realizes docstring parser)", () => {
 });
 
 describe("buildSymbolClusters (@realizes scan → per-symbol cluster)", () => {
+  it("keeps trailing tags with their body when the next docstring has no blank separator", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "clusters-docstring-boundary-"));
+    try {
+      await writeFile(path.join(dir, "Basic.lean"), [
+        "/-- A finite prior. -/",
+        "def prior : Nat :=",
+        "  1",
+        "-- @realizes Pi(normalized prior)",
+        "/-- A count. @realizes kzero(threshold)",
+        "",
+        "Nested /- documentation -/ remains inside the docstring. -/",
+        "def threshold : Nat := 0",
+      ].join("\n"));
+      const clusters = await buildSymbolClusters(dir, [{ name: "Pi" }, { name: "kzero" }]);
+      expect(clusters[0].members.map((m) => m.decl)).toEqual(["prior"]);
+      expect(clusters[1].members.map((m) => m.decl)).toEqual(["threshold"]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("owns a declaration docstring before considering a preceding variable command", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "clusters-docstring-variable-"));
+    try {
+      await writeFile(path.join(dir, "Basic.lean"), [
+        "variable (x : Nat)",
+        "/-- Computes the object. @realizes F(formula) -/",
+        "def f : Nat := x",
+      ].join("\n"));
+      const clusters = await buildSymbolClusters(dir, [{ name: "F" }]);
+      expect(clusters[0].members.map((m) => m.decl)).toEqual(["f"]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("preserves leading tags before a header and after its declaration docstring", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "clusters-leading-metadata-"));
+    try {
+      await writeFile(path.join(dir, "Basic.lean"), [
+        "def previous : Nat := 0",
+        "",
+        "-- @realizes X(carrier)",
+        "abbrev Carrier := Nat",
+        "",
+        "variable (x : Nat)",
+        "/-- A constructed value. -/",
+        "-- @realizes F(formula)",
+        "def value : Nat := x",
+      ].join("\n"));
+      const clusters = await buildSymbolClusters(dir, [{ name: "X" }, { name: "F" }]);
+      expect(clusters[0].members.map((m) => m.decl)).toEqual(["Carrier"]);
+      expect(clusters[1].members.map((m) => m.decl)).toEqual(["value"]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("groups the conjunction of decls realizing each symbol; case-sensitive (pi ≠ Pi); untagged → empty", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "clusters-"));
     try {

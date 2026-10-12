@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { renderMechanicalLayer, routeFinding } from "../src/presentation/p1_loop.js";
 import {
-  presentedBody,
   routeNotationProblems,
   migrateSynthLedger,
   legacySynthInputs,
@@ -20,7 +19,7 @@ import {
 } from "../src/presentation/p1_order.js";
 import { parseOutline } from "../src/presentation/stage_util.js";
 import { topoOrder, renderedNodes } from "../src/presentation/graph_view.js";
-import { parseAnchoredEnvs, definitionOrderViolations, lintEnvOrder } from "../src/presentation/tex_anchors.js";
+import { parseAnchoredEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
 import type { FormalizationGraph, GraphNode, GraphEdge } from "../src/graph/types.js";
 
 const node = (id: string, kind: GraphNode["kind"], stmt = `stmt ${id}`): GraphNode => ({
@@ -65,11 +64,6 @@ const assembleTex = (envs: readonly P1Env[]) =>
   envs.map((e) => `\\begin{${e.env}}{${e.id}}\n${e.body}\n\\end{${e.env}}`).join("\n");
 const depsOf = (...rows: [string, ...string[]][]) => new Map(rows.map(([user, ...homes]) => [user, new Set(homes)]));
 const row = (symbol: string, home: string) => `\\(${symbol}\\) | \\(${symbol}\\) | meaning | ${home}`;
-// The semantic order check as P1's repair reads it (the violations it would still have to fix).
-const lintDefinitionOrder = (tex: string, notation: string) =>
-  definitionOrderViolations(tex, notation).map((v) => ({
-    gate: "notation-defined-after-use", objId: v.firstUse, detail: `${v.symbol} used in ${v.firstUse} before ${v.home}`,
-  }));
 
 describe("p1_order: paper order + synth insertion", () => {
   it("orders graph envs by the outline's sections and objs, ignoring synth ids in the outline", () => {
@@ -417,11 +411,6 @@ describe("undelivered presentation boundary", () => {
     const unsafe = "It remains open whether the atlas exists. In fact, the atlas exists on every boundary branch.";
     expect(safelyFramesUndeliveredRemark(unsafe)).toBe(false);
   });
-
-  it("final emission prefers the safe loop remark over a stale frozen theorem body", () => {
-    expect(presentedBody("undelivered", "OLD THEOREM ASSERTION", "safe disclosed remark")).toBe("safe disclosed remark");
-    expect(presentedBody("deliver", "validated theorem body", "new draft")).toBe("validated theorem body");
-  });
 });
 
 describe("routeFinding (deterministic fix_locus)", () => {
@@ -668,24 +657,6 @@ describe("lintClarity mangled-word guard", () => {
 });
 
 describe("audit follow-ups (P1 v2)", () => {
-  it("an existential binder no longer counts as introducing a symbol for the order check", async () => {
-    const tex = [
-      String.raw`\begin{theoremv}{thm:exist}There exists a constant \(C_0\) such that the bound holds.\end{theoremv}`,
-      String.raw`\begin{lemmav}{lem:use}The claim holds with the constant \(C_0\).\end{lemmav}`,
-      String.raw`\begin{definitionv}{def:c}Define \(C_0 := 42\).\end{definitionv}`,
-    ].join("\n");
-    expect(lintDefinitionOrder(tex, String.raw`\(C_0\) | \(C_0\) | constant | def:c`)).toMatchObject([{ objId: "lem:use" }]);
-  });
-  it("introducesNotation accepts whole-atom and defining-LHS clauses and rejects RHS / sub-atom mentions", async () => {
-    const { introducesNotation } = await import("../src/presentation/tex_anchors.js");
-    expect(introducesNotation(String.raw`Let \(b\) denote the target proxy law.`, "b")).toBe(true);
-    expect(introducesNotation(String.raw`We define \(A(x) := B(x)\).`, "A(x)")).toBe(true);
-    expect(introducesNotation(String.raw`Denote the observed law by \(P_O\).`, "P_O")).toBe(true);
-    expect(introducesNotation(String.raw`We define \(B(x):=A(x)\).`, "A(x)")).toBe(false);
-    expect(introducesNotation(String.raw`Let \(x \in \mathcal X\) be a point.`, String.raw`\mathcal X`)).toBe(false);
-    expect(introducesNotation(String.raw`Let \(\hat b\) denote the estimate.`, "b")).toBe(false);
-    expect(introducesNotation(String.raw`Let \(T_\beta\) be the statistic.`, String.raw`\beta`)).toBe(false);
-  });
   it("the loop never holds a synthesized env twice", async () => {
     const dup = env("synth_1");
     const r = await runP1Loop([env("t1")], hooks([
@@ -732,16 +703,6 @@ describe("audit follow-ups (P1 v2)", () => {
 });
 
 describe("P2–P4 audit follow-ups touching the shared anchors", () => {
-  it("a forward-reference clause ('let C be the constant of \\cref{…}') is not an introduction", async () => {
-    const { introducesNotation } = await import("../src/presentation/tex_anchors.js");
-    expect(introducesNotation(String.raw`Let \(C_0\) be the constant of \cref{obj:def:c}.`, "C_0")).toBe(false);
-    expect(introducesNotation(String.raw`Let \(C_0\) be the constant defined below.`, "C_0")).toBe(true);
-    const tex = [
-      String.raw`\begin{theoremv}{thm:t}Let \(C_0\) be the constant of \cref{obj:def:c}. Then \(C_0 > 0\).\end{theoremv}`,
-      String.raw`\begin{definitionv}{def:c}Define \(C_0 := 42\).\end{definitionv}`,
-    ].join("\n");
-    expect(lintDefinitionOrder(tex, String.raw`\(C_0\) | \(C_0\) | constant | def:c`)).toMatchObject([{ objId: "thm:t" }]);
-  });
   it("a commented-out \\begin line is not an environment for the scanner", async () => {
     const { parseAnchoredEnvs, reorderAnchoredEnvs } = await import("../src/presentation/tex_anchors.js");
     const tex = [
@@ -775,11 +736,6 @@ describe("mutual-introduction cycles (live-run follow-up)", () => {
   const notation = [row("Q_x", "def:kernel"), row("b_x", "def:estimator")].join("\n");
   const kernel = mkEnv("def:kernel", String.raw`Define the kernel \(Q_x := \sum_j b_x(j)\).`);
   const estimator = mkEnv("def:estimator", String.raw`Define the estimator \(b_x := Q_x / n\).`);
-  it("the constraints of a mutual pair are contradictory and the violated one is reported by the check", () => {
-    const tex = assembleTex([kernel, estimator]);
-    expect(definitionOrderViolations(tex, notation)).toEqual([{ symbol: "b_x", home: "def:estimator", firstUse: "def:kernel" }]);
-    expect(definitionOrderViolations(assembleTex([estimator, kernel]), notation)).toEqual([{ symbol: "Q_x", home: "def:kernel", firstUse: "def:estimator" }]);
-  });
   it("an explicit dependency chain is resolved from any starting order", () => {
     const h = mkEnv("def:h", String.raw`Define \(\mathcal S := 1\).`);
     const u = mkEnv("def:u", String.raw`Define \(\mathcal T := \mathcal S + 1\).`);
@@ -830,7 +786,6 @@ describe("mutual-introduction cycles (live-run follow-up)", () => {
     const { envs: out, problems } = repairDefinitionOrder([a, b, c], depsOf(["def:a", "def:b"], ["def:b", "def:c"], ["def:c", "def:a"]), new Map(), new Map());
     expect(out.map((e) => e.id)).toEqual(["def:a", "def:c", "def:b"]);
     expect(problems.map((p) => p.gate)).toEqual(["notation-mutual-definition"]);
-    expect(definitionOrderViolations(assembleTex(out), table)).toHaveLength(1);
     expect(lintEnvOrder(assembleTex(out), out.map((e) => e.id))).toEqual([]);
   });
   it("P1 keeps the pair in place and reports it once as an advisory, not a halt", () => {

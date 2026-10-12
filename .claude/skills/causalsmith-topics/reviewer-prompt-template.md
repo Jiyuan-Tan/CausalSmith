@@ -25,7 +25,7 @@ Classify a worthy:false verdict by its actual basis:
 - IMPRECISION: missing definitions, class bounds, quantifiers, a legal sanity witness, or a concrete computation route. Set kernel_is_precise_conjecture:false, refutation_found:false, repairable_by_reframing:true, and topic_death_or_derivation:"derivation_step".
 - REFUTATION: an actual bounded counterexample, impossibility, vacuity, self-contradiction, or verified prior-art collision. Set refutation_found:true and topic_death_or_derivation:"topic_death".
 - TIER SHORTFALL: even if true, the stated kernel falls below target_tier. Use "derivation_step" only when a specific adjacent strengthening can reach target; otherwise use "topic_death".
-- CONSUMER FAILURE: the named consumer does not exist, works on a different problem the kernel would not change, or is only "the theory literature on X". A NOVEL kernel need not have a consumer who ALREADY computes its exact object — by construction it has none; the test is whether a specific applied work or software default on the SAME applied question would change its practice or conclusions if the kernel is true. Set consumer_is_real:false and topic_death_or_derivation:"derivation_step" (a real consumer can be named or the candidate re-anchored), unless you can argue no consumer can exist for this object — then "topic_death".
+- CONSUMER FAILURE: the named consumer does not exist, works on a different problem the kernel would not change, or is only "the theory literature on X". A NOVEL kernel need not have a consumer who ALREADY computes its exact object — by construction it has none; the test is whether a specific applied work, software default, named open problem, or published result on the SAME question would change its practice, conclusions, or status if the kernel is true. Set consumer_is_real:false and topic_death_or_derivation:"derivation_step" (a real consumer can be named or the candidate re-anchored), unless you can argue no consumer can exist for this object — then "topic_death".
 
 Never call a missing definition a refutation. Never combine repairable_by_reframing:true with topic_death_or_derivation:"topic_death".
 
@@ -38,17 +38,17 @@ Mode-specific witness requirements (per the MODE slot; gap mode uses the generic
 - bridge: the witness MUST include the shared object stated formally on BOTH sides plus the outside-coincidence counterexample; a renaming dictionary with no coincidence theorem is a refutation-by-relabeling (principle 6).
 - apply: the witness is the non-verbatim break-point witness (failing assumption, counterpart-less estimand, broken proof step, or conditions-required correspondence).
 
-CONSUMER CHECK: the candidate names a consumer — >=1 published applied work or a software default whose practice/conclusions change if the kernel is true. Verify the named consumer works on the SAME applied question and would plausibly adopt, or be corrected by, the kernel's result (search if needed). Do NOT require it to already compute the kernel's exact object: a novel object has no such consumer by construction, so the test is whether practice would CHANGE, not whether the object is already in use. consumer_is_real:false only when no applied work or software default on that question would change — not merely because the exact object is new. An empty or missing CONSUMER slot is an automatic consumer_is_real:false (never treat it as "not applicable").
+CONSUMER CHECK: the candidate names a consumer — >=1 published applied work, software default, named open problem, or published result whose practice, conclusions, or status change if the kernel is true. Verify the named consumer works on the SAME applied question and would plausibly adopt, or be corrected by, the kernel's result (search if needed). Do NOT require it to already compute the kernel's exact object: a novel object has no such consumer by construction, so the test is whether practice would CHANGE, not whether the object is already in use. consumer_is_real:false only when no such consumer on that question would change — not merely because the exact object is new. An empty or missing CONSUMER slot is an automatic consumer_is_real:false (never treat it as "not applicable").
 
 =========================
 3. TIER LADDER  [FIXED]
 =========================
 flagship > field > subfield > incremental
 
-- flagship: first sharp boundary, open-regime resolution, or foundational new object.
-- field: genuinely new object/regime/result that nontrivially extends named prior art.
-- subfield: generic machinery on a new instance, or a narrow result without a general frontier.
-- incremental: relabeling or reparametrization without new content.
+- flagship: a top-venue headline result — resolves a recognized open problem, or introduces a method/framework others will adopt broadly; a specialist nearby would call it important and want to cite it.
+- field: a solid, genuine contribution publishable at a good field venue — a new identification result, sharp bound, limit law, or rate practitioners would use and cite; correct, non-obvious, self-contained.
+- subfield: worthwhile but narrow — a specialized-venue result, a setup/companion note, or a modest extension.
+- incremental: minor — a restatement, a routine special case, a definitional unfold, or a setup whose load-bearing result is deferred to an open conjecture / unproved assumption.
 
 tier_if_true is conditional on proving the stated kernel. estimated_tier is what a full solve is likely to deliver. Do not lower target_tier to manufacture acceptance.
 
@@ -71,7 +71,7 @@ Report the single weakest principle.
  6. Cross-field bridges must concern the same object and require a theorem.
  7. Any extension of a named paper must create a new object/regime and change a load-bearing proof step.
  8. Target a live opportunity and avoid occupied results; rank by evidence, mathematical depth, novelty, feasibility, and consumer value, not opportunity origin.
- 9. ID/partial-ID kernels need an estimation/inference rung; SCM may instead use a constructive decision procedure.
+ 9. An ID/partial-ID kernel carries an estimation/inference rung when the claimed contribution needs it; SCM may instead use a constructive decision procedure.
 10. Prefer constructive results; negative results must be surprising or quantitatively sharp.
 11. Crowdedness and cluster choice are not rejection reasons.
 12. Slate diversity is orchestrator-level; ignore it here.
@@ -79,7 +79,7 @@ Report the single weakest principle.
 14. The achievable tier must reach the pitched tier.
 15. Put the hard theorem itself in the kernel.
 16. Specify the object and quantifiers; delegate unverified mechanics to the solver.
-17. Name the consumer: a published applied work or software default whose practice changes if the kernel is true; "the theory literature on X" does not qualify.
+17. Name the consumer: a published applied work, software default, named open problem, or published result whose practice or status changes if the kernel is true; "the theory literature on X" does not qualify.
 
 =========================
 5. CANDIDATE  [SLOTS]
@@ -105,7 +105,7 @@ LIVE OPPORTUNITY (unresolved question | technique-derived direction):
 GROUNDING (anchor theorem/open statement and load-bearing proof fact):
 {{GROUNDING}}
 
-KERNEL (precise conjecture):
+KERNEL (precise question):
 {{KERNEL}}
 
 FOCAL OBJECT: {{FOCAL_OBJECT}}
@@ -146,7 +146,7 @@ Check:
 - Is the computation route concrete without demanding downstream mechanics?
 - Does the stated difference survive the disclosed prior-art check?
 - Is there an actual bounded refutation?
-- Is the named consumer real — a specific applied work or software default on the SAME question whose practice would change if the kernel is true (not required to already use the exact object)?
+- Is the named consumer real — a specific applied work, software default, named open problem, or published result on the SAME question whose practice or status would change if the kernel is true (not required to already use the exact object)?
 - What tier would the theorem reach if proved exactly as stated?
 - What answer would a knowledgeable expert have predicted for the kernel's question, and does the conjecture contradict it?
 

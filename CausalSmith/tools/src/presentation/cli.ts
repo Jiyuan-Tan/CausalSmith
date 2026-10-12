@@ -6,8 +6,7 @@
  * referee review. Normally halts at two user checkpoints (after P1: outline + bibliography;
  * after P2: first full draft); --auto approves both while preserving hard halts. The
  * final stage P5 sends the paper to a codex referee and writes p5_review.{json,md}.
- * Findings are routed in p5_revision_routing.md for the orchestrator's hand revision;
- * there is no automatic reviser pass.
+ * Findings are routed in p5_revision_routing.md for the orchestrator's hand revision.
  */
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -41,15 +40,6 @@ export async function runPresentationCli(argv: string[]): Promise<void> {
   let from: string | undefined;
   let refreshFrozenBodies = false;
   let promoteAgain = false;
-  // Flags folded into file conventions or other flags; fail loudly with the replacement.
-  const REMOVED: Record<string, string> = {
-    "--reassemble": "--from P2 reassembles whenever front_matter.tex exists (delete it to draft afresh)",
-    "--slides": "use --from P6",
-    "--refresh-slides": "delete slides.md and run --from P6",
-    "--revise": "read p5_revision_routing.md, which the pipeline writes with every review",
-    "--refresh-statement-audit": "use --from P1 (only changed statements are re-judged)",
-    "--max-p5-reviews": "every entry scores once and halts for hand revision; there is no automatic revision pass",
-  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--resume") resume = true;
@@ -57,10 +47,6 @@ export async function runPresentationCli(argv: string[]): Promise<void> {
     else if (a === "--dry-run") dryRun = true;
     else if (a === "--refresh-frozen-bodies") refreshFrozenBodies = true;
     else if (a === "--promote-again") promoteAgain = true;
-    else if (a in REMOVED) {
-      console.error(`${a} was removed: ${REMOVED[a]}`);
-      process.exit(2);
-    }
     else if (a === "--stop-after") {
       const value = argv[++i];
       if (!value || value.startsWith("--")) usage();
@@ -202,6 +188,6 @@ async function surfaceReview(outDir: string): Promise<void> {
   }
   console.log(
     `P5 REVIEW: ${r.recommendation} — ${findings.length} findings (${majors} major). See ${outDir}/p5_review.md.\n` +
-      `Holistic automatic revisions are exhausted; use p5_revision_routing.md to adjudicate the residual findings.`,
+      `Revise by hand from p5_revision_routing.md, then re-enter with --from P2 (or --from P1) to rescore.`,
   );
 }

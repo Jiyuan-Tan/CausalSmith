@@ -32,13 +32,25 @@ export const REVIEWER_TIER_RANK: Record<string, number> = {
   field: 2,
   subfield: 1,
   incremental: 0,
-  // D-0.5 reviewer-prompt vocabulary: stage_neg1_review_core.txt's tier enum is
-  // flagship|field|letter|not-publishable. Without these aliases both ranked
-  // -1, which silently disabled the tier-saturation auto-promote and
-  // force-killed clean letter-tier angles at the subfield floor.
+  // Legacy spellings still present in persisted records (state.json iterations,
+  // review logs written before the vocabulary was unified); ranked as their
+  // canonical counterparts so floors and auto-promotes read them identically.
   letter: 1,
   "not-publishable": 0,
 };
+
+/** Legacy reviewer tier spellings, mapped onto the canonical ladder on read. */
+const LEGACY_REVIEWER_TIERS: Record<string, NoveltyTarget> = {
+  letter: "subfield",
+  "not-publishable": "incremental",
+};
+
+/** Canonical spelling of a reviewer-emitted tier; a legacy spelling is mapped,
+ * any other string is returned unchanged (callers rank it via REVIEWER_TIER_RANK). */
+export function normalizeReviewerTier(raw: string): string {
+  const key = raw.trim().toLowerCase();
+  return LEGACY_REVIEWER_TIERS[key] ?? key;
+}
 
 /**
  * Legacy `--novelty` spellings, retained for back-compat (pre-unification scripts
@@ -87,7 +99,7 @@ export function meetsNoveltyFloor(
 }
 
 /**
- * Build a reviewer-side directive that forbids ACCEPT when `tier_at_derivation`
+ * Build a reviewer-side directive that forbids ACCEPT when `publishability_tier`
  * is strictly below the orchestrator's `novelty_target`. Without this, the
  * reviewer can ACCEPT a `field`-tier kernel even when the user asked for
  * `flagship`, which is what happened on the flagship_explore/f1 run.
@@ -111,8 +123,8 @@ export function tierFloorBlock(target: NoveltyTarget | string): string {
     `Acceptable tiers for ACCEPT: ${acceptable}.`,
     "",
     "Enforcement rule (overrides the default ACCEPT/REVISE/REJECT thresholds in the base prompt):",
-    `  - If your own assessed tier_at_derivation is in {${acceptable}} AND every other dimension passes, return ACCEPT as usual.`,
-    `  - If your assessed tier_at_derivation is strictly below the floor (${floor}), you MUST NOT return ACCEPT.`,
+    `  - If your own assessed publishability_tier is in {${acceptable}} AND every other dimension passes, return ACCEPT as usual.`,
+    `  - If your assessed publishability_tier is strictly below the floor (${floor}), you MUST NOT return ACCEPT.`,
     `      * If the kernel still has a plausible repair path that could lift the tier, return REVISE with a novelty-flag specifically pointing at the tier gap (e.g. \"tier=${floor === "flagship" ? "field" : "subfield"} below novelty_target=${floor}; kernel needs <specific repair>\").`,
     `      * If no realistic local repair would lift the tier (the kernel is structurally non-${floor}), return REJECT and name the reason.`,
     "",

@@ -38,7 +38,6 @@
 //   agent node, full record ............. node published with `solvedStatus`
 // A `proved`-published node with a `partial` cursor record is therefore
 // impossible by construction.
-import { isDeepStrictEqual } from "node:util";
 import type { Core, CoreStatement } from "./schema.js";
 import { solvedStatus } from "./status.js";
 import { repairCoreLatexSerialization } from "./latex_serialization.js";
@@ -63,20 +62,6 @@ export interface ProseOverlay {
   statement_notes?: Record<string, { justification?: string; gap?: string; consumer?: string }>;
 }
 
-/** One prose-only update bundle, shared by D0-SOLVE and the D0.R transaction
- * boundary. Keeping this shape named lets a panel-cleared D0.R metadata repair
- * move into the durable working overlay without copying formal/proof edits. */
-export interface ProseUpdates {
-  tldr?: string;
-  project_justification?: Record<string, unknown>;
-  sampling_model?: Record<string, string>;
-  related_work?: string;
-  interpretation?: string;
-  technical_internal_limitation?: string;
-  honest_scope?: string;
-  statement_notes?: Array<{ id: string; justification?: string; gap?: string; consumer?: string }>;
-}
-
 const OVERLAY_SCALAR_FIELDS = [
   "tldr",
   "related_work",
@@ -84,94 +69,6 @@ const OVERLAY_SCALAR_FIELDS = [
   "technical_internal_limitation",
   "honest_scope",
 ] as const;
-
-/** Canonical comparison image for prose-only change detection. Persisted prose
- * keeps the author's bytes, but line-ending, Unicode-normalization and boundary
- * whitespace differences alone are not a substantive repair. Legacy sampling
- * metadata may be nested, so normalize strings recursively before deep equality. */
-function canonicalProseText(value: string): string {
-  return value
-    .replace(/\p{White_Space}+/gu, " ")
-    .replace(/[\p{Default_Ignorable_Code_Point}\p{C}]/gu, "")
-    .normalize("NFC")
-    .replace(/\p{White_Space}+/gu, " ")
-    .trim();
-}
-
-function proseComparisonValue(value: unknown): unknown {
-  if (typeof value === "string") return canonicalProseText(value);
-  if (Array.isArray(value)) return value.map(proseComparisonValue);
-  if (value !== null && typeof value === "object") {
-    const canonical = new Map<string, unknown>();
-    for (const [rawKey, item] of Object.entries(value as Record<string, unknown>)) {
-      const key = canonicalProseText(rawKey);
-      if (key.length === 0) throw new Error("prose metadata key is blank after canonicalization");
-      if (canonical.has(key)) {
-        throw new Error(`prose metadata key collision after canonicalization: '${key}'`);
-      }
-      canonical.set(key, proseComparisonValue(item));
-    }
-    return Object.fromEntries([...canonical].sort(([a], [b]) => a.localeCompare(b)));
-  }
-  return value;
-}
-
-function substantiveProseValue(value: unknown): boolean {
-  const normalized = proseComparisonValue(value);
-  if (typeof normalized === "string") return /[\p{L}\p{N}\p{S}]/u.test(normalized);
-  if (Array.isArray(normalized)) return normalized.some(substantiveProseValue);
-  if (normalized !== null && typeof normalized === "object") {
-    return Object.values(normalized as Record<string, unknown>).some(substantiveProseValue);
-  }
-  return normalized !== undefined && normalized !== null;
-}
-
-function sameProseValue(left: unknown, right: unknown): boolean {
-  return isDeepStrictEqual(proseComparisonValue(left), proseComparisonValue(right));
-}
-
-/** Extract only prose/positioning replacements from an edited core. Formal
- * claims, proofs, dependencies, definitions and assumptions are deliberately
- * absent: those remain provisional until the complete D0.5 gate passes. */
-export function diffCoreProse(before: Core, after: Core): ProseUpdates | null {
-  const updates: ProseUpdates = {};
-  // Validate/canonicalize complete maps once so two raw keys cannot collapse to
-  // one invisible canonical key while the per-field loop below sees them apart.
-  if (after.project_justification !== undefined) proseComparisonValue(after.project_justification);
-  if (after.sampling_model !== undefined) proseComparisonValue(after.sampling_model);
-  for (const field of OVERLAY_SCALAR_FIELDS) {
-    if (after[field] !== undefined && substantiveProseValue(after[field]) &&
-        !sameProseValue(after[field], before[field])) updates[field] = after[field];
-  }
-  for (const [field, value] of Object.entries(after.project_justification ?? {})) {
-    if (value !== undefined && substantiveProseValue(value) && !sameProseValue(
-      value,
-      before.project_justification?.[field as keyof NonNullable<Core["project_justification"]>],
-    )) {
-      updates.project_justification = { ...(updates.project_justification ?? {}), [field]: value };
-    }
-  }
-  for (const [field, value] of Object.entries(after.sampling_model ?? {})) {
-    // CoreSchema deliberately accepts legacy nested sampling-model values.
-    // Independent pure renders clone those objects, so reference inequality
-    // would manufacture a prose change even when this round wrote nothing.
-    if (value !== undefined && substantiveProseValue(value) &&
-        !sameProseValue(value, before.sampling_model?.[field])) {
-      updates.sampling_model = { ...(updates.sampling_model ?? {}), [field]: value };
-    }
-  }
-  const beforeStatements = new Map(before.statements.map((statement) => [statement.id, statement]));
-  for (const statement of after.statements) {
-    const prior = beforeStatements.get(statement.id);
-    if (!prior) continue;
-    const note: { id: string; justification?: string; gap?: string; consumer?: string } = { id: statement.id };
-    for (const field of ["justification", "gap", "consumer"] as const) {
-      if (statement[field] !== undefined && statement[field] !== prior[field]) note[field] = statement[field];
-    }
-    if (Object.keys(note).length > 1) (updates.statement_notes ??= []).push(note);
-  }
-  return Object.keys(updates).length > 0 ? updates : null;
-}
 
 function applyProseOverlay(core: Core, overlay: ProseOverlay | undefined): void {
   if (!overlay) return;

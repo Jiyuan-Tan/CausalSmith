@@ -15,10 +15,10 @@ import { extractDeclSnippet, parseSourceDecls } from "../presentation/lean_extra
 import { resolvedLeanAbsolutePath, resolveLeanDeclaration } from "../presentation/declaration_resolver.js";
 import { parseLeanDecls } from "./crosswalk.js";
 import {
-  buildLeanEvidenceIndex,
   buildSymbolReviewRows,
   receiptsAt,
   dualMatchedReceipts,
+  legacyHashes,
   ledgerNodeTargets,
   loadPartialReceipts,
   partialReceiptsPath,
@@ -28,6 +28,7 @@ import {
   symbolVerdictPasses,
   type SymbolReviewRow,
 } from "./convergence_evidence.js";
+import { takeStatementFingerprints, type StatementFingerprints } from "./statement_fingerprints.js";
 import { resolveCitedTarget, type CitedMatchTarget } from "./citation_fetch.js";
 import { PlanSchema, resolveNodeCitation, type Citation, type Plan } from "./plan/schema.js";
 import { CoreSchema } from "../discovery/core/schema.js";
@@ -103,10 +104,17 @@ export async function runReviewer(args: {
   /** Absolute path to the Lean module dir — used to extract each target's actual Lean decl text
    *  into the prompt (so the model compares real code vs NL, not decl-name pointers). */
   leanDir?: string;
-  // AUDIT-FORM: texPath is still passed by bin/formalization callers, but reviewer prompt construction does not consume it.
-  texPath?: string;
   corePath?: string;
   promptPath?: string;
+  /** The statement fingerprints of the built tree (default: one `statement_scan` under the lake
+   *  lock); null when they cannot be had. */
+  fingerprints?: (leanDir: string) => Promise<StatementFingerprints | null>;
+  /** The statement fingerprints of the tree the graph was refreshed from (delta mode): the symbol
+   *  rows' staleness keys then cover the members' statements, not only their names. */
+  treeFingerprints?: StatementFingerprints | null;
+  /** The nodes' statement-fingerprint keys under `treeFingerprints` (`graph/refresh.ts`), recorded
+   *  on each verdict issued this pass. */
+  fingerprintKeys?: Record<string, string>;
   /** If set, append each call's targets + raw model output(s) to `<debugLogDir>/_reviewer_calls.log`
    *  for observability (diagnosing reviewer-output parse issues + reasoning cost). */
   debugLogDir?: string;
@@ -214,7 +222,7 @@ export async function runReviewer(args: {
   let allBuiltSymbolRows: SymbolReviewRow[] = [];
   if (typedCore && args.leanDir) {
     try {
-      allBuiltSymbolRows = await buildSymbolReviewRows(args.leanDir, typedCore.symbols ?? []);
+      allBuiltSymbolRows = await buildSymbolReviewRows(args.leanDir, typedCore.symbols ?? [], args.treeFingerprints ?? null);
     } catch (err) {
       return failReview(
         "missing-review-evidence",
@@ -280,18 +288,27 @@ export async function runReviewer(args: {
     (typedCore?.statements ?? []).filter((statement) => statement.status === "cited").map((statement) => statement.id),
   );
   const rubricHash = REVIEW_STANDARD;
-  const evidenceIndex = args.mode === "convergence" && args.leanDir ? await buildLeanEvidenceIndex(args.leanDir) : null;
+  // One scan of the built tree per F4 entry; without it no target has evidence, so none is skipped
+  // and none is receipted. The textual hashes are computed only while the ledger holds a dual pass
+  // to carry over.
+  const bindEvidence = args.mode === "convergence" && !!args.leanDir;
+  const fingerprints = bindEvidence ? await (args.fingerprints ?? takeStatementFingerprints)(args.leanDir!) : null;
   const ledgerNodeIds = new Set(args.mode === "convergence" ? ledgerNodeTargets(args.graph) : []);
-  /** graph id / `sym:` id → the evidence hash a receipt issued this round certifies. */
+  const legacy = bindEvidence
+    ? await legacyHashes({ ledger, graph: args.graph, leanDir: args.leanDir!, core: typedCore, rubricHash, nodeIds: [...ledgerNodeIds], rows: allBuiltSymbolRows.filter((row) => !row.empty) })
+    : () => [];
+  /** graph id / `sym:` id → the evidence hash a receipt issued this round certifies. A target with
+   *  no evidence has no entry: it is reviewed, and holds no receipt. */
   const evidenceByKey = new Map<string, string>();
   const skippedNodeIds: string[] = [];
-  if (evidenceIndex) {
+  const unboundIds: string[] = [];
+  if (bindEvidence) {
     const statusById = new Map(args.graph.nodes.map((n) => [n.id, n.review.status] as const));
     for (const id of ledgerNodeIds) {
-      const of = { graph: args.graph, index: evidenceIndex, core: typedCore, rubricHash, nodeId: id };
-      const evidence = nodeConvergenceEvidence(of);
+      const evidence = nodeConvergenceEvidence({ graph: args.graph, fingerprints, core: typedCore, rubricHash, nodeId: id });
+      if (evidence === null) { unboundIds.push(id); continue; }
       evidenceByKey.set(id, evidence);
-      const held = receiptsAt(ledger, id, evidence, nodeConvergenceEvidence({ ...of, wholeRunCommands: true }));
+      const held = receiptsAt(ledger, id, evidence, legacy(id));
       if (!frozenCitedNodeIds.has(id) && statusById.get(id) === "matched" && held) {
         if (held !== ledger[id]) reissued = true;
         ledger[id] = held;
@@ -314,10 +331,10 @@ export async function runReviewer(args: {
     const deltaDirty = new Set(deltaDirtySymbols.map((row) => row.id));
     incrementallyDirtySymbols = allBuiltSymbolRows.filter((row) => {
       if (row.empty) return false; // untagged rows join below, unconditionally
-      if (!evidenceIndex) return true;
-      const evidence = symbolConvergenceEvidence({ index: evidenceIndex, rubricHash, row });
+      const evidence = bindEvidence ? symbolConvergenceEvidence({ fingerprints, rubricHash, row }) : null;
+      if (evidence === null) { if (bindEvidence) unboundIds.push(row.id); return true; }
       evidenceByKey.set(row.id, evidence);
-      const held = receiptsAt(ledger, row.id, evidence, symbolConvergenceEvidence({ index: evidenceIndex, rubricHash, row, wholeRunCommands: true }));
+      const held = receiptsAt(ledger, row.id, evidence, legacy(row.id));
       if (deltaDirty.has(row.id) || !held) return true;
       if (held !== ledger[row.id]) reissued = true;
       ledger[row.id] = held;
@@ -331,7 +348,8 @@ export async function runReviewer(args: {
     console.warn(
       `[f4] convergence: ${skipped} target(s) hold current dual receipts and are skipped` +
         (skipped ? ` (${[...skippedNodeIds, ...skippedSymbolIds].join(", ")})` : "") +
-        `; reviewing ${reviewing}`,
+        `; reviewing ${reviewing}` +
+        (fingerprints && unboundIds.length ? `; no receipt can bind ${unboundIds.length} target(s) whose anchor Lean elaborated no declaration for (${unboundIds.join(", ")})` : ""),
     );
   }
   const needsSymbolReview = incrementallyDirtySymbols.length > 0 || allBuiltSymbolRows.some((row) => row.empty);
@@ -344,7 +362,7 @@ export async function runReviewer(args: {
       // targets and are not in the graph yet. Every governed target is skipped here (an unskipped
       // one would be a target row), so copying the skipped entries is the fold a reviewing pass
       // does at its end, and the audit that reads the graph finds them.
-      if (evidenceIndex && (Object.keys(partial).length > 0 || reissued)) {
+      if (fingerprints && (Object.keys(partial).length > 0 || reissued)) {
         const skipped = new Set([...skippedNodeIds, ...skippedSymbolIds]);
         const ledgerOut: ConvergenceLedger = {};
         for (const key of evidenceByKey.keys()) if (skipped.has(key)) ledgerOut[key] = ledger[key];
@@ -465,7 +483,7 @@ export async function runReviewer(args: {
       return failReview("missing-review-evidence", "cited review requires typed core, plan, and current Lean directory");
     }
     try {
-      citedLeanEvidenceByNodeId = await citedLeanEvidence(args.leanDir, citedPlan, args.graph, args.ctx.repoRoot);
+      citedLeanEvidenceByNodeId = await citedLeanEvidence(args.leanDir, citedPlan, args.ctx.repoRoot);
     } catch (err) {
       return failReview(
         "missing-review-evidence",
@@ -480,7 +498,7 @@ export async function runReviewer(args: {
   // added-premise / laundering check — their presence is expected + sanctioned, not drift. We build
   // consumer-objId → gated-dep list from the graph's dependency edges (gate.ts adds proof-uses edges
   // consumer→gate). Anti-laundering stays the ORCHESTRATOR's job (gate.ts requires the gate be an
-  // INPUT fact, never the consumer's conclusion); the reviewer no longer re-adjudicates a gated hyp.
+  // INPUT fact, never the consumer's conclusion); the reviewer does not re-adjudicate a gated hyp.
   const gatedByObjId = new Map<string, { objId: string; decl: string | null; nl: string }[]>();
   {
     const nodeById = new Map(args.graph.nodes.map((n) => [n.id, n] as const));
@@ -582,7 +600,6 @@ export async function runReviewer(args: {
           coreContributionContext,
           "DELIVERED REVERSE USES-CLOSURE (all delivered statement/proof consumers, direct or transitive):",
           consumers.length ? consumers.map((x) => `  - ${x}`).join("\n") : "  (none)",
-          "AUDIT RULE: emit one statement_verdicts entry for this obj_id. `matched` ONLY if you independently conclude all three: (1) it is a genuinely secondary theorem OR a cited node; (2) it is neither a headline nor headline-support; and (3) no delivered result consumes it directly or transitively. The node's proved status, mathematical size, or plan `crux` flag alone does not make it a headline; judge its role in the core's advertised contribution. Emit `drift` if any condition fails or the evidence is ambiguous. On drift set escalate.kind=`delivery-role-conflict` and explain which advertised contribution or delivered consumer makes omission illegal. Never request a Lean declaration merely because this audit target has no Lean anchor.",
         ].join("\n");
       }
       let lean = "(no Lean anchor — judge against the NL + sources)";
@@ -795,8 +812,7 @@ export async function runReviewer(args: {
             "a computed `def` for lacking an explicit subtype/`≥0` clause (its range follows from the formula).",
             "This def-by-construction rule applies ONLY when the cluster HAS a tagged `def` member — a symbol",
             "marked UNTAGGED (no members) is ALWAYS `untagged`, NEVER matched/equivalent-by-construction.",
-            "`drift` ONLY if the space is enforced by NO member — a FREE carrier (`A:ℝ`, a field or bound var)",
-            "with no constraining predicate anywhere. VERIFY each member's hint against the cited decl in the Lean dir (the hint",
+            "VERIFY each member's hint against the cited decl in the Lean dir (the hint",
             "is the scaffolder's claim, not ground truth); treat `untagged name-match` members as candidates",
             "to confirm, not as authoritative.",
     ].join("\n");
@@ -813,8 +829,9 @@ export async function runReviewer(args: {
   const header = [
     base,
     "",
-    "SOURCES (the NL + Lean text is embedded with the target below; open these only to UNFOLD a named",
-    "predicate/def the Lean references — e.g. a bundle field `cond_exch : ConditionalExchangeability`",
+    "SOURCES (the NL + Lean text is embedded with the target below; open these whenever the verdict needs",
+    "more than that excerpt — the surrounding core nodes, symbols, and proofs a statement depends on, or a",
+    "named predicate/def the Lean references: a bundle field `cond_exch : ConditionalExchangeability`",
     "is NOT self-evidently equal to its English name; read the def to see what it actually requires):",
     // The typed core.json is the SINGLE source of truth (the `.tex` is just its deterministic render —
     // not fed here, to avoid double-feeding the same content).
@@ -979,13 +996,9 @@ export async function runReviewer(args: {
     // (gpt-5.5): 5.6-terra hallucinated non-defects on the crosswalk (misread `∀ᶠ n` as `∀ n`, called a
     // present hypothesis missing, flagged a faithful `0<c→P` antecedent as vacuous), churning futile F2
     // scaffold reroutes. The 5.5 kernel tier is the reliable reviewer for this faithfulness grading.
-    // texPath/leanDir are optional on args; drop unset ones rather than logging "undefined".
-    // Log ONLY what prompt construction actually consumes. `texPath` was listed here while being
-    // explicitly unused (see the AUDIT-FORM note on the field), so `pipeline.jsonl` advertised the
-    // `.tex` as an F4 input. That mislabel cost a real debugging cycle: a stale `writeup.tex` was
-    // diagnosed as the cause of a repeated F4 finding and re-rendered, when the actual stale copy
-    // was the graph node's `nl.statement`. A dispatch label is evidence about what a model SAW —
-    // it must name the real inputs or it is worse than no label at all.
+    // leanDir is optional on args; drop it when unset rather than logging "undefined".
+    // Log ONLY what prompt construction actually consumes. A dispatch label is evidence about
+    // what a model SAW — it must name the real inputs or it is worse than no label at all.
     const dispatchSources: string[] = [
       promptFile,
       args.corePath ?? "(no core)",
@@ -1224,7 +1237,7 @@ export async function runReviewer(args: {
   const graded = gradeReviewerOutput(out, allExpectedObjIds, idAliases);
   let graph: FormalizationGraph;
   try {
-    graph = applyVerdictsToGraph(args.graph, graded.rows, args.hashes, verdictTargetOwners);
+    graph = applyVerdictsToGraph(args.graph, graded.rows, args.hashes, verdictTargetOwners, args.fingerprintKeys ?? {});
   } catch (err) {
     return failReview(
       "review-target-resolution-error",
@@ -1253,11 +1266,21 @@ export async function runReviewer(args: {
       if (note) rawSymNote.set(id, note);
     }
   }
-  const symUpdates: Record<string, { verdict: string; hash: string }> = {};
+  const symUpdates: Record<string, { verdict: string; hash: string; fingerprint?: string }> = {};
+  const symFingerprintById = new Map(allBuiltSymbolRows.map((row) => [row.id, row.fingerprintHash] as const));
   for (const r of graded.rows) {
     if (!r.obj_id.startsWith("sym:")) continue;
     const hash = symbolHashById.get(r.obj_id);
-    if (hash) symUpdates[r.obj_id] = { verdict: rawSymVerdict.get(r.obj_id) ?? r.verdict, hash };
+    const fingerprint = symFingerprintById.get(r.obj_id);
+    if (hash) symUpdates[r.obj_id] = { verdict: rawSymVerdict.get(r.obj_id) ?? r.verdict, hash, ...(fingerprint ? { fingerprint } : {}) };
+  }
+  // A symbol skipped this pass on a verdict at its current member-list key, with no fingerprint
+  // key yet, is current: the tree's key is recorded, so a member's body change moves it from here on.
+  for (const row of allBuiltSymbolRows) {
+    const prev = graph.symbolReview?.[row.id];
+    if (prev && !(row.id in symUpdates) && !prev.fingerprint && row.fingerprintHash && prev.hash === row.hash) {
+      symUpdates[row.id] = { ...prev, fingerprint: row.fingerprintHash };
+    }
   }
   if (Object.keys(symUpdates).length) {
     graph = { ...graph, symbolReview: { ...(graph.symbolReview ?? {}), ...symUpdates } };
@@ -1287,7 +1310,9 @@ export async function runReviewer(args: {
         uncertified.map((key) => (key.startsWith("sym:") ? key : nodeIdToObjId(key))),
       );
     }
-    graph = { ...graph, convergenceReview: ledgerOut };
+    // A pass without fingerprints bound nothing: the ledger it found stands, so the receipts
+    // still current at the next pass are not paid for twice.
+    if (fingerprints || !bindEvidence) graph = { ...graph, convergenceReview: ledgerOut };
     // the pass ran to its end: its receipts are in the graph
     await partialWrite;
     await rm(partialReceiptsPath(runDir), { force: true }).catch(() => {});

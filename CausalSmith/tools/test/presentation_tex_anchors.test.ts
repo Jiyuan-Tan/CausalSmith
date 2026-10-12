@@ -1,13 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { canonicalizeObjRefs, unwrapLeanrefs, reviewerTexFor, lintLeanrefs, parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, definitionOrderViolations, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, displaysDefiningEquality, notationHomes, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
-
-// The semantic definition-order check as P1's repair reads it (P3/P4 no longer re-judge it).
-const lintDefinitionOrder = (tex: string, notation: string) =>
-  definitionOrderViolations(tex, notation).map((v) => ({
-    gate: "notation-defined-after-use",
-    objId: v.firstUse,
-    detail: `${v.symbol} is first used in ${v.firstUse} before its notation-table home ${v.home}`,
-  }));
+import { canonicalizeObjRefs, unwrapLeanrefs, reviewerTexFor, lintLeanrefs, parseAnchoredEnvs, lintAnchors, lintCrossRefs, lintSelfContainment, lintClarity, lintNegativeContributionFraming, lintNestedMathDelimiters, lintReferences, lintHypothesisPresentation, repairObjRefs, normalizeCrefs, usesSymbolUndecorated, placeFrozenEnvs, lintEnvOrder } from "../src/presentation/tex_anchors.js";
 
 const TEX = `
 \\section{Main results}
@@ -19,19 +11,6 @@ Some prose.
 Risk is \\(O(n^{-(1+\\kappa)/(2+\\kappa)})\\).
 \\end{theoremv}
 `;
-
-describe("notationHomes", () => {
-  it("accepts both edge-piped and prompt-specified pipe-less rows", () => {
-    const notation = String.raw`| note symbol | paper symbol | meaning | home |
-| --- | --- | --- | --- |
-| \(Q_n\) | \(Q_n\) | risk | def:risk |
-\(\eta\) | \(\eta\) | treatment innovation | def:model`;
-    expect(notationHomes(notation)).toEqual([
-      { symbol: String.raw`Q_n`, home: "def:risk" },
-      { symbol: String.raw`\eta`, home: "def:model" },
-    ]);
-  });
-});
 
 describe("repairObjRefs (cross-ref prefix repair + dangling-ref lint)", () => {
   const defined = new Set(["prop:oracle-regime-reduction", "thm:sharp-pointwise-lower-bound", "lem:rho-oracle-regime-algebra"]);
@@ -200,12 +179,6 @@ Under Assumption A1, \\(\\hat\\theta\\) of \\cref{obj:def:est} converges.
     expect(envs[0].body).toContain("\\begin{enumerate}");
     expect(lintSelfContainment(tex)).toEqual([]); // (A1) defined inside the algorithm body
     expect(lintAnchors(tex, new Set(["def:est", "T-9"]), new Map(envs.map((e) => [e.obj_id, e.body])))).toEqual([]);
-    // an algorithm is a notation home for the symbol it constructs
-    const notation = "| Note symbol | Paper symbol | Meaning | Home |\n|---|---|---|---|\n| thetaHat | \\(\\hat\\theta\\) | estimator | def:est |";
-    expect(lintDefinitionOrder(tex, notation)).toEqual([]);
-    expect(lintDefinitionOrder(tex.replace(/^\n/, "\nEarly use of \\(\\hat\\theta\\) in a theorem: \\begin{theoremv}{T-0}[Early]\\(\\hat\\theta\\) is good.\\end{theoremv}\n"), notation)
-      .some((p) => /def:est/.test(p.detail))).toBe(true);
-    // a manually typed kind is caught for algorithms too
   });
 
   it("self-containedness: passes when a definition env defines the labels", () => {
@@ -415,124 +388,6 @@ This paper does not characterize the adaptive frontier.`;
     expect(lintHypothesisPresentation(itemized).some((p) => p.gate === "hypothesis-not-itemized")).toBe(false);
   });
 
-
-  it("definition-order lint: ordinary loading vectors must be defined before assumptions use them", () => {
-    const notation = String.raw`
-| note symbol | paper notation | defining property | home |
-|---|---|---|---|
-| forward loadings | \(u_j\) | forward loading vectors | def:forward-cumulant-map |
-| reverse loadings | \(v_j\) | reverse loading vectors | def:reverse-cumulant-map |
-| comparison relation | \(\Phi^r(\theta)=\Phi^l(\eta)\) | equality of two existing maps | def:comparison |`;
-    const assumptions = String.raw`
-\begin{assumptionv}{ass:forward-axis-model}[Forward axis]
-\[(X,Y)^\top=\sum_{j=0}^{m+1}u_jS_j.\]
-\end{assumptionv}
-\begin{assumptionv}{ass:reverse-axis-model}[Reverse axis]
-\[(X,Y)^\top=\sum_{j=0}^{m+1}v_jS_j.\]
-\end{assumptionv}`;
-    const definitions = String.raw`
-\begin{definitionv}{def:forward-cumulant-map}[Forward map]
-Let \(u_0=(1,\gamma)\), \(u_j=(1,\rho_j)\), and \(u_{m+1}=(0,1)\).
-\end{definitionv}
-\begin{definitionv}{def:reverse-cumulant-map}[Reverse map]
-Let \(v_0=(1,0)\), \(v_j=(\sigma_j,1)\), and \(v_{m+1}=(\delta,1)\).
-\end{definitionv}`;
-
-    const bad = lintDefinitionOrder(assumptions + definitions, notation);
-    expect(bad.map((p) => p.gate)).toEqual([
-      "notation-defined-after-use",
-      "notation-defined-after-use",
-    ]);
-    expect(bad.map((p) => p.objId)).toEqual(["ass:forward-axis-model", "ass:reverse-axis-model"]);
-    expect(lintDefinitionOrder(definitions + assumptions, notation)).toEqual([]);
-    // Prose outside environments is not consulted: P1 orders the frozen layer, which has none.
-    expect(
-      lintDefinitionOrder(
-        String.raw`We define \(u_j\) as the forward source loading. ${assumptions}${definitions}`,
-        notation,
-      ),
-    ).toHaveLength(2);
-  });
-
-  it("definition-order lint collapses witnessed cycles but enforces external incoming homes", () => {
-    const notation = String.raw`
-| A | \(A(x)\) | first construction | a |
-| B | \(B(x)\) | second construction | b |
-| C | \(C(x)\) | external prerequisite | c |`;
-    // A mutual pair: whichever way round, one row is violated; P1's repair keeps the pair in
-    // place and reports it once (see the p1_order tests) — the check itself just reports.
-    const cycle = String.raw`
-\begin{definitionv}{a}We define \(A(x):=B(x)\).\end{definitionv}
-\begin{definitionv}{b}We define \(B(x):=A(x)\).\end{definitionv}`;
-    expect(lintDefinitionOrder(cycle, notation)).toEqual([expect.objectContaining({ objId: "a" })]);
-
-    const externalLate = String.raw`
-\begin{definitionv}{a}We define \(A(x):=B(x)+C(x)\).\end{definitionv}
-\begin{definitionv}{b}We define \(B(x):=A(x)\).\end{definitionv}
-\begin{definitionv}{c}We define \(C(x):=x\).\end{definitionv>`;
-    expect(lintDefinitionOrder(externalLate.replace("definitionv>", "definitionv}"), notation).map((p) => p.objId)).toEqual(["a", "a"]);
-
-    const internalFirstExternalSecond = String.raw`
-\begin{definitionv}{b}We define \(B(x):=A(x)\).\end{definitionv}
-\begin{lemmav}{external}Use \(A(x)\).\end{lemmav}
-\begin{definitionv}{a}We define \(A(x):=B(x)\).\end{definitionv}`;
-    expect(lintDefinitionOrder(internalFirstExternalSecond, notation).map((p) => p.objId)).toEqual(["b", "external"]);
-
-    // A longer cycle (a→b→c→a through three symbols, no pair mutual): the check reports the
-    // violated rows; P1's repair finds the strongly connected set and reports it once.
-    const threeCycle = String.raw`
-\begin{definitionv}{a}We define \(A(x):=B(x)\).\end{definitionv}
-\begin{definitionv}{b}We define \(B(x):=C(x)\).\end{definitionv}
-\begin{definitionv}{c}We define \(C(x):=A(x)\).\end{definitionv}`;
-    expect(definitionOrderViolations(threeCycle, notation).map((v) => [v.symbol, v.firstUse])).toEqual([
-      ["B(x)", "a"], ["C(x)", "b"],
-    ]);
-
-    const partialNotation = String.raw`| A | \(A(x)\) | first construction | a |`;
-    const halfTabled = String.raw`
-\begin{definitionv}{b}We define \(C(x):=A(x)\).\end{definitionv}
-\begin{definitionv}{a}We define \(A(x):=C(x)\).\end{definitionv}`;
-    // Only A is a table row: b's use of A before a is a violation the repair fixes by moving a first.
-    expect(lintDefinitionOrder(halfTabled, partialNotation).map((p) => p.objId)).toEqual(["b"]);
-  });
-
-  it("definition-order lint does not manufacture an edge from an unwitnessed metadata home", () => {
-    const tex = String.raw`
-\begin{lemmav}{use}Use \(H_n\).\end{lemmav}
-\begin{definitionv}{claimed}This block does not contain the claimed notation.\end{definitionv}`;
-    const notation = String.raw`| bandwidth | \(H_n\) | tuning sequence | claimed |`;
-    expect(lintDefinitionOrder(tex, notation)).toEqual([]);
-  });
-
-  it("treats independently quantified local binders as scoped, but anchors later free uses", () => {
-    const notation = String.raw`| size | \(M_n\) | packing size | home |`;
-    const scopedBefore = String.raw`
-\begin{theoremv}{other}For every \(n\), there exists an integer \(M_n\) used only in this theorem.\end{theoremv}
-\begin{lemmav}{home}For every \(n\), there exists an integer \(M_n\) for the main packing.\end{lemmav}`;
-    expect(lintDefinitionOrder(scopedBefore, notation)).toEqual([]);
-
-    const freeBefore = String.raw`
-\begin{theoremv}{consumer}The risk is bounded using \(M_n\).\end{theoremv}
-\begin{lemmav}{home}For every \(n\), there exists an integer \(M_n\) for the main packing.\end{lemmav}`;
-    expect(lintDefinitionOrder(freeBefore, notation)).toEqual([
-      expect.objectContaining({ gate: "notation-defined-after-use", objId: "consumer" }),
-    ]);
-
-    const quantifiedMentionBefore = String.raw`
-\begin{theoremv}{other}For every \(n\), the term \(M_n\) appears in the bound.\end{theoremv}
-\begin{lemmav}{home}For every \(n\), there exists an integer \(M_n\) for the main packing.\end{lemmav}`;
-    expect(lintDefinitionOrder(quantifiedMentionBefore, notation)).toEqual([
-      expect.objectContaining({ gate: "notation-defined-after-use", objId: "other" }),
-    ]);
-
-    const unrelatedCueBefore = String.raw`
-\begin{theoremv}{other}We define \(Q_n\) above and obtain \[M_n=0.\]\end{theoremv}
-\begin{lemmav}{home}For every \(n\), there exists an integer \(M_n\) for the main packing.\end{lemmav}`;
-    expect(lintDefinitionOrder(unrelatedCueBefore, notation)).toEqual([
-      expect.objectContaining({ gate: "notation-defined-after-use", objId: "other" }),
-    ]);
-  });
-
   it("a bare obj_id in prose is repaired to its cref, never linted; env bodies are exempt", () => {
     const frozen = new Map(parseAnchoredEnvs(TEX).map((e) => [e.obj_id, e.body]));
     const known = new Set(["P-2", "T-1"]);
@@ -542,66 +397,6 @@ Let \(v_0=(1,0)\), \(v_j=(\sigma_j,1)\), and \(v_{m+1}=(\delta,1)\).
     // ids inside frozen env bodies are not prose
     expect(canonicalizeObjRefs(TEX, known)).toBe(TEX);
     expect(lintAnchors(TEX, known, frozen)).toEqual([]);
-  });
-});
-
-describe("displaysDefiningEquality (reader-facing definition signal)", () => {
-  // The transported-LATE regression: θ_T appeared only on the RIGHT of the Wald
-  // identity and inside coverage events, so the paper never defined it.
-  const buggyLayer = [
-    "\\begin{theoremv}{prop:ccr}[Compact causal range]",
-    "the transported first-stage mean satisfies \\[\\mu_n = P_n^F\\{D(1)=1,\\ D(0)=0\\mid S=0\\},\\]",
-    "and the Wald ratio equals the target contrast, \\[\\frac{\\mu_{Y,n}}{\\mu_n}=\\theta_T.\\]",
-    "Finally, \\(\\theta_T\\in\\Theta=[-1,1]\\).",
-    "\\end{theoremv}",
-    "\\begin{definitionv}{def:oh}[Oracle honesty]",
-    "\\(\\liminf_{n\\to\\infty}\\inf_{P}P(\\theta_T\\in C_n)\\ge1-\\alpha\\).",
-    "\\end{definitionv}",
-  ].join("\n");
-  it("RHS-only + set-membership appearances do NOT count as a definition", () => {
-    expect(displaysDefiningEquality(buggyLayer, "\\theta_T")).toBe(false);
-  });
-  it("an LHS defining display counts", () => {
-    expect(displaysDefiningEquality(buggyLayer, "\\mu_n")).toBe(true);
-    expect(displaysDefiningEquality(buggyLayer, "\\Theta")).toBe(true);
-    expect(
-      displaysDefiningEquality("\\(\\theta_T=\\mathbb E[Y(1)-Y(0)\\mid D(1)>D(0),S=0]\\)", "\\theta_T"),
-    ).toBe(true);
-  });
-  it("is whitespace / thin-space / script-brace insensitive", () => {
-    expect(displaysDefiningEquality("\\(\\mu_{n} \\, = 3\\)", "\\mu_n")).toBe(true);
-    expect(displaysDefiningEquality("\\(t_n := n\\mu_n^2/\\kappa_n\\)", "t_n")).toBe(true);
-    expect(displaysDefiningEquality("\\(\\kappa_n\\coloneqq\\mathbb E_S[w^2]\\)", "\\kappa_n")).toBe(true);
-    expect(displaysDefiningEquality("\\begin{align}\\theta_T &= \\mu_{Y,n}/\\mu_n\\end{align}", "\\theta_T")).toBe(true);
-  });
-  it("respects token boundaries", () => {
-    // A decorated variant must not vouch for the base symbol, nor a longer
-    // subscript for a shorter one, nor a longer command word for its prefix.
-    expect(displaysDefiningEquality("\\(\\hat t_n = 1\\)", "t_n")).toBe(false);
-    expect(displaysDefiningEquality("\\(\\mu_{Y,n}=1\\)", "\\mu_n")).toBe(false);
-    expect(displaysDefiningEquality("\\(\\muY=1\\)", "\\mu")).toBe(false);
-    expect(displaysDefiningEquality("\\(\\theta_T=1\\)", "\\theta")).toBe(false);
-  });
-  it("an accented LHS defines the estimator, never the base symbol (audit: one hat away)", () => {
-    expect(displaysDefiningEquality("\\(\\hat\\theta_T = \\hat\\mu_{Y,n}/\\hat\\mu_n\\)", "\\theta_T")).toBe(false);
-    expect(displaysDefiningEquality("\\(\\widehat\\kappa_n = 1\\)", "\\kappa_n")).toBe(false);
-    expect(displaysDefiningEquality("\\(\\bar Y = 0\\)", "Y")).toBe(false);
-    expect(displaysDefiningEquality("\\(\\boldsymbol\\theta_T = 1\\)", "\\theta_T")).toBe(false);
-    expect(displaysDefiningEquality("\\(\\bm\\theta = 1\\)", "\\theta")).toBe(false);
-    expect(displaysDefiningEquality("\\(\\mathbf\\Sigma = I\\)", "\\Sigma")).toBe(false);
-  });
-  it("a symbol embedded as a sub/superscript is not being defined", () => {
-    expect(displaysDefiningEquality("\\(w_\\pi = 3\\)", "\\pi")).toBe(false);
-    expect(displaysDefiningEquality("\\(w_{\\pi} = 3\\)", "\\pi")).toBe(false);
-    expect(displaysDefiningEquality("\\(x^\\theta = 1\\)", "\\theta")).toBe(false);
-  });
-  it("a primed LHS defines the derived symbol, not the base", () => {
-    expect(displaysDefiningEquality("\\(\\theta' = 2\\theta\\)", "\\theta")).toBe(false);
-    expect(displaysDefiningEquality("\\(t_n' = 1\\)", "t_n")).toBe(false);
-  });
-  it("single-char script braces canonicalize beyond alphanumerics", () => {
-    expect(displaysDefiningEquality("\\(\\mu^{*} := 1\\)", "\\mu^*")).toBe(true);
-    expect(displaysDefiningEquality("\\(\\mu^* := 1\\)", "\\mu^{*}")).toBe(true);
   });
 });
 
@@ -671,45 +466,24 @@ describe("free uses alongside local binders", () => {
       expect(usesSymbolUndecorated(text, symbol)).toBe(true);
     }
   });
-
-  it("retains and repairs the baseline's definition-order constraint", () => {
-    const table = String.raw`| baseline | \(b\) | baseline | def:baseline |`;
-    const tex = String.raw`\begin{theoremv}{thm:use}\[b+\sum_{b=1}^{r} b\]\end{theoremv}
-\begin{definitionv}{def:baseline}\[b:=1\]\end{definitionv}`;
-    expect(definitionOrderViolations(tex, table)).toContainEqual({ symbol: "b", home: "def:baseline", firstUse: "thm:use" });
-  });
 });
 
-describe("placement and definition-order agree on decorated variants", () => {
-  it("N_k^{(1)} is neither a placement user nor a first use of bare N_k", () => {
-    const tex = `
-\\begin{definitionv}{def:splits}[Sample splits]
-The fold sizes are \\(N_k^{(1)}\\) and \\(N_{ak}^{(1)}\\).
-\\end{definitionv}
-\\begin{definitionv}{synth_1}[Index counts]
-For an index set, \\[ N_k := |I_k|. \\]
-\\end{definitionv}
-`;
-    const notation = "| Note symbol | Paper symbol | Meaning | Home |\n|---|---|---|---|\n| Nk | \\(N_k\\) | index count | synth_1 |";
-    // The decorated split size must not read as a use of the bare symbol: if it did,
-    // placement would move synth_1 later while this gate hard-failed the paper for it.
-    expect(usesSymbolUndecorated("The fold sizes are \\(N_k^{(1)}\\)", "N_k")).toBe(false);
-    expect(lintDefinitionOrder(tex, notation)).toEqual([]);
-    // Arithmetic/operator superscripts decorate the SAME object: an early `N_k^2` is a real
-    // early use and must still be caught (treating every `^` as object-forming hid these).
+describe("decorated variants are not uses of the bare symbol", () => {
+  it("N_k^{(1)} is not a use of bare N_k; arithmetic superscripts and bare occurrences are", () => {
+    const body = "The fold sizes are \\(N_k^{(1)}\\) and \\(N_{ak}^{(1)}\\).";
+    // The labelled split size is a different object: read as a use, it would pull the bare
+    // symbol's synthesized definition in front of an environment that never mentions it.
+    expect(usesSymbolUndecorated(body, "N_k")).toBe(false);
+    // Arithmetic/operator superscripts decorate the SAME object: `N_k^2` is a use.
     for (const variant of ["N_k^2", "N_k^{-1}", "N_k^{1/2}", "N_k^\\top", "N_k^*", "N_k^{\\mathsf{T}}", "N_k^{\\mathrm{T}}"]) {
       expect(usesSymbolUndecorated(`the quantity \\(${variant}\\)`, "N_k")).toBe(true);
     }
     for (const variant of ["N_k^{(1)}", "N_k^{\\mathrm{loc}}"]) {
       expect(usesSymbolUndecorated(`the quantity \\(${variant}\\)`, "N_k")).toBe(false);
     }
-    expect(
-      lintDefinitionOrder(tex.replace("The fold sizes are", "The square \\(N_k^2\\) and the fold sizes are"), notation)
-        .some((p) => /synth_1/.test(p.detail)),
-    ).toBe(true);
-    // A genuinely early BARE use is still caught.
-    const early = tex.replace("The fold sizes are", "The count \\(N_k\\) and the fold sizes are");
-    expect(lintDefinitionOrder(early, notation).some((p) => /synth_1/.test(p.detail))).toBe(true);
+    expect(usesSymbolUndecorated(body.replace("The fold sizes are", "The square \\(N_k^2\\) and the fold sizes are"), "N_k")).toBe(true);
+    // A bare occurrence next to labelled ones is a use.
+    expect(usesSymbolUndecorated(body.replace("The fold sizes are", "The count \\(N_k\\) and the fold sizes are"), "N_k")).toBe(true);
   });
 });
 

@@ -40,7 +40,7 @@ import type { Tree } from "./store.js";
 
 const META_FIELDS = [
   "qid", "specialization", "cluster", "target_estimand", "estimand_functional", "sampling_model",
-  "comparator_promise_table", "comparator_promises", "tldr", "project_justification", "related_work",
+  "comparator_promise_table", "tldr", "project_justification", "related_work",
   "interpretation", "technical_internal_limitation", "honest_scope", "rule_grammar", "fixtures",
 ] as const;
 
@@ -194,8 +194,15 @@ export function refreshExhaustiveSymbolScopes(
       [...survivingPriorIds].every((symbolId) => incomingIds.has(symbolId));
     const manifestChanged = prior !== undefined &&
       JSON.stringify(blob.body.free_symbols) !== JSON.stringify(prior.body.free_symbols);
-    const desired = prior === undefined || prior.body.resolved_by !== undefined
-      ? currentSymbols
+    // A new statement keeps an explicit narrow manifest; one born without a
+    // manifest, or with the fail-safe all-symbol scope, tracks the table. A
+    // reopened tombstone is sealed like a new exhaustive claim.
+    const bornExhaustive = blob.body.free_symbols === undefined ||
+      declaredSymbolsCoverAll(previous, blob.body.free_symbols);
+    const desired = prior === undefined
+      ? bornExhaustive ? currentSymbols : blob.body.free_symbols
+      : prior.body.resolved_by !== undefined
+        ? currentSymbols
       : claimChanged
         ? blob.body.free_symbols
       : acceptManifestChanges && manifestChanged

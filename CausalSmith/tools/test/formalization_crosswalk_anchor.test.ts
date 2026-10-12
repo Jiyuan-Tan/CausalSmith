@@ -21,10 +21,10 @@ const entry = (
 });
 
 describe("crosswalkVerifiedWithoutAnchor (the lean:null + verified-verdict contradiction)", () => {
-  it("flags exact/equivalent rows with no anchor", () => {
+  it("flags equivalent rows with no anchor", () => {
     const rows = [
       entry("P-8", "equivalent", null), // contradiction
-      entry("P-2", "exact", null), // contradiction
+      entry("P-2", "equivalent", null), // contradiction
       entry("P-7", "unmatched", null), // honest: unanchored paper object
       entry("P-1", "equivalent", "ConditionalRegression"), // anchored, fine
     ];
@@ -41,8 +41,8 @@ describe("anchorDriftFindings (table verdict assigned against a since-changed an
   it("detects null→decl, decl→decl', and decl→null; ignores unchanged and paper-only", () => {
     const prior = [
       entry("P-8", "equivalent", null), // gained an anchor
-      entry("P-3", "exact", "lamDagger"), // retargeted
-      entry("P-9", "exact", "rhoRate"), // unchanged
+      entry("P-3", "equivalent", "lamDagger"), // retargeted
+      entry("P-9", "equivalent", "rhoRate"), // unchanged
       entry("P-7", "equivalent", "oldDecl"), // lost its anchor
       entry("P-99", "equivalent", "gone"), // paper-only in prior, absent from fresh
     ];

@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  applyTargetedReplacements,
-  claimUnits,
-  revisionContext,
-} from "../src/presentation/stages/p3_gates.js";
+import { claimUnits, revisionContext } from "../src/presentation/stages/p3_gates.js";
+import { applyTargetedReplacements } from "../src/presentation/prose_revision.js";
 import { notationForArtifact } from "../src/presentation/stage_util.js";
 import { buildVerificationContract } from "../src/presentation/verification_contract.js";
 

@@ -37,13 +37,3 @@ describe("P1 Lean-render cache key", () => {
     expect(key({ ...r, priorBody: "old", defects: ["Lean fidelity: omits h"] })).not.toBe(key());
   });
 });
-
-describe("synth placement: decorated-variant guard", () => {
-  it("N_k^{(1)} does not count as a use of bare N_k, but N_k does", async () => {
-    const m = await import("../src/presentation/tex_anchors.js");
-    const f = (m as unknown as { usesSymbolUndecorated: (t: string, s: string) => boolean }).usesSymbolUndecorated;
-    expect(f("the split counts $N_k^{(1)}$ and $N_{ak}^{(1)}$", "N_k")).toBe(false);
-    expect(f("the count $N_k$ over the index set", "N_k")).toBe(true);
-    expect(f("both $N_k^{(1)}$ and the bare $N_k$", "N_k")).toBe(true);
-  });
-});

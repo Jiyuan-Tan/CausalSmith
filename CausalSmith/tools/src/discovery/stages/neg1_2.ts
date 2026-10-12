@@ -1,6 +1,7 @@
 // Discovery Stage -1.2 (proposal producer) + Stage -1 helpers.
 // Extracted from pipeline_stages.ts in Step 2.2 of the three-submodules refactor.
 
+import { normalizeReviewerTier } from "../../novelty.js";
 import path from "node:path";
 import { mkdir, rename, writeFile, copyFile, access } from "node:fs/promises";
 import { formalizationDir, resolveInDir } from "../../paths.js";
@@ -12,11 +13,9 @@ import {
   type StageDeps,
 } from "../../pipeline_support.js";
 import { buildGapsContextBlock } from "./neg1_1.js";
-import { buildStage0_5RejectionContext } from "./neg0_5.js";
 import { runStageNeg1_2ProtoCore, protoCoreJsonPath } from "./neg1_2_author.js";
 import { formatNeg1EscalationContext, readNeg1EscalationLog } from "../stageNeg1_directive.js";
 import { laterStageEverRan } from "../../shared/resume_mode.js";
-import { legacyCrossBoundaryRewindGuard } from "./d0_cross_boundary_rewind.js";
 
 export const NEG1_PIVOT_BUDGET = (() => {
   const v = parseInt(process.env.CAUSALSMITH_NEG1_PIVOT_BUDGET ?? "", 10);
@@ -106,15 +105,6 @@ export async function runStageNeg1_2(args: {
   state: StateJson;
   deps: StageDeps;
 }): Promise<StageResult> {
-  const legacyRewindBlock = legacyCrossBoundaryRewindGuard(args.state);
-  if (legacyRewindBlock) {
-    return {
-      stage: "-1.2",
-      status: "checkpoint",
-      advance: false,
-      message: legacyRewindBlock,
-    };
-  }
   // Cold-start requires --propose. Resumes after a programmatic rewind
   // (e.g. Stage 0.5 boundary routing back to "-1.2") use the topic stored on
   // state.proposed_from. Without this fallback, --resume short-circuits the
@@ -131,7 +121,6 @@ export async function runStageNeg1_2(args: {
     pf = {
       topic: effectiveTopic,
       novelty_target: args.ctx.noveltyTarget ?? "field",
-      pivot_budget_used: 0,
       final_verdict: "pending",
       // The proto core IS the proposal; runStageNeg1_2ProtoCore re-points this
       // after authoring, so the default only ever shows pre-first-author.
@@ -205,15 +194,6 @@ export async function runStageNeg1_2(args: {
     });
   }
 
-  // Stage 0.5 rejection context: load-bearing on resume after a rewound_from_stage0.
-  // Surfaces the verbatim rewind reason, auto-granted Bucket A assumptions, and the
-  // most recent Stage 0.5 reviewer JSON so the producer can revise/pivot the kernel
-  // instead of patching only the local proof step.
-  const stage0_5RejectionBlock = await buildStage0_5RejectionContext({
-    ctx: args.ctx,
-    state: args.state,
-  });
-
   // Stage -1.1 gaps are ideation substrate, so inject them only when choosing a
   // kernel (cold-start/pivot). Revision/rebuild modes already receive the prior
   // typed core and current rejection/directive context; replaying the complete
@@ -238,8 +218,7 @@ export async function runStageNeg1_2(args: {
 
   // Required-precondition guard (cold-start only). The proposer must never run
   // cold-start ideation without a literature substrate: the Stage -1.1 GAPS
-  // CONTEXT block is the only source (the legacy inline Step 0a / Step 1a
-  // fallbacks were removed). An empty block on cold-start means gaps.json was
+  // CONTEXT block is the only source. An empty block on cold-start means gaps.json was
   // written + advanced but is now missing/unreadable AND no cached
   // literature_map survives on proposed_from (e.g. a resume after the file was
   // lost). Halt loudly rather than let the proposer improvise a worse scan:
@@ -262,11 +241,12 @@ export async function runStageNeg1_2(args: {
   // Single-artifact producer: ONE author emits the typed proposal core. Thread the
   // SHARED context into the author so it is
   // NOT context-starved: the D-1.1 gaps/literature substrate (load-bearing — the
-  // kernel must anchor to a named open problem), the cold-start motif library, the
-  // Stage-0.5 rejection context, and the upgrade-parent block. MODE-SPECIFIC inputs
+  // kernel must anchor to a named open problem), the cold-start motif library, and
+  // the upgrade-parent block. MODE-SPECIFIC inputs
   // (prior core to edit, seed list, prior reviewer verdict) are assembled inside
   // runStageNeg1_2ProtoCore from `mode` + state.
-  const contextBlocks = [gapsBlock, flagshipMotifsBlock, stage0_5RejectionBlock, parentBlock, directiveBlock]
+  const clusterDefinitionsBlock = await readPrompt(args.ctx, "cluster_definitions.txt");
+  const contextBlocks = [clusterDefinitionsBlock, gapsBlock, flagshipMotifsBlock, parentBlock, directiveBlock]
     .filter((b) => b && b.length > 0)
     .join("\n\n");
   return runStageNeg1_2Dual({
@@ -362,7 +342,6 @@ export async function runStageNeg1_2Dual(args: {
       message: envFailure
         ? `Stage -1.2 (single-artifact) mode=${args.mode} hit an ENVIRONMENT failure (sandbox/process startup) — angle ${args.angleIndex} is NOT dead; D-0.5 retries the same draft`
         : `Stage -1.2 (single-artifact) mode=${args.mode} returned needs-pivot — angle ${args.angleIndex} not authorable as posed`,
-      artifacts: [],
     };
   }
 
@@ -386,7 +365,6 @@ export async function runStageNeg1_2Dual(args: {
     stage: "-1.2",
     status: "completed",
     message: `Stage -1.2 (single-artifact) authored angle=${args.angleIndex} v${args.nextVersion} mode=${args.mode} → proto_core.json`,
-    artifacts: [authored.protoCoreJsonPath],
   };
 }
 
@@ -475,7 +453,7 @@ export async function logNeg1Review(args: {
     C: countFlags(args.json.soundness_flags),
   };
   const tier =
-    typeof args.json.publishability_tier === "string" ? args.json.publishability_tier : "unknown";
+    typeof args.json.publishability_tier === "string" ? normalizeReviewerTier(args.json.publishability_tier) : "unknown";
   const entry: Omit<Extract<ReviewLogEntry, { kind: "review" }>, "timestamp"> = {
     kind: "review",
     stage: "stage_neg1",

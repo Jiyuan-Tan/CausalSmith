@@ -1,8 +1,7 @@
 // Formalization dispatcher. The graph-driven proof-review loop is the sole proof path:
 // it runs in the F2.5 slot and owns the statement gate, proof fill, unused-hyp lint, and
 // dual-model convergence. It logs F2.5/F3/F3.5/F4 at their real phase boundaries and advances
-// directly to F5; the legacy handlers remain only for old/manual stage pointers.
-// The legacy split-stage system was retired.
+// directly to F5; the F3/F3.5/F4 pass-through handlers serve only old/manual stage pointers.
 
 import type { PipelineContext, Stage, StageResult, StateJson } from "../types.js";
 import { artifactPaths, type StageDeps } from "../pipeline_support.js";
@@ -19,11 +18,11 @@ import {
   revisionTargetsFromRedirect,
 } from "./f2_revision_context.js";
 import { runStage5 } from "./stage5.js";
-import { resetD0LoopCountersForRewind, resetFormalizationLoopCounters } from "../shared/intervention_routing.js";
+import { resetD0LoopCountersForRewind } from "../shared/review_boundary.js";
 
 /** Per-node cap on F3→D0 rewinds: after this many witnessed bounces of the SAME node, stop
  *  auto-rewinding and checkpoint for orchestrator approval (a node that keeps coming back is not
- *  self-resolving). Mirrors the stage1_rewinds / theorem_splits caps. */
+ *  self-resolving). */
 const REDO_MATH_MAX = 3;
 
 const PROOF_REVIEW_BYPASS_STAGES = new Set<Stage>(["3", "3.5", "4", "5"]);
@@ -133,7 +132,7 @@ export interface RedoMathProposal {
 }
 
 /**
- * Adjudicate a witnessed F3 refutation: per-node durable cap mirrors stage1_rewinds; any
+ * Adjudicate a witnessed F3 refutation under a per-node durable cap; any
  * already-PROVEN dependent makes this the expensive case → checkpoint for orchestrator
  * approval rather than an auto-rewind.
  *
@@ -143,18 +142,16 @@ export interface RedoMathProposal {
  * cursor stay intact; only the refuted step's core consumers (and their dependents) are
  * forced open — the promise the redo-math witness block in `vcs/round.ts` already makes to the solver.
  *
- * Two prior shapes of this branch are deliberately gone:
- *  - propose mode used to route through `applyInterventionRoute("stage_0")`, which re-invoked
- *    the D-1.2 PROPOSAL producer and bumped `current_version`; the next D0 assembly then saw
- *    `proposalRevisionChanged`, set `prev = null`, and DISCARDED EVERY CARRIED PROOF to fix
- *    one node — while the escalation watermark (read from the surviving cursor) made the
- *    from-scratch re-solve run with an EMPTY directive context. A witnessed refutation is
- *    not a proposal defect; no statement TEXT changed, so no content check can see it — it
- *    needs the explicit target channel, not a proposal revision.
- *  - non-propose mode moved the cursor WITHOUT appending any escalation entry, so
- *    `hasPendingDirective` was false, the open frontier was empty, nobody was dispatched,
- *    the round passed the discharge gate, and `solve/commit.ts` deleted the witness — the
- *    same lemma was then refuted again, up to REDO_MATH_MAX.
+ * Both halves of that path are load-bearing:
+ *  - The cursor and `current_version` stay put. Re-invoking the D-1.2 proposal producer
+ *    would bump the proposal revision; the next D0 assembly then sees
+ *    `proposalRevisionChanged`, sets `prev = null`, and discards every carried proof to fix
+ *    one node. A witnessed refutation is not a proposal defect; no statement TEXT changed,
+ *    so no content check can see it — it needs the explicit target channel.
+ *  - The escalation entry is required. Moving the cursor without one leaves
+ *    `hasPendingDirective` false and the open frontier empty: nobody is dispatched, the
+ *    round passes the discharge gate, `solve/commit.ts` deletes the witness, and the same
+ *    lemma is refuted again, up to REDO_MATH_MAX.
  *
  * ID SPACES ARE DISJOINT AND LOAD-BEARING. `required_core_targets` must name CORE
  * node ids: `vcs/round.ts` refuses to dispatch (the directive stays pending) when a
@@ -211,11 +208,9 @@ export async function adjudicateRedoMathRewind(args: {
     required_core_targets: coreTargets,
   });
   args.state.stage_completed = "-0.5"; // nextStage("-0.5") = "0" → re-run typed D0-SOLVE
-  resetFormalizationLoopCounters(args.state);
   // The re-solve is constrained by a witness D0 has never seen, so it is a new attempt and
   // gets a new D-phase budget; the spend it carried in is reported, not discarded silently.
   const budgetNote = resetD0LoopCountersForRewind(args.state);
-  args.state.pending_sorries = [];
   args.state.flags.redo_math_witness = {           // D0-solve reads this to scope + constrain the re-solve
     obj_id: rm.obj_id, type: rm.witness.type, detail: rm.witness.detail, dependents: rm.dependents,
   };
@@ -244,8 +239,7 @@ async function runProofReviewLoopStage(args: {
   // loop so the reviewer + per-target fillers reuse a single WARM server instead of each codex
   // call cold-starting its own stdio lean-lsp. On a loaded host a fresh per-call cold-start
   // re-elaborates the import closure for minutes, blows past codex's lean-lsp MCP timeout, and
-  // the per-call servers proliferate — the bare `--resume` path used to hit exactly this wedge
-  // (`f3_loop.ts` already boots a shared one; this brings `--resume` to parity). Only boot when a
+  // the per-call servers proliferate. Only boot when a
   // launcher hasn't already exported a URL; non-fatal on failure (falls back to per-process stdio
   // lean-lsp — correct, just slower). `leanLspCodexFlags` (codex.ts) reads the env var per call.
   let shared: Awaited<ReturnType<typeof startSharedLeanLsp>> | null = null;
@@ -281,10 +275,8 @@ async function runProofReviewLoopStage(args: {
     state: args.state,
     formalizationDir: paths.formalizationDir,
     leanDir: paths.leanDir,
-    texPath: paths.tex,
-    // Advisory context the filler/reviewer read for per-node proof_tex + statements.
-    // The .md is retired upstream of F3; point this at the typed core instead (it
-    // carries each statement's proof_tex). The load-bearing graph comes from graph.json.
+    // Advisory context the filler/reviewer read for per-node proof_tex + statements: the
+    // typed core. The load-bearing graph comes from graph.json.
     corePath: coreJsonPath(args.ctx),
     // Phase-B proof-fill directive: a load-bearing PROOF hint the orchestrator injects on
     // `--resume` (via bin/f3_directive.ts) when the fill loop is stuck. Persists on state.flags

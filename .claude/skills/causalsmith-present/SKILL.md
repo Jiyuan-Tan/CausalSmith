@@ -7,7 +7,7 @@ description: CausalSmith P-stage (presentation) sub-orchestrator — drives P0�
 
 Input: an **accepted** bank entry `CausalSmith/doc/research/_bank/accepted/<qid>_<spec>/`. Output: the
 bundle `CausalSmith/doc/presentation/<qid>_<spec>/` (paper.tex/pdf, presentation_crosswalk.json,
-lean_snippets.json, paper_body.html, assumption_table.md, meta.json), rendered by `CausalSmith/site/`.
+lean_snippets.json, paper_body.html, meta.json), rendered by `CausalSmith/site/`.
 
 ## Lease
 
@@ -56,7 +56,7 @@ No figures in the paper (no gate audits them); tables and prose carry regime sum
    - **P2** (full draft): journal shape (contributions + roadmap in front matter, early related work,
      every proof opens `\begin{proof}[Proof of \cref{obj:<id>}]`); spot-read one main-theorem proof;
      review promoted nodes.
-3. State `<qid>_<spec>_paper_state.json`: `stage_completed`, `checkpoint_pending`, `revision_round`,
+3. State `<qid>_<spec>_paper_state.json`: `stage_completed`, `checkpoint_pending`,
    `hard_gate_failures`, `notes`. Never hand-edit the
    pointer; `--from` re-enters the stage that owes work. Rewind only for authorship / mathematical /
    frozen-layer / plan changes; mechanical failures are repaired in place and the stage re-run.
@@ -138,8 +138,8 @@ obj_id's `verdict` to `"faithful"` and leave `key` untouched, one explicit edit 
   homes; recover lost homes from the recorded planner output, never by deleting caches or guessing
   from symbol spellings. P1 places definitions/algorithms/assumptions before consumers by graph
   `statement-uses` edges and actual references (ordinary forward result citations are allowed);
-  P3/P4 assert the order (`frozen-layer-order`). Render, notation and
-  synthesis keys embed prompt fingerprints — never bump versions by hand. A `lean-coverage` halt:
+  P3/P4 assert the order (`frozen-layer-order`). Cache keys carry content and a standard
+  token, never prompt text — never bump a token by hand. A `lean-coverage` halt:
   map the missing certifying declarations in the bank node's `lean.supporting_decls`, keep the
   authored body, `--from P1`; never weaken a statement to fit a partial mapping.
 - Synthesis renders a symbol no environment defines: from the Lean declaration when an `@realizes`
@@ -215,7 +215,8 @@ load-bearing Lean hypothesis omitted or invented, up to packaging and incidental
 goes back to the renderer inside the render loop. The P2 proof judge does the same for proofs, with
 tagged defects `[missing-step]`, `[citation]`, `[rendering]` re-rendered for ≤2 rounds. The pipeline never repairs a mapping; on a
 residual, diagnose: (1) wrong crosswalk mapping — find the real decl (name-affine `private lemma`s
-inside T-blocks are common), patch the bank's `*_crosswalk_full.json` (keep a `.bak`); (2) note
+inside T-blocks are common), patch that node's `lean.decl_name` / `lean.file` in the bank's
+`graph.json` (keep a `.bak`); (2) note
 overstates Lean — amend the frozen body to the Lean-true form, sync cached sections, `--from P1`,
 never edit the accepted note; (3) auditor miscalibration — a general prompt rule, via main.
 A judge's issue is itself a claim you check: one that objects to text no reader sees (a comment, a
@@ -259,8 +260,5 @@ second occurrence; three fixes in one function in a week ⇒ a redesign note fir
 - After ANY Lean or statement edit, `--from P2`; if the edit is outside the mapped
   declaration's own source (a cited helper, an unfolded definition), delete that obj's
   `proof_audit_cache.json` entry first.
-- Prompt fingerprints key only P1 (`p1_touchup`, `p1_render_from_lean`, `p1_notation_check`,
-  `p1_synthesize_definition`), P2 (`p2_proof`, `proof_audit`), P3 (`p3_rubric`).
-  Editing one of those while a run is live re-keys every in-flight bundle; other prompts take effect
-  on the next call.
+- A prompt edit takes effect on the next call and re-keys nothing.
 - `present` deliberately does not import `src/cli.ts`; keep it that way.

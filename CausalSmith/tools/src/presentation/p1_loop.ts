@@ -1,6 +1,5 @@
 // Pure, testable core of the P1 executor→reviewer→router loop (the codex
 // calls live in stages/p1_plan.ts; this module holds the logic they orchestrate).
-// See doc/presentation/2026-06-17-causalsmith-graph-simplification-design.md §4.6.
 import type { GraphNode } from "../graph/types.js";
 import { envForNode, type EnvName } from "./graph_view.js";
 
@@ -57,7 +56,7 @@ const WORDING_GATES = new Set([
 ]);
 /**
  * Route a finding to its handler by gate name (the deterministic part of the
- * router — §4.6.0). The codex reviewer may also emit an explicit `fix_locus` on a
+ * router). The codex reviewer may also emit an explicit `fix_locus` on a
  * semantic finding; the caller prefers that when present and falls back here
  * (synthesis is requested only via an explicit `fix_locus`). Anything
  * unrecognized → `halt` (fail loud: unknown-objid, env-set-changed, bare-env,
@@ -70,7 +69,7 @@ export function routeFinding(gate: string): FixLocus {
 
 // ---------------------------------------------------------------------------
 // The executor → reviewer → router loop (control flow; model calls are injected
-// as hooks so this is unit-testable with mocks). §4.6.1.
+// as hooks so this is unit-testable with mocks).
 // ---------------------------------------------------------------------------
 
 /** One paper env in flight. `statement` is the immutable graph nl.statement (the

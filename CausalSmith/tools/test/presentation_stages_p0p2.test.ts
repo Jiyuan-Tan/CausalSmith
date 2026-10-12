@@ -169,7 +169,7 @@ const deps: PaperDeps = {
     if (prompt.includes("NOTATION-RESOLVABILITY")) {
       return { stdout: JSON.stringify({ problems: [] }), stderr: "" };
     }
-    // P1 statement equivalence audit (runStatementAudit). Batch: faithful for each `--- <id> ---`.
+    // P1 statement equivalence audit (judgeStatements). Batch: faithful for each `--- <id> ---`.
     if (prompt.includes("statement-faithfulness auditor")) {
       if (prompt.includes("For EACH statement below")) {
         const ids = [...prompt.matchAll(/^--- (\S+) ---$/gm)].map((m) => m[1]);

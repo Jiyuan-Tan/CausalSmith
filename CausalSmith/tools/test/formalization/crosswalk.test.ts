@@ -3,7 +3,6 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
-  buildCrosswalkSkeleton,
   buildCompleteCrosswalkFromGraph,
   findHiddenStatementDefs,
   findStatementSemanticDefs,
@@ -11,11 +10,10 @@ import {
   renderCrosswalkMd,
 } from "../../src/formalization/crosswalk.js";
 import type { FormalizationGraph } from "../../src/graph/types.js";
+import { parseLeanDecls } from "../../src/formalization/crosswalk_parse.js";
 
-// A Basic.lean mirroring the stat_ate_overlap_decay shape: a P-10 class def
-// annotated with its block id in a `/-! ## P-10 — … -/` section comment, plus a
-// helper def with NO block id (must be skipped), and a T-1 theorem (matched by
-// name `t1_thm`). The section comment deliberately omits A4/A5/A6 clauses.
+// A Basic.lean mirroring the stat_ate_overlap_decay shape: a P-10 class def, a
+// helper def that is no paper object, an L-7 lemma and a T-1 theorem `t1_thm`.
 const BASIC = `import Mathlib
 
 /-- A helper with no block id — must be skipped by the crosswalk. -/
@@ -33,61 +31,95 @@ lemma l7_aux : True := by sorry
 theorem t1_thm (n : Nat) : n + 0 = n := by simp
 `;
 
-// The F1 .md with P-10 (definition) and T-1 (theorem) blocks. P-10 carries a
-// quoted .tex line range label (durable anchor).
-const MD = `# Note
+/** A graph node for the fixture: a content node linked to a run-local Lean decl. */
+function node(id: string, objId: string, kind: FormalizationGraph["nodes"][number]["kind"], decl: string, statement: string): FormalizationGraph["nodes"][number] {
+  return {
+    id,
+    obj_id: objId,
+    kind,
+    provenance: "from-note",
+    nl: { statement, tex_anchor: "", frozen: true },
+    lean: { decl_name: decl, file: "Basic.lean" },
+    review: { status: "unreviewed", passed_hash: null },
+    proof: { state: "sorry", sorry_count: 0 },
+  };
+}
 
-### P-10. Triangular-array weak-overlap class \`𝒫\`.
-- **Signature.** Laws satisfying A1, A2, A3, A4, A5 and A6 at λ_n★.
-- **.tex line range.** Definition "Triangular-array weak-overlap class".
-
-### L-7. A lemma block — excluded.
-- **.tex line range.** tex:600.
-
-### T-1. Corrected upper bound.
-- **.tex line range.** tex:741.
-`;
+/** The P-10 / T-1 paper as a formalization graph (what F5 builds the crosswalk from). */
+const GRAPH: FormalizationGraph = {
+  qid: "q",
+  specialization: "s",
+  nodes: [
+    node("p10", "P-10", "definition", "triangularClass", "Triangular-array weak-overlap class"),
+    node("t1", "T-1", "theorem", "t1_thm", "Corrected upper bound"),
+  ],
+  edges: [],
+};
 
 let dir: string;
 let leanDir: string;
-let mdPath: string;
 
 beforeEach(async () => {
   dir = await mkdtemp(path.join(os.tmpdir(), "crosswalk-"));
   leanDir = path.join(dir, "lean");
   await mkdir(leanDir, { recursive: true });
   await writeFile(path.join(leanDir, "Basic.lean"), BASIC, "utf8");
-  mdPath = path.join(dir, "note.md");
-  await writeFile(mdPath, MD, "utf8");
 });
 
 afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-describe("buildCrosswalkSkeleton", () => {
-  it("matches P-10 → triangularClass and T-1 → t1_thm with correct anchors", async () => {
-    const sk = await buildCrosswalkSkeleton(leanDir, mdPath);
-    const p10 = sk.find((e) => e.obj_id === "P-10");
-    const t1 = sk.find((e) => e.obj_id === "T-1");
+describe("buildCompleteCrosswalkFromGraph", () => {
+  it("anchors P-10 → triangularClass and T-1 → t1_thm with resolved line numbers", async () => {
+    const rows = await buildCompleteCrosswalkFromGraph(GRAPH, leanDir);
+    const p10 = rows.find((e) => e.obj_id === "P-10");
+    const t1 = rows.find((e) => e.obj_id === "T-1");
     expect(p10).toBeDefined();
     expect(p10!.kind).toBe("definition");
-    expect(p10!.lean).toMatchObject({ file: "Basic.lean", decl: "triangularClass", decl_kind: "def" });
-    expect(p10!.tex.label).toBe("Triangular-array weak-overlap class");
-    expect(p10!.verdict).toBe("unmatched");
+    expect(p10!.lean).toMatchObject({ file: "Basic.lean", decl: "triangularClass", decl_kind: "def", line: 9 });
+    expect(p10!.tex.label).toBe("P-10");
+    expect(p10!.verdict).toBe("unmatched"); // unreviewed → the reviewer still owes a verdict
     expect(t1).toBeDefined();
     expect(t1!.kind).toBe("theorem");
-    expect(t1!.lean).toMatchObject({ decl: "t1_thm", decl_kind: "theorem" });
+    expect(t1!.lean).toMatchObject({ decl: "t1_thm", decl_kind: "theorem", line: 15 });
+    expect(rows.map((e) => e.obj_id)).toEqual(["P-10", "T-1"]); // P-blocks before T-blocks
   });
 
-  it("excludes lemmas and obj-id-less helper defs", async () => {
-    const sk = await buildCrosswalkSkeleton(leanDir, mdPath);
-    const ids = sk.map((e) => e.obj_id);
-    expect(ids).not.toContain("L-7"); // lemma block + lemma decl excluded
-    // overlapDen has no block id → never appears as a Lean-only entry
-    expect(sk.some((e) => e.lean?.decl === "overlapDen")).toBe(false);
+  it("emits one row per content node and none for setup, gate or undelivered nodes", async () => {
+    const g: FormalizationGraph = {
+      ...GRAPH,
+      nodes: [
+        ...GRAPH.nodes,
+        { ...node("setup", "S-1", "setup" as never, "overlapDen", "setup"), kind: "setup" as never },
+        { ...node("gate", "G-1", "gate" as never, "overlapDen", "gate"), kind: "gate" as never },
+        { ...node("l7", "L-7", "lemma", "l7_aux", "An undelivered lemma"), delivery: { status: "undelivered" } as never },
+      ],
+    };
+    const rows = await buildCompleteCrosswalkFromGraph(g, leanDir);
+    expect(rows.map((e) => e.obj_id)).toEqual(["P-10", "T-1"]);
+    expect(rows.some((e) => e.lean?.decl === "overlapDen")).toBe(false);
   });
 
+  it("downgrades unresolved local anchors instead of writing line:null", async () => {
+    const g: FormalizationGraph = { ...GRAPH, nodes: [node("p1", "P-1", "definition", "MissingDecl", "S")] };
+    const rows = await buildCompleteCrosswalkFromGraph(g, leanDir);
+    expect(rows[0].lean).toBeNull();
+  });
+
+  it("marks a matched review as equivalent only when the row has a Lean anchor", async () => {
+    const reviewed = (n: FormalizationGraph["nodes"][number]) => ({ ...n, review: { status: "matched" as const, passed_hash: "h" } });
+    const g: FormalizationGraph = {
+      ...GRAPH,
+      nodes: [reviewed(GRAPH.nodes[0]), reviewed(node("p1", "P-1", "definition", "MissingDecl", "S"))],
+    };
+    const rows = await buildCompleteCrosswalkFromGraph(g, leanDir);
+    expect(rows.find((e) => e.obj_id === "P-10")!.verdict).toBe("equivalent");
+    expect(rows.find((e) => e.obj_id === "P-1")!.verdict).toBe("unmatched");
+  });
+});
+
+describe("hidden-statement-def discovery", () => {
   it("BFS is not truncated by a named-argument `:=` in a hypothesis binder", async () => {
     // A theorem whose hypothesis uses Lean named-argument syntax `(𝒳 := 𝒳)`
     // BEFORE referencing the class def. A raw `indexOf(":=")` would cut the
@@ -159,58 +191,26 @@ theorem exactRealAtlas (hCAD : realAtlasHandleOutput) : True := by trivial
     expect(hidden.some((d) => d.name === "cadRealRootsAt")).toBe(false);
   });
 
-  it("binds T-1 to the canonical t1_thm, not an earlier same-prefixed shadow/helper", async () => {
-    // Mirrors the stat_ate_overlap_decay layout: an archived `_deterministic_shadow`
-    // and a private `t1_thm_random_aggregate_from_pieces` helper both precede the
-    // real `t1_thm` in the file and all share the `t1_` name prefix. The skeleton
-    // must skip the shadow (no obj_id) and prefer the canonical headline over the
-    // earlier helper — otherwise the paper would verify the wrong T-1 decl.
-    const lean = `import Mathlib
+  it("a comment, a tag or the next declaration's docstring does not move a semantic def's contentHash", async () => {
+    const body = (extra: string) => `import Mathlib
 
-/-- Deprecated deterministic-CF shadow of **T-1**. Kept for provenance. -/
-theorem t1_thm_deterministic_shadow (n : Nat) : n = n := by rfl
+-- @node: def:class
+structure ModelClass where
+  bound : Real${extra}
 
-/-- Private rate-aggregation helper for the random headline. -/
-theorem t1_thm_random_aggregate_from_pieces (n : Nat) : n + 0 = n := by simp
-
-/-- **T-1 (faithful random cross-fit headline).** -/
-theorem t1_thm (n : Nat) : 0 + n = n := by simp
+-- @node: thm:main
+theorem mainThm (M : ModelClass) : M.bound = M.bound := by rfl
 `;
-    await writeFile(path.join(leanDir, "Basic.lean"), lean, "utf8");
-    const md = `# Note
-
-### T-1. Upper bound.
-- **.tex line range.** tex:741.
-`;
-    await writeFile(mdPath, md, "utf8");
-    const sk = await buildCrosswalkSkeleton(leanDir, mdPath);
-    const t1 = sk.find((e) => e.obj_id === "T-1");
-    expect(t1!.lean).toMatchObject({ decl: "t1_thm" });
-    // the shadow never claims an obj_id at all
-    expect(sk.some((e) => e.lean?.decl === "t1_thm_deterministic_shadow")).toBe(false);
+    await writeFile(path.join(leanDir, "Hash.lean"), body(""), "utf8");
+    const before = (await findStatementSemanticDefs(leanDir)).find((d) => d.name === "ModelClass")!;
+    await writeFile(path.join(leanDir, "Hash.lean"), body("  -- @realizes B\n  -- a trailing remark\n\n/-- the main theorem's docstring -/"), "utf8");
+    const after = (await findStatementSemanticDefs(leanDir)).find((d) => d.name === "ModelClass")!;
+    expect(after.contentHash).toBe(before.contentHash);
+    await writeFile(path.join(leanDir, "Hash.lean"), body("\n  bound_pos : 0 < bound"), "utf8");
+    const changed = (await findStatementSemanticDefs(leanDir)).find((d) => d.name === "ModelClass")!;
+    expect(changed.contentHash).not.toBe(before.contentHash);
   });
-});
 
-describe("buildCompleteCrosswalkFromGraph", () => {
-  it("downgrades unresolved local anchors instead of writing line:null", async () => {
-    const g: FormalizationGraph = {
-      qid: "q",
-      specialization: "s",
-      nodes: [{
-        id: "p1",
-        obj_id: "P-1",
-        kind: "definition",
-        provenance: "from-note",
-        nl: { statement: "S", tex_anchor: "", frozen: true },
-        lean: { decl_name: "MissingDecl", file: "Basic.lean" },
-        review: { status: "unreviewed", passed_hash: null },
-        proof: { state: "sorry", sorry_count: 0 },
-      }],
-      edges: [],
-    };
-    const rows = await buildCompleteCrosswalkFromGraph(g, leanDir);
-    expect(rows[0].lean).toBeNull();
-  });
 });
 
 // A scaffold mirroring the policy-regret laundering shape:
@@ -254,85 +254,86 @@ theorem t2_thm (P : Nat) (h : hypClass P) :
     ∃ rate : ℝ, witnessRisk P rate ∧ scoreVal P = scoreVal P ∧ bundleStruct P := by sorry
 `;
 
-const LAUNDER_MD = `# Note
-
-### T-2. Converse witness bound.
-- **.tex line range.** tex:200.
-`;
-
 describe("hidden-statement-def augmentation (laundering surface)", () => {
   let ldir: string;
-  let lmd: string;
   beforeEach(async () => {
     const d = await mkdtemp(path.join(os.tmpdir(), "crosswalk-launder-"));
     ldir = path.join(d, "lean");
     await mkdir(ldir, { recursive: true });
     await writeFile(path.join(ldir, "Basic.lean"), LAUNDER, "utf8");
-    lmd = path.join(d, "note.md");
-    await writeFile(lmd, LAUNDER_MD, "utf8");
   });
 
   it("surfaces a transitively-reached ∃-real-constant def with the uniform-constant flavor", async () => {
-    const sk = await buildCrosswalkSkeleton(ldir, lmd);
-    const aux = sk.find((e) => e.obj_id === "AUX-lawClass");
+    const hidden = await findHiddenStatementDefs(ldir);
+    const aux = hidden.find((h) => h.name === "lawClass");
     expect(aux).toBeDefined();
-    expect(aux!.kind).toBe("definition");
-    expect(aux!.lean).toMatchObject({ decl: "lawClass", decl_kind: "def" });
-    expect(aux!.verdict).toBe("unmatched");
-    expect(aux!.title).toContain("T-2"); // records the reaching T-block
-    expect(aux!.title).toContain("uniform-constant"); // const-existential flavor
+    expect(aux).toMatchObject({ kind: "def", flavor: "const-exist", file: "Basic.lean" });
+    expect(aux!.reachedFrom).toContain("T-2"); // records the reaching theorem
   });
 
   it("surfaces a reached Prop conclusion def with the inline-predicate flavor", async () => {
-    const sk = await buildCrosswalkSkeleton(ldir, lmd);
-    const aux = sk.find((e) => e.obj_id === "AUX-witnessRisk");
-    expect(aux).toBeDefined();
-    expect(aux!.title).toContain("faithfully encodes"); // generic inline-predicate flavor
+    const hidden = await findHiddenStatementDefs(ldir);
+    expect(hidden.find((h) => h.name === "witnessRisk")).toMatchObject({ flavor: "predicate" });
   });
 
   it("surfaces a predicate hidden TRANSITIVELY under a hypothesis, but not the direct hypothesis itself", async () => {
-    const sk = await buildCrosswalkSkeleton(ldir, lmd);
+    const names = (await findHiddenStatementDefs(ldir)).map((h) => h.name);
     // hiddenSub is reached only via hypClass's body → must surface (hidden over-strengthening risk)
-    expect(sk.some((e) => e.lean?.decl === "hiddenSub")).toBe(true);
+    expect(names).toContain("hiddenSub");
     // hypClass is named directly as a hypothesis → already in the H.1 matrix → must NOT re-surface
-    expect(sk.some((e) => e.lean?.decl === "hypClass")).toBe(false);
+    expect(names).not.toContain("hypClass");
   });
 
   it("surfaces a reached assumption-bundle structure with the structure flavor", async () => {
-    const sk = await buildCrosswalkSkeleton(ldir, lmd);
-    const aux = sk.find((e) => e.obj_id === "AUX-bundleStruct");
-    expect(aux).toBeDefined();
-    expect(aux!.lean).toMatchObject({ decl: "bundleStruct", decl_kind: "structure" });
-    expect(aux!.title).toContain("assumption-bundle");
+    const hidden = await findHiddenStatementDefs(ldir);
+    expect(hidden.find((h) => h.name === "bundleStruct")).toMatchObject({ kind: "structure", flavor: "structure" });
   });
 
   it("surfaces a conclusion-named ℝ quantity with the formula flavor", async () => {
-    const sk = await buildCrosswalkSkeleton(ldir, lmd);
-    const aux = sk.find((e) => e.obj_id === "AUX-scoreVal");
-    expect(aux).toBeDefined();
-    expect(aux!.lean).toMatchObject({ decl: "scoreVal", decl_kind: "def" });
-    expect(aux!.title).toContain("formula"); // ℝ-quantity flavor
+    const hidden = await findHiddenStatementDefs(ldir);
+    expect(hidden.find((h) => h.name === "scoreVal")).toMatchObject({ kind: "def", flavor: "quantity" });
   });
 
   it("does NOT surface ℝ helpers reached only off-conclusion, or unreached defs", async () => {
-    const sk = await buildCrosswalkSkeleton(ldir, lmd);
-    expect(sk.some((e) => e.lean?.decl === "helperVal")).toBe(false); // ℝ-valued, not in a conclusion
-    expect(sk.some((e) => e.lean?.decl === "unreachedClass")).toBe(false); // reached by no theorem
+    const names = (await findHiddenStatementDefs(ldir)).map((h) => h.name);
+    expect(names).not.toContain("helperVal"); // ℝ-valued, not in a conclusion
+    expect(names).not.toContain("unreachedClass"); // reached by no theorem
   });
 });
 
 describe("persistCrosswalk + renderCrosswalkMd", () => {
   it("writes JSON + MD and the MD shows the P-10 row", async () => {
-    const sk = await buildCrosswalkSkeleton(leanDir, mdPath);
-    const merged = sk.map((e) => (e.obj_id === "P-10" ? { ...e, verdict: "weaker-in-Lean" as const, note: "n" } : e));
+    const rows = await buildCompleteCrosswalkFromGraph(GRAPH, leanDir);
+    const merged = rows.map((e) => (e.obj_id === "P-10" ? { ...e, verdict: "drift" as const, note: "n" } : e));
     const jsonPath = path.join(dir, "cw.json");
     const md = path.join(dir, "cw.md");
     await persistCrosswalk(jsonPath, md, merged);
     const parsed = JSON.parse(await readFile(jsonPath, "utf8"));
-    expect(parsed.find((e: { obj_id: string }) => e.obj_id === "P-10").verdict).toBe("weaker-in-Lean");
+    expect(parsed.find((e: { obj_id: string }) => e.obj_id === "P-10").verdict).toBe("drift");
     const rendered = renderCrosswalkMd(merged);
     expect(rendered).toContain("P-10");
     expect(rendered).toContain("triangularClass");
-    expect(rendered).toContain("weaker-in-Lean");
+    expect(rendered).toContain("| drift | n |");
+  });
+});
+
+describe("parseLeanDecls shadow rule", () => {
+  it("a *_shadow / *_deprecated / *_archived decl claims no paper id; the live decl is the sole holder", async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), "crosswalk-shadow-"));
+    try {
+      await writeFile(path.join(dir, "Basic.lean"), `import Mathlib
+
+/-- Deprecated deterministic-CF shadow of **T-1**. Kept for provenance. -/
+theorem t1_thm_deterministic_shadow (n : Nat) : n = n := by rfl
+
+/-- **T-1 (faithful random cross-fit headline).** -/
+theorem t1_thm (n : Nat) : 0 + n = n := by simp
+`, "utf8");
+      const decls = await parseLeanDecls(dir);
+      expect(decls.find((d) => d.name === "t1_thm_deterministic_shadow")?.objId).toBeNull();
+      expect(decls.find((d) => d.name === "t1_thm")?.objId).toBe("T-1");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });

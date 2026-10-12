@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import {
-  BundleEmitBusyError, EMIT_LOCK_FILE, assertBundleEmitLockHeld, bundleEmitLockCompromise,
+  BundleEmitBusyError, EMIT_LOCK_FILE, assertBundleEmitLockHeld,
   isBundleEmitBusy, isHoldingBundleEmitLock, withBundleEmitLock,
 } from "../src/presentation/emit_lock.js";
 import { withBundleMetaLock } from "../src/presentation/meta_store.js";
@@ -165,17 +165,17 @@ describe("lock ordering: emit → registry → meta", () => {
 describe("a lock that gets compromised fails the operation, not the process", () => {
   it("surfaces a stolen emit lock as a controlled error naming the bundle", async () => {
     const dir = await bundle();
-    let sawHealthyThenNot: [boolean, boolean] | null = null;
+    let healthyBeforeTheft = false;
     const outcome = await withBundleEmitLock(dir, async () => {
-      const healthy = bundleEmitLockCompromise() === null;
+      assertBundleEmitLockHeld(dir);
+      healthyBeforeTheft = true;
       // Somebody removes the mutex directory out from under us.
       await rm(join(dir, `${EMIT_LOCK_FILE}.lock`), { recursive: true, force: true });
       await new Promise((r) => setTimeout(r, 2_500)); // past the update interval
-      sawHealthyThenNot = [healthy, bundleEmitLockCompromise() !== null];
       assertBundleEmitLockHeld(dir); // what P4 calls before its final writes
       return "should not get here";
     }, { wait: false, staleMs: 2_000, updateMs: 200 }).catch((e: unknown) => e);
-    expect(sawHealthyThenNot).toEqual([true, true]);
+    expect(healthyBeforeTheft).toBe(true);
     expect(outcome).toBeInstanceOf(Error);
     expect((outcome as Error).message).toMatch(/emit lock .* was lost/i);
     expect((outcome as Error).message).toContain(dir);

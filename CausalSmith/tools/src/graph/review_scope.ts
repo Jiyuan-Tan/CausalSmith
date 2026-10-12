@@ -138,14 +138,18 @@ export function convergenceTargets(graph: FormalizationGraph): ReviewTargets {
  * already-cleared symbols. The convergence gate applies this AND the dual-receipt check. `isPass`
  * classifies a stored verdict string (passed in to avoid a dependency on the reviewer's vocabulary).
  */
-export function incrementalSymbolRows<T extends { id: string; hash: string }>(
+export function incrementalSymbolRows<T extends { id: string; hash: string; fingerprintHash?: string }>(
   built: T[],
-  priorSym: Record<string, { verdict: string; hash: string }> | undefined,
+  priorSym: Record<string, { verdict: string; hash: string; fingerprint?: string }> | undefined,
   isPass: (verdict: string) => boolean,
 ): T[] {
   const prior = priorSym ?? {};
+  // When both the stored verdict and the current row carry a fingerprint key, that key decides
+  // (a member's body change moves it); otherwise the member-list hash does, as always.
   return built.filter((s) => {
     const prev = prior[s.id];
-    return !(prev && prev.hash === s.hash && isPass(prev.verdict));
+    if (!prev || !isPass(prev.verdict)) return true;
+    const unchanged = prev.fingerprint && s.fingerprintHash ? prev.fingerprint === s.fingerprintHash : prev.hash === s.hash;
+    return !unchanged;
   });
 }

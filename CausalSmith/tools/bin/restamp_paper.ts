@@ -79,7 +79,7 @@ async function main(): Promise<void> {
 
   // Resolved ONCE for the whole run, before the first bundle: one operation carries one series,
   // so no later environment change can make the number stamped and the registry it is checked
-  // against disagree. Same rule (and same function) as P4 and the backfill.
+  // against disagree. Same rule (and same function) as P4.
   const seriesPrefix = paperSeriesPrefix();
   const repoRoot = findCausalSmithRoot(all ?? targets[0]!);
 

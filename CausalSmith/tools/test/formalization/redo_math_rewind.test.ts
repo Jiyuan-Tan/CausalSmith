@@ -124,7 +124,6 @@ describe("adjudicateRedoMathRewind — targeted incremental rewind", () => {
         return { stdout: JSON.stringify({ status: "completed", message: "ok", artifacts: [outPath] }), stderr: "" };
       },
       runClaude: async () => { throw new Error("unused"); },
-      lean: undefined as never,
     } as unknown as StageDeps;
     const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
     expect(outcome.kind).toBe("clean");

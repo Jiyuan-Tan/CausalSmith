@@ -3,9 +3,8 @@
 // Model-authored LaTeX inside JSON strings kept producing escaping corruption
 // (under-escaped `\theta` → control chars; whole-string over-escapes; math-mode
 // breaks), and every defense was a heuristic dictionary that grew per incident.
-// (Historical note: the retired proof-archive channel never had an
-// escaping incident — raw file bytes are never JSON-decoded. This module extends
-// that pattern to solver output: the solver writes ONE companion file next to
+// Raw file bytes are never JSON-decoded, so JSON escaping cannot corrupt them. This module
+// applies that to solver output: the solver writes ONE companion file next to
 // its JSON (`solve_<unit>.json` → `solve_<unit>.tex`) containing raw TeX blocks
 // delimited by `%%% FIELD <local-ref>` header lines, and the JSON carries
 // `{"tex_ref": "<local-ref>"}` in place of the inline string. Ingest slices the

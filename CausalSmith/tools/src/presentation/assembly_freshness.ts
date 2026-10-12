@@ -37,12 +37,12 @@ function stripCrBeforeLf(buf: Buffer): Buffer {
 /**
  * sha256 over `(label \0 bytes \0)` per path. `base` relativizes the label (so the
  * digest is location-independent and safe to persist); without it the absolute path
- * is the label (fine for same-process before/after comparison only). Missing files
- * throw unless `missingAsEmpty` — the persisted-manifest use must fail loud.
+ * is the label (fine for same-process before/after comparison only). A missing file
+ * throws — the persisted-manifest use must fail loud.
  */
 export async function digestPaths(
   paths: string[],
-  opts: { base?: string; missingAsEmpty?: boolean } = {},
+  opts: { base?: string } = {},
 ): Promise<string> {
   const hash = createHash("sha256");
   for (const path of paths) {
@@ -54,10 +54,7 @@ export async function digestPaths(
     // no-ops on POSIX with LF sources, so existing manifests keep their digest.
     hash.update(opts.base ? relative(opts.base, path).split(sep).join("/") : path);
     hash.update("\0");
-    const bytes = opts.missingAsEmpty
-      ? await readFile(path).catch(() => Buffer.from(""))
-      : await readFile(path);
-    hash.update(stripCrBeforeLf(bytes));
+    hash.update(stripCrBeforeLf(await readFile(path)));
     hash.update("\0");
   }
   return hash.digest("hex");

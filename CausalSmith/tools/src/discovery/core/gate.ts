@@ -1,4 +1,4 @@
-// The D0 structural gate (CausalSmith/doc/research/D0_CORE_REDESIGN.md §4).
+// The D0 structural gate.
 //
 // Mechanical, no LLM. Runs on the core right after D0-CORE (and on the proto_core
 // subset at D-1). A whole class of discovery-layer defects never reaches an LLM

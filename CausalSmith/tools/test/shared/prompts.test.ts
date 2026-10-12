@@ -1,27 +1,5 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
-import { loadPromptTemplate, renderTemplate } from "../../src/shared/prompts.js";
-
-let tmp: string;
-beforeEach(async () => {
-  tmp = await mkdtemp(path.join(os.tmpdir(), "cs-prompts-"));
-});
-afterEach(async () => {
-  await rm(tmp, { recursive: true, force: true });
-});
-
-describe("loadPromptTemplate", () => {
-  it("reads a prompt file from the given directory", async () => {
-    await writeFile(path.join(tmp, "hello.txt"), "Hello {{name}}!", "utf8");
-    expect(await loadPromptTemplate(tmp, "hello.txt")).toBe("Hello {{name}}!");
-  });
-
-  it("propagates ENOENT for a missing file", async () => {
-    await expect(loadPromptTemplate(tmp, "missing.txt")).rejects.toThrow(/ENOENT|no such file/i);
-  });
-});
+import { describe, expect, it } from "vitest";
+import { renderTemplate } from "../../src/shared/prompts.js";
 
 describe("renderTemplate", () => {
   it("substitutes {{var}} occurrences", () => {

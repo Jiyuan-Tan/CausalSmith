@@ -48,7 +48,7 @@ describe("crosswalkAnchorIntegrity (banked anchor → live source)", () => {
 
   it("flags moved-file when the decl now lives in a different file", () => {
     const f = crosswalkAnchorIntegrity(
-      [entry("L-1", "exact", anchor("Helpers.lean", "movedHelper", 10))],
+      [entry("L-1", "equivalent", anchor("Helpers.lean", "movedHelper", 10))],
       live,
     );
     expect(f[0].severity).toBe("moved-file");

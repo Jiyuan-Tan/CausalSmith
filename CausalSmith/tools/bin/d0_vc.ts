@@ -20,6 +20,7 @@
  *   d0_vc.ts <qid> <spec> pr list                          open pull requests (solver rounds awaiting a verdict)
  *   d0_vc.ts <qid> <spec> pr show <pr>                     the diff, what needs approval, and why
  *   d0_vc.ts <qid> <spec> pr merge <pr> --accept all|<id,…> [--reject <id,…>] [--keep-main <id,…>] [--keep-pr <id,…>] --note "<why>"
+ *   d0_vc.ts <qid> <spec> pr reapply <pr> [--note "<why>"] replay the round's solver outputs on the current main as a new PR
  *   d0_vc.ts <qid> <spec> pr close <pr> --note "<why>"     discard the round (its head stays in history)
  *
  * A commit is refused, and nothing written, when the edited core fails the

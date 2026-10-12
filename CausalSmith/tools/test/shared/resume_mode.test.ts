@@ -55,10 +55,4 @@ describe("laterStageEverRan", () => {
     const { ctx, state } = await fixture("1.5");
     await expect(laterStageEverRan(ctx, state, "2")).resolves.toBe(false);
   });
-
-  it("recognizes per-theorem progress when the paper cursor is behind", async () => {
-    const { ctx, state } = await fixture("1");
-    state.theorems = [{ stage_completed: "3" }] as StateJson["theorems"];
-    await expect(laterStageEverRan(ctx, state, "2")).resolves.toBe(true);
-  });
 });

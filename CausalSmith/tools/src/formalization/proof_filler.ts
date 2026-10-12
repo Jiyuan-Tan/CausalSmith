@@ -160,8 +160,6 @@ export async function runFiller(args: {
   deps: { runCodex: (o: CodexRunInput) => Promise<{ stdout: string; stderr: string }> };
   graph: FormalizationGraph;
   leanDir: string;
-  // AUDIT-FORM: texPath is still passed by bin/formalization callers, but filler prompt construction does not consume it.
-  texPath?: string;
   corePath?: string;
   promptPath?: string;
   /** Load-bearing orchestrator PROOF hint (lemma names / tactic strategy / Mathlib API),
@@ -208,12 +206,12 @@ export async function runFiller(args: {
     priorSessionsBlock,
     renderFillerContext(args.graph),
     "",
-    "SOURCES (read the relevant proof step before filling a sorry):",
+    "SOURCES:",
     // The typed core.json is the SINGLE source of truth; its per-node `proof_tex` IS the human proof
     // and `statement` IS the paper statement. The `.tex` is merely a deterministic render of this core
     // (stage0_render `renderCoreTex`), so it is NOT fed here — feeding both would double-feed the same
     // content.
-    args.corePath ? `- Typed core.json (the spec — per-node \`proof_tex\` = the human proof roadmap; \`statement\`/conditions = the paper statements): ${args.corePath}` : "",
+    args.corePath ? `- Typed core.json: ${args.corePath}` : "",
     `Lean source tree: ${args.leanDir}`,
     "Return ONLY the JSON object specified in the prompt.",
   ].filter(Boolean).join("\n");

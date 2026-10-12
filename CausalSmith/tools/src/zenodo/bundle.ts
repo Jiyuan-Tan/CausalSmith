@@ -516,28 +516,11 @@ export async function readSidecar(bundleDir: string): Promise<ZenodoSidecar> {
   return out;
 }
 
-/**
- * Replace one environment's record, under the SAME per-bundle lock `meta.json` uses.
- *
- * Sharing the lock is deliberate: `reserve` and `publish` update both files as one
- * logical step, and a reader that sees a DOI in `meta.json` with no matching sidecar
- * entry (or the reverse) cannot tell which write to trust. Holding one lock across both
- * makes the pair consistent to anyone who takes it.
- */
-export async function writeDepositRecord(
-  bundleDir: string,
-  record: DepositEnvRecord,
-): Promise<ZenodoSidecar> {
-  return withBundleMetaLock(bundleDir, async () => {
-    const sidecar = await readSidecar(bundleDir);
-    const next: ZenodoSidecar = { ...sidecar, schema: SIDECAR_SCHEMA, [record.environment]: record };
-    await writeJsonAtomic(sidecarPath(bundleDir), next);
-    return next;
-  });
-}
-
-/** Run `action` holding the bundle lock, so a read-decide-write over the sidecar and
- *  `meta.json` is one indivisible step. The action must use the `*Unlocked` helpers. */
+/** Run `action` holding the bundle lock — the SAME per-bundle lock `meta.json` uses — so a
+ *  read-decide-write over the sidecar and `meta.json` is one indivisible step: `reserve` and
+ *  `publish` update both files together, and a reader that saw a DOI in `meta.json` with no
+ *  matching sidecar entry (or the reverse) could not tell which write to trust. The action must
+ *  use the `*Unlocked` helpers. */
 export async function withBundleLock<T>(bundleDir: string, action: () => Promise<T>): Promise<T> {
   return withBundleMetaLock(bundleDir, action);
 }

@@ -64,8 +64,6 @@ export interface CodexRunner {
     cwd: string;
     reasoningEffort?: "minimal" | "low" | "medium" | "high" | "xhigh";
     leanLsp?: boolean;
-    /** Codex native sub-agents — default-off (opt-in); set true only for a lone low-concurrency call whose prompt uses spawn_agent (see CodexRunInput.multiAgent). */
-    multiAgent?: boolean;
     /** codex model id (defaults to the presentation tier). */
     model?: string;
     outputSchema?: Record<string, unknown>;

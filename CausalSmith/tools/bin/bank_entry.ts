@@ -54,7 +54,6 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import { STAGE_ORDER } from "../src/constants.js";
 import {
   LITERATURE_FAILURE_REASONS,
   type LiteratureFailureReason,
@@ -69,6 +68,7 @@ import { bankSoundnessIssues } from "../src/formalization/bank_soundness.js";
 import { auditCitedReview, auditDelivery, citedLeanEvidence } from "../src/formalization/delivery_audit.js";
 import { externalCitationReuse } from "../src/formalization/citation_discharge.js";
 import { auditConvergenceReview } from "../src/formalization/convergence_evidence.js";
+import { takeStatementFingerprints } from "../src/formalization/statement_fingerprints.js";
 import { PAPER_TMP_DIR, promptPath } from "../src/paths.js";
 import { parseAnnotatedDecls } from "../src/graph/extractor.js";
 import type { CitedReviewReceipt, DeliveryReviewReceipt } from "../src/types.js";
@@ -80,8 +80,6 @@ import {
   writeTokenUsageSummary,
   type PaperTokenUsageSummary,
 } from "../src/token_usage.js";
-
-const STAGE_0_5_IDX = STAGE_ORDER.indexOf("0.5");
 
 type Tier = "accepted" | "downgraded" | "failed" | "legacy";
 const TIERS: Tier[] = ["accepted", "downgraded", "failed", "legacy"];
@@ -414,40 +412,6 @@ function renderReadme(args: {
           )
           .join("\n")}`;
 
-  const failedTheoremRows = (state.theorems ?? [])
-    .filter((t: any) => t?.status === "failed")
-    .map((t: any) => {
-      if (typeof t.minted_oq_id === "string" && t.minted_oq_id.length > 0) {
-        return { theorem_local_id: t.theorem_local_id, kind: "minted" as const, oq_id: t.minted_oq_id };
-      }
-      const stageStr: string | null = t.stage_completed ?? null;
-      const stageIdx = stageStr === null ? -1 : STAGE_ORDER.indexOf(stageStr as (typeof STAGE_ORDER)[number]);
-      const pastReview = stageIdx > STAGE_0_5_IDX;
-      return {
-        theorem_local_id: t.theorem_local_id,
-        kind: "skipped" as const,
-        reason: pastReview ? "minting_disabled" : "stage_below_0_5",
-        stage_at_failure: stageStr ?? "(none)",
-      };
-    });
-
-  const failedTheoremsYaml =
-    failedTheoremRows.length === 0
-      ? ""
-      : `failed_theorems:\n${failedTheoremRows
-          .map((row: any) => {
-            if (row.kind === "minted") {
-              return `  - theorem_local_id: ${yamlStr(row.theorem_local_id)}\n` +
-                     `    minted_oq_id: ${yamlStr(row.oq_id)}`;
-            } else {
-              return `  - theorem_local_id: ${yamlStr(row.theorem_local_id)}\n` +
-                     `    minted_oq_id: null\n` +
-                     `    skipped_reason: ${yamlStr(row.reason)}\n` +
-                     `    stage_at_failure: ${yamlStr(String(row.stage_at_failure))}`;
-            }
-          })
-          .join("\n")}\n`;
-
   const upgradeFrom = state?.proposed_from?.upgrade_from as
     | { parent_qid: string; parent_spec: string; parent_tier: string; upgrade_axis: string }
     | undefined;
@@ -493,7 +457,6 @@ function renderReadme(args: {
     `  # counterexample paths inside this directory that future runs should\n` +
     `  # lift rather than re-derive.\n` +
     `${seedsYaml}\n` +
-    (failedTheoremsYaml ? `${failedTheoremsYaml}` : "") +
     `proof_attempt_summary: ${yamlBlock(`TODO: 2-3 sentence epitaph — what was attempted, what collapsed, what remains.`)}\n` +
     `${tokenUsageYaml(tokenUsage)}\n` +
     `banked_on: ${yamlStr(bankedOn)}\n` +
@@ -519,22 +482,7 @@ function renderReadme(args: {
     `## Notes\n\n` +
     `<!-- Free-form context: what makes this entry interesting, what should be\n` +
     `re-derived vs. re-used, links to follow-on runs. Fill in by hand after the\n` +
-    `scaffold is generated. -->\n` +
-    (failedTheoremRows.length > 0
-      ? `\n## Failed theorems\n\n` +
-        `Each \`minted\` entry points to a canonical OQ under \`doc/study/nodes/open_question/\`. ` +
-        "`skipped` entries failed at or before Stage 0.5 (math review); the per-run failure " +
-        "record still lives in this bank entry's state.json, but no OQ was minted because " +
-        "the math claim itself did not clear review.\n\n" +
-        failedTheoremRows
-          .map((row: any) =>
-            row.kind === "minted"
-              ? `- \`${row.theorem_local_id}\` -> minted \`${row.oq_id}\``
-              : `- \`${row.theorem_local_id}\` -> skipped at stage ${row.stage_at_failure} (${row.reason})`,
-          )
-          .join("\n") +
-        "\n"
-      : "");
+    `scaffold is generated. -->\n`;
 
   return frontmatter + body;
 }
@@ -727,7 +675,7 @@ export async function bankEntry(input: BankEntryArgs): Promise<BankEntryResult> 
       }
       const declNames = (await parseLeanDecls(leanDir, { includeLemmas: true })).map((decl) => decl.name);
       const annotatedDecls = await parseAnnotatedDecls(leanDir);
-      const leanEvidence = await citedLeanEvidence(leanDir, plan, graph, repoRoot);
+      const leanEvidence = await citedLeanEvidence(leanDir, plan, repoRoot);
       const verifiedCitedReuse = new Set(Object.values(plan.nodes).flatMap((node) => {
         const decl = externalCitationReuse(node);
         return decl ? [decl] : [];
@@ -762,6 +710,7 @@ export async function bankEntry(input: BankEntryArgs): Promise<BankEntryResult> 
         leanDir,
         core,
         promptFile: promptPath(repoRoot, "proof_reviewer.txt"),
+        fingerprints: () => takeStatementFingerprints(leanDir),
       }));
       if (deliveryFindings.length > 0) {
         throw new Error(

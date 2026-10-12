@@ -52,7 +52,7 @@ At every halt read the verdict BODY (`tail` the file, not full Codex stdout). Cl
 
 ## Math judgments go to codex
 
-Keep the orchestrator at `medium`; dispatch a separate `gpt-5.6-sol` **high** consult for every
+Keep the orchestrator at `medium`; dispatch a separate `gpt-6.1-sol` **high** consult for every
 mathematical judgment: pull-request adjudication, open-obligation construction, the maximality
 checkpoint, any math escalation (unreachable claim, converse wall, rate unimprovable, target adjust),
 D0.5 boundary judgments, and the D0.5.G directives. Each such `judgment` entry carries the verbatim
@@ -70,8 +70,9 @@ faithfulness stop. A denied/cancelled consult → return `codex-blocked`; never 
 
 **D-1 proposal** (`stage_neg1`). Duplicate/not-novel with revises exhausted → `terminal:proposal-no-pass`.
 A single revise is iteration. Prompt fix → `pipeline-bug`. Recurring revise drift needing a reframe or
-donor/witness → `bin/dneg1_directive.ts <qid> <spec> --directive "…"` (appends to
-`discovery/dneg1_escalation_log.jsonl`; never hand-append), then `{resume}`.
+donor/witness → carry it as the directive of the `--angle-action` below (it lands in
+`discovery/dneg1_escalation_log.jsonl`; never hand-append). The proposer is shown the directive and the
+prior core, so the directive states every review item it must fix.
 
 **D-0.5 CLI checkpoints.** The node halts after every REVISE before the next proposer. Persist the repair
 and continue atomically: `causalsmith research --angle-action continue <qid> <spec> --angle-directive -
@@ -123,8 +124,8 @@ commit, never a deletion.
    solver as prior progress) — consult the literature FIRST (bibliography → ar5iv/LaTeX source) for the
    concrete construction and inject it: `bin/d0_directive.ts <qid> <spec> --directive "…"
    --require-core-target <node-id>` (repeat per named node; an unscoped directive dispatches the whole
-   paper; a directive whose targets are not in the graph dispatches nothing and halts naming them —
-   re-issue it with ids from `core.json`). It appends to `discovery/d0_escalation_log.jsonl`; never
+   paper; a directive whose targets are not in the graph dispatches nothing, halts naming them, and
+   consumes every pending directive — re-issue each one you still want, with ids from `core.json`). It appends to `discovery/d0_escalation_log.jsonl`; never
    hand-append. Then `{resume}`.
    Repeated failure ≠ impossible: swap to the simplest standard construction before declaring a wall.
    Diagnose a bad setup from I/O receipts; never override pipeline evidence with an unaudited hand
@@ -152,9 +153,12 @@ commit, never a deletion.
 **D0 resume economics.** A round dispatches one unit per weakly connected component of the OPEN
 statements (to-prove, or a proof whose closure moved, or a directive's targets). Proved statements are
 never re-paid: a proof stays valid until a claim, definition, assumption or symbol in its closure
-changes content (a pure edge rewire, a TeX re-flow, prose, or a bibliography row reopens nothing). A
-unit whose prompt is unchanged replays its persisted output with no model call (receipts under
-`discovery/solve_receipts/`, cleared when its PR is merged or closed). A targeted directive pays only for the components it
+changes content (a pure edge rewire, a TeX re-flow, prose, or a bibliography row reopens nothing). So
+when a narrowed or repaired claim needs a different notion than an existing symbol carries, add a new
+symbol in a hand merge; redefining one reopens every proof whose closure reaches it. A
+unit whose content is unchanged (frozen core, brief, directives and prior context, targets; not the
+instruction text) replays its persisted output with no model call (receipts under
+`discovery/solve_receipts/`, cleared when its PR is merged or closed; `CAUSALSMITH_D0_REUSE=0` forces a fresh solve). A targeted directive pays only for the components it
 names; an undirected `{resume}` re-pays every open component. A question (`oeq:`) left with a recorded
 obligation is an acknowledged residual and is not re-paid unless a directive names it.
 
@@ -184,7 +188,7 @@ ever lost, so a wrong verdict, a bad hand edit, or a D0.R round that made things
 **Maintained assumption** (third option besides prove / retract to OEQ): `bin/d0_maintain.ts <qid> <spec>
 --assumption ass:<id> --reason "…" --open-object "…" --separate-object "…"` marks an assumption
 MAINTAINED — a disclosed condition the note is stated conditional on; its proved consumers are directed
-to restate conditional, D0.5 checks only soundness and separateness, and the tier is capped one notch.
+to restate conditional, and D0.5 checks only soundness and separateness.
 An orchestrator judgment only; the solver may never self-serve it.
 
 **Cited sources.** `bin/d0_attest_cited_source.ts` records a verified verbatim source statement and

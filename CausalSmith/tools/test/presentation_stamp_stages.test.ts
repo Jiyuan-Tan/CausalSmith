@@ -233,7 +233,7 @@ describe("P5 records what the referee actually read", () => {
   }
 
   it("hashes the on-disk paper.tex, not the stripped reviewer copy, so the site can match review to version", async () => {
-    // A `% lean:` comment is in the file but NOT in what refereeTexFor sends; hashing the
+    // A `% lean:` comment is in the file but NOT in what reviewerTexFor sends; hashing the
     // referee's copy would therefore produce a digest that matches nothing in the bundle.
     const paper = "A submission. % lean: demo_decl\n";
     const { io, dir } = await p5Fixture(paper);

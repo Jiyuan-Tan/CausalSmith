@@ -26,9 +26,6 @@ Informal derivation from the discovery stage (UNTRUSTED exposition aid — see r
 Notation table:
 {{notation_table}}
 
-Referee revision brief (findings on a PREVIOUS draft about the rendered proofs):
-{{revision_brief}}
-
 Prior proof + defects from a repair (empty on the first render). When present, the prior proof was
 judged against the Lean proof and the defects are the judge's issues, each tagged: `[missing-step]`
 — the prose omits a derivation the Lean performs and no paper environment supplies it: open the tagged
@@ -46,7 +43,6 @@ incorrect wording. Do not rewrite unaffected passages for style:
 
 Rules:
 - INFORMAL DERIVATION: the derivation above is the human-style argument that PRECEDED formalization; it may be wrong or follow a route that was never formalized. Use it only to write better exposition — the motivating idea behind a step, natural mathematical phrasing, the reason an estimate is the right one — and only where it agrees with the Lean route. Where it diverges from Lean (different case split, different bound, a claim with no Lean counterpart), follow Lean and ignore it. Never import a step, constant, or claim that has no counterpart in the Lean proof.
-- REVISION BRIEF: if the brief above lists findings (not the "first draft" sentinel), address each one that applies to this proof's PRESENTATION (e.g. clarity, an unexplained step, distracting bookkeeping shown to the reader). Faithfulness to the Lean route stays paramount and overrides any finding: do not drop, reorder, or alter a load-bearing step to satisfy the referee, and keep every `% lean:` comment (those are invisible audit markers, not reader-visible text). Never mention the review or a revision.
 - Start with the exact Lean excerpt above and the HELPER DECLARATIONS supplied with it; read a file only for a helper absent or truncated there, or for surrounding context the excerpt omits (rg -n -g '*.lean' under the run's Lean directory or Causalean for its declaration head, then that declaration only). Never dump directory inventories, compiled .olean/.ilean files, or the .lake tree.
 - Follow the Lean proof's structure: same case splits, same intermediate bounds, same order of argument. Collapse pure bookkeeping (measurability side goals, coercions, integrability, rewriting chains) into a sentence — bookkeeping ONLY, never a mathematical inequality, case split, construction, or constant calibration.
 - SELF-CONTAINED ARGUMENT: a reader must be able to follow the proof without opening the formal development. (a) Every symbol the proof introduces gets an explicit defining display in the paper's notation at first use; a noun-phrase gloss ("X is the centered term", "the residual part") is not a definition. (b) Every step the argument leans on is STATED as the identity or inequality it is, and only then justified in a clause; naming a step or an object in place of displaying what is bounded by what is not a proof step. (c) Where the Lean route delegates to a helper with no paper environment, render that helper's CONCLUSION as a display in the paper's notation and DERIVE it at the same standard as any other step, following the helper's own Lean route (compressing only bookkeeping); a one-clause justification is enough only when the helper's proof is itself a single standard fact. Asserting a displayed bound whose derivation contains real mathematics is not a proof step. Where the helper does have a paper environment, cite it by label instead.
@@ -64,9 +60,7 @@ Rules:
 - When the cited-dependency list is nonempty, invoke that published conclusion with the supplied `\citep{...}` and locator in ordinary mathematical prose. Do not call it an assumption of this paper and do not claim to re-prove it. The theorem-local footnote separately records the machine-verification boundary.
 - If the Lean route is unclear at any step, output `UNCLEAR: <what is unclear>` and stop — do not improvise a classical argument.
 - FIRST RENDER (no prior proof): output ONLY the LaTeX proof block: \begin{proof}[Proof of ...] ... \end{proof}.
-- REPAIR (a prior proof is supplied): output ONLY one JSON object:
-  {"replacements":[{"before":"<exact current passage>","after":"<corrected passage>"}]}
+- REPAIR (a prior proof is supplied): output only the `replacements` list.
   List replacements in execution order. Each before must match exactly once in the current proof AFTER earlier replacements have been applied, with enough surrounding context to be unique. Copy untouched text verbatim; when a later edit depends on an earlier edit, its before must include that edit. Use proper JSON escaping for LaTeX backslashes. Do not include proof wrappers, the proof title, or the whole proof. A replacement may add the complete derivation of a missing step. Every other byte is preserved mechanically. Return {"replacements":[]} if no justified correction is possible; the pipeline then stops this repair attempt.
 
-CROSS-REFERENCES: cite every formal environment only through `\cref{obj:<exact-id>}` (or `\Cref` at sentence start). Cleveref supplies the kind and number, so never write a manual kind word before it and never use legacy `\ref{...}` for any target. Reproduce colon-separated kind prefixes in FULL—e.g. `\cref{obj:prop:oracle-regime-reduction}`—and never emit `\label{obj:...}` yourself or write bare obj_ids in prose or proof titles.
-NEVER write \label{obj:...} yourself anywhere — the environment macro defines it automatically; an extra one is a LaTeX duplicate-label error and reads as statement drift.
+Never write a bare obj_id in a proof title.

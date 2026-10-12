@@ -26,7 +26,7 @@
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 import { defaultDeps } from "../src/pipeline_support.js";
-import { meetsNoveltyFloor } from "../src/pipeline_stages.js";
+import { meetsNoveltyFloor } from "../src/novelty.js";
 import {
   buildGeneralTierVerdict,
   runGeneralReview,

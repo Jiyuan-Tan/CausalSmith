@@ -5,9 +5,8 @@
  * A citable series needs a number that never moves. Deriving it on the fly from a rank
  * over `created` would silently RENUMBER every later paper the moment a bundle is added,
  * removed, or backdated — and a number already printed on a PDF, in a DOI record, or in
- * someone's bibliography cannot be taken back. So the rank is computed ONCE (by the
- * backfill, over the bundles that existed then) and recorded in
- * `doc/presentation/_wp_registry.json`; from then on this module only ever READS an
+ * someone's bibliography cannot be taken back. So every assignment is recorded in
+ * `doc/presentation/_wp_registry.json`, and this module only ever READS an
  * existing assignment or appends `max+1` for the paper's `created` year. Nothing here
  * can renumber an existing entry.
  *
@@ -32,7 +31,7 @@ import { presentationRoot, wpRegistryPath } from "./paths.js";
  *
  * The series is a REQUIRED parameter on every function in this module, never a default that
  * reaches for configuration. It is resolved once per operation, at the entry point (`stageP4`,
- * the backfill's `main`), and threaded down. That is the whole safety argument: an operation
+ * the restamp and Zenodo CLIs), and threaded down. That is the whole safety argument: an operation
  * cannot read the series twice and get two answers, so it cannot write `AAA-2026-001` into a
  * registry it is validating as `BBB`. Making the parameter required is what enforces it — a
  * defaulted one only asks nicely.
@@ -137,34 +136,6 @@ export function nextWpNumber(registry: WpRegistry, year: number, prefix: string)
 }
 
 /**
- * The initial assignment for a set of bundles: 1-based rank by (`created`, bundle id)
- * WITHIN each created year. Used only by the backfill's initial pass — once recorded,
- * `resolveWpNumber` never recomputes a rank.
- */
-export function rankWpNumbers(
-  bundles: Array<{ id: string; created: string }>,
-  prefix: string,
-): WpRegistry {
-  const byYear = new Map<number, Array<{ id: string; created: string }>>();
-  for (const bundle of bundles) {
-    const year = isoYear(bundle.created);
-    const members = byYear.get(year) ?? [];
-    members.push(bundle);
-    byYear.set(year, members);
-  }
-  const registry: WpRegistry = {};
-  for (const [year, members] of byYear) {
-    members
-      .slice()
-      .sort((a, b) => (a.created < b.created ? -1 : a.created > b.created ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-      .forEach((bundle, i) => {
-        registry[bundle.id] = formatWpNumber(year, i + 1, prefix);
-      });
-  }
-  return registry;
-}
-
-/**
  * The lock guarding read-assign-write.
  *
  * It lives on the SHARED filesystem beside the registry it guards. An earlier version put it in
@@ -250,8 +221,7 @@ export async function withWpRegistryLock<T>(repoRoot: string, action: () => Prom
  * Everything that can be decided about a CLAIMED `meta.wp_number` without consulting the registry:
  * whether it is absent, well formed, in this series, and filed under the right year.
  *
- * Shared by `resolveWpNumber` and the backfill so there is one definition of "acceptable claim"
- * rather than two that can drift. Ownership — is this number already somebody else's? — is
+ * One definition of "acceptable claim" for `resolveWpNumber`. Ownership — is this number already somebody else's? — is
  * deliberately NOT here: that question can only be answered under the registry lock.
  *
  * Returns the claim VERBATIM (never trimmed: whitespace makes it malformed, not repairable), or

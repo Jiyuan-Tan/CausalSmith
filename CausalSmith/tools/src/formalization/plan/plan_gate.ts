@@ -1,4 +1,4 @@
-// The F1 plan gate (CausalSmith/doc/research/F1_F2_PLAN_REDESIGN.md §7).
+// The F1 plan gate.
 //
 // Mechanical, no LLM. Runs on the plan right after F1 (self-check), as F1.5's
 // pre-review lint, and after F2's sync-back. Enforces the one-to-one invariant —

@@ -72,8 +72,8 @@ export interface BankEntry {
   /** The formalization graph (the trust anchor). Statements, lean anchors,
    *  review verdicts, and dependency edges all come from here. */
   graph: FormalizationGraph;
-  /** Legacy F5 crosswalk. Being migrated out (consumers move to `graph`); kept
-   *  until the last consumer is on the graph. Do NOT add new readers. */
+  /** Crosswalk view, derived from `graph` (node-id keyed); the F5 crosswalk file is read
+   *  only for an entry whose graph yields no rows. */
   crosswalk: CrosswalkEntry[];
   leanSubdir: string; // repo-relative, from banked state.json `lean_subdir`
   readme: Record<string, string>; // flat scalar frontmatter keys (qid, spec, topic, …)

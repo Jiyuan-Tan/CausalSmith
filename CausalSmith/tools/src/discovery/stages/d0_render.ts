@@ -5,8 +5,7 @@
 // dispatch): formal parts emitted verbatim from the typed core, prose fields
 // (project_justification / related_work / interpretation, per-statement notes)
 // emitted into their sections. There is no \coreref-resolution failure mode — the
-// render generates references by construction. Same renderer as D-1.2
-// (D0_CORE_REDESIGN.md §12.7).
+// render generates references by construction. Same renderer as D-1.2.
 import { existsSync } from "node:fs";
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -18,11 +17,6 @@ import { assertCanonicalAlignedRowTerminators } from "../core/latex_serializatio
 import { runGates } from "../framework/gates.js";
 import { proseConsistencyGate } from "../framework/gate_registrations.js";
 import { readTypedCore } from "../core/core_io.js";
-import {
-  loadSemanticManifest,
-  validateCoreManifest,
-  validateRenderedManifest,
-} from "../semantic_manifest.js";
 
 export interface Stage0RenderResult {
   message: string;
@@ -48,17 +42,14 @@ export async function runStage0Render(args: {
 }): Promise<Stage0RenderResult> {
   const corePath = coreJsonPath(args.ctx);
   if (!existsSync(corePath)) {
-    // why: D0-CORE/PROVE is retired; D0-SOLVE now produces the core.
+    // why: D0-SOLVE produces the core.
     throw new Error(`Stage 0-RENDER requires a core at ${corePath} (run D0-SOLVE first)`);
   }
   const core = await readTypedCore(corePath);
-  const semanticManifest = await loadSemanticManifest(args.ctx);
-  validateCoreManifest(semanticManifest, "core", core);
   const paths = artifactPaths(args.ctx, args.state);
   await mkdir(path.dirname(paths.tex), { recursive: true });
   const tex = renderCoreTex(core);
   assertCanonicalAlignedRowTerminators(tex, paths.tex);
-  validateRenderedManifest(semanticManifest, tex);
 
   // D reviews the structured/shared paper view, not a PDF. Publish the source
   // preview only; typography, packages, and PDF compilation belong to the later

@@ -37,8 +37,7 @@
  * takes them in that order — **emit → registry → meta** — or two processes taking them in
  * opposite orders deadlock, each holding what the other waits for.
  *
- * P4 holds the emit lock for its whole run and takes the other two inside it, in order; the
- * backfill takes the emit lock per bundle around its metadata transaction. The order is enforced,
+ * P4 holds the emit lock for its whole run and takes the other two inside it, in order. The order is enforced,
  * not merely documented, because a deadlock on a shared filesystem lock is invisible until
  * someone notices a run that never finishes: each lock marks its async context with a token
  * cleared when the physical lock releases, and a coarser lock refuses to be taken inside a finer

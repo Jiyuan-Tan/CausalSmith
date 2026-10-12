@@ -1,0 +1,13 @@
+module
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Estimators
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.TCompleteRecordPrecisionFrontier
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.TMarkedContraction
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.TObservableUpper
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.TPublishedSuperclassLowerTransfer
+
+/-!
+# The complete noisy-graph precision scaffold
+-/
+
+public section

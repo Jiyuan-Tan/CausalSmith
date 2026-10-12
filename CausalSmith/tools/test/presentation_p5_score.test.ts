@@ -8,25 +8,20 @@ import type { PaperDeps, StageIO } from "../src/presentation/pipeline.js";
 import { MODELS } from "../src/models.js";
 
 describe("P5 normalizeScore", () => {
-  it("passes a valid one-decimal score through", () => {
-    expect(normalizeScore(8.5)).toBe(8.5);
-  });
-  it("rounds to one decimal", () => {
-    expect(normalizeScore(7.24)).toBe(7.2);
-    expect(normalizeScore(7.26)).toBe(7.3);
-  });
-  it("rejects out-of-range values instead of rewriting the referee score", () => {
-    // why: invalid referee scores should fail the stage rather than be silently clamped.
-    expect(normalizeScore(12)).toBeNull();
-    expect(normalizeScore(-3)).toBeNull();
-  });
-  it("accepts a numeric string", () => {
-    expect(normalizeScore("9")).toBe(9);
-  });
-  it("returns null for a missing / non-numeric score (caller fails the stage)", () => {
-    expect(normalizeScore(undefined)).toBeNull();
-    expect(normalizeScore("high")).toBeNull();
-    expect(normalizeScore(null)).toBeNull();
+  // Out-of-range, missing and non-numeric scores are null: the caller fails the stage rather
+  // than rewrite the referee's score.
+  it.each([
+    ["a valid one-decimal score", 8.5, 8.5],
+    ["rounding down to one decimal", 7.24, 7.2],
+    ["rounding up to one decimal", 7.26, 7.3],
+    ["above range", 12, null],
+    ["below range", -3, null],
+    ["a numeric string", "9", 9],
+    ["undefined", undefined, null],
+    ["a non-numeric string", "high", null],
+    ["null", null, null],
+  ] as const)("normalizes %s", (_label, raw, expected) => {
+    expect(normalizeScore(raw)).toBe(expected);
   });
 });
 
@@ -120,9 +115,6 @@ describe("P5 referee dispatch", () => {
         reasoningEffort: "high",
         leanLsp: false,
       });
-      expect(MODELS.codexPresentationReview).toBe(
-        process.env.CAUSALEAN_MODEL_CODEX_PRESENT_REVIEW?.trim() || "gpt-6.1-sol",
-      );
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -130,11 +122,11 @@ describe("P5 referee dispatch", () => {
 });
 
 // Referee copy: comments never reach the referee; escaped percents and content do.
-import { refereeTexFor } from "../src/presentation/stages/p5_review.js";
-describe("refereeTexFor", () => {
+import { reviewerTexFor } from "../src/presentation/tex_anchors.js";
+describe("reviewerTexFor (the referee copy)", () => {
   it("strips % comments (incl. % lean: provenance) but keeps \\% and prose", () => {
     const tex = "A rate of 5\\% holds. % lean: adaptive_rootn_minimax\n% full-line comment\n\n\nNext paragraph.\n";
-    const out = refereeTexFor(tex);
+    const out = reviewerTexFor(tex);
     expect(out).toContain("5\\% holds.");
     expect(out).not.toContain("lean:");
     expect(out).not.toContain("full-line comment");

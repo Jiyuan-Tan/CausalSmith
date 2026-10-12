@@ -718,17 +718,6 @@ export function lintClarity(tex: string): LintProblem[] {
   return problems;
 }
 
-/**
- * Assumption A-labels (the "(A_k)" in titles) must be consecutive and agree with the printed
- * Assumption order — never A1,A2,A4,… (a gap at A3). Advisory: reader-facing, judged by the
- * referee, never a halt. Cross-reference form is not linted: `normalizeCrefs` rewrites every
- * authored text to target-typed cleveref before it is assembled.
- */
-interface NotationHome {
-  symbol: string;
-  home: string;
-}
-
 /** The reviewer copy of a paper: TeX comments (`% lean:` provenance, scope sentinels,
  *  drafting notes) never render, waste prompt tokens, and have produced findings against
  *  text no reader sees. Strip them for READ-ONLY reviewers (P5 referee, P3 rubric) only —
@@ -794,45 +783,6 @@ function closingBrace(tex: string, open: number): number {
   return -1;
 }
 
-/** Parse the P1 notation table rows that assign a paper symbol to an anchored home. */
-export function notationHomes(notation: string): NotationHome[] {
-  const out: NotationHome[] = [];
-  for (const line of notation.split("\n")) {
-    // Split on UNESCAPED pipes only: a math cell containing `\|` (a TeX norm,
-    // doubling as the markdown escape for a literal pipe) must not add columns —
-    // `| $\|\beta\|_1$ | … |` used to shatter into six bogus cells and the row
-    // was silently dropped from the definition-order check.
-    const parts = line.split(/(?<!\\)\|/);
-    const edged = /^\s*\|/.test(line) && /(?<!\\)\|\s*$/.test(line);
-    const cells = (edged ? parts.slice(1, -1) : parts).map((x) => x.trim());
-    if (cells.length < 4 || cells[0].toLowerCase() === "note symbol" || /^-+$/.test(cells[0])) continue;
-    const home = cells[3].replace(/^`|`$/g, "").trim();
-    if (!/^[A-Za-z0-9:_-]+$/.test(home) || home === "notation_gaps") continue;
-    let symbol = cells[1]
-      .replace(/^\\\(|\\\)$/g, "")
-      .replace(/^\$|\$$/g, "")
-      .trim();
-    // A scalar declaration such as `K_-=2m+1` names `K_-`; the right side is its definition.
-    // By contrast, a composite relation such as `Phi(theta)=Phi(eta)` is not a new atomic symbol
-    // and its row's "home" describes the relation, not either already-defined operand.
-    if (symbol.includes("=")) {
-      const lhs = symbol.split("=")[0].trim();
-      // An `=` inside a brace/bracket group (`\mathbb{E}[Y \mid X=x]`, `\sum_{i=1}^n`)
-      // is not a scalar declaration: truncating at it produced an unmatchable
-      // garbage symbol. Skip such rows like other composite relations.
-      const balanced = (open: string, close: string) => lhs.split(open).length === lhs.split(close).length;
-      if (/[()]/.test(lhs) || !balanced("{", "}") || !balanced("[", "]")) continue;
-      symbol = lhs;
-    }
-    // A one-letter ASCII symbol is retained ONLY as explicit structured
-    // metadata. It cannot own anything by itself: P1 independently requires
-    // the named definitionv body to certify this exact symbol.
-    if (!symbol || /(?:\\ldots|\\dots)/.test(symbol)) continue;
-    out.push({ symbol, home });
-  }
-  return out;
-}
-
 function notationSearchText(tex: string): string {
   return (
     stripTexComments(tex)
@@ -878,10 +828,10 @@ export function containsNotation(tex: string, symbol: string): boolean {
 
 /** TRUE iff `text` uses `symbol` AS ITSELF, not merely as the base of a LABELLED variant.
  *  `containsNotation` is substring-based for multi-character needles, so a bare `N_k` matches
- *  inside `N_k^{(1)}`. For placement and for the definition-order check that is wrong: the
- *  split count `N_k^{(1)}` is a different object owned by a different definition, so counting
- *  it as a use drags the bare symbol's definition into the wrong section (or hard-fails the
- *  paper for a move placement just made).
+ *  inside `N_k^{(1)}`. For P1's ordering (`p1_order.ts`: a synthesized definition goes
+ *  before its first user) that is wrong: the split count `N_k^{(1)}` is a different object
+ *  owned by a different definition, so counting it as a use drags the bare symbol's
+ *  definition to the wrong place.
  *
  *  Only a LABEL-like superscript forms a new object: a parenthesized index (`^{(1)}`) or a
  *  text-font tag (`^{\mathrm{loc}}`, `^{\text{...}}`, `^{\mathsf{...}}`). Arithmetic and
@@ -908,178 +858,6 @@ export function usesSymbolUndecorated(text: string, symbol: string): boolean {
   if (!labelled.test(text)) return true;
   // Some occurrence must be unlabelled: strip every labelled occurrence and re-test.
   return containsNotation(text.replace(new RegExp(`${esc}\\s*${label}`, "g"), " "), symbol);
-}
-
-/**
- * TRUE iff some anchored environment DISPLAYS a defining equality for `symbol`: an
- * occurrence of the symbol immediately followed by `=`, `:=`, `\coloneqq`, or `\equiv`
- * (whitespace/thin-space insensitive; an alignment `&` may intervene). This is the
- * deterministic "the paper shows what this symbol IS" signal used to decide whether a
- * Lean-realized symbol still needs a paper-side definition: an `@realizes` tag makes a
- * symbol machine-resolvable (the web drawer), but a PDF reader can resolve it only from
- * a printed defining display. RHS-only appearances (`\frac{\mu_Y}{\mu_D}=\theta`)
- * deliberately do NOT count — an identification theorem that equates a ratio TO an
- * otherwise-undefined symbol is exactly the failure this check exists to surface.
- */
-export function displaysDefiningEquality(tex: string, symbol: string): boolean {
-  // Thin spaces and single-char script braces are display sugar; erase them the same
-  // way in haystack and needle so `\mu_{n}\,=` still matches the needle `\mu_n` and
-  // `\mu^{*}` matches `\mu^*` (the braced token may be any single non-brace char).
-  const canon = (s: string) =>
-    notationSearchText(s)
-      .replace(/\\[,;!:]/g, "")
-      .replace(/([_^])\{([^{}])\}/g, "$1$2");
-  // A display defines the DECORATED variant, not the base symbol: `\hat\theta_T = …`
-  // defines the estimator of θ_T, not θ_T itself (the audit's "one hat away" re-ship
-  // of the θ_T defect), and `w_\pi = …` / `x^\theta = …` embed the symbol as a script.
-  const ACCENT_BEFORE_RE =
-    /\\(?:hat|widehat|bar|overline|underline|tilde|widetilde|dot|ddot|vec|overrightarrow|check|breve|acute|grave|mathring|bm|boldsymbol|mathbf)\{?$/;
-  const needle = canon(symbol);
-  if (!needle) return false;
-  const haystack = canon(tex);
-  for (let at = haystack.indexOf(needle); at >= 0; at = haystack.indexOf(needle, at + 1)) {
-    // Token boundary before: a plain-letter needle must not match the tail of a longer
-    // identifier or a command argument (`\hat t_n`, whose canon form carries the U+0001 command/argument sentinel, must not define `t_n`).
-    const before = haystack[at - 1] ?? "";
-    if (/^[A-Za-z]/.test(needle) && /[A-Za-z0-9\\\u0001]/.test(before)) continue;
-    // Script/accent context (ANY needle, including command words): skip one opening
-    // brace, then reject a subscript/superscript position or a preceding accent command.
-    if (/[_^]$/.test(haystack.slice(0, at).replace(/\{$/, "")) || ACCENT_BEFORE_RE.test(haystack.slice(0, at))) continue;
-    // A primed occurrence is the DERIVED symbol: `\theta' = …` does not define `\theta`,
-    // so primes are NOT skipped before requiring the equality sign.
-    const rest = haystack.slice(at + needle.length).replace(/^&/, "");
-    // A command-word needle ends before the next letter (`\mu` must not match `\muY`).
-    if (/\\[A-Za-z]+$/.test(needle) && /^[A-Za-z]/.test(rest)) continue;
-    if (/^(?::?=|\\coloneqq(?![A-Za-z])|\\equiv(?![A-Za-z]))/.test(rest)) return true;
-  }
-  return false;
-}
-
-/** Like `displaysDefiningEquality`, but treats a function's displayed argument list as
- * incidental to the notation home. Thus `\Psi_{t,x}(h)=...` is a home for a reviewer
- * request spelled `\Psi_{t,x}(h_n)`, while the decorated-symbol protections above still
- * prevent an estimator equality from defining its undecorated target. */
-export function displaysDefiningEqualityFamily(tex: string, symbol: string): boolean {
-  if (displaysDefiningEquality(tex, symbol)) return true;
-  const canon = (s: string) =>
-    notationSearchText(s)
-      .replace(/\\[,;!:]/g, "")
-      .replace(/([_^])\{([^{}])\}/g, "$1$2");
-  const full = canon(symbol);
-  // A reviewer may name the operator (`\psi_B`) or one displayed application
-  // (`\Psi(h_n)`). In both cases the definition home may use another bound argument.
-  const stem = full.replace(/\([^()]*\)$/, "");
-  if (!stem) return false;
-  const haystack = canon(tex);
-  const accentBefore =
-    /\\(?:hat|widehat|bar|overline|underline|tilde|widetilde|dot|ddot|vec|overrightarrow|check|breve|acute|grave|mathring|bm|boldsymbol|mathbf)\{?$/;
-  for (let at = haystack.indexOf(stem); at >= 0; at = haystack.indexOf(stem, at + 1)) {
-    const before = haystack[at - 1] ?? "";
-    if (/^[A-Za-z]/.test(stem) && /[A-Za-z0-9\\\u0001]/.test(before)) continue;
-    if (/[_^]$/.test(haystack.slice(0, at).replace(/\{$/, "")) || accentBefore.test(haystack.slice(0, at))) continue;
-    let rest = haystack.slice(at + stem.length);
-    if (/\\[A-Za-z]+$/.test(stem) && /^[A-Za-z]/.test(rest)) continue;
-    if (!rest.startsWith("(")) continue;
-    let depth = 0;
-    let end = -1;
-    for (let i = 0; i < rest.length; i++) {
-      if (rest[i] === "(") depth++;
-      else if (rest[i] === ")" && --depth === 0) { end = i + 1; break; }
-    }
-    if (end < 0) continue;
-    rest = rest.slice(end).replace(/^&/, "");
-    if (/^(?::?=|\\coloneqq(?![A-Za-z])|\\equiv(?![A-Za-z]))/.test(rest)) return true;
-  }
-  return false;
-}
-
-
-
-/** Parse atomic left-hand sides of top-level defining equalities in displayed/inline
- * mathematics. Equality signs inside binders (`i=1`) are ignored by bracket depth. */
-export function definingNotationLhses(tex: string): string[] {
-  const spans = [
-    ...[...tex.matchAll(/\\\[([\s\S]*?)\\\]/g)].map((m) => m[1]),
-    ...[...tex.matchAll(/\\\((.*?)\\\)/g)].map((m) => m[1]),
-    ...[...tex.matchAll(/(?<!\\)\$([^$\n]+)(?<!\\)\$/g)].map((m) => m[1]),
-  ];
-  const out = new Set<string>();
-  for (const span0 of spans) {
-    const span = span0.replace(/\\begin\{(?:aligned|gathered|split|array)\}(?:\{[^}]*\})?/g, "")
-      .replace(/\\end\{(?:aligned|gathered|split|array)\}/g, "");
-    for (const row0 of span.split(/\\\\|\n/)) {
-      const row = row0.trim();
-      let round = 0, square = 0, curly = 0;
-      let at = -1;
-      for (let i = 0; i < row.length; i++) {
-        const c = row[i];
-        if (c === "(") round++; else if (c === ")") round--;
-        else if (c === "[") square++; else if (c === "]") square--;
-        else if (c === "{") curly++; else if (c === "}") curly--;
-        if (round || square || curly) continue;
-        if (row.startsWith("\\coloneqq", i) || row.startsWith("\\equiv", i) || row.startsWith(":=", i) || c === "=") { at = i; break; }
-      }
-      if (at < 0) continue;
-      let lhs = row.slice(0, at).replace(/&/g, "").trim();
-      lhs = lhs.replace(/^.*?(?:\\text\{[^}]*\}\s*)+/, "").trim();
-      if (!lhs || lhs.length > 180 || /(?:\\(?:le|ge|in|subset|sim)\b|[<>≤≥∈])/.test(lhs)) continue;
-      // Reject prose/composite arithmetic; retain decorated identifiers, calls, and classes.
-      if (/\s(?:and|or|for|when)\s/i.test(lhs) || /\s[+\-*/]\s/.test(lhs)) continue;
-      out.add(lhs);
-    }
-  }
-  return [...out];
-}
-
-/** TRUE iff `body` INTRODUCES `symbol` with an introducing clause: the symbol is the WHOLE math
- *  atom between an introducing verb and its complement ("let \\(b\\) denote …", "write \\(u\\) for …",
- *  "denote … by \\(b\\)"), or it is the left-hand side of a defining equality inside such a clause
- *  ("define \\(A(x) := …\\)"). Stricter than `proseDefinesNotation` (any defining word or `=` within
- *  100 characters), which is the right looseness for a table-designated home but reads
- *  "we define \\(B:=A\\)" as introducing `A`, and "let \\(x\\in\\mathcal X\\)" as introducing `\\mathcal X`.
- *  Whitespace inside the symbol is ignored; a spelling the regexes miss is the conservative
- *  direction (the use stays flagged). */
-export function introducesNotation(body: string, symbol: string): boolean {
-  const sym = symbol.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s*");
-  const flat = body.replace(/\s+/g, " ");
-  const open = String.raw`(?:\\\(|\$)\s*`;
-  const close = String.raw`\s*(?:\\\)|\$)`;
-  const verb = String.raw`\b(?:let|denote|define|defining|write|put|set|call|introduce)\b`;
-  // A clause whose complement is a cross-reference ("let \\(C\\) be the constant of \\cref{…}") is a
-  // forward reference to a definition elsewhere, not an introduction.
-  const notRef = String.raw`(?![^.;:]{0,40}\\[cC]?ref\{)`;
-  const wholeAtom = new RegExp(
-    `${verb}[^.;:]{0,40}?${open}${sym}${close}\\s*(?:denote|denotes|be|as|by|for|the|is)\\b${notRef}`, "i");
-  const definingLhs = new RegExp(
-    `${verb}[^;]{0,60}?${open}${sym}\\s*(?::=|=|\\\\coloneqq|\\\\equiv)`, "i"); // `[^;]`: "…, i.e. \\(C := 2L\\)" crosses a period
-  const denotedBy = new RegExp(
-    String.raw`\b(?:denote|write)\b[^.;:]{0,60}?\bby\s*` + open + sym + close + notRef, "i");
-  return wholeAtom.test(flat) || definingLhs.test(flat) || denotedBy.test(flat);
-}
-
-export function proseDefinesNotation(prose: string, symbol: string): boolean {
-  const flat = prose.replace(/\s+/g, " ");
-  for (let i = 0; i < flat.length; i++) {
-    const tail = flat.slice(i);
-    if (!containsNotation(tail, symbol)) break;
-    // Locate approximately in the original prose; this deliberately accepts only explicit
-    // introduction language, not a symbol merely appearing in a diagram or motivation sentence.
-    const raw = notationSearchText(symbol);
-    const compactAt = notationSearchText(tail).indexOf(raw);
-    if (compactAt < 0) break;
-    const context = tail.slice(Math.max(0, compactAt - 100), compactAt + symbol.length + 100);
-    if (/\b(?:define|denote|let|write|fix|put|set|where)\b/i.test(context) || /:=|=/u.test(context)) return true;
-    i += Math.max(1, compactAt + symbol.length);
-  }
-  return false;
-}
-
-/** One reader-order violation: `symbol`'s notation-table `home` introduces it, but `firstUse`
- *  displays it earlier in the text. */
-export interface DefinitionOrderViolation {
-  symbol: string;
-  home: string;
-  firstUse: string;
 }
 
 /**
@@ -1121,65 +899,6 @@ export function lintEnvOrder(tex: string, layerOrder: readonly string[]): LintPr
     });
   }
   return problems;
-}
-
-/** One reader-order constraint: some environment in `homes` must precede `user`, an environment
- *  that uses `symbol` freely. `homes[0]` is the notation table's witnessed home; the rest are
- *  definition-kind environments that visibly introduce the symbol themselves (a displayed
- *  defining equality or an introducing clause) — for the reader either resolves the symbol. */
-export interface DefinitionOrderEdge { symbol: string; homes: string[]; user: string }
-
-const INTRODUCER_ENVS = new Set(["definitionv", "algorithmv", "assumptionv", "lemmav"]);
-
-/**
- * The definition-order constraints the notation table imposes on the anchored environments of
- * `tex`: for every row whose home visibly INTRODUCES its symbol (a definition env, a displayed
- * defining equality, defining prose, or an existential binder — a home that merely mentions the
- * symbol is metadata drift, not a constraint), one edge per environment that uses the symbol
- * freely (a decorated variant, a local existential binder, or an introducing clause is not a
- * use). Order-independent: P1's repair solves these (`repairDefinitionOrder`); the same table
- * yields the same constraints whatever order the environments are in.
- */
-export function definitionOrderConstraints(tex: string, notation: string): DefinitionOrderEdge[] {
-  const envs = scanAnchoredEnvs(tex);
-  const byId = new Map(envs.map((e) => [e.obj_id, e]));
-  const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const existentiallyIn = (body: string, symbol: string) =>
-    new RegExp(String.raw`there\s+(?:exists?|is|are)\b[^.;]{0,80}?` + escapeRe(symbol), "i").test(body);
-  const text = (e: AnchoredEnv) => `${e.title ?? ""} ${e.body}`;
-  const edges: DefinitionOrderEdge[] = [];
-  const seen = new Set<string>();
-  for (const { symbol, home } of notationHomes(notation)) {
-    const homeEnv = byId.get(home);
-    if (!homeEnv || !usesSymbolUndecorated(text(homeEnv), symbol)) continue;
-    const witnessed = homeEnv.env === "definitionv" || homeEnv.env === "algorithmv" ||
-      displaysDefiningEqualityFamily(homeEnv.body, symbol) ||
-      proseDefinesNotation(homeEnv.body, symbol) ||
-      existentiallyIn(homeEnv.body.replace(/\s+/g, " "), symbol);
-    if (!witnessed) continue;
-    const introducers = envs
-      .filter((e) => e.obj_id !== home && INTRODUCER_ENVS.has(e.env) &&
-        (displaysDefiningEqualityFamily(e.body, symbol) || introducesNotation(e.body, symbol)))
-      .map((e) => e.obj_id);
-    for (const e of envs) {
-      if (e.obj_id === home || introducers.includes(e.obj_id) || !usesSymbolUndecorated(text(e), symbol)) continue;
-      if (existentiallyIn(e.body.replace(/\s+/g, " "), symbol) || introducesNotation(e.body, symbol)) continue;
-      const key = `${symbol}|${home}|${e.obj_id}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      edges.push({ symbol, homes: [home, ...introducers], user: e.obj_id });
-    }
-  }
-  return edges;
-}
-
-/** The constraints the current order of `tex` violates (no home precedes the user). Reported
- *  against the table home. */
-export function definitionOrderViolations(tex: string, notation: string): DefinitionOrderViolation[] {
-  const order = new Map(scanAnchoredEnvs(tex).map((e) => [e.obj_id, e.order] as const));
-  return definitionOrderConstraints(tex, notation)
-    .filter((e) => e.homes.every((h) => order.get(e.user)! < order.get(h)!))
-    .map(({ symbol, homes, user }) => ({ symbol, home: homes[0], firstUse: user }));
 }
 
 /** Presentation floor for theorem/lemma STATEMENTS — enforces the two `p1_touchup` formatting rules

@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { buildGraphFromMd, objIdToNodeId } from "./from_note.js";
+import { objIdToNodeId } from "./from_note.js";
 import { extractFromLean } from "./extractor.js";
 import { mintHiddenDefNodes, mintAnnotatedNodes } from "./hidden.js";
 import { graphDerivedSkeleton, type GraphSkeletonRow } from "./skeleton.js";
@@ -10,12 +10,15 @@ import { statementHash } from "./hash.js";
 import { graphPath, loadGraph, saveGraph } from "./store.js";
 import type { FormalizationGraph, GraphNode, ReviewStatus, ValidationResult } from "./types.js";
 import type { CrosswalkEntry, CrosswalkVerdict } from "../types.js";
+import { closureHash, resolveDecls, type StatementFingerprints } from "../formalization/statement_fingerprints.js";
 
 export interface GateGraphRefresh {
   graph: FormalizationGraph | null;
   skeleton: GraphSkeletonRow[];
   dirty: string[];
   hashes: Record<string, string>;
+  /** Statement-fingerprint keys of the nodes the scan knows (empty without a scan). */
+  fingerprintKeys: Record<string, string>;
   coverage: ValidationResult | null;
   error?: string;
   /** Inert invented `@node:` tags stripped by the self-heal below. Non-empty means the
@@ -58,9 +61,9 @@ async function stripNodeTags(leanDir: string, ids: string[]): Promise<{ id: stri
 /** Map a reviewer crosswalk verdict onto the node review vocabulary. `unmatched`
  *  is the skeleton placeholder (not yet a real verdict) → leave node unreviewed. */
 function verdictToStatus(v: CrosswalkVerdict): ReviewStatus | null {
-  if (v === "exact" || v === "equivalent") return "matched";
+  if (v === "equivalent") return "matched";
   if (v === "unmatched") return null;
-  return "drift"; // stronger/weaker/missing/extra/encoding-drift/drift
+  return "drift";
 }
 
 /** crosswalk obj_id → graph node id (AUX-<decl> hidden-defs → aux_<decl>). */
@@ -103,6 +106,9 @@ export function applyVerdictsToGraph(
   /** Reviewer-facing target → exact graph node id. `null` marks a synthetic symbol-cluster
    *  row, which is persisted separately in `symbolReview` by proof_reviewer. */
   targetOwners?: ReadonlyMap<string, string | null>,
+  /** The nodes' statement-fingerprint keys of the reviewed tree (`fingerprintKeys`), recorded
+   *  beside the text hash so the next refresh with a scan compares by them. */
+  fingerprints: Record<string, string> = {},
 ): FormalizationGraph {
   // Resolve the ENTIRE batch before changing a review. A later bad row must not leave an
   // earlier row applied if callers catch the deterministic resolution error.
@@ -133,14 +139,57 @@ export function applyVerdictsToGraph(
     // statement (the symmetric convention `dirtyFrontier` reads) — never a constant sentinel,
     // which would defeat staleness detection (the node would be trusted forever).
     const hash = hashes[id] ?? statementHash(node.nl.statement);
-    g = setNodeReview(g, id, status, hash, e.note);
+    g = setNodeReview(g, id, status, hash, e.note, fingerprints[id] ?? null);
+  }
+  return g;
+}
+
+/**
+ * The statement-fingerprint key of every node whose anchored declaration Lean elaborated: the
+ * closure hashes of the declarations the anchor names, under the toolchain and Mathlib revision
+ * of the scan. It moves exactly when the statement, or a statement it reaches, changes in meaning.
+ * A node the scan has no declaration for, or that this extraction has no text hash for, has no key
+ * and is compared by source text. Pure.
+ */
+export function fingerprintKeys(
+  graph: FormalizationGraph,
+  fp: StatementFingerprints,
+  /** The source-text hashes of this extraction: a node with none (its `@node` tag is gone from
+   *  the Lean) gets no key either, so the text path re-opens it as it always has. */
+  hashes: Record<string, string>,
+): Record<string, string> {
+  const keys: Record<string, string> = {};
+  for (const n of graph.nodes) {
+    if (!n.lean.decl_name || !(n.id in hashes)) continue;
+    const decls = resolveDecls(fp, n.lean.decl_name, n.lean.file);
+    if (decls.length === 0) continue;
+    keys[n.id] = `fp:${statementHash(JSON.stringify({ decls: decls.sort().map((d) => [d, closureHash(fp, d)]), basis: fp.basis }))}`;
+  }
+  return keys;
+}
+
+/**
+ * A node reviewed at the source-text hash of its CURRENT text and carrying no fingerprint key is
+ * current, so the tree's key is recorded on its verdict: from then on that node is compared by
+ * what Lean elaborated. Nothing else about the verdict changes. Pure.
+ */
+export function carryOverFingerprints(
+  graph: FormalizationGraph,
+  hashes: Record<string, string>,
+  keys: Record<string, string>,
+): FormalizationGraph {
+  let g = graph;
+  for (const n of graph.nodes) {
+    const key = keys[n.id];
+    if (!key || n.review.passed_fingerprint || n.review.passed_hash === null || n.review.passed_hash !== hashes[n.id]) continue;
+    g = setNodeReview(g, n.id, n.review.status, n.review.passed_hash, n.review.note, key);
   }
   return g;
 }
 
 /**
  * Refresh the formalization graph from current Lean for a gate (F2.5/F4): load the
- * persisted graph (or build it from the `.md` if absent), extract annotations +
+ * persisted graph, extract annotations +
  * edges + proof state, mint hidden-def nodes, persist, and return the edge-augmented
  * skeleton, the dirty frontier, and the coverage validation. Best-effort: an
  * absent graph returns `graph:null`; failures include `error` for diagnostics.
@@ -150,17 +199,16 @@ export async function refreshGraphForGate(a: {
   qid: string;
   spec: string;
   leanDir: string;
-  mdPath?: string;
+  /** The statement fingerprints of the built tree, when they can be had: a node reviewed under a
+   *  scan is then compared by what Lean elaborated (`fingerprintKeys`); without them, or for a
+   *  node reviewed without one, by source text exactly as before. */
+  fingerprints?: StatementFingerprints | null;
 }): Promise<GateGraphRefresh> {
   try {
     let strippedTags: { id: string; file: string }[] = [];
     const p = graphPath(a.formalizationDir, a.qid, a.spec);
-    let g: FormalizationGraph | null = existsSync(p)
-      ? await loadGraph(p)
-      : a.mdPath && existsSync(a.mdPath)
-        ? await buildGraphFromMd(a.qid, a.spec, a.mdPath)
-        : null;
-    if (!g) return { graph: null, skeleton: [], dirty: [], hashes: {}, coverage: null };
+    let g: FormalizationGraph | null = existsSync(p) ? await loadGraph(p) : null;
+    if (!g) return { graph: null, skeleton: [], dirty: [], hashes: {}, fingerprintKeys: {}, coverage: null };
     // NOTE: do NOT hard-fail on `ext0.unlinked` here — a filler legitimately adds new
     // `-- @node:` helper tags that are "unlinked" ONLY until `mintAnnotatedNodes` registers
     // them below. Duplicate @node tags, by contrast, survive minting and are caught by the
@@ -202,12 +250,15 @@ export async function refreshGraphForGate(a: {
       throw new Error(`graph refresh found unlinked Lean @node annotations: ${ext.unlinked.map((u) => `${u.id}->${u.decl_name}@${u.file}`).join(", ")}`);
     }
     g = ext.graph;
+    const keys = a.fingerprints ? fingerprintKeys(g, a.fingerprints, ext.hashes) : {};
+    if (a.fingerprints) g = carryOverFingerprints(g, ext.hashes, keys);
     await saveGraph(p, g);
     return {
       graph: g,
       skeleton: graphDerivedSkeleton(g),
-      dirty: dirtyFrontier(g, ext.hashes),
+      dirty: dirtyFrontier(g, ext.hashes, keys),
       hashes: ext.hashes,
+      fingerprintKeys: keys,
       coverage: validate(g),
       ...(strippedTags.length ? { strippedTags } : {}),
     };
@@ -217,6 +268,7 @@ export async function refreshGraphForGate(a: {
       skeleton: [],
       dirty: [],
       hashes: {},
+      fingerprintKeys: {},
       coverage: null,
       // why: callers need to distinguish corrupt/invalid graph state from no graph artifact.
       error: err instanceof Error ? err.message : String(err),

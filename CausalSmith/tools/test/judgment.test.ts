@@ -1,43 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { extractJsonObject, interventionSchema, reviewResultSchema } from "../src/judgment.js";
-import { INTERVENTION_JSON_SCHEMA } from "../src/shared/intervention_routing.js";
+import { extractJsonObject, reviewResultSchema } from "../src/judgment.js";
 
 describe("reviewResultSchema", () => {
-  it("accepts Stage 0.5 journal-review accept results", () => {
-    const parsed = reviewResultSchema.parse({
-      status: "accept",
-      notes: "passes structure, novelty, and correctness",
-      dimension_findings: {
-        structure: { verdict: "pass", notes: "all required sections are present" },
-        novelty: { verdict: "pass", notes: "positioned against closest work" },
-        correctness: { verdict: "pass", notes: "proof checks out" },
-      },
-      journal_recommendations: [
-        {
-          journal: "Journal of Econometrics",
-          tier: "high",
-          fit_reasoning: "technical econometric formula with methodological audience",
-        },
-        {
-          journal: "Econometric Theory",
-          tier: "high",
-          fit_reasoning: "formal theorem note with a theory-facing econometrics audience",
-        },
-      ],
-    });
+  it("accepts `accept` as a synonym of `pass`", () => {
+    const parsed = reviewResultSchema.parse({ status: "accept", notes: "reuse decisions are sound" });
 
     expect(parsed.status).toBe("accept");
   });
 
-  it("accepts Stage 0.5 journal-review revise results", () => {
+  it("accepts a revise result and keeps fields it does not declare", () => {
     const parsed = reviewResultSchema.parse({
       status: "revise",
       classification: "correctness",
-      dimension_findings: {
-        structure: { verdict: "pass", notes: "structure is usable" },
-        novelty: { verdict: "pass", notes: "novelty is plausible" },
-        correctness: { verdict: "revise", notes: "one support condition is missing" },
-      },
       perItemFindings: [
         {
           label: "Theorem 1",
@@ -50,96 +24,7 @@ describe("reviewResultSchema", () => {
     });
 
     expect(parsed.status).toBe("revise");
-  });
-});
-
-describe("interventionSchema (auto-Bucket-A)", () => {
-  it("accepts an Opus-authored Bucket A assumption with route=stage_0", () => {
-    const parsed = interventionSchema.parse({
-      route: "stage_0",
-      reason:
-        "case (2b) auto-Bucket-A — Theorem 1 step 4 requires a rank condition on Z; re-derivation infeasible.",
-      proposed_action:
-        "integrate `A-rank-Z` verbatim under §7 of the .tex; do not introduce any OTHER unstated premise",
-      cite: "§7 Assumptions",
-      d0_rewind_intent: "incremental_repair",
-      proposed_assumption: {
-        label: "A-rank-Z",
-        statement: "E[Z Z^\\top] is positive definite.",
-        source: "generic rank/regularity condition; not the kernel claim",
-      },
-    });
-    expect(parsed.proposed_assumption?.label).toBe("A-rank-Z");
-    expect(parsed.route).toBe("stage_0");
-  });
-
-  it("rejects a proposed_assumption paired with route=user", () => {
-    expect(() =>
-      interventionSchema.parse({
-        route: "user",
-        reason: "auto-Bucket-A misroute",
-        proposed_assumption: {
-          label: "A-rank-Z",
-          statement: "E[Z Z^\\top] is positive definite.",
-        },
-      }),
-    ).toThrow();
-  });
-
-  it("still requires proposed_action when route!=user (auto-Bucket-A path)", () => {
-    expect(() =>
-      interventionSchema.parse({
-        route: "stage_0",
-        reason: "missing proposed_action",
-        proposed_assumption: {
-          label: "A-rank-Z",
-          statement: "E[Z Z^\\top] is positive definite.",
-        },
-      }),
-    ).toThrow();
-  });
-
-  it("rejects stage_0 without a typed rewind intent", () => {
-    expect(() => interventionSchema.parse({
-      route: "stage_0",
-      reason: "ambiguous rewind",
-      proposed_action: "change the paper",
-      action_kind: "re_derive",
-    })).toThrow(/d0_rewind_intent/);
-  });
-
-  it("keeps the constrained-generation schema in sync with the typed rewind field", () => {
-    expect(INTERVENTION_JSON_SCHEMA.additionalProperties).toBe(false);
-    expect(INTERVENTION_JSON_SCHEMA.properties.d0_rewind_intent).toEqual({
-      enum: ["incremental_repair", "extension", "replacement"],
-    });
-  });
-});
-
-describe("interventionSchema (stage_neg1 conjecture-pivot)", () => {
-  it("accepts a stage_neg1 pivot with proposed_action", () => {
-    const parsed = interventionSchema.parse({
-      route: "stage_neg1",
-      reason:
-        "case 6b — Theorem 1 admits a 2-line counterexample at X=0; conjecture is unsalvageable.",
-      proposed_action:
-        "abandon angle 0 and draft a different angle from the seed_list",
-    });
-    expect(parsed.route).toBe("stage_neg1");
-  });
-
-  it("rejects a stage_neg1 paired with proposed_assumption", () => {
-    expect(() =>
-      interventionSchema.parse({
-        route: "stage_neg1",
-        reason: "conjecture-level reject",
-        proposed_action: "pivot",
-        proposed_assumption: {
-          label: "A-rank-Z",
-          statement: "E[Z Z^\\top] is positive definite.",
-        },
-      }),
-    ).toThrow();
+    expect((parsed as Record<string, unknown>).journal_recommendations).toEqual([]);
   });
 });
 

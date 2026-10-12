@@ -62,9 +62,6 @@ export async function stageP0(io: StageIO): Promise<void> {
     topic: io.bank.readme.topic ?? io.ctx.qid,
     research_writeup_tex: anchorLiterature(io),
     source_bibliography: JSON.stringify(io.bank.sourceBibliography, null, 2),
-    // The full reviews jsonl is too large to inline; the proposal already
-    // carries the anchor-literature map, which is what P0 needs.
-    novelty_review: "",
   });
   // Codex with its hosted web_search tool (server-side search + open_page) builds
   // the pool; the sandbox stays network-off. High effort — search + extraction +

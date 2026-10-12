@@ -1,7 +1,7 @@
 // Typed schema for the F1 "formalization plan" — the machine-checkable map from
 // every typed-core node to the Lean object that realizes it. F1 authors it, the
 // plan_gate validates one-to-one coverage, F2 implements it and syncs deviations
-// back. See CausalSmith/doc/research/F1_F2_PLAN_REDESIGN.md §4.
+// back.
 //
 // The plan binds to the core's node ids (assumptions ∪ definitions ∪ statements),
 // NOT the prose .tex — so F1/F2 never re-extract structure. Changing F1's
@@ -92,8 +92,7 @@ export const NodeEntrySchema = z.object({
   //  - "gated" (default when absent): the gate WILL be discharged this run — it is
   //    scaffolded as an assumed gate only to parallelize proof-fill, its own proof
   //    is its verification, and it is recorded in SUBSTRATE_DEBT.md until discharged.
-  //    This is the existing substrate-gate behavior (the `substrate_build_required`
-  //    channel), unchanged — so pre-split plans (no `gate_class`) keep working.
+  //    A plan with no `gate_class` on a gate node reads as "gated".
   //  - "cited": the node is currently deferred — either a logical proposition
   //    assumption or a bibliographic metadata def, always MATCHED against `source`
   //    and recorded in CITED_DEPENDENCIES.md. A logical carrier may later take the
@@ -120,10 +119,6 @@ export const NodeEntrySchema = z.object({
   // hypotheses (assumption atoms used inline, and/or class structures it bundles).
   target_file: z.string().optional(),
   hyps: z.array(z.string()).optional(),
-  // statement only, paper-scoped runs: the `theorem_local_id` (t1, t2 …) this
-  // statement realizes, so the F1 `theorems[]` manifest and F2's `T<id>.lean`
-  // naming reconcile against `state.theorems[]`. Absent on legacy single-theorem runs.
-  local_id: z.string().optional(),
   delivery_role: DeliveryRoleSchema.optional(),
   delivery_status: DeliveryStatusSchema.default("deliver"),
   delivery_reason: z.string().min(1).optional(),
@@ -195,12 +190,8 @@ export const PlanSchema = z.object({
 });
 
 export type Disposition = z.infer<typeof DispositionSchema>;
-export type LeanKind = z.infer<typeof LeanKindSchema>;
-export type DeliveryRole = z.infer<typeof DeliveryRoleSchema>;
-export type DeliveryStatus = z.infer<typeof DeliveryStatusSchema>;
 export type Citation = z.infer<typeof CitationSchema>;
 export type CitationSourceEdge = z.infer<typeof CitationSourceEdgeSchema>;
-export type EnvEntry = z.infer<typeof EnvEntrySchema>;
 type ParsedNodeEntry = z.infer<typeof NodeEntrySchema>;
 type ParsedPlan = z.infer<typeof PlanSchema>;
 export type NodeEntry = Omit<ParsedNodeEntry, "gate" | "delivery_status"> & {

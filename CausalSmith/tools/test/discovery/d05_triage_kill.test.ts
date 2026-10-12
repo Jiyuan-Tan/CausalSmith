@@ -70,13 +70,6 @@ describe("formatTriageTier", () => {
     }
   });
 
-  it("labels the read as advisory and first-round, so it is not misread as the floor call", () => {
-    const note = formatTriageTier(gen({ tier: "subfield", salvageable: true }), "field");
-    expect(note).toContain("TRIAGE");
-    expect(note).toContain("NOT the verdict");
-    expect(note).toContain("under the bar");
-  });
-
   it("stays quiet about re-solving when the note already meets the floor", () => {
     const note = formatTriageTier(gen({ tier: "field" }), "field");
     expect(note).toContain("meets the bar");
@@ -92,7 +85,7 @@ describe("formatTriageTier", () => {
 // playbook therefore cuts the message at D0_5_TRIAGE_MARKER before matching.
 describe("D0.5 halt classification is not perturbed by the appended triage note", () => {
   const guide = (verdict: string, tier: GeneralTierCase) =>
-    checkpointGuidance("0.5", "checkpoint", {}, false, verdict + formatTriageTier(gen(tier), "field"))!;
+    checkpointGuidance("0.5", "checkpoint", false, verdict + formatTriageTier(gen(tier), "field"))!;
   type GeneralTierCase = Partial<GeneralReviewResult>;
 
   const CAP_EXHAUSTED =
@@ -123,6 +116,6 @@ describe("D0.5 halt classification is not perturbed by the appended triage note"
     expect(guide(NON_CONVERGING, { tier: "field" })).toContain("NON-CONVERGING");
     // The triage KILL states its own below-floor verdict, so it must still route there.
     const kill = "Stage 0.5 (typed) BELOW NOVELTY FLOOR (triage, round 0) — D0.5.G tier=subfield < floor=field";
-    expect(checkpointGuidance("0.5", "checkpoint", {}, false, kill)).toContain("BELOW NOVELTY FLOOR");
+    expect(checkpointGuidance("0.5", "checkpoint", false, kill)).toContain("BELOW NOVELTY FLOOR");
   });
 });

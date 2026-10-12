@@ -1,4 +1,4 @@
-// Deterministic core → .tex renderer (D0_CORE_REDESIGN.md §12 / §5).
+// Deterministic core → .tex renderer.
 //
 // The typed core is the single source of truth; the .tex is a PURE FUNCTION of it
 // — no LLM. Shared by D-1.2 (proposal core: prose fields + to-prove statements)

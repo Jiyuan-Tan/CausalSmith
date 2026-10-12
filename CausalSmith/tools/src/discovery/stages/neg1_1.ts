@@ -7,7 +7,7 @@ import { mkdir, readFile } from "node:fs/promises";
 import { z } from "zod";
 import { MODEL_PLAN } from "../../constants.js";
 import type { PipelineContext, StageResult, StateJson } from "../../types.js";
-import { artifactPaths, readPrompt, type StageDeps } from "../../pipeline_support.js";
+import { artifactPaths, clusterFromLeanSubdir, readPrompt, type StageDeps } from "../../pipeline_support.js";
 import { dispatchAgent } from "../../framework/agent_dispatch.js";
 import { normalizeRawModelJson } from "../core/latex_serialization.js";
 import { gapsJsonPath } from "../../paths.js";
@@ -143,18 +143,6 @@ const scoutArtifactSchema = z.object({
   }
 });
 
-/** Bind the scout artifact to the orchestrator-owned topic.
- *
- * The topic is input provenance, not model-authored content.  Treating the
- * scout's lossy echo as authoritative made an otherwise valid harvest fail
- * whenever the model shortened a long topic. */
-export function bindScoutTopic(
-  json: Record<string, unknown>,
-  expectedTopic: string,
-): Record<string, unknown> {
-  return { ...json, topic: expectedTopic };
-}
-
 /** Replace every filesystem/provenance field with orchestrator-owned values.
  *
  * The scout supplies research content only.  In particular, a path echoed by
@@ -219,7 +207,6 @@ function persistScoutDecision(args: {
       message:
         `Stage -1.1 needs-pivot — ${verb} ${args.decision.nOpen} open problem(s); topic anchor too generic; ` +
         "orchestrator must pivot the topic",
-      artifacts: [args.gapsPath],
     };
   }
 
@@ -227,7 +214,6 @@ function persistScoutDecision(args: {
     stage: "-1.1",
     status: "completed",
     message: `Stage -1.1 ${verb} ${args.decision.nOpen} open problems at ${args.gapsPath}`,
-    artifacts: [args.gapsPath],
   };
 }
 
@@ -242,10 +228,9 @@ function persistScoutDecision(args: {
  * On `needs-pivot` (n_open_problems < 3) the handler returns a `checkpoint`
  * with `advance: false`, which HALTS the pipeline loop (see pipeline.ts — the
  * loop breaks on checkpoint). The run does NOT fall through to -1.2; the
- * operator must pivot the topic and re-run. Because of this, the proposer's
- * inline Step 0a fallback is reached only in the rare degraded case where
- * gaps.json was written + advanced but is missing/unreadable by the time -1.2
- * runs and no cached literature_map survives on state.proposed_from.
+ * operator must pivot the topic and re-run. A gaps.json that was written + advanced
+ * but is missing/unreadable by the time -1.2 runs, with no cached literature_map on
+ * state.proposed_from, halts a cold start there.
  */
 export async function runStageNeg1_1(args: {
   ctx: PipelineContext;
@@ -286,6 +271,7 @@ export async function runStageNeg1_1(args: {
   const gapsPath = gapsJsonPath(args.ctx.repoRoot, args.ctx.qid, args.ctx.specialization);
 
   const litReviewPrompt = await readPrompt(args.ctx, "stage_neg1_1_lit_review.txt");
+  const clusterDefinitions = await readPrompt(args.ctx, "cluster_definitions.txt");
   const upgradeBlock = args.ctx.upgradeFrom
     ? [
         "",
@@ -302,9 +288,12 @@ export async function runStageNeg1_1(args: {
   const prompt = [
     litReviewPrompt,
     "",
+    clusterDefinitions,
+    "",
     "=== ORCHESTRATOR-PROVIDED INPUTS ===",
     `Topic: ${args.ctx.proposeTopic ?? "(none)"}`,
     `qid: ${args.ctx.qid}`,
+    `Cluster: ${clusterFromLeanSubdir(args.state.lean_subdir) ?? "unknown"}`,
     `specialization: ${args.ctx.specialization}`,
     `gaps artifact path: ${gapsPath}`,
     upgradeBlock,
@@ -325,6 +314,7 @@ export async function runStageNeg1_1(args: {
     prompt,
     promptSources: [
       "prompts/D-1/stage_neg1_1_lit_review.txt",
+      "prompts/_shared/cluster_definitions.txt",
       ...(upgradeBlock ? ["upgrade-context"] : []),
     ],
     model: MODEL_PLAN.stageNeg1_1_litReview.model,
@@ -374,9 +364,7 @@ export async function runStageNeg1_1(args: {
  * If gaps.json is missing or unparseable, we fall back to the literature_map
  * cached on `state.proposed_from` (populated on the prior cold-start) so the
  * proposer still has *some* substrate. Empty string when neither source is
- * available — in that case the proposer prompt's legacy Step 0a kicks in.
- * (This tolerant read is a DESIGNED degradation with a visible fallback chain,
- * not an existsSync-fail-open: the caller renders an explicit fallback block.)
+ * available — a cold start halts on it (`runStageNeg1_2`).
  */
 export async function buildGapsContextBlock(args: {
   ctx: PipelineContext;
@@ -394,22 +382,21 @@ export async function buildGapsContextBlock(args: {
       "=== STAGE -1.1 GAPS CONTEXT (load-bearing for seed anchoring) ===",
       `Path: ${args.gapsPath}`,
       "This is the research-opportunity substrate harvested by Stage -1.1 (literature scout)",
-      "from web search + prior causalsmith proposals/reviewers. Every seed in your Step",
-      "0b ideation MUST anchor (F1) to either a paper bibkey from a `source_refs` entry",
-      "with kind=paper, OR a prior-proposal ref from a `source_refs` entry with",
-      "kind=prior_proposal. Rank opportunities by evidence, mathematical depth, novelty,",
+      "from web search + prior causalsmith proposals/reviewers. A seed anchors to a paper",
+      "bibkey from a `source_refs` entry with kind=paper, or to a prior-proposal ref from a",
+      "`source_refs` entry with kind=prior_proposal. Rank opportunities by evidence, mathematical depth, novelty,",
       "feasibility, and consumer value — never by source or opportunity kind. The",
       "`literature_map` and `prior_proposal_map`",
-      "fields below subsume your legacy Step 0a / Step 1a outputs — do NOT re-do them.",
+      "fields below are your breadth literature map and catalogue scan — do NOT re-do them.",
       "",
       "Each opportunity also carries an `exemplars` block: a `writing_exemplar`",
       "(the paper whose intro + problem-formulation to imitate) and `method_exemplars`",
       "(the closest technique ancestors to adapt). These are NOT pre-digested — pull",
       "the actual paper up at the point of use, the way you keep a reference open on",
-      "the desk: look up the method exemplar in Step 1b (while deepening / deriving),",
-      "and the writing exemplar in Step 2 (while drafting §4 intro + §6 setup). When",
+      "the desk: look up the method exemplar while deepening / deriving, and the writing",
+      "exemplar while drafting the core prose. When",
       "you anchor a seed to an open problem, inherit THAT problem's exemplars; record",
-      "the ones you actually used in proposal §5 so Stage 0 inherits them.",
+      "the ones you actually used in `related_work` so Stage 0 inherits them.",
       "",
       "GAPS PAYLOAD (verbatim):",
       raw.trim(),

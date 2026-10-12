@@ -6,8 +6,7 @@
  * `discovery/dneg1_escalation_log.jsonl`. Mirrors the `d0_directive` channel for
  * the discovery-proposal stage.
  *
- * Use when the D-1.2 proposer needs a concrete steer the automatic Stage 0.5
- * rejection context does not carry: a literature-grounded reframe, a donor/witness
+ * Use when the D-1.2 proposer needs a concrete steer: a literature-grounded reframe, a donor/witness
  * to anchor the kernel to, or a recurring drift the reviewer keeps flagging that a
  * plain revise round isn't fixing. The entry is appended as `{angle, version, directive}`
  * and rendered verbatim as `[vN] DIRECTIVE: …` in the proposer's prompt context.
@@ -60,7 +59,7 @@ async function main(): Promise<void> {
   await appendNeg1EscalationLog(ctx, { angle, version, ...(note ? { note } : {}), directive: text });
   console.log(
     `Appended a D-1.2 directive (angle ${angle}, v${version}) for ${qid} / ${spec}. ` +
-      `--resume (or --from-stage -1.2) re-enters D-1.2 and the next draft renders it as an escalation directive.`,
+      `The next D-1.2 draft of this angle renders it as an escalation directive.`,
   );
 }
 

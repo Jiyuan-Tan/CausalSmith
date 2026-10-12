@@ -78,7 +78,9 @@ export function topLevelAssignIndex(text: string): number {
 
 /** Strip Lean comments — `/- … -/` blocks (incl. nested blocks, `/--` docstrings and `/-!`) and
  *  `--` line comments — replacing each with a space. Used so a `sorry` token mentioned in a
- *  docstring or comment is NOT mistaken for an unfinished proof. */
+ *  docstring or comment is NOT mistaken for an unfinished proof. Ordinary and `r"…"` string
+ *  literals are preserved; a raw string with `#` delimiters (`r#"…"#`) is read as an ordinary
+ *  string, so a `"` inside it ends the literal early. */
 export function stripLeanComments(s: string): string {
   let out = "";
   let depth = 0;

@@ -18,7 +18,7 @@ import { isDeepStrictEqual } from "node:util";
 import { writeJsonAtomic } from "../../shared/json_atomic.js";
 import { canonicalClaimText, truncateTexSafe } from "../../shared/tex_text.js";
 import { extractNodeRefs } from "../core/node_ids.js";
-import { normalizeSymbol } from "../core/symbol_names.js";
+import { normalizeSymbol, symbolOccursIn } from "../core/symbol_names.js";
 import { retargetDeletedDependency } from "../core/oeq_edges.js";
 import type { CoreStatement } from "../core/schema.js";
 import type { SolveUnitOutput } from "../solve/schemas.js";
@@ -229,7 +229,17 @@ function deterministicStatementSymbols(graph: Graph): string[] {
 }
 
 function solverBornStatementBody(input: CoreStatement, graph: Graph): StatementBody {
-  return { ...statementBodyFromInput(input), free_symbols: deterministicStatementSymbols(graph) };
+  const body = statementBodyFromInput(input);
+  // An explicit solver manifest is the statement's dependency declaration (the
+  // D0 prompt requires one per node); omission is the fail-safe all-symbol scope.
+  // A declared list is widened by every table symbol that visibly occurs in the
+  // claim or its proof, so a symbol the solver used but did not list is covered.
+  const all = deterministicStatementSymbols(graph);
+  if (body.free_symbols === undefined) return { ...body, free_symbols: all };
+  const text = `${input.statement}\n${input.proof_tex ?? ""}`;
+  const declared = body.free_symbols;
+  const used = all.filter((name) => !declared.includes(name) && symbolOccursIn(text, name));
+  return used.length === 0 ? body : { ...body, free_symbols: [...declared, ...used] };
 }
 
 /** Extend only manifests that were already exhaustive. A changed existing
@@ -241,8 +251,12 @@ function refreshExhaustiveStatementSymbols(base: Graph, graph: Graph): Graph {
   let changed = false;
   for (const { id, blob } of nodesOfType(graph, "statement")) {
     const before = statementBlob(base, id);
-    const needsRefresh = before === undefined ||
-      (declaredSymbolsCoverAll(base, before.body.free_symbols) &&
+    // A statement born this round is exhaustive iff its manifest covers the base
+    // table (omitted, or the fail-safe all-symbol scope); an explicit narrow
+    // manifest is durable from birth.
+    const needsRefresh = before === undefined
+      ? blob.body.free_symbols === undefined || declaredSymbolsCoverAll(base, blob.body.free_symbols)
+      : (declaredSymbolsCoverAll(base, before.body.free_symbols) &&
         !declaredSymbolsCoverAll(graph, before.body.free_symbols));
     if (!needsRefresh) continue;
     const free_symbols = deterministicStatementSymbols(graph);
@@ -568,11 +582,7 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
         const body = { ...meta.body };
         if (e.kind === "target-estimand-replace") body.target_estimand = e.proposed;
         else if (e.kind === "estimand-functional-replace") body.estimand_functional = e.proposed;
-        else {
-          const field = body.comparator_promise_table === undefined && body.comparator_promises !== undefined
-            ? "comparator_promises" : "comparator_promise_table";
-          body[field] = e.proposed;
-        }
+        else body.comparator_promise_table = e.proposed;
         d.set(META_ID, { node_type: "meta", body });
         note(META_ID, `${e.kind}: ${e.reason}`);
         break;
@@ -759,15 +769,22 @@ export interface FoldResult {
   conflicts: Array<{ unit: string; id: NodeId; reason: string }>;
 }
 
-/** Invalidate, but never restamp, a proof whose recorded basis does not cover its
- * current closure. Composition boundaries can reveal references absent when a
- * unit-local proof was written. */
-function invalidateIncompleteProofBases(graph: Graph): Graph {
+/** Invalidate, but never restamp, a proof written THIS ROUND whose recorded basis
+ * does not cover its current closure: composition boundaries can reveal references
+ * absent when a unit-local proof was written. A proof already on `before` with the
+ * same text and basis is governed by the basis rule alone (validity.ts: a node wired
+ * in after the proof was written does not invalidate it, and a pure rewire keeps the
+ * proof); a resolution answer is guarded by check V2 and `restoreBrokenResolutions`. */
+function invalidateIncompleteProofBases(before: Graph, graph: Graph): Graph {
   const nodes = new Map(graph.nodes);
   const tree = { ...graph.tree };
   let invalidated = false;
   for (const { id, blob } of nodesOfType(graph, "statement")) {
-    if (blob.body.proof_basis === undefined || proofCoversCurrentClosure(graph, id)) continue;
+    if (blob.body.proof_basis === undefined) continue;
+    const prior = statementBlob(before, id);
+    if (prior !== undefined && prior.body.proof_tex === blob.body.proof_tex
+      && isDeepStrictEqual(prior.body.proof_basis, blob.body.proof_basis)) continue;
+    if (proofCoversCurrentClosure(graph, id)) continue;
     const { proof_basis: _basis, ...body } = blob.body;
     const stale: NodeBlob = { node_type: "statement", body };
     nodes.set(id, stale);
@@ -815,7 +832,7 @@ export function foldUnitHeads(base: Graph, heads: UnitHead[]): FoldResult {
     tree[a.id] = { ...tree[a.id], pos };
   }
   const merged = normalizeGraph({ tree, nodes });
-  return { graph: invalidateIncompleteProofBases(refreshExhaustiveStatementSymbols(base, merged)), conflicts };
+  return { graph: invalidateIncompleteProofBases(base, refreshExhaustiveStatementSymbols(base, merged)), conflicts };
 }
 
 /** Revert the changed nodes a check implicates until the graph passes.
@@ -1194,7 +1211,12 @@ function restoreBrokenResolutions(base: Graph, graph: Graph, provenance: Resolut
     const statement = nodes.get(resolution.answerId);
     if (statement?.node_type !== "statement") continue;
     const dependencies = (statement.body.depends_on ?? []).filter((dependency) => dependency !== resolution.sourceId);
-    const proofBasis = statement.body.proof_basis === undefined ? undefined : { ...statement.body.proof_basis };
+    // An answer created by this PR exists only as the resolution's answer. When
+    // the resolution does not land, it keeps its proof bytes as progress but no
+    // basis: it must be re-proved as a standalone theorem. An answer that was
+    // already a node on the base keeps its own basis minus the question.
+    const bornWithResolution = base.nodes.get(resolution.answerId) === undefined;
+    const proofBasis = statement.body.proof_basis === undefined || bornWithResolution ? undefined : { ...statement.body.proof_basis };
     if (proofBasis !== undefined) delete proofBasis[resolution.sourceId];
     const body = { ...statement.body, depends_on: dependencies, proof_basis: proofBasis };
     if (proofBasis === undefined) delete body.proof_basis;
@@ -1357,7 +1379,10 @@ function detachAnswersBlockedByRejectedSymbols(
     const answer = nodes.get(answerId);
     if (answer?.node_type !== "statement") continue;
     const dependencies = (answer.body.depends_on ?? []).filter((dependency) => dependency !== sourceId);
-    const proofBasis = answer.body.proof_basis === undefined ? undefined : { ...answer.body.proof_basis };
+    // Same rule as restoreBrokenResolutions: a PR-born answer whose resolution
+    // is detached loses its basis, not just the question's entry.
+    const bornWithResolution = base.nodes.get(answerId) === undefined;
+    const proofBasis = answer.body.proof_basis === undefined || bornWithResolution ? undefined : { ...answer.body.proof_basis };
     if (proofBasis !== undefined) delete proofBasis[sourceId];
     const detachedBody = { ...answer.body, depends_on: dependencies, proof_basis: proofBasis };
     if (proofBasis === undefined) delete detachedBody.proof_basis;
@@ -1495,7 +1520,10 @@ export async function mergePr(args: { store: VcsStore; ctx?: PipelineContext; pr
     meta: { pr: pr.id, accepted: [...acceptedIds], rejected: [...rejectedIds] },
   });
   if (!headPrimeCommit.ok) throw new Error("vcs: accepted head failed a check it just passed");
+  // Compared against main, which the merged graph is built on: a node equal to
+  // main was examined when main's own commit landed.
   const finalGraph = invalidateIncompleteProofBases(
+    main,
     refreshExhaustiveStatementSymbols(base, reconciled.graph),
   );
   const merge = await commitGraph({

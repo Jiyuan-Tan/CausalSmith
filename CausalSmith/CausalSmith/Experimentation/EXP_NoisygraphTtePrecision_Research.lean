@@ -1,0 +1,52 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.All
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Basic
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Estimators
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.BaselineShift
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.BlockTestingLower
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.ChannelTransfer
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.ConditionalBitMoments
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.ContractionTV
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.DesignBridge
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.FrontierLengthAssembly
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.FrontierLower
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.FrontierRates
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.FrontierRiskAssembly
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.GraphBayes
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.Identification
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.LikelihoodDensity
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.LikelihoodExpansion
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.LikelihoodPolynomial
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.MatchingFamily
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.MatchingPosterior
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.MatchingPosteriorMoments
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.MatchingSizeTail
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.MatchingSupport
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.MatchingTestingLower
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.MissingOnlyTesting
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.PosteriorEnergy
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.PosteriorImageDecomposition
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.PublishedModel
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.RawScoreMoments
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.ReferenceLaw
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.ResponseMarks
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.ResponseProduct
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.Helpers.SeparatedPriorDecisions
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.TCompleteRecordPrecisionFrontier
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.TMarkedContraction
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.TObservableUpper
+public import CausalSmith.Experimentation.EXP_NoisygraphTtePrecision_Research.TPublishedSuperclassLowerTransfer
+
+/-! # Run barrel (auto-generated)
+
+Aggregates every module of this causalsmith run so the whole run is ONE buildable target
+(`lake build <this module>`). Research modules are not reachable from the top-level
+`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale
+oleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/

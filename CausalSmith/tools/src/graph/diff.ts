@@ -18,10 +18,21 @@ import { statementHash } from "./hash.js";
  * verifiable (re-reviewed exactly when its recorded NL spec changes) instead of trusted forever
  * behind a constant sentinel. Its Lean-side drift is still caught via the host theorem's own hash.
  */
-export function dirtyFrontier(graph: FormalizationGraph, freshHashes: Record<string, string>): string[] {
+export function dirtyFrontier(
+  graph: FormalizationGraph,
+  freshHashes: Record<string, string>,
+  /** The nodes' statement-fingerprint keys of the built tree, when it was scanned: a node whose
+   *  verdict carries such a key is then compared by it, so a comment, a tag or a neighbouring
+   *  docstring does not re-open it while a reached definition's change does. Without them, or for
+   *  a node whose verdict has none, the source-text hash decides. */
+  freshFingerprints: Record<string, string> = {},
+): string[] {
   const dirty = new Set<string>();
   for (const n of graph.nodes) {
     const fresh = freshHashes[n.id] ?? statementHash(n.nl.statement);
+    const freshKey = freshFingerprints[n.id];
+    const passedKey = n.review.passed_fingerprint;
+    const changed = freshKey && passedKey ? freshKey !== passedKey : fresh !== n.review.passed_hash;
     // Only nodes for which the delta reviewer has a target tier may seed the frontier. Annotated
     // proof helpers are minted with an initial statement hash, but F3 may later remove/move their
     // `@node` tag. Extraction then has no fresh Lean hash and falls back to the helper's synthetic
@@ -37,7 +48,7 @@ export function dirtyFrontier(graph: FormalizationGraph, freshHashes: Record<str
           n.kind === "definition" ||
           n.kind === "lemma" ||
           (n.kind === "gate" && n.gate?.gate_class === "cited")));
-    const genuineChange = reviewable && n.review.passed_hash !== null && fresh !== n.review.passed_hash;
+    const genuineChange = reviewable && n.review.passed_hash !== null && changed;
     // Never reviewed → a dirty source ONLY if it is a paper-originated node we actually review.
     // Agent-introduced / library defs are never review targets, so their `passed_hash` stays `null`
     // forever; treating that as "dirty" would perpetually re-dirty every statement that references

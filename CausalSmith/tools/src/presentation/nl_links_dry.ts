@@ -3,10 +3,9 @@
 // Everything the sub-step does BEFORE it spends a model call — selection, block
 // extraction, Lean pieces and their reference closure, statement structuring,
 // paper segmentation and its invariants, both prompt renderings, the cache read
-// side, the artifact read side — is exercised here against a real bundle with a
-// runCodex that THROWS if anything reaches it. A bundle shape the sub-step has
-// never seen surfaces as a report line instead of a crash halfway through a paid
-// run.
+// side, the artifact read side — is exercised here against a real bundle; no
+// model runner is in scope. A bundle shape the sub-step has never seen surfaces
+// as a report line instead of a crash halfway through a paid run.
 //
 // It shares the stage's own primitives, so there is no second copy of the rules
 // to drift out of step.
@@ -35,13 +34,6 @@ import {
 } from "./nl_links.js";
 import { segmentationProblems } from "./nl_segments.js";
 import type { LeanSnippet } from "./types.js";
-
-/** A runCodex that must never be reached. Passing it proves the pass is free. */
-export const forbiddenCodex = {
-  runCodex: async (): Promise<{ stdout: string; stderr: string }> => {
-    throw new Error("nl-links dry run attempted a model call — the free pass is not free");
-  },
-};
 
 export interface BundleReport {
   bundle: string;
